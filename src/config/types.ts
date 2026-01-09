@@ -1106,7 +1106,7 @@ export type SoulEvilConfig = {
   purge?: {
     /** Start time in 24h HH:mm format. */
     at?: string;
-    /** Duration (e.g. 10m, 1h). */
+    /** Duration (e.g. 30s, 10m, 1h). */
     duration?: string;
   };
 };

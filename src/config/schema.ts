@@ -175,7 +175,7 @@ const FIELD_HELP: Record<string, string> = {
   "agent.soulEvil.chance": "Random chance (0-1) per message to use SOUL_EVIL.",
   "agent.soulEvil.purge.at": "Daily purge start time (HH:mm, 24h).",
   "agent.soulEvil.purge.duration":
-    "Purge duration after start time (duration like 2m).",
+    "Purge duration after start time (duration string: ms/s/m/h; default unit minutes).",
   "commands.native":
     "Register native commands with connectors that support it (Discord/Slack/Telegram).",
   "commands.text": "Allow text command parsing (slash commands only).",
