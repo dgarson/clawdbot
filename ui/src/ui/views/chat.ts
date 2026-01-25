@@ -138,7 +138,7 @@ function renderChatSkeleton() {
 
 function renderCompactionIndicator(status: CompactionIndicatorStatus | null | undefined) {
   if (!status) return nothing;
-  
+
   // Show "compacting..." while active
   if (status.active) {
     return html`
@@ -159,7 +159,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
       `;
     }
   }
-  
+
   return nothing;
 }
 
