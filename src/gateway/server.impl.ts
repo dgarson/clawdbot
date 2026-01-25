@@ -269,6 +269,8 @@ export async function startGatewayServer(
   const {
     canvasHost,
     httpServer,
+    httpServers,
+    httpBindHosts,
     wss,
     clients,
     broadcast,
@@ -298,6 +300,7 @@ export async function startGatewayServer(
     canvasHostEnabled,
     allowCanvasHostInTests: opts.allowCanvasHostInTests,
     logCanvas,
+    log,
     logHooks,
     logPlugins,
   });
@@ -505,6 +508,7 @@ export async function startGatewayServer(
   logGatewayStartup({
     cfg: cfgAtStart,
     bindHost,
+    bindHosts: httpBindHosts,
     port,
     tlsEnabled: gatewayTls.enabled,
     log,
@@ -596,6 +600,7 @@ export async function startGatewayServer(
     browserControl,
     wss,
     httpServer,
+    httpServers,
   });
 
   return {
