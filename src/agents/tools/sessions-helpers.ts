@@ -21,6 +21,7 @@ export type SessionListRow = {
   kind: SessionKind;
   channel: string;
   label?: string;
+  tags?: string[];
   displayName?: string;
   deliveryContext?: SessionListDeliveryContext;
   updatedAt?: number | null;

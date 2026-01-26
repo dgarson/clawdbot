@@ -48,6 +48,8 @@ export type CronServiceState = {
   running: boolean;
   op: Promise<unknown>;
   warnedDisabled: boolean;
+  /** @internal Promise of the last onTimer run, for test synchronization. */
+  _lastTimerRun?: Promise<void>;
 };
 
 export function createCronServiceState(deps: CronServiceDeps): CronServiceState {

@@ -133,7 +133,7 @@ export function renderOverview(props: OverviewProps) {
             <div class="field__input-wrapper">
               ${icon("server", { size: 16, class: "field__icon" })}
               <input
-                class="field__input"
+                class="field__input field__input--mono"
                 .value=${props.settings.gatewayUrl}
                 @input=${(e: Event) => {
                   const v = (e.target as HTMLInputElement).value;
@@ -148,7 +148,7 @@ export function renderOverview(props: OverviewProps) {
             <div class="field__input-wrapper">
               ${icon("zap", { size: 16, class: "field__icon" })}
               <input
-                class="field__input"
+                class="field__input field__input--mono"
                 .value=${props.settings.token}
                 @input=${(e: Event) => {
                   const v = (e.target as HTMLInputElement).value;
@@ -179,7 +179,7 @@ export function renderOverview(props: OverviewProps) {
             <div class="field__input-wrapper">
               ${icon("file-text", { size: 16, class: "field__icon" })}
               <input
-                class="field__input"
+                class="field__input field__input--mono"
                 .value=${props.settings.sessionKey}
                 @input=${(e: Event) => {
                   const v = (e.target as HTMLInputElement).value;

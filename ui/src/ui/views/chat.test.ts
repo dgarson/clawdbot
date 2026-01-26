@@ -9,7 +9,7 @@ function createSessions(): SessionsListResult {
     ts: 0,
     path: "",
     count: 0,
-    defaults: { model: null, contextTokens: null },
+    defaults: { modelProvider: null, model: null, contextTokens: null },
     sessions: [],
   };
 }

@@ -192,6 +192,20 @@
     font-size: 14px;
   }
 
+  .field__input {
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  .field__input-wrapper .field__input {
+    padding-left: 40px;
+  }
+
+  .field__input-wrapper--has-clear .field__input {
+    padding-right: 34px;
+  }
+
   /* Buttons */
   .btn {
     padding: 8px 12px;

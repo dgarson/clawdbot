@@ -17,6 +17,7 @@ import type {
   NostrProfile,
   PresenceEntry,
   SessionsListResult,
+  SessionsPreviewEntry,
   SkillStatusReport,
   StatusSummary,
 } from "./types";
@@ -133,6 +134,10 @@ export type AppViewState = {
   agentsLoading: boolean;
   agentsList: AgentsListResult | null;
   agentsError: string | null;
+  agentsUiSelectedAgentKey: string | null;
+  agentsUiAgentSearch: string;
+  agentsUiSessionSearch: string;
+  agentsUiSessionTypeFilter: "all" | "regular" | "cron";
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;
@@ -145,6 +150,15 @@ export type AppViewState = {
   sessionsSortDir: "asc" | "desc";
   sessionsKindFilter: "all" | "direct" | "group" | "global" | "unknown";
   sessionsStatusFilter: "all" | "active" | "idle" | "completed";
+  sessionsAgentLabelFilter: string;
+  sessionsLaneFilter: "all" | "cron" | "regular";
+  sessionsTagFilter: string[];
+  sessionsViewMode: "list" | "table";
+  sessionsDrawerKey: string | null;
+  sessionsDrawerExpanded: boolean;
+  sessionsPreviewLoading: boolean;
+  sessionsPreviewError: string | null;
+  sessionsPreviewEntry: SessionsPreviewEntry | null;
   cronLoading: boolean;
   cronJobs: CronJob[];
   cronStatus: CronStatus | null;
@@ -300,6 +314,11 @@ export type AppViewState = {
   handleOverseerToggleGraph: (kind: "overseer" | "system", next: boolean) => void;
   handleOverseerDrawerClose: () => void;
   handleOverseerLoadCronRuns: (jobId: string) => Promise<void>;
+  handleSessionsDrawerClose: () => void;
+  handleSessionsDrawerToggleExpanded: () => void;
+  handleSessionsDrawerOpen: (key: string) => Promise<void>;
+  handleSessionsDrawerOpenExpanded: (key: string) => Promise<void>;
+  handleSessionsDrawerRefreshPreview: () => Promise<void>;
   handleChatScroll: (event: Event) => void;
   handleSendChat: (message?: string, opts?: { restoreDraft?: boolean }) => Promise<void>;
   handleAbortChat: () => Promise<void>;

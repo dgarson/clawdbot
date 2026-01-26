@@ -64,6 +64,7 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
     expect(enqueueSystemEvent).not.toHaveBeenCalled();
     expect(requestHeartbeatNow).not.toHaveBeenCalled();

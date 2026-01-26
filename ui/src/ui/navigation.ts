@@ -2,7 +2,7 @@ export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
     label: "Control",
-    tabs: ["overview", "channels", "instances", "sessions", "cron", "overseer"],
+    tabs: ["overview", "agents", "channels", "instances", "sessions", "cron", "overseer"],
   },
   { label: "Agent", tabs: ["skills", "nodes"] },
   { label: "Settings", tabs: ["config", "debug", "logs"] },
@@ -11,6 +11,7 @@ export const TAB_GROUPS = [
 export type Tab =
   | "landing"
   | "overview"
+  | "agents"
   | "channels"
   | "instances"
   | "sessions"
@@ -26,6 +27,7 @@ export type Tab =
 const TAB_PATHS: Record<Tab, string> = {
   landing: "/",
   overview: "/overview",
+  agents: "/agents",
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
@@ -110,6 +112,8 @@ export function iconForTab(tab: Tab): string {
       return "💬";
     case "overview":
       return "📊";
+    case "agents":
+      return "🪐";
     case "channels":
       return "🔗";
     case "instances":
@@ -141,6 +145,8 @@ export function titleForTab(tab: Tab) {
       return "Welcome";
     case "overview":
       return "Overview";
+    case "agents":
+      return "Agents";
     case "channels":
       return "Channels";
     case "instances":
@@ -174,6 +180,8 @@ export function subtitleForTab(tab: Tab) {
       return "Discover what Clawdbrain can do for you.";
     case "overview":
       return "Gateway status, entry points, and a fast health read.";
+    case "agents":
+      return "Orbit your agents and drill into Cron vs regular sessions.";
     case "channels":
       return "Manage channels and settings.";
     case "instances":

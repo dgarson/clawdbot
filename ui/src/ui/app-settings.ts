@@ -182,6 +182,9 @@ export function setTheme(
 
 export async function refreshActiveTab(host: SettingsHost) {
   if (host.tab === "overview") await loadOverview(host);
+  if (host.tab === "agents") {
+    await loadSessions(host as unknown as ClawdbotApp);
+  }
   if (host.tab === "channels") await loadChannelsTab(host);
   if (host.tab === "instances") await loadPresence(host as unknown as ClawdbotApp);
   if (host.tab === "sessions") {

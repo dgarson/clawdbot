@@ -201,6 +201,7 @@ describe("listSessionsFromStore search", () => {
       updatedAt: Date.now(),
       displayName: "Work Project Alpha",
       label: "work",
+      description: "Planning an API design for the work project",
     } as SessionEntry,
     "agent:main:personal-chat": {
       sessionId: "sess-personal-1",
@@ -272,6 +273,18 @@ describe("listSessionsFromStore search", () => {
     });
     expect(result.sessions.length).toBe(1);
     expect(result.sessions[0].label).toBe("discord");
+  });
+
+  test("filters by description", () => {
+    const store = makeStore();
+    const result = listSessionsFromStore({
+      cfg: baseCfg,
+      storePath: "/tmp/sessions.json",
+      store,
+      opts: { search: "api design" },
+    });
+    expect(result.sessions.length).toBe(1);
+    expect(result.sessions[0].key).toBe("agent:main:work-project");
   });
 
   test("filters by sessionId", () => {

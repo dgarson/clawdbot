@@ -213,6 +213,16 @@ describe("gateway server sessions", () => {
     expect(sendPolicyPatched.ok).toBe(true);
     expect(sendPolicyPatched.payload?.entry.sendPolicy).toBe("deny");
 
+    const tagsPatched = await rpcReq<{
+      ok: true;
+      entry: { tags?: string[] };
+    }>(ws, "sessions.patch", {
+      key: "agent:main:main",
+      tags: ["project-x", "Urgent", "project-x"],
+    });
+    expect(tagsPatched.ok).toBe(true);
+    expect(tagsPatched.payload?.entry.tags).toEqual(["project-x", "Urgent"]);
+
     const labelPatched = await rpcReq<{
       ok: true;
       entry: { label?: string };
@@ -235,6 +245,7 @@ describe("gateway server sessions", () => {
         thinkingLevel?: string;
         verboseLevel?: string;
         sendPolicy?: string;
+        tags?: string[];
         label?: string;
         displayName?: string;
       }>;
@@ -244,6 +255,7 @@ describe("gateway server sessions", () => {
     expect(main2?.thinkingLevel).toBe("medium");
     expect(main2?.verboseLevel).toBe("off");
     expect(main2?.sendPolicy).toBe("deny");
+    expect(main2?.tags).toEqual(["project-x", "Urgent"]);
     const subagent = list2.payload?.sessions.find((s) => s.key === "agent:main:subagent:one");
     expect(subagent?.label).toBe("Briefing");
     expect(subagent?.displayName).toBe("Briefing");

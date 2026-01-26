@@ -537,6 +537,13 @@
   letter-spacing: 0.4px;
 }
 
+/* Sessions table view: hide subtitle on tight viewports to free space for the table. */
+@media (max-width: 980px), (max-height: 760px) {
+  .content--sessions-table .page-sub {
+    display: none;
+  }
+}
+
 .page-meta {
   display: flex;
   gap: 10px;

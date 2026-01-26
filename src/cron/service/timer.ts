@@ -17,7 +17,7 @@ export function armTimer(state: CronServiceState) {
   // Avoid TimeoutOverflowWarning when a job is far in the future.
   const clampedDelay = Math.min(delay, MAX_TIMEOUT_MS);
   state.timer = setTimeout(() => {
-    void onTimer(state).catch((err) => {
+    state._lastTimerRun = onTimer(state).catch((err) => {
       state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
     });
   }, clampedDelay);
@@ -28,28 +28,39 @@ export async function onTimer(state: CronServiceState) {
   if (state.running) return;
   state.running = true;
   try {
-    await locked(state, async () => {
+    // Phase 1 (locked): find due jobs, mark running, persist.
+    const dueJobs = await locked(state, async () => {
       await ensureLoaded(state);
-      await runDueJobs(state);
+      if (!state.store) return [];
+      const now = state.deps.nowMs();
+      const due = state.store.jobs.filter((j) => {
+        if (!j.enabled) return false;
+        if (typeof j.state.runningAtMs === "number") return false;
+        const next = j.state.nextRunAtMs;
+        return typeof next === "number" && now >= next;
+      });
+      // Mark each due job as running so reads can see the state.
+      const startedAt = state.deps.nowMs();
+      for (const job of due) {
+        job.state.runningAtMs = startedAt;
+      }
+      if (due.length > 0) await persist(state);
+      return due;
+    });
+
+    // Phase 2 (unlocked): execute each job — this is the long-running part.
+    const now = state.deps.nowMs();
+    for (const job of dueJobs) {
+      await executeJob(state, job, now, { forced: false });
+    }
+
+    // Phase 3 (locked): persist final state, re-arm timer.
+    await locked(state, async () => {
       await persist(state);
       armTimer(state);
     });
   } finally {
     state.running = false;
-  }
-}
-
-export async function runDueJobs(state: CronServiceState) {
-  if (!state.store) return;
-  const now = state.deps.nowMs();
-  const due = state.store.jobs.filter((j) => {
-    if (!j.enabled) return false;
-    if (typeof j.state.runningAtMs === "number") return false;
-    const next = j.state.nextRunAtMs;
-    return typeof next === "number" && now >= next;
-  });
-  for (const job of due) {
-    await executeJob(state, job, now, { forced: false });
   }
 }
 
@@ -60,7 +71,10 @@ export async function executeJob(
   opts: { forced: boolean },
 ) {
   const startedAt = state.deps.nowMs();
-  job.state.runningAtMs = startedAt;
+  // Phase 1 may have already set runningAtMs; only set if missing (e.g. legacy callers).
+  if (typeof job.state.runningAtMs !== "number") {
+    job.state.runningAtMs = startedAt;
+  }
   job.state.lastError = undefined;
   emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
 

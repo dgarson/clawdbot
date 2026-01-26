@@ -76,8 +76,8 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cronA.status();
-    await cronB.status();
+    await cronA._waitForTimerRun();
+    await cronB._waitForTimerRun();
 
     expect(enqueueSystemEvent).toHaveBeenCalledTimes(1);
     expect(requestHeartbeatNow).toHaveBeenCalledTimes(1);

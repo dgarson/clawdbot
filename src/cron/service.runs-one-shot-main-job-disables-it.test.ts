@@ -67,6 +67,7 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:02.000Z"));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
     const jobs = await cron.list({ includeDisabled: true });
     const updated = jobs.find((j) => j.id === job.id);
@@ -109,6 +110,7 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:02.000Z"));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
     const jobs = await cron.list({ includeDisabled: true });
     expect(jobs.find((j) => j.id === job.id)).toBeUndefined();
@@ -216,6 +218,7 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
     await cron.list({ includeDisabled: true });
     expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
@@ -360,6 +363,7 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
     await cron.list({ includeDisabled: true });
 
     expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron (error): last output", {
@@ -450,6 +454,7 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
     expect(enqueueSystemEvent).not.toHaveBeenCalled();
     expect(requestHeartbeatNow).not.toHaveBeenCalled();

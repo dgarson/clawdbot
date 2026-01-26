@@ -247,6 +247,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         contextTokens: entry?.contextTokens,
         sendPolicy: entry?.sendPolicy,
         label: entry?.label,
+        tags: entry?.tags,
         origin: snapshotSessionOrigin(entry),
         lastChannel: entry?.lastChannel,
         lastTo: entry?.lastTo,
@@ -255,6 +256,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
+        turnCount: 0,
       };
       store[primaryKey] = nextEntry;
       return nextEntry;

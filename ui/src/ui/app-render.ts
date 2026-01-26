@@ -40,6 +40,7 @@ import { renderLogs } from "./views/logs";
 import { renderNodes } from "./views/nodes";
 import { renderOverview } from "./views/overview";
 import { renderOverseer } from "./views/overseer";
+import { renderAgents } from "./views/agents";
 import { renderSessions } from "./views/sessions";
 import { renderExecApprovalPrompt } from "./views/exec-approval";
 import {
@@ -262,7 +263,9 @@ export function renderApp(state: AppViewState) {
           </div>
         </div>
       </aside>
-      <main class="content ${isChat ? "content--chat" : ""}">
+      <main
+        class="content ${isChat ? "content--chat" : ""} ${state.tab === "sessions" && state.sessionsViewMode === "table" ? "content--sessions-table" : ""}"
+      >
         <section class="content-header">
           <div>
             <div class="page-title">${titleForTab(state.tab)}</div>
@@ -371,6 +374,44 @@ export function renderApp(state: AppViewState) {
             })
           : nothing}
 
+        ${state.tab === "agents"
+          ? renderAgents({
+              loading: state.agentsLoading || state.sessionsLoading,
+              agents: state.agentsList,
+              sessions: state.sessionsResult,
+              error: state.agentsError ?? state.sessionsError,
+              selectedAgentKey: state.agentsUiSelectedAgentKey,
+              agentSearch: state.agentsUiAgentSearch,
+              sessionSearch: state.agentsUiSessionSearch,
+              sessionTypeFilter: state.agentsUiSessionTypeFilter,
+              onSelectAgent: (agentId) => {
+                state.agentsUiSelectedAgentKey = agentId;
+              },
+              onAgentSearchChange: (search) => {
+                state.agentsUiAgentSearch = search;
+              },
+              onSessionSearchChange: (search) => {
+                state.agentsUiSessionSearch = search;
+              },
+              onSessionTypeFilterChange: (next) => {
+                state.agentsUiSessionTypeFilter = next;
+              },
+              onSessionOpenChat: (sessionKey) => {
+                applySessionSelection(state, sessionKey);
+                state.setTab("chat");
+              },
+              onAgentOpenChat: async (agentId) => {
+                const sessionKey = await resolveAgentSessionKey(state, agentId);
+                applySessionSelection(state, sessionKey);
+                state.setTab("chat");
+              },
+              onRefresh: () => {
+                void loadAgents(state);
+                void loadSessions(state);
+              },
+            })
+          : nothing}
+
         ${state.tab === "sessions"
           ? renderSessions({
               loading: state.sessionsLoading,
@@ -381,12 +422,25 @@ export function renderApp(state: AppViewState) {
               includeGlobal: state.sessionsIncludeGlobal,
               includeUnknown: state.sessionsIncludeUnknown,
               basePath: state.basePath,
-              agents: state.agentsList,
               search: state.sessionsSearch,
               sort: state.sessionsSort,
               sortDir: state.sessionsSortDir,
               kindFilter: state.sessionsKindFilter,
-              statusFilter: state.sessionsStatusFilter,
+	              statusFilter: state.sessionsStatusFilter,
+	              agentLabelFilter: state.sessionsAgentLabelFilter,
+	              laneFilter: state.sessionsLaneFilter,
+	              tagFilter: state.sessionsTagFilter,
+	              viewMode: state.sessionsViewMode,
+	              drawerKey: state.sessionsDrawerKey,
+	              drawerExpanded: state.sessionsDrawerExpanded,
+	              drawerPreviewLoading: state.sessionsPreviewLoading,
+	              drawerPreviewError: state.sessionsPreviewError,
+	              drawerPreview: state.sessionsPreviewEntry,
+              onDrawerOpen: (sessionKey) => state.handleSessionsDrawerOpen(sessionKey),
+              onDrawerOpenExpanded: (sessionKey) => state.handleSessionsDrawerOpenExpanded(sessionKey),
+              onDrawerClose: () => state.handleSessionsDrawerClose(),
+              onDrawerToggleExpanded: () => state.handleSessionsDrawerToggleExpanded(),
+              onDrawerRefreshPreview: () => state.handleSessionsDrawerRefreshPreview(),
               onSessionOpen: (sessionKey) => {
                 applySessionSelection(state, sessionKey);
                 state.setTab("chat");
@@ -414,16 +468,31 @@ export function renderApp(state: AppViewState) {
               onStatusFilterChange: (status) => {
                 state.sessionsStatusFilter = status;
               },
-              onRefresh: () => loadSessions(state),
-              onPatch: (key, patch) => patchSession(state, key, patch),
-              onDelete: (key) => deleteSession(state, key),
-              onAgentSessionOpen: async (agentId) => {
-                const sessionKey = await resolveAgentSessionKey(state, agentId);
-                applySessionSelection(state, sessionKey);
-                state.setTab("chat");
+              onAgentLabelFilterChange: (label) => {
+                state.sessionsAgentLabelFilter = label;
               },
-            })
-          : nothing}
+	              onTagFilterChange: (tags) => {
+	                state.sessionsTagFilter = tags;
+	              },
+	              onLaneFilterChange: (lane) => {
+	                state.sessionsLaneFilter = lane;
+	              },
+	              onViewModeChange: (mode) => {
+	                state.sessionsViewMode = mode;
+	                try {
+	                  window.localStorage.setItem(
+	                    "clawdbot.control.ui.sessions.viewMode.v1",
+	                    mode,
+	                  );
+	                } catch {
+	                  // Ignore storage errors
+	                }
+	              },
+	              onRefresh: () => loadSessions(state),
+	              onPatch: (key, patch) => patchSession(state, key, patch),
+	              onDelete: (key) => deleteSession(state, key),
+	            })
+	          : nothing}
 
         ${state.tab === "cron"
           ? renderCron({

@@ -84,7 +84,7 @@ export function renderSkills(props: SkillsProps) {
       <div class="table-filters--modern">
         <div class="field--modern table-filters__search" style="flex: 1; max-width: 400px;">
           <label class="field__label">Search</label>
-          <div class="field__input-wrapper">
+          <div class="field__input-wrapper ${props.filter ? "field__input-wrapper--has-clear" : ""}">
             <span class="field__icon">${icon("search", { size: 14 })}</span>
             <input
               class="field__input"

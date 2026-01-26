@@ -70,6 +70,11 @@ export type SessionEntry = {
   inputTokens?: number;
   outputTokens?: number;
   totalTokens?: number;
+  /**
+   * Approximate number of agent turns/runs recorded for this session.
+   * Incremented on each completed agent run.
+   */
+  turnCount?: number;
   modelProvider?: string;
   model?: string;
   contextTokens?: number;
@@ -96,6 +101,22 @@ export type SessionEntry = {
 
   /** Active goal for long-horizon task continuation */
   activeGoal?: GoalState;
+
+  /**
+   * Optional short description of what this conversation/session is about.
+   * Intended for UI previews/search; may be synthesized via a small model.
+   */
+  description?: string;
+  /** Timestamp (ms) when `description` was last generated/updated. */
+  descriptionUpdatedAt?: number;
+  /** Session turnCount when `description` was last generated/updated. */
+  descriptionTurnCount?: number;
+
+  /**
+   * Arbitrary user-defined tags/labels for slicing/filtering sessions.
+   * Stored on the session entry and surfaced to UIs via sessions.list.
+   */
+  tags?: string[];
 };
 
 export function mergeSessionEntry(

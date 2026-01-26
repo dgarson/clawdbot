@@ -66,6 +66,7 @@ export type GatewaySessionList = {
     lastAccountId?: string;
     derivedTitle?: string;
     lastMessagePreview?: string;
+    description?: string;
   }>;
 };
 
