@@ -6,6 +6,7 @@
 import { html, nothing } from "lit";
 import { icon, type IconName } from "../icons";
 import type { Tab } from "../navigation";
+import { getRecentCommandIds, recordCommandUsage } from "./command-history";
 
 export type Command = {
   id: string;
@@ -99,8 +100,39 @@ function scoreCommand(cmd: Command, query: string): number {
   return total;
 }
 
+/**
+ * Reorder commands to show recent ones first (in a "Recent" category),
+ * keeping the rest in their original categories. Used when the query is empty.
+ */
+function applyRecents(commands: Command[]): Command[] {
+  const recentIds = getRecentCommandIds(5);
+  if (recentIds.length === 0) return commands;
+
+  const recentSet = new Set(recentIds);
+  const recent: Command[] = [];
+  const rest: Command[] = [];
+
+  // Build recent list in recency order (most recent first).
+  for (const id of recentIds) {
+    const cmd = commands.find((c) => c.id === id);
+    if (cmd) recent.push({ ...cmd, category: "Recent" });
+  }
+
+  // Keep all commands in their original categories (including ones in recent).
+  for (const cmd of commands) {
+    if (!recentSet.has(cmd.id)) {
+      rest.push(cmd);
+    } else {
+      // Still show in original category too so user can find by category.
+      rest.push(cmd);
+    }
+  }
+
+  return [...recent, ...rest];
+}
+
 function filterCommands(commands: Command[], query: string): Command[] {
-  if (!query.trim()) return commands;
+  if (!query.trim()) return applyRecents(commands);
 
   return commands
     .map((cmd, index) => ({ cmd, index, score: scoreCommand(cmd, query) }))
@@ -150,6 +182,12 @@ export function renderCommandPalette(props: CommandPaletteProps) {
 
   const filtered = filterCommands(commands, state.query);
 
+  /** Wraps onSelect to record usage before executing the command. */
+  const handleSelect = (cmd: Command) => {
+    recordCommandUsage(cmd.id);
+    onSelect(cmd);
+  };
+
   // Group commands by category
   const grouped = new Map<string, Command[]>();
   for (const cmd of filtered) {
@@ -165,7 +203,7 @@ export function renderCommandPalette(props: CommandPaletteProps) {
     return html`
       <button
         class="command-palette__item ${isSelected ? "command-palette__item--selected" : ""}"
-        @click=${() => onSelect(cmd)}
+        @click=${() => handleSelect(cmd)}
         @mouseenter=${() => onIndexChange(idx)}
         data-index=${idx}
       >
@@ -193,7 +231,7 @@ export function renderCommandPalette(props: CommandPaletteProps) {
               onIndexChange(0);
             }}
             @keydown=${(e: KeyboardEvent) =>
-              handlePaletteKeydown(e, state, filtered, onClose, onSelect, onIndexChange)}
+              handlePaletteKeydown(e, state, filtered, onClose, handleSelect, onIndexChange)}
             autofocus
           />
           <kbd class="command-palette__kbd">ESC</kbd>
