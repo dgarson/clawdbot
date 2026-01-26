@@ -441,7 +441,7 @@ export function reconcileOverseerState(params: {
     }
 
     if (assignment.status === "queued") {
-      const workNode = goal ? findWorkNode(goal, assignment.workNodeId) : null;
+      const workNode = goal ? findWorkNode(goal, assignment.workNodeId) : undefined;
       const title = workNode?.name ?? assignment.workNodeId;
       const message = buildNudgeMessage({
         goalId: assignment.goalId,

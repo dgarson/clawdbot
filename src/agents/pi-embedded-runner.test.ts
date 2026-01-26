@@ -228,6 +228,9 @@ describe("runEmbeddedPiAgent", () => {
         prompt: "hello",
         provider: "openai",
         model: "mock-1",
+        // This test is about transcript ordering; disabling tools keeps it fast
+        // and avoids pulling in heavy tool/bootstrap metadata.
+        disableTools: true,
         timeoutMs: 5_000,
         agentDir,
         enqueue: immediateEnqueue,
