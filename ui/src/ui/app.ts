@@ -98,7 +98,15 @@ import {
   loadOverseerGoal,
   refreshOverseer as refreshOverseerInternal,
   tickOverseer as tickOverseerInternal,
+  pauseOverseerGoal as pauseOverseerGoalInternal,
+  resumeOverseerGoal as resumeOverseerGoalInternal,
+  createOverseerGoal as createOverseerGoalInternal,
+  updateOverseerWorkNode as updateOverseerWorkNodeInternal,
+  retryOverseerAssignment as retryOverseerAssignmentInternal,
+  initOverseerState,
+  initializeSimulator,
 } from "./controllers/overseer";
+import { createInitialSimulatorState, type SimulatorState } from "./types/overseer-simulator";
 import { extractText } from "./chat/message-extract";
 import { normalizeMessage, normalizeRoleForGrouping } from "./chat/message-normalizer";
 
@@ -388,6 +396,33 @@ export class ClawdbotApp extends LitElement {
     | "instance"
     | null = null;
   @state() overseerDrawerNodeId: string | null = null;
+
+  // Goal management state
+  @state() overseerGoalActionPending = false;
+  @state() overseerGoalActionError: string | null = null;
+  @state() overseerCreateGoalOpen = false;
+  @state() overseerCreateGoalForm: {
+    title: string;
+    problemStatement: string;
+    successCriteria: string[];
+    constraints: string[];
+    priority: "low" | "normal" | "high" | "urgent";
+    generatePlan: boolean;
+  } = {
+    title: "",
+    problemStatement: "",
+    successCriteria: [],
+    constraints: [],
+    priority: "normal",
+    generatePlan: true,
+  };
+
+  // Activity feed state
+  @state() overseerActivityFilterStatus: string | null = null;
+  @state() overseerActivityLimit = 50;
+
+  // Simulator state
+  @state() simulator: SimulatorState = createInitialSimulatorState();
 
   // Command palette state
   @state() commandPaletteOpen = false;
@@ -1110,6 +1145,69 @@ export class ClawdbotApp extends LitElement {
 
   async handleOverseerLoadCronRuns(jobId: string) {
     await loadCronRuns(this, jobId);
+  }
+
+  // Goal management handlers
+  async handleOverseerPauseGoal(goalId: string) {
+    await pauseOverseerGoalInternal(this, goalId);
+  }
+
+  async handleOverseerResumeGoal(goalId: string) {
+    await resumeOverseerGoalInternal(this, goalId);
+  }
+
+  handleOverseerOpenCreateGoal() {
+    this.overseerCreateGoalOpen = true;
+    this.overseerCreateGoalForm = {
+      title: "",
+      problemStatement: "",
+      successCriteria: [],
+      constraints: [],
+      priority: "normal",
+      generatePlan: true,
+    };
+  }
+
+  handleOverseerCloseCreateGoal() {
+    this.overseerCreateGoalOpen = false;
+  }
+
+  async handleOverseerCreateGoal(params: {
+    title: string;
+    problemStatement: string;
+    successCriteria: string[];
+    constraints: string[];
+    priority: "low" | "normal" | "high" | "urgent";
+    generatePlan: boolean;
+  }) {
+    await createOverseerGoalInternal(this, params);
+  }
+
+  handleOverseerUpdateCreateGoalForm(updates: Record<string, unknown>) {
+    this.overseerCreateGoalForm = {
+      ...this.overseerCreateGoalForm,
+      ...updates,
+    };
+  }
+
+  async handleOverseerMarkWorkDone(goalId: string, workNodeId: string, summary?: string) {
+    await updateOverseerWorkNodeInternal(this, { goalId, workNodeId, status: "done", summary });
+  }
+
+  async handleOverseerBlockWork(goalId: string, workNodeId: string, reason: string) {
+    await updateOverseerWorkNodeInternal(this, { goalId, workNodeId, status: "blocked", blockedReason: reason });
+  }
+
+  async handleOverseerRetryAssignment(goalId: string, workNodeId: string) {
+    await retryOverseerAssignmentInternal(this, { goalId, workNodeId });
+  }
+
+  handleOverseerActivityFilterChange(status: string | null) {
+    this.overseerActivityFilterStatus = status;
+  }
+
+  handleOverseerActivityLimitChange(limit: number) {
+    this.overseerActivityLimit = limit;
   }
 
   async handleExecApprovalDecision(decision: "allow-once" | "allow-always" | "deny") {

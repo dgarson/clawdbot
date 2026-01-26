@@ -8,6 +8,13 @@ import { pathForTab } from "../navigation";
 import { icon } from "../icons";
 import type { AgentsListResult, GatewayAgentRow, GatewaySessionRow, SessionsListResult } from "../types";
 
+export type SessionActiveTask = {
+  taskId: string;
+  taskName: string;
+  status: "in-progress" | "pending";
+  startedAt?: number;
+};
+
 export type SessionStatus = "active" | "idle" | "completed";
 export type SessionSortColumn = "name" | "updated" | "tokens" | "status" | "kind";
 export type SessionSortDir = "asc" | "desc";
@@ -31,6 +38,8 @@ export type SessionsProps = {
   includeUnknown: boolean;
   basePath: string;
   agents: AgentsListResult | null;
+  // Active tasks per session (for showing task indicators)
+  activeTasks?: Map<string, SessionActiveTask[]>;
   search: string;
   sort: SessionSortColumn;
   sortDir: SessionSortDir;

@@ -62,6 +62,21 @@ export type OverseerProps = {
   agents: AgentsListResult | null;
   sessions: SessionsListResult | null;
   channels: ChannelsStatusSnapshot | null;
+  // Goal management state
+  goalActionPending?: boolean;
+  goalActionError?: string | null;
+  createGoalOpen?: boolean;
+  createGoalForm?: {
+    title: string;
+    problemStatement: string;
+    successCriteria: string[];
+    constraints: string[];
+    priority: "low" | "normal" | "high" | "urgent";
+    generatePlan: boolean;
+  };
+  // Activity feed enhancements
+  activityFilterStatus?: string | null;
+  activityLimit?: number;
   connected: boolean;
   // Simulator state
   simulatorState: SimulatorState;
@@ -214,6 +229,7 @@ export function renderOverseer(props: OverseerProps) {
         ${renderActivityFeed(activityEvents, props)}
       </div>
       ${props.drawerOpen ? renderDrawer(props) : nothing}
+      ${props.createGoalOpen ? renderCreateGoalModal(props) : nothing}
       ${renderSimulator(simulatorFullProps)}
       ${props.createGoalOpen ? renderCreateGoalModal(props) : nothing}
     </div>

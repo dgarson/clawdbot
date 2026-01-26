@@ -38,6 +38,7 @@ import type {
   OverseerGoalStatusResult,
   OverseerStatusResult,
 } from "./types/overseer";
+import type { SimulatorState } from "./types/overseer-simulator";
 
 export type AppViewState = {
   settings: UiSettings;
@@ -210,6 +211,41 @@ export type AppViewState = {
     | "instance"
     | null;
   overseerDrawerNodeId: string | null;
+  // Goal management state
+  overseerGoalActionPending: boolean;
+  overseerGoalActionError: string | null;
+  overseerCreateGoalOpen: boolean;
+  overseerCreateGoalForm: {
+    title: string;
+    problemStatement: string;
+    successCriteria: string[];
+    constraints: string[];
+    priority: "low" | "normal" | "high" | "urgent";
+    generatePlan: boolean;
+  };
+  overseerActivityFilterStatus: string | null;
+  overseerActivityLimit: number;
+  // Simulator state
+  simulator: SimulatorState;
+  // Goal management handlers
+  handleOverseerPauseGoal: (goalId: string) => void;
+  handleOverseerResumeGoal: (goalId: string) => void;
+  handleOverseerOpenCreateGoal: () => void;
+  handleOverseerCloseCreateGoal: () => void;
+  handleOverseerCreateGoal: (params: {
+    title: string;
+    problemStatement: string;
+    successCriteria: string[];
+    constraints: string[];
+    priority: "low" | "normal" | "high" | "urgent";
+    generatePlan: boolean;
+  }) => void;
+  handleOverseerUpdateCreateGoalForm: (updates: Record<string, unknown>) => void;
+  handleOverseerMarkWorkDone: (goalId: string, workNodeId: string, summary?: string) => void;
+  handleOverseerBlockWork: (goalId: string, workNodeId: string, reason: string) => void;
+  handleOverseerRetryAssignment: (goalId: string, workNodeId: string) => void;
+  handleOverseerActivityFilterChange: (status: string | null) => void;
+  handleOverseerActivityLimitChange: (limit: number) => void;
   // Command palette state
   commandPaletteOpen: boolean;
   commandPaletteQuery: string;
