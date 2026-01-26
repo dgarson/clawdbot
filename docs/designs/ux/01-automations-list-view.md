@@ -14,11 +14,13 @@
 The code below provides **design patterns, styling, and UX concepts** but must be translated from React to Lit Web Components for Clawdbot. The component structure, Tailwind classes, animations, and state management patterns can be adapted.
 
 ### Key Translation Points:
-- React `useState` → Lit reactive properties
-- React components → Lit custom elements (`@customElement('automation-card')`)
-- Framer Motion → CSS animations or Web Animations API
+- React `useState` → Controller state objects (e.g., `AutomationsState`)
+- React `useMemo` → Computed functions or memoized controller methods
+- React components → Lit render functions (e.g., `renderAutomationCard(props)`)
+- Framer Motion → CSS `@keyframes` or Web Animations API
 - shadcn/ui components → Clawdbot's existing design system components
-- Event handlers → Lit event listeners (`@event`)
+- lucide-react icons → Clawdbot's `icon()` function from `ui/src/ui/icons.ts`
+- Event handlers → Lit event listeners (`@click=${handler}`)
 
 ---
 
@@ -27,6 +29,8 @@ The code below provides **design patterns, styling, and UX concepts** but must b
 A comprehensive automation list view displaying a grid of automation cards with filtering, search, and management controls. Built with React, TypeScript, Tailwind CSS v4, and shadcn/ui components.
 
 ## Installation
+
+**Note:** The packages below are for the original React prototype. For Clawdbot Lit implementation, no additional installation is needed beyond the existing stack.
 
 ```bash
 npm install framer-motion lucide-react clsx tailwind-merge @radix-ui/react-slot class-variance-authority @radix-ui/react-dropdown-menu @radix-ui/react-select
@@ -734,6 +738,7 @@ export {
 ## Main List View Component
 
 ```typescript
+// React prototype code below - see "Lit Translation" section for Clawdbot implementation
 "use client"
 
 import * as React from "react"

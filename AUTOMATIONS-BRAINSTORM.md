@@ -176,10 +176,19 @@ Detailed design documents have been created for each architectural layer:
 
 ### UX Prototype Documents (via Magic MCP)
 
-Comprehensive UI prototypes have been generated for all major views, capturing full Magic MCP output including CSS, JavaScript, component code, and design guidance:
+Comprehensive UI prototypes have been generated for all major views, capturing full Magic MCP output including CSS, JavaScript, component code, and design guidance.
 
-⚠️ **Stack Translation Required:** Magic MCP generates React components, but Clawdbot uses **Lit Web Components**. All UX documents include translation guidance for converting React patterns to Lit.
+⚠️ **Stack Translation Required:** Magic MCP generates React components, but Clawdbot uses **Lit Web Components**.
 
+**📖 Translation Guide:** See **[React to Lit Translation Guide](docs/designs/ux/00-react-to-lit-translation-guide.md)** for comprehensive, detailed instructions on translating React components to Lit Web Components following Clawdbot patterns. Covers:
+- Component structure (render functions vs class-based)
+- State management (controllers vs hooks)
+- Event handling, forms, and lists
+- Icons, toasts, modals, and navigation
+- Complete translation examples with before/after code
+- Quick reference cheat sheet
+
+UX Prototype Documents:
 1. **[Automations List View](docs/designs/ux/01-automations-list-view.md)** - Grid layout for automation cards with status badges, filter/search, quick actions (Run Now, Suspend, History, Edit, Delete)
 2. **[Automation Form](docs/designs/ux/02-automation-form.md)** - Multi-step configuration wizard with 6 steps: Basic Info, Schedule, Repositories, AI Settings, Merge Behavior, Notifications
 3. **[Progress Modal](docs/designs/ux/03-progress-modal.md)** - Real-time execution tracking with progress bar, execution timeline, statistics cards, SSE integration examples
