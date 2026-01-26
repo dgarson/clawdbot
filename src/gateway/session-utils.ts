@@ -437,6 +437,10 @@ export function getSessionDefaults(cfg: ClawdbotConfig): GatewaySessionsDefaults
     modelProvider: resolved.provider ?? null,
     model: resolved.model ?? null,
     contextTokens: contextTokens ?? null,
+    thinkingDefault: cfg.agents?.defaults?.thinkingDefault ?? null,
+    verboseDefault: cfg.agents?.defaults?.verboseDefault ?? null,
+    reasoningDefault: "off",
+    elevatedDefault: cfg.agents?.defaults?.elevatedDefault ?? null,
   };
 }
 
@@ -536,6 +540,15 @@ export function listSessionsFromStore(params: {
         entry,
         kind: classifySessionKey(key, entry),
         label: entry?.label,
+        tags: Array.isArray(entry?.tags)
+          ? (entry.tags
+              .filter((t) => typeof t === "string" && t.trim())
+              .map((t) => t.trim()) as string[])
+          : undefined,
+        description:
+          typeof entry?.description === "string" && entry.description.trim()
+            ? entry.description.trim()
+            : undefined,
         displayName,
         channel,
         subject,
@@ -571,7 +584,15 @@ export function listSessionsFromStore(params: {
 
   if (search) {
     sessions = sessions.filter((s) => {
-      const fields = [s.displayName, s.label, s.subject, s.sessionId, s.key];
+      const fields = [
+        s.displayName,
+        s.label,
+        ...(Array.isArray(s.tags) ? s.tags : []),
+        s.subject,
+        s.description,
+        s.sessionId,
+        s.key,
+      ];
       return fields.some((f) => typeof f === "string" && f.toLowerCase().includes(search));
     });
   }

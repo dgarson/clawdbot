@@ -263,7 +263,9 @@ export function renderApp(state: AppViewState) {
           </div>
         </div>
       </aside>
-      <main class="content ${isChat ? "content--chat" : ""}">
+      <main
+        class="content ${isChat ? "content--chat" : ""} ${state.tab === "sessions" && state.sessionsViewMode === "table" ? "content--sessions-table" : ""}"
+      >
         <section class="content-header">
           <div>
             <div class="page-title">${titleForTab(state.tab)}</div>
@@ -427,6 +429,7 @@ export function renderApp(state: AppViewState) {
 	              statusFilter: state.sessionsStatusFilter,
 	              agentLabelFilter: state.sessionsAgentLabelFilter,
 	              laneFilter: state.sessionsLaneFilter,
+	              tagFilter: state.sessionsTagFilter,
 	              viewMode: state.sessionsViewMode,
 	              drawerKey: state.sessionsDrawerKey,
 	              drawerExpanded: state.sessionsDrawerExpanded,
@@ -468,6 +471,9 @@ export function renderApp(state: AppViewState) {
               onAgentLabelFilterChange: (label) => {
                 state.sessionsAgentLabelFilter = label;
               },
+	              onTagFilterChange: (tags) => {
+	                state.sessionsTagFilter = tags;
+	              },
 	              onLaneFilterChange: (lane) => {
 	                state.sessionsLaneFilter = lane;
 	              },
@@ -561,6 +567,57 @@ export function renderApp(state: AppViewState) {
               agents: state.agentsList,
               sessions: state.sessionsResult,
               channels: state.channelsSnapshot,
+              // Goal management state
+              goalActionPending: state.overseerGoalActionPending,
+              goalActionError: state.overseerGoalActionError,
+              createGoalOpen: state.overseerCreateGoalOpen,
+              createGoalForm: state.overseerCreateGoalForm,
+              activityFilterStatus: state.overseerActivityFilterStatus,
+              activityLimit: state.overseerActivityLimit,
+              connected: state.connected,
+              // Simulator state
+              simulatorState: state.simulator,
+              simulatorProps: {
+                onTogglePanel: () => {},
+                onSectionChange: () => {},
+                onModeChange: () => {},
+                onAddRule: () => {},
+                onAddRuleFromTemplate: () => {},
+                onUpdateRule: () => {},
+                onDeleteRule: () => {},
+                onToggleRuleEnabled: () => {},
+                onSelectRule: () => {},
+                onCloseRuleEditor: () => {},
+                onSaveDraftRule: () => {},
+                onAddCondition: () => {},
+                onUpdateCondition: () => {},
+                onDeleteCondition: () => {},
+                onAddAction: () => {},
+                onUpdateAction: () => {},
+                onDeleteAction: () => {},
+                onUpdateFilters: () => {},
+                onClearFilters: () => {},
+                onQueueEvent: () => {},
+                onRemoveQueuedEvent: () => {},
+                onClearEventQueue: () => {},
+                onExecuteEvent: () => {},
+                onAddScenario: () => {},
+                onAddScenarioFromTemplate: () => {},
+                onUpdateScenario: () => {},
+                onDeleteScenario: () => {},
+                onSelectScenario: () => {},
+                onCloseScenarioEditor: () => {},
+                onSaveDraftScenario: () => {},
+                onStartRun: () => {},
+                onPauseRun: () => {},
+                onResumeRun: () => {},
+                onStopRun: () => {},
+                onResetSimulator: () => {},
+                onClearActivityLog: () => {},
+                onUpdateSettings: () => {},
+                onSaveState: () => {},
+                onLoadState: () => {},
+              },
               onRefresh: () => state.handleOverseerRefresh(),
               onTick: () => state.handleOverseerTick(),
               onSelectGoal: (goalId) => state.handleOverseerSelectGoal(goalId),
@@ -575,6 +632,21 @@ export function renderApp(state: AppViewState) {
               onDragChange: (kind, next) => state.handleOverseerDragChange(kind, next),
               onDrawerClose: () => state.handleOverseerDrawerClose(),
               onLoadCronRuns: (jobId) => state.handleOverseerLoadCronRuns(jobId),
+              // Goal management handlers
+              onPauseGoal: (goalId) => state.handleOverseerPauseGoal(goalId),
+              onResumeGoal: (goalId) => state.handleOverseerResumeGoal(goalId),
+              onOpenCreateGoal: () => state.handleOverseerOpenCreateGoal(),
+              onCloseCreateGoal: () => state.handleOverseerCloseCreateGoal(),
+              onCreateGoal: (params) => state.handleOverseerCreateGoal(params),
+              onUpdateCreateGoalForm: (updates) => state.handleOverseerUpdateCreateGoalForm(updates),
+              onMarkWorkDone: (goalId, workNodeId, summary) =>
+                state.handleOverseerMarkWorkDone(goalId, workNodeId, summary),
+              onBlockWork: (goalId, workNodeId, reason) =>
+                state.handleOverseerBlockWork(goalId, workNodeId, reason),
+              onRetryAssignment: (goalId, workNodeId) =>
+                state.handleOverseerRetryAssignment(goalId, workNodeId),
+              onActivityFilterChange: (status) => state.handleOverseerActivityFilterChange(status),
+              onActivityLimitChange: (limit) => state.handleOverseerActivityLimitChange(limit),
             })
           : nothing}
 

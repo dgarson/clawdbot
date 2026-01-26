@@ -52,7 +52,10 @@ export async function loadSessions(state: SessionsState) {
     };
     const activeMinutes = toNumber(state.sessionsFilterActive, 0);
     const limit = toNumber(state.sessionsFilterLimit, 0);
-    if (limit > 0 && limit <= 200) params.includeLastMessage = true;
+    if (limit > 0 && limit <= 200) {
+      params.includeLastMessage = true;
+      params.includeDerivedTitles = true;
+    }
     if (activeMinutes > 0) params.activeMinutes = activeMinutes;
     if (limit > 0) params.limit = limit;
     const res = (await state.client.request("sessions.list", params)) as
@@ -71,6 +74,7 @@ export async function patchSession(
   key: string,
   patch: {
     label?: string | null;
+    tags?: string[] | null;
     thinkingLevel?: string | null;
     verboseLevel?: string | null;
     reasoningLevel?: string | null;
@@ -79,6 +83,7 @@ export async function patchSession(
   if (!state.client || !state.connected) return;
   const params: Record<string, unknown> = { key };
   if ("label" in patch) params.label = patch.label;
+  if ("tags" in patch) params.tags = patch.tags;
   if ("thinkingLevel" in patch) params.thinkingLevel = patch.thinkingLevel;
   if ("verboseLevel" in patch) params.verboseLevel = patch.verboseLevel;
   if ("reasoningLevel" in patch) params.reasoningLevel = patch.reasoningLevel;

@@ -170,6 +170,7 @@ function matchesSessionSearch(row: GatewaySessionRow, search: string): boolean {
     row.channel,
     row.subject,
     row.groupChannel,
+    row.description,
     row.lastMessagePreview,
   ]
     .filter(Boolean)
@@ -406,6 +407,13 @@ function renderAgentDetail(props: AgentsProps, entries: AgentEntry[], rows: Gate
                   const when = row.updatedAt ? formatAgo(row.updatedAt) : "n/a";
                   const title = sessionTitle(row);
                   const subtitle = [row.channel, row.subject].filter(Boolean).join(" · ");
+                  const preview =
+                    (typeof row.description === "string" && row.description.trim()
+                      ? row.description.trim()
+                      : "") ||
+                    (typeof row.lastMessagePreview === "string" && row.lastMessagePreview.trim()
+                      ? row.lastMessagePreview.trim()
+                      : "");
                   return html`
                     <button
                       class="agents-session-item"
@@ -419,8 +427,8 @@ function renderAgentDetail(props: AgentsProps, entries: AgentEntry[], rows: Gate
                       <span class="agents-session-item__meta">
                         <span class="agents-session-item__title" title=${title}>${title}</span>
                         ${subtitle ? html`<span class="agents-session-item__sub" title=${subtitle}>${subtitle}</span>` : nothing}
-                        ${row.lastMessagePreview
-                          ? html`<span class="agents-session-item__preview" title=${row.lastMessagePreview}>${row.lastMessagePreview}</span>`
+                        ${preview
+                          ? html`<span class="agents-session-item__preview" title=${preview}>${preview}</span>`
                           : nothing}
                       </span>
                       <span class="agents-session-item__badges" aria-hidden="true">

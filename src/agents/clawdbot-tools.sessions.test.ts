@@ -68,6 +68,12 @@ describe("sessions tools", () => {
     expect(schemaProp("sessions_spawn", "thinking").type).toBe("string");
     expect(schemaProp("sessions_spawn", "runTimeoutSeconds").type).toBe("number");
     expect(schemaProp("sessions_spawn", "timeoutSeconds").type).toBe("number");
+
+    // Basic sanity: sessions_tags exists and uses a flattened schema (no anyOf/oneOf).
+    expect(schemaProp("sessions_tags", "tags").type).toBe("array");
+    expect(schemaProp("sessions_tags", "add").type).toBe("array");
+    expect(schemaProp("sessions_tags", "remove").type).toBe("array");
+    expect(schemaProp("sessions_tags", "clear").type).toBe("boolean");
   });
 
   it("sessions_list filters kinds and includes messages", async () => {
@@ -138,6 +144,37 @@ describe("sessions tools", () => {
     };
     expect(cronDetails.sessions).toHaveLength(1);
     expect(cronDetails.sessions?.[0]?.kind).toBe("cron");
+  });
+
+  it("sessions_tags sets and clears tags", async () => {
+    callGatewayMock.mockReset();
+    callGatewayMock.mockImplementation(async (opts: unknown) => {
+      const request = opts as { method?: string; params?: Record<string, unknown> };
+      if (request.method === "sessions.patch") {
+        return {
+          ok: true,
+          key: typeof request.params?.key === "string" ? request.params.key : "unknown",
+          entry: { tags: request.params?.tags },
+        };
+      }
+      return {};
+    });
+
+    const tool = createClawdbotTools({ agentSessionKey: "main" }).find(
+      (candidate) => candidate.name === "sessions_tags",
+    );
+    expect(tool).toBeDefined();
+    if (!tool) throw new Error("missing sessions_tags tool");
+
+    const setResult = await tool.execute("call1", { tags: [" foo ", "Bar", "FOO"] });
+    const setDetails = setResult.details as { ok?: boolean; tags?: string[] };
+    expect(setDetails.ok).toBe(true);
+    expect(setDetails.tags).toEqual(["foo", "Bar"]);
+
+    const cleared = await tool.execute("call2", { clear: true });
+    const clearedDetails = cleared.details as { ok?: boolean; tags?: string[] };
+    expect(clearedDetails.ok).toBe(true);
+    expect(clearedDetails.tags).toEqual([]);
   });
 
   it("sessions_history filters tool messages by default", async () => {

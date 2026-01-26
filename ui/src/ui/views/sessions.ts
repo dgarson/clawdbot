@@ -9,6 +9,13 @@ import { icon } from "../icons";
 import { inferSessionType } from "../session-meta";
 import type { GatewaySessionRow, SessionsListResult, SessionsPreviewEntry } from "../types";
 
+export type SessionActiveTask = {
+  taskId: string;
+  taskName: string;
+  status: "in-progress" | "pending";
+  startedAt?: number;
+};
+
 export type SessionStatus = "active" | "idle" | "completed";
 export type SessionSortColumn = "name" | "updated" | "tokens" | "status" | "kind";
 export type SessionSortDir = "asc" | "desc";
@@ -18,6 +25,26 @@ export type SessionLaneFilter = "all" | "cron" | "regular";
 export type SessionViewMode = "list" | "table";
 
 const UNLABELED_AGENT_KEY = "__unlabeled__";
+
+function parseAgentIdFromSessionKey(key: string): string | null {
+  const trimmed = key.trim();
+  if (!trimmed.startsWith("agent:")) return null;
+  const rest = trimmed.slice("agent:".length);
+  const idx = rest.indexOf(":");
+  if (idx <= 0) return null;
+  const agentId = rest.slice(0, idx).trim();
+  return agentId || null;
+}
+
+function resolveAgentDisplayName(row: GatewaySessionRow): string {
+  const label = row.label?.trim();
+  if (label) return label;
+  const agentId = parseAgentIdFromSessionKey(row.key);
+  if (agentId) return agentId;
+  if (row.kind === "global") return "Global";
+  if (row.kind === "unknown") return "Unknown";
+  return "Unlabeled";
+}
 
 function normalizeAgentLabelKey(label?: string | null): string {
   const trimmed = (label ?? "").trim();
@@ -38,13 +65,6 @@ function resolveAgentLabelFilterDisplay(filterValue: string, rows: GatewaySessio
   return displayAgentLabelKey(normalized);
 }
 
-export type SessionActiveTask = {
-  taskId: string;
-  taskName: string;
-  status: "in-progress" | "pending";
-  startedAt?: number;
-};
-
 export type SessionsProps = {
   loading: boolean;
   result: SessionsListResult | null;
@@ -61,6 +81,7 @@ export type SessionsProps = {
   statusFilter: SessionStatusFilter;
   agentLabelFilter: string;
   laneFilter: SessionLaneFilter;
+  tagFilter: string[];
   viewMode: SessionViewMode;
   drawerKey: string | null;
   drawerExpanded: boolean;
@@ -86,6 +107,7 @@ export type SessionsProps = {
   onKindFilterChange: (kind: SessionKindFilter) => void;
   onStatusFilterChange: (status: SessionStatusFilter) => void;
   onAgentLabelFilterChange: (label: string) => void;
+  onTagFilterChange: (tags: string[]) => void;
   onLaneFilterChange: (lane: SessionLaneFilter) => void;
   onViewModeChange: (mode: SessionViewMode) => void;
   onRefresh: () => void;
@@ -93,6 +115,7 @@ export type SessionsProps = {
     key: string,
     patch: {
       label?: string | null;
+      tags?: string[] | null;
       thinkingLevel?: string | null;
       verboseLevel?: string | null;
       reasoningLevel?: string | null;
@@ -102,12 +125,13 @@ export type SessionsProps = {
   onViewSessionLogs?: (key: string) => void;
 };
 
-const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high"] as const;
+const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high", "xhigh"] as const;
 const BINARY_THINK_LEVELS = ["", "off", "on"] as const;
 const VERBOSE_LEVELS = [
   { value: "", label: "inherit" },
   { value: "off", label: "off (explicit)" },
   { value: "on", label: "on" },
+  { value: "full", label: "full" },
 ] as const;
 const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
 
@@ -161,6 +185,37 @@ function resolveThinkLevelDisplay(value: string, isBinary: boolean): string {
   return "on";
 }
 
+function resolveSessionDefaults(
+  defaults: SessionsListResult["defaults"] | null,
+): {
+  modelProvider: string | null;
+  model: string | null;
+  contextTokens: number | null;
+  thinkingDefault: string;
+  verboseDefault: string;
+  reasoningDefault: string;
+  elevatedDefault: string;
+} {
+  return {
+    modelProvider: defaults?.modelProvider ?? null,
+    model: defaults?.model ?? null,
+    contextTokens: defaults?.contextTokens ?? null,
+    thinkingDefault: defaults?.thinkingDefault ?? "off",
+    verboseDefault: defaults?.verboseDefault ?? "off",
+    reasoningDefault: defaults?.reasoningDefault ?? "off",
+    elevatedDefault: defaults?.elevatedDefault ?? "off",
+  };
+}
+
+function resolveEffectiveStringSetting(params: {
+  override?: string | null;
+  defaultValue: string;
+}): { effective: string; source: "override" | "default" } {
+  const override = typeof params.override === "string" ? params.override.trim() : "";
+  if (override) return { effective: override, source: "override" };
+  return { effective: params.defaultValue, source: "default" };
+}
+
 function resolveThinkLevelPatchValue(value: string, isBinary: boolean): string | null {
   if (!value) return null;
   if (!isBinary) return value;
@@ -202,6 +257,7 @@ function matchesSearch(row: GatewaySessionRow, search: string): boolean {
     row.key,
     row.displayName,
     row.label,
+    ...(Array.isArray(row.tags) ? row.tags : []),
     row.channel,
     row.subject,
     row.sessionId,
@@ -210,6 +266,30 @@ function matchesSearch(row: GatewaySessionRow, search: string): boolean {
     .join(" ")
     .toLowerCase();
   return searchable.includes(lower);
+}
+
+function normalizeTagLabel(raw?: string | null): string {
+  return (raw ?? "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeTagKey(raw?: string | null): string {
+  return normalizeTagLabel(raw).toLowerCase();
+}
+
+function filterSessionsTags(
+  rows: GatewaySessionRow[],
+  selected: string[],
+): GatewaySessionRow[] {
+  const selectedKeys = selected.map((t) => normalizeTagKey(t)).filter(Boolean);
+  if (selectedKeys.length === 0) return rows;
+  return rows.filter((row) => {
+    const tags = Array.isArray(row.tags) ? row.tags : [];
+    const tagKeys = new Set(tags.map((t) => normalizeTagKey(t)).filter(Boolean));
+    for (const key of selectedKeys) {
+      if (!tagKeys.has(key)) return false;
+    }
+    return true;
+  });
 }
 
 function countSessionStatuses(rows: GatewaySessionRow[]): {
@@ -389,9 +469,15 @@ function renderSortIcon(column: SessionSortColumn, props: SessionsProps) {
 
 export function renderSessions(props: SessionsProps) {
   const allRows = props.result?.sessions ?? [];
+  const defaults = props.result?.defaults ?? null;
+  const resolvedDefaults = resolveSessionDefaults(defaults);
   const baseRowsIgnoringStatus = filterSessionsBaseIgnoringStatus(allRows, props);
-  const laneCounts = countSessionTypes(baseRowsIgnoringStatus);
-  const laneFilteredRowsIgnoringStatus = filterSessionsLane(baseRowsIgnoringStatus, props);
+  const baseRowsIgnoringStatusWithTags = filterSessionsTags(
+    baseRowsIgnoringStatus,
+    props.tagFilter,
+  );
+  const laneCounts = countSessionTypes(baseRowsIgnoringStatusWithTags);
+  const laneFilteredRowsIgnoringStatus = filterSessionsLane(baseRowsIgnoringStatusWithTags, props);
   const statusCounts = countSessionStatuses(laneFilteredRowsIgnoringStatus);
   const statusFilteredRows =
     props.statusFilter === "all"
@@ -405,16 +491,56 @@ export function renderSessions(props: SessionsProps) {
     : null;
   const totalCount = allRows.length;
   const filteredCount = statusFilteredRows.length;
+  const tagCountsSource = baseRowsIgnoringStatus;
+  const tagCounts = (() => {
+    const map = new Map<string, { label: string; count: number }>();
+    for (const row of tagCountsSource) {
+      const tags = Array.isArray(row.tags) ? row.tags : [];
+      for (const raw of tags) {
+        const label = normalizeTagLabel(raw);
+        if (!label) continue;
+        const key = normalizeTagKey(label);
+        const existing = map.get(key);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          map.set(key, { label, count: 1 });
+        }
+      }
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  })();
   const hasFilters =
     props.search ||
     props.kindFilter !== "all" ||
     props.statusFilter !== "all" ||
     props.laneFilter !== "all" ||
-    Boolean(props.agentLabelFilter.trim());
+    Boolean(props.agentLabelFilter.trim()) ||
+    (Array.isArray(props.tagFilter) && props.tagFilter.length > 0);
   const persistedNameColWidth = readSessionsNameColumnWidth();
   const sessionsTableStyle = persistedNameColWidth
     ? `--sessions-col-name: ${persistedNameColWidth}px;`
     : "";
+
+  const selectedTagKeys = new Set(
+    (Array.isArray(props.tagFilter) ? props.tagFilter : [])
+      .map((t) => normalizeTagKey(t))
+      .filter(Boolean),
+  );
+
+  const toggleTagFilter = (raw: string) => {
+    const label = normalizeTagLabel(raw);
+    const key = normalizeTagKey(label);
+    if (!key) return;
+    const current = Array.isArray(props.tagFilter) ? props.tagFilter : [];
+    const exists = current.some((t) => normalizeTagKey(t) === key);
+    if (exists) {
+      props.onTagFilterChange(current.filter((t) => normalizeTagKey(t) !== key));
+      return;
+    }
+    const canonicalLabel = tagCounts.find((t) => normalizeTagKey(t.label) === key)?.label ?? label;
+    props.onTagFilterChange([...current, canonicalLabel]);
+  };
 
   const activeFilterChips: Array<{ label: string; onClear: () => void }> = [];
   if (props.search) {
@@ -447,6 +573,21 @@ export function renderSessions(props: SessionsProps) {
       onClear: () => props.onAgentLabelFilterChange(""),
     });
   }
+  if (Array.isArray(props.tagFilter) && props.tagFilter.length > 0) {
+    for (const tag of props.tagFilter) {
+      const label = normalizeTagLabel(tag);
+      if (!label) continue;
+      activeFilterChips.push({
+        label: `Tag: ${label}`,
+        onClear: () => {
+          const key = normalizeTagKey(label);
+          props.onTagFilterChange(
+            props.tagFilter.filter((t) => normalizeTagKey(t) !== key),
+          );
+        },
+      });
+    }
+  }
 
   const clearAllFilters = () => {
     props.onSearchChange("");
@@ -454,6 +595,7 @@ export function renderSessions(props: SessionsProps) {
     props.onStatusFilterChange("all");
     props.onAgentLabelFilterChange("");
     props.onLaneFilterChange("all");
+    props.onTagFilterChange([]);
   };
 
   const startResizeNameColumn = (event: PointerEvent) => {
@@ -670,6 +812,60 @@ export function renderSessions(props: SessionsProps) {
                           .map(([value, label]) => html`<option value=${value}>${label}</option>`);
                       })()}
                     </select>
+                  </div>
+                  <div class="field--modern">
+                    <label class="field__label">Tags</label>
+                    <div class="sessions-tags-filter">
+                      <form
+                        class="sessions-tags-filter__form"
+                        @submit=${(e: Event) => {
+                          e.preventDefault();
+                          const form = e.currentTarget as HTMLFormElement;
+                          const input = form.querySelector("input") as HTMLInputElement | null;
+                          const value = normalizeTagLabel(input?.value ?? "");
+                          if (!value) return;
+                          toggleTagFilter(value);
+                          if (input) input.value = "";
+                        }}
+                      >
+                        <input
+                          class="field__input sessions-tags-filter__input"
+                          type="text"
+                          placeholder="Add tag filter…"
+                        />
+                        <button class="btn btn--secondary btn--sm" type="submit">
+                          ${icon("plus", { size: 14 })}
+                          <span>Add</span>
+                        </button>
+                      </form>
+                      <div class="chip-row">
+                        <button
+                          class="chip ${selectedTagKeys.size === 0 ? "chip--accent" : ""}"
+                          type="button"
+                          title="Clear tag filters"
+                          @click=${() => props.onTagFilterChange([])}
+                        >
+                          Any
+                        </button>
+                        ${tagCounts.slice(0, 20).map(
+                          (t) => html`
+                            <button
+                              class="chip ${selectedTagKeys.has(normalizeTagKey(t.label)) ? "chip--accent" : ""}"
+                              type="button"
+                              title=${selectedTagKeys.has(normalizeTagKey(t.label))
+                                ? "Remove tag filter"
+                                : "Filter by tag"}
+                              @click=${() => toggleTagFilter(t.label)}
+                            >
+                              ${t.label} ${t.count}
+                            </button>
+                          `,
+                        )}
+                      </div>
+                      ${selectedTagKeys.size > 1
+                        ? html`<div class="muted" style="margin-top: 6px;">Matching all selected tags.</div>`
+                        : nothing}
+                    </div>
                   </div>
                 </div>
               </details>
@@ -889,6 +1085,7 @@ export function renderSessions(props: SessionsProps) {
                             renderListItem(
                               row,
                               props.basePath,
+                              defaults,
                               props.onPatch,
                               props.onDelete,
                               props.onSessionOpen,
@@ -955,6 +1152,7 @@ export function renderSessions(props: SessionsProps) {
                               renderRow(
                                 row,
                                 props.basePath,
+                                resolvedDefaults,
                                 props.onPatch,
                                 props.onDelete,
                                 props.onSessionOpen,
@@ -986,6 +1184,7 @@ export function renderSessions(props: SessionsProps) {
 function renderListItem(
   row: GatewaySessionRow,
   basePath: string,
+  defaults: SessionsListResult["defaults"] | null,
   onPatch: SessionsProps["onPatch"],
   onDelete: SessionsProps["onDelete"],
   onSessionOpen: SessionsProps["onSessionOpen"],
@@ -997,9 +1196,26 @@ function renderListItem(
   onViewLogs?: (key: string) => void,
 ) {
   const updated = row.updatedAt ? formatAgo(row.updatedAt) : "n/a";
+  const resolvedDefaults = resolveSessionDefaults(defaults);
+  const modelProvider = row.modelProvider ?? resolvedDefaults.modelProvider;
+  const model = row.model ?? resolvedDefaults.model;
+  const contextTokens = row.contextTokens ?? resolvedDefaults.contextTokens;
   const rawThinking = row.thinkingLevel ?? "";
   const isBinaryThinking = isBinaryThinkingProvider(row.modelProvider);
-  const thinking = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
+  const thinkingResolved = resolveEffectiveStringSetting({
+    override: rawThinking,
+    defaultValue: resolvedDefaults.thinkingDefault,
+  });
+  const thinking = resolveThinkLevelDisplay(thinkingResolved.effective, isBinaryThinking);
+  const thinkingOverride = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
+  const verboseResolved = resolveEffectiveStringSetting({
+    override: row.verboseLevel ?? "",
+    defaultValue: resolvedDefaults.verboseDefault,
+  });
+  const reasoningResolved = resolveEffectiveStringSetting({
+    override: row.reasoningLevel ?? "",
+    defaultValue: resolvedDefaults.reasoningDefault,
+  });
   const displayName = row.displayName ?? row.key;
   const canLink = row.kind !== "global";
   const status = deriveSessionStatus(row);
@@ -1008,7 +1224,8 @@ function renderListItem(
   const sessionType = inferSessionType(row.key);
   const sessionIdPrefix = row.sessionId ? row.sessionId.slice(0, 8) : truncateKey(row.key, 12);
   const labelValue = row.label?.trim() ?? "";
-  const primaryLabel = labelValue || row.displayName || row.derivedTitle || sessionIdPrefix || displayName;
+  const title = row.derivedTitle?.trim() || row.displayName || sessionIdPrefix || displayName;
+  const agentName = resolveAgentDisplayName(row);
   const workspaceDir = row.workspaceDir?.trim() ?? "";
   const workspaceName = workspaceDir ? workspaceDir.replace(/.*[\\/]/, "") : "";
   const channelBucket = row.channel
@@ -1021,9 +1238,14 @@ function renderListItem(
   const hasActiveTasks = activeTasks.length > 0;
   const inProgressCount = activeTasks.filter((t) => t.status === "in-progress").length;
   const hasError = Boolean(row.abortedLastRun);
-  const hasLastMessagePreview = typeof row.lastMessagePreview === "string" && row.lastMessagePreview.trim();
+  const hasDescription = typeof row.description === "string" && row.description.trim();
+  const description = hasDescription ? row.description!.trim() : "";
+  const hasLastMessagePreview =
+    typeof row.lastMessagePreview === "string" && row.lastMessagePreview.trim();
   const lastMessagePreview = hasLastMessagePreview ? row.lastMessagePreview!.trim() : "";
+  const previewText = description || lastMessagePreview;
   const selected = drawerKey === row.key;
+  const thinkLevels = resolveThinkLevelOptions(row.modelProvider);
 
   return html`
     <div
@@ -1033,8 +1255,8 @@ function renderListItem(
     >
       <div class="sessions-list-item__main">
         <div class="sessions-list-item__title-row">
-          <div class="sessions-list-item__title" title=${primaryLabel}>
-            ${primaryLabel}
+          <div class="sessions-list-item__title" title=${title}>
+            ${title}
             ${hasActiveTasks
               ? html`
                 <span class="session-active-indicator" title="${inProgressCount} task(s) in progress">
@@ -1052,6 +1274,9 @@ function renderListItem(
         </div>
 
         <div class="sessions-list-item__subtitle">
+          <span class="sessions-agent-pill" title=${`Agent ${agentName}`}>
+            ${icon("user", { size: 12 })} Agent <span class="sessions-agent-pill__name">${agentName}</span>
+          </span>
           <span
             class="session-row__type ${sessionType === "cron" ? "session-row__type--cron" : "session-row__type--regular"}"
             title=${sessionType === "cron" ? "Cron session" : "Regular session"}
@@ -1126,22 +1351,93 @@ function renderListItem(
           </details>
         </div>
 
-        ${lastMessagePreview
-          ? html`<div class="sessions-list-item__preview" title=${lastMessagePreview}>${lastMessagePreview}</div>`
+        ${previewText
+          ? html`<div class="sessions-list-item__preview" title=${previewText}>${previewText}</div>`
           : nothing}
       </div>
 
       <div class="sessions-list-item__right">
         <div class="sessions-list-item__time">${updated}</div>
+        <div class="sessions-list-item__model" title="Effective model and context window">
+          <span class="sessions-list-item__model-mono">${modelProvider ?? "provider?"} · ${model ?? "model?"}</span>
+          ${typeof contextTokens === "number"
+            ? html`<span class="muted">· ctx ${contextTokens}</span>`
+            : nothing}
+        </div>
         <div class="sessions-list-item__stats">
-          <span class="badge badge--muted" title="Thinking level">
-            ${icon("brain", { size: 12 })} ${thinking || "inherit"}
+          <span
+            class="badge badge--muted"
+            title=${thinkingResolved.source === "override"
+              ? `Thinking (override): ${thinking}`
+              : `Thinking (default): ${thinking}`}
+          >
+            ${icon("brain", { size: 12 })} ${thinking}
           </span>
-          <span class="badge badge--muted" title="Total tokens">
-            ${icon("sparkles", { size: 12 })} ${formatSessionTokens(row)}
+          <span class="badge badge--muted session-token-badge session-token-badge--churn" title="Total tokens (increasing)">
+            ${icon("trending-up", { size: 12, class: "session-token-badge__icon" })} ${formatSessionTokens(row)}
           </span>
         </div>
         <div class="row-actions">
+          <details class="session-ai-settings" @click=${(e: Event) => e.stopPropagation()}>
+            <summary class="row-actions__btn" title="AI settings" aria-label="AI settings">
+              ${icon("settings", { size: 14 })}
+            </summary>
+            <div class="session-ai-settings__panel">
+              <div class="session-ai-settings__row">
+                <span class="muted">Thinking</span>
+                <select
+                  class="field__input"
+                  .value=${thinkingOverride}
+                  ?disabled=${disabled}
+                  @change=${(e: Event) => {
+                    const value = (e.target as HTMLSelectElement).value;
+                    onPatch(row.key, {
+                      thinkingLevel: resolveThinkLevelPatchValue(value, isBinaryThinking),
+                    });
+                  }}
+                >
+                  ${thinkLevels.map((level) =>
+                    html`<option value=${level}>${level || "inherit"}</option>`,
+                  )}
+                </select>
+              </div>
+              <div class="session-ai-settings__row">
+                <span class="muted">Verbose</span>
+                <select
+                  class="field__input"
+                  .value=${row.verboseLevel ?? ""}
+                  ?disabled=${disabled}
+                  @change=${(e: Event) => {
+                    const value = (e.target as HTMLSelectElement).value;
+                    onPatch(row.key, { verboseLevel: value || null });
+                  }}
+                >
+                  ${VERBOSE_LEVELS.map(
+                    (level) => html`<option value=${level.value}>${level.label}</option>`,
+                  )}
+                </select>
+              </div>
+              <div class="session-ai-settings__row">
+                <span class="muted">Reasoning</span>
+                <select
+                  class="field__input"
+                  .value=${row.reasoningLevel ?? ""}
+                  ?disabled=${disabled}
+                  @change=${(e: Event) => {
+                    const value = (e.target as HTMLSelectElement).value;
+                    onPatch(row.key, { reasoningLevel: value || null });
+                  }}
+                >
+                  ${REASONING_LEVELS.map((level) =>
+                    html`<option value=${level}>${level || "inherit"}</option>`,
+                  )}
+                </select>
+              </div>
+              <div class="muted" style="font-size: 11px;">
+                Effective: thinking ${thinking} (${thinkingResolved.source}), verbose ${verboseResolved.effective} (${verboseResolved.source}), reasoning ${reasoningResolved.effective} (${reasoningResolved.source})
+              </div>
+            </div>
+          </details>
           <button
             class="row-actions__btn"
             title="Copy session key"
@@ -1212,8 +1508,10 @@ function renderSessionsDrawer(params: {
   if (!session || !props.drawerKey) return nothing;
   const sessionType = inferSessionType(session.key);
   const sessionIdPrefix = session.sessionId ? session.sessionId.slice(0, 8) : truncateKey(session.key, 12);
-  const title = (session.label?.trim() || session.displayName || session.derivedTitle || sessionIdPrefix).trim();
+  const title = (session.derivedTitle?.trim() || session.displayName || sessionIdPrefix).trim();
+  const agentName = resolveAgentDisplayName(session);
   const subtitleParts: string[] = [];
+  subtitleParts.push(`Agent ${agentName}`);
   subtitleParts.push(sessionType);
   subtitleParts.push(sessionIdPrefix);
   subtitleParts.push(session.kind);
@@ -1221,14 +1519,34 @@ function renderSessionsDrawer(params: {
   const status = deriveSessionStatus(session);
   const statusBadgeClass = getStatusBadgeClass(status);
   const updated = session.updatedAt ? formatAgo(session.updatedAt) : "n/a";
+  const resolvedDefaults = resolveSessionDefaults(props.result?.defaults ?? null);
+  const modelProvider = session.modelProvider ?? resolvedDefaults.modelProvider;
+  const model = session.model ?? resolvedDefaults.model;
+  const contextTokens = session.contextTokens ?? resolvedDefaults.contextTokens;
   const rawThinking = session.thinkingLevel ?? "";
   const isBinaryThinking = isBinaryThinkingProvider(session.modelProvider);
-  const thinking = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
+  const thinkingResolved = resolveEffectiveStringSetting({
+    override: rawThinking,
+    defaultValue: resolvedDefaults.thinkingDefault,
+  });
+  const thinkingEffective = resolveThinkLevelDisplay(thinkingResolved.effective, isBinaryThinking);
+  const thinkingOverride = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
   const thinkLevels = resolveThinkLevelOptions(session.modelProvider);
+  const verboseResolved = resolveEffectiveStringSetting({
+    override: session.verboseLevel ?? "",
+    defaultValue: resolvedDefaults.verboseDefault,
+  });
+  const reasoningResolved = resolveEffectiveStringSetting({
+    override: session.reasoningLevel ?? "",
+    defaultValue: resolvedDefaults.reasoningDefault,
+  });
   const verbose = session.verboseLevel ?? "";
   const reasoning = session.reasoningLevel ?? "";
   const canLink = session.kind !== "global";
   const preview = props.drawerPreview?.key === session.key ? props.drawerPreview : null;
+  const tags = Array.isArray(session.tags)
+    ? session.tags.map((t) => normalizeTagLabel(t)).filter(Boolean)
+    : [];
 
   return html`
     <div class="sessions-drawer-backdrop" @click=${props.onDrawerClose}></div>
@@ -1327,6 +1645,67 @@ function renderSessionsDrawer(params: {
                 </div>
               `
               : nothing}
+            <div class="sessions-drawer__kv sessions-drawer__kv--full">
+              <div class="sessions-drawer__k">Tags</div>
+              <div class="sessions-drawer__v">
+                <div class="chip-row">
+                  ${tags.length === 0
+                    ? html`<span class="muted">None</span>`
+                    : tags.map(
+                        (tag) => html`
+                          <button
+                            class="chip sessions-filter-chip"
+                            type="button"
+                            title="Remove tag"
+                            ?disabled=${props.loading}
+                            @click=${() => {
+                              const key = normalizeTagKey(tag);
+                              const next = tags.filter((t) => normalizeTagKey(t) !== key);
+                              props.onPatch(session.key, { tags: next.length ? next : null });
+                            }}
+                          >
+                            <span class="sessions-filter-chip__label">${tag}</span>
+                            <span class="sessions-filter-chip__x">${icon("x", { size: 12 })}</span>
+                          </button>
+                        `,
+                      )}
+                </div>
+                <form
+                  class="sessions-tags-editor"
+                  @submit=${(e: Event) => {
+                    e.preventDefault();
+                    const form = e.currentTarget as HTMLFormElement;
+                    const input = form.querySelector("input") as HTMLInputElement | null;
+                    const value = normalizeTagLabel(input?.value ?? "");
+                    if (!value) return;
+                    const key = normalizeTagKey(value);
+                    const seen = new Set(tags.map((t) => normalizeTagKey(t)));
+                    if (seen.has(key)) {
+                      if (input) input.value = "";
+                      return;
+                    }
+                    props.onPatch(session.key, { tags: [...tags, value] });
+                    if (input) input.value = "";
+                  }}
+                >
+                  <input
+                    class="field__input sessions-tags-editor__input"
+                    type="text"
+                    placeholder="Add tag…"
+                    ?disabled=${props.loading}
+                  />
+                  <button
+                    class="btn btn--secondary btn--sm"
+                    type="submit"
+                    ?disabled=${props.loading}
+                    title="Add tag"
+                  >
+                    ${icon("plus", { size: 14 })}
+                    <span>Add</span>
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
           <div class="sessions-drawer__actions">
             ${canLink
@@ -1368,25 +1747,33 @@ function renderSessionsDrawer(params: {
         <div class="sessions-drawer__section">
           <div class="sessions-drawer__section-title">AI</div>
           <div class="sessions-drawer__grid">
-            ${session.model
+            <div class="sessions-drawer__kv">
+              <div class="sessions-drawer__k">Agent</div>
+              <div class="sessions-drawer__v">${agentName}</div>
+            </div>
+            <div class="sessions-drawer__kv">
+              <div class="sessions-drawer__k">Model</div>
+              <div class="sessions-drawer__v sessions-drawer__mono">${model ?? "unknown"}</div>
+            </div>
+            <div class="sessions-drawer__kv">
+              <div class="sessions-drawer__k">Provider</div>
+              <div class="sessions-drawer__v">${modelProvider ?? "unknown"}</div>
+            </div>
+            ${typeof contextTokens === "number"
               ? html`
                 <div class="sessions-drawer__kv">
-                  <div class="sessions-drawer__k">Model</div>
-                  <div class="sessions-drawer__v sessions-drawer__mono">${session.model}</div>
-                </div>
-              `
-              : nothing}
-            ${session.modelProvider
-              ? html`
-                <div class="sessions-drawer__kv">
-                  <div class="sessions-drawer__k">Provider</div>
-                  <div class="sessions-drawer__v">${session.modelProvider}</div>
+                  <div class="sessions-drawer__k">Context</div>
+                  <div class="sessions-drawer__v">${contextTokens}</div>
                 </div>
               `
               : nothing}
             <div class="sessions-drawer__kv">
               <div class="sessions-drawer__k">Tokens</div>
-              <div class="sessions-drawer__v">${formatSessionTokens(session)}</div>
+              <div class="sessions-drawer__v">
+                <span class="badge badge--muted session-token-badge session-token-badge--churn">
+                  ${icon("trending-up", { size: 12, class: "session-token-badge__icon" })} ${formatSessionTokens(session)}
+                </span>
+              </div>
             </div>
             ${typeof session.turnCount === "number"
               ? html`
@@ -1403,11 +1790,14 @@ function renderSessionsDrawer(params: {
               <span class="muted">${icon("chevron-down", { size: 14 })}</span>
             </summary>
             <div class="sessions-drawer__details-body">
+              <div class="muted" style="font-size: 11px;">
+                Effective: thinking ${thinkingEffective} (${thinkingResolved.source}), verbose ${verboseResolved.effective} (${verboseResolved.source}), reasoning ${reasoningResolved.effective} (${reasoningResolved.source})
+              </div>
               <div class="sessions-drawer__ai-row">
                 <span class="muted">Thinking</span>
                 <select
                   class="field__input"
-                  .value=${thinking}
+                  .value=${thinkingOverride}
                   ?disabled=${props.loading}
                   @change=${(e: Event) => {
                     const value = (e.target as HTMLSelectElement).value;
@@ -1494,6 +1884,7 @@ function renderSessionsDrawer(params: {
 function renderRow(
   row: GatewaySessionRow,
   basePath: string,
+  defaults: ReturnType<typeof resolveSessionDefaults>,
   onPatch: SessionsProps["onPatch"],
   onDelete: SessionsProps["onDelete"],
   onSessionOpen: SessionsProps["onSessionOpen"],
@@ -1507,8 +1898,21 @@ function renderRow(
   const updated = row.updatedAt ? formatAgo(row.updatedAt) : "n/a";
   const rawThinking = row.thinkingLevel ?? "";
   const isBinaryThinking = isBinaryThinkingProvider(row.modelProvider);
-  const thinking = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
+  const thinkingResolved = resolveEffectiveStringSetting({
+    override: rawThinking,
+    defaultValue: defaults.thinkingDefault,
+  });
+  const thinking = resolveThinkLevelDisplay(thinkingResolved.effective, isBinaryThinking);
+  const thinkingOverride = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
   const thinkLevels = resolveThinkLevelOptions(row.modelProvider);
+  const verboseResolved = resolveEffectiveStringSetting({
+    override: row.verboseLevel ?? "",
+    defaultValue: defaults.verboseDefault,
+  });
+  const reasoningResolved = resolveEffectiveStringSetting({
+    override: row.reasoningLevel ?? "",
+    defaultValue: defaults.reasoningDefault,
+  });
   const verbose = row.verboseLevel ?? "";
   const reasoning = row.reasoningLevel ?? "";
   const displayName = row.displayName ?? row.key;
@@ -1522,7 +1926,8 @@ function renderRow(
   const sessionType = inferSessionType(row.key);
   const sessionIdPrefix = row.sessionId ? row.sessionId.slice(0, 8) : truncateKey(row.key, 12);
   const labelValue = row.label?.trim() ?? "";
-  const primaryLabel = labelValue || sessionIdPrefix || displayName;
+  const title = row.derivedTitle?.trim() || displayName;
+  const agentName = resolveAgentDisplayName(row);
   const workspaceDir = row.workspaceDir?.trim() ?? "";
   const workspaceName = workspaceDir ? workspaceDir.replace(/.*[\\/]/, "") : "";
   const channelBucket = row.channel
@@ -1536,9 +1941,16 @@ function renderRow(
   const hasActiveTasks = activeTasks.length > 0;
   const inProgressCount = activeTasks.filter((t) => t.status === "in-progress").length;
   const hasError = Boolean(row.abortedLastRun);
-  const hasLastMessagePreview = typeof row.lastMessagePreview === "string" && row.lastMessagePreview.trim();
+  const hasDescription = typeof row.description === "string" && row.description.trim();
+  const description = hasDescription ? row.description!.trim() : "";
+  const hasLastMessagePreview =
+    typeof row.lastMessagePreview === "string" && row.lastMessagePreview.trim();
   const lastMessagePreview = hasLastMessagePreview ? row.lastMessagePreview!.trim() : "";
+  const previewText = description || lastMessagePreview;
   const selected = drawerKey === row.key;
+
+  const modelProvider = row.modelProvider ?? defaults.modelProvider;
+  const model = row.model ?? defaults.model;
 
   return html`
     <div
@@ -1548,8 +1960,8 @@ function renderRow(
       <div class="data-table__cell" data-label="Session">
         <div class="session-row">
           <div class="session-row__main">
-            <div class="session-row__title" title=${primaryLabel}>
-              ${primaryLabel}
+            <div class="session-row__title" title=${title}>
+              ${title}
               ${hasActiveTasks
                 ? html`
                   <span class="session-active-indicator" title="${inProgressCount} task(s) in progress">
@@ -1560,6 +1972,9 @@ function renderRow(
                 : nothing}
             </div>
             <div class="session-row__meta">
+              <span class="sessions-agent-pill" title=${`Agent ${agentName}`}>
+                ${icon("user", { size: 12 })} Agent <span class="sessions-agent-pill__name">${agentName}</span>
+              </span>
               <span
                 class="session-row__type ${sessionType === "cron" ? "session-row__type--cron" : "session-row__type--regular"}"
                 title=${sessionType === "cron" ? "Cron session" : "Regular session"}
@@ -1654,23 +2069,23 @@ function renderRow(
             ${hasError ? html`<span class="badge badge--danger">aborted</span>` : nothing}
             <span class="session-activity__updated">${updated}</span>
           </div>
-          ${lastMessagePreview
-            ? html`<div class="session-activity__preview" title=${lastMessagePreview}>${lastMessagePreview}</div>`
+          ${previewText
+            ? html`<div class="session-activity__preview" title=${previewText}>${previewText}</div>`
             : nothing}
         </div>
       </div>
       <div class="data-table__cell" data-label="AI">
         <div class="session-ai">
-          <div class="session-ai__model" title=${row.model ?? ""}>
-            ${row.model ? html`<span class="session-ai__model-name">${row.model}</span>` : html`<span class="muted">unknown model</span>`}
-            ${row.modelProvider ? html`<span class="session-ai__provider">${row.modelProvider}</span>` : nothing}
+          <div class="session-ai__model" title=${model ?? ""}>
+            ${model ? html`<span class="session-ai__model-name">${model}</span>` : html`<span class="muted">unknown model</span>`}
+            ${modelProvider ? html`<span class="session-ai__provider">${modelProvider}</span>` : nothing}
           </div>
           <div class="session-ai__stats">
             <span class="badge badge--muted" title="Thinking level">
-              ${icon("brain", { size: 12 })} ${thinking || "inherit"}
+              ${icon("brain", { size: 12 })} ${thinking}
             </span>
-            <span class="badge badge--muted" title="Total tokens">
-              ${icon("sparkles", { size: 12 })} ${formatSessionTokens(row)}
+            <span class="badge badge--muted session-token-badge session-token-badge--churn" title="Total tokens (increasing)">
+              ${icon("trending-up", { size: 12, class: "session-token-badge__icon" })} ${formatSessionTokens(row)}
             </span>
             ${typeof row.turnCount === "number"
               ? html`
@@ -1688,7 +2103,7 @@ function renderRow(
                   <span class="muted">Thinking</span>
                   <select
                     class="field__input"
-                    .value=${thinking}
+                    .value=${thinkingOverride}
                     ?disabled=${disabled}
                     @change=${(e: Event) => {
                       const value = (e.target as HTMLSelectElement).value;
@@ -1733,6 +2148,9 @@ function renderRow(
                       html`<option value=${level}>${level || "inherit"}</option>`,
                     )}
                   </select>
+                </div>
+                <div class="muted" style="font-size: 11px;">
+                  Effective: thinking ${thinking} (${thinkingResolved.source}), verbose ${verboseResolved.effective} (${verboseResolved.source}), reasoning ${reasoningResolved.effective} (${reasoningResolved.source})
                 </div>
               </div>
             </details>

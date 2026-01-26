@@ -163,10 +163,14 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
           clientOptions,
         },
   );
-  app.error(async (error) => {
-    const message = error instanceof Error ? error.message : String(error);
-    runtime.error?.(danger(`slack app error: ${message}`));
-  });
+  if (typeof (app as { error?: unknown }).error === "function") {
+    (
+      app as unknown as { error: (handler: (error: unknown) => void | Promise<void>) => void }
+    ).error(async (error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      runtime.error?.(danger(`slack app error: ${message}`));
+    });
+  }
   const slackHttpHandler =
     slackMode === "http" && receiver
       ? async (req: IncomingMessage, res: ServerResponse) => {

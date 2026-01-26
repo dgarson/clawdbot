@@ -5,6 +5,7 @@ import {
   type SessionEntry,
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
+import { queueSessionDescriptionRefresh } from "../../sessions/session-description.js";
 import { logVerbose } from "../../globals.js";
 
 export async function persistSessionUsageUpdate(params: {
@@ -24,7 +25,7 @@ export async function persistSessionUsageUpdate(params: {
   const label = params.logLabel ? `${params.logLabel} ` : "";
   if (hasNonzeroUsage(params.usage)) {
     try {
-      await updateSessionStoreEntry({
+      const next = await updateSessionStoreEntry({
         storePath,
         sessionKey,
         update: async (entry) => {
@@ -56,6 +57,7 @@ export async function persistSessionUsageUpdate(params: {
           return patch;
         },
       });
+      if (next) queueSessionDescriptionRefresh({ storePath, sessionKey, entry: next });
     } catch (err) {
       logVerbose(`failed to persist ${label}usage update: ${String(err)}`);
     }
@@ -64,7 +66,7 @@ export async function persistSessionUsageUpdate(params: {
 
   if (params.modelUsed || params.contextTokensUsed) {
     try {
-      await updateSessionStoreEntry({
+      const next = await updateSessionStoreEntry({
         storePath,
         sessionKey,
         update: async (entry) => {
@@ -89,6 +91,7 @@ export async function persistSessionUsageUpdate(params: {
           return patch;
         },
       });
+      if (next) queueSessionDescriptionRefresh({ storePath, sessionKey, entry: next });
     } catch (err) {
       logVerbose(`failed to persist ${label}model/context update: ${String(err)}`);
     }

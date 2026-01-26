@@ -159,7 +159,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         const label = title && title !== formattedKey ? `${title} (${formattedKey})` : formattedKey;
         // Build description: time + message preview
         const timePart = session.updatedAt ? formatRelativeTime(session.updatedAt) : "";
-        const preview = session.lastMessagePreview?.replace(/\s+/g, " ").trim();
+        const preview = (session.description ?? session.lastMessagePreview)
+          ?.replace(/\s+/g, " ")
+          .trim();
         const description =
           timePart && preview ? `${timePart} · ${preview}` : (preview ?? timePart);
         return {
@@ -172,6 +174,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             session.subject,
             session.sessionId,
             session.key,
+            session.description,
             session.lastMessagePreview,
           ]
             .filter(Boolean)

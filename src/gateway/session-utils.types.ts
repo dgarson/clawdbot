@@ -6,15 +6,21 @@ export type GatewaySessionsDefaults = {
   modelProvider: string | null;
   model: string | null;
   contextTokens: number | null;
+  thinkingDefault: string | null;
+  verboseDefault: string | null;
+  reasoningDefault: string | null;
+  elevatedDefault: string | null;
 };
 
 export type GatewaySessionRow = {
   key: string;
   kind: "direct" | "group" | "global" | "unknown";
   label?: string;
+  tags?: string[];
   displayName?: string;
   derivedTitle?: string;
   lastMessagePreview?: string;
+  description?: string;
   channel?: string;
   subject?: string;
   groupChannel?: string;

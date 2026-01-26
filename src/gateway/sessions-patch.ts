@@ -55,6 +55,26 @@ function normalizeExecAsk(raw: string): "off" | "on-miss" | "always" | undefined
   return undefined;
 }
 
+function normalizeSessionTags(raw: unknown): string[] | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null) return null;
+  if (!Array.isArray(raw)) return undefined;
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of raw) {
+    if (typeof entry !== "string") continue;
+    const trimmed = entry.trim().replace(/\s+/g, " ");
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    normalized.push(trimmed);
+    if (normalized.length >= 64) break;
+  }
+  if (normalized.length === 0) return [];
+  return normalized;
+}
+
 export async function applySessionsPatchToStore(params: {
   cfg: ClawdbotConfig;
   store: Record<string, SessionEntry>;
@@ -104,6 +124,16 @@ export async function applySessionsPatchToStore(params: {
         }
       }
       next.label = parsed.label;
+    }
+  }
+
+  if ("tags" in patch) {
+    const nextTags = normalizeSessionTags(patch.tags);
+    if (nextTags === null) {
+      delete next.tags;
+    } else if (nextTags !== undefined) {
+      if (nextTags.length === 0) delete next.tags;
+      else next.tags = nextTags;
     }
   }
 
