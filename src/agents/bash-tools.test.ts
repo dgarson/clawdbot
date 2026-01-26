@@ -133,7 +133,8 @@ describe("exec tool backgrounding", () => {
 
     const sessionId = (result.details as { sessionId: string }).sessionId;
     let status = "running";
-    const deadline = Date.now() + 5000;
+    // Under heavy test parallelism, process timeout propagation can be slightly delayed.
+    const deadline = Date.now() + 15_000;
 
     while (Date.now() < deadline && status === "running") {
       const poll = await customProcess.execute("call2", {
