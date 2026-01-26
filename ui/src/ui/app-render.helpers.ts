@@ -8,7 +8,7 @@ import { syncUrlWithSessionKey } from "./app-settings";
 import type { SessionsListResult } from "./types";
 import type { ThemeMode } from "./theme";
 import type { ThemeTransitionContext } from "./theme-transition";
-import { iconForTabSvg, icon } from "./icons";
+import { iconForTabSvg, icon, icons } from "./icons";
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = hrefForTab(tab, state.basePath);
@@ -115,7 +115,7 @@ export function renderChatControls(state: AppViewState) {
           ? "Disabled during onboarding"
           : "Toggle assistant thinking/working output"}
       >
-        🧠
+        ${icons.brain}
       </button>
       <button
         class="btn btn--sm btn--icon ${focusActive ? "active" : ""}"

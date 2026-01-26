@@ -9,7 +9,7 @@ import {
   titleForTab,
   type Tab,
 } from "./navigation";
-import { icon } from "./icons";
+import { icon, icons } from "./icons";
 import type { UiSettings } from "./storage";
 import type { ThemeMode } from "./theme";
 import type { ThemeTransitionContext } from "./theme-transition";
@@ -205,8 +205,13 @@ export function renderApp(state: AppViewState) {
             <span class="nav-collapse-toggle__icon">${icon(state.settings.navCollapsed ? "panel-left" : "menu", { size: 18 })}</span>
           </button>
           <div class="brand">
-            <div class="brand-title">CLAWDBOT</div>
-            <div class="brand-sub">Gateway Dashboard</div>
+            <div class="brand-logo">
+              <img src="https://mintcdn.com/clawdhub/4rYvG-uuZrMK_URE/assets/pixel-lobster.svg?fit=max&auto=format&n=4rYvG-uuZrMK_URE&q=85&s=da2032e9eac3b5d9bfe7eb96ca6a8a26" alt="Clawdbot" />
+            </div>
+            <div class="brand-text">
+              <div class="brand-title">CLAWDBOT</div>
+              <div class="brand-sub">Gateway Dashboard</div>
+            </div>
           </div>
         </div>
         <div class="topbar-status">
@@ -767,6 +772,7 @@ export function renderApp(state: AppViewState) {
               onSessionKeyChange: (next) => {
                 state.sessionKey = next;
                 state.chatMessage = "";
+                state.chatAttachments = [];
                 state.chatStream = null;
                 state.chatStreamStartedAt = null;
                 state.chatRunId = null;
@@ -823,6 +829,8 @@ export function renderApp(state: AppViewState) {
               },
               onChatScroll: (event) => state.handleChatScroll(event),
               onDraftChange: (next) => (state.chatMessage = next),
+              attachments: state.chatAttachments,
+              onAttachmentsChange: (next) => (state.chatAttachments = next),
               onSend: () => state.handleSendChat(),
               canAbort: Boolean(state.chatRunId),
               onAbort: () => void state.handleAbortChat(),

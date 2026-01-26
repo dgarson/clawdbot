@@ -32,7 +32,7 @@ import type {
   OverseerGoalStatusResult,
   OverseerStatusResult,
 } from "../../../src/gateway/protocol/schema/overseer.js";
-import { type ChatQueueItem, type CronFormState, type GraphDragState, type GraphViewport } from "./ui-types";
+import { type ChatAttachment, type ChatQueueItem, type CronFormState, type GraphDragState, type GraphViewport } from "./ui-types";
 import type { EventLogEntry } from "./app-events";
 import { DEFAULT_CRON_FORM, DEFAULT_LOG_LEVEL_FILTERS } from "./app-defaults";
 import type {
@@ -264,6 +264,7 @@ export class ClawdbotApp extends LitElement {
   @state() chatAvatarUrl: string | null = null;
   @state() chatThinkingLevel: string | null = null;
   @state() chatQueue: ChatQueueItem[] = [];
+  @state() chatAttachments: ChatAttachment[] = [];
   @state() audioInputSupported = false;
   @state() audioRecording = false;
   @state() audioInputError: string | null = null;

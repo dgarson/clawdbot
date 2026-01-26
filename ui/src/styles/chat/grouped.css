@@ -247,9 +247,40 @@ img.chat-avatar {
 }
 
 .chat-copy-btn__icon {
-  display: inline-block;
-  width: 1em;
-  text-align: center;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  position: relative;
+}
+
+.chat-copy-btn__icon svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chat-copy-btn__icon-copy,
+.chat-copy-btn__icon-check {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 150ms ease;
+}
+
+.chat-copy-btn__icon-check {
+  opacity: 0;
+}
+
+.chat-copy-btn[data-copied="1"] .chat-copy-btn__icon-copy {
+  opacity: 0;
+}
+
+.chat-copy-btn[data-copied="1"] .chat-copy-btn__icon-check {
+  opacity: 1;
 }
 
 .chat-bubble:hover .chat-copy-btn {
@@ -271,17 +302,17 @@ img.chat-avatar {
 .chat-copy-btn[data-error="1"] {
   opacity: 1;
   pointer-events: auto;
-  border-color: rgba(255, 69, 58, 0.8);
-  background: rgba(255, 69, 58, 0.18);
-  color: rgba(255, 69, 58, 1);
+  border-color: var(--danger-subtle);
+  background: var(--danger-subtle);
+  color: var(--danger);
 }
 
 .chat-copy-btn[data-copied="1"] {
   opacity: 1;
   pointer-events: auto;
-  border-color: rgba(52, 199, 183, 0.8);
-  background: rgba(52, 199, 183, 0.18);
-  color: rgba(52, 199, 183, 1);
+  border-color: var(--ok-subtle);
+  background: var(--ok-subtle);
+  color: var(--ok);
 }
 
 .chat-copy-btn:focus-visible {

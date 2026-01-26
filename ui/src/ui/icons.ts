@@ -162,6 +162,30 @@ export function icon(
 }
 
 /**
+ * Compatibility object for code that uses `icons.name` pattern.
+ * Uses getter properties to lazily call icon() on access.
+ */
+export const icons = {
+  get menu() { return icon("menu"); },
+  get x() { return icon("x"); },
+  get check() { return icon("check"); },
+  get copy() { return icon("copy"); },
+  get search() { return icon("search"); },
+  get brain() { return icon("brain"); },
+  get book() { return icon("book-open"); },
+  get loader() { return icon("loader"); },
+  get circle() { return icon("circle"); },
+  get folder() { return icon("folder"); },
+  get link() { return icon("link"); },
+  get radio() { return icon("radio"); },
+  get zap() { return icon("zap"); },
+  get monitor() { return icon("monitor"); },
+  get settings() { return icon("settings"); },
+  get bug() { return icon("bug"); },
+  get edit() { return icon("edit"); },
+};
+
+/**
  * Map of tab names to icon names
  */
 export const tabIcons: Record<string, IconName> = {

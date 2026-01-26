@@ -1,5 +1,5 @@
 import { html, type TemplateResult } from "lit";
-import { renderEmojiIcon, setEmojiIcon } from "../icons";
+import { icons } from "../icons";
 import { toast } from "../components/toast";
 
 const COPIED_FOR_MS = 1500;
@@ -7,9 +7,6 @@ const ERROR_FOR_MS = 2000;
 const COPY_LABEL = "Copy as markdown";
 const COPIED_LABEL = "Copied";
 const ERROR_LABEL = "Copy failed";
-const COPY_ICON = "📋";
-const COPIED_ICON = "✓";
-const ERROR_ICON = "!";
 
 type CopyButtonOptions = {
   text: () => string;
@@ -44,7 +41,7 @@ function createCopyButton(options: CopyButtonOptions): TemplateResult {
       aria-label=${idleLabel}
       @click=${async (e: Event) => {
         const btn = e.currentTarget as HTMLButtonElement | null;
-        const icon = btn?.querySelector(
+        const iconContainer = btn?.querySelector(
           ".chat-copy-btn__icon",
         ) as HTMLElement | null;
 
@@ -64,30 +61,29 @@ function createCopyButton(options: CopyButtonOptions): TemplateResult {
         if (!copied) {
           btn.dataset.error = "1";
           setButtonLabel(btn, ERROR_LABEL);
-          setEmojiIcon(icon, ERROR_ICON);
 
           window.setTimeout(() => {
             if (!btn.isConnected) return;
             delete btn.dataset.error;
             setButtonLabel(btn, idleLabel);
-            setEmojiIcon(icon, COPY_ICON);
           }, ERROR_FOR_MS);
           return;
         }
 
         btn.dataset.copied = "1";
         setButtonLabel(btn, COPIED_LABEL);
-        setEmojiIcon(icon, COPIED_ICON);
 
         window.setTimeout(() => {
           if (!btn.isConnected) return;
           delete btn.dataset.copied;
           setButtonLabel(btn, idleLabel);
-          setEmojiIcon(icon, COPY_ICON);
         }, COPIED_FOR_MS);
       }}
     >
-      ${renderEmojiIcon(COPY_ICON, "chat-copy-btn__icon")}
+      <span class="chat-copy-btn__icon" aria-hidden="true">
+        <span class="chat-copy-btn__icon-copy">${icons.copy}</span>
+        <span class="chat-copy-btn__icon-check">${icons.check}</span>
+      </span>
     </button>
   `;
 }

@@ -45,6 +45,7 @@ export function renderChannelAccountCount(
   return html`<div class="account-count">Accounts (${count})</div>`;
 }
 
+
 export function renderProbeBadge(probe: { ok: boolean; status?: unknown; error?: unknown } | null | undefined) {
   if (!probe) return nothing;
   const ok = probe.ok;

@@ -126,6 +126,7 @@ export function connectGateway(host: GatewayHost) {
     mode: "webchat",
     onHello: (hello) => {
       host.connected = true;
+      host.lastError = null;
       host.hello = hello;
       applySnapshot(host, hello);
       toast.success("Connected to gateway");
@@ -137,8 +138,11 @@ export function connectGateway(host: GatewayHost) {
     },
     onClose: ({ code, reason }) => {
       host.connected = false;
-      host.lastError = `disconnected (${code}): ${reason || "no reason"}`;
-      toast.warning("Disconnected from gateway");
+      // Code 1012 = Service Restart (expected during config saves, don't show as error)
+      if (code !== 1012) {
+        host.lastError = `disconnected (${code}): ${reason || "no reason"}`;
+        toast.warning("Disconnected from gateway");
+      }
     },
     onEvent: (evt) => handleGatewayEvent(host, evt),
     onGap: ({ expected, received }) => {

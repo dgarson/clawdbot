@@ -1,3 +1,5 @@
+import type { IconName } from "./icons.js";
+
 export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
@@ -162,38 +164,38 @@ export function inferBasePathFromPathname(pathname: string): string {
   return `/${segments.join("/")}`;
 }
 
-export function iconForTab(tab: Tab): string {
+export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "landing":
-      return "🏠";
+      return "monitor";
     case "chat":
-      return "💬";
+      return "message-square";
     case "overview":
-      return "📊";
+      return "layout-dashboard";
     case "agents":
-      return "🪐";
+      return "users";
     case "channels":
-      return "🔗";
+      return "link";
     case "instances":
-      return "📡";
+      return "radio";
     case "sessions":
-      return "📄";
+      return "file-text";
     case "cron":
-      return "⏰";
+      return "clock";
     case "overseer":
-      return "✨";
+      return "sparkles";
     case "skills":
-      return "⚡️";
+      return "zap";
     case "nodes":
-      return "🖥️";
+      return "server";
     case "config":
-      return "⚙️";
+      return "settings";
     case "debug":
-      return "🐞";
+      return "bug";
     case "logs":
-      return "🧾";
+      return "scroll-text";
     default:
-      return "📁";
+      return "file-text";
   }
 }
 

@@ -141,7 +141,7 @@ export function renderNode(params: {
       const hasString = normalizedTypes.has("string");
       const hasNumber = normalizedTypes.has("number");
       const hasBoolean = normalizedTypes.has("boolean");
-      
+
       if (hasBoolean && normalizedTypes.size === 1) {
         return renderNode({
           ...params,
@@ -759,7 +759,7 @@ function renderMapField(params: {
           Add Entry
         </button>
       </div>
-      
+
       ${entries.length === 0 ? html`
         <div class="cfg-map__empty">No custom entries.</div>
       ` : html`

@@ -62,6 +62,7 @@ export const ClawdbotSchema = z
     diagnostics: z
       .object({
         enabled: z.boolean().optional(),
+        flags: z.array(z.string()).optional(),
         otel: z
           .object({
             enabled: z.boolean().optional(),
@@ -308,6 +309,12 @@ export const ClawdbotSchema = z
         wideArea: z
           .object({
             enabled: z.boolean().optional(),
+          })
+          .strict()
+          .optional(),
+        mdns: z
+          .object({
+            mode: z.enum(["off", "minimal", "full"]).optional(),
           })
           .strict()
           .optional(),
