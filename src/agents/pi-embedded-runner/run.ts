@@ -26,6 +26,7 @@ import {
 } from "../model-auth.js";
 import { normalizeProviderId } from "../model-selection.js";
 import { ensureClawdbotModelsJson } from "../models-config.js";
+import { initProviderConcurrencyFromConfig } from "../provider-concurrency.js";
 import {
   classifyFailoverReason,
   formatAssistantErrorText,
@@ -99,6 +100,9 @@ export async function runEmbeddedPiAgent(
       const fallbackConfigured =
         (params.config?.agents?.defaults?.model?.fallbacks?.length ?? 0) > 0;
       await ensureClawdbotModelsJson(params.config, agentDir);
+
+      // Initialize per-provider concurrency gates from config (idempotent).
+      initProviderConcurrencyFromConfig(params.config);
 
       const { model, error, authStorage, modelRegistry } = resolveModel(
         provider,

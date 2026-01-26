@@ -56,6 +56,7 @@ import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import { isAbortError } from "../abort.js";
 import { buildEmbeddedExtensionPaths } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
+import { wrapStreamFnWithConcurrencyGate } from "../../provider-concurrency.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import {
   logToolSchemasForGoogle,
@@ -509,6 +510,13 @@ export async function runEmbeddedAttempt(
           activeSession.agent.streamFn,
         );
       }
+
+      // Apply per-provider concurrency gate (wraps outermost so the slot is held
+      // for the full stream duration including any inner wrappers).
+      activeSession.agent.streamFn = wrapStreamFnWithConcurrencyGate(
+        activeSession.agent.streamFn,
+        params.provider,
+      );
 
       try {
         const prior = await sanitizeSessionHistory({

@@ -41,6 +41,8 @@ export type ModelProviderConfig = {
   headers?: Record<string, string>;
   authHeader?: boolean;
   models: ModelDefinitionConfig[];
+  /** Max concurrent API requests for this provider (default: unlimited). */
+  maxConcurrent?: number;
 };
 
 export type BedrockDiscoveryConfig = {
