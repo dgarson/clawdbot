@@ -58,6 +58,7 @@ import {
 import { renderSkills } from "./views/skills";
 import { renderLanding } from "./views/landing";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers";
+import { renderAutomationsListView, renderAutomationForm, renderProgressModal, renderRunHistory } from "./views/automations";
 import { loadChannels } from "./controllers/channels";
 import { loadPresence } from "./controllers/presence";
 import {
@@ -95,6 +96,32 @@ import {
 import { loadCronRuns, toggleCronJob, runCronJob, removeCronJob, addCronJob } from "./controllers/cron";
 import { loadDebug, callDebugMethod } from "./controllers/debug";
 import { loadLogs } from "./controllers/logs";
+import {
+  loadAutomations,
+  runAutomation,
+  toggleSuspendAutomation,
+  deleteAutomation,
+  setSearchQuery,
+  setStatusFilter,
+  toggleExpand,
+  filterAutomations,
+  loadAutomationRuns,
+  toggleHistoryRow,
+  getFilteredHistoryData,
+  getTotalHistoryPages,
+  getPaginatedHistoryData,
+  clearHistoryFilters,
+  cancelAutomation,
+  jumpToChat,
+  setFormField,
+  nextFormStep,
+  prevFormStep,
+  createAutomation,
+  type AutomationsState,
+  type AutomationRunHistoryState,
+  type ProgressModalState,
+  type AutomationFormState,
+} from "./controllers/automations";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -559,6 +586,161 @@ export function renderApp(state: AppViewState) {
             })
           : nothing}
 
+        ${state.tab === "automations"
+          ? renderAutomationsListView({
+              state: {
+                automations: state.automations,
+                searchQuery: state.automationsSearchQuery,
+                statusFilter: state.automationsStatusFilter,
+                loading: state.automationsLoading,
+                error: state.automationsError,
+              },
+              filteredAutomations: filterAutomations({
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationsLoading,
+                automations: state.automations,
+                searchQuery: state.automationsSearchQuery,
+                statusFilter: state.automationsStatusFilter,
+                error: state.automationsError,
+                selectedId: state.automationsSelectedId,
+                expandedIds: state.automationsExpandedIds,
+                runningIds: state.automationsRunningIds,
+              }),
+              onRun: async (id) => {
+                const automation = state.automations.find((a) => a.id === id);
+                if (!automation) return;
+
+                // Initialize and open progress modal
+                state.automationProgressModalAutomationId = id;
+                state.automationProgressModalAutomationName = automation.name;
+                state.automationProgressModalCurrentMilestone = "Starting...";
+                state.automationProgressModalProgress = 0;
+                state.automationProgressModalMilestones = [
+                  { id: "init", title: "Initializing", status: "current", timestamp: new Date().toLocaleTimeString() },
+                  { id: "running", title: "Running", status: "pending" },
+                  { id: "complete", title: "Completing", status: "pending" },
+                ];
+                state.automationProgressModalElapsedTime = "0s";
+                state.automationProgressModalConflicts = 0;
+                state.automationProgressModalStatus = "running";
+                state.automationProgressModalSessionId = state.sessionKey || "";
+                state.automationProgressModalOpen = true;
+
+                await runAutomation({
+                  client: state.client,
+                  connected: state.connected,
+                  loading: state.automationsLoading,
+                  automations: state.automations,
+                  searchQuery: state.automationsSearchQuery,
+                  statusFilter: state.automationsStatusFilter,
+                  error: state.automationsError,
+                  selectedId: state.automationsSelectedId,
+                  expandedIds: state.automationsExpandedIds,
+                  runningIds: state.automationsRunningIds,
+                }, id);
+              },
+              onSuspend: (id) => toggleSuspendAutomation({
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationsLoading,
+                automations: state.automations,
+                searchQuery: state.automationsSearchQuery,
+                statusFilter: state.automationsStatusFilter,
+                error: state.automationsError,
+                selectedId: state.automationsSelectedId,
+                expandedIds: state.automationsExpandedIds,
+                runningIds: state.automationsRunningIds,
+              }, id),
+              onHistory: (id) => {
+                state.automationsSelectedId = id;
+                loadAutomationRuns({
+                  client: state.client,
+                  connected: state.connected,
+                  loading: state.automationRunHistoryLoading,
+                  records: state.automationRunHistoryRecords,
+                  expandedRows: state.automationRunHistoryExpandedRows,
+                  currentPage: state.automationRunHistoryCurrentPage,
+                  statusFilter: state.automationRunHistoryStatusFilter,
+                  dateFrom: state.automationRunHistoryDateFrom,
+                  dateTo: state.automationRunHistoryDateTo,
+                  itemsPerPage: state.automationRunHistoryItemsPerPage,
+                  error: state.automationRunHistoryError,
+                  automationId: state.automationRunHistoryAutomationId,
+                }, id);
+              },
+              onEdit: (id) => {
+                state.automationsSelectedId = id;
+                state.automationFormOpen = true;
+              },
+              onDelete: (id) => deleteAutomation({
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationsLoading,
+                automations: state.automations,
+                searchQuery: state.automationsSearchQuery,
+                statusFilter: state.automationsStatusFilter,
+                error: state.automationsError,
+                selectedId: state.automationsSelectedId,
+                expandedIds: state.automationsExpandedIds,
+                runningIds: state.automationsRunningIds,
+              }, id),
+              onSearchChange: (query) => {
+                state.automationsSearchQuery = query;
+              },
+              onFilterChange: (filter) => {
+                state.automationsStatusFilter = filter;
+              },
+              onCreate: () => {
+                state.automationFormOpen = true;
+                state.automationFormCurrentStep = 1;
+                state.automationFormErrors = {};
+                state.automationFormData = {
+                  name: "",
+                  description: "",
+                  scheduleType: "every",
+                  scheduleAt: "",
+                  scheduleEveryAmount: "1",
+                  scheduleEveryUnit: "hours",
+                  scheduleCronExpr: "",
+                  scheduleCronTz: "",
+                  type: "smart-sync-fork",
+                  config: {},
+                };
+              },
+              onRefresh: () => loadAutomations({
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationsLoading,
+                automations: state.automations,
+                searchQuery: state.automationsSearchQuery,
+                statusFilter: state.automationsStatusFilter,
+                error: state.automationsError,
+                selectedId: state.automationsSelectedId,
+                expandedIds: state.automationsExpandedIds,
+                runningIds: state.automationsRunningIds,
+              }),
+              onToggleExpand: (id) => {
+                const automationsState: AutomationsState = {
+                  client: state.client,
+                  connected: state.connected,
+                  loading: state.automationsLoading,
+                  automations: state.automations,
+                  searchQuery: state.automationsSearchQuery,
+                  statusFilter: state.automationsStatusFilter,
+                  error: state.automationsError,
+                  selectedId: state.automationsSelectedId,
+                  expandedIds: state.automationsExpandedIds,
+                  runningIds: state.automationsRunningIds,
+                };
+                toggleExpand(automationsState, id);
+                state.automationsExpandedIds = new Set(automationsState.expandedIds);
+              },
+              expandedIds: state.automationsExpandedIds,
+              runningIds: state.automationsRunningIds,
+            })
+          : nothing}
+
         ${state.tab === "skills"
           ? renderSkills({
               loading: state.skillsLoading,
@@ -955,6 +1137,307 @@ export function renderApp(state: AppViewState) {
           : nothing}
       </main>
       ${renderExecApprovalPrompt(state)}
+      ${state.automationFormOpen
+        ? renderAutomationForm({
+            state: {
+              currentStep: state.automationFormCurrentStep,
+              errors: state.automationFormErrors,
+              formData: state.automationFormData,
+            },
+            onFieldChange: (field, value) => {
+              setFormField({
+                currentStep: state.automationFormCurrentStep,
+                errors: state.automationFormErrors,
+                formData: state.automationFormData,
+              }, field, value);
+              // Update the specific field in state
+              if (field === "name") state.automationFormData.name = value as string;
+              else if (field === "description") state.automationFormData.description = value as string;
+              else if (field === "scheduleType") state.automationFormData.scheduleType = value as "at" | "every" | "cron";
+              else if (field === "scheduleAt") state.automationFormData.scheduleAt = value as string;
+              else if (field === "scheduleEveryAmount") state.automationFormData.scheduleEveryAmount = value as string;
+              else if (field === "scheduleEveryUnit") state.automationFormData.scheduleEveryUnit = value as "minutes" | "hours" | "days";
+              else if (field === "scheduleCronExpr") state.automationFormData.scheduleCronExpr = value as string;
+              else if (field === "scheduleCronTz") state.automationFormData.scheduleCronTz = value as string;
+              else if (field === "type") state.automationFormData.type = value as "smart-sync-fork" | "custom-script" | "webhook";
+              else if (field === "config") state.automationFormData.config = value as Record<string, unknown>;
+              state.automationFormErrors = {};
+            },
+            onNext: () => {
+              const formState: AutomationFormState = {
+                currentStep: state.automationFormCurrentStep,
+                errors: state.automationFormErrors,
+                formData: state.automationFormData,
+              };
+              nextFormStep(formState);
+              state.automationFormCurrentStep = formState.currentStep;
+              state.automationFormErrors = formState.errors;
+            },
+            onPrevious: () => {
+              const formState: AutomationFormState = {
+                currentStep: state.automationFormCurrentStep,
+                errors: state.automationFormErrors,
+                formData: state.automationFormData,
+              };
+              prevFormStep(formState);
+              state.automationFormCurrentStep = formState.currentStep;
+            },
+            onSubmit: async () => {
+              const automationsState: AutomationsState = {
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationsLoading,
+                automations: state.automations,
+                searchQuery: state.automationsSearchQuery,
+                statusFilter: state.automationsStatusFilter,
+                error: state.automationsError,
+                selectedId: state.automationsSelectedId,
+                expandedIds: state.automationsExpandedIds,
+                runningIds: state.automationsRunningIds,
+              };
+              const formState: AutomationFormState = {
+                currentStep: state.automationFormCurrentStep,
+                errors: state.automationFormErrors,
+                formData: state.automationFormData,
+              };
+              const success = await createAutomation(automationsState, formState);
+              if (success) {
+                state.automationFormOpen = false;
+                state.automationFormCurrentStep = 1;
+                state.automationFormErrors = {};
+                state.automationFormData = {
+                  name: "",
+                  description: "",
+                  scheduleType: "every",
+                  scheduleAt: "",
+                  scheduleEveryAmount: "1",
+                  scheduleEveryUnit: "hours",
+                  scheduleCronExpr: "",
+                  scheduleCronTz: "",
+                  type: "smart-sync-fork",
+                  config: {},
+                };
+              }
+            },
+            onCancel: () => {
+              state.automationFormOpen = false;
+              state.automationFormCurrentStep = 1;
+              state.automationFormErrors = {};
+              state.automationFormData = {
+                name: "",
+                description: "",
+                scheduleType: "every",
+                scheduleAt: "",
+                scheduleEveryAmount: "1",
+                scheduleEveryUnit: "hours",
+                scheduleCronExpr: "",
+                scheduleCronTz: "",
+                type: "smart-sync-fork",
+                config: {},
+              };
+            },
+          })
+        : nothing}
+      ${state.automationProgressModalOpen
+        ? renderProgressModal({
+            state: {
+              client: state.client,
+              connected: state.connected,
+              isOpen: state.automationProgressModalOpen,
+              automationName: state.automationProgressModalAutomationName,
+              currentMilestone: state.automationProgressModalCurrentMilestone,
+              progress: state.automationProgressModalProgress,
+              milestones: state.automationProgressModalMilestones,
+              elapsedTime: state.automationProgressModalElapsedTime,
+              conflicts: state.automationProgressModalConflicts,
+              status: state.automationProgressModalStatus,
+              sessionId: state.automationProgressModalSessionId,
+              automationId: state.automationProgressModalAutomationId,
+            },
+            onClose: () => {
+              state.automationProgressModalOpen = false;
+            },
+            onJumpToChat: () => {
+              const progressState: ProgressModalState = {
+                client: state.client,
+                connected: state.connected,
+                isOpen: state.automationProgressModalOpen,
+                automationName: state.automationProgressModalAutomationName,
+                currentMilestone: state.automationProgressModalCurrentMilestone,
+                progress: state.automationProgressModalProgress,
+                milestones: state.automationProgressModalMilestones,
+                elapsedTime: state.automationProgressModalElapsedTime,
+                conflicts: state.automationProgressModalConflicts,
+                status: state.automationProgressModalStatus,
+                sessionId: state.automationProgressModalSessionId,
+                automationId: state.automationProgressModalAutomationId,
+              };
+              jumpToChat(progressState);
+            },
+            onCancel: async () => {
+              const progressState: ProgressModalState = {
+                client: state.client,
+                connected: state.connected,
+                isOpen: state.automationProgressModalOpen,
+                automationName: state.automationProgressModalAutomationName,
+                currentMilestone: state.automationProgressModalCurrentMilestone,
+                progress: state.automationProgressModalProgress,
+                milestones: state.automationProgressModalMilestones,
+                elapsedTime: state.automationProgressModalElapsedTime,
+                conflicts: state.automationProgressModalConflicts,
+                status: state.automationProgressModalStatus,
+                sessionId: state.automationProgressModalSessionId,
+                automationId: state.automationProgressModalAutomationId,
+              };
+              await cancelAutomation(progressState);
+              state.automationProgressModalStatus = progressState.status;
+            },
+          })
+        : nothing}
+      ${state.automationRunHistoryAutomationId
+        ? renderRunHistory({
+            state: {
+              records: state.automationRunHistoryRecords,
+              loading: state.automationRunHistoryLoading,
+              error: state.automationRunHistoryError,
+              expandedRows: state.automationRunHistoryExpandedRows,
+              currentPage: state.automationRunHistoryCurrentPage,
+              statusFilter: state.automationRunHistoryStatusFilter,
+              dateFrom: state.automationRunHistoryDateFrom,
+              dateTo: state.automationRunHistoryDateTo,
+              itemsPerPage: state.automationRunHistoryItemsPerPage,
+              automationId: state.automationRunHistoryAutomationId,
+            },
+            filteredData: getFilteredHistoryData({
+              client: state.client,
+              connected: state.connected,
+              loading: state.automationRunHistoryLoading,
+              records: state.automationRunHistoryRecords,
+              expandedRows: state.automationRunHistoryExpandedRows,
+              currentPage: state.automationRunHistoryCurrentPage,
+              statusFilter: state.automationRunHistoryStatusFilter,
+              dateFrom: state.automationRunHistoryDateFrom,
+              dateTo: state.automationRunHistoryDateTo,
+              itemsPerPage: state.automationRunHistoryItemsPerPage,
+              error: state.automationRunHistoryError,
+              automationId: state.automationRunHistoryAutomationId,
+            }),
+            totalPages: getTotalHistoryPages({
+              client: state.client,
+              connected: state.connected,
+              loading: state.automationRunHistoryLoading,
+              records: state.automationRunHistoryRecords,
+              expandedRows: state.automationRunHistoryExpandedRows,
+              currentPage: state.automationRunHistoryCurrentPage,
+              statusFilter: state.automationRunHistoryStatusFilter,
+              dateFrom: state.automationRunHistoryDateFrom,
+              dateTo: state.automationRunHistoryDateTo,
+              itemsPerPage: state.automationRunHistoryItemsPerPage,
+              error: state.automationRunHistoryError,
+              automationId: state.automationRunHistoryAutomationId,
+            }, getFilteredHistoryData({
+              client: state.client,
+              connected: state.connected,
+              loading: state.automationRunHistoryLoading,
+              records: state.automationRunHistoryRecords,
+              expandedRows: state.automationRunHistoryExpandedRows,
+              currentPage: state.automationRunHistoryCurrentPage,
+              statusFilter: state.automationRunHistoryStatusFilter,
+              dateFrom: state.automationRunHistoryDateFrom,
+              dateTo: state.automationRunHistoryDateTo,
+              itemsPerPage: state.automationRunHistoryItemsPerPage,
+              error: state.automationRunHistoryError,
+              automationId: state.automationRunHistoryAutomationId,
+            })),
+            paginatedData: getPaginatedHistoryData({
+              client: state.client,
+              connected: state.connected,
+              loading: state.automationRunHistoryLoading,
+              records: state.automationRunHistoryRecords,
+              expandedRows: state.automationRunHistoryExpandedRows,
+              currentPage: state.automationRunHistoryCurrentPage,
+              statusFilter: state.automationRunHistoryStatusFilter,
+              dateFrom: state.automationRunHistoryDateFrom,
+              dateTo: state.automationRunHistoryDateTo,
+              itemsPerPage: state.automationRunHistoryItemsPerPage,
+              error: state.automationRunHistoryError,
+              automationId: state.automationRunHistoryAutomationId,
+            }, getFilteredHistoryData({
+              client: state.client,
+              connected: state.connected,
+              loading: state.automationRunHistoryLoading,
+              records: state.automationRunHistoryRecords,
+              expandedRows: state.automationRunHistoryExpandedRows,
+              currentPage: state.automationRunHistoryCurrentPage,
+              statusFilter: state.automationRunHistoryStatusFilter,
+              dateFrom: state.automationRunHistoryDateFrom,
+              dateTo: state.automationRunHistoryDateTo,
+              itemsPerPage: state.automationRunHistoryItemsPerPage,
+              error: state.automationRunHistoryError,
+              automationId: state.automationRunHistoryAutomationId,
+            })),
+            onToggleRow: (id) => {
+              const historyState: AutomationRunHistoryState = {
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationRunHistoryLoading,
+                records: state.automationRunHistoryRecords,
+                expandedRows: state.automationRunHistoryExpandedRows,
+                currentPage: state.automationRunHistoryCurrentPage,
+                statusFilter: state.automationRunHistoryStatusFilter,
+                dateFrom: state.automationRunHistoryDateFrom,
+                dateTo: state.automationRunHistoryDateTo,
+                itemsPerPage: state.automationRunHistoryItemsPerPage,
+                error: state.automationRunHistoryError,
+                automationId: state.automationRunHistoryAutomationId,
+              };
+              toggleHistoryRow(historyState, id);
+              state.automationRunHistoryExpandedRows = new Set(historyState.expandedRows);
+            },
+            onPageChange: (page) => {
+              state.automationRunHistoryCurrentPage = page;
+            },
+            onStatusFilterChange: (status) => {
+              state.automationRunHistoryStatusFilter = status;
+            },
+            onDateFromChange: (date) => {
+              state.automationRunHistoryDateFrom = date;
+            },
+            onDateToChange: (date) => {
+              state.automationRunHistoryDateTo = date;
+            },
+            onClearFilters: () => {
+              const historyState: AutomationRunHistoryState = {
+                client: state.client,
+                connected: state.connected,
+                loading: state.automationRunHistoryLoading,
+                records: state.automationRunHistoryRecords,
+                expandedRows: state.automationRunHistoryExpandedRows,
+                currentPage: state.automationRunHistoryCurrentPage,
+                statusFilter: state.automationRunHistoryStatusFilter,
+                dateFrom: state.automationRunHistoryDateFrom,
+                dateTo: state.automationRunHistoryDateTo,
+                itemsPerPage: state.automationRunHistoryItemsPerPage,
+                error: state.automationRunHistoryError,
+                automationId: state.automationRunHistoryAutomationId,
+              };
+              clearHistoryFilters(historyState);
+              state.automationRunHistoryStatusFilter = historyState.statusFilter;
+              state.automationRunHistoryDateFrom = historyState.dateFrom;
+              state.automationRunHistoryDateTo = historyState.dateTo;
+            },
+            onDownloadArtifact: (artifact) => {
+              // TODO: Implement artifact download
+              console.log("Download artifact:", artifact);
+            },
+            onClose: () => {
+              state.automationRunHistoryAutomationId = null;
+              state.automationRunHistoryRecords = [];
+              state.automationRunHistoryExpandedRows = new Set();
+              state.automationRunHistoryCurrentPage = 1;
+            },
+          })
+        : nothing}
       ${renderCommandPalette({
         state: {
           open: state.commandPaletteOpen,
@@ -969,6 +1452,35 @@ export function renderApp(state: AppViewState) {
             abortChat: state.chatStream ? () => state.handleAbortChat() : undefined,
             refreshChannels: () => state.loadOverview(),
             refreshCron: () => state.loadCron(),
+            refreshAutomations: () => loadAutomations({
+              client: state.client,
+              connected: state.connected,
+              loading: state.automationsLoading,
+              automations: state.automations,
+              searchQuery: state.automationsSearchQuery,
+              statusFilter: state.automationsStatusFilter,
+              error: state.automationsError,
+              selectedId: state.automationsSelectedId,
+              expandedIds: state.automationsExpandedIds,
+              runningIds: state.automationsRunningIds,
+            }),
+            createAutomation: () => {
+              state.automationFormOpen = true;
+              state.automationFormCurrentStep = 1;
+              state.automationFormErrors = {};
+              state.automationFormData = {
+                name: "",
+                description: "",
+                scheduleType: "every",
+                scheduleAt: "",
+                scheduleEveryAmount: "1",
+                scheduleEveryUnit: "hours",
+                scheduleCronExpr: "",
+                scheduleCronTz: "",
+                type: "smart-sync-fork",
+                config: {},
+              };
+            },
             createGoal: () => state.handleOverseerOpenCreateGoal(),
             refreshOverseer: () => state.loadOverview(),
             refreshNodes: () => state.loadOverview(),

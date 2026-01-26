@@ -4,7 +4,7 @@ export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
     label: "Control",
-    tabs: ["overview", "agents", "channels", "instances", "sessions", "cron", "overseer"],
+    tabs: ["overview", "agents", "channels", "instances", "sessions", "cron", "automations", "overseer"],
   },
   { label: "Agent", tabs: ["skills", "nodes"] },
   { label: "Settings", tabs: ["config", "debug", "logs"] },
@@ -18,6 +18,7 @@ export type Tab =
   | "instances"
   | "sessions"
   | "cron"
+  | "automations"
   | "overseer"
   | "skills"
   | "nodes"
@@ -34,6 +35,7 @@ const TAB_PATHS: Record<Tab, string> = {
   instances: "/instances",
   sessions: "/sessions",
   cron: "/cron",
+  automations: "/automations",
   overseer: "/overseer",
   skills: "/skills",
   nodes: "/nodes",
@@ -182,6 +184,8 @@ export function iconForTab(tab: Tab): IconName {
       return "file-text";
     case "cron":
       return "clock";
+    case "automations":
+      return "zap";
     case "overseer":
       return "sparkles";
     case "skills":
@@ -215,6 +219,8 @@ export function titleForTab(tab: Tab) {
       return "Sessions";
     case "cron":
       return "Cron Jobs";
+    case "automations":
+      return "Automations";
     case "overseer":
       return "Overseer";
     case "skills":
@@ -250,6 +256,8 @@ export function subtitleForTab(tab: Tab) {
       return "Inspect active sessions and adjust per-session defaults.";
     case "cron":
       return "Schedule wakeups and recurring agent runs.";
+    case "automations":
+      return "Manage complex multi-step workflows and scheduled tasks.";
     case "overseer":
       return "Inspect durable plans, assignments, and recovery state.";
     case "skills":

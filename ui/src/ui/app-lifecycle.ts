@@ -18,6 +18,8 @@ import {
   stopDebugPolling,
   startOverseerPolling,
   stopOverseerPolling,
+  startAutomationsPolling,
+  stopAutomationsPolling,
 } from "./app-polling";
 
 type LifecycleHost = {
@@ -67,6 +69,9 @@ export function handleConnected(host: LifecycleHost) {
   if (host.tab === "overseer") {
     startOverseerPolling(host as unknown as Parameters<typeof startOverseerPolling>[0]);
   }
+  if (host.tab === "automations") {
+    startAutomationsPolling(host as unknown as Parameters<typeof startAutomationsPolling>[0]);
+  }
 }
 
 export function handleFirstUpdated(host: LifecycleHost) {
@@ -80,6 +85,7 @@ export function handleDisconnected(host: LifecycleHost) {
   stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
   stopOverseerPolling(host as unknown as Parameters<typeof stopOverseerPolling>[0]);
+  stopAutomationsPolling(host as unknown as Parameters<typeof stopAutomationsPolling>[0]);
   detachThemeListener(
     host as unknown as Parameters<typeof detachThemeListener>[0],
   );

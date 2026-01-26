@@ -1,6 +1,7 @@
 import { loadAgents } from "./controllers/agents";
 import { loadConfig, loadConfigSchema, saveConfig } from "./controllers/config";
 import { loadCronJobs, loadCronStatus } from "./controllers/cron";
+import { loadAutomations } from "./controllers/automations";
 import { loadChannels } from "./controllers/channels";
 import { loadDebug } from "./controllers/debug";
 import { loadLogs } from "./controllers/logs";
@@ -204,6 +205,7 @@ export async function refreshActiveTab(host: SettingsHost) {
     ]);
   }
   if (host.tab === "cron") await loadCron(host);
+  if (host.tab === "automations") await loadAutomations(host as unknown as Parameters<typeof loadAutomations>[0]);
   if (host.tab === "skills") await loadSkills(host as unknown as ClawdbotApp);
   if (host.tab === "overseer") {
     await refreshOverseer(host as unknown as ClawdbotApp);
