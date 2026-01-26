@@ -139,6 +139,11 @@ export type AppViewState = {
   sessionsFilterLimit: string;
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
+  sessionsSearch: string;
+  sessionsSort: "name" | "updated" | "tokens" | "status" | "kind";
+  sessionsSortDir: "asc" | "desc";
+  sessionsKindFilter: "all" | "direct" | "group" | "global" | "unknown";
+  sessionsStatusFilter: "all" | "active" | "idle" | "completed";
   cronLoading: boolean;
   cronJobs: CronJob[];
   cronStatus: CronStatus | null;

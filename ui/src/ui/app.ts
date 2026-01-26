@@ -307,6 +307,11 @@ export class ClawdbotApp extends LitElement {
   @state() sessionsFilterLimit = "120";
   @state() sessionsIncludeGlobal = true;
   @state() sessionsIncludeUnknown = false;
+  @state() sessionsSearch = "";
+  @state() sessionsSort: "name" | "updated" | "tokens" | "status" | "kind" = "updated";
+  @state() sessionsSortDir: "asc" | "desc" = "desc";
+  @state() sessionsKindFilter: "all" | "direct" | "group" | "global" | "unknown" = "all";
+  @state() sessionsStatusFilter: "all" | "active" | "idle" | "completed" = "all";
 
   @state() cronLoading = false;
   @state() cronJobs: CronJob[] = [];

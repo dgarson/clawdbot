@@ -369,6 +369,11 @@ export function renderApp(state: AppViewState) {
               includeUnknown: state.sessionsIncludeUnknown,
               basePath: state.basePath,
               agents: state.agentsList,
+              search: state.sessionsSearch,
+              sort: state.sessionsSort,
+              sortDir: state.sessionsSortDir,
+              kindFilter: state.sessionsKindFilter,
+              statusFilter: state.sessionsStatusFilter,
               onSessionOpen: (sessionKey) => {
                 applySessionSelection(state, sessionKey);
                 state.setTab("chat");
@@ -378,6 +383,23 @@ export function renderApp(state: AppViewState) {
                 state.sessionsFilterLimit = next.limit;
                 state.sessionsIncludeGlobal = next.includeGlobal;
                 state.sessionsIncludeUnknown = next.includeUnknown;
+              },
+              onSearchChange: (search) => {
+                state.sessionsSearch = search;
+              },
+              onSortChange: (column) => {
+                if (state.sessionsSort === column) {
+                  state.sessionsSortDir = state.sessionsSortDir === "asc" ? "desc" : "asc";
+                } else {
+                  state.sessionsSort = column;
+                  state.sessionsSortDir = column === "updated" ? "desc" : "asc";
+                }
+              },
+              onKindFilterChange: (kind) => {
+                state.sessionsKindFilter = kind;
+              },
+              onStatusFilterChange: (status) => {
+                state.sessionsStatusFilter = status;
               },
               onRefresh: () => loadSessions(state),
               onPatch: (key, patch) => patchSession(state, key, patch),

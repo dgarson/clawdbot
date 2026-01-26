@@ -2031,6 +2031,18 @@
   color: var(--accent-2);
 }
 
+.badge--success {
+  border-color: rgba(43, 217, 127, 0.4);
+  background: rgba(43, 217, 127, 0.12);
+  color: var(--accent-2);
+}
+
+.badge--warning {
+  border-color: rgba(255, 193, 7, 0.4);
+  background: rgba(255, 193, 7, 0.12);
+  color: var(--warn);
+}
+
 /* =============================================================================
    ROW ACTIONS
    ============================================================================= */
@@ -8115,6 +8127,63 @@
   box-shadow: 0 0 0 3px var(--focus);
 }
 
+/* Secondary filter bar (fetch options) */
+.table-filters--secondary {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+:root[data-theme="light"] .table-filters--secondary {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.table-filters__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Sort icons for sortable columns */
+.sort-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  transition: opacity 150ms ease;
+}
+
+.sort-icon--inactive {
+  opacity: 0.3;
+}
+
+.sort-icon--active {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.data-table__header-cell--sortable {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: color 150ms ease;
+}
+
+.data-table__header-cell--sortable:hover {
+  color: var(--text);
+}
+
+.data-table__header-cell--sortable:hover .sort-icon--inactive {
+  opacity: 0.6;
+}
+
 /* =============================================================================
    ANIMATED STATUS BADGES
    ============================================================================= */
@@ -8157,6 +8226,11 @@
 }
 
 .badge--animated.badge--info::before {
+  background: var(--accent-2);
+  box-shadow: 0 0 8px var(--accent-2);
+}
+
+.badge--animated.badge--success::before {
   background: var(--accent-2);
   box-shadow: 0 0 8px var(--accent-2);
 }

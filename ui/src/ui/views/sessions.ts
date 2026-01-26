@@ -8,6 +8,12 @@ import { pathForTab } from "../navigation";
 import { icon } from "../icons";
 import type { AgentsListResult, GatewayAgentRow, GatewaySessionRow, SessionsListResult } from "../types";
 
+export type SessionStatus = "active" | "idle" | "completed";
+export type SessionSortColumn = "name" | "updated" | "tokens" | "status" | "kind";
+export type SessionSortDir = "asc" | "desc";
+export type SessionKindFilter = "all" | "direct" | "group" | "global" | "unknown";
+export type SessionStatusFilter = "all" | "active" | "idle" | "completed";
+
 export type SessionsProps = {
   loading: boolean;
   result: SessionsListResult | null;
@@ -18,6 +24,11 @@ export type SessionsProps = {
   includeUnknown: boolean;
   basePath: string;
   agents: AgentsListResult | null;
+  search: string;
+  sort: SessionSortColumn;
+  sortDir: SessionSortDir;
+  kindFilter: SessionKindFilter;
+  statusFilter: SessionStatusFilter;
   onSessionOpen?: (key: string) => void;
   onFiltersChange: (next: {
     activeMinutes: string;
@@ -25,6 +36,10 @@ export type SessionsProps = {
     includeGlobal: boolean;
     includeUnknown: boolean;
   }) => void;
+  onSearchChange: (search: string) => void;
+  onSortChange: (column: SessionSortColumn) => void;
+  onKindFilterChange: (kind: SessionKindFilter) => void;
+  onStatusFilterChange: (status: SessionStatusFilter) => void;
   onRefresh: () => void;
   onPatch: (
     key: string,
@@ -81,6 +96,103 @@ function truncateKey(key: string, maxLen = 28): string {
   return key.slice(0, maxLen - 3) + "...";
 }
 
+const ACTIVE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const IDLE_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
+
+function deriveSessionStatus(row: GatewaySessionRow): SessionStatus {
+  if (!row.updatedAt) return "completed";
+  const age = Date.now() - row.updatedAt;
+  if (age < ACTIVE_THRESHOLD_MS) return "active";
+  if (age < IDLE_THRESHOLD_MS) return "idle";
+  return "completed";
+}
+
+function getStatusBadgeClass(status: SessionStatus): string {
+  switch (status) {
+    case "active":
+      return "badge--success badge--animated";
+    case "idle":
+      return "badge--warning";
+    case "completed":
+      return "badge--muted";
+  }
+}
+
+function matchesSearch(row: GatewaySessionRow, search: string): boolean {
+  if (!search) return true;
+  const lower = search.toLowerCase();
+  const searchable = [
+    row.key,
+    row.displayName,
+    row.label,
+    row.channel,
+    row.subject,
+    row.sessionId,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return searchable.includes(lower);
+}
+
+function filterSessions(
+  rows: GatewaySessionRow[],
+  props: SessionsProps,
+): GatewaySessionRow[] {
+  return rows.filter((row) => {
+    if (!matchesSearch(row, props.search)) return false;
+    if (props.kindFilter !== "all" && row.kind !== props.kindFilter) return false;
+    if (props.statusFilter !== "all") {
+      const status = deriveSessionStatus(row);
+      if (status !== props.statusFilter) return false;
+    }
+    return true;
+  });
+}
+
+function sortSessions(
+  rows: GatewaySessionRow[],
+  sort: SessionSortColumn,
+  sortDir: SessionSortDir,
+): GatewaySessionRow[] {
+  const sorted = [...rows];
+  const dir = sortDir === "asc" ? 1 : -1;
+  sorted.sort((a, b) => {
+    switch (sort) {
+      case "name": {
+        const nameA = (a.displayName ?? a.label ?? a.key).toLowerCase();
+        const nameB = (b.displayName ?? b.label ?? b.key).toLowerCase();
+        return nameA.localeCompare(nameB) * dir;
+      }
+      case "updated": {
+        const timeA = a.updatedAt ?? 0;
+        const timeB = b.updatedAt ?? 0;
+        return (timeA - timeB) * dir;
+      }
+      case "tokens": {
+        const tokensA = a.totalTokens ?? 0;
+        const tokensB = b.totalTokens ?? 0;
+        return (tokensA - tokensB) * dir;
+      }
+      case "status": {
+        const statusOrder = { active: 0, idle: 1, completed: 2 };
+        const statusA = statusOrder[deriveSessionStatus(a)];
+        const statusB = statusOrder[deriveSessionStatus(b)];
+        return (statusA - statusB) * dir;
+      }
+      case "kind": {
+        const kindOrder = { direct: 0, group: 1, global: 2, unknown: 3 };
+        const kindA = kindOrder[a.kind] ?? 4;
+        const kindB = kindOrder[b.kind] ?? 4;
+        return (kindA - kindB) * dir;
+      }
+      default:
+        return 0;
+    }
+  });
+  return sorted;
+}
+
 function renderSessionsSkeleton() {
   return html`
     ${[1, 2, 3, 4, 5].map(
@@ -89,6 +201,7 @@ function renderSessionsSkeleton() {
           <div class="data-table__cell">${skeleton({ width: "140px", height: "20px" })}</div>
           <div class="data-table__cell">${skeleton({ width: "80px", height: "20px" })}</div>
           <div class="data-table__cell">${skeleton({ width: "60px", height: "20px" })}</div>
+          <div class="data-table__cell">${skeleton({ width: "70px", height: "20px" })}</div>
           <div class="data-table__cell">${skeleton({ width: "70px", height: "20px" })}</div>
           <div class="data-table__cell">${skeleton({ width: "50px", height: "20px" })}</div>
           <div class="data-table__cell">${skeleton({ width: "70px", height: "28px" })}</div>
@@ -119,9 +232,23 @@ function copyToClipboard(text: string): void {
     });
 }
 
+function renderSortIcon(column: SessionSortColumn, props: SessionsProps) {
+  if (props.sort !== column) {
+    return html`<span class="sort-icon sort-icon--inactive">${icon("chevrons-up-down", { size: 12 })}</span>`;
+  }
+  const iconName = props.sortDir === "asc" ? "chevron-up" : "chevron-down";
+  return html`<span class="sort-icon sort-icon--active">${icon(iconName, { size: 12 })}</span>`;
+}
+
 export function renderSessions(props: SessionsProps) {
-  const rows = props.result?.sessions ?? [];
+  const allRows = props.result?.sessions ?? [];
+  const filteredRows = filterSessions(allRows, props);
+  const rows = sortSessions(filteredRows, props.sort, props.sortDir);
   const agents = props.agents?.agents ?? [];
+  const totalCount = allRows.length;
+  const filteredCount = filteredRows.length;
+  const hasFilters = props.search || props.kindFilter !== "all" || props.statusFilter !== "all";
+
   return html`
     ${renderAgentsSection(props, agents)}
     <section class="card">
@@ -133,7 +260,11 @@ export function renderSessions(props: SessionsProps) {
           </div>
           <div class="table-header-card__info">
             <div class="table-header-card__title">Sessions</div>
-            <div class="table-header-card__subtitle">${rows.length} active session${rows.length !== 1 ? "s" : ""}</div>
+            <div class="table-header-card__subtitle">
+              ${hasFilters
+                ? `${filteredCount} of ${totalCount} session${totalCount !== 1 ? "s" : ""}`
+                : `${totalCount} session${totalCount !== 1 ? "s" : ""}`}
+            </div>
           </div>
         </div>
         <div class="table-header-card__right">
@@ -144,9 +275,70 @@ export function renderSessions(props: SessionsProps) {
         </div>
       </div>
 
-      <!-- Modern Filter Bar -->
-      <div class="table-filters--modern">
-        <div class="field--modern table-filters__search" style="position: relative;">
+      <!-- Search and Client-side Filters (instant) -->
+      <div class="table-filters--modern" style="margin-bottom: 8px;">
+        <div class="field--modern table-filters__search" style="position: relative; flex: 1; min-width: 200px;">
+          <label class="field__label">Search</label>
+          <div class="field__input-wrapper">
+            <span class="field__icon">${icon("search", { size: 14 })}</span>
+            <input
+              class="field__input"
+              type="text"
+              placeholder="Filter by name, key, channel..."
+              .value=${props.search}
+              @input=${(e: Event) => props.onSearchChange((e.target as HTMLInputElement).value)}
+            />
+            ${props.search
+              ? html`
+                <button
+                  class="field__clear"
+                  title="Clear search"
+                  @click=${() => props.onSearchChange("")}
+                >
+                  ${icon("x", { size: 12 })}
+                </button>
+              `
+              : nothing}
+          </div>
+        </div>
+        <div class="field--modern" style="min-width: 100px;">
+          <label class="field__label">Kind</label>
+          <select
+            class="field__input"
+            .value=${props.kindFilter}
+            @change=${(e: Event) =>
+              props.onKindFilterChange((e.target as HTMLSelectElement).value as SessionKindFilter)}
+          >
+            <option value="all">All</option>
+            <option value="direct">Direct</option>
+            <option value="group">Group</option>
+            <option value="global">Global</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+        <div class="field--modern" style="min-width: 120px;">
+          <label class="field__label">Status</label>
+          <select
+            class="field__input"
+            .value=${props.statusFilter}
+            @change=${(e: Event) =>
+              props.onStatusFilterChange((e.target as HTMLSelectElement).value as SessionStatusFilter)}
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="idle">Idle</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Server-side Fetch Options -->
+      <div class="table-filters--modern table-filters--secondary">
+        <div class="table-filters__label">
+          ${icon("database", { size: 12 })}
+          <span>Fetch options (click Refresh to apply)</span>
+        </div>
+        <div class="field--modern" style="min-width: 100px;">
           <label class="field__label">Active within</label>
           <div class="field__input-wrapper">
             <span class="field__icon">${icon("clock", { size: 14 })}</span>
@@ -165,7 +357,7 @@ export function renderSessions(props: SessionsProps) {
             />
           </div>
         </div>
-        <div class="field--modern" style="min-width: 100px;">
+        <div class="field--modern" style="min-width: 80px;">
           <label class="field__label">Limit</label>
           <input
             class="field__input"
@@ -226,11 +418,42 @@ export function renderSessions(props: SessionsProps) {
 
       <div class="data-table data-table--modern sessions-table">
         <div class="data-table__header">
-          <div class="data-table__header-cell data-table__header-cell--sortable">Key</div>
+          <div
+            class="data-table__header-cell data-table__header-cell--sortable"
+            @click=${() => props.onSortChange("name")}
+          >
+            <span>Name</span>
+            ${renderSortIcon("name", props)}
+          </div>
           <div class="data-table__header-cell">Label</div>
-          <div class="data-table__header-cell">Kind</div>
-          <div class="data-table__header-cell data-table__header-cell--sortable">Updated</div>
-          <div class="data-table__header-cell">Tokens</div>
+          <div
+            class="data-table__header-cell data-table__header-cell--sortable"
+            @click=${() => props.onSortChange("kind")}
+          >
+            <span>Kind</span>
+            ${renderSortIcon("kind", props)}
+          </div>
+          <div
+            class="data-table__header-cell data-table__header-cell--sortable"
+            @click=${() => props.onSortChange("status")}
+          >
+            <span>Status</span>
+            ${renderSortIcon("status", props)}
+          </div>
+          <div
+            class="data-table__header-cell data-table__header-cell--sortable"
+            @click=${() => props.onSortChange("updated")}
+          >
+            <span>Updated</span>
+            ${renderSortIcon("updated", props)}
+          </div>
+          <div
+            class="data-table__header-cell data-table__header-cell--sortable"
+            @click=${() => props.onSortChange("tokens")}
+          >
+            <span>Tokens</span>
+            ${renderSortIcon("tokens", props)}
+          </div>
           <div class="data-table__header-cell">Thinking</div>
           <div class="data-table__header-cell">Verbose</div>
           <div class="data-table__header-cell">Reasoning</div>
@@ -243,8 +466,14 @@ export function renderSessions(props: SessionsProps) {
               ? html`
                 <div class="data-table__empty">
                   <div class="data-table__empty-icon">${icon("file-text", { size: 32 })}</div>
-                  <div class="data-table__empty-title">No sessions found</div>
-                  <div class="data-table__empty-desc">Sessions will appear here when users start conversations</div>
+                  <div class="data-table__empty-title">
+                    ${hasFilters ? "No matching sessions" : "No sessions found"}
+                  </div>
+                  <div class="data-table__empty-desc">
+                    ${hasFilters
+                      ? "Try adjusting your search or filter criteria"
+                      : "Sessions will appear here when users start conversations"}
+                  </div>
                 </div>
               `
               : rows.map((row) =>
@@ -340,6 +569,8 @@ function renderRow(
   const chatUrl = canLink
     ? `${pathForTab("chat", basePath)}?session=${encodeURIComponent(row.key)}`
     : null;
+  const status = deriveSessionStatus(row);
+  const statusBadgeClass = getStatusBadgeClass(status);
 
   const kindBadgeClass = row.kind === "global"
     ? "badge--muted"
@@ -349,7 +580,7 @@ function renderRow(
 
   return html`
     <div class="data-table__row">
-      <div class="data-table__cell" data-label="Key">
+      <div class="data-table__cell" data-label="Name">
         <div class="session-key">
           ${canLink
             ? html`<a
@@ -401,6 +632,9 @@ function renderRow(
       </div>
       <div class="data-table__cell" data-label="Kind">
         <span class="badge ${kindBadgeClass}">${row.kind}</span>
+      </div>
+      <div class="data-table__cell" data-label="Status">
+        <span class="badge ${statusBadgeClass}">${status}</span>
       </div>
       <div class="data-table__cell" data-label="Updated" style="font-size: 12px; color: var(--muted);">${updated}</div>
       <div class="data-table__cell" data-label="Tokens">
