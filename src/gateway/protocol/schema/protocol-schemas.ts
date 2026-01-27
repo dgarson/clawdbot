@@ -24,6 +24,24 @@ import {
   SkillsUpdateParamsSchema,
 } from "./agents-models-skills.js";
 import {
+  AutomationsArtifactDownloadParamsSchema,
+  AutomationsArtifactDownloadResultSchema,
+  AutomationArtifactSchema,
+  AutomationConflictSchema,
+  AutomationRunRecordSchema,
+  AutomationRunMilestoneSchema,
+  AutomationSchema,
+  AutomationsCancelParamsSchema,
+  AutomationsCreateParamsSchema,
+  AutomationsDeleteParamsSchema,
+  AutomationsHistoryParamsSchema,
+  AutomationsHistoryResultSchema,
+  AutomationsListParamsSchema,
+  AutomationsListResultSchema,
+  AutomationsRunParamsSchema,
+  AutomationsUpdateParamsSchema,
+} from "./automations.js";
+import {
   ChannelsLogoutParamsSchema,
   ChannelsStatusParamsSchema,
   ChannelsStatusResultSchema,
@@ -246,6 +264,22 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   UpdateRunParams: UpdateRunParamsSchema,
   TickEvent: TickEventSchema,
   ShutdownEvent: ShutdownEventSchema,
+  Automation: AutomationSchema,
+  AutomationRunMilestone: AutomationRunMilestoneSchema,
+  AutomationArtifact: AutomationArtifactSchema,
+  AutomationConflict: AutomationConflictSchema,
+  AutomationRunRecord: AutomationRunRecordSchema,
+  AutomationsListParams: AutomationsListParamsSchema,
+  AutomationsListResult: AutomationsListResultSchema,
+  AutomationsRunParams: AutomationsRunParamsSchema,
+  AutomationsUpdateParams: AutomationsUpdateParamsSchema,
+  AutomationsDeleteParams: AutomationsDeleteParamsSchema,
+  AutomationsCancelParams: AutomationsCancelParamsSchema,
+  AutomationsHistoryParams: AutomationsHistoryParamsSchema,
+  AutomationsHistoryResult: AutomationsHistoryResultSchema,
+  AutomationsCreateParams: AutomationsCreateParamsSchema,
+  AutomationsArtifactDownloadParams: AutomationsArtifactDownloadParamsSchema,
+  AutomationsArtifactDownloadResult: AutomationsArtifactDownloadResultSchema,
 };
 
 export const PROTOCOL_VERSION = 3 as const;

@@ -414,6 +414,57 @@ export class ClawdbotApp extends LitElement {
   @state() cronRuns: CronRunLogEntry[] = [];
   @state() cronBusy = false;
 
+  // Automations state
+  @state() automationsLoading = false;
+  @state() automationsError: string | null = null;
+  @state() automations: import("./controllers/automations").Automation[] = [];
+  @state() automationsSearchQuery = "";
+  @state() automationsStatusFilter: "all" | "active" | "suspended" | "error" = "all";
+  @state() automationsSelectedId: string | null = null;
+  @state() automationsExpandedIds: Set<string> = new Set();
+  @state() automationsRunningIds: Set<string> = new Set();
+
+  // Automation form state
+  @state() automationFormOpen = false;
+  @state() automationFormCurrentStep = 1;
+  @state() automationFormErrors: Partial<Record<string, string>> = {};
+  @state() automationFormData = {
+    name: "",
+    description: "",
+    scheduleType: "every" as const,
+    scheduleAt: "",
+    scheduleEveryAmount: "1",
+    scheduleEveryUnit: "hours" as const,
+    scheduleCronExpr: "",
+    scheduleCronTz: "",
+    type: "smart-sync-fork" as const,
+    config: {} as Record<string, unknown>,
+  };
+
+  // Automation progress modal state
+  @state() automationProgressModalOpen = false;
+  @state() automationProgressModalAutomationName = "";
+  @state() automationProgressModalCurrentMilestone = "";
+  @state() automationProgressModalProgress = 0;
+  @state() automationProgressModalMilestones: import("./controllers/automations").AutomationRunMilestone[] = [];
+  @state() automationProgressModalElapsedTime = "";
+  @state() automationProgressModalConflicts = 0;
+  @state() automationProgressModalStatus: "running" | "complete" | "failed" | "cancelled" = "running";
+  @state() automationProgressModalSessionId = "";
+  @state() automationProgressModalAutomationId = "";
+
+  // Automation run history state
+  @state() automationRunHistoryLoading = false;
+  @state() automationRunHistoryError: string | null = null;
+  @state() automationRunHistoryRecords: import("./controllers/automations").AutomationRunRecord[] = [];
+  @state() automationRunHistoryExpandedRows: Set<string> = new Set();
+  @state() automationRunHistoryCurrentPage = 1;
+  @state() automationRunHistoryStatusFilter: 'all' | 'success' | 'failed' | 'running' = 'all';
+  @state() automationRunHistoryDateFrom = "";
+  @state() automationRunHistoryDateTo = "";
+  @state() automationRunHistoryItemsPerPage = 10;
+  @state() automationRunHistoryAutomationId: string | null = null;
+
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;
   @state() skillsError: string | null = null;
@@ -524,6 +575,7 @@ export class ClawdbotApp extends LitElement {
   private logsPollInterval: number | null = null;
   private debugPollInterval: number | null = null;
   private overseerPollInterval: number | null = null;
+  private automationsPollInterval: number | null = null;
   private logsScrollFrame: number | null = null;
   private speechRecognition: SpeechRecognitionLike | null = null;
   private audioDraftBase = "";

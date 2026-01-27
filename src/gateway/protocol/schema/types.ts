@@ -22,6 +22,26 @@ import type {
   SkillsUpdateParamsSchema,
 } from "./agents-models-skills.js";
 import type {
+  AutomationAiModelSchema,
+  AutomationArtifactSchema,
+  AutomationConflictSchema,
+  AutomationRunMilestoneSchema,
+  AutomationRunRecordSchema,
+  AutomationScheduleSchema,
+  AutomationSchema,
+  AutomationsArtifactDownloadParamsSchema,
+  AutomationsArtifactDownloadResultSchema,
+  AutomationsCancelParamsSchema,
+  AutomationsCreateParamsSchema,
+  AutomationsDeleteParamsSchema,
+  AutomationsHistoryParamsSchema,
+  AutomationsHistoryResultSchema,
+  AutomationsListParamsSchema,
+  AutomationsListResultSchema,
+  AutomationsRunParamsSchema,
+  AutomationsUpdateParamsSchema,
+} from "./automations.js";
+import type {
   ChannelsLogoutParamsSchema,
   ChannelsStatusParamsSchema,
   ChannelsStatusResultSchema,
@@ -182,6 +202,28 @@ export type SkillsBinsParams = Static<typeof SkillsBinsParamsSchema>;
 export type SkillsBinsResult = Static<typeof SkillsBinsResultSchema>;
 export type SkillsInstallParams = Static<typeof SkillsInstallParamsSchema>;
 export type SkillsUpdateParams = Static<typeof SkillsUpdateParamsSchema>;
+export type Automation = Static<typeof AutomationSchema>;
+export type AutomationAiModel = Static<typeof AutomationAiModelSchema>;
+export type AutomationSchedule = Static<typeof AutomationScheduleSchema>;
+export type AutomationRunMilestone = Static<typeof AutomationRunMilestoneSchema>;
+export type AutomationArtifact = Static<typeof AutomationArtifactSchema>;
+export type AutomationConflict = Static<typeof AutomationConflictSchema>;
+export type AutomationRunRecord = Static<typeof AutomationRunRecordSchema>;
+export type AutomationsListParams = Static<typeof AutomationsListParamsSchema>;
+export type AutomationsListResult = Static<typeof AutomationsListResultSchema>;
+export type AutomationsRunParams = Static<typeof AutomationsRunParamsSchema>;
+export type AutomationsUpdateParams = Static<typeof AutomationsUpdateParamsSchema>;
+export type AutomationsDeleteParams = Static<typeof AutomationsDeleteParamsSchema>;
+export type AutomationsCancelParams = Static<typeof AutomationsCancelParamsSchema>;
+export type AutomationsHistoryParams = Static<typeof AutomationsHistoryParamsSchema>;
+export type AutomationsHistoryResult = Static<typeof AutomationsHistoryResultSchema>;
+export type AutomationsCreateParams = Static<typeof AutomationsCreateParamsSchema>;
+export type AutomationsArtifactDownloadParams = Static<
+  typeof AutomationsArtifactDownloadParamsSchema
+>;
+export type AutomationsArtifactDownloadResult = Static<
+  typeof AutomationsArtifactDownloadResultSchema
+>;
 export type CronJob = Static<typeof CronJobSchema>;
 export type CronListParams = Static<typeof CronListParamsSchema>;
 export type CronStatusParams = Static<typeof CronStatusParamsSchema>;

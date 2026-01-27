@@ -304,6 +304,18 @@ export const ClawdbotSchema = z
       .strict()
       .optional(),
     channels: ChannelsSchema,
+    automations: z
+      .object({
+        enabled: z.boolean().optional(),
+        store: z.string().optional(),
+        artifactsDir: z.string().optional(),
+        maxConcurrentRuns: z.number().int().positive().optional(),
+        maxRunDurationMs: z.number().int().positive().optional(),
+        historyRetentionDays: z.number().int().positive().optional(),
+        historyMaxRunsPerAutomation: z.number().int().positive().optional(),
+      })
+      .strict()
+      .optional(),
     discovery: z
       .object({
         wideArea: z

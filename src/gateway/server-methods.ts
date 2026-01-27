@@ -1,6 +1,7 @@
 import { ErrorCodes, errorShape } from "./protocol/index.js";
 import { agentHandlers } from "./server-methods/agent.js";
 import { agentsHandlers } from "./server-methods/agents.js";
+import { automationsHandlers } from "./server-methods/automations.js";
 import { channelsHandlers } from "./server-methods/channels.js";
 import { chatHandlers } from "./server-methods/chat.js";
 import { configHandlers } from "./server-methods/config.js";
@@ -68,6 +69,8 @@ const READ_METHODS = new Set([
   "cron.list",
   "cron.status",
   "cron.runs",
+  "automations.list",
+  "automations.history",
   "system-presence",
   "last-heartbeat",
   "node.list",
@@ -146,6 +149,11 @@ function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["c
     method === "cron.update" ||
     method === "cron.remove" ||
     method === "cron.run" ||
+    method === "automations.create" ||
+    method === "automations.update" ||
+    method === "automations.delete" ||
+    method === "automations.run" ||
+    method === "automations.cancel" ||
     method === "sessions.patch" ||
     method === "sessions.reset" ||
     method === "sessions.delete" ||
@@ -164,6 +172,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...channelsHandlers,
   ...chatHandlers,
   ...cronHandlers,
+  ...automationsHandlers,
   ...deviceHandlers,
   ...execApprovalsHandlers,
   ...webHandlers,

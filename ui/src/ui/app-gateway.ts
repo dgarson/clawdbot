@@ -2,6 +2,7 @@ import { loadChatHistory } from "./controllers/chat";
 import { loadDevices } from "./controllers/devices";
 import { loadNodes } from "./controllers/nodes";
 import { loadAgents } from "./controllers/agents";
+import { loadAutomations } from "./controllers/automations";
 import { toast } from "./components/toast";
 import type { GatewayEventFrame, GatewayHelloOk } from "./gateway";
 import { GatewayBrowserClient } from "./gateway";
@@ -27,6 +28,7 @@ import {
 import type { ClawdbotApp } from "./app";
 import type { ExecApprovalRequest } from "./controllers/exec-approval";
 import { loadAssistantIdentity } from "./controllers/assistant-identity";
+import { formatDurationMs } from "./format";
 
 type GatewayHost = {
   settings: UiSettings;
@@ -54,6 +56,18 @@ type GatewayHost = {
   execApprovalQueue: ExecApprovalRequest[];
   execApprovalError: string | null;
   handleAgentSessionActivity?: (payload?: AgentEventPayload) => void;
+  // Automations progress tracking
+  automationProgressModalOpen: boolean;
+  automationProgressModalAutomationId: string | null;
+  automationProgressModalAutomationName: string;
+  automationProgressModalCurrentStep: number;
+  automationProgressModalTotalSteps: number;
+  automationProgressModalProgress: number;
+  automationProgressModalMilestones: Array<{ id: string; title: string; status: "completed" | "current" | "pending"; timestamp?: string }>;
+  automationProgressModalElapsedTime: string;
+  automationProgressModalConflicts: number;
+  automationProgressModalArtifactsCount: number;
+  automationRunningIds: Set<string>;
 };
 
 type SessionDefaultsSnapshot = {
@@ -234,6 +248,204 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
     if (resolved) {
       host.execApprovalQueue = removeExecApproval(host.execApprovalQueue, resolved.id);
     }
+  }
+
+  // Automations SSE event handlers
+  if (evt.event === "automation.started") {
+    const payload = evt.payload as {
+      automationId?: string;
+      automationName?: string;
+      sessionId?: string;
+      startedAt?: number;
+    } | undefined;
+    if (payload?.automationId && payload?.automationName) {
+      // Add to running set
+      host.automationRunningIds.add(payload.automationId);
+      // Open progress modal if not already open
+      if (host.automationProgressModalAutomationId !== payload.automationId) {
+        host.automationProgressModalAutomationId = payload.automationId;
+        host.automationProgressModalAutomationName = payload.automationName;
+        host.automationProgressModalCurrentStep = 1;
+        host.automationProgressModalTotalSteps = 3; // default
+        host.automationProgressModalProgress = 0;
+        host.automationProgressModalMilestones = [
+          { id: "1", title: "Initializing", status: "current" },
+          { id: "2", title: "Running", status: "pending" },
+          { id: "3", title: "Completing", status: "pending" },
+        ];
+        host.automationProgressModalElapsedTime = "0s";
+        host.automationProgressModalConflicts = 0;
+        host.automationProgressModalArtifactsCount = 0;
+        host.automationProgressModalOpen = true;
+      }
+      toast.info(`Started running ${payload.automationName}`);
+    }
+    return;
+  }
+
+  if (evt.event === "automation.progress") {
+    const payload = evt.payload as {
+      automationId?: string;
+      milestone?: { id?: string; title?: string; status?: "completed" | "current" | "pending"; timestamp?: string };
+      progress?: number;
+      conflicts?: number;
+      elapsedTime?: string;
+      artifactsCount?: number;
+    } | undefined;
+    if (payload?.automationId && host.automationProgressModalAutomationId === payload.automationId) {
+      // Update milestones
+      if (payload.milestone?.id) {
+        const milestoneIdx = host.automationProgressModalMilestones.findIndex(m => m.id === payload.milestone!.id);
+        if (milestoneIdx >= 0) {
+          // Update current milestone
+          host.automationProgressModalMilestones[milestoneIdx] = {
+            id: payload.milestone.id,
+            title: payload.milestone.title || host.automationProgressModalMilestones[milestoneIdx].title,
+            status: payload.milestone.status || "current",
+            timestamp: payload.milestone.timestamp,
+          };
+          // Mark previous milestones as completed
+          for (let i = 0; i < milestoneIdx; i++) {
+            host.automationProgressModalMilestones[i] = {
+              ...host.automationProgressModalMilestones[i],
+              status: "completed" as const,
+            };
+          }
+          // Update current step
+          host.automationProgressModalCurrentStep = milestoneIdx + 1;
+          host.automationProgressModalTotalSteps = host.automationProgressModalMilestones.length;
+        }
+      }
+      // Update progress
+      if (typeof payload.progress === "number") {
+        host.automationProgressModalProgress = payload.progress;
+      }
+      // Update elapsed time
+      if (payload.elapsedTime) {
+        host.automationProgressModalElapsedTime = payload.elapsedTime;
+      }
+      // Update conflicts count
+      if (typeof payload.conflicts === "number") {
+        host.automationProgressModalConflicts = payload.conflicts;
+      }
+      // Update artifacts count
+      if (typeof payload.artifactsCount === "number") {
+        host.automationProgressModalArtifactsCount = payload.artifactsCount;
+      }
+    }
+    return;
+  }
+
+  if (evt.event === "automation.completed") {
+    const payload = evt.payload as {
+      automationId?: string;
+      automationName?: string;
+      status?: string;
+      completedAt?: number;
+      durationMs?: number;
+      summary?: string;
+      artifacts?: Array<{ id: string; name: string; type: string; size: string; url: string }>;
+    } | undefined;
+    if (payload?.automationId) {
+      // Remove from running set
+      host.automationRunningIds.delete(payload.automationId);
+      // Close progress modal
+      if (host.automationProgressModalAutomationId === payload.automationId) {
+        host.automationProgressModalOpen = false;
+        host.automationProgressModalAutomationId = null;
+      }
+      // Show success toast
+      const duration = payload.durationMs ? formatDurationMs(payload.durationMs) : "";
+      const artifactMsg = payload.artifacts && payload.artifacts.length > 0
+        ? ` (${payload.artifacts.length} artifact${payload.artifacts.length > 1 ? "s" : ""})`
+        : "";
+      toast.success(`Completed ${payload.automationName || "automation"}${duration ? ` in ${duration}` : ""}${artifactMsg}`);
+      // Refresh automations list
+      void loadAutomations(host as unknown as ClawdbotApp);
+    }
+    return;
+  }
+
+  if (evt.event === "automation.failed") {
+    const payload = evt.payload as {
+      automationId?: string;
+      automationName?: string;
+      status?: string;
+      error?: string;
+      conflicts?: Array<{ type: string; description: string; resolution: string }>;
+    } | undefined;
+    if (payload?.automationId) {
+      // Remove from running set
+      host.automationRunningIds.delete(payload.automationId);
+      // Close progress modal
+      if (host.automationProgressModalAutomationId === payload.automationId) {
+        host.automationProgressModalOpen = false;
+        host.automationProgressModalAutomationId = null;
+      }
+      // Show error toast
+      const errorMsg = payload.error || "Unknown error";
+      const hasConflicts = payload.conflicts && payload.conflicts.length > 0;
+      if (hasConflicts) {
+        toast.warning(`Failed: ${errorMsg}`, {
+          actions: [{ label: "View Conflicts", onClick: () => { /* TODO: Navigate to conflicts view */ } }],
+        });
+      } else {
+        toast.error(`Failed: ${errorMsg}`);
+      }
+      // Refresh automations list
+      void loadAutomations(host as unknown as ClawdbotApp);
+    }
+    return;
+  }
+
+  if (evt.event === "automation.cancelled") {
+    const payload = evt.payload as {
+      automationId?: string;
+      automationName?: string;
+      status?: string;
+    } | undefined;
+    if (payload?.automationId) {
+      // Remove from running set
+      host.automationRunningIds.delete(payload.automationId);
+      // Close progress modal
+      if (host.automationProgressModalAutomationId === payload.automationId) {
+        host.automationProgressModalOpen = false;
+        host.automationProgressModalAutomationId = null;
+      }
+      // Show info toast
+      toast.info(`Cancelled ${payload.automationName || "automation"}`);
+      // Refresh automations list
+      void loadAutomations(host as unknown as ClawdbotApp);
+    }
+    return;
+  }
+
+  if (evt.event === "automation.blocked") {
+    const payload = evt.payload as {
+      automationId?: string;
+      automationName?: string;
+      blockType?: "user-input" | "approval" | "conflict" | "resource";
+      message?: string;
+      requiredAction?: string;
+      sessionId?: string;
+    } | undefined;
+    if (payload?.automationId && host.automationProgressModalAutomationId === payload.automationId) {
+      // Update progress modal status to blocked (keep it open)
+      const action = payload.requiredAction || payload.message || "Automation blocked";
+      // Show warning toast with action
+      if (payload.sessionId) {
+        toast.warning(action, {
+          actions: [
+            { label: "Resolve in Chat", onClick: () => { /* TODO: Navigate to chat with session */ } },
+          ],
+        });
+      } else {
+        toast.warning(action, {
+          actions: [{ label: "View Details", onClick: () => { /* TODO: Navigate to details */ } }],
+        });
+      }
+    }
+    return;
   }
 }
 

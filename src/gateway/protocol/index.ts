@@ -207,6 +207,43 @@ import {
   WizardStatusResultSchema,
   type WizardStep,
   WizardStepSchema,
+  // Automations
+  type Automation,
+  AutomationSchema,
+  type AutomationSchedule,
+  AutomationScheduleSchema,
+  type AutomationAiModel,
+  AutomationAiModelSchema,
+  type AutomationRunMilestone,
+  AutomationRunMilestoneSchema,
+  type AutomationArtifact,
+  AutomationArtifactSchema,
+  type AutomationConflict,
+  AutomationConflictSchema,
+  type AutomationRunRecord,
+  AutomationRunRecordSchema,
+  type AutomationsListParams,
+  AutomationsListParamsSchema,
+  type AutomationsListResult,
+  AutomationsListResultSchema,
+  type AutomationsRunParams,
+  AutomationsRunParamsSchema,
+  type AutomationsUpdateParams,
+  AutomationsUpdateParamsSchema,
+  type AutomationsDeleteParams,
+  AutomationsDeleteParamsSchema,
+  type AutomationsCancelParams,
+  AutomationsCancelParamsSchema,
+  type AutomationsHistoryParams,
+  AutomationsHistoryParamsSchema,
+  type AutomationsHistoryResult,
+  AutomationsHistoryResultSchema,
+  type AutomationsCreateParams,
+  AutomationsCreateParamsSchema,
+  type AutomationsArtifactDownloadParams,
+  AutomationsArtifactDownloadParamsSchema,
+  type AutomationsArtifactDownloadResult,
+  AutomationsArtifactDownloadResultSchema,
 } from "./schema.js";
 
 const ajv = new (AjvPkg as unknown as new (opts?: object) => import("ajv").default)({
@@ -353,6 +390,29 @@ export const validateUpdateRunParams = ajv.compile<UpdateRunParams>(UpdateRunPar
 export const validateWebLoginStartParams =
   ajv.compile<WebLoginStartParams>(WebLoginStartParamsSchema);
 export const validateWebLoginWaitParams = ajv.compile<WebLoginWaitParams>(WebLoginWaitParamsSchema);
+export const validateAutomationsListParams = ajv.compile<AutomationsListParams>(
+  AutomationsListParamsSchema,
+);
+export const validateAutomationsRunParams = ajv.compile<AutomationsRunParams>(
+  AutomationsRunParamsSchema,
+);
+export const validateAutomationsUpdateParams = ajv.compile<AutomationsUpdateParams>(
+  AutomationsUpdateParamsSchema,
+);
+export const validateAutomationsDeleteParams = ajv.compile<AutomationsDeleteParams>(
+  AutomationsDeleteParamsSchema,
+);
+export const validateAutomationsCancelParams = ajv.compile<AutomationsCancelParams>(
+  AutomationsCancelParamsSchema,
+);
+export const validateAutomationsHistoryParams = ajv.compile<AutomationsHistoryParams>(
+  AutomationsHistoryParamsSchema,
+);
+export const validateAutomationsCreateParams = ajv.compile<AutomationsCreateParams>(
+  AutomationsCreateParamsSchema,
+);
+export const validateAutomationsArtifactDownloadParams =
+  ajv.compile<AutomationsArtifactDownloadParams>(AutomationsArtifactDownloadParamsSchema);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) return "unknown validation error";
@@ -475,6 +535,25 @@ export {
   PROTOCOL_VERSION,
   ErrorCodes,
   errorShape,
+  // Automations
+  AutomationSchema,
+  AutomationScheduleSchema,
+  AutomationAiModelSchema,
+  AutomationRunMilestoneSchema,
+  AutomationArtifactSchema,
+  AutomationConflictSchema,
+  AutomationRunRecordSchema,
+  AutomationsListParamsSchema,
+  AutomationsListResultSchema,
+  AutomationsRunParamsSchema,
+  AutomationsUpdateParamsSchema,
+  AutomationsDeleteParamsSchema,
+  AutomationsCancelParamsSchema,
+  AutomationsHistoryParamsSchema,
+  AutomationsHistoryResultSchema,
+  AutomationsCreateParamsSchema,
+  AutomationsArtifactDownloadParamsSchema,
+  AutomationsArtifactDownloadResultSchema,
 };
 
 export type {
@@ -569,4 +648,23 @@ export type {
   PollParams,
   UpdateRunParams,
   ChatInjectParams,
+  // Automations
+  Automation,
+  AutomationSchedule,
+  AutomationAiModel,
+  AutomationRunMilestone,
+  AutomationArtifact,
+  AutomationConflict,
+  AutomationRunRecord,
+  AutomationsListParams,
+  AutomationsListResult,
+  AutomationsRunParams,
+  AutomationsUpdateParams,
+  AutomationsDeleteParams,
+  AutomationsCancelParams,
+  AutomationsHistoryParams,
+  AutomationsHistoryResult,
+  AutomationsCreateParams,
+  AutomationsArtifactDownloadParams,
+  AutomationsArtifactDownloadResult,
 };

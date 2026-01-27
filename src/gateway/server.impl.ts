@@ -56,6 +56,7 @@ import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
 import { createGatewayCloseHandler } from "./server-close.js";
 import { buildGatewayCronService } from "./server-cron.js";
+import { buildGatewayAutomationsService } from "./server-automations.js";
 import { applyGatewayLaneConcurrency } from "./server-lanes.js";
 import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
 import { coreGatewayHandlers } from "./server-methods.js";
@@ -89,6 +90,7 @@ const logChannels = log.child("channels");
 const logBrowser = log.child("browser");
 const logHealth = log.child("health");
 const logCron = log.child("cron");
+const logAutomations = log.child("automations");
 const logReload = log.child("reload");
 const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
@@ -341,6 +343,13 @@ export async function startGatewayServer(
   });
   let { cron, storePath: cronStorePath } = cronState;
 
+  let automationsState = buildGatewayAutomationsService({
+    cfg: cfgAtStart,
+    deps,
+    broadcast,
+  });
+  let { automations, artifactStorage, storePath: automationsStorePath } = automationsState;
+
   const channelManager = createChannelManager({
     loadConfig,
     channelLogs,
@@ -480,6 +489,9 @@ export async function startGatewayServer(
       deps,
       cron,
       cronStorePath,
+      automations,
+      automationsStorePath,
+      artifactStorage,
       loadGatewayModelCatalog,
       getHealthCache,
       refreshHealthSnapshot: refreshGatewayHealthSnapshot,
@@ -554,6 +566,7 @@ export async function startGatewayServer(
       heartbeatRunner,
       overseerRunner,
       cronState,
+      automationsState,
       browserControl,
     }),
     setState: (nextState) => {
@@ -563,6 +576,10 @@ export async function startGatewayServer(
       cronState = nextState.cronState;
       cron = cronState.cron;
       cronStorePath = cronState.storePath;
+      automationsState = nextState.automationsState;
+      automations = automationsState.automations;
+      artifactStorage = automationsState.artifactStorage;
+      automationsStorePath = automationsState.storePath;
       browserControl = nextState.browserControl;
     },
     startChannel,
@@ -571,6 +588,7 @@ export async function startGatewayServer(
     logBrowser,
     logChannels,
     logCron,
+    logAutomations,
     logReload,
   });
 

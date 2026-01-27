@@ -3,6 +3,7 @@
 export * from "./types.agent-defaults.js";
 export * from "./types.agents.js";
 export * from "./types.approvals.js";
+export * from "./types.automations.js";
 export * from "./types.auth.js";
 export * from "./types.base.js";
 export * from "./types.browser.js";
