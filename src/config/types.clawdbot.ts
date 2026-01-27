@@ -26,9 +26,9 @@ import type { PluginsConfig } from "./types.plugins.js";
 import type { SkillsConfig } from "./types.skills.js";
 import type { ToolsConfig } from "./types.tools.js";
 
-export type ClawdbotConfig = {
+export type MoltbotConfig = {
   meta?: {
-    /** Last clawdbot version that wrote this config. */
+    /** Last moltbot version that wrote this config. */
     lastTouchedVersion?: string;
     /** ISO timestamp when this config was last written. */
     lastTouchedAt?: string;
@@ -67,7 +67,7 @@ export type ClawdbotConfig = {
   };
   browser?: BrowserConfig;
   ui?: {
-    /** Accent color for Clawdbot UI chrome (hex). */
+    /** Accent color for Moltbot UI chrome (hex). */
     seamColor?: string;
     assistant?: {
       /** Assistant display name for UI surfaces. */
@@ -117,7 +117,7 @@ export type ConfigFileSnapshot = {
   raw: string | null;
   parsed: unknown;
   valid: boolean;
-  config: ClawdbotConfig;
+  config: MoltbotConfig;
   hash?: string;
   issues: ConfigValidationIssue[];
   warnings: ConfigValidationIssue[];

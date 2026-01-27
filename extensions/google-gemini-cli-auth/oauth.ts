@@ -268,7 +268,7 @@ async function waitForLocalCallback(params: {
         res.end(
           "<!doctype html><html><head><meta charset='utf-8'/></head>" +
             "<body><h2>Gemini CLI OAuth complete</h2>" +
-            "<p>You can close this window and return to Clawdbot.</p></body></html>",
+            "<p>You can close this window and return to Moltbot.</p></body></html>",
         );
 
         finish(undefined, { code, state });
@@ -373,7 +373,7 @@ async function discoverProject(accessToken: string): Promise<string> {
     Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
     "User-Agent": "google-api-nodejs-client/9.15.1",
-    "X-Goog-Api-Client": "gl-node/clawdbot",
+    "X-Goog-Api-Client": "gl-node/moltbot",
   };
 
   const loadBody = {

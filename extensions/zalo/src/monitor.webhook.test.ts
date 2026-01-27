@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 
 import { describe, expect, it } from "vitest";
 
-import type { ClawdbotConfig, PluginRuntime } from "clawdbot/plugin-sdk";
+import type { MoltbotConfig, PluginRuntime } from "clawdbot/plugin-sdk";
 import type { ResolvedZaloAccount } from "./types.js";
 import { handleZaloWebhookRequest, registerZaloWebhookTarget } from "./monitor.js";
 
@@ -19,7 +19,7 @@ describe("handleZaloWebhookRequest", () => {
     const unregister = registerZaloWebhookTarget({
       token: "tok",
       account,
-      config: {} as ClawdbotConfig,
+      config: {} as MoltbotConfig,
       runtime: {},
       core,
       secret: "secret",

@@ -32,7 +32,7 @@ struct ClawdbotApp: App {
     }
 
     init() {
-        ClawdbotLogging.bootstrapIfNeeded()
+        MoltbotLogging.bootstrapIfNeeded()
         Self.applyAttachOnlyOverrideIfNeeded()
         _state = State(initialValue: AppStateStore.shared)
     }

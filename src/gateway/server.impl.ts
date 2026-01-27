@@ -6,7 +6,7 @@ import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js
 import { createDefaultDeps } from "../cli/deps.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import {
-  CONFIG_PATH_CLAWDBOT,
+  CONFIG_PATH,
   isNixMode,
   loadConfig,
   migrateLegacyConfig,
@@ -26,7 +26,7 @@ import {
 } from "../infra/overseer/continuation-bridge.js";
 import { resolveOverseerStorePath } from "../infra/overseer/store.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
-import { ensureClawdbotCliOnPath } from "../infra/path-env.js";
+import { ensureMoltbotCliOnPath } from "../infra/path-env.js";
 import {
   primeRemoteSkillsCache,
   refreshRemoteBinsForConnectedNodes,
@@ -80,7 +80,7 @@ import { attachGatewayWsHandlers } from "./server-ws-runtime.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
-ensureClawdbotCliOnPath();
+ensureMoltbotCliOnPath();
 
 const log = createSubsystemLogger("gateway");
 const logCanvas = log.child("canvas");
@@ -177,7 +177,7 @@ export async function startGatewayServer(
     const { config: migrated, changes } = migrateLegacyConfig(configSnapshot.parsed);
     if (!migrated) {
       throw new Error(
-        `Legacy config entries detected but auto-migration failed. Run "${formatCliCommand("clawdbot doctor")}" to migrate.`,
+        `Legacy config entries detected but auto-migration failed. Run "${formatCliCommand("moltbot doctor")}" to migrate.`,
       );
     }
     await writeConfigFile(migrated);
@@ -199,7 +199,7 @@ export async function startGatewayServer(
             .join("\n")
         : "Unknown validation issue.";
     throw new Error(
-      `Invalid config at ${configSnapshot.path}.\n${issues}\nRun "${formatCliCommand("clawdbot doctor")}" to repair, then retry.`,
+      `Invalid config at ${configSnapshot.path}.\n${issues}\nRun "${formatCliCommand("moltbot doctor")}" to repair, then retry.`,
     );
   }
 
@@ -602,7 +602,7 @@ export async function startGatewayServer(
       warn: (msg) => logReload.warn(msg),
       error: (msg) => logReload.error(msg),
     },
-    watchPath: CONFIG_PATH_CLAWDBOT,
+    watchPath: CONFIG_PATH,
   });
 
   const close = createGatewayCloseHandler({
