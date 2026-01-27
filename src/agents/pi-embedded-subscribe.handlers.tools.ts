@@ -71,10 +71,16 @@ export async function handleToolExecutionStart(
     },
   });
   // Best-effort typing signal; do not block tool summaries on slow emitters.
-  void ctx.params.onAgentEvent?.({
-    stream: "tool",
-    data: { phase: "start", name: toolName, toolCallId },
-  });
+  try {
+    void Promise.resolve(
+      ctx.params.onAgentEvent?.({
+        stream: "tool",
+        data: { phase: "start", name: toolName, toolCallId },
+      }),
+    ).catch(() => {});
+  } catch {
+    // Ignore callback errors.
+  }
 
   if (
     ctx.params.onToolResult &&
@@ -126,14 +132,20 @@ export function handleToolExecutionUpdate(
       partialResult: sanitized,
     },
   });
-  void ctx.params.onAgentEvent?.({
-    stream: "tool",
-    data: {
-      phase: "update",
-      name: toolName,
-      toolCallId,
-    },
-  });
+  try {
+    void Promise.resolve(
+      ctx.params.onAgentEvent?.({
+        stream: "tool",
+        data: {
+          phase: "update",
+          name: toolName,
+          toolCallId,
+        },
+      }),
+    ).catch(() => {});
+  } catch {
+    // Ignore callback errors.
+  }
 }
 
 export function handleToolExecutionEnd(
@@ -196,16 +208,22 @@ export function handleToolExecutionEnd(
       result: sanitizedResult,
     },
   });
-  void ctx.params.onAgentEvent?.({
-    stream: "tool",
-    data: {
-      phase: "result",
-      name: toolName,
-      toolCallId,
-      meta,
-      isError: isToolError,
-    },
-  });
+  try {
+    void Promise.resolve(
+      ctx.params.onAgentEvent?.({
+        stream: "tool",
+        data: {
+          phase: "result",
+          name: toolName,
+          toolCallId,
+          meta,
+          isError: isToolError,
+        },
+      }),
+    ).catch(() => {});
+  } catch {
+    // Ignore callback errors.
+  }
 
   ctx.log.debug(
     `embedded run tool end: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId}`,

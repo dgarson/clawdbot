@@ -147,13 +147,15 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
   const emitEvent = (stream: string, data: Record<string, unknown>) => {
     try {
-      params.onAgentEvent?.({ stream, data });
+      void Promise.resolve(params.onAgentEvent?.({ stream, data })).catch(() => {
+        // Don't let async callback errors trigger unhandled rejections.
+      });
     } catch {
       // Don't let callback errors break the runner.
     }
   };
 
-  emitEvent("lifecycle", { type: "sdk_runner_start", runId: params.runId });
+  emitEvent("sdk", { type: "sdk_runner_start", runId: params.runId });
 
   // -------------------------------------------------------------------------
   // Step 1: Load the Claude Agent SDK
@@ -185,7 +187,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     };
   }
 
-  emitEvent("lifecycle", { type: "sdk_loaded" });
+  emitEvent("sdk", { type: "sdk_loaded" });
 
   // -------------------------------------------------------------------------
   // Step 2: Bridge Clawdbot tools to MCP
@@ -225,7 +227,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         ? ` (skipped: ${bridgeResult.skippedTools.join(", ")})`
         : ""),
   );
-  emitEvent("lifecycle", {
+  emitEvent("sdk", {
     type: "tools_bridged",
     toolCount: bridgeResult.toolCount,
     skipped: bridgeResult.skippedTools,
@@ -320,7 +322,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     : timeoutController.signal;
 
   try {
-    emitEvent("lifecycle", { type: "query_start" });
+    emitEvent("sdk", { type: "query_start" });
 
     const stream = await coerceAsyncIterable(
       sdk.query({
@@ -329,7 +331,13 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       }),
     );
 
-    void params.onAssistantMessageStart?.();
+    try {
+      void Promise.resolve(params.onAssistantMessageStart?.()).catch(() => {
+        // Don't let async callback errors trigger unhandled rejections.
+      });
+    } catch {
+      // Ignore callback errors.
+    }
 
     for await (const event of stream) {
       // Check abort before processing each event.
@@ -344,6 +352,38 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       const { kind } = classifyEvent(event);
 
       // Emit tool results via callback.
+      if (kind === "tool") {
+        const record = isRecord(event) ? (event as Record<string, unknown>) : undefined;
+        const type = record && typeof record.type === "string" ? record.type : undefined;
+        const phase = (() => {
+          if (type === "tool_execution_start" || type === "tool_use") return "start";
+          if (type === "tool_execution_end" || type === "tool_result") return "end";
+          return "update";
+        })();
+        const name =
+          record && typeof record.name === "string"
+            ? record.name
+            : record && typeof record.tool_name === "string"
+              ? record.tool_name
+              : undefined;
+        const toolCallId =
+          record && typeof record.id === "string"
+            ? record.id
+            : record && typeof record.tool_use_id === "string"
+              ? record.tool_use_id
+              : record && typeof record.toolCallId === "string"
+                ? record.toolCallId
+                : undefined;
+        const toolText = extractTextFromClaudeAgentSdkEvent(event);
+        emitEvent("tool", {
+          phase,
+          name: name ?? "tool",
+          toolCallId,
+          sdkType: type,
+          ...(toolText ? { resultText: toolText } : {}),
+        });
+      }
+
       if (kind === "tool" && params.onToolResult) {
         const toolText = extractTextFromClaudeAgentSdkEvent(event);
         if (toolText) {
@@ -388,6 +428,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
         chunks.push(trimmed);
         extractedChars += trimmed.length;
+
+        emitEvent("assistant", { text: trimmed, delta: trimmed });
 
         // Stream partial reply.
         if (params.onPartialReply) {
@@ -512,7 +554,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     }
   }
 
-  emitEvent("lifecycle", {
+  emitEvent("sdk", {
     type: "sdk_runner_end",
     eventCount,
     extractedChars,

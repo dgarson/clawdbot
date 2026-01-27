@@ -134,22 +134,13 @@ function resolveEnvValue(value: string, env: NodeJS.ProcessEnv): string {
 /**
  * Check whether the Claude Agent SDK runner is enabled as the main agent runtime.
  *
- * The SDK runner is enabled when EITHER:
- * 1. `agents.defaults.runtime` is "sdk", OR
- * 2. `tools.codingTask.enabled` is true AND providers are configured
+ * The SDK runner is enabled only when `agents.defaults.runtime` is "sdk".
  *
- * When enabled, the SDK runner replaces the Pi Agent embedded runner for
- * the main agent loop (not just the `coding_task` sub-tool).
+ * IMPORTANT: `tools.codingTask.*` is tool-level configuration and must not
+ * implicitly change the gateway-wide/main-agent runtime selection.
  */
 export function isSdkRunnerEnabled(config?: ClawdbotConfig): boolean {
-  // Explicit runtime toggle takes precedence.
-  if (config?.agents?.defaults?.runtime === "sdk") return true;
-
-  // Legacy enablement path: codingTask-based SDK config.
-  const codingTaskCfg = config?.tools?.codingTask;
-  if (!codingTaskCfg?.enabled) return false;
-
-  return !!codingTaskCfg.providers && Object.keys(codingTaskCfg.providers).length > 0;
+  return config?.agents?.defaults?.runtime === "sdk";
 }
 
 /**

@@ -123,14 +123,20 @@ export function handleMessageUpdate(
           mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
         },
       });
-      void ctx.params.onAgentEvent?.({
-        stream: "assistant",
-        data: {
-          text: cleanedText,
-          delta: deltaText,
-          mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
-        },
-      });
+      try {
+        void Promise.resolve(
+          ctx.params.onAgentEvent?.({
+            stream: "assistant",
+            data: {
+              text: cleanedText,
+              delta: deltaText,
+              mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
+            },
+          }),
+        ).catch(() => {});
+      } catch {
+        // Ignore callback errors.
+      }
       if (ctx.params.onPartialReply && ctx.state.shouldEmitPartialReplies) {
         void ctx.params.onPartialReply({
           text: cleanedText,

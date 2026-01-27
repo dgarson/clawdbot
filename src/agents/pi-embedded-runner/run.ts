@@ -307,10 +307,16 @@ export async function runEmbeddedPiAgent(
           data,
           sessionKey: params.sessionKey ?? params.sessionId,
         });
-        void params.onAgentEvent?.({
-          stream: "compaction",
-          data,
-        });
+        try {
+          void Promise.resolve(
+            params.onAgentEvent?.({
+              stream: "compaction",
+              data,
+            }),
+          ).catch(() => {});
+        } catch {
+          // Ignore callback errors.
+        }
       };
 
       const emitOverflowDiagnostics = (payload: {

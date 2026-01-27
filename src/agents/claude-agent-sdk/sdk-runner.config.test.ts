@@ -48,26 +48,26 @@ describe("buildAnthropicSdkProvider", () => {
 // ---------------------------------------------------------------------------
 
 describe("isSdkRunnerEnabled", () => {
-  it("returns false when codingTask is not configured", () => {
+  it("returns false when runtime is not configured", () => {
     expect(isSdkRunnerEnabled(undefined)).toBe(false);
     expect(isSdkRunnerEnabled({})).toBe(false);
   });
 
-  it("returns false when codingTask.enabled is false", () => {
+  it("returns false when agents.defaults.runtime is pi", () => {
     const config: ClawdbotConfig = {
-      tools: { codingTask: { enabled: false } },
+      agents: { defaults: { runtime: "pi" } },
     };
     expect(isSdkRunnerEnabled(config)).toBe(false);
   });
 
-  it("returns false when enabled but no providers", () => {
+  it("returns true when agents.defaults.runtime is sdk", () => {
     const config: ClawdbotConfig = {
-      tools: { codingTask: { enabled: true } },
+      agents: { defaults: { runtime: "sdk" } },
     };
-    expect(isSdkRunnerEnabled(config)).toBe(false);
+    expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 
-  it("returns true when enabled with providers", () => {
+  it("does not enable SDK runtime from tools.codingTask config", () => {
     const config: ClawdbotConfig = {
       tools: {
         codingTask: {
@@ -78,29 +78,7 @@ describe("isSdkRunnerEnabled", () => {
         },
       },
     };
-    expect(isSdkRunnerEnabled(config)).toBe(true);
-  });
-
-  it("returns true when agents.defaults.runtime is sdk", () => {
-    const config: ClawdbotConfig = {
-      agents: { defaults: { runtime: "sdk" } },
-    };
-    expect(isSdkRunnerEnabled(config)).toBe(true);
-  });
-
-  it("returns false when agents.defaults.runtime is pi", () => {
-    const config: ClawdbotConfig = {
-      agents: { defaults: { runtime: "pi" } },
-    };
     expect(isSdkRunnerEnabled(config)).toBe(false);
-  });
-
-  it("runtime toggle takes precedence over codingTask config", () => {
-    const config: ClawdbotConfig = {
-      agents: { defaults: { runtime: "sdk" } },
-      tools: { codingTask: { enabled: false } },
-    };
-    expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 });
 

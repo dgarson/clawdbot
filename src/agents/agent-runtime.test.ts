@@ -91,36 +91,11 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
     expect(isSdkRunnerEnabled({} as ClawdbotConfig)).toBe(false);
   });
 
-  it("returns true when codingTask is enabled with providers", () => {
+  it("does not enable SDK runtime from tools.codingTask config", () => {
     const config = {
       tools: {
         codingTask: {
           enabled: true,
-          providers: {
-            zai: { env: { ANTHROPIC_AUTH_TOKEN: "test" } },
-          },
-        },
-      },
-    } as ClawdbotConfig;
-    expect(isSdkRunnerEnabled(config)).toBe(true);
-  });
-
-  it("returns false when codingTask is enabled but no providers", () => {
-    const config = {
-      tools: {
-        codingTask: {
-          enabled: true,
-        },
-      },
-    } as ClawdbotConfig;
-    expect(isSdkRunnerEnabled(config)).toBe(false);
-  });
-
-  it("returns false when codingTask has providers but is not enabled", () => {
-    const config = {
-      tools: {
-        codingTask: {
-          enabled: false,
           providers: {
             zai: { env: { ANTHROPIC_AUTH_TOKEN: "test" } },
           },

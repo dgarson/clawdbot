@@ -113,7 +113,7 @@ export type SdkRunnerParams = {
   onToolResult?: (payload: { text?: string }) => void | Promise<void>;
 
   /** Called for lifecycle / diagnostic events. */
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void;
+  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
 
   /**
    * MCP server name for the bridged Clawdbot tools.

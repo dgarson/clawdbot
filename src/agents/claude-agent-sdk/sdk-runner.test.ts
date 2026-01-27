@@ -214,14 +214,50 @@ describe("runSdkAgent", () => {
       await runSdkAgent(baseParams({ onAgentEvent }));
 
       // Should have sdk_runner_start, sdk_loaded, tools_bridged, query_start, sdk_runner_end
-      const types = onAgentEvent.mock.calls.map(
-        (c) => (c[0] as { data: { type: string } }).data.type,
-      );
+      const types = onAgentEvent.mock.calls
+        .map((c) => c[0] as { stream?: string; data?: { type?: string } })
+        .filter((evt) => evt.stream === "sdk")
+        .map((evt) => evt.data?.type);
       expect(types).toContain("sdk_runner_start");
       expect(types).toContain("sdk_loaded");
       expect(types).toContain("tools_bridged");
       expect(types).toContain("query_start");
       expect(types).toContain("sdk_runner_end");
+    });
+
+    it("emits assistant events via onAgentEvent when text is extracted", async () => {
+      const queryFn = vi.fn().mockReturnValue(eventsFrom([{ text: "hello" }, { text: "world" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onAgentEvent = vi.fn();
+      await runSdkAgent(baseParams({ onAgentEvent }));
+
+      const assistantEvents = onAgentEvent.mock.calls
+        .map((c) => c[0] as { stream?: string; data?: { text?: string } })
+        .filter((evt) => evt.stream === "assistant");
+      expect(assistantEvents.length).toBeGreaterThan(0);
+      expect(assistantEvents[0]?.data?.text).toBeDefined();
+    });
+
+    it("emits tool lifecycle events via onAgentEvent for tool events", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { type: "tool_execution_start", name: "exec", id: "t1" },
+          { type: "tool_result", text: "tool output", id: "t1" },
+          { type: "result", result: "done" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onAgentEvent = vi.fn();
+      await runSdkAgent(baseParams({ onAgentEvent }));
+
+      const toolEvents = onAgentEvent.mock.calls
+        .map((c) => c[0] as { stream?: string; data?: { phase?: string; name?: string } })
+        .filter((evt) => evt.stream === "tool");
+      expect(toolEvents.length).toBeGreaterThan(0);
+      expect(toolEvents.some((evt) => evt.data?.phase === "start")).toBe(true);
+      expect(toolEvents.some((evt) => evt.data?.phase === "end")).toBe(true);
     });
 
     it("does not break when callback throws", async () => {
@@ -235,6 +271,16 @@ describe("runSdkAgent", () => {
 
       // Run should still succeed despite callback errors.
       expect(result.payloads[0].text).toBe("done");
+    });
+
+    it("does not break when onAgentEvent returns a rejected promise", async () => {
+      const queryFn = vi.fn().mockReturnValue(eventsFrom([{ type: "result", result: "ok" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onAgentEvent = vi.fn().mockRejectedValue(new Error("event callback error"));
+      const result = await runSdkAgent(baseParams({ onAgentEvent }));
+
+      expect(result.payloads[0].text).toBe("ok");
     });
   });
 
