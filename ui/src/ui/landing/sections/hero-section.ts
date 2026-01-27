@@ -459,7 +459,7 @@ export class LandingHero extends LitElement {
   private textRotator?: TextRotator;
 
   firstUpdated(): void {
-    this.parallaxCleanup = initParallax(this.renderRoot as HTMLElement);
+    this.parallaxCleanup = initParallax(this as HTMLElement);
 
     const rotatingEl = this.renderRoot.querySelector('.hero-rotating-text');
     if (rotatingEl) {

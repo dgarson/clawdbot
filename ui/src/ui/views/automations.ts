@@ -7,6 +7,11 @@ import type {
   AutomationsState,
 } from "../controllers/automations";
 
+// Re-export automation-related view components
+export { renderAutomationForm } from "./automation-form";
+export { renderProgressModal } from "./progress-modal";
+export { renderRunHistory } from "./run-history";
+
 export interface AutomationCardProps {
   automation: Automation;
   isExpanded: boolean;

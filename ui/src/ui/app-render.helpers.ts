@@ -2,13 +2,47 @@ import { html } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 
 import type { AppViewState } from "./app-view-state";
-import { hrefForTab, titleForTab, type Tab } from "./navigation";
+import { hrefForTab, titleForTab, type Tab, PRIMARY_TABS, SECONDARY_TABS, ADVANCED_TABS } from "./navigation";
 import { loadChatHistory } from "./controllers/chat";
 import { syncUrlWithSessionKey } from "./app-settings";
 import type { SessionsListResult } from "./types";
 import type { ThemeMode } from "./theme";
 import type { ThemeTransitionContext } from "./theme-transition";
 import { iconForTabSvg, icon, icons } from "./icons";
+
+export function renderNavigationTabs(state: AppViewState) {
+  const showAdvanced = state.navShowAdvanced;
+
+  return html`
+    <!-- Primary Tabs -->
+    <div class="nav-group">
+      ${PRIMARY_TABS.map((tab) => renderTab(state, tab))}
+    </div>
+
+    <!-- Secondary Tabs -->
+    <div class="nav-group">
+      ${SECONDARY_TABS.map((tab) => renderTab(state, tab))}
+    </div>
+
+    <!-- Advanced Tabs (collapsible) -->
+    <div class="nav-group ${!showAdvanced ? "nav-group--advanced" : ""}">
+      <button
+        class="nav-label"
+        @click=${() => {
+          state.navShowAdvanced = !state.navShowAdvanced;
+          state.persistNavShowAdvanced(state.navShowAdvanced);
+        }}
+        aria-expanded=${showAdvanced}
+      >
+        <span class="nav-label__text">Advanced Features</span>
+        <span class="nav-label__chevron">${icon(showAdvanced ? "chevron-up" : "chevron-down", { size: 14 })}</span>
+      </button>
+      <div class="nav-group__items">
+        ${ADVANCED_TABS.map((tab) => renderTab(state, tab))}
+      </div>
+    </div>
+  `;
+}
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = hrefForTab(tab, state.basePath);

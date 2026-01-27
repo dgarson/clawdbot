@@ -1,5 +1,30 @@
 import type { IconName } from "./icons.js";
 
+// Tab tier definitions
+export type TabTier = "primary" | "secondary" | "advanced";
+
+export const TAB_TIERS: Record<Tab, TabTier> = {
+  landing: "primary",
+  overview: "primary",
+  agents: "primary",
+  channels: "secondary",
+  instances: "advanced",
+  sessions: "primary",
+  cron: "advanced",
+  automations: "advanced",
+  overseer: "advanced",
+  skills: "advanced",
+  nodes: "secondary",
+  chat: "primary",
+  config: "primary",
+  debug: "secondary",
+  logs: "secondary",
+};
+
+export const PRIMARY_TABS: Tab[] = ["chat", "sessions", "agents", "config", "overview"];
+export const SECONDARY_TABS: Tab[] = ["channels", "nodes", "logs", "debug"];
+export const ADVANCED_TABS: Tab[] = ["instances", "skills", "cron", "automations", "overseer"];
+
 export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
@@ -275,4 +300,18 @@ export function subtitleForTab(tab: Tab) {
     default:
       return "";
   }
+}
+
+export function getTabTier(tab: Tab): TabTier {
+  return TAB_TIERS[tab];
+}
+
+export function filterTabsByTier(tier: TabTier): Tab[] {
+  return Object.entries(TAB_TIERS)
+    .filter(([_, t]) => t === tier)
+    .map(([tab]) => tab);
+}
+
+export function getAllTabs(): Tab[] {
+  return Object.keys(TAB_TIERS) as Tab[];
 }

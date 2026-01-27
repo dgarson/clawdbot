@@ -235,7 +235,9 @@ function readNumberStorage(key: string, fallback = 0, min = 0, max = 10_080): nu
 export class ClawdbotApp extends LitElement {
   @state() settings: UiSettings = loadSettings();
   @state() password = resolveDefaultGatewayPassword();
+  @state() overviewShowSystemMetrics = this.settings.overviewShowSystemMetrics;
   @state() tab: Tab = "chat";
+  @state() navShowAdvanced = this.settings.navShowAdvanced;
   @state() onboarding = resolveOnboardingMode();
   @state() connected = false;
   @state() theme: ThemeMode = this.settings.theme ?? "system";
@@ -326,6 +328,7 @@ export class ClawdbotApp extends LitElement {
   @state() configSearchQuery = "";
   @state() configActiveSection: string | null = null;
   @state() configActiveSubsection: string | null = null;
+  @state() configShowQuickSetup = this.settings.configShowQuickSetup;
 
   @state() channelsLoading = false;
   @state() channelsSnapshot: ChannelsStatusSnapshot | null = null;
@@ -373,6 +376,8 @@ export class ClawdbotApp extends LitElement {
   @state() sessionsStatusFilter: "all" | "active" | "idle" | "completed" = "all";
   @state() sessionsAgentLabelFilter = "";
   @state() sessionsLaneFilter: "all" | "cron" | "regular" = "all";
+  @state() sessionsPreset: "all" | "active" | "errored" | "cron" | "custom" = this.settings.sessionsPreset;
+  @state() sessionsShowAdvancedFilters = this.settings.sessionsShowAdvancedFilters;
   @state() sessionsTagFilter: string[] = [];
   @state() sessionsViewMode: "list" | "table" = readSessionsViewMode();
   @state() sessionsShowHidden: boolean = readBooleanStorage(SESSIONS_SHOW_HIDDEN_STORAGE_KEY, false);
@@ -491,6 +496,7 @@ export class ClawdbotApp extends LitElement {
   @state() logsLevelFilters: Record<LogLevel, boolean> = {
     ...DEFAULT_LOG_LEVEL_FILTERS,
   };
+  @state() logsPreset: "errors-only" | "warnings" | "debug" | "verbose" | "custom" = this.settings.logsPreset;
   @state() logsAutoFollow = true;
   @state() logsTruncated = false;
   @state() logsCursor: number | null = null;
@@ -922,6 +928,31 @@ export class ClawdbotApp extends LitElement {
     await loadCronInternal(
       this as unknown as Parameters<typeof loadCronInternal>[0],
     );
+  }
+
+  // Helper methods to persist state changes to localStorage
+  persistLogsPreset(preset: typeof this.logsPreset) {
+    this.applySettings({ ...this.settings, logsPreset: preset });
+  }
+
+  persistSessionsPreset(preset: typeof this.sessionsPreset) {
+    this.applySettings({ ...this.settings, sessionsPreset: preset });
+  }
+
+  persistOverviewShowSystemMetrics(show: boolean) {
+    this.applySettings({ ...this.settings, overviewShowSystemMetrics: show });
+  }
+
+  persistConfigShowQuickSetup(show: boolean) {
+    this.applySettings({ ...this.settings, configShowQuickSetup: show });
+  }
+
+  persistNavShowAdvanced(show: boolean) {
+    this.applySettings({ ...this.settings, navShowAdvanced: show });
+  }
+
+  persistSessionsShowAdvancedFilters(show: boolean) {
+    this.applySettings({ ...this.settings, sessionsShowAdvancedFilters: show });
   }
 
   async handleAbortChat() {

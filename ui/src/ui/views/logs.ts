@@ -7,6 +7,26 @@ import { icon } from "../icons";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
 
+// Log level presets for quick filtering
+export type LogPreset = "errors-only" | "warnings" | "debug" | "verbose" | "custom";
+
+export const LOG_PRESETS: Record<LogPreset, Record<LogLevel, boolean>> = {
+  "errors-only": { trace: false, debug: false, info: false, warn: false, error: true, fatal: true },
+  "warnings": { trace: false, debug: false, info: false, warn: true, error: true, fatal: true },
+  "debug": { trace: false, debug: false, info: true, warn: true, error: true, fatal: true },
+  "verbose": { trace: true, debug: true, info: true, warn: true, error: true, fatal: true },
+  "custom": { trace: true, debug: true, info: true, warn: true, error: true, fatal: true },
+};
+
+export function detectPreset(levelFilters: Record<LogLevel, boolean>): LogPreset {
+  for (const [preset, filters] of Object.entries(LOG_PRESETS)) {
+    if (preset === "custom") continue;
+    const matches = LEVELS.every((level) => levelFilters[level] === filters[level]);
+    if (matches) return preset as LogPreset;
+  }
+  return "custom";
+}
+
 // Extended props with new features
 export type LogsProps = {
   loading: boolean;
@@ -26,6 +46,8 @@ export type LogsProps = {
   subsystemFilters: Set<string>;
   // New: Available subsystems extracted from entries
   availableSubsystems: string[];
+  // New: Log level preset
+  preset: LogPreset;
   // Callbacks
   onFilterTextChange: (next: string) => void;
   onLevelToggle: (level: LogLevel, enabled: boolean) => void;
@@ -40,6 +62,7 @@ export type LogsProps = {
   onToggleSidebar?: () => void;
   onToggleFilters?: () => void;
   onSubsystemToggle?: (subsystem: string) => void;
+  onPresetChange?: (preset: LogPreset) => void;
 };
 
 function formatTime(value?: string | null, relative = false): string {
@@ -501,7 +524,44 @@ export function renderLogs(props: LogsProps) {
 
           <!-- Secondary toolbar (filters) - collapsible -->
           <div class="logs-toolbar__secondary ${props.showFilters ? "logs-toolbar__secondary--visible" : ""}">
-            <!-- Level filters -->
+            <!-- Quick filter presets -->
+            <div class="logs-presets">
+              <span class="logs-presets__label">Quick filters:</span>
+              <button
+                class="logs-preset-btn ${props.preset === "errors-only" ? "logs-preset-btn--active" : ""}"
+                @click=${() => props.onPresetChange?.("errors-only")}
+                title="Show only errors and fatal logs"
+              >
+                ${icon("alert-circle", { size: 12 })}
+                <span>Errors only</span>
+              </button>
+              <button
+                class="logs-preset-btn ${props.preset === "warnings" ? "logs-preset-btn--active" : ""}"
+                @click=${() => props.onPresetChange?.("warnings")}
+                title="Show warnings and above"
+              >
+                ${icon("alert-triangle", { size: 12 })}
+                <span>Warnings+</span>
+              </button>
+              <button
+                class="logs-preset-btn ${props.preset === "debug" ? "logs-preset-btn--active" : ""}"
+                @click=${() => props.onPresetChange?.("debug")}
+                title="Show info, warnings, and errors"
+              >
+                ${icon("info", { size: 12 })}
+                <span>Debug</span>
+              </button>
+              <button
+                class="logs-preset-btn ${props.preset === "verbose" ? "logs-preset-btn--active" : ""}"
+                @click=${() => props.onPresetChange?.("verbose")}
+                title="Show all log levels"
+              >
+                ${icon("layers", { size: 12 })}
+                <span>Verbose</span>
+              </button>
+            </div>
+
+            <!-- Level filters (shown when in custom mode or always available) -->
             <div class="logs-levels">
               ${LEVELS.map(
                 (level) => html`

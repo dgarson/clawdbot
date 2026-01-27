@@ -382,6 +382,67 @@
   animation: fadeInDown var(--duration-fast) var(--ease-out);
 }
 
+/* =============================================================================
+   QUICK FILTER PRESETS
+   ============================================================================= */
+
+.logs-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logs-presets__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.logs-preset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  color: var(--text-secondary);
+}
+
+.logs-preset-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.logs-preset-btn:active {
+  transform: scale(0.98);
+}
+
+.logs-preset-btn:focus-visible {
+  outline-offset: 4px;
+}
+
+.logs-preset-btn--active {
+  background: var(--accent-muted);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.logs-preset-btn svg {
+  flex-shrink: 0;
+}
+
 /* Level filter chips */
 .logs-levels {
   display: flex;

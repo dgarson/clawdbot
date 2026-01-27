@@ -1,10 +1,11 @@
-import { html } from "lit";
+import { html, nothing } from "lit";
 
 import type { GatewayHelloOk } from "../gateway";
 import { formatAgo, formatDurationMs } from "../format";
 import { formatNextRun } from "../presenter";
 import type { UiSettings } from "../storage";
 import { icon } from "../icons";
+import { hrefForTab } from "../navigation";
 
 export type OverviewProps = {
   connected: boolean;
@@ -17,11 +18,14 @@ export type OverviewProps = {
   cronEnabled: boolean | null;
   cronNext: number | null;
   lastChannelsRefresh: number | null;
+  // New: UI state for collapsible sections
+  showSystemMetrics: boolean;
   onSettingsChange: (next: UiSettings) => void;
   onPasswordChange: (next: string) => void;
   onSessionKeyChange: (next: string) => void;
   onConnect: () => void;
   onRefresh: () => void;
+  onToggleSystemMetrics?: () => void;
 };
 
 export function renderOverview(props: OverviewProps) {
@@ -118,13 +122,106 @@ export function renderOverview(props: OverviewProps) {
   })();
 
   return html`
+    <section class="overview-layout">
+      <!-- Primary Status Card -->
+      <div class="card overview-status-card">
+        <div class="overview-status-card__main">
+          <div class="overview-status-card__icon ${props.connected ? "overview-status-card__icon--connected" : "overview-status-card__icon--disconnected"}">
+            ${props.connected
+              ? icon("check", { size: 32 })
+              : icon("alert-circle", { size: 32 })}
+          </div>
+          <div class="overview-status-card__content">
+            <div class="overview-status-card__title">
+              ${props.connected ? "Connected" : "Disconnected"}
+            </div>
+            <div class="overview-status-card__subtitle">
+              ${props.connected
+                ? `${props.sessionsCount ?? 0} active sessions`
+                : "Gateway is not connected"}
+            </div>
+          </div>
+        </div>
+        <div class="overview-status-card__actions">
+          ${!props.connected
+            ? html`<button class="btn btn--primary" @click=${() => props.onConnect()}>
+                ${icon("link", { size: 16 })}
+                <span>Reconnect</span>
+              </button>`
+            : nothing}
+          <button class="btn btn--secondary" @click=${() => props.onRefresh()}>
+            ${icon("refresh-cw", { size: 16 })}
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Actions Card -->
+      <div class="card overview-quick-actions">
+        <div class="card-header">
+          <div class="card-header__icon">${icon("zap", { size: 18 })}</div>
+          <div class="card-title">Quick Actions</div>
+        </div>
+        <div class="overview-quick-actions__grid">
+          <a href="${hrefForTab("sessions")}" class="overview-action-card">
+            <div class="overview-action-card__icon">${icon("file-text", { size: 20 })}</div>
+            <div class="overview-action-card__content">
+              <div class="overview-action-card__title">View Sessions</div>
+              <div class="overview-action-card__desc">${props.sessionsCount ?? 0} active</div>
+            </div>
+          </a>
+          <a href="${hrefForTab("channels")}" class="overview-action-card">
+            <div class="overview-action-card__icon">${icon("link", { size: 20 })}</div>
+            <div class="overview-action-card__content">
+              <div class="overview-action-card__title">Configure Channels</div>
+              <div class="overview-action-card__desc">Link messaging apps</div>
+            </div>
+          </a>
+          <a href="${hrefForTab("logs")}" class="overview-action-card">
+            <div class="overview-action-card__icon">${icon("scroll-text", { size: 20 })}</div>
+            <div class="overview-action-card__content">
+              <div class="overview-action-card__title">View Logs</div>
+              <div class="overview-action-card__desc">Debug issues</div>
+            </div>
+          </a>
+          <a href="${hrefForTab("config")}" class="overview-action-card">
+            <div class="overview-action-card__icon">${icon("settings", { size: 20 })}</div>
+            <div class="overview-action-card__content">
+              <div class="overview-action-card__title">Settings</div>
+              <div class="overview-action-card__desc">Configure gateway</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Error Message (if any) - Prioritize auth errors over insecure context -->
+      ${(props.lastError && authHint) || (props.lastError && !insecureContextHint)
+        ? html`<div class="callout callout--danger">
+            <div class="callout__icon">${icon("alert-triangle", { size: 18 })}</div>
+            <div class="callout__content">
+              <div>${props.lastError}</div>
+              ${authHint ?? ""}
+            </div>
+          </div>`
+        : (props.lastError && insecureContextHint)
+          ? html`<div class="callout callout--warning">
+              <div class="callout__icon">${icon("alert-triangle", { size: 18 })}</div>
+              <div class="callout__content">
+                <div>${props.lastError}</div>
+                ${insecureContextHint}
+              </div>
+            </div>`
+          : nothing}
+    </section>
+
     <section class="overview-grid">
+      <!-- Gateway Access Card (simplified) -->
       <div class="card card--gateway">
         <div class="card-header">
           <div class="card-header__icon">${icon("link", { size: 20 })}</div>
           <div>
             <div class="card-title">Gateway Access</div>
-            <div class="card-sub">Connection and authentication settings</div>
+            <div class="card-sub">Connection and authentication</div>
           </div>
         </div>
         <div class="form-grid" style="margin-top: 20px;">
@@ -194,77 +291,78 @@ export function renderOverview(props: OverviewProps) {
             ${icon("link", { size: 16 })}
             <span>Connect</span>
           </button>
-          <button class="btn btn--secondary" @click=${() => props.onRefresh()}>
-            ${icon("refresh-cw", { size: 16 })}
-            <span>Refresh</span>
-          </button>
           <span class="muted">Click Connect to apply changes</span>
         </div>
       </div>
 
+      <!-- System Metrics (collapsible) -->
       <div class="card card--snapshot">
         <div class="card-header">
           <div class="card-header__icon">${icon("layout-dashboard", { size: 20 })}</div>
-          <div>
-            <div class="card-title">Snapshot</div>
+          <div style="flex: 1;">
+            <div class="card-title">System Metrics</div>
             <div class="card-sub">Gateway handshake information</div>
           </div>
+          <button
+            class="card-header__toggle"
+            @click=${() => props.onToggleSystemMetrics?.()}
+            title="${props.showSystemMetrics ? "Hide" : "Show"} system metrics"
+          >
+            ${props.showSystemMetrics
+              ? icon("chevron-up", { size: 18 })
+              : icon("chevron-down", { size: 18 })}
+          </button>
         </div>
-        <div class="stat-grid stat-grid--compact" style="margin-top: 20px;">
-          <div class="stat stat--modern ${props.connected ? "stat--ok" : "stat--warn"}">
-            <div class="stat__icon">
-              ${props.connected
-                ? icon("check", { size: 18 })
-                : icon("alert-circle", { size: 18 })}
-            </div>
-            <div class="stat__content">
-              <div class="stat-label">Status</div>
-              <div class="stat-value">
-                ${props.connected ? "Connected" : "Disconnected"}
+        ${props.showSystemMetrics
+          ? html`<div class="stat-grid stat-grid--compact" style="margin-top: 20px;">
+              <div class="stat stat--modern ${props.connected ? "stat--ok" : "stat--warn"}">
+                <div class="stat__icon">
+                  ${props.connected
+                    ? icon("check", { size: 18 })
+                    : icon("alert-circle", { size: 18 })}
+                </div>
+                <div class="stat__content">
+                  <div class="stat-label">Status</div>
+                  <div class="stat-value">
+                    ${props.connected ? "Connected" : "Disconnected"}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="stat stat--modern">
-            <div class="stat__icon">${icon("clock", { size: 18 })}</div>
-            <div class="stat__content">
-              <div class="stat-label">Uptime</div>
-              <div class="stat-value">${uptime}</div>
-            </div>
-          </div>
-          <div class="stat stat--modern">
-            <div class="stat__icon">${icon("zap", { size: 18 })}</div>
-            <div class="stat__content">
-              <div class="stat-label">Tick Interval</div>
-              <div class="stat-value">${tick}</div>
-            </div>
-          </div>
-          <div class="stat stat--modern">
-            <div class="stat__icon">${icon("refresh-cw", { size: 18 })}</div>
-            <div class="stat__content">
-              <div class="stat-label">Last Refresh</div>
-              <div class="stat-value">
-                ${props.lastChannelsRefresh
-                  ? formatAgo(props.lastChannelsRefresh)
-                  : "n/a"}
+              <div class="stat stat--modern">
+                <div class="stat__icon">${icon("clock", { size: 18 })}</div>
+                <div class="stat__content">
+                  <div class="stat-label">Uptime</div>
+                  <div class="stat-value">${uptime}</div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-        ${props.lastError
-          ? html`<div class="callout callout--danger" style="margin-top: 16px;">
-              <div class="callout__icon">${icon("alert-triangle", { size: 18 })}</div>
-              <div class="callout__content">
-                <div>${props.lastError}</div>
-                ${authHint ?? ""}
-                ${insecureContextHint ?? ""}
+              <div class="stat stat--modern">
+                <div class="stat__icon">${icon("zap", { size: 18 })}</div>
+                <div class="stat__content">
+                  <div class="stat-label">Tick Interval</div>
+                  <div class="stat-value">${tick}</div>
+                </div>
+              </div>
+              <div class="stat stat--modern">
+                <div class="stat__icon">${icon("refresh-cw", { size: 18 })}</div>
+                <div class="stat__content">
+                  <div class="stat-label">Last Refresh</div>
+                  <div class="stat-value">
+                    ${props.lastChannelsRefresh
+                      ? formatAgo(props.lastChannelsRefresh)
+                      : "n/a"}
+                  </div>
+                </div>
               </div>
             </div>`
-          : html`<div class="callout callout--info" style="margin-top: 16px;">
+          : nothing}
+        ${!props.lastError && !props.showSystemMetrics
+          ? html`<div class="callout callout--info" style="margin-top: 16px;">
               <div class="callout__icon">${icon("info", { size: 18 })}</div>
               <div class="callout__content">
                 Use Channels to link WhatsApp, Telegram, Discord, Signal, or iMessage.
               </div>
-            </div>`}
+            </div>`
+          : nothing}
       </div>
     </section>
 
