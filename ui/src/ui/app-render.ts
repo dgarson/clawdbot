@@ -60,7 +60,7 @@ import {
 } from "./controllers/devices";
 import { renderSkills } from "./views/skills";
 import { renderLanding } from "./views/landing";
-import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers";
+import { renderChatControls, renderNavigationTabs, renderTab, renderThemeToggle } from "./app-render.helpers";
 import { renderAutomationsListView, renderAutomationForm, renderProgressModal, renderRunHistory } from "./views/automations";
 import { loadChannels } from "./controllers/channels";
 import { loadPresence } from "./controllers/presence";
@@ -80,6 +80,7 @@ import {
   updateSkillEnabled,
   type SkillMessage,
 } from "./controllers/skills";
+import { loadAgents } from "./controllers/agents";
 import { loadNodes } from "./controllers/nodes";
 import { loadChatHistory } from "./controllers/chat";
 import {
