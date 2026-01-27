@@ -24,6 +24,7 @@
   --warn: #f2c94c;
   --danger: #ff6b6b;
   --focus: rgba(245, 159, 74, 0.35);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
   --grid-line: rgba(255, 255, 255, 0.04);
 
   /* Theme transition */
@@ -86,6 +87,7 @@
   --warn: #b3771c;
   --danger: #d44848;
   --focus: rgba(226, 138, 63, 0.35);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
   --grid-line: rgba(18, 24, 40, 0.06);
   color-scheme: light;
 }

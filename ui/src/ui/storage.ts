@@ -13,6 +13,13 @@ export type UiSettings = {
   splitRatio: number; // Sidebar split ratio (0.4 to 0.7, default 0.6)
   navCollapsed: boolean; // Collapsible sidebar state
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
+  // UX Revamp state variables
+  logsPreset: "errors-only" | "warnings" | "debug" | "verbose" | "custom";
+  sessionsPreset: "all" | "active" | "errored" | "cron" | "custom";
+  overviewShowSystemMetrics: boolean;
+  configShowQuickSetup: boolean;
+  navShowAdvanced: boolean;
+  sessionsShowAdvancedFilters: boolean;
 };
 
 export function loadSettings(): UiSettings {
@@ -49,6 +56,13 @@ export function loadSettings(): UiSettings {
     splitRatio: 0.6,
     navCollapsed: false,
     navGroupsCollapsed: {},
+    // UX Revamp defaults
+    logsPreset: "warnings",
+    sessionsPreset: "active",
+    overviewShowSystemMetrics: false,
+    configShowQuickSetup: true,
+    navShowAdvanced: false,
+    sessionsShowAdvancedFilters: false,
   };
 
   try {
@@ -101,6 +115,39 @@ export function loadSettings(): UiSettings {
         parsed.navGroupsCollapsed !== null
           ? parsed.navGroupsCollapsed
           : defaults.navGroupsCollapsed,
+      // UX Revamp state variables (with migration for existing users)
+      logsPreset:
+        parsed.logsPreset === "errors-only" ||
+        parsed.logsPreset === "warnings" ||
+        parsed.logsPreset === "debug" ||
+        parsed.logsPreset === "verbose" ||
+        parsed.logsPreset === "custom"
+          ? parsed.logsPreset
+          : defaults.logsPreset,
+      sessionsPreset:
+        parsed.sessionsPreset === "all" ||
+        parsed.sessionsPreset === "active" ||
+        parsed.sessionsPreset === "errored" ||
+        parsed.sessionsPreset === "cron" ||
+        parsed.sessionsPreset === "custom"
+          ? parsed.sessionsPreset
+          : defaults.sessionsPreset,
+      overviewShowSystemMetrics:
+        typeof parsed.overviewShowSystemMetrics === "boolean"
+          ? parsed.overviewShowSystemMetrics
+          : defaults.overviewShowSystemMetrics,
+      configShowQuickSetup:
+        typeof parsed.configShowQuickSetup === "boolean"
+          ? parsed.configShowQuickSetup
+          : defaults.configShowQuickSetup,
+      navShowAdvanced:
+        typeof parsed.navShowAdvanced === "boolean"
+          ? parsed.navShowAdvanced
+          : defaults.navShowAdvanced,
+      sessionsShowAdvancedFilters:
+        typeof parsed.sessionsShowAdvancedFilters === "boolean"
+          ? parsed.sessionsShowAdvancedFilters
+          : defaults.sessionsShowAdvancedFilters,
     };
   } catch {
     return defaults;

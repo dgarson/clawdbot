@@ -24,6 +24,27 @@ export type SessionStatusFilter = "all" | "active" | "idle" | "completed";
 export type SessionLaneFilter = "all" | "cron" | "regular";
 export type SessionViewMode = "list" | "table";
 
+// Session filter presets for quick access
+export type SessionPreset = "all" | "active" | "errored" | "cron" | "custom";
+
+const SESSION_PRESETS: Record<SessionPreset, { statusFilter: SessionStatusFilter; laneFilter: SessionLaneFilter; showCompleted: boolean }> = {
+  all: { statusFilter: "all", laneFilter: "all", showCompleted: true },
+  active: { statusFilter: "active", laneFilter: "all", showCompleted: false },
+  errored: { statusFilter: "all", laneFilter: "all", showCompleted: true },
+  cron: { statusFilter: "all", laneFilter: "cron", showCompleted: false },
+  custom: { statusFilter: "all", laneFilter: "all", showCompleted: true },
+};
+
+export function detectSessionPreset(statusFilter: SessionStatusFilter, laneFilter: SessionLaneFilter): SessionPreset {
+  for (const [preset, filters] of Object.entries(SESSION_PRESETS)) {
+    if (preset === "custom") continue;
+    if (statusFilter === filters.statusFilter && laneFilter === filters.laneFilter) {
+      return preset as SessionPreset;
+    }
+  }
+  return "custom";
+}
+
 const UNLABELED_AGENT_KEY = "__unlabeled__";
 
 function isSubagentSessionKey(key: string): boolean {
@@ -91,6 +112,8 @@ export type SessionsProps = {
   showHidden: boolean;
   autoHideCompletedMinutes: number;
   autoHideErroredMinutes: number;
+  preset: SessionPreset;
+  showAdvancedFilters: boolean;
   drawerKey: string | null;
   drawerExpanded: boolean;
   drawerPreviewLoading: boolean;
@@ -119,6 +142,8 @@ export type SessionsProps = {
   onLaneFilterChange: (lane: SessionLaneFilter) => void;
   onViewModeChange: (mode: SessionViewMode) => void;
   onShowHiddenChange: (show: boolean) => void;
+  onPresetChange?: (preset: SessionPreset) => void;
+  onToggleAdvancedFilters?: () => void;
   onAutoHideChange: (next: { completedMinutes: number; erroredMinutes: number }) => void;
   onDeleteMany: (keys: string[]) => void;
   onRefresh: () => void;
@@ -760,7 +785,61 @@ export function renderSessions(props: SessionsProps) {
                 </div>
 	              </div>
 
-	              <details class="sessions-filters-pane__details">
+              <div class="sessions-filters-pane__section">
+                <div class="sessions-filters-pane__section-title">Quick Filters</div>
+                <div class="sessions-presets">
+                  <button
+                    class="sessions-preset-btn ${props.preset === "all" ? "sessions-preset-btn--active" : ""}"
+                    @click=${() => props.onPresetChange?.("all")}
+                    title="Show all sessions"
+                  >
+                    ${icon("layers", { size: 14 })}
+                    <span>All Sessions</span>
+                  </button>
+                  <button
+                    class="sessions-preset-btn ${props.preset === "active" ? "sessions-preset-btn--active" : ""}"
+                    @click=${() => props.onPresetChange?.("active")}
+                    title="Show only active sessions"
+                  >
+                    ${icon("zap", { size: 14 })}
+                    <span>Active</span>
+                    <span class="sessions-preset-btn__count">${statusCounts.active}</span>
+                  </button>
+                  <button
+                    class="sessions-preset-btn ${props.preset === "errored" ? "sessions-preset-btn--active" : ""}"
+                    @click=${() => props.onPresetChange?.("errored")}
+                    title="Show sessions with errors"
+                  >
+                    ${icon("alert-triangle", { size: 14 })}
+                    <span>Errored</span>
+                  </button>
+                  <button
+                    class="sessions-preset-btn ${props.preset === "cron" ? "sessions-preset-btn--active" : ""}"
+                    @click=${() => props.onPresetChange?.("cron")}
+                    title="Show cron jobs only"
+                  >
+                    ${icon("clock", { size: 14 })}
+                    <span>Cron</span>
+                    <span class="sessions-preset-btn__count">${laneCounts.cron}</span>
+                  </button>
+                </div>
+                ${props.preset !== "custom" ? html`
+                  <button
+                    class="sessions-filters-pane__advanced-toggle"
+                    @click=${() => props.onToggleAdvancedFilters?.()}
+                  >
+                    ${icon("sliders", { size: 14 })}
+                    <span>${props.showAdvancedFilters ? "Hide" : "Show"} advanced filters</span>
+                    ${icon(props.showAdvancedFilters ? "chevron-up" : "chevron-down", { size: 14 })}
+                  </button>
+                ` : nothing}
+              </div>
+
+              ${props.showAdvancedFilters ? html`
+              <div class="sessions-filters-pane__section">
+                <div class="sessions-filters-pane__section-title">Display Settings</div>
+
+	              <details class="sessions-filters-pane__details" open>
 	                <summary class="sessions-filters-pane__details-summary">
 	                  ${icon("inbox", { size: 14 })}
 	                  <span>Display</span>
@@ -1036,6 +1115,7 @@ export function renderSessions(props: SessionsProps) {
                   </div>
                 </div>
               </details>
+              ` : nothing}
 
               ${hasFilters
                 ? html`

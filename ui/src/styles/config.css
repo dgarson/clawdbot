@@ -2259,3 +2259,128 @@ details.cfg-object-flat[open] > summary .cfg-object-flat__chevron {
     margin-top: 8px;
   }
 }
+
+/* =============================================================================
+   QUICK SETUP CARD
+   ============================================================================= */
+
+.config-quick-setup {
+  background: linear-gradient(135deg, var(--accent-muted) 0%, rgba(245, 158, 74, 0.1) 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(245, 158, 74, 0.15);
+}
+
+.config-quick-setup__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.config-quick-setup__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  border-radius: 12px;
+  color: var(--bg);
+  flex-shrink: 0;
+}
+
+.config-quick-setup__close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.config-quick-setup__close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text);
+}
+
+.config-quick-setup__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.config-quick-setup__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.config-quick-setup__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-quick-setup__tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.config-quick-setup__tip svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.config-quick-setup__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.config-quick-setup__action {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  text-align: left;
+}
+
+.config-quick-setup__action:hover {
+  background: var(--surface-1);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.config-quick-setup__action svg {
+  color: var(--accent);
+}
+
+.config-quick-setup__action span:first-of-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.config-quick-setup__action .muted {
+  font-size: 12px;
+}

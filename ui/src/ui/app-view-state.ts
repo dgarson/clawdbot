@@ -45,7 +45,9 @@ import type { SimulatorState } from "./types/overseer-simulator";
 export type AppViewState = {
   settings: UiSettings;
   password: string;
+  overviewShowSystemMetrics: boolean;
   tab: Tab;
+  navShowAdvanced: boolean;
   onboarding: boolean;
   basePath: string;
   connected: boolean;
@@ -117,6 +119,7 @@ export type AppViewState = {
   configSearchQuery: string;
   configActiveSection: string | null;
   configActiveSubsection: string | null;
+  configShowQuickSetup: boolean;
   channelsLoading: boolean;
   channelsSnapshot: ChannelsStatusSnapshot | null;
   channelsError: string | null;
@@ -154,6 +157,8 @@ export type AppViewState = {
   sessionsStatusFilter: "all" | "active" | "idle" | "completed";
   sessionsAgentLabelFilter: string;
   sessionsLaneFilter: "all" | "cron" | "regular";
+  sessionsPreset: "all" | "active" | "errored" | "cron" | "custom";
+  sessionsShowAdvancedFilters: boolean;
   sessionsTagFilter: string[];
   sessionsViewMode: "list" | "table";
   sessionsShowHidden: boolean;
@@ -199,6 +204,7 @@ export type AppViewState = {
   logsMaxBytes: number;
   logsFilterText: string;
   logsLevelFilters: Record<LogLevel, boolean>;
+  logsPreset: "errors-only" | "warnings" | "debug" | "verbose" | "custom";
   logsAutoFollow: boolean;
   logsTruncated: boolean;
   logsShowRelativeTime: boolean;
@@ -354,4 +360,11 @@ export type AppViewState = {
   handleCloseTaskSidebar: () => void;
   handleToggleTaskExpanded: (taskId: string) => void;
   syncTasksFromToolStream: () => void;
+  // Persistence helpers for UI state
+  persistLogsPreset: (preset: "errors-only" | "warnings" | "debug" | "verbose" | "custom") => void;
+  persistSessionsPreset: (preset: "all" | "active" | "errored" | "cron" | "custom") => void;
+  persistOverviewShowSystemMetrics: (show: boolean) => void;
+  persistConfigShowQuickSetup: (show: boolean) => void;
+  persistNavShowAdvanced: (show: boolean) => void;
+  persistSessionsShowAdvancedFilters: (show: boolean) => void;
 };

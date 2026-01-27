@@ -33,6 +33,8 @@ export type ConfigProps = {
   searchQuery: string;
   activeSection: string | null;
   activeSubsection: string | null;
+  // New: Quick setup state
+  showQuickSetup: boolean;
   onRawChange: (next: string) => void;
   onFormModeChange: (mode: "form" | "raw") => void;
   onFormPatch: (path: Array<string | number>, value: unknown) => void;
@@ -40,6 +42,7 @@ export type ConfigProps = {
   onSectionChange: (section: string | null) => void;
   onSubsectionChange: (section: string | null) => void;
   onReload: () => void;
+  onToggleQuickSetup?: () => void;
   onSave: () => void;
   onApply: () => void;
   onUpdate: () => void;
@@ -822,6 +825,58 @@ export function renderConfig(props: ConfigProps) {
         <div class="config-actions__hint muted">
           Save writes config; Apply activates it; Update updates the gateway binary. (Tip: Cmd/Ctrl+S saves.)
         </div>
+
+        <!-- Quick Setup Card (shown when no section is selected) -->
+        ${props.activeSection === null && props.showQuickSetup ? html`
+          <div class="config-quick-setup">
+            <div class="config-quick-setup__header">
+              <div class="config-quick-setup__icon">${icon("zap", { size: 24 })}</div>
+              <div>
+                <div class="config-quick-setup__title">Quick Setup</div>
+                <div class="config-quick-setup__desc">Configure the most common settings</div>
+              </div>
+              <button
+                class="config-quick-setup__close"
+                @click=${() => props.onToggleQuickSetup?.()}
+                title="Hide quick setup"
+              >
+                ${icon("x", { size: 16 })}
+              </button>
+            </div>
+            <div class="config-quick-setup__content">
+              <div class="config-quick-setup__tip">
+                ${icon("lightbulb", { size: 16 })}
+                <span>New here? Start with the basics below, or explore all settings.</span>
+              </div>
+              <div class="config-quick-setup__actions">
+                <button
+                  class="config-quick-setup__action"
+                  @click=${() => props.onSectionChange("gateway")}
+                >
+                  ${icon("sliders", { size: 18 })}
+                  <span>Gateway Settings</span>
+                  <span class="muted">Mode, ports, bindings</span>
+                </button>
+                <button
+                  class="config-quick-setup__action"
+                  @click=${() => props.onSectionChange("agents")}
+                >
+                  ${icon("users", { size: 18 })}
+                  <span>Agent Defaults</span>
+                  <span class="muted">Model, context, thinking</span>
+                </button>
+                <button
+                  class="config-quick-setup__action"
+                  @click=${() => props.onSectionChange("auth")}
+                >
+                  ${icon("lock", { size: 18 })}
+                  <span>Authentication</span>
+                  <span class="muted">Tokens, passwords</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ` : nothing}
 
         <!-- Diff panel (form mode only - raw mode doesn't have granular diff) -->
         ${hasChanges && props.formMode === "form" ? html`

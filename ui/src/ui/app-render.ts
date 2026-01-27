@@ -5,6 +5,8 @@ import type { AppViewState } from "./app-view-state";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import {
   TAB_GROUPS,
+  filterTabsByTier,
+  getTabTier,
   subtitleForTab,
   titleForTab,
   type Tab,
@@ -35,12 +37,13 @@ import { renderChannels } from "./views/channels";
 import { renderCron } from "./views/cron";
 import { renderDebug } from "./views/debug";
 import { renderInstances } from "./views/instances";
-import { renderLogs } from "./views/logs";
+import { renderLogs, LOG_PRESETS, detectPreset } from "./views/logs";
+import type { LogPreset } from "./views/logs";
 import { renderNodes } from "./views/nodes";
 import { renderOverview } from "./views/overview";
 import { renderOverseer } from "./views/overseer";
 import { renderAgents } from "./views/agents";
-import { renderSessions } from "./views/sessions";
+import { renderSessions, detectSessionPreset } from "./views/sessions";
 import { renderExecApprovalPrompt } from "./views/exec-approval";
 import {
   renderCommandPalette,
@@ -254,32 +257,7 @@ export function renderApp(state: AppViewState) {
         </div>
       </header>
       <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
-        ${TAB_GROUPS.map((group) => {
-          const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
-          const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
-          return html`
-            <div class="nav-group ${isGroupCollapsed && !hasActiveTab ? "nav-group--collapsed" : ""}">
-              <button
-                class="nav-label"
-                @click=${() => {
-                  const next = { ...state.settings.navGroupsCollapsed };
-                  next[group.label] = !isGroupCollapsed;
-                  state.applySettings({
-                    ...state.settings,
-                    navGroupsCollapsed: next,
-                  });
-                }}
-                aria-expanded=${!isGroupCollapsed}
-              >
-                <span class="nav-label__text">${group.label}</span>
-                <span class="nav-label__chevron">${icon("chevron-down", { size: 14 })}</span>
-              </button>
-              <div class="nav-group__items">
-                ${group.tabs.map((tab) => renderTab(state, tab))}
-              </div>
-            </div>
-          `;
-        })}
+        ${renderNavigationTabs(state)}
         <div class="nav-group nav-group--links">
           <div class="nav-label nav-label--static">
             <span class="nav-label__text">Resources</span>
@@ -326,6 +304,7 @@ export function renderApp(state: AppViewState) {
               cronEnabled: state.cronStatus?.enabled ?? null,
               cronNext,
               lastChannelsRefresh: state.channelsLastSuccess,
+              showSystemMetrics: state.overviewShowSystemMetrics,
               onSettingsChange: (next) => state.applySettings(next),
               onPasswordChange: (next) => (state.password = next),
               onSessionKeyChange: (next) => {
@@ -341,6 +320,10 @@ export function renderApp(state: AppViewState) {
               },
               onConnect: () => state.connect(),
               onRefresh: () => state.loadOverview(),
+              onToggleSystemMetrics: () => {
+                state.overviewShowSystemMetrics = !state.overviewShowSystemMetrics;
+                state.persistOverviewShowSystemMetrics(state.overviewShowSystemMetrics);
+              },
             })
           : nothing}
 
@@ -470,6 +453,8 @@ export function renderApp(state: AppViewState) {
 		              showHidden: state.sessionsShowHidden,
 		              autoHideCompletedMinutes: state.sessionsAutoHideCompletedMinutes,
 		              autoHideErroredMinutes: state.sessionsAutoHideErroredMinutes,
+		              preset: state.sessionsPreset,
+		              showAdvancedFilters: state.sessionsShowAdvancedFilters,
 		              drawerKey: state.sessionsDrawerKey,
 		              drawerExpanded: state.sessionsDrawerExpanded,
 		              drawerPreviewLoading: state.sessionsPreviewLoading,
@@ -503,18 +488,31 @@ export function renderApp(state: AppViewState) {
               },
               onKindFilterChange: (kind) => {
                 state.sessionsKindFilter = kind;
+                // Kind filter changes don't affect preset, so we switch to custom
+                state.sessionsPreset = "custom";
+                state.persistSessionsPreset(state.sessionsPreset);
               },
               onStatusFilterChange: (status) => {
                 state.sessionsStatusFilter = status;
+                state.sessionsPreset = detectSessionPreset(state.sessionsStatusFilter, state.sessionsLaneFilter);
+                state.persistSessionsPreset(state.sessionsPreset);
               },
               onAgentLabelFilterChange: (label) => {
                 state.sessionsAgentLabelFilter = label;
+                // Agent label filter changes don't affect preset, so we switch to custom
+                state.sessionsPreset = "custom";
+                state.persistSessionsPreset(state.sessionsPreset);
               },
 	              onTagFilterChange: (tags) => {
 	                state.sessionsTagFilter = tags;
+	                // Tag filter changes don't affect preset, so we switch to custom
+	                state.sessionsPreset = "custom";
+	                state.persistSessionsPreset(state.sessionsPreset);
 	              },
 	              onLaneFilterChange: (lane) => {
 	                state.sessionsLaneFilter = lane;
+	                state.sessionsPreset = detectSessionPreset(state.sessionsStatusFilter, state.sessionsLaneFilter);
+	                state.persistSessionsPreset(state.sessionsPreset);
 	              },
 		              onViewModeChange: (mode) => {
 		                state.sessionsViewMode = mode;
@@ -553,6 +551,36 @@ export function renderApp(state: AppViewState) {
 		                } catch {
 		                  // Ignore storage errors
 		                }
+		              },
+		              onPresetChange: (preset) => {
+                state.sessionsPreset = preset;
+                state.persistSessionsPreset(preset);
+		                switch (preset) {
+		                  case "active":
+		                    state.sessionsStatusFilter = "active";
+		                    state.sessionsLaneFilter = "all";
+		                    break;
+		                  case "errored":
+		                    state.sessionsStatusFilter = "all";
+		                    state.sessionsLaneFilter = "all";
+		                    break;
+		                  case "cron":
+		                    state.sessionsStatusFilter = "all";
+		                    state.sessionsLaneFilter = "cron";
+		                    break;
+		                  case "all":
+		                    state.sessionsStatusFilter = "all";
+		                    state.sessionsLaneFilter = "all";
+		                    break;
+		                  case "custom":
+		                    // Keep current filters
+		                    break;
+		                }
+		                toast.show(`Showing ${preset} sessions`, { duration: 2000 });
+		              },
+		              onToggleAdvancedFilters: () => {
+		                state.sessionsShowAdvancedFilters = !state.sessionsShowAdvancedFilters;
+		                state.persistSessionsShowAdvancedFilters(state.sessionsShowAdvancedFilters);
 		              },
 		              onDeleteMany: async (keys) => {
 		                await deleteSessionsBulk(state, keys);
@@ -1067,6 +1095,7 @@ export function renderApp(state: AppViewState) {
               searchQuery: state.configSearchQuery,
               activeSection: state.configActiveSection,
               activeSubsection: state.configActiveSubsection,
+              showQuickSetup: state.configShowQuickSetup,
               onRawChange: (next) => {
                 state.configRaw = next;
               },
@@ -1078,6 +1107,10 @@ export function renderApp(state: AppViewState) {
                 state.configActiveSubsection = null;
               },
               onSubsectionChange: (section) => (state.configActiveSubsection = section),
+              onToggleQuickSetup: () => {
+                state.configShowQuickSetup = !state.configShowQuickSetup;
+                state.persistConfigShowQuickSetup(state.configShowQuickSetup);
+              },
               onReload: () => loadConfig(state),
               onSave: () => saveConfig(state),
               onApply: () => applyConfig(state),
@@ -1121,9 +1154,12 @@ export function renderApp(state: AppViewState) {
               availableSubsystems: [
                 ...new Set(state.logsEntries.map((e) => e.subsystem).filter(Boolean) as string[]),
               ].sort(),
+              preset: state.logsPreset,
               onFilterTextChange: (next) => (state.logsFilterText = next),
               onLevelToggle: (level, enabled) => {
                 state.logsLevelFilters = { ...state.logsLevelFilters, [level]: enabled };
+                state.logsPreset = detectPreset(state.logsLevelFilters);
+                state.persistLogsPreset(state.logsPreset);
               },
               onToggleAutoFollow: (next) => (state.logsAutoFollow = next),
               onToggleRelativeTime: (next) => (state.logsShowRelativeTime = next),
@@ -1135,6 +1171,12 @@ export function renderApp(state: AppViewState) {
               onToggleSidebar: () => state.handleLogsToggleSidebar(),
               onToggleFilters: () => state.handleLogsToggleFilters(),
               onSubsystemToggle: (subsystem) => state.handleLogsSubsystemToggle(subsystem),
+              onPresetChange: (preset: LogPreset) => {
+                state.logsPreset = preset;
+                state.persistLogsPreset(preset);
+                state.logsLevelFilters = { ...LOG_PRESETS[preset] };
+                toast.show(`Filter preset changed to "${preset}"`, { duration: 2000 });
+              },
             })
           : nothing}
       </main>
