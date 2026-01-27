@@ -329,6 +329,7 @@ export function createDefaultCommands(
     { id: "nav-sessions", label: "Go to Sessions", icon: "file-text", shortcut: `${mod}4`, category: "Navigation", action: () => setTab("sessions") },
     { id: "nav-instances", label: "Go to Instances", icon: "radio", category: "Navigation", action: () => setTab("instances") },
     { id: "nav-cron", label: "Go to Cron Jobs", icon: "clock", category: "Navigation", action: () => setTab("cron") },
+    { id: "nav-automations", label: "Go to Automations", icon: "play", category: "Navigation", action: () => setTab("automations") },
     { id: "nav-skills", label: "Go to Skills", icon: "zap", category: "Navigation", action: () => setTab("skills") },
     { id: "nav-nodes", label: "Go to Nodes", icon: "server", category: "Navigation", action: () => setTab("nodes") },
     { id: "nav-config", label: "Go to Config", icon: "settings", shortcut: `${mod},`, category: "Navigation", action: () => setTab("config") },
@@ -357,6 +358,8 @@ export type ContextActions = {
   refreshChannels?: () => void;
   addCronJob?: () => void;
   refreshCron?: () => void;
+  refreshAutomations?: () => void;
+  createAutomation?: () => void;
   createGoal?: () => void;
   refreshOverseer?: () => void;
   saveConfig?: () => void;
@@ -397,6 +400,10 @@ export function createContextCommands(tab: Tab, actions: ContextActions): Comman
     case "cron":
       if (actions.addCronJob) cmds.push({ id: "ctx-add-cron", label: "Add Cron Job", icon: "plus", category: cat, action: actions.addCronJob });
       if (actions.refreshCron) cmds.push({ id: "ctx-refresh-cron", label: "Refresh Cron Jobs", icon: "refresh-cw", category: cat, action: actions.refreshCron });
+      break;
+    case "automations":
+      if (actions.createAutomation) cmds.push({ id: "ctx-create-automation", label: "Create Automation", icon: "plus", category: cat, action: actions.createAutomation });
+      if (actions.refreshAutomations) cmds.push({ id: "ctx-refresh-automations", label: "Refresh Automations", icon: "refresh-cw", category: cat, action: actions.refreshAutomations });
       break;
     case "overseer":
       if (actions.createGoal) cmds.push({ id: "ctx-create-goal", label: "Create New Goal", icon: "target", category: cat, action: actions.createGoal });

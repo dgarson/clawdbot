@@ -2,6 +2,7 @@ import { loadLogs } from "./controllers/logs";
 import { loadNodes } from "./controllers/nodes";
 import { loadDebug } from "./controllers/debug";
 import { refreshOverseer } from "./controllers/overseer";
+import { loadAutomations } from "./controllers/automations";
 import type { ClawdbotApp } from "./app";
 
 type PollingHost = {
@@ -9,6 +10,7 @@ type PollingHost = {
   logsPollInterval: number | null;
   debugPollInterval: number | null;
   overseerPollInterval: number | null;
+  automationsPollInterval: number | null;
   tab: string;
 };
 
@@ -66,4 +68,18 @@ export function stopOverseerPolling(host: PollingHost) {
   if (host.overseerPollInterval == null) return;
   clearInterval(host.overseerPollInterval);
   host.overseerPollInterval = null;
+}
+
+export function startAutomationsPolling(host: PollingHost) {
+  if (host.automationsPollInterval != null) return;
+  host.automationsPollInterval = window.setInterval(() => {
+    if (host.tab !== "automations") return;
+    void loadAutomations(host as unknown as ClawdbotApp);
+  }, 5000);
+}
+
+export function stopAutomationsPolling(host: PollingHost) {
+  if (host.automationsPollInterval == null) return;
+  clearInterval(host.automationsPollInterval);
+  host.automationsPollInterval = null;
 }

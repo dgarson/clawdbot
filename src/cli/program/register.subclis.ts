@@ -133,6 +133,14 @@ const entries: SubCliEntry[] = [
     },
   },
   {
+    name: "automations",
+    description: "Automations scheduler",
+    register: async (program) => {
+      const mod = await import("../automations-cli.js");
+      mod.registerAutomationsCli(program);
+    },
+  },
+  {
     name: "dns",
     description: "DNS helpers",
     register: async (program) => {
