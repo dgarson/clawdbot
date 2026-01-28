@@ -1,18 +1,21 @@
 import type { ClawdbrainConfig } from "../config/config.js";
 import { createSdkAgentRuntime } from "./claude-agent-sdk/sdk-agent-runtime.js";
-import { loadSessionHistoryForSdk } from "./claude-agent-sdk/sdk-session-history.js";
-import type { SdkConversationTurn } from "./claude-agent-sdk/sdk-runner.types.js";
+import { resolveThinkingBudget } from "./claude-agent-sdk/sdk-runner.config.js";
 import type { AgentRuntime } from "./agent-runtime.js";
 import { createClawdbrainCodingTools } from "./pi-tools.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { resolveSandboxContext } from "./sandbox.js";
 import type { SandboxContext } from "./sandbox.js";
 
-export type MainAgentRuntimeKind = "pi" | "sdk";
+export type MainAgentRuntimeKind = "pi" | "ccsdk";
 
 export function resolveMainAgentRuntimeKind(config?: ClawdbrainConfig): MainAgentRuntimeKind {
-  const configured = config?.agents?.main?.runtime ?? config?.agents?.defaults?.runtime;
-  return configured === "sdk" ? "sdk" : "pi";
+  // mainRuntime overrides the global runtime for the main agent only.
+  const configured =
+    config?.agents?.defaults?.mainRuntime ??
+    config?.agents?.main?.runtime ??
+    config?.agents?.defaults?.runtime;
+  return configured === "ccsdk" ? "ccsdk" : "pi";
 }
 
 export type CreateSdkMainAgentRuntimeParams = {
@@ -44,7 +47,8 @@ export type CreateSdkMainAgentRuntimeParams = {
   // Optional overrides for testing / callers that already resolved these.
   sandbox?: SandboxContext | null;
   tools?: AnyAgentTool[];
-  conversationHistory?: SdkConversationTurn[];
+  /** Claude Code session ID for native session resume (avoids history serialization). */
+  claudeSessionId?: string;
 };
 
 export async function createSdkMainAgentRuntime(
@@ -85,17 +89,13 @@ export async function createSdkMainAgentRuntime(
       hasRepliedRef: params.hasRepliedRef,
     });
 
-  const conversationHistory =
-    params.conversationHistory ??
-    loadSessionHistoryForSdk({
-      sessionFile: params.sessionFile,
-    });
-
   const sdkCfg = params.config?.agents?.main?.sdk;
 
   return createSdkAgentRuntime({
     tools: tools as AnyAgentTool[],
-    conversationHistory,
+    claudeSessionId: params.claudeSessionId,
+    model: sdkCfg?.model,
+    thinkingBudget: resolveThinkingBudget(sdkCfg?.thinkingBudget),
     hooksEnabled: sdkCfg?.hooksEnabled ?? true,
     sdkOptions: sdkCfg?.options,
   });

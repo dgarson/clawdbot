@@ -7,10 +7,12 @@ export const AgentsSchema = z
   .object({
     main: z
       .object({
-        runtime: z.enum(["pi", "sdk"]).optional(),
+        runtime: z.enum(["pi", "ccsdk"]).optional(),
         sdk: z
           .object({
             hooksEnabled: z.boolean().optional(),
+            model: z.string().optional(),
+            thinkingBudget: z.enum(["none", "low", "medium", "high"]).optional(),
             options: z.record(z.string(), z.unknown()).optional(),
           })
           .strict()
