@@ -39,12 +39,16 @@ export function appendSdkTextTurnToSessionTranscript(params: {
   if (!trimmed) return;
 
   try {
+    // Wrap in `message` envelope to match the format expected by readSessionMessages()
+    // (used by chat.history for UI display).
     appendJsonlLine({
       filePath: params.sessionFile,
       value: {
-        role: params.role,
-        content: [{ type: "text", text: trimmed }],
-        timestamp: params.timestamp ?? Date.now(),
+        message: {
+          role: params.role,
+          content: [{ type: "text", text: trimmed }],
+          timestamp: params.timestamp ?? Date.now(),
+        },
       },
     });
   } catch (err) {
@@ -59,6 +63,10 @@ export function appendSdkTurnPairToSessionTranscript(params: {
   timestamp?: number;
 }): void {
   const ts = params.timestamp ?? Date.now();
+  logDebug(
+    `[sdk-session-transcript] Appending turn pair to ${params.sessionFile} ` +
+      `(prompt: ${params.prompt.length} chars, assistant: ${params.assistantText?.length ?? 0} chars)`,
+  );
   appendSdkTextTurnToSessionTranscript({
     sessionFile: params.sessionFile,
     role: "user",

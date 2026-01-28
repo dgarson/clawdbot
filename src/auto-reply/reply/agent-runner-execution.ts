@@ -3,10 +3,8 @@ import fs from "node:fs";
 import { resolveAgentModelFallbacksOverride } from "../../agents/agent-scope.js";
 import { runCliAgent } from "../../agents/cli-runner.js";
 import { getCliSessionId } from "../../agents/cli-session.js";
-import {
-  createSdkMainAgentRuntime,
-  resolveMainAgentRuntimeKind,
-} from "../../agents/main-agent-runtime-factory.js";
+import { createSdkMainAgentRuntime } from "../../agents/main-agent-runtime-factory.js";
+import { isSdkRunnerEnabled } from "../../agents/claude-agent-sdk/sdk-runner.config.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import { isCliProvider } from "../../agents/model-selection.js";
 import {
@@ -148,10 +146,14 @@ export async function runAgentTurnWithFallback(params: {
       const blockReplyPipeline = params.blockReplyPipeline;
       const onToolResult = params.opts?.onToolResult;
 
-      const runtimeKind = resolveMainAgentRuntimeKind(params.followupRun.run.config);
-      if (runtimeKind === "ccsdk") {
-        // SDK main agent is an alternate operating mode; it doesn't follow the normal
-        // provider/model selection + fallback semantics.
+      // Check if this agent (main or worker) should use the Claude Code SDK runtime.
+      // For main agent: uses mainRuntime or agents.defaults.runtime
+      // For workers: uses agents.defaults.runtime
+      const agentIdForRuntime = resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey);
+      const useSdkRuntime = isSdkRunnerEnabled(params.followupRun.run.config, agentIdForRuntime);
+      if (useSdkRuntime) {
+        // SDK agent runtime — uses Claude Code's native session management and tools.
+        // Doesn't follow the normal provider/model selection + fallback semantics.
         params.opts?.onModelSelected?.({
           provider: "ccsdk",
           model: "default",
@@ -184,6 +186,8 @@ export async function runAgentTurnWithFallback(params: {
           currentThreadTs: threadingContext.currentThreadTs,
           replyToMode: threadingContext.replyToMode,
           hasRepliedRef: params.opts?.hasRepliedRef,
+          // Use SDK's native session resume instead of client-side history serialization.
+          claudeSessionId: params.getActiveSessionEntry()?.claudeCliSessionId,
         });
 
         runResult = await sdkRuntime.run({
@@ -244,6 +248,28 @@ export async function runAgentTurnWithFallback(params: {
 
         fallbackProvider = runResult.meta.agentMeta?.provider ?? fallbackProvider;
         fallbackModel = runResult.meta.agentMeta?.model ?? fallbackModel;
+
+        // Persist returned Claude session ID for next resume (native session continuity).
+        const returnedClaudeSessionId = runResult.meta.agentMeta?.claudeSessionId;
+        if (
+          returnedClaudeSessionId &&
+          params.sessionKey &&
+          params.activeSessionStore &&
+          params.storePath
+        ) {
+          const entry = params.getActiveSessionEntry();
+          if (entry && entry.claudeCliSessionId !== returnedClaudeSessionId) {
+            entry.claudeCliSessionId = returnedClaudeSessionId;
+            void updateSessionStore(params.storePath, (store) => {
+              if (store[params.sessionKey!]) {
+                store[params.sessionKey!].claudeCliSessionId = returnedClaudeSessionId;
+              }
+            }).catch((err) => {
+              logVerbose(`Failed to persist Claude session ID: ${String(err)}`);
+            });
+          }
+        }
+
         break;
       }
 

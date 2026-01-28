@@ -189,9 +189,9 @@ let cachedMcpServerConstructor: McpServerConstructor | undefined;
 /**
  * Dynamically load the McpServer class from the MCP SDK.
  *
- * The MCP SDK (`@modelcontextprotocol/sdk`) is a transitive dependency of
- * `@anthropic-ai/claude-agent-sdk`. When the Claude Agent SDK is installed,
- * the MCP SDK is available. We import it lazily to avoid build-time deps.
+ * The MCP SDK (`@modelcontextprotocol/sdk`) is a direct dependency used
+ * alongside `@anthropic-ai/claude-agent-sdk` for tool bridging.
+ * We import it lazily to avoid build-time deps.
  */
 async function loadMcpServerClass(): Promise<McpServerConstructor> {
   if (cachedMcpServerConstructor) return cachedMcpServerConstructor;
@@ -208,8 +208,8 @@ async function loadMcpServerClass(): Promise<McpServerConstructor> {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `Failed to load MCP SDK. Ensure @anthropic-ai/claude-agent-sdk is installed ` +
-        `(it includes @modelcontextprotocol/sdk as a dependency).\n\nError: ${message}`,
+      `Failed to load MCP SDK. Ensure @modelcontextprotocol/sdk is installed ` +
+        `(required for Claude Agent SDK tool bridging).\n\nError: ${message}`,
     );
   }
 }

@@ -1,7 +1,5 @@
 import type { ClawdbrainConfig } from "../config/config.js";
 import { createSdkAgentRuntime } from "./claude-agent-sdk/sdk-agent-runtime.js";
-import { loadSessionHistoryForSdk } from "./claude-agent-sdk/sdk-session-history.js";
-import type { SdkConversationTurn } from "./claude-agent-sdk/sdk-runner.types.js";
 import type { AgentRuntime } from "./agent-runtime.js";
 import { createClawdbrainCodingTools } from "./pi-tools.js";
 import type { AnyAgentTool } from "./tools/common.js";
@@ -48,7 +46,8 @@ export type CreateSdkMainAgentRuntimeParams = {
   // Optional overrides for testing / callers that already resolved these.
   sandbox?: SandboxContext | null;
   tools?: AnyAgentTool[];
-  conversationHistory?: SdkConversationTurn[];
+  /** Claude Code session ID for native session resume (avoids history serialization). */
+  claudeSessionId?: string;
 };
 
 export async function createSdkMainAgentRuntime(
@@ -89,17 +88,11 @@ export async function createSdkMainAgentRuntime(
       hasRepliedRef: params.hasRepliedRef,
     });
 
-  const conversationHistory =
-    params.conversationHistory ??
-    loadSessionHistoryForSdk({
-      sessionFile: params.sessionFile,
-    });
-
   const sdkCfg = params.config?.agents?.main?.sdk;
 
   return createSdkAgentRuntime({
     tools: tools as AnyAgentTool[],
-    conversationHistory,
+    claudeSessionId: params.claudeSessionId,
     hooksEnabled: sdkCfg?.hooksEnabled ?? true,
     sdkOptions: sdkCfg?.options,
   });

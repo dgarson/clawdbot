@@ -50,13 +50,16 @@ describe("runSdkAgentAdapted", () => {
         .filter(Boolean);
 
       expect(lines).toHaveLength(2);
-      const user = JSON.parse(lines[0]!) as { role?: string; content?: unknown };
-      const assistant = JSON.parse(lines[1]!) as { role?: string; content?: unknown };
+      // Transcript lines are wrapped in a `message` envelope for UI compatibility.
+      const userLine = JSON.parse(lines[0]!) as { message?: { role?: string; content?: unknown } };
+      const assistantLine = JSON.parse(lines[1]!) as {
+        message?: { role?: string; content?: unknown };
+      };
 
-      expect(user.role).toBe("user");
-      expect(assistant.role).toBe("assistant");
-      expect(JSON.stringify(user.content)).toContain("User prompt");
-      expect(JSON.stringify(assistant.content)).toContain("Assistant reply");
+      expect(userLine.message?.role).toBe("user");
+      expect(assistantLine.message?.role).toBe("assistant");
+      expect(JSON.stringify(userLine.message?.content)).toContain("User prompt");
+      expect(JSON.stringify(assistantLine.message?.content)).toContain("Assistant reply");
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

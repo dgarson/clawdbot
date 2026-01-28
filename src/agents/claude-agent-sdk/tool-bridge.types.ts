@@ -71,6 +71,8 @@ export type SdkRunnerQueryOptions = {
   maxTurns?: number;
   /** Model to use. */
   model?: string;
+  /** Resume a previous Claude Code session by ID (native session continuity). */
+  resume?: string;
   /** Additional directories the agent can access. */
   additionalDirectories?: string[];
   /** Where to load Claude Code settings from ("project", etc.). */

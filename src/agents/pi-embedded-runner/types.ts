@@ -5,6 +5,8 @@ export type EmbeddedPiAgentMeta = {
   sessionId: string;
   provider: string;
   model: string;
+  /** Claude Code session ID for native session resume (CCSDK runtime only). */
+  claudeSessionId?: string;
   usage?: {
     input?: number;
     output?: number;
