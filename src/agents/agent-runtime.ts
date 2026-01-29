@@ -2,6 +2,26 @@
  * Agent runtime abstraction layer.
  *
  * Defines the common interface for agent execution backends (Pi Agent, Claude Agent SDK, etc.).
+ *
+ * ## Session Persistence
+ *
+ * Session persistence (writing conversation history to JSONL files) is handled
+ * differently by each runtime:
+ *
+ * - **Pi-Agent**: The `@mariozechner/pi-coding-agent` library internally manages
+ *   session persistence via `SessionManager.appendMessage()`. The runtime wrapper
+ *   passes the `sessionFile` path, and the library handles writing.
+ *
+ * - **CCSDK**: The runtime wrapper is responsible for writing to Moltbot's session
+ *   format. As the SDK emits events (assistant messages, tool calls, tool results),
+ *   the wrapper must translate them to `SessionManager.appendMessage()` calls to
+ *   maintain compatibility with Moltbot's session JSONL format.
+ *
+ * ## Callbacks vs Session Writing
+ *
+ * The callbacks in `AgentRuntimeCallbacks` (onBlockReply, onToolResult, etc.) are
+ * for **streaming output to messaging channels**, NOT for session persistence.
+ * Session persistence happens via direct `SessionManager` writes, not callbacks.
  */
 
 import type { ImageContent } from "@mariozechner/pi-ai";
