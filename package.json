@@ -151,6 +151,7 @@
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "0.13.1",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.20",
     "@aws-sdk/client-bedrock": "^3.980.0",
     "@buape/carbon": "0.14.0",
     "@clack/prompts": "^1.0.0",
@@ -163,6 +164,7 @@
     "@mariozechner/pi-ai": "0.50.7",
     "@mariozechner/pi-coding-agent": "0.50.7",
     "@mariozechner/pi-tui": "0.50.7",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "@mozilla/readability": "^0.6.0",
     "@sinclair/typebox": "0.34.48",
     "@slack/bolt": "^4.6.0",
