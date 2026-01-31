@@ -14,6 +14,58 @@ All callbacks, configuration, and context flow INTO this function as parameters.
 
 ---
 
+## Why This Works: The Dependency Injection Pattern
+
+### Callbacks Are Passed In, Not Hardcoded
+
+The key architectural insight is that callbacks are **dependency-injected** via parameters:
+
+```typescript
+// Callers pass callbacks as data
+await runEmbeddedPiAgent({
+  prompt: "Hello",
+  onPartialReply: (payload) => sendToUser(payload),  // Passed in
+  onToolResult: (payload) => logTool(payload),       // Passed in
+  onAgentEvent: (evt) => trackEvent(evt),            // Passed in
+});
+```
+
+The adapter receives these callbacks and invokes them - it doesn't need to know where they came from or what they do.
+
+### Upstream Event Emissions Are Wrapper Events
+
+You might notice `emitAgentEvent()` is called in files **upstream** of `run.ts`:
+
+| File | Event | When Emitted |
+|------|-------|--------------|
+| `agent-runner-execution.ts` | `lifecycle.start` | **Before** calling `runEmbeddedPiAgent` |
+| `agent-runner-execution.ts` | `lifecycle.end` | **After** `runEmbeddedPiAgent` returns |
+| `agent.ts` (CLI) | `lifecycle.end` | Fallback if agent didn't emit |
+
+These are **bookkeeping wrappers**, not agent execution events:
+
+```
+caller: emitAgentEvent({ phase: "start" })     ← wrapper (before)
+caller: await runEmbeddedPiAgent(params)       ← THE CALL
+          └── adapter emits tool/assistant events ← execution (inside)
+caller: emitAgentEvent({ phase: "end" })       ← wrapper (after)
+```
+
+The wrapper events happen **around** the call, not **inside** it. They work identically regardless of which runtime executes inside.
+
+### The Diverter Receives Everything It Needs
+
+When the diverter routes to the Claude SDK adapter:
+
+1. **All callbacks are in `params`** - just invoke them at equivalent points
+2. **All config is in `params`** - model, tools, workspace, etc.
+3. **Result shape is defined** - return `EmbeddedPiRunResult`
+4. **Event system is global** - just call `emitAgentEvent()`
+
+The adapter is fully self-contained. No upstream changes needed.
+
+---
+
 ## Architecture Overview
 
 ```
