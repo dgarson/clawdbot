@@ -21,7 +21,12 @@ import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { resolveUserPath } from "../../utils.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { normalizeUsage, type UsageLike } from "../usage.js";
-import { runClaudeSdkSession } from "./session.js";
+import { runClaudeSdkSession, type ClaudeSdkOptions } from "./session.js";
+import {
+  resolveAllClaudeSdkEnv,
+  isValidClaudeSdkProvider,
+  type ClaudeSdkProvider,
+} from "./provider-config.js";
 import { appendSdkSessionAuditLog } from "./audit-log.js";
 import { DEFAULT_PROVIDER, DEFAULT_MODEL } from "../defaults.js";
 import { log } from "./logger.js";
@@ -99,6 +104,26 @@ export async function runClaudeSdkAgent(
 
   log.debug(`tools created: count=${tools.length} disabled=${toolsDisabled}`);
 
+  // Resolve Claude SDK options and environment overrides
+  const claudeSdkOptions = params.claudeSdkOptions as ClaudeSdkOptions | undefined;
+  const sdkProvider: ClaudeSdkProvider = isValidClaudeSdkProvider(
+    claudeSdkOptions?.provider ?? "anthropic",
+  )
+    ? (claudeSdkOptions?.provider ?? "anthropic")
+    : "anthropic";
+
+  // Resolve env overrides for non-Anthropic providers and custom model mappings
+  const envOverrides = await resolveAllClaudeSdkEnv({
+    provider: sdkProvider,
+    cfg: params.config,
+    agentDir,
+    claudeSdkOptions,
+  });
+
+  log.debug(
+    `SDK config: provider=${sdkProvider} hasEnvOverrides=${Boolean(envOverrides)} hasModelMappings=${Boolean(claudeSdkOptions?.models)} thinkLevel=${params.thinkLevel ?? "default"}`,
+  );
+
   // Create callback adapters to bridge type differences between params and session
   // The session uses slightly different callback signatures; we adapt here for compatibility
   const onBlockReplyAdapter = params.onBlockReply
@@ -143,6 +168,10 @@ export async function runClaudeSdkAgent(
     timeoutMs: params.timeoutMs,
     abortSignal: params.abortSignal,
     reasoningMode: mapReasoningLevel(params.reasoningLevel),
+    // Thinking and provider configuration
+    thinkLevel: params.thinkLevel,
+    claudeSdkOptions,
+    envOverrides,
     // Pass through callbacks for streaming parity (with adapters where needed)
     onPartialReply: params.onPartialReply,
     onAssistantMessageStart: params.onAssistantMessageStart,

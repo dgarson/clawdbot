@@ -54,7 +54,56 @@ import { createSdkEventHandler, type SdkMessage } from "./events.js";
 import type { ClaudeSdkRunState, ClaudeSdkSessionResult, ClaudeSdkUsage } from "./types.js";
 import type { AnyAgentTool } from "../pi-tools.types.js";
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
+import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import { log } from "./logger.js";
+
+/** Claude SDK options type (matches Zod schema). */
+export type ClaudeSdkOptions = {
+  provider?: "anthropic" | "zai" | "openrouter" | "kimi";
+  models?: {
+    sonnet?: string;
+    opus?: string;
+    haiku?: string;
+  };
+  thinkingBudgets?: {
+    minimal?: number;
+    low?: number;
+    medium?: number;
+    high?: number;
+    xhigh?: number;
+  };
+};
+
+/** Default thinking budget mappings (ThinkLevel -> maxThinkingTokens). */
+const DEFAULT_THINKING_BUDGETS: Record<Exclude<ThinkLevel, "off">, number> = {
+  minimal: 1000,
+  low: 4000,
+  medium: 16000,
+  high: 64000,
+  xhigh: 128000,
+};
+
+/**
+ * Resolve thinking budget (maxThinkingTokens) from ThinkLevel.
+ *
+ * Maps OpenClaw's thinkingLevel to SDK's maxThinkingTokens:
+ * - "off" -> undefined (no thinking budget)
+ * - Others use custom budget from claudeSdkOptions or defaults
+ */
+export function resolveThinkingBudget(
+  thinkLevel: ThinkLevel | undefined,
+  customBudgets?: ClaudeSdkOptions["thinkingBudgets"],
+): number | undefined {
+  if (!thinkLevel || thinkLevel === "off") {
+    return undefined;
+  }
+  // Check for custom budget override
+  const custom = customBudgets?.[thinkLevel];
+  if (custom !== undefined) {
+    return custom;
+  }
+  return DEFAULT_THINKING_BUDGETS[thinkLevel];
+}
 
 /** Parameters for running a Claude SDK session. */
 export type RunClaudeSdkSessionParams = {
@@ -67,6 +116,12 @@ export type RunClaudeSdkSessionParams = {
   timeoutMs: number;
   abortSignal?: AbortSignal;
   reasoningMode?: "off" | "on" | "stream";
+  /** ThinkLevel for resolving thinking budget. */
+  thinkLevel?: ThinkLevel;
+  /** Claude SDK options for provider/model/thinking config. */
+  claudeSdkOptions?: ClaudeSdkOptions;
+  /** Environment variable overrides for SDK (e.g., ANTHROPIC_BASE_URL). */
+  envOverrides?: Record<string, string>;
   // Callbacks (for event handling parity with pi-embedded)
   onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void;
   onAssistantMessageStart?: () => void;
@@ -237,8 +292,15 @@ export async function runClaudeSdkSession(
     // Create SDK query with MCP tools
     // Map OpenClaw model ID to SDK tier (opus/sonnet/haiku)
     const sdkModelTier = mapModelToSdkTier(params.model);
+
+    // Resolve thinking budget from ThinkLevel
+    const maxThinkingTokens = resolveThinkingBudget(
+      params.thinkLevel,
+      params.claudeSdkOptions?.thinkingBudgets,
+    );
+
     log.debug(
-      `SDK query creating: runId=${params.runId} promptLength=${params.prompt.length} modelTier=${sdkModelTier} (from ${params.model})`,
+      `SDK query creating: runId=${params.runId} promptLength=${params.prompt.length} modelTier=${sdkModelTier} (from ${params.model}) maxThinkingTokens=${maxThinkingTokens ?? "none"} hasEnvOverrides=${Boolean(params.envOverrides)}`,
     );
     queryInstance = query({
       prompt: params.prompt,
@@ -251,6 +313,10 @@ export async function runClaudeSdkSession(
         },
         abortController: runAbortController,
         includePartialMessages: true,
+        // Thinking budget (extended thinking)
+        ...(maxThinkingTokens !== undefined && { maxThinkingTokens }),
+        // Environment overrides for custom providers
+        ...(params.envOverrides && { env: params.envOverrides }),
       },
     });
 

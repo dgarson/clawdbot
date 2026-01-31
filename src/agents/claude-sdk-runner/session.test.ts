@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { mapModelToSdkTier } from "./session.js";
+import { mapModelToSdkTier, resolveThinkingBudget } from "./session.js";
 
 describe("mapModelToSdkTier", () => {
   describe("opus tier detection", () => {
@@ -82,6 +82,67 @@ describe("mapModelToSdkTier", () => {
 
     it("handles openrouter/ prefix", () => {
       expect(mapModelToSdkTier("openrouter/anthropic/claude-sonnet-4")).toBe("sonnet");
+    });
+  });
+});
+
+describe("resolveThinkingBudget", () => {
+  describe("default budgets", () => {
+    it("returns undefined for 'off'", () => {
+      expect(resolveThinkingBudget("off")).toBeUndefined();
+    });
+
+    it("returns undefined for undefined thinkLevel", () => {
+      expect(resolveThinkingBudget(undefined)).toBeUndefined();
+    });
+
+    it("returns 1000 for 'minimal'", () => {
+      expect(resolveThinkingBudget("minimal")).toBe(1000);
+    });
+
+    it("returns 4000 for 'low'", () => {
+      expect(resolveThinkingBudget("low")).toBe(4000);
+    });
+
+    it("returns 16000 for 'medium'", () => {
+      expect(resolveThinkingBudget("medium")).toBe(16000);
+    });
+
+    it("returns 64000 for 'high'", () => {
+      expect(resolveThinkingBudget("high")).toBe(64000);
+    });
+
+    it("returns 128000 for 'xhigh'", () => {
+      expect(resolveThinkingBudget("xhigh")).toBe(128000);
+    });
+  });
+
+  describe("custom budgets", () => {
+    it("uses custom budget when provided", () => {
+      expect(resolveThinkingBudget("low", { low: 8000 })).toBe(8000);
+    });
+
+    it("uses default when custom budget not provided for level", () => {
+      expect(resolveThinkingBudget("low", { high: 100000 })).toBe(4000);
+    });
+
+    it("uses custom budget for all levels", () => {
+      const custom = {
+        minimal: 500,
+        low: 2000,
+        medium: 8000,
+        high: 32000,
+        xhigh: 64000,
+      };
+      expect(resolveThinkingBudget("minimal", custom)).toBe(500);
+      expect(resolveThinkingBudget("low", custom)).toBe(2000);
+      expect(resolveThinkingBudget("medium", custom)).toBe(8000);
+      expect(resolveThinkingBudget("high", custom)).toBe(32000);
+      expect(resolveThinkingBudget("xhigh", custom)).toBe(64000);
+    });
+
+    it("still returns undefined for 'off' even with custom budgets", () => {
+      expect(resolveThinkingBudget("off", { low: 8000 })).toBeUndefined();
     });
   });
 });
