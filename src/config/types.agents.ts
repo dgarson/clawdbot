@@ -1,4 +1,4 @@
-import type { AgentDefaultsConfig } from "./types.agent-defaults.js";
+import type { AgentDefaultsConfig, AgentRuntimeKind } from "./types.agent-defaults.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type {
@@ -17,10 +17,34 @@ export type AgentModelConfig =
       fallbacks?: string[];
     };
 
+/** Model tier configuration for Claude Code SDK. */
+export type CcSdkModelTiers = {
+  /** Model for fast/simple tasks (maps to ANTHROPIC_DEFAULT_HAIKU_MODEL). */
+  haiku?: string;
+  /** Model for balanced tasks (maps to ANTHROPIC_DEFAULT_SONNET_MODEL). */
+  sonnet?: string;
+  /** Model for complex reasoning (maps to ANTHROPIC_DEFAULT_OPUS_MODEL). */
+  opus?: string;
+};
+
+/** Claude Code SDK runtime configuration. */
+export type AgentCcSdkConfig = {
+  /** Enable Claude Code lifecycle hooks (pre-tool, post-tool, etc.). */
+  hooksEnabled?: boolean;
+  /** Additional SDK options passed to the runner. */
+  options?: Record<string, unknown>;
+  /** 3-tier model configuration for Claude Code SDK. */
+  models?: CcSdkModelTiers;
+};
+
 export type AgentConfig = {
   id: string;
   default?: boolean;
   name?: string;
+  /** Agent runtime backend (pi or ccsdk). Overrides agents.defaults.runtime. */
+  runtime?: AgentRuntimeKind;
+  /** Claude Code SDK configuration when runtime is "ccsdk". */
+  ccsdk?: AgentCcSdkConfig;
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;

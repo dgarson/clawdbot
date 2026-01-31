@@ -12,6 +12,9 @@ import type {
 } from "./types.sandbox.js";
 import type { MemorySearchConfig } from "./types.tools.js";
 
+/** Agent runtime backend discriminant. */
+export type AgentRuntimeKind = "pi" | "ccsdk";
+
 export type AgentModelEntryConfig = {
   alias?: string;
   /** Provider-specific API parameters (e.g., GLM-4.7 thinking mode). */
@@ -92,6 +95,8 @@ export type CliBackendConfig = {
 };
 
 export type AgentDefaultsConfig = {
+  /** Agent runtime backend (pi or ccsdk). Default: "pi". */
+  runtime?: AgentRuntimeKind;
   /** Primary model and fallbacks (provider/model). */
   model?: AgentModelListConfig;
   /** Optional image-capable model and fallbacks (provider/model). */
