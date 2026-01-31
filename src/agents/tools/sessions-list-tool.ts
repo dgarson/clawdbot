@@ -19,10 +19,23 @@ import {
 } from "./sessions-helpers.js";
 
 const SessionsListToolSchema = Type.Object({
-  kinds: Type.Optional(Type.Array(Type.String())),
-  limit: Type.Optional(Type.Number({ minimum: 1 })),
-  activeMinutes: Type.Optional(Type.Number({ minimum: 1 })),
-  messageLimit: Type.Optional(Type.Number({ minimum: 0 })),
+  kinds: Type.Optional(
+    Type.Array(Type.String(), {
+      description: "Filter by session kinds (main, group, cron, hook, node, other)",
+    }),
+  ),
+  limit: Type.Optional(
+    Type.Number({ minimum: 1, description: "Maximum number of sessions to return" }),
+  ),
+  activeMinutes: Type.Optional(
+    Type.Number({ minimum: 1, description: "Filter to sessions active within this many minutes" }),
+  ),
+  messageLimit: Type.Optional(
+    Type.Number({
+      minimum: 0,
+      description: "Number of recent messages to include per session (max 20)",
+    }),
+  ),
 });
 
 function resolveSandboxSessionToolsVisibility(cfg: ReturnType<typeof loadConfig>) {

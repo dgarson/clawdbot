@@ -24,19 +24,37 @@ const REMINDER_CONTEXT_MARKER = "\n\nRecent context:\n";
 
 // Flattened schema: runtime validates per-action requirements.
 const CronToolSchema = Type.Object({
-  action: stringEnum(CRON_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  includeDisabled: Type.Optional(Type.Boolean()),
-  job: Type.Optional(Type.Object({}, { additionalProperties: true })),
-  jobId: Type.Optional(Type.String()),
-  id: Type.Optional(Type.String()),
-  patch: Type.Optional(Type.Object({}, { additionalProperties: true })),
-  text: Type.Optional(Type.String()),
-  mode: optionalStringEnum(CRON_WAKE_MODES),
+  action: stringEnum(CRON_ACTIONS, { description: "Cron job action to perform" }),
+  gatewayUrl: Type.Optional(Type.String({ description: "Gateway URL for scheduling operations" })),
+  gatewayToken: Type.Optional(Type.String({ description: "Authentication token for gateway" })),
+  timeoutMs: Type.Optional(Type.Number({ description: "Operation timeout in milliseconds" })),
+  includeDisabled: Type.Optional(Type.Boolean({ description: "Include disabled jobs in listing" })),
+  job: Type.Optional(
+    Type.Object(
+      {},
+      { additionalProperties: true, description: "Job configuration object for add action" },
+    ),
+  ),
+  jobId: Type.Optional(
+    Type.String({ description: "Job identifier for update/remove/run/runs actions" }),
+  ),
+  id: Type.Optional(
+    Type.String({ description: "Alternative job identifier (deprecated, use jobId)" }),
+  ),
+  patch: Type.Optional(
+    Type.Object(
+      {},
+      { additionalProperties: true, description: "Partial job update object for update action" },
+    ),
+  ),
+  text: Type.Optional(Type.String({ description: "Wake event text for wake action" })),
+  mode: optionalStringEnum(CRON_WAKE_MODES, { description: "Wake mode (now or next-heartbeat)" }),
   contextMessages: Type.Optional(
-    Type.Number({ minimum: 0, maximum: REMINDER_CONTEXT_MESSAGES_MAX }),
+    Type.Number({
+      minimum: 0,
+      maximum: REMINDER_CONTEXT_MESSAGES_MAX,
+      description: "Number of recent messages to include as context (0-10)",
+    }),
   ),
 });
 
