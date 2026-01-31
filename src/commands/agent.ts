@@ -5,6 +5,7 @@ import {
   resolveAgentModelPrimary,
   resolveAgentWorkspaceDir,
 } from "../agents/agent-scope.js";
+import { resolveAgentRuntime } from "../agents/agent-runtime.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
 import { runCliAgent } from "../agents/cli-runner.js";
 import { getCliSessionId } from "../agents/cli-session.js";
@@ -412,9 +413,11 @@ export async function agentCommand(
           }
           const authProfileId =
             providerOverride === provider ? sessionEntry?.authProfileOverride : undefined;
+          const runtime = resolveAgentRuntime(cfg, sessionAgentId);
           return runEmbeddedPiAgent({
             sessionId,
             sessionKey,
+            runtime,
             messageChannel,
             agentAccountId: runContext.accountId,
             messageTo: opts.replyTo ?? opts.to,

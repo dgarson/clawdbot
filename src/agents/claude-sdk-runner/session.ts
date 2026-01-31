@@ -17,6 +17,38 @@ import {
 } from "@anthropic-ai/claude-agent-sdk/sdk.mjs";
 
 import { emitAgentEvent } from "../../infra/agent-events.js";
+
+/** SDK model tier type (what the SDK accepts). */
+export type SdkModelTier = "sonnet" | "opus" | "haiku";
+
+/**
+ * Map an OpenClaw model ID to an SDK model tier.
+ *
+ * The Claude Agent SDK expects tier names ('sonnet', 'opus', 'haiku') rather than
+ * full model IDs. This function extracts the tier from model IDs like:
+ * - "anthropic/claude-opus-4-5" → "opus"
+ * - "claude-sonnet-4" → "sonnet"
+ * - "haiku" → "haiku"
+ *
+ * Falls back to "sonnet" if no tier can be determined.
+ */
+export function mapModelToSdkTier(modelId: string): SdkModelTier {
+  const lower = modelId.toLowerCase();
+
+  // Check for tier names in the model ID
+  if (lower.includes("opus")) {
+    return "opus";
+  }
+  if (lower.includes("haiku")) {
+    return "haiku";
+  }
+  if (lower.includes("sonnet")) {
+    return "sonnet";
+  }
+
+  // Default to sonnet for unknown models
+  return "sonnet";
+}
 import { createOpenClawMcpServer } from "./tools.js";
 import { createSdkEventHandler, type SdkMessage } from "./events.js";
 import type { ClaudeSdkRunState, ClaudeSdkSessionResult, ClaudeSdkUsage } from "./types.js";
@@ -203,11 +235,15 @@ export async function runClaudeSdkSession(
     params.onAgentEvent?.({ stream: "lifecycle", data: { phase: "start", startedAt: started } });
 
     // Create SDK query with MCP tools
-    log.debug(`SDK query creating: runId=${params.runId} promptLength=${params.prompt.length}`);
+    // Map OpenClaw model ID to SDK tier (opus/sonnet/haiku)
+    const sdkModelTier = mapModelToSdkTier(params.model);
+    log.debug(
+      `SDK query creating: runId=${params.runId} promptLength=${params.prompt.length} modelTier=${sdkModelTier} (from ${params.model})`,
+    );
     queryInstance = query({
       prompt: params.prompt,
       options: {
-        model: params.model,
+        model: sdkModelTier,
         permissionMode: "bypassPermissions",
         allowedTools: params.tools.map((t) => t.name),
         mcpServers: {

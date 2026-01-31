@@ -420,11 +420,20 @@ export const AgentModelSchema = z.union([
     })
     .strict(),
 ]);
+/**
+ * Agent runtime engine for per-agent override.
+ * - "pi": Uses @mariozechner/pi-coding-agent (default, uses Anthropic API key)
+ * - "claude-sdk": Uses @anthropic-ai/claude-agent-sdk (uses Claude Code Max subscription)
+ */
+export const AgentRuntimeSchema = z.union([z.literal("pi"), z.literal("claude-sdk")]).optional();
+
 export const AgentEntrySchema = z
   .object({
     id: z.string(),
     default: z.boolean().optional(),
     name: z.string().optional(),
+    /** Agent runtime engine: "pi" (default) or "claude-sdk" */
+    runtime: AgentRuntimeSchema,
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     model: AgentModelSchema.optional(),

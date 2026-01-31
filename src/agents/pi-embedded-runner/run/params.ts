@@ -19,6 +19,12 @@ export type ClientToolDefinition = {
 
 export type RunEmbeddedPiAgentParams = {
   sessionId: string;
+  /**
+   * Agent runtime to use. Unrecognized or missing values default to "pi".
+   * - "pi": Uses @mariozechner/pi-coding-agent (current behavior)
+   * - "claude-sdk": Uses @anthropic-ai/claude-agent-sdk with MCP tools
+   */
+  runtime?: string;
   sessionKey?: string;
   messageChannel?: string;
   messageProvider?: string;
@@ -95,4 +101,9 @@ export type RunEmbeddedPiAgentParams = {
   streamParams?: AgentStreamParams;
   ownerNumbers?: string[];
   enforceFinalTag?: boolean;
+  /**
+   * When true, prepend accumulated thinking to assistant text content.
+   * Only applies to claude-sdk runtime. Default: false.
+   */
+  includeThinkingInText?: boolean;
 };

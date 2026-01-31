@@ -13,8 +13,17 @@ import {
   HumanDelaySchema,
 } from "./zod-schema.core.js";
 
+/**
+ * Agent runtime engine.
+ * - "pi": Uses @mariozechner/pi-coding-agent (default, uses Anthropic API key)
+ * - "claude-sdk": Uses @anthropic-ai/claude-agent-sdk (uses Claude Code Max subscription)
+ */
+export const AgentRuntimeSchema = z.union([z.literal("pi"), z.literal("claude-sdk")]).optional();
+
 export const AgentDefaultsSchema = z
   .object({
+    /** Agent runtime engine: "pi" (default) or "claude-sdk" */
+    runtime: AgentRuntimeSchema,
     model: z
       .object({
         primary: z.string().optional(),

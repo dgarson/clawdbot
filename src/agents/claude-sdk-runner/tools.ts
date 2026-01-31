@@ -37,7 +37,11 @@ type ToolExecutionContext = {
 /**
  * Convert an OpenClaw tool to an SDK MCP tool definition.
  */
-function convertToolToSdkMcp(tool: AnyAgentTool, ctx: ToolExecutionContext): SdkMcpToolDefinition {
+function convertToolToSdkMcp(
+  tool: AnyAgentTool,
+  ctx: ToolExecutionContext,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): SdkMcpToolDefinition<any> {
   // Normalize and patch the schema for Claude compatibility
   const normalized = normalizeToolParameters(tool);
   const patched = patchToolSchemaForClaudeCompatibility(normalized);
