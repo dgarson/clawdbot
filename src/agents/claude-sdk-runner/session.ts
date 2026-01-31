@@ -78,9 +78,9 @@ export type ClaudeSdkOptions = {
 const DEFAULT_THINKING_BUDGETS: Record<Exclude<ThinkLevel, "off">, number> = {
   minimal: 1000,
   low: 4000,
-  medium: 16000,
-  high: 64000,
-  xhigh: 128000,
+  medium: 10000,
+  high: 20000,
+  xhigh: 40000,
 };
 
 /**
@@ -113,6 +113,12 @@ export type RunClaudeSdkSessionParams = {
   provider: string;
   runId: string;
   sessionId: string;
+  /**
+   * SDK session ID from a previous turn to resume.
+   * When provided, the SDK will continue the existing conversation context.
+   * Managed internally by session-store.ts, not passed from callers.
+   */
+  sdkSessionIdToResume?: string;
   timeoutMs: number;
   abortSignal?: AbortSignal;
   reasoningMode?: "off" | "on" | "stream";
@@ -317,6 +323,8 @@ export async function runClaudeSdkSession(
         ...(maxThinkingTokens !== undefined && { maxThinkingTokens }),
         // Environment overrides for custom providers
         ...(params.envOverrides && { env: params.envOverrides }),
+        // Resume previous session if SDK session ID is provided
+        ...(params.sdkSessionIdToResume && { resume: params.sdkSessionIdToResume }),
       },
     });
 

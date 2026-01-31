@@ -5,6 +5,7 @@ import {
   isEmbeddedPiRunStreaming,
   resolveEmbeddedSessionLane,
 } from "../../agents/pi-embedded.js";
+import { resolveAgentRuntime, resolveClaudeSdkOptions } from "../../agents/agent-runtime.js";
 import { resolveSessionAuthProfileOverride } from "../../agents/auth-profiles/session-override.js";
 import type { ExecToolDefaults } from "../../agents/bash-tools.js";
 import type { OpenClawConfig } from "../../config/config.js";
@@ -397,6 +398,8 @@ export async function runPreparedReply(
       ownerNumbers: command.ownerList.length > 0 ? command.ownerList : undefined,
       extraSystemPrompt: extraSystemPrompt || undefined,
       ...(isReasoningTagProvider(provider) ? { enforceFinalTag: true } : {}),
+      runtime: resolveAgentRuntime(cfg, agentId),
+      claudeSdkOptions: resolveClaudeSdkOptions(cfg, agentId),
     },
   };
 

@@ -104,16 +104,16 @@ describe("resolveThinkingBudget", () => {
       expect(resolveThinkingBudget("low")).toBe(4000);
     });
 
-    it("returns 16000 for 'medium'", () => {
-      expect(resolveThinkingBudget("medium")).toBe(16000);
+    it("returns 10000 for 'medium'", () => {
+      expect(resolveThinkingBudget("medium")).toBe(10000);
     });
 
-    it("returns 64000 for 'high'", () => {
-      expect(resolveThinkingBudget("high")).toBe(64000);
+    it("returns 20000 for 'high'", () => {
+      expect(resolveThinkingBudget("high")).toBe(20000);
     });
 
-    it("returns 128000 for 'xhigh'", () => {
-      expect(resolveThinkingBudget("xhigh")).toBe(128000);
+    it("returns 40000 for 'xhigh'", () => {
+      expect(resolveThinkingBudget("xhigh")).toBe(40000);
     });
   });
 

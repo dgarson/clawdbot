@@ -148,6 +148,8 @@ export async function runMemoryFlushIfNeeded(params: {
           execOverrides: params.followupRun.run.execOverrides,
           bashElevated: params.followupRun.run.bashElevated,
           timeoutMs: params.followupRun.run.timeoutMs,
+          runtime: params.followupRun.run.runtime,
+          claudeSdkOptions: params.followupRun.run.claudeSdkOptions,
           runId: flushRunId,
           onAgentEvent: (evt) => {
             if (evt.stream === "compaction") {

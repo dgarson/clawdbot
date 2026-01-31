@@ -79,9 +79,39 @@ export async function resolveClaudeSdkProviderEnv(params: {
 }): Promise<Record<string, string> | undefined> {
   const { provider, cfg, agentDir } = params;
 
-  // Anthropic provider uses SDK's internal auth (no env override)
+  // For Anthropic provider, try to resolve an API key
+  // The SDK's "internal auth" only works in Claude Code CLI context
+  // When running as a gateway, we need explicit API key auth
   if (provider === "anthropic") {
-    log.debug("resolveClaudeSdkProviderEnv: using SDK internal auth for anthropic provider");
+    let apiKey: string | undefined;
+    try {
+      const resolved = await resolveApiKey({
+        provider: "anthropic",
+        cfg,
+        agentDir,
+      });
+      apiKey = resolved.apiKey;
+      if (apiKey) {
+        log.debug(
+          `resolveClaudeSdkProviderEnv: resolved Anthropic API key from "${resolved.source}"`,
+        );
+      }
+    } catch (err) {
+      log.debug(`resolveClaudeSdkProviderEnv: no Anthropic API key available: ${String(err)}`);
+    }
+
+    if (apiKey) {
+      // Use explicit API key auth
+      return {
+        ANTHROPIC_API_KEY: apiKey,
+        ANTHROPIC_API_TIMEOUT: String(DEFAULT_SDK_TIMEOUT_MS),
+      };
+    }
+
+    // No API key - fall back to SDK internal auth (only works in Claude Code CLI context)
+    log.debug(
+      "resolveClaudeSdkProviderEnv: no API key, using SDK internal auth for anthropic provider",
+    );
     return undefined;
   }
 
@@ -179,6 +209,10 @@ export function resolveModelNameEnvVars(
  * Resolve all environment variable overrides for Claude SDK.
  *
  * Combines provider config (base URL, API key) with model name mappings.
+ *
+ * For Anthropic provider using internal auth (no explicit API key):
+ * - Returns undefined so SDK inherits full process.env
+ * - This allows SDK to use Claude Code subscription auth via inherited env
  */
 export async function resolveAllClaudeSdkEnv(params: {
   provider: ClaudeSdkProvider;
@@ -190,6 +224,13 @@ export async function resolveAllClaudeSdkEnv(params: {
 
   // Get provider-specific env vars (base URL, API key)
   const providerEnv = await resolveClaudeSdkProviderEnv({ provider, cfg, agentDir });
+
+  // For Anthropic using internal auth (no API key resolved), return undefined
+  // so the SDK inherits full process.env and can use subscription auth
+  if (provider === "anthropic" && !providerEnv) {
+    log.debug("resolveAllClaudeSdkEnv: anthropic internal auth - passing through process.env");
+    return undefined;
+  }
 
   // Get model name env vars (format depends on provider)
   const modelEnv = resolveModelNameEnvVars(provider, claudeSdkOptions);
