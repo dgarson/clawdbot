@@ -49,6 +49,7 @@ import { log } from "./logger.js";
 import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
+import { runClaudeSdkAgent } from "../claude-sdk-runner/index.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { describeUnknownError } from "./utils.js";
@@ -90,6 +91,13 @@ export async function runEmbeddedPiAgent(
 
   return enqueueSession(() =>
     enqueueGlobal(async () => {
+      // === RUNTIME DIVERTER ===
+      // If claude-sdk runtime is requested, delegate to the SDK runner.
+      // This preserves the queue wrapper for proper session serialization.
+      if (params.runtime === "claude-sdk") {
+        return runClaudeSdkAgent(params);
+      }
+
       const started = Date.now();
       const resolvedWorkspace = resolveUserPath(params.workspaceDir);
       const prevCwd = process.cwd();

@@ -2,6 +2,7 @@
 summary: "Telegram bot support status, capabilities, and configuration"
 read_when:
   - Working on Telegram features or webhooks
+title: "Telegram"
 ---
 
 # Telegram (Bot API)
@@ -108,6 +109,18 @@ group messages, so use admin if you need full visibility.
 - Replies always route back to the same Telegram chat.
 - Long-polling uses grammY runner with per-chat sequencing; overall concurrency is capped by `agents.defaults.maxConcurrent`.
 - Telegram Bot API does not support read receipts; there is no `sendReadReceipts` option.
+
+## Draft streaming
+
+OpenClaw can stream partial replies in Telegram DMs using `sendMessageDraft`.
+
+Requirements:
+
+- Threaded Mode enabled for the bot in @BotFather (forum topic mode).
+- Private chat threads only (Telegram includes `message_thread_id` on inbound messages).
+- `channels.telegram.streamMode` not set to `"off"` (default: `"partial"`, `"block"` enables chunked draft updates).
+
+Draft streaming is DM-only; Telegram does not support it in groups or channels.
 
 ## Formatting (Telegram HTML)
 

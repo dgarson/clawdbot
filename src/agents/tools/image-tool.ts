@@ -332,10 +332,14 @@ export function createImageTool(options?: {
     name: "image",
     description,
     parameters: Type.Object({
-      prompt: Type.Optional(Type.String()),
-      image: Type.String(),
-      model: Type.Optional(Type.String()),
-      maxBytesMb: Type.Optional(Type.Number()),
+      prompt: Type.Optional(
+        Type.String({ description: "Prompt describing what to analyze in the image" }),
+      ),
+      image: Type.String({ description: "Image path, URL, or data URL to analyze" }),
+      model: Type.Optional(
+        Type.String({ description: "Vision model to use (e.g., openai/gpt-5-mini)" }),
+      ),
+      maxBytesMb: Type.Optional(Type.Number({ description: "Maximum image size in megabytes" })),
     }),
     execute: async (_toolCallId, args) => {
       const record = args && typeof args === "object" ? (args as Record<string, unknown>) : {};

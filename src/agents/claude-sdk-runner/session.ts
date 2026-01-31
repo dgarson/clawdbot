@@ -1,0 +1,413 @@
+/**
+ * SDK session runner: creates and manages a Claude Agent SDK session with streaming.
+ *
+ * This module handles:
+ * - Creating SDK queries with MCP tools
+ * - Sending user prompts
+ * - Streaming and processing messages via createSdkEventHandler()
+ * - Abort/timeout handling with proper cleanup
+ * - Returning results compatible with the pi-embedded system
+ */
+
+import {
+  query,
+  type Query,
+  type SDKResultMessage,
+  type NonNullableUsage,
+} from "@anthropic-ai/claude-agent-sdk/sdk.mjs";
+
+import { emitAgentEvent } from "../../infra/agent-events.js";
+
+/** SDK model tier type (what the SDK accepts). */
+export type SdkModelTier = "sonnet" | "opus" | "haiku";
+
+/**
+ * Map an OpenClaw model ID to an SDK model tier.
+ *
+ * The Claude Agent SDK expects tier names ('sonnet', 'opus', 'haiku') rather than
+ * full model IDs. This function extracts the tier from model IDs like:
+ * - "anthropic/claude-opus-4-5" → "opus"
+ * - "claude-sonnet-4" → "sonnet"
+ * - "haiku" → "haiku"
+ *
+ * Falls back to "sonnet" if no tier can be determined.
+ */
+export function mapModelToSdkTier(modelId: string): SdkModelTier {
+  const lower = modelId.toLowerCase();
+
+  // Check for tier names in the model ID
+  if (lower.includes("opus")) {
+    return "opus";
+  }
+  if (lower.includes("haiku")) {
+    return "haiku";
+  }
+  if (lower.includes("sonnet")) {
+    return "sonnet";
+  }
+
+  // Default to sonnet for unknown models
+  return "sonnet";
+}
+import { createOpenClawMcpServer } from "./tools.js";
+import { createSdkEventHandler, type SdkMessage } from "./events.js";
+import type { ClaudeSdkRunState, ClaudeSdkSessionResult, ClaudeSdkUsage } from "./types.js";
+import type { AnyAgentTool } from "../pi-tools.types.js";
+import type { MessagingToolSend } from "../pi-embedded-messaging.js";
+import type { ThinkLevel } from "../../auto-reply/thinking.js";
+import { log } from "./logger.js";
+
+/** Claude SDK options type (matches Zod schema). */
+export type ClaudeSdkOptions = {
+  provider?: "anthropic" | "zai" | "openrouter" | "kimi";
+  models?: {
+    sonnet?: string;
+    opus?: string;
+    haiku?: string;
+  };
+  thinkingBudgets?: {
+    minimal?: number;
+    low?: number;
+    medium?: number;
+    high?: number;
+    xhigh?: number;
+  };
+};
+
+/** Default thinking budget mappings (ThinkLevel -> maxThinkingTokens). */
+const DEFAULT_THINKING_BUDGETS: Record<Exclude<ThinkLevel, "off">, number> = {
+  minimal: 1000,
+  low: 4000,
+  medium: 10000,
+  high: 20000,
+  xhigh: 40000,
+};
+
+/**
+ * Resolve thinking budget (maxThinkingTokens) from ThinkLevel.
+ *
+ * Maps OpenClaw's thinkingLevel to SDK's maxThinkingTokens:
+ * - "off" -> undefined (no thinking budget)
+ * - Others use custom budget from claudeSdkOptions or defaults
+ */
+export function resolveThinkingBudget(
+  thinkLevel: ThinkLevel | undefined,
+  customBudgets?: ClaudeSdkOptions["thinkingBudgets"],
+): number | undefined {
+  if (!thinkLevel || thinkLevel === "off") {
+    return undefined;
+  }
+  // Check for custom budget override
+  const custom = customBudgets?.[thinkLevel];
+  if (custom !== undefined) {
+    return custom;
+  }
+  return DEFAULT_THINKING_BUDGETS[thinkLevel];
+}
+
+/** Parameters for running a Claude SDK session. */
+export type RunClaudeSdkSessionParams = {
+  prompt: string;
+  tools: AnyAgentTool[];
+  model: string;
+  provider: string;
+  runId: string;
+  sessionId: string;
+  /**
+   * SDK session ID from a previous turn to resume.
+   * When provided, the SDK will continue the existing conversation context.
+   * Managed internally by session-store.ts, not passed from callers.
+   */
+  sdkSessionIdToResume?: string;
+  timeoutMs: number;
+  abortSignal?: AbortSignal;
+  reasoningMode?: "off" | "on" | "stream";
+  /** ThinkLevel for resolving thinking budget. */
+  thinkLevel?: ThinkLevel;
+  /** Claude SDK options for provider/model/thinking config. */
+  claudeSdkOptions?: ClaudeSdkOptions;
+  /** Environment variable overrides for SDK (e.g., ANTHROPIC_BASE_URL). */
+  envOverrides?: Record<string, string>;
+  // Callbacks (for event handling parity with pi-embedded)
+  onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void;
+  onAssistantMessageStart?: () => void;
+  /** Block reply callback. Note: replyToTag is string here for session layer, boolean internally. */
+  onBlockReply?: (payload: {
+    text?: string;
+    mediaUrls?: string[];
+    audioAsVoice?: boolean;
+    replyToId?: string;
+    replyToTag?: string;
+    replyToCurrent?: boolean;
+  }) => void;
+  onBlockReplyFlush?: () => void;
+  onReasoningStream?: (payload: { text?: string }) => void;
+  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void;
+};
+
+/**
+ * Extract usage information from SDK result message.
+ */
+function extractUsage(msg: SDKResultMessage): ClaudeSdkUsage | undefined {
+  if (msg.type !== "result") {
+    return undefined;
+  }
+  const usage = msg.usage as NonNullableUsage | undefined;
+  if (!usage) {
+    return undefined;
+  }
+  return {
+    inputTokens: usage.input_tokens,
+    outputTokens: usage.output_tokens,
+    cacheReadTokens: usage.cache_read_input_tokens,
+    cacheWriteTokens: usage.cache_creation_input_tokens,
+  };
+}
+
+/**
+ * Extract stop reason from SDK result message.
+ */
+function extractStopReason(msg: SDKResultMessage): string | undefined {
+  if (msg.subtype === "success") {
+    return "end_turn";
+  }
+  // Map error subtypes to stop reasons
+  if (msg.subtype === "error_max_turns") {
+    return "max_turns";
+  }
+  if (msg.subtype === "error_max_budget_usd") {
+    return "max_budget";
+  }
+  return "error";
+}
+
+/**
+ * Run a Claude SDK session with the given parameters.
+ *
+ * Creates an MCP server with OpenClaw tools, sends the user prompt,
+ * streams and processes messages via the SDK event handler, and returns
+ * a result compatible with the pi-embedded system.
+ */
+export async function runClaudeSdkSession(
+  params: RunClaudeSdkSessionParams,
+): Promise<ClaudeSdkSessionResult> {
+  const started = Date.now();
+  const runAbortController = new AbortController();
+
+  log.debug(
+    `session start: runId=${params.runId} sessionId=${params.sessionId} model=${params.model} reasoningMode=${params.reasoningMode ?? "off"} timeoutMs=${params.timeoutMs}`,
+  );
+
+  // Initialize run state
+  const state: ClaudeSdkRunState = {
+    assistantTexts: [],
+    toolMetas: [],
+    toolMetaById: new Map(),
+    lastToolError: undefined,
+    messagingToolSentTexts: [],
+    messagingToolSentTextsNormalized: [],
+    messagingToolSentTargets: [] as MessagingToolSend[],
+    pendingMessagingTexts: new Map(),
+    pendingMessagingTargets: new Map(),
+    // Per-block tracking (used by event handler)
+    contentBlocks: new Map(),
+    currentTextBlockIndex: null,
+    // Separate buffers for text and thinking
+    deltaBuffer: "",
+    thinkingBuffer: "",
+    accumulatedThinking: "",
+    lastStreamedAssistant: undefined,
+    aborted: false,
+    timedOut: false,
+  };
+
+  // Create SDK event handler to bridge SDK messages to pi-embedded callbacks
+  // Adapts boolean replyToTag from events.ts to string for session callback
+  const eventHandler = createSdkEventHandler({
+    runId: params.runId,
+    sessionId: params.sessionId,
+    state,
+    reasoningMode: params.reasoningMode ?? "off",
+    shouldEmitPartialReplies: true,
+    onPartialReply: params.onPartialReply,
+    onAssistantMessageStart: params.onAssistantMessageStart,
+    onBlockReply: params.onBlockReply
+      ? (payload) => {
+          // Adapt boolean replyToTag to string for session callback
+          params.onBlockReply?.({
+            ...payload,
+            replyToTag: payload.replyToTag ? "true" : undefined,
+          });
+        }
+      : undefined,
+    onBlockReplyFlush: params.onBlockReplyFlush,
+    onReasoningStream: params.onReasoningStream,
+    onAgentEvent: params.onAgentEvent,
+  });
+
+  // Create MCP server with OpenClaw tools
+  const mcpServer = createOpenClawMcpServer({
+    tools: params.tools,
+    runId: params.runId,
+    state,
+    abortSignal: runAbortController.signal,
+  });
+
+  let queryInstance: Query | undefined;
+  let abortTimer: ReturnType<typeof setTimeout> | undefined;
+  let usage: ClaudeSdkUsage | undefined;
+  let errorMessage: string | undefined;
+  let stopReason: string | undefined;
+  let sdkSessionId: string | undefined;
+  let messageCount = 0;
+
+  // External abort handler (defined outside try so it can be cleaned up in finally)
+  const onExternalAbort = () => {
+    log.debug(`external abort triggered: runId=${params.runId}`);
+    state.aborted = true;
+    runAbortController.abort();
+  };
+
+  try {
+    // Set up timeout
+    abortTimer = setTimeout(
+      () => {
+        log.debug(`session timeout: runId=${params.runId} timeoutMs=${params.timeoutMs}`);
+        state.timedOut = true;
+        state.aborted = true;
+        runAbortController.abort(new Error("request timed out"));
+      },
+      Math.max(1, params.timeoutMs),
+    );
+
+    // Handle external abort signal
+    if (params.abortSignal?.aborted) {
+      onExternalAbort();
+    } else {
+      params.abortSignal?.addEventListener("abort", onExternalAbort, { once: true });
+    }
+
+    // Emit lifecycle start event
+    emitAgentEvent({
+      runId: params.runId,
+      stream: "lifecycle",
+      data: { phase: "start", startedAt: started },
+    });
+    params.onAgentEvent?.({ stream: "lifecycle", data: { phase: "start", startedAt: started } });
+
+    // Create SDK query with MCP tools
+    // Map OpenClaw model ID to SDK tier (opus/sonnet/haiku)
+    const sdkModelTier = mapModelToSdkTier(params.model);
+
+    // Resolve thinking budget from ThinkLevel
+    const maxThinkingTokens = resolveThinkingBudget(
+      params.thinkLevel,
+      params.claudeSdkOptions?.thinkingBudgets,
+    );
+
+    log.debug(
+      `SDK query creating: runId=${params.runId} promptLength=${params.prompt.length} modelTier=${sdkModelTier} (from ${params.model}) maxThinkingTokens=${maxThinkingTokens ?? "none"} hasEnvOverrides=${Boolean(params.envOverrides)}`,
+    );
+    queryInstance = query({
+      prompt: params.prompt,
+      options: {
+        model: sdkModelTier,
+        permissionMode: "bypassPermissions",
+        allowedTools: params.tools.map((t) => t.name),
+        mcpServers: {
+          "openclaw-tools": mcpServer,
+        },
+        abortController: runAbortController,
+        includePartialMessages: true,
+        // Thinking budget (extended thinking)
+        ...(maxThinkingTokens !== undefined && { maxThinkingTokens }),
+        // Environment overrides for custom providers
+        ...(params.envOverrides && { env: params.envOverrides }),
+        // Resume previous session if SDK session ID is provided
+        ...(params.sdkSessionIdToResume && { resume: params.sdkSessionIdToResume }),
+      },
+    });
+
+    // Stream and process messages via event handler
+    for await (const msg of queryInstance) {
+      messageCount++;
+      // Log progress every 50 messages
+      if (messageCount % 50 === 0) {
+        log.debug(`SDK message progress: runId=${params.runId} messagesProcessed=${messageCount}`);
+      }
+
+      // Check for abort
+      if (runAbortController.signal.aborted) {
+        break;
+      }
+
+      // Capture session ID from first message
+      if (!sdkSessionId && "session_id" in msg) {
+        sdkSessionId = msg.session_id;
+        log.debug(`SDK session ID captured: ${sdkSessionId}`);
+      }
+
+      // Let event handler process all message types
+      eventHandler.handleMessage(msg as SdkMessage);
+
+      // Extract usage and stop reason from result messages (handler doesn't track this)
+      if (msg.type === "result") {
+        usage = extractUsage(msg);
+        stopReason = extractStopReason(msg);
+        log.debug(
+          `SDK result received: stopReason=${stopReason} inputTokens=${usage?.inputTokens ?? 0} outputTokens=${usage?.outputTokens ?? 0}`,
+        );
+        if (msg.subtype !== "success") {
+          const errMsg = msg as { errors?: string[] };
+          errorMessage = errMsg.errors?.join("; ");
+        }
+        // Flush any remaining block reply
+        params.onBlockReplyFlush?.();
+      }
+    }
+  } catch (err) {
+    if (!state.aborted) {
+      errorMessage = String(err);
+      log.debug(`session error: runId=${params.runId} error=${errorMessage}`);
+    }
+  } finally {
+    // Cleanup
+    if (abortTimer) {
+      clearTimeout(abortTimer);
+    }
+    queryInstance?.close();
+    params.abortSignal?.removeEventListener?.("abort", onExternalAbort);
+
+    // Emit lifecycle end event
+    const endData = { phase: "end", endedAt: Date.now(), durationMs: Date.now() - started };
+    emitAgentEvent({
+      runId: params.runId,
+      stream: "lifecycle",
+      data: endData,
+    });
+    params.onAgentEvent?.({ stream: "lifecycle", data: endData });
+  }
+
+  log.debug(
+    `session complete: runId=${params.runId} durationMs=${Date.now() - started} aborted=${state.aborted} timedOut=${state.timedOut} messagesProcessed=${messageCount} assistantTexts=${state.assistantTexts.length} toolMetas=${state.toolMetas.length}`,
+  );
+
+  return {
+    assistantTexts: state.assistantTexts,
+    toolMetas: state.toolMetas,
+    lastToolError: state.lastToolError,
+    usage,
+    sessionId: sdkSessionId ?? params.sessionId,
+    model: params.model,
+    provider: params.provider,
+    aborted: state.aborted,
+    timedOut: state.timedOut,
+    messagingToolSentTexts: state.messagingToolSentTexts,
+    messagingToolSentTargets: state.messagingToolSentTargets,
+    didSendViaMessagingTool: state.messagingToolSentTexts.length > 0,
+    stopReason,
+    errorMessage,
+    // Include accumulated thinking for reasoningMode="on" (non-streaming)
+    accumulatedThinking: state.accumulatedThinking || undefined,
+  };
+}

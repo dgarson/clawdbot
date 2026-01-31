@@ -5,6 +5,7 @@ import {
   isEmbeddedPiRunStreaming,
   resolveEmbeddedSessionLane,
 } from "../../agents/pi-embedded.js";
+import { resolveAgentRuntime, resolveClaudeSdkOptions } from "../../agents/agent-runtime.js";
 import { resolveSessionAuthProfileOverride } from "../../agents/auth-profiles/session-override.js";
 import type { ExecToolDefaults } from "../../agents/bash-tools.js";
 import type { OpenClawConfig } from "../../config/config.js";
@@ -248,7 +249,7 @@ export async function runPreparedReply(
   const prefixedBody = [threadStarterNote, prefixedBodyBase].filter(Boolean).join("\n\n");
   const mediaNote = buildInboundMediaNote(ctx);
   const mediaReplyHint = mediaNote
-    ? "To send an image back, prefer the message tool (media/path/filePath). If you must inline, use MEDIA:/path or MEDIA:https://example.com/image.jpg (spaces ok, quote if needed). Keep caption in the text body."
+    ? "To send an image back, prefer the message tool (media/path/filePath). If you must inline, use MEDIA:https://example.com/image.jpg (spaces ok, quote if needed) or a safe relative path like MEDIA:./image.jpg. Avoid absolute paths (MEDIA:/...) and ~ paths — they are blocked for security. Keep caption in the text body."
     : undefined;
   let prefixedCommandBody = mediaNote
     ? [mediaNote, mediaReplyHint, prefixedBody ?? ""].filter(Boolean).join("\n").trim()
@@ -397,6 +398,8 @@ export async function runPreparedReply(
       ownerNumbers: command.ownerList.length > 0 ? command.ownerList : undefined,
       extraSystemPrompt: extraSystemPrompt || undefined,
       ...(isReasoningTagProvider(provider) ? { enforceFinalTag: true } : {}),
+      runtime: resolveAgentRuntime(cfg, agentId),
+      claudeSdkOptions: resolveClaudeSdkOptions(cfg, agentId),
     },
   };
 

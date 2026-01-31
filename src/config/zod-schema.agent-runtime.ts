@@ -420,11 +420,74 @@ export const AgentModelSchema = z.union([
     })
     .strict(),
 ]);
+/**
+ * Agent runtime engine for per-agent override.
+ * - "pi": Uses @mariozechner/pi-coding-agent (default, uses Anthropic API key)
+ * - "claude-sdk": Uses @anthropic-ai/claude-agent-sdk (uses Claude Code Max subscription)
+ */
+export const AgentRuntimeSchema = z.union([z.literal("pi"), z.literal("claude-sdk")]).optional();
+
+/**
+ * Claude SDK provider type for custom endpoint routing.
+ * - "anthropic": Default SDK auth (no env override needed)
+ * - "zai": z.AI Coding Plan (https://api.z.ai/v1)
+ * - "openrouter": OpenRouter (https://openrouter.ai/api/v1)
+ * - "kimi": Kimi K2 (https://api.moonshot.cn/v1)
+ */
+export const ClaudeSdkProviderSchema = z
+  .union([z.literal("anthropic"), z.literal("zai"), z.literal("openrouter"), z.literal("kimi")])
+  .optional();
+
+/**
+ * Custom model name mappings per SDK tier.
+ * Allows overriding the default model for each tier (sonnet, opus, haiku).
+ */
+export const ClaudeSdkModelsSchema = z
+  .object({
+    sonnet: z.string().optional(),
+    opus: z.string().optional(),
+    haiku: z.string().optional(),
+  })
+  .strict()
+  .optional();
+
+/**
+ * Custom thinking budget mappings per ThinkLevel.
+ * Maps OpenClaw thinkingLevel to SDK maxThinkingTokens.
+ */
+export const ClaudeSdkThinkingBudgetsSchema = z
+  .object({
+    minimal: z.number().int().positive().optional(),
+    low: z.number().int().positive().optional(),
+    medium: z.number().int().positive().optional(),
+    high: z.number().int().positive().optional(),
+    xhigh: z.number().int().positive().optional(),
+  })
+  .strict()
+  .optional();
+
+/**
+ * Claude SDK options for per-agent configuration.
+ * Supports provider routing, custom model mappings, and thinking budgets.
+ */
+export const ClaudeSdkOptionsSchema = z
+  .object({
+    provider: ClaudeSdkProviderSchema,
+    models: ClaudeSdkModelsSchema,
+    thinkingBudgets: ClaudeSdkThinkingBudgetsSchema,
+  })
+  .strict()
+  .optional();
+
 export const AgentEntrySchema = z
   .object({
     id: z.string(),
     default: z.boolean().optional(),
     name: z.string().optional(),
+    /** Agent runtime engine: "pi" (default) or "claude-sdk" */
+    runtime: AgentRuntimeSchema,
+    /** Claude SDK options (only used when runtime="claude-sdk") */
+    claudeSdkOptions: ClaudeSdkOptionsSchema,
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     model: AgentModelSchema.optional(),

@@ -63,6 +63,7 @@ vi.mock("../../utils.js", () => ({
 
 vi.mock("../../utils/message-channel.js", () => ({
   isMarkdownCapableMessageChannel: vi.fn(() => true),
+  INTERNAL_MESSAGE_CHANNEL: "webchat",
 }));
 
 vi.mock("../agent-paths.js", () => ({

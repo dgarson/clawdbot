@@ -1,9 +1,11 @@
+import type { AgentRuntime } from "../../../agents/agent-runtime.js";
 import type { SkillSnapshot } from "../../../agents/skills.js";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { SessionEntry } from "../../../config/sessions.js";
 import type { OriginatingChannelType } from "../../templating.js";
 import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../directives.js";
 import type { ExecToolDefaults } from "../../../agents/bash-tools.js";
+import type { ClaudeSdkOptionsParam } from "../../../agents/pi-embedded-runner/run/params.js";
 
 export type QueueMode = "steer" | "followup" | "collect" | "steer-backlog" | "interrupt" | "queue";
 
@@ -78,6 +80,10 @@ export type FollowupRun = {
     ownerNumbers?: string[];
     extraSystemPrompt?: string;
     enforceFinalTag?: boolean;
+    /** Agent runtime engine (pi or claude-sdk). */
+    runtime?: AgentRuntime;
+    /** Claude SDK options (only used when runtime="claude-sdk"). */
+    claudeSdkOptions?: ClaudeSdkOptionsParam;
   };
 };
 

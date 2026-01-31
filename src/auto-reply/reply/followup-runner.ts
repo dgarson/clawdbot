@@ -169,6 +169,8 @@ export function createFollowupRunner(params: {
               execOverrides: queued.run.execOverrides,
               bashElevated: queued.run.bashElevated,
               timeoutMs: queued.run.timeoutMs,
+              runtime: queued.run.runtime,
+              claudeSdkOptions: queued.run.claudeSdkOptions,
               runId,
               blockReplyBreak: queued.run.blockReplyBreak,
               onAgentEvent: (evt) => {

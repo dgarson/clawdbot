@@ -15,9 +15,13 @@ import {
 } from "./sessions-helpers.js";
 
 const SessionsHistoryToolSchema = Type.Object({
-  sessionKey: Type.String(),
-  limit: Type.Optional(Type.Number({ minimum: 1 })),
-  includeTools: Type.Optional(Type.Boolean()),
+  sessionKey: Type.String({ description: "Session key to fetch history for" }),
+  limit: Type.Optional(
+    Type.Number({ minimum: 1, description: "Maximum number of messages to return" }),
+  ),
+  includeTools: Type.Optional(
+    Type.Boolean({ description: "Include tool call messages in history" }),
+  ),
 });
 
 function resolveSandboxSessionToolsVisibility(cfg: ReturnType<typeof loadConfig>) {

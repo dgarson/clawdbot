@@ -5,6 +5,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
+import { resolveAgentRuntime, resolveClaudeSdkOptions } from "../../agents/agent-runtime.js";
 import { runCliAgent } from "../../agents/cli-runner.js";
 import { getCliSessionId, setCliSessionId } from "../../agents/cli-session.js";
 import { lookupContextTokens } from "../../agents/context.js";
@@ -372,6 +373,8 @@ export async function runCronIsolatedAgentTurn(params: {
           thinkLevel,
           verboseLevel: resolvedVerboseLevel,
           timeoutMs,
+          runtime: resolveAgentRuntime(cfgWithAgentDefaults, agentId),
+          claudeSdkOptions: resolveClaudeSdkOptions(cfgWithAgentDefaults, agentId),
           runId: cronSession.sessionEntry.sessionId,
         });
       },

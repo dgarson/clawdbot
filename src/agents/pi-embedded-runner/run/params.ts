@@ -6,6 +6,24 @@ import type { enqueueCommand } from "../../../process/command-queue.js";
 import type { ExecElevatedDefaults, ExecToolDefaults } from "../../bash-tools.js";
 import type { BlockReplyChunking, ToolResultFormat } from "../../pi-embedded-subscribe.js";
 import type { SkillSnapshot } from "../../skills.js";
+import type { AgentRuntime } from "../../agent-runtime.js";
+
+/** Claude SDK options for multi-provider support and thinking budgets. */
+export type ClaudeSdkOptionsParam = {
+  provider?: "anthropic" | "zai" | "openrouter" | "kimi";
+  models?: {
+    sonnet?: string;
+    opus?: string;
+    haiku?: string;
+  };
+  thinkingBudgets?: {
+    minimal?: number;
+    low?: number;
+    medium?: number;
+    high?: number;
+    xhigh?: number;
+  };
+};
 
 // Simplified tool definition for client-provided tools (OpenResponses hosted tools)
 export type ClientToolDefinition = {
@@ -19,6 +37,14 @@ export type ClientToolDefinition = {
 
 export type RunEmbeddedPiAgentParams = {
   sessionId: string;
+  /**
+   * Agent runtime to use. Unrecognized or missing values default to "pi".
+   * - "pi": Uses @mariozechner/pi-coding-agent (current behavior)
+   * - "claude-sdk": Uses @anthropic-ai/claude-agent-sdk (uses Claude Code Max subscription)
+   */
+  runtime?: AgentRuntime;
+  /** Claude SDK options (only used when runtime="claude-sdk"). */
+  claudeSdkOptions?: ClaudeSdkOptionsParam;
   sessionKey?: string;
   messageChannel?: string;
   messageProvider?: string;
@@ -95,4 +121,9 @@ export type RunEmbeddedPiAgentParams = {
   streamParams?: AgentStreamParams;
   ownerNumbers?: string[];
   enforceFinalTag?: boolean;
+  /**
+   * When true, prepend accumulated thinking to assistant text content.
+   * Only applies to claude-sdk runtime. Default: false.
+   */
+  includeThinkingInText?: boolean;
 };

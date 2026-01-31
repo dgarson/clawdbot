@@ -281,6 +281,8 @@ export async function runAgentTurnWithFallback(params: {
             })(),
             bashElevated: params.followupRun.run.bashElevated,
             timeoutMs: params.followupRun.run.timeoutMs,
+            runtime: params.followupRun.run.runtime,
+            claudeSdkOptions: params.followupRun.run.claudeSdkOptions,
             runId,
             images: params.opts?.images,
             abortSignal: params.opts?.abortSignal,
