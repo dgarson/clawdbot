@@ -96,7 +96,7 @@ export function ImportConfigDialog({
 
   const sectionPreviews = React.useMemo((): SectionPreview[] => {
     const data = validationResult?.data;
-    if (!data) return [];
+    if (!data) {return [];}
 
     const previews: SectionPreview[] = [];
 
@@ -123,8 +123,8 @@ export function ImportConfigDialog({
     if (data.sections.includes("uiSettings")) {
       const ui = data.data.uiSettings;
       const parts: string[] = [];
-      if (ui?.theme) parts.push(`Theme: ${ui.theme}`);
-      if (ui?.powerUserMode !== undefined) parts.push(`Power User: ${ui.powerUserMode ? "enabled" : "disabled"}`);
+      if (ui?.theme) {parts.push(`Theme: ${ui.theme}`);}
+      if (ui?.powerUserMode !== undefined) {parts.push(`Power User: ${ui.powerUserMode ? "enabled" : "disabled"}`);}
       previews.push({
         id: "uiSettings",
         label: "UI Settings",
@@ -168,7 +168,7 @@ export function ImportConfigDialog({
   };
 
   const handleImport = async () => {
-    if (!validationResult?.data || selectedSections.length === 0) return;
+    if (!validationResult?.data || selectedSections.length === 0) {return;}
 
     setIsImporting(true);
     try {

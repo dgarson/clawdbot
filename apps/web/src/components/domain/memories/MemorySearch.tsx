@@ -68,7 +68,7 @@ export function MemorySearch({
   };
 
   const handleSourceToggle = (source: string) => {
-    if (!onFiltersChange) return;
+    if (!onFiltersChange) {return;}
 
     const newSources = filters.sources.includes(source)
       ? filters.sources.filter((s) => s !== source)
@@ -81,7 +81,7 @@ export function MemorySearch({
   };
 
   const handleDateRangeSelect = (range: "today" | "week" | "month" | "all") => {
-    if (!onFiltersChange) return;
+    if (!onFiltersChange) {return;}
 
     const now = new Date();
     let from: Date | undefined;
@@ -108,7 +108,7 @@ export function MemorySearch({
   };
 
   const clearFilters = () => {
-    if (!onFiltersChange) return;
+    if (!onFiltersChange) {return;}
     onFiltersChange({ sources: [], dateRange: {} });
   };
 

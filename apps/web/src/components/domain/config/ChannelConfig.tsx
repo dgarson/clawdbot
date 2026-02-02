@@ -481,7 +481,7 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
 
   // Check if a channel is supported on current platform
   const isChannelSupported = (channel: ChannelConfigType) => {
-    if (!channel.platform) return true;
+    if (!channel.platform) {return true;}
     return channel.platform.supported.includes("any") || channel.platform.supported.includes(currentPlatform);
   };
 
@@ -609,7 +609,7 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
     };
     channels.forEach((ch) => {
       const category = ch.category || "messaging";
-      if (!grouped[category]) grouped[category] = [];
+      if (!grouped[category]) {grouped[category] = [];}
       grouped[category].push(ch);
     });
     return grouped;
@@ -680,7 +680,7 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
 
     return genericChannelIds.map((channelId) => {
       const channel = getChannel(channelId);
-      if (!channel) return null;
+      if (!channel) {return null;}
 
       const config = channelFieldConfigs[channelId];
       const isSupported = isChannelSupported(channel);

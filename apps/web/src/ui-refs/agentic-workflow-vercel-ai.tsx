@@ -282,7 +282,7 @@ const WorkflowContext = createContext<WorkflowContextValue | null>(null);
 
 const useWorkflow = (): WorkflowContextValue => {
   const context = useContext(WorkflowContext);
-  if (!context) throw new Error('useWorkflow must be used within WorkflowProvider');
+  if (!context) {throw new Error('useWorkflow must be used within WorkflowProvider');}
   return context;
 };
 
@@ -343,7 +343,7 @@ function Dropdown<T extends DropdownOption>({
 
   useEffect(() => {
     const handleClick = (e: globalThis.MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {setIsOpen(false);}
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -856,7 +856,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onComm
   ], []);
 
   const filtered = useMemo(() => {
-    if (!query) return commands;
+    if (!query) {return commands;}
     const q = query.toLowerCase();
     return commands.filter(c => c.label.toLowerCase().includes(q) || c.shortcut?.toLowerCase() === q);
   }, [commands, query]);
@@ -902,7 +902,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onComm
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
@@ -968,7 +968,7 @@ const ToolPermissionPanel: React.FC<ToolPermissionPanelProps> = ({ isOpen, onClo
   const { toolPermissions, setToolPermissions, autoApprove, setAutoApprove } = useWorkflow();
   const [activeTab, setActiveTab] = useState<'tiers' | 'tools' | 'exceptions'>('tiers');
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
@@ -1101,7 +1101,7 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, disabled, onStop }) => {
   };
 
   const handleFiles = (files: FileList | null) => {
-    if (!files) return;
+    if (!files) {return;}
     const newAttachments: Attachment[] = Array.from(files).map(file => ({
       id: generateId(),
       name: file.name,
@@ -1286,7 +1286,7 @@ const AgenticWorkflow: React.FC = () => {
 
       if (autoApprove || permission === 'auto') {
         // Auto-execute
-        executeToolCall({
+        void executeToolCall({
           toolCallId: tc.toolCallId,
           toolName: tc.toolName,
           args: tc.args as Record<string, unknown>,
@@ -1329,7 +1329,7 @@ const AgenticWorkflow: React.FC = () => {
 
   const approveToolCall = (toolCallId: string) => {
     const tc = pendingToolCalls.find(t => t.toolCallId === toolCallId);
-    if (tc) executeToolCall(tc);
+    if (tc) {void executeToolCall(tc);}
   };
 
   const rejectToolCall = (toolCallId: string) => {

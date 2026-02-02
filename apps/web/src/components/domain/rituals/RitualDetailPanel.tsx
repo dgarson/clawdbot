@@ -142,14 +142,14 @@ function formatRelativeTime(dateString: string): string {
   const diffDays = Math.round(diffMs / 86400000);
 
   if (Math.abs(diffMins) < 60) {
-    if (diffMins < 0) return `${Math.abs(diffMins)} minutes ago`;
+    if (diffMins < 0) {return `${Math.abs(diffMins)} minutes ago`;}
     return `in ${diffMins} minutes`;
   }
   if (Math.abs(diffHours) < 24) {
-    if (diffHours < 0) return `${Math.abs(diffHours)} hours ago`;
+    if (diffHours < 0) {return `${Math.abs(diffHours)} hours ago`;}
     return `in ${diffHours} hours`;
   }
-  if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
+  if (diffDays < 0) {return `${Math.abs(diffDays)} days ago`;}
   return `in ${diffDays} days`;
 }
 
@@ -176,7 +176,7 @@ export function RitualDetailPanel({
     frequency: RitualFrequency;
   } | null>(null);
   const sortedExecutions = React.useMemo(() => {
-    return [...executions].sort((a, b) => {
+    return [...executions].toSorted((a, b) => {
       return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
     });
   }, [executions]);
@@ -188,7 +188,7 @@ export function RitualDetailPanel({
   const StatusIcon = status.icon;
 
   const handlePauseResume = () => {
-    if (!ritual) return;
+    if (!ritual) {return;}
     if (ritual.status === "active") {
       onPause?.(ritual.id);
     } else if (ritual.status === "paused") {
@@ -201,7 +201,7 @@ export function RitualDetailPanel({
   };
 
   const confirmDelete = () => {
-    if (!ritual) return;
+    if (!ritual) {return;}
     onDelete?.(ritual.id);
     onClose();
   };
@@ -224,7 +224,7 @@ export function RitualDetailPanel({
   const assignedAgent = agents.find((a) => a.id === ritual?.agentId);
   const guidancePacks = useGuidancePackStore((state) => state.packs);
   const attachedPacks = React.useMemo(() => {
-    if (!ritual?.guidancePackIds?.length) return [];
+    if (!ritual?.guidancePackIds?.length) {return [];}
     const byId = new Map(guidancePacks.map((pack) => [pack.id, pack]));
     return ritual.guidancePackIds
       .map((id) => byId.get(id))
@@ -232,7 +232,7 @@ export function RitualDetailPanel({
   }, [guidancePacks, ritual]);
 
   // Early return after hooks
-  if (!ritual) return null;
+  if (!ritual) {return null;}
 
   return (
     <DetailPanel

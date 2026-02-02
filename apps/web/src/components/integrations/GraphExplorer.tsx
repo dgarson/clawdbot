@@ -87,7 +87,7 @@ export function GraphExplorer<
   });
 
   React.useEffect(() => {
-    if (!query.data) return;
+    if (!query.data) {return;}
     setGraph(query.data);
     setSelection((prev) => (prev.type === "none" ? prev : { type: "none" }));
   }, [query.data]);
@@ -101,23 +101,23 @@ export function GraphExplorer<
   );
 
   const selectedNode = React.useMemo(() => {
-    if (selection.type !== "node") return null;
+    if (selection.type !== "node") {return null;}
     return graph.nodes.find((n) => n.id === selection.id) ?? null;
   }, [graph.nodes, selection]);
 
   const selectedEdge = React.useMemo(() => {
-    if (selection.type !== "edge") return null;
+    if (selection.type !== "edge") {return null;}
     return graph.edges.find((e) => e.id === selection.id) ?? null;
   }, [graph.edges, selection]);
 
   const expandNode = useMutation({
     mutationFn: async (nodeId: string) => {
-      if (!adapter.expandNode) return null;
+      if (!adapter.expandNode) {return null;}
       const controller = new AbortController();
       return adapter.expandNode(nodeId, params, { signal: controller.signal });
     },
     onSuccess: (patch) => {
-      if (!patch) return;
+      if (!patch) {return;}
       const merger = adapter.mergeGraph ?? mergeGraphById;
       setGraph((prev) => merger(prev, patch));
     },
@@ -126,7 +126,7 @@ export function GraphExplorer<
   const nodeDetailsQuery = useQuery({
     queryKey: [...adapter.queryKey(params), "nodeDetails", selection.type === "node" ? selection.id : null] as const,
     queryFn: ({ signal }) => {
-      if (selection.type !== "node" || !adapter.loadNodeDetails) return Promise.resolve(null);
+      if (selection.type !== "node" || !adapter.loadNodeDetails) {return Promise.resolve(null);}
       return adapter.loadNodeDetails(selection.id, params, { signal });
     },
     enabled: selection.type === "node" && !!adapter.loadNodeDetails,
@@ -135,7 +135,7 @@ export function GraphExplorer<
   const edgeDetailsQuery = useQuery({
     queryKey: [...adapter.queryKey(params), "edgeDetails", selection.type === "edge" ? selection.id : null] as const,
     queryFn: ({ signal }) => {
-      if (selection.type !== "edge" || !adapter.loadEdgeDetails) return Promise.resolve(null);
+      if (selection.type !== "edge" || !adapter.loadEdgeDetails) {return Promise.resolve(null);}
       return adapter.loadEdgeDetails(selection.id, params, { signal });
     },
     enabled: selection.type === "edge" && !!adapter.loadEdgeDetails,
@@ -143,7 +143,7 @@ export function GraphExplorer<
 
   const filteredGraph = React.useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return graph;
+    if (!q) {return graph;}
     const nodes = graph.nodes.filter((n) => (n.label ?? n.id).toLowerCase().includes(q));
     const nodeIds = new Set(nodes.map((n) => n.id));
     const edges = graph.edges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
@@ -171,8 +171,8 @@ export function GraphExplorer<
       selectNode: (nodeId: string) => changeSelection({ type: "node", id: nodeId }),
       selectEdge: (edgeId: string) => changeSelection({ type: "edge", id: edgeId }),
       expandSelectedNode: () => {
-        if (selection.type !== "node") return;
-        if (!adapter.expandNode) return;
+        if (selection.type !== "node") {return;}
+        if (!adapter.expandNode) {return;}
         expandNode.mutate(selection.id);
       },
     };

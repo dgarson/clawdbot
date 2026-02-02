@@ -35,7 +35,7 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
 
   // Derive gateway status
   const status: GatewayStatus = React.useMemo(() => {
-    if (isHealthLoading) return "connecting";
+    if (isHealthLoading) {return "connecting";}
     return isConnected ? "connected" : "disconnected";
   }, [isConnected, isHealthLoading]);
 
@@ -47,9 +47,9 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
   // Map gateway mode to access mode
   const accessMode: AccessMode = React.useMemo(() => {
     const mode = gatewayConfig?.mode;
-    if (mode === "loopback" || mode === "local") return "local";
-    if (mode === "network") return "network";
-    if (gatewayConfig?.bind) return "custom";
+    if (mode === "loopback" || mode === "local") {return "local";}
+    if (mode === "network") {return "network";}
+    if (gatewayConfig?.bind) {return "custom";}
     return "local";
   }, [gatewayConfig?.mode, gatewayConfig?.bind]);
 
@@ -58,7 +58,7 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
   // Handle config changes
 	  const handleConfigChange = React.useCallback(
 	    async (config: { port: number; accessMode: AccessMode; customBind?: string }) => {
-	      if (!configSnapshot?.hash) return;
+	      if (!configSnapshot?.hash) {return;}
 
       // Map access mode back to gateway config
       let mode: string | undefined;

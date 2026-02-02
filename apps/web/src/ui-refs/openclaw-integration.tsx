@@ -27,7 +27,7 @@ export type OpenClawEventAction =
   // Tool actions
   | 'pending' | 'approved' | 'rejected' | 'executing' | 'executed'
   // Workflow actions
-  | 'started' | 'paused' | 'resumed' | 'cancelled' | 'waiting_approval' | 'waiting_input';
+  | 'started' | 'paused'   | 'cancelled' | 'waiting_approval' | 'waiting_input';
 
 /**
  * OpenClaw Hook Event - the core event structure
@@ -237,11 +237,11 @@ export class OpenClawEventBus extends EventEmitter {
    * Get event history (for debugging/replay)
    */
   getHistory(filter?: { type?: OpenClawEventType; action?: OpenClawEventAction }): OpenClawHookEvent[] {
-    if (!filter) return [...this.eventHistory];
+    if (!filter) {return [...this.eventHistory];}
     
     return this.eventHistory.filter(e => {
-      if (filter.type && e.type !== filter.type) return false;
-      if (filter.action && e.action !== filter.action) return false;
+      if (filter.type && e.type !== filter.type) {return false;}
+      if (filter.action && e.action !== filter.action) {return false;}
       return true;
     });
   }
@@ -459,7 +459,7 @@ export class OpenClawGatewayClient {
 
     const eventKey = `${type}:${action}` as keyof OpenClawEvents;
     this.eventBus.emit(eventKey, event as any);
-    this.eventBus.triggerHooks(event);
+    void this.eventBus.triggerHooks(event);
   }
 
   /**
@@ -752,7 +752,7 @@ export function useOpenClawWorkflow(callbacks?: WorkflowCallbacks) {
     });
     
     // Send to gateway
-    gateway?.rpc('tool.approve', { toolCallId, modifiedArgs });
+    void gateway?.rpc('tool.approve', { toolCallId, modifiedArgs });
   }, [eventBus, gateway]);
 
   const rejectTool = useCallback((toolCallId: string, reason?: string) => {
@@ -766,7 +766,7 @@ export function useOpenClawWorkflow(callbacks?: WorkflowCallbacks) {
       context: {},
     });
     
-    gateway?.rpc('tool.reject', { toolCallId, reason });
+    void gateway?.rpc('tool.reject', { toolCallId, reason });
   }, [eventBus, gateway]);
 
   return {

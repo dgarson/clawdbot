@@ -22,7 +22,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function readStringField(obj: unknown, field: string): string | null {
-  if (!isRecord(obj)) return null;
+  if (!isRecord(obj)) {return null;}
   const value = obj[field];
   return typeof value === "string" ? value : null;
 }
@@ -85,11 +85,11 @@ export function ReagraphView<TNodeData = unknown, TEdgeData = unknown>({
 
     loadReagraphModule()
       .then(({ GraphCanvas }) => {
-        if (cancelled) return;
+        if (cancelled) {return;}
         setGraphCanvas(() => GraphCanvas);
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
+        if (cancelled) {return;}
         const message = err instanceof Error ? err.message : String(err);
         setLoadError(message);
       });
@@ -126,7 +126,7 @@ export function ReagraphView<TNodeData = unknown, TEdgeData = unknown>({
   const handleNodeClick = React.useCallback(
     (node: unknown) => {
       const nodeId = readStringField(node, "id");
-      if (!nodeId) return;
+      if (!nodeId) {return;}
       onNodeClick?.(nodeId);
     },
     [onNodeClick]
@@ -135,7 +135,7 @@ export function ReagraphView<TNodeData = unknown, TEdgeData = unknown>({
   const handleEdgeClick = React.useCallback(
     (edge: unknown) => {
       const edgeId = readStringField(edge, "id");
-      if (!edgeId) return;
+      if (!edgeId) {return;}
       onEdgeClick?.(edgeId);
     },
     [onEdgeClick]
@@ -166,7 +166,7 @@ export function ReagraphView<TNodeData = unknown, TEdgeData = unknown>({
   }
 
   const props: Record<string, unknown> = {
-    ...(reagraphProps ?? {}),
+    ...reagraphProps,
     nodes,
     edges,
   };
@@ -177,17 +177,17 @@ export function ReagraphView<TNodeData = unknown, TEdgeData = unknown>({
 
   const mergedOnNodeClick = (node: unknown, ...rest: unknown[]) => {
     handleNodeClick(node);
-    if (typeof externalOnNodeClick === "function") (externalOnNodeClick as (...args: unknown[]) => void)(node, ...rest);
+    if (typeof externalOnNodeClick === "function") {(externalOnNodeClick as (...args: unknown[]) => void)(node, ...rest);}
   };
 
   const mergedOnEdgeClick = (edge: unknown, ...rest: unknown[]) => {
     handleEdgeClick(edge);
-    if (typeof externalOnEdgeClick === "function") (externalOnEdgeClick as (...args: unknown[]) => void)(edge, ...rest);
+    if (typeof externalOnEdgeClick === "function") {(externalOnEdgeClick as (...args: unknown[]) => void)(edge, ...rest);}
   };
 
   const mergedOnCanvasClick = (...args: unknown[]) => {
     onCanvasClick?.();
-    if (typeof externalOnCanvasClick === "function") (externalOnCanvasClick as (...args: unknown[]) => void)(...args);
+    if (typeof externalOnCanvasClick === "function") {(externalOnCanvasClick as (...args: unknown[]) => void)(...args);}
   };
 
   return React.createElement(GraphCanvas, {

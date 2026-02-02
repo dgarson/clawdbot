@@ -57,7 +57,7 @@ export function ImportDropzone({
     e.preventDefault();
     setIsDragging(false);
 
-    if (disabled) return;
+    if (disabled) {return;}
 
     const file = e.dataTransfer.files[0];
     if (file) {

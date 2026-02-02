@@ -33,7 +33,7 @@ export function SessionChatInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || disabled || isStreaming) return;
+    if (!message.trim() || disabled || isStreaming) {return;}
     onSend(message);
     setMessage("");
     if (textareaRef.current) {

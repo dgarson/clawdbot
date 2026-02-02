@@ -126,12 +126,12 @@ export function useAgents() {
   }, [query.data, upsertAgents]);
 
   const mergedAgents = React.useMemo(() => {
-    if (!query.data) return query.data;
-    if (storeAgents.length === 0) return query.data;
+    if (!query.data) {return query.data;}
+    if (storeAgents.length === 0) {return query.data;}
     const byId = new Map(storeAgents.map((agent) => [agent.id, agent]));
     return query.data.map((agent) => {
       const live = byId.get(agent.id);
-      if (!live) return agent;
+      if (!live) {return agent;}
       return {
         ...agent,
         ...live,

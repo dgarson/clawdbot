@@ -81,7 +81,7 @@ const WorkflowContext = createContext(null);
 
 const useWorkflow = () => {
   const context = useContext(WorkflowContext);
-  if (!context) throw new Error('useWorkflow must be used within WorkflowProvider');
+  if (!context) {throw new Error('useWorkflow must be used within WorkflowProvider');}
   return context;
 };
 
@@ -119,7 +119,7 @@ const Dropdown = ({ value, onChange, options, label, renderOption, className = '
 
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) {setIsOpen(false);}
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -283,7 +283,7 @@ const ToolApprovalCard = ({ toolCall, onApprove, onReject, onModify, status = 'p
                     try {
                       onModify?.(JSON.parse(editedArgs));
                       setIsEditing(false);
-                    } catch (e) {
+                    } catch  {
                       alert('Invalid JSON');
                       return;
                     }
@@ -566,7 +566,7 @@ const CommandPalette = ({ isOpen, onClose, onCommand }) => {
   ], []);
 
   const filtered = useMemo(() => {
-    if (!query) return commands;
+    if (!query) {return commands;}
     const q = query.toLowerCase();
     return commands.filter(c => c.label.toLowerCase().includes(q) || c.shortcut?.toLowerCase() === q);
   }, [commands, query]);
@@ -612,7 +612,7 @@ const CommandPalette = ({ isOpen, onClose, onCommand }) => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
@@ -667,7 +667,7 @@ const ToolPermissionPanel = ({ isOpen, onClose }) => {
   const { toolPermissions, setToolPermissions, autoApprove, setAutoApprove } = useWorkflow();
   const [activeTab, setActiveTab] = useState('tiers');
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
@@ -973,7 +973,7 @@ export default function AgenticWorkflow() {
       
       if (autoApprove || permission === 'auto') {
         // Auto-execute
-        executeToolCall(tc);
+        void executeToolCall(tc);
       } else if (permission === 'deny') {
         // Auto-reject
         rejectToolCall(tc.toolCallId);
@@ -1007,7 +1007,7 @@ export default function AgenticWorkflow() {
 
   const approveToolCall = (toolCallId) => {
     const tc = pendingToolCalls.find(t => t.toolCallId === toolCallId);
-    if (tc) executeToolCall(tc);
+    if (tc) {void executeToolCall(tc);}
   };
 
   const rejectToolCall = (toolCallId) => {

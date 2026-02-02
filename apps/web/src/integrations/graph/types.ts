@@ -69,8 +69,8 @@ export function mergeGraphById<TNodeData, TEdgeData>(
   const nodeById = new Map(base.nodes.map((n) => [n.id, n] as const));
   const edgeById = new Map(base.edges.map((e) => [e.id, e] as const));
 
-  for (const node of patch.nodes) nodeById.set(node.id, node);
-  for (const edge of patch.edges) edgeById.set(edge.id, edge);
+  for (const node of patch.nodes) {nodeById.set(node.id, node);}
+  for (const edge of patch.edges) {edgeById.set(edge.id, edge);}
 
   return {
     nodes: [...nodeById.values()],
@@ -79,11 +79,11 @@ export function mergeGraphById<TNodeData, TEdgeData>(
 }
 
 export function normalizeSelection(input: unknown): GraphSelection {
-  if (!isRecord(input)) return { type: "none" };
+  if (!isRecord(input)) {return { type: "none" };}
   const type = input.type;
   const id = input.id;
-  if (type === "node" && typeof id === "string") return { type: "node", id };
-  if (type === "edge" && typeof id === "string") return { type: "edge", id };
+  if (type === "node" && typeof id === "string") {return { type: "node", id };}
+  if (type === "edge" && typeof id === "string") {return { type: "edge", id };}
   return { type: "none" };
 }
 

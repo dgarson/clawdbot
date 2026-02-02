@@ -96,7 +96,7 @@ function AgentsPage() {
 
   // Filter and sort agents
   const filteredAgents = React.useMemo(() => {
-    if (!agents) return [];
+    if (!agents) {return [];}
 
     let result = [...agents];
 
@@ -157,7 +157,7 @@ function AgentsPage() {
 
   // Stats
   const stats = React.useMemo(() => {
-    if (!agents) return { total: 0, online: 0, busy: 0 };
+    if (!agents) {return { total: 0, online: 0, busy: 0 };}
     return {
       total: agents.length,
       online: agents.filter((a) => a.status === "online").length,
@@ -357,7 +357,7 @@ function AgentsPage() {
         <NewSessionDialog
           open={!!newSessionAgent}
           onOpenChange={(open) => {
-            if (!open) setNewSessionAgent(null);
+            if (!open) {setNewSessionAgent(null);}
           }}
           agentId={newSessionAgent.id}
           agentName={newSessionAgent.name}

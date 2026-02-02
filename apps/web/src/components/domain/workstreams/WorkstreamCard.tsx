@@ -78,7 +78,7 @@ function formatDueDate(dueDate: string): string {
 }
 
 function getOwnerInitials(owner: Agent | null | undefined): string {
-  if (!owner?.name) return "?";
+  if (!owner?.name) {return "?";}
   return owner.name
     .split(" ")
     .map((n) => n[0])

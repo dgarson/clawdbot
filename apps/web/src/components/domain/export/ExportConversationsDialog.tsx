@@ -54,7 +54,7 @@ export function ExportConversationsDialog({
   }, [open]);
 
   const sortedConversations = React.useMemo(() => {
-    return [...conversations].sort((a, b) =>
+    return [...conversations].toSorted((a, b) =>
       new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
   }, [conversations]);
@@ -93,10 +93,10 @@ export function ExportConversationsDialog({
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays}d ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+    if (diffDays === 0) {return "Today";}
+    if (diffDays === 1) {return "Yesterday";}
+    if (diffDays < 7) {return `${diffDays}d ago`;}
+    if (diffDays < 30) {return `${Math.floor(diffDays / 7)}w ago`;}
     return `${Math.floor(diffDays / 30)}mo ago`;
   };
 

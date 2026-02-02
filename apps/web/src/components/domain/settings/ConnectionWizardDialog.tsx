@@ -81,9 +81,9 @@ interface ConnectionWizardDialogProps {
 }
 
 function maskSecret(value: string) {
-  if (!value) return "";
+  if (!value) {return "";}
   const trimmed = value.trim();
-  if (trimmed.length <= 6) return "••••••";
+  if (trimmed.length <= 6) {return "••••••";}
   return `${trimmed.slice(0, 2)}••••${trimmed.slice(-2)}`;
 }
 
@@ -108,7 +108,7 @@ export function ConnectionWizardDialog({
   const syncOptions = connection.syncOptions ?? EMPTY_SYNC_OPTIONS;
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
     setCurrentStep(0);
     setSelectedMethodId(connection.authMethods[0]?.id ?? "");
     setValues({});
@@ -125,7 +125,7 @@ export function ConnectionWizardDialog({
 
   const steps = React.useMemo(() => {
     const list = ["Method", "Access"];
-    if (syncOptions.length > 0) list.push("Preferences");
+    if (syncOptions.length > 0) {list.push("Preferences");}
     list.push("Review");
     return list;
   }, [syncOptions.length]);
@@ -134,8 +134,8 @@ export function ConnectionWizardDialog({
   const authFields = method?.fields ?? EMPTY_AUTH_FIELDS;
 
   const isAccessComplete = React.useMemo(() => {
-    if (!method) return false;
-    if (method.type === "oauth") return oauthAuthorized;
+    if (!method) {return false;}
+    if (method.type === "oauth") {return oauthAuthorized;}
     const requiredFields = authFields.filter((field) => field.required !== false);
     return requiredFields.every((field) => values[field.id]?.trim());
   }, [authFields, method, oauthAuthorized, values]);
@@ -144,7 +144,7 @@ export function ConnectionWizardDialog({
   const isLastStep = currentStep === steps.length - 1;
 
   const handleNext = () => {
-    if (!canProceed) return;
+    if (!canProceed) {return;}
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
@@ -153,7 +153,7 @@ export function ConnectionWizardDialog({
   };
 
   const handleConnect = async () => {
-    if (!method || !isAccessComplete) return;
+    if (!method || !isAccessComplete) {return;}
     setIsConnecting(true);
     try {
       await onConnect({
@@ -169,7 +169,7 @@ export function ConnectionWizardDialog({
   };
 
   const handleDisconnect = async () => {
-    if (!onDisconnect) return;
+    if (!onDisconnect) {return;}
     setIsDisconnecting(true);
     try {
       await onDisconnect();

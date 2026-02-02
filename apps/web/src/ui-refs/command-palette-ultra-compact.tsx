@@ -285,7 +285,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [onCommandExecute, onClose]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     switch (e.key) {
       case 'ArrowDown':
@@ -328,7 +328,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [isOpen, flatCommands, selectedIndex, activeCategory, query, onClose, executeCommand]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
@@ -498,7 +498,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
 // DEMO COMPONENT
 // ============================================================================
 
-const CommandPaletteDemo: React.FC<CommandPaletteDemoProps> = () => {
+const CommandPaletteDemo: React.FC = () => {
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [recentCommands, setRecentCommands] = useState<string[]>([
     'tool-search',

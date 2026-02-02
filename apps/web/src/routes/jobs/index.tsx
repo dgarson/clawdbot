@@ -269,12 +269,12 @@ function JobsPage() {
   };
 
   const formatRelativeTime = (date?: Date) => {
-    if (!date) return "Never";
+    if (!date) {return "Never";}
     const diff = date.getTime() - baseNow;
     const absDiff = Math.abs(diff);
     const isPast = diff < 0;
 
-    if (absDiff < 60000) return isPast ? "Just now" : "In less than a minute";
+    if (absDiff < 60000) {return isPast ? "Just now" : "In less than a minute";}
     if (absDiff < 3600000) {
       const mins = Math.floor(absDiff / 60000);
       return isPast ? `${mins}m ago` : `In ${mins}m`;
@@ -530,10 +530,10 @@ function CronHelper({ value, onChange }: CronHelperProps) {
 
   const getHumanReadable = (schedule: string): string => {
     const preset = cronPresets.find((p) => p.value === schedule);
-    if (preset) return preset.label;
+    if (preset) {return preset.label;}
 
     // Simple parsing for common patterns
-    if (schedule === "* * * * *") return "Every minute";
+    if (schedule === "* * * * *") {return "Every minute";}
     if (schedule.startsWith("*/")) {
       const interval = schedule.split(" ")[0].slice(2);
       return `Every ${interval} minutes`;

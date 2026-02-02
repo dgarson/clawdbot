@@ -97,10 +97,10 @@ export function GoalProgressPanel({
 
   // Filter in-progress goals and sort by progress
   const activeGoals = React.useMemo(() => {
-    if (!goals) return [];
+    if (!goals) {return [];}
     return goals
       .filter((g) => g.status === "in_progress" || g.status === "not_started")
-      .sort((a, b) => b.progress - a.progress)
+      .toSorted((a, b) => b.progress - a.progress)
       .slice(0, maxGoals);
   }, [goals, maxGoals]);
 

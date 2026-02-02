@@ -61,11 +61,11 @@ async function loadXterm(): Promise<{
   const SearchAddon = (searchMod as AddonModule<SearchAddonLike>).SearchAddon;
   const ClipboardAddon = (clipboardMod as AddonModule<unknown>).ClipboardAddon;
 
-  if (typeof Terminal !== "function") throw new Error(`Invalid Terminal export from "${terminalModuleId}"`);
-  if (typeof FitAddon !== "function") throw new Error(`Invalid FitAddon export from "${fitModuleId}"`);
-  if (typeof WebLinksAddon !== "function") throw new Error(`Invalid WebLinksAddon export from "${weblinksModuleId}"`);
-  if (typeof SearchAddon !== "function") throw new Error(`Invalid SearchAddon export from "${searchModuleId}"`);
-  if (typeof ClipboardAddon !== "function") throw new Error(`Invalid ClipboardAddon export from "${clipboardModuleId}"`);
+  if (typeof Terminal !== "function") {throw new Error(`Invalid Terminal export from "${terminalModuleId}"`);}
+  if (typeof FitAddon !== "function") {throw new Error(`Invalid FitAddon export from "${fitModuleId}"`);}
+  if (typeof WebLinksAddon !== "function") {throw new Error(`Invalid WebLinksAddon export from "${weblinksModuleId}"`);}
+  if (typeof SearchAddon !== "function") {throw new Error(`Invalid SearchAddon export from "${searchModuleId}"`);}
+  if (typeof ClipboardAddon !== "function") {throw new Error(`Invalid ClipboardAddon export from "${clipboardModuleId}"`);}
 
   return { Terminal, FitAddon, WebLinksAddon, SearchAddon, ClipboardAddon };
 }
@@ -135,7 +135,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
     );
 
     React.useEffect(() => {
-      if (!containerRef.current) return;
+      if (!containerRef.current) {return;}
 
       let disposed = false;
       let dataDisposable: Disposable | null = null;
@@ -143,7 +143,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
 
       loadXterm()
         .then(({ Terminal, FitAddon, WebLinksAddon, SearchAddon, ClipboardAddon }) => {
-          if (disposed) return;
+          if (disposed) {return;}
 
           const terminal = new Terminal({
             cursorBlink: true,
@@ -187,7 +187,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
           }
         })
         .catch((err: unknown) => {
-          if (disposed) return;
+          if (disposed) {return;}
           const message = err instanceof Error ? err.message : String(err);
           setLoadError(message);
         });

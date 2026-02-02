@@ -91,7 +91,7 @@ export function getCategoryConfig(category: ToolCategory): CategoryConfig {
  * Get sorted categories
  */
 export function getSortedCategories(): CategoryConfig[] {
-  return [...CATEGORY_CONFIG].sort((a, b) => a.order - b.order);
+  return [...CATEGORY_CONFIG].toSorted((a, b) => a.order - b.order);
 }
 
 /**

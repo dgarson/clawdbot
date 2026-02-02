@@ -69,7 +69,7 @@ function SettingsPage() {
   }, [searchSection, activeSection]);
 
   React.useEffect(() => {
-    if (searchSection !== "agents" || !agentId) return;
+    if (searchSection !== "agents" || !agentId) {return;}
     navigate({
       search: (prev) => ({ ...prev, agentId: undefined }),
       replace: true,

@@ -154,7 +154,7 @@ export function useAgentSessions(agentId: string) {
   const { data, ...rest } = useSessions();
 
   const sessions = data?.sessions
-    ? filterSessionsByAgent(data.sessions, agentId).sort(
+    ? filterSessionsByAgent(data.sessions, agentId).toSorted(
         (a, b) => (b.lastMessageAt ?? 0) - (a.lastMessageAt ?? 0)
       )
     : [];
@@ -198,11 +198,11 @@ export function useChatEventSubscription(
 
   const handleEvent = useCallback(
     (event: GatewayEvent) => {
-      if (!sessionKey) return;
+      if (!sessionKey) {return;}
 
       if (event.event === "chat") {
         const payload = event.payload as ChatEventPayload;
-        if (payload.sessionKey !== sessionKey) return;
+        if (payload.sessionKey !== sessionKey) {return;}
 
         switch (payload.state) {
           case "delta":
@@ -226,7 +226,7 @@ export function useChatEventSubscription(
 
       if (event.event === "agent") {
         const payload = event.payload as AgentEventPayload;
-        if (payload.sessionKey !== sessionKey) return;
+        if (payload.sessionKey !== sessionKey) {return;}
         handlers.onAgentEvent?.(payload);
       }
     },
@@ -234,7 +234,7 @@ export function useChatEventSubscription(
   );
 
   useEffect(() => {
-    if (!sessionKey) return;
+    if (!sessionKey) {return;}
 
     const client = getGatewayClient();
     const originalOnEvent = client.isConnected()

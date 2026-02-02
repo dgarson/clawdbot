@@ -206,7 +206,7 @@ export function buildAgentSessionKey(agentId: string, mainKey = "main"): string 
  */
 export function parseAgentSessionKey(key: string): { agentId: string; mainKey: string } | null {
   const match = key.match(/^agent:([^:]+):(.+)$/);
-  if (!match) return null;
+  if (!match) {return null;}
   return { agentId: match[1], mainKey: match[2] };
 }
 

@@ -168,7 +168,7 @@ export const userSettingsKeys = {
 // Storage helpers
 
 function getStoredProfile(): UserProfile {
-  if (typeof window === "undefined") return DEFAULT_PROFILE;
+  if (typeof window === "undefined") {return DEFAULT_PROFILE;}
   try {
     const stored = localStorage.getItem(STORAGE_KEY_PROFILE);
     if (stored) {
@@ -181,7 +181,7 @@ function getStoredProfile(): UserProfile {
 }
 
 function getStoredPreferences(): UserPreferences {
-  if (typeof window === "undefined") return DEFAULT_PREFERENCES;
+  if (typeof window === "undefined") {return DEFAULT_PREFERENCES;}
   try {
     const stored = localStorage.getItem(STORAGE_KEY_PREFERENCES);
     if (stored) {
@@ -205,7 +205,7 @@ function getStoredPreferences(): UserPreferences {
 }
 
 function getStoredInteractionStyle(): InteractionStyle {
-  if (typeof window === "undefined") return DEFAULT_INTERACTION_STYLE;
+  if (typeof window === "undefined") {return DEFAULT_INTERACTION_STYLE;}
   try {
     const stored = localStorage.getItem(STORAGE_KEY_INTERACTION_STYLE);
     if (stored) {
@@ -218,7 +218,7 @@ function getStoredInteractionStyle(): InteractionStyle {
 }
 
 function getStoredAppearance(): Appearance {
-  if (typeof window === "undefined") return DEFAULT_APPEARANCE;
+  if (typeof window === "undefined") {return DEFAULT_APPEARANCE;}
   try {
     const stored = localStorage.getItem(STORAGE_KEY_APPEARANCE);
     if (stored) {
@@ -231,7 +231,7 @@ function getStoredAppearance(): Appearance {
 }
 
 function getStoredAccessibility(): Accessibility {
-  if (typeof window === "undefined") return DEFAULT_ACCESSIBILITY;
+  if (typeof window === "undefined") {return DEFAULT_ACCESSIBILITY;}
   try {
     const stored = localStorage.getItem(STORAGE_KEY_ACCESSIBILITY);
     if (stored) {
@@ -244,7 +244,7 @@ function getStoredAccessibility(): Accessibility {
 }
 
 function getStoredNotificationSettings(): NotificationSettings {
-  if (typeof window === "undefined") return DEFAULT_NOTIFICATION_SETTINGS;
+  if (typeof window === "undefined") {return DEFAULT_NOTIFICATION_SETTINGS;}
   try {
     const stored = localStorage.getItem(STORAGE_KEY_NOTIFICATION_SETTINGS);
     if (stored) {

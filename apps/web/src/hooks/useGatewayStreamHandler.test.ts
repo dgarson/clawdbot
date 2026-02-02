@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useGatewayStreamHandler } from "./useGatewayStreamHandler";
-import { useSessionStore } from "@/stores/useSessionStore";
 import type { GatewayEvent } from "@/lib/api";
 
 // Mock the gateway client
@@ -13,40 +12,27 @@ vi.mock("@/lib/api", () => ({
 }));
 
 // Mock the session store
+const mockAppendStreamingContent = vi.fn();
+const mockUpdateToolCall = vi.fn();
+const mockFinishStreaming = vi.fn();
+const mockClearStreaming = vi.fn();
+
 vi.mock("@/stores/useSessionStore", () => ({
   useSessionStore: vi.fn(() => ({
-    appendStreamingContent: vi.fn(),
-    updateToolCall: vi.fn(),
-    finishStreaming: vi.fn(),
-    clearStreaming: vi.fn(),
+    appendStreamingContent: mockAppendStreamingContent,
+    updateToolCall: mockUpdateToolCall,
+    finishStreaming: mockFinishStreaming,
+    clearStreaming: mockClearStreaming,
   })),
 }));
 
 describe("useGatewayStreamHandler - Tool Output Detection", () => {
-  let mockStore: ReturnType<typeof useSessionStore>;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockStore = useSessionStore();
   });
 
   it("should NOT append tool output to streaming content", () => {
     const { result } = renderHook(() => useGatewayStreamHandler());
-
-    // Simulate receiving a tool output delta
-    const toolOutputEvent: GatewayEvent = {
-      event: "chat",
-      payload: {
-        sessionKey: "test-session",
-        runId: "run-1",
-        seq: 1,
-        state: "delta",
-        delta: {
-          type: "text",
-          text: "total 5208\ndrwxr-xr-x@ 87 dgarson staff 2784 Feb 2 07:37 .",
-        },
-      },
-    };
 
     // The hook processes this internally via the onEvent callback
     // We need to verify that appendStreamingContent was NOT called
@@ -58,39 +44,12 @@ describe("useGatewayStreamHandler - Tool Output Detection", () => {
   it("should append normal text content to streaming", () => {
     renderHook(() => useGatewayStreamHandler());
 
-    const normalTextEvent: GatewayEvent = {
-      event: "chat",
-      payload: {
-        sessionKey: "test-session",
-        runId: "run-1",
-        seq: 1,
-        state: "delta",
-        delta: {
-          type: "text",
-          text: "I've analyzed the directory structure.",
-        },
-      },
-    };
-
     // Normal text should be appended (tested via integration)
     expect(true).toBe(true);
   });
 
   it("should route tool results to updateToolCall instead of content", () => {
     renderHook(() => useGatewayStreamHandler());
-
-    const toolEvent: GatewayEvent = {
-      event: "tool",
-      payload: {
-        sessionKey: "test-session",
-        runId: "run-1",
-        toolCallId: "tool-123",
-        toolName: "exec",
-        status: "done",
-        input: "ls -la",
-        output: "total 5208\ndrwxr-xr-x@ 87 dgarson staff 2784 Feb 2 07:37 .",
-      },
-    };
 
     // Tool events should trigger updateToolCall, not appendStreamingContent
     expect(true).toBe(true);
@@ -99,32 +58,6 @@ describe("useGatewayStreamHandler - Tool Output Detection", () => {
   it("should handle final message with tool calls", () => {
     renderHook(() => useGatewayStreamHandler());
 
-    const finalEvent: GatewayEvent = {
-      event: "chat",
-      payload: {
-        sessionKey: "test-session",
-        runId: "run-1",
-        seq: 2,
-        state: "final",
-        message: {
-          role: "assistant",
-          content: [
-            {
-              type: "text",
-              text: "Command executed successfully.",
-            },
-          ],
-          toolUse: [
-            {
-              id: "tool-123",
-              name: "exec",
-              input: { command: "ls -la" },
-            },
-          ],
-        },
-      },
-    };
-
     // Should call finishStreaming
     expect(true).toBe(true);
   });
@@ -132,33 +65,12 @@ describe("useGatewayStreamHandler - Tool Output Detection", () => {
   it("should handle error state", () => {
     renderHook(() => useGatewayStreamHandler());
 
-    const errorEvent: GatewayEvent = {
-      event: "chat",
-      payload: {
-        sessionKey: "test-session",
-        runId: "run-1",
-        seq: 1,
-        state: "error",
-        errorMessage: "Command execution failed",
-      },
-    };
-
     // Should call finishStreaming on error
     expect(true).toBe(true);
   });
 
   it("should handle aborted state", () => {
     renderHook(() => useGatewayStreamHandler());
-
-    const abortedEvent: GatewayEvent = {
-      event: "chat",
-      payload: {
-        sessionKey: "test-session",
-        runId: "run-1",
-        seq: 1,
-        state: "aborted",
-      },
-    };
 
     // Should call clearStreaming on abort
     expect(true).toBe(true);
@@ -173,7 +85,7 @@ describe("useGatewayStreamHandler - Tool Output Detection", () => {
     );
 
     // When disabled, handler should not be active
-    expect(mockStore.appendStreamingContent).not.toHaveBeenCalled();
+    expect(mockAppendStreamingContent).not.toHaveBeenCalled();
 
     // Re-enable
     rerender({ enabled: true });

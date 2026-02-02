@@ -212,7 +212,7 @@ export async function verifyProviderApiKey(
  * Extract model IDs from provider response
  */
 function extractModelIds(provider: ModelProviderId, data: unknown): string[] {
-  if (!data || typeof data !== "object") return [];
+  if (!data || typeof data !== "object") {return [];}
 
   switch (provider) {
     case "anthropic":

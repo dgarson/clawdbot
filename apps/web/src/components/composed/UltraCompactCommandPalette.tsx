@@ -65,13 +65,13 @@ export function UltraCompactCommandPalette({
   const filteredCommands = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     return commands.filter((cmd) => {
-      if (cmd.disabled) return false;
-      if (activeCategory && cmd.category !== activeCategory) return false;
-      if (!q) return true;
-      if (cmd.label.toLowerCase().includes(q)) return true;
-      if (cmd.description?.toLowerCase().includes(q)) return true;
-      if (cmd.keywords?.some((k) => k.toLowerCase().includes(q))) return true;
-      if (cmd.shortcut?.toLowerCase() === q) return true;
+      if (cmd.disabled) {return false;}
+      if (activeCategory && cmd.category !== activeCategory) {return false;}
+      if (!q) {return true;}
+      if (cmd.label.toLowerCase().includes(q)) {return true;}
+      if (cmd.description?.toLowerCase().includes(q)) {return true;}
+      if (cmd.keywords?.some((k) => k.toLowerCase().includes(q))) {return true;}
+      if (cmd.shortcut?.toLowerCase() === q) {return true;}
       return false;
     });
   }, [commands, query, activeCategory]);
@@ -98,8 +98,8 @@ export function UltraCompactCommandPalette({
     for (const catId of presentCategories) {
       const meta = categories[catId];
       let catCommands = filteredCommands.filter((c) => c.category === catId);
-      if (showRecent) catCommands = catCommands.filter((c) => !recentSet.has(c.id));
-      if (catCommands.length === 0) continue;
+      if (showRecent) {catCommands = catCommands.filter((c) => !recentSet.has(c.id));}
+      if (catCommands.length === 0) {continue;}
       groups.push({
         id: catId,
         name: meta?.name ?? catId,
@@ -119,13 +119,13 @@ export function UltraCompactCommandPalette({
   const execute = React.useCallback(
     (cmd: PaletteCommand) => {
       onExecute?.(cmd);
-      if (!cmd.hasSubmenu) onOpenChange(false);
+      if (!cmd.hasSubmenu) {onOpenChange(false);}
     },
     [onExecute, onOpenChange]
   );
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
     setQuery("");
     setSelectedIndex(0);
     setActiveCategory(null);
@@ -146,7 +146,7 @@ export function UltraCompactCommandPalette({
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
-      if (!open) return;
+      if (!open) {return;}
 
       switch (e.key) {
         case "ArrowDown":
@@ -159,7 +159,7 @@ export function UltraCompactCommandPalette({
           return;
         case "Enter":
           e.preventDefault();
-          if (flatCommands[selectedIndex]) execute(flatCommands[selectedIndex]);
+          if (flatCommands[selectedIndex]) {execute(flatCommands[selectedIndex]);}
           return;
         case "Escape":
           e.preventDefault();

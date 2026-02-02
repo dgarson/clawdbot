@@ -59,7 +59,7 @@ export function AgentRitualsTab({ agentId }: AgentRitualsTabProps) {
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
-    if (!newRitualId || !rituals?.length) return;
+    if (!newRitualId || !rituals?.length) {return;}
     const target = document.querySelector(`[data-ritual-id="${newRitualId}"]`);
     if (target instanceof HTMLElement) {
       target.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -69,7 +69,7 @@ export function AgentRitualsTab({ agentId }: AgentRitualsTabProps) {
   }, [newRitualId, rituals]);
 
   React.useEffect(() => {
-    if (!highlightedRitualId) return;
+    if (!highlightedRitualId) {return;}
     const timer = window.setTimeout(() => setHighlightedRitualId(null), 2400);
     return () => window.clearTimeout(timer);
   }, [highlightedRitualId]);

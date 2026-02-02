@@ -98,17 +98,17 @@ const frequencyConfig: Record<RitualFrequency, { label: string; color: string; h
 };
 
 function formatNextOccurrence(date?: Date): string {
-  if (!date) return "Not scheduled";
+  if (!date) {return "Not scheduled";}
 
   const now = new Date();
   const diff = date.getTime() - now.getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(hours / 24);
 
-  if (diff < 0) return "Overdue";
-  if (hours < 1) return "Less than an hour";
-  if (hours < 24) return `In ${hours} hour${hours !== 1 ? "s" : ""}`;
-  if (days < 7) return `In ${days} day${days !== 1 ? "s" : ""}`;
+  if (diff < 0) {return "Overdue";}
+  if (hours < 1) {return "Less than an hour";}
+  if (hours < 24) {return `In ${hours} hour${hours !== 1 ? "s" : ""}`;}
+  if (days < 7) {return `In ${days} day${days !== 1 ? "s" : ""}`;}
 
   return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
@@ -122,7 +122,7 @@ function formatTime(time: string): string {
 }
 
 function formatSessionTime(dateString?: string): string {
-  if (!dateString) return "Unknown time";
+  if (!dateString) {return "Unknown time";}
   return new Date(dateString).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",

@@ -68,7 +68,7 @@ export function AgentToolsTab({ agentId }: AgentToolsTabProps) {
 
   // Find the selected toolset
   const selectedToolset = React.useMemo(() => {
-    if (selectedToolsetId === "custom") return null;
+    if (selectedToolsetId === "custom") {return null;}
     return getToolsetById(selectedToolsetId, customToolsets) ?? null;
   }, [selectedToolsetId, customToolsets]);
 

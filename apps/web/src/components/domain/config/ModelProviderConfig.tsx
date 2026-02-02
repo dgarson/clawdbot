@@ -299,7 +299,7 @@ export function ModelProviderConfig({
   };
 
   const handleTestConnection = async () => {
-    if (!state.selectedProvider || !state.apiKey.trim()) return;
+    if (!state.selectedProvider || !state.apiKey.trim()) {return;}
 
     setState((prev) => ({
       ...prev,
@@ -343,7 +343,7 @@ export function ModelProviderConfig({
       state.connectionStatus !== "success" ||
       !configSnapshot
     )
-      return;
+      {return;}
 
     try {
       await saveApiKey.mutateAsync({

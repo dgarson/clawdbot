@@ -169,12 +169,12 @@ export function ApprovalAttentionNudgeConnected(props: ApprovalAttentionNudgeCon
   // When snoozed and there are still pending approvals, re-alert at the snooze boundary.
   React.useEffect(() => {
     if (summary.pendingApprovals <= 0) {
-      if (snoozeUntilMs !== 0) clearSnooze();
+      if (snoozeUntilMs !== 0) {clearSnooze();}
       return;
     }
 
     const now = Date.now();
-    if (snoozeUntilMs <= now) return;
+    if (snoozeUntilMs <= now) {return;}
 
     const ms = snoozeUntilMs - now;
     const id = window.setTimeout(() => {
@@ -195,7 +195,7 @@ export function ApprovalAttentionNudgeConnected(props: ApprovalAttentionNudgeCon
   }, [navigate]);
 
   const onOpenNext = React.useCallback(() => {
-    if (!summary.nextAgentId) return;
+    if (!summary.nextAgentId) {return;}
     navigate({
       to: "/agents/$agentId",
       params: { agentId: summary.nextAgentId },
@@ -212,7 +212,7 @@ export function ApprovalAttentionNudgeConnected(props: ApprovalAttentionNudgeCon
     [setSnoozeUntil]
   );
 
-  if (summary.pendingApprovals <= 0) return null;
+  if (summary.pendingApprovals <= 0) {return null;}
 
   return (
     <ApprovalAttentionNudge

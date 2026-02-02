@@ -83,7 +83,7 @@ export function GoalDetailPanel({
   onEdit,
   className,
 }: GoalDetailPanelProps) {
-  if (!goal) return null;
+  if (!goal) {return null;}
 
   const status = statusConfig[goal.status] || statusConfig.active;
   const completedMilestones = goal.milestones.filter((m) => m.completed).length;

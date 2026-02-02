@@ -71,7 +71,7 @@ export function ToolApprovalCard({
   const title = meta?.title ?? toolCall.toolName;
 
   const approve = () => {
-    if (!onApprove) return;
+    if (!onApprove) {return;}
 
     if (!editing) {
       onApprove(toolCall.toolCallId);

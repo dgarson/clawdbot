@@ -42,13 +42,13 @@ export function ConversationList({
 
   // Create agent lookup map
   const agentMap = React.useMemo(() => {
-    if (!agents) return new Map<string, Agent>();
+    if (!agents) {return new Map<string, Agent>();}
     return new Map(agents.map((agent) => [agent.id, agent]));
   }, [agents]);
 
   // Filter conversations
   const filteredConversations = React.useMemo(() => {
-    if (!conversations) return [];
+    if (!conversations) {return [];}
 
     return conversations.filter((conv) => {
       // Search filter

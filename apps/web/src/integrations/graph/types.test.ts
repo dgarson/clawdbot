@@ -20,8 +20,8 @@ describe("integrations/graph", () => {
     };
 
     const merged = mergeGraphById(base, patch);
-    expect(merged.nodes.map((n) => n.id).sort()).toEqual(["a", "b"]);
-    expect(merged.edges.map((e) => e.id).sort()).toEqual(["e1", "e2"]);
+    expect(merged.nodes.map((n) => n.id).toSorted()).toEqual(["a", "b"]);
+    expect(merged.edges.map((e) => e.id).toSorted()).toEqual(["e1", "e2"]);
 
     expect(merged.nodes.find((n) => n.id === "a")?.label).toBe("A2");
     expect(merged.edges.find((e) => e.id === "e1")?.data?.v).toBe(2);

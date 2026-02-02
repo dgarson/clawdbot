@@ -281,7 +281,7 @@ export function GatewayConfig({
   }, [port, accessMode, customBind, initialPort, initialAccessMode, initialCustomBind]);
 
   const handleSave = () => {
-    if (!isFormValid) return;
+    if (!isFormValid) {return;}
     onConfigChange?.({ port, accessMode, customBind });
     setHasChanges(false);
     showSuccess("Gateway configuration saved");

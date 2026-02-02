@@ -18,7 +18,7 @@ import {
 } from "@/components/domain/settings";
 import { useUIStore } from "@/stores/useUIStore";
 
-const ALL_SECTIONS: ProfileSectionType[] = [
+const ALL_SECTIONS = new Set<ProfileSectionType>([
   "profile",
   "interaction-style",
   "appearance",
@@ -27,14 +27,14 @@ const ALL_SECTIONS: ProfileSectionType[] = [
   "availability",
   "privacy",
   "activity",
-];
+]);
 
 export const Route = createFileRoute("/you/")({
   component: YouPage,
   validateSearch: (search: Record<string, unknown>): { section?: ProfileSectionType } => {
     const section = search.section as ProfileSectionType | undefined;
     return {
-      section: section && ALL_SECTIONS.includes(section) ? section : undefined,
+      section: section && ALL_SECTIONS.has(section) ? section : undefined,
     };
   },
 });

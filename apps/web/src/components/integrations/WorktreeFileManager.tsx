@@ -32,17 +32,17 @@ function normalizePath(path: string): string {
 
 function parentPath(path: string): string {
   const parts = splitPath(path);
-  if (parts.length <= 1) return "/";
+  if (parts.length <= 1) {return "/";}
   return `/${parts.slice(0, -1).join("/")}`;
 }
 
 function formatBytes(bytes?: number): string {
-  if (typeof bytes !== "number") return "—";
-  if (bytes < 1024) return `${bytes} B`;
+  if (typeof bytes !== "number") {return "—";}
+  if (bytes < 1024) {return `${bytes} B`;}
   const kb = bytes / 1024;
-  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  if (kb < 1024) {return `${kb.toFixed(1)} KB`;}
   const mb = kb / 1024;
-  if (mb < 1024) return `${mb.toFixed(1)} MB`;
+  if (mb < 1024) {return `${mb.toFixed(1)} MB`;}
   const gb = mb / 1024;
   return `${gb.toFixed(1)} GB`;
 }

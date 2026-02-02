@@ -36,7 +36,7 @@ export function createDefaultWorktreeEndpoints(): WorktreeHttpEndpoints {
 
 async function fetchJson<T>(url: string, init: RequestInit, ctx: WorktreeAdapterContext): Promise<T> {
   const res = await fetch(url, { ...init, signal: ctx.signal });
-  if (!res.ok) throw new Error(`Worktree API failed: ${res.status} ${res.statusText}`);
+  if (!res.ok) {throw new Error(`Worktree API failed: ${res.status} ${res.statusText}`);}
   return (await res.json()) as T;
 }
 

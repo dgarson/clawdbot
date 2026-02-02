@@ -42,13 +42,13 @@ export function OpenClawProvider({
 
 export function useOpenClawEvents() {
   const ctx = React.useContext(OpenClawContext);
-  if (!ctx) throw new Error("useOpenClawEvents must be used within OpenClawProvider");
+  if (!ctx) {throw new Error("useOpenClawEvents must be used within OpenClawProvider");}
   return ctx.eventBus;
 }
 
 export function useOpenClawGateway() {
   const ctx = React.useContext(OpenClawContext);
-  if (!ctx) throw new Error("useOpenClawGateway must be used within OpenClawProvider");
+  if (!ctx) {throw new Error("useOpenClawGateway must be used within OpenClawProvider");}
   return ctx.gateway;
 }
 
@@ -91,7 +91,7 @@ export function useOpenClawWorkflow(callbacks?: WorkflowCallbacks) {
   const [isConnected, setIsConnected] = React.useState(false);
 
   React.useEffect(() => {
-    if (!callbacks) return;
+    if (!callbacks) {return;}
     return registerWorkflowCallbacks(eventBus, callbacks);
   }, [eventBus, callbacks]);
 
@@ -106,7 +106,7 @@ export function useOpenClawWorkflow(callbacks?: WorkflowCallbacks) {
 
   useOpenClawEvent("tool:pending", (e) => {
     const data = e.data;
-    if (!data) return;
+    if (!data) {return;}
     setPendingTools((prev) => [...prev, data]);
   });
 

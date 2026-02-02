@@ -512,7 +512,7 @@ export function ImperativeApiExample() {
 
   const runDemo = async () => {
     const terminal = terminalRef.current;
-    if (!terminal) return;
+    if (!terminal) {return;}
 
     // Write styled output
     terminal.writeln('');

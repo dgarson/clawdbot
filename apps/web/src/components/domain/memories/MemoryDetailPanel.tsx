@@ -81,13 +81,13 @@ export function MemoryDetailPanel({
     }
   }, [memory, open]);
 
-  if (!memory) return null;
+  if (!memory) {return null;}
 
   const typeInfo = typeConfig[memory.type];
   const TypeIcon = typeInfo.icon;
 
   const handleSave = () => {
-    if (!onSave) return;
+    if (!onSave) {return;}
     onSave({
       ...memory,
       content: editedContent,

@@ -36,7 +36,7 @@ export function QuestionCard({ question, className, onSubmit }: QuestionCardProp
       : selected.length > 0);
 
   const submit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit) {return;}
     onSubmit?.(
       question.id,
       question.type === "text"

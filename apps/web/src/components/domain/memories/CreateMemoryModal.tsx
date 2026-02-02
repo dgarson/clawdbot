@@ -220,7 +220,7 @@ export function CreateMemoryModal({
                         value={title}
                         onChange={(e) => {
                           setTitle(e.target.value);
-                          if (errors.title) setErrors({ ...errors, title: undefined });
+                          if (errors.title) {setErrors({ ...errors, title: undefined });}
                         }}
                         placeholder="Give this memory a descriptive title"
                         className={cn(
@@ -278,7 +278,7 @@ export function CreateMemoryModal({
                             value={content}
                             onChange={(e) => {
                               setContent(e.target.value);
-                              if (errors.content) setErrors({ ...errors, content: undefined });
+                              if (errors.content) {setErrors({ ...errors, content: undefined });}
                             }}
                             placeholder="Write your memory content... (Markdown supported)"
                             className={cn(

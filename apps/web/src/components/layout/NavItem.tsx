@@ -42,7 +42,7 @@ export function NavItem({
   const pathname = routerState.location.pathname ?? "";
 
   const readSearchValue = (value: unknown): string | null => {
-    if (value == null) return null;
+    if (value == null) {return null;}
     if (Array.isArray(value)) {
       const first = value[0];
       return first == null ? null : String(first);
@@ -116,7 +116,7 @@ export function NavItem({
       </button>
     );
 
-    if (!collapsed) return button;
+    if (!collapsed) {return button;}
 
     return (
       <Tooltip delayDuration={200}>
@@ -138,7 +138,7 @@ export function NavItem({
     </Link>
   );
 
-  if (!collapsed) return link;
+  if (!collapsed) {return link;}
 
   return (
     <Tooltip delayDuration={200}>

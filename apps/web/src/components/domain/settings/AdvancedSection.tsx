@@ -80,8 +80,8 @@ export function AdvancedSection({ className, onOpenShortcuts }: AdvancedSectionP
     // Apply UI settings
     if (sections.includes("uiSettings") && data.data.uiSettings) {
       const ui = data.data.uiSettings;
-      if (ui.theme) setTheme(ui.theme);
-      if (ui.powerUserMode !== undefined) setPowerUserMode(ui.powerUserMode);
+      if (ui.theme) {setTheme(ui.theme);}
+      if (ui.powerUserMode !== undefined) {setPowerUserMode(ui.powerUserMode);}
       // Note: sidebarCollapsed is also available but typically not imported
     }
 

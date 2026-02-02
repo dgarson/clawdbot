@@ -207,13 +207,13 @@ export function useNeedsUnlock(): boolean {
   const { state, isLoading } = useSecurity();
 
   // While loading, assume no unlock needed to prevent flash
-  if (isLoading) return false;
+  if (isLoading) {return false;}
 
   // If lock not enabled, no unlock needed
-  if (!state.lockEnabled) return false;
+  if (!state.lockEnabled) {return false;}
 
   // If already unlocked, no unlock needed
-  if (state.isUnlocked) return false;
+  if (state.isUnlocked) {return false;}
 
   return true;
 }

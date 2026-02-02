@@ -204,9 +204,9 @@ function NodesPage() {
 
   const formatLastSeen = (date: Date) => {
     const diff = baseNow - date.getTime();
-    if (diff < 60000) return "Just now";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    if (diff < 60000) {return "Just now";}
+    if (diff < 3600000) {return `${Math.floor(diff / 60000)}m ago`;}
+    if (diff < 86400000) {return `${Math.floor(diff / 3600000)}h ago`;}
     return `${Math.floor(diff / 86400000)}d ago`;
   };
 
@@ -219,7 +219,7 @@ function NodesPage() {
   };
 
   const saveConfig = () => {
-    if (!selectedDevice) return;
+    if (!selectedDevice) {return;}
 
     setDevices((prev) =>
       prev.map((d) =>

@@ -61,10 +61,10 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
   const initialEditHandledRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!initialEditAgentId) return;
-    if (initialEditHandledRef.current) return;
+    if (!initialEditAgentId) {return;}
+    if (initialEditHandledRef.current) {return;}
     const agent = agents.find((item) => item.id === initialEditAgentId);
-    if (!agent) return;
+    if (!agent) {return;}
     setEditingAgent(agent);
     setIsFormOpen(true);
     initialEditHandledRef.current = true;

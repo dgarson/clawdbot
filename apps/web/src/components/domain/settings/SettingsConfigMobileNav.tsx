@@ -68,7 +68,7 @@ export function SettingsConfigMobileNav({
   // Update scroll fade indicators
   const updateScrollFades = React.useCallback(() => {
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
     const threshold = 10;
@@ -80,7 +80,7 @@ export function SettingsConfigMobileNav({
   // Initialize and listen for scroll
   React.useEffect(() => {
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     updateScrollFades();
 
@@ -97,7 +97,7 @@ export function SettingsConfigMobileNav({
   React.useEffect(() => {
     const button = activeButtonRef.current;
     const container = scrollContainerRef.current;
-    if (!button || !container) return;
+    if (!button || !container) {return;}
 
     const containerRect = container.getBoundingClientRect();
     const buttonRect = button.getBoundingClientRect();

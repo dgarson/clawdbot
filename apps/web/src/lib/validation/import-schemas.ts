@@ -233,7 +233,7 @@ export async function parseImportFile(
 export function detectExportType(
   data: unknown
 ): "configuration" | "conversation" | "unknown" {
-  if (!data || typeof data !== "object") return "unknown";
+  if (!data || typeof data !== "object") {return "unknown";}
 
   const obj = data as Record<string, unknown>;
 

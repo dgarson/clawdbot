@@ -59,7 +59,7 @@ export function SignalConfigSheet({
   }, [open, config, isConnected]);
 
   const handleRequestVerification = async () => {
-    if (!phoneNumber.trim()) return;
+    if (!phoneNumber.trim()) {return;}
     setIsRequestingCode(true);
     try {
       // In real implementation, this would trigger SMS/voice verification
@@ -72,7 +72,7 @@ export function SignalConfigSheet({
   };
 
   const handleVerifyAndSave = async () => {
-    if (!verificationCode.trim()) return;
+    if (!verificationCode.trim()) {return;}
     setIsSaving(true);
     try {
       await onSave({
@@ -91,7 +91,7 @@ export function SignalConfigSheet({
   };
 
   const handleDisconnect = async () => {
-    if (!onDisconnect) return;
+    if (!onDisconnect) {return;}
     setIsDisconnecting(true);
     try {
       await onDisconnect();

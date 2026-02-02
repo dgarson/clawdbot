@@ -54,7 +54,7 @@ export function ToolsetEditor({
   const isValid = name.trim().length > 0;
 
   const handleSave = () => {
-    if (!isValid) return;
+    if (!isValid) {return;}
 
     onSave({
       name: name.trim(),

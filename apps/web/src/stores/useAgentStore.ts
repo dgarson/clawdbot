@@ -70,7 +70,7 @@ export const useAgentStore = create<AgentStore>()((set) => ({
       agents.forEach((agent) => {
         const existing = map.get(agent.id);
         map.set(agent.id, {
-          ...(existing ?? {}),
+          ...existing,
           ...agent,
           currentTask: agent.currentTask ?? existing?.currentTask,
           pendingApprovals: agent.pendingApprovals ?? existing?.pendingApprovals,

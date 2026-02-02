@@ -152,15 +152,15 @@ function toNumberValue(value: unknown): number | undefined {
 }
 
 function toStringArray(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) return undefined;
+  if (!Array.isArray(value)) {return undefined;}
   const values = value.filter((item): item is string => typeof item === "string");
   return values.length > 0 ? values : undefined;
 }
 
 function splitModelRef(value?: string): { provider?: string; modelId?: string } {
-  if (!value) return {};
+  if (!value) {return {};}
   const trimmed = value.trim();
-  if (!trimmed) return {};
+  if (!trimmed) {return {};}
   const parts = trimmed.split("/");
   if (parts.length <= 1) {
     return { modelId: trimmed };
@@ -169,38 +169,38 @@ function splitModelRef(value?: string): { provider?: string; modelId?: string } 
 }
 
 function buildModelRef(provider?: string, modelId?: string): string | undefined {
-  if (!modelId) return undefined;
-  if (!provider) return modelId;
+  if (!modelId) {return undefined;}
+  if (!provider) {return modelId;}
   return `${provider}/${modelId}`;
 }
 
 function normalizeRuntime(value?: string): RuntimeValue | undefined {
-  if (!value) return undefined;
+  if (!value) {return undefined;}
   const lowered = value.toLowerCase();
-  if (lowered.includes("pi")) return "pi";
-  if (lowered.includes("sdk")) return "claude";
+  if (lowered.includes("pi")) {return "pi";}
+  if (lowered.includes("sdk")) {return "claude";}
   return undefined;
 }
 
 function formatScheduleLabel(schedule: unknown): string {
-  if (!schedule) return "Not configured";
+  if (!schedule) {return "Not configured";}
   if (typeof schedule === "string") {
     return schedule.startsWith("Every ") ? schedule : `Every ${schedule}`;
   }
-  if (typeof schedule === "number") return `Every ${schedule} minutes`;
+  if (typeof schedule === "number") {return `Every ${schedule} minutes`;}
   if (isPlainObject(schedule)) {
     const every = toStringValue(schedule.every) ?? toStringValue(schedule.interval) ?? toStringValue(schedule.cron);
     const everyNumber = toNumberValue(schedule.every) ?? toNumberValue(schedule.interval);
-    if (every) return every.startsWith("Every ") ? every : `Every ${every}`;
-    if (everyNumber !== undefined) return `Every ${everyNumber} minutes`;
+    if (every) {return every.startsWith("Every ") ? every : `Every ${every}`;}
+    if (everyNumber !== undefined) {return `Every ${everyNumber} minutes`;}
     return "Custom schedule";
   }
   return "Custom schedule";
 }
 
 function formatActiveHoursLabel(activeHours: unknown): string {
-  if (!activeHours) return "Not set";
-  if (typeof activeHours === "string") return activeHours;
+  if (!activeHours) {return "Not set";}
+  if (typeof activeHours === "string") {return activeHours;}
   if (isPlainObject(activeHours)) {
     const start = toStringValue(activeHours.start) ?? toStringValue(activeHours.from);
     const end = toStringValue(activeHours.end) ?? toStringValue(activeHours.to);
@@ -216,7 +216,7 @@ function formatActiveHoursLabel(activeHours: unknown): string {
 }
 
 function getProviderLabel(providerId?: string): string | undefined {
-  if (!providerId) return undefined;
+  if (!providerId) {return undefined;}
   return MODEL_PROVIDERS.find((provider) => provider.id === providerId)?.name ?? providerId;
 }
 
@@ -225,7 +225,7 @@ function getModelLabel(
   modelRefIndex: Map<string, ModelEntry>,
   modelIdIndex: Map<string, ModelEntry>
 ): string {
-  if (!modelRef) return "Not set";
+  if (!modelRef) {return "Not set";}
   const { provider, modelId } = splitModelRef(modelRef);
   if (provider && modelId) {
     return modelRefIndex.get(`${provider}/${modelId}`)?.name ?? modelId;
@@ -241,7 +241,7 @@ function getModelProvider(
   modelRefIndex: Map<string, ModelEntry>,
   modelIdIndex: Map<string, ModelEntry>
 ): string | undefined {
-  if (!modelRef) return undefined;
+  if (!modelRef) {return undefined;}
   const { provider, modelId } = splitModelRef(modelRef);
   if (provider && modelId) {
     return modelRefIndex.get(`${provider}/${modelId}`)?.provider ?? provider;
@@ -253,7 +253,7 @@ function getModelProvider(
 }
 
 function hasProviderKey(auth: AuthConfig | undefined, providerId: ModelProviderId): boolean {
-  if (!auth) return false;
+  if (!auth) {return false;}
   const keyMap: Record<ModelProviderId, keyof AuthConfig> = {
     anthropic: "anthropic",
     openai: "openai",
@@ -505,7 +505,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
     const entries = modelsData?.models ?? [];
     const map = new Map<string, ModelEntry>();
     entries.forEach((model) => {
-      if (!map.has(model.id)) map.set(model.id, model);
+      if (!map.has(model.id)) {map.set(model.id, model);}
     });
     return map;
   }, [modelsData?.models]);
@@ -617,7 +617,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   const isSaving = patchConfig.isPending;
 
   const patchDefaults = async (nextDefaults: Partial<AgentsDefaultsConfig>, note: string) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     const currentAgents = isPlainObject(config?.agents) ? (config?.agents as Record<string, unknown>) : {};
     const currentDefaults = isPlainObject(currentAgents.defaults)
       ? (currentAgents.defaults as Record<string, unknown>)
@@ -640,7 +640,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   };
 
   const patchMain = async (nextMain: Partial<AgentsMainConfig>, note: string) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     const currentAgents = isPlainObject(config?.agents) ? (config?.agents as Record<string, unknown>) : {};
     const currentMain = isPlainObject(currentAgents.main)
       ? (currentAgents.main as Record<string, unknown>)
@@ -670,23 +670,23 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   };
 
   const handleDefaultRuntimeChange = async (nextRuntime: RuntimeValue) => {
-    if (nextRuntime === defaultRuntime) return;
+    if (nextRuntime === defaultRuntime) {return;}
     await patchDefaults({ runtime: nextRuntime }, "Update default agent runtime");
   };
 
   const handleSystemBrainRuntimeChange = async (nextRuntime: RuntimeValue) => {
-    if (nextRuntime === systemBrainRuntime) return;
+    if (nextRuntime === systemBrainRuntime) {return;}
     await patchMain({ runtime: nextRuntime }, "Update System Brain runtime");
   };
 
   const handleDefaultTextModelChange = async (next: { providerId?: string; modelIds: string[] }) => {
     const nextModelId = next.modelIds[0];
     const nextModelRef = buildModelRef(next.providerId, nextModelId);
-    if (!nextModelRef || nextModelRef === defaultTextModel) return;
+    if (!nextModelRef || nextModelRef === defaultTextModel) {return;}
     await patchDefaults(
       {
         model: {
-          ...(defaults?.model ?? {}),
+          ...defaults?.model,
           primary: nextModelRef,
         },
       },
@@ -697,11 +697,11 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   const handleDefaultImageModelChange = async (next: { providerId?: string; modelIds: string[] }) => {
     const nextModelId = next.modelIds[0];
     const nextModelRef = buildModelRef(next.providerId, nextModelId);
-    if (!nextModelRef || nextModelRef === defaultImageModel) return;
+    if (!nextModelRef || nextModelRef === defaultImageModel) {return;}
     await patchDefaults(
       {
         imageModel: {
-          ...(defaults?.imageModel ?? {}),
+          ...defaults?.imageModel,
           primary: nextModelRef,
         },
       },
@@ -712,7 +712,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   const handleSystemBrainModelChange = async (next: { providerId?: string; modelIds: string[] }) => {
     const nextModelId = next.modelIds[0];
     const nextModelRef = buildModelRef(next.providerId, nextModelId);
-    if (!nextModelRef || nextModelRef === systemBrainModel) return;
+    if (!nextModelRef || nextModelRef === systemBrainModel) {return;}
     await patchMain(
       {
         sdk: {
@@ -724,7 +724,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   };
 
   const handleSystemBrainThinkingBudgetChange = async (nextValue: string) => {
-    if (!nextValue || nextValue === systemBrainThinkingBudget) return;
+    if (!nextValue || nextValue === systemBrainThinkingBudget) {return;}
     await patchMain(
       {
         sdk: {
@@ -736,7 +736,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   };
 
   const handleSystemBrainCcsdkProviderChange = async (nextValue: string) => {
-    if (!nextValue || nextValue === systemBrainCcsdkProvider) return;
+    if (!nextValue || nextValue === systemBrainCcsdkProvider) {return;}
     await patchDefaults({ mainCcsdkProvider: nextValue }, "Update System Brain CCSDK provider");
   };
 
@@ -744,7 +744,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
     updates: { temperature?: number; maxTokens?: number },
     note: string
   ) => {
-    if (!defaultTextModel) return;
+    if (!defaultTextModel) {return;}
     const currentDefaults = isPlainObject(defaults) ? defaults : undefined;
     const currentModels = isPlainObject(currentDefaults?.models)
       ? (currentDefaults?.models as Record<string, unknown>)
@@ -773,13 +773,13 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
 
   const handleStreamingToggle = async (checked: boolean) => {
     const nextValue: "off" | "on" = checked ? "off" : "on";
-    if (nextValue === blockStreamingDefault) return;
+    if (nextValue === blockStreamingDefault) {return;}
     await patchDefaults({ blockStreamingDefault: nextValue }, "Update streaming default");
   };
 
   const handleCreativityCommit = async (value: number) => {
-    if (!defaultTextModel) return;
-    if (creativityValue !== undefined && Math.abs(creativityValue - value) < 0.001) return;
+    if (!defaultTextModel) {return;}
+    if (creativityValue !== undefined && Math.abs(creativityValue - value) < 0.001) {return;}
     await patchDefaultModelParams(
       { temperature: Number(value.toFixed(2)) },
       "Update default creativity"
@@ -787,8 +787,8 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
   };
 
   const handleResponseLengthCommit = async (value: number) => {
-    if (!defaultTextModel) return;
-    if (responseLengthValue !== undefined && Math.abs(responseLengthValue - value) < 0.5) return;
+    if (!defaultTextModel) {return;}
+    if (responseLengthValue !== undefined && Math.abs(responseLengthValue - value) < 0.5) {return;}
     await patchDefaultModelParams(
       { maxTokens: Math.round(value) },
       "Update default response length"
@@ -802,7 +802,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
     (creativityValue !== undefined || responseLengthValue !== undefined);
 
   const handleResetBehavior = async () => {
-    if (!defaultTextModel) return;
+    if (!defaultTextModel) {return;}
     const currentDefaults = isPlainObject(defaults) ? defaults : undefined;
     const currentModels = isPlainObject(currentDefaults?.models)
       ? (currentDefaults?.models as Record<string, unknown>)
@@ -861,11 +861,11 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
           <div className="grid gap-4 md:grid-cols-2">
             {/* Sort providers: configured first, then unconfigured */}
             {[...MODEL_PROVIDERS]
-              .sort((a, b) => {
+              .toSorted((a, b) => {
                 const aConfigured = hasProviderKey(auth, a.id);
                 const bConfigured = hasProviderKey(auth, b.id);
-                if (aConfigured && !bConfigured) return -1;
-                if (!aConfigured && bConfigured) return 1;
+                if (aConfigured && !bConfigured) {return -1;}
+                if (!aConfigured && bConfigured) {return 1;}
                 return 0;
               })
               .map((provider) => (

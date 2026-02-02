@@ -110,16 +110,16 @@ export function inferFieldType(
 ): FieldType {
   // Check for widget hint override
   if (hint?.widget) {
-    if (hint.widget === "slider") return "slider";
-    if (hint.widget === "stepper") return "stepper";
-    if (hint.widget === "text") return "text";
+    if (hint.widget === "slider") {return "slider";}
+    if (hint.widget === "stepper") {return "stepper";}
+    if (hint.widget === "text") {return "text";}
   }
 
   // Check for sensitive hint
-  if (hint?.sensitive) return "password";
+  if (hint?.sensitive) {return "password";}
 
   // Check for enum
-  if (schema.enum && schema.enum.length > 0) return "select";
+  if (schema.enum && schema.enum.length > 0) {return "select";}
 
   // Determine type from schema
   const schemaType = Array.isArray(schema.type) ? schema.type[0] : schema.type;
@@ -127,10 +127,10 @@ export function inferFieldType(
   switch (schemaType) {
     case "string":
       // Check for format hints
-      if (schema.format === "uri" || schema.format === "url") return "text";
-      if (schema.format === "password") return "password";
+      if (schema.format === "uri" || schema.format === "url") {return "text";}
+      if (schema.format === "password") {return "password";}
       // Long strings get textarea
-      if (schema.maxLength && schema.maxLength > 200) return "textarea";
+      if (schema.maxLength && schema.maxLength > 200) {return "textarea";}
       return "text";
 
     case "number":
@@ -163,14 +163,14 @@ export function inferFieldType(
  * Get value at a nested path from an object
  */
 export function getValueAtPath(obj: unknown, path: string): unknown {
-  if (!obj || typeof obj !== "object") return undefined;
+  if (!obj || typeof obj !== "object") {return undefined;}
 
   const parts = path.split(".");
   let current: unknown = obj;
 
   for (const part of parts) {
-    if (current === null || current === undefined) return undefined;
-    if (typeof current !== "object") return undefined;
+    if (current === null || current === undefined) {return undefined;}
+    if (typeof current !== "object") {return undefined;}
     current = (current as Record<string, unknown>)[part];
   }
 
@@ -211,7 +211,7 @@ export function processSchemaFields(
 ): ProcessedField[] {
   const fields: ProcessedField[] = [];
 
-  if (!schema.properties) return fields;
+  if (!schema.properties) {return fields;}
 
   for (const [key, propSchema] of Object.entries(schema.properties)) {
     const path = basePath ? `${basePath}.${key}` : key;
@@ -307,7 +307,7 @@ export function groupFields(
   }
 
   // Sort groups by order
-  return Array.from(groups.values()).sort((a, b) => a.order - b.order);
+  return Array.from(groups.values()).toSorted((a, b) => a.order - b.order);
 }
 
 /**

@@ -52,7 +52,7 @@ function ConversationDetailPage() {
   };
 
   const handleSubmit = async (value: string) => {
-    if (!value.trim()) return;
+    if (!value.trim()) {return;}
 
     setInputValue("");
 

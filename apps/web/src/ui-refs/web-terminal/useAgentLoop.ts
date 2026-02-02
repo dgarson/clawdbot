@@ -132,7 +132,7 @@ export function useAgentLoop({
 
       setState((prev) => ({
         ...prev,
-        pendingCommands: [...prev.pendingCommands, commandWithHandlers as any],
+        pendingCommands: [...prev.pendingCommands, commandWithHandlers],
       }));
 
       // Process queue

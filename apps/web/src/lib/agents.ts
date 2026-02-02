@@ -44,8 +44,8 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeModelRef(model?: AgentModelConfig): string | undefined {
-  if (!model) return undefined;
-  if (typeof model === "string") return model;
+  if (!model) {return undefined;}
+  if (typeof model === "string") {return model;}
   if (isPlainObject(model)) {
     const primary = model.primary;
     return typeof primary === "string" && primary.trim().length > 0 ? primary : undefined;
@@ -54,7 +54,7 @@ function normalizeModelRef(model?: AgentModelConfig): string | undefined {
 }
 
 function mergeModelConfig(existing: unknown, nextModel?: string): AgentModelConfig | undefined {
-  if (!nextModel) return (existing as AgentModelConfig | undefined) ?? undefined;
+  if (!nextModel) {return (existing as AgentModelConfig | undefined) ?? undefined;}
   if (isPlainObject(existing)) {
     return {
       ...(existing as Record<string, unknown>),
@@ -65,16 +65,16 @@ function mergeModelConfig(existing: unknown, nextModel?: string): AgentModelConf
 }
 
 export function getAgentsBlock(config?: unknown): AgentsConfigBlock | undefined {
-  if (!isPlainObject(config)) return undefined;
+  if (!isPlainObject(config)) {return undefined;}
   const agents = config.agents;
-  if (!isPlainObject(agents)) return undefined;
+  if (!isPlainObject(agents)) {return undefined;}
   return agents as AgentsConfigBlock;
 }
 
 export function getAgentsList(config?: unknown): AgentConfigEntry[] {
   const agents = getAgentsBlock(config);
   const list = agents?.list;
-  if (!Array.isArray(list)) return [];
+  if (!Array.isArray(list)) {return [];}
   return list.filter((entry): entry is AgentConfigEntry => {
     return isPlainObject(entry) && typeof entry.id === "string";
   });
@@ -103,7 +103,7 @@ export function buildAgentEntry(
   existing?: AgentConfigEntry
 ): AgentConfigEntry {
   const next: AgentConfigEntry = {
-    ...(existing ?? {}),
+    ...existing,
     id: update.id,
   };
 
@@ -131,8 +131,8 @@ export function buildAgentEntry(
     const identity: AgentIdentityConfig = {
       ...(isPlainObject(existing?.identity) ? existing?.identity : {}),
     };
-    if (update.name !== undefined) identity.name = update.name;
-    if (update.avatar !== undefined) identity.avatar = update.avatar;
+    if (update.name !== undefined) {identity.name = update.name;}
+    if (update.avatar !== undefined) {identity.avatar = update.avatar;}
     next.identity = identity;
   }
 
@@ -143,7 +143,7 @@ export function buildAgentsPatch(config: unknown, nextList: AgentConfigEntry[]) 
   const agents = getAgentsBlock(config);
   return {
     agents: {
-      ...(agents ?? {}),
+      ...agents,
       list: nextList,
     },
   };

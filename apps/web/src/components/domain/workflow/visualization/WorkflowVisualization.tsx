@@ -401,7 +401,7 @@ function WorkflowVisualizationInner({ className }: { className?: string }) {
               className="bg-card border border-border rounded-lg shadow-md"
               nodeColor={(node) => {
                 const data = node.data as WorkflowVizNode | undefined;
-                if (!data) return "#64748b";
+                if (!data) {return "#64748b";}
                 switch (data.status) {
                   case "success": return "#22c55e";
                   case "running": return "#3b82f6";

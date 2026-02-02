@@ -129,7 +129,7 @@ export function ChannelCard({
       tab: "activity",
       activityId: activity.id,
     });
-    if (activity.sessionId) params.set("sessionId", activity.sessionId);
+    if (activity.sessionId) {params.set("sessionId", activity.sessionId);}
     return `/agents/${encodeURIComponent(activity.agentId)}?${params.toString()}`;
   };
 

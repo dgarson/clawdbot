@@ -55,7 +55,7 @@ function toUniqueStringList(values: (string | undefined)[]): string[] {
 }
 
 function getProviderLabel(providerId?: string): string {
-  if (!providerId) return "Select provider";
+  if (!providerId) {return "Select provider";}
   return PROVIDER_LABELS[providerId] ?? providerId;
 }
 
@@ -96,9 +96,9 @@ export function ModelProviderSelector({
     return map;
   }, [models]);
   const derivedProvider = React.useMemo(() => {
-    if (providerId) return providerId;
+    if (providerId) {return providerId;}
     const firstModel = modelIds[0];
-    if (!firstModel) return undefined;
+    if (!firstModel) {return undefined;}
     return modelIdIndex.get(firstModel)?.provider;
   }, [modelIds, modelIdIndex, providerId]);
 
@@ -107,7 +107,7 @@ export function ModelProviderSelector({
   const providersWithModels = React.useMemo(() => {
     const ids = new Set<string>();
     models.forEach((model) => {
-      if (model.provider) ids.add(model.provider);
+      if (model.provider) {ids.add(model.provider);}
     });
     return ids;
   }, [models]);
@@ -129,14 +129,14 @@ export function ModelProviderSelector({
     const grouped = new Map<string, ModelEntry[]>();
     models.forEach((model) => {
       const provider = model.provider ?? "unknown";
-      if (!grouped.has(provider)) grouped.set(provider, []);
+      if (!grouped.has(provider)) {grouped.set(provider, []);}
       grouped.get(provider)!.push(model);
     });
     return grouped;
   }, [models]);
 
   const availableModels = React.useMemo(() => {
-    if (!activeProvider) return [];
+    if (!activeProvider) {return [];}
     return modelsByProvider.get(activeProvider) ?? [];
   }, [activeProvider, modelsByProvider]);
 
@@ -169,7 +169,7 @@ export function ModelProviderSelector({
   );
 
   const handleProviderChange = (nextProvider: string) => {
-    if (!canEdit) return;
+    if (!canEdit) {return;}
 
     // Warn if selecting an unconfigured provider
     if (!isProviderConfigured(nextProvider)) {
@@ -186,7 +186,7 @@ export function ModelProviderSelector({
   };
 
   const handleSingleModelChange = (nextModelId: string) => {
-    if (!canEdit) return;
+    if (!canEdit) {return;}
     const provider =
       (activeProvider && isModelInProvider(nextModelId, activeProvider)
         ? activeProvider
@@ -195,7 +195,7 @@ export function ModelProviderSelector({
   };
 
   const handleAddModel = (nextModelId: string) => {
-    if (!canEdit) return;
+    if (!canEdit) {return;}
     const provider =
       (activeProvider && isModelInProvider(nextModelId, activeProvider)
         ? activeProvider
@@ -206,7 +206,7 @@ export function ModelProviderSelector({
   };
 
   const handleRemoveModel = (modelId: string) => {
-    if (!canEdit) return;
+    if (!canEdit) {return;}
     const nextModels = selectedModelIds.filter((id) => id !== modelId);
     onChange?.({ providerId: activeProvider, modelIds: nextModels });
   };

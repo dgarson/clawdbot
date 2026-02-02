@@ -158,7 +158,7 @@ export function useWorkflow(options: UseWorkflowOptions = {}) {
       const permission = toolPermissions[risk];
 
       if (autoApprove || permission === 'auto') {
-        executeToolCall(tc);
+        void executeToolCall(tc);
       } else if (permission === 'deny') {
         rejectToolCall(tc.toolCallId, 'Auto-denied by permission settings');
       } else {
@@ -174,8 +174,8 @@ export function useWorkflow(options: UseWorkflowOptions = {}) {
     const lowRisk = ['web_search', 'web_scrape', 'code_analyze', 'file_read', 'ai_embed'];
     const highRisk = ['code_execute', 'file_write', 'db_mutate', 'shell_exec'];
     
-    if (lowRisk.includes(toolName)) return 'low';
-    if (highRisk.includes(toolName)) return 'high';
+    if (lowRisk.includes(toolName)) {return 'low';}
+    if (highRisk.includes(toolName)) {return 'high';}
     return 'medium';
   };
 
@@ -201,7 +201,7 @@ export function useWorkflow(options: UseWorkflowOptions = {}) {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to execute tool');
+      if (!response.ok) {throw new Error('Failed to execute tool');}
 
       setPendingToolCalls(prev => 
         prev.map(tc => tc.toolCallId === toolCall.toolCallId 
@@ -229,7 +229,7 @@ export function useWorkflow(options: UseWorkflowOptions = {}) {
     const tc = pendingToolCalls.find(t => t.toolCallId === toolCallId);
     if (tc) {
       const toolCall = modifiedArgs ? { ...tc, args: modifiedArgs } : tc;
-      executeToolCall(toolCall);
+      void executeToolCall(toolCall);
     }
   }, [pendingToolCalls, executeToolCall]);
 
@@ -500,7 +500,7 @@ interface ShortcutConfig {
 
 export function useKeyboardShortcuts(shortcuts: ShortcutConfig[], enabled = true) {
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
 
     const handleKeyDown = (e: KeyboardEvent) => {
       for (const shortcut of shortcuts) {

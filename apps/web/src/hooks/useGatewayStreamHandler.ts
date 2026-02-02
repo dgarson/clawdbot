@@ -68,7 +68,7 @@ function isToolOutputText(text: string): boolean {
  * Extracts text content from message structure
  */
 function extractTextContent(message: GatewayChatEvent["message"]): string {
-  if (!message?.content) return "";
+  if (!message?.content) {return "";}
 
   const textBlocks = message.content
     .filter(block => block.type === "text")
@@ -197,7 +197,7 @@ export function useGatewayStreamHandler(
   }, [handleChatEvent, handleToolEvent]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
 
     try {
       const client = getGatewayClient({

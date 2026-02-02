@@ -6,13 +6,13 @@ function randomBytes(size: number): Uint8Array {
     crypto.getRandomValues(out);
     return out;
   }
-  for (let i = 0; i < out.length; i++) out[i] = Math.floor(Math.random() * 256);
+  for (let i = 0; i < out.length; i++) {out[i] = Math.floor(Math.random() * 256);}
   return out;
 }
 
 function bytesToHex(bytes: Uint8Array): string {
   let out = "";
-  for (const b of bytes) out += b.toString(16).padStart(2, "0");
+  for (const b of bytes) {out += b.toString(16).padStart(2, "0");}
   return out;
 }
 
@@ -34,7 +34,7 @@ export function uuidv7(nowMs: number = Date.now()): string {
   } else {
     const r = randomBytes(10); // 80 bits
     let v = 0n;
-    for (const b of r) v = (v << 8n) | BigInt(b);
+    for (const b of r) {v = (v << 8n) | BigInt(b);}
     rand74 = v & UUID_V7_RANDOM_MASK; // keep low 74 bits
   }
 

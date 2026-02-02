@@ -33,7 +33,7 @@ export function ToolCategorySection({
   const { enabled, total } = countEnabledTools(tools);
   const CategoryIcon = config.icon;
 
-  if (tools.length === 0) return null;
+  if (tools.length === 0) {return null;}
 
   return (
     <Card className="border-border/50 overflow-hidden">

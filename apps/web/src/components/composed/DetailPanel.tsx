@@ -33,7 +33,7 @@ export function DetailPanel({
 
   // Close on Escape key
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -47,7 +47,7 @@ export function DetailPanel({
 
   // Focus trap when open
   React.useEffect(() => {
-    if (!open || !panelRef.current) return;
+    if (!open || !panelRef.current) {return;}
 
     const focusableElements = panelRef.current.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -58,7 +58,7 @@ export function DetailPanel({
     }
 
     const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== "Tab" || !panelRef.current) return;
+      if (e.key !== "Tab" || !panelRef.current) {return;}
 
       const focusable = Array.from(
         panelRef.current.querySelectorAll<HTMLElement>(
@@ -66,7 +66,7 @@ export function DetailPanel({
         )
       );
 
-      if (focusable.length === 0) return;
+      if (focusable.length === 0) {return;}
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];

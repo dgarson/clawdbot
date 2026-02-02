@@ -87,8 +87,8 @@ export function AgentWorkbench({
   const fileQuery = useQuery({
     queryKey: ["worktreeFile", agentId, selectedFile?.path ?? null] as const,
     queryFn: ({ signal }) => {
-      if (!selectedFile) return Promise.resolve(null);
-      if (!worktree.adapter.readFile) return Promise.resolve(null);
+      if (!selectedFile) {return Promise.resolve(null);}
+      if (!worktree.adapter.readFile) {return Promise.resolve(null);}
       return worktree.adapter.readFile(agentId, selectedFile.path, { signal });
     },
     enabled: Boolean(selectedFile) && !!worktree.adapter.readFile,
@@ -96,7 +96,7 @@ export function AgentWorkbench({
 
   const onSend = React.useCallback(async () => {
     const text = messageInput.trim();
-    if (!text) return;
+    if (!text) {return;}
     setMessageInput("");
     try {
       await conversation.onSend?.(text);

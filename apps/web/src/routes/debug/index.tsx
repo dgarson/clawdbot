@@ -482,7 +482,7 @@ function EventsTab() {
 
   // Simulate real-time events
   React.useEffect(() => {
-    if (isPaused) return;
+    if (isPaused) {return;}
 
     const interval = setInterval(() => {
       const newEvent: EventEntry = {
@@ -503,9 +503,9 @@ function EventsTab() {
   const filteredEvents = events.filter((e) => selectedTypes.includes(e.type));
 
   const getEventTypeColor = (type: string) => {
-    if (type.includes("error")) return "destructive";
-    if (type.includes("completed")) return "success";
-    if (type.includes("started")) return "default";
+    if (type.includes("error")) {return "destructive";}
+    if (type.includes("completed")) {return "success";}
+    if (type.includes("started")) {return "default";}
     return "secondary";
   };
 
@@ -631,7 +631,7 @@ function LogsTab() {
   }, [logs, tailMode]);
 
   const filteredLogs = logs.filter((log) => {
-    if (selectedLevel !== "all" && log.level !== selectedLevel) return false;
+    if (selectedLevel !== "all" && log.level !== selectedLevel) {return false;}
     if (searchQuery && !log.message.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }

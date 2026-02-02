@@ -102,8 +102,8 @@ Key behaviors:
   };
 
   const getSliderLabel = (value: number, lowLabel: string, highLabel: string) => {
-    if (value < 35) return lowLabel;
-    if (value > 65) return highLabel;
+    if (value < 35) {return lowLabel;}
+    if (value > 65) {return highLabel;}
     return "Balanced";
   };
 

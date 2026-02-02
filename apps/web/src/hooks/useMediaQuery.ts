@@ -21,12 +21,12 @@ export function useMediaQuery(query: string): boolean {
   const getServerSnapshot = () => false;
 
   const getSnapshot = () => {
-    if (typeof window === "undefined" || !window.matchMedia) return false;
+    if (typeof window === "undefined" || !window.matchMedia) {return false;}
     return window.matchMedia(query).matches;
   };
 
   const subscribe = (onStoreChange: () => void) => {
-    if (typeof window === "undefined" || !window.matchMedia) return () => {};
+    if (typeof window === "undefined" || !window.matchMedia) {return () => {};}
 
     const mediaQueryList = window.matchMedia(query);
     const handler = () => onStoreChange();

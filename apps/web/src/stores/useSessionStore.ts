@@ -106,7 +106,7 @@ export const useSessionStore = create<SessionState & SessionActions>()(
     appendStreamingContent: (sessionKey, delta, kind = "text") => {
       set((state) => {
         const streaming = state.streamingMessages[sessionKey];
-        if (!streaming) return;
+        if (!streaming) {return;}
 
         if (kind === "reasoning") {
           streaming.reasoningContent = (streaming.reasoningContent ?? "") + delta;
@@ -119,7 +119,7 @@ export const useSessionStore = create<SessionState & SessionActions>()(
     updateToolCall: (sessionKey, toolCall) => {
       set((state) => {
         const streaming = state.streamingMessages[sessionKey];
-        if (!streaming) return;
+        if (!streaming) {return;}
 
         const existingIndex = streaming.toolCalls.findIndex((t: ToolCall) => t.id === toolCall.id);
         if (existingIndex >= 0) {

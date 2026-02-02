@@ -83,7 +83,7 @@ const statusConfig: Record<
 };
 
 function getAgentInitials(agent: Agent | null | undefined): string {
-  if (!agent?.name) return "?";
+  if (!agent?.name) {return "?";}
   return agent.name
     .split(" ")
     .map((n) => n[0])
@@ -131,7 +131,7 @@ function AddTaskModal({ open, onClose, workstreamId, existingTasks }: AddTaskMod
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim()) {return;}
 
     await createTask.mutateAsync({
       workstreamId,
@@ -330,7 +330,7 @@ function WorkstreamDetailPage() {
   const updateStatus = useUpdateWorkstreamStatus();
 
   const owner = useMemo(() => {
-    if (!workstream?.ownerId) return null;
+    if (!workstream?.ownerId) {return null;}
     return agents.find((a) => a.id === workstream.ownerId);
   }, [workstream, agents]);
 
@@ -350,7 +350,7 @@ function WorkstreamDetailPage() {
   }, [workstream?.tasks]);
 
   const handleStatusChange = (newStatus: WorkstreamStatus) => {
-    if (!workstream) return;
+    if (!workstream) {return;}
     const requiresConfirmation =
       (newStatus === "paused" || newStatus === "archived") &&
       activeTasks.length > 0 &&
@@ -567,7 +567,7 @@ function WorkstreamDetailPage() {
         open={statusConfirmOpen}
         onOpenChange={(open) => {
           setStatusConfirmOpen(open);
-          if (!open) setPendingStatus(null);
+          if (!open) {setPendingStatus(null);}
         }}
       >
         <DialogContent className="sm:max-w-lg">
@@ -614,7 +614,7 @@ function WorkstreamDetailPage() {
             <Button
               variant="destructive"
               onClick={() => {
-                if (!pendingStatus) return;
+                if (!pendingStatus) {return;}
                 updateStatus.mutate({ id: workstream.id, status: pendingStatus });
                 setStatusConfirmOpen(false);
                 setPendingStatus(null);

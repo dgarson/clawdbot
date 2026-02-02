@@ -69,7 +69,7 @@ export function CreateRitualModal({
   // Reset form when modal closes
   React.useEffect(() => {
     if (open) {
-      if (initialAgentId) setAgentId(initialAgentId);
+      if (initialAgentId) {setAgentId(initialAgentId);}
       return;
     }
     setName("");
@@ -188,7 +188,7 @@ export function CreateRitualModal({
                         value={name}
                         onChange={(e) => {
                           setName(e.target.value);
-                          if (errors.name) setErrors({});
+                          if (errors.name) {setErrors({});}
                         }}
                         placeholder="e.g., Daily Standup Summary"
                         className={cn(

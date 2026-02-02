@@ -193,7 +193,7 @@ const CommandPalette = ({
   }, [onCommandExecute, onClose]);
 
   const handleKeyDown = useCallback((e) => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     switch (e.key) {
       case 'ArrowDown':
@@ -236,7 +236,7 @@ const CommandPalette = ({
     }
   }, [isOpen, flatCommands, selectedIndex, activeCategory, query, onClose, executeCommand]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">

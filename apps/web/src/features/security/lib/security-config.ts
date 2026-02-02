@@ -74,15 +74,15 @@ export function shouldSkipUnlock(pathname: string): boolean {
  * Get session from localStorage.
  */
 export function getStoredSession(): { id: string; expiry: number } | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {return null;}
 
   const id = localStorage.getItem(SECURITY_SESSION_KEY);
   const expiryStr = localStorage.getItem(SECURITY_SESSION_EXPIRY_KEY);
 
-  if (!id || !expiryStr) return null;
+  if (!id || !expiryStr) {return null;}
 
   const expiry = parseInt(expiryStr, 10);
-  if (isNaN(expiry)) return null;
+  if (isNaN(expiry)) {return null;}
 
   return { id, expiry };
 }
@@ -91,7 +91,7 @@ export function getStoredSession(): { id: string; expiry: number } | null {
  * Store session in localStorage.
  */
 export function storeSession(id: string, expiry: number): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
 
   localStorage.setItem(SECURITY_SESSION_KEY, id);
   localStorage.setItem(SECURITY_SESSION_EXPIRY_KEY, expiry.toString());
@@ -101,7 +101,7 @@ export function storeSession(id: string, expiry: number): void {
  * Clear session from localStorage.
  */
 export function clearStoredSession(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
 
   localStorage.removeItem(SECURITY_SESSION_KEY);
   localStorage.removeItem(SECURITY_SESSION_EXPIRY_KEY);
@@ -112,7 +112,7 @@ export function clearStoredSession(): void {
  */
 export function isStoredSessionValid(): boolean {
   const session = getStoredSession();
-  if (!session) return false;
+  if (!session) {return false;}
 
   return session.expiry > Date.now();
 }

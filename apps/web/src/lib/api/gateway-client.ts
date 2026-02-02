@@ -90,7 +90,7 @@ class GatewayClient {
   }
 
   private doConnect() {
-    if (this.stopped) return;
+    if (this.stopped) {return;}
 
     const url = this.config.url || DEFAULT_GATEWAY_URL;
     this.setStatus("connecting");
@@ -128,7 +128,7 @@ class GatewayClient {
   }
 
   private sendConnect() {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {return;}
 
     const connectParams = {
       minProtocol: 1,
@@ -218,7 +218,7 @@ class GatewayClient {
   }
 
   private scheduleReconnect() {
-    if (this.stopped || this.reconnectTimer) return;
+    if (this.stopped || this.reconnectTimer) {return;}
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;

@@ -91,7 +91,7 @@ export const useToolsetsStore = create<ToolsetsStore>()(
       duplicateToolset: (id) => {
         const { toolsets, createToolset } = get();
         const original = toolsets.find((t) => t.id === id);
-        if (!original) return null;
+        if (!original) {return null;}
 
         return createToolset({
           name: `${original.name} (Copy)`,
@@ -147,7 +147,7 @@ export const useToolsetsStore = create<ToolsetsStore>()(
       storage: {
         getItem: (name) => {
           const str = localStorage.getItem(name);
-          if (!str) return null;
+          if (!str) {return null;}
           const data = JSON.parse(str);
           // Rehydrate Date objects
           if (data.state?.toolsets) {

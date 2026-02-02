@@ -339,7 +339,7 @@ function PendingToolsList({
   onApprove: (id: string) => void;
   onReject: (id: string, reason?: string) => void;
 }) {
-  if (tools.length === 0) return null;
+  if (tools.length === 0) {return null;}
 
   return (
     <div className="space-y-2 p-2">

@@ -21,9 +21,9 @@ function isGatewayToolCall(call: ToolCall | VercelToolCall): call is ToolCall {
 }
 
 function normalizeToolCalls(toolCalls: ToolCall[] | VercelToolCall[] | undefined): ToolCall[] | undefined {
-  if (!toolCalls || toolCalls.length === 0) return undefined;
+  if (!toolCalls || toolCalls.length === 0) {return undefined;}
   return toolCalls.map((call, index) => {
-    if (isGatewayToolCall(call)) return call;
+    if (isGatewayToolCall(call)) {return call;}
     const id = call.id ?? call.toolCallId ?? `tool-${index}`;
     const name = call.name ?? call.toolName ?? "tool";
     const args = call.arguments ?? call.args;

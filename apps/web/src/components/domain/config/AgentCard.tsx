@@ -40,9 +40,9 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
 };
 
 function splitModelRef(value?: string): { provider?: string; modelId?: string } {
-  if (!value) return {};
+  if (!value) {return {};}
   const trimmed = value.trim();
-  if (!trimmed) return {};
+  if (!trimmed) {return {};}
   const parts = trimmed.split("/");
   if (parts.length <= 1) {
     return { modelId: trimmed };
@@ -107,7 +107,7 @@ export function AgentCard({
   // Model display - use role as fallback
   const modelRef = React.useMemo(() => splitModelRef(agent.model), [agent.model]);
   const modelEntry = React.useMemo(() => {
-    if (!modelsData?.models || !modelRef.modelId) return undefined;
+    if (!modelsData?.models || !modelRef.modelId) {return undefined;}
     if (modelRef.provider) {
       return modelsData.models.find(
         (model) => model.provider === modelRef.provider && model.id === modelRef.modelId

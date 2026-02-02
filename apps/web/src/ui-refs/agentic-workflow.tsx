@@ -220,7 +220,7 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, re
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {setIsOpen(false);}
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -706,7 +706,7 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, disabled, isRecording, on
   const removeAttachment = (id: string) => {
     setAttachments(prev => {
       const att = prev.find(a => a.id === id);
-      if (att?.preview) URL.revokeObjectURL(att.preview);
+      if (att?.preview) {URL.revokeObjectURL(att.preview);}
       return prev.filter(a => a.id !== id);
     });
   };
@@ -1032,7 +1032,7 @@ const AgenticWorkflow: React.FC = () => {
     setMessages(prev => prev.map(m =>
       m.type === 'tool_request' && m.id === messageId ? { ...m, status: 'approved' as ToolRequestStatus } : m
     ));
-    executeToolAutomatically(messageId);
+    void executeToolAutomatically(messageId);
   };
 
   const handleToolReject = (messageId: string) => {
@@ -1072,7 +1072,7 @@ const AgenticWorkflow: React.FC = () => {
 
   const handleSend = (message: SendMessagePayload) => {
     if (status === 'idle' || status === 'complete') {
-      simulateWorkflow(message);
+      void simulateWorkflow(message);
     }
   };
 

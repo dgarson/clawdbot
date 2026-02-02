@@ -247,11 +247,11 @@ function FieldRenderer({
  */
 function isInlineableField(field: ProcessedField): boolean {
   // Booleans and simple selects work well inline
-  if (field.type === "boolean") return true;
-  if (field.type === "select" && (field.schema.enum?.length ?? 0) <= 5) return true;
+  if (field.type === "boolean") {return true;}
+  if (field.type === "select" && (field.schema.enum?.length ?? 0) <= 5) {return true;}
   // Check for explicit compact hint
-  if (field.hint.compact === true) return true;
-  if (field.hint.compact === false) return false;
+  if (field.hint.compact === true) {return true;}
+  if (field.hint.compact === false) {return false;}
   return false;
 }
 
@@ -263,8 +263,8 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   let current: unknown = obj;
 
   for (const part of parts) {
-    if (current === null || current === undefined) return undefined;
-    if (typeof current !== "object") return undefined;
+    if (current === null || current === undefined) {return undefined;}
+    if (typeof current !== "object") {return undefined;}
     current = (current as Record<string, unknown>)[part];
   }
 

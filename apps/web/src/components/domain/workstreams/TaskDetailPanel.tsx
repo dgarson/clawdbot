@@ -82,7 +82,7 @@ const statusColors: Record<TaskStatus, string> = {
 };
 
 function getAgentInitials(agent: Agent | null | undefined): string {
-  if (!agent?.name) return "?";
+  if (!agent?.name) {return "?";}
   return agent.name
     .split(" ")
     .map((n) => n[0])
@@ -222,18 +222,18 @@ export function TaskDetailPanel({
 
   // Find dependencies and dependents
   const dependencies = React.useMemo(() => {
-    if (!task?.dependencies) return [];
+    if (!task?.dependencies) {return [];}
     return allTasks.filter((t) => task.dependencies?.includes(t.id));
   }, [task, allTasks]);
 
   const dependents = React.useMemo(() => {
-    if (!task) return [];
+    if (!task) {return [];}
     return allTasks.filter((t) => t.dependencies?.includes(task.id));
   }, [task, allTasks]);
 
   // Calculate progress based on status
   const progress = React.useMemo(() => {
-    if (!task) return 0;
+    if (!task) {return 0;}
     switch (task.status) {
       case "done":
         return 100;
@@ -249,7 +249,7 @@ export function TaskDetailPanel({
   }, [task]);
 
   const handleStatusChange = (status: TaskStatus) => {
-    if (!task) return;
+    if (!task) {return;}
     updateStatus.mutate({
       workstreamId,
       taskId: task.id,
@@ -258,7 +258,7 @@ export function TaskDetailPanel({
   };
 
   const handlePriorityChange = (priority: TaskPriority) => {
-    if (!task) return;
+    if (!task) {return;}
     updatePriority.mutate({
       workstreamId,
       taskId: task.id,
@@ -267,7 +267,7 @@ export function TaskDetailPanel({
   };
 
   const handleAssigneeChange = (assigneeId: string | undefined) => {
-    if (!task) return;
+    if (!task) {return;}
     updateTask.mutate({
       workstreamId,
       task: {
@@ -278,7 +278,7 @@ export function TaskDetailPanel({
   };
 
   const handleDelete = () => {
-    if (!task) return;
+    if (!task) {return;}
     deleteTask.mutate(
       { workstreamId, taskId: task.id },
       {

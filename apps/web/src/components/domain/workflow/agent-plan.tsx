@@ -56,7 +56,7 @@ export function AgentPlan({
   }>({});
 
   const prefersReducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") {return false;}
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 

@@ -81,9 +81,9 @@ export function KeyboardShortcutsModal({
 
   const formatKey = React.useCallback(
     (key: string) => {
-      if (key === "Cmd") return isMac ? "\u2318" : "Ctrl";
-      if (key === "Shift") return isMac ? "\u21E7" : "Shift";
-      if (key === "Alt") return isMac ? "\u2325" : "Alt";
+      if (key === "Cmd") {return isMac ? "\u2318" : "Ctrl";}
+      if (key === "Shift") {return isMac ? "\u21E7" : "Shift";}
+      if (key === "Alt") {return isMac ? "\u2325" : "Alt";}
       return key;
     },
     [isMac]

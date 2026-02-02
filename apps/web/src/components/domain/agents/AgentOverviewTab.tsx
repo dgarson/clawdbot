@@ -39,7 +39,7 @@ export function AgentOverviewTab({
   const activeWorkstreams = workstreams.filter((w) => w.status === "active");
   const upcomingRituals = rituals
     .filter((r) => r.status === "active" && r.nextRun)
-    .sort((a, b) => {
+    .toSorted((a, b) => {
       const dateA = a.nextRun ? new Date(a.nextRun).getTime() : 0;
       const dateB = b.nextRun ? new Date(b.nextRun).getTime() : 0;
       return dateA - dateB;
@@ -213,10 +213,10 @@ function formatRelativeTime(date: Date): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMs < 0) return "Overdue";
-  if (diffHours < 1) return "Less than an hour";
-  if (diffHours < 24) return `In ${diffHours} hour${diffHours === 1 ? "" : "s"}`;
-  if (diffDays < 7) return `In ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+  if (diffMs < 0) {return "Overdue";}
+  if (diffHours < 1) {return "Less than an hour";}
+  if (diffHours < 24) {return `In ${diffHours} hour${diffHours === 1 ? "" : "s"}`;}
+  if (diffDays < 7) {return `In ${diffDays} day${diffDays === 1 ? "" : "s"}`;}
   return date.toLocaleDateString();
 }
 

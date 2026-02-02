@@ -207,23 +207,23 @@ export function SetupUnlockModal({
 type PasswordStrength = "weak" | "fair" | "good" | "strong";
 
 function getPasswordStrength(password: string): PasswordStrength {
-  if (!password || password.length < 8) return "weak";
+  if (!password || password.length < 8) {return "weak";}
 
   let score = 0;
 
   // Length bonus
-  if (password.length >= 12) score += 1;
-  if (password.length >= 16) score += 1;
+  if (password.length >= 12) {score += 1;}
+  if (password.length >= 16) {score += 1;}
 
   // Character variety
-  if (/[a-z]/.test(password)) score += 1;
-  if (/[A-Z]/.test(password)) score += 1;
-  if (/[0-9]/.test(password)) score += 1;
-  if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+  if (/[a-z]/.test(password)) {score += 1;}
+  if (/[A-Z]/.test(password)) {score += 1;}
+  if (/[0-9]/.test(password)) {score += 1;}
+  if (/[^a-zA-Z0-9]/.test(password)) {score += 1;}
 
-  if (score <= 2) return "weak";
-  if (score <= 4) return "fair";
-  if (score <= 5) return "good";
+  if (score <= 2) {return "weak";}
+  if (score <= 4) {return "fair";}
+  if (score <= 5) {return "good";}
   return "strong";
 }
 

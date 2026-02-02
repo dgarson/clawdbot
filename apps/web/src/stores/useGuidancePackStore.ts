@@ -83,7 +83,7 @@ export const useGuidancePackStore = create<GuidancePackStore>()(
       duplicatePack: (id) => {
         set((state) => {
           const original = state.packs.find((pack) => pack.id === id);
-          if (!original) return state;
+          if (!original) {return state;}
           const now = new Date().toISOString();
           return {
             packs: [

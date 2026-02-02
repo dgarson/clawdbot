@@ -71,7 +71,7 @@ export function useFieldValidation<T>(
   // Track if user has interacted (value has ever been non-empty)
   // Use lazy initialization to capture interaction from first non-empty value
   const [hasInteracted, setHasInteracted] = useState(() => {
-    if (validateOnMount) return true;
+    if (validateOnMount) {return true;}
     return value !== undefined && value !== "";
   });
 

@@ -51,7 +51,7 @@ export function MemoryDetail({
   }, [memory, open]);
 
   const handleSave = () => {
-    if (!memory || !onSave) return;
+    if (!memory || !onSave) {return;}
 
     onSave({
       ...memory,
@@ -62,7 +62,7 @@ export function MemoryDetail({
   };
 
   const handleDelete = () => {
-    if (!memory || !onDelete) return;
+    if (!memory || !onDelete) {return;}
     onDelete(memory);
     onOpenChange(false);
   };

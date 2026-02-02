@@ -52,7 +52,7 @@ async function updateAgentStatusMock(
 async function resolveConfigSnapshot(): Promise<{ hash: string; config?: unknown } | null> {
   try {
     const snapshot = await getConfig();
-    if (!snapshot?.hash) return null;
+    if (!snapshot?.hash) {return null;}
     return { hash: snapshot.hash, config: snapshot.config };
   } catch {
     return null;

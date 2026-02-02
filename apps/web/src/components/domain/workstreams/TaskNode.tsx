@@ -98,7 +98,7 @@ const priorityConfig: Record<
 };
 
 function getAgentInitials(agent: Agent | null | undefined): string {
-  if (!agent?.name) return "?";
+  if (!agent?.name) {return "?";}
   return agent.name
     .split(" ")
     .map((n) => n[0])

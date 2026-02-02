@@ -113,12 +113,12 @@ export function SessionWorkspacePane({
   }, [isMaximized]);
 
   React.useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined") {return;}
     setPortalTarget(document.body);
   }, []);
 
   React.useLayoutEffect(() => {
-    if (!isMaximized) return;
+    if (!isMaximized) {return;}
 
     const updateBounds = () => {
       const nudge = document.querySelector<HTMLElement>("[data-approval-nudge]");
@@ -138,7 +138,7 @@ export function SessionWorkspacePane({
   };
 
   const handleFileClick = React.useCallback(async (node: FileNode, path: string) => {
-    if (node.type === "folder") return;
+    if (node.type === "folder") {return;}
 
     setSelectedFile({ ...node, path });
     setFileLoading(true);

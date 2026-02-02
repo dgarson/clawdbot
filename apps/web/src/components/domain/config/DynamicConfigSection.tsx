@@ -214,7 +214,7 @@ export function DynamicConfigFormConnected({
 
   // Handle form submit
   const handleSubmit = async (formValues: Record<string, unknown>) => {
-    if (!config?.hash) return;
+    if (!config?.hash) {return;}
 
     try {
       await patchConfig.mutateAsync({

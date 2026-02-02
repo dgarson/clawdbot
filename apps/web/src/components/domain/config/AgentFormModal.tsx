@@ -118,7 +118,7 @@ export function AgentFormModal({
   );
   const resolveModelEntry = React.useCallback(
     (providerId?: string, modelId?: string) => {
-      if (!modelId) return undefined;
+      if (!modelId) {return undefined;}
       if (providerId) {
         return (
           modelRefIndex.get(`${providerId}/${modelId}`) ??
@@ -144,17 +144,17 @@ export function AgentFormModal({
   });
 
   const splitModelRef = React.useCallback((value?: string) => {
-    if (!value) return { providerId: undefined, modelId: "" };
+    if (!value) {return { providerId: undefined, modelId: "" };}
     const trimmed = value.trim();
-    if (!trimmed) return { providerId: undefined, modelId: "" };
+    if (!trimmed) {return { providerId: undefined, modelId: "" };}
     const parts = trimmed.split("/");
-    if (parts.length <= 1) return { providerId: undefined, modelId: trimmed };
+    if (parts.length <= 1) {return { providerId: undefined, modelId: trimmed };}
     return { providerId: parts[0], modelId: parts.slice(1).join("/") };
   }, []);
 
   const buildModelRef = React.useCallback((provider?: string, modelId?: string) => {
-    if (!modelId) return undefined;
-    if (!provider) return modelId;
+    if (!modelId) {return undefined;}
+    if (!provider) {return modelId;}
     return `${provider}/${modelId}`;
   }, []);
 
@@ -200,9 +200,9 @@ export function AgentFormModal({
   }, [open, agent, splitModelRef]);
 
   React.useEffect(() => {
-    if (!open || state.modelId.length > 0 || models.length === 0) return;
+    if (!open || state.modelId.length > 0 || models.length === 0) {return;}
     const recommended = models.find((model) => model.recommended) ?? models[0];
-    if (!recommended) return;
+    if (!recommended) {return;}
     setState((prev) => ({
       ...prev,
       modelId: recommended.id,

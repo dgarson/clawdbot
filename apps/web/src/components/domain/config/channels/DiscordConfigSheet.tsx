@@ -85,7 +85,7 @@ export function DiscordConfigSheet({
   }, [open, config]);
 
   const handleSave = async () => {
-    if (!botToken.trim()) return;
+    if (!botToken.trim()) {return;}
     setIsSaving(true);
     try {
       await onSave({
@@ -108,7 +108,7 @@ export function DiscordConfigSheet({
   };
 
   const handleDisconnect = async () => {
-    if (!onDisconnect) return;
+    if (!onDisconnect) {return;}
     setIsDisconnecting(true);
     try {
       await onDisconnect();

@@ -73,7 +73,7 @@ function GoalsPage() {
 
   // Filter goals based on search and status
   const filteredGoals = React.useMemo(() => {
-    if (!goals) return [];
+    if (!goals) {return [];}
 
     return goals.filter((goal) => {
       // Status filter

@@ -107,8 +107,8 @@ export function GenericChannelConfigDialog({
   }, [open, authModes, fields.length]);
 
   const resolvedAuthModes: AuthModeConfig[] = React.useMemo(() => {
-    if (authModes.length > 0) return authModes;
-    if (fields.length === 0) return [];
+    if (authModes.length > 0) {return authModes;}
+    if (fields.length === 0) {return [];}
     return [
       {
         id: "default",
@@ -124,20 +124,20 @@ export function GenericChannelConfigDialog({
   const accessFields = activeAuthMode?.fields ?? EMPTY_FIELDS;
   const steps = React.useMemo(() => {
     const list = ["Access"];
-    if (behaviorFields.length > 0) list.push("Behavior");
+    if (behaviorFields.length > 0) {list.push("Behavior");}
     list.push("Review");
     return list;
   }, [behaviorFields.length]);
   const isReviewStep = currentStep === steps.length - 1;
   const isAccessComplete = React.useMemo(() => {
-    if (!activeAuthMode) return true;
-    if (activeAuthMode.type === "oauth") return oauthAuthorized;
+    if (!activeAuthMode) {return true;}
+    if (activeAuthMode.type === "oauth") {return oauthAuthorized;}
     const requiredFields = accessFields.filter((field) => field.required !== false);
     return requiredFields.every((field) => values[field.name]?.trim());
   }, [accessFields, activeAuthMode, oauthAuthorized, values]);
 
   const handleSave = async () => {
-    if (!onSave) return;
+    if (!onSave) {return;}
     setIsSaving(true);
     try {
       await onSave(values);
@@ -152,7 +152,7 @@ export function GenericChannelConfigDialog({
   };
 
   const handleDisconnect = async () => {
-    if (!onDisconnect) return;
+    if (!onDisconnect) {return;}
     setIsDisconnecting(true);
     try {
       await onDisconnect();

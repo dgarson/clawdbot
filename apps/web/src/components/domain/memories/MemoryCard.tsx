@@ -33,7 +33,7 @@ const sourceColors: Record<string, string> = {
 };
 
 function truncateContent(content: string, maxLength: number = 150): string {
-  if (content.length <= maxLength) return content;
+  if (content.length <= maxLength) {return content;}
   return content.slice(0, maxLength).trim() + "...";
 }
 

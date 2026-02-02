@@ -246,7 +246,7 @@ function FilesystemPage() {
   };
 
   const handleDownload = () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {return;}
     const blob = new Blob([selectedFile.content || ""], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -298,8 +298,8 @@ function FilesystemPage() {
   };
 
   const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024) {return `${bytes} B`;}
+    if (bytes < 1024 * 1024) {return `${(bytes / 1024).toFixed(1)} KB`;}
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 

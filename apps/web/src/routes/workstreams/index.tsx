@@ -81,7 +81,7 @@ function WorkstreamsPage() {
 
   // Get owner agent for a workstream
   const getOwner = (ownerId?: string) => {
-    if (!ownerId) return null;
+    if (!ownerId) {return null;}
     return agents.find((a) => a.id === ownerId);
   };
 

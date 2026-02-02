@@ -47,10 +47,10 @@ export function ActiveWorkstreamsSection({
 
   // Filter active workstreams and sort by progress
   const activeWorkstreams = React.useMemo(() => {
-    if (!workstreams) return [];
+    if (!workstreams) {return [];}
     return workstreams
       .filter((w) => w.status === "active")
-      .sort((a, b) => b.progress - a.progress)
+      .toSorted((a, b) => b.progress - a.progress)
       .slice(0, maxWorkstreams);
   }, [workstreams, maxWorkstreams]);
 

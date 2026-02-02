@@ -115,9 +115,9 @@ function RitualsPage() {
   const triggerRitual = useTriggerRitual();
 
   React.useEffect(() => {
-    if (!ritualId || !rituals || rituals.length === 0) return;
+    if (!ritualId || !rituals || rituals.length === 0) {return;}
     const ritual = rituals.find((r) => r.id === ritualId);
-    if (!ritual) return;
+    if (!ritual) {return;}
     setSelectedRitual(ritual);
     setIsDetailOpen(true);
   }, [ritualId, rituals]);
@@ -143,7 +143,7 @@ function RitualsPage() {
   }, [resolvedFrequencyFilter, frequencyFilter]);
 
   const filteredRituals = React.useMemo(() => {
-    if (!rituals) return [];
+    if (!rituals) {return [];}
 
     return rituals.filter((ritual) => {
       // Status filter
@@ -257,7 +257,7 @@ function RitualsPage() {
 
   // Convert agents for selectors
   const agentOptions = React.useMemo(() => {
-    if (!agents) return [];
+    if (!agents) {return [];}
     return agents.map((agent) => ({
       id: agent.id,
       name: agent.name,

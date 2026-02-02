@@ -89,7 +89,7 @@ export function RitualAssignDialog({
 
   const filteredAgents = agents.filter((agent) => {
     const query = search.trim().toLowerCase();
-    if (!query) return true;
+    if (!query) {return true;}
     return (
       agent.name.toLowerCase().includes(query) ||
       agent.role?.toLowerCase().includes(query) ||
@@ -113,7 +113,7 @@ export function RitualAssignDialog({
   };
 
   const handleConfirm = () => {
-    if (!selectedAgentId) return;
+    if (!selectedAgentId) {return;}
     const goals = goalsValue
       .split("\n")
       .map((value) => value.trim())

@@ -84,7 +84,7 @@ export function DynamicConfigForm({
 
   // Process schema into field groups
   const fieldGroups = React.useMemo(() => {
-    if (!schemaResponse) return [];
+    if (!schemaResponse) {return [];}
 
     const { schema, uiHints } = schemaResponse;
     let fields = processSchemaFields(schema, uiHints, "", schema.required ?? []);
@@ -310,8 +310,8 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   let current: unknown = obj;
 
   for (const part of parts) {
-    if (current === null || current === undefined) return undefined;
-    if (typeof current !== "object") return undefined;
+    if (current === null || current === undefined) {return undefined;}
+    if (typeof current !== "object") {return undefined;}
     current = (current as Record<string, unknown>)[part];
   }
 

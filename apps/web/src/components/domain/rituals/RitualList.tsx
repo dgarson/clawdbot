@@ -104,7 +104,7 @@ export function RitualList({
     .filter((freq) => grouped[freq].length > 0)
     .map((freq) => ({
       frequency: freq,
-      rituals: grouped[freq].sort((a, b) => a.time.localeCompare(b.time)),
+      rituals: grouped[freq].toSorted((a, b) => a.time.localeCompare(b.time)),
       ...sectionConfig[freq],
     }));
 

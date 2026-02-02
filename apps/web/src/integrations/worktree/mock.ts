@@ -14,27 +14,27 @@ function splitPath(path: string): string[] {
 }
 
 function parentPath(path: string): string {
-  if (path === "/" || path === "") return "/";
+  if (path === "/" || path === "") {return "/";}
   const parts = splitPath(path);
-  if (parts.length <= 1) return "/";
+  if (parts.length <= 1) {return "/";}
   return `/${parts.slice(0, -1).join("/")}`;
 }
 
 function nameOf(path: string): string {
-  if (path === "/" || path === "") return "/";
+  if (path === "/" || path === "") {return "/";}
   const parts = splitPath(path);
   return parts[parts.length - 1] ?? "/";
 }
 
 function getDir(tree: TreeNode, path: string): Extract<TreeNode, { kind: "dir" }> | null {
-  if (tree.kind !== "dir") return null;
+  if (tree.kind !== "dir") {return null;}
   const parts = splitPath(path);
-  if (parts.length === 0) return tree;
+  if (parts.length === 0) {return tree;}
 
   let current: Extract<TreeNode, { kind: "dir" }> = tree;
   for (const part of parts) {
     const next = current.children.find((c) => c.kind === "dir" && nameOf(c.path) === part);
-    if (!next || next.kind !== "dir") return null;
+    if (!next || next.kind !== "dir") {return null;}
     current = next;
   }
   return current;
@@ -100,7 +100,7 @@ export function createMockWorktreeAdapter(tree: TreeNode = demoTree): WorktreeAd
       }));
 
       entries.sort((a, b) => {
-        if (a.kind !== b.kind) return a.kind === "dir" ? -1 : 1;
+        if (a.kind !== b.kind) {return a.kind === "dir" ? -1 : 1;}
         return a.name.localeCompare(b.name);
       });
 
@@ -111,7 +111,7 @@ export function createMockWorktreeAdapter(tree: TreeNode = demoTree): WorktreeAd
       await sleep(120, ctx);
       const dir = getDir(tree, parentPath(path));
       const file = dir?.children.find((c) => c.kind === "file" && c.path === path);
-      if (!file || file.kind !== "file") throw new Error("File not found");
+      if (!file || file.kind !== "file") {throw new Error("File not found");}
       return { path, content: file.content };
     },
   };

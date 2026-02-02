@@ -36,7 +36,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
 
   const scrollToBottom = useCallback(
     (instant?: boolean) => {
-      if (!scrollRef.current) return;
+      if (!scrollRef.current) {return;}
 
       const targetScrollTop =
         scrollRef.current.scrollHeight - scrollRef.current.clientHeight;
@@ -60,7 +60,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
   );
 
   const handleScroll = useCallback(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current) {return;}
 
     const atBottom = checkIsAtBottom(scrollRef.current);
 
@@ -72,7 +72,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
 
   useEffect(() => {
     const element = scrollRef.current;
-    if (!element) return;
+    if (!element) {return;}
 
     element.addEventListener("scroll", handleScroll, { passive: true });
     return () => element.removeEventListener("scroll", handleScroll);
@@ -80,7 +80,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
-    if (!scrollElement) return;
+    if (!scrollElement) {return;}
 
     const currentHeight = scrollElement.scrollHeight;
     const hasNewContent = currentHeight !== lastContentHeight.current;
@@ -97,7 +97,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
 
   useEffect(() => {
     const element = scrollRef.current;
-    if (!element) return;
+    if (!element) {return;}
 
     const resizeObserver = new ResizeObserver(() => {
       if (scrollState.autoScrollEnabled) {

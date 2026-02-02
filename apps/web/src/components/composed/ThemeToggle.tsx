@@ -56,7 +56,7 @@ export function ThemeToggle({
 
   // Close on click outside (dropdown variant)
   React.useEffect(() => {
-    if (variant !== "dropdown" || !isOpen) return;
+    if (variant !== "dropdown" || !isOpen) {return;}
 
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {

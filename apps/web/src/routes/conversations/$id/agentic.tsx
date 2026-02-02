@@ -83,7 +83,7 @@ function AgenticConversationPage() {
     return () => {
       for (const m of messages) {
         for (const a of m.attachments ?? []) {
-          if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+          if (a.previewUrl) {URL.revokeObjectURL(a.previewUrl);}
         }
       }
     };
@@ -189,7 +189,7 @@ function AgenticConversationPage() {
       };
       setPendingToolCalls((prev) => [...prev, tc]);
       setStatus(autoApprove ? "executing" : "waiting_approval");
-      if (autoApprove) window.setTimeout(() => approveTool(tc.toolCallId), 500);
+      if (autoApprove) {window.setTimeout(() => approveTool(tc.toolCallId), 500);}
 
       const q: Question = {
         id: uid("q"),
@@ -204,7 +204,7 @@ function AgenticConversationPage() {
         ],
       };
       setPendingQuestions((prev) => [...prev, q]);
-      if (!autoApprove) setStatus("waiting_input");
+      if (!autoApprove) {setStatus("waiting_input");}
     }, 700);
   };
 

@@ -40,13 +40,13 @@ export function TeamAgentGrid({
 
   // Sort by last active and take top N agents
   const displayAgents = React.useMemo(() => {
-    if (!agents) return [];
+    if (!agents) {return [];}
     return [...agents]
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         // Prioritize online/busy agents
         const statusOrder = { online: 0, busy: 1, paused: 2, offline: 3 };
         const statusDiff = statusOrder[a.status] - statusOrder[b.status];
-        if (statusDiff !== 0) return statusDiff;
+        if (statusDiff !== 0) {return statusDiff;}
         // Then by last active
         const aTime = a.lastActive ? new Date(a.lastActive).getTime() : 0;
         const bTime = b.lastActive ? new Date(b.lastActive).getTime() : 0;

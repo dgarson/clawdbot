@@ -34,7 +34,7 @@ function DebugTerminalPage() {
   const [connected, setConnected] = React.useState(false);
 
   React.useEffect(() => {
-    if (!powerUserMode) return;
+    if (!powerUserMode) {return;}
     terminalRef.current?.writeln("Clawdbrain Debug Terminal");
     terminalRef.current?.writeln("Commands:");
     terminalRef.current?.writeln("  /connect  - connect to OpenClaw gateway");
@@ -45,7 +45,7 @@ function DebugTerminalPage() {
   }, [powerUserMode]);
 
   React.useEffect(() => {
-    if (!powerUserMode) return;
+    if (!powerUserMode) {return;}
     const bus = eventBusRef.current;
 
     const onConnected = (_e: OpenClawEvents["gateway:connected"]) => {
@@ -83,7 +83,7 @@ function DebugTerminalPage() {
 
   const connect = React.useCallback(async () => {
     const bus = eventBusRef.current;
-    if (!bus) return;
+    if (!bus) {return;}
 
     terminalRef.current?.writeln("");
     terminalRef.current?.writeln(`[gateway] connecting... (${gatewayUrl})`);
@@ -112,7 +112,7 @@ function DebugTerminalPage() {
   const runCommand = React.useCallback(
     async (raw: string) => {
       const trimmed = raw.trim();
-      if (!trimmed) return;
+      if (!trimmed) {return;}
 
       if (trimmed === "/clear") {
         terminalRef.current?.clear();
@@ -140,7 +140,7 @@ function DebugTerminalPage() {
   const onTerminalData = React.useCallback(
     (data: string) => {
       // Ignore escape sequences (arrows, etc)
-      if (data.startsWith("\u001b")) return;
+      if (data.startsWith("\u001b")) {return;}
 
       // Enter
       if (data === "\r") {
@@ -153,7 +153,7 @@ function DebugTerminalPage() {
 
       // Backspace
       if (data === "\u007f") {
-        if (inputBufferRef.current.length === 0) return;
+        if (inputBufferRef.current.length === 0) {return;}
         inputBufferRef.current = inputBufferRef.current.slice(0, -1);
         terminalRef.current?.write("\b \b");
         return;

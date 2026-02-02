@@ -19,7 +19,7 @@ export const ONBOARDING_COMPLETED_AT_KEY = "clawdbrain:onboarding:completedAt";
  * Check if localStorage flag indicates onboarding is complete.
  */
 function checkLocalStorageOnboarded(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") {return false;}
   return localStorage.getItem(ONBOARDING_COMPLETE_KEY) === "true";
 }
 
@@ -27,7 +27,7 @@ function checkLocalStorageOnboarded(): boolean {
  * Mark onboarding as complete in localStorage.
  */
 export function markOnboardingComplete(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
   localStorage.setItem(ONBOARDING_COMPLETE_KEY, "true");
   localStorage.setItem(ONBOARDING_COMPLETED_AT_KEY, new Date().toISOString());
 }
@@ -36,7 +36,7 @@ export function markOnboardingComplete(): void {
  * Clear onboarding completion status (for testing/reset).
  */
 export function resetOnboardingStatus(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
   localStorage.removeItem(ONBOARDING_COMPLETE_KEY);
   localStorage.removeItem(ONBOARDING_COMPLETED_AT_KEY);
 }
@@ -125,7 +125,7 @@ export function useOnboardingCheck(): UseOnboardingCheckResult {
 function checkHasModelProvider(
   auth: Record<string, { apiKey?: string } | undefined> | undefined
 ): boolean {
-  if (!auth) return false;
+  if (!auth) {return false;}
 
   const providers = ["anthropic", "openai", "google", "xai", "openrouter"];
   return providers.some((provider) => {
@@ -140,7 +140,7 @@ function checkHasModelProvider(
 function checkWizardCompletion(
   config: Record<string, unknown> | undefined
 ): boolean {
-  if (!config) return false;
+  if (!config) {return false;}
 
   // Check for wizard.onboarding.completedAt
   const wizard = config.wizard as { onboarding?: { completedAt?: string } } | undefined;

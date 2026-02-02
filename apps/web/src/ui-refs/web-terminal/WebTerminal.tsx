@@ -228,7 +228,7 @@ export const WebTerminal = forwardRef<WebTerminalRef, WebTerminalProps>(
 
     // Initialize terminal
     useEffect(() => {
-      if (!containerRef.current || terminalRef.current) return;
+      if (!containerRef.current || terminalRef.current) {return;}
 
       const resolvedTheme: TerminalTheme =
         customTheme || defaultThemes[theme] || defaultThemes.dark;

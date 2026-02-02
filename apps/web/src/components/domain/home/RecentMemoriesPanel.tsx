@@ -31,7 +31,7 @@ const itemVariants = {
 };
 
 function truncateContent(content: string, maxLength: number = 80): string {
-  if (content.length <= maxLength) return content;
+  if (content.length <= maxLength) {return content;}
   return content.slice(0, maxLength).trim() + "...";
 }
 
@@ -41,9 +41,9 @@ function formatDate(dateString: string): string {
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days}d ago`;
+  if (days === 0) {return "Today";}
+  if (days === 1) {return "Yesterday";}
+  if (days < 7) {return `${days}d ago`;}
 
   return date.toLocaleDateString(undefined, {
     month: "short",
@@ -68,9 +68,9 @@ export function RecentMemoriesPanel({
 
   // Sort by most recent
   const recentMemories = React.useMemo(() => {
-    if (!memories) return [];
+    if (!memories) {return [];}
     return [...memories]
-      .sort(
+      .toSorted(
         (a, b) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       )

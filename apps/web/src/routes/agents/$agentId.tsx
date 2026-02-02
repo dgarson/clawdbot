@@ -107,12 +107,12 @@ function AgentDetailPage() {
   }, [newSession, navigate]);
 
   React.useEffect(() => {
-    if (searchTab && searchTab !== activeTab) setActiveTab(searchTab);
+    if (searchTab && searchTab !== activeTab) {setActiveTab(searchTab);}
   }, [searchTab, activeTab]);
 
   React.useEffect(() => {
-    if (!activityId) return;
-    if (searchTab === "activity") return;
+    if (!activityId) {return;}
+    if (searchTab === "activity") {return;}
     setActiveTab("activity");
     navigate({
       search: (prev) => ({ ...prev, tab: "activity", activityId }),
@@ -130,14 +130,14 @@ function AgentDetailPage() {
   const modeVariant = useLiveGateway ? "success" : "secondary";
 
   const handleToggleStatus = () => {
-    if (!agent) return;
+    if (!agent) {return;}
     const newStatus: AgentStatus =
       agent.status === "paused" ? "online" : "paused";
     updateStatus.mutate({ id: agent.id, status: newStatus });
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "Unknown";
+    if (!dateString) {return "Unknown";}
     const date = new Date(dateString);
     return date.toLocaleDateString(undefined, {
       month: "short",
@@ -147,7 +147,7 @@ function AgentDetailPage() {
   };
 
   const formatRelativeTime = (dateString?: string) => {
-    if (!dateString) return "Never";
+    if (!dateString) {return "Never";}
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -155,10 +155,10 @@ function AgentDetailPage() {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) {return "Just now";}
+    if (diffMins < 60) {return `${diffMins}m ago`;}
+    if (diffHours < 24) {return `${diffHours}h ago`;}
+    if (diffDays < 7) {return `${diffDays}d ago`;}
     return date.toLocaleDateString();
   };
 

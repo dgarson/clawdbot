@@ -95,7 +95,7 @@ export function SlackConfigSheet({
   };
 
   const handleSaveTokens = async () => {
-    if (!onSaveTokenConfig) return;
+    if (!onSaveTokenConfig) {return;}
     setIsSaving(true);
     try {
       await onSaveTokenConfig({
@@ -117,7 +117,7 @@ export function SlackConfigSheet({
   };
 
   const handleDisconnect = async () => {
-    if (!onDisconnect) return;
+    if (!onDisconnect) {return;}
     setIsDisconnecting(true);
     try {
       await onDisconnect();

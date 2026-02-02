@@ -436,7 +436,7 @@ function NumberField({
       value={value ?? ""}
       onChange={(e) => {
         const val = parseFloat(e.target.value);
-        if (!isNaN(val)) onChange(val);
+        if (!isNaN(val)) {onChange(val);}
       }}
       min={min}
       max={max}
@@ -512,7 +512,7 @@ function formatLabel(key: string): string {
 }
 
 function formatOptionLabel(option: string | number): string {
-  if (typeof option === "number") return String(option);
+  if (typeof option === "number") {return String(option);}
   return option
     .replace(/([A-Z])/g, " $1")
     .replace(/[._-]/g, " ")

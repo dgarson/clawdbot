@@ -95,7 +95,7 @@ const VERTICAL_SPACING = 240;
 function layoutNodes(tasks: Task[]): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>();
 
-  if (tasks.length === 0) return positions;
+  if (tasks.length === 0) {return positions;}
 
   // Build dependency graph
   const dependencyMap = new Map<string, Set<string>>();
@@ -119,8 +119,8 @@ function layoutNodes(tasks: Task[]): Map<string, { x: number; y: number }> {
   const visited = new Set<string>();
 
   function calculateLevel(taskId: string): number {
-    if (levels.has(taskId)) return levels.get(taskId)!;
-    if (visited.has(taskId)) return 0; // Cycle detection
+    if (levels.has(taskId)) {return levels.get(taskId)!;}
+    if (visited.has(taskId)) {return 0;} // Cycle detection
 
     visited.add(taskId);
     const deps = dependencyMap.get(taskId) || new Set();
@@ -157,7 +157,7 @@ function layoutNodes(tasks: Task[]): Map<string, { x: number; y: number }> {
   }
 
   // Assign positions
-  const sortedLevels = Array.from(levelGroups.keys()).sort((a, b) => a - b);
+  const sortedLevels = Array.from(levelGroups.keys()).toSorted((a, b) => a - b);
 
   for (const level of sortedLevels) {
     const taskIds = levelGroups.get(level) || [];
@@ -202,7 +202,7 @@ function lineIntersectsRect(
     bx1: number, by1: number, bx2: number, by2: number
   ): boolean => {
     const d = (ax2 - ax1) * (by2 - by1) - (ay2 - ay1) * (bx2 - bx1);
-    if (Math.abs(d) < 0.0001) return false; // Parallel
+    if (Math.abs(d) < 0.0001) {return false;} // Parallel
 
     const t = ((bx1 - ax1) * (by2 - by1) - (by1 - ay1) * (bx2 - bx1)) / d;
     const u = -((ax2 - ax1) * (by1 - ay1) - (ay2 - ay1) * (bx1 - ax1)) / d;
@@ -254,7 +254,7 @@ function getEdgeRoutingInfo(
   const obstacles: ObstacleNode[] = [];
 
   for (const [nodeId, nodePos] of allPositions) {
-    if (nodeId === sourceId || nodeId === targetId) continue;
+    if (nodeId === sourceId || nodeId === targetId) {continue;}
 
     if (lineIntersectsRect(
       sourceX, sourceY,
@@ -334,10 +334,10 @@ function tasksToFlow(
 
   // Edge color mapping for status - matches TaskNode theme colors
   const getEdgeColor = (sourceStatus: TaskStatus, targetStatus: TaskStatus) => {
-    if (targetStatus === "blocked") return "#ef4444"; // destructive
-    if (sourceStatus === "done" && targetStatus === "done") return "#22c55e"; // success
-    if (targetStatus === "in_progress") return "#3b82f6"; // primary
-    if (targetStatus === "review") return "#f97316"; // warning
+    if (targetStatus === "blocked") {return "#ef4444";} // destructive
+    if (sourceStatus === "done" && targetStatus === "done") {return "#22c55e";} // success
+    if (targetStatus === "in_progress") {return "#3b82f6";} // primary
+    if (targetStatus === "review") {return "#f97316";} // warning
     return "#64748b"; // muted
   };
 
@@ -429,7 +429,7 @@ function WorkstreamDAGInner({
 
   // Submit new task
   const handleSubmitNewTask = useCallback(() => {
-    if (!contextMenuTask || !newTaskTitle.trim()) return;
+    if (!contextMenuTask || !newTaskTitle.trim()) {return;}
 
     onCreateRelatedTask?.({
       title: newTaskTitle.trim(),
@@ -715,7 +715,7 @@ function WorkstreamDAGInner({
             className="bg-card border border-border rounded-lg shadow-md"
             nodeColor={(node) => {
               const task = node.data?.task as Task | undefined;
-              if (!task) return "#64748b";
+              if (!task) {return "#64748b";}
               switch (task.status) {
                 case "done":
                   return "#22c55e";

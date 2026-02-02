@@ -22,7 +22,7 @@ export function TokenCostIndicator({
   const hasTokens = tokens !== undefined;
   const hasCost = costUsd !== undefined;
 
-  if (!hasTokens && !hasCost) return null;
+  if (!hasTokens && !hasCost) {return null;}
 
   const textSize = size === "sm" ? "text-xs" : "text-sm";
   const iconSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";

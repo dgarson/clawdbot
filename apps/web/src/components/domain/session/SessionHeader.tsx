@@ -50,7 +50,7 @@ export interface SessionHeaderProps {
  * Format relative time from timestamp
  */
 function formatRelativeTime(timestamp?: number): string {
-  if (!timestamp) return "";
+  if (!timestamp) {return "";}
 
   const now = Date.now();
   const diffMs = now - timestamp;
@@ -58,10 +58,10 @@ function formatRelativeTime(timestamp?: number): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) {return "Just now";}
+  if (diffMins < 60) {return `${diffMins}m ago`;}
+  if (diffHours < 24) {return `${diffHours}h ago`;}
+  if (diffDays < 7) {return `${diffDays}d ago`;}
   return new Date(timestamp).toLocaleDateString();
 }
 
@@ -69,8 +69,8 @@ function formatRelativeTime(timestamp?: number): string {
  * Get display label for a session
  */
 function getSessionLabel(session: GatewaySessionRow): string {
-  if (session.label) return session.label;
-  if (session.derivedTitle) return session.derivedTitle;
+  if (session.label) {return session.label;}
+  if (session.derivedTitle) {return session.derivedTitle;}
   // Extract the session name from the key (e.g., "agent:1:main" -> "main")
   const parts = session.key.split(":");
   return parts[parts.length - 1] || "Session";

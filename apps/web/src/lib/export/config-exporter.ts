@@ -61,12 +61,12 @@ export interface ExportConfigParams {
  * Sanitize agents config by removing any auth-related fields
  */
 function sanitizeAgentsConfig(agents?: AgentsConfig): SanitizedAgentsConfig | undefined {
-  if (!agents) return undefined;
+  if (!agents) {return undefined;}
 
   const sanitized: SanitizedAgentsConfig = { default: agents.default };
 
   for (const [key, value] of Object.entries(agents)) {
-    if (key === "default" || typeof value === "string") continue;
+    if (key === "default" || typeof value === "string") {continue;}
     if (value && typeof value === "object") {
       // Only include non-sensitive agent config fields
       const { name, model, systemPrompt } = value;
@@ -81,14 +81,14 @@ function sanitizeAgentsConfig(agents?: AgentsConfig): SanitizedAgentsConfig | un
  * Sanitize channels config by removing tokens and credentials
  */
 function sanitizeChannelsConfig(channels?: ChannelsConfig): SanitizedChannelsConfig | undefined {
-  if (!channels) return undefined;
+  if (!channels) {return undefined;}
 
   const sanitized: SanitizedChannelsConfig = {};
 
   for (const [key, value] of Object.entries(channels)) {
     if (value && typeof value === "object" && "enabled" in value) {
       const enabled = (value as { enabled?: unknown }).enabled;
-      if (typeof enabled !== "boolean") continue;
+      if (typeof enabled !== "boolean") {continue;}
       // Only include enabled status, strip tokens/credentials
       sanitized[key as keyof ChannelsConfig] = { enabled };
     }

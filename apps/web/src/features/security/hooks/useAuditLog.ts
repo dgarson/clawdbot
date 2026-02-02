@@ -45,7 +45,7 @@ export function useInfiniteAuditLog(params: Omit<AuditQueryParams, "offset"> = {
       queryAuditLog({ ...params, limit, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasMore) return undefined;
+      if (!lastPage.hasMore) {return undefined;}
       return allPages.length * limit;
     },
     staleTime: AUDIT_LOG_STALE_TIME,

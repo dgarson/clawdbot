@@ -36,7 +36,7 @@ export function MessageComposer({
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const revoke = React.useCallback((att: AgenticAttachment) => {
-    if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+    if (att.previewUrl) {URL.revokeObjectURL(att.previewUrl);}
   }, []);
 
   const attachmentsRef = React.useRef<AgenticAttachment[]>(attachments);
@@ -52,21 +52,21 @@ export function MessageComposer({
 
   React.useEffect(() => {
     const el = textareaRef.current;
-    if (!el) return;
+    if (!el) {return;}
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [message]);
 
   const send = () => {
-    if (disabled) return;
-    if (!message.trim() && attachments.length === 0) return;
+    if (disabled) {return;}
+    if (!message.trim() && attachments.length === 0) {return;}
     onSend({ content: message.trim(), attachments });
     setMessage("");
     setAttachments([]);
   };
 
   const onSelectFiles = (files: FileList | null, kind: "image" | "file") => {
-    if (!files) return;
+    if (!files) {return;}
     const next = Array.from(files).map((f) => createAttachment(f, kind));
     setAttachments((prev) => [...prev, ...next]);
   };
@@ -74,7 +74,7 @@ export function MessageComposer({
   const removeAttachment = (id: string) => {
     setAttachments((prev) => {
       const found = prev.find((a) => a.id === id);
-      if (found) revoke(found);
+      if (found) {revoke(found);}
       return prev.filter((a) => a.id !== id);
     });
   };

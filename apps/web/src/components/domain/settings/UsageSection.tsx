@@ -68,8 +68,8 @@ export function UsageSection({ className }: UsageSectionProps) {
   ];
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "bg-destructive";
-    if (percentage >= 75) return "bg-warning";
+    if (percentage >= 90) {return "bg-destructive";}
+    if (percentage >= 75) {return "bg-warning";}
     return "bg-primary";
   };
 

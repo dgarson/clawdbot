@@ -28,7 +28,7 @@ export function ToolAccessConfig({
 }: ToolAccessConfigProps) {
   const handleToolToggle = React.useCallback(
     (toolId: string, enabled: boolean) => {
-      if (readOnly) return;
+      if (readOnly) {return;}
       onToolsChange(
         tools.map((tool) => (tool.id === toolId ? { ...tool, enabled } : tool))
       );
@@ -64,7 +64,7 @@ export function ToolAccessConfig({
 
       {sortedCategories.map((categoryConfig) => {
         const categoryTools = toolsByCategory[categoryConfig.id];
-        if (!categoryTools || categoryTools.length === 0) return null;
+        if (!categoryTools || categoryTools.length === 0) {return null;}
 
         return (
           <ToolCategorySection

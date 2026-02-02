@@ -41,7 +41,7 @@ export function AgentSessionsIndicator({
 
   // Calculate stats from agents
   const stats = React.useMemo(() => {
-    if (!agents) return { active: 0, waiting: 0 };
+    if (!agents) {return { active: 0, waiting: 0 };}
     return {
       // "busy" = actively working
       active: agents.filter((a) => a.status === "busy").length,
@@ -51,7 +51,7 @@ export function AgentSessionsIndicator({
   }, [agents]);
 
   const waitingAgents = React.useMemo(() => {
-    if (!agents) return [];
+    if (!agents) {return [];}
     return agents.filter((agent) => agent.status === "paused");
   }, [agents]);
 

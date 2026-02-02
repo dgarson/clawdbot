@@ -55,7 +55,7 @@ export function IMessageConfigSheet({
   }, [open, config]);
 
   const handleSave = async () => {
-    if (!onSave) return;
+    if (!onSave) {return;}
     setIsSaving(true);
     try {
       await onSave({

@@ -319,20 +319,20 @@ export function AgentActivityTab({
   }, []);
 
   React.useEffect(() => {
-    if (!isSelectionControlled) return;
+    if (!isSelectionControlled) {return;}
     const next = selectedActivityIdProp ?? null;
     setSelectedActivityId(next);
     setDetailsOpen(Boolean(next));
   }, [isSelectionControlled, selectedActivityIdProp]);
 
   const filteredActivities = React.useMemo(() => {
-    if (filter === "all") return activities;
+    if (filter === "all") {return activities;}
     return activities.filter((a) => a.type === filter);
   }, [activities, filter]);
 
   const liveActivities = React.useMemo(() => {
-    if (filter === "task_live") return filteredActivities;
-    if (filter !== "all") return [];
+    if (filter === "task_live") {return filteredActivities;}
+    if (filter !== "all") {return [];}
     return activities.filter((a) => a.type === "task_live");
   }, [activities, filter, filteredActivities]);
 
@@ -350,24 +350,24 @@ export function AgentActivityTab({
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) {return "Just now";}
+    if (diffMins < 60) {return `${diffMins}m ago`;}
+    if (diffHours < 24) {return `${diffHours}h ago`;}
+    if (diffDays < 7) {return `${diffDays}d ago`;}
     return date.toLocaleDateString();
   };
 
   const formatDuration = (durationMs?: number) => {
-    if (!durationMs || durationMs <= 0) return "—";
+    if (!durationMs || durationMs <= 0) {return "—";}
     const totalSeconds = Math.round(durationMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    if (minutes === 0) return `${seconds}s`;
+    if (minutes === 0) {return `${seconds}s`;}
     return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
   };
 
   const formatCost = (costUsd?: number) => {
-    if (costUsd === undefined) return "—";
+    if (costUsd === undefined) {return "—";}
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -380,57 +380,57 @@ export function AgentActivityTab({
     (activity: Activity) => {
       setDetailsOpen(true);
       onActivityClick?.(activity);
-      if (!isSelectionControlled) setSelectedActivityId(activity.id);
+      if (!isSelectionControlled) {setSelectedActivityId(activity.id);}
       onSelectedActivityIdChange?.(activity.id, activity);
     },
     [isSelectionControlled, onActivityClick, onSelectedActivityIdChange]
   );
 
   const selectedActivity = React.useMemo(() => {
-    if (!selectedActivityId) return null;
+    if (!selectedActivityId) {return null;}
     return activities.find((a) => a.id === selectedActivityId) ?? null;
   }, [activities, selectedActivityId]);
 
   const selectedSessionKey = React.useMemo(() => {
-    if (!selectedActivity) return undefined;
-    if (selectedActivity.sessionKey) return selectedActivity.sessionKey;
+    if (!selectedActivity) {return undefined;}
+    if (selectedActivity.sessionKey) {return selectedActivity.sessionKey;}
     const metaSession = selectedActivity.metadata?.sessionKey;
     return typeof metaSession === "string" ? metaSession : undefined;
   }, [selectedActivity]);
 
   React.useEffect(() => {
-    if (!selectedActivityId) return;
+    if (!selectedActivityId) {return;}
     const selected = activities.find((a) => a.id === selectedActivityId);
-    if (!selected) return;
+    if (!selected) {return;}
 
-    if (filter === "all") return;
-    if (filter === selected.type) return;
+    if (filter === "all") {return;}
+    if (filter === selected.type) {return;}
 
     setFilter("all");
   }, [activities, selectedActivityId, filter]);
 
   React.useEffect(() => {
-    if (!selectedActivityId) return;
+    if (!selectedActivityId) {return;}
 
     const indexInTimeline = timelineActivities.findIndex((a) => a.id === selectedActivityId);
-    if (indexInTimeline === -1) return;
-    if (indexInTimeline < visibleCount) return;
+    if (indexInTimeline === -1) {return;}
+    if (indexInTimeline < visibleCount) {return;}
     setVisibleCount(indexInTimeline + 1);
   }, [selectedActivityId, timelineActivities, visibleCount]);
 
   const rowRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
   const registerRowRef = React.useCallback(
     (activityId: string) => (el: HTMLDivElement | null) => {
-      if (el) rowRefs.current.set(activityId, el);
-      else rowRefs.current.delete(activityId);
+      if (el) {rowRefs.current.set(activityId, el);}
+      else {rowRefs.current.delete(activityId);}
     },
     []
   );
 
   React.useEffect(() => {
-    if (!detailsOpen || !selectedActivityId) return;
+    if (!detailsOpen || !selectedActivityId) {return;}
     const el = rowRefs.current.get(selectedActivityId);
-    if (!el) return;
+    if (!el) {return;}
     el.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [detailsOpen, selectedActivityId, visibleCount]);
 
@@ -445,7 +445,7 @@ export function AgentActivityTab({
   }, []);
 
   const relatedLinks = React.useMemo(() => {
-    if (!selectedActivity) return [];
+    if (!selectedActivity) {return [];}
     const meta: Record<string, unknown> = selectedActivity.metadata ?? {};
 
     const items: Array<{ label: string; href: string; external: boolean }> = [];
@@ -800,7 +800,7 @@ export function AgentActivityTab({
         open={detailsOpen && !!selectedActivity}
         onClose={() => {
           setDetailsOpen(false);
-          if (!isSelectionControlled) setSelectedActivityId(null);
+          if (!isSelectionControlled) {setSelectedActivityId(null);}
           onSelectedActivityIdChange?.(null, null);
         }}
         width="md"

@@ -288,7 +288,7 @@ export async function POST(req: Request) {
     const model = getModel(modelId || 'claude-3-5-sonnet-20241022');
     const systemPrompt = getSystemPrompt({ sessionId, toolPermissions, autoApprove });
 
-    const result = await streamText({
+    const result =  streamText({
       model,
       system: systemPrompt,
       messages: convertToCoreMessages(messages),

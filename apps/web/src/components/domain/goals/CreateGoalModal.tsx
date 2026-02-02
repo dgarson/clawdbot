@@ -167,7 +167,7 @@ export function CreateGoalModal({
                         value={title}
                         onChange={(e) => {
                           setTitle(e.target.value);
-                          if (errors.title) setErrors({});
+                          if (errors.title) {setErrors({});}
                         }}
                         placeholder="What do you want to achieve?"
                         className={cn(

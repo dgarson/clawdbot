@@ -28,7 +28,7 @@ export function WorkflowLogPanel({
   const [filter, setFilter] = React.useState<WorkflowLogLevel | "all">("all");
 
   const filtered = React.useMemo(() => {
-    if (filter === "all") return logs;
+    if (filter === "all") {return logs;}
     return logs.filter((l) => l.level === filter);
   }, [logs, filter]);
 

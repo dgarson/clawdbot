@@ -107,9 +107,9 @@ function formatRelativeTime(timestamp: string): string {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
 
-  if (diffMins < 1) return "Now";
-  if (diffMins < 60) return `${diffMins}m`;
-  if (diffHours < 24) return `${diffHours}h`;
+  if (diffMins < 1) {return "Now";}
+  if (diffMins < 60) {return `${diffMins}m`;}
+  if (diffHours < 24) {return `${diffHours}h`;}
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 

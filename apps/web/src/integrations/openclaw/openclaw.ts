@@ -39,7 +39,7 @@ export interface OpenClawHookEvent<T = unknown> {
 }
 
 function isOpenClawHookEvent(value: unknown): value is OpenClawHookEvent {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {return false;}
   const event = value as OpenClawHookEvent;
   return (
     typeof event.type === "string" &&
@@ -133,7 +133,7 @@ export class OpenClawEventBus {
 
   on<K extends keyof OpenClawEvents>(event: K, handler: Listener<OpenClawEvents[K]>): this {
     const key = String(event);
-    if (!this.listeners.has(key)) this.listeners.set(key, new Set());
+    if (!this.listeners.has(key)) {this.listeners.set(key, new Set());}
     this.listeners.get(key)!.add(handler as Listener<unknown>);
     return this;
   }
@@ -154,11 +154,11 @@ export class OpenClawEventBus {
 
   emit<K extends keyof OpenClawEvents>(event: K, data: OpenClawEvents[K]): boolean {
     this.history.push(data);
-    if (this.history.length > this.maxHistorySize) this.history.shift();
+    if (this.history.length > this.maxHistorySize) {this.history.shift();}
 
     const key = String(event);
     const handlers = this.listeners.get(key);
-    if (!handlers || handlers.size === 0) return false;
+    if (!handlers || handlers.size === 0) {return false;}
 
     handlers.forEach((h) => {
       try {
@@ -171,7 +171,7 @@ export class OpenClawEventBus {
   }
 
   registerHook(eventPattern: string, handler: OpenClawHookHandler): () => void {
-    if (!this.hookHandlers.has(eventPattern)) this.hookHandlers.set(eventPattern, new Set());
+    if (!this.hookHandlers.has(eventPattern)) {this.hookHandlers.set(eventPattern, new Set());}
     this.hookHandlers.get(eventPattern)!.add(handler);
     return () => {
       this.hookHandlers.get(eventPattern)?.delete(handler);
@@ -196,10 +196,10 @@ export class OpenClawEventBus {
   }
 
   getHistory(filter?: { type?: OpenClawEventType; action?: OpenClawEventAction }): OpenClawHookEvent[] {
-    if (!filter) return [...this.history];
+    if (!filter) {return [...this.history];}
     return this.history.filter((e) => {
-      if (filter.type && e.type !== filter.type) return false;
-      if (filter.action && e.action !== filter.action) return false;
+      if (filter.type && e.type !== filter.type) {return false;}
+      if (filter.action && e.action !== filter.action) {return false;}
       return true;
     });
   }
@@ -258,7 +258,7 @@ export class OpenClawGatewayClient {
   }
 
   async connect(): Promise<void> {
-    if (this.ws?.readyState === WebSocket.OPEN || this.isConnecting) return;
+    if (this.ws?.readyState === WebSocket.OPEN || this.isConnecting) {return;}
     this.isConnecting = true;
 
     return new Promise((resolve, reject) => {
@@ -345,7 +345,7 @@ export class OpenClawGatewayClient {
 
     if (message.type === "response" && message.id) {
       const pending = this.pendingRpcs.get(message.id);
-      if (!pending) return;
+      if (!pending) {return;}
       clearTimeout(pending.timeout);
       this.pendingRpcs.delete(message.id);
       pending.resolve(message.result);
@@ -354,7 +354,7 @@ export class OpenClawGatewayClient {
 
     if (message.type === "error" && message.id) {
       const pending = this.pendingRpcs.get(message.id);
-      if (!pending) return;
+      if (!pending) {return;}
       clearTimeout(pending.timeout);
       this.pendingRpcs.delete(message.id);
       pending.reject(new Error(message.error?.message ?? "Gateway error"));
@@ -411,12 +411,12 @@ export function registerWorkflowCallbacks(eventBus: OpenClawEventBus, callbacks:
     unsub.push(() => eventBus.off(event, fn));
   };
 
-  if (callbacks.onThinking) on("agent:thinking", callbacks.onThinking);
-  if (callbacks.onToolPending) on("tool:pending", callbacks.onToolPending);
-  if (callbacks.onToolResult) on("tool:executed", callbacks.onToolResult);
-  if (callbacks.onWorkflowError) on("agent:error", callbacks.onWorkflowError);
-  if (callbacks.onConnected) on("gateway:connected", callbacks.onConnected);
-  if (callbacks.onDisconnected) on("gateway:disconnected", callbacks.onDisconnected);
+  if (callbacks.onThinking) {on("agent:thinking", callbacks.onThinking);}
+  if (callbacks.onToolPending) {on("tool:pending", callbacks.onToolPending);}
+  if (callbacks.onToolResult) {on("tool:executed", callbacks.onToolResult);}
+  if (callbacks.onWorkflowError) {on("agent:error", callbacks.onWorkflowError);}
+  if (callbacks.onConnected) {on("gateway:connected", callbacks.onConnected);}
+  if (callbacks.onDisconnected) {on("gateway:disconnected", callbacks.onDisconnected);}
 
   return () => unsub.forEach((u) => u());
 }

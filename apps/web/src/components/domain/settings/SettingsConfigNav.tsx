@@ -69,7 +69,7 @@ export function SettingsConfigNav({
   const groups = navItems.reduce(
     (acc, item) => {
       const group = item.group;
-      if (!acc[group]) acc[group] = [];
+      if (!acc[group]) {acc[group] = [];}
       acc[group].push(item);
       return acc;
     },
@@ -82,7 +82,7 @@ export function SettingsConfigNav({
     <nav className={cn("space-y-6", className)}>
       {groupOrder.map((groupKey) => {
         const items = groups[groupKey];
-        if (!items?.length) return null;
+        if (!items?.length) {return null;}
 
         return (
           <div key={groupKey} className="space-y-1">

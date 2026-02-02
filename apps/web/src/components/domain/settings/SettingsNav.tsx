@@ -58,7 +58,7 @@ export function SettingsNav({ activeSection, onSectionChange, className }: Setti
   const groups = navItems.reduce(
     (acc, item) => {
       const group = item.group || "user";
-      if (!acc[group]) acc[group] = [];
+      if (!acc[group]) {acc[group] = [];}
       acc[group].push(item);
       return acc;
     },
@@ -71,7 +71,7 @@ export function SettingsNav({ activeSection, onSectionChange, className }: Setti
     <nav className={cn("space-y-6", className)}>
       {groupOrder.map((groupKey) => {
         const items = groups[groupKey];
-        if (!items?.length) return null;
+        if (!items?.length) {return null;}
 
         return (
           <div key={groupKey} className="space-y-1">

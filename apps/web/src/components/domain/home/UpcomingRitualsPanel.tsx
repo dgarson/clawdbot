@@ -31,7 +31,7 @@ const itemVariants = {
 };
 
 function formatNextRun(nextRun?: string): string {
-  if (!nextRun) return "Not scheduled";
+  if (!nextRun) {return "Not scheduled";}
 
   const date = new Date(nextRun);
   const now = new Date();
@@ -39,10 +39,10 @@ function formatNextRun(nextRun?: string): string {
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(hours / 24);
 
-  if (diff < 0) return "Overdue";
-  if (hours < 1) return "Less than an hour";
-  if (hours < 24) return `In ${hours}h`;
-  if (days < 7) return `In ${days}d`;
+  if (diff < 0) {return "Overdue";}
+  if (hours < 1) {return "Less than an hour";}
+  if (hours < 24) {return `In ${hours}h`;}
+  if (days < 7) {return `In ${days}d`;}
 
   return date.toLocaleDateString(undefined, {
     weekday: "short",
@@ -67,10 +67,10 @@ export function UpcomingRitualsPanel({
 
   // Filter active rituals and sort by next run
   const upcomingRituals = React.useMemo(() => {
-    if (!rituals) return [];
+    if (!rituals) {return [];}
     return rituals
       .filter((r) => r.status === "active" && r.nextRun)
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const aTime = a.nextRun ? new Date(a.nextRun).getTime() : Infinity;
         const bTime = b.nextRun ? new Date(b.nextRun).getTime() : Infinity;
         return aTime - bTime;

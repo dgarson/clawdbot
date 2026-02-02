@@ -72,7 +72,7 @@ function getAllTags(memories: Memory[]): string[] {
   memories.forEach((memory) => {
     memory.tags.forEach((tag) => tagSet.add(tag));
   });
-  return Array.from(tagSet).sort();
+  return Array.from(tagSet).toSorted();
 }
 
 // Animation variants for staggered grid
@@ -133,7 +133,7 @@ function MemoriesPage() {
 
   // Filter and sort memories
   const filteredMemories = React.useMemo(() => {
-    if (!memories) return [];
+    if (!memories) {return [];}
 
     let result = [...memories];
 

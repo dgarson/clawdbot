@@ -79,10 +79,10 @@ function getOverallHealth(
   channelsTotal: number,
   providersConfigured: number
 ): HealthStatus {
-  if (!gatewayConnected) return "error";
-  if (providersConfigured === 0) return "degraded";
-  if (channelsTotal > 0 && channelsConnected === 0) return "degraded";
-  if (channelsConnected < channelsTotal) return "degraded";
+  if (!gatewayConnected) {return "error";}
+  if (providersConfigured === 0) {return "degraded";}
+  if (channelsTotal > 0 && channelsConnected === 0) {return "degraded";}
+  if (channelsConnected < channelsTotal) {return "degraded";}
   return "healthy";
 }
 
@@ -230,7 +230,7 @@ function ChannelsStatusCard({ className }: { className?: string }) {
 
   // Calculate channel stats
   const channelStats = React.useMemo(() => {
-    if (!data) return { connected: 0, total: 0, channels: [] as { id: string; label: string; connected: boolean; error?: string }[] };
+    if (!data) {return { connected: 0, total: 0, channels: [] as { id: string; label: string; connected: boolean; error?: string }[] };}
 
     const channelList: { id: string; label: string; connected: boolean; error?: string }[] = [];
     let connected = 0;
@@ -241,13 +241,13 @@ function ChannelsStatusCard({ className }: { className?: string }) {
       const accounts: ChannelAccountSnapshot[] = data.channelAccounts?.[channelId] || [];
       const label = data.channelLabels?.[channelId] || channelId;
 
-      if (!summary?.configured) continue;
+      if (!summary?.configured) {continue;}
       total++;
 
       const isConnected = summary.connected === true || accounts.some((a) => a.connected);
       const error = summary.error || accounts.find((a) => a.error)?.error;
 
-      if (isConnected) connected++;
+      if (isConnected) {connected++;}
 
       channelList.push({
         id: channelId,
@@ -381,7 +381,7 @@ function ProvidersStatusCard({ className }: { className?: string }) {
 
   // Calculate provider stats
   const providerStats = React.useMemo(() => {
-    if (!config?.config?.auth) return { configured: 0, providers: [] as { id: string; name: string; configured: boolean }[] };
+    if (!config?.config?.auth) {return { configured: 0, providers: [] as { id: string; name: string; configured: boolean }[] };}
 
     const providerDefs = [
       { id: "anthropic", name: "Anthropic", key: "anthropic" },
@@ -516,9 +516,9 @@ export function HealthDashboard({ className }: HealthDashboardProps) {
     if (channelsData) {
       for (const channelId of channelsData.channelOrder || []) {
         const summary = channelsData.channels?.[channelId];
-        if (!summary?.configured) continue;
+        if (!summary?.configured) {continue;}
         channelsTotal++;
-        if (summary.connected) channelsConnected++;
+        if (summary.connected) {channelsConnected++;}
       }
     }
 

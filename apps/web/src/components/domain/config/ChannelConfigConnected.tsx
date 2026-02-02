@@ -40,10 +40,10 @@ interface ChannelConfigConnectedProps {
 function mapChannelStatus(
   snapshot: ChannelAccountSnapshot | undefined
 ): ChannelConfigType["status"] {
-  if (!snapshot) return "not_configured";
-  if (snapshot.error) return "error";
-  if (snapshot.connected) return "connected";
-  if (snapshot.configured) return "not_configured"; // configured but not connected
+  if (!snapshot) {return "not_configured";}
+  if (snapshot.error) {return "error";}
+  if (snapshot.connected) {return "connected";}
+  if (snapshot.configured) {return "not_configured";} // configured but not connected
   return "not_configured";
 }
 
@@ -89,10 +89,10 @@ export function ChannelConfigConnected({
     const defaultAccountIds = channelsData.channelDefaultAccountId || {};
 
     // Filter to supported channel IDs
-    const supportedChannels: ChannelId[] = ["telegram", "whatsapp", "discord", "signal", "slack", "imessage"];
+    const supportedChannels = new Set<ChannelId>(["telegram", "whatsapp", "discord", "signal", "slack", "imessage"]);
 
     return order
-      .filter((id): id is ChannelId => supportedChannels.includes(id as ChannelId))
+      .filter((id): id is ChannelId => supportedChannels.has(id as ChannelId))
       .map((channelId) => {
         const channelMeta = meta[channelId];
         const channelAccounts = accounts[channelId] || [];
@@ -205,7 +205,7 @@ export function ChannelConfigConnected({
   };
 
   const handleTelegramSave = async (config: TelegramConfig) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
@@ -232,7 +232,7 @@ export function ChannelConfigConnected({
   };
 
   const handleDiscordSave = async (config: DiscordConfig) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
@@ -274,7 +274,7 @@ export function ChannelConfigConnected({
   };
 
   const handleSlackTokenSave = async (config: SlackConfig) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
@@ -302,7 +302,7 @@ export function ChannelConfigConnected({
   };
 
   const handleSignalSave = async (config: SignalConfig) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
@@ -322,7 +322,7 @@ export function ChannelConfigConnected({
   };
 
   const handleIMessageSave = async (config: iMessageConfig) => {
-    if (!configSnapshot?.hash) return;
+    if (!configSnapshot?.hash) {return;}
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({

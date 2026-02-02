@@ -74,7 +74,7 @@ export function AIProviderSection({ className }: AIProviderSectionProps) {
   // Derive configured providers from real config
   const configuredProviders = React.useMemo(() => {
     const cfg = config?.config;
-    if (!cfg) return [];
+    if (!cfg) {return [];}
 
     const providers: ConfiguredProvider[] = [];
     const auth = cfg.auth ?? {};
@@ -115,7 +115,7 @@ export function AIProviderSection({ className }: AIProviderSectionProps) {
   };
 
   const handleRemoveProvider = async (providerId: ProviderId) => {
-    if (!config) return;
+    if (!config) {return;}
 
     setRemovingProvider(providerId);
     try {
@@ -188,7 +188,7 @@ export function AIProviderSection({ className }: AIProviderSectionProps) {
               <div className="space-y-2">
                 {configuredProviders.map((configured) => {
                   const provider = getProviderInfo(configured.id);
-                  if (!provider) return null;
+                  if (!provider) {return null;}
                   return (
                     <div
                       key={configured.id}
