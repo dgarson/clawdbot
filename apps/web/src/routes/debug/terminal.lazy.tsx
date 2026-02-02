@@ -12,6 +12,7 @@ import type { WebTerminalRef } from "@/components/composed/WebTerminal";
 import {
   createGatewayClient,
   type GatewayClient,
+  type GatewayConnectionState,
   type GatewayEvent,
   type GatewayStatus,
 } from "@/lib/api";
@@ -55,10 +56,10 @@ function DebugTerminalPage() {
     terminalRef.current?.write("> ");
   }, []);
 
-  const handleStatusChange = React.useCallback((newStatus: GatewayStatus) => {
-    setStatus(newStatus);
+  const handleStatusChange = React.useCallback((state: GatewayConnectionState) => {
+    setStatus(state.status);
     terminalRef.current?.writeln("");
-    terminalRef.current?.writeln(`[status] ${newStatus}`);
+    terminalRef.current?.writeln(`[status] ${state.status}`);
     terminalRef.current?.write("> ");
   }, []);
 
@@ -72,7 +73,7 @@ function DebugTerminalPage() {
     // Create new client with unified v3 protocol
     const client = createGatewayClient({
       url: gatewayUrl,
-      onStatusChange: handleStatusChange,
+      onStateChange: handleStatusChange,
       onEvent: handleEvent,
       onError: (err) => {
         terminalRef.current?.writeln("");

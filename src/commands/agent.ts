@@ -393,7 +393,7 @@ export async function agentCommand(
         model,
         agentDir,
         fallbacksOverride: resolveAgentModelFallbacksOverride(cfg, sessionAgentId),
-        run: (providerOverride, modelOverride) => {
+        run: async (providerOverride, modelOverride) => {
           if (isCliProvider(providerOverride, cfg)) {
             const cliSessionId = getCliSessionId(sessionEntry, providerOverride);
             return runCliAgent({

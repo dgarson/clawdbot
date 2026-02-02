@@ -184,14 +184,14 @@ describe("gateway-client", () => {
       await expect(connectPromise).rejects.toThrow("Client stopped");
     });
 
-    it("calls onStatusChange when status changes", async () => {
-      const onStatusChange = vi.fn();
-      const client = createGatewayClient({ onStatusChange });
+    it("calls onStateChange when status changes", async () => {
+      const onStateChange = vi.fn();
+      const client = createGatewayClient({ onStateChange });
 
       const connectPromise = client.connect();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(onStatusChange).toHaveBeenCalledWith("connecting");
+      expect(onStateChange).toHaveBeenCalledWith({ status: "connecting" });
 
       // Clean up
       client.stop();

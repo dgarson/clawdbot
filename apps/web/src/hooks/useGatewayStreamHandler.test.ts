@@ -95,16 +95,33 @@ vi.mock("@/stores/useSessionStore", () => {
     return selector ? selector(store) : store;
   };
 
-  (useSessionStoreMock as unknown as { getState: () => unknown }).getState = () => ({
-    ...hoisted.store.state,
-    startStreaming: hoisted.store.startStreaming,
-    setStreamingContent: hoisted.store.setStreamingContent,
-    appendStreamingContent: hoisted.store.appendStreamingContent,
-    updateToolCall: hoisted.store.updateToolCall,
-    finishStreaming: hoisted.store.finishStreaming,
-    clearStreaming: hoisted.store.clearStreaming,
-    findSessionKeyByRunId: hoisted.store.findSessionKeyByRunId,
-  });
+const useSessionStoreMock = Object.assign(
+  vi.fn((selector?: (s: unknown) => unknown) => {
+    const store = {
+      ...state,
+      startStreaming,
+      setStreamingContent,
+      appendStreamingContent,
+      updateToolCall,
+      finishStreaming,
+      clearStreaming,
+      findSessionKeyByRunId,
+    };
+    return selector ? selector(store) : store;
+  }),
+  {
+    getState: () => ({
+      ...state,
+      startStreaming,
+      setStreamingContent,
+      appendStreamingContent,
+      updateToolCall,
+      finishStreaming,
+      clearStreaming,
+      findSessionKeyByRunId,
+    }),
+  },
+);
 
   return { useSessionStore: useSessionStoreMock };
 });
