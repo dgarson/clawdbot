@@ -37,6 +37,7 @@ The onboarding wizard generates a gateway token by default, so paste it here on 
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
 - Nodes: list + caps (`node.list`)
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
+- Approvals attention: surfaces pending approval requests prominently and supports Snooze (see [Approvals](/web/approvals))
 - Config: view/edit `~/.clawdbrain/clawdbrain.json` (`config.get`, `config.set`)
 - Config: apply + restart with validation (`config.apply`) and wake the last active session
 - Config writes include a base-hash guard to prevent clobbering concurrent edits

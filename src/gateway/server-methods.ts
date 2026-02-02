@@ -31,6 +31,7 @@ import { usageHandlers } from "./server-methods/usage.js";
 import { voicewakeHandlers } from "./server-methods/voicewake.js";
 import { webHandlers } from "./server-methods/web.js";
 import { wizardHandlers } from "./server-methods/wizard.js";
+import { worktreeHandlers } from "./server-methods/worktree.js";
 
 const ADMIN_SCOPE = "operator.admin";
 const READ_SCOPE = "operator.read";
@@ -88,6 +89,8 @@ const READ_METHODS = new Set([
   "security.getHistory",
   "tokens.list",
   "audit.query",
+  "worktree.list",
+  "worktree.read",
 ]);
 const WRITE_METHODS = new Set([
   "send",
@@ -121,6 +124,10 @@ const WRITE_METHODS = new Set([
   "security.disable2fa",
   "tokens.create",
   "tokens.revoke",
+  "worktree.write",
+  "worktree.delete",
+  "worktree.move",
+  "worktree.mkdir",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
@@ -215,6 +222,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...securityHandlers,
   ...tokenHandlers,
   ...auditHandlers,
+  ...worktreeHandlers,
 };
 
 export async function handleGatewayRequest(

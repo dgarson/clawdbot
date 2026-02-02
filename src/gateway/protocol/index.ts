@@ -244,6 +244,20 @@ import {
   AutomationsArtifactDownloadParamsSchema,
   type AutomationsArtifactDownloadResult,
   AutomationsArtifactDownloadResultSchema,
+  // Worktree
+  type WorktreeListParams,
+  type WorktreeListResult,
+  type WorktreeReadParams,
+  type WorktreeReadResult,
+  type WorktreeWriteParams,
+  type WorktreeWriteResult,
+  type WorktreeDeleteParams,
+  type WorktreeDeleteResult,
+  type WorktreeMoveParams,
+  type WorktreeMoveResult,
+  type WorktreeMkdirParams,
+  type WorktreeMkdirResult,
+  type WorktreeFileEntry,
 } from "./schema.js";
 
 const ajv = new (AjvPkg as unknown as new (opts?: object) => import("ajv").default)({
@@ -413,6 +427,13 @@ export const validateAutomationsCreateParams = ajv.compile<AutomationsCreatePara
 );
 export const validateAutomationsArtifactDownloadParams =
   ajv.compile<AutomationsArtifactDownloadParams>(AutomationsArtifactDownloadParamsSchema);
+
+export const validateWorktreeListParams = ajv.compile(ProtocolSchemas.WorktreeListParams);
+export const validateWorktreeReadParams = ajv.compile(ProtocolSchemas.WorktreeReadParams);
+export const validateWorktreeWriteParams = ajv.compile(ProtocolSchemas.WorktreeWriteParams);
+export const validateWorktreeDeleteParams = ajv.compile(ProtocolSchemas.WorktreeDeleteParams);
+export const validateWorktreeMoveParams = ajv.compile(ProtocolSchemas.WorktreeMoveParams);
+export const validateWorktreeMkdirParams = ajv.compile(ProtocolSchemas.WorktreeMkdirParams);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) return "unknown validation error";
@@ -667,4 +688,18 @@ export type {
   AutomationsCreateParams,
   AutomationsArtifactDownloadParams,
   AutomationsArtifactDownloadResult,
+  // Worktree
+  WorktreeListParams,
+  WorktreeListResult,
+  WorktreeReadParams,
+  WorktreeReadResult,
+  WorktreeWriteParams,
+  WorktreeWriteResult,
+  WorktreeDeleteParams,
+  WorktreeDeleteResult,
+  WorktreeMoveParams,
+  WorktreeMoveResult,
+  WorktreeMkdirParams,
+  WorktreeMkdirResult,
+  WorktreeFileEntry,
 };

@@ -30,7 +30,7 @@ export function useAgentApprovalActions() {
         showSuccess(`Approved ${pending.length} request${pending.length === 1 ? "" : "s"} for ${agent?.name ?? "agent"}.`);
         return true;
       } catch (error) {
-        showError("Failed to approve pending requests.");
+        showError("Failed to approve. The request may have expired in the external system; ask the agent to retry.");
         return false;
       }
     },
@@ -62,7 +62,7 @@ export function useAgentApprovalActions() {
         showSuccess(`Denied ${pending.length} request${pending.length === 1 ? "" : "s"} for ${agent?.name ?? "agent"}.`);
         return true;
       } catch (error) {
-        showError("Failed to deny pending requests.");
+        showError("Failed to deny. The request may have expired or the gateway may have dropped it; ask the agent to retry.");
         return false;
       }
     },

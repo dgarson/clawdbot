@@ -152,6 +152,21 @@ import {
   WizardStatusResultSchema,
   WizardStepSchema,
 } from "./wizard.js";
+import {
+  WorktreeListParams,
+  WorktreeListResult,
+  WorktreeReadParams,
+  WorktreeReadResult,
+  WorktreeWriteParams,
+  WorktreeWriteResult,
+  WorktreeDeleteParams,
+  WorktreeDeleteResult,
+  WorktreeMoveParams,
+  WorktreeMoveResult,
+  WorktreeMkdirParams,
+  WorktreeMkdirResult,
+  WorktreeFileEntry,
+} from "./worktree.js";
 
 export const ProtocolSchemas: Record<string, TSchema> = {
   ConnectParams: ConnectParamsSchema,
@@ -280,6 +295,19 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   AutomationsCreateParams: AutomationsCreateParamsSchema,
   AutomationsArtifactDownloadParams: AutomationsArtifactDownloadParamsSchema,
   AutomationsArtifactDownloadResult: AutomationsArtifactDownloadResultSchema,
+  WorktreeListParams,
+  WorktreeListResult,
+  WorktreeReadParams,
+  WorktreeReadResult,
+  WorktreeWriteParams,
+  WorktreeWriteResult,
+  WorktreeDeleteParams,
+  WorktreeDeleteResult,
+  WorktreeMoveParams,
+  WorktreeMoveResult,
+  WorktreeMkdirParams,
+  WorktreeMkdirResult,
+  WorktreeFileEntry,
 };
 
 export const PROTOCOL_VERSION = 3 as const;

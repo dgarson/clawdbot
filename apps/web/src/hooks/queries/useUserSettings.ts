@@ -448,10 +448,11 @@ export function useUpdateInteractionStyle() {
       if (context?.previous) {
         queryClient.setQueryData(userSettingsKeys.interactionStyle(), context.previous);
       }
-      toast.error("Failed to update interaction style");
+      toast.error("Failed to update interaction style", { id: "interaction-style-error" });
     },
     onSuccess: () => {
-      toast.success("Interaction style updated");
+      // Use a consistent ID to deduplicate rapid updates
+      toast.success("Interaction style updated", { id: "interaction-style-update" });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userSettingsKeys.interactionStyle() });
@@ -489,10 +490,10 @@ export function useUpdateAppearance() {
       if (context?.previous) {
         queryClient.setQueryData(userSettingsKeys.appearance(), context.previous);
       }
-      toast.error("Failed to update appearance");
+      toast.error("Failed to update appearance", { id: "appearance-error" });
     },
     onSuccess: () => {
-      toast.success("Appearance updated");
+      toast.success("Appearance updated", { id: "appearance-update" });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userSettingsKeys.appearance() });
@@ -530,10 +531,10 @@ export function useUpdateAccessibility() {
       if (context?.previous) {
         queryClient.setQueryData(userSettingsKeys.accessibility(), context.previous);
       }
-      toast.error("Failed to update accessibility settings");
+      toast.error("Failed to update accessibility settings", { id: "accessibility-error" });
     },
     onSuccess: () => {
-      toast.success("Accessibility settings updated");
+      toast.success("Accessibility settings updated", { id: "accessibility-update" });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userSettingsKeys.accessibility() });
@@ -571,10 +572,10 @@ export function useUpdateNotificationSettings() {
       if (context?.previous) {
         queryClient.setQueryData(userSettingsKeys.notificationSettings(), context.previous);
       }
-      toast.error("Failed to update notification settings");
+      toast.error("Failed to update notification settings", { id: "notification-settings-error" });
     },
     onSuccess: () => {
-      toast.success("Notification settings updated");
+      toast.success("Notification settings updated", { id: "notification-settings-update" });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userSettingsKeys.notificationSettings() });

@@ -187,6 +187,16 @@ function resolveExecutionBadge(status?: string) {
 function getActivityState(ritual: Ritual) {
   const status = ritual.status ?? (ritual.enabled ? "active" : "paused");
 
+  // Distinguish between paused and other inactive states
+  if (status === "paused") {
+    return {
+      label: "Paused",
+      textClass: "text-orange-500",
+      dotClass: "bg-orange-500",
+      pulse: false,
+    };
+  }
+
   if (status !== "active") {
     return {
       label: "Inactive",
@@ -266,7 +276,12 @@ export function RitualCard({
         whileHover={{ scale: 1.02 }}
         className={cn("group", className)}
       >
-        <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+        <Card className={cn(
+          "overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300",
+          ritual.status === "paused"
+            ? "opacity-75 border-orange-500/30 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/5"
+            : "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+        )}>
           <CardContent className="p-4">
             <div className="flex items-start gap-4">
               {/* Status indicator */}
@@ -558,11 +573,20 @@ export function RitualCard({
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={cn("group relative", className)}
     >
-      <Card className="relative overflow-hidden rounded-2xl border-border/50 bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm transition-all duration-500 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+      <Card className={cn(
+        "relative overflow-hidden rounded-2xl border-border/50 bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm transition-all duration-500",
+        ritual.status === "paused"
+          ? "opacity-75 border-orange-500/30 hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-500/10"
+          : "hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10"
+      )}>
         {/* Gradient accent line */}
         <div className={cn(
           "absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r opacity-60",
-          ritual.enabled ? "from-primary via-accent to-primary" : "from-muted via-muted-foreground/30 to-muted"
+          ritual.status === "paused"
+            ? "from-orange-500 via-orange-400 to-orange-500"
+            : ritual.enabled
+              ? "from-primary via-accent to-primary"
+              : "from-muted via-muted-foreground/30 to-muted"
         )} />
 
         {/* Glow effect on hover */}

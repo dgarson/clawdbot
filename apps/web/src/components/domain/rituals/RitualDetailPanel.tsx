@@ -167,6 +167,9 @@ export function RitualDetailPanel({
   agents = [],
   className,
 }: RitualDetailPanelProps) {
+  // Early return BEFORE any hooks
+  if (!ritual) return null;
+
   const [showScheduler, setShowScheduler] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showScheduleConfirm, setShowScheduleConfirm] = React.useState(false);
@@ -183,8 +186,6 @@ export function RitualDetailPanel({
   const latestExecution = sortedExecutions[0];
   const isRunning = executions.some((execution) => execution.status === "running");
   const canSkipNext = Boolean(onSkipNext);
-
-  if (!ritual) return null;
 
   const status = statusConfig[ritual.status];
   const StatusIcon = status.icon;

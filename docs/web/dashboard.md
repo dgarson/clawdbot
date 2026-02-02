@@ -13,6 +13,7 @@ Quick open (local Gateway):
 
 Key references:
 - [Control UI](/web/control-ui) for usage and UI capabilities.
+- [Approvals](/web/approvals) for how approval requests are surfaced and how Snooze behaves.
 - [Tailscale](/gateway/tailscale) for Serve/Funnel automation.
 - [Web surfaces](/web) for bind modes and security notes.
 

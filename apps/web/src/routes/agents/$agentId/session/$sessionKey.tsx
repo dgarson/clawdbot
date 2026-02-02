@@ -228,6 +228,7 @@ function AgentSessionPage() {
               onToggleMaximize={() => setWorkspacePaneMaximized((v) => !v)}
               sessionKey={sessionKey}
               workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
+              agentId={agentId}
               className="h-full"
             />
           </div>

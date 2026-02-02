@@ -54,6 +54,7 @@ export function ApprovalAttentionNudge(props: ApprovalAttentionNudgeProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.18 }}
+          data-approval-nudge
           className={props.className}
         >
           <div className="w-full rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
@@ -74,6 +75,9 @@ export function ApprovalAttentionNudge(props: ApprovalAttentionNudgeProps) {
                     View waiting agents
                   </Link>
                   .
+                  <span className="ml-2">
+                    Snooze hides reminders only. Approvals may fail later if an external token, ticket, or request expires.
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0 self-center">

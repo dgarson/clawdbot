@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +14,9 @@ import {
   RefreshCw,
   ChevronDown,
 } from "lucide-react";
+import { FilePreviewPanel } from "./FilePreviewPanel";
+import { createWorktreeGatewayAdapter } from "@/integrations/worktree/gateway";
+import type { WorktreeAdapter } from "@/integrations/worktree/types";
 
 export interface SessionWorkspacePaneProps {
   /** Whether the pane is maximized */
@@ -23,6 +27,8 @@ export interface SessionWorkspacePaneProps {
   workspaceDir?: string;
   /** Session key for terminal context */
   sessionKey?: string;
+  /** Agent ID for file operations */
+  agentId?: string;
   /** Callback when terminal receives data */
   onTerminalData?: (data: string) => void;
   /** Additional CSS classes */
@@ -68,12 +74,25 @@ export function SessionWorkspacePane({
   onToggleMaximize,
   workspaceDir = "~/.clawdbrain/agents/default/workspace",
   sessionKey,
+  agentId,
   onTerminalData,
   className,
 }: SessionWorkspacePaneProps) {
   const terminalRef = React.useRef<WebTerminalRef>(null);
   const [activeTab, setActiveTab] = React.useState<"terminal" | "files">("files");
   const [filesRevision, setFilesRevision] = React.useState(0);
+  const [portalTarget, setPortalTarget] = React.useState<HTMLElement | null>(null);
+  const [overlayTop, setOverlayTop] = React.useState(112);
+  const [overlayBottom, setOverlayBottom] = React.useState(12);
+
+  // File preview state
+  const [selectedFile, setSelectedFile] = React.useState<FileNode & { path: string } | null>(null);
+  const [fileContent, setFileContent] = React.useState<string>("");
+  const [fileLoading, setFileLoading] = React.useState(false);
+  const [fileError, setFileError] = React.useState<string | null>(null);
+
+  // Worktree adapter for file operations (uses gateway WebSocket client)
+  const worktreeAdapter = React.useMemo(() => createWorktreeGatewayAdapter(), []);
 
   // Handle terminal resize when maximized state changes
   React.useEffect(() => {
@@ -86,11 +105,81 @@ export function SessionWorkspacePane({
     }
   }, [isMaximized]);
 
+  React.useEffect(() => {
+    if (typeof document === "undefined") return;
+    setPortalTarget(document.body);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!isMaximized) return;
+
+    const updateBounds = () => {
+      const nudge = document.querySelector<HTMLElement>("[data-approval-nudge]");
+      const nudgeBottom = nudge ? nudge.getBoundingClientRect().bottom : 0;
+      const nextTop = Math.max(16, Math.round(nudgeBottom + 12));
+      setOverlayTop(nextTop);
+      setOverlayBottom(Math.round(window.innerHeight * 0.12));
+    };
+
+    updateBounds();
+    window.addEventListener("resize", updateBounds);
+    return () => window.removeEventListener("resize", updateBounds);
+  }, [isMaximized]);
+
   const handleRefreshFiles = () => {
     setFilesRevision((prev) => prev + 1);
   };
 
-  return (
+  const handleFileClick = React.useCallback(async (node: FileNode, path: string) => {
+    if (node.type === "folder") return;
+
+    setSelectedFile({ ...node, path });
+    setFileLoading(true);
+    setFileError(null);
+
+    if (!agentId) {
+      setFileError("Agent ID not available");
+      setFileLoading(false);
+      return;
+    }
+
+    try {
+      const result = await worktreeAdapter.readFile?.(
+        agentId,
+        path,
+        { signal: new AbortController().signal }
+      );
+      setFileContent(result?.content || "");
+    } catch (err) {
+      console.error("Failed to load file:", err);
+
+      const errorMessage = err instanceof Error ? err.message : String(err);
+
+      // Provide specific error messages for common cases
+      if (errorMessage.includes("Not connected to gateway")) {
+        setFileError("Not connected to gateway. Please ensure the gateway is running and connected.");
+      } else if (errorMessage.includes("Request failed") || errorMessage.includes("timeout")) {
+        setFileError("File preview API not yet implemented. The gateway backend needs to implement the 'worktree.read' RPC method.");
+      } else if (errorMessage.includes("<!doctype") || errorMessage.includes("is not valid JSON")) {
+        setFileError("File preview API not yet implemented. The worktree API endpoints need to be added to the gateway backend.");
+      } else {
+        setFileError(errorMessage || "Failed to load file");
+      }
+    } finally {
+      setFileLoading(false);
+    }
+  }, [agentId, worktreeAdapter]);
+
+  // Clear selection when panel is minimized
+  React.useEffect(() => {
+    if (!isMaximized) {
+      setSelectedFile(null);
+      setFileContent("");
+      setFileError(null);
+    }
+  }, [isMaximized]);
+
+  const pane = (
     <div
       className={cn(
         "flex flex-col border border-border rounded-xl bg-card overflow-hidden",
@@ -160,19 +249,60 @@ export function SessionWorkspacePane({
             onData={onTerminalData}
           />
         ) : (
-          <FileExplorer key={filesRevision} files={mockFileTree} workspaceDir={workspaceDir} />
+          <div className={cn(
+            "h-full",
+            isMaximized && selectedFile && "grid grid-cols-[35%_65%] gap-0"
+          )}>
+            <div className={cn(
+              "h-full overflow-auto",
+              isMaximized && selectedFile && "border-r border-border"
+            )}>
+              <FileExplorer
+                key={filesRevision}
+                files={mockFileTree}
+                workspaceDir={workspaceDir}
+                onFileClick={handleFileClick}
+                selectedPath={selectedFile?.path}
+              />
+            </div>
+
+            {isMaximized && selectedFile && (
+              <FilePreviewPanel
+                file={selectedFile}
+                content={fileContent}
+                loading={fileLoading}
+                error={fileError}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>
   );
+
+  if (isMaximized && portalTarget) {
+    return createPortal(
+      <div
+        className="fixed z-50 w-[60vw] max-w-[60vw] left-1/2 -translate-x-1/2"
+        style={{ top: overlayTop, bottom: overlayBottom }}
+      >
+        {pane}
+      </div>,
+      portalTarget
+    );
+  }
+
+  return pane;
 }
 
 interface FileExplorerProps {
   files: FileNode[];
   workspaceDir: string;
+  onFileClick?: (node: FileNode, path: string) => void;
+  selectedPath?: string;
 }
 
-function FileExplorer({ files, workspaceDir }: FileExplorerProps) {
+function FileExplorer({ files, workspaceDir, onFileClick, selectedPath }: FileExplorerProps) {
   return (
     <div className="h-full overflow-auto p-3 scrollbar-thin">
       {/* Workspace path */}
@@ -184,7 +314,14 @@ function FileExplorer({ files, workspaceDir }: FileExplorerProps) {
       {/* File tree */}
       <div className="space-y-1">
         {files.map((node) => (
-          <FileTreeNode key={node.name} node={node} depth={0} />
+          <FileTreeNode
+            key={node.name}
+            node={node}
+            depth={0}
+            parentPath=""
+            onFileClick={onFileClick}
+            selectedPath={selectedPath}
+          />
         ))}
       </div>
     </div>
@@ -194,22 +331,35 @@ function FileExplorer({ files, workspaceDir }: FileExplorerProps) {
 interface FileTreeNodeProps {
   node: FileNode;
   depth: number;
+  parentPath: string;
+  onFileClick?: (node: FileNode, path: string) => void;
+  selectedPath?: string;
 }
 
-function FileTreeNode({ node, depth }: FileTreeNodeProps) {
+function FileTreeNode({ node, depth, parentPath, onFileClick, selectedPath }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = React.useState(true);
   const isFolder = node.type === "folder";
+  const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+  const isSelected = selectedPath === currentPath;
+
+  const handleClick = () => {
+    if (isFolder) {
+      setIsExpanded(!isExpanded);
+    } else {
+      onFileClick?.(node, currentPath);
+    }
+  };
 
   return (
     <div>
       <button
         type="button"
-        onClick={() => isFolder && setIsExpanded(!isExpanded)}
+        onClick={handleClick}
         className={cn(
           "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors",
           "hover:bg-muted/50",
-          isFolder && "cursor-pointer",
-          !isFolder && "cursor-default"
+          isSelected && "bg-accent",
+          "cursor-pointer"
         )}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
       >
@@ -235,7 +385,14 @@ function FileTreeNode({ node, depth }: FileTreeNodeProps) {
       {isFolder && isExpanded && node.children && (
         <div>
           {node.children.map((child) => (
-            <FileTreeNode key={child.name} node={child} depth={depth + 1} />
+            <FileTreeNode
+              key={child.name}
+              node={child}
+              depth={depth + 1}
+              parentPath={currentPath}
+              onFileClick={onFileClick}
+              selectedPath={selectedPath}
+            />
           ))}
         </div>
       )}

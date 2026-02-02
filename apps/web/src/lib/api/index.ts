@@ -84,3 +84,23 @@ export {
   type ChatEventPayload,
   type AgentEventPayload,
 } from "./sessions";
+
+// Worktree API functions
+export {
+  listWorktreeFiles,
+  readWorktreeFile,
+  writeWorktreeFile,
+  moveWorktreeFile,
+  deleteWorktreeFile,
+  createWorktreeDir,
+  type WorktreeEntry,
+  type WorktreeListParams,
+  type WorktreeListResult,
+  type WorktreeReadParams,
+  type WorktreeReadResult,
+  type WorktreeWriteParams,
+  type WorktreeWriteResult,
+  type WorktreeMoveParams,
+  type WorktreeDeleteParams,
+  type WorktreeMkdirParams,
+} from "./worktree";

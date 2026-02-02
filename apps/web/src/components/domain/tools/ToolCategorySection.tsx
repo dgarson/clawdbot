@@ -39,7 +39,7 @@ export function ToolCategorySection({
     <Card className="border-border/50 overflow-hidden">
       <CardHeader
         className={cn(
-          "pb-3 cursor-pointer select-none transition-colors hover:bg-muted/50",
+          "pb-4 cursor-pointer select-none transition-colors hover:bg-muted/50",
           !isExpanded && "pb-4"
         )}
         onClick={() => setIsExpanded(!isExpanded)}
@@ -69,7 +69,7 @@ export function ToolCategorySection({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            <CardContent className="space-y-3 pt-0">
+            <CardContent className="space-y-3 pt-3">
               {tools.map((tool, index) => (
                 <ToolPermissionRow
                   key={tool.id}
