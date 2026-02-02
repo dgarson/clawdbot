@@ -179,26 +179,36 @@ export type SdkProviderEntry = {
 };
 
 /**
- * Resolve CCSDK model mappings from config.
+ * Resolve Claude SDK model mappings from config.
  *
  * Resolution order:
- * 1. agents.main.sdk.models (for main agent)
- * 2. agents.defaults.ccsdkModels (global defaults)
+ * 1. Per-agent claudeSdkOptions.models
+ * 2. agents.main.sdk.models (for main agent)
+ * 3. agents.defaults.ccsdkModels (global defaults)
  */
 export function resolveCcsdkModelMappings(params: {
   config?: OpenClawConfig;
   agentId?: string;
 }): { opus?: string; sonnet?: string; haiku?: string; subagent?: string } | undefined {
+  const defaults = params.config?.agents?.defaults;
   const isMainAgent = !params.agentId || normalizeAgentId(params.agentId) === DEFAULT_AGENT_ID;
 
-  // For main agent, prefer agents.main.sdk.models
+  // 1. Try per-agent override first
+  if (params.agentId) {
+    const agentConfig = resolveAgentConfig(params.config ?? {}, params.agentId);
+    if (agentConfig?.claudeSdkOptions?.models) {
+      return agentConfig.claudeSdkOptions.models;
+    }
+  }
+
+  // 2. For main agent, prefer agents.main.sdk.models
   if (isMainAgent) {
     const mainSdkModels = params.config?.agents?.main?.sdk?.models;
     if (mainSdkModels) return mainSdkModels;
   }
 
-  // Fall back to global defaults
-  return params.config?.agents?.defaults?.ccsdkModels;
+  // 3. Fall back to global ccsdkModels
+  return defaults?.ccsdkModels;
 }
 
 /**
@@ -290,31 +300,29 @@ export function isSdkRunnerEnabled(config?: OpenClawConfig, agentId?: string): b
   if (agentId) {
     const agentConfig = resolveAgentConfig(config ?? {}, agentId);
     if (agentConfig?.runtime) {
-      return agentConfig.runtime === "ccsdk";
+      return agentConfig.runtime === "claude";
     }
   }
 
   // For the main agent (or when agentId is not provided but agents.main.runtime is set),
   // prefer mainRuntime when explicitly set.
   if (agentId && normalizeAgentId(agentId) === DEFAULT_AGENT_ID) {
-    return resolveMainAgentRuntimeKind(config) === "ccsdk";
+    return resolveMainAgentRuntimeKind(config) === "claude";
   }
   // When no agentId: check agents.main.runtime first, then fall back to agents.defaults.runtime.
   const mainRuntime = config?.agents?.main?.runtime;
   if (!agentId && mainRuntime) {
-    return mainRuntime === "ccsdk";
+    return mainRuntime === "claude";
   }
-  return defaults?.runtime === "ccsdk";
+  return defaults?.runtime === "claude";
 }
 
 /**
  * Resolve the default SDK provider from config.
  *
  * Resolution order:
- * 1. Per-agent override: `agents.list[i].ccsdkProvider` (NEW)
- * 2. Main agent provider: `agents.defaults.mainCcsdkProvider` (if agent is "main")
- * 3. Global default provider: `agents.defaults.ccsdkProvider`
- * 4. Legacy fallback: `tools.codingTask.providers`
+ * 1. Per-agent override: `agents.list[i].claudeSdkOptions.provider`
+ * 2. Legacy fallback: `tools.codingTask.providers`
  *
  * Within the legacy fallback, prefers "zai" if configured, then "anthropic",
  * then the first available provider.
@@ -325,42 +333,25 @@ export function resolveDefaultSdkProvider(params: {
   env?: NodeJS.ProcessEnv;
   agentId?: string;
 }): SdkProviderEntry | undefined {
-  const defaults = params.config?.agents?.defaults;
-  const isMainAgent = !params.agentId || normalizeAgentId(params.agentId) === DEFAULT_AGENT_ID;
-
   // Resolve model mappings for this agent
   const modelMappings = resolveCcsdkModelMappings({
     config: params.config,
     agentId: params.agentId,
   });
 
-  // NEW: Try per-agent override first
+  // 1. Try per-agent override first
   if (params.agentId) {
     const agentConfig = resolveAgentConfig(params.config ?? {}, params.agentId);
-    if (agentConfig?.ccsdkProvider) {
-      const wellKnown = resolveWellKnownProvider(agentConfig.ccsdkProvider, modelMappings);
+    if (agentConfig?.claudeSdkOptions?.provider) {
+      const wellKnown = resolveWellKnownProvider(
+        agentConfig.claudeSdkOptions.provider,
+        modelMappings,
+      );
       if (wellKnown) return wellKnown;
     }
   }
 
-  // For main agent: prefer mainCcsdkProvider, then ccsdkProvider
-  // For workers: prefer ccsdkProvider, then mainCcsdkProvider
-  const primaryProvider = isMainAgent ? defaults?.mainCcsdkProvider : defaults?.ccsdkProvider;
-  const fallbackProvider = isMainAgent ? defaults?.ccsdkProvider : defaults?.mainCcsdkProvider;
-
-  // 2. Try primary provider for this agent type.
-  if (primaryProvider) {
-    const wellKnown = resolveWellKnownProvider(primaryProvider, modelMappings);
-    if (wellKnown) return wellKnown;
-  }
-
-  // 3. Try fallback provider.
-  if (fallbackProvider) {
-    const wellKnown = resolveWellKnownProvider(fallbackProvider, modelMappings);
-    if (wellKnown) return wellKnown;
-  }
-
-  // 3. Fall back to tools.codingTask.providers (existing logic).
+  // 2. Fall back to tools.codingTask.providers (existing logic).
   const providers = resolveSdkProviders(params);
   if (providers.length === 0) return undefined;
 

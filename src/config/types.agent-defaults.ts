@@ -92,24 +92,32 @@ export type CliBackendConfig = {
   serialize?: boolean;
 };
 
-export type AgentRuntime = "pi" | "ccsdk";
+export type AgentRuntime = "pi" | "claude";
 export type ClaudeCodeSDKProviderKey = "anthropic" | "zai" | "openrouter";
+
+export type ClaudeSdkOptions = {
+  /** Provider backend for Claude SDK (anthropic, zai, or openrouter). */
+  provider?: ClaudeCodeSDKProviderKey;
+  /** Model mappings for Claude Code SDK thinking tiers. */
+  models?: {
+    opus?: string;
+    sonnet?: string;
+    haiku?: string;
+    subagent?: string;
+  };
+};
 
 export type AgentDefaultsConfig = {
   /**
    * Agent runtime engine selection.
    * - "pi" (default): Pi Agent embedded runner (multi-turn, session history)
-   * - "ccsdk": Claude Code SDK runner (stateless per query; multi-turn continuity via transcript injection)
+   * - "claude": Claude Code SDK runner (stateless per query; multi-turn continuity via transcript injection)
    */
   runtime?: AgentRuntime;
   /** Runtime override exclusively for the main agent loop. Falls back to `runtime` when unset. */
   mainRuntime?: AgentRuntime;
-  /** Which well-known CCSDK provider backend to use for the main agent (when mainRuntime is "ccsdk"). */
-  mainCcsdkProvider?: ClaudeCodeSDKProviderKey;
-  /** Default CCSDK provider backend for worker agents (when runtime is "ccsdk"). Falls back to mainCcsdkProvider if unset. */
-  ccsdkProvider?: ClaudeCodeSDKProviderKey;
   /**
-   * Model mappings for Claude Code SDK thinking tiers (applies to all CCSDK agents).
+   * Model mappings for Claude Code SDK thinking tiers (applies to all Claude SDK agents).
    * Maps shorthand keys to full model identifiers for the SDK's internal model selection.
    * These are passed as environment variables to the SDK:
    * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL

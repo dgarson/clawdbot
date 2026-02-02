@@ -7,7 +7,7 @@ export const AgentsSchema = z
   .object({
     main: z
       .object({
-        runtime: z.enum(["pi", "ccsdk"]).optional(),
+        runtime: z.enum(["pi", "claude"]).optional(),
         sdk: z
           .object({
             hooksEnabled: z.boolean().optional(),

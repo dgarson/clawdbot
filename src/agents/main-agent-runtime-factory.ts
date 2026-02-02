@@ -7,7 +7,7 @@ import { resolveThinkingBudget } from "./claude-agent-sdk/sdk-runner.config.js";
 import { createOpenClawCodingTools } from "./pi-tools.js";
 import { resolveSandboxContext } from "./sandbox.js";
 
-export type MainAgentRuntimeKind = "pi" | "ccsdk";
+export type MainAgentRuntimeKind = "pi" | "claude";
 
 export function resolveMainAgentRuntimeKind(config?: OpenClawConfig): MainAgentRuntimeKind {
   // mainRuntime overrides the global runtime for the main agent only.
@@ -15,7 +15,7 @@ export function resolveMainAgentRuntimeKind(config?: OpenClawConfig): MainAgentR
     config?.agents?.defaults?.mainRuntime ??
     config?.agents?.main?.runtime ??
     config?.agents?.defaults?.runtime;
-  return configured === "ccsdk" ? "ccsdk" : "pi";
+  return configured === "claude" ? "claude" : "pi";
 }
 
 export type CreateSdkMainAgentRuntimeParams = {

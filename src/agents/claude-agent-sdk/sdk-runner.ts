@@ -14,16 +14,16 @@
  * - Supports env-based provider switching (Anthropic, z.AI, etc.)
  */
 
-import { logDebug, logError, logInfo, logWarn } from "../../logger.js";
-import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
+import type { SdkRunnerParams, SdkRunnerResult } from "./sdk-runner.types.js";
 import type { SdkRunnerQueryOptions } from "./tool-bridge.types.js";
-import { extractTextFromClaudeAgentSdkEvent } from "./extract.js";
-import { loadClaudeAgentSdk } from "./sdk.js";
-import { isSdkTerminalToolEventType } from "./sdk-event-checks.js";
-import { buildClawdbrainSdkHooks } from "./sdk-hooks.js";
+import { logDebug, logError, logInfo, logWarn } from "../../logger.js";
 import { normalizeToolName } from "../tool-policy.js";
 import { normalizeUsage, type NormalizedUsage, type UsageLike } from "../usage.js";
-import type { SdkRunnerParams, SdkRunnerResult } from "./sdk-runner.types.js";
+import { extractTextFromClaudeAgentSdkEvent } from "./extract.js";
+import { isSdkTerminalToolEventType } from "./sdk-event-checks.js";
+import { buildClawdbrainSdkHooks } from "./sdk-hooks.js";
+import { loadClaudeAgentSdk } from "./sdk.js";
+import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -202,7 +202,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     }
   };
 
-  emitEvent("lifecycle", { phase: "start", startedAt, runtime: "ccsdk" });
+  emitEvent("lifecycle", { phase: "start", startedAt, runtime: "claude" });
   emitEvent("sdk", { type: "sdk_runner_start", runId: params.runId });
 
   // -------------------------------------------------------------------------
@@ -219,7 +219,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       phase: "error",
       startedAt,
       endedAt: Date.now(),
-      runtime: "ccsdk",
+      runtime: "claude",
       error: message,
     });
     return {
@@ -262,7 +262,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       phase: "error",
       startedAt,
       endedAt: Date.now(),
-      runtime: "ccsdk",
+      runtime: "claude",
       error: message,
     });
     return {
@@ -659,7 +659,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         phase: "error",
         startedAt,
         endedAt: Date.now(),
-        runtime: "ccsdk",
+        runtime: "claude",
         aborted: true,
         error: message,
       });
@@ -698,7 +698,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         phase: "error",
         startedAt,
         endedAt: Date.now(),
-        runtime: "ccsdk",
+        runtime: "claude",
         error: message,
       });
       return {
@@ -745,7 +745,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       phase: "error",
       startedAt,
       endedAt: Date.now(),
-      runtime: "ccsdk",
+      runtime: "claude",
       aborted,
       error: "No text output",
     });
@@ -801,7 +801,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     phase: "end",
     startedAt,
     endedAt: Date.now(),
-    runtime: "ccsdk",
+    runtime: "claude",
     aborted,
     truncated,
     usage: accumulatedUsage,

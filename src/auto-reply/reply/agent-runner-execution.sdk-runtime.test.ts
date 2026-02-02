@@ -27,7 +27,7 @@ vi.mock("../../agents/sandbox.js", () => ({
 
 vi.mock("../../agents/claude-agent-sdk/sdk-agent-runtime.js", () => ({
   createSdkAgentRuntime: vi.fn(() => ({
-    kind: "ccsdk",
+    kind: "claude",
     displayName: "Claude Agent SDK",
     run: vi.fn(
       async (params: { onAgentEvent?: (evt: { stream: string; data: any }) => unknown }) => {
@@ -83,7 +83,7 @@ describe("runAgentTurnWithFallback (SDK runtime)", () => {
         sessionKey: "main",
         sessionFile: "/tmp/session.jsonl",
         workspaceDir: "/tmp/workspace",
-        config: { agents: { defaults: { runtime: "ccsdk" } } } as any,
+        config: { agents: { defaults: { runtime: "claude" } } } as any,
         provider: "openai",
         model: "gpt-test",
         timeoutMs: 30_000,

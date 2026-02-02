@@ -61,38 +61,38 @@ describe("isSdkRunnerEnabled", () => {
     expect(isSdkRunnerEnabled(config)).toBe(false);
   });
 
-  it("returns true when agents.main.runtime is ccsdk", () => {
+  it("returns true when agents.main.runtime is claude", () => {
     const config: OpenClawConfig = {
-      agents: { main: { runtime: "ccsdk" } },
+      agents: { main: { runtime: "claude" } },
     };
     expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 
   it("falls back to agents.defaults.runtime when agents.main.runtime is unset", () => {
     const config: OpenClawConfig = {
-      agents: { defaults: { runtime: "ccsdk" } },
+      agents: { defaults: { runtime: "claude" } },
     };
     expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 
   describe("mainRuntime override", () => {
-    it("mainRuntime=ccsdk enables SDK for main agent", () => {
+    it("mainRuntime=claude enables SDK for main agent", () => {
       const config: OpenClawConfig = {
-        agents: { defaults: { mainRuntime: "ccsdk" } },
+        agents: { defaults: { mainRuntime: "claude" } },
       };
       expect(isSdkRunnerEnabled(config, "main")).toBe(true);
     });
 
-    it("mainRuntime=ccsdk does not affect non-main agents", () => {
+    it("mainRuntime=claude does not affect non-main agents", () => {
       const config: OpenClawConfig = {
-        agents: { defaults: { mainRuntime: "ccsdk" } },
+        agents: { defaults: { mainRuntime: "claude" } },
       };
       expect(isSdkRunnerEnabled(config, "assistant2")).toBe(false);
     });
 
-    it("mainRuntime=pi overrides global runtime=ccsdk for main agent", () => {
+    it("mainRuntime=pi overrides global runtime=claude for main agent", () => {
       const config: OpenClawConfig = {
-        agents: { defaults: { mainRuntime: "pi", runtime: "ccsdk" } },
+        agents: { defaults: { mainRuntime: "pi", runtime: "claude" } },
       };
       expect(isSdkRunnerEnabled(config, "main")).toBe(false);
       expect(isSdkRunnerEnabled(config, "assistant2")).toBe(true);
@@ -100,14 +100,14 @@ describe("isSdkRunnerEnabled", () => {
 
     it("falls back to runtime when mainRuntime is not set", () => {
       const config: OpenClawConfig = {
-        agents: { defaults: { runtime: "ccsdk" } },
+        agents: { defaults: { runtime: "claude" } },
       };
       expect(isSdkRunnerEnabled(config, "main")).toBe(true);
     });
 
     it("no agentId falls back to runtime (backward compat)", () => {
       const config: OpenClawConfig = {
-        agents: { defaults: { mainRuntime: "ccsdk" } },
+        agents: { defaults: { mainRuntime: "claude" } },
       };
       expect(isSdkRunnerEnabled(config)).toBe(false);
     });
@@ -453,40 +453,40 @@ describe("resolveWellKnownProvider", () => {
 });
 
 // ---------------------------------------------------------------------------
-// mainCcsdkProvider resolution
+// Per-agent provider resolution
 // ---------------------------------------------------------------------------
 
-describe("mainCcsdkProvider resolution", () => {
-  it("mainCcsdkProvider: 'openrouter' returns OpenRouter entry", () => {
+describe("Per-agent provider resolution", () => {
+  it("per-agent provider: 'openrouter' returns OpenRouter entry", () => {
     const config: OpenClawConfig = {
-      agents: { defaults: { mainCcsdkProvider: "openrouter" } },
+      agents: { list: [{ id: "main", claudeSdkOptions: { provider: "openrouter" } }] },
     };
-    const provider = resolveDefaultSdkProvider({ config });
+    const provider = resolveDefaultSdkProvider({ config, agentId: "main" });
     expect(provider?.key).toBe("openrouter");
     expect(provider?.config.name).toBe("OpenRouter");
   });
 
-  it("mainCcsdkProvider: 'zai' returns z.AI entry (no API key)", () => {
+  it("per-agent provider: 'zai' returns z.AI entry (no API key)", () => {
     const config: OpenClawConfig = {
-      agents: { defaults: { mainCcsdkProvider: "zai" } },
+      agents: { list: [{ id: "worker1", claudeSdkOptions: { provider: "zai" } }] },
     };
-    const provider = resolveDefaultSdkProvider({ config });
+    const provider = resolveDefaultSdkProvider({ config, agentId: "worker1" });
     expect(provider?.key).toBe("zai");
     expect(provider?.config.env?.ANTHROPIC_AUTH_TOKEN).toBeUndefined();
   });
 
-  it("mainCcsdkProvider: 'anthropic' returns Anthropic entry", () => {
+  it("per-agent provider: 'anthropic' returns Anthropic entry", () => {
     const config: OpenClawConfig = {
-      agents: { defaults: { mainCcsdkProvider: "anthropic" } },
+      agents: { list: [{ id: "main", claudeSdkOptions: { provider: "anthropic" } }] },
     };
-    const provider = resolveDefaultSdkProvider({ config });
+    const provider = resolveDefaultSdkProvider({ config, agentId: "main" });
     expect(provider?.key).toBe("anthropic");
     expect(provider?.config.name).toBe("Anthropic (Claude Code)");
   });
 
-  it("mainCcsdkProvider takes precedence over tools.codingTask.providers", () => {
+  it("per-agent provider takes precedence over tools.codingTask.providers", () => {
     const config: OpenClawConfig = {
-      agents: { defaults: { mainCcsdkProvider: "openrouter" } },
+      agents: { list: [{ id: "main", claudeSdkOptions: { provider: "openrouter" } }] },
       tools: {
         codingTask: {
           enabled: true,
@@ -496,11 +496,11 @@ describe("mainCcsdkProvider resolution", () => {
         },
       },
     };
-    const provider = resolveDefaultSdkProvider({ config });
+    const provider = resolveDefaultSdkProvider({ config, agentId: "main" });
     expect(provider?.key).toBe("openrouter");
   });
 
-  it("falls back to tools.codingTask.providers when mainCcsdkProvider is unset", () => {
+  it("falls back to tools.codingTask.providers when per-agent provider is unset", () => {
     const config: OpenClawConfig = {
       tools: {
         codingTask: {
@@ -511,7 +511,7 @@ describe("mainCcsdkProvider resolution", () => {
         },
       },
     };
-    const provider = resolveDefaultSdkProvider({ config });
+    const provider = resolveDefaultSdkProvider({ config, agentId: "main" });
     expect(provider?.key).toBe("anthropic");
   });
 });
@@ -521,20 +521,20 @@ describe("mainCcsdkProvider resolution", () => {
 // ---------------------------------------------------------------------------
 
 describe("Per-agent runtime overrides", () => {
-  it("per-agent runtime=ccsdk overrides global runtime=pi", () => {
+  it("per-agent runtime=claude overrides global runtime=pi", () => {
     const config: OpenClawConfig = {
       agents: {
         defaults: { runtime: "pi" },
-        list: [{ id: "worker1", runtime: "ccsdk" }],
+        list: [{ id: "worker1", runtime: "claude" }],
       },
     };
     expect(isSdkRunnerEnabled(config, "worker1")).toBe(true);
   });
 
-  it("per-agent runtime=pi overrides global runtime=ccsdk", () => {
+  it("per-agent runtime=pi overrides global runtime=claude", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { runtime: "ccsdk" },
+        defaults: { runtime: "claude" },
         list: [{ id: "worker1", runtime: "pi" }],
       },
     };
@@ -544,8 +544,8 @@ describe("Per-agent runtime overrides", () => {
   it("per-agent runtime overrides mainRuntime for main agent", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { mainRuntime: "pi", runtime: "ccsdk" },
-        list: [{ id: "main", runtime: "ccsdk" }],
+        defaults: { mainRuntime: "pi", runtime: "claude" },
+        list: [{ id: "main", runtime: "claude" }],
       },
     };
     expect(isSdkRunnerEnabled(config, "main")).toBe(true);
@@ -554,7 +554,7 @@ describe("Per-agent runtime overrides", () => {
   it("agents without per-agent runtime fall back to mainRuntime (main)", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { mainRuntime: "ccsdk" },
+        defaults: { mainRuntime: "claude" },
         list: [{ id: "main" }],
       },
     };
@@ -564,7 +564,7 @@ describe("Per-agent runtime overrides", () => {
   it("agents without per-agent runtime fall back to global runtime (worker)", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { runtime: "ccsdk" },
+        defaults: { runtime: "claude" },
         list: [{ id: "worker1" }],
       },
     };
@@ -575,7 +575,7 @@ describe("Per-agent runtime overrides", () => {
     const config: OpenClawConfig = {
       agents: {
         defaults: { runtime: "pi" },
-        list: [{ id: "worker1", runtime: "ccsdk" }],
+        list: [{ id: "worker1", runtime: "claude" }],
       },
     };
     expect(isSdkRunnerEnabled(config, "worker2")).toBe(false);
@@ -583,55 +583,56 @@ describe("Per-agent runtime overrides", () => {
 });
 
 describe("Per-agent provider overrides", () => {
-  it("per-agent ccsdkProvider overrides global ccsdkProvider", () => {
+  it("per-agent claudeSdkOptions uses specified provider", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { ccsdkProvider: "anthropic" },
-        list: [{ id: "worker1", ccsdkProvider: "zai" }],
+        list: [{ id: "worker1", claudeSdkOptions: { provider: "zai" } }],
       },
     };
     const provider = resolveDefaultSdkProvider({ config, agentId: "worker1" });
     expect(provider?.key).toBe("zai");
   });
 
-  it("per-agent ccsdkProvider overrides mainCcsdkProvider for main agent", () => {
+  it("per-agent claudeSdkOptions works for main agent", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { mainCcsdkProvider: "anthropic" },
-        list: [{ id: "main", ccsdkProvider: "openrouter" }],
+        list: [{ id: "main", claudeSdkOptions: { provider: "openrouter" } }],
       },
     };
     const provider = resolveDefaultSdkProvider({ config, agentId: "main" });
     expect(provider?.key).toBe("openrouter");
   });
 
-  it("agents without per-agent provider fall back to mainCcsdkProvider (main)", () => {
+  it("agents without per-agent provider fall back to tools.codingTask.providers", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { mainCcsdkProvider: "zai" },
         list: [{ id: "main" }],
       },
+      tools: {
+        codingTask: {
+          enabled: true,
+          providers: {
+            zai: {},
+          },
+        },
+      },
     };
     const provider = resolveDefaultSdkProvider({ config, agentId: "main" });
     expect(provider?.key).toBe("zai");
-  });
-
-  it("agents without per-agent provider fall back to ccsdkProvider (worker)", () => {
-    const config: OpenClawConfig = {
-      agents: {
-        defaults: { ccsdkProvider: "openrouter" },
-        list: [{ id: "worker1" }],
-      },
-    };
-    const provider = resolveDefaultSdkProvider({ config, agentId: "worker1" });
-    expect(provider?.key).toBe("openrouter");
   });
 
   it("per-agent provider for non-existent agent falls back gracefully", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { ccsdkProvider: "anthropic" },
-        list: [{ id: "worker1", ccsdkProvider: "zai" }],
+        list: [{ id: "worker1", claudeSdkOptions: { provider: "zai" } }],
+      },
+      tools: {
+        codingTask: {
+          enabled: true,
+          providers: {
+            anthropic: {},
+          },
+        },
       },
     };
     const provider = resolveDefaultSdkProvider({ config, agentId: "worker2" });
@@ -641,10 +642,10 @@ describe("Per-agent provider overrides", () => {
   it("mixed per-agent overrides work independently", () => {
     const config: OpenClawConfig = {
       agents: {
-        defaults: { runtime: "pi", ccsdkProvider: "anthropic" },
+        defaults: { runtime: "pi" },
         list: [
-          { id: "main", runtime: "ccsdk", ccsdkProvider: "zai" },
-          { id: "worker1", runtime: "ccsdk", ccsdkProvider: "openrouter" },
+          { id: "main", runtime: "claude", claudeSdkOptions: { provider: "zai" } },
+          { id: "worker1", runtime: "claude", claudeSdkOptions: { provider: "openrouter" } },
           { id: "worker2", runtime: "pi" },
         ],
       },

@@ -14,7 +14,7 @@ import type { EmbeddedPiRunResult } from "./pi-embedded-runner/types.js";
 // ---------------------------------------------------------------------------
 
 /** Discriminant for the active agent runtime backend. */
-export type AgentRuntimeKind = "pi" | "ccsdk";
+export type AgentRuntimeKind = "pi" | "claude";
 
 // ---------------------------------------------------------------------------
 // Shared callback types

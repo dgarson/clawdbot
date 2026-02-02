@@ -190,13 +190,27 @@ export const AgentDefaultsSchema = z
       })
       .strict()
       .optional(),
-    runtime: z.enum(["pi", "ccsdk"]).optional(),
+    runtime: z.enum(["pi", "claude"]).optional(),
     /** Runtime override exclusively for the main agent loop. Falls back to `runtime` when unset. */
-    mainRuntime: z.enum(["pi", "ccsdk"]).optional(),
-    /** Which well-known CCSDK provider backend to use for the main agent (when mainRuntime is "ccsdk"). */
-    mainCcsdkProvider: z.enum(["anthropic", "zai", "openrouter"]).optional(),
-    /** Default CCSDK provider backend for worker agents (when runtime is "ccsdk"). Falls back to mainCcsdkProvider if unset. */
-    ccsdkProvider: z.enum(["anthropic", "zai", "openrouter"]).optional(),
+    mainRuntime: z.enum(["pi", "claude"]).optional(),
+    /**
+     * Model mappings for Claude Code SDK thinking tiers (applies to all Claude SDK agents).
+     * Maps shorthand keys to full model identifiers for the SDK's internal model selection.
+     * These are passed as environment variables to the SDK:
+     * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL
+     * - sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
+     * - haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
+     * - subagent → CLAUDE_CODE_SUBAGENT_MODEL
+     */
+    ccsdkModels: z
+      .object({
+        opus: z.string().optional(),
+        sonnet: z.string().optional(),
+        haiku: z.string().optional(),
+        subagent: z.string().optional(),
+      })
+      .strict()
+      .optional(),
     sandbox: z
       .object({
         mode: z.union([z.literal("off"), z.literal("non-main"), z.literal("all")]).optional(),

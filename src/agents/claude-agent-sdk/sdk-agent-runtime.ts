@@ -45,7 +45,7 @@ export type SdkRuntimeContext = {
  */
 export function createSdkAgentRuntime(context: SdkRuntimeContext): AgentRuntime {
   return {
-    kind: "ccsdk",
+    kind: "claude",
     displayName: "Claude Agent SDK",
     async run(params: AgentRuntimeRunParams): Promise<AgentRuntimeResult> {
       return runSdkAgentAdapted({

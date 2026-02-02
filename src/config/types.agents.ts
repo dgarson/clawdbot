@@ -1,7 +1,7 @@
 import type {
   AgentDefaultsConfig,
   AgentRuntime,
-  ClaudeCodeSDKProviderKey,
+  ClaudeSdkOptions,
 } from "./types.agent-defaults.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
@@ -34,10 +34,10 @@ export type AgentConfig = {
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;
-  /** Per-agent runtime override (pi or ccsdk). */
+  /** Per-agent runtime override (pi or claude). */
   runtime?: AgentRuntime;
-  /** Per-agent Claude Code SDK provider override (when runtime is ccsdk). */
-  ccsdkProvider?: ClaudeCodeSDKProviderKey;
+  /** Per-agent Claude SDK options (when runtime is claude). */
+  claudeSdkOptions?: ClaudeSdkOptions;
   memorySearch?: MemorySearchConfig;
   /** Human-like delay between block replies for this agent. */
   humanDelay?: HumanDelayConfig;
@@ -90,7 +90,7 @@ export type AgentsConfig = {
      * Claude Agent SDK (TypeScript) runtime tuning for the main agent loop.
      *
      * This is intentionally runtime-specific and only applies when the main
-     * runtime is "ccsdk".
+     * runtime is "claude".
      */
     sdk?: {
       /** Enable Claude Code hook wiring for richer lifecycle/tool parity. */

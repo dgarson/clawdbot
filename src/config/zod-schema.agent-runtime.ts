@@ -427,8 +427,24 @@ export const AgentEntrySchema = z
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     model: AgentModelSchema.optional(),
-    runtime: z.enum(["pi", "ccsdk"]).optional(),
-    ccsdkProvider: z.enum(["anthropic", "zai", "openrouter"]).optional(),
+    runtime: z.enum(["pi", "claude"]).optional(),
+    claudeSdkOptions: z
+      .object({
+        /** Provider backend for Claude SDK (anthropic, zai, or openrouter). */
+        provider: z.enum(["anthropic", "zai", "openrouter"]).optional(),
+        /** Model mappings for Claude Code SDK thinking tiers. */
+        models: z
+          .object({
+            opus: z.string().optional(),
+            sonnet: z.string().optional(),
+            haiku: z.string().optional(),
+            subagent: z.string().optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
     memorySearch: MemorySearchSchema,
     humanDelay: HumanDelaySchema.optional(),
     heartbeat: HeartbeatSchema,

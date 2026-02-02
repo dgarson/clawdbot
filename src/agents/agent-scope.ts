@@ -28,7 +28,7 @@ type ResolvedAgentConfig = {
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
   runtime?: any; // TODO: Add proper runtime type
-  ccsdkProvider?: any; // TODO: Add proper ccsdkProvider type
+  claudeSdkOptions?: any; // TODO: Add proper ClaudeSdkOptions type
 };
 
 let defaultAgentWarned = false;
