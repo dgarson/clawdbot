@@ -186,7 +186,7 @@ Recommended approach (implementation detail for future subagents):
   - `supportsTemperature`, `supportsTopP`, `supportsTopK`, `supportsStopSequences`
   - `supportsReasoningEffort` / “speed vs depth” style controls
   - `maxTokensField` mapping for provider APIs (already exists in core config types)
-- Add runtime capability flags for `pi` vs `ccsdk` where behavior differs.
+- Add runtime capability flags for `pi` vs `claude` where behavior differs.
 
 ---
 

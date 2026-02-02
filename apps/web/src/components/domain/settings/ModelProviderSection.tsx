@@ -67,11 +67,11 @@ const MODEL_PROVIDERS = [
 ] as const;
 
 type ProviderMeta = (typeof MODEL_PROVIDERS)[number];
-type RuntimeValue = "pi" | "ccsdk";
+type RuntimeValue = "pi" | "claude";
 
 interface AgentsDefaultsConfig {
-  runtime?: "pi" | "ccsdk";
-  mainRuntime?: "pi" | "ccsdk";
+  runtime?: "pi" | "claude";
+  mainRuntime?: "pi" | "claude";
   model?: {
     primary?: string;
     fallbacks?: string[];
@@ -133,7 +133,7 @@ const runtimeOptions: { value: RuntimeValue; label: string; helper: string }[] =
     helper: "Keeps conversation memory",
   },
   {
-    value: "ccsdk",
+    value: "claude",
     label: "Claude Code SDK (advanced)",
     helper: "Stateless but fast",
   },
@@ -178,7 +178,7 @@ function normalizeRuntime(value?: string): RuntimeValue | undefined {
   if (!value) return undefined;
   const lowered = value.toLowerCase();
   if (lowered.includes("pi")) return "pi";
-  if (lowered.includes("sdk")) return "ccsdk";
+  if (lowered.includes("sdk")) return "claude";
   return undefined;
 }
 
@@ -1085,7 +1085,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
             helper="Controls how much reasoning budget the System Brain can use."
           />
 
-          {systemBrainRuntime === "ccsdk" && (
+          {systemBrainRuntime === "claude" && (
             <ValueRow
               label="CCSDK provider"
               loading={isLoading}

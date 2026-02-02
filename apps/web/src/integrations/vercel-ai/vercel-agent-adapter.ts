@@ -79,7 +79,7 @@ export class VercelAgentAdapter {
     // Map gateway provider/model to v5 ModelConfig
     const model = agent.model || "";
     const providerFromModel = model.split("/")[0]?.toLowerCase();
-    const provider = providerFromModel || agent.ccsdkProvider?.toLowerCase() || "anthropic";
+    const provider = providerFromModel || agent.claudeSdkOptions?.provider?.toLowerCase() || "anthropic";
     const modelIdFromModel = model.includes("/") ? model.split("/").slice(1).join("/") : model;
 
     if (provider === "openai" || modelIdFromModel.includes("gpt")) {

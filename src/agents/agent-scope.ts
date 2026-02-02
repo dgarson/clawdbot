@@ -123,7 +123,7 @@ export function resolveAgentConfig(
     sandbox: entry.sandbox,
     tools: entry.tools,
     runtime: entry.runtime,
-    ccsdkProvider: entry.ccsdkProvider,
+    claudeSdkOptions: entry.claudeSdkOptions,
   };
 }
 

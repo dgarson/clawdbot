@@ -45,7 +45,7 @@ We must support many power-user knobs, but only show them when supported.
 - **Unsupported knob shown**
   - Must show as disabled with explanation, or hide entirely (consistent rule needed).
 - **Runtime-specific behavior**
-  - Some settings apply only to `pi` or only to `ccsdk`.
+  - Some settings apply only to `pi` or only to `claude`.
 - **Provider API differences**
   - Internal config uses canonical keys; provider adapters map to API-specific fields.
 

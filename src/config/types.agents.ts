@@ -53,10 +53,10 @@ export type AgentConfig = {
     /**
      * Runtime for sub-agents spawned from this agent.
      * - "pi": Pi Agent embedded runner
-     * - "ccsdk": Claude Code SDK runner
+     * - "claude": Claude Code SDK runner
      * - "inherit": Inherit from this agent's runtime (default)
      */
-    runtime?: "pi" | "ccsdk" | "inherit";
+    runtime?: "pi" | "claude" | "inherit";
   };
   sandbox?: {
     mode?: "off" | "non-main" | "all";

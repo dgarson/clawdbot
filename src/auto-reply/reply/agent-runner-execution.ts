@@ -243,7 +243,7 @@ export async function runAgentTurnWithFallback(params: {
           );
 
           // If using Claude Code SDK runtime, create and use SDK runtime
-          if (runtimeKind === "ccsdk") {
+          if (runtimeKind === "claude") {
             // Retrieve Claude SDK session ID from session entry for native session resume
             const activeEntry = params.getActiveSessionEntry();
             const claudeSdkSessionId = activeEntry?.claudeSdkSessionId?.trim() || undefined;

@@ -103,7 +103,7 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
       role: agent.role,
       model: agent.model,
       runtime: agent.runtime,
-      ccsdkProvider: agent.ccsdkProvider,
+      claudeSdkOptions: agent.claudeSdkOptions,
       description: agent.description,
       status: "offline",
       tags: agent.tags ? [...agent.tags] : [],
@@ -137,8 +137,10 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
     status: AgentStatus;
     description?: string;
     model?: string;
-    runtime?: "pi" | "ccsdk";
-    ccsdkProvider?: "anthropic" | "zai" | "openrouter";
+    runtime?: "pi" | "claude";
+    claudeSdkOptions?: {
+      provider?: "anthropic" | "zai" | "openrouter";
+    };
   }) => {
     if (editingAgent) {
       updateAgent.mutate(

@@ -379,6 +379,14 @@ export function wrapToolHandler(tool: AnyAgentTool, abortSignal?: AbortSignal): 
 
       const message = err instanceof Error ? err.message : String(err);
       logError(`[tool-bridge] ${normalizedName} failed: ${message}`);
+
+      // Log debug details if available (e.g., wrapped error content from web_fetch)
+      const debugDetail =
+        err instanceof Error ? (err as unknown as Record<string, unknown>)._debugDetail : undefined;
+      if (typeof debugDetail === "string") {
+        logDebug(`[tool-bridge] ${normalizedName} debug detail:\n${debugDetail}`);
+      }
+
       if (err instanceof Error && err.stack) {
         logDebug(`[tool-bridge] ${normalizedName} stack:\n${err.stack}`);
       }

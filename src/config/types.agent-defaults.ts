@@ -248,7 +248,7 @@ export type AgentDefaultsConfig = {
     /**
      * Runtime for sub-agents. If not set, inherits from parent agent's runtime.
      * - "pi": Pi Agent embedded runner (default fallback)
-     * - "ccsdk": Claude Code SDK runner
+     * - "claude": Claude Code SDK runner
      * - "inherit": Explicitly inherit from parent (same as not setting this)
      */
     runtime?: AgentRuntime | "inherit";

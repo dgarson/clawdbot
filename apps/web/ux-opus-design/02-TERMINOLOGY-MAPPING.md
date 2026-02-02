@@ -46,7 +46,7 @@ These are internal param keys stored under model params (system defaults and per
 |---------------|----------------|-------------|-------|
 | `runtime` | **Agent runtime** | The engine that powers this agent. | Radio: Pi / Claude Code SDK |
 | `runtime: pi` | **Pi (recommended)** | Keeps conversation memory between messages. | Default |
-| `runtime: ccsdk` | **Claude Code SDK** | Stateless but faster for single tasks. | Advanced |
+| `runtime: claude` | **Claude Code SDK** | Stateless but faster for single tasks. | Advanced |
 | `ccsdkProvider` | **SDK provider** | Which AI provider to use with Claude Code SDK. | Dropdown |
 | `sandbox` | **Sandbox** | Isolated environment for safe execution. | Toggle |
 | `sandbox.scope` | **Sandbox scope** | What the agent can access. | Dropdown |

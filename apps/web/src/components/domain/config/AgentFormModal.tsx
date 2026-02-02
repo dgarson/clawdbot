@@ -71,8 +71,8 @@ interface FormState {
   avatarUrl?: string;
   modelId: string;
   providerId?: string;
-  runtime: "pi" | "ccsdk";
-  ccsdkProvider?: "anthropic" | "zai" | "openrouter";
+  runtime: "pi" | "claude";
+  claudeSdkProvider?: "anthropic" | "zai" | "openrouter";
   workspaceIds: string[];
   showWorkspaces: boolean;
 }
@@ -89,8 +89,10 @@ export interface AgentFormModalProps {
     status: AgentStatus;
     description?: string;
     model?: string;
-    runtime?: "pi" | "ccsdk";
-    ccsdkProvider?: "anthropic" | "zai" | "openrouter";
+    runtime?: "pi" | "claude";
+    claudeSdkOptions?: {
+      provider?: "anthropic" | "zai" | "openrouter";
+    };
   }) => void;
   isSubmitting?: boolean;
 }
@@ -136,7 +138,7 @@ export function AgentFormModal({
     modelId: "",
     providerId: undefined,
     runtime: "pi",
-    ccsdkProvider: undefined,
+    claudeSdkProvider: undefined,
     workspaceIds: [],
     showWorkspaces: false,
   });
@@ -168,10 +170,10 @@ export function AgentFormModal({
           avatarUrl: agent.avatar,
           ...splitModelRef(agent.model),
           runtime: agent.runtime ?? "pi",
-          ccsdkProvider:
-            agent.runtime === "ccsdk"
-              ? agent.ccsdkProvider ?? "anthropic"
-              : agent.ccsdkProvider,
+          claudeSdkProvider:
+            agent.runtime === "claude"
+              ? agent.claudeSdkOptions?.provider ?? "anthropic"
+              : agent.claudeSdkOptions?.provider,
           workspaceIds: [],
           showWorkspaces: false,
         });
@@ -189,7 +191,7 @@ export function AgentFormModal({
           modelId: "",
           providerId: undefined,
           runtime: "pi",
-          ccsdkProvider: undefined,
+          claudeSdkProvider: undefined,
           workspaceIds: [],
           showWorkspaces: false,
         });
@@ -223,8 +225,10 @@ export function AgentFormModal({
 
   const handleSubmit = () => {
     const modelRef = buildModelRef(state.providerId, state.modelId);
-    const ccsdkProvider =
-      state.runtime === "ccsdk" ? state.ccsdkProvider : undefined;
+    const claudeSdkOptions =
+      state.runtime === "claude" && state.claudeSdkProvider
+        ? { provider: state.claudeSdkProvider }
+        : undefined;
     onSubmit({
       name: state.name,
       role: selectedModel?.name ?? "Assistant",
@@ -233,7 +237,7 @@ export function AgentFormModal({
       description: `Powered by ${selectedModel?.name ?? "AI"}`,
       model: modelRef,
       runtime: state.runtime,
-      ccsdkProvider,
+      claudeSdkOptions,
     });
   };
 
@@ -369,7 +373,7 @@ export function AgentFormModal({
                         helper: "Keeps conversation memory.",
                       },
                       {
-                        value: "ccsdk" as const,
+                        value: "claude" as const,
                         label: "Claude Code SDK (advanced)",
                         helper: "Stateless but fast.",
                       },
@@ -383,10 +387,10 @@ export function AgentFormModal({
                             setState((prev) => ({
                               ...prev,
                               runtime: option.value,
-                              ccsdkProvider:
-                                option.value === "ccsdk"
-                                  ? prev.ccsdkProvider ?? "anthropic"
-                                  : prev.ccsdkProvider,
+                              claudeSdkProvider:
+                                option.value === "claude"
+                                  ? prev.claudeSdkProvider ?? "anthropic"
+                                  : prev.claudeSdkProvider,
                             }))
                           }
                           className={cn(
@@ -413,15 +417,15 @@ export function AgentFormModal({
                   </div>
                 </div>
 
-                {state.runtime === "ccsdk" && (
+                {state.runtime === "claude" && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">CCSDK provider</Label>
                     <Select
-                      value={state.ccsdkProvider ?? ""}
+                      value={state.claudeSdkProvider ?? ""}
                       onValueChange={(value) =>
                         setState((prev) => ({
                           ...prev,
-                          ccsdkProvider: value as FormState["ccsdkProvider"],
+                          claudeSdkProvider: value as FormState["claudeSdkProvider"],
                         }))
                       }
                     >

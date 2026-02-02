@@ -465,7 +465,7 @@ export const AgentEntrySchema = z
           ])
           .optional(),
         /** Runtime for sub-agents spawned from this agent. "inherit" means inherit from this agent's runtime. */
-        runtime: z.enum(["pi", "ccsdk", "inherit"]).optional(),
+        runtime: z.enum(["pi", "claude", "inherit"]).optional(),
       })
       .strict()
       .optional(),

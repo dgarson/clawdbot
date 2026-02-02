@@ -20,8 +20,16 @@ export type AgentConfigEntry = {
   default?: boolean;
   name?: string;
   model?: AgentModelConfig;
-  runtime?: "pi" | "ccsdk";
-  ccsdkProvider?: "anthropic" | "zai" | "openrouter";
+  runtime?: "pi" | "claude";
+  claudeSdkOptions?: {
+    provider?: "anthropic" | "zai" | "openrouter";
+    models?: {
+      opus?: string;
+      sonnet?: string;
+      haiku?: string;
+      subagent?: string;
+    };
+  };
   identity?: AgentIdentityConfig;
   [key: string]: unknown;
 };
@@ -81,7 +89,7 @@ export function mapAgentEntryToAgent(entry: AgentConfigEntry): Agent {
     role: "Assistant",
     model: modelRef,
     runtime: entry.runtime,
-    ccsdkProvider: entry.ccsdkProvider,
+    claudeSdkOptions: entry.claudeSdkOptions,
     avatar: entry.identity?.avatar,
     status: "offline",
     description: undefined,
@@ -111,10 +119,12 @@ export function buildAgentEntry(
     next.runtime = update.runtime;
   }
 
-  if (update.runtime === "pi") {
-    delete next.ccsdkProvider;
-  } else if (update.ccsdkProvider !== undefined) {
-    next.ccsdkProvider = update.ccsdkProvider;
+  if (update.runtime !== undefined) {
+    if (update.runtime === "pi") {
+      delete next.claudeSdkOptions;
+    } else if (update.claudeSdkOptions !== undefined) {
+      next.claudeSdkOptions = update.claudeSdkOptions;
+    }
   }
 
   if (update.avatar !== undefined || update.name !== undefined) {

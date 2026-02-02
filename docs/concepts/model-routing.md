@@ -138,7 +138,7 @@ Policy fields you can set per intent:
 
 ## Limitations (important)
 
-- **CCSDK runtime** (`agents.defaults.runtime: "ccsdk"`) ignores provider/model selection. Model routing is only applied when the Pi runtime is in use.
+- **Claude runtime** (`agents.defaults.runtime: "claude"`) ignores provider/model selection. Model routing is only applied when the Pi runtime is in use.
 - `maxToolCalls` and `allowWriteTools` are currently **prompt-level constraints** (not hard enforcement).
   If you need hard enforcement, pair routing with tool policy/allowlists.
 

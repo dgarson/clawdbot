@@ -24,7 +24,7 @@ describe("VercelAgentAdapter", () => {
 		mockAgent = {
 			id: "test-agent",
 			name: "Test Agent",
-			ccsdkProvider: "anthropic",
+			claudeSdkOptions: { provider: "anthropic" },
 			model: "claude-3-5-sonnet-20241022",
 			role: "Assistant",
 			status: "offline",

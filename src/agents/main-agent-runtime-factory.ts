@@ -46,7 +46,7 @@ export function resolveAgentRuntimeKind(
   // 1. Try per-agent override
   const agentConfig = resolveAgentConfig(config, normalized);
   if (agentConfig?.runtime) {
-    return agentConfig.runtime === "ccsdk" ? "ccsdk" : "pi";
+    return agentConfig.runtime === "claude" ? "claude" : "pi";
   }
 
   // 2. For main agent, use mainRuntime logic
@@ -56,7 +56,7 @@ export function resolveAgentRuntimeKind(
 
   // 3. Use global default
   const globalRuntime = config.agents?.defaults?.runtime;
-  return globalRuntime === "ccsdk" ? "ccsdk" : "pi";
+  return globalRuntime === "claude" ? "claude" : "pi";
 }
 
 /**
@@ -68,8 +68,8 @@ export function resolveAgentRuntimeKind(
  * 3. Falls back to the parent agent's runtime (inheritance)
  *
  * This ensures subagents inherit their parent's runtime by default, which is
- * important when using Claude Code SDK (ccsdk) - subagents should also use
- * ccsdk rather than falling back to Pi (which requires separate API keys).
+ * important when using Claude Code SDK (claude runtime) - subagents should also use
+ * the claude runtime rather than falling back to Pi (which requires separate API keys).
  */
 export function resolveSessionRuntimeKind(
   config: OpenClawConfig | undefined,
@@ -89,13 +89,13 @@ export function resolveSessionRuntimeKind(
     const agentConfig = resolveAgentConfig(config, normalized);
     const subagentRuntime = agentConfig?.subagents?.runtime;
     if (subagentRuntime && subagentRuntime !== "inherit") {
-      return subagentRuntime === "ccsdk" ? "ccsdk" : "pi";
+      return subagentRuntime === "claude" ? "claude" : "pi";
     }
 
     // 2. Check global subagent runtime defaults
     const globalSubagentRuntime = config.agents?.defaults?.subagents?.runtime;
     if (globalSubagentRuntime && globalSubagentRuntime !== "inherit") {
-      return globalSubagentRuntime === "ccsdk" ? "ccsdk" : "pi";
+      return globalSubagentRuntime === "claude" ? "claude" : "pi";
     }
 
     // 3. Inherit from parent agent's runtime (fall through to regular resolution)
