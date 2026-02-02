@@ -195,7 +195,7 @@ export async function createSdkMainAgentRuntime(
   const sdkCfg = params.config?.agents?.main?.sdk;
 
   return createSdkAgentRuntime({
-    tools: tools as AnyAgentTool[],
+    tools: tools,
     claudeSessionId: params.claudeSessionId,
     model: sdkCfg?.model,
     thinkingBudget: resolveThinkingBudget(sdkCfg?.thinkingBudget),
