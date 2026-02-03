@@ -15,7 +15,7 @@ import {
   normalizeTextForComparison,
 } from "./pi-embedded-helpers.js";
 import { createEmbeddedPiSessionEventHandler } from "./pi-embedded-subscribe.handlers.js";
-import { formatReasoningMessage } from "./pi-embedded-utils.js";
+import { formatReasoningMessage, stripCompactionHandoffText } from "./pi-embedded-utils.js";
 
 const THINKING_TAG_SCAN_RE = /<\s*(\/?)\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
 const FINAL_TAG_SCAN_RE = /<\s*(\/?)\s*final\s*>/gi;
@@ -407,7 +407,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       return;
     }
     // Strip <think> and <final> blocks across chunk boundaries to avoid leaking reasoning.
-    const chunk = stripBlockTags(text, state.blockState).trimEnd();
+    const chunk = stripCompactionHandoffText(stripBlockTags(text, state.blockState).trimEnd());
     if (!chunk) {
       return;
     }

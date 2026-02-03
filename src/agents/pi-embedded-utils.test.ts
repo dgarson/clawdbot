@@ -1,6 +1,10 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import { describe, expect, it } from "vitest";
-import { extractAssistantText, formatReasoningMessage } from "./pi-embedded-utils.js";
+import {
+  extractAssistantText,
+  formatReasoningMessage,
+  stripCompactionHandoffText,
+} from "./pi-embedded-utils.js";
 
 describe("extractAssistantText", () => {
   it("strips Minimax tool invocation XML from text", () => {
@@ -506,6 +510,31 @@ File contents here`,
 
     const result = extractAssistantText(msg);
     expect(result).toBe("StartMiddleEnd");
+  });
+});
+
+describe("stripCompactionHandoffText", () => {
+  it("strips compaction handoff text when markers appear", () => {
+    const input = [
+      "Answer line one.",
+      "Answer line two.",
+      "This session is being continued from a previous conversation that ran out of context.",
+      "The summary below covers the earlier portion of the conversation.",
+      "Analysis:",
+      "Lots of internal notes.",
+    ].join("\n");
+    expect(stripCompactionHandoffText(input)).toBe("Answer line one.\nAnswer line two.");
+  });
+
+  it("returns empty when only compaction handoff text exists", () => {
+    const input =
+      "This session is being continued from a previous conversation that ran out of context.";
+    expect(stripCompactionHandoffText(input)).toBe("");
+  });
+
+  it("leaves text untouched when no markers exist", () => {
+    const input = "Normal response text.";
+    expect(stripCompactionHandoffText(input)).toBe(input);
   });
 });
 
