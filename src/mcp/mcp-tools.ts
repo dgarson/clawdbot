@@ -107,6 +107,23 @@ function getTransportHint(server: McpServerConfig): string {
   return "[Unknown]";
 }
 
+function buildEnhancedDescription(
+  originalDescription: string,
+  server: McpServerConfig,
+  serverLabel: string = "MCP Server",
+): string {
+  const hint = getTransportHint(server);
+  const authHint = detectAuthRequired(server) ? "[Requires Auth]" : "";
+
+  const parts = [hint];
+  if (authHint) parts.push(authHint);
+
+  const description = originalDescription || "Tool";
+  parts.push(`${description} (via ${serverLabel})`);
+
+  return parts.join(" ");
+}
+
 function coerceHeaders(headers: Record<string, string> | undefined): HeadersInit | undefined {
   if (!headers) {
     return undefined;
@@ -467,4 +484,5 @@ export const __testing = {
   getOrCreateConnection,
   detectAuthRequired,
   getTransportHint,
+  buildEnhancedDescription,
 };

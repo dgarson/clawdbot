@@ -15,6 +15,7 @@ const {
   getOrCreateConnection,
   detectAuthRequired,
   getTransportHint,
+  buildEnhancedDescription,
 } = __testing;
 
 // ---------------------------------------------------------------------------
@@ -1640,6 +1641,41 @@ describe("getTransportHint", () => {
       command: "node",
     };
     expect(__testing.getTransportHint(config)).toBe("[Local]");
+  });
+});
+
+describe("buildEnhancedDescription", () => {
+  it("adds transport and auth hints to description", () => {
+    const config = {
+      transport: "http" as const,
+      url: "http://github.com",
+      headers: { Authorization: "token" },
+    };
+    const result = __testing.buildEnhancedDescription("Create an issue", config, "GitHub API");
+    expect(result).toContain("[HTTP]");
+    expect(result).toContain("Requires Auth");
+    expect(result).toContain("Create an issue");
+    expect(result).toContain("via GitHub API");
+  });
+
+  it("preserves original description when already present", () => {
+    const config = { transport: "sse" as const, url: "http://example.com" };
+    const result = __testing.buildEnhancedDescription("Fetch data", config, "Server");
+    expect(result).toContain("Fetch data");
+  });
+
+  it("handles missing description gracefully", () => {
+    const config = { transport: "stdio" as const, command: "python3" };
+    const result = __testing.buildEnhancedDescription("", config, "PyServer");
+    expect(result).toContain("[Local]");
+    expect(result).toContain("PyServer");
+  });
+
+  it("omits auth hint when no auth required", () => {
+    const config = { transport: "http" as const, url: "http://example.com" };
+    const result = __testing.buildEnhancedDescription("Open API", config, "OpenWeather");
+    expect(result).not.toContain("Requires Auth");
+    expect(result).toContain("[HTTP]");
   });
 });
 
