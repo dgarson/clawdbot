@@ -11,6 +11,15 @@ export type SubscribeEmbeddedPiSessionParams = {
   sessionKey?: string;
   verboseLevel?: VerboseLevel;
   reasoningMode?: ReasoningLevel;
+  /**
+   * When true, reasoning/thinking text is prefixed to block replies (italicized with separator)
+   * instead of being emitted via onReasoningStream. This is useful for surfaces that want
+   * reasoning visible inline but don't support separate reasoning streams.
+   *
+   * When false or undefined, reasoning is only emitted via onReasoningStream (if provided).
+   * Channels should NOT set this to true - they should leave it undefined/false.
+   */
+  emitReasoningInBlockReply?: boolean;
   toolResultFormat?: ToolResultFormat;
   shouldEmitToolResult?: () => boolean;
   shouldEmitToolOutput?: () => boolean;

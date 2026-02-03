@@ -31,6 +31,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   const reasoningMode = params.reasoningMode ?? "off";
   const toolResultFormat = params.toolResultFormat ?? "markdown";
   const useMarkdown = toolResultFormat === "markdown";
+  // Reasoning should only be emitted via onBlockReply if:
+  // 1. emitReasoningInBlockReply is explicitly true (caller opts in), OR
+  // 2. There's no onReasoningStream callback AND emitReasoningInBlockReply is true
+  // Channels (Discord, Slack, etc.) should NOT set emitReasoningInBlockReply to true.
+  const emitReasoningInBlockReply = params.emitReasoningInBlockReply === true;
   const state: EmbeddedPiSubscribeState = {
     assistantTexts: [],
     toolMetas: [],
@@ -42,6 +47,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     includeReasoning: reasoningMode === "on",
     shouldEmitPartialReplies: !(reasoningMode === "on" && !params.onBlockReply),
     streamReasoning: reasoningMode === "stream" && typeof params.onReasoningStream === "function",
+    emitReasoningInBlockReply,
     deltaBuffer: "",
     blockBuffer: "",
     // Track if a streamed chunk opened a <think> block (stateful across chunks).

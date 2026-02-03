@@ -31,6 +31,8 @@ describe("subscribeEmbeddedPiSession", () => {
       onBlockReply,
       blockReplyBreak: "message_end",
       reasoningMode: "on",
+      // Must explicitly opt-in to emit reasoning via block reply (prevents leaking to channels)
+      emitReasoningInBlockReply: true,
     });
 
     const assistantMessage = {
@@ -66,6 +68,8 @@ describe("subscribeEmbeddedPiSession", () => {
         onBlockReply,
         blockReplyBreak: "message_end",
         reasoningMode: "on",
+        // Must explicitly opt-in to emit reasoning via block reply (prevents leaking to channels)
+        emitReasoningInBlockReply: true,
       });
 
       const assistantMessage = {

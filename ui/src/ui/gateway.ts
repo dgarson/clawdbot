@@ -153,8 +153,7 @@ export class GatewayBrowserClient {
           }
         : undefined;
 
-    let device:c
-
+    let device:
       | {
           id: string;
           publicKey: string;
@@ -299,10 +298,17 @@ export class GatewayBrowserClient {
     return p;
   }
 
+  private clearConnectTimer() {
+    if (this.connectTimer !== null) {
+      window.clearTimeout(this.connectTimer);
+      this.connectTimer = null;
+    }
+  }
+
   private queueConnect() {
     this.connectNonce = null;
     this.connectSent = false;
-    if (this.connectTimer !== null) window.clearTimeout(this.connectTimer);
+    this.clearConnectTimer();
     this.connectTimer = window.setTimeout(() => {
       void this.sendConnect();
     }, 750);

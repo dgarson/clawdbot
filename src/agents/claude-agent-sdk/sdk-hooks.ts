@@ -175,12 +175,21 @@ export function buildClawdbrainSdkHooks(params: {
    * PreCompact hook handler — emits compaction start event compatible with Pi Agent.
    * The SDK fires this hook before auto-compaction begins.
    * Input shape: { hook_event_name: 'PreCompact', trigger: 'manual' | 'auto', custom_instructions: string | null }
+   *
+   * IMPORTANT: We intentionally filter out `custom_instructions` to avoid leaking
+   * compaction prompts/summaries into broadcast events or logs.
    */
   const preCompactHook: SdkHookCallback = async (input, toolUseId) => {
-    emitHook("PreCompact", input, toolUseId);
-
     const record = isRecord(input) ? input : undefined;
     const trigger = typeof record?.trigger === "string" ? record.trigger : "auto";
+
+    // Emit hook event with only safe metadata (no custom_instructions)
+    params.emitEvent("hook", {
+      hookEventName: "PreCompact",
+      toolUseId,
+      hook_event_name: record?.hook_event_name,
+      trigger,
+    });
 
     // Emit compaction start event matching Pi Agent's format
     // (stream: "compaction", data: { phase: "start" })

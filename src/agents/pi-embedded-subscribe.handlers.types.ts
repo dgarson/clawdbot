@@ -32,6 +32,12 @@ export type EmbeddedPiSubscribeState = {
   includeReasoning: boolean;
   shouldEmitPartialReplies: boolean;
   streamReasoning: boolean;
+  /**
+   * When true, reasoning is prefixed to block replies instead of using onReasoningStream.
+   * This should be false/undefined for channels (Discord, Slack, etc.) to prevent
+   * reasoning from leaking into channel messages.
+   */
+  emitReasoningInBlockReply: boolean;
 
   deltaBuffer: string;
   blockBuffer: string;

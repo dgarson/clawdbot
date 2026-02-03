@@ -221,16 +221,30 @@ export function handleMessageEnd(
   ctx.finalizeAssistantTexts({ text, addedDuringMessage, chunkerHasBuffered });
 
   const onBlockReply = ctx.params.onBlockReply;
-  const shouldEmitReasoning = Boolean(
+  const hasReasoningStreamCallback = typeof ctx.params.onReasoningStream === "function";
+
+  // Reasoning emission priority:
+  // 1. If onReasoningStream callback is provided -> emit via that (handled at end of function)
+  // 2. Else if emitReasoningInBlockReply is true -> emit via onBlockReply (fallback for inline display)
+  // 3. Else -> don't emit reasoning to user-facing surfaces (channels like Discord, Slack, etc.)
+  //
+  // This prevents reasoning from leaking into channel messages while allowing:
+  // - TUI/Web UI to receive reasoning via onReasoningStream (with frontend toggle control)
+  // - Explicit opt-in for inline reasoning in block replies when no stream callback exists
+  const shouldEmitReasoningViaBlockReply = Boolean(
     ctx.state.includeReasoning &&
     formattedReasoning &&
     onBlockReply &&
+    ctx.state.emitReasoningInBlockReply && // Must explicitly opt-in to emit reasoning via block reply
+    !hasReasoningStreamCallback && // Don't use block reply if onReasoningStream is available
     formattedReasoning !== ctx.state.lastReasoningSent,
   );
   const shouldEmitReasoningBeforeAnswer =
-    shouldEmitReasoning && ctx.state.blockReplyBreak === "message_end" && !addedDuringMessage;
-  const maybeEmitReasoning = () => {
-    if (!shouldEmitReasoning || !formattedReasoning) {
+    shouldEmitReasoningViaBlockReply &&
+    ctx.state.blockReplyBreak === "message_end" &&
+    !addedDuringMessage;
+  const maybeEmitReasoningViaBlockReply = () => {
+    if (!shouldEmitReasoningViaBlockReply || !formattedReasoning) {
       return;
     }
     ctx.state.lastReasoningSent = formattedReasoning;
@@ -238,7 +252,7 @@ export function handleMessageEnd(
   };
 
   if (shouldEmitReasoningBeforeAnswer) {
-    maybeEmitReasoning();
+    maybeEmitReasoningViaBlockReply();
   }
 
   if (
@@ -291,9 +305,17 @@ export function handleMessageEnd(
   }
 
   if (!shouldEmitReasoningBeforeAnswer) {
-    maybeEmitReasoning();
+    maybeEmitReasoningViaBlockReply();
   }
-  if (ctx.state.streamReasoning && rawThinking) {
+
+  // Emit reasoning via onReasoningStream if callback is provided and we have reasoning.
+  // This works for both "on" and "stream" modes - the frontend/TUI decides what to display.
+  // For "stream" mode, real-time deltas are also emitted during handleMessageUpdate.
+  const shouldEmitReasoningViaStream =
+    hasReasoningStreamCallback &&
+    rawThinking &&
+    (ctx.state.includeReasoning || ctx.state.streamReasoning);
+  if (shouldEmitReasoningViaStream) {
     ctx.emitReasoningStream(rawThinking);
   }
 

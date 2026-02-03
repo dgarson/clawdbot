@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import type { loadConfig } from "../config/config.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { resolveMainAgentRuntimeKind } from "../agents/main-agent-runtime-factory.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
 import { getResolvedLoggerSettings } from "../logging.js";
 
@@ -18,9 +19,10 @@ export function logGatewayStartup(params: {
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
   });
+  const agentRuntime = resolveMainAgentRuntimeKind(params.cfg);
   const modelRef = `${agentProvider}/${agentModel}`;
-  params.log.info(`agent model: ${modelRef}`, {
-    consoleMessage: `agent model: ${chalk.whiteBright(modelRef)}`,
+  params.log.info(`agent model: ${modelRef} (runtime=${agentRuntime}, provider=${agentProvider})`, {
+    consoleMessage: `agent model: ${chalk.whiteBright(modelRef)} (runtime=${chalk.cyan(agentRuntime)}, provider=${chalk.cyan(agentProvider)})`,
   });
   const scheme = params.tlsEnabled ? "wss" : "ws";
   const formatHost = (host: string) => (host.includes(":") ? `[${host}]` : host);
