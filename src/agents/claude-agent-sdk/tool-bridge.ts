@@ -554,7 +554,7 @@ export async function bridgeClawdbrainToolsToMcpServer(
       server.registerTool(
         toolName,
         {
-          description: tool.description ?? `Clawdbrain tool: ${toolName}`,
+          description: tool.description ?? `${toolName} (Clawdbrain native tool)`,
           inputSchema,
         },
         handler,
@@ -639,7 +639,7 @@ export function bridgeClawdbrainToolsSync(
       server.registerTool(
         toolName,
         {
-          description: tool.description ?? `Clawdbrain tool: ${toolName}`,
+          description: tool.description ?? `${toolName} (Clawdbrain native tool)`,
           inputSchema,
         },
         handler,
