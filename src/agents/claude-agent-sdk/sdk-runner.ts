@@ -219,7 +219,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   const realMcpToolLog = formatMcpToolNamesForLog(params.tools.map((t) => t.name));
   if (realMcpToolLog.formatted.length > 0) {
     const total = realMcpToolLog.formatted.length + realMcpToolLog.remaining;
-    log.info(
+    log.debug(
       `sdk mcp tools: runId=${params.runId} sessionId=${params.sessionId} claudeSessionId=${params.claudeSessionId ?? "new"} mcpToolsCount=${total} mcpTools=${realMcpToolLog.formatted.join(",")}${realMcpToolLog.truncated ? ` ...(+${realMcpToolLog.remaining})` : ""}`,
     );
   }
@@ -294,7 +294,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       tools: params.tools,
       abortSignal: params.abortSignal,
     });
-    log.trace(`Tool bridge complete: ${bridgeResult.toolCount} tools registered`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
@@ -492,7 +491,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   try {
     emitEvent("sdk", { type: "query_start" });
     const promptLen = typeof prompt === "string" ? prompt.length : "(async)";
-    log.debug(`Starting SDK query (prompt: ${promptLen} chars, maxTurns: ${sdkOptions.maxTurns})`);
+    log.trace(`Starting SDK query (prompt: ${promptLen} chars, maxTurns: ${sdkOptions.maxTurns})`);
 
     const stream = await coerceAsyncIterable(
       sdk.query({
@@ -500,7 +499,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         options: sdkOptions as Record<string, unknown>,
       }),
     );
-    log.debug("SDK query stream created, iterating events...");
+    log.trace("SDK query stream created, iterating events...");
 
     for await (const event of stream) {
       // Check abort before processing each event.
@@ -661,7 +660,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         const sessionId = event.session_id ?? event.sessionId;
         if (typeof sessionId === "string" && sessionId) {
           returnedSessionId = sessionId;
-          log.trace(`SDK returned session ID: ${sessionId}`);
         }
         // Also check for error results.
         const subtype = event.subtype;

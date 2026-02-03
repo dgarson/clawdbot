@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import type { OpenClawConfig } from "../config/config.js";
 import type { McpServerConfig, McpServersConfig } from "../config/types.mcp.js";
 import { normalizeToolName } from "../agents/tool-policy.js";
-import { logDebug, logInfo, logWarn } from "../logger.js";
+import { logDebug, logWarn } from "../logger.js";
 import { resolveEffectiveMcpServers, isMcpServerEnabled } from "./resolve.js";
 
 // NOTE: We keep these tool objects compatible with Pi Agent runtime and
@@ -506,7 +506,7 @@ export async function resolveMcpToolsForAgent(params: {
         const conn = getOrCreateConnection(state, serverId);
         const remoteTools = await conn.listTools(params.abortSignal);
 
-        logInfo(
+        logDebug(
           `[mcp] Loaded ${remoteTools.length} tools from MCP server "${serverId}" (${(server as any).transport ?? "stdio"})`,
         );
 

@@ -67,10 +67,10 @@ describe("runSdkAgent MCP tools logging", () => {
     });
 
     const logger = loggers[0] as any;
-    expect(logger?.info).toBeTypeOf("function");
+    expect(logger?.debug).toBeTypeOf("function");
 
-    const infoCalls = (logger.info as any).mock.calls.map((c: unknown[]) => String(c[0]));
-    const mcpLine = infoCalls.find((l) => l.includes("sdk mcp tools:"));
+    const debugCalls = (logger.debug as any).mock.calls.map((c: unknown[]) => String(c[0]));
+    const mcpLine = debugCalls.find((l) => l.includes("sdk mcp tools:"));
     expect(mcpLine).toBeTruthy();
     expect(mcpLine).toContain("mcpTools=github:create_issue");
     expect(mcpLine).not.toContain("clawdbrain:exec");
