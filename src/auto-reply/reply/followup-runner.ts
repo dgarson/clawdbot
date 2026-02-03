@@ -262,18 +262,14 @@ export function createFollowupRunner(params: {
       }
 
       if (autoCompactionCompleted) {
-        const count = await incrementCompactionCount({
+        await incrementCompactionCount({
           sessionEntry,
           sessionStore,
           sessionKey,
           storePath,
         });
-        if (queued.run.verboseLevel && queued.run.verboseLevel !== "off") {
-          const suffix = typeof count === "number" ? ` (count ${count})` : "";
-          finalPayloads.unshift({
-            text: `🧹 Auto-compaction complete${suffix}.`,
-          });
-        }
+        // Compaction events are internal-only and sent via event broadcast
+        // to session-specific handlers. No user-facing message needed.
       }
 
       await sendFollowupPayloads(finalPayloads, queued);
