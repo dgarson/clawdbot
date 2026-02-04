@@ -279,13 +279,19 @@ class McpConnection {
       } else {
         const env = (this.server as any).env as Record<string, string> | undefined;
         const mergedEnv = env ? { ...getDefaultEnvironment(), ...env } : undefined;
+        const requestedStderr = (this.server as any).stderr;
+        const stderr = requestedStderr === "inherit" ? "pipe" : requestedStderr ?? "pipe";
         this.transport = new StdioClientTransport({
           command: (this.server as any).command,
           args: (this.server as any).args,
           cwd: (this.server as any).cwd,
           env: mergedEnv,
-          stderr: (this.server as any).stderr,
+          stderr,
         });
+        const stderrStream = this.transport.stderr;
+        if (stderrStream) {
+          stderrStream.on("data", () => {});
+        }
       }
 
       this.client = client;
