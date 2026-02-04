@@ -1,6 +1,6 @@
-import type { GatewayBrowserClient } from "../gateway";
-import type { SkillStatusReport } from "../types";
-import { toast } from "../components/toast";
+import type { GatewayBrowserClient } from "../gateway.ts";
+import type { SkillStatusReport } from "../types.ts";
+import { toast } from "../components/toast.ts";
 
 export type SkillsState = {
   client: GatewayBrowserClient | null;
@@ -57,7 +57,7 @@ export async function loadSkills(state: SkillsState, options?: LoadSkillsOptions
   state.skillsLoading = true;
   state.skillsError = null;
   try {
-    const res = await state.client.request("skills.status", {});
+    const res = await state.client.request<SkillStatusReport | undefined>("skills.status", {});
     if (res) {
       state.skillsReport = res;
     }
@@ -135,7 +135,7 @@ export async function installSkill(
   state.skillsBusyKey = skillKey;
   state.skillsError = null;
   try {
-    const result = await state.client.request("skills.install", {
+    const result = await state.client.request<{ message?: string }>("skills.install", {
       name,
       installId,
       timeoutMs: 120000,

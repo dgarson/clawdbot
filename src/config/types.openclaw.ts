@@ -13,6 +13,7 @@ import type {
 } from "./types.gateway.js";
 import type { HooksConfig } from "./types.hooks.js";
 import type { McpServersConfig } from "./types.mcp.js";
+import type { MemoryConfig } from "./types.memory.js";
 import type {
   AudioConfig,
   BroadcastConfig,
@@ -99,6 +100,7 @@ export type OpenClawConfig = {
   canvasHost?: CanvasHostConfig;
   talk?: TalkConfig;
   gateway?: GatewayConfig;
+  memory?: MemoryConfig;
   overseer?: any; // TODO: Add proper OverseerConfig type
   onboarding?: any; // TODO: Add proper OnboardingConfig type
 };
