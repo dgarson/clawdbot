@@ -38,7 +38,7 @@ export const slackOutbound: ChannelOutboundAdapter = {
     const reactions = Array.isArray(slackData?.reactions) ? slackData?.reactions : [];
     const payloadText = payload.text ?? "";
     const fallbackFromBlocks = blocks ? blocksToPlainText(blocks).trim() : "";
-    const fallbackText =
+    let fallbackText =
       payloadText.trim() ||
       (typeof slackData?.fallbackText === "string" ? slackData.fallbackText.trim() : "") ||
       fallbackFromBlocks ||
@@ -54,6 +54,9 @@ export const slackOutbound: ChannelOutboundAdapter = {
       if (!validation.valid) {
         throw new Error(`Invalid Slack blocks: ${validation.errors.join("; ")}`);
       }
+    }
+    if (!fallbackText.trim()) {
+      fallbackText = "Message";
     }
 
     let result: Awaited<ReturnType<typeof send>> | undefined;

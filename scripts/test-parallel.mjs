@@ -114,16 +114,47 @@ const inferTargetRuns = () => {
     return [{ name: "custom", args: ["vitest", "run"] }];
   }
 
-  const matchesExtensions = normalizedArgs.some((arg) => arg.includes("extensions/"));
-  const matchesGateway = normalizedArgs.some((arg) => arg.includes("src/gateway/"));
-  const matchesUnit = normalizedArgs.some((arg) => {
-    if (!arg.includes("/") && !arg.includes(".")) {
+  const positionalArgs = normalizedArgs.filter((arg) => !arg.startsWith("-"));
+  const matchesExtensions = positionalArgs.some(
+    (arg) =>
+      arg === "extensions" ||
+      arg.includes("extensions/") ||
+      arg.includes("/extensions/") ||
+      arg.endsWith("/extensions"),
+  );
+  const matchesGateway = positionalArgs.some(
+    (arg) =>
+      arg === "src/gateway" ||
+      arg.includes("src/gateway/") ||
+      arg.includes("/src/gateway/") ||
+      arg.endsWith("/src/gateway"),
+  );
+  const matchesUnit = positionalArgs.some((arg) => {
+    if (
+      arg === "extensions" ||
+      arg.includes("extensions/") ||
+      arg.includes("/extensions/") ||
+      arg.endsWith("/extensions")
+    ) {
       return false;
     }
-    if (arg.includes("extensions/") || arg.includes("src/gateway/")) {
+    if (
+      arg === "src/gateway" ||
+      arg.includes("src/gateway/") ||
+      arg.includes("/src/gateway/") ||
+      arg.endsWith("/src/gateway")
+    ) {
       return false;
     }
-    return arg.includes("src/") || arg.includes("test/") || arg.endsWith(".test.ts");
+    return (
+      arg === "src" ||
+      arg.includes("src/") ||
+      arg.includes("/src/") ||
+      arg === "test" ||
+      arg.includes("test/") ||
+      arg.includes("/test/") ||
+      arg.endsWith(".test.ts")
+    );
   });
 
   const selected = [];
@@ -139,6 +170,10 @@ const inferTargetRuns = () => {
 
   if (selected.length > 0) {
     return selected.filter(Boolean);
+  }
+
+  if (positionalArgs.length > 0) {
+    return [runs.find((entry) => entry.name === "unit")].filter(Boolean);
   }
 
   // Flag-only runs like `pnpm test -- -t foo` should still cover everything.
