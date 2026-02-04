@@ -3,6 +3,7 @@ import type { TemplateContext } from "../templating.js";
 import type { FollowupRun } from "./queue.js";
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
   runWithModelFallback: vi.fn(
     async (params: { run: (provider: string, model: string) => unknown }) => {
       const provider = "openai";

@@ -9,6 +9,7 @@ const runEmbeddedPiAgentMock = vi.fn();
 const runCliAgentMock = vi.fn();
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
   runWithModelFallback: async ({
     provider,
     model,

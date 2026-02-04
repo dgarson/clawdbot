@@ -362,6 +362,27 @@ export async function runWithModelFallback<T>(params: {
   });
 }
 
+export function hasConfiguredModelFallback(params: {
+  cfg: OpenClawConfig | undefined;
+  provider: string;
+  model: string;
+  agentDir?: string;
+  /** Optional explicit fallbacks list; when provided (even empty), replaces agents.defaults.model.fallbacks. */
+  fallbacksOverride?: string[];
+  /** When using claude runtime with anthropic provider, SDK handles its own auth */
+  runtimeKind?: "pi" | "claude";
+}): boolean {
+  const candidates = resolveFallbackCandidates({
+    cfg: params.cfg,
+    provider: params.provider,
+    model: params.model,
+    agentDir: params.agentDir,
+    fallbacksOverride: params.fallbacksOverride,
+    runtimeKind: params.runtimeKind,
+  });
+  return candidates.length > 0;
+}
+
 export async function runWithImageModelFallback<T>(params: {
   cfg: OpenClawConfig | undefined;
   modelOverride?: string;

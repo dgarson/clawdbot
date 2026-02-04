@@ -5,7 +5,7 @@ import type { VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions } from "../types.js";
 import type { FollowupRun } from "./queue.js";
 import { resolveAgentModelFallbacksOverride } from "../../agents/agent-scope.js";
-import { runWithModelFallback } from "../../agents/model-fallback.js";
+import { hasConfiguredModelFallback, runWithModelFallback } from "../../agents/model-fallback.js";
 import { isCliProvider } from "../../agents/model-selection.js";
 import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
 import { resolveSandboxConfigForAgent, resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
@@ -124,16 +124,37 @@ export async function runMemoryFlushIfNeeded(params: {
   ]
     .filter(Boolean)
     .join("\n\n");
+  const flushFallbacksOverride = resolveAgentModelFallbacksOverride(
+    params.followupRun.run.config,
+    resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey),
+  );
+  const flushRuntimeKind: "pi" = "pi";
+  if (
+    !hasConfiguredModelFallback({
+      cfg: params.followupRun.run.config,
+      provider: params.followupRun.run.provider,
+      model: params.followupRun.run.model,
+      agentDir: params.followupRun.run.agentDir,
+      fallbacksOverride: flushFallbacksOverride,
+      runtimeKind: flushRuntimeKind,
+    })
+  ) {
+    memLog.warn("memory flush: skipped (no non-claude runtime providers configured)", {
+      sessionKey: params.sessionKey,
+      provider: params.followupRun.run.provider,
+      model: params.followupRun.run.model,
+      runtimeKind: flushRuntimeKind,
+    });
+    return params.sessionEntry;
+  }
   try {
     const flushResult = await runWithModelFallback({
       cfg: params.followupRun.run.config,
       provider: params.followupRun.run.provider,
       model: params.followupRun.run.model,
       agentDir: params.followupRun.run.agentDir,
-      fallbacksOverride: resolveAgentModelFallbacksOverride(
-        params.followupRun.run.config,
-        resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey),
-      ),
+      fallbacksOverride: flushFallbacksOverride,
+      runtimeKind: flushRuntimeKind,
       run: (provider, model) => {
         const authProfileId =
           provider === params.followupRun.run.provider
