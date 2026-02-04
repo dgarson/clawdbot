@@ -50,6 +50,8 @@ export type CronServiceState = {
   warnedDisabled: boolean;
   /** @internal Promise of the last onTimer run, for test synchronization. */
   _lastTimerRun?: Promise<void>;
+  storeLoadedAtMs: number | null;
+  storeFileMtimeMs: number | null;
 };
 
 export function createCronServiceState(deps: CronServiceDeps): CronServiceState {
@@ -60,6 +62,8 @@ export function createCronServiceState(deps: CronServiceDeps): CronServiceState 
     running: false,
     op: Promise.resolve(),
     warnedDisabled: false,
+    storeLoadedAtMs: null,
+    storeFileMtimeMs: null,
   };
 }
 

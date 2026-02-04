@@ -67,6 +67,10 @@ export function createOpenClawTools(options?: {
   requesterAgentIdOverride?: string;
   /** When true, tools are being exposed in a Claude Agent SDK / tool-bridge context. */
   isToolBridgeContext?: boolean;
+  /** Require explicit message targets (no implicit last-route sends). */
+  requireExplicitMessageTarget?: boolean;
+  /** If true, omit the message tool from the tool list. */
+  disableMessageTool?: boolean;
 }): AnyAgentTool[] {
   const imageTool = options?.agentDir?.trim()
     ? createImageTool({
@@ -84,15 +88,33 @@ export function createOpenClawTools(options?: {
     config: options?.config,
     sandboxed: options?.sandboxed,
   });
-  const slackRichMessageTool = createSlackRichMessageTool({
+  const slackRichMessageTool = options?.disableMessageTool
+    ? null
+    : createSlackRichMessageTool({
     accountId: options?.agentAccountId,
     currentChannelId: options?.currentChannelId,
     currentThreadTs: options?.currentThreadTs,
   });
-  const slackInteractiveQuestionTool = createSlackInteractiveQuestionTool({
+  const slackInteractiveQuestionTool = options?.disableMessageTool
+      ? null
+      : createSlackInteractiveQuestionTool({
     accountId: options?.agentAccountId,
     sessionKey: options?.agentSessionKey,
   });
+  const messageTool = options?.disableMessageTool
+    ? null
+    : createMessageTool({
+        agentAccountId: options?.agentAccountId,
+        agentSessionKey: options?.agentSessionKey,
+        config: options?.config,
+        currentChannelId: options?.currentChannelId,
+        currentChannelProvider: options?.agentChannel,
+        currentThreadTs: options?.currentThreadTs,
+        replyToMode: options?.replyToMode,
+        hasRepliedRef: options?.hasRepliedRef,
+        sandboxRoot: options?.sandboxRoot,
+        requireExplicitTarget: options?.requireExplicitMessageTarget,
+      });
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -106,17 +128,7 @@ export function createOpenClawTools(options?: {
     createCronTool({
       agentSessionKey: options?.agentSessionKey,
     }),
-    createMessageTool({
-      agentAccountId: options?.agentAccountId,
-      agentSessionKey: options?.agentSessionKey,
-      config: options?.config,
-      currentChannelId: options?.currentChannelId,
-      currentChannelProvider: options?.agentChannel,
-      currentThreadTs: options?.currentThreadTs,
-      replyToMode: options?.replyToMode,
-      hasRepliedRef: options?.hasRepliedRef,
-      sandboxRoot: options?.sandboxRoot,
-    }),
+    ...(messageTool ? [messageTool] : []),
     createTtsTool({
       agentChannel: options?.agentChannel,
       config: options?.config,
@@ -162,8 +174,8 @@ export function createOpenClawTools(options?: {
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
-    slackRichMessageTool,
-    slackInteractiveQuestionTool,
+    ...(slackRichMessageTool ? [slackRichMessageTool] : []),
+    ...(slackInteractiveQuestionTool ? [slackInteractiveQuestionTool] : []),
     createRipgrepTool({
       workspaceDir: options?.workspaceDir,
     }),

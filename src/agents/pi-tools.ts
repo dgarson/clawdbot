@@ -161,6 +161,10 @@ export function createOpenClawCodingTools(options?: {
   modelHasVision?: boolean;
   /** When true, tools are being exposed in a Claude Agent SDK / tool-bridge context. */
   isToolBridgeContext?: boolean;
+  /** Require explicit message targets (no implicit last-route sends). */
+  requireExplicitMessageTarget?: boolean;
+  /** If true, omit the message tool from the tool list. */
+  disableMessageTool?: boolean;
 }): AnyAgentTool[] {
   const execToolName = "exec";
   const sandbox = options?.sandbox?.enabled ? options.sandbox : undefined;
@@ -354,6 +358,8 @@ export function createOpenClawCodingTools(options?: {
       replyToMode: options?.replyToMode,
       hasRepliedRef: options?.hasRepliedRef,
       modelHasVision: options?.modelHasVision,
+      requireExplicitMessageTarget: options?.requireExplicitMessageTarget,
+      disableMessageTool: options?.disableMessageTool,
       requesterAgentIdOverride: agentId,
       isToolBridgeContext: options?.isToolBridgeContext,
     }),
