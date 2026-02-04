@@ -15,7 +15,6 @@ import {
   normalizeTextForComparison,
 } from "./pi-embedded-helpers.js";
 import { createEmbeddedPiSessionEventHandler } from "./pi-embedded-subscribe.handlers.js";
-import { appendRawStream } from "./pi-embedded-subscribe.raw-stream.js";
 import { formatReasoningMessage, stripCompactionHandoffText } from "./pi-embedded-utils.js";
 
 const THINKING_TAG_SCAN_RE = /<\s*(\/?)\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
@@ -88,34 +87,6 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   const pendingMessagingTargets = state.pendingMessagingTargets;
   const replyDirectiveAccumulator = createStreamingDirectiveAccumulator();
   const partialReplyDirectiveAccumulator = createStreamingDirectiveAccumulator();
-
-  const traceRaw = (payload: Record<string, unknown>) => {
-    appendRawStream({
-      ts: Date.now(),
-      runId: params.runId,
-      sessionId: (params.session as { id?: string }).id,
-      sessionKey: params.sessionKey,
-      ...payload,
-    });
-  };
-
-  traceRaw({
-    event: "embedded_subscribe_init",
-    reasoningMode,
-    includeReasoning: reasoningMode === "on",
-    streamReasoning:
-      reasoningMode === "stream" && typeof params.onReasoningStream === "function" ? true : false,
-    emitReasoningInBlockReply: params.emitReasoningInBlockReply === true,
-    hasCallbacks: {
-      onBlockReply: typeof params.onBlockReply === "function",
-      onPartialReply: typeof params.onPartialReply === "function",
-      onReasoningStream: typeof params.onReasoningStream === "function",
-      onToolResult: typeof params.onToolResult === "function",
-    },
-    blockReplyBreak: params.blockReplyBreak,
-    blockReplyChunking: params.blockReplyChunking,
-    enforceFinalTag: params.enforceFinalTag,
-  });
 
   const resetAssistantMessageState = (nextAssistantTextBaseline: number) => {
     state.deltaBuffer = "";
@@ -434,32 +405,14 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
 
   const emitBlockChunk = (text: string) => {
     if (state.suppressBlockChunks) {
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "suppressBlockChunks",
-        inputLen: text.length,
-      });
       return;
     }
     // Strip <think> and <final> blocks across chunk boundaries to avoid leaking reasoning.
-    const stripped = stripBlockTags(text, state.blockState);
-    const chunk = stripCompactionHandoffText(stripped.trimEnd());
+    const chunk = stripCompactionHandoffText(stripBlockTags(text, state.blockState).trimEnd());
     if (!chunk) {
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "empty_after_strip",
-        inputLen: text.length,
-        strippedLen: stripped.length,
-      });
       return;
     }
     if (chunk === state.lastBlockReplyText) {
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "duplicate_lastBlockReplyText",
-        inputLen: text.length,
-        chunkLen: chunk.length,
-      });
       return;
     }
 
@@ -468,22 +421,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     const normalizedChunk = normalizeTextForComparison(chunk);
     if (isMessagingToolDuplicateNormalized(normalizedChunk, messagingToolSentTextsNormalized)) {
       log.debug(`Skipping block reply - already sent via messaging tool: ${chunk.slice(0, 50)}...`);
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "duplicate_messaging_tool",
-        inputLen: text.length,
-        chunkLen: chunk.length,
-      });
       return;
     }
 
     if (shouldSkipAssistantText(chunk)) {
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "duplicate_assistantText",
-        inputLen: text.length,
-        chunkLen: chunk.length,
-      });
       return;
     }
 
@@ -491,20 +432,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     assistantTexts.push(chunk);
     rememberAssistantText(chunk);
     if (!params.onBlockReply) {
-      traceRaw({
-        event: "embedded_block_chunk_buffered",
-        reason: "no_onBlockReply_callback",
-        chunkLen: chunk.length,
-      });
       return;
     }
     const splitResult = replyDirectiveAccumulator.consume(chunk);
     if (!splitResult) {
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "directive_accumulator_pending",
-        chunkLen: chunk.length,
-      });
       return;
     }
     const {
@@ -517,27 +448,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     } = splitResult;
     // Skip empty payloads, but always emit if audioAsVoice is set (to propagate the flag)
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0) && !audioAsVoice) {
-      traceRaw({
-        event: "embedded_block_chunk_skip",
-        reason: "empty_after_directives",
-        chunkLen: chunk.length,
-      });
       return;
     }
-    traceRaw({
-      event: "embedded_block_chunk_emit",
-      inputLen: text.length,
-      chunkLen: chunk.length,
-      cleanedLen: cleanedText?.length ?? 0,
-      mediaCount: mediaUrls?.length ?? 0,
-      audioAsVoice: Boolean(audioAsVoice),
-      replyToId: replyToId ?? undefined,
-      replyToTag: Boolean(replyToTag),
-      replyToCurrent: Boolean(replyToCurrent),
-      startsWithReasoning: cleanedText ? cleanedText.startsWith("Reasoning:") : false,
-      hadThinkingTagInInput: /<\s*(?:think(?:ing)?|thought|antthinking)\s*>/i.test(text),
-      enforceFinalTag: Boolean(params.enforceFinalTag),
-    });
     void params.onBlockReply({
       text: cleanedText,
       mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
@@ -558,17 +470,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       return;
     }
     if (blockChunker?.hasBuffered()) {
-      traceRaw({ event: "embedded_block_flush", kind: "chunker", buffered: true });
       blockChunker.drain({ force: true, emit: emitBlockChunk });
       blockChunker.reset();
       return;
     }
     if (state.blockBuffer.length > 0) {
-      traceRaw({
-        event: "embedded_block_flush",
-        kind: "buffer",
-        bufferedLen: state.blockBuffer.length,
-      });
       emitBlockChunk(state.blockBuffer);
       state.blockBuffer = "";
     }
@@ -580,28 +486,12 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     const formatted = formatReasoningMessage(text);
     if (!formatted) {
-      traceRaw({
-        event: "embedded_reasoning_skip",
-        reason: "empty_after_format",
-        rawLen: text.length,
-      });
       return;
     }
     if (formatted === state.lastStreamedReasoning) {
-      traceRaw({
-        event: "embedded_reasoning_skip",
-        reason: "duplicate_lastStreamedReasoning",
-        formattedLen: formatted.length,
-      });
       return;
     }
     state.lastStreamedReasoning = formatted;
-    traceRaw({
-      event: "embedded_reasoning_emit",
-      rawLen: text.length,
-      formattedLen: formatted.length,
-      startsWithReasoning: formatted.startsWith("Reasoning:"),
-    });
     void params.onReasoningStream({
       text: formatted,
     });
