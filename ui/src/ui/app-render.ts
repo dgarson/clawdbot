@@ -4,11 +4,11 @@ import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { ChatHost, refreshChatAvatar } from "./app-chat.ts";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import { OpenClawApp } from "./app.ts";
+import { renderAuthModal } from "./components/auth-modal.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import { loadAgents } from "./controllers/agents.ts";
-import { renderAuthModal } from "./components/auth-modal.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import {
@@ -369,8 +369,25 @@ export function renderApp(state: AppViewState) {
                 agentSkillsError: state.agentSkillsError,
                 agentSkillsAgentId: state.agentSkillsAgentId,
                 skillsFilter: state.skillsFilter,
+                sessionsResult: state.sessionsResult,
+                sessionsLoading: state.sessionsLoading,
                 onRefresh: async () => {
                   await loadAgents(state);
+                  const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
+                  if (agentIds.length > 0) {
+                    void loadAgentIdentities(state, agentIds);
+                  }
+                },
+                onDashboardRefresh: async () => {
+                  await Promise.all([
+                    loadAgents(state),
+                    loadSessions(state, {
+                      activeMinutes: 0,
+                      limit: 0,
+                      includeGlobal: true,
+                      includeUnknown: true,
+                    }),
+                  ]);
                   const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
                   if (agentIds.length > 0) {
                     void loadAgentIdentities(state, agentIds);
@@ -400,6 +417,15 @@ export function renderApp(state: AppViewState) {
                 },
                 onSelectPanel: (panel) => {
                   state.agentsPanel = panel;
+                  if (panel === "dashboard") {
+                    void loadSessions(state, {
+                      activeMinutes: 0,
+                      limit: 0,
+                      includeGlobal: true,
+                      includeUnknown: true,
+                    });
+                    void state.loadCron();
+                  }
                   if (panel === "files" && resolvedAgentId) {
                     if (state.agentFilesList?.agentId !== resolvedAgentId) {
                       state.agentFilesList = null;

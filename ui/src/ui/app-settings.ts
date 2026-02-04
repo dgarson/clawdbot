@@ -225,6 +225,10 @@ export async function refreshActiveTab(host: SettingsHost) {
       app.agentsSelectedId ?? app.agentsList?.defaultId ?? app.agentsList?.agents?.[0]?.id;
     if (agentId) {
       void loadAgentIdentity(app, agentId);
+      if (app.agentsPanel === "dashboard") {
+        void loadSessions(app);
+        void loadCron(host);
+      }
       if (app.agentsPanel === "skills") {
         void loadAgentSkills(app, agentId);
       }
