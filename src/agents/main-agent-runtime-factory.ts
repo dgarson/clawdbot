@@ -2,6 +2,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { AgentRuntime } from "./agent-runtime.js";
 import type { SandboxContext } from "./sandbox.js";
 import type { AnyAgentTool } from "./tools/common.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveMcpToolsForAgent } from "../mcp/mcp-tools.js";
 import {
   DEFAULT_AGENT_ID,
@@ -14,6 +15,8 @@ import { createSdkAgentRuntime } from "./claude-agent-sdk/sdk-agent-runtime.js";
 import { resolveThinkingBudget } from "./claude-agent-sdk/sdk-runner.config.js";
 import { createOpenClawCodingTools } from "./pi-tools.js";
 import { resolveSandboxContext } from "./sandbox.js";
+
+const log = createSubsystemLogger("runtime-factory");
 
 export type MainAgentRuntimeKind = "pi" | "claude";
 
@@ -108,6 +111,10 @@ export function resolveSessionRuntimeKind(
 }
 
 export type CreateSdkMainAgentRuntimeParams = {
+  /** Optional run identifier (for logging). */
+  runId?: string;
+  /** Optional session identifier (for logging). */
+  sessionId?: string;
   config?: OpenClawConfig;
   sessionKey?: string;
   sessionFile: string;
@@ -164,6 +171,16 @@ export async function createSdkMainAgentRuntime(
         abortSignal: params.abortSignal,
       });
 
+  const logContext = [
+    `runId=${params.runId ?? "n/a"}`,
+    `sessionId=${params.sessionId ?? "n/a"}`,
+    `sessionKey=${params.sessionKey ?? "n/a"}`,
+    `agentId=${agentIdForMcp ?? "n/a"}`,
+  ].join(" ");
+  log.debug(
+    `SDK runtime tool override: ${params.tools ? params.tools.length : "undefined"}; mcpTools=${mcpTools.length} ${logContext}`,
+  );
+
   const tools =
     params.tools ??
     createOpenClawCodingTools({
@@ -192,6 +209,8 @@ export async function createSdkMainAgentRuntime(
       extraTools: mcpTools,
       isToolBridgeContext: true,
     });
+
+  log.debug(`SDK runtime final tool count: ${tools.length} ${logContext}`);
 
   const sdkCfg = params.config?.agents?.main?.sdk;
 

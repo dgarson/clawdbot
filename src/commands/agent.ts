@@ -425,8 +425,14 @@ export async function agentCommand(
 
           // runtimeKind is resolved before runWithModelFallback for auth filtering
           if (runtimeKind === "claude") {
-            const claudeSdkSessionId = sessionEntry?.claudeSdkSessionId?.trim() || undefined;
+            // Don't resume the old SDK session when the session has been rotated
+            // (stale/idle/daily reset); otherwise compactions accumulate indefinitely.
+            const claudeSdkSessionId = isNewSession
+              ? undefined
+              : sessionEntry?.claudeSdkSessionId?.trim() || undefined;
             const sdkRuntime = await createSdkMainAgentRuntime({
+              runId,
+              sessionId,
               config: cfg,
               sessionKey,
               sessionFile,

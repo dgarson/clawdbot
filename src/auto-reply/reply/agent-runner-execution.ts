@@ -286,6 +286,8 @@ export async function runAgentTurnWithFallback(params: {
             const claudeSdkSessionId = activeEntry?.claudeSdkSessionId?.trim() || undefined;
 
             const sdkRuntime = await createSdkMainAgentRuntime({
+              runId,
+              sessionId: params.followupRun.run.sessionId,
               config: params.followupRun.run.config,
               sessionKey: params.sessionKey,
               sessionFile: params.followupRun.run.sessionFile,

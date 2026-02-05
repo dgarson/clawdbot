@@ -401,6 +401,8 @@ export async function runCronIsolatedAgentTurn(params: {
           const claudeSdkSessionId =
             cronSession.sessionEntry.claudeSdkSessionId?.trim() || undefined;
           const sdkRuntime = await createSdkMainAgentRuntime({
+            runId: cronSession.sessionEntry.sessionId,
+            sessionId: cronSession.sessionEntry.sessionId,
             config: cfgWithAgentDefaults,
             sessionKey: agentSessionKey,
             sessionFile,

@@ -294,7 +294,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     pendingMessagingToolSends.set(toolCallId, { toolName, text, target });
   };
 
-  const trackMessagingToolEnd = (toolCallId: string, isError: boolean) => {
+  const trackMessagingToolEnd = (toolName: string, toolCallId: string, isError: boolean) => {
+    void toolName;
     const pending = pendingMessagingToolSends.get(toolCallId);
     if (!pending) {
       return;
@@ -618,7 +619,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       },
       onToolEndEvent: (evt) => {
         if (evt.toolCallId) {
-          trackMessagingToolEnd(evt.toolCallId, evt.isError);
+          trackMessagingToolEnd(evt.name, evt.toolCallId, evt.isError);
         }
       },
     }) as unknown as Record<string, unknown>;
@@ -806,7 +807,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           trackMessagingToolStart(normalizedName.name, toolCallId, toolArgs);
         }
         if (phase === "result" && toolCallId) {
-          trackMessagingToolEnd(toolCallId, isError);
+          trackMessagingToolEnd(normalizedName.name, toolCallId, isError);
         }
 
         emitEvent("tool", {

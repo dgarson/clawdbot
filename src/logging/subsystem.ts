@@ -144,6 +144,25 @@ export function stripRedundantSubsystemPrefixForConsole(
   return message.slice(i);
 }
 
+function formatRunTag(meta?: Record<string, unknown>): string | null {
+  const runId = typeof meta?.runId === "string" ? meta.runId.trim() : "";
+  if (runId) {
+    return `run:${shortenLogId(runId)}`;
+  }
+  const sessionId = typeof meta?.sessionId === "string" ? meta.sessionId.trim() : "";
+  if (sessionId) {
+    return `session:${shortenLogId(sessionId)}`;
+  }
+  return null;
+}
+
+function shortenLogId(value: string, size = 8): string {
+  if (value.length <= size) {
+    return value;
+  }
+  return value.slice(-size);
+}
+
 function formatConsoleLine(opts: {
   level: LogLevel;
   subsystem: string;
@@ -167,6 +186,7 @@ function formatConsoleLine(opts: {
   const color = getColorForConsole();
   const prefix = `[${displaySubsystem}]`;
   const prefixColor = pickSubsystemColor(color, displaySubsystem);
+  const runTag = formatRunTag(opts.meta);
   const levelColor =
     opts.level === "error" || opts.level === "fatal"
       ? color.red
@@ -186,7 +206,8 @@ function formatConsoleLine(opts: {
     return "";
   })();
   const prefixToken = prefixColor(prefix);
-  const head = [time, prefixToken].filter(Boolean).join(" ");
+  const runToken = runTag ? color.gray(`[${runTag}]`) : "";
+  const head = [time, prefixToken, runToken].filter(Boolean).join(" ");
   return `${head} ${levelColor(displayMessage)}`;
 }
 

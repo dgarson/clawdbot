@@ -334,6 +334,12 @@ export async function initSessionState(params: {
     sessionEntry.compactionCount = 0;
     sessionEntry.memoryFlushCompactionCount = undefined;
     sessionEntry.memoryFlushAt = undefined;
+    // Clear runtime session IDs so the merge at sessionStore[key] = { ...old, ...new }
+    // doesn't preserve stale IDs from the previous session. Without this, the SDK/CLI
+    // session is never rotated and context compactions accumulate indefinitely.
+    sessionEntry.claudeSdkSessionId = undefined;
+    sessionEntry.claudeCliSessionId = undefined;
+    sessionEntry.cliSessionIds = undefined;
   }
   // Preserve per-session overrides while resetting compaction state on /new.
   sessionStore[sessionKey] = { ...sessionStore[sessionKey], ...sessionEntry };

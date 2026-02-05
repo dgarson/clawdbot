@@ -227,9 +227,12 @@ describe("runSdkAgent", () => {
     });
 
     it("calls onAssistantMessageStart", async () => {
-      const queryFn = vi
-        .fn()
-        .mockReturnValue(eventsFrom([{ type: "message_start" }, { type: "result", result: "ok" }]));
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { type: "message_start", message: { role: "assistant" } },
+          { type: "result", result: "ok" },
+        ]),
+      );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
       const onAssistantMessageStart = vi.fn();
