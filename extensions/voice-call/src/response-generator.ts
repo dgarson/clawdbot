@@ -143,10 +143,14 @@ export async function generateVoiceResponse(
     });
   }
 
-  // Build recall tool hint for system prompt (when enabled)
-  const recallToolHint = enableRecall
-    ? `\n2. Use the "recall_conversation" tool to search earlier parts of this call`
-    : "";
+  // Build context awareness hints based on feature flags
+  // When recall is enabled, mention the tool; otherwise keep steps numbered correctly
+  const contextSteps = enableRecall
+    ? `1. Politely ask them to briefly remind you what they mentioned
+2. Use the "recall_conversation" tool to search earlier parts of this call
+3. Use memory tools to check if important facts were stored`
+    : `1. Politely ask them to briefly remind you what they mentioned
+2. Use memory tools to check if important facts were stored`;
 
   // Build a stable system prompt — conversation history is tracked by the
   // Pi session file, NOT duplicated here. This keeps the system prompt at
@@ -162,8 +166,7 @@ export async function generateVoiceResponse(
 
 ## Context Awareness
 Due to call duration limits, you may not see the full conversation history. If the caller references something you don't have context for:
-1. Politely ask them to briefly remind you what they mentioned${recallToolHint}
-3. Use memory tools to check if important facts were stored
+${contextSteps}
 
 If you need more context, ask naturally: "Could you remind me what we discussed about that?"
 
