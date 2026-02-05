@@ -14,11 +14,14 @@
  * - Supports env-based provider switching (Anthropic, z.AI, etc.)
  */
 
+import type { MessagingToolSend } from "../pi-embedded-messaging.js";
 import type { SdkRunnerParams, SdkRunnerResult } from "./sdk-runner.types.js";
 import type { SdkRunnerQueryOptions } from "./tool-bridge.types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { formatMcpToolNamesForLog } from "../../mcp/tool-name-format.js";
 import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
+import { isMessagingTool, isMessagingToolSendAction } from "../pi-embedded-messaging.js";
+import { extractMessagingToolSend } from "../pi-embedded-subscribe.tools.js";
 import { stripCompactionHandoffText } from "../pi-embedded-utils.js";
 import { normalizeToolName } from "../tool-policy.js";
 
@@ -135,6 +138,35 @@ function normalizeSdkToolName(
   return { name: normalizeToolName(withoutMcpPrefix), rawName: trimmed };
 }
 
+function extractToolArgsFromSdkToolEvent(
+  record: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  const candidates: unknown[] = [
+    record.input,
+    record.args,
+    record.arguments,
+    record.params,
+    record.tool_input,
+    record.toolInput,
+  ];
+  for (const candidate of candidates) {
+    if (isRecord(candidate)) {
+      return candidate;
+    }
+    if (typeof candidate === "string" && candidate.trim()) {
+      try {
+        const parsed = JSON.parse(candidate) as unknown;
+        if (isRecord(parsed)) {
+          return parsed;
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }
+  return undefined;
+}
+
 function applySdkOptionsOverrides(
   options: SdkRunnerQueryOptions,
   overrides: unknown,
@@ -219,6 +251,78 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   const startedAt = Date.now();
   const mcpServerName = params.mcpServerName ?? DEFAULT_MCP_SERVER_NAME;
   const hooksEnabled = params.hooksEnabled === true;
+
+  const pendingMessagingToolSends = new Map<
+    string,
+    { toolName: string; text?: string; target?: MessagingToolSend }
+  >();
+  const messagingToolSentTexts: string[] = [];
+  const messagingToolSentTargets: MessagingToolSend[] = [];
+  let didSendViaMessagingTool = false;
+  const MAX_MESSAGING_TOOL_SENT_ITEMS = 25;
+
+  const trackMessagingToolStart = (
+    toolName: string,
+    toolCallId: string,
+    args: Record<string, unknown>,
+  ) => {
+    if (!toolCallId || !toolName) {
+      return;
+    }
+    if (!isMessagingTool(toolName)) {
+      return;
+    }
+    if (!isMessagingToolSendAction(toolName, args)) {
+      return;
+    }
+    const dryRun = args.dryRun === true || args.dry_run === true;
+    if (dryRun) {
+      return;
+    }
+    const text =
+      typeof args.content === "string"
+        ? args.content
+        : typeof args.message === "string"
+          ? args.message
+          : undefined;
+    let target: MessagingToolSend | undefined;
+    try {
+      target = extractMessagingToolSend(toolName, args);
+    } catch {
+      target = undefined;
+    }
+    pendingMessagingToolSends.set(toolCallId, { toolName, text, target });
+  };
+
+  const trackMessagingToolEnd = (toolCallId: string, isError: boolean) => {
+    const pending = pendingMessagingToolSends.get(toolCallId);
+    if (!pending) {
+      return;
+    }
+    pendingMessagingToolSends.delete(toolCallId);
+    if (isError) {
+      return;
+    }
+    didSendViaMessagingTool = true;
+    if (pending.text && pending.text.trim()) {
+      messagingToolSentTexts.push(pending.text);
+      if (messagingToolSentTexts.length > MAX_MESSAGING_TOOL_SENT_ITEMS) {
+        messagingToolSentTexts.splice(
+          0,
+          messagingToolSentTexts.length - MAX_MESSAGING_TOOL_SENT_ITEMS,
+        );
+      }
+    }
+    if (pending.target) {
+      messagingToolSentTargets.push(pending.target);
+      if (messagingToolSentTargets.length > MAX_MESSAGING_TOOL_SENT_ITEMS) {
+        messagingToolSentTargets.splice(
+          0,
+          messagingToolSentTargets.length - MAX_MESSAGING_TOOL_SENT_ITEMS,
+        );
+      }
+    }
+  };
 
   // Log *real* MCP tools (tools with the `mcp__{server}__{tool}` prefix) that were
   // added to the session tool list (e.g. from configured `mcpServers`).
@@ -507,6 +611,16 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       mcpServerName,
       emitEvent,
       onToolResult: params.onToolResult,
+      onToolStartEvent: (evt) => {
+        if (evt.toolCallId && evt.args) {
+          trackMessagingToolStart(evt.name, evt.toolCallId, evt.args);
+        }
+      },
+      onToolEndEvent: (evt) => {
+        if (evt.toolCallId) {
+          trackMessagingToolEnd(evt.toolCallId, evt.isError);
+        }
+      },
     }) as unknown as Record<string, unknown>;
   }
 
@@ -582,7 +696,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       if (isRecord(event) && event.type === "message_start") {
         const message = isRecord(event.message) ? event.message : undefined;
         const role = typeof message?.role === "string" ? message.role : event.role;
-        if (role === "assistant") {
+        // Some SDK versions omit role on message_start; treat it as assistant by default.
+        if (role === "assistant" || !role) {
           assistantMessageCount += 1;
           if (!didAssistantMessageStart) {
             didAssistantMessageStart = true;
@@ -685,6 +800,15 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
             : record && typeof record.isError === "boolean"
               ? record.isError
               : Boolean(record?.error);
+
+        const toolArgs = record ? extractToolArgsFromSdkToolEvent(record) : undefined;
+        if (phase === "start" && toolCallId && toolArgs) {
+          trackMessagingToolStart(normalizedName.name, toolCallId, toolArgs);
+        }
+        if (phase === "result" && toolCallId) {
+          trackMessagingToolEnd(toolCallId, isError);
+        }
+
         emitEvent("tool", {
           phase,
           name: normalizedName.name,
@@ -722,6 +846,22 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         const result = event.result;
         if (typeof result === "string") {
           resultText = result;
+        }
+        // If the SDK only emits a terminal result (no assistant deltas), treat it as a single
+        // assistant message boundary so channel streaming can flush correctly.
+        if (!didAssistantMessageStart) {
+          didAssistantMessageStart = true;
+          if (assistantMessageCount === 0) {
+            assistantMessageCount = 1;
+          }
+          turnCount += 1;
+          try {
+            void Promise.resolve(params.onAssistantMessageStart?.()).catch((err) => {
+              log.trace(`onAssistantMessageStart callback error: ${String(err)}`);
+            });
+          } catch (err) {
+            log.trace(`onAssistantMessageStart callback error: ${String(err)}`);
+          }
         }
         // Extract session ID for native session resume on next query.
         const sessionId = event.session_id ?? event.sessionId;
@@ -913,6 +1053,54 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   );
 
   if (!text) {
+    if (didSendViaMessagingTool) {
+      emitEvent("sdk", {
+        type: "sdk_runner_end",
+        eventCount,
+        extractedChars,
+        truncated,
+        aborted,
+        durationMs: Date.now() - startedAt,
+        usage: accumulatedUsage,
+        turnCount: turnCount > 0 ? turnCount : undefined,
+      });
+      emitEvent("lifecycle", {
+        phase: "end",
+        startedAt,
+        endedAt: Date.now(),
+        runtime: "claude",
+        aborted,
+        truncated,
+        usage: accumulatedUsage,
+        turnCount: turnCount > 0 ? turnCount : undefined,
+        didSendViaMessagingTool: true,
+      });
+      return {
+        payloads: [],
+        meta: {
+          durationMs: Date.now() - startedAt,
+          provider: params.provider?.name,
+          eventCount,
+          extractedChars,
+          truncated,
+          aborted,
+          claudeSessionId: returnedSessionId,
+          usage: accumulatedUsage,
+          turnCount: turnCount > 0 ? turnCount : undefined,
+          bridge: {
+            toolCount: bridgeResult.toolCount,
+            registeredTools: bridgeResult.registeredTools,
+            skippedTools: bridgeResult.skippedTools,
+          },
+        },
+        didSendViaMessagingTool: true,
+        messagingToolSentTexts: messagingToolSentTexts.length ? messagingToolSentTexts : undefined,
+        messagingToolSentTargets: messagingToolSentTargets.length
+          ? messagingToolSentTargets
+          : undefined,
+      };
+    }
+
     log.warn("No text output after stream — returning error");
     emitEvent("lifecycle", {
       phase: "error",
@@ -1007,6 +1195,17 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         skippedTools: bridgeResult.skippedTools,
       },
     },
+    ...(didSendViaMessagingTool
+      ? {
+          didSendViaMessagingTool: true,
+          messagingToolSentTexts: messagingToolSentTexts.length
+            ? messagingToolSentTexts
+            : undefined,
+          messagingToolSentTargets: messagingToolSentTargets.length
+            ? messagingToolSentTargets
+            : undefined,
+        }
+      : {}),
   };
 }
 

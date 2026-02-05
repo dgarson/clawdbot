@@ -6,6 +6,7 @@
 import type { ImageContent } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AgentRuntimePayload } from "../agent-runtime.js";
+import type { MessagingToolSend } from "../pi-embedded-messaging.js";
 import type { AnyAgentTool } from "../tools/common.js";
 
 // ---------------------------------------------------------------------------
@@ -223,4 +224,16 @@ export type SdkRunnerResult = {
   }>;
   /** Run metadata. */
   meta: SdkRunnerMeta;
+  /**
+   * True if a messaging tool (e.g. `message`, `sessions_send`, or provider tools)
+   * successfully sent a message during the run.
+   *
+   * Used to suppress "no output" errors and avoid duplicate confirmations when
+   * the agent chooses to send replies via tools.
+   */
+  didSendViaMessagingTool?: boolean;
+  /** Texts successfully sent via messaging tools during the run. */
+  messagingToolSentTexts?: string[];
+  /** Messaging tool targets that successfully sent a message during the run. */
+  messagingToolSentTargets?: MessagingToolSend[];
 };

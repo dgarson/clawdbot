@@ -137,6 +137,37 @@ describe("runSdkAgent", () => {
       expect(result.meta.error?.kind).toBe("no_output");
     });
 
+    it("does not return no_output when a messaging tool successfully sent a message", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          {
+            type: "tool_use",
+            name: "mcp__clawdbrain__message",
+            id: "t1",
+            input: {
+              action: "thread-reply",
+              to: "C0AAP72R7L5",
+              message: "Hello from tool",
+            },
+          },
+          {
+            type: "tool_result",
+            id: "t1",
+            is_error: false,
+            content: [{ type: "text", text: "ok" }],
+          },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const result = await runSdkAgent(baseParams());
+
+      expect(result.payloads).toHaveLength(0);
+      expect(result.meta.error).toBeUndefined();
+      expect(result.didSendViaMessagingTool).toBe(true);
+      expect(result.messagingToolSentTexts).toEqual(["Hello from tool"]);
+    });
+
     it("deduplicates repeated text chunks", async () => {
       const queryFn = vi.fn().mockReturnValue(
         eventsFrom([

@@ -79,6 +79,12 @@ export function buildClawdbrainSdkHooks(params: {
   mcpServerName: string;
   emitEvent: (stream: string, data: Record<string, unknown>) => void;
   onToolResult?: (payload: { text?: string }) => void | Promise<void>;
+  onToolStartEvent?: (evt: {
+    name: string;
+    toolCallId?: string;
+    args?: Record<string, unknown>;
+  }) => void;
+  onToolEndEvent?: (evt: { name: string; toolCallId?: string; isError: boolean }) => void;
 }): SdkHooksConfig {
   const emitHook = (hookEventName: SdkHookEventName, input: unknown, toolUseId: unknown) => {
     const payload = isRecord(input) ? input : { input };
@@ -92,14 +98,23 @@ export function buildClawdbrainSdkHooks(params: {
     const rawName = typeof record?.tool_name === "string" ? record.tool_name : "";
     const normalized = normalizeSdkToolName(rawName, params.mcpServerName);
     const args = sanitizeHookToolPayload(record?.tool_input);
+    const toolCallId = typeof toolUseId === "string" ? toolUseId : undefined;
 
     params.emitEvent("tool", {
       phase: "start",
       name: normalized.name,
       ...(normalized.rawName ? { rawName: normalized.rawName } : {}),
-      toolCallId: typeof toolUseId === "string" ? toolUseId : undefined,
+      toolCallId,
       args: isRecord(args) ? args : args !== undefined ? { value: args } : undefined,
     });
+
+    if (toolCallId && isRecord(args)) {
+      try {
+        params.onToolStartEvent?.({ name: normalized.name, toolCallId, args });
+      } catch {
+        // ignore callback errors
+      }
+    }
 
     return {};
   };
@@ -113,16 +128,25 @@ export function buildClawdbrainSdkHooks(params: {
     const resultRaw = record?.tool_response;
     const sanitized = sanitizeHookToolPayload(resultRaw);
     const resultText = extractHookToolText(resultRaw);
+    const toolCallId = typeof toolUseId === "string" ? toolUseId : undefined;
 
     params.emitEvent("tool", {
       phase: "result",
       name: normalized.name,
       ...(normalized.rawName ? { rawName: normalized.rawName } : {}),
-      toolCallId: typeof toolUseId === "string" ? toolUseId : undefined,
+      toolCallId,
       isError: false,
       result: sanitized,
       ...(resultText ? { resultText } : {}),
     });
+
+    if (toolCallId) {
+      try {
+        params.onToolEndEvent?.({ name: normalized.name, toolCallId, isError: false });
+      } catch {
+        // ignore callback errors
+      }
+    }
 
     if (resultText && params.onToolResult) {
       try {
@@ -142,15 +166,24 @@ export function buildClawdbrainSdkHooks(params: {
     const rawName = typeof record?.tool_name === "string" ? record.tool_name : "";
     const normalized = normalizeSdkToolName(rawName, params.mcpServerName);
     const error = extractToolErrorMessage(record ?? input);
+    const toolCallId = typeof toolUseId === "string" ? toolUseId : undefined;
 
     params.emitEvent("tool", {
       phase: "result",
       name: normalized.name,
       ...(normalized.rawName ? { rawName: normalized.rawName } : {}),
-      toolCallId: typeof toolUseId === "string" ? toolUseId : undefined,
+      toolCallId,
       isError: true,
       ...(error ? { error } : {}),
     });
+
+    if (toolCallId) {
+      try {
+        params.onToolEndEvent?.({ name: normalized.name, toolCallId, isError: true });
+      } catch {
+        // ignore callback errors
+      }
+    }
 
     if (error && params.onToolResult) {
       try {

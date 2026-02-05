@@ -379,6 +379,13 @@ function adaptSdkResultToPiResult(params: {
       // downstream recovery logic would treat them incorrectly.
       error: undefined,
     },
+    ...(result.didSendViaMessagingTool
+      ? {
+          didSendViaMessagingTool: true,
+          messagingToolSentTexts: result.messagingToolSentTexts ?? [],
+          messagingToolSentTargets: result.messagingToolSentTargets ?? [],
+        }
+      : {}),
   };
 }
 
