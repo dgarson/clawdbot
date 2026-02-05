@@ -109,6 +109,7 @@ const logCron = log.child("cron");
 const logReload = log.child("reload");
 const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
+const logManagedProcesses = log.child("managed-processes");
 const logWsControl = log.child("ws");
 const gatewayRuntime = runtimeForLogger(log);
 const canvasRuntime = runtimeForLogger(logCanvas);
@@ -258,6 +259,7 @@ export async function startGatewayServer(
   const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
   const gatewayMethods = Array.from(new Set([...baseGatewayMethods, ...channelMethods]));
   let pluginServices: PluginServicesHandle | null = null;
+  let managedProcesses: { stopAll: (opts?: { reason?: string }) => Promise<void> } | null = null;
   const runtimeConfig = await resolveGatewayRuntimeConfig({
     cfg: cfgAtStart,
     port,
@@ -604,13 +606,14 @@ export async function startGatewayServer(
   });
 
   let browserControl: Awaited<ReturnType<typeof startBrowserControlServerIfEnabled>> = null;
-  ({ browserControl, pluginServices } = await startGatewaySidecars({
+  ({ browserControl, pluginServices, managedProcesses } = await startGatewaySidecars({
     cfg: cfgAtStart,
     pluginRegistry,
     defaultWorkspaceDir,
     deps,
     startChannels,
     log,
+    logManagedProcesses,
     logHooks,
     logChannels,
     logBrowser,
@@ -779,6 +782,7 @@ export async function startGatewayServer(
     clients,
     configReloader,
     browserControl,
+    managedProcesses,
     persistInterval,
     persistChatRunState: flushChatRunState,
     wss,
