@@ -1,13 +1,12 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getConfig } from "@/lib/api";
-import { getAgentsList, mapAgentEntryToAgent } from "@/lib/agents";
+import { listAgents, getAgentStatus, type GatewayAgent, type AgentStatusEntry } from "@/lib/api";
 import { useUIStore } from "@/stores/useUIStore";
 import { useAgentStore } from "@/stores/useAgentStore";
 
 // Re-export types from store for consistency
 export type { Agent, AgentStatus } from "../../stores/useAgentStore";
-import type { Agent } from "../../stores/useAgentStore";
+import type { Agent, AgentStatus } from "../../stores/useAgentStore";
 
 // Query keys factory for type-safe cache management
 export const agentKeys = {
@@ -79,17 +78,54 @@ async function fetchMockAgents(): Promise<Agent[]> {
   return mockAgents;
 }
 
+/**
+ * Map a GatewayAgent (from agents.list RPC) to our UI Agent type.
+ */
+function mapGatewayAgentToAgent(ga: GatewayAgent, statusEntry?: AgentStatusEntry): Agent {
+  const healthToStatus: Record<string, AgentStatus> = {
+    active: "online",
+    idle: "online",
+    stalled: "busy",
+    errored: "offline",
+  };
+
+  return {
+    id: ga.id,
+    name: ga.name,
+    role: "Assistant",
+    model: ga.model,
+    status: statusEntry ? (healthToStatus[statusEntry.health] ?? "offline") : "offline",
+    description: ga.systemPrompt,
+    tags: statusEntry?.tags ?? [],
+    taskCount: statusEntry?.sessionCount ?? 0,
+    lastActive: statusEntry?.lastActivityAt
+      ? new Date(statusEntry.lastActivityAt).toISOString()
+      : undefined,
+    currentTask: statusEntry?.currentTask,
+    pendingApprovals: statusEntry?.pendingApprovals,
+  };
+}
+
 async function fetchAgents(liveMode: boolean): Promise<Agent[]> {
   if (!liveMode) {
     return fetchMockAgents();
   }
   try {
-    const snapshot = await getConfig();
-    if (snapshot?.config) {
-      const list = getAgentsList(snapshot.config);
-      return list.map(mapAgentEntryToAgent);
+    // Fetch agents from the agents.list RPC
+    const agentsResult = await listAgents();
+
+    // Try to get live status info to enrich agent data
+    let statusMap: Map<string, AgentStatusEntry> | undefined;
+    try {
+      const statusSnapshot = await getAgentStatus(true);
+      statusMap = new Map(statusSnapshot.agents.map((a) => [a.id, a]));
+    } catch {
+      // Status endpoint may not be available; continue without it
     }
-    return [];
+
+    return agentsResult.agents.map((ga) =>
+      mapGatewayAgentToAgent(ga, statusMap?.get(ga.id))
+    );
   } catch {
     return fetchMockAgents();
   }

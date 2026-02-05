@@ -1,11 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { uuidv7 } from "@/lib/ids";
+import {
+  sendChatMessage,
+  deleteSession,
+  patchSession,
+} from "@/lib/api";
+import { useUIStore } from "@/stores/useUIStore";
 import type { Conversation, Message } from "../queries/useConversations";
 import { conversationKeys } from "../queries/useConversations";
 
-// Mock API functions
-async function createConversation(
+// ── Mock API functions (fallback when not connected) ───────────────
+
+async function createConversationMock(
   data: Omit<Conversation, "id" | "createdAt" | "updatedAt">
 ): Promise<Conversation> {
   await new Promise((resolve) => setTimeout(resolve, 400));
@@ -18,7 +25,7 @@ async function createConversation(
   };
 }
 
-async function updateConversation(
+async function updateConversationMock(
   data: Partial<Conversation> & { id: string }
 ): Promise<Conversation> {
   await new Promise((resolve) => setTimeout(resolve, 300));
@@ -28,12 +35,12 @@ async function updateConversation(
   } as Conversation;
 }
 
-async function deleteConversation(id: string): Promise<string> {
+async function deleteConversationMock(id: string): Promise<string> {
   await new Promise((resolve) => setTimeout(resolve, 300));
   return id;
 }
 
-async function sendMessage(
+async function sendMessageMock(
   data: Omit<Message, "id" | "timestamp">
 ): Promise<Message> {
   await new Promise((resolve) => setTimeout(resolve, 200));
@@ -44,7 +51,7 @@ async function sendMessage(
   };
 }
 
-async function deleteMessage(
+async function deleteMessageMock(
   conversationId: string,
   messageId: string
 ): Promise<{ conversationId: string; messageId: string }> {
@@ -52,12 +59,64 @@ async function deleteMessage(
   return { conversationId, messageId };
 }
 
-// Mutation hooks
+// ── Live API functions ─────────────────────────────────────────────
+
+async function updateConversationLive(
+  data: Partial<Conversation> & { id: string }
+): Promise<Conversation> {
+  await patchSession({
+    key: data.id,
+    label: data.title ?? null,
+  });
+  return {
+    ...data,
+    updatedAt: new Date().toISOString(),
+  } as Conversation;
+}
+
+async function deleteConversationLive(id: string): Promise<string> {
+  await deleteSession(id, false);
+  return id;
+}
+
+/**
+ * Send a message via the gateway chat.send RPC.
+ * Returns the user message immediately; the assistant reply arrives via events.
+ */
+async function sendMessageLive(
+  data: Omit<Message, "id" | "timestamp">
+): Promise<Message> {
+  const idempotencyKey = uuidv7();
+  await sendChatMessage({
+    sessionKey: data.conversationId,
+    message: data.content,
+    deliver: true,
+    idempotencyKey,
+  });
+
+  // Return the user message; the assistant response will come via
+  // gateway events (chat.event) and be handled by event listeners.
+  return {
+    ...data,
+    id: idempotencyKey,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+// ── Helper to check live mode ──────────────────────────────────────
+
+function useLiveMode(): boolean {
+  const useLiveGateway = useUIStore((state) => state.useLiveGateway);
+  return (import.meta.env?.DEV ?? false) && useLiveGateway;
+}
+
+// ── Mutation hooks ─────────────────────────────────────────────────
+
 export function useCreateConversation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createConversation,
+    mutationFn: createConversationMock,
     onSuccess: (newConversation) => {
       queryClient.setQueryData<Conversation[]>(
         conversationKeys.lists(),
@@ -76,9 +135,10 @@ export function useCreateConversation() {
 
 export function useUpdateConversation() {
   const queryClient = useQueryClient();
+  const liveMode = useLiveMode();
 
   return useMutation({
-    mutationFn: updateConversation,
+    mutationFn: liveMode ? updateConversationLive : updateConversationMock,
     onMutate: async (updatedConversation) => {
       await queryClient.cancelQueries({
         queryKey: conversationKeys.detail(updatedConversation.id),
@@ -116,9 +176,10 @@ export function useUpdateConversation() {
 
 export function useDeleteConversation() {
   const queryClient = useQueryClient();
+  const liveMode = useLiveMode();
 
   return useMutation({
-    mutationFn: deleteConversation,
+    mutationFn: liveMode ? deleteConversationLive : deleteConversationMock,
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: conversationKeys.lists() });
 
@@ -151,9 +212,10 @@ export function useDeleteConversation() {
 
 export function useSendMessage() {
   const queryClient = useQueryClient();
+  const liveMode = useLiveMode();
 
   return useMutation({
-    mutationFn: sendMessage,
+    mutationFn: liveMode ? sendMessageLive : sendMessageMock,
     onMutate: async (newMessage) => {
       await queryClient.cancelQueries({
         queryKey: conversationKeys.messages(newMessage.conversationId),
@@ -206,7 +268,7 @@ export function useDeleteMessage() {
 
   return useMutation({
     mutationFn: ({ conversationId, messageId }: { conversationId: string; messageId: string }) =>
-      deleteMessage(conversationId, messageId),
+      deleteMessageMock(conversationId, messageId),
     onMutate: async ({ conversationId, messageId }) => {
       await queryClient.cancelQueries({
         queryKey: conversationKeys.messages(conversationId),
