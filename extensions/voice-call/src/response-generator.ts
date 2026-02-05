@@ -15,7 +15,11 @@
 
 import crypto from "node:crypto";
 import type { VoiceCallConfig } from "./config.js";
-import { loadCoreAgentDeps, type CoreConfig } from "./core-bridge.js";
+import { loadCoreAgentDeps, loadSessionMessages, type CoreConfig } from "./core-bridge.js";
+import {
+  recallConversationToolDefinition,
+  createRecallConversationExecutor,
+} from "./tools/recall-conversation.js";
 
 export type VoiceResponseParams = {
   /** Voice call config */
@@ -116,12 +120,56 @@ export async function generateVoiceResponse(
   const identity = deps.resolveAgentIdentity(cfg, agentId);
   const agentName = identity?.name?.trim() || "assistant";
 
+  // Check feature flag for conversation recall (under tts config)
+  const enableRecall = voiceConfig.tts?.enableConversationRecall ?? false;
+
+  // Build extra tools array
+  const extraTools: Array<{
+    name: string;
+    description?: string;
+    parameters: Record<string, unknown>;
+    execute: (params: unknown) => Promise<string>;
+  }> = [];
+
+  if (enableRecall) {
+    // Load full session history for recall tool
+    const fullHistory = await loadSessionMessages(sessionFile);
+
+    extraTools.push({
+      name: recallConversationToolDefinition.name,
+      description: recallConversationToolDefinition.description,
+      parameters: recallConversationToolDefinition.parameters as Record<string, unknown>,
+      execute: createRecallConversationExecutor({ fullHistory }),
+    });
+  }
+
+  // Build recall tool hint for system prompt (when enabled)
+  const recallToolHint = enableRecall
+    ? `\n2. Use the "recall_conversation" tool to search earlier parts of this call`
+    : "";
+
   // Build a stable system prompt — conversation history is tracked by the
   // Pi session file, NOT duplicated here. This keeps the system prompt at
   // constant size regardless of how many turns the call has had.
   const extraSystemPrompt =
     voiceConfig.responseSystemPrompt ??
-    `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-3 sentences max). Be natural and friendly. The caller's phone number is ${from}. You have access to tools - use them when helpful. Always greet callers warmly by name if you know who they are.`;
+    `You are ${agentName}, a helpful voice assistant on a phone call.
+
+## Response Style
+- Keep responses brief and conversational (1-3 sentences max)
+- Be natural and friendly
+- Always greet callers warmly by name if you recognize them
+
+## Context Awareness
+Due to call duration limits, you may not see the full conversation history. If the caller references something you don't have context for:
+1. Politely ask them to briefly remind you what they mentioned${recallToolHint}
+3. Use memory tools to check if important facts were stored
+
+If you need more context, ask naturally: "Could you remind me what we discussed about that?"
+
+## Caller Info
+- Phone number: ${from}
+- You have access to tools - use them when helpful`;
 
   // Resolve timeout
   const timeoutMs = voiceConfig.responseTimeoutMs ?? deps.resolveAgentTimeoutMs({ cfg });
@@ -145,6 +193,7 @@ export async function generateVoiceResponse(
       lane: "voice",
       extraSystemPrompt,
       agentDir,
+      extraTools: extraTools.length > 0 ? extraTools : undefined,
     });
 
     // Extract text from payloads
@@ -155,7 +204,7 @@ export async function generateVoiceResponse(
 
     const text = texts.join(" ") || null;
 
-    if (!text && result.meta.aborted) {
+    if (!text && result.meta?.aborted) {
       return { text: null, error: "Response generation was aborted" };
     }
 

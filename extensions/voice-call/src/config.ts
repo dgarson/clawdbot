@@ -103,6 +103,12 @@ export const TtsConfigSchema = z
     mode: TtsModeSchema.optional(),
     provider: TtsProviderSchema.optional(),
     summaryModel: z.string().optional(),
+    /**
+     * Enable conversational recall tool for voice calls.
+     * When enabled, the agent can search truncated conversation history.
+     * Default: false (feature flag)
+     */
+    enableConversationRecall: z.boolean().default(false),
     modelOverrides: z
       .object({
         enabled: z.boolean().optional(),

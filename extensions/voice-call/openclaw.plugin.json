@@ -149,6 +149,11 @@
       "label": "ElevenLabs Base URL",
       "advanced": true
     },
+    "tts.enableConversationRecall": {
+      "label": "Enable Conversation Recall",
+      "help": "Allow the agent to search earlier parts of truncated call history",
+      "advanced": true
+    },
     "publicUrl": {
       "label": "Public Webhook URL",
       "advanced": true
@@ -414,6 +419,9 @@
           },
           "summaryModel": {
             "type": "string"
+          },
+          "enableConversationRecall": {
+            "type": "boolean"
           },
           "modelOverrides": {
             "type": "object",

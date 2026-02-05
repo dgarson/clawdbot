@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { validateProviderConfig, resolveVoiceCallConfig, type VoiceCallConfig } from "./config.js";
+import {
+  validateProviderConfig,
+  resolveVoiceCallConfig,
+  VoiceCallConfigSchema,
+  type VoiceCallConfig,
+} from "./config.js";
 
 function createBaseConfig(provider: "telnyx" | "twilio" | "plivo" | "mock"): VoiceCallConfig {
   return {
@@ -230,5 +235,36 @@ describe("validateProviderConfig", () => {
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
+  });
+});
+
+describe("VoiceCallConfig tts.enableConversationRecall", () => {
+  it("defaults to false when tts is not specified", () => {
+    const config = VoiceCallConfigSchema.parse({ enabled: true });
+    expect(config.tts?.enableConversationRecall).toBeFalsy();
+  });
+
+  it("defaults to false when tts is specified without enableConversationRecall", () => {
+    const config = VoiceCallConfigSchema.parse({
+      enabled: true,
+      tts: { provider: "openai" },
+    });
+    expect(config.tts?.enableConversationRecall).toBe(false);
+  });
+
+  it("can be enabled via config", () => {
+    const config = VoiceCallConfigSchema.parse({
+      enabled: true,
+      tts: { enableConversationRecall: true },
+    });
+    expect(config.tts?.enableConversationRecall).toBe(true);
+  });
+
+  it("can be explicitly disabled", () => {
+    const config = VoiceCallConfigSchema.parse({
+      enabled: true,
+      tts: { enableConversationRecall: false },
+    });
+    expect(config.tts?.enableConversationRecall).toBe(false);
   });
 });

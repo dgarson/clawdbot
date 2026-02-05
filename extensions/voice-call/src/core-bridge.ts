@@ -42,6 +42,13 @@ type CoreAgentDeps = {
     lane?: string;
     extraSystemPrompt?: string;
     agentDir?: string;
+    /** Custom tools to add to the agent's tool set */
+    extraTools?: Array<{
+      name: string;
+      description?: string;
+      parameters: Record<string, unknown>;
+      execute: (params: unknown) => Promise<string>;
+    }>;
   }) => Promise<{
     payloads?: Array<{ text?: string; isError?: boolean }>;
     meta?: { aborted?: boolean };
@@ -156,4 +163,39 @@ export async function loadCoreAgentDeps(): Promise<CoreAgentDeps> {
   })();
 
   return coreDepsPromise;
+}
+
+/**
+ * Load messages from a session JSONL file.
+ * Returns an array of agent messages for use with the recall tool.
+ */
+export async function loadSessionMessages(
+  sessionFile: string,
+): Promise<Array<{ role: "user" | "assistant" | "system"; content: string | unknown }>> {
+  try {
+    if (!fs.existsSync(sessionFile)) {
+      return [];
+    }
+    const content = fs.readFileSync(sessionFile, "utf8");
+    const lines = content.split("\n").filter((line) => line.trim());
+    const messages: Array<{ role: "user" | "assistant" | "system"; content: string | unknown }> =
+      [];
+
+    for (const line of lines) {
+      try {
+        const parsed = JSON.parse(line) as { role?: string; content?: unknown };
+        if (parsed.role && (parsed.role === "user" || parsed.role === "assistant")) {
+          messages.push({
+            role: parsed.role as "user" | "assistant",
+            content: parsed.content ?? "",
+          });
+        }
+      } catch {
+        // Skip malformed lines
+      }
+    }
+    return messages;
+  } catch {
+    return [];
+  }
 }
