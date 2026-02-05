@@ -124,9 +124,9 @@ export type GatewayReloadConfig = {
   debounceMs?: number;
 };
 
-export type GatewayStartupCommandStartPolicy = "startup" | "manual";
+export type GatewayStartupCommandStartPolicy = "always" | "reuse" | "never";
 
-export type GatewayStartupCommandRestartPolicy = "never" | "on-failure" | "always";
+export type GatewayStartupCommandRestartPolicy = "off" | "on-failure";
 
 export type GatewayStartupCommandLogMode = "inherit" | "file" | "discard";
 
@@ -154,13 +154,13 @@ export type GatewayStartupCommand = {
   env?: Record<string, string>;
   /** Enable/disable this command entry (default: true). */
   enabled?: boolean;
-  /** When to start the process (default: startup). */
+  /** When to start the process (default: reuse). */
   startPolicy?: GatewayStartupCommandStartPolicy;
   /** Signal to use for graceful stop (default: SIGTERM). */
   stopSignal?: string;
   /** Timeout (ms) before force kill (default: 10000). */
   stopTimeoutMs?: number;
-  /** Restart policy for the process (default: never). */
+  /** Restart policy for the process (default: off). */
   restart?: GatewayStartupCommandRestartPolicy;
   /** Log configuration for child process output. */
   log?: GatewayStartupCommandLogConfig;

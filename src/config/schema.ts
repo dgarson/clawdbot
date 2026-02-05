@@ -468,12 +468,11 @@ const FIELD_HELP: Record<string, string> = {
   "gateway.startupCommands.*.env": "Extra environment variables applied to the command.",
   "gateway.startupCommands.*.enabled": "Enable/disable this command entry (default: true).",
   "gateway.startupCommands.*.startPolicy":
-    'When to start the process ("startup" or "manual"; default: startup).',
+    'When to start the process ("always", "reuse", or "never"; default: reuse).',
   "gateway.startupCommands.*.stopSignal": "Signal used for graceful shutdown (default: SIGTERM).",
   "gateway.startupCommands.*.stopTimeoutMs":
     "Timeout in ms before force killing the process (default: 10000).",
-  "gateway.startupCommands.*.restart":
-    'Restart policy ("never", "on-failure", or "always"; default: never).',
+  "gateway.startupCommands.*.restart": 'Restart policy ("off" or "on-failure"; default: off).',
   "gateway.startupCommands.*.log.mode":
     'Log handling mode ("inherit", "file", or "discard"; default: inherit).',
   "gateway.startupCommands.*.log.stdoutPath": 'File path for stdout when log mode is "file".',

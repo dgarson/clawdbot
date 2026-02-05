@@ -50,10 +50,10 @@ const GatewayStartupCommandSchema = z
     cwd: z.string().optional(),
     env: z.record(z.string(), z.string()).optional(),
     enabled: z.boolean().optional(),
-    startPolicy: z.union([z.literal("startup"), z.literal("manual")]).optional(),
+    startPolicy: z.union([z.literal("always"), z.literal("reuse"), z.literal("never")]).optional(),
     stopSignal: z.string().optional(),
     stopTimeoutMs: z.number().int().nonnegative().optional(),
-    restart: z.union([z.literal("never"), z.literal("on-failure"), z.literal("always")]).optional(),
+    restart: z.union([z.literal("off"), z.literal("on-failure")]).optional(),
     log: GatewayStartupCommandLogSchema,
   })
   .strict();

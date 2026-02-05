@@ -3016,8 +3016,8 @@ Use `gateway.startupCommands` to spawn best-effort helper processes alongside th
 Defaults (when fields are omitted):
 
 - enabled: `true`
-- startPolicy: `"startup"`
-- restart: `"never"`
+- startPolicy: `"reuse"`
+- restart: `"off"`
 - stopSignal: `"SIGTERM"`
 - stopTimeoutMs: `10000`
 - log.mode: `"inherit"`
@@ -3033,7 +3033,7 @@ Defaults (when fields are omitted):
         args: ["serve", "--config", "/etc/openclaw/qmd.json"],
         cwd: "/var/lib/openclaw",
         env: { QMD_LOG_LEVEL: "info" },
-        startPolicy: "startup",
+        startPolicy: "reuse",
         restart: "on-failure",
         log: {
           mode: "file",
@@ -3049,7 +3049,7 @@ Defaults (when fields are omitted):
 Limitations:
 
 - Startup commands are **best-effort** helpers; they do not provide isolation or resource limits.
-- Use `startPolicy: "manual"` to define a command without auto-starting it.
+- Use `startPolicy: "never"` to define a command without auto-starting it.
 - `log.mode: "file"` writes stdout/stderr to the supplied paths; when omitted, output inherits the gateway process settings.
 
 Auth and Tailscale:
