@@ -29,11 +29,13 @@ export async function getMemorySearchManager(params: {
 
   // 1. Builtin/QMD backend (existing logic)
   const resolved = resolveMemoryBackendConfig(params);
+  /*
   memLog.trace("getMemorySearchManager: resolving", {
     agentId: params.agentId,
     backend: resolved.backend,
     hasQmd: Boolean(resolved.qmd),
   });
+   */
 
   if (resolved.backend === "qmd" && resolved.qmd) {
     const qmdManager = await resolveQmdBackend(params, resolved);

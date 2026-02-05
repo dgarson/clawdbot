@@ -2233,7 +2233,7 @@ export class MemoryIndexManager implements MemorySearchManager {
 
   private async embedQueryWithTimeout(text: string): Promise<number[]> {
     const timeoutMs = this.resolveEmbeddingTimeout("query");
-    log.debug("memory embeddings: query start", { provider: this.provider.id, timeoutMs });
+    // log.debug("memory embeddings: query start", { provider: this.provider.id, timeoutMs });
     return await this.withTimeout(
       this.provider.embedQuery(text),
       timeoutMs,

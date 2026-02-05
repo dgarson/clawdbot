@@ -110,12 +110,22 @@ const MemoryProgressiveSchema = z
   })
   .strict();
 
+const MemoryGraphitiSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    baseUrl: z.string().optional(),
+    apiKey: z.string().optional(),
+    timeoutMs: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
 const MemorySchema = z
   .object({
     backend: z.union([z.literal("builtin"), z.literal("qmd")]).optional(),
     citations: z.union([z.literal("auto"), z.literal("on"), z.literal("off")]).optional(),
     qmd: MemoryQmdSchema.optional(),
     progressive: MemoryProgressiveSchema.optional(),
+    graphiti: MemoryGraphitiSchema.optional(),
   })
   .strict()
   .optional();

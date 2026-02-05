@@ -183,7 +183,7 @@ export class ProgressiveMemoryStore {
     }
 
     const { DatabaseSync: DB } = requireNodeSqlite();
-    this.db = new DB(this.dbPath);
+    this.db = new DB(this.dbPath, { allowExtension: true });
     this.db.exec("PRAGMA journal_mode=WAL;");
     this.db.exec("PRAGMA busy_timeout=5000;");
 
@@ -351,7 +351,7 @@ export class ProgressiveMemoryStore {
   }): ProgressiveMemoryEntry[] {
     this.assertOpen();
     const conditions: string[] = [];
-    const binds: unknown[] = [];
+    const binds: (string | number)[] = [];
 
     if (filters?.categories?.length) {
       const placeholders = filters.categories.map(() => "?").join(", ");
@@ -412,7 +412,7 @@ export class ProgressiveMemoryStore {
         JOIN progressive_entries e ON e.id = f.id
         WHERE ${FTS_TABLE} MATCH ? AND e.archived = 0
       `;
-      const binds: unknown[] = [ftsQuery];
+      const binds: (string | number)[] = [ftsQuery];
 
       if (opts?.categories?.length) {
         const placeholders = opts.categories.map(() => "?").join(", ");
@@ -585,7 +585,7 @@ export class ProgressiveMemoryStore {
          WHERE expires_at IS NOT NULL AND expires_at < ? AND archived = 0`,
       )
       .run(now, now);
-    const count = result.changes ?? 0;
+    const count = Number(result.changes ?? 0);
     if (count > 0) {
       log.info?.(`Archived ${count} expired entries`);
     }
@@ -700,7 +700,7 @@ export class ProgressiveMemoryStore {
   private findDuplicate(
     embedding: number[],
     category: MemoryCategory,
-  ): Record<string, unknown> | null {
+  ): { id: string; priority: string; tags: string; related_to: string } | null {
     if (!this.vecAvailable) return null;
 
     try {
@@ -722,7 +722,9 @@ export class ProgressiveMemoryStore {
             .prepare(
               "SELECT * FROM progressive_entries WHERE id = ? AND category = ? AND archived = 0",
             )
-            .get(candidate.id, category) as Record<string, unknown> | undefined;
+            .get(candidate.id, category) as
+            | { id: string; priority: string; tags: string; related_to: string }
+            | undefined;
           if (entry) {
             return entry;
           }
@@ -748,7 +750,7 @@ export class ProgressiveMemoryStore {
     },
   ): void {
     const sets: string[] = ["updated_at = ?"];
-    const binds: unknown[] = [updates.updatedAt];
+    const binds: (string | number)[] = [updates.updatedAt];
 
     if (updates.content !== undefined) {
       sets.push("content = ?");
@@ -782,9 +784,15 @@ export class ProgressiveMemoryStore {
     if (this.ftsAvailable && updates.content !== undefined) {
       try {
         this.db.prepare(`DELETE FROM ${FTS_TABLE} WHERE id = ?`).run(id);
-        const entry = this.db
-          .prepare("SELECT * FROM progressive_entries WHERE id = ?")
-          .get(id) as Record<string, unknown>;
+        const entry = this.db.prepare("SELECT * FROM progressive_entries WHERE id = ?").get(id) as
+          | {
+              content: string;
+              context: string | null;
+              tags: string;
+              category: string;
+              priority: string;
+            }
+          | undefined;
         if (entry) {
           this.db
             .prepare(
