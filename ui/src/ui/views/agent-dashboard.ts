@@ -45,6 +45,9 @@ export type AgentDashboardProps = {
   error: string | null;
   onRefresh: () => void;
   onDrillDown: (agentId: string) => void;
+  onAbortSession?: (sessionKey: string) => void;
+  onAbortAllForAgent?: (agentId: string) => void;
+  onEmergencyStopAll?: () => void;
 };
 
 // ── Data Processing ────────────────────────────────────────────────────────
@@ -272,6 +275,8 @@ function renderSummaryCards(entries: AgentDashboardEntry[]) {
 function renderAgentCard(
   entry: AgentDashboardEntry,
   onDrillDown: (agentId: string) => void,
+  onAbortSession?: (sessionKey: string) => void,
+  onAbortAllForAgent?: (agentId: string) => void,
 ): TemplateResult {
   const avatar = entry.emoji || entry.displayName.slice(0, 1);
   const recentSessions = [...entry.sessions]
@@ -352,13 +357,34 @@ function renderAgentCard(
         recentSessions.length > 0
           ? html`
               <div class="dashboard-sessions-list">
-                <div class="dashboard-sessions-header">Recent Sessions</div>
-                ${recentSessions.map(
-                  (session) => html`
+                <div class="dashboard-sessions-header" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Recent Sessions</span>
+                  ${
+                    onAbortAllForAgent && entry.activeSessions > 0
+                      ? html`
+                          <button
+                            class="btn-small danger"
+                            @click=${(e: Event) => {
+                              e.stopPropagation();
+                              onAbortAllForAgent(entry.agentId);
+                            }}
+                            title="Abort all active sessions for this agent"
+                          >
+                            ⏹ Stop Agent
+                          </button>
+                        `
+                      : nothing
+                  }
+                </div>
+                ${recentSessions.map((session) => {
+                  const isActive = Boolean(
+                    session.updatedAt && Date.now() - session.updatedAt < 5 * 60 * 1000,
+                  );
+                  return html`
                     <div class="dashboard-session-row">
                       <div class="dashboard-session-status">
                         <span
-                          class="statusDot ${session.updatedAt && Date.now() - session.updatedAt < 5 * 60 * 1000 ? "ok" : ""}"
+                          class="statusDot ${isActive ? "ok" : ""}"
                         ></span>
                       </div>
                       <div class="dashboard-session-info">
@@ -375,11 +401,24 @@ function renderAgentCard(
                           ? html`
                               <span class="pill pill--danger">aborted</span>
                             `
-                          : nothing
+                          : isActive && onAbortSession
+                            ? html`
+                                <button
+                                  class="btn-small warning"
+                                  @click=${(e: Event) => {
+                                    e.stopPropagation();
+                                    onAbortSession(session.key);
+                                  }}
+                                  title="Abort this session's active run"
+                                >
+                                  ⏹
+                                </button>
+                              `
+                            : nothing
                       }
                     </div>
-                  `,
-                )}
+                  `;
+                })}
               </div>
             `
           : html`
@@ -423,6 +462,8 @@ export function renderAgentDashboard(props: AgentDashboardProps): TemplateResult
     return (b.lastActivity ?? 0) - (a.lastActivity ?? 0);
   });
 
+  const totalActiveSessions = entries.reduce((sum, e) => sum + e.activeSessions, 0);
+
   return html`
     <div class="dashboard-container">
       <div class="dashboard-header">
@@ -430,13 +471,29 @@ export function renderAgentDashboard(props: AgentDashboardProps): TemplateResult
           <div class="card-title">Agent Status Dashboard</div>
           <div class="card-sub">Real-time overview of all agents, sessions, and resource usage.</div>
         </div>
-        <button
-          class="btn"
-          ?disabled=${props.loading || props.sessionsLoading}
-          @click=${props.onRefresh}
-        >
-          ${props.loading || props.sessionsLoading ? "Loading…" : "Refresh"}
-        </button>
+        <div class="row" style="gap: 8px;">
+          ${
+            props.onEmergencyStopAll && totalActiveSessions > 0
+              ? html`
+                  <button
+                    class="btn danger"
+                    ?disabled=${props.loading || props.sessionsLoading}
+                    @click=${props.onEmergencyStopAll}
+                    title="Emergency stop — abort ALL active sessions across all agents"
+                  >
+                    ⛔ Stop All (${totalActiveSessions})
+                  </button>
+                `
+              : nothing
+          }
+          <button
+            class="btn"
+            ?disabled=${props.loading || props.sessionsLoading}
+            @click=${props.onRefresh}
+          >
+            ${props.loading || props.sessionsLoading ? "Loading…" : "Refresh"}
+          </button>
+        </div>
       </div>
 
       ${
@@ -472,7 +529,14 @@ export function renderAgentDashboard(props: AgentDashboardProps): TemplateResult
                   <div class="muted">No agents configured.</div>
                 </div>
               `
-            : entries.map((entry) => renderAgentCard(entry, props.onDrillDown))
+            : entries.map((entry) =>
+                renderAgentCard(
+                  entry,
+                  props.onDrillDown,
+                  props.onAbortSession,
+                  props.onAbortAllForAgent,
+                ),
+              )
         }
       </div>
     </div>

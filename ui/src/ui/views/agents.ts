@@ -93,6 +93,9 @@ export type AgentsProps = {
   onAgentSkillToggle: (agentId: string, skillName: string, enabled: boolean) => void;
   onAgentSkillsClear: (agentId: string) => void;
   onAgentSkillsDisableAll: (agentId: string) => void;
+  onAbortSession?: (sessionKey: string) => void;
+  onAbortAllForAgent?: (agentId: string) => void;
+  onEmergencyStopAll?: () => void;
 };
 
 const TOOL_SECTIONS = [
@@ -633,6 +636,9 @@ export function renderAgents(props: AgentsProps) {
                         props.onSelectAgent(agentId);
                         props.onSelectPanel("overview");
                       },
+                      onAbortSession: props.onAbortSession,
+                      onAbortAllForAgent: props.onAbortAllForAgent,
+                      onEmergencyStopAll: props.onEmergencyStopAll,
                     })
                   : nothing
               }

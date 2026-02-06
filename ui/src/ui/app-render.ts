@@ -43,7 +43,13 @@ import {
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
-import { deleteSession, loadSessions, patchSession } from "./controllers/sessions.ts";
+import {
+  abortAllSessions,
+  abortSession,
+  deleteSession,
+  loadSessions,
+  patchSession,
+} from "./controllers/sessions.ts";
 import {
   installSkill,
   loadSkills,
@@ -311,6 +317,8 @@ export function renderApp(state: AppViewState) {
                 },
                 onRefresh: () => loadSessions(state),
                 onPatch: (key, patch) => patchSession(state, key, patch),
+                onAbort: (key) => abortSession(state, key),
+                onAbortAll: () => abortAllSessions(state),
                 onDelete: (key) => deleteSession(state, key),
               })
             : nothing

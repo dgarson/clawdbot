@@ -1,0 +1,2596 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meridia — Experiential Continuity Architecture Overview</title>
+    <meta
+      name="description"
+      content="Interactive architecture map for Meridia: experiential capture, multimodal artifacts, polyglot persistence (SQLite/Postgres/Neo4j/pgvector), hybrid retrieval, and state reconstitution for long-lived OpenClaw agents."
+    />
+    <style>
+      :root {
+        --bg0: #f7f8fb;
+        --bg1: #ffffff;
+        --ink0: #0f172a; /* slate-900 */
+        --ink1: #334155; /* slate-700 */
+        --muted: #64748b; /* slate-500 */
+        --border: rgba(15, 23, 42, 0.12);
+        --shadow: rgba(2, 6, 23, 0.08);
+
+        --accent: #2563eb; /* blue-600 */
+        --accent2: #7c3aed; /* violet-600 */
+        --good: #16a34a; /* green-600 */
+        --warn: #f59e0b; /* amber-500 */
+        --bad: #ef4444; /* red-500 */
+
+        --cap: #2563eb;
+        --idx: #7c3aed;
+        --ret: #16a34a;
+        --xcut: #f59e0b;
+        --store: #0f172a;
+
+        --nodeFill: rgba(255, 255, 255, 0.92);
+        --nodeFill2: rgba(248, 250, 252, 0.92);
+        --nodeStroke: rgba(15, 23, 42, 0.18);
+        --edge: rgba(15, 23, 42, 0.38);
+        --edgeDim: rgba(15, 23, 42, 0.16);
+        --focusRing: rgba(37, 99, 235, 0.35);
+
+        --mono:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+          monospace;
+        --sans:
+          ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          "Apple Color Emoji", "Segoe UI Emoji";
+      }
+
+      [data-theme="dark"] {
+        --bg0: #0b1020;
+        --bg1: #0f162d;
+        --ink0: #e2e8f0;
+        --ink1: #cbd5e1;
+        --muted: #94a3b8;
+        --border: rgba(148, 163, 184, 0.18);
+        --shadow: rgba(0, 0, 0, 0.35);
+
+        --nodeFill: rgba(17, 24, 39, 0.85);
+        --nodeFill2: rgba(15, 23, 42, 0.85);
+        --nodeStroke: rgba(226, 232, 240, 0.18);
+        --edge: rgba(226, 232, 240, 0.3);
+        --edgeDim: rgba(226, 232, 240, 0.14);
+        --focusRing: rgba(37, 99, 235, 0.55);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]):not([data-theme="dark"]) {
+          --bg0: #0b1020;
+          --bg1: #0f162d;
+          --ink0: #e2e8f0;
+          --ink1: #cbd5e1;
+          --muted: #94a3b8;
+          --border: rgba(148, 163, 184, 0.18);
+          --shadow: rgba(0, 0, 0, 0.35);
+
+          --nodeFill: rgba(17, 24, 39, 0.85);
+          --nodeFill2: rgba(15, 23, 42, 0.85);
+          --nodeStroke: rgba(226, 232, 240, 0.18);
+          --edge: rgba(226, 232, 240, 0.3);
+          --edgeDim: rgba(226, 232, 240, 0.14);
+          --focusRing: rgba(37, 99, 235, 0.55);
+        }
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        color: var(--ink0);
+        background:
+          radial-gradient(1200px 700px at 10% 0%, rgba(37, 99, 235, 0.12), transparent 55%),
+          radial-gradient(900px 600px at 95% 10%, rgba(124, 58, 237, 0.12), transparent 55%),
+          radial-gradient(900px 700px at 80% 100%, rgba(22, 163, 74, 0.1), transparent 60%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .wrap {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px 18px 24px;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      .title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .title h1 {
+        font-size: 20px;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+
+      .title p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--ink1);
+        max-width: 76ch;
+        line-height: 1.35;
+      }
+
+      .badgeRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.45);
+        border: 1px solid var(--border);
+        box-shadow: 0 8px 24px var(--shadow);
+        color: var(--ink1);
+      }
+      [data-theme="dark"] .badge {
+        background: rgba(15, 23, 42, 0.65);
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .dot.cap {
+        background: var(--cap);
+      }
+      .dot.idx {
+        background: var(--idx);
+      }
+      .dot.ret {
+        background: var(--ret);
+      }
+      .dot.xcut {
+        background: var(--xcut);
+      }
+      .dot.store {
+        background: var(--store);
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .toolbar .group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 10px 24px var(--shadow);
+      }
+      [data-theme="dark"] .toolbar .group {
+        background: rgba(15, 23, 42, 0.65);
+      }
+
+      .toolbar label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input[type="search"] {
+        width: min(320px, 60vw);
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--ink0);
+        padding: 8px 10px;
+        border-radius: 10px;
+        outline: none;
+      }
+      [data-theme="dark"] input[type="search"] {
+        background: rgba(2, 6, 23, 0.25);
+      }
+
+      select {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--ink0);
+        padding: 8px 10px;
+        border-radius: 10px;
+        outline: none;
+      }
+      [data-theme="dark"] select {
+        background: rgba(2, 6, 23, 0.25);
+      }
+
+      button {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--ink0);
+        padding: 8px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition:
+          transform 0.06s ease,
+          background 0.15s ease;
+      }
+      button:hover {
+        background: rgba(255, 255, 255, 0.78);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      [data-theme="dark"] button {
+        background: rgba(2, 6, 23, 0.22);
+      }
+      [data-theme="dark"] button:hover {
+        background: rgba(2, 6, 23, 0.32);
+      }
+
+      button.primary {
+        border-color: rgba(37, 99, 235, 0.5);
+        background: rgba(37, 99, 235, 0.14);
+      }
+      button.primary:hover {
+        background: rgba(37, 99, 235, 0.22);
+      }
+
+      button.pill {
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-size: 12px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 14px;
+        margin-top: 12px;
+      }
+
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 12px 28px var(--shadow);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      [data-theme="dark"] .card {
+        background: rgba(15, 23, 42, 0.6);
+      }
+
+      .cardHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 12px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .cardHeader h2 {
+        font-size: 13px;
+        margin: 0;
+        letter-spacing: -0.01em;
+        color: var(--ink0);
+      }
+
+      .subtle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .diagramWrap {
+        position: relative;
+        height: min(72vh, 740px);
+        min-height: 420px;
+      }
+
+      svg#diagram {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 12px 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      .legendItem {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--ink1);
+      }
+
+      .statusPill {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--ink1);
+        background: rgba(255, 255, 255, 0.5);
+      }
+      [data-theme="dark"] .statusPill {
+        background: rgba(2, 6, 23, 0.22);
+      }
+
+      .statusPill.exists {
+        border-color: rgba(22, 163, 74, 0.5);
+      }
+      .statusPill.partial {
+        border-color: rgba(245, 158, 11, 0.6);
+      }
+      .statusPill.planned {
+        border-color: rgba(148, 163, 184, 0.35);
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        padding: 10px 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .tabBtn {
+        border: 1px solid transparent;
+        background: transparent;
+        padding: 8px 10px;
+        border-radius: 10px 10px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .tabBtn[aria-selected="true"] {
+        color: var(--ink0);
+        background: rgba(255, 255, 255, 0.5);
+        border-color: var(--border);
+        border-bottom-color: transparent;
+      }
+      [data-theme="dark"] .tabBtn[aria-selected="true"] {
+        background: rgba(2, 6, 23, 0.22);
+      }
+
+      .panelBody {
+        padding: 12px;
+        max-height: min(72vh, 740px);
+        overflow: auto;
+      }
+
+      .panelBody h3 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+
+      .panelBody p {
+        margin: 0 0 10px;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--ink1);
+      }
+
+      .kvs {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .kv {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 10px 9px;
+        background: rgba(255, 255, 255, 0.42);
+      }
+      [data-theme="dark"] .kv {
+        background: rgba(2, 6, 23, 0.18);
+      }
+
+      .kv strong {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 6px;
+        color: var(--ink0);
+      }
+      .kv ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--ink1);
+        font-size: 12.5px;
+        line-height: 1.45;
+      }
+      .kv li {
+        margin: 2px 0;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0 0;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.45);
+        cursor: pointer;
+        user-select: none;
+      }
+      .chip:hover {
+        background: rgba(255, 255, 255, 0.7);
+      }
+      [data-theme="dark"] .chip {
+        background: rgba(2, 6, 23, 0.2);
+      }
+      [data-theme="dark"] .chip:hover {
+        background: rgba(2, 6, 23, 0.32);
+      }
+
+      .chip .miniDot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .chip.active {
+        border-color: rgba(37, 99, 235, 0.55);
+        box-shadow: 0 0 0 4px var(--focusRing);
+      }
+
+      .callout {
+        border-left: 3px solid rgba(37, 99, 235, 0.7);
+        background: rgba(37, 99, 235, 0.06);
+        padding: 10px 10px 9px;
+        border-radius: 12px;
+        margin: 10px 0;
+      }
+      [data-theme="dark"] .callout {
+        background: rgba(37, 99, 235, 0.1);
+      }
+
+      .callout p {
+        margin: 0;
+        color: var(--ink1);
+      }
+
+      .sourceList {
+        display: grid;
+        gap: 10px;
+      }
+
+      .sourceItem {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 10px 9px;
+        background: rgba(255, 255, 255, 0.42);
+      }
+      [data-theme="dark"] .sourceItem {
+        background: rgba(2, 6, 23, 0.18);
+      }
+
+      .sourceItem code {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink0);
+      }
+
+      .sourceItem .meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 6px;
+        line-height: 1.35;
+      }
+
+      .foot {
+        margin-top: 10px;
+        font-size: 11.5px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      /* Tooltip */
+      #tooltip {
+        position: fixed;
+        z-index: 50;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.08s ease,
+          transform 0.08s ease;
+        background: rgba(15, 23, 42, 0.92);
+        color: #ffffff;
+        padding: 10px 10px 9px;
+        border-radius: 12px;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+        max-width: min(360px, 76vw);
+      }
+
+      #tooltip strong {
+        display: block;
+        font-size: 12.5px;
+        letter-spacing: -0.01em;
+        margin-bottom: 4px;
+      }
+      #tooltip div {
+        font-size: 12px;
+        opacity: 0.92;
+        line-height: 1.35;
+      }
+
+      #tooltip.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* SVG styling */
+      .edge {
+        stroke: var(--edge);
+        stroke-width: 2;
+        fill: none;
+        opacity: 0.95;
+        color: var(--edge);
+      }
+      .edge.dim {
+        stroke: var(--edgeDim);
+        opacity: 0.55;
+        color: var(--edgeDim);
+      }
+      .edge.active {
+        stroke: var(--accent);
+        opacity: 1;
+        stroke-width: 3;
+        color: var(--accent);
+      }
+
+      .node {
+        cursor: pointer;
+      }
+      .node.dim {
+        opacity: 0.24;
+      }
+      .node .shape {
+        fill: var(--nodeFill);
+        stroke: var(--nodeStroke);
+        stroke-width: 1.2;
+      }
+      .node .shapeAlt {
+        fill: var(--nodeFill2);
+        stroke: var(--nodeStroke);
+        stroke-width: 1.2;
+      }
+
+      .node .label {
+        font-size: 12px;
+        fill: var(--ink0);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .node .sub {
+        font-size: 10.8px;
+        fill: var(--muted);
+        font-weight: 500;
+      }
+
+      .node.selected .shape,
+      .node.selected .shapeAlt {
+        stroke: rgba(37, 99, 235, 0.85);
+        stroke-width: 2.6;
+        filter: drop-shadow(0 12px 18px rgba(37, 99, 235, 0.2));
+      }
+
+      .node:focus-visible .shape,
+      .node:focus-visible .shapeAlt {
+        outline: none;
+        stroke: rgba(37, 99, 235, 0.9);
+        stroke-width: 3.2;
+      }
+
+      .planeTag {
+        font-family: var(--mono);
+        font-size: 10px;
+        fill: rgba(255, 255, 255, 0.92);
+      }
+
+      .planeCap {
+        fill: var(--cap);
+      }
+      .planeIdx {
+        fill: var(--idx);
+      }
+      .planeRet {
+        fill: var(--ret);
+      }
+      .planeXcut {
+        fill: var(--xcut);
+      }
+      .planeStore {
+        fill: rgba(15, 23, 42, 0.85);
+      }
+      [data-theme="dark"] .planeStore {
+        fill: rgba(226, 232, 240, 0.18);
+      }
+
+      .statusBadge {
+        font-family: var(--mono);
+        font-size: 10px;
+        fill: rgba(255, 255, 255, 0.92);
+      }
+      .stExists {
+        fill: rgba(22, 163, 74, 0.9);
+      }
+      .stPartial {
+        fill: rgba(245, 158, 11, 0.92);
+      }
+      .stPlanned {
+        fill: rgba(100, 116, 139, 0.88);
+      }
+
+      .miniHelp {
+        font-size: 12px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="title">
+          <h1>Meridia — Experiential Continuity Architecture</h1>
+          <p>
+            An interactive overview of Meridia’s experience capture and reconstitution system for
+            long-lived OpenClaw agents. The goal is to capture <em>moments</em> (phenomenology +
+            references + provenance) and turn them into an Experience Kit that supports search,
+            graph traversal, semantic similarity, and “state approach” reconstitution — a practical
+            path toward <em>agentic identity</em> (still an open exploration).
+          </p>
+          <div class="badgeRow" aria-label="Legend badges">
+            <span class="badge"><span class="dot cap"></span>Capture plane</span>
+            <span class="badge"><span class="dot idx"></span>Index plane</span>
+            <span class="badge"><span class="dot ret"></span>Retrieval plane</span>
+            <span class="badge"><span class="dot xcut"></span>Cross-cutting</span>
+            <span class="badge"><span class="dot store"></span>Stores + dependencies</span>
+          </div>
+          <div class="toolbar" role="toolbar" aria-label="Architecture controls">
+            <div class="group">
+              <label for="viewSelect">View</label>
+              <select id="viewSelect">
+                <option value="system">System map</option>
+                <option value="capture">Capture flow</option>
+                <option value="retrieval">Retrieval flow</option>
+                <option value="storage">Storage architecture</option>
+              </select>
+              <button id="fitBtn" class="pill">Fit</button>
+              <button id="focusBtn" class="pill">Focus</button>
+            </div>
+            <div class="group">
+              <label for="searchBox">Find</label>
+              <input
+                id="searchBox"
+                type="search"
+                placeholder="Search components, tags, stores…"
+                autocomplete="off"
+              />
+              <button id="clearBtn" class="pill">Clear</button>
+            </div>
+            <div class="group">
+              <button id="tourBtn" class="primary pill">Highlights</button>
+              <button id="themeBtn" class="pill" aria-pressed="false">Theme</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <section class="card" aria-label="Interactive diagram">
+          <div class="cardHeader">
+            <div>
+              <h2 id="diagramTitle">System map</h2>
+              <div class="subtle" id="diagramSubtitle">
+                Click a node to drill down. Hover to preview. Use Focus to zoom to a component
+                neighborhood.
+              </div>
+            </div>
+            <div class="subtle" id="selectionPill">No selection</div>
+          </div>
+          <div class="diagramWrap">
+            <svg id="diagram" role="img" aria-label="Meridia architecture diagram"></svg>
+          </div>
+          <div class="legend" aria-label="Legend">
+            <div class="legendItem">
+              <span class="statusPill exists">exists</span> implemented and used today
+            </div>
+            <div class="legendItem">
+              <span class="statusPill partial">partial</span> present but incomplete / fragmented
+            </div>
+            <div class="legendItem">
+              <span class="statusPill planned">planned</span> architectural target
+            </div>
+            <div class="legendItem">
+              <span class="miniHelp">Tip:</span> Open “Highlights” to see value-add notes with
+              citations.
+            </div>
+          </div>
+        </section>
+
+        <aside class="card" aria-label="Details panel">
+          <div class="tabs" role="tablist" aria-label="Panel tabs">
+            <button class="tabBtn" role="tab" data-tab="details" aria-selected="true">
+              Details
+            </button>
+            <button class="tabBtn" role="tab" data-tab="highlights" aria-selected="false">
+              Highlights
+            </button>
+            <button class="tabBtn" role="tab" data-tab="impact" aria-selected="false">
+              Impact
+            </button>
+            <button class="tabBtn" role="tab" data-tab="sources" aria-selected="false">
+              Sources
+            </button>
+          </div>
+          <div class="panelBody" id="panelBody"></div>
+        </aside>
+      </div>
+
+      <p class="foot">
+        Notes: This page summarizes a living architecture. “Agentic identity” is intentionally
+        treated as an evolving research target rather than a settled definition; the system is
+        designed to be falsifiable, auditable, and safe under partial failures.
+      </p>
+    </div>
+
+    <div id="tooltip" role="tooltip" aria-hidden="true"></div>
+
+    <script>
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Data: sources (citations)
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      const SOURCES = [
+        {
+          id: "S1",
+          title: "Meridia Architecture",
+          path: "/Users/dgarson/clawd/clawdbot/extensions/meridia/ARCH.md",
+          note: "High-level goals, planes, storage layering, and lifecycle integration.",
+        },
+        {
+          id: "S2",
+          title: "Meridia Component Map",
+          path: "/Users/dgarson/clawd/clawdbot/extensions/meridia/COMPONENT-MAP.md",
+          note: "14-component model + contracts for MeridiaEvent, CaptureDecision, Phenomenology, ArtifactRef, ExperienceKit.",
+        },
+        {
+          id: "S3",
+          title: "Meridia graph memory design",
+          path: "/Users/dgarson/clawd/clawdbot/docs/design/meridia-graph-memory.md",
+          note: "Graph+vector ingestion and retrieval patterns; multimodal artifacts and provenance.",
+        },
+        {
+          id: "S4",
+          title: "Data persistence architecture research",
+          path: "/Users/dgarson/clawd/clawdbot/docs/experiential-engine/architecture/DATA-PERSISTENCE-ARCHITECTURE.md",
+          note: "Polyglot persistence rationale: canonical store + graph + vectors + time analysis.",
+        },
+        {
+          id: "S5",
+          title: "Experiential record schema (phenomenology)",
+          path: "/Users/dgarson/clawd/clawdbot/docs/experiential-engine/schemas/experiential-record.schema.json",
+          note: "Primary/secondary emotional qualities, intensity, valence, anchors, uncertainties, reconstitution hints.",
+        },
+        {
+          id: "S6",
+          title: "Core memory ingestion pipeline",
+          path: "/Users/dgarson/clawd/clawdbot/src/memory/pipeline/ingest.ts",
+          note: "Normalize → extract → enrich → entity_extract → embed → graph → index stages; supports Graphiti and artifacts.",
+        },
+        {
+          id: "S7",
+          title: "Core memory content + artifacts model",
+          path: "/Users/dgarson/clawd/clawdbot/src/memory/types.ts",
+          note: "MemoryArtifact shape for image/audio/video/file/link; provenance and temporal metadata.",
+        },
+        {
+          id: "S8",
+          title: "MEDIA token parsing",
+          path: "/Users/dgarson/clawd/clawdbot/src/media/parse.ts",
+          note: "Parses MEDIA: tokens and avoids fenced-code false positives; supports multimodal references without embedding raw bytes.",
+        },
+        {
+          id: "S9",
+          title: "Current experiential capture hook (V1)",
+          path: "/Users/dgarson/clawd/clawdbot/extensions/meridia/hooks/experiential-capture/handler.ts",
+          note: "Tool-result scoring + rate-limited capture into SQLite + trace.",
+        },
+        {
+          id: "S10",
+          title: "Compaction + Graphiti integration",
+          path: "/Users/dgarson/clawd/clawdbot/extensions/meridia/hooks/compaction/handler.ts",
+          note: "Synthesizes episodes and pushes to Graphiti/Neo4j; entity extraction optional.",
+        },
+        {
+          id: "S11",
+          title: "Current reconstitution output (V1)",
+          path: "/Users/dgarson/clawd/clawdbot/extensions/meridia/src/meridia/reconstitute.ts",
+          note: "Bootstrap injection of a compact list of key experiences; target is state-approach packs.",
+        },
+      ];
+
+      const bySourceId = Object.fromEntries(SOURCES.map((s) => [s.id, s]));
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Data: elements (nodes) and highlight topics
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      const ELEMENTS = [
+        // Event sources
+        {
+          id: "sources.events",
+          kind: "source",
+          plane: "capture",
+          status: "exists",
+          name: "Event Sources",
+          subtitle: "tools, messages, lifecycle",
+          oneLiner: "The raw stream of activity that becomes experience candidates.",
+          tags: ["hooks", "tools", "messages", "lifecycle"],
+          sources: ["S1", "S9"],
+          details: {
+            valueAdd:
+              "Meridia treats experience capture as an event-driven system: tool results, user messages, bootstrap, session boundaries, and compaction are all capture opportunities. This is the substrate for ‘moments’ rather than end-of-day narratives.",
+            responsibilities: [
+              "Expose tool results, message turns, and lifecycle events.",
+              "Provide minimal provenance: sessionKey/runId/channel when available.",
+            ],
+            failureModes: [
+              "Missing context fields should degrade to conservative capture behavior.",
+            ],
+          },
+        },
+
+        // Core components (11)
+        {
+          id: "c1.normalizer",
+          kind: "component",
+          plane: "capture",
+          status: "partial",
+          name: "Event Normalizer",
+          subtitle: "MeridiaEvent envelope",
+          oneLiner:
+            "Unifies hook/tool payloads into a typed event envelope for consistent downstream logic.",
+          tags: ["envelope", "normalization", "hooks"],
+          sources: ["S2", "S9"],
+          deepDive: null,
+          details: {
+            responsibilities: [
+              "Normalize tool/message/lifecycle payloads into MeridiaEvent.",
+              "Attach provenance (source, traceId, session info).",
+              "Apply early sanitization boundaries (size caps, obvious secret stripping).",
+            ],
+            valueAdd:
+              "Normalization collapses ad-hoc parsing across hooks into a single contract, which is the key to parallel work and reliable gating/budget behavior.",
+            failureModes: [
+              "Malformed hook payloads → drop to trace-only decisions (never crash agent loop).",
+              "Unknown event kind → store minimal event metadata for later analysis.",
+            ],
+          },
+        },
+        {
+          id: "c2.gates",
+          kind: "component",
+          plane: "capture",
+          status: "partial",
+          name: "Gates + Budget Manager",
+          subtitle: "rate limits, budgets",
+          oneLiner:
+            "Prevents capture spam and enforces token/storage budgets without losing auditability.",
+          tags: ["rate-limit", "budget", "backpressure"],
+          sources: ["S2", "S9"],
+          details: {
+            responsibilities: [
+              "Min interval and max-per-hour gates (per session).",
+              "Global budgets (daily token / artifact bytes).",
+              "Emergency allowances for session boundaries / compaction checkpoints.",
+            ],
+            valueAdd:
+              "Budgets make Meridia sustainable at ‘always-on’ timescales. The system stays selective while preserving a trace stream for later quality tuning.",
+            failureModes: [
+              "Gate store unavailable → conservative defaults (capture less, trace more).",
+              "Budget exceeded → mode downgrade (trace_only).",
+            ],
+          },
+        },
+        {
+          id: "c3.decision",
+          kind: "component",
+          plane: "capture",
+          status: "partial",
+          name: "Capture Decision Engine",
+          subtitle: "significance + mode",
+          oneLiner: "Decides whether to capture a moment and at what fidelity (full/light/trace).",
+          tags: ["significance", "heuristic", "llm", "mode"],
+          sources: ["S2", "S9"],
+          deepDive:
+            "/Users/dgarson/clawd/clawdbot/extensions/meridia/docs/components/capture-decision-engine.md",
+          details: {
+            responsibilities: [
+              "Score significance (0..1) with heuristic + optional LLM.",
+              "Select capture mode: full | light | trace_only.",
+              "Control redundancy (dedupe / near-duplicate downgrades).",
+            ],
+            valueAdd:
+              "A clean decision layer turns Meridia from ‘log everything’ into a selective memory system. The mode concept is critical: high throughput can still yield high quality continuity under constraints.",
+            failureModes: [
+              "LLM missing/timeout → heuristic only.",
+              "Invalid JSON from model → fallback; record error in trace.",
+            ],
+          },
+        },
+        {
+          id: "c4.phenomenology",
+          kind: "component",
+          plane: "capture",
+          status: "planned",
+          name: "Phenomenology Extractor",
+          subtitle: "felt sense + anchors",
+          oneLiner:
+            "Extracts experiential facets (emotional signature, engagement quality, anchors, uncertainties) for reconstitution.",
+          tags: ["phenomenology", "anchors", "uncertainty", "identity"],
+          sources: ["S2", "S5"],
+          deepDive:
+            "/Users/dgarson/clawd/clawdbot/extensions/meridia/docs/components/phenomenology-extractor.md",
+          details: {
+            responsibilities: [
+              "Produce emotional signature (primary/secondary, intensity, valence, texture).",
+              "Classify engagement quality (deep-flow → struggling).",
+              "Generate anchors and reconstitution hints (state approach guidance).",
+              "Track uncertainties (what remains unknown).",
+            ],
+            valueAdd:
+              "This is the primary bridge from ‘knowing what happened’ to ‘approaching how it felt’. Anchors are treated as access points, not summaries.",
+            failureModes: [
+              "Insufficient context → minimal phenomenology with 1 anchor.",
+              "LLM invalid output → heuristic fallback.",
+            ],
+          },
+        },
+        {
+          id: "c5.artifacts",
+          kind: "component",
+          plane: "capture",
+          status: "planned",
+          name: "Artifact + Reference Collector",
+          subtitle: "media, files, links",
+          oneLiner:
+            "Collects durable references for deeper recall, including non-text media and derived text (OCR/ASR/captions).",
+          tags: ["multimodal", "citations", "media", "provenance"],
+          sources: ["S2", "S7", "S8"],
+          deepDive:
+            "/Users/dgarson/clawd/clawdbot/extensions/meridia/docs/components/artifact-reference-collector.md",
+          details: {
+            responsibilities: [
+              "Parse MEDIA tokens and safe references from tool outputs.",
+              "Save or reference images/audio/video and store metadata for extractors.",
+              "Collect file references (paths, diffs/excerpts) under allowlists.",
+              "Emit stable citations: meridia://, file://, http(s)://",
+            ],
+            valueAdd:
+              "References turn memories into navigable experience kits: the agent can re-open the actual artifact (image, transcript, diff) instead of relying on a lossy narrative. This is where ‘moments’ become reconstructible.",
+            failureModes: [
+              "Media save fails → keep link + trace warning; do not block capture.",
+              "Artifact too large → store link/metadata only.",
+            ],
+          },
+        },
+        {
+          id: "c6.kitbuilder",
+          kind: "component",
+          plane: "capture",
+          status: "planned",
+          name: "Experience Kit Builder",
+          subtitle: "canonical record",
+          oneLiner:
+            "Assembles decision + phenomenology + artifacts into a canonical, versioned Experience Kit.",
+          tags: ["schema", "kit", "versioning"],
+          sources: ["S2", "S1"],
+          details: {
+            responsibilities: [
+              "Create canonical ExperienceKit records with schema/version.",
+              "Ensure citations and artifacts are attached (without raw bytes).",
+              "Emit minimal search text (topic/summary/anchors) for FTS.",
+            ],
+            valueAdd:
+              "A stable kit format is the ‘unit of continuity’. It becomes the single object that can be persisted, indexed, traversed, and rendered into context packs.",
+            failureModes: [
+              "Schema mismatch → downgrade capture mode, emit trace, keep minimal kit fields.",
+            ],
+          },
+        },
+        {
+          id: "c7.store",
+          kind: "component",
+          plane: "capture",
+          status: "exists",
+          name: "Canonical Store",
+          subtitle: "SQLite / Postgres",
+          oneLiner:
+            "The source of truth for Meridia records and trace events; provides queryable filters and FTS.",
+          tags: ["sqlite", "postgres", "fts", "acidity"],
+          sources: ["S1", "S9"],
+          details: {
+            responsibilities: [
+              "Persist Experience Kits and trace events atomically when possible.",
+              "Expose search and range queries (session/tool/tags/time/minScore).",
+              "Support migrations and schema versioning.",
+            ],
+            valueAdd:
+              "Canonical storage is what makes Meridia robust: graph/vector are optional accelerators, but correctness lives in the canonical store.",
+            failureModes: [
+              "DB unavailable → capture must degrade to trace-only file append (if enabled) or no-op with warnings.",
+            ],
+          },
+        },
+        {
+          id: "c8.trace",
+          kind: "component",
+          plane: "capture",
+          status: "exists",
+          name: "Trace + Audit Stream",
+          subtitle: "why we captured/skipped",
+          oneLiner: "Append-only audit trail for decisions, limitations, and side-effect outcomes.",
+          tags: ["audit", "trace", "debuggability"],
+          sources: ["S1", "S9"],
+          details: {
+            responsibilities: [
+              "Record capture/skip/error decisions with structured reasons.",
+              "Record side-effect success/failure (graph write, vector upsert, compaction).",
+              "Support both DB trace tables and optional JSONL traces.",
+            ],
+            valueAdd:
+              "Without trace, experience capture becomes un-debuggable. With trace, you can tune thresholds, diagnose missing memory, and prove what the system did (and did not) store.",
+            failureModes: ["Trace write fails → do not block agent loop; best-effort fallback."],
+          },
+        },
+        {
+          id: "c9.fanout",
+          kind: "component",
+          plane: "index",
+          status: "planned",
+          name: "Fanout Dispatcher",
+          subtitle: "async side-effects",
+          oneLiner:
+            "Runs graph/vector/compaction jobs asynchronously with retries and backpressure.",
+          tags: ["queue", "retries", "backpressure"],
+          sources: ["S1", "S10"],
+          details: {
+            responsibilities: [
+              "Dispatch graph linking jobs.",
+              "Dispatch vector upsert jobs.",
+              "Trigger compaction runs and post-compaction archival.",
+            ],
+            valueAdd:
+              "Fanout isolates optional dependencies from the hot capture path. It prevents ‘graph is down’ from breaking continuity capture, and makes throughput predictable.",
+            failureModes: [
+              "Queue overload → shed lower priority jobs, keep trace.",
+              "Dependency down → retry with jitter and bounded backoff.",
+            ],
+          },
+        },
+        {
+          id: "c10.hybrid",
+          kind: "component",
+          plane: "retrieval",
+          status: "planned",
+          name: "Hybrid Retriever + Ranker",
+          subtitle: "lexical + vector + graph",
+          oneLiner:
+            "Blends canonical queries, semantic similarity, and graph traversal into ranked experience kits + citations.",
+          tags: ["retrieval", "ranking", "hybrid", "rag"],
+          sources: ["S2", "S3"],
+          deepDive:
+            "/Users/dgarson/clawd/clawdbot/extensions/meridia/docs/components/hybrid-retriever-and-ranker.md",
+          details: {
+            responsibilities: [
+              "Parse query intent (time/entity/topic hints).",
+              "Query canonical store (FTS + filters).",
+              "Query vector index (pgvector) when enabled.",
+              "Query graph store (Graphiti/Neo4j) for traversal/hybrid facts.",
+              "Rank with significance, similarity, graph proximity, recency, and diversity.",
+            ],
+            valueAdd:
+              "Hybrid retrieval is how Meridia stops being ‘notes search’ and becomes ‘experience recall’. It supports both direct queries and bootstrap context assembly.",
+            failureModes: [
+              "Vector unavailable → canonical + graph only.",
+              "Graph unavailable → canonical + vector only.",
+            ],
+          },
+        },
+        {
+          id: "c11.reconstitute",
+          kind: "component",
+          plane: "retrieval",
+          status: "partial",
+          name: "Reconstitution Engine",
+          subtitle: "state approach packs",
+          oneLiner:
+            "Builds a continuity context pack that guides re-entering a state (anchors, uncertainties, next actions), not just a list.",
+          tags: ["bootstrap", "context-pack", "identity"],
+          sources: ["S1", "S11", "S5"],
+          deepDive:
+            "/Users/dgarson/clawd/clawdbot/extensions/meridia/docs/components/reconstitution-engine.md",
+          details: {
+            responsibilities: [
+              "Select experience kits under a token budget.",
+              "Render narrative + approach guidance + anchors + open uncertainties.",
+              "Attach citations and artifact references.",
+            ],
+            valueAdd:
+              "Reconstitution is the ‘continuity interface’. It should restore posture and priorities, not only factual recall. This is the closest user-visible step toward long-lived identity.",
+            failureModes: [
+              "No results → minimal pack that acknowledges absence and suggests manual capture.",
+            ],
+          },
+        },
+
+        // Cross cutting (3)
+        {
+          id: "x12.sanitize",
+          kind: "xcut",
+          plane: "xcut",
+          status: "partial",
+          name: "Sanitization + Redaction Guard",
+          subtitle: "secrets, size limits",
+          oneLiner:
+            "Ensures Meridia doesn’t become a secret sink; enforces size limits and redaction boundaries.",
+          tags: ["security", "privacy", "redaction", "safety"],
+          sources: ["S1", "S7"],
+          details: {
+            responsibilities: [
+              "Redact secrets and sensitive payloads before persistence and fanout.",
+              "Drop raw image bytes (store as artifact refs only).",
+              "Bound tool args/results captured into kits.",
+            ],
+            valueAdd:
+              "A powerful memory system becomes dangerous without guardrails. Sanitization makes long-lived continuity compatible with responsible operation.",
+            failureModes: ["Redaction failure → conservative: capture less, trace more."],
+          },
+        },
+        {
+          id: "x13.schemas",
+          kind: "xcut",
+          plane: "xcut",
+          status: "planned",
+          name: "Schemas + Migrations",
+          subtitle: "versioned kits",
+          oneLiner:
+            "Keeps records interpretable across time; enables evolution without breaking continuity.",
+          tags: ["schema", "migration", "versioning"],
+          sources: ["S2", "S5"],
+          details: {
+            responsibilities: [
+              "Version ExperienceKit and phenomenology schema.",
+              "Provide migrations for canonical store and renderers.",
+              "Maintain forward-compatible defaults and deprecations.",
+            ],
+            valueAdd:
+              "Long-horizon systems live or die by schema discipline. Migrations are what turn ‘experiments’ into durable infrastructure.",
+            failureModes: [
+              "Migration errors → preserve raw JSON + trace; avoid destructive rewrites.",
+            ],
+          },
+        },
+        {
+          id: "x14.obs",
+          kind: "xcut",
+          plane: "xcut",
+          status: "partial",
+          name: "Observability",
+          subtitle: "metrics + ops logs",
+          oneLiner:
+            "Provides metrics and structured logs for capture rate, latency, failures, and recall quality.",
+          tags: ["metrics", "ops-log", "telemetry"],
+          sources: ["S6", "S1"],
+          details: {
+            responsibilities: [
+              "Measure capture/skip rates and reasons.",
+              "Track fanout retries and dependency health.",
+              "Support ‘does this feel continuous?’ evaluation loops.",
+            ],
+            valueAdd:
+              "Observability is how you iterate toward better continuity. Without it, “did this help?” is guesswork.",
+            failureModes: ["Logging failure → keep canonical + trace; degrade gracefully."],
+          },
+        },
+
+        // Stores/dependencies
+        {
+          id: "d.sqlite",
+          kind: "store",
+          plane: "store",
+          status: "exists",
+          name: "SQLite (canonical)",
+          subtitle: "local, fast, durable",
+          oneLiner: "Default Meridia database: records, trace, and FTS for lexical search.",
+          tags: ["sqlite", "fts", "canonical"],
+          sources: ["S9"],
+          details: {
+            responsibilities: [
+              "Store experience records and trace events.",
+              "Provide FTS where supported (FTS5).",
+            ],
+            valueAdd:
+              "SQLite provides a frictionless default: Meridia works without requiring external infra. Graph/vector become optional accelerators.",
+            failureModes: ["Disk full / permissions → capture downgrades; trace should explain."],
+          },
+        },
+        {
+          id: "d.postgres",
+          kind: "store",
+          plane: "store",
+          status: "planned",
+          name: "PostgreSQL (optional)",
+          subtitle: "durable + shared",
+          oneLiner:
+            "Optional canonical store when you need multi-machine durability, richer analytics, and vector indexing.",
+          tags: ["postgres", "durability", "analytics"],
+          sources: ["S4"],
+          details: {
+            responsibilities: [
+              "Durable canonical storage in multi-host setups.",
+              "Serve as the home for pgvector indexes.",
+              "Enable deeper analytics (and possibly time-series extensions).",
+            ],
+            valueAdd:
+              "Postgres enables ‘continuity across environments’ and unlocks mature query/analytics patterns without fragmenting the system into many services.",
+            failureModes: ["Connection down → fallback to SQLite, keep trace."],
+          },
+        },
+        {
+          id: "d.pgvector",
+          kind: "store",
+          plane: "store",
+          status: "planned",
+          name: "pgvector (semantic)",
+          subtitle: "similarity search",
+          oneLiner: "Vector similarity to retrieve experiences by meaning and ‘felt likeness’.",
+          tags: ["vectors", "semantic", "pgvector"],
+          sources: ["S4"],
+          details: {
+            responsibilities: [
+              "Store embeddings for kits and derived episodes.",
+              "Support filtered similarity queries and clustering.",
+            ],
+            valueAdd:
+              "Vectors enable experiential recall beyond keywords: you can find ‘similar moments’ even when the surface text differs. This is crucial for phenomenology-based continuity.",
+            failureModes: [
+              "Missing embedder → disable vector stage; hybrid retrieval still works.",
+            ],
+          },
+        },
+        {
+          id: "d.graphiti",
+          kind: "store",
+          plane: "store",
+          status: "partial",
+          name: "Graphiti / Neo4j (graph)",
+          subtitle: "entities + relations",
+          oneLiner:
+            "Graph store for relationship traversal, causality chains, and entity-centric recall.",
+          tags: ["neo4j", "graph", "graphiti"],
+          sources: ["S3", "S10"],
+          details: {
+            responsibilities: [
+              "Store episodes and extracted entities.",
+              "Support traversal and hybrid fact retrieval.",
+            ],
+            valueAdd:
+              "Graph memory is how experiences connect: people ↔ topics ↔ artifacts ↔ moments across time. It unlocks ‘relational continuity’, not just recency.",
+            failureModes: [
+              "Graph down → capture still persists to canonical store; fanout retries.",
+            ],
+          },
+        },
+        {
+          id: "d.artifacts",
+          kind: "store",
+          plane: "store",
+          status: "planned",
+          name: "Artifact Store (filesystem)",
+          subtitle: "media + references",
+          oneLiner:
+            "A durable store for non-text media and large payloads; referenced via citations from kits.",
+          tags: ["media", "files", "references"],
+          sources: ["S7", "S8"],
+          details: {
+            responsibilities: [
+              "Store images/audio/video/files under size and safety constraints.",
+              "Expose stable URIs and metadata for extraction (OCR/ASR/caption).",
+            ],
+            valueAdd:
+              "Artifacts make experiences inspectable. A kit can point to the screenshot, transcript, or diff that actually mattered — enabling reconstitution and verification.",
+            failureModes: ["Storage failures should not block capture; store link+trace instead."],
+          },
+        },
+
+        // Integration points (core memory)
+        {
+          id: "i.memoryPipeline",
+          kind: "integration",
+          plane: "index",
+          status: "exists",
+          name: "OpenClaw Memory Pipeline",
+          subtitle: "reuse stages",
+          oneLiner:
+            "Reusable ingestion pipeline: extract/enrich/embed/graph/index from structured content + artifacts.",
+          tags: ["pipeline", "extract", "embed", "graph"],
+          sources: ["S6", "S7"],
+          details: {
+            responsibilities: [
+              "Normalize ingest items into content objects with artifacts.",
+              "Extract text from artifact metadata (OCR/ASR/caption keys).",
+              "Write episodes + entities to Graphiti when enabled.",
+              "Index vectors when a vector adapter is configured.",
+            ],
+            valueAdd:
+              "Reusing the core pipeline prevents Meridia-specific reimplementation of multimodal extraction and graph writes, keeping complexity manageable while still being ‘cutting edge’.",
+            failureModes: [
+              "Pipeline stage failures should be isolated; partial completion is acceptable with warnings.",
+            ],
+          },
+        },
+        {
+          id: "i.searchManager",
+          kind: "integration",
+          plane: "retrieval",
+          status: "exists",
+          name: "MemorySearchManager (Composable)",
+          subtitle: "backend blending",
+          oneLiner:
+            "OpenClaw’s multi-backend memory interface; Meridia registers as a search backend contributor.",
+          tags: ["composable", "backends", "memory"],
+          sources: ["S6", "S3"],
+          details: {
+            responsibilities: [
+              "Compose builtin/QMD/progressive/graphiti/plugin backends into one interface.",
+              "Stamp results with source backend and support ops logging.",
+            ],
+            valueAdd:
+              "This integration ensures Meridia’s experiential kits can participate in the broader OpenClaw memory ecosystem rather than living as a siloed feature.",
+            failureModes: [
+              "Backend failures should degrade to remaining backends; never crash recall tools.",
+            ],
+          },
+        },
+      ];
+
+      const byId = Object.fromEntries(ELEMENTS.map((e) => [e.id, e]));
+
+      const HIGHLIGHTS = [
+        {
+          id: "h.experienceKits",
+          title: "Experience Kits (moments, not narratives)",
+          valueAdd:
+            "Meridia targets ‘moments’ as Experience Kits: a canonical record + phenomenology (anchors, engagement, uncertainties) + durable references (media/files/links) + provenance. This is materially different from a session log: it supports state re-entry and verification.",
+          spotlight: [
+            "c4.phenomenology",
+            "c5.artifacts",
+            "c6.kitbuilder",
+            "c11.reconstitute",
+            "d.artifacts",
+          ],
+          suggestedView: "system",
+          sources: ["S2", "S5", "S7"],
+        },
+        {
+          id: "h.polyglot",
+          title: "Polyglot persistence (canonical + graph + vectors + artifacts)",
+          valueAdd:
+            "A single store cannot optimize for all experiential query patterns. Meridia uses a canonical store for correctness, a graph for relationships and provenance, vectors for semantic similarity, and an artifact store for multimodal references — all tied together by stable citations.",
+          spotlight: [
+            "c7.store",
+            "d.sqlite",
+            "d.postgres",
+            "d.graphiti",
+            "d.pgvector",
+            "d.artifacts",
+          ],
+          suggestedView: "storage",
+          sources: ["S4", "S3", "S1"],
+        },
+        {
+          id: "h.multimodal",
+          title: "Multimodal references (images/audio/video) with safe extraction",
+          valueAdd:
+            "Meridia can capture non-text memory by storing artifacts (not raw bytes) plus derived text (OCR/ASR/captions) in metadata. This enables search and reconstitution while keeping the canonical record small and safe.",
+          spotlight: ["c5.artifacts", "i.memoryPipeline", "d.artifacts"],
+          suggestedView: "capture",
+          sources: ["S7", "S6", "S8"],
+        },
+        {
+          id: "h.hybrid",
+          title: "Hybrid retrieval (lexical + graph + semantic) → continuity packs",
+          valueAdd:
+            "Hybrid retrieval is how Meridia becomes ‘experience recall’ rather than ‘notes search’. It blends canonical filters/FTS, graph traversal, and vector similarity, then produces a token-budgeted reconstitution pack with anchors and citations.",
+          spotlight: ["c10.hybrid", "c11.reconstitute", "d.graphiti", "d.pgvector", "c7.store"],
+          suggestedView: "retrieval",
+          sources: ["S3", "S2", "S1"],
+        },
+        {
+          id: "h.compaction",
+          title: "Compaction as consolidation (not forgetting)",
+          valueAdd:
+            "Compaction is treated as memory consolidation: snapshot before loss, synthesize episodes, push to graph, and keep an audit trail. This is crucial for long-lived agents operating under context window constraints.",
+          spotlight: ["c8.trace", "c9.fanout", "d.graphiti", "c7.store"],
+          suggestedView: "capture",
+          sources: ["S10", "S1"],
+        },
+        {
+          id: "h.safety",
+          title: "Safety, provenance, and auditability",
+          valueAdd:
+            "Powerful memory systems require strong boundaries: sanitization/redaction, provenance on every record, and an append-only trace stream so you can explain what was captured and why. This supports user trust and responsible deployment.",
+          spotlight: ["x12.sanitize", "c8.trace", "x14.obs", "x13.schemas"],
+          suggestedView: "system",
+          sources: ["S1", "S2", "S7"],
+        },
+        {
+          id: "h.identity",
+          title: "Toward agentic identity (exploratory)",
+          valueAdd:
+            "Experiences can be linked into longer arcs: relationships, preferences, open uncertainties, and ‘what matters’. Meridia’s architecture is designed so identity-like stability can emerge from tracked moments — while remaining auditable and testable rather than mystical.",
+          spotlight: ["c4.phenomenology", "c11.reconstitute", "d.graphiti", "c10.hybrid"],
+          suggestedView: "system",
+          sources: ["S5", "S1", "S3"],
+        },
+      ];
+
+      const byHighlightId = Object.fromEntries(HIGHLIGHTS.map((h) => [h.id, h]));
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Diagrams: node layout + edges
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      const DIAGRAMS = {
+        system: {
+          title: "System map",
+          subtitle:
+            "Meridia’s end-to-end architecture: capture → persist → index → retrieve → reconstitute (with cross-cutting safety + observability).",
+          viewBox: { x: 0, y: 0, w: 1400, h: 900 },
+          nodes: [
+            // Sources
+            { id: "sources.events", x: 70, y: 190, w: 180, h: 78 },
+
+            // Capture pipeline
+            { id: "c1.normalizer", x: 290, y: 190, w: 190, h: 78 },
+            { id: "c2.gates", x: 510, y: 190, w: 200, h: 78 },
+            { id: "c3.decision", x: 740, y: 130, w: 200, h: 78 },
+            { id: "c4.phenomenology", x: 740, y: 250, w: 200, h: 78 },
+            { id: "c5.artifacts", x: 970, y: 190, w: 220, h: 78 },
+            { id: "c6.kitbuilder", x: 1220, y: 190, w: 200, h: 78 },
+            { id: "c7.store", x: 1220, y: 290, w: 200, h: 78 },
+            { id: "c8.trace", x: 970, y: 310, w: 220, h: 78 },
+
+            // Index plane
+            { id: "c9.fanout", x: 740, y: 370, w: 200, h: 78 },
+            { id: "i.memoryPipeline", x: 510, y: 470, w: 200, h: 78 },
+
+            // Dependencies / stores
+            { id: "d.sqlite", x: 1220, y: 410, w: 200, h: 78 },
+            { id: "d.postgres", x: 1220, y: 510, w: 200, h: 78 },
+            { id: "d.pgvector", x: 1220, y: 610, w: 200, h: 78 },
+            { id: "d.graphiti", x: 1220, y: 710, w: 200, h: 78 },
+            { id: "d.artifacts", x: 970, y: 710, w: 220, h: 78 },
+
+            // Retrieval plane
+            { id: "c10.hybrid", x: 740, y: 650, w: 220, h: 78 },
+            { id: "c11.reconstitute", x: 510, y: 650, w: 200, h: 78 },
+            { id: "i.searchManager", x: 290, y: 650, w: 200, h: 78 },
+
+            // Cross-cutting
+            { id: "x12.sanitize", x: 290, y: 70, w: 220, h: 70 },
+            { id: "x13.schemas", x: 540, y: 70, w: 200, h: 70 },
+            { id: "x14.obs", x: 770, y: 70, w: 200, h: 70 },
+          ],
+          edges: [
+            { from: "sources.events", to: "c1.normalizer", label: "normalize" },
+            { from: "c1.normalizer", to: "c2.gates", label: "gates" },
+            { from: "c2.gates", to: "c3.decision", label: "score+mode" },
+            { from: "c2.gates", to: "c4.phenomenology", label: "run?" },
+            { from: "c3.decision", to: "c4.phenomenology", label: "full/light" },
+            { from: "c3.decision", to: "c5.artifacts", label: "collect refs" },
+            { from: "c4.phenomenology", to: "c6.kitbuilder", label: "facets" },
+            { from: "c5.artifacts", to: "c6.kitbuilder", label: "artifacts" },
+            { from: "c6.kitbuilder", to: "c7.store", label: "persist kit" },
+            { from: "c6.kitbuilder", to: "c8.trace", label: "trace" },
+            { from: "c7.store", to: "c9.fanout", label: "enqueue" },
+            { from: "c9.fanout", to: "i.memoryPipeline", label: "reuse" },
+            { from: "c9.fanout", to: "d.graphiti", label: "graph" },
+            { from: "c9.fanout", to: "d.pgvector", label: "vectors" },
+            { from: "c5.artifacts", to: "d.artifacts", label: "save media" },
+            { from: "c7.store", to: "d.sqlite", label: "default" },
+            { from: "c7.store", to: "d.postgres", label: "optional" },
+
+            // Retrieval
+            { from: "i.searchManager", to: "c10.hybrid", label: "query" },
+            { from: "c10.hybrid", to: "c11.reconstitute", label: "context pack" },
+            { from: "c10.hybrid", to: "d.graphiti", label: "traverse" },
+            { from: "c10.hybrid", to: "d.pgvector", label: "similarity" },
+            { from: "c10.hybrid", to: "c7.store", label: "fts+filters" },
+
+            // Cross cutting (dashed)
+            { from: "x12.sanitize", to: "c1.normalizer", label: "sanitize", dashed: true },
+            { from: "x12.sanitize", to: "c6.kitbuilder", label: "bound", dashed: true },
+            { from: "x13.schemas", to: "c6.kitbuilder", label: "schema", dashed: true },
+            { from: "x13.schemas", to: "c7.store", label: "migrate", dashed: true },
+            { from: "x14.obs", to: "c8.trace", label: "ops logs", dashed: true },
+            { from: "x14.obs", to: "c9.fanout", label: "health", dashed: true },
+          ],
+        },
+
+        capture: {
+          title: "Capture flow",
+          subtitle:
+            "High-throughput capture path: selectivity + facets + references, with canonical persistence and non-blocking side effects.",
+          viewBox: { x: 0, y: 0, w: 1400, h: 860 },
+          nodes: [
+            { id: "sources.events", x: 80, y: 120, w: 210, h: 78 },
+            { id: "x12.sanitize", x: 80, y: 230, w: 210, h: 70 },
+
+            { id: "c1.normalizer", x: 340, y: 120, w: 210, h: 78 },
+            { id: "c2.gates", x: 610, y: 120, w: 220, h: 78 },
+            { id: "c3.decision", x: 900, y: 120, w: 220, h: 78 },
+
+            { id: "c4.phenomenology", x: 900, y: 250, w: 220, h: 78 },
+            { id: "c5.artifacts", x: 610, y: 250, w: 220, h: 78 },
+            { id: "d.artifacts", x: 610, y: 365, w: 220, h: 78 },
+
+            { id: "c6.kitbuilder", x: 900, y: 365, w: 220, h: 78 },
+            { id: "x13.schemas", x: 1160, y: 365, w: 200, h: 70 },
+
+            { id: "c7.store", x: 900, y: 490, w: 220, h: 78 },
+            { id: "c8.trace", x: 610, y: 490, w: 220, h: 78 },
+            { id: "x14.obs", x: 340, y: 490, w: 210, h: 70 },
+
+            { id: "c9.fanout", x: 900, y: 620, w: 220, h: 78 },
+            { id: "d.graphiti", x: 1160, y: 620, w: 200, h: 78 },
+            { id: "d.pgvector", x: 1160, y: 730, w: 200, h: 78 },
+            { id: "i.memoryPipeline", x: 610, y: 620, w: 220, h: 78 },
+            { id: "d.sqlite", x: 900, y: 730, w: 220, h: 78 },
+          ],
+          edges: [
+            { from: "sources.events", to: "c1.normalizer", label: "normalize" },
+            { from: "x12.sanitize", to: "c1.normalizer", label: "guard", dashed: true },
+            { from: "c1.normalizer", to: "c2.gates", label: "gates" },
+            { from: "c2.gates", to: "c3.decision", label: "score" },
+            { from: "c3.decision", to: "c4.phenomenology", label: "facets" },
+            { from: "c3.decision", to: "c5.artifacts", label: "refs" },
+            { from: "c5.artifacts", to: "d.artifacts", label: "save" },
+            { from: "c4.phenomenology", to: "c6.kitbuilder", label: "add" },
+            { from: "c5.artifacts", to: "c6.kitbuilder", label: "add" },
+            { from: "x13.schemas", to: "c6.kitbuilder", label: "schema", dashed: true },
+            { from: "c6.kitbuilder", to: "c7.store", label: "persist" },
+            { from: "c6.kitbuilder", to: "c8.trace", label: "audit" },
+            { from: "x14.obs", to: "c8.trace", label: "metrics", dashed: true },
+            { from: "c7.store", to: "c9.fanout", label: "enqueue" },
+            { from: "c7.store", to: "d.sqlite", label: "default" },
+            { from: "c9.fanout", to: "d.graphiti", label: "graph" },
+            { from: "c9.fanout", to: "d.pgvector", label: "vectors" },
+            { from: "c9.fanout", to: "i.memoryPipeline", label: "reuse" },
+          ],
+        },
+
+        retrieval: {
+          title: "Retrieval flow",
+          subtitle:
+            "Context-oriented retrieval: intent parse → hybrid sources → ranking → citations → reconstitution pack.",
+          viewBox: { x: 0, y: 0, w: 1400, h: 760 },
+          nodes: [
+            { id: "i.searchManager", x: 90, y: 160, w: 240, h: 78 },
+            { id: "c10.hybrid", x: 370, y: 160, w: 260, h: 78 },
+            { id: "c11.reconstitute", x: 670, y: 160, w: 260, h: 78 },
+
+            { id: "c7.store", x: 370, y: 320, w: 260, h: 78 },
+            { id: "d.sqlite", x: 670, y: 320, w: 260, h: 78 },
+            { id: "d.pgvector", x: 970, y: 320, w: 260, h: 78 },
+            { id: "d.graphiti", x: 970, y: 440, w: 260, h: 78 },
+            { id: "d.artifacts", x: 670, y: 440, w: 260, h: 78 },
+            { id: "x12.sanitize", x: 90, y: 320, w: 240, h: 70 },
+            { id: "x14.obs", x: 90, y: 440, w: 240, h: 70 },
+          ],
+          edges: [
+            { from: "i.searchManager", to: "c10.hybrid", label: "query" },
+            { from: "c10.hybrid", to: "c11.reconstitute", label: "pack" },
+            { from: "c10.hybrid", to: "c7.store", label: "fts+filters" },
+            { from: "c7.store", to: "d.sqlite", label: "read" },
+            { from: "c10.hybrid", to: "d.pgvector", label: "similarity" },
+            { from: "c10.hybrid", to: "d.graphiti", label: "traverse" },
+            { from: "c11.reconstitute", to: "d.artifacts", label: "refs" },
+            { from: "x12.sanitize", to: "c11.reconstitute", label: "safe render", dashed: true },
+            { from: "x14.obs", to: "c10.hybrid", label: "ops log", dashed: true },
+          ],
+        },
+
+        storage: {
+          title: "Storage architecture",
+          subtitle:
+            "Polyglot persistence: canonical store for correctness; graph for relationships; vectors for similarity; artifacts for multimodal references.",
+          viewBox: { x: 0, y: 0, w: 1400, h: 760 },
+          nodes: [
+            { id: "c7.store", x: 90, y: 160, w: 260, h: 78 },
+            { id: "d.sqlite", x: 90, y: 270, w: 260, h: 78 },
+            { id: "d.postgres", x: 90, y: 380, w: 260, h: 78 },
+
+            { id: "d.pgvector", x: 420, y: 270, w: 260, h: 78 },
+            { id: "d.graphiti", x: 420, y: 380, w: 260, h: 78 },
+            { id: "d.artifacts", x: 420, y: 490, w: 260, h: 78 },
+
+            { id: "c9.fanout", x: 750, y: 270, w: 260, h: 78 },
+            { id: "i.memoryPipeline", x: 750, y: 380, w: 260, h: 78 },
+            { id: "c10.hybrid", x: 750, y: 490, w: 260, h: 78 },
+
+            { id: "x13.schemas", x: 1100, y: 270, w: 240, h: 70 },
+            { id: "c8.trace", x: 1100, y: 380, w: 240, h: 78 },
+            { id: "x14.obs", x: 1100, y: 490, w: 240, h: 70 },
+          ],
+          edges: [
+            { from: "c7.store", to: "d.sqlite", label: "default" },
+            { from: "c7.store", to: "d.postgres", label: "optional" },
+            { from: "c7.store", to: "c9.fanout", label: "enqueue" },
+            { from: "c9.fanout", to: "d.pgvector", label: "upsert/query" },
+            { from: "c9.fanout", to: "d.graphiti", label: "write/traverse" },
+            { from: "c9.fanout", to: "d.artifacts", label: "store refs" },
+            { from: "c9.fanout", to: "i.memoryPipeline", label: "reuse" },
+            { from: "c10.hybrid", to: "d.pgvector", label: "similarity" },
+            { from: "c10.hybrid", to: "d.graphiti", label: "traversal" },
+            { from: "c10.hybrid", to: "c7.store", label: "filters/fts" },
+            { from: "x13.schemas", to: "c7.store", label: "migrate", dashed: true },
+            { from: "c8.trace", to: "x14.obs", label: "ops log", dashed: true },
+            { from: "c7.store", to: "c8.trace", label: "audit" },
+          ],
+        },
+      };
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // UI State
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      const state = {
+        diagramId: "system",
+        selectedId: null,
+        highlightId: null,
+        tab: "details",
+        focus: false,
+        search: "",
+        theme: "auto",
+      };
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Helpers
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+      function setTheme(theme) {
+        const root = document.documentElement;
+        if (theme === "auto") {
+          root.removeAttribute("data-theme");
+        } else {
+          root.setAttribute("data-theme", theme);
+        }
+        state.theme = theme;
+        localStorage.setItem("meridia.arch.theme", theme);
+        const btn = $("#themeBtn");
+        if (btn) {
+          btn.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+          btn.textContent =
+            theme === "auto" ? "Theme: auto" : theme === "dark" ? "Theme: dark" : "Theme: light";
+        }
+      }
+
+      function nextTheme() {
+        // cycle auto → dark → light → auto
+        const current = state.theme;
+        const next = current === "auto" ? "dark" : current === "dark" ? "light" : "auto";
+        setTheme(next);
+      }
+
+      function setTab(tab) {
+        state.tab = tab;
+        for (const btn of $$(".tabBtn")) {
+          const is = btn.dataset.tab === tab;
+          btn.setAttribute("aria-selected", is ? "true" : "false");
+        }
+        renderPanel();
+      }
+
+      function setDiagram(diagramId) {
+        if (!DIAGRAMS[diagramId]) return;
+        state.diagramId = diagramId;
+        state.focus = false;
+        localStorage.setItem("meridia.arch.view", diagramId);
+        const select = $("#viewSelect");
+        if (select) select.value = diagramId;
+        renderDiagram();
+      }
+
+      function clearSelection() {
+        state.selectedId = null;
+        state.focus = false;
+        $("#selectionPill").textContent = "No selection";
+        renderDiagram();
+        renderPanel();
+      }
+
+      function selectElement(id, opts = {}) {
+        if (!byId[id]) return;
+        state.selectedId = id;
+        if (opts.tab) setTab(opts.tab);
+        $("#selectionPill").textContent = `Selected: ${byId[id].name}`;
+        renderDiagram();
+        renderPanel();
+      }
+
+      function setHighlight(id) {
+        state.highlightId = id;
+        state.selectedId = null;
+        state.focus = false;
+        setTab("highlights");
+        const hl = byHighlightId[id];
+        if (hl && hl.suggestedView) {
+          setDiagram(hl.suggestedView);
+        } else {
+          renderDiagram();
+        }
+        renderPanel();
+      }
+
+      function clearHighlight() {
+        state.highlightId = null;
+        renderDiagram();
+        renderPanel();
+      }
+
+      function isMatch(element, query) {
+        const q = query.trim().toLowerCase();
+        if (!q) return true;
+        const hay = [
+          element.name,
+          element.subtitle,
+          element.oneLiner,
+          ...(element.tags ?? []),
+          ...(element.details?.responsibilities ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(q);
+      }
+
+      function planeColor(plane) {
+        if (plane === "capture")
+          return getComputedStyle(document.documentElement).getPropertyValue("--cap");
+        if (plane === "index")
+          return getComputedStyle(document.documentElement).getPropertyValue("--idx");
+        if (plane === "retrieval")
+          return getComputedStyle(document.documentElement).getPropertyValue("--ret");
+        if (plane === "xcut")
+          return getComputedStyle(document.documentElement).getPropertyValue("--xcut");
+        return getComputedStyle(document.documentElement).getPropertyValue("--store");
+      }
+
+      function statusClass(status) {
+        if (status === "exists") return "stExists";
+        if (status === "partial") return "stPartial";
+        return "stPlanned";
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Rendering: SVG diagram
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      function renderDiagram() {
+        const diagram = DIAGRAMS[state.diagramId];
+        if (!diagram) return;
+
+        $("#diagramTitle").textContent = diagram.title;
+        $("#diagramSubtitle").textContent = diagram.subtitle;
+
+        const svg = $("#diagram");
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+        svg.setAttribute(
+          "viewBox",
+          `${diagram.viewBox.x} ${diagram.viewBox.y} ${diagram.viewBox.w} ${diagram.viewBox.h}`,
+        );
+        svg.setAttribute("tabindex", "0");
+
+        // defs: arrow marker
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        marker.setAttribute("id", "arrow");
+        marker.setAttribute("markerWidth", "10");
+        marker.setAttribute("markerHeight", "10");
+        marker.setAttribute("refX", "9");
+        marker.setAttribute("refY", "3");
+        marker.setAttribute("orient", "auto");
+        const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrowPath.setAttribute("d", "M0,0 L9,3 L0,6 Z");
+        arrowPath.setAttribute("fill", "currentColor");
+        marker.appendChild(arrowPath);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+
+        const nodeById = Object.fromEntries(diagram.nodes.map((n) => [n.id, n]));
+
+        // edges (behind nodes)
+        const edgeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        edgeGroup.setAttribute("aria-hidden", "true");
+        for (const e of diagram.edges) {
+          const a = nodeById[e.from];
+          const b = nodeById[e.to];
+          if (!a || !b) continue;
+          const x1 = a.x + a.w;
+          const y1 = a.y + a.h / 2;
+          const x2 = b.x;
+          const y2 = b.y + b.h / 2;
+          const midX = (x1 + x2) / 2;
+          const d = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", d);
+          path.setAttribute("class", `edge${e.dashed ? " dim" : ""}`);
+          if (e.dashed) {
+            path.setAttribute("stroke-dasharray", "6 6");
+          }
+          path.setAttribute("marker-end", "url(#arrow)");
+          // Arrow fill uses currentColor; CSS sets color to match stroke.
+          path.dataset.from = e.from;
+          path.dataset.to = e.to;
+          edgeGroup.appendChild(path);
+
+          if (e.label) {
+            const tx = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            tx.setAttribute("x", String(midX));
+            tx.setAttribute("y", String((y1 + y2) / 2 - 6));
+            tx.setAttribute("text-anchor", "middle");
+            tx.setAttribute("font-size", "10.5");
+            tx.setAttribute("fill", "var(--muted)");
+            tx.textContent = e.label;
+            edgeGroup.appendChild(tx);
+          }
+        }
+        svg.appendChild(edgeGroup);
+
+        // nodes
+        const nodeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        for (const n of diagram.nodes) {
+          const el = byId[n.id];
+          if (!el) continue;
+
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          g.setAttribute("class", "node");
+          g.setAttribute("tabindex", "0");
+          g.dataset.id = n.id;
+          g.setAttribute("role", "button");
+          g.setAttribute("aria-label", `${el.name}: ${el.oneLiner}`);
+
+          const plane = el.plane;
+
+          // shape
+          if (el.kind === "store") {
+            // cylinder-ish shape
+            const rx = 14;
+            const topH = 10;
+            const body = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const x = n.x;
+            const y = n.y;
+            const w = n.w;
+            const h = n.h;
+            const d = [
+              `M ${x + rx} ${y}`,
+              `H ${x + w - rx}`,
+              `Q ${x + w} ${y} ${x + w} ${y + topH}`,
+              `V ${y + h - topH}`,
+              `Q ${x + w} ${y + h} ${x + w - rx} ${y + h}`,
+              `H ${x + rx}`,
+              `Q ${x} ${y + h} ${x} ${y + h - topH}`,
+              `V ${y + topH}`,
+              `Q ${x} ${y} ${x + rx} ${y}`,
+              "Z",
+            ].join(" ");
+            body.setAttribute("d", d);
+            body.setAttribute("class", "shapeAlt");
+            g.appendChild(body);
+          } else if (el.kind === "xcut") {
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", String(n.x));
+            rect.setAttribute("y", String(n.y));
+            rect.setAttribute("width", String(n.w));
+            rect.setAttribute("height", String(n.h));
+            rect.setAttribute("rx", "16");
+            rect.setAttribute("class", "shapeAlt");
+            g.appendChild(rect);
+          } else if (el.kind === "source") {
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", String(n.x));
+            rect.setAttribute("y", String(n.y));
+            rect.setAttribute("width", String(n.w));
+            rect.setAttribute("height", String(n.h));
+            rect.setAttribute("rx", "18");
+            rect.setAttribute("class", "shapeAlt");
+            g.appendChild(rect);
+          } else {
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", String(n.x));
+            rect.setAttribute("y", String(n.y));
+            rect.setAttribute("width", String(n.w));
+            rect.setAttribute("height", String(n.h));
+            rect.setAttribute("rx", "18");
+            rect.setAttribute("class", "shape");
+            g.appendChild(rect);
+          }
+
+          // label text
+          const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          label.setAttribute("x", String(n.x + 12));
+          label.setAttribute("y", String(n.y + 28));
+          label.setAttribute("class", "label");
+          label.textContent = el.name;
+          g.appendChild(label);
+
+          const sub = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          sub.setAttribute("x", String(n.x + 12));
+          sub.setAttribute("y", String(n.y + 48));
+          sub.setAttribute("class", "sub");
+          sub.textContent = el.subtitle ?? "";
+          g.appendChild(sub);
+
+          // plane tag pill
+          const tagW = Math.min(78, Math.max(56, (el.plane || "store").length * 7));
+          const pill = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          pill.setAttribute("x", String(n.x + n.w - tagW - 10));
+          pill.setAttribute("y", String(n.y + 10));
+          pill.setAttribute("width", String(tagW));
+          pill.setAttribute("height", "18");
+          pill.setAttribute("rx", "9");
+          const planeCls =
+            el.plane === "capture"
+              ? "planeCap"
+              : el.plane === "index"
+                ? "planeIdx"
+                : el.plane === "retrieval"
+                  ? "planeRet"
+                  : el.plane === "xcut"
+                    ? "planeXcut"
+                    : "planeStore";
+          pill.setAttribute("class", planeCls);
+          g.appendChild(pill);
+
+          const tagText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          tagText.setAttribute("x", String(n.x + n.w - tagW - 10 + tagW / 2));
+          tagText.setAttribute("y", String(n.y + 23));
+          tagText.setAttribute("text-anchor", "middle");
+          tagText.setAttribute("class", "planeTag");
+          tagText.textContent = el.plane === "store" ? "store" : el.plane;
+          g.appendChild(tagText);
+
+          // status badge
+          const stW = 74;
+          const st = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          st.setAttribute("x", String(n.x + 12));
+          st.setAttribute("y", String(n.y + n.h - 26));
+          st.setAttribute("width", String(stW));
+          st.setAttribute("height", "16");
+          st.setAttribute("rx", "8");
+          st.setAttribute("class", statusClass(el.status));
+          g.appendChild(st);
+
+          const stText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          stText.setAttribute("x", String(n.x + 12 + stW / 2));
+          stText.setAttribute("y", String(n.y + n.h - 14));
+          stText.setAttribute("text-anchor", "middle");
+          stText.setAttribute("class", "statusBadge");
+          stText.textContent = el.status;
+          g.appendChild(stText);
+
+          // interactions
+          g.addEventListener("click", () => selectElement(n.id, { tab: "details" }));
+          g.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter" || ev.key === " ") {
+              ev.preventDefault();
+              selectElement(n.id, { tab: "details" });
+            }
+          });
+
+          g.addEventListener("mouseenter", (ev) => showTooltip(ev, el));
+          g.addEventListener("mousemove", (ev) => moveTooltip(ev));
+          g.addEventListener("mouseleave", () => hideTooltip());
+
+          nodeGroup.appendChild(g);
+        }
+        svg.appendChild(nodeGroup);
+
+        applyVisualState(svg, diagram);
+      }
+
+      function applyVisualState(svg, diagram) {
+        const query = state.search.trim().toLowerCase();
+        const hasSearch = Boolean(query);
+        const sel = state.selectedId;
+        const highlight = state.highlightId ? byHighlightId[state.highlightId] : null;
+        const spotlight = highlight ? new Set(highlight.spotlight) : null;
+
+        const nodeIds = new Set(diagram.nodes.map((n) => n.id));
+
+        // compute neighborhood for selection
+        const neighbors = new Set();
+        if (sel) {
+          for (const e of diagram.edges) {
+            if (e.from === sel) neighbors.add(e.to);
+            if (e.to === sel) neighbors.add(e.from);
+          }
+        }
+
+        // nodes
+        for (const g of svg.querySelectorAll(".node")) {
+          const id = g.dataset.id;
+          const el = byId[id];
+          if (!id || !el) continue;
+
+          g.classList.toggle("selected", id === sel);
+
+          const matches = !hasSearch || isMatch(el, query);
+          const isSpot = spotlight ? spotlight.has(id) : false;
+          const inNeighborhood = sel ? id === sel || neighbors.has(id) : true;
+
+          let dim = false;
+          if (spotlight) {
+            dim = !isSpot;
+          } else if (hasSearch) {
+            dim = !matches;
+          } else if (sel) {
+            dim = !inNeighborhood;
+          }
+
+          g.classList.toggle("dim", dim);
+        }
+
+        // edges
+        for (const p of svg.querySelectorAll(".edge")) {
+          const from = p.dataset.from;
+          const to = p.dataset.to;
+          const active = sel && (from === sel || to === sel);
+          p.classList.toggle("active", Boolean(active));
+
+          let dim = false;
+          if (spotlight) {
+            dim = !(spotlight.has(from) && spotlight.has(to));
+          } else if (sel) {
+            dim = !active;
+          }
+          p.classList.toggle("dim", dim);
+        }
+
+        if (state.focus && sel) {
+          focusViewBox(diagram, sel);
+        }
+      }
+
+      function focusViewBox(diagram, selectedId) {
+        const svg = $("#diagram");
+        const nodes = diagram.nodes;
+        const byNid = Object.fromEntries(nodes.map((n) => [n.id, n]));
+        const s = byNid[selectedId];
+        if (!s) return;
+
+        const neigh = new Set([selectedId]);
+        for (const e of diagram.edges) {
+          if (e.from === selectedId) neigh.add(e.to);
+          if (e.to === selectedId) neigh.add(e.from);
+        }
+
+        let minX = Infinity,
+          minY = Infinity,
+          maxX = -Infinity,
+          maxY = -Infinity;
+        for (const id of neigh) {
+          const n = byNid[id];
+          if (!n) continue;
+          minX = Math.min(minX, n.x);
+          minY = Math.min(minY, n.y);
+          maxX = Math.max(maxX, n.x + n.w);
+          maxY = Math.max(maxY, n.y + n.h);
+        }
+
+        if (!Number.isFinite(minX)) return;
+        const pad = 60;
+        const x = Math.max(diagram.viewBox.x, minX - pad);
+        const y = Math.max(diagram.viewBox.y, minY - pad);
+        const w = Math.min(diagram.viewBox.w, maxX - minX + pad * 2);
+        const h = Math.min(diagram.viewBox.h, maxY - minY + pad * 2);
+        svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+      }
+
+      function fitViewBox() {
+        const diagram = DIAGRAMS[state.diagramId];
+        if (!diagram) return;
+        const svg = $("#diagram");
+        svg.setAttribute(
+          "viewBox",
+          `${diagram.viewBox.x} ${diagram.viewBox.y} ${diagram.viewBox.w} ${diagram.viewBox.h}`,
+        );
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Tooltip
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      function showTooltip(ev, el) {
+        const t = $("#tooltip");
+        t.innerHTML = `<strong>${escapeHtml(el.name)}</strong><div>${escapeHtml(el.oneLiner)}</div>`;
+        t.classList.add("visible");
+        t.setAttribute("aria-hidden", "false");
+        moveTooltip(ev);
+      }
+
+      function moveTooltip(ev) {
+        const t = $("#tooltip");
+        const pad = 14;
+        const x = Math.min(window.innerWidth - 20, ev.clientX + pad);
+        const y = Math.min(window.innerHeight - 20, ev.clientY + pad);
+        t.style.left = `${x}px`;
+        t.style.top = `${y}px`;
+      }
+
+      function hideTooltip() {
+        const t = $("#tooltip");
+        t.classList.remove("visible");
+        t.setAttribute("aria-hidden", "true");
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Panel rendering
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      function renderPanel() {
+        const body = $("#panelBody");
+        if (!body) return;
+
+        const tab = state.tab;
+        if (tab === "details") {
+          body.innerHTML = renderDetailsTab();
+          bindPanelLinks();
+          return;
+        }
+        if (tab === "highlights") {
+          body.innerHTML = renderHighlightsTab();
+          bindPanelLinks();
+          return;
+        }
+        if (tab === "impact") {
+          body.innerHTML = renderImpactTab();
+          bindPanelLinks();
+          return;
+        }
+        if (tab === "sources") {
+          body.innerHTML = renderSourcesTab();
+          bindPanelLinks();
+          return;
+        }
+      }
+
+      function renderCitations(sources) {
+        if (!sources || sources.length === 0) return "";
+        const items = sources
+          .map((id) => `<a href="#" class="cite" data-source="${id}">[${id}]</a>`)
+          .join(" ");
+        return `<div class="subtle">Sources: ${items}</div>`;
+      }
+
+      function renderDetailsTab() {
+        const sel = state.selectedId ? byId[state.selectedId] : null;
+
+        if (!sel) {
+          return `
+            <h3>Click a node to drill down</h3>
+            <p>
+              Use the diagram to explore the system. Meridia is designed around <strong>Experience Kits</strong> — structured
+              moments with phenomenology + references + provenance that can be persisted and reconstituted.
+            </p>
+            <div class="callout">
+              <p>
+                Start here: open <a href="#" class="openHighlight" data-highlight="h.experienceKits">Experience Kits</a> and
+                <a href="#" class="openHighlight" data-highlight="h.polyglot">Polyglot persistence</a>.
+              </p>
+            </div>
+            ${renderCitations(["S2", "S1", "S4"])}
+          `;
+        }
+
+        const dd = sel.details ?? {};
+        const responsibilities = dd.responsibilities ?? [];
+        const failureModes = dd.failureModes ?? [];
+        const tags = sel.tags ?? [];
+
+        const deep = sel.deepDive
+          ? `<div class="callout"><p><strong>Deep dive:</strong> <code>${escapeHtml(sel.deepDive)}</code></p></div>`
+          : "";
+
+        const tagChips = tags.length
+          ? `<div class="chips">${tags
+              .slice(0, 12)
+              .map(
+                (t) =>
+                  `<span class="chip" role="button" tabindex="0" data-search="${escapeHtml(t)}"><span class="miniDot"></span>${escapeHtml(t)}</span>`,
+              )
+              .join("")}</div>`
+          : "";
+
+        return `
+          <h3>${escapeHtml(sel.name)}</h3>
+          <p>${escapeHtml(sel.oneLiner)}</p>
+          <div class="subtle">
+            Plane: <strong>${escapeHtml(sel.plane)}</strong> · Status:
+            <span class="statusPill ${escapeHtml(sel.status)}">${escapeHtml(sel.status)}</span>
+          </div>
+          ${tagChips}
+          ${deep}
+          <div class="kvs">
+            ${
+              dd.valueAdd
+                ? `<div class="kv"><strong>Value-add</strong><p style="margin:0;color:var(--ink1)">${escapeHtml(dd.valueAdd)}</p></div>`
+                : ""
+            }
+            <div class="kv">
+              <strong>Responsibilities</strong>
+              <ul>${responsibilities.map((r) => `<li>${escapeHtml(r)}</li>`).join("")}</ul>
+            </div>
+            ${
+              failureModes.length
+                ? `<div class="kv"><strong>Failure modes</strong><ul>${failureModes
+                    .map((r) => `<li>${escapeHtml(r)}</li>`)
+                    .join("")}</ul></div>`
+                : ""
+            }
+          </div>
+          ${renderCitations(sel.sources)}
+          <div class="callout">
+            <p>
+              Want context? Open <a href="#" class="jumpTab" data-tab="highlights">Highlights</a> for “why this matters” narratives,
+              or <a href="#" class="jumpTab" data-tab="impact">Impact</a> for ecosystem-level effects.
+            </p>
+          </div>
+        `;
+      }
+
+      function renderHighlightsTab() {
+        const active = state.highlightId ? byHighlightId[state.highlightId] : null;
+
+        const cards = HIGHLIGHTS.map((h) => {
+          const on = active && active.id === h.id;
+          const cite = renderCitations(h.sources);
+          return `
+            <div class="kv" style="margin-bottom:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <strong style="margin:0;">${escapeHtml(h.title)}</strong>
+                <button class="pill ${on ? "primary" : ""} openHighlight" data-highlight="${escapeHtml(h.id)}">
+                  ${on ? "Active" : "Spotlight"}
+                </button>
+              </div>
+              <p style="margin:8px 0 10px;color:var(--ink1)">${escapeHtml(h.valueAdd)}</p>
+              <div class="subtle">Spotlight nodes: ${h.spotlight
+                .map((id) => byId[id]?.name)
+                .filter(Boolean)
+                .map((n) => `<span style="white-space:nowrap;">${escapeHtml(n)}</span>`)
+                .join(" · ")}</div>
+              <div style="margin-top:8px;">${cite}</div>
+            </div>
+          `;
+        }).join("");
+
+        const activeBlock = active
+          ? `
+              <div class="callout">
+                <p>
+                  Spotlight is active. The diagram is dimming everything except the spotlight set. Click nodes to drill down, or
+                  <a href="#" class="clearHighlight">clear spotlight</a>.
+                </p>
+              </div>
+            `
+          : `
+              <div class="callout">
+                <p>
+                  Highlights are intentionally not all visible at once. Pick a highlight to spotlight key nodes and read
+                  citations inline.
+                </p>
+              </div>
+            `;
+
+        return `
+          <h3>Highlights</h3>
+          <p>
+            These are the “value-add lenses” for a long-lived experience/memory architecture: what’s novel, why it matters, and
+            what you can build next.
+          </p>
+          ${activeBlock}
+          ${cards}
+        `;
+      }
+
+      function renderImpactTab() {
+        return `
+          <h3>Impact</h3>
+          <p>
+            A robust experience/existence architecture changes what long-lived autonomous agents can do, how humans collaborate
+            with them, and how multi-agent ecosystems evolve. This section is intentionally written as plausible consequences
+            (not guarantees).
+          </p>
+
+          <div class="kv">
+            <strong>Impact on AI agents</strong>
+            <ul>
+              <li><strong>Continuity of posture:</strong> reconstitution packs restore priorities, constraints, and relational stance.</li>
+              <li><strong>Self-model iteration:</strong> phenomenology + trace enables tuning what the agent treats as significant.</li>
+              <li><strong>Less brittle autonomy:</strong> artifact-backed references reduce hallucinated recall and improve verification.</li>
+              <li><strong>Long-horizon planning:</strong> graph and vectors connect distant moments into arcs (projects, relationships, uncertainties).</li>
+            </ul>
+          </div>
+
+          <div class="kv">
+            <strong>Impact on humans (users/operators)</strong>
+            <ul>
+              <li><strong>Trust through auditability:</strong> trace explains what was captured and why (and what wasn’t).</li>
+              <li><strong>Faster re-onboarding:</strong> the system reduces “start from scratch” across days/weeks.</li>
+              <li><strong>Richer collaboration:</strong> relationship textures and anchors support consistent communication style.</li>
+              <li><strong>Lower cognitive overhead:</strong> users offload “context keeping” to an inspectable, citable system.</li>
+            </ul>
+          </div>
+
+          <div class="kv">
+            <strong>Impact on world/community</strong>
+            <ul>
+              <li><strong>Reproducible agent work:</strong> artifacts + provenance create sharable “how we got here” trails.</li>
+              <li><strong>Community memory:</strong> shared graphs/vectors could enable org-level continuity across many agents.</li>
+              <li><strong>New safety surfaces:</strong> memory poisoning, privacy, and retention become first-class governance concerns.</li>
+              <li><strong>Faster technological development:</strong> agents can accumulate durable expertise and collaborate across long arcs.</li>
+            </ul>
+          </div>
+
+          <div class="kv">
+            <strong>Inter-agent collaboration</strong>
+            <ul>
+              <li><strong>Shared schemas:</strong> Experience Kits are a lingua franca for agents to exchange work and context.</li>
+              <li><strong>Graph-mediated coordination:</strong> agents can traverse “who touched what and why” across tasks.</li>
+              <li><strong>Negotiated memory boundaries:</strong> teams can choose what is shared vs private via provenance and policies.</li>
+              <li><strong>Reduced duplication:</strong> semantic recall retrieves prior solutions even when phrased differently.</li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <p>
+              Want the technical backing? Open <a href="#" class="jumpTab" data-tab="sources">Sources</a> for the design and research
+              docs that motivate polyglot persistence, multimodal capture, and graph/vector retrieval.
+            </p>
+          </div>
+          ${renderCitations(["S1", "S2", "S3", "S4"])}
+        `;
+      }
+
+      function renderSourcesTab() {
+        const items = SOURCES.map((s) => {
+          return `
+            <div class="sourceItem" id="source-${escapeHtml(s.id)}">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <strong>${escapeHtml(s.id)} · ${escapeHtml(s.title)}</strong>
+                <button class="pill jumpSource" data-copy="${escapeHtml(s.path)}">Copy path</button>
+              </div>
+              <div style="margin-top:8px;"><code>${escapeHtml(s.path)}</code></div>
+              <div class="meta">${escapeHtml(s.note)}</div>
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <h3>Sources</h3>
+          <p>
+            Citations in this page point to repository artifacts (design docs, schemas, and code) rather than external links so
+            the overview stays grounded in the actual system.
+          </p>
+          <div class="sourceList">${items}</div>
+        `;
+      }
+
+      function bindPanelLinks() {
+        for (const a of $$(".jumpTab")) {
+          a.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            const tab = a.dataset.tab;
+            if (tab) setTab(tab);
+          });
+        }
+        for (const a of $$(".openHighlight")) {
+          a.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            const id = a.dataset.highlight;
+            if (!id) return;
+            if (state.highlightId === id) return;
+            setHighlight(id);
+          });
+        }
+        for (const a of $$(".clearHighlight")) {
+          a.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            clearHighlight();
+          });
+        }
+        for (const a of $$(".cite")) {
+          a.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            const id = a.dataset.source;
+            if (!id) return;
+            setTab("sources");
+            setTimeout(() => {
+              const el = document.getElementById(`source-${id}`);
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+                el.style.boxShadow = "0 0 0 4px var(--focusRing)";
+                setTimeout(() => (el.style.boxShadow = ""), 900);
+              }
+            }, 0);
+          });
+        }
+        for (const chip of $$(".chip[data-search]")) {
+          chip.addEventListener("click", () => {
+            const q = chip.dataset.search ?? "";
+            state.search = q;
+            $("#searchBox").value = q;
+            renderDiagram();
+          });
+          chip.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter" || ev.key === " ") {
+              ev.preventDefault();
+              chip.click();
+            }
+          });
+        }
+        for (const b of $$(".jumpSource")) {
+          b.addEventListener("click", async () => {
+            const value = b.dataset.copy;
+            if (!value) return;
+            try {
+              await navigator.clipboard.writeText(value);
+              b.textContent = "Copied";
+              setTimeout(() => (b.textContent = "Copy path"), 800);
+            } catch {
+              // no-op
+            }
+          });
+        }
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // Wire up controls
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      function init() {
+        // Restore view/theme
+        const savedView = localStorage.getItem("meridia.arch.view");
+        if (savedView && DIAGRAMS[savedView]) state.diagramId = savedView;
+        const savedTheme = localStorage.getItem("meridia.arch.theme");
+        setTheme(savedTheme || "auto");
+
+        $("#viewSelect").addEventListener("change", (ev) => setDiagram(ev.target.value));
+        $("#fitBtn").addEventListener("click", () => {
+          state.focus = false;
+          fitViewBox();
+          renderDiagram();
+        });
+        $("#focusBtn").addEventListener("click", () => {
+          if (!state.selectedId) return;
+          state.focus = !state.focus;
+          renderDiagram();
+        });
+
+        $("#themeBtn").addEventListener("click", () => nextTheme());
+        $("#clearBtn").addEventListener("click", () => {
+          state.search = "";
+          $("#searchBox").value = "";
+          renderDiagram();
+        });
+
+        $("#searchBox").addEventListener("input", (ev) => {
+          state.search = ev.target.value ?? "";
+          renderDiagram();
+        });
+
+        $("#tourBtn").addEventListener("click", () => {
+          setTab("highlights");
+          if (!state.highlightId) {
+            setHighlight("h.experienceKits");
+          }
+        });
+
+        for (const btn of $$(".tabBtn")) {
+          btn.addEventListener("click", () => setTab(btn.dataset.tab));
+        }
+
+        document.addEventListener("keydown", (ev) => {
+          if (ev.key === "Escape") {
+            if (state.highlightId) {
+              clearHighlight();
+              return;
+            }
+            clearSelection();
+          }
+        });
+
+        // initial render
+        $("#viewSelect").value = state.diagramId;
+        renderDiagram();
+        renderPanel();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
