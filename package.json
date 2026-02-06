@@ -104,6 +104,7 @@
     "test:view-logs": "bash scripts/view-test-logs.sh",
     "test:watch": "vitest",
     "test:with-logs": "CLAWDBRAIN_TEST_LOGS=1 node scripts/test-parallel.mjs",
+    "tsc": "tsc --noEmit && cd ui && tsc --noEmit && cd ../apps/web && tsc -b",
     "tui": "node scripts/run-node.mjs tui",
     "tui:dev": "OPENCLAW_PROFILE=dev CLAWDBOT_PROFILE=dev node scripts/run-node.mjs --dev tui",
     "ui:build": "node scripts/ui.js build",
