@@ -1,45 +1,15 @@
 "use client";
-
-import * as React from "react";
 import { Server, Info } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GatewayConfig, type GatewayStatus, type AccessMode } from "@/components/domain/config";
+import { GatewayConfigConnected } from "@/components/domain/config";
 
 interface GatewaySectionProps {
   className?: string;
 }
 
 export function GatewaySection({ className }: GatewaySectionProps) {
-  // In production, these would come from the actual gateway status API
-  const [gatewayStatus, setGatewayStatus] = React.useState<GatewayStatus>("disconnected");
-  const [gatewayConfig, setGatewayConfig] = React.useState({
-    port: 18789,
-    accessMode: "local" as AccessMode,
-    customBind: "",
-    authToken: "clawdbrain_abc123xyz789...",
-  });
-
-  const handleConfigChange = (config: {
-    port: number;
-    accessMode: AccessMode;
-    customBind?: string;
-  }) => {
-    setGatewayConfig((prev) => ({
-      ...prev,
-      ...config,
-    }));
-    // In production, this would trigger a gateway restart with new config
-  };
-
-  const handleReconnect = async () => {
-    setGatewayStatus("connecting");
-    // Simulate reconnection
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setGatewayStatus("connected");
-  };
-
   return (
     <div className={cn("space-y-6", className)}>
       {/* Info Card */}
@@ -60,15 +30,7 @@ export function GatewaySection({ className }: GatewaySectionProps) {
       </Card>
 
       {/* Gateway Config Component */}
-      <GatewayConfig
-        status={gatewayStatus}
-        port={gatewayConfig.port}
-        accessMode={gatewayConfig.accessMode}
-        customBind={gatewayConfig.customBind}
-        authToken={gatewayConfig.authToken}
-        onConfigChange={handleConfigChange}
-        onReconnect={handleReconnect}
-      />
+      <GatewayConfigConnected />
 
       {/* Additional Gateway Info */}
       <Card>

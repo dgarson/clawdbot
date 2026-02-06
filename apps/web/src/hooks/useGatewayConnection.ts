@@ -14,6 +14,13 @@ import {
   type GatewayClientConfig,
   type GatewayHelloOk,
 } from "@/lib/api/gateway-client";
+import {
+  clearSharedGatewayPassword,
+  clearSharedGatewayToken,
+  loadStoredGatewayUrl,
+  storeSharedGatewayPassword,
+  storeSharedGatewayToken,
+} from "@/lib/api/device-auth-storage";
 
 export interface GapInfo {
   expected: number;
@@ -80,6 +87,7 @@ export function useGatewayConnection(
   options: UseGatewayConnectionOptions = {}
 ): UseGatewayConnectionResult {
   const { url, token, password, autoConnect = true, onEvent, onGap, onHello } = options;
+  const resolvedUrl = useMemo(() => url ?? loadStoredGatewayUrl(), [url]);
 
   const mountedRef = useRef(true);
   const wasConnectedRef = useRef(false);
@@ -92,27 +100,22 @@ export function useGatewayConnection(
   // Initialize client once with config
   const client = useMemo(() => {
     const config: GatewayClientConfig = {
-      url,
+      url: resolvedUrl,
       token,
       password,
       onEvent,
       onHello: (hello) => {
-        if (mountedRef.current) {
-          setHelloData(hello);
-          setReconnectAttempts(0); // Reset on successful connection
-          wasConnectedRef.current = true;
-          onHello?.(hello);
-        }
+        setHelloData(hello);
+        setReconnectAttempts(0); // Reset on successful connection
+        onHello?.(hello);
       },
       onGap: (info) => {
-        if (mountedRef.current) {
-          setLastGap(info);
-          onGap?.(info);
-        }
+        setLastGap(info);
+        onGap?.(info);
       },
     };
     return getGatewayClient(config);
-  }, [url, token, password, onEvent, onGap, onHello]);
+  }, [resolvedUrl, token, password, onEvent, onGap, onHello]);
 
   const [state, setState] = useState<GatewayConnectionState>(client.getConnectionState());
   const [error, setError] = useState<Error | null>(null);
@@ -137,6 +140,7 @@ export function useGatewayConnection(
             setError(new Error(authState.error));
           }
         } else if (newState.status === "connected") {
+          wasConnectedRef.current = true;
           setError(null);
         }
       }
@@ -178,6 +182,13 @@ export function useGatewayConnection(
         const unsub = client.onStateChange((newState) => {
           if (newState.status === "connected") {
             unsub();
+            if (credentials.type === "token") {
+              storeSharedGatewayToken(credentials.value.trim());
+              clearSharedGatewayPassword();
+            } else {
+              storeSharedGatewayPassword(credentials.value);
+              clearSharedGatewayToken();
+            }
             resolve();
           } else if (newState.status === "auth_required" || newState.status === "error") {
             unsub();
@@ -201,6 +212,8 @@ export function useGatewayConnection(
 
   const clearCredentials = useCallback(() => {
     client.clearCredentials();
+    clearSharedGatewayToken();
+    clearSharedGatewayPassword();
   }, [client]);
 
   const connect = useCallback(async () => {
@@ -252,8 +265,7 @@ export function useGatewayConnection(
  * Hook to get the current gateway URL from config or environment.
  */
 export function useGatewayUrl(): string {
-  // In the future, this could read from user settings or environment
-  return "ws://127.0.0.1:18789";
+  return loadStoredGatewayUrl();
 }
 
 export default useGatewayConnection;

@@ -9,6 +9,17 @@ import { usePatchConfig } from "@/hooks/mutations/useConfigMutations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState, errorMessages } from "@/components/composed/ErrorState";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  clearSharedGatewayPassword,
+  clearSharedGatewayToken,
+  loadStoredGatewayConnectionSettings,
+  storeGatewayUrl,
+  storeSharedGatewayPassword,
+  storeSharedGatewayToken,
+} from "@/lib/api";
 
 interface GatewayConfigConnectedProps {
   className?: string;
@@ -32,6 +43,15 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
   } = useConfig();
   const patchConfig = usePatchConfig();
   const [isRetrying, setIsRetrying] = React.useState(false);
+  const [isSavingConnection, setIsSavingConnection] = React.useState(false);
+  const [connectionSettings, setConnectionSettings] = React.useState(() => {
+    const stored = loadStoredGatewayConnectionSettings();
+    return {
+      gatewayUrl: stored.gatewayUrl,
+      token: stored.token ?? "",
+      password: stored.password ?? "",
+    };
+  });
 
   // Derive gateway status
   const status: GatewayStatus = React.useMemo(() => {
@@ -56,9 +76,9 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
   const customBind = gatewayConfig?.bind ?? "";
 
   // Handle config changes
-	  const handleConfigChange = React.useCallback(
-	    async (config: { port: number; accessMode: AccessMode; customBind?: string }) => {
-	      if (!configSnapshot?.hash) {return;}
+  const handleConfigChange = React.useCallback(
+    async (config: { port: number; accessMode: AccessMode; customBind?: string }) => {
+      if (!configSnapshot?.hash) {return;}
 
       // Map access mode back to gateway config
       let mode: string | undefined;
@@ -84,14 +104,14 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
         },
       };
 
-	      await patchConfig.mutateAsync({
-	        baseHash: configSnapshot.hash,
-	        raw: JSON.stringify(patch),
-	        note: "Update gateway configuration",
-	      });
-	    },
-	    [configSnapshot, patchConfig]
-	  );
+      await patchConfig.mutateAsync({
+        baseHash: configSnapshot.hash,
+        raw: JSON.stringify(patch),
+        note: "Update gateway configuration",
+      });
+    },
+    [configSnapshot, patchConfig]
+  );
 
   // Handle reconnect
   const handleReconnect = React.useCallback(() => {
@@ -150,17 +170,98 @@ export function GatewayConfigConnected({ className }: GatewayConfigConnectedProp
     );
   }
 
+  const saveConnectionSettings = () => {
+    setIsSavingConnection(true);
+    try {
+      storeGatewayUrl(connectionSettings.gatewayUrl);
+
+      const token = connectionSettings.token.trim();
+      if (token) {
+        storeSharedGatewayToken(token);
+      } else {
+        clearSharedGatewayToken();
+      }
+
+      if (connectionSettings.password) {
+        storeSharedGatewayPassword(connectionSettings.password);
+      } else {
+        clearSharedGatewayPassword();
+      }
+
+      toast.success("Gateway connection settings saved");
+    } finally {
+      setIsSavingConnection(false);
+    }
+  };
+
   return (
-    <GatewayConfig
-      status={status}
-      port={port}
-      accessMode={accessMode}
-      customBind={customBind}
-      authToken={authToken}
-      onConfigChange={handleConfigChange}
-      onReconnect={handleReconnect}
-      className={className}
-    />
+    <div className={className}>
+      <Card className="mb-6">
+        <CardHeader>
+          <h3 className="text-base font-semibold">Web Client Connection</h3>
+          <p className="text-sm text-muted-foreground">
+            Persist gateway URL and auth for this browser. Changes apply on next reconnect.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="gateway-client-url">Gateway URL</Label>
+            <Input
+              id="gateway-client-url"
+              value={connectionSettings.gatewayUrl}
+              onChange={(event) =>
+                setConnectionSettings((previous) => ({
+                  ...previous,
+                  gatewayUrl: event.target.value,
+                }))}
+              placeholder="ws://127.0.0.1:18789"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="gateway-client-token">Token</Label>
+            <Input
+              id="gateway-client-token"
+              value={connectionSettings.token}
+              onChange={(event) =>
+                setConnectionSettings((previous) => ({
+                  ...previous,
+                  token: event.target.value,
+                }))}
+              placeholder="Optional token"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="gateway-client-password">Password</Label>
+            <Input
+              id="gateway-client-password"
+              type="password"
+              value={connectionSettings.password}
+              onChange={(event) =>
+                setConnectionSettings((previous) => ({
+                  ...previous,
+                  password: event.target.value,
+                }))}
+              placeholder="Optional password"
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button type="button" onClick={saveConnectionSettings} disabled={isSavingConnection}>
+              Save Connection Settings
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <GatewayConfig
+        status={status}
+        port={port}
+        accessMode={accessMode}
+        customBind={customBind}
+        authToken={authToken}
+        onConfigChange={handleConfigChange}
+        onReconnect={handleReconnect}
+      />
+    </div>
   );
 }
 

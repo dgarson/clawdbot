@@ -13,6 +13,7 @@ import { routeTree } from "./routeTree.gen";
 import { SecurityProvider } from "./features/security";
 import { GatewayProvider } from "./providers/GatewayProvider";
 import { useUIStore } from "./stores/useUIStore";
+import { persistGatewayConnectionFromUrl } from "./lib/api";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({
@@ -38,22 +39,17 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// Read gateway auth from URL query params (e.g., ?password=xxx or ?token=xxx)
-function getGatewayAuthFromUrl(): { token?: string; password?: string } {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token") ?? undefined;
-  const password = params.get("password") ?? undefined;
-  return { token, password };
-}
+// Persist gateway URL/auth from query params and remove them from browser URL.
+const persistedGatewayConnection = persistGatewayConnectionFromUrl();
 
 // Gateway provider wrapper - defined before render for fast refresh compatibility
 function AppGatewayProviders({ children }: { children: React.ReactNode }) {
   const useLiveGateway = useUIStore((state) => state.useLiveGateway);
   const liveMode = (import.meta.env?.DEV ?? false) && useLiveGateway;
-  const { token, password } = getGatewayAuthFromUrl();
+  const { gatewayUrl, token, password } = persistedGatewayConnection;
   const autoConnect = liveMode || Boolean(token || password);
   return (
-    <GatewayProvider autoConnect={autoConnect} token={token} password={password}>
+    <GatewayProvider url={gatewayUrl} autoConnect={autoConnect} token={token} password={password}>
       {children}
     </GatewayProvider>
   );

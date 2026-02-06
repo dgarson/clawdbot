@@ -20,6 +20,9 @@ interface DeviceAuthStore {
 
 const STORAGE_KEY = "clawdbrain-device-auth-v1";
 const SHARED_TOKEN_KEY = "clawdbrain-gateway-token";
+const SHARED_PASSWORD_KEY = "clawdbrain-gateway-password";
+const GATEWAY_URL_KEY = "clawdbrain-gateway-url";
+const DEFAULT_GATEWAY_URL = "ws://127.0.0.1:18789";
 
 function normalizeRole(role: string): string {
   return role.trim();
@@ -163,6 +166,160 @@ export function clearSharedGatewayToken(): void {
   } catch {
     // best-effort
   }
+}
+
+/**
+ * Loads the shared gateway password (user-entered, not device-specific).
+ */
+export function loadSharedGatewayPassword(): string | null {
+  try {
+    return window.localStorage.getItem(SHARED_PASSWORD_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Stores a shared gateway password.
+ */
+export function storeSharedGatewayPassword(password: string): void {
+  try {
+    window.localStorage.setItem(SHARED_PASSWORD_KEY, password);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Clears the shared gateway password.
+ */
+export function clearSharedGatewayPassword(): void {
+  try {
+    window.localStorage.removeItem(SHARED_PASSWORD_KEY);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Loads the configured gateway URL, falling back to localhost.
+ */
+export function loadStoredGatewayUrl(): string {
+  try {
+    const raw = window.localStorage.getItem(GATEWAY_URL_KEY)?.trim();
+    return raw || DEFAULT_GATEWAY_URL;
+  } catch {
+    return DEFAULT_GATEWAY_URL;
+  }
+}
+
+/**
+ * Stores the configured gateway URL.
+ */
+export function storeGatewayUrl(url: string): void {
+  const normalized = url.trim();
+  if (!normalized) {
+    clearStoredGatewayUrl();
+    return;
+  }
+  try {
+    window.localStorage.setItem(GATEWAY_URL_KEY, normalized);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Clears the configured gateway URL.
+ */
+export function clearStoredGatewayUrl(): void {
+  try {
+    window.localStorage.removeItem(GATEWAY_URL_KEY);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Load persisted gateway connection settings.
+ */
+export function loadStoredGatewayConnectionSettings(): {
+  gatewayUrl: string;
+  token?: string;
+  password?: string;
+} {
+  return {
+    gatewayUrl: loadStoredGatewayUrl(),
+    token: loadSharedGatewayToken() ?? undefined,
+    password: loadSharedGatewayPassword() ?? undefined,
+  };
+}
+
+/**
+ * Persist gateway URL/auth from query params and remove sensitive values from the URL.
+ * Supported params: token, password, gatewayUrl
+ */
+export function persistGatewayConnectionFromUrl(): {
+  hadUrlCredentials: boolean;
+  gatewayUrl: string;
+  token?: string;
+  password?: string;
+} {
+  if (typeof window === "undefined") {
+    return {
+      hadUrlCredentials: false,
+      ...loadStoredGatewayConnectionSettings(),
+    };
+  }
+
+  const currentUrl = new URL(window.location.href);
+  const params = currentUrl.searchParams;
+
+  const tokenParam = params.get("token");
+  const passwordParam = params.get("password");
+  const gatewayUrlParam = params.get("gatewayUrl");
+
+  const hadUrlCredentials = tokenParam !== null || passwordParam !== null || gatewayUrlParam !== null;
+
+  if (tokenParam !== null) {
+    const normalized = tokenParam.trim();
+    if (normalized) {
+      storeSharedGatewayToken(normalized);
+    } else {
+      clearSharedGatewayToken();
+    }
+    params.delete("token");
+  }
+
+  if (passwordParam !== null) {
+    if (passwordParam) {
+      storeSharedGatewayPassword(passwordParam);
+    } else {
+      clearSharedGatewayPassword();
+    }
+    params.delete("password");
+  }
+
+  if (gatewayUrlParam !== null) {
+    const normalized = gatewayUrlParam.trim();
+    if (normalized) {
+      storeGatewayUrl(normalized);
+    } else {
+      clearStoredGatewayUrl();
+    }
+    params.delete("gatewayUrl");
+  }
+
+  if (hadUrlCredentials) {
+    const nextSearch = params.toString();
+    const nextUrl = `${currentUrl.pathname}${nextSearch ? `?${nextSearch}` : ""}${currentUrl.hash}`;
+    window.history.replaceState({}, document.title, nextUrl);
+  }
+
+  return {
+    hadUrlCredentials,
+    ...loadStoredGatewayConnectionSettings(),
+  };
 }
 
 // =====================================================================
