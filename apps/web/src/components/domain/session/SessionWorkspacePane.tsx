@@ -19,10 +19,8 @@ import { FilePreviewPanel } from "./FilePreviewPanel";
 import { createWorktreeGatewayAdapter } from "@/integrations/worktree/gateway";
 
 // Lazy-load WebTerminal and all xterm dependencies
-const LazyWebTerminal = React.lazy(() =>
-  import("@/components/composed/WebTerminal").then((mod) => ({
-    default: mod.WebTerminal,
-  }))
+const LazyWebTerminal = React.lazy(
+  () => import("@/components/composed/WebTerminal")
 );
 
 export interface SessionWorkspacePaneProps {
@@ -91,6 +89,13 @@ export function SessionWorkspacePane({
   const [portalTarget, setPortalTarget] = React.useState<HTMLElement | null>(null);
   const [overlayTop, setOverlayTop] = React.useState(112);
   const [overlayBottom, setOverlayBottom] = React.useState(12);
+
+  // Auto-maximize when switching to terminal
+  React.useEffect(() => {
+    if (activeTab === "terminal" && !isMaximized && onToggleMaximize) {
+      onToggleMaximize();
+    }
+  }, [activeTab, isMaximized, onToggleMaximize]);
 
   // File preview state
   const [selectedFile, setSelectedFile] = React.useState<FileNode & { path: string } | null>(null);

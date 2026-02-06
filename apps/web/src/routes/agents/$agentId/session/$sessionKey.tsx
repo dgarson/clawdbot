@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { cn } from "@/lib/utils";
 import { CardSkeleton } from "@/components/composed";
@@ -10,11 +10,15 @@ import {
   SessionActivityFeed,
   SessionWorkspacePane,
   SessionOverviewPanel,
+  TerminalStatusIcon,
   type Activity,
 } from "@/components/domain/session";
+import { CoreFilesSheet } from "@/components/domain/agents";
 import { useAgent } from "@/hooks/queries/useAgents";
 import { useAgentSessions, useChatHistory } from "@/hooks/queries/useSessions";
+import { useGatewayConnected } from "@/hooks/queries/useGateway";
 import { useChatBackend } from "@/hooks/useChatBackend";
+import { useSessionShortcuts } from "@/hooks/useSessionShortcuts";
 import { usePreferencesStore } from "@/stores/usePreferencesStore";
 import { useVercelSessionStore } from "@/stores/useVercelSessionStore";
 import { buildAgentSessionKey, type ChatMessage } from "@/lib/api/sessions";
@@ -23,7 +27,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ChevronDown, TerminalSquare, Timer } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, TerminalSquare, Timer, X } from "lucide-react";
 import { formatRelativeTime, getSessionLabel } from "@/components/domain/session/session-helpers";
 import { useCronRunLog } from "@/hooks/queries/useCron";
 
@@ -158,11 +162,40 @@ function AgentSessionPage() {
 
   // State
   const [workspacePaneMaximized, setWorkspacePaneMaximized] = React.useState(false);
+  const [coreFilesSheetOpen, setCoreFilesSheetOpen] = React.useState(false);
   const [activities] = React.useState<Activity[]>(mockActivities);
 
-  // Preferences (for backend selection)
-  const chatBackend = usePreferencesStore((state) => state.chatBackend);
+  // Preferences (backend + session layout)
+  const chatBackend = usePreferencesStore((s) => s.chatBackend);
+  const sessionLeftPanelCollapsed = usePreferencesStore((s) => s.sessionLeftPanelCollapsed);
+  const sessionRightPanelCollapsed = usePreferencesStore((s) => s.sessionRightPanelCollapsed);
+  const sessionRightPanelTab = usePreferencesStore((s) => s.sessionRightPanelTab);
+  const sessionFocusMode = usePreferencesStore((s) => s.sessionFocusMode);
+  const toggleSessionLeftPanel = usePreferencesStore((s) => s.toggleSessionLeftPanel);
+  const toggleSessionRightPanel = usePreferencesStore((s) => s.toggleSessionRightPanel);
+  const setSessionRightPanelTab = usePreferencesStore((s) => s.setSessionRightPanelTab);
+  const toggleSessionFocusMode = usePreferencesStore((s) => s.toggleSessionFocusMode);
+
+  const leftHidden = sessionFocusMode || sessionLeftPanelCollapsed;
+  const rightHidden = sessionFocusMode || sessionRightPanelCollapsed;
+
+  // Gateway connection status (for terminal icon)
+  const { isConnected: isGatewayConnected } = useGatewayConnected();
+
   const vercelStore = useVercelSessionStore();
+
+  // Session shortcuts
+  useSessionShortcuts({
+    onToggleTerminal: () => {
+      setSessionRightPanelTab("workspace");
+      setWorkspacePaneMaximized(true);
+    },
+    onOpenCoreFiles: () => setCoreFilesSheetOpen(true),
+    onCloseMaximized: () => {
+      if (workspacePaneMaximized) setWorkspacePaneMaximized(false);
+      if (coreFilesSheetOpen) setCoreFilesSheetOpen(false);
+    },
+  });
 
   // Queries
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(agentId);
@@ -239,6 +272,21 @@ function AgentSessionPage() {
     });
   }, [navigate, agentId]);
 
+  // Compute dynamic grid columns (must be before early returns per Rules of Hooks)
+  const gridCols = React.useMemo(() => {
+    if (workspacePaneMaximized) return "grid-cols-1";
+    if (leftHidden && rightHidden) return "grid-cols-1";
+    if (leftHidden) return "xl:grid-cols-[minmax(0,1fr)_300px]";
+    if (rightHidden) return "xl:grid-cols-[240px_minmax(0,1fr)]";
+    return "xl:grid-cols-[240px_minmax(0,1fr)_300px]";
+  }, [workspacePaneMaximized, leftHidden, rightHidden]);
+
+  const openTerminal = React.useCallback(() => {
+    if (rightHidden) toggleSessionRightPanel();
+    setSessionRightPanelTab("workspace");
+    setWorkspacePaneMaximized(true);
+  }, [rightHidden, toggleSessionRightPanel, setSessionRightPanelTab]);
+
   // Loading state
   if (agentLoading) {
     return (
@@ -272,7 +320,7 @@ function AgentSessionPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background text-foreground overflow-hidden">
-      {/* Session Header - Always visible, shrink-0 prevents it from shrinking */}
+      {/* Session Header */}
       <SessionHeader
         agent={agent}
         sessions={sessions ?? []}
@@ -288,31 +336,33 @@ function AgentSessionPage() {
         chatBackend={chatBackend}
       />
 
-      {/* Main content area - flex-1 with min-h-0 allows proper height distribution */}
-      <div
-        className={cn(
-          "flex-1 min-h-0 grid",
-          workspacePaneMaximized
-            ? "grid-cols-1"
-            : "grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_360px]"
-        )}
-      >
-        <aside
-          className={cn(
-            "hidden xl:flex flex-col border-r border-border/50 bg-muted/20 p-4",
-            workspacePaneMaximized && "hidden"
+      {/* Main content area */}
+      <div className={cn("flex-1 min-h-0 grid gap-0 grid-cols-1", gridCols)}>
+        {/* Left sidebar - collapsible */}
+        <AnimatePresence initial={false}>
+          {!leftHidden && !workspacePaneMaximized && (
+            <motion.aside
+              key="left-sidebar"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 240, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="hidden xl:flex flex-col border-r border-border/50 bg-muted/20 overflow-hidden min-h-0"
+            >
+              <div className="min-w-[240px] p-3 flex-1 min-h-0 overflow-y-auto">
+                <SessionOverviewPanel
+                  agent={agent}
+                  session={selectedSession}
+                  messageCount={messageCount}
+                  lastActiveAt={lastActiveAt}
+                  workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
+                  chatBackend={chatBackend}
+                  onNewSession={handleNewSession}
+                />
+              </div>
+            </motion.aside>
           )}
-        >
-          <SessionOverviewPanel
-            agent={agent}
-            session={selectedSession}
-            messageCount={messageCount}
-            lastActiveAt={lastActiveAt}
-            workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
-            chatBackend={chatBackend}
-            onNewSession={handleNewSession}
-          />
-        </aside>
+        </AnimatePresence>
 
         {/* Chat section (center) */}
         <motion.div
@@ -320,10 +370,70 @@ function AgentSessionPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
           className={cn(
-            "min-w-0 min-h-0 flex flex-col",
+            "min-w-0 min-h-0 flex flex-col relative",
             workspacePaneMaximized && "hidden"
           )}
         >
+          {/* Collapse toggle: expand left sidebar */}
+          <AnimatePresence>
+            {leftHidden && !workspacePaneMaximized && (
+              <motion.button
+                key="expand-left"
+                type="button"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleSessionLeftPanel}
+                className="hidden xl:flex absolute left-1 top-3 z-10 h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-card shadow-sm hover:bg-accent transition-colors"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {/* Collapse toggle: expand right sidebar */}
+          <AnimatePresence>
+            {rightHidden && !workspacePaneMaximized && (
+              <motion.button
+                key="expand-right"
+                type="button"
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 8 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleSessionRightPanel}
+                className="hidden xl:flex absolute right-1 top-3 z-10 h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-card shadow-sm hover:bg-accent transition-colors"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {/* Focus mode indicator */}
+          <AnimatePresence>
+            {sessionFocusMode && (
+              <motion.div
+                key="focus-indicator"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 rounded-full border border-border/60 bg-card/90 px-3 py-1 shadow-sm text-xs text-muted-foreground backdrop-blur-sm"
+              >
+                <span>Focus Mode</span>
+                <button
+                  type="button"
+                  onClick={toggleSessionFocusMode}
+                  className="rounded-full p-0.5 hover:bg-muted transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {isCronSession && (
             <div className="px-4 pt-4">
               <Collapsible.Root open={cronLogOpen} onOpenChange={setCronLogOpen}>
@@ -377,7 +487,7 @@ function AgentSessionPage() {
                                   )}
                                 </div>
                                 <div className="text-[10px] text-muted-foreground">
-                                  {finishLabel ? `${startLabel} → ${finishLabel}` : startLabel}
+                                  {finishLabel ? `${startLabel} \u2192 ${finishLabel}` : startLabel}
                                 </div>
                                 {entry.summary && (
                                   <div className="text-xs text-muted-foreground line-clamp-2">
@@ -409,46 +519,66 @@ function AgentSessionPage() {
           />
         </motion.div>
 
-        {/* Right sidebar */}
-        <motion.aside
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.2, delay: 0.1 }}
-          className={cn(
-            "min-h-0 flex flex-col border-l border-border/50 bg-card/30",
-            workspacePaneMaximized && "border-l-0"
-          )}
-        >
-          <Tabs defaultValue="activity" className="flex-1 min-h-0">
-            <div className="px-3 pt-3">
-              <TabsList variant="line" className="w-full justify-start">
-                <TabsTrigger value="activity">Activity</TabsTrigger>
-                <TabsTrigger value="workspace">Workspace</TabsTrigger>
-              </TabsList>
-            </div>
+        {/* Right sidebar - collapsible */}
+        <AnimatePresence initial={false}>
+          {!rightHidden && (
+            <motion.aside
+              key="right-sidebar"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 300, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className={cn(
+                "min-h-0 flex flex-col border-l border-border/50 bg-card/30 overflow-hidden",
+                workspacePaneMaximized && "border-l-0"
+              )}
+            >
+              <div className="min-w-[300px] flex-1 min-h-0 flex flex-col">
+                <Tabs
+                  value={sessionRightPanelTab}
+                  onValueChange={(v) => setSessionRightPanelTab(v as "activity" | "workspace")}
+                  className="flex-1 min-h-0"
+                >
+                  <div className="px-2.5 pt-2.5">
+                    <TabsList variant="line" className="w-full justify-start">
+                      <TabsTrigger value="activity" className="text-xs">Activity</TabsTrigger>
+                      <TabsTrigger value="workspace" className="text-xs">Workspace</TabsTrigger>
+                    </TabsList>
+                  </div>
 
-            <TabsContent value="activity" className="flex-1 min-h-0 px-3 pb-3">
-              <div className="h-full border border-border/50 rounded-xl overflow-hidden bg-card/40">
-                <div className="px-4 py-3 border-b border-border/50">
-                  <h3 className="text-sm font-medium">Activity</h3>
-                </div>
-                <SessionActivityFeed activities={activities} maxItems={12} />
+                  <TabsContent value="activity" className="flex-1 min-h-0 px-2.5 pb-2.5">
+                    <div className="h-full border border-border/50 rounded-lg overflow-hidden bg-card/40">
+                      <div className="px-3 py-2.5 border-b border-border/50">
+                        <h3 className="text-xs font-medium">Activity</h3>
+                      </div>
+                      <SessionActivityFeed activities={activities} maxItems={12} />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="workspace" className="flex-1 min-h-0 px-2.5 pb-2.5">
+                    <SessionWorkspacePane
+                      isMaximized={workspacePaneMaximized}
+                      onToggleMaximize={() => setWorkspacePaneMaximized((v) => !v)}
+                      sessionKey={sessionKey}
+                      workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
+                      agentId={agentId}
+                      className="h-full"
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
-            </TabsContent>
-
-            <TabsContent value="workspace" className="flex-1 min-h-0 px-3 pb-3">
-              <SessionWorkspacePane
-                isMaximized={workspacePaneMaximized}
-                onToggleMaximize={() => setWorkspacePaneMaximized((v) => !v)}
-                sessionKey={sessionKey}
-                workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
-                agentId={agentId}
-                className="h-full"
-              />
-            </TabsContent>
-          </Tabs>
-        </motion.aside>
+            </motion.aside>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Terminal status icon - shown when terminal is not visible */}
+      {(rightHidden || sessionRightPanelTab !== "workspace") && !workspacePaneMaximized && (
+        <TerminalStatusIcon connected={isGatewayConnected} onClick={openTerminal} />
+      )}
+
+      {/* Core Files editor sheet */}
+      <CoreFilesSheet open={coreFilesSheetOpen} onOpenChange={setCoreFilesSheetOpen} agentId={agentId} />
     </div>
   );
 }

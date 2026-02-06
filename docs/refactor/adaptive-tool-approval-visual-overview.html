@@ -1,0 +1,1952 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adaptive Tool Approval Architecture Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0e1118;
+        --bg-alt: #141b26;
+        --panel: #1a2230;
+        --panel-soft: #202b3d;
+        --ink: #edf2ff;
+        --muted: #9fb1d4;
+        --accent: #4dd4ac;
+        --accent-2: #58a8ff;
+        --accent-3: #ffbb55;
+        --danger: #ff6f7d;
+        --ok: #61e4a5;
+        --border: rgba(255, 255, 255, 0.12);
+        --shadow: 0 24px 60px rgba(4, 8, 15, 0.48);
+        --radius: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        color: var(--ink);
+        font-family: "Sora", system-ui, sans-serif;
+        background:
+          radial-gradient(1100px 700px at 12% -10%, rgba(77, 212, 172, 0.18), transparent 55%),
+          radial-gradient(900px 560px at 110% 16%, rgba(88, 168, 255, 0.19), transparent 56%),
+          linear-gradient(180deg, #0b1017 0%, #0e1118 100%);
+      }
+
+      .wrap {
+        width: min(1360px, 100% - 2.2rem);
+        margin: 1.1rem auto 2.8rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .hero {
+        background:
+          linear-gradient(
+            130deg,
+            rgba(77, 212, 172, 0.14),
+            rgba(88, 168, 255, 0.11) 45%,
+            rgba(255, 187, 85, 0.08)
+          ),
+          var(--panel);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 22px;
+        padding: 1.2rem 1.2rem 1rem;
+      }
+
+      .hero-top {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        color: #d7e6ff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        padding: 0.3rem 0.6rem;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .hero h1 {
+        margin: 0.55rem 0 0.4rem;
+        font-size: clamp(1.2rem, 2.6vw, 2rem);
+        line-height: 1.18;
+      }
+
+      .hero p {
+        margin: 0;
+        color: #c0d0ee;
+        max-width: 80ch;
+        font-size: 0.92rem;
+      }
+
+      .stats {
+        margin-top: 0.95rem;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.55rem;
+      }
+
+      .stat {
+        padding: 0.65rem 0.6rem;
+        border-radius: 12px;
+        background: rgba(6, 12, 22, 0.46);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 1.02rem;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+
+      .toolbar {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.75rem;
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .toolbar-row {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .search-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 230px;
+      }
+
+      #search {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg-alt);
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.86rem;
+        padding: 0.62rem 2.2rem 0.62rem 0.68rem;
+      }
+
+      #search:focus {
+        outline: none;
+        border-color: rgba(88, 168, 255, 0.65);
+        box-shadow: 0 0 0 2px rgba(88, 168, 255, 0.2);
+      }
+
+      .search-hint {
+        position: absolute;
+        right: 0.54rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 0.72rem;
+        pointer-events: none;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .pill {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--bg-alt);
+        color: #cbd8f4;
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 0.36rem 0.62rem;
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          border-color 140ms ease,
+          color 140ms ease;
+      }
+
+      .pill.active {
+        border-color: rgba(77, 212, 172, 0.8);
+        color: #e9fff7;
+        transform: translateY(-1px);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.38fr 0.94fr;
+        gap: 1rem;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .graph-shell {
+        padding: 0.7rem 0.7rem 0.9rem;
+      }
+
+      .graph-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 0.65rem;
+      }
+
+      .graph-title {
+        margin: 0;
+        font-size: 0.92rem;
+      }
+
+      .graph-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      button.ghost {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg-alt);
+        color: #c9d8f6;
+        font: inherit;
+        font-size: 0.73rem;
+        font-weight: 600;
+        padding: 0.38rem 0.52rem;
+        cursor: pointer;
+      }
+
+      button.ghost:focus-visible,
+      .pill:focus-visible {
+        outline: 2px solid var(--accent-2);
+        outline-offset: 2px;
+      }
+
+      .graph-wrap {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #121826, #101622);
+      }
+
+      #systemGraph {
+        width: 100%;
+        height: 560px;
+        display: block;
+      }
+
+      .legend {
+        margin-top: 0.6rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #bed0ef;
+        font-size: 0.72rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 0.27rem 0.5rem;
+      }
+
+      .dot {
+        width: 0.64rem;
+        height: 0.64rem;
+        border-radius: 99px;
+      }
+
+      .detail {
+        padding: 0.86rem;
+        display: grid;
+        grid-template-rows: auto auto auto 1fr;
+        gap: 0.7rem;
+        min-height: 0;
+      }
+
+      .detail h2 {
+        margin: 0;
+        font-size: 1.07rem;
+      }
+
+      .detail-sub {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .detail-chips {
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 0.24rem 0.52rem;
+        font-size: 0.72rem;
+        color: #d8e5ff;
+        background: var(--panel-soft);
+      }
+
+      .detail-scroll {
+        overflow: auto;
+        min-height: 260px;
+        max-height: 560px;
+        padding-right: 0.15rem;
+      }
+
+      .detail-block {
+        padding: 0.62rem;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 11px;
+        background: rgba(17, 25, 38, 0.88);
+        margin-bottom: 0.58rem;
+      }
+
+      .detail-block h3 {
+        margin: 0 0 0.35rem;
+        font-size: 0.8rem;
+        color: #d8e8ff;
+      }
+
+      .detail-block p,
+      .detail-block li {
+        margin: 0;
+        color: #c3d1ed;
+        font-size: 0.77rem;
+        line-height: 1.46;
+      }
+
+      .detail-block ul {
+        margin: 0;
+        padding-left: 1rem;
+      }
+
+      .data-card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.9rem;
+      }
+
+      .subpanel {
+        padding: 0.86rem;
+      }
+
+      .subpanel h3 {
+        margin: 0 0 0.6rem;
+        font-size: 0.9rem;
+      }
+
+      .flow-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.45rem;
+      }
+
+      .flow-step {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(10, 19, 31, 0.82);
+        padding: 0.46rem;
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          transform 140ms ease,
+          background 140ms ease;
+      }
+
+      .flow-step:hover {
+        border-color: rgba(88, 168, 255, 0.55);
+      }
+
+      .flow-step.active {
+        border-color: rgba(77, 212, 172, 0.9);
+        background: rgba(24, 46, 58, 0.92);
+        transform: translateY(-1px);
+      }
+
+      .flow-step strong {
+        display: block;
+        font-size: 0.75rem;
+      }
+
+      .flow-step span {
+        color: var(--muted);
+        font-size: 0.68rem;
+      }
+
+      .risk-table {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .risk-row {
+        display: grid;
+        grid-template-columns: 66px 1fr 148px;
+        gap: 0.55rem;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 11px;
+        padding: 0.45rem;
+        background: rgba(10, 19, 31, 0.84);
+        cursor: pointer;
+      }
+
+      .risk-row.active {
+        border-color: rgba(255, 187, 85, 0.9);
+      }
+
+      .risk-tag {
+        display: inline-grid;
+        place-items: center;
+        border-radius: 9px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.34rem 0;
+      }
+
+      .r0 {
+        background: rgba(97, 228, 165, 0.2);
+        color: #7ef9bd;
+      }
+
+      .r1 {
+        background: rgba(88, 168, 255, 0.2);
+        color: #7fbdff;
+      }
+
+      .r2 {
+        background: rgba(96, 129, 255, 0.24);
+        color: #a6b3ff;
+      }
+
+      .r3 {
+        background: rgba(255, 187, 85, 0.22);
+        color: #ffd18a;
+      }
+
+      .r4 {
+        background: rgba(255, 111, 125, 0.2);
+        color: #ff9daa;
+      }
+
+      .risk-main strong {
+        display: block;
+        font-size: 0.76rem;
+      }
+
+      .risk-main span {
+        color: var(--muted);
+        font-size: 0.7rem;
+      }
+
+      .risk-action {
+        color: #d5e6ff;
+        font-size: 0.72rem;
+        text-align: right;
+      }
+
+      .timeline {
+        position: relative;
+        padding-left: 0.95rem;
+      }
+
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 0.35rem;
+        top: 0.2rem;
+        bottom: 0.2rem;
+        width: 2px;
+        background: linear-gradient(180deg, rgba(77, 212, 172, 0.85), rgba(88, 168, 255, 0.45));
+      }
+
+      .phase {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 11px;
+        padding: 0.5rem 0.55rem 0.52rem;
+        background: rgba(11, 20, 33, 0.86);
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+      }
+
+      .phase::before {
+        content: "";
+        position: absolute;
+        left: -0.8rem;
+        top: 0.72rem;
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 99px;
+        background: var(--accent-2);
+        box-shadow: 0 0 0 4px rgba(88, 168, 255, 0.25);
+      }
+
+      .phase.active {
+        border-color: rgba(88, 168, 255, 0.8);
+      }
+
+      .phase strong {
+        display: block;
+        font-size: 0.78rem;
+      }
+
+      .phase span {
+        color: var(--muted);
+        font-size: 0.71rem;
+      }
+
+      .foot {
+        text-align: center;
+        color: #9db2d8;
+        font-size: 0.72rem;
+        padding: 0.2rem;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @media (max-width: 1180px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-scroll {
+          max-height: 460px;
+        }
+
+        #systemGraph {
+          height: 520px;
+        }
+
+        .data-card-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .flow-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .risk-row {
+          grid-template-columns: 56px 1fr;
+          grid-template-areas:
+            "tag main"
+            "action action";
+        }
+
+        .risk-tag {
+          grid-area: tag;
+        }
+
+        .risk-main {
+          grid-area: main;
+        }
+
+        .risk-action {
+          grid-area: action;
+          text-align: left;
+        }
+
+        #systemGraph {
+          height: 430px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero panel">
+        <div class="hero-top">
+          <span class="badge">Adaptive Tool Approval • Interactive Overview</span>
+          <span class="badge mono">Select nodes • Drill down • Focus mode</span>
+        </div>
+        <h1>OpenClaw Architecture: Approval When It Matters</h1>
+        <p>
+          This one-page map consolidates the architecture and implementation vision for dynamic tool
+          approval gating. It combines hard policy controls with classifier-assisted risk
+          evaluation, then routes approval requests through channel-native operator surfaces. Click
+          any element to inspect responsibilities, interfaces, risk handling, rollout phase, and
+          test strategy.
+        </p>
+        <section class="stats">
+          <article class="stat">
+            <strong>20</strong>
+            <span>Core architecture elements</span>
+          </article>
+          <article class="stat">
+            <strong>5</strong>
+            <span>Risk classes (R0 → R4)</span>
+          </article>
+          <article class="stat">
+            <strong>5</strong>
+            <span>Rollout phases</span>
+          </article>
+          <article class="stat">
+            <strong>3</strong>
+            <span>Routing modes (session/targets/both)</span>
+          </article>
+          <article class="stat">
+            <strong>&lt;1.2s</strong>
+            <span>Classifier timeout budget target</span>
+          </article>
+        </section>
+      </header>
+
+      <section class="toolbar panel">
+        <div class="toolbar-row">
+          <label class="search-wrap" for="search">
+            <input
+              id="search"
+              type="search"
+              placeholder="Find by component, API, phase, risk, or behavior..."
+            />
+            <span class="search-hint">/</span>
+          </label>
+          <button id="clearSearch" class="ghost" type="button">Clear</button>
+          <button id="downloadSnapshot" class="ghost" type="button">Download Snapshot JSON</button>
+          <button id="toggleFocus" class="ghost" type="button">Focus: Off</button>
+        </div>
+        <div class="toolbar-row">
+          <strong style="font-size: 0.76rem; color: #d4e4ff">Lens:</strong>
+          <div class="pill-row" id="lensRow" role="tablist" aria-label="Architecture lens">
+            <button class="pill active" type="button" data-lens="all">All</button>
+            <button class="pill" type="button" data-lens="runtime">Runtime</button>
+            <button class="pill" type="button" data-lens="decision">Decisioning</button>
+            <button class="pill" type="button" data-lens="gateway">Gateway</button>
+            <button class="pill" type="button" data-lens="channels">Channels</button>
+            <button class="pill" type="button" data-lens="ops">Audit & Ops</button>
+          </div>
+        </div>
+      </section>
+
+      <main class="grid">
+        <section class="panel graph-shell">
+          <div class="graph-head">
+            <h2 class="graph-title">System Relationship Graph</h2>
+            <div class="graph-actions">
+              <button id="playFlow" class="ghost" type="button">Play Invocation Path</button>
+              <button id="resetGraph" class="ghost" type="button">Reset View</button>
+            </div>
+          </div>
+          <div class="graph-wrap">
+            <svg
+              id="systemGraph"
+              viewBox="0 0 1180 560"
+              role="img"
+              aria-label="Architecture relationship graph"
+            ></svg>
+          </div>
+          <div class="legend">
+            <span class="legend-item"
+              ><i class="dot" style="background: #4dd4ac"></i>Runtime & Policy</span
+            >
+            <span class="legend-item"
+              ><i class="dot" style="background: #58a8ff"></i>Gateway & Approval Core</span
+            >
+            <span class="legend-item"
+              ><i class="dot" style="background: #ffbb55"></i>Channels & Operator Surfaces</span
+            >
+            <span class="legend-item"
+              ><i class="dot" style="background: #b08bff"></i>Audit, Metrics, Rollout</span
+            >
+          </div>
+        </section>
+
+        <aside class="panel detail">
+          <div>
+            <h2 id="detailTitle">Select an architectural element</h2>
+            <div id="detailSub" class="detail-sub">
+              Click a graph node, flow step, risk tier, or rollout phase.
+            </div>
+          </div>
+          <div id="detailChips" class="detail-chips"></div>
+          <div class="detail-scroll">
+            <div id="detailBody"></div>
+          </div>
+        </aside>
+      </main>
+
+      <section class="data-card-grid">
+        <article class="panel subpanel">
+          <h3>Invocation Flow Drilldown</h3>
+          <div id="flowGrid" class="flow-grid"></div>
+        </article>
+
+        <article class="panel subpanel">
+          <h3>Risk Taxonomy</h3>
+          <div id="riskTable" class="risk-table"></div>
+        </article>
+
+        <article class="panel subpanel">
+          <h3>Rollout Roadmap</h3>
+          <div id="timeline" class="timeline"></div>
+        </article>
+      </section>
+
+      <footer class="foot">
+        Source design docs:
+        <span class="mono">docs/refactor/adaptive-tool-approval-architecture.md</span>
+        and
+        <span class="mono">docs/refactor/adaptive-tool-approval-implementation.md</span>
+      </footer>
+    </div>
+
+    <script>
+      const NODES = [
+        {
+          id: "entry",
+          label: "Tool Invocation Entry",
+          layer: "runtime",
+          group: "runtime",
+          x: 86,
+          y: 94,
+          summary: "Every tool call enters through a shared orchestration seam.",
+          detail: {
+            why: "Centralizing entry ensures one consistent approval experience regardless of tool type.",
+            responsibilities: [
+              "Normalize invocation context (tool, params, agent, session, channel)",
+              "Pass invocation through policy and safety pipeline",
+              "Attach consistent trace metadata",
+            ],
+            interfaces: ["src/agents/pi-tools.ts", "src/agents/pi-tools.before-tool-call.ts"],
+            tests: [
+              "Invocation parity tests",
+              "Non-regression against existing tool execution behavior",
+            ],
+          },
+          tags: ["Runtime", "Entry", "Shared Path"],
+        },
+        {
+          id: "policy",
+          label: "Hard Tool Policy Gate",
+          layer: "runtime",
+          group: "runtime",
+          x: 278,
+          y: 94,
+          summary:
+            "Existing allow/deny and sandbox constraints run first and remain authoritative.",
+          detail: {
+            why: "Model judgement must never override deterministic enforcement.",
+            responsibilities: [
+              "Apply global + agent + session + channel policy",
+              "Evaluate sandbox-aware tool constraints",
+              "Stop execution immediately on deny",
+            ],
+            interfaces: ["src/agents/pi-tools.policy.ts", "src/agents/tool-policy.ts"],
+            tests: ["Deny precedence tests", "Provider policy tests", "Group policy tests"],
+          },
+          tags: ["Runtime", "Policy", "Deterministic"],
+        },
+        {
+          id: "orchestrator",
+          label: "Approval Orchestrator",
+          layer: "decision",
+          group: "runtime",
+          x: 468,
+          y: 94,
+          summary: "Shared decision controller for allow, deny, or approval-required outcomes.",
+          detail: {
+            why: "Keeps behavior uniform across tools and channels.",
+            responsibilities: [
+              "Call static evaluator and optional classifier",
+              "Apply policy thresholds",
+              "Open approval request lifecycle when required",
+            ],
+            interfaces: ["src/approvals/tool-approval-orchestrator.ts"],
+            tests: [
+              "Decision path coverage",
+              "Timeout and retry behavior",
+              "Feature-flag off no-op parity",
+            ],
+          },
+          tags: ["Decision", "Core"],
+        },
+        {
+          id: "static-eval",
+          label: "Static Risk Evaluator",
+          layer: "decision",
+          group: "runtime",
+          x: 662,
+          y: 50,
+          summary:
+            "Low-latency deterministic classifier based on tool semantics and side-effect signatures.",
+          detail: {
+            why: "Most calls should be decided without model latency.",
+            responsibilities: [
+              "Map tool call to risk class R0-R4",
+              "Extract side-effect hints and reason codes",
+              "Flag uncertain cases for optional fast-model classification",
+            ],
+            interfaces: ["src/approvals/tool-risk-static.ts", "src/approvals/risk-taxonomy.ts"],
+            tests: [
+              "Golden matrix tests by tool and param shape",
+              "Regression tests for risk class thresholds",
+            ],
+          },
+          tags: ["Decision", "Static", "Latency-Critical"],
+        },
+        {
+          id: "fast-classifier",
+          label: "Fast Safety Classifier",
+          layer: "decision",
+          group: "runtime",
+          x: 662,
+          y: 138,
+          summary:
+            "Optional micro-model inference for ambiguous calls with strict timeout and confidence policy.",
+          detail: {
+            why: "Improves adaptiveness while keeping decision authority in policy engine.",
+            responsibilities: [
+              "Process compact context package (no chain of thought)",
+              "Return structured risk + confidence",
+              "Fallback cleanly on timeout or low confidence",
+            ],
+            interfaces: ["src/approvals/tool-risk-classifier.ts"],
+            tests: [
+              "Timeout fallback tests",
+              "Malformed response handling",
+              "Confidence threshold decisions",
+            ],
+          },
+          tags: ["Decision", "Model-Assisted", "Optional"],
+        },
+        {
+          id: "decision-engine",
+          label: "Decision Engine",
+          layer: "decision",
+          group: "runtime",
+          x: 860,
+          y: 94,
+          summary:
+            "Converts assessment into allow, deny, or approval required according to policy.",
+          detail: {
+            why: "Separates model output from enforceable policy.",
+            responsibilities: [
+              "Apply risk policy and side-effect rules",
+              "Enforce deny-by-default rules for critical ambiguity",
+              "Emit machine-readable decision rationale",
+            ],
+            interfaces: ["src/approvals/tool-decision-engine.ts"],
+            tests: [
+              "Policy matrix tests",
+              "R3/R4 explicit gating tests",
+              "Low-confidence fallback tests",
+            ],
+          },
+          tags: ["Decision", "Policy", "Risk"],
+        },
+        {
+          id: "execute",
+          label: "Tool Execution",
+          layer: "runtime",
+          group: "runtime",
+          x: 1064,
+          y: 62,
+          summary: "Tool execution only occurs after decision path resolves to allow.",
+          detail: {
+            why: "Execution path should be transparent, auditable, and unchanged for safe calls.",
+            responsibilities: [
+              "Run tool with normalized context",
+              "Return deterministic blocked result when denied",
+              "Propagate structured events for observability",
+            ],
+            interfaces: ["Existing tool implementations in src/agents/*"],
+            tests: ["No-regression tool result tests", "Approval-approved continuation tests"],
+          },
+          tags: ["Runtime", "Execution"],
+        },
+        {
+          id: "approval-request",
+          label: "tool.approval.request API",
+          layer: "gateway",
+          group: "gateway",
+          x: 1064,
+          y: 150,
+          summary: "Gateway API entrypoint for opening pending approval records.",
+          detail: {
+            why: "Unified API supports all tool types and all approver surfaces.",
+            responsibilities: [
+              "Create immutable approval records with TTL",
+              "Broadcast approval.requested event",
+              "Expose compatibility aliases for legacy exec flow",
+            ],
+            interfaces: [
+              "src/gateway/server-methods/tool-approval.ts",
+              "src/gateway/protocol/schema/tool-approvals.ts",
+            ],
+            tests: ["Duplicate ID rejection", "Schema validation tests", "Scope enforcement tests"],
+          },
+          tags: ["Gateway", "API", "Approval Lifecycle"],
+        },
+        {
+          id: "approval-manager",
+          label: "Approval Manager",
+          layer: "gateway",
+          group: "gateway",
+          x: 858,
+          y: 226,
+          summary: "Pending approval state, idempotency, expiry, and resolution ownership.",
+          detail: {
+            why: "Single source of truth for active approvals.",
+            responsibilities: [
+              "Track pending entries and expiry timers",
+              "Resolve decisions exactly once",
+              "Publish lifecycle events",
+            ],
+            interfaces: ["src/gateway/tool-approval-manager.ts"],
+            tests: [
+              "Timeout expiry tests",
+              "Single-resolution guarantees",
+              "Concurrent resolver tests",
+            ],
+          },
+          tags: ["Gateway", "State", "Reliability"],
+        },
+        {
+          id: "router",
+          label: "Approval Router",
+          layer: "gateway",
+          group: "gateway",
+          x: 660,
+          y: 226,
+          summary:
+            "Routes approval prompts across session-origin channels and explicit operator targets.",
+          detail: {
+            why: "Users should approve where they already are, not only in one UI.",
+            responsibilities: [
+              "Resolve routing mode (session, targets, both)",
+              "Deduplicate deliveries and isolate adapter failures",
+              "Track resolution fanout state",
+            ],
+            interfaces: ["src/infra/tool-approval-forwarder.ts"],
+            tests: ["Routing mode tests", "Target dedup tests", "Partial delivery failure tests"],
+          },
+          tags: ["Gateway", "Routing", "Channels"],
+        },
+        {
+          id: "control-ui",
+          label: "Control UI Adapter",
+          layer: "channels",
+          group: "channels",
+          x: 456,
+          y: 226,
+          summary: "Primary operator interface for rich approval inspection and action.",
+          detail: {
+            why: "Best surface for high-context approvals with low friction.",
+            responsibilities: [
+              "Render approval cards with risk rationale",
+              "Send tool.approval.resolve decisions",
+              "Show pending/expired/resolved transitions",
+            ],
+            interfaces: ["Gateway WS event stream", "operator.approvals scope"],
+            tests: ["UI action binding tests", "Event ordering tests"],
+          },
+          tags: ["Channels", "UI", "Operator"],
+        },
+        {
+          id: "cli-operator",
+          label: "CLI Operator Adapter",
+          layer: "channels",
+          group: "channels",
+          x: 276,
+          y: 226,
+          summary:
+            "Terminal-native approval surface for scriptable operations and remote sessions.",
+          detail: {
+            why: "Ensures headless operations still support safe approvals.",
+            responsibilities: [
+              "Display approval prompts and IDs",
+              "Allow allow-once / allow-always / deny actions",
+              "Integrate with gateway auth/scopes",
+            ],
+            interfaces: ["openclaw approvals ...", "operator.approvals scope"],
+            tests: ["CLI command integration tests", "Auth/scope tests"],
+          },
+          tags: ["Channels", "CLI", "Operator"],
+        },
+        {
+          id: "chat-adapters",
+          label: "Chat Channel Adapters",
+          layer: "channels",
+          group: "channels",
+          x: 84,
+          y: 226,
+          summary:
+            "Approvals delivered to channels like Discord/Slack/Telegram and extension connectors.",
+          detail: {
+            why: "Approval should meet users in their active communication surface.",
+            responsibilities: [
+              "Render interactive or command-based approvals",
+              "Bind responses to tool.approval.resolve",
+              "Respect channel-level filters and account routing",
+            ],
+            interfaces: [
+              "src/discord/monitor/exec-approvals.ts (existing pattern)",
+              "Outbound delivery adapters",
+            ],
+            tests: ["Adapter contract tests", "Rate limit/timeout behavior tests"],
+          },
+          tags: ["Channels", "Messaging", "Plugins"],
+        },
+        {
+          id: "resolve-api",
+          label: "tool.approval.resolve API",
+          layer: "gateway",
+          group: "gateway",
+          x: 468,
+          y: 304,
+          summary: "Resolution API for all approver surfaces under operator.approvals scope.",
+          detail: {
+            why: "Unified resolution path prevents divergent semantics across channels.",
+            responsibilities: [
+              "Validate decision payloads",
+              "Record resolver identity and source surface",
+              "Emit resolved event and unblock orchestrator waiters",
+            ],
+            interfaces: ["src/gateway/server-methods/tool-approval.ts"],
+            tests: ["Unknown ID handling", "Scope enforcement", "Decision schema validation"],
+          },
+          tags: ["Gateway", "API", "Resolution"],
+        },
+        {
+          id: "audit",
+          label: "Audit Trail",
+          layer: "ops",
+          group: "ops",
+          x: 660,
+          y: 394,
+          summary: "Immutable records for approvals, decisions, resolver identity, and outcomes.",
+          detail: {
+            why: "Required for trust, incident analysis, and governance.",
+            responsibilities: [
+              "Persist request/resolve metadata",
+              "Store rationale and reason codes",
+              "Correlate with execution result state",
+            ],
+            interfaces: ["Structured event logs", "Gateway audit sink"],
+            tests: ["Log completeness checks", "PII/sensitive field redaction tests"],
+          },
+          tags: ["Ops", "Audit", "Security"],
+        },
+        {
+          id: "metrics",
+          label: "Metrics & SLOs",
+          layer: "ops",
+          group: "ops",
+          x: 860,
+          y: 394,
+          summary: "Runtime and approval quality telemetry to tune friction vs risk.",
+          detail: {
+            why: "Adaptive systems need measurable quality loops.",
+            responsibilities: [
+              "Track approval volume and outcomes by risk class/tool/channel",
+              "Measure classifier latency and fallback rate",
+              "Expose SLO health and anomaly signals",
+            ],
+            interfaces: ["tool_approval_requests_total", "tool_safety_classifier_latency_ms"],
+            tests: ["Metric emission tests", "Label cardinality guard tests"],
+          },
+          tags: ["Ops", "Metrics", "SLO"],
+        },
+        {
+          id: "risk-policy",
+          label: "Risk Policy Config",
+          layer: "decision",
+          group: "runtime",
+          x: 1064,
+          y: 304,
+          summary: "Configurable policy thresholds controlling approval/deny behavior.",
+          detail: {
+            why: "Teams need explicit governance knobs without code changes.",
+            responsibilities: [
+              "Define approval threshold (e.g., R3+)",
+              "Define deny threshold (e.g., R4+)",
+              "Set low-confidence fallback behavior",
+            ],
+            interfaces: ["approvals.tools.policy.*", "approvals.tools.classifier.*"],
+            tests: ["Config validation tests", "Threshold decision tests"],
+          },
+          tags: ["Decision", "Config", "Governance"],
+        },
+        {
+          id: "compat",
+          label: "Exec Compatibility Bridge",
+          layer: "gateway",
+          group: "gateway",
+          x: 276,
+          y: 394,
+          summary:
+            "Legacy exec.approval APIs continue while migration shifts to generic tool approval.",
+          detail: {
+            why: "Avoid breaking stable exec approval workflows during rollout.",
+            responsibilities: [
+              "Map exec.approval.* to tool.approval.* internals",
+              "Preserve allow-once/always semantics",
+              "Run parity assertions during migration window",
+            ],
+            interfaces: ["src/gateway/server-methods/exec-approval.ts"],
+            tests: ["Backcompat integration tests", "Exec parity regression tests"],
+          },
+          tags: ["Gateway", "Migration", "Backcompat"],
+        },
+        {
+          id: "rollout",
+          label: "Phased Rollout Controller",
+          layer: "ops",
+          group: "ops",
+          x: 84,
+          y: 394,
+          summary: "Feature-flagged rollout from foundations to full generic tool approval.",
+          detail: {
+            why: "Incremental rollout lowers risk and preserves service reliability.",
+            responsibilities: [
+              "Enable by phase and environment",
+              "Collect parity and performance evidence before expansion",
+              "Drive deprecation windows",
+            ],
+            interfaces: ["approvals.tools.enabled", "Phase flags and migration checks"],
+            tests: ["Flag gating tests", "Phase-specific regression bundles"],
+          },
+          tags: ["Ops", "Rollout", "Change Management"],
+        },
+        {
+          id: "docs",
+          label: "Architecture Docs",
+          layer: "ops",
+          group: "ops",
+          x: 468,
+          y: 394,
+          summary: "Design source of truth for architecture decisions and implementation details.",
+          detail: {
+            why: "Ensures contributors align with one shared implementation plan.",
+            responsibilities: [
+              "Capture architecture and implementation contracts",
+              "Document risk model and migration strategy",
+              "Provide onboarding map for future contributors",
+            ],
+            interfaces: [
+              "docs/refactor/adaptive-tool-approval-architecture.md",
+              "docs/refactor/adaptive-tool-approval-implementation.md",
+            ],
+            tests: ["Doc reference consistency checks"],
+          },
+          tags: ["Docs", "Source of Truth"],
+        },
+      ];
+
+      const EDGES = [
+        ["entry", "policy"],
+        ["policy", "orchestrator"],
+        ["orchestrator", "static-eval"],
+        ["orchestrator", "fast-classifier"],
+        ["static-eval", "decision-engine"],
+        ["fast-classifier", "decision-engine"],
+        ["decision-engine", "execute"],
+        ["decision-engine", "approval-request"],
+        ["approval-request", "approval-manager"],
+        ["approval-manager", "router"],
+        ["router", "control-ui"],
+        ["router", "cli-operator"],
+        ["router", "chat-adapters"],
+        ["control-ui", "resolve-api"],
+        ["cli-operator", "resolve-api"],
+        ["chat-adapters", "resolve-api"],
+        ["resolve-api", "approval-manager"],
+        ["approval-manager", "orchestrator"],
+        ["execute", "audit"],
+        ["approval-manager", "audit"],
+        ["audit", "metrics"],
+        ["risk-policy", "decision-engine"],
+        ["compat", "approval-manager"],
+        ["rollout", "compat"],
+        ["rollout", "orchestrator"],
+        ["docs", "rollout"],
+      ];
+
+      const FLOW_STEPS = [
+        {
+          id: "f1",
+          title: "Invoke",
+          hint: "Tool call enters shared path",
+          node: "entry",
+        },
+        {
+          id: "f2",
+          title: "Hard Policy",
+          hint: "Allow/deny + sandbox",
+          node: "policy",
+        },
+        {
+          id: "f3",
+          title: "Static Risk",
+          hint: "Deterministic assessment",
+          node: "static-eval",
+        },
+        {
+          id: "f4",
+          title: "Fast Model",
+          hint: "Only for uncertainty",
+          node: "fast-classifier",
+        },
+        {
+          id: "f5",
+          title: "Decision",
+          hint: "Allow / deny / require approval",
+          node: "decision-engine",
+        },
+        {
+          id: "f6",
+          title: "Approve",
+          hint: "Request + resolve via channels",
+          node: "approval-manager",
+        },
+        {
+          id: "f7",
+          title: "Execute",
+          hint: "Run + audit + metrics",
+          node: "execute",
+        },
+      ];
+
+      const RISKS = [
+        {
+          id: "R0",
+          className: "r0",
+          title: "Read-only internal",
+          examples: "read, sessions history, metadata lookup",
+          action: "Allow",
+          details:
+            "No external mutation. Should remain frictionless unless explicit policy override exists.",
+        },
+        {
+          id: "R1",
+          className: "r1",
+          title: "Local workspace mutation",
+          examples: "write, edit, apply_patch in approved workspace",
+          action: "Allow (policy-bound)",
+          details:
+            "Constrained by hard policy and sandbox access. Usually no human approval needed.",
+        },
+        {
+          id: "R2",
+          className: "r2",
+          title: "External read or low-impact action",
+          examples: "web search/fetch, status reads",
+          action: "Allow or conditional approval",
+          details:
+            "Use fast classifier only for ambiguous requests with potential hidden side effects.",
+        },
+        {
+          id: "R3",
+          className: "r3",
+          title: "External mutation",
+          examples: "message send, gateway write, cron change",
+          action: "Approval Required",
+          details:
+            "Default threshold for adaptive approval. Requires explicit resolution by an operator surface.",
+        },
+        {
+          id: "R4",
+          className: "r4",
+          title: "High-impact / dangerous",
+          examples: "destructive system change, security boundary modification",
+          action: "Deny or break-glass approval",
+          details:
+            "Default deny for ambiguity. Tightest controls, strict audit, highest signal-to-noise requirements.",
+        },
+      ];
+
+      const PHASES = [
+        {
+          id: "P1",
+          title: "Phase 1 — Foundations",
+          short: "Risk taxonomy, orchestrator shell, feature flags",
+          highlights: [
+            "Introduce static evaluator and decision contracts",
+            "No behavior change when feature disabled",
+            "Build baseline unit and parity tests",
+          ],
+        },
+        {
+          id: "P2",
+          title: "Phase 2 — Gateway Generic Approvals",
+          short: "tool.approval APIs/events + manager",
+          highlights: [
+            "Add generic gateway methods and schemas",
+            "Keep exec APIs as compatibility aliases",
+            "Scope enforcement under operator.approvals",
+          ],
+        },
+        {
+          id: "P3",
+          title: "Phase 3 — Routing & Channels",
+          short: "Session/target/both routing adapters",
+          highlights: [
+            "Add generalized approval forwarder",
+            "Fanout to control UI, CLI, and chat adapters",
+            "Dedup and partial failure resilience",
+          ],
+        },
+        {
+          id: "P4",
+          title: "Phase 4 — Fast Classifier",
+          short: "Low-latency contextual risk assist",
+          highlights: [
+            "Add classifier client with strict timeout",
+            "Confidence thresholds and deterministic fallback",
+            "Track latency and fallback metrics",
+          ],
+        },
+        {
+          id: "P5",
+          title: "Phase 5 — Exec Migration",
+          short: "Move exec to shared orchestration path",
+          highlights: [
+            "Preserve allow-once/allow-always semantics",
+            "Dual-path parity checks before default switch",
+            "Deprecate legacy internals after compatibility window",
+          ],
+        },
+      ];
+
+      const GROUP_STYLES = {
+        runtime: { fill: "#4dd4ac", glow: "rgba(77,212,172,0.42)" },
+        gateway: { fill: "#58a8ff", glow: "rgba(88,168,255,0.42)" },
+        channels: { fill: "#ffbb55", glow: "rgba(255,187,85,0.42)" },
+        ops: { fill: "#b08bff", glow: "rgba(176,139,255,0.42)" },
+      };
+
+      const state = {
+        selectedId: null,
+        selectedFlow: null,
+        selectedRisk: null,
+        selectedPhase: null,
+        lens: "all",
+        search: "",
+        focus: false,
+        playing: false,
+      };
+
+      const nodeMap = new Map(NODES.map((node) => [node.id, node]));
+      const adjacency = new Map();
+      for (const [a, b] of EDGES) {
+        if (!adjacency.has(a)) adjacency.set(a, new Set());
+        if (!adjacency.has(b)) adjacency.set(b, new Set());
+        adjacency.get(a).add(b);
+        adjacency.get(b).add(a);
+      }
+
+      const graphSvg = document.getElementById("systemGraph");
+      const detailTitle = document.getElementById("detailTitle");
+      const detailSub = document.getElementById("detailSub");
+      const detailChips = document.getElementById("detailChips");
+      const detailBody = document.getElementById("detailBody");
+      const flowGrid = document.getElementById("flowGrid");
+      const riskTable = document.getElementById("riskTable");
+      const timeline = document.getElementById("timeline");
+      const searchInput = document.getElementById("search");
+      const clearSearchButton = document.getElementById("clearSearch");
+      const downloadSnapshotButton = document.getElementById("downloadSnapshot");
+      const toggleFocusButton = document.getElementById("toggleFocus");
+      const resetGraphButton = document.getElementById("resetGraph");
+      const playFlowButton = document.getElementById("playFlow");
+
+      function createSvgElement(name, attrs = {}) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+        for (const [key, value] of Object.entries(attrs)) {
+          el.setAttribute(key, String(value));
+        }
+        return el;
+      }
+
+      function matchesLens(node) {
+        if (state.lens === "all") return true;
+        if (state.lens === "runtime") return node.group === "runtime";
+        if (state.lens === "gateway") return node.group === "gateway";
+        if (state.lens === "channels") return node.group === "channels";
+        if (state.lens === "ops") return node.group === "ops";
+        if (state.lens === "decision") {
+          return node.layer === "decision";
+        }
+        return true;
+      }
+
+      function matchesSearch(node) {
+        if (!state.search) return true;
+        const haystack = [
+          node.label,
+          node.summary,
+          ...(node.tags || []),
+          ...(node.detail.interfaces || []),
+          ...(node.detail.responsibilities || []),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(state.search.toLowerCase());
+      }
+
+      function isFocusedVisible(nodeId) {
+        if (!state.focus || !state.selectedId) return true;
+        if (nodeId === state.selectedId) return true;
+        return adjacency.get(state.selectedId)?.has(nodeId) || false;
+      }
+
+      function nodeOpacity(node) {
+        const visible = matchesLens(node) && matchesSearch(node) && isFocusedVisible(node.id);
+        return visible ? 1 : 0.14;
+      }
+
+      function edgeOpacity(from, to) {
+        const fromNode = nodeMap.get(from);
+        const toNode = nodeMap.get(to);
+        if (!fromNode || !toNode) return 0.08;
+        const visible =
+          matchesLens(fromNode) &&
+          matchesLens(toNode) &&
+          matchesSearch(fromNode) &&
+          matchesSearch(toNode) &&
+          isFocusedVisible(from) &&
+          isFocusedVisible(to);
+        if (!visible) return 0.06;
+        if (!state.selectedId) return 0.32;
+        return from === state.selectedId || to === state.selectedId ? 0.86 : 0.18;
+      }
+
+      function renderGraph() {
+        graphSvg.innerHTML = "";
+
+        const defs = createSvgElement("defs");
+        const marker = createSvgElement("marker", {
+          id: "arrow",
+          viewBox: "0 0 10 10",
+          refX: "8",
+          refY: "5",
+          markerWidth: "7",
+          markerHeight: "7",
+          orient: "auto-start-reverse",
+        });
+        marker.appendChild(
+          createSvgElement("path", {
+            d: "M 0 0 L 10 5 L 0 10 z",
+            fill: "rgba(190,209,239,0.6)",
+          }),
+        );
+        defs.appendChild(marker);
+        graphSvg.appendChild(defs);
+
+        for (const [from, to] of EDGES) {
+          const a = nodeMap.get(from);
+          const b = nodeMap.get(to);
+          if (!a || !b) continue;
+          const line = createSvgElement("line", {
+            x1: a.x,
+            y1: a.y,
+            x2: b.x,
+            y2: b.y,
+            stroke: "rgba(196,214,242,0.68)",
+            "stroke-width": from === state.selectedId || to === state.selectedId ? "3" : "2",
+            "stroke-linecap": "round",
+            "marker-end": "url(#arrow)",
+            opacity: edgeOpacity(from, to),
+          });
+          graphSvg.appendChild(line);
+        }
+
+        for (const node of NODES) {
+          const style = GROUP_STYLES[node.group];
+          const isActive = node.id === state.selectedId;
+          const opacity = nodeOpacity(node);
+
+          const g = createSvgElement("g", {
+            transform: `translate(${node.x},${node.y})`,
+            opacity,
+            role: "button",
+            tabindex: "0",
+            "aria-label": node.label,
+          });
+
+          const shadow = createSvgElement("circle", {
+            cx: "0",
+            cy: "0",
+            r: isActive ? "42" : "36",
+            fill: style.glow,
+          });
+          g.appendChild(shadow);
+
+          const ring = createSvgElement("circle", {
+            cx: "0",
+            cy: "0",
+            r: isActive ? "29.5" : "26.5",
+            fill: "#102035",
+            stroke: isActive ? style.fill : "rgba(255,255,255,0.33)",
+            "stroke-width": isActive ? "3.2" : "1.6",
+          });
+          g.appendChild(ring);
+
+          const core = createSvgElement("circle", {
+            cx: "0",
+            cy: "0",
+            r: "14",
+            fill: style.fill,
+            opacity: isActive ? "1" : "0.86",
+          });
+          g.appendChild(core);
+
+          const text = createSvgElement("text", {
+            x: "0",
+            y: "49",
+            "text-anchor": "middle",
+            fill: "#d9e8ff",
+            "font-size": "12",
+            "font-weight": isActive ? "700" : "600",
+          });
+          text.textContent = node.label;
+          g.appendChild(text);
+
+          g.addEventListener("click", () => selectNode(node.id));
+          g.addEventListener("keydown", (evt) => {
+            if (evt.key === "Enter" || evt.key === " ") {
+              evt.preventDefault();
+              selectNode(node.id);
+            }
+          });
+
+          graphSvg.appendChild(g);
+        }
+      }
+
+      function renderDetail(payload) {
+        detailTitle.textContent = payload.title;
+        detailSub.textContent = payload.subtitle;
+
+        detailChips.innerHTML = "";
+        for (const chip of payload.chips || []) {
+          const span = document.createElement("span");
+          span.className = "chip";
+          span.textContent = chip;
+          detailChips.appendChild(span);
+        }
+
+        detailBody.innerHTML = "";
+        for (const block of payload.blocks || []) {
+          const wrapper = document.createElement("section");
+          wrapper.className = "detail-block";
+
+          const h = document.createElement("h3");
+          h.textContent = block.title;
+          wrapper.appendChild(h);
+
+          if (Array.isArray(block.list)) {
+            const ul = document.createElement("ul");
+            for (const item of block.list) {
+              const li = document.createElement("li");
+              li.textContent = item;
+              ul.appendChild(li);
+            }
+            wrapper.appendChild(ul);
+          } else {
+            const p = document.createElement("p");
+            p.textContent = block.text;
+            wrapper.appendChild(p);
+          }
+
+          detailBody.appendChild(wrapper);
+        }
+      }
+
+      function showNodeDetail(nodeId) {
+        const node = nodeMap.get(nodeId);
+        if (!node) return;
+        renderDetail({
+          title: node.label,
+          subtitle: node.summary,
+          chips: node.tags,
+          blocks: [
+            { title: "Why It Exists", text: node.detail.why },
+            { title: "Responsibilities", list: node.detail.responsibilities },
+            { title: "Interfaces", list: node.detail.interfaces },
+            { title: "Validation & Tests", list: node.detail.tests },
+          ],
+        });
+      }
+
+      function showFlowDetail(stepId) {
+        const step = FLOW_STEPS.find((entry) => entry.id === stepId);
+        if (!step) return;
+        const node = nodeMap.get(step.node);
+        renderDetail({
+          title: `Flow Step: ${step.title}`,
+          subtitle: step.hint,
+          chips: ["Invocation Flow", ...(node?.tags || [])],
+          blocks: [
+            { title: "Step Purpose", text: step.hint },
+            {
+              title: "Primary Element",
+              text: node ? `${node.label} — ${node.summary}` : "Linked node not found.",
+            },
+            {
+              title: "Operational Expectation",
+              list: [
+                "Must be deterministic and observable",
+                "Must preserve deny-by-default for high risk ambiguity",
+                "Must not bypass hard tool/sandbox policy",
+              ],
+            },
+          ],
+        });
+      }
+
+      function showRiskDetail(riskId) {
+        const risk = RISKS.find((entry) => entry.id === riskId);
+        if (!risk) return;
+        renderDetail({
+          title: `Risk Class ${risk.id}`,
+          subtitle: risk.title,
+          chips: ["Risk Taxonomy", `Default: ${risk.action}`],
+          blocks: [
+            { title: "Scope", text: risk.details },
+            { title: "Common Examples", text: risk.examples },
+            {
+              title: "Policy Guidance",
+              list: [
+                "Apply hard policy first",
+                "Use fast classifier only when static assessment is uncertain",
+                "Escalate to approval at configured threshold",
+              ],
+            },
+          ],
+        });
+      }
+
+      function showPhaseDetail(phaseId) {
+        const phase = PHASES.find((entry) => entry.id === phaseId);
+        if (!phase) return;
+        renderDetail({
+          title: phase.title,
+          subtitle: phase.short,
+          chips: ["Rollout", phase.id],
+          blocks: [
+            { title: "Phase Goal", text: phase.short },
+            { title: "Exit Criteria", list: phase.highlights },
+            {
+              title: "Rollout Guardrail",
+              list: [
+                "Do not progress without parity and regression evidence",
+                "Keep backcompat path active until stability window closes",
+                "Track approval volume and false-positive/false-negative indicators",
+              ],
+            },
+          ],
+        });
+      }
+
+      function selectNode(nodeId) {
+        state.selectedId = nodeId;
+        state.selectedFlow = null;
+        state.selectedRisk = null;
+        state.selectedPhase = null;
+        showNodeDetail(nodeId);
+        renderGraph();
+        updateSelectionStyles();
+      }
+
+      function selectFlow(stepId) {
+        state.selectedFlow = stepId;
+        state.selectedRisk = null;
+        state.selectedPhase = null;
+        showFlowDetail(stepId);
+        const step = FLOW_STEPS.find((entry) => entry.id === stepId);
+        if (step) {
+          state.selectedId = step.node;
+        }
+        renderGraph();
+        updateSelectionStyles();
+      }
+
+      function selectRisk(riskId) {
+        state.selectedRisk = riskId;
+        state.selectedFlow = null;
+        state.selectedPhase = null;
+        showRiskDetail(riskId);
+        updateSelectionStyles();
+      }
+
+      function selectPhase(phaseId) {
+        state.selectedPhase = phaseId;
+        state.selectedFlow = null;
+        state.selectedRisk = null;
+        showPhaseDetail(phaseId);
+        updateSelectionStyles();
+      }
+
+      function updateSelectionStyles() {
+        for (const button of flowGrid.querySelectorAll(".flow-step")) {
+          button.classList.toggle("active", button.dataset.id === state.selectedFlow);
+        }
+        for (const row of riskTable.querySelectorAll(".risk-row")) {
+          row.classList.toggle("active", row.dataset.id === state.selectedRisk);
+        }
+        for (const row of timeline.querySelectorAll(".phase")) {
+          row.classList.toggle("active", row.dataset.id === state.selectedPhase);
+        }
+      }
+
+      function renderFlow() {
+        flowGrid.innerHTML = "";
+        for (const step of FLOW_STEPS) {
+          const btn = document.createElement("button");
+          btn.className = "flow-step";
+          btn.type = "button";
+          btn.dataset.id = step.id;
+          btn.innerHTML = `<strong>${step.title}</strong><span>${step.hint}</span>`;
+          btn.addEventListener("click", () => selectFlow(step.id));
+          flowGrid.appendChild(btn);
+        }
+      }
+
+      function renderRisks() {
+        riskTable.innerHTML = "";
+        for (const risk of RISKS) {
+          const row = document.createElement("button");
+          row.type = "button";
+          row.className = "risk-row";
+          row.dataset.id = risk.id;
+          row.innerHTML = `
+            <span class="risk-tag ${risk.className}">${risk.id}</span>
+            <span class="risk-main"><strong>${risk.title}</strong><span>${risk.examples}</span></span>
+            <span class="risk-action">${risk.action}</span>
+          `;
+          row.addEventListener("click", () => selectRisk(risk.id));
+          riskTable.appendChild(row);
+        }
+      }
+
+      function renderTimeline() {
+        timeline.innerHTML = "";
+        for (const phase of PHASES) {
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = "phase";
+          item.dataset.id = phase.id;
+          item.innerHTML = `<strong>${phase.title}</strong><span>${phase.short}</span>`;
+          item.addEventListener("click", () => selectPhase(phase.id));
+          timeline.appendChild(item);
+        }
+      }
+
+      function applyLens(lens) {
+        state.lens = lens;
+        for (const pill of document.querySelectorAll("#lensRow .pill")) {
+          pill.classList.toggle("active", pill.dataset.lens === lens);
+        }
+        renderGraph();
+      }
+
+      function handleSearchInput(value) {
+        state.search = value.trim();
+        renderGraph();
+
+        if (!state.search) return;
+        const first = NODES.find((node) => matchesSearch(node));
+        if (first) {
+          selectNode(first.id);
+        }
+      }
+
+      async function playFlow() {
+        if (state.playing) return;
+        state.playing = true;
+        playFlowButton.textContent = "Playing...";
+        playFlowButton.disabled = true;
+
+        for (const step of FLOW_STEPS) {
+          if (!state.playing) break;
+          selectFlow(step.id);
+          await new Promise((resolve) => setTimeout(resolve, 850));
+        }
+
+        state.playing = false;
+        playFlowButton.textContent = "Play Invocation Path";
+        playFlowButton.disabled = false;
+      }
+
+      function stopFlowPlayback() {
+        state.playing = false;
+        playFlowButton.textContent = "Play Invocation Path";
+        playFlowButton.disabled = false;
+      }
+
+      function downloadSnapshot() {
+        const snapshot = {
+          generatedAt: new Date().toISOString(),
+          architectureElements: NODES,
+          edges: EDGES,
+          flow: FLOW_STEPS,
+          riskTaxonomy: RISKS,
+          rolloutPhases: PHASES,
+          currentState: {
+            selectedId: state.selectedId,
+            lens: state.lens,
+            focus: state.focus,
+            search: state.search,
+          },
+        };
+
+        const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "adaptive-tool-approval-architecture-snapshot.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function setupEvents() {
+        document.getElementById("lensRow").addEventListener("click", (event) => {
+          const target = event.target.closest(".pill");
+          if (!target) return;
+          stopFlowPlayback();
+          applyLens(target.dataset.lens);
+        });
+
+        searchInput.addEventListener("input", (event) => {
+          stopFlowPlayback();
+          handleSearchInput(event.target.value);
+        });
+
+        clearSearchButton.addEventListener("click", () => {
+          searchInput.value = "";
+          handleSearchInput("");
+          searchInput.focus();
+        });
+
+        downloadSnapshotButton.addEventListener("click", downloadSnapshot);
+
+        toggleFocusButton.addEventListener("click", () => {
+          state.focus = !state.focus;
+          toggleFocusButton.textContent = `Focus: ${state.focus ? "On" : "Off"}`;
+          renderGraph();
+        });
+
+        resetGraphButton.addEventListener("click", () => {
+          stopFlowPlayback();
+          state.selectedId = null;
+          state.selectedFlow = null;
+          state.selectedRisk = null;
+          state.selectedPhase = null;
+          state.focus = false;
+          toggleFocusButton.textContent = "Focus: Off";
+          renderGraph();
+          updateSelectionStyles();
+          renderDetail({
+            title: "Select an architectural element",
+            subtitle: "Click a graph node, flow step, risk tier, or rollout phase.",
+            chips: [],
+            blocks: [
+              {
+                title: "How to use this page",
+                list: [
+                  "Use Lens filters to focus on runtime, gateway, channels, or operations",
+                  "Click nodes for detailed responsibilities, interfaces, and tests",
+                  "Use Flow, Risk, and Rollout panels for alternative drilldown paths",
+                ],
+              },
+            ],
+          });
+        });
+
+        playFlowButton.addEventListener("click", playFlow);
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "/" && document.activeElement !== searchInput) {
+            event.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+            return;
+          }
+
+          if (event.key.toLowerCase() === "f") {
+            state.focus = !state.focus;
+            toggleFocusButton.textContent = `Focus: ${state.focus ? "On" : "Off"}`;
+            renderGraph();
+          }
+
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            const visibleNodes = NODES.filter((node) => matchesLens(node) && matchesSearch(node));
+            if (!visibleNodes.length) return;
+            const currentIndex = visibleNodes.findIndex((node) => node.id === state.selectedId);
+            const direction = event.key === "ArrowRight" ? 1 : -1;
+            const nextIndex =
+              currentIndex < 0
+                ? 0
+                : (currentIndex + direction + visibleNodes.length) % visibleNodes.length;
+            selectNode(visibleNodes[nextIndex].id);
+          }
+        });
+      }
+
+      function init() {
+        renderFlow();
+        renderRisks();
+        renderTimeline();
+        setupEvents();
+        applyLens("all");
+        selectNode("orchestrator");
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -47,6 +47,17 @@ const shortcutCategories: ShortcutCategory[] = [
       { keys: ["Cmd", "Shift", "P"], description: "Toggle power user mode" },
     ],
   },
+  {
+    name: "Session",
+    shortcuts: [
+      { keys: ["Cmd", "B"], description: "Toggle left sidebar" },
+      { keys: ["Cmd", "J"], description: "Toggle right sidebar" },
+      { keys: ["Cmd", "`"], description: "Open terminal (maximized)" },
+      { keys: ["Cmd", "E"], description: "Open Core Files editor" },
+      { keys: ["Escape"], description: "Close maximized views" },
+      { keys: ["Cmd", "Shift", "F"], description: "Toggle focus mode" },
+    ],
+  },
 ];
 
 interface KeyboardShortcutsModalProps {

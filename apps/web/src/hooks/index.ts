@@ -55,3 +55,7 @@ export {
   type ConnectionStatusMap,
   type OAuthConnectOptions,
 } from "./useConnectionManager";
+export {
+  useSessionShortcuts,
+  type UseSessionShortcutsOptions,
+} from "./useSessionShortcuts";

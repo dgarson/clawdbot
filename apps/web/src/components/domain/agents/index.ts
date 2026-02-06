@@ -12,3 +12,4 @@ export { AgentCronTab } from "./AgentCronTab";
 export { AgentSoulTab } from "./AgentSoulTab";
 export { AgentActivityTab } from "./AgentActivityTab";
 export { AgentCoreFilesTab } from "./AgentCoreFilesTab";
+export { CoreFilesSheet, type CoreFilesSheetProps } from "./CoreFilesSheet";

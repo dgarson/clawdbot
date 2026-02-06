@@ -19,3 +19,4 @@ export {
   type SessionOverviewPanelProps,
 } from "./SessionOverviewPanel";
 export { ChatBackendToggle, type ChatBackendToggleProps } from "./ChatBackendToggle";
+export { TerminalStatusIcon, type TerminalStatusIconProps } from "./TerminalStatusIcon";

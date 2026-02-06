@@ -10,6 +10,7 @@ import type { Agent } from "@/hooks/queries/useAgents";
 import type { GatewaySessionRow } from "@/lib/api/sessions";
 import { ChatBackendToggle } from "./ChatBackendToggle";
 import { formatRelativeTime, getSessionLabel } from "./session-helpers";
+import { useUIStore } from "@/stores/useUIStore";
 import { Clock, MessagesSquare, Sparkles, FolderOpen } from "lucide-react";
 
 export interface SessionOverviewPanelProps {
@@ -34,18 +35,19 @@ export function SessionOverviewPanel({
   className,
 }: SessionOverviewPanelProps) {
   const sessionLabel = session ? getSessionLabel(session) : "Current session";
+  const powerUserMode = useUIStore((s) => s.powerUserMode);
 
   return (
     <Card className={cn("border-border/60 bg-card/40", className)}>
-      <CardContent className="p-4 space-y-4">
-        <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+      <CardContent className="p-3 space-y-3">
+        <div className="space-y-0.5">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
             Session overview
           </p>
           <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1 min-w-0">
-              <h2 className="text-base font-semibold truncate">{sessionLabel}</h2>
-              <p className="text-xs text-muted-foreground truncate">
+            <div className="space-y-0.5 min-w-0">
+              <h2 className="text-sm font-semibold truncate leading-tight">{sessionLabel}</h2>
+              <p className="text-[10px] text-muted-foreground truncate">
                 {session?.key ?? "Awaiting session key"}
               </p>
             </div>
@@ -53,71 +55,80 @@ export function SessionOverviewPanel({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <MessagesSquare className="h-3.5 w-3.5" />
-              Messages
+        <div className="grid grid-cols-1 gap-2 text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MessagesSquare className="h-3 w-3" />
+              <span className="text-[11px]">Messages</span>
             </div>
-            <p className="text-sm font-semibold">{messageCount}</p>
+            <p className="text-xs font-semibold">{messageCount}</p>
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" />
-              Last active
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span className="text-[11px]">Last active</span>
             </div>
-            <p className="text-sm font-semibold">
+            <p className="text-xs font-semibold">
               {lastActiveAt ? formatRelativeTime(lastActiveAt) : "Waiting"}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="secondary" className="text-[9px] uppercase tracking-wide px-1.5 py-0.5">
             {chatBackend === "gateway" ? "Gateway" : "Vercel AI"}
           </Badge>
           {session?.thinkingLevel && (
-            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+            <Badge variant="outline" className="text-[9px] uppercase tracking-wide px-1.5 py-0.5">
               {session.thinkingLevel}
             </Badge>
           )}
           {session?.verboseLevel && (
-            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+            <Badge variant="outline" className="text-[9px] uppercase tracking-wide px-1.5 py-0.5">
               Verbose {session.verboseLevel}
             </Badge>
           )}
         </div>
 
         {workspaceDir && (
-          <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-3.5 w-3.5" />
+          <div className="rounded-md border border-border/50 bg-muted/30 px-2 py-1.5 text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <FolderOpen className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">{workspaceDir}</span>
             </div>
           </div>
         )}
 
-        <Separator className="bg-border/60" />
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5" />
-            Session controls
-          </div>
-          <ChatBackendToggle />
-          <div className="grid gap-2">
-            <Button
-              size="sm"
-              onClick={onNewSession}
-              disabled={!onNewSession}
-            >
-              New session
-            </Button>
-            <Button size="sm" variant="outline" disabled>
-              Session settings (soon)
-            </Button>
-          </div>
+        {/* New session button is always visible */}
+        <div className="grid gap-1.5">
+          <Button
+            size="sm"
+            onClick={onNewSession}
+            disabled={!onNewSession}
+            className="h-8 text-xs"
+          >
+            New session
+          </Button>
         </div>
+
+        {/* Advanced controls: only visible in power user mode */}
+        {powerUserMode && (
+          <>
+            <Separator className="bg-border/60" />
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <Sparkles className="h-3 w-3" />
+                Controls
+              </div>
+              <ChatBackendToggle />
+              <div className="grid gap-1.5">
+                <Button size="sm" variant="outline" disabled className="h-8 text-xs">
+                  Settings (soon)
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

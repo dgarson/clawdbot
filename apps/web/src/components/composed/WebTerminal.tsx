@@ -236,3 +236,5 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
 );
 
 WebTerminal.displayName = "WebTerminal";
+
+export default WebTerminal;
