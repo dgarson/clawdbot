@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
+import { configureMemoryFeedback } from "../../memory/feedback/feedback-subscriber.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { resolveUserPath } from "../../utils.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
@@ -27,6 +28,7 @@ import {
   resolveAuthProfileOrder,
   type ResolvedProviderAuth,
 } from "../model-auth.js";
+import { resolveModel } from "../model-resolution.js";
 import { normalizeProviderId } from "../model-selection.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
@@ -48,7 +50,6 @@ import { normalizeUsage, type UsageLike } from "../usage.js";
 import { compactEmbeddedPiSessionDirect } from "./compact.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
-import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import { describeUnknownError } from "./utils.js";
@@ -58,6 +59,8 @@ type ApiKeyInfo = ResolvedProviderAuth;
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
 const ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)";
+
+let feedbackConfigured = false;
 
 function scrubAnthropicRefusalMagic(prompt: string): string {
   if (!prompt.includes(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL)) {
@@ -110,6 +113,12 @@ export async function runEmbeddedPiAgent(
       );
       if (!model) {
         throw new Error(error ?? `Unknown model: ${provider}/${modelId}`);
+      }
+
+      // One-time lazy init: wire memory feedback evaluator with a cheap LLM call
+      if (!feedbackConfigured && params.config) {
+        feedbackConfigured = true;
+        initMemoryFeedback(params.config).catch(() => {});
       }
 
       const ctxInfo = resolveContextWindowInfo({
@@ -697,4 +706,42 @@ export async function runEmbeddedPiAgent(
       }
     }),
   );
+}
+
+// ── Memory feedback init ─────────────────────────────────────────────────
+// Resolves the cheapest available model and wires it into the feedback evaluator.
+
+async function initMemoryFeedback(
+  cfg: import("../../config/config.js").OpenClawConfig,
+): Promise<void> {
+  try {
+    const { resolveUtilityModelRef } = await import("../micro-model.js");
+    const { completeText } = await import("../../plugin-sdk/llm.js");
+
+    const ref = await resolveUtilityModelRef({ cfg, feature: "memoryFeedback" });
+    const evalProvider = ref.provider;
+    const evalModel = ref.model;
+
+    configureMemoryFeedback({
+      llmCall: async (params) => {
+        // Combine system + user prompt since completeText takes a single prompt
+        const prompt = params.systemPrompt
+          ? `${params.systemPrompt}\n\n${params.userPrompt}`
+          : params.userPrompt;
+        const result = await completeText({
+          cfg,
+          provider: evalProvider,
+          model: evalModel,
+          prompt,
+          timeoutMs: 30_000,
+          maxTokens: params.maxTokens,
+        });
+        return { text: result.text, inputTokens: 0, outputTokens: 0 };
+      },
+      model: `${evalProvider}/${evalModel}`,
+    });
+  } catch {
+    // Non-critical: feedback evaluation is optional.
+    // If no cheap model is available, feedback simply won't run.
+  }
 }

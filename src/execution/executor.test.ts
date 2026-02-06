@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import type { AgentRuntime } from "../agents/agent-runtime.js";
 import type { EmbeddedPiRunResult } from "../agents/pi-embedded-runner/types.js";
 import type { ExecutionRequest, RuntimeContext } from "./types.js";
 import { EventRouter } from "./events.js";
@@ -8,6 +9,7 @@ import {
   type TurnExecutor,
   type RunEmbeddedPiAgentFn,
   type RunCliAgentFn,
+  type CreateSdkMainAgentRuntimeFn,
 } from "./executor.js";
 
 /**
@@ -59,6 +61,44 @@ const createMockCliRuntime = (overrides?: Partial<EmbeddedPiRunResult>): RunCliA
       ...overrides,
     } satisfies EmbeddedPiRunResult;
   });
+};
+
+/**
+ * Create a mock Claude SDK runtime factory for testing.
+ * Returns a factory that produces a mock AgentRuntime with a mock run() method.
+ */
+const createMockClaudeSdkRuntime = (
+  overrides?: Partial<EmbeddedPiRunResult>,
+): { factory: CreateSdkMainAgentRuntimeFn; mockRun: ReturnType<typeof vi.fn> } => {
+  const mockRun = vi.fn(async (params: { prompt: string; sessionId: string }) => {
+    const reply = `Claude SDK response for: ${params.prompt.slice(0, 30)}`;
+    return {
+      payloads: [{ text: reply }],
+      meta: {
+        durationMs: 75,
+        agentMeta: {
+          sessionId: params.sessionId,
+          provider: "anthropic",
+          model: "claude-sdk",
+          usage: {
+            input: params.prompt.length,
+            output: reply.length,
+          },
+          claudeSessionId: "claude-session-123",
+        },
+      },
+      didSendViaMessagingTool: false,
+      ...overrides,
+    } satisfies EmbeddedPiRunResult;
+  });
+
+  const factory = vi.fn(async () => ({
+    kind: "claude" as const,
+    displayName: "Mock Claude SDK",
+    run: mockRun,
+  })) as unknown as CreateSdkMainAgentRuntimeFn;
+
+  return { factory, mockRun };
 };
 
 describe("TurnExecutor", () => {
@@ -263,15 +303,25 @@ describe("TurnExecutor", () => {
       expect(vi.mocked(mockPiRuntime)).toHaveBeenCalled();
     });
 
-    it("should handle claude runtime kind (placeholder)", async () => {
+    it("should handle claude runtime kind via Claude SDK adapter", async () => {
+      const { factory, mockRun } = createMockClaudeSdkRuntime();
+      const claudeExecutor = createTurnExecutor({
+        piRuntimeFn: mockPiRuntime,
+        cliRuntimeFn: mockCliRuntime,
+        claudeSdkRuntimeFn: factory,
+      });
+
       const request = createMockRequest();
       const context = createMockContext({ kind: "claude" });
 
-      const outcome = await executor.execute(context, request, emitter);
+      const outcome = await claudeExecutor.execute(context, request, emitter);
       expect(outcome).toBeDefined();
-      // Claude uses placeholder adapter, so neither Pi nor CLI runtime should be called
+      expect(outcome.reply).toContain("Claude SDK response for:");
+      // Claude SDK adapter used, not Pi or CLI
       expect(vi.mocked(mockPiRuntime)).not.toHaveBeenCalled();
       expect(vi.mocked(mockCliRuntime)).not.toHaveBeenCalled();
+      expect(factory).toHaveBeenCalledTimes(1);
+      expect(mockRun).toHaveBeenCalledTimes(1);
     });
 
     it("should handle cli runtime kind", async () => {
@@ -445,6 +495,207 @@ describe("TurnExecutor", () => {
       expect(outcome.embeddedError?.kind).toBe("context_overflow");
       expect(outcome.embeddedError?.message).toBe("Context window exceeded");
     });
+  });
+});
+
+describe("Claude SDK adapter", () => {
+  let emitter: EventRouter;
+
+  const createMockRequest = (overrides: Partial<ExecutionRequest> = {}): ExecutionRequest => ({
+    agentId: "test-agent",
+    sessionId: "test-session",
+    workspaceDir: "/tmp/test",
+    prompt: "Hello from Claude SDK test",
+    ...overrides,
+  });
+
+  const createMockContext = (overrides: Partial<RuntimeContext> = {}): RuntimeContext => ({
+    kind: "claude",
+    provider: "anthropic",
+    model: "claude-sdk-model",
+    toolPolicy: { enabled: true },
+    sandbox: null,
+    capabilities: {
+      supportsTools: true,
+      supportsStreaming: true,
+      supportsImages: true,
+      supportsThinking: true,
+    },
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    emitter = new EventRouter();
+  });
+
+  it("should pass request params to createSdkMainAgentRuntime", async () => {
+    const { factory } = createMockClaudeSdkRuntime();
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const request = createMockRequest({
+      sessionKey: "agent:main",
+      sessionFile: "/tmp/session.jsonl",
+      agentDir: "/tmp/agent",
+      config: { agents: {} } as ExecutionRequest["config"],
+      messageContext: {
+        provider: "telegram",
+        senderId: "user-1",
+        senderName: "Test User",
+        groupId: "group-1",
+        threadId: "thread-1",
+      },
+      runtimeHints: {
+        claudeSdkSessionId: "resume-session-xyz",
+        currentChannelId: "C123",
+        currentThreadTs: "1234567890.123456",
+        replyToMode: "first",
+        hasRepliedRef: { value: false },
+        messageTo: "+1234567890",
+        agentAccountId: "acct-1",
+      },
+      spawnedBy: null,
+    });
+
+    await executor.execute(createMockContext(), request, emitter);
+
+    expect(factory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: request.config,
+        sessionKey: "agent:main",
+        sessionFile: "/tmp/session.jsonl",
+        workspaceDir: "/tmp/test",
+        agentDir: "/tmp/agent",
+        messageProvider: "telegram",
+        agentAccountId: "acct-1",
+        messageTo: "+1234567890",
+        messageThreadId: "thread-1",
+        groupId: "group-1",
+        senderId: "user-1",
+        senderName: "Test User",
+        currentChannelId: "C123",
+        currentThreadTs: "1234567890.123456",
+        replyToMode: "first",
+        claudeSessionId: "resume-session-xyz",
+        spawnedBy: null,
+      }),
+    );
+  });
+
+  it("should pass run params to AgentRuntime.run()", async () => {
+    const { factory, mockRun } = createMockClaudeSdkRuntime();
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const request = createMockRequest({
+      extraSystemPrompt: "You are helpful",
+      timeoutMs: 60000,
+      runtimeHints: { ownerNumbers: ["+1111"] },
+    });
+
+    await executor.execute(createMockContext(), request, emitter);
+
+    expect(mockRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: "test-session",
+        prompt: "Hello from Claude SDK test",
+        extraSystemPrompt: "You are helpful",
+        ownerNumbers: ["+1111"],
+        timeoutMs: 60000,
+      }),
+    );
+  });
+
+  it("should map result from EmbeddedPiRunResult to TurnOutcome", async () => {
+    const { factory } = createMockClaudeSdkRuntime();
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const outcome = await executor.execute(createMockContext(), createMockRequest(), emitter);
+
+    expect(outcome.reply).toContain("Claude SDK response for:");
+    expect(outcome.payloads.length).toBeGreaterThan(0);
+    expect(outcome.usage.inputTokens).toBeGreaterThan(0);
+    expect(outcome.usage.outputTokens).toBeGreaterThan(0);
+    expect(outcome.claudeSdkSessionId).toBe("claude-session-123");
+  });
+
+  it("should wire onPartialReply callback through to AgentRuntime.run()", async () => {
+    const { factory, mockRun } = createMockClaudeSdkRuntime();
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const onPartialReply = vi.fn();
+    const request = createMockRequest({ onPartialReply });
+
+    await executor.execute(createMockContext(), request, emitter);
+
+    // Verify onPartialReply was wired (passed as callback in run params)
+    const runCall = mockRun.mock.calls[0]?.[0];
+    expect(runCall.onPartialReply).toBeDefined();
+  });
+
+  it("should wire onToolResult from request to AgentRuntime.run()", async () => {
+    const { factory, mockRun } = createMockClaudeSdkRuntime();
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const onToolResult = vi.fn();
+    const request = createMockRequest({ onToolResult });
+
+    await executor.execute(createMockContext(), request, emitter);
+
+    const runCall = mockRun.mock.calls[0]?.[0];
+    expect(runCall.onToolResult).toBeDefined();
+  });
+
+  it("should wire onAgentEvent from request to AgentRuntime.run()", async () => {
+    const { factory, mockRun } = createMockClaudeSdkRuntime();
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const onAgentEvent = vi.fn();
+    const request = createMockRequest({ onAgentEvent });
+
+    await executor.execute(createMockContext(), request, emitter);
+
+    const runCall = mockRun.mock.calls[0]?.[0];
+    expect(runCall.onAgentEvent).toBeDefined();
+  });
+
+  it("should handle didSendViaMessagingTool from Claude SDK result", async () => {
+    const { factory } = createMockClaudeSdkRuntime({ didSendViaMessagingTool: true });
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
+
+    const outcome = await executor.execute(createMockContext(), createMockRequest(), emitter);
+
+    expect(outcome.didSendViaMessagingTool).toBe(true);
+  });
+
+  it("should map embedded error from Claude SDK result", async () => {
+    const mockRunWithError = vi.fn(async (params: { prompt: string; sessionId: string }) => ({
+      payloads: [{ text: "Error from SDK" }],
+      meta: {
+        durationMs: 10,
+        agentMeta: {
+          sessionId: params.sessionId,
+          provider: "anthropic",
+          model: "claude-sdk",
+        },
+        error: {
+          kind: "context_overflow" as const,
+          message: "SDK context overflow",
+        },
+      },
+    })) as unknown;
+
+    const errorFactory = vi.fn(async () => ({
+      kind: "claude" as const,
+      displayName: "Mock Claude SDK",
+      run: mockRunWithError as AgentRuntime["run"],
+    })) as unknown as CreateSdkMainAgentRuntimeFn;
+
+    const executor = createTurnExecutor({ claudeSdkRuntimeFn: errorFactory });
+
+    const outcome = await executor.execute(createMockContext(), createMockRequest(), emitter);
+
+    expect(outcome.embeddedError).toBeDefined();
+    expect(outcome.embeddedError?.kind).toBe("context_overflow");
+    expect(outcome.embeddedError?.message).toBe("SDK context overflow");
   });
 });
 

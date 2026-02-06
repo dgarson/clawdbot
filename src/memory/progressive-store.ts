@@ -156,6 +156,8 @@ export type ProgressiveStoreOptions = {
   vecExtensionPath?: string;
   /** Deduplication cosine similarity threshold (default: 0.92). */
   dedupThreshold?: number;
+  /** Optional ops logger for memory operations diagnostics. */
+  opsLog?: import("./ops-log/index.js").MemoryOpsLogger;
 };
 
 export type EmbedFn = (text: string) => Promise<number[]>;
@@ -168,11 +170,13 @@ export class ProgressiveMemoryStore {
   private ftsAvailable = false;
   private vecAvailable = false;
   private closed = false;
+  private readonly opsLog?: import("./ops-log/index.js").MemoryOpsLogger;
 
   constructor(options: ProgressiveStoreOptions) {
     this.dbPath = options.dbPath;
     this.dims = options.dims ?? DEFAULT_DIMS;
     this.dedupThreshold = options.dedupThreshold ?? DEDUP_THRESHOLD;
+    this.opsLog = options.opsLog;
 
     // Ensure parent directory exists
     const dir = path.dirname(this.dbPath);
@@ -183,7 +187,7 @@ export class ProgressiveMemoryStore {
     }
 
     const { DatabaseSync: DB } = requireNodeSqlite();
-    this.db = new DB(this.dbPath);
+    this.db = new DB(this.dbPath, { allowExtension: true });
     this.db.exec("PRAGMA journal_mode=WAL;");
     this.db.exec("PRAGMA busy_timeout=5000;");
 
@@ -257,7 +261,7 @@ export class ProgressiveMemoryStore {
         this.upsertVector(duplicate.id, embedding);
 
         this.setMeta("last_store", now);
-        return {
+        const mergedResult = {
           id: duplicate.id,
           category: params.category,
           stored: true,
@@ -265,6 +269,19 @@ export class ProgressiveMemoryStore {
           mergedWithId: duplicate.id,
           tokenCost: tokenEstimate,
         };
+        this.opsLog?.log({
+          action: "progressive.store",
+          backend: "progressive",
+          status: "success",
+          detail: {
+            id: duplicate.id,
+            category: params.category,
+            deduplicated: true,
+            mergedWithId: duplicate.id,
+            tokenCost: tokenEstimate,
+          },
+        });
+        return mergedResult;
       }
     }
 
@@ -319,6 +336,17 @@ export class ProgressiveMemoryStore {
     }
 
     this.setMeta("last_store", now);
+    this.opsLog?.log({
+      action: "progressive.store",
+      backend: "progressive",
+      status: "success",
+      detail: {
+        id,
+        category: params.category,
+        deduplicated: false,
+        tokenCost: tokenEstimate,
+      },
+    });
     return {
       id,
       category: params.category,
@@ -351,7 +379,7 @@ export class ProgressiveMemoryStore {
   }): ProgressiveMemoryEntry[] {
     this.assertOpen();
     const conditions: string[] = [];
-    const binds: unknown[] = [];
+    const binds: (string | number)[] = [];
 
     if (filters?.categories?.length) {
       const placeholders = filters.categories.map(() => "?").join(", ");
@@ -412,7 +440,7 @@ export class ProgressiveMemoryStore {
         JOIN progressive_entries e ON e.id = f.id
         WHERE ${FTS_TABLE} MATCH ? AND e.archived = 0
       `;
-      const binds: unknown[] = [ftsQuery];
+      const binds: (string | number)[] = [ftsQuery];
 
       if (opts?.categories?.length) {
         const placeholders = opts.categories.map(() => "?").join(", ");
@@ -532,7 +560,20 @@ export class ProgressiveMemoryStore {
       merged = merged.filter((e) => PRIORITY_ORDER[e.priority] >= minOrder);
     }
 
-    return merged.slice(0, limit);
+    const results = merged.slice(0, limit);
+
+    this.opsLog?.log({
+      action: "progressive.recall",
+      backend: "progressive",
+      status: "success",
+      detail: {
+        query: query.slice(0, 200),
+        resultCount: results.length,
+        topScores: results.slice(0, 5).map((r) => r.score),
+      },
+    });
+
+    return results;
   }
 
   /**
@@ -585,7 +626,7 @@ export class ProgressiveMemoryStore {
          WHERE expires_at IS NOT NULL AND expires_at < ? AND archived = 0`,
       )
       .run(now, now);
-    const count = result.changes ?? 0;
+    const count = Number(result.changes ?? 0);
     if (count > 0) {
       log.info?.(`Archived ${count} expired entries`);
     }
@@ -700,7 +741,7 @@ export class ProgressiveMemoryStore {
   private findDuplicate(
     embedding: number[],
     category: MemoryCategory,
-  ): Record<string, unknown> | null {
+  ): { id: string; priority: string; tags: string; related_to: string } | null {
     if (!this.vecAvailable) return null;
 
     try {
@@ -722,7 +763,9 @@ export class ProgressiveMemoryStore {
             .prepare(
               "SELECT * FROM progressive_entries WHERE id = ? AND category = ? AND archived = 0",
             )
-            .get(candidate.id, category) as Record<string, unknown> | undefined;
+            .get(candidate.id, category) as
+            | { id: string; priority: string; tags: string; related_to: string }
+            | undefined;
           if (entry) {
             return entry;
           }
@@ -748,7 +791,7 @@ export class ProgressiveMemoryStore {
     },
   ): void {
     const sets: string[] = ["updated_at = ?"];
-    const binds: unknown[] = [updates.updatedAt];
+    const binds: (string | number)[] = [updates.updatedAt];
 
     if (updates.content !== undefined) {
       sets.push("content = ?");
@@ -782,9 +825,15 @@ export class ProgressiveMemoryStore {
     if (this.ftsAvailable && updates.content !== undefined) {
       try {
         this.db.prepare(`DELETE FROM ${FTS_TABLE} WHERE id = ?`).run(id);
-        const entry = this.db
-          .prepare("SELECT * FROM progressive_entries WHERE id = ?")
-          .get(id) as Record<string, unknown>;
+        const entry = this.db.prepare("SELECT * FROM progressive_entries WHERE id = ?").get(id) as
+          | {
+              content: string;
+              context: string | null;
+              tags: string;
+              category: string;
+              priority: string;
+            }
+          | undefined;
         if (entry) {
           this.db
             .prepare(

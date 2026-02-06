@@ -1,4 +1,5 @@
 import type { QueryOrchestrator, QueryRequest, QueryResult } from "../interfaces.js";
+import type { MemoryOpsLogger } from "../ops-log/index.js";
 
 export type ContextPack = {
   pack: string;
@@ -7,6 +8,7 @@ export type ContextPack = {
 
 type ContextPackBuilderOptions = {
   maxChars?: number;
+  opsLog?: MemoryOpsLogger;
 };
 
 const DEFAULT_MAX_CHARS = 2000;
@@ -45,24 +47,36 @@ const joinWithBudget = (parts: string[], maxChars: number): string => {
 
 export class ContextPackBuilder {
   private readonly maxChars: number;
+  private readonly opsLog?: MemoryOpsLogger;
 
   constructor(
     private readonly orchestrator: QueryOrchestrator,
     options: ContextPackBuilderOptions = {},
   ) {
     this.maxChars = options.maxChars ?? DEFAULT_MAX_CHARS;
+    this.opsLog = options.opsLog;
   }
 
   async build(request: QueryRequest & { maxChars?: number }): Promise<ContextPack> {
+    const start = Date.now();
     const response = await this.orchestrator.query(request);
     const results = response.results;
     const limit = request.limit ?? results.length;
     const selected = results.slice(0, limit);
     const formatted = selected.map((result, index) => formatResult(result, index));
     const maxChars = request.maxChars ?? this.maxChars;
-    return {
-      pack: joinWithBudget(formatted, maxChars),
-      sources: selected,
-    };
+    const pack = joinWithBudget(formatted, maxChars);
+    this.opsLog?.log({
+      action: "context_pack.build",
+      status: "success",
+      durationMs: Date.now() - start,
+      detail: {
+        queryCount: results.length,
+        selectedCount: selected.length,
+        maxChars,
+        packLength: pack.length,
+      },
+    });
+    return { pack, sources: selected };
   }
 }

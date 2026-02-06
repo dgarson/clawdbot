@@ -177,6 +177,12 @@ export interface ExecutionRequest {
 
   /** Explicit runtime kind override ("pi" | "claude" | "cli"). */
   runtimeKind?: "pi" | "claude" | "cli";
+  /**
+   * Embedded-only mode for background/utility runs (e.g. memory flush).
+   * When true: forces runtimeKind to "pi" and skips state persistence.
+   * The caller manages its own session store updates.
+   */
+  embeddedOnly?: boolean;
   /** Parent session key for subagent runtime inheritance. */
   spawnedBy?: string | null;
 
@@ -283,6 +289,8 @@ export interface ExecutionRequest {
     disableTools?: boolean;
     /** Agent account ID for multi-account channels. */
     agentAccountId?: string;
+    /** Claude SDK session ID for native session resume. */
+    claudeSdkSessionId?: string;
   };
 }
 
@@ -553,44 +561,3 @@ export type EventListener = (event: ExecutionEvent) => void | Promise<void>;
  * Unsubscribe function returned by event subscription.
  */
 export type Unsubscribe = () => void;
-
-// ---------------------------------------------------------------------------
-// Execution Config (feature flags)
-// ---------------------------------------------------------------------------
-
-/**
- * Per-entry-point feature flags for gradual migration.
- * Each entry point can be migrated independently with its own flag.
- */
-export interface ExecutionEntryPointFlags {
-  /** Enable for CLI agent command (src/commands/agent.ts). */
-  cli?: boolean;
-  /** Enable for auto-reply runner (src/auto-reply/reply/agent-runner-execution.ts). */
-  autoReply?: boolean;
-  /** Enable for followup runner (src/auto-reply/reply/followup-runner.ts). */
-  followup?: boolean;
-  /** Enable for cron runner (src/cron/isolated-agent/run.ts). */
-  cron?: boolean;
-  /** Enable for hybrid planner (src/agents/hybrid-planner.ts). */
-  hybridPlanner?: boolean;
-}
-
-/**
- * Execution layer configuration.
- * Added to OpenClawConfig.execution.
- */
-export interface ExecutionConfig {
-  /**
-   * Per-entry-point feature flags for gradual migration.
-   * Each flag controls whether that entry point uses the new ExecutionKernel.
-   * Default: all false (use legacy paths).
-   */
-  useNewLayer?: ExecutionEntryPointFlags;
-
-  /**
-   * Global kill switch to disable new layer for all entry points.
-   * When false, all entry points use legacy paths regardless of per-entry flags.
-   * Default: true (per-entry flags are respected).
-   */
-  enabled?: boolean;
-}

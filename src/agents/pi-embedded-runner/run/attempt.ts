@@ -13,6 +13,7 @@ import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { resolveMcpToolsForAgent } from "../../../mcp/mcp-tools.js";
 import { formatMcpToolNamesForLog } from "../../../mcp/tool-name-format.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
+import { handleAgentEnd as handleMemoryFeedback } from "../../../memory/feedback/feedback-subscriber.js";
 import { warnIfThinkingBudgetConflict } from "../../../openclaw/thinking-budget-integration.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import { isSubagentSessionKey } from "../../../routing/session-key.js";
@@ -35,6 +36,7 @@ import {
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
+import { buildModelAliasLines } from "../../model-resolution.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import {
   isCloudCodeAssistFormatError,
@@ -75,7 +77,6 @@ import {
 } from "../google.js";
 import { getHistoryLimitForContext, limitHistoryTurns } from "../history.js";
 import { log } from "../logger.js";
-import { buildModelAliasLines } from "../model.js";
 import {
   clearActiveEmbeddedRun,
   type EmbeddedPiQueueHandle,
@@ -939,6 +940,16 @@ export async function runEmbeddedAttempt(
             .catch((err) => {
               log.warn(`agent_end hook failed: ${err}`);
             });
+        }
+
+        // Fire memory feedback evaluation (fire-and-forget)
+        try {
+          handleMemoryFeedback(
+            { messages: messagesSnapshot, success: !aborted && !promptError },
+            { agentId: params.sessionKey?.split(":")[0] ?? "main", sessionKey: params.sessionKey },
+          );
+        } catch {
+          /* never throw */
         }
       } finally {
         clearTimeout(abortTimer);

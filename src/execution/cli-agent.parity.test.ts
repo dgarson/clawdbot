@@ -13,19 +13,11 @@
 
 import { describe, it, expect } from "vitest";
 import type { EmbeddedPiRunResult } from "../agents/pi-embedded-runner/types.js";
-import type { OpenClawConfig } from "../config/config.js";
 import type { ExecutionResult } from "./types.js";
-import { useNewExecutionLayer } from "./feature-flag.js";
 
 // ---------------------------------------------------------------------------
 // Test Helpers
 // ---------------------------------------------------------------------------
-
-function createMinimalConfig(overrides: Partial<OpenClawConfig> = {}): OpenClawConfig {
-  return {
-    ...overrides,
-  } as OpenClawConfig;
-}
 
 function createSuccessfulExecutionResult(
   overrides: Partial<ExecutionResult> = {},
@@ -140,41 +132,6 @@ function mapExecutionResultToLegacy(result: ExecutionResult): EmbeddedPiRunResul
     didSendViaMessagingTool: result.didSendViaMessagingTool,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Feature Flag Parity Tests
-// ---------------------------------------------------------------------------
-
-describe("CLI migration feature flag", () => {
-  it("should be disabled by default", () => {
-    const config = createMinimalConfig();
-    expect(useNewExecutionLayer(config, "cli")).toBe(false);
-  });
-
-  it("should be enabled when execution.useNewLayer.cli is true", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { cli: true } },
-    });
-    expect(useNewExecutionLayer(config, "cli")).toBe(true);
-  });
-
-  it("should respect global kill switch", () => {
-    const config = createMinimalConfig({
-      execution: { enabled: false, useNewLayer: { cli: true } },
-    });
-    expect(useNewExecutionLayer(config, "cli")).toBe(false);
-  });
-
-  it("should not affect other entry points", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { cli: true } },
-    });
-    expect(useNewExecutionLayer(config, "autoReply")).toBe(false);
-    expect(useNewExecutionLayer(config, "followup")).toBe(false);
-    expect(useNewExecutionLayer(config, "cron")).toBe(false);
-    expect(useNewExecutionLayer(config, "hybridPlanner")).toBe(false);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // Legacy Result Mapping Parity Tests

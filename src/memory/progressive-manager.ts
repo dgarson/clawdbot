@@ -7,10 +7,12 @@
 
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
+import { resolveAgentDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveStateDir } from "../config/paths.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import { createEmbeddingProvider, type EmbeddingProvider } from "./embeddings.js";
+import { createEmbeddingProvider } from "./embeddings.js";
+import { createMemoryOpsLogger } from "./ops-log/index.js";
 import { ProgressiveMemoryStore, type EmbedFn } from "./progressive-store.js";
 
 const log = createSubsystemLogger("progressive-memory");
@@ -35,15 +37,18 @@ export async function getProgressiveStore(params: {
   const dbPath = path.join(stateDir, "memory", "progressive.db");
 
   const cached = storeCache.get(dbPath);
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
 
-  const store = new ProgressiveMemoryStore({ dbPath });
+  const opsLog = createMemoryOpsLogger(stateDir);
+  const store = new ProgressiveMemoryStore({ dbPath, opsLog });
 
   // Try to initialize vector search
   try {
     await store.initVector();
   } catch (err) {
-    log.warn?.(`Vector init failed (FTS-only mode): ${err}`);
+    log.warn?.(`Vector init failed (FTS-only mode): ${String(err)}`);
   }
 
   // Try to create an embed function from the existing memory search config
@@ -54,10 +59,12 @@ export async function getProgressiveStore(params: {
     if (memSearchConfig) {
       const providerResult = await createEmbeddingProvider({
         config: params.cfg,
-        provider: memSearchConfig.embedding.provider as "openai" | "local" | "gemini" | "auto",
-        model: memSearchConfig.embedding.model,
-        fallback: memSearchConfig.embedding.fallback as "openai" | "gemini" | "local" | "none",
-        local: memSearchConfig.embedding.local,
+        provider: memSearchConfig.provider,
+        model: memSearchConfig.model,
+        fallback: memSearchConfig.fallback,
+        local: memSearchConfig.local,
+        remote: memSearchConfig.remote,
+        agentDir: resolveAgentDir(params.cfg, agentId),
       });
       if (providerResult?.provider) {
         const provider = providerResult.provider;
@@ -66,7 +73,7 @@ export async function getProgressiveStore(params: {
       }
     }
   } catch (err) {
-    log.warn?.(`Embedding provider setup failed (dedup/vector disabled): ${err}`);
+    log.warn?.(`Embedding provider setup failed (dedup/vector disabled): ${String(err)}`);
   }
 
   const access: ProgressiveStoreAccess = { store, embedFn };
@@ -78,7 +85,7 @@ export async function getProgressiveStore(params: {
  * Close and remove all cached stores. Called during shutdown.
  */
 export function closeAllProgressiveStores(): void {
-  for (const [key, access] of storeCache) {
+  for (const [_key, access] of storeCache) {
     try {
       access.store.close();
     } catch {

@@ -13,19 +13,11 @@
  */
 
 import { describe, it, expect } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
 import type { ExecutionResult, ExecutionRequest } from "./types.js";
-import { useNewExecutionLayer } from "./feature-flag.js";
 
 // ---------------------------------------------------------------------------
 // Test Helpers
 // ---------------------------------------------------------------------------
-
-function createMinimalConfig(overrides: Partial<OpenClawConfig> = {}): OpenClawConfig {
-  return {
-    ...overrides,
-  } as OpenClawConfig;
-}
 
 function createSuccessfulExecutionResult(
   overrides: Partial<ExecutionResult> = {},
@@ -73,57 +65,6 @@ function extractLastText(payloads: Array<{ text?: string }> | undefined): string
   }
   return "";
 }
-
-// ---------------------------------------------------------------------------
-// Feature Flag Parity Tests
-// ---------------------------------------------------------------------------
-
-describe("Hybrid planner migration feature flag", () => {
-  it("should be disabled by default", () => {
-    const config = createMinimalConfig();
-    expect(useNewExecutionLayer(config, "hybridPlanner")).toBe(false);
-  });
-
-  it("should be enabled when execution.useNewLayer.hybridPlanner is true", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { hybridPlanner: true } },
-    });
-    expect(useNewExecutionLayer(config, "hybridPlanner")).toBe(true);
-  });
-
-  it("should respect global kill switch", () => {
-    const config = createMinimalConfig({
-      execution: { enabled: false, useNewLayer: { hybridPlanner: true } },
-    });
-    expect(useNewExecutionLayer(config, "hybridPlanner")).toBe(false);
-  });
-
-  it("should not affect other entry points", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { hybridPlanner: true } },
-    });
-    expect(useNewExecutionLayer(config, "cli")).toBe(false);
-    expect(useNewExecutionLayer(config, "autoReply")).toBe(false);
-    expect(useNewExecutionLayer(config, "followup")).toBe(false);
-    expect(useNewExecutionLayer(config, "cron")).toBe(false);
-  });
-
-  it("should be independent from all other flags", () => {
-    const config = createMinimalConfig({
-      execution: {
-        useNewLayer: {
-          cli: true,
-          autoReply: true,
-          followup: true,
-          cron: true,
-          hybridPlanner: false,
-        },
-      },
-    });
-    expect(useNewExecutionLayer(config, "hybridPlanner")).toBe(false);
-    expect(useNewExecutionLayer(config, "cli")).toBe(true);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // Request Building Parity Tests

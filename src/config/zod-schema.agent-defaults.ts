@@ -33,6 +33,18 @@ const ModelRoutingPolicySchema = z
   })
   .strict();
 
+const UtilityModelFeatureSchema = z.object({ model: z.string().optional() }).strict().optional();
+
+const UtilityModelConfigSchema = z
+  .object({
+    slugGenerator: UtilityModelFeatureSchema,
+    sessionDescription: UtilityModelFeatureSchema,
+    memoryFeedback: UtilityModelFeatureSchema,
+    memoryFlush: UtilityModelFeatureSchema,
+  })
+  .strict()
+  .optional();
+
 export const AgentDefaultsSchema = z
   .object({
     model: z
@@ -49,6 +61,8 @@ export const AgentDefaultsSchema = z
       })
       .strict()
       .optional(),
+    utilityModel: z.string().optional(),
+    utility: UtilityModelConfigSchema,
     models: z
       .record(
         z.string(),
@@ -134,6 +148,7 @@ export const AgentDefaultsSchema = z
             softThresholdTokens: z.number().int().nonnegative().optional(),
             prompt: z.string().optional(),
             systemPrompt: z.string().optional(),
+            model: z.string().optional(),
           })
           .strict()
           .optional(),

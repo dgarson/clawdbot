@@ -110,12 +110,22 @@ const MemoryProgressiveSchema = z
   })
   .strict();
 
+const MemoryGraphitiSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    baseUrl: z.string().optional(),
+    apiKey: z.string().optional(),
+    timeoutMs: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
 const MemorySchema = z
   .object({
     backend: z.union([z.literal("builtin"), z.literal("qmd")]).optional(),
     citations: z.union([z.literal("auto"), z.literal("on"), z.literal("off")]).optional(),
     qmd: MemoryQmdSchema.optional(),
     progressive: MemoryProgressiveSchema.optional(),
+    graphiti: MemoryGraphitiSchema.optional(),
   })
   .strict()
   .optional();
@@ -566,6 +576,12 @@ export const OpenClawSchema = z
           })
           .strict()
           .optional(),
+        workQueue: z
+          .object({
+            recoverOnStartup: z.boolean().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
@@ -665,6 +681,13 @@ export const OpenClawSchema = z
               .strict(),
           )
           .optional(),
+      })
+      .strict()
+      .optional(),
+    debugging: z
+      .object({
+        channels: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
+        features: z.array(z.string()).optional(),
       })
       .strict()
       .optional(),

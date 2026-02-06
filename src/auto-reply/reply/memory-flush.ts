@@ -26,6 +26,8 @@ export type MemoryFlushSettings = {
   prompt: string;
   systemPrompt: string;
   reserveTokensFloor: number;
+  /** Inline model override (provider/model or alias) from compaction.memoryFlush.model. */
+  model?: string;
 };
 
 const normalizeNonNegativeInt = (value: unknown): number | null => {
@@ -50,12 +52,15 @@ export function resolveMemoryFlushSettings(cfg?: OpenClawConfig): MemoryFlushSet
     normalizeNonNegativeInt(cfg?.agents?.defaults?.compaction?.reserveTokensFloor) ??
     DEFAULT_PI_COMPACTION_RESERVE_TOKENS_FLOOR;
 
+  const model = defaults?.model?.trim() || undefined;
+
   return {
     enabled,
     softThresholdTokens,
     prompt: ensureNoReplyHint(prompt),
     systemPrompt: ensureNoReplyHint(systemPrompt),
     reserveTokensFloor,
+    model,
   };
 }
 

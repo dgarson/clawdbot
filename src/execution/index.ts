@@ -43,18 +43,7 @@ export type {
   // Error types
   ExecutionError,
   ExecutionErrorKind,
-  // Config types
-  ExecutionConfig,
-  ExecutionEntryPointFlags,
 } from "./types.js";
-
-// Feature flag utilities
-export {
-  useNewExecutionLayer,
-  anyNewExecutionLayerEnabled,
-  getExecutionLayerStatus,
-  type ExecutionEntryPoint,
-} from "./feature-flag.js";
 
 // Event Router
 export {

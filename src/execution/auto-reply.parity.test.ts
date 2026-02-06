@@ -15,19 +15,11 @@
 
 import { describe, it, expect } from "vitest";
 import type { EmbeddedPiRunResult } from "../agents/pi-embedded-runner/types.js";
-import type { OpenClawConfig } from "../config/config.js";
 import type { ExecutionResult, ExecutionRequest } from "./types.js";
-import { useNewExecutionLayer } from "./feature-flag.js";
 
 // ---------------------------------------------------------------------------
 // Test Helpers
 // ---------------------------------------------------------------------------
-
-function createMinimalConfig(overrides: Partial<OpenClawConfig> = {}): OpenClawConfig {
-  return {
-    ...overrides,
-  } as OpenClawConfig;
-}
 
 function createSuccessfulExecutionResult(
   overrides: Partial<ExecutionResult> = {},
@@ -105,49 +97,6 @@ function mapExecutionResultToLegacy(result: ExecutionResult): EmbeddedPiRunResul
       result.messagingToolSentTargets as EmbeddedPiRunResult["messagingToolSentTargets"],
   };
 }
-
-// ---------------------------------------------------------------------------
-// Feature Flag Parity Tests
-// ---------------------------------------------------------------------------
-
-describe("Auto-reply migration feature flag", () => {
-  it("should be disabled by default", () => {
-    const config = createMinimalConfig();
-    expect(useNewExecutionLayer(config, "autoReply")).toBe(false);
-  });
-
-  it("should be enabled when execution.useNewLayer.autoReply is true", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { autoReply: true } },
-    });
-    expect(useNewExecutionLayer(config, "autoReply")).toBe(true);
-  });
-
-  it("should respect global kill switch", () => {
-    const config = createMinimalConfig({
-      execution: { enabled: false, useNewLayer: { autoReply: true } },
-    });
-    expect(useNewExecutionLayer(config, "autoReply")).toBe(false);
-  });
-
-  it("should not affect other entry points", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { autoReply: true } },
-    });
-    expect(useNewExecutionLayer(config, "cli")).toBe(false);
-    expect(useNewExecutionLayer(config, "followup")).toBe(false);
-    expect(useNewExecutionLayer(config, "cron")).toBe(false);
-    expect(useNewExecutionLayer(config, "hybridPlanner")).toBe(false);
-  });
-
-  it("should be independent from CLI flag", () => {
-    const config = createMinimalConfig({
-      execution: { useNewLayer: { cli: true, autoReply: false } },
-    });
-    expect(useNewExecutionLayer(config, "autoReply")).toBe(false);
-    expect(useNewExecutionLayer(config, "cli")).toBe(true);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // Request Building Parity Tests

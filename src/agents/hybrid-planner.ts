@@ -3,9 +3,7 @@ import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
 import type { ExecutionRequest, ExecutionResult } from "../execution/types.js";
 import type { ModelRef } from "./model-selection.js";
-import { useNewExecutionLayer } from "../execution/feature-flag.js";
 import { createDefaultExecutionKernel } from "../execution/kernel.js";
-import { runEmbeddedPiAgent } from "./pi-embedded.js";
 
 function extractLastText(payloads: Array<{ text?: string }> | undefined): string {
   if (!payloads || payloads.length === 0) {
@@ -82,52 +80,29 @@ export async function planHybridSpec(params: {
 
   let raw: string;
 
-  if (useNewExecutionLayer(params.cfg, "hybridPlanner")) {
-    // --- New kernel-based path ---
-    const request: ExecutionRequest = {
-      agentId: sessionId,
-      sessionId,
-      sessionFile,
-      workspaceDir: params.workspaceDir,
-      agentDir: params.agentDir,
-      prompt: plannerPrompt,
-      config: params.cfg,
-      runtimeKind: "pi",
-      providerOverride: params.planner.provider,
-      modelOverride: params.planner.model,
-      timeoutMs: params.timeoutMs,
-      runtimeHints: {
-        disableTools: true,
-        enforceFinalTag: true,
-        thinkLevel: "high",
-        verboseLevel: "off",
-      },
-    };
-
-    const kernel = createDefaultExecutionKernel();
-    const execResult: ExecutionResult = await kernel.execute(request);
-    raw = extractLastText(execResult.payloads);
-  } else {
-    // --- Legacy direct path ---
-    const result = await runEmbeddedPiAgent({
-      sessionId,
-      sessionFile,
-      workspaceDir: params.workspaceDir,
-      agentDir: params.agentDir,
-      config: params.cfg,
-      prompt: plannerPrompt,
+  const request: ExecutionRequest = {
+    agentId: sessionId,
+    sessionId,
+    sessionFile,
+    workspaceDir: params.workspaceDir,
+    agentDir: params.agentDir,
+    prompt: plannerPrompt,
+    config: params.cfg,
+    runtimeKind: "pi",
+    providerOverride: params.planner.provider,
+    modelOverride: params.planner.model,
+    timeoutMs: params.timeoutMs,
+    runtimeHints: {
       disableTools: true,
       enforceFinalTag: true,
-      provider: params.planner.provider,
-      model: params.planner.model,
       thinkLevel: "high",
       verboseLevel: "off",
-      timeoutMs: params.timeoutMs,
-      runId: sessionId,
-      abortSignal: params.abortSignal,
-    });
-    raw = extractLastText(result.payloads);
-  }
+    },
+  };
+
+  const kernel = createDefaultExecutionKernel();
+  const execResult: ExecutionResult = await kernel.execute(request);
+  raw = extractLastText(execResult.payloads);
   if (!raw) {
     return { spec: null, raw: "" };
   }

@@ -65,6 +65,7 @@ export type MemorySearchResult = {
   snippet: string;
   source: MemorySource;
   citation?: string;
+  sourceBackend?: string;
 };
 
 export type MemoryEmbeddingProbeResult = {

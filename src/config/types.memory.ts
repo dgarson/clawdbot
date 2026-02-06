@@ -7,11 +7,21 @@ export type MemoryProgressiveConfig = {
   enabled?: boolean;
 };
 
+export type MemoryGraphitiConfig = {
+  enabled?: boolean;
+  serverHost?: string; // default: localhost
+  mcpPort?: number; // default: 8000
+  servicePort?: number; // default: 8001
+  apiKey?: string;
+  timeoutMs?: number; // default: 10000
+};
+
 export type MemoryConfig = {
   backend?: MemoryBackend;
   citations?: MemoryCitationsMode;
   qmd?: MemoryQmdConfig;
   progressive?: MemoryProgressiveConfig;
+  graphiti?: MemoryGraphitiConfig;
 };
 
 export type MemoryQmdConfig = {

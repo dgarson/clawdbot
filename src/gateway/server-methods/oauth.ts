@@ -54,9 +54,7 @@ setInterval(cleanupOldFlows, 5 * 60 * 1000);
  * Parse provider ID and action from OAuth path.
  * Returns null if path doesn't match OAuth pattern.
  */
-function parseOAuthPath(
-  pathname: string,
-): {
+function parseOAuthPath(pathname: string): {
   action: "authorize" | "callback" | "store" | "status" | "disconnect";
   providerId: string;
 } | null {

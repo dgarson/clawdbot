@@ -5,6 +5,7 @@ import type { DiagnosticsConfig, LoggingConfig, SessionConfig, WebConfig } from 
 import type { BrowserConfig } from "./types.browser.js";
 import type { ChannelsConfig } from "./types.channels.js";
 import type { CronConfig } from "./types.cron.js";
+import type { DebuggingConfig } from "./types.debugging.js";
 import type { ExecutionConfig } from "./types.execution.js";
 import type {
   CanvasHostConfig,
@@ -104,6 +105,8 @@ export type OpenClawConfig = {
   memory?: MemoryConfig;
   /** Execution layer configuration (feature flags for gradual migration). */
   execution?: ExecutionConfig;
+  /** Debugging configuration (short-term testing flags and channel overrides). */
+  debugging?: DebuggingConfig;
   overseer?: any; // TODO: Add proper OverseerConfig type
   onboarding?: any; // TODO: Add proper OnboardingConfig type
 };

@@ -12,8 +12,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { runCliAgent } from "../../agents/cli-runner.js";
-import { getCliSessionId, setCliSessionId } from "../../agents/cli-session.js";
+import { setCliSessionId } from "../../agents/cli-session.js";
 import { lookupContextTokens } from "../../agents/context.js";
 import {
   formatUserTime,
@@ -21,10 +20,7 @@ import {
   resolveUserTimezone,
 } from "../../agents/date-time.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
-import {
-  createSdkMainAgentRuntime,
-  resolveSessionRuntimeKind,
-} from "../../agents/main-agent-runtime-factory.js";
+import { resolveSessionRuntimeKind } from "../../agents/main-agent-runtime-factory.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import {
@@ -50,7 +46,6 @@ import {
 } from "../../auto-reply/thinking.js";
 import { createOutboundSendDeps, type CliDeps } from "../../cli/outbound-send-deps.js";
 import { resolveSessionTranscriptPath, updateSessionStore } from "../../config/sessions.js";
-import { useNewExecutionLayer } from "../../execution/feature-flag.js";
 import { createDefaultExecutionKernel } from "../../execution/kernel.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
@@ -374,136 +369,48 @@ export async function runCronIsolatedAgentTurn(params: {
     // Resolve runtime kind before runWithModelFallback so auth filtering is aware of claude SDK
     const runtimeKind = resolveSessionRuntimeKind(cfgWithAgentDefaults, agentId, agentSessionKey);
 
-    // Use kernel path when feature flag is enabled (defer Claude SDK to legacy)
-    const useKernel =
-      useNewExecutionLayer(cfgWithAgentDefaults, "cron") && runtimeKind !== "claude";
-
-    if (useKernel) {
-      // --- New kernel-based path ---
-      const kernel = createDefaultExecutionKernel();
-      const fallbackResult = await runWithModelFallback({
-        cfg: cfgWithAgentDefaults,
-        provider,
-        model,
-        agentDir,
-        fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
-        runtimeKind,
-        run: async (providerOverride, modelOverride) => {
-          const request: ExecutionRequest = {
-            agentId,
-            sessionId: cronSession.sessionEntry.sessionId,
-            sessionKey: agentSessionKey,
-            runId: cronSession.sessionEntry.sessionId,
-            workspaceDir,
-            agentDir,
-            config: cfgWithAgentDefaults,
-            prompt: commandBody,
-            timeoutMs,
-            sessionFile,
-            providerOverride,
-            modelOverride,
-            messageContext: {
-              provider: messageChannel,
-              accountId: resolvedDelivery.accountId,
-            },
-            runtimeHints: {
-              thinkLevel,
-              verboseLevel: resolvedVerboseLevel,
-              skillsSnapshot,
-              lane: params.lane ?? "cron",
-              requireExplicitMessageTarget: true,
-              disableMessageTool: deliveryRequested,
-            },
-          };
-          const execResult = await kernel.execute(request);
-          return mapCronExecutionResultToLegacy(execResult);
-        },
-      });
-      runResult = fallbackResult.result;
-      fallbackProvider = fallbackResult.provider;
-      fallbackModel = fallbackResult.model;
-    } else {
-      // --- Legacy execution path ---
-      const fallbackResult = await runWithModelFallback({
-        cfg: cfgWithAgentDefaults,
-        provider,
-        model,
-        agentDir,
-        fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
-        runtimeKind,
-        run: async (providerOverride, modelOverride) => {
-          if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {
-            const cliSessionId = getCliSessionId(cronSession.sessionEntry, providerOverride);
-            return runCliAgent({
-              sessionId: cronSession.sessionEntry.sessionId,
-              sessionKey: agentSessionKey,
-              sessionFile,
-              workspaceDir,
-              config: cfgWithAgentDefaults,
-              prompt: commandBody,
-              provider: providerOverride,
-              model: modelOverride,
-              thinkLevel,
-              timeoutMs,
-              runId: cronSession.sessionEntry.sessionId,
-              cliSessionId,
-            });
-          }
-
-          // If using Claude Code SDK runtime, create and use SDK runtime
-          if (runtimeKind === "claude") {
-            const claudeSdkSessionId =
-              cronSession.sessionEntry.claudeSdkSessionId?.trim() || undefined;
-            const sdkRuntime = await createSdkMainAgentRuntime({
-              config: cfgWithAgentDefaults,
-              sessionKey: agentSessionKey,
-              sessionFile,
-              workspaceDir,
-              agentDir,
-              messageProvider: messageChannel,
-              agentAccountId: resolvedDelivery.accountId,
-              claudeSessionId: claudeSdkSessionId,
-            });
-            return sdkRuntime.run({
-              sessionId: cronSession.sessionEntry.sessionId,
-              sessionKey: agentSessionKey,
-              sessionFile,
-              workspaceDir,
-              agentDir,
-              config: cfgWithAgentDefaults,
-              prompt: commandBody,
-              timeoutMs,
-              runId: cronSession.sessionEntry.sessionId,
-            });
-          }
-
-          // Otherwise, use Pi agent runtime (existing code path)
-          return runEmbeddedPiAgent({
-            sessionId: cronSession.sessionEntry.sessionId,
-            sessionKey: agentSessionKey,
-            messageChannel,
-            agentAccountId: resolvedDelivery.accountId,
-            sessionFile,
-            workspaceDir,
-            config: cfgWithAgentDefaults,
-            skillsSnapshot,
-            prompt: commandBody,
-            lane: params.lane ?? "cron",
-            provider: providerOverride,
-            model: modelOverride,
+    const kernel = createDefaultExecutionKernel();
+    const fallbackResult = await runWithModelFallback({
+      cfg: cfgWithAgentDefaults,
+      provider,
+      model,
+      agentDir,
+      fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
+      runtimeKind,
+      run: async (providerOverride, modelOverride) => {
+        const request: ExecutionRequest = {
+          agentId,
+          sessionId: cronSession.sessionEntry.sessionId,
+          sessionKey: agentSessionKey,
+          runId: cronSession.sessionEntry.sessionId,
+          workspaceDir,
+          agentDir,
+          config: cfgWithAgentDefaults,
+          prompt: commandBody,
+          timeoutMs,
+          sessionFile,
+          providerOverride,
+          modelOverride,
+          messageContext: {
+            provider: messageChannel,
+            accountId: resolvedDelivery.accountId,
+          },
+          runtimeHints: {
             thinkLevel,
             verboseLevel: resolvedVerboseLevel,
-            timeoutMs,
-            runId: cronSession.sessionEntry.sessionId,
+            skillsSnapshot,
+            lane: params.lane ?? "cron",
             requireExplicitMessageTarget: true,
             disableMessageTool: deliveryRequested,
-          });
-        },
-      });
-      runResult = fallbackResult.result;
-      fallbackProvider = fallbackResult.provider;
-      fallbackModel = fallbackResult.model;
-    }
+          },
+        };
+        const execResult = await kernel.execute(request);
+        return mapCronExecutionResultToLegacy(execResult);
+      },
+    });
+    runResult = fallbackResult.result;
+    fallbackProvider = fallbackResult.provider;
+    fallbackModel = fallbackResult.model;
   } catch (err) {
     return { status: "error", error: String(err) };
   }

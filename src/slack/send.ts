@@ -9,6 +9,7 @@ import {
 } from "../auto-reply/chunk.js";
 import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
+import { isDebuggingEnabled } from "../config/types.debugging.js";
 import { logVerbose } from "../globals.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadWebMedia } from "../web/media.js";
@@ -117,6 +118,24 @@ async function resolveChannelId(
   return { channelId, isDm: true };
 }
 
+function logTrace(msg: string, config: OpenClawConfig, obj: any) {
+  if (
+    isDebuggingEnabled(config.debugging, "slack") &&
+    config.debugging?.channels?.slack?.sendTracing
+  ) {
+    log.trace(msg, obj);
+  }
+}
+
+function logDebug(msg: string, config: OpenClawConfig, obj: any) {
+  if (
+    isDebuggingEnabled(config.debugging, "slack") &&
+    config.debugging?.channels?.slack?.sendDebug
+  ) {
+    log.debug(msg, obj);
+  }
+}
+
 async function uploadSlackFile(params: {
   client: WebClient;
   channelId: string;
@@ -196,7 +215,7 @@ export async function sendMessageSlack(
     chunks.push(trimmedMessage);
   }
 
-  log.trace("slack send prepared", {
+  logTrace("slack send prepared", cfg, {
     to,
     accountId: account.accountId,
     recipientKind: recipient.kind,
@@ -219,7 +238,7 @@ export async function sendMessageSlack(
   let lastMessageId = "";
   if (opts.mediaUrl) {
     const [firstChunk, ...rest] = chunks;
-    log.trace("slack send media upload", {
+    logTrace("slack send media upload", cfg, {
       to,
       channelId,
       threadTs: opts.threadTs ?? undefined,
@@ -235,7 +254,7 @@ export async function sendMessageSlack(
       maxBytes: mediaMaxBytes,
     });
     for (const chunk of rest) {
-      log.trace("slack send chunk", {
+      logTrace("slack chunk send", cfg, {
         to,
         channelId,
         threadTs: opts.threadTs ?? undefined,
@@ -253,7 +272,7 @@ export async function sendMessageSlack(
   } else if (opts.blocks) {
     // When blocks are provided, send them with text as fallback
     const text = chunks[0] || trimmedMessage || "Message";
-    log.trace("slack send blocks", {
+    logTrace("slack send blocks", cfg, {
       to,
       channelId,
       threadTs: opts.threadTs ?? undefined,
@@ -270,7 +289,7 @@ export async function sendMessageSlack(
     lastMessageId = response.ts ?? "unknown";
   } else {
     for (const chunk of chunks.length ? chunks : [""]) {
-      log.trace("slack send chunk", {
+      logTrace("slack send chunk", cfg, {
         to,
         channelId,
         threadTs: opts.threadTs ?? undefined,

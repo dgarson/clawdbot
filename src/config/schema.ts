@@ -71,12 +71,14 @@ const GROUP_LABELS: Record<string, string> = {
   discovery: "Discovery",
   presence: "Presence",
   voicewake: "Voice Wake",
+  debugging: "Debugging",
 };
 
 const GROUP_ORDER: Record<string, number> = {
   wizard: 20,
   update: 25,
   diagnostics: 27,
+  debugging: 28,
   gateway: 30,
   nodeHost: 35,
   agents: 40,
@@ -300,6 +302,13 @@ const FIELD_LABELS: Record<string, string> = {
   "memory.qmd.scope": "QMD Surface Scope",
   "memory.progressive": "Progressive Memory",
   "memory.progressive.enabled": "Enable Progressive Memory",
+  "memory.graphiti": "Graphiti Memory",
+  "memory.graphiti.enabled": "Enable Graphiti",
+  "memory.graphiti.serverHost": "Server Host",
+  "memory.graphiti.mcpPort": "MCP Port",
+  "memory.graphiti.servicePort": "Service Port",
+  "memory.graphiti.apiKey": "API Key",
+  "memory.graphiti.timeoutMs": "Timeout (ms)",
   "auth.profiles": "Auth Profiles",
   "auth.order": "Auth Profile Order",
   "auth.cooldowns.billingBackoffHours": "Billing Backoff (hours)",
@@ -413,6 +422,8 @@ const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.installPath": "Plugin Install Path",
   "plugins.installs.*.version": "Plugin Install Version",
   "plugins.installs.*.installedAt": "Plugin Install Time",
+  "debugging.channels": "Debug Channels",
+  "debugging.features": "Debug Features",
 };
 
 const FIELD_HELP: Record<string, string> = {
@@ -651,6 +662,14 @@ const FIELD_HELP: Record<string, string> = {
   "memory.qmd.limits.timeoutMs": "Per-query timeout for QMD searches (default: 4000).",
   "memory.qmd.scope":
     "Session/channel scope for QMD recall (same syntax as session.sendPolicy; default: direct-only).",
+  "memory.graphiti": "Graphiti graph memory backend configuration.",
+  "memory.graphiti.enabled": "Enable Graphiti as a memory search backend (default: false).",
+  "memory.graphiti.serverHost": "Hostname for Graphiti services (default: localhost).",
+  "memory.graphiti.mcpPort": "Port for Graphiti MCP service (default: 8000).",
+  "memory.graphiti.servicePort": "Port for Graphiti REST API service (default: 8001).",
+  "memory.graphiti.apiKey": "API key for Graphiti authentication.",
+  "memory.graphiti.timeoutMs":
+    "Request timeout in milliseconds for Graphiti calls (default: 10000).",
   "agents.defaults.memorySearch.cache.maxEntries":
     "Optional cap on cached embeddings (best-effort).",
   "agents.defaults.memorySearch.sync.onSearch":
@@ -795,6 +814,9 @@ const FIELD_HELP: Record<string, string> = {
     "Optional PluralKit token for resolving private systems or members.",
   "channels.slack.dm.policy":
     'Direct message access control ("pairing" recommended). "open" requires channels.slack.dm.allowFrom=["*"].',
+  "debugging.channels":
+    "Channels enabled for debugging (presence of key = enabled; value = channel-specific properties, e.g. slack: { sendTracing: true }).",
+  "debugging.features": "Arbitrary feature flag strings for short-term debugging and testing.",
 };
 
 const FIELD_PLACEHOLDERS: Record<string, string> = {

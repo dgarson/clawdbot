@@ -48,6 +48,7 @@ export type MemoryIngestDependencies = {
   emitAudit?: (event: MemoryAuditEvent) => void;
   logger?: ReturnType<typeof createMemoryTraceLogger>;
   now?: () => Date;
+  opsLog?: import("../ops-log/index.js").MemoryOpsLogger;
 };
 
 function buildPipelineError(message: string, details?: Record<string, unknown>): PipelineError {
@@ -137,6 +138,15 @@ export async function runMemoryIngestionPipeline(
         status: "success",
         details: { stage, durationMs, batchId, runId },
       });
+      deps.opsLog?.log({
+        action: "ingest.stage_complete",
+        traceId: request.traceId,
+        runId,
+        sessionKey: request.sessionKey,
+        status: "success",
+        durationMs,
+        detail: { stage, ok: true, durationMs },
+      });
       return output;
     } catch (err) {
       const durationMs = Date.now() - start;
@@ -157,6 +167,15 @@ export async function runMemoryIngestionPipeline(
         status: "failure",
         details: { stage, durationMs, batchId, runId, error: errorMessage },
       });
+      deps.opsLog?.log({
+        action: "ingest.stage_complete",
+        traceId: request.traceId,
+        runId,
+        sessionKey: request.sessionKey,
+        status: "failure",
+        durationMs,
+        detail: { stage, ok: false, durationMs, error: errorMessage },
+      });
       throw err;
     }
   };
@@ -164,6 +183,19 @@ export async function runMemoryIngestionPipeline(
   let normalized: MemoryContentObject[] = [];
   let episodes: MemoryContentObject[] = [];
   let embeddings = new Map<string, number[]>();
+
+  // Emit ingest.start
+  deps.opsLog?.log({
+    action: "ingest.start",
+    traceId: request.traceId,
+    runId,
+    sessionKey: request.sessionKey,
+    status: "success",
+    detail: {
+      source: request.source,
+      itemCount: request.items?.length ?? 0,
+    },
+  });
 
   try {
     normalized = await runStage("normalize", async () =>
@@ -223,10 +255,27 @@ export async function runMemoryIngestionPipeline(
   const completedAt = deps.now?.() ?? new Date();
   contract.completedAt = completedAt.toISOString();
 
+  const totalDurationMs = completedAt.getTime() - now.getTime();
+
   emitMetric(deps, {
     name: "memory.ingest.duration_ms",
-    value: completedAt.getTime() - now.getTime(),
+    value: totalDurationMs,
     tags: { runId, batchId },
+  });
+
+  deps.opsLog?.log({
+    action: "ingest.complete",
+    traceId: request.traceId,
+    runId,
+    sessionKey: request.sessionKey,
+    status: errors.length === 0 ? "success" : "partial",
+    durationMs: totalDurationMs,
+    detail: {
+      episodeCount: episodes.length,
+      warningCount: warnings.length,
+      errorCount: errors.length,
+      stages: stageResults.map((s) => ({ stage: s.stage, ok: s.ok, durationMs: s.durationMs })),
+    },
   });
 
   return {

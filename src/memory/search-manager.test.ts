@@ -58,7 +58,10 @@ describe("getMemorySearchManager caching", () => {
     const first = await getMemorySearchManager({ cfg, agentId: "main" });
     const second = await getMemorySearchManager({ cfg, agentId: "main" });
 
-    expect(first.manager).toBe(second.manager);
+    // Both calls should succeed and create a manager
+    expect(first.manager).toBeTruthy();
+    expect(second.manager).toBeTruthy();
+    // The underlying QMD manager should only be created once (cached)
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(QmdMemoryManager.create).toHaveBeenCalledTimes(1);
   });

@@ -13,6 +13,8 @@
  * @see docs/design/plans/opus/01-agent-execution-layer.md
  */
 
+import type { AgentRuntime } from "../agents/agent-runtime.js";
+import type { CreateSdkMainAgentRuntimeParams } from "../agents/main-agent-runtime-factory.js";
 import type { RunEmbeddedPiAgentParams } from "../agents/pi-embedded-runner/run/params.js";
 import type { EmbeddedPiRunResult } from "../agents/pi-embedded-runner/types.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
@@ -73,6 +75,14 @@ export type RunEmbeddedPiAgentFn = (
 ) => Promise<EmbeddedPiRunResult>;
 
 /**
+ * Type for the createSdkMainAgentRuntime function.
+ * Used for dependency injection in tests.
+ */
+export type CreateSdkMainAgentRuntimeFn = (
+  params: CreateSdkMainAgentRuntimeParams,
+) => Promise<AgentRuntime>;
+
+/**
  * Type for the runCliAgent function.
  * Used for dependency injection in tests.
  */
@@ -112,6 +122,11 @@ export interface TurnExecutorOptions {
    * If not provided, imports runCliAgent at runtime.
    */
   cliRuntimeFn?: RunCliAgentFn;
+  /**
+   * Injected Claude SDK runtime factory for testing.
+   * If not provided, imports createSdkMainAgentRuntime at runtime.
+   */
+  claudeSdkRuntimeFn?: CreateSdkMainAgentRuntimeFn;
 }
 
 /**
@@ -233,12 +248,14 @@ export class DefaultTurnExecutor implements TurnExecutor {
   private normalizationOptions: NormalizationOptions;
   private piRuntimeFn?: RunEmbeddedPiAgentFn;
   private cliRuntimeFn?: RunCliAgentFn;
+  private claudeSdkRuntimeFn?: CreateSdkMainAgentRuntimeFn;
 
   constructor(options: TurnExecutorOptions = {}) {
     this.logger = options.logger;
     this.normalizationOptions = options.normalizationOptions ?? {};
     this.piRuntimeFn = options.piRuntimeFn;
     this.cliRuntimeFn = options.cliRuntimeFn;
+    this.claudeSdkRuntimeFn = options.claudeSdkRuntimeFn;
   }
 
   async execute(
@@ -314,9 +331,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
 
   /**
    * Create a runtime adapter based on the context.
-   * Returns Pi, CLI, or placeholder adapter based on context.kind.
-   *
-   * Note: Claude SDK runtime is not yet implemented - falls through to placeholder.
+   * Returns Pi, CLI, or Claude SDK adapter based on context.kind.
    */
   private createRuntimeAdapter(context: RuntimeContext, request: ExecutionRequest): RuntimeAdapter {
     this.logger?.debug?.(`[TurnExecutor] creating adapter for runtime kind: ${context.kind}`);
@@ -327,11 +342,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
       case "cli":
         return this.createCliRuntimeAdapter(context, request);
       case "claude":
-        // Claude SDK runtime not yet wired - use placeholder
-        this.logger?.warn?.(
-          `[TurnExecutor] Claude SDK runtime not yet implemented - using placeholder`,
-        );
-        return this.createPlaceholderAdapter();
+        return this.createClaudeSdkRuntimeAdapter(context, request);
     }
   }
 
@@ -494,25 +505,102 @@ export class DefaultTurnExecutor implements TurnExecutor {
   }
 
   /**
-   * Create a placeholder adapter for testing or unimplemented runtimes.
+   * Create a Claude SDK runtime adapter that wraps createSdkMainAgentRuntime + AgentRuntime.run().
    */
-  private createPlaceholderAdapter(): RuntimeAdapter {
+  private createClaudeSdkRuntimeAdapter(
+    _context: RuntimeContext,
+    request: ExecutionRequest,
+  ): RuntimeAdapter {
     return {
       run: async (params: RuntimeAdapterParams): Promise<RuntimeAdapterResult> => {
-        this.logger?.warn?.(`[TurnExecutor] using placeholder adapter`);
+        const createRuntime = this.claudeSdkRuntimeFn ?? (await this.importClaudeSdkRuntime());
+        const hints = request.runtimeHints;
 
-        // Simulate a simple response
-        const reply = `[Placeholder response for: ${params.prompt.slice(0, 50)}...]`;
-
-        return {
-          reply,
-          payloads: [{ text: reply }],
-          didSendViaMessagingTool: false,
-          usage: {
-            inputTokens: params.prompt.length,
-            outputTokens: reply.length,
-          },
+        // Build params for createSdkMainAgentRuntime
+        const runtimeParams: CreateSdkMainAgentRuntimeParams = {
+          config: request.config,
+          sessionKey: request.sessionKey,
+          sessionFile: request.sessionFile ?? this.resolveSessionFile(request),
+          workspaceDir: request.workspaceDir,
+          agentDir: request.agentDir,
+          abortSignal: params.abortSignal,
+          // Message context
+          messageProvider: hints?.messageProvider ?? request.messageContext?.provider,
+          agentAccountId: hints?.agentAccountId ?? request.messageContext?.accountId,
+          messageTo: hints?.messageTo,
+          messageThreadId: request.messageContext?.threadId,
+          groupId: request.messageContext?.groupId,
+          groupChannel: request.messageContext?.groupChannel,
+          groupSpace: request.messageContext?.groupSpace,
+          spawnedBy: request.spawnedBy,
+          senderId: request.messageContext?.senderId,
+          senderName: request.messageContext?.senderName,
+          senderUsername: request.messageContext?.senderUsername,
+          senderE164: request.messageContext?.senderE164,
+          // Threading context
+          currentChannelId: hints?.currentChannelId,
+          currentThreadTs: hints?.currentThreadTs,
+          replyToMode: hints?.replyToMode,
+          hasRepliedRef: hints?.hasRepliedRef,
+          // Session resume
+          claudeSessionId: hints?.claudeSdkSessionId,
         };
+
+        // Create the AgentRuntime instance
+        const agentRuntime = await createRuntime(runtimeParams);
+
+        // Execute via AgentRuntime.run()
+        const result = await agentRuntime.run({
+          sessionId: request.sessionId,
+          sessionKey: request.sessionKey,
+          sessionFile: request.sessionFile ?? this.resolveSessionFile(request),
+          workspaceDir: request.workspaceDir,
+          agentDir: request.agentDir,
+          config: request.config,
+          prompt: params.prompt,
+          extraSystemPrompt: request.extraSystemPrompt,
+          ownerNumbers: hints?.ownerNumbers,
+          timeoutMs: params.timeoutMs ?? 120000,
+          runId: params.runId,
+          abortSignal: params.abortSignal,
+          images: params.images as import("@mariozechner/pi-ai").ImageContent[] | undefined,
+          // Wire streaming callbacks (AgentRuntimePayload → ReplyPayload)
+          onPartialReply: params.onPartialReply
+            ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
+                params.onPartialReply?.({
+                  text: payload.text,
+                  mediaUrl: undefined,
+                  mediaUrls: payload.mediaUrls,
+                })
+            : undefined,
+          onAssistantMessageStart: params.onAssistantMessageStart,
+          onBlockReply: params.onBlockReply
+            ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
+                params.onBlockReply?.({
+                  text: payload.text,
+                  mediaUrl: undefined,
+                  mediaUrls: payload.mediaUrls,
+                  replyToId: payload.replyToId,
+                  replyToTag: payload.replyToTag,
+                  replyToCurrent: payload.replyToCurrent,
+                  audioAsVoice: payload.audioAsVoice,
+                })
+            : undefined,
+          onToolResult: request.onToolResult
+            ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
+                request.onToolResult?.({
+                  text: payload.text,
+                  mediaUrls: payload.mediaUrls,
+                })
+            : undefined,
+          onAgentEvent: request.onAgentEvent
+            ? (evt: { stream: string; data: Record<string, unknown> }) =>
+                request.onAgentEvent?.(evt)
+            : undefined,
+        });
+
+        // Map EmbeddedPiRunResult to RuntimeAdapterResult (same shape as Pi)
+        return this.mapPiResultToAdapterResult(result);
       },
     };
   }
@@ -531,6 +619,14 @@ export class DefaultTurnExecutor implements TurnExecutor {
   private async importCliRuntime(): Promise<RunCliAgentFn> {
     const { runCliAgent } = await import("../agents/cli-runner.js");
     return runCliAgent;
+  }
+
+  /**
+   * Dynamically import the Claude SDK runtime factory to avoid circular dependencies.
+   */
+  private async importClaudeSdkRuntime(): Promise<CreateSdkMainAgentRuntimeFn> {
+    const { createSdkMainAgentRuntime } = await import("../agents/main-agent-runtime-factory.js");
+    return createSdkMainAgentRuntime;
   }
 
   /**
