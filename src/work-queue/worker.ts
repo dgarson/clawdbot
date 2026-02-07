@@ -5,6 +5,13 @@ import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
 import {
+  buildWorkerSystemPrompt,
+  buildWorkerTaskMessage,
+  readPayload,
+  resolveRuntimeOverrides,
+} from "./system-prompt.js";
+
+import {
   BACKOFF_BASE_MS,
   DEFAULT_POLL_INTERVAL_MS,
   DEFAULT_SESSION_TIMEOUT_S,
@@ -424,22 +431,35 @@ export class WorkQueueWorker {
 
     const runId = randomUUID();
     const sessionKey = `agent:${this.agentId}:worker:${item.id}:${runId.slice(0, 8)}`;
-    const timeoutS = this.config.sessionTimeoutSeconds ?? DEFAULT_SESSION_TIMEOUT_S;
 
-    const systemPrompt = await this.buildSystemPrompt(item);
+    // Resolve runtime overrides: payload fields > WorkerConfig > defaults.
+    const payload = readPayload(item);
+    const runtime = resolveRuntimeOverrides(this.config, payload);
+    const timeoutS = runtime.timeoutSeconds;
+
+    // Build system prompt using the centralized builder.
+    const systemPrompt = buildWorkerSystemPrompt({
+      item,
+      config: this.config,
+      carryoverContext: this.carryoverContext,
+      notesStore: this.deps.notesStore,
+    });
+
+    // Build task message (title + description + instructions).
+    const taskMessage = buildWorkerTaskMessage(item);
 
     // Spawn the agent session.
     const spawnResult = await this.deps.callGateway<{ runId: string }>({
       method: "agent",
       params: {
-        message: this.buildTaskMessage(item),
+        message: taskMessage,
         sessionKey,
         idempotencyKey: runId,
         deliver: false,
         lane: "worker",
         extraSystemPrompt: systemPrompt,
-        model: this.config.model ?? undefined,
-        thinking: this.config.thinking ?? undefined,
+        model: runtime.model,
+        thinking: runtime.thinking,
         timeout: timeoutS,
         label: `Worker: ${item.title}`,
         spawnedBy: `worker:${this.agentId}`,
@@ -501,60 +521,6 @@ export class WorkQueueWorker {
       });
 
     return { status: runStatus, error: runError, context, sessionKey, transcript };
-  }
-
-  private async buildSystemPrompt(item: WorkItem): Promise<string> {
-    const parts: string[] = [];
-
-    parts.push("## Worker Task");
-    parts.push(`**Title:** ${item.title}`);
-    if (item.description) {
-      parts.push(`**Description:** ${item.description}`);
-    }
-    if (item.workstream) {
-      parts.push(`**Workstream:** ${item.workstream}`);
-    }
-    if (item.payload && Object.keys(item.payload).length > 0) {
-      parts.push(`**Payload:**\n\`\`\`json\n${JSON.stringify(item.payload, null, 2)}\n\`\`\``);
-    }
-
-    // Inject workstream notes if available.
-    if (item.workstream && this.deps.notesStore) {
-      try {
-        const notes = this.deps.notesStore.list(item.workstream, { limit: 10 });
-        if (notes.length > 0) {
-          const notesSummary = this.deps.notesStore.summarize(notes, { maxChars: 2000 });
-          if (notesSummary) {
-            parts.push("");
-            parts.push(notesSummary);
-          }
-        }
-      } catch {
-        // Notes injection is best-effort.
-      }
-    }
-
-    if (this.carryoverContext?.summary) {
-      parts.push("");
-      parts.push("## Previous Task Context");
-      parts.push(this.carryoverContext.summary);
-    }
-
-    parts.push("");
-    parts.push("## Instructions");
-    parts.push(
-      "Complete the task described above. When finished, summarize what you accomplished in your final message.",
-    );
-
-    return parts.join("\n");
-  }
-
-  private buildTaskMessage(item: WorkItem): string {
-    let msg = item.title;
-    if (item.description) {
-      msg += `\n\n${item.description}`;
-    }
-    return msg;
   }
 
   private sleep(ms: number, signal: AbortSignal): Promise<void> {

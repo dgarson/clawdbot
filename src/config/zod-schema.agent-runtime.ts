@@ -467,6 +467,7 @@ export const WorkerConfigSchema = z
     thinking: z.string().optional(),
     contextExtractor: z.enum(["transcript", "llm"]).optional(),
     sessionTimeoutSeconds: z.number().int().positive().optional(),
+    defaultSystemPrompt: z.string().optional(),
     workflow: WorkerWorkflowSchema,
   })
   .strict()

@@ -7,6 +7,8 @@ export type {
   WorkItemListOptions,
   WorkItemOutcome,
   WorkItemPatch,
+  WorkItemPayload,
+  WorkItemPhase,
   WorkItemPriority,
   WorkItemResult,
   WorkItemStatus,
@@ -14,6 +16,12 @@ export type {
   WorkQueueStats,
 } from "./types.js";
 export { WORK_ITEM_PRIORITIES, WORK_ITEM_STATUSES } from "./types.js";
+export {
+  buildWorkerSystemPrompt,
+  buildWorkerTaskMessage,
+  readPayload,
+  resolveRuntimeOverrides,
+} from "./system-prompt.js";
 export type { WorkQueueBackend, WorkQueueBackendTransaction } from "./backend/types.js";
 export { MemoryWorkQueueBackend } from "./backend/memory-backend.js";
 export { SqliteWorkQueueBackend } from "./backend/sqlite-backend.js";

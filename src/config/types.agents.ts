@@ -161,6 +161,12 @@ export type WorkerConfig = {
   contextExtractor?: "transcript" | "llm";
   /** Max session timeout in seconds (default 300). */
   sessionTimeoutSeconds?: number;
+  /**
+   * Default system prompt for worker sessions.
+   * Replaces the built-in default. Items can further override via payload.systemPrompt
+   * or append via payload.systemPromptAppend.
+   */
+  defaultSystemPrompt?: string;
   /** Structured workflow pipeline config (plan → review → discover → decompose → execute). */
   workflow?: WorkerWorkflowConfig;
 };
