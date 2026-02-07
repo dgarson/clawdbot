@@ -32,7 +32,12 @@ Captures significant tool results into Meridia records (SQLite + optional trace 
           "max_captures_per_hour": 10,
           "min_interval_ms": 300000,
           "evaluation_model": "google/gemini-3-flash-preview",
-          "evaluation_timeout_ms": 3500
+          "evaluation_timeout_ms": 3500,
+          "graphiti": {
+            "enabled": false,
+            "minSignificanceForGraph": 0.7,
+            "groupId": "meridia-experiences"
+          }
         }
       }
     }
