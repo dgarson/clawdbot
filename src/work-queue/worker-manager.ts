@@ -7,6 +7,7 @@ import { callGateway } from "../gateway/call.js";
 import { LlmContextExtractor, TranscriptContextExtractor } from "./context-extractor.js";
 import { getDefaultWorkQueueStore } from "./store.js";
 import { WorkQueueWorker, type WorkerDeps } from "./worker.js";
+import { WorkflowWorkerAdapter } from "./workflow/adapter.js";
 import { WorkstreamNotesStore, SqliteWorkstreamNotesBackend } from "./workstream-notes.js";
 
 export type WorkerManagerOptions = {
@@ -26,8 +27,19 @@ const defaultLog = {
   debug: (_msg: string) => {},
 };
 
+/** Common interface between WorkQueueWorker and WorkflowWorkerAdapter. */
+type AnyWorker = {
+  readonly agentId: string;
+  readonly isRunning: boolean;
+  readonly currentWorkItemId: string | null;
+  getConfig(): import("../config/types.agents.js").WorkerConfig;
+  getMetrics(): WorkerMetricsSnapshot;
+  start(): Promise<void>;
+  stop(): Promise<void>;
+};
+
 export class WorkQueueWorkerManager {
-  private workers = new Map<string, WorkQueueWorker>();
+  private workers = new Map<string, AnyWorker>();
   private config: OpenClawConfig;
   private log: WorkerManagerOptions["log"];
   private notesStore: WorkstreamNotesStore | undefined;
@@ -129,6 +141,23 @@ export class WorkQueueWorkerManager {
       params?: unknown;
       timeoutMs?: number;
     }) => callGateway<T>({ ...opts, config: this.config });
+
+    // Route to workflow engine if workflow is enabled.
+    if (workerConfig.workflow?.enabled) {
+      const adapter = new WorkflowWorkerAdapter({
+        agentId: agent.id,
+        config: workerConfig,
+        deps: {
+          store,
+          callGateway: gwCall,
+          log: this.log!,
+          notesStore: this.notesStore,
+        },
+      });
+      this.workers.set(agent.id, adapter);
+      await adapter.start();
+      return;
+    }
 
     const extractor =
       workerConfig.contextExtractor === "llm"

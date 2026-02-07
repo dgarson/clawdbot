@@ -18,6 +18,7 @@ import {
   Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatTokenCount } from "@/lib/format";
 
 export interface AgentStatusSummaryProps {
   total: number;
@@ -63,12 +64,6 @@ function StatCard({ label, value, icon: Icon, iconColor, iconBg, delay = 0 }: St
       </Card>
     </motion.div>
   );
-}
-
-function formatTokenCount(tokens: number): string {
-  if (tokens < 1_000) return String(tokens);
-  if (tokens < 1_000_000) return `${(tokens / 1_000).toFixed(1)}k`;
-  return `${(tokens / 1_000_000).toFixed(2)}M`;
 }
 
 export function AgentStatusSummary({

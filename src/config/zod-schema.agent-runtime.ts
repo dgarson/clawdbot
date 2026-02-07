@@ -422,11 +422,73 @@ export const AgentModelSchema = z.union([
     })
     .strict(),
 ]);
+export const WorkerWorkflowSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    review: z
+      .object({
+        enabled: z.boolean().optional(),
+        reviewerAgentId: z.string().optional(),
+        maxIterations: z.number().int().positive().optional(),
+        thinking: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+    discovery: z
+      .object({
+        maxParallel: z.number().int().positive().optional(),
+        timeoutSeconds: z.number().int().positive().optional(),
+        model: z.string().optional(),
+        thinking: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+    decompose: z
+      .object({
+        thinking: z.string().optional(),
+        model: z.string().optional(),
+        maxPhases: z.number().int().positive().optional(),
+        maxTasksPerPhase: z.number().int().positive().optional(),
+        maxSubtasksPerTask: z.number().int().positive().optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict()
+  .optional();
+
+export const WorkerConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    workstreams: z.array(z.string()).optional(),
+    pollIntervalMs: z.number().int().positive().optional(),
+    model: z.string().optional(),
+    thinking: z.string().optional(),
+    contextExtractor: z.enum(["transcript", "llm"]).optional(),
+    sessionTimeoutSeconds: z.number().int().positive().optional(),
+    workflow: WorkerWorkflowSchema,
+  })
+  .strict()
+  .optional();
+
+export const AgentInstructionsSchema = z
+  .object({
+    text: z.string().optional(),
+    file: z.string().optional(),
+    role: z.string().optional(),
+    constraints: z.array(z.string()).optional(),
+    outputFormat: z.string().optional(),
+  })
+  .strict()
+  .optional();
+
 export const AgentEntrySchema = z
   .object({
     id: z.string(),
     default: z.boolean().optional(),
     name: z.string().optional(),
+    agentType: z.enum(["agent", "worker", "cron"]).optional(),
+    instructions: AgentInstructionsSchema,
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     model: AgentModelSchema.optional(),
@@ -479,6 +541,7 @@ export const AgentEntrySchema = z
     sandbox: AgentSandboxSchema,
     mcpServers: McpServersSchema,
     tools: AgentToolsSchema,
+    worker: WorkerConfigSchema,
   })
   .strict();
 

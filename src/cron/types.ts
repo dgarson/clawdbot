@@ -59,6 +59,8 @@ export type CronJobState = {
   lastStatus?: "ok" | "error" | "skipped";
   lastError?: string;
   lastDurationMs?: number;
+  /** Set when a migration step throws; the job is auto-disabled until updated. */
+  migrationError?: string;
 };
 
 export type CronJob = {

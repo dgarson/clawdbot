@@ -19,6 +19,23 @@ import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
  */
 export type SdkThinkingBudgetTier = "none" | "low" | "medium" | "high";
 
+/** Agent behavioral archetype. */
+export type AgentType = "agent" | "worker" | "cron";
+
+/** First-class agent instructions, injected alongside system prompt. */
+export type AgentInstructions = {
+  /** Instruction text injected into system prompt. */
+  text?: string;
+  /** Path to markdown file loaded as instructions (relative to agentDir). */
+  file?: string;
+  /** Role/persona description. */
+  role?: string;
+  /** Hard constraints the agent must follow. */
+  constraints?: string[];
+  /** Expected output format. */
+  outputFormat?: string;
+};
+
 export type AgentModelConfig =
   | string
   | {
@@ -32,6 +49,10 @@ export type AgentConfig = {
   id: string;
   default?: boolean;
   name?: string;
+  /** Agent behavioral archetype (default: "agent"). */
+  agentType?: AgentType;
+  /** First-class agent instructions injected into system prompt. */
+  instructions?: AgentInstructions;
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;
@@ -94,6 +115,29 @@ export type AgentConfig = {
   worker?: WorkerConfig;
 };
 
+export type WorkerWorkflowConfig = {
+  enabled?: boolean;
+  review?: {
+    enabled?: boolean;
+    reviewerAgentId?: string;
+    maxIterations?: number;
+    thinking?: string;
+  };
+  discovery?: {
+    maxParallel?: number;
+    timeoutSeconds?: number;
+    model?: string;
+    thinking?: string;
+  };
+  decompose?: {
+    thinking?: string;
+    model?: string;
+    maxPhases?: number;
+    maxTasksPerPhase?: number;
+    maxSubtasksPerTask?: number;
+  };
+};
+
 export type WorkerConfig = {
   /** Enable the perpetual worker loop for this agent. */
   enabled?: boolean;
@@ -109,6 +153,8 @@ export type WorkerConfig = {
   contextExtractor?: "transcript" | "llm";
   /** Max session timeout in seconds (default 300). */
   sessionTimeoutSeconds?: number;
+  /** Structured workflow pipeline config (plan → review → discover → decompose → execute). */
+  workflow?: WorkerWorkflowConfig;
 };
 
 export type AgentHandoffLoggingConfig = {

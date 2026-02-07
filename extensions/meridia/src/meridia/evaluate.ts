@@ -1,8 +1,21 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import { completeTextWithModelRef } from "openclaw/plugin-sdk";
+<<<<<<< HEAD
 import type { ScoringConfig, ScoringContext, ScoringResult } from "./scoring/types.js";
 import type { MeridiaEvaluation, MeridiaToolResultContext } from "./types.js";
 import { evaluateMemoryRelevance } from "./scoring/index.js";
+=======
+import type { ScoringBreakdown, ScoringConfig, ScoringContext } from "./scoring/types.js";
+import type { MeridiaEvaluation, MeridiaToolResultContext } from "./types.js";
+import {
+  evaluateMemoryRelevance,
+  shouldCapture as checkShouldCapture,
+  isHighValue as checkIsHighValue,
+  shouldUseLlmEval as checkShouldUseLlmEval,
+  breakdownToTrace,
+  formatBreakdown,
+} from "./scoring/scorer.js";
+>>>>>>> origin/main
 
 function clamp01(value: number): number {
   if (value <= 0) {
@@ -147,3 +160,66 @@ export async function evaluateWithLlm(params: {
     durationMs: Date.now() - startedAt,
   };
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multi-Factor Relevance Scoring (bridges to scoring/ module)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Build a ScoringContext from a MeridiaToolResultContext plus optional extras.
+ * This bridges the existing hook context to the new scoring system.
+ */
+export function buildScoringContext(
+  ctx: MeridiaToolResultContext,
+  extras?: {
+    recentCaptures?: ScoringContext["recentCaptures"];
+    userMarkedImportant?: boolean;
+    contentTags?: string[];
+    contentSummary?: string;
+    heuristicEval?: { score: number; reason?: string };
+  },
+): ScoringContext {
+  return {
+    tool: ctx.tool,
+    session: ctx.session,
+    args: ctx.args,
+    result: ctx.result,
+    recentCaptures: extras?.recentCaptures,
+    userMarkedImportant: extras?.userMarkedImportant,
+    contentTags: extras?.contentTags,
+    contentSummary: extras?.contentSummary,
+    heuristicEval: extras?.heuristicEval,
+  };
+}
+
+/**
+ * Evaluate memory relevance using the multi-factor scoring system.
+ *
+ * This is the primary entry point for the new scoring system.
+ * It returns a full breakdown with per-factor analysis and the composite score.
+ *
+ * @param ctx - Tool result context
+ * @param extras - Additional signals (recent captures, user intent, etc.)
+ * @param scoringConfig - Optional scoring configuration override
+ * @returns ScoringBreakdown with composite score and factor details
+ */
+export function evaluateRelevance(
+  ctx: MeridiaToolResultContext,
+  extras?: Parameters<typeof buildScoringContext>[1],
+  scoringConfig?: Partial<ScoringConfig>,
+): ScoringBreakdown {
+  const scoringCtx = buildScoringContext(ctx, extras);
+  return evaluateMemoryRelevance(scoringCtx, scoringConfig);
+}
+
+// Re-export scoring utilities for convenience
+export {
+  evaluateMemoryRelevance,
+  checkShouldCapture as shouldCaptureMultiFactor,
+  checkIsHighValue as isHighValueMultiFactor,
+  checkShouldUseLlmEval as shouldUseLlmEvalMultiFactor,
+  breakdownToTrace,
+  formatBreakdown,
+};
+
+export type { ScoringBreakdown, ScoringConfig, ScoringContext };

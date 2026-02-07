@@ -231,13 +231,13 @@ function healthClass(status: AgentHealthStatus): string {
 
 function renderSummaryCards(entries: AgentDashboardEntry[]) {
   const totalActive = entries.filter((e) => e.health === "active").length;
-  const totalIdle = entries.filter((e) => e.health === "idle").length;
+  const totalStalled = entries.filter((e) => e.health === "stalled").length;
   const totalErrored = entries.filter((e) => e.health === "errored").length;
-  const totalSessions = entries.reduce((sum, e) => sum + e.sessions.length, 0);
   const totalTokens = entries.reduce((sum, e) => sum + e.totalTokens, 0);
 
+  // Primary 4 cards in a responsive grid that wraps cleanly
   return html`
-    <div class="dashboard-summary">
+    <div class="dashboard-summary" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
       <div class="summary-card">
         <div class="summary-value">${entries.length}</div>
         <div class="summary-label">Agents</div>
@@ -247,8 +247,8 @@ function renderSummaryCards(entries: AgentDashboardEntry[]) {
         <div class="summary-label">Active</div>
       </div>
       <div class="summary-card">
-        <div class="summary-value">${totalIdle}</div>
-        <div class="summary-label">Idle</div>
+        <div class="summary-value">${formatTokenCount(totalTokens)}</div>
+        <div class="summary-label">Total Tokens</div>
       </div>
       ${
         totalErrored > 0
@@ -260,14 +260,16 @@ function renderSummaryCards(entries: AgentDashboardEntry[]) {
             `
           : nothing
       }
-      <div class="summary-card">
-        <div class="summary-value">${totalSessions}</div>
-        <div class="summary-label">Sessions</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-value">${formatTokenCount(totalTokens)}</div>
-        <div class="summary-label">Total Tokens</div>
-      </div>
+      ${
+        totalStalled > 0
+          ? html`
+              <div class="summary-card summary-card--stalled">
+                <div class="summary-value">${totalStalled}</div>
+                <div class="summary-label">Stalled</div>
+              </div>
+            `
+          : nothing
+      }
     </div>
   `;
 }
@@ -330,23 +332,25 @@ function renderAgentCard(
           : nothing
       }
 
-      <div class="dashboard-metrics">
+      <div class="dashboard-metrics" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;">
         <div class="dashboard-metric">
-          <span class="metric-value">${entry.activeSessions}</span>
-          <span class="metric-label">Active</span>
-        </div>
-        <div class="dashboard-metric">
-          <span class="metric-value">${entry.sessions.length}</span>
-          <span class="metric-label">Sessions</span>
+          <span class="metric-value">${entry.activeSessions} / ${entry.sessions.length}</span>
+          <span class="metric-label">Sessions (active)</span>
         </div>
         <div class="dashboard-metric">
           <span class="metric-value">${formatTokenCount(entry.totalTokens)}</span>
           <span class="metric-label">Tokens</span>
         </div>
-        <div class="dashboard-metric">
-          <span class="metric-value">${entry.cronJobs.filter((j) => j.enabled).length}</span>
-          <span class="metric-label">Cron Jobs</span>
-        </div>
+        ${
+          entry.cronJobs.filter((j) => j.enabled).length > 0
+            ? html`
+                <div class="dashboard-metric">
+                  <span class="metric-value">${entry.cronJobs.filter((j) => j.enabled).length}</span>
+                  <span class="metric-label">Cron</span>
+                </div>
+              `
+            : nothing
+        }
         <div class="dashboard-metric">
           <span class="metric-value">${entry.lastActivity ? formatAgo(entry.lastActivity) : "—"}</span>
           <span class="metric-label">Last Active</span>
@@ -381,20 +385,27 @@ function renderAgentCard(
                     session.updatedAt && Date.now() - session.updatedAt < 5 * 60 * 1000,
                   );
                   return html`
-                    <div class="dashboard-session-row">
+                    <div class="dashboard-session-row" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; transition: background-color 0.15s;" @mouseenter=${(e: Event) => ((e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-surface-hover, rgba(128,128,128,0.08))")} @mouseleave=${(e: Event) => ((e.currentTarget as HTMLElement).style.backgroundColor = "")}>
                       <div class="dashboard-session-status">
                         <span
                           class="statusDot ${isActive ? "ok" : ""}"
                         ></span>
                       </div>
-                      <div class="dashboard-session-info">
-                        <div class="dashboard-session-name">
-                          ${session.displayName || session.label || shortenSessionKey(session.key)}
+                      <div class="dashboard-session-info" style="flex: 1; min-width: 0;">
+                        <div class="dashboard-session-name" style="display: flex; align-items: center; gap: 6px;">
+                          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${session.displayName || session.label || shortenSessionKey(session.key)}</span>
+                          ${
+                            session.channel
+                              ? html`<span class="pill" style="font-size: 10px; padding: 1px 6px;">${session.channel}</span>`
+                              : nothing
+                          }
                         </div>
-                        <div class="dashboard-session-meta mono">
-                          ${session.channel || "—"} · ${formatTokenCount(session.totalTokens ?? 0)} tokens
-                          ${session.updatedAt ? ` · ${formatAgo(session.updatedAt)}` : ""}
+                        <div class="dashboard-session-meta mono" style="display: flex; align-items: center; gap: 4px;">
+                          ${session.updatedAt ? html`<span>${formatAgo(session.updatedAt)}</span>` : nothing}
                         </div>
+                      </div>
+                      <div class="mono" style="flex-shrink: 0; font-size: 12px; color: var(--color-muted, #888);">
+                        ${formatTokenCount(session.totalTokens ?? 0)}
                       </div>
                       ${
                         session.abortedLastRun

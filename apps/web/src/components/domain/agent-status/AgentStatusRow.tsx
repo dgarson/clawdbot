@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { formatTokenCount, formatRelativeTime, formatCost, formatDuration } from "@/lib/format";
 import type { AgentStatusEntry, AgentHealthStatus } from "@/hooks/queries/useAgentStatus";
 
 // ── Health config ──────────────────────────────────────────────────
@@ -60,33 +61,6 @@ const HEALTH_CONFIG: Record<
     pulse: true,
   },
 };
-
-// ── Helpers ────────────────────────────────────────────────────────
-
-function formatRelativeTime(timestampMs: number): string {
-  const delta = Date.now() - timestampMs;
-  if (delta < 5_000) return "Just now";
-  if (delta < 60_000) return `${Math.floor(delta / 1000)}s ago`;
-  if (delta < 3_600_000) return `${Math.floor(delta / 60_000)}m ago`;
-  if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)}h ago`;
-  return `${Math.floor(delta / 86_400_000)}d ago`;
-}
-
-function formatTokenCount(tokens: number): string {
-  if (tokens < 1_000) return String(tokens);
-  if (tokens < 1_000_000) return `${(tokens / 1_000).toFixed(1)}k`;
-  return `${(tokens / 1_000_000).toFixed(2)}M`;
-}
-
-function formatCost(cost: number): string {
-  return `$${cost.toFixed(2)}`;
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 60_000) return `${Math.floor(ms / 1000)}s`;
-  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m ${Math.floor((ms % 60_000) / 1000)}s`;
-  return `${Math.floor(ms / 3_600_000)}h ${Math.floor((ms % 3_600_000) / 60_000)}m`;
-}
 
 // ── Component ──────────────────────────────────────────────────────
 

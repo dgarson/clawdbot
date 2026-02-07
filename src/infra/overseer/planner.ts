@@ -207,6 +207,8 @@ export async function generateOverseerPlan(params: {
   constraints: string[];
   repoContextSnapshot?: string;
   agentId?: string;
+  /** Override thinking level for the planner session (e.g. "high"). */
+  thinkingOverride?: string;
 }): Promise<PlannerResult> {
   const cfg = loadConfig();
   const plannerCfg = cfg.overseer?.planner;
@@ -247,6 +249,7 @@ export async function generateOverseerPlan(params: {
       extraSystemPrompt: "You are OverseerPlanner. Reply with JSON only.",
       timeoutMs: 60_000,
       lane: AGENT_LANE_SUBAGENT,
+      thinking: params.thinkingOverride,
     });
     lastOutput = reply ?? "";
     if (!lastOutput.trim()) {

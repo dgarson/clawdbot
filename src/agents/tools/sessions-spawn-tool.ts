@@ -44,6 +44,11 @@ const SessionsSpawnToolSchema = Type.Object({
   // Back-compat alias. Prefer runTimeoutSeconds.
   timeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
   cleanup: optionalStringEnum(["delete", "keep"] as const),
+  instructions: Type.Optional(
+    Type.String({
+      description: "Optional instructions injected into the sub-agent system prompt.",
+    }),
+  ),
 });
 
 function splitModelRef(ref?: string) {
@@ -251,12 +256,15 @@ export function createSessionsSpawnTool(opts?: {
           modelWarning = messageText;
         }
       }
+      const instructionsText =
+        typeof params.instructions === "string" ? params.instructions.trim() : undefined;
       const childSystemPrompt = buildSubagentSystemPrompt({
         requesterSessionKey,
         requesterOrigin,
         childSessionKey,
         label: label || undefined,
         task,
+        instructions: instructionsText || undefined,
       });
 
       const childIdem = crypto.randomUUID();

@@ -1,9 +1,11 @@
 import fs from "node:fs";
+import type { LoadCronStoreResult } from "../store.js";
 import type { CronJob } from "../types.js";
-import type { CronServiceState } from "./state.js";
+import type { CronServiceState, Logger } from "./state.js";
 import { parseAbsoluteTimeMs } from "../parse.js";
 import { migrateLegacyCronPayload } from "../payload-migration.js";
-import { loadCronStore, saveCronStore } from "../store.js";
+import { isTransientFsError, loadCronStore, saveCronStore } from "../store.js";
+import { emit } from "./emit.js";
 import { recomputeNextRuns } from "./jobs.js";
 import { inferLegacyName, normalizeOptionalText } from "./normalize.js";
 
@@ -117,6 +119,132 @@ function stripLegacyDeliveryFields(payload: Record<string, unknown>) {
   }
 }
 
+/**
+ * Run all migration steps on a single raw job record.
+ * Returns `true` if the job was mutated.
+ * Exported so `ops.ts` can re-run it after an update clears `migrationError`.
+ */
+export function migrateJob(raw: Record<string, unknown>, _log: Logger): boolean {
+  let mutated = false;
+
+  // Migrate legacy jobId → id
+  if (!raw.id && typeof raw.jobId === "string") {
+    raw.id = raw.jobId;
+    delete raw.jobId;
+    mutated = true;
+  }
+
+  const nameRaw = raw.name;
+  if (typeof nameRaw !== "string" || nameRaw.trim().length === 0) {
+    raw.name = inferLegacyName({
+      schedule: raw.schedule as never,
+      payload: raw.payload as never,
+    });
+    mutated = true;
+  } else {
+    raw.name = nameRaw.trim();
+  }
+
+  const desc = normalizeOptionalText(raw.description);
+  if (raw.description !== desc) {
+    raw.description = desc;
+    mutated = true;
+  }
+
+  if (typeof raw.enabled !== "boolean") {
+    raw.enabled = true;
+    mutated = true;
+  }
+
+  const payload = raw.payload;
+  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    if (migrateLegacyCronPayload(payload as Record<string, unknown>)) {
+      mutated = true;
+    }
+  }
+
+  const schedule = raw.schedule;
+  if (schedule && typeof schedule === "object" && !Array.isArray(schedule)) {
+    const sched = schedule as Record<string, unknown>;
+    const kind = typeof sched.kind === "string" ? sched.kind.trim().toLowerCase() : "";
+    if (!kind && ("at" in sched || "atMs" in sched)) {
+      sched.kind = "at";
+      mutated = true;
+    }
+    const atRaw = typeof sched.at === "string" ? sched.at.trim() : "";
+    const atMsRaw = sched.atMs;
+    const parsedAtMs =
+      typeof atMsRaw === "number"
+        ? atMsRaw
+        : typeof atMsRaw === "string"
+          ? parseAbsoluteTimeMs(atMsRaw)
+          : atRaw
+            ? parseAbsoluteTimeMs(atRaw)
+            : null;
+    if (parsedAtMs !== null) {
+      sched.at = new Date(parsedAtMs).toISOString();
+      if ("atMs" in sched) {
+        delete sched.atMs;
+      }
+      mutated = true;
+    }
+  }
+
+  const delivery = raw.delivery;
+  if (delivery && typeof delivery === "object" && !Array.isArray(delivery)) {
+    const modeRaw = (delivery as { mode?: unknown }).mode;
+    if (typeof modeRaw === "string") {
+      const lowered = modeRaw.trim().toLowerCase();
+      if (lowered === "deliver") {
+        (delivery as { mode?: unknown }).mode = "announce";
+        mutated = true;
+      }
+    }
+  }
+
+  const isolation = raw.isolation;
+  if (isolation && typeof isolation === "object" && !Array.isArray(isolation)) {
+    delete raw.isolation;
+    mutated = true;
+  }
+
+  const payloadRecord =
+    payload && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>)
+      : null;
+  const payloadKind =
+    payloadRecord && typeof payloadRecord.kind === "string" ? payloadRecord.kind : "";
+  const sessionTarget =
+    typeof raw.sessionTarget === "string" ? raw.sessionTarget.trim().toLowerCase() : "";
+  const isIsolatedAgentTurn =
+    sessionTarget === "isolated" || (sessionTarget === "" && payloadKind === "agentTurn");
+  const hasDelivery = delivery && typeof delivery === "object" && !Array.isArray(delivery);
+  const hasLegacyDelivery = payloadRecord ? hasLegacyDeliveryHints(payloadRecord) : false;
+
+  if (isIsolatedAgentTurn && payloadKind === "agentTurn") {
+    if (!hasDelivery) {
+      raw.delivery =
+        payloadRecord && hasLegacyDelivery
+          ? buildDeliveryFromLegacyPayload(payloadRecord)
+          : { mode: "announce" };
+      mutated = true;
+    }
+    if (payloadRecord && hasLegacyDelivery) {
+      if (hasDelivery) {
+        const merged = mergeLegacyDeliveryInto(delivery as Record<string, unknown>, payloadRecord);
+        if (merged.mutated) {
+          raw.delivery = merged.delivery;
+          mutated = true;
+        }
+      }
+      stripLegacyDeliveryFields(payloadRecord);
+      mutated = true;
+    }
+  }
+
+  return mutated;
+}
+
 async function getFileMtimeMs(path: string): Promise<number | null> {
   try {
     const stats = await fs.promises.stat(path);
@@ -144,131 +272,89 @@ export async function ensureLoaded(
   // edits on filesystems with coarse mtime resolution.
 
   const fileMtimeMs = await getFileMtimeMs(state.deps.storePath);
-  const loaded = await loadCronStore(state.deps.storePath);
+
+  // Retry loop for transient FS errors (EACCES, EIO, etc.)
+  const RETRY_DELAYS = [100, 500, 2000];
+  const MAX_ATTEMPTS = RETRY_DELAYS.length + 1;
+  let result: LoadCronStoreResult | null = null;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    try {
+      result = await loadCronStore(state.deps.storePath, { log: state.deps.log });
+      break;
+    } catch (err) {
+      if (isTransientFsError(err) && attempt < RETRY_DELAYS.length) {
+        state.deps.log.warn(
+          { attempt: attempt + 1, maxAttempts: MAX_ATTEMPTS, err: String(err) },
+          "cron: transient FS error loading store; retrying",
+        );
+        await new Promise<void>((r) => setTimeout(r, RETRY_DELAYS[attempt]!));
+        continue;
+      }
+      // Non-transient or all retries exhausted
+      state.deps.log.error(
+        { attempt: attempt + 1, err: String(err) },
+        "cron: store load failed after all retries; using empty store",
+      );
+      result = {
+        store: { version: 1, jobs: [] },
+        loadError: String(err),
+      };
+      break;
+    }
+  }
+  // Safety: result is always set after the loop
+  const { store: loaded, loadError, fromBackup } = result!;
+  state.storeLoadError = loadError;
+  if (fromBackup) {
+    state.deps.log.warn({ storePath: state.deps.storePath }, "cron: store loaded from .bak backup");
+  }
   const jobs = (loaded.jobs ?? []) as unknown as Array<Record<string, unknown>>;
   let mutated = false;
   for (const raw of jobs) {
-    // Migrate legacy jobId → id
-    if (!raw.id && typeof raw.jobId === "string") {
-      raw.id = raw.jobId;
-      delete raw.jobId;
-      mutated = true;
-    }
-
-    const nameRaw = raw.name;
-    if (typeof nameRaw !== "string" || nameRaw.trim().length === 0) {
-      raw.name = inferLegacyName({
-        schedule: raw.schedule as never,
-        payload: raw.payload as never,
-      });
-      mutated = true;
-    } else {
-      raw.name = nameRaw.trim();
-    }
-
-    const desc = normalizeOptionalText(raw.description);
-    if (raw.description !== desc) {
-      raw.description = desc;
-      mutated = true;
-    }
-
-    if (typeof raw.enabled !== "boolean") {
-      raw.enabled = true;
-      mutated = true;
-    }
-
-    const payload = raw.payload;
-    if (payload && typeof payload === "object" && !Array.isArray(payload)) {
-      if (migrateLegacyCronPayload(payload as Record<string, unknown>)) {
+    const rawState = (raw.state ?? {}) as Record<string, unknown>;
+    try {
+      if (migrateJob(raw, state.deps.log)) {
         mutated = true;
       }
-    }
-
-    const schedule = raw.schedule;
-    if (schedule && typeof schedule === "object" && !Array.isArray(schedule)) {
-      const sched = schedule as Record<string, unknown>;
-      const kind = typeof sched.kind === "string" ? sched.kind.trim().toLowerCase() : "";
-      if (!kind && ("at" in sched || "atMs" in sched)) {
-        sched.kind = "at";
+      // Clear a previous migration error on successful re-migration
+      if (rawState.migrationError) {
+        rawState.migrationError = undefined;
         mutated = true;
       }
-      const atRaw = typeof sched.at === "string" ? sched.at.trim() : "";
-      const atMsRaw = sched.atMs;
-      const parsedAtMs =
-        typeof atMsRaw === "number"
-          ? atMsRaw
-          : typeof atMsRaw === "string"
-            ? parseAbsoluteTimeMs(atMsRaw)
-            : atRaw
-              ? parseAbsoluteTimeMs(atRaw)
-              : null;
-      if (parsedAtMs !== null) {
-        sched.at = new Date(parsedAtMs).toISOString();
-        if ("atMs" in sched) {
-          delete sched.atMs;
-        }
-        mutated = true;
-      }
-    }
-
-    const delivery = raw.delivery;
-    if (delivery && typeof delivery === "object" && !Array.isArray(delivery)) {
-      const modeRaw = (delivery as { mode?: unknown }).mode;
-      if (typeof modeRaw === "string") {
-        const lowered = modeRaw.trim().toLowerCase();
-        if (lowered === "deliver") {
-          (delivery as { mode?: unknown }).mode = "announce";
-          mutated = true;
-        }
-      }
-    }
-
-    const isolation = raw.isolation;
-    if (isolation && typeof isolation === "object" && !Array.isArray(isolation)) {
-      delete raw.isolation;
+    } catch (err) {
+      const jobId =
+        typeof raw.id === "string" ? raw.id : typeof raw.jobId === "string" ? raw.jobId : "unknown";
+      const jobName = typeof raw.name === "string" ? raw.name : "unnamed";
+      state.deps.log.error(
+        { jobId, jobName, err: String(err) },
+        "cron: migration failed for job; disabling it",
+      );
+      rawState.migrationError = String(err);
+      raw.state = rawState;
+      raw.enabled = false;
       mutated = true;
-    }
-
-    const payloadRecord =
-      payload && typeof payload === "object" && !Array.isArray(payload)
-        ? (payload as Record<string, unknown>)
-        : null;
-    const payloadKind =
-      payloadRecord && typeof payloadRecord.kind === "string" ? payloadRecord.kind : "";
-    const sessionTarget =
-      typeof raw.sessionTarget === "string" ? raw.sessionTarget.trim().toLowerCase() : "";
-    const isIsolatedAgentTurn =
-      sessionTarget === "isolated" || (sessionTarget === "" && payloadKind === "agentTurn");
-    const hasDelivery = delivery && typeof delivery === "object" && !Array.isArray(delivery);
-    const hasLegacyDelivery = payloadRecord ? hasLegacyDeliveryHints(payloadRecord) : false;
-
-    if (isIsolatedAgentTurn && payloadKind === "agentTurn") {
-      if (!hasDelivery) {
-        raw.delivery =
-          payloadRecord && hasLegacyDelivery
-            ? buildDeliveryFromLegacyPayload(payloadRecord)
-            : { mode: "announce" };
-        mutated = true;
-      }
-      if (payloadRecord && hasLegacyDelivery) {
-        if (hasDelivery) {
-          const merged = mergeLegacyDeliveryInto(
-            delivery as Record<string, unknown>,
-            payloadRecord,
-          );
-          if (merged.mutated) {
-            raw.delivery = merged.delivery;
-            mutated = true;
-          }
-        }
-        stripLegacyDeliveryFields(payloadRecord);
-        mutated = true;
-      }
     }
   }
   state.store = { version: 1, jobs: jobs as unknown as CronJob[] };
   state.storeLoadedAtMs = state.deps.nowMs();
   state.storeFileMtimeMs = fileMtimeMs;
+
+  // Health tracking: consecutive load failures
+  if (loadError) {
+    state.consecutiveLoadFailures++;
+    if (state.consecutiveLoadFailures >= 3) {
+      emit(state, {
+        action: "unhealthy",
+        error: loadError,
+        consecutiveFailures: state.consecutiveLoadFailures,
+      });
+    }
+  } else {
+    if (state.consecutiveLoadFailures > 0) {
+      emit(state, { action: "healthy" });
+    }
+    state.consecutiveLoadFailures = 0;
+  }
 
   if (!opts?.skipRecompute) {
     recomputeNextRuns(state);

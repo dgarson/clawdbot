@@ -10,7 +10,7 @@ import {
   recomputeNextRuns,
 } from "./jobs.js";
 import { locked } from "./locked.js";
-import { ensureLoaded, persist, warnIfDisabled } from "./store.js";
+import { ensureLoaded, migrateJob, persist, warnIfDisabled } from "./store.js";
 import { armTimer, emit, executeJob, stopTimer, wake } from "./timer.js";
 
 export async function start(state: CronServiceState) {
@@ -46,6 +46,8 @@ export async function status(state: CronServiceState) {
       storePath: state.deps.storePath,
       jobs: state.store?.jobs.length ?? 0,
       nextWakeAtMs: state.deps.cronEnabled ? (nextWakeAtMs(state) ?? null) : null,
+      storeLoadError: state.storeLoadError,
+      consecutiveLoadFailures: state.consecutiveLoadFailures,
     };
   });
 }
@@ -84,6 +86,18 @@ export async function update(state: CronServiceState, id: string, patch: CronJob
     const now = state.deps.nowMs();
     applyJobPatch(job, patch);
     job.updatedAtMs = now;
+
+    // If the job had a migration error, try re-migrating after the patch
+    if (job.state.migrationError) {
+      try {
+        migrateJob(job as unknown as Record<string, unknown>, state.deps.log);
+        job.state.migrationError = undefined;
+      } catch (err) {
+        job.state.migrationError = String(err);
+        job.enabled = false;
+      }
+    }
+
     if (job.enabled) {
       job.state.nextRunAtMs = computeJobNextRunAtMs(job, now);
     } else {

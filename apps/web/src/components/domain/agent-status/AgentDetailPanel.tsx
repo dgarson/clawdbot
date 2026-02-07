@@ -25,26 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatDuration, formatRelativeTime } from "@/lib/format";
 import type { AgentStatusEntry, AgentHealthStatus } from "@/hooks/queries/useAgentStatus";
-
-// ── Helpers ────────────────────────────────────────────────────────
-
-function formatDuration(ms: number): string {
-  if (ms < 60_000) return `${Math.floor(ms / 1000)}s`;
-  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m ${Math.floor((ms % 60_000) / 1000)}s`;
-  const hours = Math.floor(ms / 3_600_000);
-  const mins = Math.floor((ms % 3_600_000) / 60_000);
-  return `${hours}h ${mins}m`;
-}
-
-function formatRelativeTime(timestampMs: number): string {
-  const delta = Date.now() - timestampMs;
-  if (delta < 5_000) return "Just now";
-  if (delta < 60_000) return `${Math.floor(delta / 1000)}s ago`;
-  if (delta < 3_600_000) return `${Math.floor(delta / 60_000)}m ago`;
-  if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)}h ago`;
-  return `${Math.floor(delta / 86_400_000)}d ago`;
-}
 
 const HEALTH_BADGE: Record<AgentHealthStatus, { variant: "success" | "warning" | "error" | "outline"; icon: typeof Zap; label: string }> = {
   active: { variant: "success", icon: Zap, label: "Active" },

@@ -1,7 +1,8 @@
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob, CronJobCreate, CronJobPatch, CronStoreFile } from "../types.js";
 
-export type CronEvent = {
+/** Job-scoped cron event (always has a jobId). */
+export type CronJobEvent = {
   jobId: string;
   action: "added" | "updated" | "removed" | "started" | "finished";
   runAtMs?: number;
@@ -11,6 +12,16 @@ export type CronEvent = {
   summary?: string;
   nextRunAtMs?: number;
 };
+
+/** Service-level health event (no jobId). */
+export type CronHealthEvent = {
+  action: "unhealthy" | "healthy";
+  error?: string;
+  consecutiveFailures?: number;
+};
+
+/** Discriminated union of cron events — job events always carry `jobId`. */
+export type CronEvent = CronJobEvent | CronHealthEvent;
 
 export type Logger = {
   debug: (obj: unknown, msg?: string) => void;
@@ -56,6 +67,10 @@ export type CronServiceState = {
   _lastTimerRun?: Promise<void>;
   storeLoadedAtMs: number | null;
   storeFileMtimeMs: number | null;
+  /** Set when `loadCronStore` returns a load error (corrupt file, etc.) */
+  storeLoadError?: string;
+  /** Number of consecutive load failures (for health probing). */
+  consecutiveLoadFailures: number;
 };
 
 export function createCronServiceState(deps: CronServiceDeps): CronServiceState {
@@ -70,6 +85,7 @@ export function createCronServiceState(deps: CronServiceDeps): CronServiceState 
     warnedDisabled: false,
     storeLoadedAtMs: null,
     storeFileMtimeMs: null,
+    consecutiveLoadFailures: 0,
   };
 }
 

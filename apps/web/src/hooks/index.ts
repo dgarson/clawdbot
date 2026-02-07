@@ -59,3 +59,18 @@ export {
   useSessionShortcuts,
   type UseSessionShortcutsOptions,
 } from "./useSessionShortcuts";
+export {
+  useGlobalSearch,
+  fuzzyMatch,
+  CATEGORY_META,
+  type SearchResult,
+  type SearchCategory,
+  type GlobalSearchOptions,
+} from "./useGlobalSearch";
+export {
+  useAsyncOperation,
+  type OperationProgress as OperationProgressData,
+  type OperationState,
+  type UseAsyncOperationOptions,
+  type UseAsyncOperationReturn,
+} from "./useAsyncOperation";

@@ -294,6 +294,8 @@ export function buildSubagentSystemPrompt(params: {
   childSessionKey: string;
   label?: string;
   task?: string;
+  /** Optional instructions injected as a dedicated section after standard content. */
+  instructions?: string;
 }) {
   const taskText =
     typeof params.task === "string" && params.task.trim()
@@ -337,6 +339,12 @@ export function buildSubagentSystemPrompt(params: {
     `- Your session: ${params.childSessionKey}.`,
     "",
   ].filter((line): line is string => line !== undefined);
+
+  // Inject instructions section if provided.
+  if (params.instructions?.trim()) {
+    lines.push("## Instructions", params.instructions.trim(), "");
+  }
+
   return lines.join("\n");
 }
 

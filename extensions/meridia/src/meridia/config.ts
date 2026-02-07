@@ -1,7 +1,15 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import path from "node:path";
 import type { MeridiaBackendType } from "./db/backend.js";
+import type {
+  ScoringConfig,
+  ScoringWeights,
+  ThresholdProfile,
+  ToolOverrideRule,
+  PatternOverrideRule,
+} from "./scoring/types.js";
 import { resolveUserPath } from "./paths.js";
+import { DEFAULT_SCORING_CONFIG } from "./scoring/defaults.js";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Raw Config Types (from user input / YAML)
@@ -30,6 +38,15 @@ type RawStorageConfig = {
   postgresql?: RawPostgresConfig;
 };
 
+type RawScoringConfig = {
+  weights?: Partial<ScoringWeights>;
+  activeProfile?: string;
+  profiles?: Record<string, Partial<ThresholdProfile>>;
+  toolOverrides?: ToolOverrideRule[];
+  patternOverrides?: PatternOverrideRule[];
+  includeBreakdownInTrace?: boolean;
+};
+
 type RawMeridiaPluginConfig = {
   storage?: RawStorageConfig;
   // Legacy db config for backwards compatibility
@@ -37,6 +54,7 @@ type RawMeridiaPluginConfig = {
     type?: string;
     sqlite?: RawSqliteConfig;
   };
+  scoring?: RawScoringConfig;
   debug?: {
     writeTraceJsonl?: boolean;
   };
@@ -76,6 +94,7 @@ export type ResolvedMeridiaPluginConfig = {
     type: MeridiaBackendType;
     sqlite: ResolvedSqliteConfig;
   };
+  scoring: ScoringConfig;
   debug: {
     writeTraceJsonl: boolean;
   };
@@ -144,6 +163,41 @@ function resolvePostgresConfig(raw?: RawPostgresConfig): ResolvedPostgresConfig 
   };
 }
 
+function resolveScoringConfig(raw?: RawScoringConfig): ScoringConfig {
+  if (!raw) return { ...DEFAULT_SCORING_CONFIG };
+
+  const weights: ScoringWeights = {
+    ...DEFAULT_SCORING_CONFIG.weights,
+    ...(raw.weights ?? {}),
+  };
+
+  // Merge user profiles with defaults
+  const profiles: Record<string, ThresholdProfile> = {
+    ...DEFAULT_SCORING_CONFIG.profiles,
+  };
+  if (raw.profiles) {
+    for (const [name, partial] of Object.entries(raw.profiles)) {
+      const base = profiles[name] ?? DEFAULT_SCORING_CONFIG.profiles["standard"]!;
+      profiles[name] = {
+        name,
+        captureThreshold: partial.captureThreshold ?? base.captureThreshold,
+        llmEvalThreshold: partial.llmEvalThreshold ?? base.llmEvalThreshold,
+        highValueThreshold: partial.highValueThreshold ?? base.highValueThreshold,
+      };
+    }
+  }
+
+  return {
+    weights,
+    activeProfile: raw.activeProfile ?? DEFAULT_SCORING_CONFIG.activeProfile,
+    profiles,
+    toolOverrides: raw.toolOverrides ?? DEFAULT_SCORING_CONFIG.toolOverrides,
+    patternOverrides: raw.patternOverrides ?? DEFAULT_SCORING_CONFIG.patternOverrides,
+    includeBreakdownInTrace:
+      raw.includeBreakdownInTrace ?? DEFAULT_SCORING_CONFIG.includeBreakdownInTrace,
+  };
+}
+
 function resolveSqliteConfig(raw?: RawSqliteConfig): ResolvedSqliteConfig {
   const dbPathRaw = raw?.dbPath;
   const dbPathValue = typeof dbPathRaw === "string" ? dbPathRaw.trim() : "";
@@ -171,6 +225,9 @@ export function resolveMeridiaPluginConfig(cfg?: OpenClawConfig): ResolvedMeridi
   // Resolve PostgreSQL config
   const postgresConfig = resolvePostgresConfig(raw.storage?.postgresql);
 
+  // Resolve scoring config
+  const scoringConfig = resolveScoringConfig(raw.scoring);
+
   const writeTraceJsonl =
     raw.debug?.writeTraceJsonl === undefined ? true : raw.debug.writeTraceJsonl === true;
 
@@ -185,6 +242,7 @@ export function resolveMeridiaPluginConfig(cfg?: OpenClawConfig): ResolvedMeridi
       type: backend,
       sqlite: sqliteConfig,
     },
+    scoring: scoringConfig,
     debug: {
       writeTraceJsonl,
     },

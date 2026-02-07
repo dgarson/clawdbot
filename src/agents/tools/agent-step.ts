@@ -24,6 +24,8 @@ export async function runAgentStep(params: {
   timeoutMs: number;
   channel?: string;
   lane?: string;
+  /** Optional thinking level override passed to the gateway agent method. */
+  thinking?: string;
 }): Promise<string | undefined> {
   const stepIdem = crypto.randomUUID();
   const response = await callGateway<{ runId?: string }>({
@@ -36,6 +38,7 @@ export async function runAgentStep(params: {
       channel: params.channel ?? INTERNAL_MESSAGE_CHANNEL,
       lane: params.lane ?? AGENT_LANE_NESTED,
       extraSystemPrompt: params.extraSystemPrompt,
+      thinking: params.thinking,
     },
     timeoutMs: 10_000,
   });

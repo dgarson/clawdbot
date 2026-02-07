@@ -153,6 +153,9 @@ const formatSchedule = (schedule: CronSchedule) => {
 };
 
 const formatStatus = (job: CronJob) => {
+  if (job.state.migrationError) {
+    return "migError";
+  }
   if (!job.enabled) {
     return "disabled";
   }
@@ -204,7 +207,7 @@ export function printCronList(jobs: CronJob[], runtime = defaultRuntime) {
       if (statusRaw === "ok") {
         return colorize(rich, theme.success, statusLabel);
       }
-      if (statusRaw === "error") {
+      if (statusRaw === "error" || statusRaw === "migError") {
         return colorize(rich, theme.error, statusLabel);
       }
       if (statusRaw === "running") {

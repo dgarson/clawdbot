@@ -1,6 +1,7 @@
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob } from "../types.js";
-import type { CronEvent, CronServiceState } from "./state.js";
+import type { CronServiceState } from "./state.js";
+import { emit } from "./emit.js";
 import {
   computeJobNextRunAtMs,
   nextWakeAtMs,
@@ -24,6 +25,9 @@ const WATCHDOG_INTERVAL_MS = 60_000;
 /** Fallback ceiling for the watchdog threshold (30 min). */
 const WATCHDOG_MAX_STUCK_MS = 30 * 60_000;
 
+/** Max delay when a store load error is present so the scheduler retries sooner. */
+const LOAD_ERROR_RETRY_DELAY_MS = 30_000;
+
 export function armTimer(state: CronServiceState) {
   if (state.timer) {
     clearTimeout(state.timer);
@@ -33,12 +37,16 @@ export function armTimer(state: CronServiceState) {
     return;
   }
   const nextAt = nextWakeAtMs(state);
-  if (!nextAt) {
+  if (!nextAt && !state.storeLoadError) {
     return;
   }
-  const delay = Math.max(nextAt - state.deps.nowMs(), 0);
+  const delay = nextAt ? Math.max(nextAt - state.deps.nowMs(), 0) : LOAD_ERROR_RETRY_DELAY_MS;
   // Avoid TimeoutOverflowWarning when a job is far in the future.
-  const clampedDelay = Math.min(delay, MAX_TIMEOUT_MS);
+  let clampedDelay = Math.min(delay, MAX_TIMEOUT_MS);
+  // Retry sooner when the store failed to load so we recover faster.
+  if (state.storeLoadError) {
+    clampedDelay = Math.min(clampedDelay, LOAD_ERROR_RETRY_DELAY_MS);
+  }
   state.timer = setTimeout(() => {
     void onTimer(state).catch((err) => {
       state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
@@ -368,10 +376,5 @@ function checkWatchdog(state: CronServiceState) {
   armTimer(state);
 }
 
-export function emit(state: CronServiceState, evt: CronEvent) {
-  try {
-    state.deps.onEvent?.(evt);
-  } catch {
-    /* ignore */
-  }
-}
+// Re-export emit from its extracted module for backwards compatibility.
+export { emit } from "./emit.js";
