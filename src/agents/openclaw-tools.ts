@@ -2,22 +2,39 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { resolvePluginTools } from "../plugins/tools.js";
+import { createSlackInteractiveConfirmationTool } from "../slack/tools/interactive-confirmation-tool.js";
+import { createSlackInteractiveFormTool } from "../slack/tools/interactive-form-tool.js";
+import { createSlackInteractiveQuestionTool } from "../slack/tools/interactive-question-tool.js";
+import { createSlackRichMessageTool } from "../slack/tools/rich-message-tool.js";
+import { bootstrapWorkQueueForAgent } from "../work-queue/store.js";
 import { resolveSessionAgentId } from "./agent-scope.js";
 import { createAgentsListTool } from "./tools/agents-list-tool.js";
 import { createBrowserTool } from "./tools/browser-tool.js";
 import { createCanvasTool } from "./tools/canvas-tool.js";
 import { createCronTool } from "./tools/cron-tool.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
+import { createImageGenerateTool } from "./tools/image-generate-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
+import { createMemoryAuditTool } from "./tools/memory-audit-tool.js";
+import { createMemoryContextPackTool } from "./tools/memory-context-pack-tool.js";
+import { createMemoryIndexStatusTool } from "./tools/memory-index-status-tool.js";
+import { createMemoryIngestTool } from "./tools/memory-ingest-tool.js";
+import { createMemoryQueryTool } from "./tools/memory-query-tool.js";
+import { createMemoryRecallTool } from "./tools/memory-recall-tool.js";
+import { createMemoryStoreTool } from "./tools/memory-store-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
+import { createRipgrepTool } from "./tools/ripgrep-tool.js";
 import { createSessionStatusTool } from "./tools/session-status-tool.js";
 import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
+import { createTreeTool } from "./tools/tree-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
+import { createWorkItemTool } from "./tools/work-item-tool.js";
+import { createWorkQueueTool } from "./tools/work-queue-tool.js";
 
 export function createOpenClawTools(options?: {
   sandboxBrowserBridgeUrl?: string;
@@ -53,11 +70,25 @@ export function createOpenClawTools(options?: {
   modelHasVision?: boolean;
   /** Explicit agent ID override for cron/hook sessions. */
   requesterAgentIdOverride?: string;
+  /** When true, tools are being exposed in a Claude Agent SDK / tool-bridge context. */
+  isToolBridgeContext?: boolean;
   /** Require explicit message targets (no implicit last-route sends). */
   requireExplicitMessageTarget?: boolean;
   /** If true, omit the message tool from the tool list. */
   disableMessageTool?: boolean;
 }): AnyAgentTool[] {
+  const sessionAgentId = resolveSessionAgentId({
+    sessionKey: options?.agentSessionKey,
+    config: options?.config,
+  });
+
+  const autoClaim = process.env.OPENCLAW_WORK_QUEUE_AUTO_CLAIM?.trim() === "1";
+  void bootstrapWorkQueueForAgent({
+    agentId: sessionAgentId,
+    sessionKey: options?.agentSessionKey,
+    autoClaim,
+  }).catch(() => {});
+
   const imageTool = options?.agentDir?.trim()
     ? createImageTool({
         config: options?.config,
@@ -74,6 +105,31 @@ export function createOpenClawTools(options?: {
     config: options?.config,
     sandboxed: options?.sandboxed,
   });
+  const slackRichMessageTool = options?.disableMessageTool
+    ? null
+    : createSlackRichMessageTool({
+        accountId: options?.agentAccountId,
+        currentChannelId: options?.currentChannelId,
+        currentThreadTs: options?.currentThreadTs,
+      });
+  const slackInteractiveQuestionTool = options?.disableMessageTool
+    ? null
+    : createSlackInteractiveQuestionTool({
+        accountId: options?.agentAccountId,
+        sessionKey: options?.agentSessionKey,
+      });
+  const slackInteractiveFormTool = options?.disableMessageTool
+    ? null
+    : createSlackInteractiveFormTool({
+        accountId: options?.agentAccountId,
+        sessionKey: options?.agentSessionKey,
+      });
+  const slackInteractiveConfirmationTool = options?.disableMessageTool
+    ? null
+    : createSlackInteractiveConfirmationTool({
+        accountId: options?.agentAccountId,
+        sessionKey: options?.agentSessionKey,
+      });
   const messageTool = options?.disableMessageTool
     ? null
     : createMessageTool({
@@ -138,25 +194,67 @@ export function createOpenClawTools(options?: {
       agentGroupSpace: options?.agentGroupSpace,
       sandboxed: options?.sandboxed,
       requesterAgentIdOverride: options?.requesterAgentIdOverride,
+      isToolBridgeContext: options?.isToolBridgeContext,
     }),
     createSessionStatusTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,
     }),
+    createWorkQueueTool({
+      agentSessionKey: options?.agentSessionKey,
+      config: options?.config,
+    }),
+    createWorkItemTool({
+      agentSessionKey: options?.agentSessionKey,
+      config: options?.config,
+    }),
+    createMemoryIngestTool({ config: options?.config }),
+    createMemoryQueryTool(),
+    createMemoryContextPackTool(),
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
+    ...(slackRichMessageTool ? [slackRichMessageTool] : []),
+    ...(slackInteractiveQuestionTool ? [slackInteractiveQuestionTool] : []),
+    ...(slackInteractiveFormTool ? [slackInteractiveFormTool] : []),
+    ...(slackInteractiveConfirmationTool ? [slackInteractiveConfirmationTool] : []),
+    createRipgrepTool({
+      workspaceDir: options?.workspaceDir,
+    }),
+    createTreeTool({
+      workspaceDir: options?.workspaceDir,
+    }),
+    createImageGenerateTool(),
   ];
+
+  // Progressive memory tools — only registered when memory.progressive.enabled = true.
+  // Each factory returns null if the feature is disabled, so we filter nulls.
+  const progressiveMemoryTools = [
+    createMemoryStoreTool({
+      config: options?.config,
+      agentSessionKey: options?.agentSessionKey,
+    }),
+    createMemoryRecallTool({
+      config: options?.config,
+      agentSessionKey: options?.agentSessionKey,
+    }),
+    createMemoryIndexStatusTool({
+      config: options?.config,
+      agentSessionKey: options?.agentSessionKey,
+    }),
+    createMemoryAuditTool({
+      config: options?.config,
+      agentSessionKey: options?.agentSessionKey,
+    }),
+  ].filter((tool): tool is AnyAgentTool => tool !== null);
+  tools.push(...progressiveMemoryTools);
 
   const pluginTools = resolvePluginTools({
     context: {
       config: options?.config,
       workspaceDir: options?.workspaceDir,
       agentDir: options?.agentDir,
-      agentId: resolveSessionAgentId({
-        sessionKey: options?.agentSessionKey,
-        config: options?.config,
-      }),
+      agentId: sessionAgentId,
       sessionKey: options?.agentSessionKey,
       messageChannel: options?.agentChannel,
       agentAccountId: options?.agentAccountId,

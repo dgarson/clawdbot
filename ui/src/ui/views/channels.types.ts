@@ -12,6 +12,7 @@ import type {
   TelegramStatus,
   WhatsAppStatus,
 } from "../types.ts";
+import type { ChannelWizardState } from "./channel-config-wizard.ts";
 import type { NostrProfileFormState } from "./channels.nostr-profile-form.ts";
 
 export type ChannelKey = string;
@@ -47,6 +48,15 @@ export type ChannelsProps = {
   onNostrProfileSave: () => void;
   onNostrProfileImport: () => void;
   onNostrProfileToggleAdvanced: () => void;
+  // Channel wizard state and callbacks
+  wizardState: ChannelWizardState;
+  onWizardOpen: (channelId: ChannelKey) => void;
+  onWizardClose: () => void;
+  onWizardSave: () => void;
+  onWizardDiscard: () => void;
+  onWizardSectionChange: (sectionId: string) => void;
+  onWizardConfirmClose: () => void;
+  onWizardCancelClose: () => void;
 };
 
 export type ChannelsChannelData = {

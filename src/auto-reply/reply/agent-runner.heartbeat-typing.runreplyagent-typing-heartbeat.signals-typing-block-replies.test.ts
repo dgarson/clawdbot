@@ -12,6 +12,7 @@ import { createMockTypingController } from "./test-helpers.js";
 const runEmbeddedPiAgentMock = vi.fn();
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
   runWithModelFallback: async ({
     provider,
     model,
@@ -178,7 +179,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
     expect(typing.startTypingOnText).not.toHaveBeenCalled();
     expect(onToolResult).not.toHaveBeenCalled();
   });
-  it("announces auto-compaction in verbose mode and tracks count", async () => {
+  it("tracks compaction count without user-facing notice", async () => {
     const storePath = path.join(
       await fs.mkdtemp(path.join(tmpdir(), "openclaw-compaction-")),
       "sessions.json",
@@ -208,8 +209,8 @@ describe("runReplyAgent typing (heartbeat)", () => {
     const res = await run();
     expect(Array.isArray(res)).toBe(true);
     const payloads = res as { text?: string }[];
-    expect(payloads[0]?.text).toContain("Auto-compaction complete");
-    expect(payloads[0]?.text).toContain("count 1");
+    expect(payloads.length).toBe(1);
+    expect(payloads[0]?.text).toBe("final");
     expect(sessionStore.main.compactionCount).toBe(1);
   });
 });

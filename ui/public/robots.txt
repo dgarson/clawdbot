@@ -1,0 +1,10 @@
+# Clawdbrain robots.txt
+# https://clawdbrain.com
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /ws/
+
+# Sitemap
+Sitemap: https://clawdbrain.com/sitemap.xml

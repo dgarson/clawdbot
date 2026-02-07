@@ -35,6 +35,28 @@ export const OPENAI_BATCH_ENDPOINT = "/v1/embeddings";
 const OPENAI_BATCH_COMPLETION_WINDOW = "24h";
 const OPENAI_BATCH_MAX_REQUESTS = 50000;
 
+function formatHttpError(operation: string, res: Response): string {
+  const status = res.status;
+  const statusText = res.statusText || "";
+  const suffix = statusText ? ` (${statusText})` : "";
+  return `${operation}: ${status}${suffix}`;
+}
+
+function formatTextPreview(text?: string, maxLength = 100): string | undefined {
+  if (!text) {
+    return undefined;
+  }
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (!cleaned) {
+    return undefined;
+  }
+  if (cleaned.length <= maxLength) {
+    return cleaned;
+  }
+  const trimmed = Math.max(0, maxLength - 3);
+  return `${cleaned.slice(0, trimmed)}...`;
+}
+
 function getOpenAiBaseUrl(openAi: OpenAiEmbeddingClient): string {
   return openAi.baseUrl?.replace(/\/$/, "") ?? "";
 }
@@ -87,8 +109,7 @@ async function submitOpenAiBatch(params: {
     body: form,
   });
   if (!fileRes.ok) {
-    const text = await fileRes.text();
-    throw new Error(`openai batch file upload failed: ${fileRes.status} ${text}`);
+    throw new Error(formatHttpError("openai batch file upload failed", fileRes));
   }
   const filePayload = (await fileRes.json()) as { id?: string };
   if (!filePayload.id) {
@@ -111,8 +132,7 @@ async function submitOpenAiBatch(params: {
         }),
       });
       if (!res.ok) {
-        const text = await res.text();
-        const err = new Error(`openai batch create failed: ${res.status} ${text}`) as Error & {
+        const err = new Error(formatHttpError("openai batch create failed", res)) as Error & {
           status?: number;
         };
         err.status = res.status;
@@ -143,8 +163,7 @@ async function fetchOpenAiBatchStatus(params: {
     headers: getOpenAiHeaders(params.openAi, { json: true }),
   });
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`openai batch status failed: ${res.status} ${text}`);
+    throw new Error(formatHttpError("openai batch status failed", res));
   }
   return (await res.json()) as OpenAiBatchStatus;
 }
@@ -158,8 +177,7 @@ async function fetchOpenAiFileContent(params: {
     headers: getOpenAiHeaders(params.openAi, { json: true }),
   });
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`openai batch file content failed: ${res.status} ${text}`);
+    throw new Error(formatHttpError("openai batch file content failed", res));
   }
   return await res.text();
 }
@@ -208,7 +226,17 @@ async function waitForOpenAiBatch(params: {
   initial?: OpenAiBatchStatus;
 }): Promise<{ outputFileId: string; errorFileId?: string }> {
   const start = Date.now();
+  const progressLogIntervalMs = 5 * 60 * 1000; // 5 minutes
+  let lastProgressLog = start;
   let current: OpenAiBatchStatus | undefined = params.initial;
+  let pollCount = 0;
+
+  // Log initial waiting message
+  const initialState = current?.status ?? "unknown";
+  params.debug?.(
+    `openai batch ${params.batchId}: waiting for completion (initial state: ${initialState})`,
+  );
+
   while (true) {
     const status =
       current ??
@@ -217,10 +245,17 @@ async function waitForOpenAiBatch(params: {
         batchId: params.batchId,
       }));
     const state = status.status ?? "unknown";
+    pollCount++;
+
     if (state === "completed") {
       if (!status.output_file_id) {
         throw new Error(`openai batch ${params.batchId} completed without output file`);
       }
+      const elapsedMs = Date.now() - start;
+      params.debug?.(`openai batch ${params.batchId}: completed`, {
+        elapsedMs,
+        polls: pollCount,
+      });
       return {
         outputFileId: status.output_file_id,
         errorFileId: status.error_file_id ?? undefined,
@@ -231,15 +266,30 @@ async function waitForOpenAiBatch(params: {
         ? await readOpenAiBatchError({ openAi: params.openAi, errorFileId: status.error_file_id })
         : undefined;
       const suffix = detail ? `: ${detail}` : "";
-      throw new Error(`openai batch ${params.batchId} ${state}${suffix}`);
+      const elapsedMs = Date.now() - start;
+      const errorMsg = `openai batch ${params.batchId} ${state}${suffix}`;
+      params.debug?.(errorMsg, { elapsedMs, polls: pollCount });
+      throw new Error(errorMsg);
     }
     if (!params.wait) {
       throw new Error(`openai batch ${params.batchId} still ${state}; wait disabled`);
     }
-    if (Date.now() - start > params.timeoutMs) {
-      throw new Error(`openai batch ${params.batchId} timed out after ${params.timeoutMs}ms`);
+    const elapsedMs = Date.now() - start;
+    if (elapsedMs > params.timeoutMs) {
+      const errorMsg = `openai batch ${params.batchId} timed out after ${params.timeoutMs}ms`;
+      params.debug?.(errorMsg, { elapsedMs, polls: pollCount, lastState: state });
+      throw new Error(errorMsg);
     }
-    params.debug?.(`openai batch ${params.batchId} ${state}; waiting ${params.pollIntervalMs}ms`);
+
+    // Log progress every 5 minutes
+    if (elapsedMs - lastProgressLog >= progressLogIntervalMs) {
+      params.debug?.(`openai batch ${params.batchId}: still waiting (state: ${state})`, {
+        elapsedMs,
+        polls: pollCount,
+      });
+      lastProgressLog = elapsedMs;
+    }
+
     await new Promise((resolve) => setTimeout(resolve, params.pollIntervalMs));
     current = undefined;
   }
@@ -297,6 +347,13 @@ export async function runOpenAiEmbeddingBatches(params: {
   const byCustomId = new Map<string, number[]>();
 
   const tasks = groups.map((group, groupIndex) => async () => {
+    const requestPreviewById = new Map<string, string>();
+    for (const request of group) {
+      const preview = formatTextPreview(request.body.input);
+      if (preview) {
+        requestPreviewById.set(request.custom_id, preview);
+      }
+    }
     const batchInfo = await submitOpenAiBatch({
       openAi: params.openAi,
       requests: group,
@@ -353,8 +410,10 @@ export async function runOpenAiEmbeddingBatches(params: {
         continue;
       }
       remaining.delete(customId);
+      const preview = requestPreviewById.get(customId);
+      const previewSuffix = preview ? ` (text="${preview}")` : "";
       if (line.error?.message) {
-        errors.push(`${customId}: ${line.error.message}`);
+        errors.push(`${customId}: ${line.error.message}${previewSuffix}`);
         continue;
       }
       const response = line.response;
@@ -364,13 +423,13 @@ export async function runOpenAiEmbeddingBatches(params: {
           response?.body?.error?.message ??
           (typeof response?.body === "string" ? response.body : undefined) ??
           "unknown error";
-        errors.push(`${customId}: ${message}`);
+        errors.push(`${customId}: ${message}${previewSuffix}`);
         continue;
       }
       const data = response?.body?.data ?? [];
       const embedding = data[0]?.embedding ?? [];
       if (embedding.length === 0) {
-        errors.push(`${customId}: empty embedding`);
+        errors.push(`${customId}: empty embedding${previewSuffix}`);
         continue;
       }
       byCustomId.set(customId, embedding);

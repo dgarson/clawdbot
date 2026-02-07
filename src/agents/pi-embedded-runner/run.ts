@@ -2,10 +2,12 @@ import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
+import { configureMemoryFeedback } from "../../memory/feedback/feedback-subscriber.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { resolveUserPath } from "../../utils.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { resolveDefaultAgentDir } from "../agent-scope.js";
 import {
   isProfileInCooldown,
   markAuthProfileFailure,
@@ -26,12 +28,15 @@ import {
   resolveAuthProfileOrder,
   type ResolvedProviderAuth,
 } from "../model-auth.js";
+import { resolveModel } from "../model-resolution.js";
 import { normalizeProviderId } from "../model-selection.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
+  BILLING_ERROR_USER_MESSAGE,
   classifyFailoverReason,
   formatAssistantErrorText,
   isAuthAssistantError,
+  isBillingAssistantError,
   isCompactionFailureError,
   isContextOverflowError,
   isFailoverAssistantError,
@@ -47,7 +52,6 @@ import { normalizeUsage, type UsageLike } from "../usage.js";
 import { compactEmbeddedPiSessionDirect } from "./compact.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
-import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import { describeUnknownError } from "./utils.js";
@@ -57,6 +61,8 @@ type ApiKeyInfo = ResolvedProviderAuth;
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
 const ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)";
+
+let feedbackConfigured = false;
 
 function scrubAnthropicRefusalMagic(prompt: string): string {
   if (!prompt.includes(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL)) {
@@ -96,6 +102,7 @@ export async function runEmbeddedPiAgent(
       const provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
       const modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
       const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
+      const mainAgentDir = params.config ? resolveDefaultAgentDir(params.config) : undefined;
       const fallbackConfigured =
         (params.config?.agents?.defaults?.model?.fallbacks?.length ?? 0) > 0;
       await ensureOpenClawModelsJson(params.config, agentDir);
@@ -108,6 +115,12 @@ export async function runEmbeddedPiAgent(
       );
       if (!model) {
         throw new Error(error ?? `Unknown model: ${provider}/${modelId}`);
+      }
+
+      // One-time lazy init: wire memory feedback evaluator with a cheap LLM call
+      if (!feedbackConfigured && params.config) {
+        feedbackConfigured = true;
+        initMemoryFeedback(params.config).catch(() => {});
       }
 
       const ctxInfo = resolveContextWindowInfo({
@@ -137,7 +150,10 @@ export async function runEmbeddedPiAgent(
         );
       }
 
-      const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
+      const authStore = ensureAuthProfileStore(agentDir, {
+        allowKeychainPrompt: false,
+        mainAgentDir,
+      });
       const preferredProfileId = params.authProfileId?.trim();
       let lockedProfileId = params.authProfileIdSource === "user" ? preferredProfileId : undefined;
       if (lockedProfileId) {
@@ -303,7 +319,8 @@ export async function runEmbeddedPiAgent(
         }
       }
 
-      let overflowCompactionAttempted = false;
+      const MAX_OVERFLOW_COMPACTION_ATTEMPTS = 3;
+      let overflowCompactionAttempts = 0;
       try {
         while (true) {
           attemptedThinking.add(thinkLevel);
@@ -324,6 +341,7 @@ export async function runEmbeddedPiAgent(
             groupChannel: params.groupChannel,
             groupSpace: params.groupSpace,
             spawnedBy: params.spawnedBy,
+            senderIsOwner: params.senderIsOwner,
             currentChannelId: params.currentChannelId,
             currentThreadTs: params.currentThreadTs,
             replyToMode: params.replyToMode,
@@ -365,6 +383,7 @@ export async function runEmbeddedPiAgent(
             streamParams: params.streamParams,
             ownerNumbers: params.ownerNumbers,
             enforceFinalTag: params.enforceFinalTag,
+            extraTools: params.extraTools,
           });
 
           const { aborted, promptError, timedOut, sessionIdUsed, lastAssistant } = attempt;
@@ -372,13 +391,23 @@ export async function runEmbeddedPiAgent(
           if (promptError && !aborted) {
             const errorText = describeUnknownError(promptError);
             if (isContextOverflowError(errorText)) {
+              const msgCount = attempt.messagesSnapshot?.length ?? 0;
+              log.warn(
+                `[context-overflow-diag] sessionKey=${params.sessionKey ?? params.sessionId} ` +
+                  `provider=${provider}/${modelId} messages=${msgCount} ` +
+                  `sessionFile=${params.sessionFile} compactionAttempts=${overflowCompactionAttempts} ` +
+                  `error=${errorText.slice(0, 200)}`,
+              );
               const isCompactionFailure = isCompactionFailureError(errorText);
               // Attempt auto-compaction on context overflow (not compaction_failure)
-              if (!isCompactionFailure && !overflowCompactionAttempted) {
+              if (
+                !isCompactionFailure &&
+                overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS
+              ) {
+                overflowCompactionAttempts++;
                 log.warn(
-                  `context overflow detected; attempting auto-compaction for ${provider}/${modelId}`,
+                  `context overflow detected (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); attempting auto-compaction for ${provider}/${modelId}`,
                 );
-                overflowCompactionAttempted = true;
                 const compactResult = await compactEmbeddedPiSessionDirect({
                   sessionId: params.sessionId,
                   sessionKey: params.sessionKey,
@@ -391,6 +420,7 @@ export async function runEmbeddedPiAgent(
                   agentDir,
                   config: params.config,
                   skillsSnapshot: params.skillsSnapshot,
+                  senderIsOwner: params.senderIsOwner,
                   provider,
                   model: modelId,
                   thinkLevel,
@@ -536,6 +566,7 @@ export async function runEmbeddedPiAgent(
 
           const authFailure = isAuthAssistantError(lastAssistant);
           const rateLimitFailure = isRateLimitAssistantError(lastAssistant);
+          const billingFailure = isBillingAssistantError(lastAssistant);
           const failoverFailure = isFailoverAssistantError(lastAssistant);
           const assistantFailoverReason = classifyFailoverReason(lastAssistant?.errorMessage ?? "");
           const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
@@ -607,9 +638,11 @@ export async function runEmbeddedPiAgent(
                   ? "LLM request timed out."
                   : rateLimitFailure
                     ? "LLM request rate limited."
-                    : authFailure
-                      ? "LLM request unauthorized."
-                      : "LLM request failed.");
+                    : billingFailure
+                      ? BILLING_ERROR_USER_MESSAGE
+                      : authFailure
+                        ? "LLM request unauthorized."
+                        : "LLM request failed.");
               const status =
                 resolveFailoverStatus(assistantFailoverReason ?? "unknown") ??
                 (isTimeoutErrorMessage(message) ? 408 : undefined);
@@ -689,4 +722,42 @@ export async function runEmbeddedPiAgent(
       }
     }),
   );
+}
+
+// ── Memory feedback init ─────────────────────────────────────────────────
+// Resolves the cheapest available model and wires it into the feedback evaluator.
+
+async function initMemoryFeedback(
+  cfg: import("../../config/config.js").OpenClawConfig,
+): Promise<void> {
+  try {
+    const { resolveUtilityModelRef } = await import("../micro-model.js");
+    const { completeText } = await import("../../plugin-sdk/llm.js");
+
+    const ref = await resolveUtilityModelRef({ cfg, feature: "memoryFeedback" });
+    const evalProvider = ref.provider;
+    const evalModel = ref.model;
+
+    configureMemoryFeedback({
+      llmCall: async (params) => {
+        // Combine system + user prompt since completeText takes a single prompt
+        const prompt = params.systemPrompt
+          ? `${params.systemPrompt}\n\n${params.userPrompt}`
+          : params.userPrompt;
+        const result = await completeText({
+          cfg,
+          provider: evalProvider,
+          model: evalModel,
+          prompt,
+          timeoutMs: 30_000,
+          maxTokens: params.maxTokens,
+        });
+        return { text: result.text, inputTokens: 0, outputTokens: 0 };
+      },
+      model: `${evalProvider}/${evalModel}`,
+    });
+  } catch {
+    // Non-critical: feedback evaluation is optional.
+    // If no cheap model is available, feedback simply won't run.
+  }
 }

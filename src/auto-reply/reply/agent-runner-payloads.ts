@@ -2,6 +2,7 @@ import type { ReplyToMode } from "../../config/types.js";
 import type { OriginatingChannelType } from "../templating.js";
 import type { ReplyPayload } from "../types.js";
 import { logVerbose } from "../../globals.js";
+import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import { formatBunFetchSocketError, isBunFetchSocketError } from "./agent-runner-utils.js";
@@ -58,8 +59,18 @@ export function buildReplyPayloads(params: {
         return [{ ...payload, text: stripped.text }];
       });
 
+  // Defense-in-depth: strip thinking/reasoning tags from ALL payloads regardless of runtime.
+  // This ensures no thinking content reaches channels even if the runtime-specific filters miss something.
+  const thinkingStrippedPayloads = sanitizedPayloads.map((payload) => {
+    if (!payload.text) {
+      return payload;
+    }
+    const cleaned = stripReasoningTagsFromText(payload.text, { mode: "strict", trim: "both" });
+    return { ...payload, text: cleaned };
+  });
+
   const replyTaggedPayloads: ReplyPayload[] = applyReplyThreading({
-    payloads: sanitizedPayloads,
+    payloads: thinkingStrippedPayloads,
     replyToMode: params.replyToMode,
     replyToChannel: params.replyToChannel,
     currentMessageId: params.currentMessageId,

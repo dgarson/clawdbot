@@ -34,6 +34,47 @@ describe("parseSlackTarget", () => {
     });
   });
 
+  it("automatically uppercases lowercase channel IDs", () => {
+    expect(parseSlackTarget("channel:c0aap72r7l5")).toMatchObject({
+      kind: "channel",
+      id: "C0AAP72R7L5",
+      normalized: "channel:c0aap72r7l5",
+    });
+    expect(parseSlackTarget("#c0aap72r7l5")).toMatchObject({
+      kind: "channel",
+      id: "C0AAP72R7L5",
+      normalized: "channel:c0aap72r7l5",
+    });
+    expect(parseSlackTarget("c0aap72r7l5")).toMatchObject({
+      kind: "channel",
+      id: "C0AAP72R7L5",
+      normalized: "channel:c0aap72r7l5",
+    });
+  });
+
+  it("automatically uppercases lowercase user IDs", () => {
+    expect(parseSlackTarget("user:u0a3bc4d")).toMatchObject({
+      kind: "user",
+      id: "U0A3BC4D",
+      normalized: "user:u0a3bc4d",
+    });
+    expect(parseSlackTarget("<@u0a3bc4d>")).toMatchObject({
+      kind: "user",
+      id: "U0A3BC4D",
+      normalized: "user:u0a3bc4d",
+    });
+    expect(parseSlackTarget("@u0a3bc4d")).toMatchObject({
+      kind: "user",
+      id: "U0A3BC4D",
+      normalized: "user:u0a3bc4d",
+    });
+    expect(parseSlackTarget("slack:u0a3bc4d")).toMatchObject({
+      kind: "user",
+      id: "U0A3BC4D",
+      normalized: "user:u0a3bc4d",
+    });
+  });
+
   it("rejects invalid @ and # targets", () => {
     expect(() => parseSlackTarget("@bob-1")).toThrow(/Slack DMs require a user id/);
     expect(() => parseSlackTarget("#general-1")).toThrow(/Slack channels require a channel id/);
@@ -44,6 +85,12 @@ describe("resolveSlackChannelId", () => {
   it("strips channel: prefix and accepts raw ids", () => {
     expect(resolveSlackChannelId("channel:C123")).toBe("C123");
     expect(resolveSlackChannelId("C123")).toBe("C123");
+  });
+
+  it("uppercases lowercase channel IDs", () => {
+    expect(resolveSlackChannelId("channel:c0aap72r7l5")).toBe("C0AAP72R7L5");
+    expect(resolveSlackChannelId("c0aap72r7l5")).toBe("C0AAP72R7L5");
+    expect(resolveSlackChannelId("#c0aap72r7l5")).toBe("C0AAP72R7L5");
   });
 
   it("rejects user targets", () => {

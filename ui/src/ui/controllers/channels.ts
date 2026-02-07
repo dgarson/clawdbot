@@ -1,5 +1,6 @@
 import type { ChannelsState } from "./channels.types.ts";
 import { ChannelsStatusSnapshot } from "../types.ts";
+import { toast } from "../components/toast.ts";
 
 export type { ChannelsState };
 
@@ -19,8 +20,14 @@ export async function loadChannels(state: ChannelsState, probe: boolean) {
     });
     state.channelsSnapshot = res;
     state.channelsLastSuccess = Date.now();
+    if (probe) {
+      toast.success("Channels probed successfully");
+    }
   } catch (err) {
     state.channelsError = String(err);
+    if (probe) {
+      toast.error("Channel probe failed");
+    }
   } finally {
     state.channelsLoading = false;
   }

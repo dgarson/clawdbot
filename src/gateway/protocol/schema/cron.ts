@@ -229,6 +229,14 @@ export const CronRunsParamsSchema = Type.Union([
   ),
 ]);
 
+export const CronRunLogParamsSchema = Type.Object(
+  {
+    sessionKey: NonEmptyString,
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 5000 })),
+  },
+  { additionalProperties: false },
+);
+
 export const CronRunLogEntrySchema = Type.Object(
   {
     ts: Type.Integer({ minimum: 0 }),
@@ -242,6 +250,19 @@ export const CronRunLogEntrySchema = Type.Object(
     runAtMs: Type.Optional(Type.Integer({ minimum: 0 })),
     durationMs: Type.Optional(Type.Integer({ minimum: 0 })),
     nextRunAtMs: Type.Optional(Type.Integer({ minimum: 0 })),
+  },
+  { additionalProperties: false },
+);
+
+export const CronRunTimelineEntrySchema = Type.Object(
+  {
+    jobId: NonEmptyString,
+    startAtMs: Type.Integer({ minimum: 0 }),
+    finishAtMs: Type.Optional(Type.Integer({ minimum: 0 })),
+    status: Type.Optional(
+      Type.Union([Type.Literal("ok"), Type.Literal("error"), Type.Literal("skipped")]),
+    ),
+    summary: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );

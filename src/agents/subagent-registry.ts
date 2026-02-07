@@ -1,3 +1,4 @@
+import type { HandoffLoggingOptions } from "./handoff-logging.js";
 import { loadConfig } from "../config/config.js";
 import { callGateway } from "../gateway/call.js";
 import { onAgentEvent } from "../infra/agent-events.js";
@@ -25,6 +26,7 @@ export type SubagentRunRecord = {
   archiveAtMs?: number;
   cleanupCompletedAt?: number;
   cleanupHandled?: boolean;
+  handoffLoggingOptions?: HandoffLoggingOptions;
 };
 
 const subagentRuns = new Map<string, SubagentRunRecord>();
@@ -75,6 +77,7 @@ function resumeSubagentRun(runId: string) {
       endedAt: entry.endedAt,
       label: entry.label,
       outcome: entry.outcome,
+      handoffLoggingOptions: entry.handoffLoggingOptions,
     }).then((didAnnounce) => {
       finalizeSubagentCleanup(runId, entry.cleanup, didAnnounce);
     });
@@ -288,6 +291,7 @@ export function registerSubagentRun(params: {
   cleanup: "delete" | "keep";
   label?: string;
   runTimeoutSeconds?: number;
+  handoffLoggingOptions?: HandoffLoggingOptions;
 }) {
   const now = Date.now();
   const cfg = loadConfig();
@@ -308,6 +312,7 @@ export function registerSubagentRun(params: {
     startedAt: now,
     archiveAtMs,
     cleanupHandled: false,
+    handoffLoggingOptions: params.handoffLoggingOptions,
   });
   ensureListener();
   persistSubagentRuns();
@@ -321,7 +326,7 @@ export function registerSubagentRun(params: {
 
 async function waitForSubagentCompletion(runId: string, waitTimeoutMs: number) {
   try {
-    const timeoutMs = Math.max(1, Math.floor(waitTimeoutMs));
+    const timeoutMs = waitTimeoutMs <= 0 ? 0 : Math.max(1, Math.floor(waitTimeoutMs));
     const wait = await callGateway<{
       status?: string;
       startedAt?: number;
@@ -333,7 +338,7 @@ async function waitForSubagentCompletion(runId: string, waitTimeoutMs: number) {
         runId,
         timeoutMs,
       },
-      timeoutMs: timeoutMs + 10_000,
+      timeoutMs: timeoutMs === 0 ? 0 : timeoutMs + 10_000,
     });
     if (wait?.status !== "ok" && wait?.status !== "error") {
       return;
@@ -380,6 +385,7 @@ async function waitForSubagentCompletion(runId: string, waitTimeoutMs: number) {
       endedAt: entry.endedAt,
       label: entry.label,
       outcome: entry.outcome,
+      handoffLoggingOptions: entry.handoffLoggingOptions,
     }).then((didAnnounce) => {
       finalizeSubagentCleanup(runId, entry.cleanup, didAnnounce);
     });

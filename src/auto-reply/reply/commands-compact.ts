@@ -7,8 +7,11 @@ import {
   waitForEmbeddedPiRunEnd,
 } from "../../agents/pi-embedded.js";
 import { resolveSessionFilePath } from "../../config/sessions.js";
+import { isFeatureEnabled } from "../../config/types.debugging.js";
 import { logVerbose } from "../../globals.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { formatContextUsageShort, formatTokenCount } from "../status.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 import { incrementCompactionCount } from "./session-updates.js";
@@ -41,6 +44,7 @@ function extractCompactInstructions(params: {
 }
 
 export const handleCompactCommand: CommandHandler = async (params) => {
+  const log = createSubsystemLogger("compaction");
   const compactRequested =
     params.command.commandBodyNormalized === "/compact" ||
     params.command.commandBodyNormalized.startsWith("/compact ");
@@ -92,6 +96,7 @@ export const handleCompactCommand: CommandHandler = async (params) => {
       defaultLevel: "off",
     },
     customInstructions,
+    senderIsOwner: params.command.senderIsOwner,
     ownerNumbers: params.command.ownerList.length > 0 ? params.command.ownerList : undefined,
   });
 
@@ -128,6 +133,25 @@ export const handleCompactCommand: CommandHandler = async (params) => {
   const line = reason
     ? `${compactLabel}: ${reason} • ${contextSummary}`
     : `${compactLabel} • ${contextSummary}`;
+  const hookSessionKey = params.sessionKey ?? sessionId ?? "unknown";
+  const hookEvent = createInternalHookEvent("agent", "compaction:manual", hookSessionKey, {
+    cfg: params.cfg,
+    sessionId,
+    sessionKey: params.sessionKey,
+    commandSource: params.command.surface,
+    compacted: result.compacted,
+    ok: result.ok,
+    reason: result.reason,
+  });
+  if (isFeatureEnabled(params.cfg.debugging, "compaction-hooks")) {
+    log.debug?.("Manual compaction hook emitted", {
+      sessionKey: params.sessionKey,
+      sessionId,
+      ok: result.ok,
+      compacted: result.compacted,
+    });
+  }
+  await triggerInternalHook(hookEvent);
   enqueueSystemEvent(line, { sessionKey: params.sessionKey });
   return { shouldContinue: false, reply: { text: `⚙️ ${line}` } };
 };

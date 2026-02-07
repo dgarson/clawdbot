@@ -14,6 +14,7 @@ type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 export type GatewayClient = {
   connect: ConnectParams;
+  connId?: string;
 };
 
 export type RespondFn = (
@@ -42,6 +43,15 @@ export type GatewayRequestContext = {
       stateVersion?: { presence?: number; health?: number };
     },
   ) => void;
+  broadcastToConnIds: (
+    event: string,
+    payload: unknown,
+    connIds: ReadonlySet<string>,
+    opts?: {
+      dropIfSlow?: boolean;
+      stateVersion?: { presence?: number; health?: number };
+    },
+  ) => void;
   nodeSendToSession: (sessionKey: string, event: string, payload: unknown) => void;
   nodeSendToAllSubscribed: (event: string, payload: unknown) => void;
   nodeSubscribe: (nodeId: string, sessionKey: string) => void;
@@ -60,6 +70,7 @@ export type GatewayRequestContext = {
     clientRunId: string,
     sessionKey?: string,
   ) => { sessionKey: string; clientRunId: string } | undefined;
+  registerToolEventRecipient: (runId: string, connId: string) => void;
   dedupe: Map<string, DedupeEntry>;
   wizardSessions: Map<string, WizardSession>;
   findRunningWizard: () => string | null;
@@ -84,6 +95,28 @@ export type GatewayRequestContext = {
     prompter: import("../../wizard/prompts.js").WizardPrompter,
   ) => Promise<void>;
   broadcastVoiceWakeChanged: (triggers: string[]) => void;
+  automations?: any; // TODO: Add proper type
+  overseerRunner?: any; // TODO: Add proper type
+  artifactStorage?: any; // TODO: Add proper type
+  triggerConfigReload?: (opts?: {
+    forceRestart?: boolean;
+    graceful?: boolean;
+    gracefulTimeoutMs?: number;
+  }) => Promise<{
+    mode: "hot" | "restart" | "noop";
+    plan: import("../config-reload.js").GatewayReloadPlan;
+    graceful?: {
+      enabled: boolean;
+      runningAgents: number;
+      timeoutMs: number;
+      drained: boolean;
+    };
+    restart?: {
+      scheduled: boolean;
+      delayMs?: number;
+      reason: string;
+    };
+  }>;
 };
 
 export type GatewayRequestOptions = {

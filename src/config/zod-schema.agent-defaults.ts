@@ -13,6 +13,38 @@ import {
   HumanDelaySchema,
 } from "./zod-schema.core.js";
 
+const ModelRoutingTierSchema = z.enum(["local-small", "local-large", "remote"]);
+const ModelRoutingModeSchema = z.enum(["off", "tiered", "hybrid"]);
+const ModelRoutingStakesSchema = z.enum(["low", "medium", "high"]);
+const ModelRoutingVerifiabilitySchema = z.enum(["low", "medium", "high"]);
+
+const ModelRoutingPolicySchema = z
+  .object({
+    mode: ModelRoutingModeSchema.optional(),
+    tier: ModelRoutingTierSchema.optional(),
+    executorTier: ModelRoutingTierSchema.optional(),
+    plannerModel: z.string().optional(),
+    executorModel: z.string().optional(),
+    stakes: ModelRoutingStakesSchema.optional(),
+    verifiability: ModelRoutingVerifiabilitySchema.optional(),
+    maxToolCalls: z.number().int().positive().optional(),
+    allowWriteTools: z.boolean().optional(),
+    respectSessionOverride: z.boolean().optional(),
+  })
+  .strict();
+
+const UtilityModelFeatureSchema = z.object({ model: z.string().optional() }).strict().optional();
+
+const UtilityModelConfigSchema = z
+  .object({
+    slugGenerator: UtilityModelFeatureSchema,
+    sessionDescription: UtilityModelFeatureSchema,
+    memoryFeedback: UtilityModelFeatureSchema,
+    memoryFlush: UtilityModelFeatureSchema,
+  })
+  .strict()
+  .optional();
+
 export const AgentDefaultsSchema = z
   .object({
     model: z
@@ -29,6 +61,8 @@ export const AgentDefaultsSchema = z
       })
       .strict()
       .optional(),
+    utilityModel: z.string().optional(),
+    utility: UtilityModelConfigSchema,
     models: z
       .record(
         z.string(),
@@ -37,9 +71,28 @@ export const AgentDefaultsSchema = z
             alias: z.string().optional(),
             /** Provider-specific API parameters (e.g., GLM-4.7 thinking mode). */
             params: z.record(z.string(), z.unknown()).optional(),
+            /** Enable streaming for this model (default: true, false for Ollama to avoid SDK issue #1205). */
+            streaming: z.boolean().optional(),
           })
           .strict(),
       )
+      .optional(),
+    modelRouting: z
+      .object({
+        enabled: z.boolean().optional(),
+        models: z
+          .object({
+            localSmall: z.string().optional(),
+            localLarge: z.string().optional(),
+            remote: z.string().optional(),
+            planner: z.string().optional(),
+          })
+          .strict()
+          .optional(),
+        defaultPolicy: ModelRoutingPolicySchema.optional(),
+        intents: z.record(z.string(), ModelRoutingPolicySchema).optional(),
+      })
+      .strict()
       .optional(),
     workspace: z.string().optional(),
     repoRoot: z.string().optional(),
@@ -97,6 +150,7 @@ export const AgentDefaultsSchema = z
             softThresholdTokens: z.number().int().nonnegative().optional(),
             prompt: z.string().optional(),
             systemPrompt: z.string().optional(),
+            model: z.string().optional(),
           })
           .strict()
           .optional(),
@@ -150,7 +204,30 @@ export const AgentDefaultsSchema = z
               .strict(),
           ])
           .optional(),
+        /** Runtime for sub-agents. "inherit" means inherit from parent agent's runtime. */
+        runtime: z.enum(["pi", "claude", "inherit"]).optional(),
         thinking: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+    runtime: z.enum(["pi", "claude"]).optional(),
+    /** Runtime override exclusively for the main agent loop. Falls back to `runtime` when unset. */
+    mainRuntime: z.enum(["pi", "claude"]).optional(),
+    /**
+     * Model mappings for Claude Code SDK thinking tiers (applies to all Claude SDK agents).
+     * Maps shorthand keys to full model identifiers for the SDK's internal model selection.
+     * These are passed as environment variables to the SDK:
+     * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL
+     * - sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
+     * - haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
+     * - subagent → CLAUDE_CODE_SUBAGENT_MODEL
+     */
+    ccsdkModels: z
+      .object({
+        opus: z.string().optional(),
+        sonnet: z.string().optional(),
+        haiku: z.string().optional(),
+        subagent: z.string().optional(),
       })
       .strict()
       .optional(),

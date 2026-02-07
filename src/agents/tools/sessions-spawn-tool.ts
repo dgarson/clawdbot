@@ -24,12 +24,23 @@ import {
 } from "./sessions-helpers.js";
 
 const SessionsSpawnToolSchema = Type.Object({
-  task: Type.String(),
-  label: Type.Optional(Type.String()),
-  agentId: Type.Optional(Type.String()),
-  model: Type.Optional(Type.String()),
-  thinking: Type.Optional(Type.String()),
-  runTimeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
+  task: Type.String({
+    description:
+      "REQUIRED. The task description for the sub-agent to execute. Must be a non-empty string.",
+  }),
+  label: Type.Optional(
+    Type.String({ description: "Optional label to identify this sub-agent run." }),
+  ),
+  agentId: Type.Optional(
+    Type.String({ description: "Optional target agent ID (defaults to current agent)." }),
+  ),
+  model: Type.Optional(Type.String({ description: "Optional model override (e.g., 'opus')." })),
+  thinking: Type.Optional(
+    Type.String({ description: "Optional thinking level override (none/low/medium/high)." }),
+  ),
+  runTimeoutSeconds: Type.Optional(
+    Type.Number({ minimum: 0, description: "Optional timeout in seconds for the sub-agent run." }),
+  ),
   // Back-compat alias. Prefer runTimeoutSeconds.
   timeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
   cleanup: optionalStringEnum(["delete", "keep"] as const),
@@ -65,6 +76,9 @@ function normalizeModelSelection(value: unknown): string | undefined {
   return undefined;
 }
 
+import type { HandoffLoggingOptions } from "../handoff-logging.js";
+import { logHandoffSpawn } from "../handoff-logging.js";
+
 export function createSessionsSpawnTool(opts?: {
   agentSessionKey?: string;
   agentChannel?: GatewayMessageChannel;
@@ -77,16 +91,39 @@ export function createSessionsSpawnTool(opts?: {
   sandboxed?: boolean;
   /** Explicit agent ID override for cron/hook sessions where session key parsing may not work. */
   requesterAgentIdOverride?: string;
+  /** When true, this tool is being exposed in a Claude Agent SDK / tool-bridge context. */
+  isToolBridgeContext?: boolean;
+  handoffLogging?: HandoffLoggingOptions;
 }): AnyAgentTool {
+  // Build description with conditional guidance for tool-bridge context
+  const baseDescription =
+    "Spawn a background sub-agent run in an isolated OpenClaw session. " +
+    "REQUIRED PARAMETER: task (string) - the task for the sub-agent. " +
+    "Example input: { task: 'Research recent AI developments and summarize' }. " +
+    "Example output: { status: 'accepted', childSessionKey: 'agent:main:subagent:uuid', runId: 'uuid' }.";
+
+  const toolBridgeGuidance = opts?.isToolBridgeContext
+    ? " IMPORTANT: This tool creates OpenClaw sessions. Only use this when you need to interact with OpenClaw's operational infrastructure (e.g., managing agents, accessing OpenClaw channels, coordinating with OpenClaw-specific features). For general coding tasks or parallel work that doesn't require OpenClaw integration, use your native subagent capabilities instead."
+    : "";
+
   return {
     label: "Sessions",
     name: "sessions_spawn",
-    description:
-      "Spawn a background sub-agent run in an isolated session and announce the result back to the requester chat.",
+    description: baseDescription + toolBridgeGuidance,
     parameters: SessionsSpawnToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
-      const task = readStringParam(params, "task", { required: true });
+
+      // Validate required 'task' parameter with helpful error for model self-correction.
+      const taskRaw = params.task;
+      if (typeof taskRaw !== "string" || !taskRaw.trim()) {
+        return jsonResult({
+          status: "error",
+          error:
+            "Missing required parameter 'task'. You must provide a task string describing what the sub-agent should do. Example: sessions_spawn({ task: 'Research the topic and summarize findings' })",
+        });
+      }
+      const task = taskRaw.trim();
       const label = typeof params.label === "string" ? params.label.trim() : "";
       const requestedAgentId = readStringParam(params, "agentId");
       const modelOverride = readStringParam(params, "model");
@@ -231,6 +268,10 @@ export function createSessionsSpawnTool(opts?: {
             message: task,
             sessionKey: childSessionKey,
             channel: requesterOrigin?.channel,
+            to: requesterOrigin?.to ?? undefined,
+            accountId: requesterOrigin?.accountId ?? undefined,
+            threadId:
+              requesterOrigin?.threadId != null ? String(requesterOrigin.threadId) : undefined,
             idempotencyKey: childIdem,
             deliver: false,
             lane: AGENT_LANE_SUBAGENT,
@@ -269,6 +310,27 @@ export function createSessionsSpawnTool(opts?: {
         cleanup,
         label: label || undefined,
         runTimeoutSeconds,
+        handoffLoggingOptions: opts?.handoffLogging,
+      });
+
+      logHandoffSpawn({
+        fromSessionKey: requesterInternalKey,
+        toSessionKey: childSessionKey,
+        task,
+        contextInherited: {
+          channel: requesterOrigin?.channel,
+          accountId: requesterOrigin?.accountId,
+          threadId: opts?.agentThreadId,
+          modelOverride: resolvedModel,
+          thinkingOverride,
+          groupId: opts?.agentGroupId,
+          groupChannel: opts?.agentGroupChannel,
+          groupSpace: opts?.agentGroupSpace,
+          cleanup,
+          label: label || undefined,
+          runTimeoutSeconds,
+        },
+        options: opts?.handoffLogging,
       });
 
       return jsonResult({

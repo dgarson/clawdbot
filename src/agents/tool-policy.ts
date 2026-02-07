@@ -1,3 +1,5 @@
+import type { AnyAgentTool } from "./tools/common.js";
+
 export type ToolProfileId = "minimal" | "coding" | "messaging" | "full";
 
 type ToolProfilePolicy = {
@@ -12,7 +14,14 @@ const TOOL_NAME_ALIASES: Record<string, string> = {
 
 export const TOOL_GROUPS: Record<string, string[]> = {
   // NOTE: Keep canonical (lowercase) tool names here.
-  "group:memory": ["memory_search", "memory_get"],
+  "group:memory": [
+    "memory_search",
+    "memory_get",
+    "memory_store",
+    "memory_recall",
+    "memory_index_status",
+    "memory_audit",
+  ],
   "group:web": ["web_search", "web_fetch"],
   // Basic workspace/file tools
   "group:fs": ["read", "write", "edit", "apply_patch"],
@@ -56,6 +65,8 @@ export const TOOL_GROUPS: Record<string, string[]> = {
   ],
 };
 
+const OWNER_ONLY_TOOL_NAMES = new Set<string>(["whatsapp_login"]);
+
 const TOOL_PROFILES: Record<ToolProfileId, ToolProfilePolicy> = {
   minimal: {
     allow: ["session_status"],
@@ -78,6 +89,31 @@ const TOOL_PROFILES: Record<ToolProfileId, ToolProfilePolicy> = {
 export function normalizeToolName(name: string) {
   const normalized = name.trim().toLowerCase();
   return TOOL_NAME_ALIASES[normalized] ?? normalized;
+}
+
+export function isOwnerOnlyToolName(name: string) {
+  return OWNER_ONLY_TOOL_NAMES.has(normalizeToolName(name));
+}
+
+export function applyOwnerOnlyToolPolicy(tools: AnyAgentTool[], senderIsOwner: boolean) {
+  const withGuard = tools.map((tool) => {
+    if (!isOwnerOnlyToolName(tool.name)) {
+      return tool;
+    }
+    if (senderIsOwner || !tool.execute) {
+      return tool;
+    }
+    return {
+      ...tool,
+      execute: async () => {
+        throw new Error("Tool restricted to owner senders.");
+      },
+    };
+  });
+  if (senderIsOwner) {
+    return withGuard;
+  }
+  return withGuard.filter((tool) => !isOwnerOnlyToolName(tool.name));
 }
 
 export function normalizeToolList(list?: string[]) {

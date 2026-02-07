@@ -1,0 +1,779 @@
+   You are tasked with integrating an existing React component bundle into the codebase.
+
+    The codebase should support:
+    - React with TypeScript
+    - Tailwind CSS (v3 or v4)
+    - Modern build tools (Vite/Next.js)
+
+    If your project doesn't support these, provide instructions on how to set them up.
+
+    IMPORTANT: The App.tsx file is a showcase/example demonstrating the component usage. You should:
+    1. Analyze the App component to understand how all the pieces work together
+    2. Review the supporting components and utilities
+    3. Integrate the relevant parts into your project structure
+    4. Adapt the implementation to match your project's patterns and requirements
+
+    ## Installation
+
+    ```bash
+    npm install lucide-react @radix-ui/react-avatar @radix-ui/react-slot class-variance-authority clsx tailwind-merge
+    ```
+
+    ## Styles
+
+    ### index.css
+
+    ```css
+    /* This is Tailwind 4 CSS file */
+    /* Extending Tailwind configuration */
+    /* Use shadcn/ui format to extend the configuration */
+    /* Add only the styles that your component needs */
+
+    /* Base imports */
+    @import "tailwindcss";
+    @import "tw-animate-css";
+
+    /* Custom dark variant for targeting dark mode elements */
+    @custom-variant dark (&:is(.dark *));
+
+    /* CSS variables and theme definitions */
+    @theme inline {
+      --radius-sm: calc(var(--radius) - 4px);
+      --radius-md: calc(var(--radius) - 2px);
+      --radius-lg: var(--radius);
+      --radius-xl: calc(var(--radius) + 4px);
+      --color-background: var(--background);
+      --color-foreground: var(--foreground);
+      --color-card: var(--card);
+      --color-card-foreground: var(--card-foreground);
+      --color-popover: var(--popover);
+      --color-popover-foreground: var(--popover-foreground);
+      --color-primary: var(--primary);
+      --color-primary-foreground: var(--primary-foreground);
+      --color-secondary: var(--secondary);
+      --color-secondary-foreground: var(--secondary-foreground);
+      --color-muted: var(--muted);
+      --color-muted-foreground: var(--muted-foreground);
+      --color-accent: var(--accent);
+      --color-accent-foreground: var(--accent-foreground);
+      --color-destructive: var(--destructive);
+      --color-border: var(--border);
+      --color-input: var(--input);
+      --color-ring: var(--ring);
+      --color-chart-1: var(--chart-1);
+      --color-chart-2: var(--chart-2);
+      --color-chart-3: var(--chart-3);
+      --color-chart-4: var(--chart-4);
+      --color-chart-5: var(--chart-5);
+      --color-sidebar: var(--sidebar);
+      --color-sidebar-foreground: var(--sidebar-foreground);
+      --color-sidebar-primary: var(--sidebar-primary);
+      --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+      --color-sidebar-accent: var(--sidebar-accent);
+      --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+      --color-sidebar-border: var(--sidebar-border);
+      --color-sidebar-ring: var(--sidebar-ring);
+    }
+
+    /* Light theme variables */
+    :root {
+      --radius: 0.625rem;
+      --background: oklch(1 0 0);
+      --foreground: oklch(0.145 0 0);
+      --card: oklch(1 0 0);
+      --card-foreground: oklch(0.145 0 0);
+      --popover: oklch(1 0 0);
+      --popover-foreground: oklch(0.145 0 0);
+      --primary: oklch(0.205 0 0);
+      --primary-foreground: oklch(0.985 0 0);
+      --secondary: oklch(0.97 0 0);
+      --secondary-foreground: oklch(0.205 0 0);
+      --muted: oklch(0.97 0 0);
+      --muted-foreground: oklch(0.556 0 0);
+      --accent: oklch(0.97 0 0);
+      --accent-foreground: oklch(0.205 0 0);
+      --destructive: oklch(0.577 0.245 27.325);
+      --border: oklch(0.922 0 0);
+      --input: oklch(0.922 0 0);
+      --ring: oklch(0.708 0 0);
+      --chart-1: oklch(0.646 0.222 41.116);
+      --chart-2: oklch(0.6 0.118 184.704);
+      --chart-3: oklch(0.398 0.07 227.392);
+      --chart-4: oklch(0.828 0.189 84.429);
+      --chart-5: oklch(0.769 0.188 70.08);
+      --sidebar: oklch(0.985 0 0);
+      --sidebar-foreground: oklch(0.145 0 0);
+      --sidebar-primary: oklch(0.205 0 0);
+      --sidebar-primary-foreground: oklch(0.985 0 0);
+      --sidebar-accent: oklch(0.97 0 0);
+      --sidebar-accent-foreground: oklch(0.205 0 0);
+      --sidebar-border: oklch(0.922 0 0);
+      --sidebar-ring: oklch(0.708 0 0);
+    }
+
+    /* Dark theme variables */
+    .dark {
+      --background: oklch(0.145 0 0);
+      --foreground: oklch(0.985 0 0);
+      --card: oklch(0.205 0 0);
+      --card-foreground: oklch(0.985 0 0);
+      --popover: oklch(0.205 0 0);
+      --popover-foreground: oklch(0.985 0 0);
+      --primary: oklch(0.922 0 0);
+      --primary-foreground: oklch(0.205 0 0);
+      --secondary: oklch(0.269 0 0);
+      --secondary-foreground: oklch(0.985 0 0);
+      --muted: oklch(0.269 0 0);
+      --muted-foreground: oklch(0.708 0 0);
+      --accent: oklch(0.269 0 0);
+      --accent-foreground: oklch(0.985 0 0);
+      --destructive: oklch(0.704 0.191 22.216);
+      --border: oklch(1 0 0 / 10%);
+      --input: oklch(1 0 0 / 15%);
+      --ring: oklch(0.556 0 0);
+      --chart-1: oklch(0.488 0.243 264.376);
+      --chart-2: oklch(0.696 0.17 162.48);
+      --chart-3: oklch(0.769 0.188 70.08);
+      --chart-4: oklch(0.627 0.265 303.9);
+      --chart-5: oklch(0.645 0.246 16.439);
+      --sidebar: oklch(0.205 0 0);
+      --sidebar-foreground: oklch(0.985 0 0);
+      --sidebar-primary: oklch(0.488 0.243 264.376);
+      --sidebar-primary-foreground: oklch(0.985 0 0);
+      --sidebar-accent: oklch(0.269 0 0);
+      --sidebar-accent-foreground: oklch(0.985 0 0);
+      --sidebar-border: oklch(1 0 0 / 10%);
+      --sidebar-ring: oklch(0.556 0 0);
+    }
+
+    /* Tailwind base styles */
+    @layer base {
+      * {
+        @apply border-border outline-ring/50;
+      }
+      body {
+        @apply bg-background text-foreground;
+      }
+    }
+
+    ```
+
+
+    ## Component Files
+
+    ### lib/utils.ts
+
+    ```tsx
+    import { clsx, type ClassValue } from "clsx";
+    import { twMerge } from "tailwind-merge";
+
+    export function cn(...inputs: ClassValue[]) {
+      return twMerge(clsx(inputs));
+    }
+
+    ```
+
+    ### components/ui/card.tsx
+
+    ```tsx
+    import * as React from "react"
+
+    import { cn } from "@/lib/utils"
+
+    function Card({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card"
+          className={cn(
+            "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+            className
+          )}
+          {...props}
+        />
+      )
+    }
+
+    function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card-header"
+          className={cn(
+            "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto]
+    [.border-b]:pb-6",
+            className
+          )}
+          {...props}
+        />
+      )
+    }
+
+    function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card-title"
+          className={cn("leading-none font-semibold", className)}
+          {...props}
+        />
+      )
+    }
+
+    function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card-description"
+          className={cn("text-muted-foreground text-sm", className)}
+          {...props}
+        />
+      )
+    }
+
+    function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card-action"
+          className={cn(
+            "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+            className
+          )}
+          {...props}
+        />
+      )
+    }
+
+    function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card-content"
+          className={cn("px-6", className)}
+          {...props}
+        />
+      )
+    }
+
+    function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+      return (
+        <div
+          data-slot="card-footer"
+          className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+          {...props}
+        />
+      )
+    }
+
+    export {
+      Card,
+      CardHeader,
+      CardFooter,
+      CardTitle,
+      CardAction,
+      CardDescription,
+      CardContent,
+    }
+
+    ```
+
+    ### components/ui/avatar.tsx
+
+    ```tsx
+    "use client"
+
+    import * as React from "react"
+    import * as AvatarPrimitive from "@radix-ui/react-avatar"
+
+    import { cn } from "@/lib/utils"
+
+    function Avatar({
+      className,
+      ...props
+    }: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+      return (
+        <AvatarPrimitive.Root
+          data-slot="avatar"
+          className={cn(
+            "relative flex size-8 shrink-0 overflow-hidden rounded-full",
+            className
+          )}
+          {...props}
+        />
+      )
+    }
+
+    function AvatarImage({
+      className,
+      ...props
+    }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+      return (
+        <AvatarPrimitive.Image
+          data-slot="avatar-image"
+          className={cn("aspect-square size-full", className)}
+          {...props}
+        />
+      )
+    }
+
+    function AvatarFallback({
+      className,
+      ...props
+    }: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+      return (
+        <AvatarPrimitive.Fallback
+          data-slot="avatar-fallback"
+          className={cn(
+            "bg-muted flex size-full items-center justify-center rounded-full",
+            className
+          )}
+          {...props}
+        />
+      )
+    }
+
+    export { Avatar, AvatarImage, AvatarFallback }
+
+    ```
+
+    ### components/ui/badge.tsx
+
+    ```tsx
+    import * as React from "react"
+    import { Slot } from "@radix-ui/react-slot"
+    import { cva, type VariantProps } from "class-variance-authority"
+
+    import { cn } from "@/lib/utils"
+
+    const badgeVariants = cva(
+      "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1
+    [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20
+    dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+      {
+        variants: {
+          variant: {
+            default:
+              "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+            secondary:
+              "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+            destructive:
+              "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20
+    dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+            outline:
+              "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          },
+        },
+        defaultVariants: {
+          variant: "default",
+        },
+      }
+    )
+
+    function Badge({
+      className,
+      variant,
+      asChild = false,
+      ...props
+    }: React.ComponentProps<"span"> &
+      VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+      const Comp = asChild ? Slot : "span"
+
+      return (
+        <Comp
+          data-slot="badge"
+          className={cn(badgeVariants({ variant }), className)}
+          {...props}
+        />
+      )
+    }
+
+    export { Badge, badgeVariants }
+
+    ```
+
+    ### components/ui/button.tsx
+
+    ```tsx
+    import * as React from "react"
+    import { Slot } from "@radix-ui/react-slot"
+    import { cva, type VariantProps } from "class-variance-authority"
+
+    import { cn } from "@/lib/utils"
+
+    const buttonVariants = cva(
+      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none
+    disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring
+    focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40
+    aria-invalid:border-destructive",
+      {
+        variants: {
+          variant: {
+            default:
+              "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+            destructive:
+              "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40
+    dark:bg-destructive/60",
+            outline:
+              "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+            secondary:
+              "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+            ghost:
+              "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+            link: "text-primary underline-offset-4 hover:underline",
+          },
+          size: {
+            default: "h-9 px-4 py-2 has-[>svg]:px-3",
+            sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+            lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+            icon: "size-9",
+          },
+        },
+        defaultVariants: {
+          variant: "default",
+          size: "default",
+        },
+      }
+    )
+
+    function Button({
+      className,
+      variant,
+      size,
+      asChild = false,
+      ...props
+    }: React.ComponentProps<"button"> &
+      VariantProps<typeof buttonVariants> & {
+        asChild?: boolean
+      }) {
+      const Comp = asChild ? Slot : "button"
+
+      return (
+        <Comp
+          data-slot="button"
+          className={cn(buttonVariants({ variant, size, className }))}
+          {...props}
+        />
+      )
+    }
+
+    export { Button, buttonVariants }
+
+    ```
+
+    ### App.tsx
+
+    ```tsx
+    import React, { useState } from 'react';
+    import { Card } from '@/components/ui/card';
+    import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import { Badge } from '@/components/ui/badge';
+    import { Button } from '@/components/ui/button';
+    import { MessageCircle, Settings, Activity } from 'lucide-react';
+
+    type AgentStatus = 'active' | 'idle' | 'busy' | 'error';
+
+    interface AgentStatusCardProps {
+      avatarUrl?: string;
+      name?: string;
+      status?: AgentStatus;
+      currentTask?: string;
+      lastActivity?: string;
+      variant?: 'compact' | 'expanded';
+      onChat?: () => void;
+      onConfigure?: () => void;
+    }
+
+    const statusConfig: Record<AgentStatus, { label: string; color: string; dotColor: string }> = {
+      active: { label: 'Active', color: 'bg-green-100 text-green-700 border-green-200', dotColor: 'bg-green-500' },
+      idle: { label: 'Idle', color: 'bg-gray-100 text-gray-700 border-gray-200', dotColor: 'bg-gray-400' },
+      busy: { label: 'Busy', color: 'bg-amber-100 text-amber-700 border-amber-200', dotColor: 'bg-amber-500' },
+      error: { label: 'Error', color: 'bg-red-100 text-red-700 border-red-200', dotColor: 'bg-red-500' },
+    };
+
+    const AgentStatusCard: React.FC<AgentStatusCardProps> = ({
+      avatarUrl = 'https://api.dicebear.com/7.x/bottts/svg?seed=agent1',
+      name = 'AI Assistant',
+      status = 'active',
+      currentTask = 'Processing customer inquiries',
+      lastActivity = '2 minutes ago',
+      variant = 'expanded',
+      onChat = () => console.log('Chat clicked'),
+      onConfigure = () => console.log('Configure clicked'),
+    }) => {
+      const [isHovered, setIsHovered] = useState(false);
+      const config = statusConfig[status];
+
+      const getInitials = (name: string) => {
+        return name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+      };
+
+      if (variant === 'compact') {
+        return (
+          <Card
+            className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-2 rounded-2xl"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-12 w-12 border-2 border-background shadow-md">
+                    <AvatarImage src={avatarUrl} alt={name} />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-semibold">
+                      {getInitials(name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1 flex items-center justify-center">
+                    <span className={`relative flex h-4 w-4 ${config.dotColor} rounded-full border-2 border-background`}>
+                      {(status === 'active' || status === 'busy') && (
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dotColor} opacity-75`}></span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground truncate">{name}</h3>
+                  <Badge variant="outline" className={`${config.color} text-xs font-medium border mt-1`}>
+                    {config.label}
+                  </Badge>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={onChat}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={onConfigure}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
+      return (
+        <Card
+          className="relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 rounded-3xl"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-purple-400/20 via-pink-400/20 to-orange-400/20 rounded-t-3xl"></div>
+
+          <div className="relative p-6">
+            <div className="flex items-start gap-4">
+              <div className="relative">
+                <Avatar className="h-16 w-16 border-4 border-background shadow-lg ring-2 ring-primary/10">
+                  <AvatarImage src={avatarUrl} alt={name} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold text-lg">
+                    {getInitials(name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 flex items-center justify-center">
+                  <span className={`relative flex h-5 w-5 ${config.dotColor} rounded-full border-3 border-background shadow-md`}>
+                    {(status === 'active' || status === 'busy') && (
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dotColor} opacity-75`}></span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">{name}</h3>
+                    <Badge variant="outline" className={`${config.color} text-xs font-medium border mt-2`}>
+                      {config.label}
+                    </Badge>
+                  </div>
+                </div>
+
+                {status === 'active' && currentTask && (
+                  <div className="mt-4 p-3 bg-muted/50 rounded-xl border border-border/50">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                      <Activity className="h-3 w-3" />
+                      <span className="font-medium">Current Task</span>
+                    </div>
+                    <p className="text-sm text-foreground font-medium">{currentTask}</p>
+                  </div>
+                )}
+
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    Last activity: <span className="font-medium text-foreground">{lastActivity}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-2">
+              <Button
+                className="flex-1 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all"
+                onClick={onChat}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Chat
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl font-semibold hover:bg-muted transition-all"
+                onClick={onConfigure}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Configure
+              </Button>
+            </div>
+          </div>
+        </Card>
+      );
+    };
+
+    export default function AgentStatusCardDemo() {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-8">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Agent Status Cards</h1>
+              <p className="text-muted-foreground">Playful AI agent status displays with different variants and states</p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Expanded Variant</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AgentStatusCard
+                  name="Luna AI"
+                  status="active"
+                  currentTask="Processing customer inquiries"
+                  lastActivity="2 minutes ago"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=luna"
+                  variant="expanded"
+                />
+                <AgentStatusCard
+                  name="Nova Assistant"
+                  status="busy"
+                  currentTask="Analyzing data patterns"
+                  lastActivity="5 minutes ago"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=nova"
+                  variant="expanded"
+                />
+                <AgentStatusCard
+                  name="Orion Bot"
+                  status="idle"
+                  lastActivity="1 hour ago"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=orion"
+                  variant="expanded"
+                />
+                <AgentStatusCard
+                  name="Stella AI"
+                  status="error"
+                  lastActivity="10 minutes ago"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=stella"
+                  variant="expanded"
+                />
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Compact Variant</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <AgentStatusCard
+                  name="Luna AI"
+                  status="active"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=luna"
+                  variant="compact"
+                />
+                <AgentStatusCard
+                  name="Nova Assistant"
+                  status="busy"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=nova"
+                  variant="compact"
+                />
+                <AgentStatusCard
+                  name="Orion Bot"
+                  status="idle"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=orion"
+                  variant="compact"
+                />
+                <AgentStatusCard
+                  name="Stella AI"
+                  status="error"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=stella"
+                  variant="compact"
+                />
+                <AgentStatusCard
+                  name="Atlas Helper"
+                  status="active"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=atlas"
+                  variant="compact"
+                />
+                <AgentStatusCard
+                  name="Vega Support"
+                  status="idle"
+                  avatarUrl="https://api.dicebear.com/7.x/bottts/svg?seed=vega"
+                  variant="compact"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ```
+
+
+    ## Tailwind Configuration
+
+    Add the following global styles:
+
+    ```css
+    @layer base {
+      * {
+        @apply border-border outline-ring/50;
+      }
+    ```
+
+    Custom colors detected: gradient-to-br, muted-foreground, card-foreground, primary-foreground, secondary-foreground, accent-foreground
+    Make sure these are defined in your Tailwind configuration.
+
+
+    ## Integration Instructions
+
+    1. Review the App.tsx component to understand the complete implementation
+    2. Identify which components and utilities you need for your use case
+    3. Analyze the Tailwind v4 styles in index.css - integrate custom styles that differ from integrating Codebase
+    4. Install the required NPM dependencies listed above
+    5. Integrate the components into your project, adapting them to fit your architecture
+
+    Focus on:
+    - Understanding projects structure, adding above components into it
+    - Understanding the component composition
+    - Identifying reusable utilities and helpers
+    - Adapting the styling to match your design system
+
+    ## Shadcn/ui instructions
+    After you add the component, make sure to add the component to the project. If you can't resolve components from demo code,
+    Make sure to install shadcn/ui components from the demo code missing imports
+
+    Examples of importing shadcn/ui components:
+    if these imports can't be resolved:
+    ```tsx
+    import {
+      Table
+    } from "@/components/ui/table"
+    import { Textarea } from "@/components/ui/textarea"
+    ```
+
+    then run this command:
+    ```bash
+    npx shadcn@latest add table textarea
+    ```

@@ -8,13 +8,16 @@ let lastClientOptions: {
   url?: string;
   token?: string;
   password?: string;
+  logGatewayHealth?: boolean;
   onHelloOk?: () => void | Promise<void>;
+  onConnectError?: (err: Error) => void;
   onClose?: (code: number, reason: string) => void;
 } | null = null;
-type StartMode = "hello" | "close" | "silent";
+type StartMode = "hello" | "close" | "silent" | "connectError";
 let startMode: StartMode = "hello";
 let closeCode = 1006;
 let closeReason = "";
+let connectError: Error = new Error("connect failed");
 
 vi.mock("../config/config.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../config/config.js")>();
@@ -44,7 +47,9 @@ vi.mock("./client.js", () => ({
       url?: string;
       token?: string;
       password?: string;
+      logGatewayHealth?: boolean;
       onHelloOk?: () => void | Promise<void>;
+      onConnectError?: (err: Error) => void;
       onClose?: (code: number, reason: string) => void;
     }) {
       lastClientOptions = opts;
@@ -55,6 +60,8 @@ vi.mock("./client.js", () => ({
     start() {
       if (startMode === "hello") {
         void lastClientOptions?.onHelloOk?.();
+      } else if (startMode === "connectError") {
+        lastClientOptions?.onConnectError?.(connectError);
       } else if (startMode === "close") {
         lastClientOptions?.onClose?.(closeCode, closeReason);
       }
@@ -74,6 +81,7 @@ describe("callGateway url resolution", () => {
     startMode = "hello";
     closeCode = 1006;
     closeReason = "";
+    connectError = new Error("connect failed");
   });
 
   it("keeps loopback when local bind is auto even if tailnet is present", async () => {
@@ -113,9 +121,37 @@ describe("callGateway url resolution", () => {
     resolveGatewayPort.mockReturnValue(18789);
     pickPrimaryTailnetIPv4.mockReturnValue(undefined);
 
-    await callGateway({ method: "health", url: "wss://override.example/ws" });
+    await callGateway({
+      method: "health",
+      url: "wss://override.example/ws",
+      token: "explicit-token",
+    });
 
     expect(lastClientOptions?.url).toBe("wss://override.example/ws");
+    expect(lastClientOptions?.token).toBe("explicit-token");
+  });
+
+  it("suppresses gateway health logs for logs.tail", async () => {
+    loadConfig.mockReturnValue({ gateway: { mode: "local", bind: "loopback" } });
+    resolveGatewayPort.mockReturnValue(18789);
+    pickPrimaryTailnetIPv4.mockReturnValue(undefined);
+
+    await callGateway({ method: "logs.tail" });
+
+    expect(lastClientOptions?.logGatewayHealth).toBe(false);
+  });
+
+  it("uses config overrides for gateway health suppression list", async () => {
+    loadConfig.mockReturnValue({
+      gateway: { mode: "local", bind: "loopback" },
+      logging: { enhanced: { gatewayHealthSuppressMethods: [] } },
+    });
+    resolveGatewayPort.mockReturnValue(18789);
+    pickPrimaryTailnetIPv4.mockReturnValue(undefined);
+
+    await callGateway({ method: "logs.tail" });
+
+    expect(lastClientOptions?.logGatewayHealth).toBe(true);
   });
 });
 
@@ -244,6 +280,29 @@ describe("callGateway error details", () => {
     expect(err?.message).toContain("Bind: loopback");
   });
 
+  it("fails fast on connect errors with connection details", async () => {
+    startMode = "connectError";
+    connectError = new Error("connect EPERM 127.0.0.1:18789");
+    loadConfig.mockReturnValue({
+      gateway: { mode: "local", bind: "loopback" },
+    });
+    resolveGatewayPort.mockReturnValue(18789);
+    pickPrimaryTailnetIPv4.mockReturnValue(undefined);
+
+    let err: Error | null = null;
+    try {
+      await callGateway({ method: "health" });
+    } catch (caught) {
+      err = caught as Error;
+    }
+
+    expect(err?.message).toContain("gateway connect error:");
+    expect(err?.message).toContain("connect EPERM 127.0.0.1:18789");
+    expect(err?.message).toContain("Gateway target: ws://127.0.0.1:18789");
+    expect(err?.message).toContain("Source: local loopback");
+    expect(err?.message).toContain("Bind: loopback");
+  });
+
   it("fails fast when remote mode is missing remote url", async () => {
     loadConfig.mockReturnValue({
       gateway: { mode: "remote", bind: "loopback", remote: {} },
@@ -254,6 +313,40 @@ describe("callGateway error details", () => {
         timeoutMs: 10,
       }),
     ).rejects.toThrow("gateway remote mode misconfigured");
+  });
+});
+
+describe("callGateway url override auth requirements", () => {
+  beforeEach(() => {
+    loadConfig.mockReset();
+    resolveGatewayPort.mockReset();
+    pickPrimaryTailnetIPv4.mockReset();
+    lastClientOptions = null;
+    startMode = "hello";
+    closeCode = 1006;
+    closeReason = "";
+    resolveGatewayPort.mockReturnValue(18789);
+    pickPrimaryTailnetIPv4.mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+    delete process.env.OPENCLAW_GATEWAY_PASSWORD;
+  });
+
+  it("throws when url override is set without explicit credentials", async () => {
+    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
+    process.env.OPENCLAW_GATEWAY_PASSWORD = "env-password";
+    loadConfig.mockReturnValue({
+      gateway: {
+        mode: "local",
+        auth: { token: "local-token", password: "local-password" },
+      },
+    });
+
+    await expect(
+      callGateway({ method: "health", url: "wss://override.example/ws" }),
+    ).rejects.toThrow("explicit credentials");
   });
 });
 
@@ -338,6 +431,24 @@ describe("callGateway password resolution", () => {
 
     expect(lastClientOptions?.password).toBe("from-env");
   });
+
+  it("uses explicit password when url override is set", async () => {
+    process.env.OPENCLAW_GATEWAY_PASSWORD = "from-env";
+    loadConfig.mockReturnValue({
+      gateway: {
+        mode: "local",
+        auth: { password: "from-config" },
+      },
+    });
+
+    await callGateway({
+      method: "health",
+      url: "wss://override.example/ws",
+      password: "explicit-password",
+    });
+
+    expect(lastClientOptions?.password).toBe("explicit-password");
+  });
 });
 
 describe("callGateway token resolution", () => {
@@ -364,18 +475,21 @@ describe("callGateway token resolution", () => {
     }
   });
 
-  it("uses remote token when remote mode uses url override", async () => {
+  it("uses explicit token when url override is set", async () => {
     process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
     loadConfig.mockReturnValue({
       gateway: {
-        mode: "remote",
-        remote: { token: "remote-token" },
+        mode: "local",
         auth: { token: "local-token" },
       },
     });
 
-    await callGateway({ method: "health", url: "wss://override.example/ws" });
+    await callGateway({
+      method: "health",
+      url: "wss://override.example/ws",
+      token: "explicit-token",
+    });
 
-    expect(lastClientOptions?.token).toBe("remote-token");
+    expect(lastClientOptions?.token).toBe("explicit-token");
   });
 });

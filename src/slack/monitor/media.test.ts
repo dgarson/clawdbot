@@ -224,7 +224,7 @@ describe("resolveSlackMedia", () => {
     );
   });
 
-  it("returns null when download fails", async () => {
+  it("returns empty array when download fails", async () => {
     const { resolveSlackMedia } = await import("./media.js");
 
     // Simulate a network error
@@ -236,10 +236,10 @@ describe("resolveSlackMedia", () => {
       maxBytes: 1024 * 1024,
     });
 
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 
-  it("returns null when no files are provided", async () => {
+  it("returns empty array when no files are provided", async () => {
     const { resolveSlackMedia } = await import("./media.js");
 
     const result = await resolveSlackMedia({
@@ -248,7 +248,7 @@ describe("resolveSlackMedia", () => {
       maxBytes: 1024 * 1024,
     });
 
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 
   it("skips files without url_private", async () => {
@@ -260,7 +260,7 @@ describe("resolveSlackMedia", () => {
       maxBytes: 1024 * 1024,
     });
 
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -268,7 +268,7 @@ describe("resolveSlackMedia", () => {
     // Mock the store module
     vi.doMock("../../media/store.js", () => ({
       saveMediaBuffer: vi.fn().mockResolvedValue({
-        path: "/tmp/test.jpg",
+        path: "/tmp/second.jpg",
         contentType: "image/jpeg",
       }),
     }));
@@ -294,7 +294,121 @@ describe("resolveSlackMedia", () => {
       maxBytes: 1024 * 1024,
     });
 
-    expect(result).not.toBeNull();
+    expect(result).toHaveLength(1);
+    expect(result[0].path).toContain("second.jpg");
     expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("downloads all successful files when multiple attachments present", async () => {
+    // Mock the store module to track saved files
+    const savedPaths: string[] = [];
+    vi.doMock("../../media/store.js", () => ({
+      saveMediaBuffer: vi.fn().mockImplementation(async (_buffer, contentType) => {
+        const filename = contentType === "image/jpeg" ? "image.jpg" : "doc.pdf";
+        const path = `/tmp/${filename}`;
+        savedPaths.push(path);
+        return { path, contentType };
+      }),
+    }));
+
+    const { resolveSlackMedia } = await import("./media.js");
+
+    const file1Response = new Response(Buffer.from("image1"), {
+      status: 200,
+      headers: { "content-type": "image/jpeg" },
+    });
+    const file2Response = new Response(Buffer.from("pdf data"), {
+      status: 200,
+      headers: { "content-type": "application/pdf" },
+    });
+
+    mockFetch.mockResolvedValueOnce(file1Response).mockResolvedValueOnce(file2Response);
+
+    const result = await resolveSlackMedia({
+      files: [
+        { url_private: "https://files.slack.com/image1.jpg", name: "image1.jpg" },
+        { url_private: "https://files.slack.com/doc.pdf", name: "doc.pdf" },
+      ],
+      token: "xoxb-test-token",
+      maxBytes: 1024 * 1024,
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0].path).toContain("image.jpg");
+    expect(result[0].placeholder).toBe("[Slack file: image1.jpg]");
+    expect(result[1].path).toContain("doc.pdf");
+    expect(result[1].placeholder).toBe("[Slack file: doc.pdf]");
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("buildSlackMediaPayload", () => {
+  it("returns empty payload for empty media list", async () => {
+    const { buildSlackMediaPayload } = await import("./media.js");
+    const result = buildSlackMediaPayload([]);
+
+    expect(result).toEqual({
+      MediaPath: undefined,
+      MediaType: undefined,
+      MediaUrl: undefined,
+      MediaPaths: undefined,
+      MediaUrls: undefined,
+      MediaTypes: undefined,
+      placeholder: undefined,
+    });
+  });
+
+  it("populates singular fields with first item for backward compatibility", async () => {
+    const { buildSlackMediaPayload } = await import("./media.js");
+    const result = buildSlackMediaPayload([
+      { path: "/tmp/first.jpg", contentType: "image/jpeg", placeholder: "[Slack file: first.jpg]" },
+      {
+        path: "/tmp/second.pdf",
+        contentType: "application/pdf",
+        placeholder: "[Slack file: second.pdf]",
+      },
+    ]);
+
+    expect(result.MediaPath).toBe("/tmp/first.jpg");
+    expect(result.MediaType).toBe("image/jpeg");
+    expect(result.MediaUrl).toBe("/tmp/first.jpg");
+    expect(result.placeholder).toBe("[Slack file: first.jpg]");
+  });
+
+  it("populates array fields with all items", async () => {
+    const { buildSlackMediaPayload } = await import("./media.js");
+    const result = buildSlackMediaPayload([
+      {
+        path: "/tmp/image1.jpg",
+        contentType: "image/jpeg",
+        placeholder: "[Slack file: image1.jpg]",
+      },
+      {
+        path: "/tmp/doc.pdf",
+        contentType: "application/pdf",
+        placeholder: "[Slack file: doc.pdf]",
+      },
+      {
+        path: "/tmp/image2.png",
+        contentType: "image/png",
+        placeholder: "[Slack file: image2.png]",
+      },
+    ]);
+
+    expect(result.MediaPaths).toEqual(["/tmp/image1.jpg", "/tmp/doc.pdf", "/tmp/image2.png"]);
+    expect(result.MediaUrls).toEqual(["/tmp/image1.jpg", "/tmp/doc.pdf", "/tmp/image2.png"]);
+    expect(result.MediaTypes).toEqual(["image/jpeg", "application/pdf", "image/png"]);
+  });
+
+  it("filters out undefined content types from MediaTypes array", async () => {
+    const { buildSlackMediaPayload } = await import("./media.js");
+    const result = buildSlackMediaPayload([
+      { path: "/tmp/file1.bin", placeholder: "[Slack file: file1.bin]" },
+      { path: "/tmp/image.jpg", contentType: "image/jpeg", placeholder: "[Slack file: image.jpg]" },
+      { path: "/tmp/file2.bin", placeholder: "[Slack file: file2.bin]" },
+    ]);
+
+    expect(result.MediaTypes).toEqual(["image/jpeg"]);
+    expect(result.MediaPaths).toHaveLength(3);
   });
 });

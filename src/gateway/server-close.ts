@@ -2,9 +2,13 @@ import type { Server as HttpServer } from "node:http";
 import type { WebSocketServer } from "ws";
 import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
+import type { OverseerRunner } from "../infra/overseer/runner.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
+import { stopCompactionScheduler } from "../hooks/compaction-scheduler.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
+import { stopMemoryFeedbackSubscriber } from "../memory/feedback/feedback-subscriber.js";
+import { closeAllProgressiveStores } from "../memory/progressive-manager.js";
 
 export function createGatewayCloseHandler(params: {
   bonjourStop: (() => Promise<void>) | null;
@@ -13,8 +17,10 @@ export function createGatewayCloseHandler(params: {
   canvasHostServer: CanvasHostServer | null;
   stopChannel: (name: ChannelId, accountId?: string) => Promise<void>;
   pluginServices: PluginServicesHandle | null;
+  pluginCronJobs?: { stop: () => void }[];
   cron: { stop: () => void };
   heartbeatRunner: HeartbeatRunner;
+  overseerRunner?: OverseerRunner | null;
   nodePresenceTimers: Map<string, ReturnType<typeof setInterval>>;
   broadcast: (event: string, payload: unknown, opts?: { dropIfSlow?: boolean }) => void;
   tickInterval: ReturnType<typeof setInterval>;
@@ -26,17 +32,39 @@ export function createGatewayCloseHandler(params: {
   clients: Set<{ socket: { close: (code: number, reason: string) => void } }>;
   configReloader: { stop: () => Promise<void> };
   browserControl: { stop: () => Promise<void> } | null;
+  managedProcesses?: { stopAll: (opts?: { reason?: string }) => Promise<void> } | null;
+  workerManager?: { stop: () => Promise<void> } | null;
+  persistInterval?: ReturnType<typeof setInterval>;
+  persistChatRunState?: () => Promise<void>;
   wss: WebSocketServer;
   httpServer: HttpServer;
   httpServers?: HttpServer[];
 }) {
   return async (opts?: { reason?: string; restartExpectedMs?: number | null }) => {
+    // Stop persistence timer and flush state before shutdown
+    if (params.persistInterval) {
+      clearInterval(params.persistInterval);
+    }
+    if (params.persistChatRunState) {
+      try {
+        await Promise.race([
+          params.persistChatRunState(),
+          new Promise((resolve) => setTimeout(resolve, 500)), // 500ms timeout
+        ]);
+      } catch {
+        /* best-effort */
+      }
+    }
     const reasonRaw = typeof opts?.reason === "string" ? opts.reason.trim() : "";
     const reason = reasonRaw || "gateway stopping";
     const restartExpectedMs =
       typeof opts?.restartExpectedMs === "number" && Number.isFinite(opts.restartExpectedMs)
         ? Math.max(0, Math.floor(opts.restartExpectedMs))
         : null;
+    // Stop work-queue workers early so they finish current items before channels tear down.
+    if (params.workerManager) {
+      await params.workerManager.stop().catch(() => {});
+    }
     if (params.bonjourStop) {
       try {
         await params.bonjourStop();
@@ -67,9 +95,24 @@ export function createGatewayCloseHandler(params: {
     if (params.pluginServices) {
       await params.pluginServices.stop().catch(() => {});
     }
+    if (params.pluginCronJobs) {
+      for (const job of params.pluginCronJobs) {
+        try {
+          job.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
     await stopGmailWatcher();
+    stopMemoryFeedbackSubscriber();
+    closeAllProgressiveStores();
+    stopCompactionScheduler();
     params.cron.stop();
     params.heartbeatRunner.stop();
+    if (params.overseerRunner) {
+      params.overseerRunner.stop();
+    }
     for (const timer of params.nodePresenceTimers.values()) {
       clearInterval(timer);
     }
@@ -107,6 +150,9 @@ export function createGatewayCloseHandler(params: {
     await params.configReloader.stop().catch(() => {});
     if (params.browserControl) {
       await params.browserControl.stop().catch(() => {});
+    }
+    if (params.managedProcesses) {
+      await params.managedProcesses.stopAll({ reason });
     }
     await new Promise<void>((resolve) => params.wss.close(() => resolve()));
     const servers =

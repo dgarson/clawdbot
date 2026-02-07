@@ -5,6 +5,8 @@ import type { DiagnosticsConfig, LoggingConfig, SessionConfig, WebConfig } from 
 import type { BrowserConfig } from "./types.browser.js";
 import type { ChannelsConfig } from "./types.channels.js";
 import type { CronConfig } from "./types.cron.js";
+import type { DebuggingConfig } from "./types.debugging.js";
+import type { ExecutionConfig } from "./types.execution.js";
 import type {
   CanvasHostConfig,
   DiscoveryConfig,
@@ -12,6 +14,7 @@ import type {
   TalkConfig,
 } from "./types.gateway.js";
 import type { HooksConfig } from "./types.hooks.js";
+import type { McpServersConfig } from "./types.mcp.js";
 import type { MemoryConfig } from "./types.memory.js";
 import type {
   AudioConfig,
@@ -55,6 +58,7 @@ export type OpenClawConfig = {
     lastRunCommit?: string;
     lastRunCommand?: string;
     lastRunMode?: "local" | "remote";
+    onboarding?: any; // TODO: Add proper OnboardingProgress type
   };
   diagnostics?: DiagnosticsConfig;
   logging?: LoggingConfig;
@@ -78,6 +82,8 @@ export type OpenClawConfig = {
   skills?: SkillsConfig;
   plugins?: PluginsConfig;
   models?: ModelsConfig;
+  /** Global MCP server definitions (available to all agents unless disabled/overridden per-agent). */
+  mcpServers?: McpServersConfig;
   nodeHost?: NodeHostConfig;
   agents?: AgentsConfig;
   tools?: ToolsConfig;
@@ -97,6 +103,12 @@ export type OpenClawConfig = {
   talk?: TalkConfig;
   gateway?: GatewayConfig;
   memory?: MemoryConfig;
+  /** Execution layer configuration (feature flags for gradual migration). */
+  execution?: ExecutionConfig;
+  /** Debugging configuration (short-term testing flags and channel overrides). */
+  debugging?: DebuggingConfig;
+  overseer?: any; // TODO: Add proper OverseerConfig type
+  onboarding?: any; // TODO: Add proper OnboardingConfig type
 };
 
 export type ConfigValidationIssue = {

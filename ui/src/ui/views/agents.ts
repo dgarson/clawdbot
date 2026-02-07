@@ -8,6 +8,7 @@ import type {
   ChannelsStatusSnapshot,
   CronJob,
   CronStatus,
+  SessionsListResult,
   SkillStatusEntry,
   SkillStatusReport,
 } from "../types.ts";
@@ -23,8 +24,16 @@ import {
   formatCronState,
   formatNextRun,
 } from "../presenter.ts";
+import { renderAgentDashboard } from "./agent-dashboard.ts";
 
-export type AgentsPanel = "overview" | "files" | "tools" | "skills" | "channels" | "cron";
+export type AgentsPanel =
+  | "dashboard"
+  | "overview"
+  | "files"
+  | "tools"
+  | "skills"
+  | "channels"
+  | "cron";
 
 export type AgentsProps = {
   loading: boolean;
@@ -59,7 +68,11 @@ export type AgentsProps = {
   agentSkillsError: string | null;
   agentSkillsAgentId: string | null;
   skillsFilter: string;
+  // Dashboard-specific data
+  sessionsResult: SessionsListResult | null;
+  sessionsLoading: boolean;
   onRefresh: () => void;
+  onDashboardRefresh: () => void;
   onSelectAgent: (agentId: string) => void;
   onSelectPanel: (panel: AgentsPanel) => void;
   onLoadFiles: (agentId: string) => void;
@@ -80,6 +93,9 @@ export type AgentsProps = {
   onAgentSkillToggle: (agentId: string, skillName: string, enabled: boolean) => void;
   onAgentSkillsClear: (agentId: string) => void;
   onAgentSkillsDisableAll: (agentId: string) => void;
+  onAbortSession?: (sessionKey: string) => void;
+  onAbortAllForAgent?: (agentId: string) => void;
+  onEmergencyStopAll?: () => void;
 };
 
 const TOOL_SECTIONS = [
@@ -605,6 +621,28 @@ export function renderAgents(props: AgentsProps) {
               )}
               ${renderAgentTabs(props.activePanel, (panel) => props.onSelectPanel(panel))}
               ${
+                props.activePanel === "dashboard"
+                  ? renderAgentDashboard({
+                      agents: props.agentsList,
+                      sessions: props.sessionsResult,
+                      identityById: props.agentIdentityById,
+                      cronJobs: props.cronJobs,
+                      cronStatus: props.cronStatus,
+                      loading: props.loading,
+                      sessionsLoading: props.sessionsLoading,
+                      error: props.error,
+                      onRefresh: props.onDashboardRefresh,
+                      onDrillDown: (agentId) => {
+                        props.onSelectAgent(agentId);
+                        props.onSelectPanel("overview");
+                      },
+                      onAbortSession: props.onAbortSession,
+                      onAbortAllForAgent: props.onAbortAllForAgent,
+                      onEmergencyStopAll: props.onEmergencyStopAll,
+                    })
+                  : nothing
+              }
+              ${
                 props.activePanel === "overview"
                   ? renderAgentOverview({
                       agent: selectedAgent,
@@ -750,6 +788,7 @@ function renderAgentHeader(
 
 function renderAgentTabs(active: AgentsPanel, onSelect: (panel: AgentsPanel) => void) {
   const tabs: Array<{ id: AgentsPanel; label: string }> = [
+    { id: "dashboard", label: "Dashboard" },
     { id: "overview", label: "Overview" },
     { id: "files", label: "Files" },
     { id: "tools", label: "Tools" },

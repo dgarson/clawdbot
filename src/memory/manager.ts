@@ -1,6 +1,5 @@
-import type { DatabaseSync } from "node:sqlite";
 import chokidar, { type FSWatcher } from "chokidar";
-import { randomUUID } from "node:crypto";
+import crypto from "node:crypto";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -16,6 +15,7 @@ import type {
 } from "./types.js";
 import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
+import { resolveStateDir } from "../config/paths.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
@@ -26,6 +26,7 @@ import {
   type OpenAiBatchRequest,
   runOpenAiEmbeddingBatches,
 } from "./batch-openai.js";
+import { BuiltinSqliteStore, type MemoryIndexMeta } from "./builtin-sqlite-store.js";
 import { DEFAULT_GEMINI_EMBEDDING_MODEL } from "./embeddings-gemini.js";
 import { DEFAULT_OPENAI_EMBEDDING_MODEL } from "./embeddings-openai.js";
 import {
@@ -39,28 +40,17 @@ import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js"
 import {
   buildFileEntry,
   chunkMarkdown,
-  ensureDir,
   hashText,
   isMemoryPath,
   listMemoryFiles,
   normalizeExtraMemoryPaths,
   type MemoryChunk,
   type MemoryFileEntry,
-  parseEmbedding,
 } from "./internal.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
-import { ensureMemoryIndexSchema } from "./memory-schema.js";
-import { loadSqliteVecExtension } from "./sqlite-vec.js";
-import { requireNodeSqlite } from "./sqlite.js";
-
-type MemoryIndexMeta = {
-  model: string;
-  provider: string;
-  providerKey?: string;
-  chunkTokens: number;
-  chunkOverlap: number;
-  vectorDims?: number;
-};
+import { memLog } from "./memory-log.js";
+import { createMemoryOpsLogger, type MemoryOpsLogger } from "./ops-log/index.js";
+import { computeEmbeddingProviderKey } from "./provider-key.js";
 
 type SessionFileEntry = {
   path: string;
@@ -78,11 +68,7 @@ type MemorySyncProgressState = {
   report: (update: MemorySyncProgressUpdate) => void;
 };
 
-const META_KEY = "memory_index_meta_v1";
 const SNIPPET_MAX_CHARS = 700;
-const VECTOR_TABLE = "chunks_vec";
-const FTS_TABLE = "chunks_fts";
-const EMBEDDING_CACHE_TABLE = "embedding_cache";
 const SESSION_DIRTY_DEBOUNCE_MS = 5000;
 const EMBEDDING_BATCH_MAX_TOKENS = 8000;
 const EMBEDDING_APPROX_CHARS_PER_TOKEN = 1;
@@ -92,7 +78,7 @@ const EMBEDDING_RETRY_BASE_DELAY_MS = 500;
 const EMBEDDING_RETRY_MAX_DELAY_MS = 8000;
 const BATCH_FAILURE_LIMIT = 2;
 const SESSION_DELTA_READ_CHUNK_BYTES = 64 * 1024;
-const VECTOR_LOAD_TIMEOUT_MS = 30_000;
+const SESSION_MESSAGE_MARKER = '"type":"message"';
 const EMBEDDING_QUERY_TIMEOUT_REMOTE_MS = 60_000;
 const EMBEDDING_QUERY_TIMEOUT_LOCAL_MS = 5 * 60_000;
 const EMBEDDING_BATCH_TIMEOUT_REMOTE_MS = 2 * 60_000;
@@ -101,9 +87,6 @@ const EMBEDDING_BATCH_TIMEOUT_LOCAL_MS = 10 * 60_000;
 const log = createSubsystemLogger("memory");
 
 const INDEX_CACHE = new Map<string, MemoryIndexManager>();
-
-const vectorToBlob = (embedding: number[]): Buffer =>
-  Buffer.from(new Float32Array(embedding).buffer);
 
 export class MemoryIndexManager implements MemorySearchManager {
   private readonly cacheKey: string;
@@ -128,23 +111,9 @@ export class MemoryIndexManager implements MemorySearchManager {
   private batchFailureLastError?: string;
   private batchFailureLastProvider?: string;
   private batchFailureLock: Promise<void> = Promise.resolve();
-  private db: DatabaseSync;
+  private readonly store: BuiltinSqliteStore;
   private readonly sources: Set<MemorySource>;
   private providerKey: string;
-  private readonly cache: { enabled: boolean; maxEntries?: number };
-  private readonly vector: {
-    enabled: boolean;
-    available: boolean | null;
-    extensionPath?: string;
-    loadError?: string;
-    dims?: number;
-  };
-  private readonly fts: {
-    enabled: boolean;
-    available: boolean;
-    loadError?: string;
-  };
-  private vectorReady: Promise<boolean> | null = null;
   private watcher: FSWatcher | null = null;
   private watchTimer: NodeJS.Timeout | null = null;
   private sessionWatchTimer: NodeJS.Timeout | null = null;
@@ -161,6 +130,7 @@ export class MemoryIndexManager implements MemorySearchManager {
   >();
   private sessionWarm = new Set<string>();
   private syncing: Promise<void> | null = null;
+  private readonly opsLog?: MemoryOpsLogger;
 
   static async get(params: {
     cfg: OpenClawConfig;
@@ -186,6 +156,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       fallback: settings.fallback,
       local: settings.local,
     });
+    const opsLog = createMemoryOpsLogger(resolveStateDir());
     const manager = new MemoryIndexManager({
       cacheKey: key,
       cfg,
@@ -193,6 +164,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       workspaceDir,
       settings,
       providerResult,
+      opsLog,
     });
     INDEX_CACHE.set(key, manager);
     return manager;
@@ -205,12 +177,14 @@ export class MemoryIndexManager implements MemorySearchManager {
     workspaceDir: string;
     settings: ResolvedMemorySearchConfig;
     providerResult: EmbeddingProviderResult;
+    opsLog?: MemoryOpsLogger;
   }) {
     this.cacheKey = params.cacheKey;
     this.cfg = params.cfg;
     this.agentId = params.agentId;
     this.workspaceDir = params.workspaceDir;
     this.settings = params.settings;
+    this.opsLog = params.opsLog;
     this.provider = params.providerResult.provider;
     this.requestedProvider = params.providerResult.requestedProvider;
     this.fallbackFrom = params.providerResult.fallbackFrom;
@@ -218,22 +192,19 @@ export class MemoryIndexManager implements MemorySearchManager {
     this.openAi = params.providerResult.openAi;
     this.gemini = params.providerResult.gemini;
     this.sources = new Set(params.settings.sources);
-    this.db = this.openDatabase();
+    this.store = new BuiltinSqliteStore({
+      dbPath: params.settings.store.path,
+      vectorEnabled: params.settings.store.vector.enabled,
+      vectorExtensionPath: params.settings.store.vector.extensionPath,
+      ftsEnabled: params.settings.query.hybrid.enabled,
+      cacheEnabled: params.settings.cache.enabled,
+      cacheMaxEntries: params.settings.cache.maxEntries,
+      sources: this.sources,
+    });
     this.providerKey = this.computeProviderKey();
-    this.cache = {
-      enabled: params.settings.cache.enabled,
-      maxEntries: params.settings.cache.maxEntries,
-    };
-    this.fts = { enabled: params.settings.query.hybrid.enabled, available: false };
-    this.ensureSchema();
-    this.vector = {
-      enabled: params.settings.store.vector.enabled,
-      available: null,
-      extensionPath: params.settings.store.vector.extensionPath,
-    };
-    const meta = this.readMeta();
+    const meta = this.store.readMeta();
     if (meta?.vectorDims) {
-      this.vector.dims = meta.vectorDims;
+      this.store.vector.dims = meta.vectorDims;
     }
     this.ensureWatcher();
     this.ensureSessionListener();
@@ -266,6 +237,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       sessionKey?: string;
     },
   ): Promise<MemorySearchResult[]> {
+    const searchStart = Date.now();
     void this.warmSession(opts?.sessionKey);
     if (this.settings.sync.onSearch && (this.dirty || this.sessionsDirty)) {
       void this.sync({ reason: "search" }).catch((err) => {
@@ -274,6 +246,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     }
     const cleaned = query.trim();
     if (!cleaned) {
+      memLog.trace("search: empty query; returning []");
       return [];
     }
     const minScore = opts?.minScore ?? this.settings.query.minScore;
@@ -283,6 +256,20 @@ export class MemoryIndexManager implements MemorySearchManager {
       200,
       Math.max(1, Math.floor(maxResults * hybrid.candidateMultiplier)),
     );
+
+    memLog.trace("search: starting", {
+      query: cleaned.slice(0, 120),
+      strategy: hybrid.enabled ? "hybrid" : "vector-only",
+      maxResults,
+      minScore,
+      candidates,
+      vectorWeight: hybrid.vectorWeight,
+      textWeight: hybrid.textWeight,
+      provider: this.provider.id,
+      model: this.provider.model,
+      dirty: this.dirty,
+      sessionsDirty: this.sessionsDirty,
+    });
 
     const keywordResults = hybrid.enabled
       ? await this.searchKeyword(cleaned, candidates).catch(() => [])
@@ -294,34 +281,70 @@ export class MemoryIndexManager implements MemorySearchManager {
       ? await this.searchVector(queryVec, candidates).catch(() => [])
       : [];
 
-    if (!hybrid.enabled) {
-      return vectorResults.filter((entry) => entry.score >= minScore).slice(0, maxResults);
-    }
-
-    const merged = this.mergeHybridResults({
-      vector: vectorResults,
-      keyword: keywordResults,
-      vectorWeight: hybrid.vectorWeight,
-      textWeight: hybrid.textWeight,
+    memLog.trace("search: raw results", {
+      vectorResults: vectorResults.length,
+      keywordResults: keywordResults.length,
+      hasVector,
+      vectorTopScore: vectorResults[0]?.score,
+      keywordTopScore: keywordResults[0]?.score,
     });
 
-    return merged.filter((entry) => entry.score >= minScore).slice(0, maxResults);
+    let finalResults: MemorySearchResult[];
+    if (!hybrid.enabled) {
+      finalResults = vectorResults.filter((entry) => entry.score >= minScore).slice(0, maxResults);
+    } else {
+      const merged = this.mergeHybridResults({
+        vector: vectorResults,
+        keyword: keywordResults,
+        vectorWeight: hybrid.vectorWeight,
+        textWeight: hybrid.textWeight,
+      });
+      finalResults = merged.filter((entry) => entry.score >= minScore).slice(0, maxResults);
+    }
+
+    const elapsedMs = Date.now() - searchStart;
+    memLog.trace("search: completed", {
+      query: cleaned.slice(0, 80),
+      results: finalResults.length,
+      elapsedMs,
+      topScore: finalResults[0]?.score,
+      bottomScore: finalResults.at(-1)?.score,
+      paths: finalResults.map((r) => r.path),
+      skippedDueToMinScore:
+        (hybrid.enabled ? vectorResults.length + keywordResults.length : vectorResults.length) -
+        finalResults.length,
+    });
+    memLog.summary(`search completed: ${finalResults.length} results in ${elapsedMs}ms`, {
+      query: cleaned.slice(0, 60),
+      results: finalResults.length,
+      elapsedMs,
+    });
+
+    return finalResults;
   }
 
   private async searchVector(
     queryVec: number[],
     limit: number,
   ): Promise<Array<MemorySearchResult & { id: string }>> {
+    const start = Date.now();
     const results = await searchVector({
-      db: this.db,
-      vectorTable: VECTOR_TABLE,
+      db: this.store.db,
+      vectorTable: "chunks_vec",
       providerModel: this.provider.model,
       queryVec,
       limit,
       snippetMaxChars: SNIPPET_MAX_CHARS,
-      ensureVectorReady: async (dimensions) => await this.ensureVectorReady(dimensions),
-      sourceFilterVec: this.buildSourceFilter("c"),
-      sourceFilterChunks: this.buildSourceFilter(),
+      ensureVectorReady: async (dimensions) => await this.store.ensureVectorReady(dimensions),
+      sourceFilterVec: this.store.buildSourceFilter("c"),
+      sourceFilterChunks: this.store.buildSourceFilter(),
+    });
+    memLog.trace("searchVector: completed", {
+      results: results.length,
+      limit,
+      vectorDims: queryVec.length,
+      vectorAvailable: this.store.vector.available,
+      elapsedMs: Date.now() - start,
     });
     return results.map((entry) => entry as MemorySearchResult & { id: string });
   }
@@ -334,13 +357,18 @@ export class MemoryIndexManager implements MemorySearchManager {
     query: string,
     limit: number,
   ): Promise<Array<MemorySearchResult & { id: string; textScore: number }>> {
-    if (!this.fts.enabled || !this.fts.available) {
+    if (!this.store.fts.enabled || !this.store.fts.available) {
+      memLog.trace("searchKeyword: skipped (fts disabled or unavailable)", {
+        ftsEnabled: this.store.fts.enabled,
+        ftsAvailable: this.store.fts.available,
+      });
       return [];
     }
-    const sourceFilter = this.buildSourceFilter();
+    const start = Date.now();
+    const sourceFilter = this.store.buildSourceFilter();
     const results = await searchKeyword({
-      db: this.db,
-      ftsTable: FTS_TABLE,
+      db: this.store.db,
+      ftsTable: "chunks_fts",
       providerModel: this.provider.model,
       query,
       limit,
@@ -348,6 +376,11 @@ export class MemoryIndexManager implements MemorySearchManager {
       sourceFilter,
       buildFtsQuery: (raw) => this.buildFtsQuery(raw),
       bm25RankToScore,
+    });
+    memLog.trace("searchKeyword: completed", {
+      results: results.length,
+      limit,
+      elapsedMs: Date.now() - start,
     });
     return results.map((entry) => entry as MemorySearchResult & { id: string; textScore: number });
   }
@@ -380,6 +413,13 @@ export class MemoryIndexManager implements MemorySearchManager {
       vectorWeight: params.vectorWeight,
       textWeight: params.textWeight,
     });
+    memLog.trace("mergeHybridResults", {
+      vectorIn: params.vector.length,
+      keywordIn: params.keyword.length,
+      mergedOut: merged.length,
+      vectorWeight: params.vectorWeight,
+      textWeight: params.textWeight,
+    });
     return merged.map((entry) => entry as MemorySearchResult);
   }
 
@@ -389,8 +429,10 @@ export class MemoryIndexManager implements MemorySearchManager {
     progress?: (update: MemorySyncProgressUpdate) => void;
   }): Promise<void> {
     if (this.syncing) {
+      memLog.trace("sync: already running, coalescing", { reason: params?.reason });
       return this.syncing;
     }
+    memLog.trace("sync: starting", { reason: params?.reason, force: params?.force });
     this.syncing = this.runSync(params).finally(() => {
       this.syncing = null;
     });
@@ -463,87 +505,42 @@ export class MemoryIndexManager implements MemorySearchManager {
   }
 
   status(): MemoryProviderStatus {
-    const sourceFilter = this.buildSourceFilter();
-    const files = this.db
-      .prepare(`SELECT COUNT(*) as c FROM files WHERE 1=1${sourceFilter.sql}`)
-      .get(...sourceFilter.params) as {
-      c: number;
-    };
-    const chunks = this.db
-      .prepare(`SELECT COUNT(*) as c FROM chunks WHERE 1=1${sourceFilter.sql}`)
-      .get(...sourceFilter.params) as {
-      c: number;
-    };
-    const sourceCounts = (() => {
-      const sources = Array.from(this.sources);
-      if (sources.length === 0) {
-        return [];
-      }
-      const bySource = new Map<MemorySource, { files: number; chunks: number }>();
-      for (const source of sources) {
-        bySource.set(source, { files: 0, chunks: 0 });
-      }
-      const fileRows = this.db
-        .prepare(
-          `SELECT source, COUNT(*) as c FROM files WHERE 1=1${sourceFilter.sql} GROUP BY source`,
-        )
-        .all(...sourceFilter.params) as Array<{ source: MemorySource; c: number }>;
-      for (const row of fileRows) {
-        const entry = bySource.get(row.source) ?? { files: 0, chunks: 0 };
-        entry.files = row.c ?? 0;
-        bySource.set(row.source, entry);
-      }
-      const chunkRows = this.db
-        .prepare(
-          `SELECT source, COUNT(*) as c FROM chunks WHERE 1=1${sourceFilter.sql} GROUP BY source`,
-        )
-        .all(...sourceFilter.params) as Array<{ source: MemorySource; c: number }>;
-      for (const row of chunkRows) {
-        const entry = bySource.get(row.source) ?? { files: 0, chunks: 0 };
-        entry.chunks = row.c ?? 0;
-        bySource.set(row.source, entry);
-      }
-      return sources.map((source) => Object.assign({ source }, bySource.get(source)!));
-    })();
+    const sourceFilter = this.store.buildSourceFilter();
+    const sources = Array.from(this.sources);
     return {
       backend: "builtin",
-      files: files?.c ?? 0,
-      chunks: chunks?.c ?? 0,
+      files: this.store.countFiles(sourceFilter),
+      chunks: this.store.countChunks(sourceFilter),
       dirty: this.dirty || this.sessionsDirty,
       workspaceDir: this.workspaceDir,
       dbPath: this.settings.store.path,
       provider: this.provider.id,
       model: this.provider.model,
       requestedProvider: this.requestedProvider,
-      sources: Array.from(this.sources),
+      sources,
       extraPaths: this.settings.extraPaths,
-      sourceCounts,
-      cache: this.cache.enabled
+      sourceCounts: this.store.sourceBreakdown(sources, sourceFilter),
+      cache: this.store.cache.enabled
         ? {
             enabled: true,
-            entries:
-              (
-                this.db.prepare(`SELECT COUNT(*) as c FROM ${EMBEDDING_CACHE_TABLE}`).get() as
-                  | { c: number }
-                  | undefined
-              )?.c ?? 0,
-            maxEntries: this.cache.maxEntries,
+            entries: this.store.countCacheEntries(),
+            maxEntries: this.store.cache.maxEntries,
           }
-        : { enabled: false, maxEntries: this.cache.maxEntries },
+        : { enabled: false, maxEntries: this.store.cache.maxEntries },
       fts: {
-        enabled: this.fts.enabled,
-        available: this.fts.available,
-        error: this.fts.loadError,
+        enabled: this.store.fts.enabled,
+        available: this.store.fts.available,
+        error: this.store.fts.loadError,
       },
       fallback: this.fallbackReason
         ? { from: this.fallbackFrom ?? "local", reason: this.fallbackReason }
         : undefined,
       vector: {
-        enabled: this.vector.enabled,
-        available: this.vector.available ?? undefined,
-        extensionPath: this.vector.extensionPath,
-        loadError: this.vector.loadError,
-        dims: this.vector.dims,
+        enabled: this.store.vector.enabled,
+        available: this.store.vector.available ?? undefined,
+        extensionPath: this.store.vector.extensionPath,
+        loadError: this.store.vector.loadError,
+        dims: this.store.vector.dims,
       },
       batch: {
         enabled: this.batch.enabled,
@@ -560,10 +557,10 @@ export class MemoryIndexManager implements MemorySearchManager {
   }
 
   async probeVectorAvailability(): Promise<boolean> {
-    if (!this.vector.enabled) {
+    if (!this.store.vector.enabled) {
       return false;
     }
-    return this.ensureVectorReady();
+    return this.store.ensureVectorReady();
   }
 
   async probeEmbeddingAvailability(): Promise<MemoryEmbeddingProbeResult> {
@@ -601,207 +598,8 @@ export class MemoryIndexManager implements MemorySearchManager {
       this.sessionUnsubscribe();
       this.sessionUnsubscribe = null;
     }
-    this.db.close();
+    this.store.closeDb();
     INDEX_CACHE.delete(this.cacheKey);
-  }
-
-  private async ensureVectorReady(dimensions?: number): Promise<boolean> {
-    if (!this.vector.enabled) {
-      return false;
-    }
-    if (!this.vectorReady) {
-      this.vectorReady = this.withTimeout(
-        this.loadVectorExtension(),
-        VECTOR_LOAD_TIMEOUT_MS,
-        `sqlite-vec load timed out after ${Math.round(VECTOR_LOAD_TIMEOUT_MS / 1000)}s`,
-      );
-    }
-    let ready = false;
-    try {
-      ready = await this.vectorReady;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.vector.available = false;
-      this.vector.loadError = message;
-      this.vectorReady = null;
-      log.warn(`sqlite-vec unavailable: ${message}`);
-      return false;
-    }
-    if (ready && typeof dimensions === "number" && dimensions > 0) {
-      this.ensureVectorTable(dimensions);
-    }
-    return ready;
-  }
-
-  private async loadVectorExtension(): Promise<boolean> {
-    if (this.vector.available !== null) {
-      return this.vector.available;
-    }
-    if (!this.vector.enabled) {
-      this.vector.available = false;
-      return false;
-    }
-    try {
-      const resolvedPath = this.vector.extensionPath?.trim()
-        ? resolveUserPath(this.vector.extensionPath)
-        : undefined;
-      const loaded = await loadSqliteVecExtension({ db: this.db, extensionPath: resolvedPath });
-      if (!loaded.ok) {
-        throw new Error(loaded.error ?? "unknown sqlite-vec load error");
-      }
-      this.vector.extensionPath = loaded.extensionPath;
-      this.vector.available = true;
-      return true;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.vector.available = false;
-      this.vector.loadError = message;
-      log.warn(`sqlite-vec unavailable: ${message}`);
-      return false;
-    }
-  }
-
-  private ensureVectorTable(dimensions: number): void {
-    if (this.vector.dims === dimensions) {
-      return;
-    }
-    if (this.vector.dims && this.vector.dims !== dimensions) {
-      this.dropVectorTable();
-    }
-    this.db.exec(
-      `CREATE VIRTUAL TABLE IF NOT EXISTS ${VECTOR_TABLE} USING vec0(\n` +
-        `  id TEXT PRIMARY KEY,\n` +
-        `  embedding FLOAT[${dimensions}]\n` +
-        `)`,
-    );
-    this.vector.dims = dimensions;
-  }
-
-  private dropVectorTable(): void {
-    try {
-      this.db.exec(`DROP TABLE IF EXISTS ${VECTOR_TABLE}`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      log.debug(`Failed to drop ${VECTOR_TABLE}: ${message}`);
-    }
-  }
-
-  private buildSourceFilter(alias?: string): { sql: string; params: MemorySource[] } {
-    const sources = Array.from(this.sources);
-    if (sources.length === 0) {
-      return { sql: "", params: [] };
-    }
-    const column = alias ? `${alias}.source` : "source";
-    const placeholders = sources.map(() => "?").join(", ");
-    return { sql: ` AND ${column} IN (${placeholders})`, params: sources };
-  }
-
-  private openDatabase(): DatabaseSync {
-    const dbPath = resolveUserPath(this.settings.store.path);
-    return this.openDatabaseAtPath(dbPath);
-  }
-
-  private openDatabaseAtPath(dbPath: string): DatabaseSync {
-    const dir = path.dirname(dbPath);
-    ensureDir(dir);
-    const { DatabaseSync } = requireNodeSqlite();
-    return new DatabaseSync(dbPath, { allowExtension: this.settings.store.vector.enabled });
-  }
-
-  private seedEmbeddingCache(sourceDb: DatabaseSync): void {
-    if (!this.cache.enabled) {
-      return;
-    }
-    try {
-      const rows = sourceDb
-        .prepare(
-          `SELECT provider, model, provider_key, hash, embedding, dims, updated_at FROM ${EMBEDDING_CACHE_TABLE}`,
-        )
-        .all() as Array<{
-        provider: string;
-        model: string;
-        provider_key: string;
-        hash: string;
-        embedding: string;
-        dims: number | null;
-        updated_at: number;
-      }>;
-      if (!rows.length) {
-        return;
-      }
-      const insert = this.db.prepare(
-        `INSERT INTO ${EMBEDDING_CACHE_TABLE} (provider, model, provider_key, hash, embedding, dims, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(provider, model, provider_key, hash) DO UPDATE SET
-           embedding=excluded.embedding,
-           dims=excluded.dims,
-           updated_at=excluded.updated_at`,
-      );
-      this.db.exec("BEGIN");
-      for (const row of rows) {
-        insert.run(
-          row.provider,
-          row.model,
-          row.provider_key,
-          row.hash,
-          row.embedding,
-          row.dims,
-          row.updated_at,
-        );
-      }
-      this.db.exec("COMMIT");
-    } catch (err) {
-      try {
-        this.db.exec("ROLLBACK");
-      } catch {}
-      throw err;
-    }
-  }
-
-  private async swapIndexFiles(targetPath: string, tempPath: string): Promise<void> {
-    const backupPath = `${targetPath}.backup-${randomUUID()}`;
-    await this.moveIndexFiles(targetPath, backupPath);
-    try {
-      await this.moveIndexFiles(tempPath, targetPath);
-    } catch (err) {
-      await this.moveIndexFiles(backupPath, targetPath);
-      throw err;
-    }
-    await this.removeIndexFiles(backupPath);
-  }
-
-  private async moveIndexFiles(sourceBase: string, targetBase: string): Promise<void> {
-    const suffixes = ["", "-wal", "-shm"];
-    for (const suffix of suffixes) {
-      const source = `${sourceBase}${suffix}`;
-      const target = `${targetBase}${suffix}`;
-      try {
-        await fs.rename(source, target);
-      } catch (err) {
-        if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
-          throw err;
-        }
-      }
-    }
-  }
-
-  private async removeIndexFiles(basePath: string): Promise<void> {
-    const suffixes = ["", "-wal", "-shm"];
-    await Promise.all(suffixes.map((suffix) => fs.rm(`${basePath}${suffix}`, { force: true })));
-  }
-
-  private ensureSchema() {
-    const result = ensureMemoryIndexSchema({
-      db: this.db,
-      embeddingCacheTable: EMBEDDING_CACHE_TABLE,
-      ftsTable: FTS_TABLE,
-      ftsEnabled: this.fts.enabled,
-    });
-    this.fts.available = result.ftsAvailable;
-    if (result.ftsError) {
-      this.fts.loadError = result.ftsError;
-      log.warn(`fts unavailable: ${result.ftsError}`);
-    }
   }
 
   private ensureWatcher() {
@@ -889,6 +687,15 @@ export class MemoryIndexManager implements MemorySearchManager {
         messagesThreshold <= 0
           ? delta.pendingMessages > 0
           : delta.pendingMessages >= messagesThreshold;
+      memLog.trace("processSessionDeltaBatch: file delta", {
+        sessionFile: path.basename(sessionFile),
+        pendingBytes: delta.pendingBytes,
+        pendingMessages: delta.pendingMessages,
+        bytesThreshold,
+        messagesThreshold,
+        bytesHit,
+        messagesHit,
+      });
       if (!bytesHit && !messagesHit) {
         continue;
       }
@@ -901,6 +708,9 @@ export class MemoryIndexManager implements MemorySearchManager {
       shouldSync = true;
     }
     if (shouldSync) {
+      memLog.trace("processSessionDeltaBatch: triggering sync", {
+        dirtyFiles: this.sessionsDirtyFiles.size,
+      });
       void this.sync({ reason: "session-delta" }).catch((err) => {
         log.warn(`memory sync failed (session-delta): ${String(err)}`);
       });
@@ -945,7 +755,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         thresholds.deltaMessages > 0 &&
         (thresholds.deltaBytes <= 0 || state.pendingBytes < thresholds.deltaBytes);
       if (shouldCountMessages) {
-        state.pendingMessages += await this.countNewlines(sessionFile, 0, size);
+        state.pendingMessages += await this.countMessageMarkers(sessionFile, 0, size);
       }
     } else {
       state.pendingBytes += deltaBytes;
@@ -953,7 +763,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         thresholds.deltaMessages > 0 &&
         (thresholds.deltaBytes <= 0 || state.pendingBytes < thresholds.deltaBytes);
       if (shouldCountMessages) {
-        state.pendingMessages += await this.countNewlines(sessionFile, state.lastSize, size);
+        state.pendingMessages += await this.countMessageMarkers(sessionFile, state.lastSize, size);
       }
       state.lastSize = size;
     }
@@ -966,7 +776,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     };
   }
 
-  private async countNewlines(absPath: string, start: number, end: number): Promise<number> {
+  private async countMessageMarkers(absPath: string, start: number, end: number): Promise<number> {
     if (end <= start) {
       return 0;
     }
@@ -975,17 +785,22 @@ export class MemoryIndexManager implements MemorySearchManager {
       let offset = start;
       let count = 0;
       const buffer = Buffer.alloc(SESSION_DELTA_READ_CHUNK_BYTES);
+      let carry = "";
+      const carryLen = Math.max(0, SESSION_MESSAGE_MARKER.length - 1);
       while (offset < end) {
         const toRead = Math.min(buffer.length, end - offset);
         const { bytesRead } = await handle.read(buffer, 0, toRead, offset);
         if (bytesRead <= 0) {
           break;
         }
-        for (let i = 0; i < bytesRead; i += 1) {
-          if (buffer[i] === 10) {
-            count += 1;
-          }
+        const chunk = buffer.toString("utf8", 0, bytesRead);
+        const text = carry ? `${carry}${chunk}` : chunk;
+        let index = text.indexOf(SESSION_MESSAGE_MARKER);
+        while (index !== -1) {
+          count += 1;
+          index = text.indexOf(SESSION_MESSAGE_MARKER, index + SESSION_MESSAGE_MARKER.length);
         }
+        carry = carryLen > 0 && text.length > carryLen ? text.slice(-carryLen) : text;
         offset += bytesRead;
       }
       return count;
@@ -1086,11 +901,13 @@ export class MemoryIndexManager implements MemorySearchManager {
       });
     }
 
+    let skippedCount = 0;
+    let indexedCount = 0;
     const tasks = fileEntries.map((entry) => async () => {
-      const record = this.db
-        .prepare(`SELECT hash FROM files WHERE path = ? AND source = ?`)
-        .get(entry.path, "memory") as { hash: string } | undefined;
-      if (!params.needsFullReindex && record?.hash === entry.hash) {
+      const existingHash = this.store.getFileHash(entry.path, "memory");
+      if (!params.needsFullReindex && existingHash === entry.hash) {
+        memLog.trace("syncMemoryFiles: skip (unchanged)", { path: entry.path });
+        skippedCount += 1;
         if (params.progress) {
           params.progress.completed += 1;
           params.progress.report({
@@ -1100,7 +917,13 @@ export class MemoryIndexManager implements MemorySearchManager {
         }
         return;
       }
+      memLog.trace("syncMemoryFiles: indexing", {
+        path: entry.path,
+        reason: !existingHash ? "new" : "hash-changed",
+        size: entry.size,
+      });
       await this.indexFile(entry, { source: "memory" });
+      indexedCount += 1;
       if (params.progress) {
         params.progress.completed += 1;
         params.progress.report({
@@ -1111,30 +934,33 @@ export class MemoryIndexManager implements MemorySearchManager {
     });
     await this.runWithConcurrency(tasks, this.getIndexConcurrency());
 
-    const staleRows = this.db
-      .prepare(`SELECT path FROM files WHERE source = ?`)
-      .all("memory") as Array<{ path: string }>;
-    for (const stale of staleRows) {
-      if (activePaths.has(stale.path)) {
+    const stalePaths = this.store.listFilePaths("memory");
+    let removedCount = 0;
+    for (const stalePath of stalePaths) {
+      if (activePaths.has(stalePath)) {
         continue;
       }
-      this.db.prepare(`DELETE FROM files WHERE path = ? AND source = ?`).run(stale.path, "memory");
-      try {
-        this.db
-          .prepare(
-            `DELETE FROM ${VECTOR_TABLE} WHERE id IN (SELECT id FROM chunks WHERE path = ? AND source = ?)`,
-          )
-          .run(stale.path, "memory");
-      } catch {}
-      this.db.prepare(`DELETE FROM chunks WHERE path = ? AND source = ?`).run(stale.path, "memory");
-      if (this.fts.enabled && this.fts.available) {
-        try {
-          this.db
-            .prepare(`DELETE FROM ${FTS_TABLE} WHERE path = ? AND source = ? AND model = ?`)
-            .run(stale.path, "memory", this.provider.model);
-        } catch {}
-      }
+      memLog.trace("syncMemoryFiles: removing stale", { path: stalePath });
+      this.store.deleteStaleFile(stalePath, "memory", this.provider.model);
+      removedCount += 1;
     }
+    memLog.trace("syncMemoryFiles: done", {
+      indexed: indexedCount,
+      skipped: skippedCount,
+      removed: removedCount,
+      total: fileEntries.length,
+    });
+    this.opsLog?.log({
+      action: "sync.file_indexed",
+      status: "success",
+      detail: {
+        source: "memory",
+        indexed: indexedCount,
+        skipped: skippedCount,
+        removed: removedCount,
+        total: fileEntries.length,
+      },
+    });
   }
 
   private async syncSessionFiles(params: {
@@ -1160,8 +986,11 @@ export class MemoryIndexManager implements MemorySearchManager {
       });
     }
 
+    let sessionIndexedCount = 0;
+    let sessionSkippedCount = 0;
     const tasks = files.map((absPath) => async () => {
       if (!indexAll && !this.sessionsDirtyFiles.has(absPath)) {
+        sessionSkippedCount += 1;
         if (params.progress) {
           params.progress.completed += 1;
           params.progress.report({
@@ -1173,6 +1002,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       }
       const entry = await this.buildSessionEntry(absPath);
       if (!entry) {
+        sessionSkippedCount += 1;
         if (params.progress) {
           params.progress.completed += 1;
           params.progress.report({
@@ -1182,10 +1012,9 @@ export class MemoryIndexManager implements MemorySearchManager {
         }
         return;
       }
-      const record = this.db
-        .prepare(`SELECT hash FROM files WHERE path = ? AND source = ?`)
-        .get(entry.path, "sessions") as { hash: string } | undefined;
-      if (!params.needsFullReindex && record?.hash === entry.hash) {
+      const existingHash = this.store.getFileHash(entry.path, "sessions");
+      if (!params.needsFullReindex && existingHash === entry.hash) {
+        sessionSkippedCount += 1;
         if (params.progress) {
           params.progress.completed += 1;
           params.progress.report({
@@ -1197,6 +1026,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         return;
       }
       await this.indexFile(entry, { source: "sessions", content: entry.content });
+      sessionIndexedCount += 1;
       this.resetSessionDelta(absPath, entry.size);
       if (params.progress) {
         params.progress.completed += 1;
@@ -1208,34 +1038,26 @@ export class MemoryIndexManager implements MemorySearchManager {
     });
     await this.runWithConcurrency(tasks, this.getIndexConcurrency());
 
-    const staleRows = this.db
-      .prepare(`SELECT path FROM files WHERE source = ?`)
-      .all("sessions") as Array<{ path: string }>;
-    for (const stale of staleRows) {
-      if (activePaths.has(stale.path)) {
+    const stalePaths = this.store.listFilePaths("sessions");
+    let sessionRemovedCount = 0;
+    for (const stalePath of stalePaths) {
+      if (activePaths.has(stalePath)) {
         continue;
       }
-      this.db
-        .prepare(`DELETE FROM files WHERE path = ? AND source = ?`)
-        .run(stale.path, "sessions");
-      try {
-        this.db
-          .prepare(
-            `DELETE FROM ${VECTOR_TABLE} WHERE id IN (SELECT id FROM chunks WHERE path = ? AND source = ?)`,
-          )
-          .run(stale.path, "sessions");
-      } catch {}
-      this.db
-        .prepare(`DELETE FROM chunks WHERE path = ? AND source = ?`)
-        .run(stale.path, "sessions");
-      if (this.fts.enabled && this.fts.available) {
-        try {
-          this.db
-            .prepare(`DELETE FROM ${FTS_TABLE} WHERE path = ? AND source = ? AND model = ?`)
-            .run(stale.path, "sessions", this.provider.model);
-        } catch {}
-      }
+      this.store.deleteStaleFile(stalePath, "sessions", this.provider.model);
+      sessionRemovedCount += 1;
     }
+    this.opsLog?.log({
+      action: "sync.file_indexed",
+      status: "success",
+      detail: {
+        source: "sessions",
+        indexed: sessionIndexedCount,
+        skipped: sessionSkippedCount,
+        removed: sessionRemovedCount,
+        total: files.length,
+      },
+    });
   }
 
   private createSyncProgress(
@@ -1268,6 +1090,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     force?: boolean;
     progress?: (update: MemorySyncProgressUpdate) => void;
   }) {
+    const syncStart = Date.now();
     const progress = params?.progress ? this.createSyncProgress(params.progress) : undefined;
     if (progress) {
       progress.report({
@@ -1276,8 +1099,8 @@ export class MemoryIndexManager implements MemorySearchManager {
         label: "Loading vector extension…",
       });
     }
-    const vectorReady = await this.ensureVectorReady();
-    const meta = this.readMeta();
+    const vectorReady = await this.store.ensureVectorReady();
+    const meta = this.store.readMeta();
     const needsFullReindex =
       params?.force ||
       !meta ||
@@ -1287,12 +1110,47 @@ export class MemoryIndexManager implements MemorySearchManager {
       meta.chunkTokens !== this.settings.chunking.tokens ||
       meta.chunkOverlap !== this.settings.chunking.overlap ||
       (vectorReady && !meta?.vectorDims);
+
+    this.opsLog?.log({
+      action: "sync.start",
+      status: "success",
+      detail: { reason: params?.reason, force: params?.force, needsFullReindex },
+    });
+
+    memLog.trace("runSync: decision", {
+      reason: params?.reason,
+      force: params?.force,
+      needsFullReindex,
+      vectorReady,
+      dirty: this.dirty,
+      sessionsDirty: this.sessionsDirty,
+      sessionsDirtyFiles: this.sessionsDirtyFiles.size,
+      metaModel: meta?.model,
+      currentModel: this.provider.model,
+      metaProvider: meta?.provider,
+      currentProvider: this.provider.id,
+    });
+
     try {
       if (needsFullReindex) {
+        memLog.summary("sync: full reindex required", {
+          reason: params?.reason,
+          force: params?.force,
+        });
         await this.runSafeReindex({
           reason: params?.reason,
           force: params?.force,
           progress: progress ?? undefined,
+        });
+        const reindexElapsed = Date.now() - syncStart;
+        memLog.summary(`sync: full reindex completed in ${reindexElapsed}ms`, {
+          elapsedMs: reindexElapsed,
+        });
+        this.opsLog?.log({
+          action: "sync.complete",
+          status: "success",
+          durationMs: reindexElapsed,
+          detail: { reason: params?.reason, fullReindex: true },
         });
         return;
       }
@@ -1300,6 +1158,8 @@ export class MemoryIndexManager implements MemorySearchManager {
       const shouldSyncMemory =
         this.sources.has("memory") && (params?.force || needsFullReindex || this.dirty);
       const shouldSyncSessions = this.shouldSyncSessions(params, needsFullReindex);
+
+      memLog.trace("runSync: sync targets", { shouldSyncMemory, shouldSyncSessions });
 
       if (shouldSyncMemory) {
         await this.syncMemoryFiles({ needsFullReindex, progress: progress ?? undefined });
@@ -1315,8 +1175,27 @@ export class MemoryIndexManager implements MemorySearchManager {
       } else {
         this.sessionsDirty = false;
       }
+
+      const elapsedMs = Date.now() - syncStart;
+      memLog.summary(`sync completed in ${elapsedMs}ms`, {
+        reason: params?.reason,
+        syncedMemory: shouldSyncMemory,
+        syncedSessions: shouldSyncSessions,
+        elapsedMs,
+      });
+      this.opsLog?.log({
+        action: "sync.complete",
+        status: "success",
+        durationMs: elapsedMs,
+        detail: {
+          reason: params?.reason,
+          syncedMemory: shouldSyncMemory,
+          syncedSessions: shouldSyncSessions,
+        },
+      });
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
+      memLog.warn("runSync: error, checking fallback", { error: reason });
       const activated =
         this.shouldFallbackOnError(reason) && (await this.activateFallbackProvider(reason));
       if (activated) {
@@ -1401,47 +1280,33 @@ export class MemoryIndexManager implements MemorySearchManager {
     progress?: MemorySyncProgressState;
   }): Promise<void> {
     const dbPath = resolveUserPath(this.settings.store.path);
-    const tempDbPath = `${dbPath}.tmp-${randomUUID()}`;
-    const tempDb = this.openDatabaseAtPath(tempDbPath);
+    const tempDbPath = `${dbPath}.tmp-${crypto.randomUUID()}`;
+    const tempDb = this.store.openDatabaseAtPath(tempDbPath);
 
-    const originalDb = this.db;
+    const originalDb = this.store.db;
     let originalDbClosed = false;
-    const originalState = {
-      ftsAvailable: this.fts.available,
-      ftsError: this.fts.loadError,
-      vectorAvailable: this.vector.available,
-      vectorLoadError: this.vector.loadError,
-      vectorDims: this.vector.dims,
-      vectorReady: this.vectorReady,
-    };
+    const originalState = this.store.captureState();
 
     const restoreOriginalState = () => {
       if (originalDbClosed) {
-        this.db = this.openDatabaseAtPath(dbPath);
+        this.store.replaceDb(this.store.openDatabaseAtPath(dbPath));
       } else {
-        this.db = originalDb;
+        this.store.replaceDb(originalDb);
       }
-      this.fts.available = originalState.ftsAvailable;
-      this.fts.loadError = originalState.ftsError;
-      this.vector.available = originalDbClosed ? null : originalState.vectorAvailable;
-      this.vector.loadError = originalState.vectorLoadError;
-      this.vector.dims = originalState.vectorDims;
-      this.vectorReady = originalDbClosed ? null : originalState.vectorReady;
+      this.store.restoreState(originalState, originalDbClosed);
     };
 
-    this.db = tempDb;
-    this.vectorReady = null;
-    this.vector.available = null;
-    this.vector.loadError = undefined;
-    this.vector.dims = undefined;
-    this.fts.available = false;
-    this.fts.loadError = undefined;
-    this.ensureSchema();
+    this.store.replaceDb(tempDb);
+    this.store.resetVectorState();
+    this.store.vector.dims = undefined;
+    this.store.fts.available = false;
+    this.store.fts.loadError = undefined;
+    this.store.runSchema();
 
     let nextMeta: MemoryIndexMeta | null = null;
 
     try {
-      this.seedEmbeddingCache(originalDb);
+      this.store.seedEmbeddingCache(originalDb);
       const shouldSyncMemory = this.sources.has("memory");
       const shouldSyncSessions = this.shouldSyncSessions(
         { reason: params.reason, force: params.force },
@@ -1470,69 +1335,31 @@ export class MemoryIndexManager implements MemorySearchManager {
         chunkTokens: this.settings.chunking.tokens,
         chunkOverlap: this.settings.chunking.overlap,
       };
-      if (this.vector.available && this.vector.dims) {
-        nextMeta.vectorDims = this.vector.dims;
+      if (this.store.vector.available && this.store.vector.dims) {
+        nextMeta.vectorDims = this.store.vector.dims;
       }
 
-      this.writeMeta(nextMeta);
-      this.pruneEmbeddingCacheIfNeeded();
+      this.store.writeMeta(nextMeta);
+      this.store.pruneEmbeddingCacheIfNeeded();
 
-      this.db.close();
+      this.store.closeDb();
       originalDb.close();
       originalDbClosed = true;
 
-      await this.swapIndexFiles(dbPath, tempDbPath);
+      await this.store.swapIndexFiles(dbPath, tempDbPath);
 
-      this.db = this.openDatabaseAtPath(dbPath);
-      this.vectorReady = null;
-      this.vector.available = null;
-      this.vector.loadError = undefined;
-      this.ensureSchema();
-      this.vector.dims = nextMeta.vectorDims;
+      this.store.replaceDb(this.store.openDatabaseAtPath(dbPath));
+      this.store.resetVectorState();
+      this.store.runSchema();
+      this.store.vector.dims = nextMeta.vectorDims;
     } catch (err) {
       try {
-        this.db.close();
+        this.store.closeDb();
       } catch {}
-      await this.removeIndexFiles(tempDbPath);
+      await this.store.removeIndexFiles(tempDbPath);
       restoreOriginalState();
       throw err;
     }
-  }
-
-  private resetIndex() {
-    this.db.exec(`DELETE FROM files`);
-    this.db.exec(`DELETE FROM chunks`);
-    if (this.fts.enabled && this.fts.available) {
-      try {
-        this.db.exec(`DELETE FROM ${FTS_TABLE}`);
-      } catch {}
-    }
-    this.dropVectorTable();
-    this.vector.dims = undefined;
-    this.sessionsDirtyFiles.clear();
-  }
-
-  private readMeta(): MemoryIndexMeta | null {
-    const row = this.db.prepare(`SELECT value FROM meta WHERE key = ?`).get(META_KEY) as
-      | { value: string }
-      | undefined;
-    if (!row?.value) {
-      return null;
-    }
-    try {
-      return JSON.parse(row.value) as MemoryIndexMeta;
-    } catch {
-      return null;
-    }
-  }
-
-  private writeMeta(meta: MemoryIndexMeta) {
-    const value = JSON.stringify(meta);
-    this.db
-      .prepare(
-        `INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
-      )
-      .run(META_KEY, value);
   }
 
   private async listSessionFiles(): Promise<string[]> {
@@ -1596,6 +1423,11 @@ export class MemoryIndexManager implements MemorySearchManager {
       const collected: string[] = [];
       for (const line of lines) {
         if (!line.trim()) {
+          continue;
+        }
+        // Fast-path: session transcripts can contain many non-message JSONL records. Avoid parsing
+        // those unless the line looks like a message record.
+        if (!line.includes('"type":"message"')) {
           continue;
         }
         let record: unknown;
@@ -1678,103 +1510,21 @@ export class MemoryIndexManager implements MemorySearchManager {
   }
 
   private loadEmbeddingCache(hashes: string[]): Map<string, number[]> {
-    if (!this.cache.enabled) {
-      return new Map();
-    }
-    if (hashes.length === 0) {
-      return new Map();
-    }
-    const unique: string[] = [];
-    const seen = new Set<string>();
-    for (const hash of hashes) {
-      if (!hash) {
-        continue;
-      }
-      if (seen.has(hash)) {
-        continue;
-      }
-      seen.add(hash);
-      unique.push(hash);
-    }
-    if (unique.length === 0) {
-      return new Map();
-    }
-
-    const out = new Map<string, number[]>();
-    const baseParams = [this.provider.id, this.provider.model, this.providerKey];
-    const batchSize = 400;
-    for (let start = 0; start < unique.length; start += batchSize) {
-      const batch = unique.slice(start, start + batchSize);
-      const placeholders = batch.map(() => "?").join(", ");
-      const rows = this.db
-        .prepare(
-          `SELECT hash, embedding FROM ${EMBEDDING_CACHE_TABLE}\n` +
-            ` WHERE provider = ? AND model = ? AND provider_key = ? AND hash IN (${placeholders})`,
-        )
-        .all(...baseParams, ...batch) as Array<{ hash: string; embedding: string }>;
-      for (const row of rows) {
-        out.set(row.hash, parseEmbedding(row.embedding));
-      }
-    }
-    return out;
+    return this.store.loadEmbeddingCache({
+      hashes,
+      providerId: this.provider.id,
+      providerModel: this.provider.model,
+      providerKey: this.providerKey,
+    });
   }
 
   private upsertEmbeddingCache(entries: Array<{ hash: string; embedding: number[] }>): void {
-    if (!this.cache.enabled) {
-      return;
-    }
-    if (entries.length === 0) {
-      return;
-    }
-    const now = Date.now();
-    const stmt = this.db.prepare(
-      `INSERT INTO ${EMBEDDING_CACHE_TABLE} (provider, model, provider_key, hash, embedding, dims, updated_at)\n` +
-        ` VALUES (?, ?, ?, ?, ?, ?, ?)\n` +
-        ` ON CONFLICT(provider, model, provider_key, hash) DO UPDATE SET\n` +
-        `   embedding=excluded.embedding,\n` +
-        `   dims=excluded.dims,\n` +
-        `   updated_at=excluded.updated_at`,
-    );
-    for (const entry of entries) {
-      const embedding = entry.embedding ?? [];
-      stmt.run(
-        this.provider.id,
-        this.provider.model,
-        this.providerKey,
-        entry.hash,
-        JSON.stringify(embedding),
-        embedding.length,
-        now,
-      );
-    }
-  }
-
-  private pruneEmbeddingCacheIfNeeded(): void {
-    if (!this.cache.enabled) {
-      return;
-    }
-    const max = this.cache.maxEntries;
-    if (!max || max <= 0) {
-      return;
-    }
-    const row = this.db.prepare(`SELECT COUNT(*) as c FROM ${EMBEDDING_CACHE_TABLE}`).get() as
-      | { c: number }
-      | undefined;
-    const count = row?.c ?? 0;
-    if (count <= max) {
-      return;
-    }
-    const excess = count - max;
-    this.db
-      .prepare(
-        `DELETE FROM ${EMBEDDING_CACHE_TABLE}\n` +
-          ` WHERE rowid IN (\n` +
-          `   SELECT rowid FROM ${EMBEDDING_CACHE_TABLE}\n` +
-          `   ORDER BY updated_at ASC\n` +
-          `   LIMIT ?\n` +
-          ` )`,
-      )
-      .run(excess);
+    this.store.upsertEmbeddingCache({
+      entries,
+      providerId: this.provider.id,
+      providerModel: this.provider.model,
+      providerKey: this.providerKey,
+    });
   }
 
   private async embedChunksInBatches(chunks: MemoryChunk[]): Promise<number[][]> {
@@ -1794,6 +1544,12 @@ export class MemoryIndexManager implements MemorySearchManager {
         missing.push({ index: i, chunk });
       }
     }
+
+    memLog.trace("embedChunksInBatches: cache check", {
+      total: chunks.length,
+      cacheHits: chunks.length - missing.length,
+      cacheMisses: missing.length,
+    });
 
     if (missing.length === 0) {
       return embeddings;
@@ -1820,38 +1576,12 @@ export class MemoryIndexManager implements MemorySearchManager {
   }
 
   private computeProviderKey(): string {
-    if (this.provider.id === "openai" && this.openAi) {
-      const entries = Object.entries(this.openAi.headers)
-        .filter(([key]) => key.toLowerCase() !== "authorization")
-        .toSorted(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => [key, value]);
-      return hashText(
-        JSON.stringify({
-          provider: "openai",
-          baseUrl: this.openAi.baseUrl,
-          model: this.openAi.model,
-          headers: entries,
-        }),
-      );
-    }
-    if (this.provider.id === "gemini" && this.gemini) {
-      const entries = Object.entries(this.gemini.headers)
-        .filter(([key]) => {
-          const lower = key.toLowerCase();
-          return lower !== "authorization" && lower !== "x-goog-api-key";
-        })
-        .toSorted(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => [key, value]);
-      return hashText(
-        JSON.stringify({
-          provider: "gemini",
-          baseUrl: this.gemini.baseUrl,
-          model: this.gemini.model,
-          headers: entries,
-        }),
-      );
-    }
-    return hashText(JSON.stringify({ provider: this.provider.id, model: this.provider.model }));
+    return computeEmbeddingProviderKey({
+      providerId: this.provider.id,
+      providerModel: this.provider.model,
+      openAi: this.openAi,
+      gemini: this.gemini,
+    });
   }
 
   private async embedChunksWithBatch(
@@ -2079,7 +1809,7 @@ export class MemoryIndexManager implements MemorySearchManager {
 
   private async embedQueryWithTimeout(text: string): Promise<number[]> {
     const timeoutMs = this.resolveEmbeddingTimeout("query");
-    log.debug("memory embeddings: query start", { provider: this.provider.id, timeoutMs });
+    // log.debug("memory embeddings: query start", { provider: this.provider.id, timeoutMs });
     return await this.withTimeout(
       this.provider.embedQuery(text),
       timeoutMs,
@@ -2258,98 +1988,75 @@ export class MemoryIndexManager implements MemorySearchManager {
     entry: MemoryFileEntry | SessionFileEntry,
     options: { source: MemorySource; content?: string },
   ) {
+    const indexStart = Date.now();
     const content = options.content ?? (await fs.readFile(entry.absPath, "utf-8"));
     const chunks = chunkMarkdown(content, this.settings.chunking).filter(
       (chunk) => chunk.text.trim().length > 0,
     );
+    memLog.trace("indexFile: chunking", {
+      path: entry.path,
+      source: options.source,
+      contentLength: content.length,
+      chunks: chunks.length,
+      chunkTokens: this.settings.chunking.tokens,
+      chunkOverlap: this.settings.chunking.overlap,
+    });
     const embeddings = this.batch.enabled
       ? await this.embedChunksWithBatch(chunks, entry, options.source)
       : await this.embedChunksInBatches(chunks);
     const sample = embeddings.find((embedding) => embedding.length > 0);
-    const vectorReady = sample ? await this.ensureVectorReady(sample.length) : false;
+    const vectorReady = sample ? await this.store.ensureVectorReady(sample.length) : false;
     const now = Date.now();
     if (vectorReady) {
-      try {
-        this.db
-          .prepare(
-            `DELETE FROM ${VECTOR_TABLE} WHERE id IN (SELECT id FROM chunks WHERE path = ? AND source = ?)`,
-          )
-          .run(entry.path, options.source);
-      } catch {}
+      this.store.deleteVectorsForFile(entry.path, options.source);
     }
-    if (this.fts.enabled && this.fts.available) {
-      try {
-        this.db
-          .prepare(`DELETE FROM ${FTS_TABLE} WHERE path = ? AND source = ? AND model = ?`)
-          .run(entry.path, options.source, this.provider.model);
-      } catch {}
-    }
-    this.db
-      .prepare(`DELETE FROM chunks WHERE path = ? AND source = ?`)
-      .run(entry.path, options.source);
+    this.store.deleteFtsForFile(entry.path, options.source, this.provider.model);
+    this.store.deleteChunksForFile(entry.path, options.source);
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const embedding = embeddings[i] ?? [];
       const id = hashText(
         `${options.source}:${entry.path}:${chunk.startLine}:${chunk.endLine}:${chunk.hash}:${this.provider.model}`,
       );
-      this.db
-        .prepare(
-          `INSERT INTO chunks (id, path, source, start_line, end_line, hash, model, text, embedding, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET
-             hash=excluded.hash,
-             model=excluded.model,
-             text=excluded.text,
-             embedding=excluded.embedding,
-             updated_at=excluded.updated_at`,
-        )
-        .run(
-          id,
-          entry.path,
-          options.source,
-          chunk.startLine,
-          chunk.endLine,
-          chunk.hash,
-          this.provider.model,
-          chunk.text,
-          JSON.stringify(embedding),
-          now,
-        );
+      this.store.insertChunk({
+        id,
+        path: entry.path,
+        source: options.source,
+        startLine: chunk.startLine,
+        endLine: chunk.endLine,
+        hash: chunk.hash,
+        model: this.provider.model,
+        text: chunk.text,
+        embedding,
+        updatedAt: now,
+      });
       if (vectorReady && embedding.length > 0) {
-        try {
-          this.db.prepare(`DELETE FROM ${VECTOR_TABLE} WHERE id = ?`).run(id);
-        } catch {}
-        this.db
-          .prepare(`INSERT INTO ${VECTOR_TABLE} (id, embedding) VALUES (?, ?)`)
-          .run(id, vectorToBlob(embedding));
+        this.store.insertVector(id, embedding);
       }
-      if (this.fts.enabled && this.fts.available) {
-        this.db
-          .prepare(
-            `INSERT INTO ${FTS_TABLE} (text, id, path, source, model, start_line, end_line)\n` +
-              ` VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          )
-          .run(
-            chunk.text,
-            id,
-            entry.path,
-            options.source,
-            this.provider.model,
-            chunk.startLine,
-            chunk.endLine,
-          );
-      }
+      this.store.insertFts({
+        text: chunk.text,
+        id,
+        path: entry.path,
+        source: options.source,
+        model: this.provider.model,
+        startLine: chunk.startLine,
+        endLine: chunk.endLine,
+      });
     }
-    this.db
-      .prepare(
-        `INSERT INTO files (path, source, hash, mtime, size) VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(path) DO UPDATE SET
-           source=excluded.source,
-           hash=excluded.hash,
-           mtime=excluded.mtime,
-           size=excluded.size`,
-      )
-      .run(entry.path, options.source, entry.hash, entry.mtimeMs, entry.size);
+    this.store.upsertFile({
+      path: entry.path,
+      source: options.source,
+      hash: entry.hash,
+      mtimeMs: entry.mtimeMs,
+      size: entry.size,
+    });
+    memLog.trace("indexFile: completed", {
+      path: entry.path,
+      source: options.source,
+      chunks: chunks.length,
+      vectorReady,
+      ftsAvailable: this.store.fts.available,
+      elapsedMs: Date.now() - indexStart,
+    });
   }
 }

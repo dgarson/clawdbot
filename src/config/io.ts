@@ -150,6 +150,10 @@ function warnIfConfigFromFuture(cfg: OpenClawConfig, logger: Pick<typeof console
   if (!touched) {
     return;
   }
+  // Skip version check for dev builds (0.0.0)
+  if (VERSION === "0.0.0") {
+    return;
+  }
   const cmp = compareOpenClawVersions(VERSION, touched);
   if (cmp === null) {
     return;

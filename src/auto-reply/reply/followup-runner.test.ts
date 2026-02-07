@@ -9,6 +9,7 @@ import { createMockTypingController } from "./test-helpers.js";
 const runEmbeddedPiAgentMock = vi.fn();
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
   runWithModelFallback: async ({
     provider,
     model,
@@ -61,7 +62,7 @@ const baseQueuedRun = (messageProvider = "whatsapp"): FollowupRun =>
   }) as FollowupRun;
 
 describe("createFollowupRunner compaction", () => {
-  it("adds verbose auto-compaction notice and tracks count", async () => {
+  it("tracks compaction count without user-facing notice", async () => {
     const storePath = path.join(
       await fs.mkdtemp(path.join(tmpdir(), "openclaw-compaction-")),
       "sessions.json",
@@ -127,8 +128,8 @@ describe("createFollowupRunner compaction", () => {
 
     await runner(queued);
 
-    expect(onBlockReply).toHaveBeenCalled();
-    expect(onBlockReply.mock.calls[0][0].text).toContain("Auto-compaction complete");
+    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    expect(onBlockReply).toHaveBeenCalledWith(expect.objectContaining({ text: "final" }));
     expect(sessionStore.main.compactionCount).toBe(1);
   });
 });

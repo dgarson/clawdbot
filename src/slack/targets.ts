@@ -23,19 +23,19 @@ export function parseSlackTarget(
   }
   const mentionMatch = trimmed.match(/^<@([A-Z0-9]+)>$/i);
   if (mentionMatch) {
-    return buildMessagingTarget("user", mentionMatch[1], trimmed);
+    return buildMessagingTarget("user", mentionMatch[1].toUpperCase(), trimmed);
   }
   if (trimmed.startsWith("user:")) {
     const id = trimmed.slice("user:".length).trim();
-    return id ? buildMessagingTarget("user", id, trimmed) : undefined;
+    return id ? buildMessagingTarget("user", id.toUpperCase(), trimmed) : undefined;
   }
   if (trimmed.startsWith("channel:")) {
     const id = trimmed.slice("channel:".length).trim();
-    return id ? buildMessagingTarget("channel", id, trimmed) : undefined;
+    return id ? buildMessagingTarget("channel", id.toUpperCase(), trimmed) : undefined;
   }
   if (trimmed.startsWith("slack:")) {
     const id = trimmed.slice("slack:".length).trim();
-    return id ? buildMessagingTarget("user", id, trimmed) : undefined;
+    return id ? buildMessagingTarget("user", id.toUpperCase(), trimmed) : undefined;
   }
   if (trimmed.startsWith("@")) {
     const candidate = trimmed.slice(1).trim();
@@ -44,7 +44,7 @@ export function parseSlackTarget(
       pattern: /^[A-Z0-9]+$/i,
       errorMessage: "Slack DMs require a user id (use user:<id> or <@id>)",
     });
-    return buildMessagingTarget("user", id, trimmed);
+    return buildMessagingTarget("user", id.toUpperCase(), trimmed);
   }
   if (trimmed.startsWith("#")) {
     const candidate = trimmed.slice(1).trim();
@@ -53,12 +53,12 @@ export function parseSlackTarget(
       pattern: /^[A-Z0-9]+$/i,
       errorMessage: "Slack channels require a channel id (use channel:<id>)",
     });
-    return buildMessagingTarget("channel", id, trimmed);
+    return buildMessagingTarget("channel", id.toUpperCase(), trimmed);
   }
   if (options.defaultKind) {
-    return buildMessagingTarget(options.defaultKind, trimmed, trimmed);
+    return buildMessagingTarget(options.defaultKind, trimmed.toUpperCase(), trimmed);
   }
-  return buildMessagingTarget("channel", trimmed, trimmed);
+  return buildMessagingTarget("channel", trimmed.toUpperCase(), trimmed);
 }
 
 export function resolveSlackChannelId(raw: string): string {

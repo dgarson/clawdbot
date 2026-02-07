@@ -79,6 +79,11 @@ export async function buildSessionEntry(absPath: string): Promise<SessionFileEnt
       if (!line.trim()) {
         continue;
       }
+      // Fast-path: session transcripts can include non-message JSONL records (or even JSON logs).
+      // Avoid parsing those lines unless they look like message records.
+      if (!line.includes('"type":"message"')) {
+        continue;
+      }
       let record: unknown;
       try {
         record = JSON.parse(line);

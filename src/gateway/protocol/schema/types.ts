@@ -9,6 +9,8 @@ import type {
 } from "./agent.js";
 import type {
   AgentSummarySchema,
+  AgentsDescribeParamsSchema,
+  AgentsDescribeResultSchema,
   AgentsFileEntrySchema,
   AgentsFilesGetParamsSchema,
   AgentsFilesGetResultSchema,
@@ -25,8 +27,29 @@ import type {
   SkillsBinsResultSchema,
   SkillsInstallParamsSchema,
   SkillsStatusParamsSchema,
+  SkillsUninstallParamsSchema,
   SkillsUpdateParamsSchema,
 } from "./agents-models-skills.js";
+import type {
+  AutomationAiModelSchema,
+  AutomationArtifactSchema,
+  AutomationConflictSchema,
+  AutomationRunMilestoneSchema,
+  AutomationRunRecordSchema,
+  AutomationScheduleSchema,
+  AutomationSchema,
+  AutomationsArtifactDownloadParamsSchema,
+  AutomationsArtifactDownloadResultSchema,
+  AutomationsCancelParamsSchema,
+  AutomationsCreateParamsSchema,
+  AutomationsDeleteParamsSchema,
+  AutomationsHistoryParamsSchema,
+  AutomationsHistoryResultSchema,
+  AutomationsListParamsSchema,
+  AutomationsListResultSchema,
+  AutomationsRunParamsSchema,
+  AutomationsUpdateParamsSchema,
+} from "./automations.js";
 import type {
   ChannelsLogoutParamsSchema,
   ChannelsStatusParamsSchema,
@@ -42,6 +65,9 @@ import type {
   ConfigSchemaParamsSchema,
   ConfigSchemaResponseSchema,
   ConfigSetParamsSchema,
+  StartupCommandsAppendParamsSchema,
+  StartupCommandsListParamsSchema,
+  StartupCommandsRemoveParamsSchema,
   UpdateRunParamsSchema,
 } from "./config.js";
 import type {
@@ -49,9 +75,11 @@ import type {
   CronJobSchema,
   CronListParamsSchema,
   CronRemoveParamsSchema,
+  CronRunLogParamsSchema,
   CronRunLogEntrySchema,
   CronRunParamsSchema,
   CronRunsParamsSchema,
+  CronRunTimelineEntrySchema,
   CronStatusParamsSchema,
   CronUpdateParamsSchema,
 } from "./cron.js";
@@ -110,6 +138,7 @@ import type {
   SessionsPreviewParamsSchema,
   SessionsResetParamsSchema,
   SessionsResolveParamsSchema,
+  SessionsUsageParamsSchema,
 } from "./sessions.js";
 import type { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import type {
@@ -157,12 +186,16 @@ export type SessionsPatchParams = Static<typeof SessionsPatchParamsSchema>;
 export type SessionsResetParams = Static<typeof SessionsResetParamsSchema>;
 export type SessionsDeleteParams = Static<typeof SessionsDeleteParamsSchema>;
 export type SessionsCompactParams = Static<typeof SessionsCompactParamsSchema>;
+export type SessionsUsageParams = Static<typeof SessionsUsageParamsSchema>;
 export type ConfigGetParams = Static<typeof ConfigGetParamsSchema>;
 export type ConfigSetParams = Static<typeof ConfigSetParamsSchema>;
 export type ConfigApplyParams = Static<typeof ConfigApplyParamsSchema>;
 export type ConfigPatchParams = Static<typeof ConfigPatchParamsSchema>;
 export type ConfigSchemaParams = Static<typeof ConfigSchemaParamsSchema>;
 export type ConfigSchemaResponse = Static<typeof ConfigSchemaResponseSchema>;
+export type StartupCommandsListParams = Static<typeof StartupCommandsListParamsSchema>;
+export type StartupCommandsAppendParams = Static<typeof StartupCommandsAppendParamsSchema>;
+export type StartupCommandsRemoveParams = Static<typeof StartupCommandsRemoveParamsSchema>;
 export type WizardStartParams = Static<typeof WizardStartParamsSchema>;
 export type WizardNextParams = Static<typeof WizardNextParamsSchema>;
 export type WizardCancelParams = Static<typeof WizardCancelParamsSchema>;
@@ -187,6 +220,8 @@ export type AgentsFilesSetParams = Static<typeof AgentsFilesSetParamsSchema>;
 export type AgentsFilesSetResult = Static<typeof AgentsFilesSetResultSchema>;
 export type AgentsListParams = Static<typeof AgentsListParamsSchema>;
 export type AgentsListResult = Static<typeof AgentsListResultSchema>;
+export type AgentsDescribeParams = Static<typeof AgentsDescribeParamsSchema>;
+export type AgentsDescribeResult = Static<typeof AgentsDescribeResultSchema>;
 export type ModelChoice = Static<typeof ModelChoiceSchema>;
 export type ModelsListParams = Static<typeof ModelsListParamsSchema>;
 export type ModelsListResult = Static<typeof ModelsListResultSchema>;
@@ -194,7 +229,30 @@ export type SkillsStatusParams = Static<typeof SkillsStatusParamsSchema>;
 export type SkillsBinsParams = Static<typeof SkillsBinsParamsSchema>;
 export type SkillsBinsResult = Static<typeof SkillsBinsResultSchema>;
 export type SkillsInstallParams = Static<typeof SkillsInstallParamsSchema>;
+export type SkillsUninstallParams = Static<typeof SkillsUninstallParamsSchema>;
 export type SkillsUpdateParams = Static<typeof SkillsUpdateParamsSchema>;
+export type Automation = Static<typeof AutomationSchema>;
+export type AutomationAiModel = Static<typeof AutomationAiModelSchema>;
+export type AutomationSchedule = Static<typeof AutomationScheduleSchema>;
+export type AutomationRunMilestone = Static<typeof AutomationRunMilestoneSchema>;
+export type AutomationArtifact = Static<typeof AutomationArtifactSchema>;
+export type AutomationConflict = Static<typeof AutomationConflictSchema>;
+export type AutomationRunRecord = Static<typeof AutomationRunRecordSchema>;
+export type AutomationsListParams = Static<typeof AutomationsListParamsSchema>;
+export type AutomationsListResult = Static<typeof AutomationsListResultSchema>;
+export type AutomationsRunParams = Static<typeof AutomationsRunParamsSchema>;
+export type AutomationsUpdateParams = Static<typeof AutomationsUpdateParamsSchema>;
+export type AutomationsDeleteParams = Static<typeof AutomationsDeleteParamsSchema>;
+export type AutomationsCancelParams = Static<typeof AutomationsCancelParamsSchema>;
+export type AutomationsHistoryParams = Static<typeof AutomationsHistoryParamsSchema>;
+export type AutomationsHistoryResult = Static<typeof AutomationsHistoryResultSchema>;
+export type AutomationsCreateParams = Static<typeof AutomationsCreateParamsSchema>;
+export type AutomationsArtifactDownloadParams = Static<
+  typeof AutomationsArtifactDownloadParamsSchema
+>;
+export type AutomationsArtifactDownloadResult = Static<
+  typeof AutomationsArtifactDownloadResultSchema
+>;
 export type CronJob = Static<typeof CronJobSchema>;
 export type CronListParams = Static<typeof CronListParamsSchema>;
 export type CronStatusParams = Static<typeof CronStatusParamsSchema>;
@@ -203,7 +261,9 @@ export type CronUpdateParams = Static<typeof CronUpdateParamsSchema>;
 export type CronRemoveParams = Static<typeof CronRemoveParamsSchema>;
 export type CronRunParams = Static<typeof CronRunParamsSchema>;
 export type CronRunsParams = Static<typeof CronRunsParamsSchema>;
+export type CronRunLogParams = Static<typeof CronRunLogParamsSchema>;
 export type CronRunLogEntry = Static<typeof CronRunLogEntrySchema>;
+export type CronRunTimelineEntry = Static<typeof CronRunTimelineEntrySchema>;
 export type LogsTailParams = Static<typeof LogsTailParamsSchema>;
 export type LogsTailResult = Static<typeof LogsTailResultSchema>;
 export type ExecApprovalsGetParams = Static<typeof ExecApprovalsGetParamsSchema>;

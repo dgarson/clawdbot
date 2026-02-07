@@ -44,7 +44,12 @@ describe("handleSlackAction", () => {
       },
       cfg,
     );
-    expect(reactSlackMessage).toHaveBeenCalledWith("C1", "123.456", "✅");
+    expect(reactSlackMessage).toHaveBeenCalledWith(
+      "C1",
+      "123.456",
+      "✅",
+      expect.objectContaining({ config: cfg }),
+    );
   });
 
   it("strips channel: prefix for channelId params", async () => {
@@ -58,7 +63,12 @@ describe("handleSlackAction", () => {
       },
       cfg,
     );
-    expect(reactSlackMessage).toHaveBeenCalledWith("C1", "123.456", "✅");
+    expect(reactSlackMessage).toHaveBeenCalledWith(
+      "C1",
+      "123.456",
+      "✅",
+      expect.objectContaining({ config: cfg }),
+    );
   });
 
   it("removes reactions on empty emoji", async () => {
@@ -72,7 +82,11 @@ describe("handleSlackAction", () => {
       },
       cfg,
     );
-    expect(removeOwnSlackReactions).toHaveBeenCalledWith("C1", "123.456");
+    expect(removeOwnSlackReactions).toHaveBeenCalledWith(
+      "C1",
+      "123.456",
+      expect.objectContaining({ config: cfg }),
+    );
   });
 
   it("removes reactions when remove flag set", async () => {
@@ -87,7 +101,12 @@ describe("handleSlackAction", () => {
       },
       cfg,
     );
-    expect(removeSlackReaction).toHaveBeenCalledWith("C1", "123.456", "✅");
+    expect(removeSlackReaction).toHaveBeenCalledWith(
+      "C1",
+      "123.456",
+      "✅",
+      expect.objectContaining({ config: cfg }),
+    );
   });
 
   it("rejects removes without emoji", async () => {
@@ -134,10 +153,15 @@ describe("handleSlackAction", () => {
       },
       cfg,
     );
-    expect(sendSlackMessage).toHaveBeenCalledWith("channel:C123", "Hello thread", {
-      mediaUrl: undefined,
-      threadTs: "1234567890.123456",
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "channel:C123",
+      "Hello thread",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: "1234567890.123456",
+        config: cfg,
+      }),
+    );
   });
 
   it("auto-injects threadTs from context when replyToMode=all", async () => {
@@ -156,10 +180,15 @@ describe("handleSlackAction", () => {
         replyToMode: "all",
       },
     );
-    expect(sendSlackMessage).toHaveBeenCalledWith("channel:C123", "Auto-threaded", {
-      mediaUrl: undefined,
-      threadTs: "1111111111.111111",
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "channel:C123",
+      "Auto-threaded",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: "1111111111.111111",
+        config: cfg,
+      }),
+    );
   });
 
   it("replyToMode=first threads first message then stops", async () => {
@@ -179,10 +208,15 @@ describe("handleSlackAction", () => {
       cfg,
       context,
     );
-    expect(sendSlackMessage).toHaveBeenLastCalledWith("channel:C123", "First", {
-      mediaUrl: undefined,
-      threadTs: "1111111111.111111",
-    });
+    expect(sendSlackMessage).toHaveBeenLastCalledWith(
+      "channel:C123",
+      "First",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: "1111111111.111111",
+        config: cfg,
+      }),
+    );
     expect(hasRepliedRef.value).toBe(true);
 
     // Second message should NOT be threaded
@@ -191,10 +225,15 @@ describe("handleSlackAction", () => {
       cfg,
       context,
     );
-    expect(sendSlackMessage).toHaveBeenLastCalledWith("channel:C123", "Second", {
-      mediaUrl: undefined,
-      threadTs: undefined,
-    });
+    expect(sendSlackMessage).toHaveBeenLastCalledWith(
+      "channel:C123",
+      "Second",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: undefined,
+        config: cfg,
+      }),
+    );
   });
 
   it("replyToMode=first marks hasRepliedRef even when threadTs is explicit", async () => {
@@ -218,10 +257,15 @@ describe("handleSlackAction", () => {
       cfg,
       context,
     );
-    expect(sendSlackMessage).toHaveBeenLastCalledWith("channel:C123", "Explicit", {
-      mediaUrl: undefined,
-      threadTs: "2222222222.222222",
-    });
+    expect(sendSlackMessage).toHaveBeenLastCalledWith(
+      "channel:C123",
+      "Explicit",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: "2222222222.222222",
+        config: cfg,
+      }),
+    );
     expect(hasRepliedRef.value).toBe(true);
 
     await handleSlackAction(
@@ -229,10 +273,15 @@ describe("handleSlackAction", () => {
       cfg,
       context,
     );
-    expect(sendSlackMessage).toHaveBeenLastCalledWith("channel:C123", "Second", {
-      mediaUrl: undefined,
-      threadTs: undefined,
-    });
+    expect(sendSlackMessage).toHaveBeenLastCalledWith(
+      "channel:C123",
+      "Second",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: undefined,
+        config: cfg,
+      }),
+    );
   });
 
   it("replyToMode=first without hasRepliedRef does not thread", async () => {
@@ -244,10 +293,15 @@ describe("handleSlackAction", () => {
       replyToMode: "first",
       // no hasRepliedRef
     });
-    expect(sendSlackMessage).toHaveBeenCalledWith("channel:C123", "No ref", {
-      mediaUrl: undefined,
-      threadTs: undefined,
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "channel:C123",
+      "No ref",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: undefined,
+        config: cfg,
+      }),
+    );
   });
 
   it("does not auto-inject threadTs when replyToMode=off", async () => {
@@ -266,10 +320,15 @@ describe("handleSlackAction", () => {
         replyToMode: "off",
       },
     );
-    expect(sendSlackMessage).toHaveBeenCalledWith("channel:C123", "Off mode", {
-      mediaUrl: undefined,
-      threadTs: undefined,
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "channel:C123",
+      "Off mode",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: undefined,
+        config: cfg,
+      }),
+    );
   });
 
   it("does not auto-inject threadTs when sending to different channel", async () => {
@@ -288,10 +347,15 @@ describe("handleSlackAction", () => {
         replyToMode: "all",
       },
     );
-    expect(sendSlackMessage).toHaveBeenCalledWith("channel:C999", "Different channel", {
-      mediaUrl: undefined,
-      threadTs: undefined,
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "channel:C999",
+      "Different channel",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: undefined,
+        config: cfg,
+      }),
+    );
   });
 
   it("explicit threadTs overrides context threadTs", async () => {
@@ -311,10 +375,15 @@ describe("handleSlackAction", () => {
         replyToMode: "all",
       },
     );
-    expect(sendSlackMessage).toHaveBeenCalledWith("channel:C123", "Explicit thread", {
-      mediaUrl: undefined,
-      threadTs: "2222222222.222222",
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "channel:C123",
+      "Explicit thread",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: "2222222222.222222",
+        config: cfg,
+      }),
+    );
   });
 
   it("handles channel target without prefix when replyToMode=all", async () => {
@@ -333,10 +402,15 @@ describe("handleSlackAction", () => {
         replyToMode: "all",
       },
     );
-    expect(sendSlackMessage).toHaveBeenCalledWith("C123", "No prefix", {
-      mediaUrl: undefined,
-      threadTs: "1111111111.111111",
-    });
+    expect(sendSlackMessage).toHaveBeenCalledWith(
+      "C123",
+      "No prefix",
+      expect.objectContaining({
+        mediaUrl: undefined,
+        threadTs: "1111111111.111111",
+        config: cfg,
+      }),
+    );
   });
 
   it("adds normalized timestamps to readMessages payloads", async () => {
@@ -407,7 +481,9 @@ describe("handleSlackAction", () => {
     readSlackMessages.mockClear();
     readSlackMessages.mockResolvedValueOnce({ messages: [], hasMore: false });
     await handleSlackAction({ action: "readMessages", channelId: "C1" }, cfg);
-    const [, opts] = readSlackMessages.mock.calls[0] ?? [];
+    const opts = (readSlackMessages.mock.calls[0] as unknown[])?.[1] as
+      | { token?: string }
+      | undefined;
     expect(opts?.token).toBeUndefined();
   });
 
@@ -417,7 +493,9 @@ describe("handleSlackAction", () => {
     } as OpenClawConfig;
     sendSlackMessage.mockClear();
     await handleSlackAction({ action: "sendMessage", to: "channel:C1", content: "Hello" }, cfg);
-    const [, , opts] = sendSlackMessage.mock.calls[0] ?? [];
+    const opts = (sendSlackMessage.mock.calls[0] as unknown[])?.[2] as
+      | { token?: string }
+      | undefined;
     expect(opts?.token).toBeUndefined();
   });
 
@@ -429,7 +507,9 @@ describe("handleSlackAction", () => {
     } as OpenClawConfig;
     sendSlackMessage.mockClear();
     await handleSlackAction({ action: "sendMessage", to: "channel:C1", content: "Hello" }, cfg);
-    const [, , opts] = sendSlackMessage.mock.calls[0] ?? [];
+    const opts = (sendSlackMessage.mock.calls[0] as unknown[])?.[2] as
+      | { token?: string }
+      | undefined;
     expect(opts?.token).toBe("xoxp-1");
   });
 });

@@ -16,6 +16,7 @@ type EmbeddedRunParams = {
 };
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
   runWithModelFallback: async ({
     provider,
     model,

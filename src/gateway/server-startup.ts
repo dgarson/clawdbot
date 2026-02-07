@@ -8,6 +8,7 @@ import {
   resolveConfiguredModelRef,
   resolveHooksGmailModel,
 } from "../agents/model-selection.js";
+import { startCompactionScheduler } from "../hooks/compaction-scheduler.js";
 import { startGmailWatcher } from "../hooks/gmail-watcher.js";
 import {
   clearInternalHooks,
@@ -16,7 +17,10 @@ import {
 } from "../hooks/internal-hooks.js";
 import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { createManagedProcessManager } from "../infra/managed-processes.js";
+import { registerMemoryPipelineHooks } from "../memory/hooks/index.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
+import { recoverOrphanedWorkItems } from "../work-queue/recovery.js";
 import { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import {
   scheduleRestartSentinelWake,
@@ -30,6 +34,11 @@ export async function startGatewaySidecars(params: {
   deps: CliDeps;
   startChannels: () => Promise<void>;
   log: { warn: (msg: string) => void };
+  logManagedProcesses: {
+    info: (msg: string) => void;
+    warn: (msg: string) => void;
+    error: (msg: string) => void;
+  };
   logHooks: {
     info: (msg: string) => void;
     warn: (msg: string) => void;
@@ -44,6 +53,16 @@ export async function startGatewaySidecars(params: {
     browserControl = await startBrowserControlServerIfEnabled();
   } catch (err) {
     params.logBrowser.error(`server failed to start: ${String(err)}`);
+  }
+
+  let managedProcesses: ReturnType<typeof createManagedProcessManager> | null = null;
+  if (params.cfg.gateway?.startupCommands?.length) {
+    try {
+      managedProcesses = createManagedProcessManager();
+      await managedProcesses.start(params.cfg.gateway.startupCommands);
+    } catch (err) {
+      params.logManagedProcesses.error(`startup commands failed: ${String(err)}`);
+    }
   }
 
   // Start Gmail watcher if configured (hooks.gmail.account).
@@ -102,6 +121,8 @@ export async function startGatewaySidecars(params: {
     // Clear any previously registered hooks to ensure fresh loading
     clearInternalHooks();
     const loadedCount = await loadInternalHooks(params.cfg, params.defaultWorkspaceDir);
+    registerMemoryPipelineHooks();
+    startCompactionScheduler(params.cfg);
     if (loadedCount > 0) {
       params.logHooks.info(
         `loaded ${loadedCount} internal hook handler${loadedCount > 1 ? "s" : ""}`,
@@ -109,6 +130,60 @@ export async function startGatewaySidecars(params: {
     }
   } catch (err) {
     params.logHooks.error(`failed to load hooks: ${String(err)}`);
+  }
+
+  // Recover orphaned work queue items from previous session (unless disabled).
+  // Runs before channels start so new agents can't claim items that recovery would reset.
+  if (params.cfg.gateway?.workQueue?.recoverOnStartup !== false) {
+    try {
+      const recoveryResult = await recoverOrphanedWorkItems();
+      if (recoveryResult.recovered.length > 0) {
+        params.log.warn(
+          `work-queue: recovered ${recoveryResult.recovered.length} orphaned item(s)`,
+        );
+        if (params.cfg.hooks?.internal?.enabled) {
+          const hookEvent = createInternalHookEvent(
+            "gateway",
+            "work-queue-recovery",
+            "gateway:work-queue-recovery",
+            {
+              items: recoveryResult.recovered.map((i) => ({
+                id: i.id,
+                title: i.title,
+                previousAssignment: i.statusReason,
+              })),
+            },
+          );
+          void triggerInternalHook(hookEvent);
+        }
+      }
+      if (recoveryResult.failed.length > 0) {
+        params.log.warn(`work-queue: failed to recover ${recoveryResult.failed.length} item(s)`);
+      }
+    } catch (err) {
+      params.log.warn(`work-queue recovery failed: ${String(err)}`);
+    }
+  }
+
+  // Start work-queue workers for agents that have worker.enabled = true.
+  let workerManager: { stop: () => Promise<void> } | null = null;
+  if (!isTruthyEnvValue(process.env.OPENCLAW_SKIP_WORKERS)) {
+    try {
+      const { WorkQueueWorkerManager } = await import("../work-queue/worker-manager.js");
+      const mgr = new WorkQueueWorkerManager({
+        config: params.cfg,
+        log: {
+          info: (msg) => params.log.warn(`work-queue: ${msg}`),
+          warn: (msg) => params.log.warn(`work-queue: ${msg}`),
+          error: (msg) => params.log.warn(`work-queue: ${msg}`),
+          debug: () => {},
+        },
+      });
+      await mgr.start();
+      workerManager = mgr;
+    } catch (err) {
+      params.log.warn(`work-queue workers failed to start: ${String(err)}`);
+    }
   }
 
   // Launch configured channels so gateway replies via the surface the message came from.
@@ -156,5 +231,5 @@ export async function startGatewaySidecars(params: {
     }, 750);
   }
 
-  return { browserControl, pluginServices };
+  return { browserControl, pluginServices, managedProcesses, workerManager };
 }

@@ -6,10 +6,19 @@ import type {
   GatewaySessionsDefaults,
   SessionsListResult,
 } from "./session-utils.types.js";
-import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
+import {
+  resolveAgentConfig,
+  resolveAgentDir,
+  resolveAgentWorkspaceDir,
+  resolveDefaultAgentId,
+} from "../agents/agent-scope.js";
 import { lookupContextTokens } from "../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
-import { resolveConfiguredModelRef } from "../agents/model-selection.js";
+import { resolveAgentRuntimeKind } from "../agents/main-agent-runtime-factory.js";
+import {
+  resolveConfiguredModelRef,
+  resolveDefaultModelForAgent,
+} from "../agents/model-selection.js";
 import { type OpenClawConfig, loadConfig } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
 import {
@@ -70,6 +79,36 @@ const AVATAR_MIME_BY_EXT: Record<string, string> = {
   ".tif": "image/tiff",
   ".tiff": "image/tiff",
 };
+
+function normalizeStringList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const normalized = value.map((entry) => String(entry ?? "").trim()).filter(Boolean);
+  return normalized.length > 0 ? normalized : [];
+}
+
+function resolveAgentPrimaryModelString(cfg: OpenClawConfig, agentId: string): string | undefined {
+  const agentModel = resolveAgentConfig(cfg, agentId)?.model;
+  if (typeof agentModel === "string") {
+    const trimmed = agentModel.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  if (agentModel && typeof agentModel === "object") {
+    const primary = agentModel.primary?.trim();
+    if (primary) {
+      return primary;
+    }
+  }
+  const raw = cfg.agents?.defaults?.model as { primary?: string } | string | undefined;
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    return trimmed || undefined;
+  }
+  return raw?.primary?.trim() || undefined;
+}
 
 function resolveAvatarMime(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
@@ -319,9 +358,50 @@ export function listAgentsForGateway(cfg: OpenClawConfig): {
   }
   const agents = agentIds.map((id) => {
     const meta = configuredById.get(id);
+    const agentCfg = resolveAgentConfig(cfg, id);
+    const toolsAllow = Array.isArray(agentCfg?.tools?.allow)
+      ? (normalizeStringList(agentCfg.tools.allow) ?? [])
+      : undefined;
+    const toolsDeny = Array.isArray(agentCfg?.tools?.deny)
+      ? (normalizeStringList(agentCfg.tools.deny) ?? [])
+      : undefined;
+
+    const defaultsSandbox = cfg.agents?.defaults?.sandbox;
+    const rawSandbox = agentCfg?.sandbox;
+    const sandboxConfigured = rawSandbox !== undefined || defaultsSandbox !== undefined;
+    const sandboxMode = rawSandbox?.mode ?? defaultsSandbox?.mode ?? "off";
+    const sandboxScope =
+      rawSandbox?.scope ??
+      (typeof rawSandbox?.perSession === "boolean"
+        ? rawSandbox.perSession
+          ? "session"
+          : "shared"
+        : undefined) ??
+      defaultsSandbox?.scope ??
+      (typeof defaultsSandbox?.perSession === "boolean"
+        ? defaultsSandbox.perSession
+          ? "session"
+          : "shared"
+        : undefined);
+
     return {
       id,
       name: meta?.name,
+      model: resolveAgentPrimaryModelString(cfg, id),
+      runtime: resolveAgentRuntimeKind(cfg, id),
+      workspace: resolveAgentWorkspaceDir(cfg, id),
+      agentDir: resolveAgentDir(cfg, id),
+      ...(toolsAllow || toolsDeny
+        ? {
+            toolRestrictions: {
+              ...(toolsAllow ? { allow: toolsAllow } : {}),
+              ...(toolsDeny ? { deny: toolsDeny } : {}),
+            },
+          }
+        : {}),
+      ...(sandboxConfigured
+        ? { sandbox: { mode: sandboxMode, ...(sandboxScope ? { scope: sandboxScope } : {}) } }
+        : {}),
       identity: meta?.identity,
     };
   });
@@ -516,18 +596,25 @@ export function getSessionDefaults(cfg: OpenClawConfig): GatewaySessionsDefaults
     modelProvider: resolved.provider ?? null,
     model: resolved.model ?? null,
     contextTokens: contextTokens ?? null,
+    thinkingDefault: null,
+    verboseDefault: null,
+    reasoningDefault: null,
+    elevatedDefault: null,
   };
 }
 
 export function resolveSessionModelRef(
   cfg: OpenClawConfig,
   entry?: SessionEntry,
+  agentId?: string,
 ): { provider: string; model: string } {
-  const resolved = resolveConfiguredModelRef({
-    cfg,
-    defaultProvider: DEFAULT_PROVIDER,
-    defaultModel: DEFAULT_MODEL,
-  });
+  const resolved = agentId
+    ? resolveDefaultModelForAgent({ cfg, agentId })
+    : resolveConfiguredModelRef({
+        cfg,
+        defaultProvider: DEFAULT_PROVIDER,
+        defaultModel: DEFAULT_MODEL,
+      });
   let provider = resolved.provider;
   let model = resolved.model;
   const storedModelOverride = entry?.modelOverride?.trim();
@@ -623,6 +710,11 @@ export function listSessionsFromStore(params: {
         entry?.label ??
         originLabel;
       const deliveryFields = normalizeSessionDeliveryFields(entry);
+      const parsedAgent = parseAgentSessionKey(key);
+      const sessionAgentId = normalizeAgentId(parsedAgent?.agentId ?? resolveDefaultAgentId(cfg));
+      const resolvedModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
+      const modelProvider = resolvedModel.provider ?? DEFAULT_PROVIDER;
+      const model = resolvedModel.model ?? DEFAULT_MODEL;
       return {
         key,
         entry,
@@ -648,8 +740,8 @@ export function listSessionsFromStore(params: {
         outputTokens: entry?.outputTokens,
         totalTokens: total,
         responseUsage: entry?.responseUsage,
-        modelProvider: entry?.modelProvider,
-        model: entry?.model,
+        modelProvider,
+        model,
         contextTokens: entry?.contextTokens,
         deliveryContext: deliveryFields.deliveryContext,
         lastChannel: deliveryFields.lastChannel ?? entry?.lastChannel,

@@ -12,6 +12,7 @@ import type { ExecElevatedDefaults } from "../bash-tools.js";
 import type { EmbeddedPiCompactResult } from "./types.js";
 import { resolveHeartbeatPrompt } from "../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../config/channel-capabilities.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { getMachineDisplayName } from "../../infra/machine-name.js";
 import { type enqueueCommand, enqueueCommandInLane } from "../../process/command-queue.js";
 import { isSubagentSessionKey } from "../../routing/session-key.js";
@@ -30,6 +31,7 @@ import { formatUserTime, resolveUserTimeFormat, resolveUserTimezone } from "../d
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { resolveOpenClawDocsPath } from "../docs-path.js";
 import { getApiKeyForModel, resolveModelAuthMode } from "../model-auth.js";
+import { buildModelAliasLines, resolveModel } from "../model-resolution.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
   ensureSessionHeader,
@@ -62,7 +64,6 @@ import {
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "./history.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
-import { buildModelAliasLines, resolveModel } from "./model.js";
 import { buildEmbeddedSandboxInfo } from "./sandbox-info.js";
 import { prewarmSessionFile, trackSessionManagerAccess } from "./session-manager-cache.js";
 import {
@@ -88,6 +89,8 @@ export type CompactEmbeddedPiSessionParams = {
   groupSpace?: string | null;
   /** Parent session key for subagent policy inheritance. */
   spawnedBy?: string | null;
+  /** Whether the sender is an owner (required for owner-only tools). */
+  senderIsOwner?: boolean;
   sessionFile: string;
   workspaceDir: string;
   agentDir?: string;
@@ -227,6 +230,7 @@ export async function compactEmbeddedPiSessionDirect(
       groupChannel: params.groupChannel,
       groupSpace: params.groupSpace,
       spawnedBy: params.spawnedBy,
+      senderIsOwner: params.senderIsOwner,
       agentDir,
       workspaceDir: effectiveWorkspace,
       config: params.config,
@@ -327,8 +331,9 @@ export async function compactEmbeddedPiSessionDirect(
       moduleUrl: import.meta.url,
     });
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
-    const appendPrompt = buildEmbeddedSystemPrompt({
+    const appendPrompt = await buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
+      config: params.config,
       defaultThinkLevel: params.thinkLevel,
       reasoningLevel: params.reasoningLevel ?? "off",
       extraSystemPrompt: params.extraSystemPrompt,
@@ -446,6 +451,22 @@ export async function compactEmbeddedPiSessionDirect(
         } catch {
           // If estimation fails, leave tokensAfter undefined
           tokensAfter = undefined;
+        }
+        const hookSessionKey = params.sessionKey ?? params.sessionId;
+        if (hookSessionKey) {
+          const hookEvent = createInternalHookEvent(
+            "session",
+            "compaction_summary",
+            hookSessionKey,
+            {
+              sessionId: params.sessionId,
+              sessionKey: params.sessionKey,
+              summary: result.summary,
+              tokensBefore: result.tokensBefore,
+              tokensAfter,
+            },
+          );
+          await triggerInternalHook(hookEvent);
         }
         return {
           ok: true,

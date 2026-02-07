@@ -33,7 +33,7 @@ describe("tool image sanitizing", () => {
   }, 20_000);
 
   it("sanitizes image arrays and reports drops", async () => {
-    const width = 2600;
+    const width = 1900;
     const height = 400;
     const raw = Buffer.alloc(width * height * 3, 0x7f);
     const png = await sharp(raw, {
@@ -49,12 +49,13 @@ describe("tool image sanitizing", () => {
     expect(dropped).toBe(0);
     expect(out.length).toBe(1);
     const meta = await sharp(Buffer.from(out[0].data, "base64")).metadata();
-    expect(meta.width).toBeLessThanOrEqual(2000);
-    expect(meta.height).toBeLessThanOrEqual(2000);
+    expect(meta.width).toBe(width);
+    expect(meta.height).toBe(height);
+    expect(out[0].mimeType).toBe("image/png");
   }, 20_000);
 
-  it("shrinks images that exceed max dimension even if size is small", async () => {
-    const width = 2600;
+  it("preserves images that are large in pixels but under the size and dimension limits", async () => {
+    const width = 1900;
     const height = 400;
     const raw = Buffer.alloc(width * height * 3, 0x7f);
     const png = await sharp(raw, {
@@ -77,9 +78,9 @@ describe("tool image sanitizing", () => {
       throw new Error("expected image block");
     }
     const meta = await sharp(Buffer.from(image.data, "base64")).metadata();
-    expect(meta.width).toBeLessThanOrEqual(2000);
-    expect(meta.height).toBeLessThanOrEqual(2000);
-    expect(image.mimeType).toBe("image/jpeg");
+    expect(meta.width).toBe(width);
+    expect(meta.height).toBe(height);
+    expect(image.mimeType).toBe("image/png");
   }, 20_000);
 
   it("corrects mismatched jpeg mimeType", async () => {

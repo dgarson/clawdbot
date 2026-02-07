@@ -41,6 +41,21 @@
       "label": "Twilio Auth Token",
       "sensitive": true
     },
+    "twilio.webhookSync.enabled": {
+      "label": "Auto-sync Twilio Voice Webhook",
+      "help": "Updates the Twilio inbound Voice webhook URL on every gateway start.",
+      "advanced": true
+    },
+    "twilio.webhookSync.required": {
+      "label": "Require Webhook Sync",
+      "help": "Fail startup if Twilio webhook auto-sync fails.",
+      "advanced": true
+    },
+    "twilio.webhookSync.allowMultipleMatches": {
+      "label": "Allow Multiple Matches",
+      "help": "If multiple incoming numbers match the configured phone, allow picking the first.",
+      "advanced": true
+    },
     "outbound.defaultMode": {
       "label": "Default Call Mode"
     },
@@ -134,6 +149,11 @@
       "label": "ElevenLabs Base URL",
       "advanced": true
     },
+    "tts.enableConversationRecall": {
+      "label": "Enable Conversation Recall",
+      "help": "Allow the agent to search earlier parts of truncated call history",
+      "advanced": true
+    },
     "publicUrl": {
       "label": "Public Webhook URL",
       "advanced": true
@@ -194,6 +214,21 @@
           },
           "authToken": {
             "type": "string"
+          },
+          "webhookSync": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "allowMultipleMatches": {
+                "type": "boolean"
+              }
+            }
           }
         }
       },
@@ -384,6 +419,9 @@
           },
           "summaryModel": {
             "type": "string"
+          },
+          "enableConversationRecall": {
+            "type": "boolean"
           },
           "modelOverrides": {
             "type": "object",

@@ -245,6 +245,19 @@ function collectModelRefs(cfg: OpenClawConfig): string[] {
       }
     }
   }
+
+  // Collect memory.model refs
+  const memoryModel = cfg.memory?.model as { primary?: unknown; fallbacks?: unknown } | undefined;
+  if (memoryModel) {
+    pushModelRef(memoryModel.primary);
+    const fallbacks = memoryModel.fallbacks;
+    if (Array.isArray(fallbacks)) {
+      for (const entry of fallbacks) {
+        pushModelRef(entry);
+      }
+    }
+  }
+
   return refs;
 }
 

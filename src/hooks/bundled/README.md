@@ -4,6 +4,11 @@ This directory contains hooks that ship with OpenClaw. These hooks are automatic
 
 ## Available Hooks
 
+Meridia’s internal hooks now ship via the `meridia` bundled plugin (see `extensions/meridia/`).
+They are configured under `hooks.internal.entries.*` and **cannot** be toggled via
+`openclaw hooks enable/disable` (plugin-managed hooks are intentionally config-driven).
+Use `openclaw meridia doctor` for a quick configuration check.
+
 ### 💾 session-memory
 
 Automatically saves session context to memory when you issue `/new`.

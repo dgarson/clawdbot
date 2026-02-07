@@ -4,6 +4,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { ModelProviderAuthMode, ModelProviderConfig } from "../config/types.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { getShellEnvAppliedKeys } from "../infra/shell-env.js";
+import { resolveDefaultAgentDir } from "./agent-scope.js";
 import {
   type AuthProfileStore,
   ensureAuthProfileStore,
@@ -20,6 +21,13 @@ const AWS_BEARER_ENV = "AWS_BEARER_TOKEN_BEDROCK";
 const AWS_ACCESS_KEY_ENV = "AWS_ACCESS_KEY_ID";
 const AWS_SECRET_KEY_ENV = "AWS_SECRET_ACCESS_KEY";
 const AWS_PROFILE_ENV = "AWS_PROFILE";
+
+function resolvePrimaryAgentDir(cfg?: OpenClawConfig): string | undefined {
+  if (!cfg) {
+    return undefined;
+  }
+  return resolveDefaultAgentDir(cfg);
+}
 
 function resolveProviderConfig(
   cfg: OpenClawConfig | undefined,
@@ -138,14 +146,20 @@ export async function resolveApiKeyForProvider(params: {
   agentDir?: string;
 }): Promise<ResolvedProviderAuth> {
   const { provider, cfg, profileId, preferredProfile } = params;
-  const store = params.store ?? ensureAuthProfileStore(params.agentDir);
+  const mainAgentDir = resolvePrimaryAgentDir(cfg);
+  const targetAgentDir = params.agentDir ?? mainAgentDir;
+  const store =
+    params.store ??
+    ensureAuthProfileStore(targetAgentDir, {
+      mainAgentDir,
+    });
 
   if (profileId) {
     const resolved = await resolveApiKeyForProfile({
       cfg,
       store,
       profileId,
-      agentDir: params.agentDir,
+      agentDir: params.agentDir ?? targetAgentDir,
     });
     if (!resolved) {
       throw new Error(`No credentials found for profile "${profileId}".`);
@@ -213,12 +227,12 @@ export async function resolveApiKeyForProvider(params: {
     const hasCodex = listProfilesForProvider(store, "openai-codex").length > 0;
     if (hasCodex) {
       throw new Error(
-        'No API key found for provider "openai". You are authenticated with OpenAI Codex OAuth. Use openai-codex/gpt-5.2 (ChatGPT OAuth) or set OPENAI_API_KEY for openai/gpt-5.2.',
+        'No API key found for provider "openai". You are authenticated with OpenAI Codex OAuth. Use openai-codex/gpt-5.3-codex (OAuth) or set OPENAI_API_KEY to use openai/gpt-5.1-codex.',
       );
     }
   }
 
-  const authStorePath = resolveAuthStorePathForDisplay(params.agentDir);
+  const authStorePath = resolveAuthStorePathForDisplay(targetAgentDir);
   const resolvedAgentDir = path.dirname(authStorePath);
   throw new Error(
     [
@@ -301,6 +315,7 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
     venice: "VENICE_API_KEY",
     mistral: "MISTRAL_API_KEY",
     opencode: "OPENCODE_API_KEY",
+    ollama: "OLLAMA_API_KEY",
   };
   const envVar = envMap[normalized];
   if (!envVar) {
@@ -324,7 +339,12 @@ export function resolveModelAuthMode(
     return "aws-sdk";
   }
 
-  const authStore = store ?? ensureAuthProfileStore();
+  const mainAgentDir = resolvePrimaryAgentDir(cfg);
+  const authStore =
+    store ??
+    ensureAuthProfileStore(mainAgentDir, {
+      mainAgentDir,
+    });
   const profiles = listProfilesForProvider(authStore, resolved);
   if (profiles.length > 0) {
     const modes = new Set(
@@ -389,4 +409,71 @@ export function requireApiKey(auth: ResolvedProviderAuth, provider: string): str
     return key;
   }
   throw new Error(`No API key resolved for provider "${provider}" (auth mode: ${auth.mode}).`);
+}
+
+/**
+ * Check if a provider has any available authentication configured.
+ * Returns true if ANY of these conditions are met:
+ * - Provider has auth profiles in the auth store
+ * - Provider has environment variable credentials
+ * - Provider has custom API key in models.json
+ * - Provider uses aws-sdk auth mode
+ * - Runtime is "claude" and provider is "anthropic" (Claude SDK handles its own auth)
+ */
+export function isProviderConfigured(params: {
+  provider: string;
+  cfg?: OpenClawConfig;
+  store?: AuthProfileStore;
+  agentDir?: string;
+  /** When using claude runtime with anthropic provider, SDK handles its own auth */
+  runtimeKind?: "pi" | "claude";
+}): boolean {
+  const { provider, cfg, store: providedStore, agentDir, runtimeKind } = params;
+  const normalized = normalizeProviderId(provider);
+
+  // When using claude runtime with anthropic provider, SDK handles its own auth
+  // (e.g., Claude Max subscription via Claude Code's internal auth mechanism).
+  // Do NOT require ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN in this case.
+  if (runtimeKind === "claude" && normalized === "anthropic") {
+    return true;
+  }
+
+  // Check for aws-sdk auth mode override
+  const authOverride = resolveProviderAuthOverride(cfg, provider);
+  if (authOverride === "aws-sdk") {
+    return true;
+  }
+
+  // Check for special amazon-bedrock case (uses aws-sdk by default)
+  // Only report as configured if AWS credentials are actually available
+  if (authOverride === undefined && normalized === "amazon-bedrock") {
+    return resolveAwsSdkEnvVarName() !== undefined;
+  }
+
+  // Check for auth profiles
+  const mainAgentDir = resolvePrimaryAgentDir(cfg);
+  const targetAgentDir = agentDir ?? mainAgentDir;
+  const store =
+    providedStore ??
+    ensureAuthProfileStore(targetAgentDir, {
+      mainAgentDir,
+    });
+  const profiles = listProfilesForProvider(store, provider);
+  if (profiles.length > 0) {
+    return true;
+  }
+
+  // Check for environment variable credentials
+  const envKey = resolveEnvApiKey(provider);
+  if (envKey?.apiKey) {
+    return true;
+  }
+
+  // Check for custom provider API key in models.json
+  const customKey = getCustomProviderApiKey(cfg, provider);
+  if (customKey) {
+    return true;
+  }
+
+  return false;
 }

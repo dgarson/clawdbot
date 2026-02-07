@@ -1,6 +1,9 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AgentDefaultsConfig } from "../../config/types.js";
+import type { ExecutionRequest, ExecutionResult } from "../../execution/types.js";
 import type { CronJob } from "../types.js";
 import {
   resolveAgentConfig,
@@ -9,8 +12,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { runCliAgent } from "../../agents/cli-runner.js";
-import { getCliSessionId, setCliSessionId } from "../../agents/cli-session.js";
+import { setCliSessionId } from "../../agents/cli-session.js";
 import { lookupContextTokens } from "../../agents/context.js";
 import {
   formatUserTime,
@@ -18,6 +20,7 @@ import {
   resolveUserTimezone,
 } from "../../agents/date-time.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { resolveSessionRuntimeKind } from "../../agents/main-agent-runtime-factory.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import {
@@ -34,14 +37,15 @@ import { getSkillsSnapshotVersion } from "../../agents/skills/refresh.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { hasNonzeroUsage } from "../../agents/usage.js";
 import { ensureAgentWorkspace } from "../../agents/workspace.js";
+import { isHeartbeatContentEffectivelyEmpty } from "../../auto-reply/heartbeat.js";
 import {
-  formatXHighModelHint,
   normalizeThinkLevel,
   normalizeVerboseLevel,
   supportsXHighThinking,
 } from "../../auto-reply/thinking.js";
 import { createOutboundSendDeps, type CliDeps } from "../../cli/outbound-send-deps.js";
 import { resolveSessionTranscriptPath, updateSessionStore } from "../../config/sessions.js";
+import { createDefaultExecutionKernel } from "../../execution/kernel.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
@@ -63,6 +67,55 @@ import {
   resolveHeartbeatAckMaxChars,
 } from "./helpers.js";
 import { resolveCronSession } from "./session.js";
+
+function fileEndsWithNewline(filePath: string): boolean {
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile() || stat.size === 0) {
+      return true;
+    }
+    const fd = fs.openSync(filePath, "r");
+    try {
+      const buffer = Buffer.alloc(1);
+      fs.readSync(fd, buffer, 0, 1, stat.size - 1);
+      return buffer[0] === 0x0a;
+    } finally {
+      fs.closeSync(fd);
+    }
+  } catch {
+    return true;
+  }
+}
+
+function appendSessionTranscriptMessage(params: {
+  sessionFile: string;
+  role: "assistant" | "user";
+  text: string;
+  timestamp?: number;
+}): void {
+  const trimmed = params.text.trim();
+  if (!trimmed) {
+    return;
+  }
+  try {
+    fs.mkdirSync(path.dirname(params.sessionFile), { recursive: true });
+    const prefix =
+      fs.existsSync(params.sessionFile) && !fileEndsWithNewline(params.sessionFile) ? "\n" : "";
+    fs.appendFileSync(
+      params.sessionFile,
+      `${prefix}${JSON.stringify({
+        message: {
+          role: params.role,
+          content: [{ type: "text", text: trimmed }],
+          timestamp: params.timestamp ?? Date.now(),
+        },
+      })}\n`,
+      "utf-8",
+    );
+  } catch (err) {
+    logWarn(`[cron] Failed to append transcript note: ${String(err)}`);
+  }
+}
 
 function matchesMessagingToolDeliveryTarget(
   target: MessagingToolSend,
@@ -150,6 +203,38 @@ export async function runCronIsolatedAgentTurn(params: {
     ensureBootstrapFiles: !agentCfg?.skipBootstrap,
   });
   const workspaceDir = workspace.dir;
+  const now = Date.now();
+  const cronSession = resolveCronSession({
+    cfg: params.cfg,
+    sessionKey: agentSessionKey,
+    agentId,
+    nowMs: now,
+  });
+
+  // Avoid creating "empty" heartbeat sessions when HEARTBEAT.md exists but has no tasks.
+  // A missing file is not skipped (the model may still decide what to do).
+  const isHeartbeatPrompt =
+    typeof params.message === "string" &&
+    params.message.trim().toLowerCase().startsWith("read heartbeat.md");
+  if (isHeartbeatPrompt) {
+    const heartbeatPath = path.join(workspaceDir, "HEARTBEAT.md");
+    if (fs.existsSync(heartbeatPath)) {
+      try {
+        const content = fs.readFileSync(heartbeatPath, "utf-8");
+        if (isHeartbeatContentEffectivelyEmpty(content)) {
+          appendSessionTranscriptMessage({
+            sessionFile: resolveSessionTranscriptPath(cronSession.sessionEntry.sessionId, agentId),
+            role: "assistant",
+            text: "Cron skipped: HEARTBEAT.md is empty.",
+            timestamp: now,
+          });
+          return { status: "skipped", summary: "Heartbeat skipped (HEARTBEAT.md is empty)." };
+        }
+      } catch (err) {
+        logWarn(`Failed to read HEARTBEAT.md for emptiness check: ${String(err)}`);
+      }
+    }
+  }
 
   const resolvedDefault = resolveConfiguredModelRef({
     cfg: cfgWithAgentDefaults,
@@ -205,14 +290,6 @@ export async function runCronIsolatedAgentTurn(params: {
     provider = resolvedOverride.ref.provider;
     model = resolvedOverride.ref.model;
   }
-  const now = Date.now();
-  const cronSession = resolveCronSession({
-    cfg: params.cfg,
-    sessionKey: agentSessionKey,
-    agentId,
-    nowMs: now,
-  });
-
   // Resolve thinking level - job thinking > hooks.gmail.thinking > agent default
   const hooksGmailThinking = isGmailHook
     ? normalizeThinkLevel(params.cfg.hooks?.gmail?.thinking)
@@ -232,7 +309,10 @@ export async function runCronIsolatedAgentTurn(params: {
     });
   }
   if (thinkLevel === "xhigh" && !supportsXHighThinking(provider, model)) {
-    throw new Error(`Thinking level "xhigh" is only supported for ${formatXHighModelHint()}.`);
+    logWarn(
+      `[cron:${params.job.id}] Thinking level "xhigh" is not supported for ${provider}/${model}; downgrading to "high".`,
+    );
+    thinkLevel = "high";
   }
 
   const timeoutMs = resolveAgentTimeoutMs({
@@ -342,50 +422,46 @@ export async function runCronIsolatedAgentTurn(params: {
       verboseLevel: resolvedVerboseLevel,
     });
     const messageChannel = resolvedDelivery.channel;
+    // Resolve runtime kind before runWithModelFallback so auth filtering is aware of claude SDK
+    const runtimeKind = resolveSessionRuntimeKind(cfgWithAgentDefaults, agentId, agentSessionKey);
+
+    const kernel = createDefaultExecutionKernel();
     const fallbackResult = await runWithModelFallback({
       cfg: cfgWithAgentDefaults,
       provider,
       model,
       agentDir,
       fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
-      run: (providerOverride, modelOverride) => {
-        if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {
-          const cliSessionId = getCliSessionId(cronSession.sessionEntry, providerOverride);
-          return runCliAgent({
-            sessionId: cronSession.sessionEntry.sessionId,
-            sessionKey: agentSessionKey,
-            sessionFile,
-            workspaceDir,
-            config: cfgWithAgentDefaults,
-            prompt: commandBody,
-            provider: providerOverride,
-            model: modelOverride,
-            thinkLevel,
-            timeoutMs,
-            runId: cronSession.sessionEntry.sessionId,
-            cliSessionId,
-          });
-        }
-        return runEmbeddedPiAgent({
+      runtimeKind,
+      run: async (providerOverride, modelOverride) => {
+        const request: ExecutionRequest = {
+          agentId,
           sessionId: cronSession.sessionEntry.sessionId,
           sessionKey: agentSessionKey,
-          messageChannel,
-          agentAccountId: resolvedDelivery.accountId,
-          sessionFile,
-          workspaceDir,
-          config: cfgWithAgentDefaults,
-          skillsSnapshot,
-          prompt: commandBody,
-          lane: params.lane ?? "cron",
-          provider: providerOverride,
-          model: modelOverride,
-          thinkLevel,
-          verboseLevel: resolvedVerboseLevel,
-          timeoutMs,
           runId: cronSession.sessionEntry.sessionId,
-          requireExplicitMessageTarget: true,
-          disableMessageTool: deliveryRequested,
-        });
+          workspaceDir,
+          agentDir,
+          config: cfgWithAgentDefaults,
+          prompt: commandBody,
+          timeoutMs,
+          sessionFile,
+          providerOverride,
+          modelOverride,
+          messageContext: {
+            provider: messageChannel,
+            accountId: resolvedDelivery.accountId,
+          },
+          runtimeHints: {
+            thinkLevel,
+            verboseLevel: resolvedVerboseLevel,
+            skillsSnapshot,
+            lane: params.lane ?? "cron",
+            requireExplicitMessageTarget: true,
+            disableMessageTool: deliveryRequested,
+          },
+        };
+        const execResult = await kernel.execute(request);
+        return mapCronExecutionResultToLegacy(execResult);
       },
     });
     runResult = fallbackResult.result;
@@ -413,6 +489,11 @@ export async function runCronIsolatedAgentTurn(params: {
       if (cliSessionId) {
         setCliSessionId(cronSession.sessionEntry, providerUsed, cliSessionId);
       }
+    }
+    // Persist Claude SDK session ID for native session resume on next cron run.
+    const returnedClaudeSdkSessionId = runResult.meta.agentMeta?.claudeSessionId?.trim();
+    if (returnedClaudeSdkSessionId) {
+      cronSession.sessionEntry.claudeSdkSessionId = returnedClaudeSdkSessionId;
     }
     if (hasNonzeroUsage(usage)) {
       const input = usage.input ?? 0;
@@ -492,4 +573,56 @@ export async function runCronIsolatedAgentTurn(params: {
   }
 
   return { status: "ok", summary, outputText };
+}
+
+/**
+ * Map ExecutionResult to the legacy EmbeddedPiRunResult format used by cron post-processing.
+ */
+function mapCronExecutionResultToLegacy(
+  result: ExecutionResult,
+): Awaited<ReturnType<typeof runEmbeddedPiAgent>> {
+  return {
+    payloads: result.payloads.map((p) => ({
+      text: p.text,
+      mediaUrl: p.mediaUrl,
+      mediaUrls: p.mediaUrls,
+      replyToId: p.replyToId,
+      isError: p.isError,
+    })),
+    meta: {
+      durationMs: result.usage.durationMs,
+      aborted: result.aborted,
+      agentMeta: {
+        sessionId: "",
+        provider: result.runtime.provider ?? "",
+        model: result.runtime.model ?? "",
+        claudeSessionId: result.claudeSdkSessionId,
+        usage: {
+          input: result.usage.inputTokens,
+          output: result.usage.outputTokens,
+          cacheRead: result.usage.cacheReadTokens,
+          cacheWrite: result.usage.cacheWriteTokens,
+          total: result.usage.inputTokens + result.usage.outputTokens,
+        },
+      },
+      systemPromptReport: result.systemPromptReport as Awaited<
+        ReturnType<typeof runEmbeddedPiAgent>
+      >["meta"]["systemPromptReport"],
+      error: result.embeddedError
+        ? {
+            kind: result.embeddedError.kind as
+              | "context_overflow"
+              | "compaction_failure"
+              | "role_ordering"
+              | "image_size",
+            message: result.embeddedError.message,
+          }
+        : undefined,
+    },
+    didSendViaMessagingTool: result.didSendViaMessagingTool,
+    messagingToolSentTexts: result.messagingToolSentTexts,
+    messagingToolSentTargets: result.messagingToolSentTargets as Awaited<
+      ReturnType<typeof runEmbeddedPiAgent>
+    >["messagingToolSentTargets"],
+  };
 }

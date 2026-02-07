@@ -16,12 +16,17 @@
     "oxc/no-map-spread": "off",
     "typescript/no-explicit-any": "error",
     "typescript/no-extraneous-class": "off",
+    "typescript/unbound-method": "off",
+    "typescript/no-redundant-type-constituents": "off",
     "typescript/no-unsafe-type-assertion": "off",
     "unicorn/consistent-function-scoping": "off",
+    "unicorn/prefer-add-event-listener": "off",
     "unicorn/require-post-message-target-origin": "off"
   },
   "ignorePatterns": [
+    "apps/web/",
     "assets/",
+    "crypto-token/",
     "dist/",
     "docs/_layouts/",
     "node_modules/",
@@ -29,7 +34,11 @@
     "pnpm-lock.yaml/",
     "skills/",
     "src/canvas-host/a2ui/a2ui.bundle.js",
+    "src/ui-refs/",
+    "apps/web/src/ui-refs/",
     "Swabble/",
-    "vendor/"
+    "ui-redesign/",
+    "vendor/",
+    "ui/"
   ]
 }

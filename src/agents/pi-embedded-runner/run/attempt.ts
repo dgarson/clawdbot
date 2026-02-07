@@ -4,11 +4,17 @@ import { streamSimple } from "@mariozechner/pi-ai";
 import { createAgentSession, SessionManager, SettingsManager } from "@mariozechner/pi-coding-agent";
 import fs from "node:fs/promises";
 import os from "node:os";
+import type { AnyAgentTool } from "../../tools/common.js";
+import type { ExtensionToolDefinition } from "./params.js";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
+import { resolveMcpToolsForAgent } from "../../../mcp/mcp-tools.js";
+import { formatMcpToolNamesForLog } from "../../../mcp/tool-name-format.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
+import { handleAgentEnd as handleMemoryFeedback } from "../../../memory/feedback/feedback-subscriber.js";
+import { warnIfThinkingBudgetConflict } from "../../../openclaw/thinking-budget-integration.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import { isSubagentSessionKey } from "../../../routing/session-key.js";
 import { resolveSignalReactionLevel } from "../../../signal/reaction-level.js";
@@ -30,6 +36,7 @@ import {
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
+import { buildModelAliasLines } from "../../model-resolution.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import {
   isCloudCodeAssistFormatError,
@@ -68,9 +75,8 @@ import {
   sanitizeSessionHistory,
   sanitizeToolsForGoogle,
 } from "../google.js";
-import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "../history.js";
+import { getHistoryLimitForContext, limitHistoryTurns } from "../history.js";
 import { log } from "../logger.js";
-import { buildModelAliasLines } from "../model.js";
 import {
   clearActiveEmbeddedRun,
   type EmbeddedPiQueueHandle,
@@ -87,6 +93,32 @@ import {
 import { splitSdkTools } from "../tool-split.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";
 import { detectAndLoadPromptImages } from "./images.js";
+
+/**
+ * Convert extension-provided tools to the AnyAgentTool format.
+ * This allows extensions (like voice-call) to provide custom tools.
+ */
+function convertExtensionToolsToAgentTools(
+  extensionTools: ExtensionToolDefinition[] | undefined,
+): AnyAgentTool[] {
+  if (!extensionTools || extensionTools.length === 0) {
+    return [];
+  }
+
+  return extensionTools.map((tool) => ({
+    name: tool.name,
+    label: tool.name,
+    description: tool.description ?? `Extension tool: ${tool.name}`,
+    parameters: tool.parameters,
+    execute: async (_toolCallId: string, params: unknown) => {
+      const result = await tool.execute(params);
+      return {
+        content: [{ type: "text" as const, text: result }],
+        details: undefined,
+      };
+    },
+  }));
+}
 
 export function injectHistoryImagesIntoMessages(
   messages: AgentMessage[],
@@ -203,8 +235,33 @@ export async function runEmbeddedAttempt(
 
     const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
 
+    const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
+      sessionKey: params.sessionKey,
+      config: params.config,
+    });
+
     // Check if the model supports native image input
     const modelHasVision = params.model.input?.includes("image") ?? false;
+
+    const mcpTools = params.disableTools
+      ? []
+      : await resolveMcpToolsForAgent({
+          config: params.config,
+          agentId: sessionAgentId,
+          abortSignal: runAbortController.signal,
+        });
+
+    // Convert extension-provided tools (e.g., voice recall_conversation) to agent format
+    const extensionTools = convertExtensionToolsToAgentTools(params.extraTools);
+    if (extensionTools.length > 0) {
+      log.info(
+        `extension tools enabled: runId=${params.runId} sessionKey=${params.sessionKey ?? params.sessionId} tools=${extensionTools.map((t) => t.name).join(",")}`,
+      );
+    }
+
+    // Combine MCP tools and extension tools
+    const allExtraTools = [...mcpTools, ...extensionTools];
+
     const toolsRaw = params.disableTools
       ? []
       : createOpenClawCodingTools({
@@ -225,6 +282,7 @@ export async function runEmbeddedAttempt(
           senderName: params.senderName,
           senderUsername: params.senderUsername,
           senderE164: params.senderE164,
+          senderIsOwner: params.senderIsOwner,
           sessionKey: params.sessionKey ?? params.sessionId,
           agentDir,
           workspaceDir: effectiveWorkspace,
@@ -238,12 +296,21 @@ export async function runEmbeddedAttempt(
           replyToMode: params.replyToMode,
           hasRepliedRef: params.hasRepliedRef,
           modelHasVision,
+          extraTools: allExtraTools,
           requireExplicitMessageTarget:
             params.requireExplicitMessageTarget ?? isSubagentSessionKey(params.sessionKey),
           disableMessageTool: params.disableMessageTool,
         });
     const tools = sanitizeToolsForGoogle({ tools: toolsRaw, provider: params.provider });
     logToolSchemasForGoogle({ tools, provider: params.provider });
+
+    const mcpToolLog = formatMcpToolNamesForLog(tools.map((t) => t.name));
+    if (mcpToolLog.formatted.length > 0) {
+      const total = mcpToolLog.formatted.length + mcpToolLog.remaining;
+      log.info(
+        `embedded mcp tools: runId=${params.runId} sessionId=${params.sessionId} sessionKey=${params.sessionKey ?? params.sessionId} agentId=${sessionAgentId} mcpToolsCount=${total} mcpTools=${mcpToolLog.formatted.join(",")}${mcpToolLog.truncated ? ` ...(+${mcpToolLog.remaining})` : ""}`,
+      );
+    }
 
     const machineName = await getMachineDisplayName();
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
@@ -292,10 +359,7 @@ export async function runEmbeddedAttempt(
             return undefined;
           })()
         : undefined;
-    const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
-      sessionKey: params.sessionKey,
-      config: params.config,
-    });
+    // sessionAgentId/defaultAgentId resolved earlier (needed for MCP tools + system prompt).
     const sandboxInfo = buildEmbeddedSandboxInfo(sandbox, params.bashElevated);
     const reasoningTagHint = isReasoningTagProvider(params.provider);
     // Resolve channel-specific message actions for system prompt
@@ -345,8 +409,9 @@ export async function runEmbeddedAttempt(
     });
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
 
-    const appendPrompt = buildEmbeddedSystemPrompt({
+    const appendPrompt = await buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
+      config: params.config,
       defaultThinkLevel: params.thinkLevel,
       reasoningLevel: params.reasoningLevel ?? "off",
       extraSystemPrompt: params.extraSystemPrompt,
@@ -436,9 +501,20 @@ export async function runEmbeddedAttempt(
       });
 
       const settingsManager = SettingsManager.create(effectiveWorkspace, agentDir);
+      const compactionReserve = resolveCompactionReserveTokensFloor(params.config);
       ensurePiCompactionReserveTokens({
         settingsManager,
-        minReserveTokens: resolveCompactionReserveTokensFloor(params.config),
+        minReserveTokens: compactionReserve,
+      });
+
+      // Check thinking budget vs available context space (OpenClaw extension)
+      warnIfThinkingBudgetConflict({
+        provider: params.provider,
+        modelId: params.modelId,
+        model: params.model,
+        thinkLevel: params.thinkLevel,
+        config: params.config,
+        compactionReserve,
       });
 
       // Call for side effects (sets compaction/pruning runtime state)
@@ -553,10 +629,14 @@ export async function runEmbeddedAttempt(
         const validated = transcriptPolicy.validateAnthropicTurns
           ? validateAnthropicTurns(validatedGemini)
           : validatedGemini;
-        const limited = limitHistoryTurns(
-          validated,
-          getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
+        // Get history limits (voice calls pass explicit options, other channels use config lookup)
+        const { turnLimit } = getHistoryLimitForContext(
+          params.sessionKey,
+          params.config,
+          params.historyOptions,
         );
+        // Apply turn-based limiting
+        const limited = limitHistoryTurns(validated, turnLimit);
         cacheTrace?.recordStage("session:limited", { messages: limited });
         if (limited.length > 0) {
           activeSession.agent.replaceMessages(limited);
@@ -621,6 +701,9 @@ export async function runEmbeddedAttempt(
       const subscription = subscribeEmbeddedPiSession({
         session: activeSession,
         runId: params.runId,
+        sessionId: params.sessionId,
+        sessionKey: params.sessionKey,
+        cfg: params.config,
         verboseLevel: params.verboseLevel,
         reasoningMode: params.reasoningLevel ?? "off",
         toolResultFormat: params.toolResultFormat,
@@ -858,6 +941,16 @@ export async function runEmbeddedAttempt(
             .catch((err) => {
               log.warn(`agent_end hook failed: ${err}`);
             });
+        }
+
+        // Fire memory feedback evaluation (fire-and-forget)
+        try {
+          handleMemoryFeedback(
+            { messages: messagesSnapshot, success: !aborted && !promptError },
+            { agentId: params.sessionKey?.split(":")[0] ?? "main", sessionKey: params.sessionKey },
+          );
+        } catch {
+          /* never throw */
         }
       } finally {
         clearTimeout(abortTimer);

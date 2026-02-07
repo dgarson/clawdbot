@@ -148,7 +148,7 @@ export {
   shouldAckReactionForWhatsApp,
 } from "../channels/ack-reactions.js";
 export { createTypingCallbacks } from "../channels/typing.js";
-export { createReplyPrefixContext } from "../channels/reply-prefix.js";
+export { createReplyPrefixContext, createReplyPrefixOptions } from "../channels/reply-prefix.js";
 export { logAckFailure, logInboundDrop, logTypingFailure } from "../channels/logging.js";
 export { resolveChannelMediaMaxBytes } from "../channels/plugins/media-limits.js";
 export type { NormalizedLocation } from "../channels/location.js";
@@ -286,6 +286,7 @@ export {
   resolveSlackReplyToMode,
   type ResolvedSlackAccount,
 } from "../slack/accounts.js";
+export type { SlackChannelData } from "../slack/types.js";
 export { slackOnboardingAdapter } from "../channels/plugins/onboarding/slack.js";
 export {
   looksLikeSlackTargetId,
@@ -370,22 +371,21 @@ export {
 } from "../line/markdown-to-line.js";
 export type { ProcessedLineMessage } from "../line/markdown-to-line.js";
 
-// Channel: Feishu
-export {
-  listFeishuAccountIds,
-  resolveDefaultFeishuAccountId,
-  resolveFeishuAccount,
-  type ResolvedFeishuAccount,
-} from "../feishu/accounts.js";
-export {
-  resolveFeishuConfig,
-  resolveFeishuGroupEnabled,
-  resolveFeishuGroupRequireMention,
-} from "../feishu/config.js";
-export { feishuOutbound } from "../channels/plugins/outbound/feishu.js";
-export { normalizeFeishuTarget } from "../channels/plugins/normalize/feishu.js";
-export { probeFeishu, type FeishuProbe } from "../feishu/probe.js";
-export { monitorFeishuProvider } from "../feishu/monitor.js";
-
 // Media utilities
 export { loadWebMedia, type WebMediaResult } from "../web/media.js";
+
+// Plugin utilities
+export { registerPluginHooksFromDir } from "../hooks/plugin-hooks.js";
+export { completeText, completeTextWithModelRef, probeModelRefAuth } from "./llm.js";
+
+// Memory: Graphiti client + entity extraction
+export { GraphitiClient } from "../memory/graphiti/client.js";
+export type { GraphitiClientOptions } from "../memory/graphiti/client.js";
+export {
+  extractEntitiesFromEpisodes,
+  writeEntitiesToGraph,
+} from "../memory/pipeline/entity-extract.js";
+export type { MemoryContentObject } from "../memory/types.js";
+
+// Types
+export type { AnyAgentTool } from "../agents/tools/common.js";

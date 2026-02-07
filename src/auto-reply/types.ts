@@ -39,6 +39,14 @@ export type GetReplyOptions = {
   skillFilter?: string[];
   /** Mutable ref to track if a reply was sent (for Slack "first" threading mode). */
   hasRepliedRef?: { value: boolean };
+
+  // Voice call specific options
+  /** Max tokens for conversation history (voice calls use aggressive limits) */
+  maxHistoryTokens?: number;
+  /** Max conversation turns to retain */
+  historyLimit?: number;
+  /** Lane identifier for concurrency management */
+  lane?: string;
 };
 
 export type ReplyPayload = {

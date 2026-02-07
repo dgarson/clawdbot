@@ -1,0 +1,137 @@
+/**
+ * Progressive Memory Manager — singleton access to the ProgressiveMemoryStore.
+ *
+ * Provides a cached store instance and optional embed function for the new
+ * progressive memory tools. This is the glue between MCP tools and the store.
+ */
+
+import path from "node:path";
+import type { OpenClawConfig } from "../config/config.js";
+import { resolveAgentDir } from "../agents/agent-scope.js";
+import { resolveMemorySearchConfig } from "../agents/memory-search.js";
+import { resolveStateDir } from "../config/paths.js";
+import { isFeatureEnabled } from "../config/types.debugging.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
+import { createEmbeddingProvider } from "./embeddings.js";
+import { createMemoryOpsLogger } from "./ops-log/index.js";
+import { generateMemoryIndex } from "./progressive-index.js";
+import { ProgressiveMemoryStore, type EmbedFn } from "./progressive-store.js";
+
+const log = createSubsystemLogger("progressive-memory");
+
+export type ProgressiveStoreAccess = {
+  store: ProgressiveMemoryStore;
+  embedFn?: EmbedFn;
+};
+
+/** Cache keyed by dbPath to avoid re-creating stores. */
+const storeCache = new Map<string, ProgressiveStoreAccess>();
+
+/**
+ * Get or create a ProgressiveMemoryStore instance for the given config.
+ * Initializes vector search on first access.
+ */
+export async function getProgressiveStore(params: {
+  cfg: OpenClawConfig;
+  agentId?: string;
+}): Promise<ProgressiveStoreAccess> {
+  const stateDir = resolveStateDir();
+  const dbPath = path.join(stateDir, "memory", "progressive.db");
+
+  const cached = storeCache.get(dbPath);
+  if (cached) {
+    return cached;
+  }
+
+  const opsLog = createMemoryOpsLogger(stateDir);
+  const store = new ProgressiveMemoryStore({ dbPath, opsLog });
+
+  // Try to initialize vector search
+  try {
+    await store.initVector();
+  } catch (err) {
+    log.warn?.(`Vector init failed (FTS-only mode): ${String(err)}`);
+  }
+
+  // Try to create an embed function from the existing memory search config
+  let embedFn: EmbedFn | undefined;
+  try {
+    const agentId = params.agentId ?? "main";
+    const memSearchConfig = resolveMemorySearchConfig(params.cfg, agentId);
+    if (memSearchConfig) {
+      const providerResult = await createEmbeddingProvider({
+        config: params.cfg,
+        provider: memSearchConfig.provider,
+        model: memSearchConfig.model,
+        fallback: memSearchConfig.fallback,
+        local: memSearchConfig.local,
+        remote: memSearchConfig.remote,
+        agentDir: resolveAgentDir(params.cfg, agentId),
+      });
+      if (providerResult?.provider) {
+        const provider = providerResult.provider;
+        embedFn = (text: string) => provider.embedQuery(text);
+        log.info?.(`Embedding provider ready: ${provider.id} (${provider.model})`);
+      }
+    }
+  } catch (err) {
+    log.warn?.(`Embedding provider setup failed (dedup/vector disabled): ${String(err)}`);
+  }
+
+  const access: ProgressiveStoreAccess = { store, embedFn };
+  storeCache.set(dbPath, access);
+  return access;
+}
+
+/**
+ * Close and remove all cached stores. Called during shutdown.
+ */
+export function closeAllProgressiveStores(): void {
+  for (const [_key, access] of storeCache) {
+    try {
+      access.store.close();
+    } catch {
+      // ignore
+    }
+  }
+  storeCache.clear();
+}
+
+/**
+ * Check if progressive memory is enabled in config.
+ */
+export function isProgressiveMemoryEnabled(cfg: OpenClawConfig): boolean {
+  return cfg.memory?.progressive?.enabled === true;
+}
+
+/**
+ * Build the always-on progressive memory index for system prompts.
+ */
+export async function resolveProgressiveMemoryIndex(params: {
+  cfg: OpenClawConfig;
+  agentId?: string;
+  maxTokens?: number;
+}): Promise<string | undefined> {
+  if (!isProgressiveMemoryEnabled(params.cfg)) {
+    return undefined;
+  }
+  const debugEnabled = isFeatureEnabled(params.cfg.debugging, "progressive-memory-index");
+  try {
+    const { store } = await getProgressiveStore(params);
+    store.archiveExpired();
+    const index = generateMemoryIndex(store, { maxTokens: params.maxTokens });
+    if (debugEnabled) {
+      log.debug?.("Progressive memory index generated", {
+        agentId: params.agentId,
+        maxTokens: params.maxTokens,
+        chars: index.length,
+      });
+    }
+    return index;
+  } catch (err) {
+    if (debugEnabled) {
+      log.warn?.(`Progressive memory index build failed: ${String(err)}`);
+    }
+    return undefined;
+  }
+}

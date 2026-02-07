@@ -1,5 +1,62 @@
 export type MemorySource = "memory" | "sessions";
 
+export type MemoryContentKind =
+  | "message"
+  | "document"
+  | "fact"
+  | "artifact"
+  | "summary"
+  | "event"
+  | (string & {});
+
+export type MemoryTemporalMetadata = {
+  createdAt?: string;
+  updatedAt?: string;
+  observedAt?: string;
+  validFrom?: string;
+  validTo?: string;
+  expiresAt?: string;
+  timezone?: string;
+};
+
+export type MemoryProvenance = {
+  source: string;
+  sourceId?: string;
+  channel?: string;
+  actorId?: string;
+  sessionKey?: string;
+  runId?: string;
+  traceId?: string;
+  citations?: string[];
+  temporal?: MemoryTemporalMetadata;
+};
+
+export type MemoryArtifact = {
+  id: string;
+  kind: "file" | "image" | "audio" | "video" | "link" | (string & {});
+  uri?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  sha256?: string;
+  title?: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+  provenance?: MemoryProvenance;
+};
+
+export type MemoryContentObject = {
+  id: string;
+  kind: MemoryContentKind;
+  text?: string;
+  title?: string;
+  language?: string;
+  tags?: string[];
+  artifacts?: MemoryArtifact[];
+  metadata?: Record<string, unknown>;
+  provenance?: MemoryProvenance;
+  temporal?: MemoryTemporalMetadata;
+};
+
 export type MemorySearchResult = {
   path: string;
   startLine: number;
@@ -8,6 +65,7 @@ export type MemorySearchResult = {
   snippet: string;
   source: MemorySource;
   citation?: string;
+  sourceBackend?: string;
 };
 
 export type MemoryEmbeddingProbeResult = {

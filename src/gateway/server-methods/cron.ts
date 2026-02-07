@@ -10,12 +10,27 @@ import {
   validateCronAddParams,
   validateCronListParams,
   validateCronRemoveParams,
+  validateCronRunLogParams,
   validateCronRunParams,
   validateCronRunsParams,
   validateCronStatusParams,
   validateCronUpdateParams,
   validateWakeParams,
 } from "../protocol/index.js";
+
+const AGENT_CRON_SESSION_PATTERN = /^agent:[^:]+:cron:(.+)$/;
+
+function resolveCronRunLogJobId(sessionKey: string): string | null {
+  const normalized = sessionKey.trim();
+  if (normalized.startsWith("cron:")) {
+    return normalized.slice("cron:".length) || null;
+  }
+  const match = normalized.match(AGENT_CRON_SESSION_PATTERN);
+  if (match?.[1]) {
+    return match[1];
+  }
+  return null;
+}
 
 export const cronHandlers: GatewayRequestHandlers = {
   wake: ({ params, respond, context }) => {
@@ -223,5 +238,51 @@ export const cronHandlers: GatewayRequestHandlers = {
       jobId,
     });
     respond(true, { entries }, undefined);
+  },
+  "cron.runLog": async ({ params, respond, context }) => {
+    if (!validateCronRunLogParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid cron.runLog params: ${formatValidationErrors(validateCronRunLogParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const p = params as { sessionKey: string; limit?: number };
+    const jobId = resolveCronRunLogJobId(p.sessionKey);
+    if (!jobId) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "invalid cron.runLog params: unknown session key"),
+      );
+      return;
+    }
+    const logPath = resolveCronRunLogPath({
+      storePath: context.cronStorePath,
+      jobId,
+    });
+    const entries = await readCronRunLogEntries(logPath, {
+      limit: p.limit,
+      jobId,
+    });
+    const timeline = entries.map((entry) => {
+      const startAtMs = entry.runAtMs ?? entry.ts;
+      const finishAtMs =
+        typeof entry.durationMs === "number" && Number.isFinite(entry.durationMs)
+          ? startAtMs + entry.durationMs
+          : undefined;
+      return {
+        jobId: entry.jobId,
+        startAtMs,
+        finishAtMs,
+        status: entry.status,
+        summary: entry.summary,
+      };
+    });
+    respond(true, { entries: timeline }, undefined);
   },
 };

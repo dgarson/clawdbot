@@ -23,11 +23,16 @@ type ResolvedAgentConfig = {
   memorySearch?: AgentEntry["memorySearch"];
   humanDelay?: AgentEntry["humanDelay"];
   heartbeat?: AgentEntry["heartbeat"];
+  thinkingDefault?: AgentEntry["thinkingDefault"];
+  verboseDefault?: AgentEntry["verboseDefault"];
   identity?: AgentEntry["identity"];
   groupChat?: AgentEntry["groupChat"];
   subagents?: AgentEntry["subagents"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
+  mcpServers?: AgentEntry["mcpServers"];
+  runtime?: any; // TODO: Add proper runtime type
+  claudeSdkOptions?: any; // TODO: Add proper ClaudeSdkOptions type
 };
 
 let defaultAgentWarned = false;
@@ -117,11 +122,16 @@ export function resolveAgentConfig(
     memorySearch: entry.memorySearch,
     humanDelay: entry.humanDelay,
     heartbeat: entry.heartbeat,
+    thinkingDefault: entry.thinkingDefault,
+    verboseDefault: entry.verboseDefault,
     identity: entry.identity,
+    mcpServers: entry.mcpServers,
     groupChat: entry.groupChat,
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
     sandbox: entry.sandbox,
     tools: entry.tools,
+    runtime: entry.runtime,
+    claudeSdkOptions: entry.claudeSdkOptions,
   };
 }
 
@@ -164,6 +174,34 @@ export function resolveAgentModelFallbacksOverride(
   return Array.isArray(raw.fallbacks) ? raw.fallbacks : undefined;
 }
 
+/**
+ * Resolve per-agent thinking level default with fallback to global defaults.
+ */
+export function resolveAgentThinkingDefault(
+  cfg: OpenClawConfig,
+  agentId: string,
+): "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | undefined {
+  const perAgent = resolveAgentConfig(cfg, agentId)?.thinkingDefault;
+  if (perAgent) {
+    return perAgent;
+  }
+  return cfg.agents?.defaults?.thinkingDefault;
+}
+
+/**
+ * Resolve per-agent verbose level default with fallback to global defaults.
+ */
+export function resolveAgentVerboseDefault(
+  cfg: OpenClawConfig,
+  agentId: string,
+): "off" | "on" | "full" | undefined {
+  const perAgent = resolveAgentConfig(cfg, agentId)?.verboseDefault;
+  if (perAgent) {
+    return perAgent;
+  }
+  return cfg.agents?.defaults?.verboseDefault;
+}
+
 export function resolveAgentWorkspaceDir(cfg: OpenClawConfig, agentId: string) {
   const id = normalizeAgentId(agentId);
   const configured = resolveAgentConfig(cfg, id)?.workspace?.trim();
@@ -189,4 +227,8 @@ export function resolveAgentDir(cfg: OpenClawConfig, agentId: string) {
   }
   const root = resolveStateDir(process.env, os.homedir);
   return path.join(root, "agents", id, "agent");
+}
+
+export function resolveDefaultAgentDir(cfg: OpenClawConfig): string {
+  return resolveAgentDir(cfg, resolveDefaultAgentId(cfg));
 }

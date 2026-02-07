@@ -18,6 +18,43 @@ import {
 import { GatewayClient } from "./client.js";
 import { PROTOCOL_VERSION } from "./protocol/index.js";
 
+// Suppress gateway health logs for polling/one-off RPCs that reconnect frequently.
+const DEFAULT_GATEWAY_HEALTH_SUPPRESS_METHODS = new Set<string>([
+  "automations.history",
+  "automations.list",
+  "browser.request",
+  "channels.status",
+  "cron.add",
+  "cron.list",
+  "cron.remove",
+  "cron.run",
+  "cron.runs",
+  "cron.runLog",
+  "cron.status",
+  "cron.update",
+  "logs.tail",
+  "overseer.goal.create",
+  "overseer.goal.pause",
+  "overseer.goal.resume",
+  "overseer.status",
+  "overseer.tick",
+  "overseer.work.update",
+  "wake",
+  "health",
+  "status",
+  "system-presence",
+  "last-heartbeat",
+  "set-heartbeats",
+  "config.get",
+  "config.set",
+  "config.apply",
+  "config.patch",
+  "config.schema",
+  "gateway.startupCommands.list",
+  "gateway.startupCommands.append",
+  "gateway.startupCommands.remove",
+]);
+
 export type CallGatewayOptions = {
   url?: string;
   token?: string;
@@ -36,6 +73,7 @@ export type CallGatewayOptions = {
   instanceId?: string;
   minProtocol?: number;
   maxProtocol?: number;
+  suppressGatewayHealth?: boolean;
   /**
    * Overrides the config path shown in connection error details.
    * Does not affect config loading; callers still control auth via opts.token/password/env/config.
@@ -50,6 +88,43 @@ export type GatewayConnectionDetails = {
   remoteFallbackNote?: string;
   message: string;
 };
+
+export type ExplicitGatewayAuth = {
+  token?: string;
+  password?: string;
+};
+
+export function resolveExplicitGatewayAuth(opts?: ExplicitGatewayAuth): ExplicitGatewayAuth {
+  const token =
+    typeof opts?.token === "string" && opts.token.trim().length > 0 ? opts.token.trim() : undefined;
+  const password =
+    typeof opts?.password === "string" && opts.password.trim().length > 0
+      ? opts.password.trim()
+      : undefined;
+  return { token, password };
+}
+
+export function ensureExplicitGatewayAuth(params: {
+  urlOverride?: string;
+  auth: ExplicitGatewayAuth;
+  errorHint: string;
+  configPath?: string;
+}): void {
+  if (!params.urlOverride) {
+    return;
+  }
+  if (params.auth.token || params.auth.password) {
+    return;
+  }
+  const message = [
+    "gateway url override requires explicit credentials",
+    params.errorHint,
+    params.configPath ? `Config: ${params.configPath}` : undefined,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  throw new Error(message);
+}
 
 export function buildGatewayConnectionDetails(
   options: { config?: OpenClawConfig; url?: string; configPath?: string } = {},
@@ -112,12 +187,28 @@ export function buildGatewayConnectionDetails(
 export async function callGateway<T = Record<string, unknown>>(
   opts: CallGatewayOptions,
 ): Promise<T> {
-  const timeoutMs = opts.timeoutMs ?? 10_000;
+  const MAX_SET_TIMEOUT_MS = 2_147_483_647;
+  const timeoutMsRaw =
+    typeof opts.timeoutMs === "number" && Number.isFinite(opts.timeoutMs)
+      ? Math.max(0, Math.floor(opts.timeoutMs))
+      : undefined;
+  const timeoutMs = timeoutMsRaw ?? 10_000;
+  const shouldTimeout = timeoutMs > 0 && timeoutMs <= MAX_SET_TIMEOUT_MS;
   const config = opts.config ?? loadConfig();
+  const suppressGatewayHealth =
+    opts.suppressGatewayHealth ??
+    (typeof opts.method === "string" && isGatewayHealthSuppressedMethod(config, opts.method));
   const isRemoteMode = config.gateway?.mode === "remote";
   const remote = isRemoteMode ? config.gateway?.remote : undefined;
   const urlOverride =
     typeof opts.url === "string" && opts.url.trim().length > 0 ? opts.url.trim() : undefined;
+  const explicitAuth = resolveExplicitGatewayAuth({ token: opts.token, password: opts.password });
+  ensureExplicitGatewayAuth({
+    urlOverride,
+    auth: explicitAuth,
+    errorHint: "Fix: pass --token or --password (or gatewayToken in tools).",
+    configPath: opts.configPath ?? resolveConfigPath(process.env, resolveStateDir(process.env)),
+  });
   const remoteUrl =
     typeof remote?.url === "string" && remote.url.trim().length > 0 ? remote.url.trim() : undefined;
   if (isRemoteMode && !urlOverride && !remoteUrl) {
@@ -153,31 +244,31 @@ export async function callGateway<T = Record<string, unknown>>(
     remoteTlsFingerprint ||
     (tlsRuntime?.enabled ? tlsRuntime.fingerprintSha256 : undefined);
   const token =
-    (typeof opts.token === "string" && opts.token.trim().length > 0
-      ? opts.token.trim()
-      : undefined) ||
-    (isRemoteMode
-      ? typeof remote?.token === "string" && remote.token.trim().length > 0
-        ? remote.token.trim()
-        : undefined
-      : process.env.OPENCLAW_GATEWAY_TOKEN?.trim() ||
-        process.env.CLAWDBOT_GATEWAY_TOKEN?.trim() ||
-        (typeof authToken === "string" && authToken.trim().length > 0
-          ? authToken.trim()
-          : undefined));
+    explicitAuth.token ||
+    (!urlOverride
+      ? isRemoteMode
+        ? typeof remote?.token === "string" && remote.token.trim().length > 0
+          ? remote.token.trim()
+          : undefined
+        : process.env.OPENCLAW_GATEWAY_TOKEN?.trim() ||
+          process.env.CLAWDBOT_GATEWAY_TOKEN?.trim() ||
+          (typeof authToken === "string" && authToken.trim().length > 0
+            ? authToken.trim()
+            : undefined)
+      : undefined);
   const password =
-    (typeof opts.password === "string" && opts.password.trim().length > 0
-      ? opts.password.trim()
-      : undefined) ||
-    process.env.OPENCLAW_GATEWAY_PASSWORD?.trim() ||
-    process.env.CLAWDBOT_GATEWAY_PASSWORD?.trim() ||
-    (isRemoteMode
-      ? typeof remote?.password === "string" && remote.password.trim().length > 0
-        ? remote.password.trim()
-        : undefined
-      : typeof authPassword === "string" && authPassword.trim().length > 0
-        ? authPassword.trim()
-        : undefined);
+    explicitAuth.password ||
+    (!urlOverride
+      ? process.env.OPENCLAW_GATEWAY_PASSWORD?.trim() ||
+        process.env.CLAWDBOT_GATEWAY_PASSWORD?.trim() ||
+        (isRemoteMode
+          ? typeof remote?.password === "string" && remote.password.trim().length > 0
+            ? remote.password.trim()
+            : undefined
+          : typeof authPassword === "string" && authPassword.trim().length > 0
+            ? authPassword.trim()
+            : undefined)
+      : undefined);
 
   const formatCloseError = (code: number, reason: string) => {
     const reasonText = reason?.trim() || "no close reason";
@@ -186,17 +277,25 @@ export async function callGateway<T = Record<string, unknown>>(
     const suffix = hint ? ` ${hint}` : "";
     return `gateway closed (${code}${suffix}): ${reasonText}\n${connectionDetails.message}`;
   };
+  const formatConnectError = (err: Error) => {
+    const message = err?.message?.trim() || String(err);
+    return `gateway connect error: ${message}\n${connectionDetails.message}`;
+  };
   const formatTimeoutError = () =>
     `gateway timeout after ${timeoutMs}ms\n${connectionDetails.message}`;
   return await new Promise<T>((resolve, reject) => {
     let settled = false;
     let ignoreClose = false;
+    let timer: NodeJS.Timeout | null = null;
     const stop = (err?: Error, value?: T) => {
       if (settled) {
         return;
       }
       settled = true;
-      clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
       if (err) {
         reject(err);
       } else {
@@ -220,6 +319,7 @@ export async function callGateway<T = Record<string, unknown>>(
       deviceIdentity: loadOrCreateDeviceIdentity(),
       minProtocol: opts.minProtocol ?? PROTOCOL_VERSION,
       maxProtocol: opts.maxProtocol ?? PROTOCOL_VERSION,
+      logGatewayHealth: !suppressGatewayHealth,
       onHelloOk: async () => {
         try {
           const result = await client.request<T>(opts.method, opts.params, {
@@ -234,6 +334,14 @@ export async function callGateway<T = Record<string, unknown>>(
           stop(err as Error);
         }
       },
+      onConnectError: (err) => {
+        if (settled) {
+          return;
+        }
+        ignoreClose = true;
+        client.stop();
+        stop(new Error(formatConnectError(err)));
+      },
       onClose: (code, reason) => {
         if (settled || ignoreClose) {
           return;
@@ -244,14 +352,24 @@ export async function callGateway<T = Record<string, unknown>>(
       },
     });
 
-    const timer = setTimeout(() => {
-      ignoreClose = true;
-      client.stop();
-      stop(new Error(formatTimeoutError()));
-    }, timeoutMs);
+    if (shouldTimeout) {
+      timer = setTimeout(() => {
+        ignoreClose = true;
+        client.stop();
+        stop(new Error(formatTimeoutError()));
+      }, timeoutMs);
+    }
 
     client.start();
   });
+}
+
+function isGatewayHealthSuppressedMethod(config: OpenClawConfig, method: string): boolean {
+  const configured = config.logging?.enhanced?.gatewayHealthSuppressMethods;
+  if (Array.isArray(configured)) {
+    return configured.includes(method);
+  }
+  return DEFAULT_GATEWAY_HEALTH_SUPPRESS_METHODS.has(method);
 }
 
 export function randomIdempotencyKey() {

@@ -1,0 +1,54 @@
+{
+  "id": "meridia",
+  "uiHints": {
+    "db.type": {
+      "label": "Database Type",
+      "help": "Meridia uses a local SQLite database."
+    },
+    "db.sqlite.dbPath": {
+      "label": "SQLite DB Path",
+      "placeholder": "~/.openclaw/meridia/meridia.sqlite",
+      "advanced": true,
+      "help": "Optional override for the Meridia SQLite file path."
+    },
+    "debug.writeTraceJsonl": {
+      "label": "Write Trace JSONL",
+      "help": "If enabled, writes a small JSONL trace stream for debugging (records are stored only in SQLite).",
+      "advanced": true
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "db": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["sqlite"]
+          },
+          "sqlite": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "dbPath": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "debug": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "writeTraceJsonl": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

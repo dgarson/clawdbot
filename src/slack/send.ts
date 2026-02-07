@@ -1,5 +1,7 @@
 import { type FilesUploadV2Arguments, type WebClient } from "@slack/web-api";
+import type { OpenClawConfig } from "../config/config.js";
 import type { SlackTokenSource } from "./accounts.js";
+import type { SlackBlock } from "./blocks/types.js";
 import {
   chunkMarkdownTextWithMode,
   resolveChunkMode,
@@ -7,7 +9,9 @@ import {
 } from "../auto-reply/chunk.js";
 import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
+import { isDebuggingEnabled } from "../config/types.debugging.js";
 import { logVerbose } from "../globals.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadWebMedia } from "../web/media.js";
 import { resolveSlackAccount } from "./accounts.js";
 import { createSlackWebClient } from "./client.js";
@@ -16,6 +20,31 @@ import { parseSlackTarget } from "./targets.js";
 import { resolveSlackBotToken } from "./token.js";
 
 const SLACK_TEXT_LIMIT = 4000;
+const log = createSubsystemLogger("slack/send");
+
+function isReasoningLikeText(text: string): boolean {
+  const trimmed = text.trimStart();
+  if (!trimmed) {
+    return false;
+  }
+  // Our internal reasoning formatting uses "Reasoning:" prefix and italicized lines.
+  if (trimmed.startsWith("Reasoning:")) {
+    return true;
+  }
+  // Tagged providers (defense-in-depth; should have been stripped upstream for channels).
+  if (/<\s*(?:think(?:ing)?|thought|antthinking)\s*>/i.test(trimmed)) {
+    return true;
+  }
+  return false;
+}
+
+function textPreview(text: string, max = 120): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (compact.length <= max) {
+    return compact;
+  }
+  return `${compact.slice(0, max)}...`;
+}
 
 type SlackRecipient =
   | {
@@ -33,6 +62,8 @@ type SlackSendOpts = {
   mediaUrl?: string;
   client?: WebClient;
   threadTs?: string;
+  config?: OpenClawConfig;
+  blocks?: SlackBlock[];
 };
 
 export type SlackSendResult = {
@@ -87,6 +118,24 @@ async function resolveChannelId(
   return { channelId, isDm: true };
 }
 
+function logTrace(msg: string, config: OpenClawConfig, obj: any) {
+  if (
+    isDebuggingEnabled(config.debugging, "slack") &&
+    config.debugging?.channels?.slack?.sendTracing
+  ) {
+    log.trace(msg, obj);
+  }
+}
+
+function logDebug(msg: string, config: OpenClawConfig, obj: any) {
+  if (
+    isDebuggingEnabled(config.debugging, "slack") &&
+    config.debugging?.channels?.slack?.sendDebug
+  ) {
+    log.debug(msg, obj);
+  }
+}
+
 async function uploadSlackFile(params: {
   client: WebClient;
   channelId: string;
@@ -133,7 +182,7 @@ export async function sendMessageSlack(
   if (!trimmedMessage && !opts.mediaUrl) {
     throw new Error("Slack send requires text or media");
   }
-  const cfg = loadConfig();
+  const cfg = opts.config ?? loadConfig();
   const account = resolveSlackAccount({
     cfg,
     accountId: opts.accountId,
@@ -165,6 +214,22 @@ export async function sendMessageSlack(
   if (!chunks.length && trimmedMessage) {
     chunks.push(trimmedMessage);
   }
+
+  logTrace("slack send prepared", cfg, {
+    to,
+    accountId: account.accountId,
+    recipientKind: recipient.kind,
+    channelId,
+    threadTs: opts.threadTs ?? undefined,
+    textLen: trimmedMessage.length,
+    chunkMode,
+    chunkLimit,
+    chunkCount: chunks.length,
+    hasMedia: Boolean(opts.mediaUrl),
+    hasBlocks: Boolean(opts.blocks),
+    reasoningLike: isReasoningLikeText(trimmedMessage),
+    preview: trimmedMessage ? textPreview(trimmedMessage) : undefined,
+  });
   const mediaMaxBytes =
     typeof account.config.mediaMaxMb === "number"
       ? account.config.mediaMaxMb * 1024 * 1024
@@ -173,6 +238,13 @@ export async function sendMessageSlack(
   let lastMessageId = "";
   if (opts.mediaUrl) {
     const [firstChunk, ...rest] = chunks;
+    logTrace("slack send media upload", cfg, {
+      to,
+      channelId,
+      threadTs: opts.threadTs ?? undefined,
+      captionLen: (firstChunk ?? "").length,
+      mediaUrl: opts.mediaUrl,
+    });
     lastMessageId = await uploadSlackFile({
       client,
       channelId,
@@ -182,15 +254,48 @@ export async function sendMessageSlack(
       maxBytes: mediaMaxBytes,
     });
     for (const chunk of rest) {
+      logTrace("slack chunk send", cfg, {
+        to,
+        channelId,
+        threadTs: opts.threadTs ?? undefined,
+        chunkLen: chunk.length,
+        reasoningLike: isReasoningLikeText(chunk),
+      });
       const response = await client.chat.postMessage({
         channel: channelId,
         text: chunk,
         thread_ts: opts.threadTs,
+        ...(opts.blocks ? { blocks: opts.blocks } : {}),
       });
       lastMessageId = response.ts ?? lastMessageId;
     }
+  } else if (opts.blocks) {
+    // When blocks are provided, send them with text as fallback
+    const text = chunks[0] || trimmedMessage || "Message";
+    logTrace("slack send blocks", cfg, {
+      to,
+      channelId,
+      threadTs: opts.threadTs ?? undefined,
+      textLen: text.length,
+      reasoningLike: isReasoningLikeText(text),
+      preview: textPreview(text),
+    });
+    const response = await client.chat.postMessage({
+      channel: channelId,
+      text,
+      blocks: opts.blocks,
+      thread_ts: opts.threadTs,
+    });
+    lastMessageId = response.ts ?? "unknown";
   } else {
     for (const chunk of chunks.length ? chunks : [""]) {
+      logTrace("slack send chunk", cfg, {
+        to,
+        channelId,
+        threadTs: opts.threadTs ?? undefined,
+        chunkLen: chunk.length,
+        reasoningLike: isReasoningLikeText(chunk),
+      });
       const response = await client.chat.postMessage({
         channel: channelId,
         text: chunk,

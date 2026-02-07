@@ -290,6 +290,10 @@ export type ConfigUiHint = {
   sensitive?: boolean;
   placeholder?: string;
   itemTemplate?: unknown;
+  /** Override widget type: "slider" | "stepper" | "text" */
+  widget?: string;
+  /** Force compact/non-compact layout */
+  compact?: boolean;
 };
 
 export type ConfigUiHints = Record<string, ConfigUiHint>;
@@ -302,25 +306,30 @@ export type ConfigSchemaResponse = {
 };
 
 export type PresenceEntry = {
-  deviceFamily?: string | null;
-  host?: string | null;
   instanceId?: string | null;
+  host?: string | null;
   ip?: string | null;
-  lastInputSeconds?: number | null;
-  mode?: string | null;
-  modelIdentifier?: string | null;
+  version?: string | null;
   platform?: string | null;
+  deviceFamily?: string | null;
+  modelIdentifier?: string | null;
+  roles?: string[] | null;
+  scopes?: string[] | null;
+  mode?: string | null;
+  lastInputSeconds?: number | null;
   reason?: string | null;
-  roles?: Array<string | null> | null;
-  scopes?: Array<string | null> | null;
   text?: string | null;
   ts?: number | null;
-  version?: string | null;
 };
 
 export type GatewaySessionsDefaults = {
+  modelProvider: string | null;
   model: string | null;
   contextTokens: number | null;
+  thinkingDefault: string | null;
+  verboseDefault: string | null;
+  reasoningDefault: string | null;
+  elevatedDefault: string | null;
 };
 
 export type GatewayAgentRow = {
@@ -381,10 +390,14 @@ export type GatewaySessionRow = {
   key: string;
   kind: "direct" | "group" | "global" | "unknown";
   label?: string;
+  tags?: string[];
   displayName?: string;
-  surface?: string;
+  derivedTitle?: string;
+  lastMessagePreview?: string;
+  description?: string;
+  channel?: string;
   subject?: string;
-  room?: string;
+  groupChannel?: string;
   space?: string;
   updatedAt: number | null;
   sessionId?: string;
@@ -400,6 +413,8 @@ export type GatewaySessionRow = {
   model?: string;
   modelProvider?: string;
   contextTokens?: number;
+  turnCount?: number;
+  workspaceDir?: string;
 };
 
 export type SessionsListResult = {
@@ -408,6 +423,22 @@ export type SessionsListResult = {
   count: number;
   defaults: GatewaySessionsDefaults;
   sessions: GatewaySessionRow[];
+};
+
+export type SessionPreviewItem = {
+  role: "user" | "assistant" | "tool" | "system" | "other";
+  text: string;
+};
+
+export type SessionsPreviewEntry = {
+  key: string;
+  status: "ok" | "empty" | "missing" | "error";
+  items: SessionPreviewItem[];
+};
+
+export type SessionsPreviewResult = {
+  ts: number;
+  previews: SessionsPreviewEntry[];
 };
 
 export type SessionsPatchResult = {
@@ -422,6 +453,223 @@ export type SessionsPatchResult = {
     reasoningLevel?: string;
     elevatedLevel?: string;
   };
+};
+
+export type SessionsUsageEntry = {
+  key: string;
+  label?: string;
+  sessionId?: string;
+  updatedAt?: number;
+  agentId?: string;
+  channel?: string;
+  chatType?: string;
+  origin?: {
+    label?: string;
+    provider?: string;
+    surface?: string;
+    chatType?: string;
+    from?: string;
+    to?: string;
+    accountId?: string;
+    threadId?: string | number;
+  };
+  modelOverride?: string;
+  providerOverride?: string;
+  modelProvider?: string;
+  model?: string;
+  usage: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheWrite: number;
+    totalTokens: number;
+    totalCost: number;
+    inputCost?: number;
+    outputCost?: number;
+    cacheReadCost?: number;
+    cacheWriteCost?: number;
+    missingCostEntries: number;
+    firstActivity?: number;
+    lastActivity?: number;
+    durationMs?: number;
+    activityDates?: string[]; // YYYY-MM-DD dates when session had activity
+    dailyBreakdown?: Array<{ date: string; tokens: number; cost: number }>;
+    dailyMessageCounts?: Array<{
+      date: string;
+      total: number;
+      user: number;
+      assistant: number;
+      toolCalls: number;
+      toolResults: number;
+      errors: number;
+    }>;
+    dailyLatency?: Array<{
+      date: string;
+      count: number;
+      avgMs: number;
+      p95Ms: number;
+      minMs: number;
+      maxMs: number;
+    }>;
+    dailyModelUsage?: Array<{
+      date: string;
+      provider?: string;
+      model?: string;
+      tokens: number;
+      cost: number;
+      count: number;
+    }>;
+    messageCounts?: {
+      total: number;
+      user: number;
+      assistant: number;
+      toolCalls: number;
+      toolResults: number;
+      errors: number;
+    };
+    toolUsage?: {
+      totalCalls: number;
+      uniqueTools: number;
+      tools: Array<{ name: string; count: number }>;
+    };
+    modelUsage?: Array<{
+      provider?: string;
+      model?: string;
+      count: number;
+      totals: SessionsUsageTotals;
+    }>;
+    latency?: {
+      count: number;
+      avgMs: number;
+      p95Ms: number;
+      minMs: number;
+      maxMs: number;
+    };
+  } | null;
+  contextWeight?: {
+    systemPrompt: { chars: number; projectContextChars: number; nonProjectContextChars: number };
+    skills: { promptChars: number; entries: Array<{ name: string; blockChars: number }> };
+    tools: {
+      listChars: number;
+      schemaChars: number;
+      entries: Array<{ name: string; summaryChars: number; schemaChars: number }>;
+    };
+    injectedWorkspaceFiles: Array<{
+      name: string;
+      path: string;
+      rawChars: number;
+      injectedChars: number;
+      truncated: boolean;
+    }>;
+  } | null;
+};
+
+export type SessionsUsageTotals = {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  totalTokens: number;
+  totalCost: number;
+  inputCost: number;
+  outputCost: number;
+  cacheReadCost: number;
+  cacheWriteCost: number;
+  missingCostEntries: number;
+};
+
+export type SessionsUsageResult = {
+  updatedAt: number;
+  startDate: string;
+  endDate: string;
+  sessions: SessionsUsageEntry[];
+  totals: SessionsUsageTotals;
+  aggregates: {
+    messages: {
+      total: number;
+      user: number;
+      assistant: number;
+      toolCalls: number;
+      toolResults: number;
+      errors: number;
+    };
+    tools: {
+      totalCalls: number;
+      uniqueTools: number;
+      tools: Array<{ name: string; count: number }>;
+    };
+    byModel: Array<{
+      provider?: string;
+      model?: string;
+      count: number;
+      totals: SessionsUsageTotals;
+    }>;
+    byProvider: Array<{
+      provider?: string;
+      model?: string;
+      count: number;
+      totals: SessionsUsageTotals;
+    }>;
+    byAgent: Array<{ agentId: string; totals: SessionsUsageTotals }>;
+    byChannel: Array<{ channel: string; totals: SessionsUsageTotals }>;
+    latency?: {
+      count: number;
+      avgMs: number;
+      p95Ms: number;
+      minMs: number;
+      maxMs: number;
+    };
+    dailyLatency?: Array<{
+      date: string;
+      count: number;
+      avgMs: number;
+      p95Ms: number;
+      minMs: number;
+      maxMs: number;
+    }>;
+    modelDaily?: Array<{
+      date: string;
+      provider?: string;
+      model?: string;
+      tokens: number;
+      cost: number;
+      count: number;
+    }>;
+    daily: Array<{
+      date: string;
+      tokens: number;
+      cost: number;
+      messages: number;
+      toolCalls: number;
+      errors: number;
+    }>;
+  };
+};
+
+export type CostUsageDailyEntry = SessionsUsageTotals & { date: string };
+
+export type CostUsageSummary = {
+  updatedAt: number;
+  days: number;
+  daily: CostUsageDailyEntry[];
+  totals: SessionsUsageTotals;
+};
+
+export type SessionUsageTimePoint = {
+  timestamp: number;
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  totalTokens: number;
+  cost: number;
+  cumulativeTokens: number;
+  cumulativeCost: number;
+};
+
+export type SessionUsageTimeSeries = {
+  sessionId?: string;
+  points: SessionUsageTimePoint[];
 };
 
 export type CronSchedule =
@@ -506,10 +754,10 @@ export type SkillStatusEntry = {
   name: string;
   description: string;
   source: string;
-  bundled?: boolean;
   filePath: string;
   baseDir: string;
   skillKey: string;
+  bundled?: boolean;
   primaryEnv?: string;
   emoji?: string;
   homepage?: string;
@@ -539,9 +787,79 @@ export type SkillStatusReport = {
   skills: SkillStatusEntry[];
 };
 
-export type StatusSummary = Record<string, unknown>;
+export type StatusSummary = {
+  uptimeMs?: number;
+  memoryUsage?: { heapUsedMB: number; heapTotalMB: number; rssMB: number };
+  heartbeat?: {
+    defaultAgentId: string;
+    agents: Array<{
+      agentId: string;
+      enabled: boolean;
+      every: string;
+      everyMs: number | null;
+    }>;
+  };
+  channelSummary?: string[];
+  queuedSystemEvents?: string[];
+  sessions?: {
+    paths: string[];
+    count: number;
+    defaults: { model: string | null; contextTokens: number | null };
+    recent: unknown[];
+    byAgent: Array<{
+      agentId: string;
+      path: string;
+      count: number;
+      recent: unknown[];
+    }>;
+  };
+  securityAudit?: { summary?: Record<string, number> };
+  [key: string]: unknown;
+};
 
-export type HealthSnapshot = Record<string, unknown>;
+export type HealthChannelSummary = {
+  accountId: string;
+  configured?: boolean;
+  linked?: boolean;
+  authAgeMs?: number | null;
+  probe?: {
+    ok?: boolean;
+    elapsedMs?: number;
+    bot?: { username?: string | null } | null;
+    error?: string | null;
+  } | null;
+  lastProbeAt?: number | null;
+  accounts?: Record<string, HealthChannelSummary>;
+  [key: string]: unknown;
+};
+
+export type HealthSnapshot = {
+  ok?: boolean;
+  ts?: number;
+  durationMs?: number;
+  channels?: Record<string, HealthChannelSummary>;
+  channelOrder?: string[];
+  channelLabels?: Record<string, string>;
+  heartbeatSeconds?: number;
+  defaultAgentId?: string;
+  agents?: Array<{
+    agentId: string;
+    name?: string;
+    isDefault: boolean;
+    heartbeat: { enabled: boolean; every: string; everyMs: number | null };
+    sessions: {
+      path: string;
+      count: number;
+      recent: Array<{ key: string; updatedAt: number | null; age: number | null }>;
+    };
+  }>;
+  sessions?: {
+    path: string;
+    count: number;
+    recent: Array<{ key: string; updatedAt: number | null; age: number | null }>;
+  };
+  [key: string]: unknown;
+};
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 

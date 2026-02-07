@@ -162,6 +162,12 @@ export function createSessionsListTool(opts?: {
           kind,
           channel: derivedChannel,
           label: typeof entry.label === "string" ? entry.label : undefined,
+          tags: Array.isArray(entry.tags)
+            ? entry.tags
+                .filter((tag) => typeof tag === "string" && tag.trim())
+                .map((tag) => tag.trim())
+                .slice(0, 64)
+            : undefined,
           displayName: typeof entry.displayName === "string" ? entry.displayName : undefined,
           deliveryContext:
             deliveryChannel || deliveryTo || deliveryAccountId

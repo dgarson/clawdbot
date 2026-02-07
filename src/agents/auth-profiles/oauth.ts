@@ -8,6 +8,7 @@ import lockfile from "proper-lockfile";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AuthProfileStore } from "./types.js";
 import { refreshQwenPortalCredentials } from "../../providers/qwen-portal-oauth.js";
+import { resolveDefaultAgentDir } from "../agent-scope.js";
 import { refreshChutesTokens } from "../chutes-oauth.js";
 import { AUTH_STORE_LOCK_OPTIONS, log } from "./constants.js";
 import { formatAuthDoctorHint } from "./doctor.js";
@@ -246,7 +247,8 @@ export async function resolveApiKeyForProfile(params: {
     // Fallback: if this is a secondary agent, try using the main agent's credentials
     if (params.agentDir) {
       try {
-        const mainStore = ensureAuthProfileStore(undefined); // main agent (no agentDir)
+        const mainAgentDir = cfg ? resolveDefaultAgentDir(cfg) : undefined;
+        const mainStore = ensureAuthProfileStore(mainAgentDir, { mainAgentDir });
         const mainCred = mainStore.profiles[profileId];
         if (mainCred?.type === "oauth" && Date.now() < mainCred.expires) {
           // Main agent has fresh credentials - copy them to this agent and use them

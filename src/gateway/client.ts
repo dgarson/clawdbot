@@ -14,6 +14,7 @@ import {
 import { normalizeFingerprint } from "../infra/tls/fingerprint.js";
 import { rawDataToString } from "../infra/ws.js";
 import { logDebug, logError } from "../logger.js";
+import { logGatewayHealth } from "../logging/enhanced-events.js";
 import {
   GATEWAY_CLIENT_MODES,
   GATEWAY_CLIENT_NAMES,
@@ -63,6 +64,7 @@ export type GatewayClientOptions = {
   onConnectError?: (err: Error) => void;
   onClose?: (code: number, reason: string) => void;
   onGap?: (info: { expected: number; received: number }) => void;
+  logGatewayHealth?: boolean;
 };
 
 export const GATEWAY_CLOSE_CODE_HINTS: Readonly<Record<number, string>> = {
@@ -146,11 +148,28 @@ export class GatewayClient {
           return;
         }
       }
+      if (this.shouldLogGatewayHealth()) {
+        logGatewayHealth({
+          event: "connected",
+          metadata: { ...this.getGatewayHealthMetadata(), url },
+        });
+      }
       this.queueConnect();
     });
     this.ws.on("message", (data) => this.handleMessage(rawDataToString(data)));
     this.ws.on("close", (code, reason) => {
       const reasonText = rawDataToString(reason);
+      if (this.shouldLogGatewayHealth()) {
+        logGatewayHealth({
+          event: "disconnected",
+          metadata: {
+            ...this.getGatewayHealthMetadata(),
+            code,
+            reason: reasonText,
+            hint: describeGatewayCloseCode(code),
+          },
+        });
+      }
       this.ws = null;
       this.flushPendingErrors(new Error(`gateway closed (${code}): ${reasonText}`));
       this.scheduleReconnect();
@@ -356,7 +375,38 @@ export class GatewayClient {
     }
     const delay = this.backoffMs;
     this.backoffMs = Math.min(this.backoffMs * 2, 30_000);
+    if (this.shouldLogGatewayHealth()) {
+      logGatewayHealth({
+        event: "reconnect_attempt",
+        metadata: {
+          ...this.getGatewayHealthMetadata(),
+          delayMs: delay,
+          nextBackoffMs: this.backoffMs,
+        },
+      });
+    }
     setTimeout(() => this.start(), delay).unref();
+  }
+
+  private shouldLogGatewayHealth() {
+    return this.opts.logGatewayHealth !== false;
+  }
+
+  private getGatewayHealthMetadata(): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {};
+    if (this.opts.clientName) {
+      metadata.clientName = this.opts.clientName;
+    }
+    if (this.opts.mode) {
+      metadata.clientMode = this.opts.mode;
+    }
+    if (this.opts.clientDisplayName) {
+      metadata.clientDisplayName = this.opts.clientDisplayName;
+    }
+    if (this.opts.instanceId) {
+      metadata.instanceId = this.opts.instanceId;
+    }
+    return metadata;
   }
 
   private flushPendingErrors(err: Error) {

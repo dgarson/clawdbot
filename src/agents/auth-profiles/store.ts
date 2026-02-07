@@ -1,5 +1,6 @@
 import type { OAuthCredentials } from "@mariozechner/pi-ai";
 import fs from "node:fs";
+import path from "node:path";
 import lockfile from "proper-lockfile";
 import type { AuthProfileCredential, AuthProfileStore, ProfileUsageStats } from "./types.js";
 import { resolveOAuthPath } from "../../config/paths.js";
@@ -9,6 +10,25 @@ import { syncExternalCliCredentials } from "./external-cli-sync.js";
 import { ensureAuthStoreFile, resolveAuthStorePath, resolveLegacyAuthStorePath } from "./paths.js";
 
 type LegacyAuthStore = Record<string, AuthProfileCredential>;
+
+export type AuthProfileStoreOptions = {
+  allowKeychainPrompt?: boolean;
+  /** Override which agentDir is treated as the "main" auth store for inheritance. */
+  mainAgentDir?: string;
+  /** Skip inheriting auth profiles from the main agent. */
+  inheritFromMain?: boolean;
+};
+
+function resolveMainAuthStorePath(options?: AuthProfileStoreOptions): string | null {
+  if (options?.inheritFromMain === false) {
+    return null;
+  }
+  const override = options?.mainAgentDir?.trim();
+  if (override) {
+    return resolveAuthStorePath(override);
+  }
+  return resolveAuthStorePath();
+}
 
 function _syncAuthProfileStore(target: AuthProfileStore, source: AuthProfileStore): void {
   target.version = source.version;
@@ -254,7 +274,7 @@ export function loadAuthProfileStore(): AuthProfileStore {
 
 function loadAuthProfileStoreForAgent(
   agentDir?: string,
-  _options?: { allowKeychainPrompt?: boolean },
+  options?: AuthProfileStoreOptions,
 ): AuthProfileStore {
   const authPath = resolveAuthStorePath(agentDir);
   const raw = loadJsonFile(authPath);
@@ -270,14 +290,16 @@ function loadAuthProfileStoreForAgent(
 
   // Fallback: inherit auth-profiles from main agent if subagent has none
   if (agentDir) {
-    const mainAuthPath = resolveAuthStorePath(); // without agentDir = main
-    const mainRaw = loadJsonFile(mainAuthPath);
-    const mainStore = coerceAuthStore(mainRaw);
-    if (mainStore && Object.keys(mainStore.profiles).length > 0) {
-      // Clone main store to subagent directory for auth inheritance
-      saveJsonFile(authPath, mainStore);
-      log.info("inherited auth-profiles from main agent", { agentDir });
-      return mainStore;
+    const mainAuthPath = resolveMainAuthStorePath(options);
+    if (mainAuthPath && path.resolve(mainAuthPath) !== path.resolve(authPath)) {
+      const mainRaw = loadJsonFile(mainAuthPath);
+      const mainStore = coerceAuthStore(mainRaw);
+      if (mainStore && Object.keys(mainStore.profiles).length > 0) {
+        // Clone main store to subagent directory for auth inheritance
+        saveJsonFile(authPath, mainStore);
+        log.info("inherited auth-profiles from main agent", { agentDir });
+        return mainStore;
+      }
     }
   }
 
@@ -350,16 +372,19 @@ function loadAuthProfileStoreForAgent(
 
 export function ensureAuthProfileStore(
   agentDir?: string,
-  options?: { allowKeychainPrompt?: boolean },
+  options?: AuthProfileStoreOptions,
 ): AuthProfileStore {
   const store = loadAuthProfileStoreForAgent(agentDir, options);
   const authPath = resolveAuthStorePath(agentDir);
-  const mainAuthPath = resolveAuthStorePath();
-  if (!agentDir || authPath === mainAuthPath) {
+  const mainAuthPath = resolveMainAuthStorePath(options);
+  if (!agentDir || !mainAuthPath) {
+    return store;
+  }
+  if (path.resolve(authPath) === path.resolve(mainAuthPath)) {
     return store;
   }
 
-  const mainStore = loadAuthProfileStoreForAgent(undefined, options);
+  const mainStore = loadAuthProfileStoreForAgent(options?.mainAgentDir, options);
   const merged = mergeAuthProfileStores(mainStore, store);
 
   return merged;

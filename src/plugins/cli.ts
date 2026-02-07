@@ -29,7 +29,7 @@ export function registerPluginCliCommands(program: Command, cfg?: OpenClawConfig
     if (entry.commands.length > 0) {
       const overlaps = entry.commands.filter((command) => existingCommands.has(command));
       if (overlaps.length > 0) {
-        log.debug(
+        log.trace(
           `plugin CLI register skipped (${entry.pluginId}): command already registered (${overlaps.join(
             ", ",
           )})`,

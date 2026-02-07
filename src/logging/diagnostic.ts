@@ -3,6 +3,31 @@ import { createSubsystemLogger } from "./subsystem.js";
 
 const diag = createSubsystemLogger("diagnostic");
 
+/**
+ * Extract a shortened session ID from a lane name or session identifier.
+ * Returns last 6 characters (like git short hash) for concise logging.
+ * Examples:
+ * - "agent:main:subagent:abc123-def456" -> "def456"
+ * - "session:agent:main:slack:channel:..." -> extracts UUID portion
+ * - "probe-abc123-def456" -> "def456"
+ */
+export function extractShortSessionId(lane: string): string | undefined {
+  // Try to extract UUID pattern from lane name
+  const uuidMatch = lane.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+  if (uuidMatch) {
+    return uuidMatch[1].split("-").pop()?.slice(-6);
+  }
+
+  // Try to extract last segment after colons
+  const parts = lane.split(":");
+  const lastPart = parts[parts.length - 1];
+  if (lastPart && lastPart.length > 6) {
+    return lastPart.slice(-6);
+  }
+
+  return undefined;
+}
+
 type SessionStateValue = "idle" | "processing" | "waiting";
 
 type SessionState = {

@@ -13,7 +13,7 @@ type AnthropicAuthDefaultsMode = "api_key" | "oauth";
 
 const DEFAULT_MODEL_ALIASES: Readonly<Record<string, string>> = {
   // Anthropic (pi-ai catalog uses "latest" ids without date suffix)
-  opus: "anthropic/claude-opus-4-5",
+  opus: "anthropic/claude-opus-4-6",
   sonnet: "anthropic/claude-sonnet-4-5",
 
   // OpenAI
@@ -130,25 +130,42 @@ export function applySessionDefaults(
   options: SessionDefaultsOptions = {},
 ): OpenClawConfig {
   const session = cfg.session;
-  if (!session || session.mainKey === undefined) {
+  const warn = options.warn ?? console.warn;
+  const warnState = options.warnState ?? defaultWarnState;
+  let mutated = false;
+  let nextSession = session ? { ...session } : {};
+
+  if (!session) {
+    mutated = true;
+  }
+
+  if (session?.mainKey !== undefined) {
+    const trimmed = session.mainKey.trim();
+    if (trimmed && trimmed !== "main" && !warnState.warned) {
+      warnState.warned = true;
+      warn('session.mainKey is ignored; main session is always "main".');
+    }
+    if (nextSession.mainKey !== "main") {
+      nextSession = { ...nextSession, mainKey: "main" };
+      mutated = true;
+    }
+  }
+
+  const resetByChannel = { ...(nextSession.resetByChannel ?? {}) };
+  if (!("slack" in resetByChannel)) {
+    resetByChannel.slack = { mode: "idle", idleMinutes: 120 };
+    nextSession = { ...nextSession, resetByChannel };
+    mutated = true;
+  }
+
+  if (!mutated) {
     return cfg;
   }
 
-  const trimmed = session.mainKey.trim();
-  const warn = options.warn ?? console.warn;
-  const warnState = options.warnState ?? defaultWarnState;
-
-  const next: OpenClawConfig = {
+  return {
     ...cfg,
-    session: { ...session, mainKey: "main" },
+    session: nextSession,
   };
-
-  if (trimmed && trimmed !== "main" && !warnState.warned) {
-    warnState.warned = true;
-    warn('session.mainKey is ignored; main session is always "main".');
-  }
-
-  return next;
 }
 
 export function applyTalkApiKey(config: OpenClawConfig): OpenClawConfig {

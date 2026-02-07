@@ -19,7 +19,13 @@ import {
   writeConfigFile,
 } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
-import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
+import { waitForAgentDrain, resolveGracefulTimeoutMs } from "../infra/agent-drain.js";
+import {
+  clearAgentRunContext,
+  getAgentRunContext,
+  onAgentEvent,
+  registerAgentRunContext,
+} from "../infra/agent-events.js";
 import {
   ensureControlUiAssetsBuilt,
   resolveControlUiRootOverrideSync,
@@ -42,7 +48,11 @@ import { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
 import { runOnboardingWizard } from "../wizard/onboarding.js";
-import { startGatewayConfigReloader } from "./config-reload.js";
+import {
+  buildGatewayReloadPlan,
+  diffConfigPaths,
+  startGatewayConfigReloader,
+} from "./config-reload.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
@@ -59,8 +69,14 @@ import { safeParseJson } from "./server-methods/nodes.helpers.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
+import {
+  collectChatRunState,
+  createChatRunStatePersistTimer,
+  persistChatRunState,
+} from "./server-persist.js";
 import { loadGatewayPlugins } from "./server-plugins.js";
 import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
+import { restoreChatRunState } from "./server-restore.js";
 import { resolveGatewayRuntimeConfig } from "./server-runtime-config.js";
 import { createGatewayRuntimeState } from "./server-runtime-state.js";
 import { resolveSessionKeyForRun } from "./server-session-key.js";
@@ -93,6 +109,7 @@ const logCron = log.child("cron");
 const logReload = log.child("reload");
 const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
+const logManagedProcesses = log.child("managed-processes");
 const logWsControl = log.child("ws");
 const gatewayRuntime = runtimeForLogger(log);
 const canvasRuntime = runtimeForLogger(logCanvas);
@@ -223,7 +240,6 @@ export async function startGatewayServer(
     startDiagnosticHeartbeat();
   }
   setGatewaySigusr1RestartPolicy({ allowExternal: cfgAtStart.commands?.restart === true });
-  initSubagentRegistry();
   const defaultAgentId = resolveDefaultAgentId(cfgAtStart);
   const defaultWorkspaceDir = resolveAgentWorkspaceDir(cfgAtStart, defaultAgentId);
   const baseMethods = listGatewayMethods();
@@ -243,6 +259,7 @@ export async function startGatewayServer(
   const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
   const gatewayMethods = Array.from(new Set([...baseGatewayMethods, ...channelMethods]));
   let pluginServices: PluginServicesHandle | null = null;
+  let managedProcesses: { stopAll: (opts?: { reason?: string }) => Promise<void> } | null = null;
   const runtimeConfig = await resolveGatewayRuntimeConfig({
     cfg: cfgAtStart,
     port,
@@ -318,6 +335,7 @@ export async function startGatewayServer(
     wss,
     clients,
     broadcast,
+    broadcastToConnIds,
     agentRunSeq,
     dedupe,
     chatRunState,
@@ -326,6 +344,7 @@ export async function startGatewayServer(
     addChatRun,
     removeChatRun,
     chatAbortControllers,
+    toolEventRecipients,
   } = await createGatewayRuntimeState({
     cfg: cfgAtStart,
     bindHost,
@@ -349,6 +368,25 @@ export async function startGatewayServer(
     logHooks,
     logPlugins,
   });
+
+  // Restore any persisted chat run state from a previous gateway instance
+  const logPersist = log.child("persist");
+  await restoreChatRunState(
+    {
+      chatRunRegistry: chatRunState.registry,
+      chatAbortControllers,
+      chatRunBuffers,
+      chatDeltaSentAt,
+      agentRunSeq,
+      registerAgentRunContext,
+    },
+    {
+      info: (msg) => logPersist.info(msg),
+      warn: (msg) => logPersist.warn(msg),
+      debug: (msg) => logPersist.debug(msg),
+    },
+  );
+
   let bonjourStop: (() => Promise<void>) | null = null;
   const nodeRegistry = new NodeRegistry();
   const nodePresenceTimers = new Map<string, ReturnType<typeof setInterval>>();
@@ -438,14 +476,34 @@ export async function startGatewayServer(
     nodeSendToSession,
   });
 
+  // Create periodic persistence timer for chat run state
+  const persistInterval = createChatRunStatePersistTimer({
+    collectState: () =>
+      collectChatRunState({
+        chatRunRegistry: chatRunState.registry,
+        getActiveSessions: () => Array.from(chatAbortControllers.values()).map((e) => e.sessionId),
+        chatAbortControllers,
+        chatRunBuffers,
+        chatDeltaSentAt,
+        agentRunSeq,
+        getAgentRunContext,
+      }),
+    log: {
+      debug: (msg) => logPersist.debug(msg),
+      warn: (msg) => logPersist.warn(msg),
+    },
+  });
+
   const agentUnsub = onAgentEvent(
     createAgentEventHandler({
       broadcast,
+      broadcastToConnIds,
       nodeSendToSession,
       agentRunSeq,
       chatRunState,
       resolveSessionKeyForRun,
       clearAgentRunContext,
+      toolEventRecipients,
     }),
   );
 
@@ -465,6 +523,47 @@ export async function startGatewayServer(
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
+  // Context object is mutable; triggerConfigReload is wired up after reload handlers are created.
+  const gatewayContext: import("./server-methods/types.js").GatewayRequestContext = {
+    deps,
+    cron,
+    cronStorePath,
+    loadGatewayModelCatalog,
+    getHealthCache,
+    refreshHealthSnapshot: refreshGatewayHealthSnapshot,
+    logHealth,
+    logGateway: log,
+    incrementPresenceVersion,
+    getHealthVersion,
+    broadcast,
+    broadcastToConnIds,
+    nodeSendToSession,
+    nodeSendToAllSubscribed,
+    nodeSubscribe,
+    nodeUnsubscribe,
+    nodeUnsubscribeAll,
+    hasConnectedMobileNode: hasMobileNodeConnected,
+    nodeRegistry,
+    agentRunSeq,
+    chatAbortControllers,
+    chatAbortedRuns: chatRunState.abortedRuns,
+    chatRunBuffers: chatRunState.buffers,
+    chatDeltaSentAt: chatRunState.deltaSentAt,
+    addChatRun,
+    removeChatRun,
+    registerToolEventRecipient: toolEventRecipients.add,
+    dedupe,
+    wizardSessions,
+    findRunningWizard,
+    purgeWizardSession,
+    getRuntimeSnapshot,
+    startChannel,
+    stopChannel,
+    markChannelLoggedOut,
+    wizardRunner,
+    broadcastVoiceWakeChanged,
+  };
+
   attachGatewayWsHandlers({
     wss,
     clients,
@@ -483,43 +582,7 @@ export async function startGatewayServer(
       ...execApprovalHandlers,
     },
     broadcast,
-    context: {
-      deps,
-      cron,
-      cronStorePath,
-      loadGatewayModelCatalog,
-      getHealthCache,
-      refreshHealthSnapshot: refreshGatewayHealthSnapshot,
-      logHealth,
-      logGateway: log,
-      incrementPresenceVersion,
-      getHealthVersion,
-      broadcast,
-      nodeSendToSession,
-      nodeSendToAllSubscribed,
-      nodeSubscribe,
-      nodeUnsubscribe,
-      nodeUnsubscribeAll,
-      hasConnectedMobileNode: hasMobileNodeConnected,
-      nodeRegistry,
-      agentRunSeq,
-      chatAbortControllers,
-      chatAbortedRuns: chatRunState.abortedRuns,
-      chatRunBuffers: chatRunState.buffers,
-      chatDeltaSentAt: chatRunState.deltaSentAt,
-      addChatRun,
-      removeChatRun,
-      dedupe,
-      wizardSessions,
-      findRunningWizard,
-      purgeWizardSession,
-      getRuntimeSnapshot,
-      startChannel,
-      stopChannel,
-      markChannelLoggedOut,
-      wizardRunner,
-      broadcastVoiceWakeChanged,
-    },
+    context: gatewayContext,
   });
   logGatewayStartup({
     cfg: cfgAtStart,
@@ -530,6 +593,9 @@ export async function startGatewayServer(
     log,
     isNixMode,
   });
+  // Initialize subagent registry after gateway is listening, so that restored
+  // subagent runs can successfully connect to announce their completion.
+  initSubagentRegistry();
   scheduleGatewayUpdateCheck({ cfg: cfgAtStart, log, isNixMode });
   const tailscaleCleanup = await startGatewayTailscaleExposure({
     tailscaleMode,
@@ -540,17 +606,21 @@ export async function startGatewayServer(
   });
 
   let browserControl: Awaited<ReturnType<typeof startBrowserControlServerIfEnabled>> = null;
-  ({ browserControl, pluginServices } = await startGatewaySidecars({
-    cfg: cfgAtStart,
-    pluginRegistry,
-    defaultWorkspaceDir,
-    deps,
-    startChannels,
-    log,
-    logHooks,
-    logChannels,
-    logBrowser,
-  }));
+  let workerManager: { stop: () => Promise<void> } | null = null;
+  ({ browserControl, pluginServices, managedProcesses, workerManager } = await startGatewaySidecars(
+    {
+      cfg: cfgAtStart,
+      pluginRegistry,
+      defaultWorkspaceDir,
+      deps,
+      startChannels,
+      log,
+      logManagedProcesses,
+      logHooks,
+      logChannels,
+      logBrowser,
+    },
+  ));
 
   const { applyHotReload, requestGatewayRestart } = createGatewayReloadHandlers({
     deps,
@@ -577,6 +647,110 @@ export async function startGatewayServer(
     logCron,
     logReload,
   });
+
+  // Track the current config for diffing during manual reloads
+  let currentConfig = cfgAtStart;
+
+  // Create persistence flush function (used by both triggerConfigReload and close handler)
+  const flushChatRunState = async () => {
+    const runs = collectChatRunState({
+      chatRunRegistry: chatRunState.registry,
+      getActiveSessions: () => Array.from(chatAbortControllers.values()).map((e) => e.sessionId),
+      chatAbortControllers,
+      chatRunBuffers,
+      chatDeltaSentAt,
+      agentRunSeq,
+      getAgentRunContext,
+    });
+    if (runs.length > 0) {
+      await persistChatRunState(runs);
+      logPersist.info(`persisted ${runs.length} chat run(s)`);
+    }
+  };
+
+  // Wire up the manual reload trigger for the gateway.reload RPC
+  gatewayContext.triggerConfigReload = async (opts) => {
+    const snapshot = await readConfigFileSnapshot();
+    if (!snapshot.valid) {
+      const issues = snapshot.issues.map((i) => `${i.path}: ${i.message}`).join(", ");
+      logReload.warn(`gateway.reload skipped (invalid config): ${issues}`);
+      return {
+        mode: "noop" as const,
+        plan: buildGatewayReloadPlan([]),
+      };
+    }
+
+    const nextConfig = snapshot.config;
+    const changedPaths = diffConfigPaths(currentConfig, nextConfig);
+
+    if (changedPaths.length === 0 && !opts?.forceRestart) {
+      logReload.info("gateway.reload: no config changes detected");
+      return {
+        mode: "noop" as const,
+        plan: buildGatewayReloadPlan([]),
+      };
+    }
+
+    currentConfig = nextConfig;
+    const plan = buildGatewayReloadPlan(changedPaths);
+
+    // Handle graceful drain if requested and restart is required
+    const gracefulEnabled = opts?.graceful ?? false;
+    const gracefulTimeoutMs = resolveGracefulTimeoutMs({
+      requestTimeoutMs: opts?.gracefulTimeoutMs,
+    });
+
+    // Force restart takes precedence over hot-reload capability
+    if (opts?.forceRestart || plan.restartGateway) {
+      let gracefulResult:
+        | {
+            enabled: boolean;
+            runningAgents: number;
+            timeoutMs: number;
+            drained: boolean;
+          }
+        | undefined;
+
+      if (gracefulEnabled && agentRunSeq.size > 0) {
+        const drainResult = await waitForAgentDrain({
+          agentRunSeq,
+          timeoutMs: gracefulTimeoutMs,
+          log: {
+            info: (msg) => logReload.info(`gateway.reload: ${msg}`),
+            debug: (msg) => logReload.debug(`gateway.reload: ${msg}`),
+          },
+        });
+        gracefulResult = {
+          enabled: true,
+          runningAgents: drainResult.runningAgents,
+          timeoutMs: gracefulTimeoutMs,
+          drained: drainResult.drained,
+        };
+      }
+
+      // Persist chat run state before restart
+      await flushChatRunState();
+
+      requestGatewayRestart(plan, nextConfig);
+      return {
+        mode: "restart" as const,
+        plan,
+        graceful: gracefulResult,
+        restart: {
+          scheduled: true,
+          reason: opts?.forceRestart ? "forceRestart" : plan.restartReasons.join(", "),
+        },
+      };
+    }
+
+    // Apply hot-reload
+    await applyHotReload(plan, nextConfig);
+    logReload.info(`gateway.reload: hot-reload applied (${plan.hotReasons.join(", ") || "no-op"})`);
+    return {
+      mode: "hot" as const,
+      plan,
+    };
+  };
 
   const configReloader = startGatewayConfigReloader({
     initialConfig: cfgAtStart,
@@ -611,6 +785,10 @@ export async function startGatewayServer(
     clients,
     configReloader,
     browserControl,
+    managedProcesses,
+    workerManager,
+    persistInterval,
+    persistChatRunState: flushChatRunState,
     wss,
     httpServer,
     httpServers,

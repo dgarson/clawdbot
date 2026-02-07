@@ -2,29 +2,37 @@ import type { GatewayRequestHandlers, GatewayRequestOptions } from "./server-met
 import { ErrorCodes, errorShape } from "./protocol/index.js";
 import { agentHandlers } from "./server-methods/agent.js";
 import { agentsHandlers } from "./server-methods/agents.js";
+import { auditHandlers } from "./server-methods/audit.js";
+import { automationsHandlers } from "./server-methods/automations.js";
 import { browserHandlers } from "./server-methods/browser.js";
 import { channelsHandlers } from "./server-methods/channels.js";
 import { chatHandlers } from "./server-methods/chat.js";
 import { configHandlers } from "./server-methods/config.js";
 import { connectHandlers } from "./server-methods/connect.js";
 import { cronHandlers } from "./server-methods/cron.js";
+import { decisionHandlers } from "./server-methods/decisions.js";
 import { deviceHandlers } from "./server-methods/devices.js";
 import { execApprovalsHandlers } from "./server-methods/exec-approvals.js";
+import { gatewayReloadHandlers } from "./server-methods/gateway-reload.js";
 import { healthHandlers } from "./server-methods/health.js";
 import { logsHandlers } from "./server-methods/logs.js";
 import { modelsHandlers } from "./server-methods/models.js";
 import { nodeHandlers } from "./server-methods/nodes.js";
+import { overseerHandlers } from "./server-methods/overseer.js";
+import { securityHandlers } from "./server-methods/security.js";
 import { sendHandlers } from "./server-methods/send.js";
 import { sessionsHandlers } from "./server-methods/sessions.js";
 import { skillsHandlers } from "./server-methods/skills.js";
 import { systemHandlers } from "./server-methods/system.js";
 import { talkHandlers } from "./server-methods/talk.js";
+import { tokenHandlers } from "./server-methods/tokens.js";
 import { ttsHandlers } from "./server-methods/tts.js";
 import { updateHandlers } from "./server-methods/update.js";
 import { usageHandlers } from "./server-methods/usage.js";
 import { voicewakeHandlers } from "./server-methods/voicewake.js";
 import { webHandlers } from "./server-methods/web.js";
 import { wizardHandlers } from "./server-methods/wizard.js";
+import { worktreeHandlers } from "./server-methods/worktree.js";
 
 const ADMIN_SCOPE = "operator.admin";
 const READ_SCOPE = "operator.read";
@@ -59,6 +67,7 @@ const READ_METHODS = new Set([
   "tts.providers",
   "models.list",
   "agents.list",
+  "agents.describe",
   "agent.identity.get",
   "skills.status",
   "voicewake.get",
@@ -67,11 +76,24 @@ const READ_METHODS = new Set([
   "cron.list",
   "cron.status",
   "cron.runs",
+  "cron.runLog",
+  "automations.list",
+  "automations.history",
   "system-presence",
   "last-heartbeat",
   "node.list",
   "node.describe",
   "chat.history",
+  "overseer.status",
+  "overseer.goal.status",
+  "decision.list",
+  "decision.get",
+  "security.getState",
+  "security.getHistory",
+  "tokens.list",
+  "audit.query",
+  "worktree.list",
+  "worktree.read",
 ]);
 const WRITE_METHODS = new Set([
   "send",
@@ -87,7 +109,28 @@ const WRITE_METHODS = new Set([
   "node.invoke",
   "chat.send",
   "chat.abort",
+  "overseer.goal.create",
+  "overseer.goal.pause",
+  "overseer.goal.resume",
+  "overseer.work.update",
+  "overseer.tick",
+  "decision.create",
+  "decision.respond",
   "browser.request",
+  "security.unlock",
+  "security.lock",
+  "security.setupPassword",
+  "security.changePassword",
+  "security.disable",
+  "security.setup2fa",
+  "security.verify2fa",
+  "security.disable2fa",
+  "tokens.create",
+  "tokens.revoke",
+  "worktree.write",
+  "worktree.delete",
+  "worktree.move",
+  "worktree.mkdir",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
@@ -140,15 +183,22 @@ function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["c
   }
   if (
     method.startsWith("config.") ||
+    method.startsWith("gateway.") ||
     method.startsWith("wizard.") ||
     method.startsWith("update.") ||
     method === "channels.logout" ||
     method === "skills.install" ||
+    method === "skills.uninstall" ||
     method === "skills.update" ||
     method === "cron.add" ||
     method === "cron.update" ||
     method === "cron.remove" ||
     method === "cron.run" ||
+    method === "automations.create" ||
+    method === "automations.update" ||
+    method === "automations.delete" ||
+    method === "automations.run" ||
+    method === "automations.cancel" ||
     method === "sessions.patch" ||
     method === "sessions.reset" ||
     method === "sessions.delete" ||
@@ -167,6 +217,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...channelsHandlers,
   ...chatHandlers,
   ...cronHandlers,
+  ...automationsHandlers,
   ...deviceHandlers,
   ...execApprovalsHandlers,
   ...webHandlers,
@@ -184,7 +235,14 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...usageHandlers,
   ...agentHandlers,
   ...agentsHandlers,
+  ...overseerHandlers,
+  ...decisionHandlers,
   ...browserHandlers,
+  ...securityHandlers,
+  ...tokenHandlers,
+  ...auditHandlers,
+  ...worktreeHandlers,
+  ...gatewayReloadHandlers,
 };
 
 export async function handleGatewayRequest(

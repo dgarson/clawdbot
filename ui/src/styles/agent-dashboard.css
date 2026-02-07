@@ -1,0 +1,325 @@
+/* ─── Agent Status Dashboard ─────────────────────────────────────────── */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  background: var(--surface-bg, #1a1a2e);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+/* ─── Summary Cards ─────────────────────────────────────────────────── */
+
+.dashboard-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.summary-card {
+  flex: 1;
+  min-width: 100px;
+  padding: 14px 16px;
+  background: var(--surface-bg, #1a1a2e);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.summary-card--active {
+  border-color: var(--ok-color, #4caf50);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+.summary-card--error {
+  border-color: var(--danger-color, #e74c3c);
+  background: rgba(231, 76, 60, 0.06);
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-color, #e0e0e0);
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Cron Status Bar ───────────────────────────────────────────────── */
+
+.dashboard-cron-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  background: var(--surface-bg, #1a1a2e);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+/* ─── Agent Cards Grid ──────────────────────────────────────────────── */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-agent-card {
+  background: var(--surface-bg, #1a1a2e);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding: 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.dashboard-agent-card:hover {
+  border-color: var(--accent-color, #6c5ce7);
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.08);
+  transform: translateY(-1px);
+}
+
+.dashboard-agent-card:focus-visible {
+  outline: 2px solid var(--accent-color, #6c5ce7);
+  outline-offset: 2px;
+}
+
+.dashboard-agent-card.health--active {
+  border-left: 3px solid var(--ok-color, #4caf50);
+}
+
+.dashboard-agent-card.health--errored {
+  border-left: 3px solid var(--danger-color, #e74c3c);
+}
+
+.dashboard-agent-card.health--stalled {
+  border-left: 3px solid var(--warn-color, #f0ad4e);
+}
+
+.dashboard-agent-card.health--idle {
+  border-left: 3px solid var(--text-muted, #888);
+}
+
+/* ─── Agent Card Header ─────────────────────────────────────────────── */
+
+.dashboard-agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.dashboard-agent-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-agent-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dashboard-agent-id {
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+}
+
+/* ─── Health Badge ──────────────────────────────────────────────────── */
+
+.dashboard-health-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dashboard-health-badge.health--active {
+  background: rgba(76, 175, 80, 0.12);
+  color: var(--ok-color, #4caf50);
+}
+
+.dashboard-health-badge.health--idle {
+  background: rgba(136, 136, 136, 0.12);
+  color: var(--text-muted, #888);
+}
+
+.dashboard-health-badge.health--stalled {
+  background: rgba(240, 173, 78, 0.12);
+  color: var(--warn-color, #f0ad4e);
+}
+
+.dashboard-health-badge.health--errored {
+  background: rgba(231, 76, 60, 0.12);
+  color: var(--danger-color, #e74c3c);
+}
+
+.dashboard-health-badge.health--unknown {
+  background: rgba(136, 136, 136, 0.08);
+  color: var(--text-muted, #888);
+}
+
+.health-dot {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+/* ─── Current Task ──────────────────────────────────────────────────── */
+
+.dashboard-current-task {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: rgba(108, 92, 231, 0.04);
+  border-radius: 6px;
+  border-left: 2px solid var(--accent-color, #6c5ce7);
+}
+
+.dashboard-task-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #888);
+  margin-bottom: 2px;
+}
+
+.dashboard-task-text {
+  font-size: 0.82rem;
+  color: var(--text-color, #e0e0e0);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ─── Metrics Row ───────────────────────────────────────────────────── */
+
+.dashboard-metrics {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.dashboard-metric {
+  flex: 1;
+  min-width: 60px;
+  text-align: center;
+  padding: 6px 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.metric-value {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-color, #e0e0e0);
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Session List within Card ──────────────────────────────────────── */
+
+.dashboard-sessions-list {
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  padding-top: 10px;
+}
+
+.dashboard-sessions-header {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #888);
+  margin-bottom: 6px;
+}
+
+.dashboard-session-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.dashboard-session-status {
+  flex-shrink: 0;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-session-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-session-name {
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-color, #e0e0e0);
+}
+
+.dashboard-session-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted, #888);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-sessions-empty {
+  padding: 8px 0;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ─── Pill Variants ─────────────────────────────────────────────────── */
+
+.pill--danger {
+  background: rgba(231, 76, 60, 0.12);
+  color: var(--danger-color, #e74c3c);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}

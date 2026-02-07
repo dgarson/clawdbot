@@ -3,7 +3,70 @@
 - Repo: https://github.com/openclaw/openclaw
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
 
+## ⚠️ WORKING DIRECTORY GUIDANCE ⚠️
+
+**For Skill development, Skill changes, or any non-code configuration changes:**
+
+- Always make changes in **`~/clawd/clawdbot`** (the main clawdbot repo)
+- Do NOT make these changes in the agent's base working directory (`~/.openclaw/` or similar)
+
+| Change Type                       | Correct Location                                   |
+| --------------------------------- | -------------------------------------------------- |
+| Skill files (`skills/*/SKILL.md`) | `~/clawd/clawdbot/skills/`                         |
+| Agent configuration               | `~/clawd/clawdbot/` or `~/.openclaw/openclaw.json` |
+| Documentation updates             | `~/clawd/clawdbot/docs/`                           |
+| Memory/notes files                | `~/clawd/MEMORY.md`                                |
+
+---
+
+## Extension Points for OpenClaw
+
+There are different ways to extend and hook into OpenClaw w/custom functionality, many of which result in significantly less invasive integrations/implementations, see the following:
+
+Build a Plugin when:
+• You need to register new tools the agent can invoke
+• You need a background service with start/stop lifecycle
+• You need gateway RPC methods (WebSocket API)
+• You need CLI subcommands
+• You need a new messaging channel
+• You need configuration validation with a schema
+• You need HTTP endpoints on the gateway
+• It should be distributable (npm, others can use it)
+• It has state (database, files) that needs lifecycle management
+
+Build a Hook when:
+• You just need to react to events (session start, compaction, message received)
+• It's lightweight — no tools, no services, no config
+• It's a behavior modifier (e.g., inject context before agent starts, log commands)
+• Don't use hooks if you need to register tools or services
+
+Build a Skill (SKILL.md) when:
+• You need to teach the agent how to use existing tools in a specific way
+• It's pure documentation — no new capabilities, just knowledge
+• You want the agent to follow a specific workflow pattern (e.g., "verification-before-completion")
+• Don't use skills if you need actual code execution or new tools
+
+Build a Standalone App when:
+• It has zero relationship to the agent gateway
+• It needs a fundamentally different runtime (e.g., a Go binary, a mobile app)
+• If it needs gateway config, tools, or lifecycle → make it a plugin instead
+
 ## Project Structure & Module Organization
+
+### ⚠️ UI Directory WARNING ⚠️
+
+**DO NOT** work on or maintain `ui/*` — this is the **legacy upstream UI** that is effectively deprecated for our fork.
+
+**DO** work in `apps/web/*` — this is **our revamped UI** (React, TanStack, shadcn). All new UI features, fixes, and improvements go here.
+
+| Directory   | Status                              | Action                                 |
+| ----------- | ----------------------------------- | -------------------------------------- |
+| `apps/web/` | ✅ **ACTIVE** — Our UI              | Work here for all UI tasks             |
+| `ui/`       | ❌ **DEPRECATED** — Legacy upstream | Do NOT modify; ignore for our purposes |
+
+If a task mentions "UI work" or "control UI" or "web interface", it means `apps/web/`, never `ui/`.
+
+---
 
 - Source code: `src/` (CLI wiring in `src/cli`, commands in `src/commands`, web provider in `src/provider-web.ts`, infra in `src/infra`, media pipeline in `src/media`).
 - Tests: colocated `*.test.ts`.
@@ -58,6 +121,7 @@
 - Node remains supported for running built output (`dist/*`) and production installs.
 - Mac packaging (dev): `scripts/package-mac-app.sh` defaults to current arch. Release checklist: `docs/platforms/mac/release.md`.
 - Type-check/build: `pnpm build`
+- TypeScript checks: `pnpm tsgo`
 - Lint/format: `pnpm check`
 - Tests: `pnpm test` (vitest); coverage: `pnpm test:coverage`
 
@@ -83,9 +147,65 @@
 - Run `pnpm test` (or `pnpm test:coverage`) before pushing when you touch logic.
 - Do not set test workers above 16; tried already.
 - Live tests (real keys): `CLAWDBOT_LIVE_TEST=1 pnpm test:live` (OpenClaw-only) or `LIVE=1 pnpm test:live` (includes provider live tests). Docker: `pnpm test:docker:live-models`, `pnpm test:docker:live-gateway`. Onboarding Docker E2E: `pnpm test:docker:onboard`.
-- Full kit + what’s covered: `docs/testing.md`.
+- Full kit + what's covered: `docs/testing.md`.
 - Pure test additions/fixes generally do **not** need a changelog entry unless they alter user-facing behavior or the user asks for one.
 - Mobile: before using a simulator, check for connected real devices (iOS + Android) and prefer them when available.
+
+## MCP Tool Usage (config.get, config.schema)
+
+⚠️ **WARNING: The `config.schema` response is EXTREMELY LARGE (~955KB, ~200K tokens)!**
+
+Requesting the full schema WILL flood your context window. Always use filtering parameters:
+
+### config.get — Reading Configuration
+
+```typescript
+// ❌ BAD: Fetches entire config (~80KB)
+await client.request("config.get", {});
+
+// ✅ GOOD: Fetch only what you need
+await client.request("config.get", { section: "agents" });
+await client.request("config.get", { path: "agents.defaults.model" });
+
+// ✅ OK: Explicit full request when you truly need everything
+await client.request("config.get", { full: true });
+```
+
+**Parameters:**
+
+- `path` — dot-notation path to extract (e.g., `"agents.defaults.model"`)
+- `section` — top-level section to return (e.g., `"channels"`, `"agents"`, `"plugins"`)
+- `full` — must be `true` to get entire config (use sparingly)
+
+### config.schema — Reading Configuration Schema
+
+```typescript
+// ❌ BAD: NEVER do this - ~955KB response!
+await client.request("config.schema", {});
+
+// ✅ GOOD: Fetch only the section you need
+await client.request("config.schema", { section: "agents" });
+await client.request("config.schema", { path: "agents.defaults" });
+
+// ✅ GOOD: Use ifNoneMatch for caching (returns notModified if unchanged)
+await client.request("config.schema", { ifNoneMatch: cachedVersion, section: "agents" });
+```
+
+**Parameters:**
+
+- `section` — only return schema for a top-level section (e.g., `"agents"`, `"channels"`)
+- `path` — only return schema for a specific dot-notation path
+- `full` — must be `true` to get full schema (AVOID unless absolutely necessary)
+- `ifNoneMatch` — client's cached schema version; returns `{ notModified: true }` if unchanged
+
+**When do you need the schema?**
+
+- Understanding config structure → use `section` filter
+- Validating a specific field → use `path` filter
+- Building a config form → fetch by section as needed
+- Simple config reads/writes → you probably don't need the schema at all!
+
+---
 
 ## Commit & Pull Request Guidelines
 
@@ -94,6 +214,8 @@
 - Group related changes; avoid bundling unrelated refactors.
 - Changelog workflow: keep latest released version at top (no `Unreleased`); after publishing, bump version and start a new top section.
 - PRs should summarize scope, note testing performed, and mention any user-facing changes or new flags.
+- Read this when submitting a PR: `docs/help/submitting-a-pr.md` ([Submitting a PR](https://docs.openclaw.ai/help/submitting-a-pr))
+- Read this when submitting an issue: `docs/help/submitting-an-issue.md` ([Submitting an Issue](https://docs.openclaw.ai/help/submitting-an-issue))
 - PR review flow: when given a PR link, review via `gh pr view`/`gh pr diff` and do **not** change branches.
 - PR review calls: prefer a single `gh pr view --json ...` to batch metadata/comments; run `gh pr diff` only when needed.
 - Before starting a review when a GH Issue/PR is pasted: run `git pull`; if there are local changes or unpushed commits, stop and alert the user before reviewing.
@@ -153,7 +275,14 @@
 - Notary auth env vars (`APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_API_KEY_P8`) are expected in your environment (per internal release docs).
 - **Multi-agent safety:** do **not** create/apply/drop `git stash` entries unless explicitly requested (this includes `git pull --rebase --autostash`). Assume other agents may be working; keep unrelated WIP untouched and avoid cross-cutting state changes.
 - **Multi-agent safety:** when the user says "push", you may `git pull --rebase` to integrate latest changes (never discard other agents' work). When the user says "commit", scope to your changes only. When the user says "commit all", commit everything in grouped chunks.
-- **Multi-agent safety:** do **not** create/remove/modify `git worktree` checkouts (or edit `.worktrees/*`) unless explicitly requested.
+- **Git Worktree Workflow (REQUIRED for features):** When starting new feature work, you MUST create a worktree:
+  ```bash
+  cd /Users/dgarson/clawd/clawdbot
+  git worktree add /private/tmp/clawdbot-<branch-slug> -b <branch-name>
+  cd /private/tmp/clawdbot-<branch-slug>
+  # Do ALL work here, NOT in the main repo
+  ```
+  See `/Users/dgarson/clawd/WORKTREE-WORKFLOW.md` for full workflow. Record worktree in `/Users/dgarson/clawd/MEMORY.md` "Active Worktrees" section.
 - **Multi-agent safety:** do **not** switch branches / check out a different branch unless explicitly requested.
 - **Multi-agent safety:** running multiple agents is OK as long as each agent has its own session.
 - **Multi-agent safety:** when you see unrecognized files, keep going; focus on your changes and commit only those.

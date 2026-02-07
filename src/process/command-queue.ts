@@ -1,4 +1,9 @@
-import { diagnosticLogger as diag, logLaneDequeue, logLaneEnqueue } from "../logging/diagnostic.js";
+import {
+  diagnosticLogger as diag,
+  extractShortSessionId,
+  logLaneDequeue,
+  logLaneEnqueue,
+} from "../logging/diagnostic.js";
 import { CommandLane } from "./lanes.js";
 
 // Minimal in-process queue to serialize command executions.
@@ -74,8 +79,11 @@ function drainLane(lane: string) {
           state.active -= 1;
           const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
           if (!isProbeLane) {
+            // Extract short session ID from lane for more concise logging
+            const shortId = extractShortSessionId(lane);
+            const sessionSuffix = shortId ? ` sid=${shortId}` : "";
             diag.error(
-              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"`,
+              `lane task error: lane=${lane}${sessionSuffix} durationMs=${Date.now() - startTime} error="${String(err)}"`,
             );
           }
           pump();

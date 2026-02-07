@@ -38,6 +38,10 @@ export type SessionListRow = {
   lastAccountId?: string;
   transcriptPath?: string;
   messages?: unknown[];
+  reasoningLevel?: string;
+  elevatedLevel?: string;
+  description?: string;
+  tags?: string[];
 };
 
 function normalizeKey(value?: string) {

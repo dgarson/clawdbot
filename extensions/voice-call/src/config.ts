@@ -48,6 +48,21 @@ export const TwilioConfigSchema = z
     accountSid: z.string().min(1).optional(),
     /** Twilio Auth Token */
     authToken: z.string().min(1).optional(),
+    /** Control automatic updates of the inbound Voice webhook URL on gateway start */
+    webhookSync: z
+      .object({
+        /** Enable automatic webhook updates (default true) */
+        enabled: z.boolean().default(true),
+        /** If true, fail startup when webhook update fails */
+        required: z.boolean().default(false),
+        /**
+         * If multiple incoming numbers match `fromNumber`, allow picking the first.
+         * When false, multiple matches cause a failure.
+         */
+        allowMultipleMatches: z.boolean().default(false),
+      })
+      .strict()
+      .default({ enabled: true, required: false, allowMultipleMatches: false }),
   })
   .strict();
 export type TwilioConfig = z.infer<typeof TwilioConfigSchema>;
@@ -88,6 +103,12 @@ export const TtsConfigSchema = z
     mode: TtsModeSchema.optional(),
     provider: TtsProviderSchema.optional(),
     summaryModel: z.string().optional(),
+    /**
+     * Enable conversational recall tool for voice calls.
+     * When enabled, the agent can search truncated conversation history.
+     * Default: false (feature flag)
+     */
+    enableConversationRecall: z.boolean().default(false),
     modelOverrides: z
       .object({
         enabled: z.boolean().optional(),
@@ -381,8 +402,8 @@ export const VoiceCallConfigSchema = z
     /** Store path for call logs */
     store: z.string().optional(),
 
-    /** Model for generating voice responses (e.g., "anthropic/claude-sonnet-4", "openai/gpt-4o") */
-    responseModel: z.string().default("openai/gpt-4o-mini"),
+    /** Model for generating voice responses (e.g., "anthropic/claude-sonnet-4", "openai/gpt-5.2") */
+    responseModel: z.string().default("openai/gpt-5.2"),
 
     /** System prompt for voice responses */
     responseSystemPrompt: z.string().optional(),

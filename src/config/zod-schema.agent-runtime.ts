@@ -4,6 +4,7 @@ import {
   GroupChatSchema,
   HumanDelaySchema,
   IdentitySchema,
+  McpServersSchema,
   ToolsLinksSchema,
   ToolsMediaSchema,
 } from "./zod-schema.core.js";
@@ -24,6 +25,7 @@ export const HeartbeatSchema = z
     includeReasoning: z.boolean().optional(),
     target: z.string().optional(),
     to: z.string().optional(),
+    accountId: z.string().optional(),
     prompt: z.string().optional(),
     ackMaxChars: z.number().int().nonnegative().optional(),
   })
@@ -428,10 +430,30 @@ export const AgentEntrySchema = z
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     model: AgentModelSchema.optional(),
+    runtime: z.enum(["pi", "claude"]).optional(),
+    claudeSdkOptions: z
+      .object({
+        /** Provider backend for Claude SDK (anthropic, zai, or openrouter). */
+        provider: z.enum(["anthropic", "zai", "openrouter"]).optional(),
+        /** Model mappings for Claude Code SDK thinking tiers. */
+        models: z
+          .object({
+            opus: z.string().optional(),
+            sonnet: z.string().optional(),
+            haiku: z.string().optional(),
+            subagent: z.string().optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
     skills: z.array(z.string()).optional(),
     memorySearch: MemorySearchSchema,
     humanDelay: HumanDelaySchema.optional(),
     heartbeat: HeartbeatSchema,
+    thinkingDefault: z.enum(["off", "minimal", "low", "medium", "high", "xhigh"]).optional(),
+    verboseDefault: z.enum(["off", "on", "full"]).optional(),
     identity: IdentitySchema,
     groupChat: GroupChatSchema,
     subagents: z
@@ -448,11 +470,14 @@ export const AgentEntrySchema = z
               .strict(),
           ])
           .optional(),
+        /** Runtime for sub-agents spawned from this agent. "inherit" means inherit from this agent's runtime. */
+        runtime: z.enum(["pi", "claude", "inherit"]).optional(),
         thinking: z.string().optional(),
       })
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
+    mcpServers: McpServersSchema,
     tools: AgentToolsSchema,
   })
   .strict();
@@ -464,6 +489,30 @@ export const ToolsSchema = z
     alsoAllow: z.array(z.string()).optional(),
     deny: z.array(z.string()).optional(),
     byProvider: z.record(z.string(), ToolPolicyWithProfileSchema).optional(),
+    codingTask: z
+      .object({
+        enabled: z.boolean().optional(),
+        permissionMode: z.enum(["default", "acceptEdits", "bypassPermissions", "plan"]).optional(),
+        toolPreset: z.enum(["readonly", "claude_code"]).optional(),
+        allowedTools: z.array(z.string()).optional(),
+        disallowedTools: z.array(z.string()).optional(),
+        settingSources: z.array(z.enum(["user", "project", "local"])).optional(),
+        additionalDirectories: z.array(z.string()).optional(),
+        providers: z
+          .record(
+            z.string(),
+            z
+              .object({
+                env: z.record(z.string(), z.string()).optional(),
+                model: z.string().optional(),
+                maxTurns: z.number().int().positive().optional(),
+              })
+              .strict(),
+          )
+          .optional(),
+      })
+      .strict()
+      .optional(),
     web: ToolsWebSchema,
     media: ToolsMediaSchema,
     links: ToolsLinksSchema,

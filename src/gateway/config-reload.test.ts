@@ -121,3 +121,99 @@ describe("resolveGatewayReloadSettings", () => {
     expect(settings.debounceMs).toBe(300);
   });
 });
+
+describe("hot-reload coverage - Tier 1 configs", () => {
+  const emptyRegistry = createTestRegistry([]);
+
+  beforeEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  afterEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  it("treats agents.defaults.model as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.model"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.model");
+  });
+
+  it("treats agents.defaults.imageModel as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.imageModel"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.imageModel");
+  });
+
+  it("treats agents.defaults.thinkingDefault as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.thinkingDefault"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.thinkingDefault");
+  });
+
+  it("treats agents.defaults.verboseDefault as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.verboseDefault"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.verboseDefault");
+  });
+
+  it("treats agents.defaults.maxConcurrent as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.maxConcurrent"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.maxConcurrent");
+  });
+
+  it("treats messages.* as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["messages.groupChat.mentionPatterns"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("messages.groupChat.mentionPatterns");
+  });
+
+  it("treats session.* as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["session.maxMessages"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("session.maxMessages");
+  });
+});
+
+describe("hot-reload coverage - Tier 2 configs", () => {
+  const emptyRegistry = createTestRegistry([]);
+
+  beforeEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  afterEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  it("treats agents.defaults.blockStreamingDefault as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.blockStreamingDefault"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.blockStreamingDefault");
+  });
+
+  it("treats agents.defaults.typingMode as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.typingMode"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.typingMode");
+  });
+
+  it("treats agents.defaults.contextPruning as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.contextPruning"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.contextPruning");
+  });
+
+  it("treats agents.defaults.compaction as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.compaction"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("agents.defaults.compaction");
+  });
+
+  it("treats routing.allowFrom.* as no-op (no restart)", () => {
+    const plan = buildGatewayReloadPlan(["routing.allowFrom.channels"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("routing.allowFrom.channels");
+  });
+});

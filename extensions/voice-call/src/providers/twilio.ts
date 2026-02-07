@@ -146,6 +146,11 @@ export class TwilioProvider implements VoiceCallProvider {
   isValidStreamToken(callSid: string, token?: string): boolean {
     const expected = this.streamAuthTokens.get(callSid);
     if (!expected || !token) {
+      console.warn(
+        `[voice-call] Token validation failed: expected=${expected ? "present" : "missing"}, ` +
+          `received=${token ? "present" : "missing"}, callSid=${callSid}, ` +
+          `knownTokens=${this.streamAuthTokens.size}, publicUrl=${this.currentPublicUrl ? "set" : "unset"}`,
+      );
       return false;
     }
     if (expected.length !== token.length) {
@@ -173,7 +178,7 @@ export class TwilioProvider implements VoiceCallProvider {
   private async apiRequest<T = unknown>(
     endpoint: string,
     params: Record<string, string | string[]>,
-    options?: { allowNotFound?: boolean },
+    options?: { allowNotFound?: boolean; method?: "GET" | "POST" },
   ): Promise<T> {
     return await twilioApiRequest<T>({
       baseUrl: this.baseUrl,
@@ -182,7 +187,79 @@ export class TwilioProvider implements VoiceCallProvider {
       endpoint,
       body: params,
       allowNotFound: options?.allowNotFound,
+      method: options?.method,
     });
+  }
+
+  async syncIncomingNumberVoiceWebhook(input: {
+    webhookUrl: string;
+    phoneNumber?: string;
+    allowMultipleMatches?: boolean;
+  }): Promise<{ ok: true; targetSid: string } | { ok: false; reason: string }> {
+    const phone = input.phoneNumber?.trim() || undefined;
+
+    if (!phone) {
+      return {
+        ok: false,
+        reason: "Missing Twilio phone number. Set plugins.entries.voice-call.config.fromNumber.",
+      };
+    }
+
+    let targetSid: string | undefined;
+    try {
+      const list = await this.apiRequest<TwilioIncomingPhoneNumberListResponse>(
+        "/IncomingPhoneNumbers.json",
+        { PhoneNumber: phone, PageSize: "20" },
+        { method: "GET" },
+      );
+
+      const matches = (list?.incoming_phone_numbers ?? []).filter(
+        (entry) => typeof entry?.sid === "string" && entry.sid.trim(),
+      );
+
+      if (matches.length === 0) {
+        return {
+          ok: false,
+          reason: `No incoming phone number found for ${phone}. Check plugins.entries.voice-call.config.fromNumber.`,
+        };
+      }
+
+      if (matches.length > 1 && !input.allowMultipleMatches) {
+        return {
+          ok: false,
+          reason:
+            `Multiple incoming phone numbers matched ${phone}. ` +
+            `Set twilio.webhookSync.allowMultipleMatches=true.`,
+        };
+      }
+
+      targetSid = matches[0]?.sid;
+    } catch (err) {
+      return {
+        ok: false,
+        reason: `Twilio lookup failed: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+
+    if (!targetSid) {
+      return {
+        ok: false,
+        reason: `Twilio lookup failed: missing incoming phone number SID for ${phone}.`,
+      };
+    }
+
+    try {
+      await this.apiRequest(`/IncomingPhoneNumbers/${targetSid}.json`, {
+        VoiceUrl: input.webhookUrl,
+        VoiceMethod: "POST",
+      });
+      return { ok: true, targetSid };
+    } catch (err) {
+      return {
+        ok: false,
+        reason: `Twilio update failed: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
   }
 
   /**
@@ -351,8 +428,10 @@ export class TwilioProvider implements VoiceCallProvider {
 
       // Conversation mode: return streaming TwiML immediately for outbound calls.
       if (isOutbound) {
-        const streamUrl = callSid ? this.getStreamUrlForCall(callSid) : null;
-        return streamUrl ? this.getStreamConnectXml(streamUrl) : TwilioProvider.PAUSE_TWIML;
+        const streamInfo = callSid ? this.getStreamInfoForCall(callSid) : null;
+        return streamInfo
+          ? this.getStreamConnectXml(streamInfo.url, streamInfo.token)
+          : TwilioProvider.PAUSE_TWIML;
       }
     }
 
@@ -364,8 +443,19 @@ export class TwilioProvider implements VoiceCallProvider {
     // Handle subsequent webhook requests (status callbacks, etc.)
     // For inbound calls, answer immediately with stream
     if (direction === "inbound") {
-      const streamUrl = callSid ? this.getStreamUrlForCall(callSid) : null;
-      return streamUrl ? this.getStreamConnectXml(streamUrl) : TwilioProvider.PAUSE_TWIML;
+      const streamInfo = callSid ? this.getStreamInfoForCall(callSid) : null;
+      if (!streamInfo) {
+        console.warn(
+          `[voice-call] No stream URL for inbound call ${callSid}, ` +
+            `publicUrl=${this.currentPublicUrl ? "set" : "unset"}, ` +
+            `streamPath=${this.options.streamPath || "unset"}. Returning PAUSE TwiML.`,
+        );
+      }
+      const twiml = streamInfo
+        ? this.getStreamConnectXml(streamInfo.url, streamInfo.token)
+        : TwilioProvider.PAUSE_TWIML;
+      console.log(`[voice-call] Inbound TwiML for ${callSid}: ${twiml.replace(/\n/g, " ")}`);
+      return twiml;
     }
 
     // For outbound calls, only connect to stream when call is in-progress
@@ -373,8 +463,10 @@ export class TwilioProvider implements VoiceCallProvider {
       return TwilioProvider.EMPTY_TWIML;
     }
 
-    const streamUrl = callSid ? this.getStreamUrlForCall(callSid) : null;
-    return streamUrl ? this.getStreamConnectXml(streamUrl) : TwilioProvider.PAUSE_TWIML;
+    const streamInfo = callSid ? this.getStreamInfoForCall(callSid) : null;
+    return streamInfo
+      ? this.getStreamConnectXml(streamInfo.url, streamInfo.token)
+      : TwilioProvider.PAUSE_TWIML;
   }
 
   /**
@@ -411,15 +503,18 @@ export class TwilioProvider implements VoiceCallProvider {
     return token;
   }
 
-  private getStreamUrlForCall(callSid: string): string | null {
+  /**
+   * Get stream URL and auth token for a call.
+   * Returns both the base URL (without token in query string, since Twilio strips those)
+   * and the token separately (to be passed via <Parameter> in TwiML).
+   */
+  private getStreamInfoForCall(callSid: string): { url: string; token: string } | null {
     const baseUrl = this.getStreamUrl();
     if (!baseUrl) {
       return null;
     }
     const token = this.getStreamAuthToken(callSid);
-    const url = new URL(baseUrl);
-    url.searchParams.set("token", token);
-    return url.toString();
+    return { url: baseUrl, token };
   }
 
   /**
@@ -427,12 +522,18 @@ export class TwilioProvider implements VoiceCallProvider {
    * This enables bidirectional audio streaming for real-time STT/TTS.
    *
    * @param streamUrl - WebSocket URL (wss://...) for the media stream
+   * @param token - Optional auth token to pass via Parameter element (Twilio strips query params from URLs)
    */
-  getStreamConnectXml(streamUrl: string): string {
+  getStreamConnectXml(streamUrl: string, token?: string): string {
+    // Use <Parameter> elements for custom data since Twilio doesn't support query strings in Stream URLs
+    const parameterXml = token
+      ? `\n      <Parameter name="token" value="${escapeXml(token)}" />`
+      : "";
     return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
-    <Stream url="${escapeXml(streamUrl)}" />
+    <Stream url="${escapeXml(streamUrl)}">${parameterXml}
+    </Stream>
   </Connect>
 </Response>`;
   }
@@ -623,4 +724,11 @@ interface TwilioCallResponse {
   from: string;
   to: string;
   uri: string;
+}
+
+interface TwilioIncomingPhoneNumberListResponse {
+  incoming_phone_numbers?: Array<{
+    sid: string;
+    phone_number?: string;
+  }>;
 }

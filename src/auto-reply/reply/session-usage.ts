@@ -6,6 +6,7 @@ import {
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
+import { queueSessionDescriptionRefresh } from "../../sessions/session-description.js";
 
 export async function persistSessionUsageUpdate(params: {
   storePath?: string;
@@ -16,6 +17,8 @@ export async function persistSessionUsageUpdate(params: {
   contextTokensUsed?: number;
   systemPromptReport?: SessionSystemPromptReport;
   cliSessionId?: string;
+  /** Claude Agent SDK session ID for native session resume. */
+  claudeSdkSessionId?: string;
   logLabel?: string;
 }): Promise<void> {
   const { storePath, sessionKey } = params;
@@ -26,7 +29,7 @@ export async function persistSessionUsageUpdate(params: {
   const label = params.logLabel ? `${params.logLabel} ` : "";
   if (hasNonzeroUsage(params.usage)) {
     try {
-      await updateSessionStoreEntry({
+      const next = await updateSessionStoreEntry({
         storePath,
         sessionKey,
         update: async (entry) => {
@@ -38,6 +41,7 @@ export async function persistSessionUsageUpdate(params: {
             inputTokens: input,
             outputTokens: output,
             totalTokens: promptTokens > 0 ? promptTokens : (params.usage?.total ?? input),
+            turnCount: (entry.turnCount ?? 0) + 1,
             modelProvider: params.providerUsed ?? entry.modelProvider,
             model: params.modelUsed ?? entry.model,
             contextTokens: params.contextTokensUsed ?? entry.contextTokens,
@@ -54,9 +58,19 @@ export async function persistSessionUsageUpdate(params: {
               claudeCliSessionId: nextEntry.claudeCliSessionId,
             };
           }
+          // Persist Claude SDK session ID for native session resume
+          if (params.claudeSdkSessionId) {
+            return {
+              ...patch,
+              claudeSdkSessionId: params.claudeSdkSessionId,
+            };
+          }
           return patch;
         },
       });
+      if (next) {
+        queueSessionDescriptionRefresh({ storePath, sessionKey, entry: next });
+      }
     } catch (err) {
       logVerbose(`failed to persist ${label}usage update: ${String(err)}`);
     }
@@ -65,7 +79,7 @@ export async function persistSessionUsageUpdate(params: {
 
   if (params.modelUsed || params.contextTokensUsed) {
     try {
-      await updateSessionStoreEntry({
+      const next = await updateSessionStoreEntry({
         storePath,
         sessionKey,
         update: async (entry) => {
@@ -74,6 +88,7 @@ export async function persistSessionUsageUpdate(params: {
             model: params.modelUsed ?? entry.model,
             contextTokens: params.contextTokensUsed ?? entry.contextTokens,
             systemPromptReport: params.systemPromptReport ?? entry.systemPromptReport,
+            turnCount: (entry.turnCount ?? 0) + 1,
             updatedAt: Date.now(),
           };
           const cliProvider = params.providerUsed ?? entry.modelProvider;
@@ -86,9 +101,19 @@ export async function persistSessionUsageUpdate(params: {
               claudeCliSessionId: nextEntry.claudeCliSessionId,
             };
           }
+          // Persist Claude SDK session ID for native session resume
+          if (params.claudeSdkSessionId) {
+            return {
+              ...patch,
+              claudeSdkSessionId: params.claudeSdkSessionId,
+            };
+          }
           return patch;
         },
       });
+      if (next) {
+        queueSessionDescriptionRefresh({ storePath, sessionKey, entry: next });
+      }
     } catch (err) {
       logVerbose(`failed to persist ${label}model/context update: ${String(err)}`);
     }

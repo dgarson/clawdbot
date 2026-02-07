@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ToolsSchema } from "./zod-schema.agent-runtime.js";
 import { AgentsSchema, AudioSchema, BindingsSchema, BroadcastSchema } from "./zod-schema.agents.js";
 import { ApprovalsSchema } from "./zod-schema.approvals.js";
-import { HexColorSchema, ModelsConfigSchema } from "./zod-schema.core.js";
+import { HexColorSchema, McpServersSchema, ModelsConfigSchema } from "./zod-schema.core.js";
 import { HookMappingSchema, HooksGmailSchema, InternalHooksSchema } from "./zod-schema.hooks.js";
 import { ChannelsSchema } from "./zod-schema.providers.js";
 import {
@@ -31,6 +31,32 @@ const NodeHostSchema = z
   })
   .strict()
   .optional();
+
+const GatewayStartupCommandLogSchema = z
+  .object({
+    mode: z.union([z.literal("inherit"), z.literal("file"), z.literal("discard")]).optional(),
+    stdoutPath: z.string().optional(),
+    stderrPath: z.string().optional(),
+  })
+  .strict()
+  .optional();
+
+const GatewayStartupCommandSchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    command: z.string(),
+    args: z.array(z.string()).optional(),
+    cwd: z.string().optional(),
+    env: z.record(z.string(), z.string()).optional(),
+    enabled: z.boolean().optional(),
+    startPolicy: z.union([z.literal("always"), z.literal("reuse"), z.literal("never")]).optional(),
+    stopSignal: z.string().optional(),
+    stopTimeoutMs: z.number().int().nonnegative().optional(),
+    restart: z.union([z.literal("off"), z.literal("on-failure")]).optional(),
+    log: GatewayStartupCommandLogSchema,
+  })
+  .strict();
 
 const MemoryQmdPathSchema = z
   .object({
@@ -78,11 +104,36 @@ const MemoryQmdSchema = z
   })
   .strict();
 
+const MemoryProgressiveSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strict();
+
+const MemoryGraphitiSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    baseUrl: z.string().optional(),
+    apiKey: z.string().optional(),
+    timeoutMs: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+const MemoryModelSchema = z
+  .object({
+    primary: z.string().optional(),
+    fallbacks: z.array(z.string()).optional(),
+  })
+  .strict();
+
 const MemorySchema = z
   .object({
     backend: z.union([z.literal("builtin"), z.literal("qmd")]).optional(),
     citations: z.union([z.literal("auto"), z.literal("on"), z.literal("off")]).optional(),
+    model: MemoryModelSchema.optional(),
     qmd: MemoryQmdSchema.optional(),
+    progressive: MemoryProgressiveSchema.optional(),
+    graphiti: MemoryGraphitiSchema.optional(),
   })
   .strict()
   .optional();
@@ -181,6 +232,33 @@ export const OpenClawSchema = z
           .optional(),
         redactSensitive: z.union([z.literal("off"), z.literal("tools")]).optional(),
         redactPatterns: z.array(z.string()).optional(),
+        enhanced: z
+          .object({
+            toolErrors: z.boolean().optional(),
+            performanceOutliers: z.boolean().optional(),
+            tokenWarnings: z.boolean().optional(),
+            gatewayHealth: z.boolean().optional(),
+            gatewayHealthSuppressCliConnectDisconnect: z.boolean().optional(),
+            gatewayHealthSuppressMethods: z.array(z.string()).optional(),
+          })
+          .strict()
+          .optional(),
+        performanceThresholds: z
+          .object({
+            toolCall: z.number().int().positive().optional(),
+            agentTurn: z.number().int().positive().optional(),
+            gatewayRequest: z.number().int().positive().optional(),
+            databaseOp: z.number().int().positive().optional(),
+          })
+          .strict()
+          .optional(),
+        tokenWarningThresholds: z
+          .object({
+            warning: z.number().int().min(0).max(100).optional(),
+            critical: z.number().int().min(0).max(100).optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
@@ -267,6 +345,7 @@ export const OpenClawSchema = z
       .strict()
       .optional(),
     models: ModelsConfigSchema,
+    mcpServers: McpServersSchema,
     nodeHost: NodeHostSchema,
     agents: AgentsSchema,
     tools: ToolsSchema,
@@ -427,6 +506,7 @@ export const OpenClawSchema = z
           })
           .strict()
           .optional(),
+        startupCommands: z.array(GatewayStartupCommandSchema).optional(),
         tls: z
           .object({
             enabled: z.boolean().optional(),
@@ -504,10 +584,32 @@ export const OpenClawSchema = z
           })
           .strict()
           .optional(),
+        workQueue: z
+          .object({
+            recoverOnStartup: z.boolean().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
     memory: MemorySchema,
+    execution: z
+      .object({
+        enabled: z.boolean().optional(),
+        useNewLayer: z
+          .object({
+            cli: z.boolean().optional(),
+            autoReply: z.boolean().optional(),
+            followup: z.boolean().optional(),
+            cron: z.boolean().optional(),
+            hybridPlanner: z.boolean().optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
     skills: z
       .object({
         allowBundled: z.array(z.string()).optional(),
@@ -587,6 +689,13 @@ export const OpenClawSchema = z
               .strict(),
           )
           .optional(),
+      })
+      .strict()
+      .optional(),
+    debugging: z
+      .object({
+        channels: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
+        features: z.array(z.string()).optional(),
       })
       .strict()
       .optional(),

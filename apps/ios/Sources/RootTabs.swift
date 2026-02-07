@@ -7,6 +7,7 @@ struct RootTabs: View {
     @State private var selectedTab: Int = 0
     @State private var voiceWakeToastText: String?
     @State private var toastDismissTask: Task<Void, Never>?
+    @State private var showApprovalSheet: Bool = false
 
     var body: some View {
         TabView(selection: self.$selectedTab) {
@@ -18,16 +19,20 @@ struct RootTabs: View {
                 .tabItem { Label("Voice", systemImage: "mic") }
                 .tag(1)
 
+            OverseerTab()
+                .tabItem { Label("Overseer", systemImage: "sparkles") }
+                .tag(2)
+
             SettingsTab()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
-                .tag(2)
+                .tag(3)
         }
         .overlay(alignment: .topLeading) {
             StatusPill(
                 gateway: self.gatewayStatus,
                 voiceWakeEnabled: self.voiceWakeEnabled,
                 activity: self.statusActivity,
-                onTap: { self.selectedTab = 2 })
+                onTap: { self.selectedTab = 3 })
                 .padding(.leading, 10)
                 .safeAreaPadding(.top, 10)
         }
@@ -37,6 +42,29 @@ struct RootTabs: View {
                     .padding(.leading, 10)
                     .safeAreaPadding(.top, 58)
                     .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if let pendingApproval = self.appModel.pendingExecApproval {
+                ExecApprovalBanner(
+                    request: pendingApproval,
+                    onTap: { self.showApprovalSheet = true }
+                )
+                .padding(.horizontal)
+                .padding(.bottom, 100)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .sheet(isPresented: self.$showApprovalSheet) {
+            if let pendingApproval = self.appModel.pendingExecApproval {
+                ExecApprovalSheet(
+                    request: pendingApproval,
+                    onDecision: { decision in
+                        Task {
+                            await self.appModel.handleExecApprovalDecision(decision)
+                        }
+                    }
+                )
             }
         }
         .onChange(of: self.voiceWake.lastTriggeredCommand) { _, newValue in

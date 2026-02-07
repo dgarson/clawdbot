@@ -5,6 +5,7 @@ import type {
   HumanDelayConfig,
   TypingMode,
 } from "./types.base.js";
+import type { ModelRoutingConfig } from "./types.model-routing.js";
 import type {
   SandboxBrowserSettings,
   SandboxDockerSettings,
@@ -16,6 +17,8 @@ export type AgentModelEntryConfig = {
   alias?: string;
   /** Provider-specific API parameters (e.g., GLM-4.7 thinking mode). */
   params?: Record<string, unknown>;
+  /** Enable streaming for this model (default: true, false for Ollama to avoid SDK issue #1205). */
+  streaming?: boolean;
 };
 
 export type AgentModelListConfig = {
@@ -91,13 +94,73 @@ export type CliBackendConfig = {
   serialize?: boolean;
 };
 
+export type AgentRuntime = "pi" | "claude";
+export type ClaudeCodeSDKProviderKey = "anthropic" | "zai" | "openrouter";
+
+export type ClaudeSdkOptions = {
+  /** Provider backend for Claude SDK (anthropic, zai, or openrouter). */
+  provider?: ClaudeCodeSDKProviderKey;
+  /** Model mappings for Claude Code SDK thinking tiers. */
+  models?: {
+    opus?: string;
+    sonnet?: string;
+    haiku?: string;
+    subagent?: string;
+  };
+};
+
+export type UtilityModelFeatureConfig = {
+  /** Model override for this utility feature (provider/model or alias). */
+  model?: string;
+};
+
+export type UtilityModelConfig = {
+  /** Per-feature override for slug generation. */
+  slugGenerator?: UtilityModelFeatureConfig;
+  /** Per-feature override for session description generation. */
+  sessionDescription?: UtilityModelFeatureConfig;
+  /** Per-feature override for memory feedback evaluation. */
+  memoryFeedback?: UtilityModelFeatureConfig;
+  /** Per-feature override for pre-compaction memory flush. */
+  memoryFlush?: UtilityModelFeatureConfig;
+};
+
 export type AgentDefaultsConfig = {
+  /**
+   * Agent runtime engine selection.
+   * - "pi" (default): Pi Agent embedded runner (multi-turn, session history)
+   * - "claude": Claude Code SDK runner (stateless per query; multi-turn continuity via transcript injection)
+   */
+  runtime?: AgentRuntime;
+  /** Runtime override exclusively for the main agent loop. Falls back to `runtime` when unset. */
+  mainRuntime?: AgentRuntime;
+  /**
+   * Model mappings for Claude Code SDK thinking tiers (applies to all Claude SDK agents).
+   * Maps shorthand keys to full model identifiers for the SDK's internal model selection.
+   * These are passed as environment variables to the SDK:
+   * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL
+   * - sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
+   * - haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
+   * - subagent → CLAUDE_CODE_SUBAGENT_MODEL
+   */
+  ccsdkModels?: {
+    opus?: string;
+    sonnet?: string;
+    haiku?: string;
+    subagent?: string;
+  };
   /** Primary model and fallbacks (provider/model). */
   model?: AgentModelListConfig;
   /** Optional image-capable model and fallbacks (provider/model). */
   imageModel?: AgentModelListConfig;
+  /** Default model for all utility/background LLM calls (provider/model or alias). */
+  utilityModel?: string;
+  /** Per-feature model overrides for utility LLM calls. */
+  utility?: UtilityModelConfig;
   /** Model catalog with optional aliases (full provider/model keys). */
   models?: Record<string, AgentModelEntryConfig>;
+  /** Optional per-intent routing between local tiers and remote models. */
+  modelRouting?: ModelRoutingConfig;
   /** Agent working directory (preferred). Used as the default cwd for agent runs. */
   workspace?: string;
   /** Optional repository root for system prompt runtime line (overrides auto-detect). */
@@ -182,6 +245,8 @@ export type AgentDefaultsConfig = {
     target?: "last" | "none" | ChannelId;
     /** Optional delivery override (E.164 for WhatsApp, chat id for Telegram). */
     to?: string;
+    /** Optional account id for multi-account channels. */
+    accountId?: string;
     /** Override the heartbeat prompt body (default: "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK."). */
     prompt?: string;
     /** Max chars allowed after HEARTBEAT_OK before delivery (default: 30). */
@@ -204,6 +269,13 @@ export type AgentDefaultsConfig = {
     archiveAfterMinutes?: number;
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
+    /**
+     * Runtime for sub-agents. If not set, inherits from parent agent's runtime.
+     * - "pi": Pi Agent embedded runner (default fallback)
+     * - "claude": Claude Code SDK runner
+     * - "inherit": Explicitly inherit from parent (same as not setting this)
+     */
+    runtime?: AgentRuntime | "inherit";
     /** Default thinking level for spawned sub-agents (e.g. "off", "low", "medium", "high"). */
     thinking?: string;
   };
@@ -261,4 +333,6 @@ export type AgentCompactionMemoryFlushConfig = {
   prompt?: string;
   /** System prompt appended for the memory flush turn. */
   systemPrompt?: string;
+  /** Model override for the memory flush (provider/model or alias). Falls back to utility.memoryFlush.model → utilityModel → cheapest available. */
+  model?: string;
 };

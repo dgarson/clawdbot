@@ -1,4 +1,5 @@
 import AjvPkg, { type ErrorObject } from "ajv";
+import type { SessionsPatchResult } from "../session-utils.types.js";
 import {
   type AgentEvent,
   AgentEventSchema,
@@ -27,6 +28,10 @@ import {
   AgentsListParamsSchema,
   type AgentsListResult,
   AgentsListResultSchema,
+  type AgentsDescribeParams,
+  AgentsDescribeParamsSchema,
+  type AgentsDescribeResult,
+  AgentsDescribeResultSchema,
   type AgentWaitParams,
   AgentWaitParamsSchema,
   type ChannelsLogoutParams,
@@ -55,6 +60,12 @@ import {
   ConfigSchemaResponseSchema,
   type ConfigSetParams,
   ConfigSetParamsSchema,
+  type StartupCommandsAppendParams,
+  StartupCommandsAppendParamsSchema,
+  type StartupCommandsListParams,
+  StartupCommandsListParamsSchema,
+  type StartupCommandsRemoveParams,
+  StartupCommandsRemoveParamsSchema,
   type ConnectParams,
   ConnectParamsSchema,
   type CronAddParams,
@@ -65,6 +76,8 @@ import {
   CronListParamsSchema,
   type CronRemoveParams,
   CronRemoveParamsSchema,
+  type CronRunLogParams,
+  CronRunLogParamsSchema,
   type CronRunLogEntry,
   type CronRunParams,
   CronRunParamsSchema,
@@ -74,6 +87,7 @@ import {
   CronStatusParamsSchema,
   type CronUpdateParams,
   CronUpdateParamsSchema,
+  type CronRunTimelineEntry,
   type DevicePairApproveParams,
   DevicePairApproveParamsSchema,
   type DevicePairListParams,
@@ -105,6 +119,8 @@ import {
   errorShape,
   type GatewayFrame,
   GatewayFrameSchema,
+  GatewayReloadParamsSchema,
+  GatewayReloadResultSchema,
   type HelloOk,
   HelloOkSchema,
   type LogsTailParams,
@@ -160,6 +176,26 @@ import {
   SessionsResetParamsSchema,
   type SessionsResolveParams,
   SessionsResolveParamsSchema,
+  type OverseerGoalCreateParams,
+  OverseerGoalCreateParamsSchema,
+  type OverseerGoalCreateResult,
+  OverseerGoalCreateResultSchema,
+  type OverseerGoalStatusParams,
+  OverseerGoalStatusParamsSchema,
+  type OverseerGoalUpdateParams,
+  OverseerGoalUpdateParamsSchema,
+  type OverseerGoalStatusResult,
+  OverseerGoalStatusResultSchema,
+  type OverseerStatusParams,
+  OverseerStatusParamsSchema,
+  type OverseerStatusResult,
+  OverseerStatusResultSchema,
+  type OverseerTickParams,
+  OverseerTickParamsSchema,
+  type OverseerWorkUpdateParams,
+  OverseerWorkUpdateParamsSchema,
+  type SessionsUsageParams,
+  SessionsUsageParamsSchema,
   type ShutdownEvent,
   ShutdownEventSchema,
   type SkillsBinsParams,
@@ -169,6 +205,8 @@ import {
   SkillsInstallParamsSchema,
   type SkillsStatusParams,
   SkillsStatusParamsSchema,
+  type SkillsUninstallParams,
+  SkillsUninstallParamsSchema,
   type SkillsUpdateParams,
   SkillsUpdateParamsSchema,
   type Snapshot,
@@ -203,6 +241,57 @@ import {
   WizardStatusResultSchema,
   type WizardStep,
   WizardStepSchema,
+  // Automations
+  type Automation,
+  AutomationSchema,
+  type AutomationSchedule,
+  AutomationScheduleSchema,
+  type AutomationAiModel,
+  AutomationAiModelSchema,
+  type AutomationRunMilestone,
+  AutomationRunMilestoneSchema,
+  type AutomationArtifact,
+  AutomationArtifactSchema,
+  type AutomationConflict,
+  AutomationConflictSchema,
+  type AutomationRunRecord,
+  AutomationRunRecordSchema,
+  type AutomationsListParams,
+  AutomationsListParamsSchema,
+  type AutomationsListResult,
+  AutomationsListResultSchema,
+  type AutomationsRunParams,
+  AutomationsRunParamsSchema,
+  type AutomationsUpdateParams,
+  AutomationsUpdateParamsSchema,
+  type AutomationsDeleteParams,
+  AutomationsDeleteParamsSchema,
+  type AutomationsCancelParams,
+  AutomationsCancelParamsSchema,
+  type AutomationsHistoryParams,
+  AutomationsHistoryParamsSchema,
+  type AutomationsHistoryResult,
+  AutomationsHistoryResultSchema,
+  type AutomationsCreateParams,
+  AutomationsCreateParamsSchema,
+  type AutomationsArtifactDownloadParams,
+  AutomationsArtifactDownloadParamsSchema,
+  type AutomationsArtifactDownloadResult,
+  AutomationsArtifactDownloadResultSchema,
+  // Worktree
+  type WorktreeListParams,
+  type WorktreeListResult,
+  type WorktreeReadParams,
+  type WorktreeReadResult,
+  type WorktreeWriteParams,
+  type WorktreeWriteResult,
+  type WorktreeDeleteParams,
+  type WorktreeDeleteResult,
+  type WorktreeMoveParams,
+  type WorktreeMoveResult,
+  type WorktreeMkdirParams,
+  type WorktreeMkdirResult,
+  type WorktreeFileEntry,
 } from "./schema.js";
 
 const ajv = new (AjvPkg as unknown as new (opts?: object) => import("ajv").default)({
@@ -223,6 +312,9 @@ export const validateAgentIdentityParams =
 export const validateAgentWaitParams = ajv.compile<AgentWaitParams>(AgentWaitParamsSchema);
 export const validateWakeParams = ajv.compile<WakeParams>(WakeParamsSchema);
 export const validateAgentsListParams = ajv.compile<AgentsListParams>(AgentsListParamsSchema);
+export const validateAgentsDescribeParams = ajv.compile<AgentsDescribeParams>(
+  AgentsDescribeParamsSchema,
+);
 export const validateAgentsFilesListParams = ajv.compile<AgentsFilesListParams>(
   AgentsFilesListParamsSchema,
 );
@@ -270,11 +362,22 @@ export const validateSessionsDeleteParams = ajv.compile<SessionsDeleteParams>(
 export const validateSessionsCompactParams = ajv.compile<SessionsCompactParams>(
   SessionsCompactParamsSchema,
 );
+export const validateSessionsUsageParams =
+  ajv.compile<SessionsUsageParams>(SessionsUsageParamsSchema);
 export const validateConfigGetParams = ajv.compile<ConfigGetParams>(ConfigGetParamsSchema);
 export const validateConfigSetParams = ajv.compile<ConfigSetParams>(ConfigSetParamsSchema);
 export const validateConfigApplyParams = ajv.compile<ConfigApplyParams>(ConfigApplyParamsSchema);
 export const validateConfigPatchParams = ajv.compile<ConfigPatchParams>(ConfigPatchParamsSchema);
 export const validateConfigSchemaParams = ajv.compile<ConfigSchemaParams>(ConfigSchemaParamsSchema);
+export const validateStartupCommandsListParams = ajv.compile<StartupCommandsListParams>(
+  StartupCommandsListParamsSchema,
+);
+export const validateStartupCommandsAppendParams = ajv.compile<StartupCommandsAppendParams>(
+  StartupCommandsAppendParamsSchema,
+);
+export const validateStartupCommandsRemoveParams = ajv.compile<StartupCommandsRemoveParams>(
+  StartupCommandsRemoveParamsSchema,
+);
 export const validateWizardStartParams = ajv.compile<WizardStartParams>(WizardStartParamsSchema);
 export const validateWizardNextParams = ajv.compile<WizardNextParams>(WizardNextParamsSchema);
 export const validateWizardCancelParams = ajv.compile<WizardCancelParams>(WizardCancelParamsSchema);
@@ -291,6 +394,9 @@ export const validateSkillsStatusParams = ajv.compile<SkillsStatusParams>(Skills
 export const validateSkillsBinsParams = ajv.compile<SkillsBinsParams>(SkillsBinsParamsSchema);
 export const validateSkillsInstallParams =
   ajv.compile<SkillsInstallParams>(SkillsInstallParamsSchema);
+export const validateSkillsUninstallParams = ajv.compile<SkillsUninstallParams>(
+  SkillsUninstallParamsSchema,
+);
 export const validateSkillsUpdateParams = ajv.compile<SkillsUpdateParams>(SkillsUpdateParamsSchema);
 export const validateCronListParams = ajv.compile<CronListParams>(CronListParamsSchema);
 export const validateCronStatusParams = ajv.compile<CronStatusParams>(CronStatusParamsSchema);
@@ -299,6 +405,23 @@ export const validateCronUpdateParams = ajv.compile<CronUpdateParams>(CronUpdate
 export const validateCronRemoveParams = ajv.compile<CronRemoveParams>(CronRemoveParamsSchema);
 export const validateCronRunParams = ajv.compile<CronRunParams>(CronRunParamsSchema);
 export const validateCronRunsParams = ajv.compile<CronRunsParams>(CronRunsParamsSchema);
+export const validateCronRunLogParams = ajv.compile<CronRunLogParams>(CronRunLogParamsSchema);
+export const validateOverseerStatusParams = ajv.compile<OverseerStatusParams>(
+  OverseerStatusParamsSchema,
+);
+export const validateOverseerGoalCreateParams = ajv.compile<OverseerGoalCreateParams>(
+  OverseerGoalCreateParamsSchema,
+);
+export const validateOverseerGoalStatusParams = ajv.compile<OverseerGoalStatusParams>(
+  OverseerGoalStatusParamsSchema,
+);
+export const validateOverseerGoalUpdateParams = ajv.compile<OverseerGoalUpdateParams>(
+  OverseerGoalUpdateParamsSchema,
+);
+export const validateOverseerWorkUpdateParams = ajv.compile<OverseerWorkUpdateParams>(
+  OverseerWorkUpdateParamsSchema,
+);
+export const validateOverseerTickParams = ajv.compile<OverseerTickParams>(OverseerTickParamsSchema);
 export const validateDevicePairListParams = ajv.compile<DevicePairListParams>(
   DevicePairListParamsSchema,
 );
@@ -342,6 +465,38 @@ export const validateUpdateRunParams = ajv.compile<UpdateRunParams>(UpdateRunPar
 export const validateWebLoginStartParams =
   ajv.compile<WebLoginStartParams>(WebLoginStartParamsSchema);
 export const validateWebLoginWaitParams = ajv.compile<WebLoginWaitParams>(WebLoginWaitParamsSchema);
+export const validateAutomationsListParams = ajv.compile<AutomationsListParams>(
+  AutomationsListParamsSchema,
+);
+export const validateAutomationsRunParams = ajv.compile<AutomationsRunParams>(
+  AutomationsRunParamsSchema,
+);
+export const validateAutomationsUpdateParams = ajv.compile<AutomationsUpdateParams>(
+  AutomationsUpdateParamsSchema,
+);
+export const validateAutomationsDeleteParams = ajv.compile<AutomationsDeleteParams>(
+  AutomationsDeleteParamsSchema,
+);
+export const validateAutomationsCancelParams = ajv.compile<AutomationsCancelParams>(
+  AutomationsCancelParamsSchema,
+);
+export const validateAutomationsHistoryParams = ajv.compile<AutomationsHistoryParams>(
+  AutomationsHistoryParamsSchema,
+);
+export const validateAutomationsCreateParams = ajv.compile<AutomationsCreateParams>(
+  AutomationsCreateParamsSchema,
+);
+export const validateAutomationsArtifactDownloadParams =
+  ajv.compile<AutomationsArtifactDownloadParams>(AutomationsArtifactDownloadParamsSchema);
+
+export const validateWorktreeListParams = ajv.compile(ProtocolSchemas.WorktreeListParams);
+export const validateWorktreeReadParams = ajv.compile(ProtocolSchemas.WorktreeReadParams);
+export const validateWorktreeWriteParams = ajv.compile(ProtocolSchemas.WorktreeWriteParams);
+export const validateWorktreeDeleteParams = ajv.compile(ProtocolSchemas.WorktreeDeleteParams);
+export const validateWorktreeMoveParams = ajv.compile(ProtocolSchemas.WorktreeMoveParams);
+export const validateWorktreeMkdirParams = ajv.compile(ProtocolSchemas.WorktreeMkdirParams);
+
+export const validateGatewayReloadParams = ajv.compile(GatewayReloadParamsSchema);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) {
@@ -411,12 +566,16 @@ export {
   SessionsResetParamsSchema,
   SessionsDeleteParamsSchema,
   SessionsCompactParamsSchema,
+  SessionsUsageParamsSchema,
   ConfigGetParamsSchema,
   ConfigSetParamsSchema,
   ConfigApplyParamsSchema,
   ConfigPatchParamsSchema,
   ConfigSchemaParamsSchema,
   ConfigSchemaResponseSchema,
+  StartupCommandsListParamsSchema,
+  StartupCommandsAppendParamsSchema,
+  StartupCommandsRemoveParamsSchema,
   WizardStartParamsSchema,
   WizardNextParamsSchema,
   WizardCancelParamsSchema,
@@ -440,9 +599,12 @@ export {
   AgentsFilesSetResultSchema,
   AgentsListParamsSchema,
   AgentsListResultSchema,
+  AgentsDescribeParamsSchema,
+  AgentsDescribeResultSchema,
   ModelsListParamsSchema,
   SkillsStatusParamsSchema,
   SkillsInstallParamsSchema,
+  SkillsUninstallParamsSchema,
   SkillsUpdateParamsSchema,
   CronJobSchema,
   CronListParamsSchema,
@@ -452,6 +614,15 @@ export {
   CronRemoveParamsSchema,
   CronRunParamsSchema,
   CronRunsParamsSchema,
+  OverseerStatusParamsSchema,
+  OverseerStatusResultSchema,
+  OverseerGoalCreateParamsSchema,
+  OverseerGoalCreateResultSchema,
+  OverseerGoalStatusParamsSchema,
+  OverseerGoalUpdateParamsSchema,
+  OverseerGoalStatusResultSchema,
+  OverseerWorkUpdateParamsSchema,
+  OverseerTickParamsSchema,
   LogsTailParamsSchema,
   LogsTailResultSchema,
   ChatHistoryParamsSchema,
@@ -464,6 +635,28 @@ export {
   PROTOCOL_VERSION,
   ErrorCodes,
   errorShape,
+  // Automations
+  AutomationSchema,
+  AutomationScheduleSchema,
+  AutomationAiModelSchema,
+  AutomationRunMilestoneSchema,
+  AutomationArtifactSchema,
+  AutomationConflictSchema,
+  AutomationRunRecordSchema,
+  AutomationsListParamsSchema,
+  AutomationsListResultSchema,
+  AutomationsRunParamsSchema,
+  AutomationsUpdateParamsSchema,
+  AutomationsDeleteParamsSchema,
+  AutomationsCancelParamsSchema,
+  AutomationsHistoryParamsSchema,
+  AutomationsHistoryResultSchema,
+  AutomationsCreateParamsSchema,
+  AutomationsArtifactDownloadParamsSchema,
+  AutomationsArtifactDownloadResultSchema,
+  // Gateway reload
+  GatewayReloadParamsSchema,
+  GatewayReloadResultSchema,
 };
 
 export type {
@@ -521,10 +714,13 @@ export type {
   AgentsFilesSetResult,
   AgentsListParams,
   AgentsListResult,
+  AgentsDescribeParams,
+  AgentsDescribeResult,
   SkillsStatusParams,
   SkillsBinsParams,
   SkillsBinsResult,
   SkillsInstallParams,
+  SkillsUninstallParams,
   SkillsUpdateParams,
   NodePairRejectParams,
   NodePairVerifyParams,
@@ -536,9 +732,11 @@ export type {
   SessionsPreviewParams,
   SessionsResolveParams,
   SessionsPatchParams,
+  SessionsPatchResult,
   SessionsResetParams,
   SessionsDeleteParams,
   SessionsCompactParams,
+  SessionsUsageParams,
   CronJob,
   CronListParams,
   CronStatusParams,
@@ -548,6 +746,15 @@ export type {
   CronRunParams,
   CronRunsParams,
   CronRunLogEntry,
+  OverseerStatusParams,
+  OverseerStatusResult,
+  OverseerGoalCreateParams,
+  OverseerGoalCreateResult,
+  OverseerGoalStatusParams,
+  OverseerGoalUpdateParams,
+  OverseerGoalStatusResult,
+  OverseerWorkUpdateParams,
+  OverseerTickParams,
   ExecApprovalsGetParams,
   ExecApprovalsSetParams,
   ExecApprovalsSnapshot,
@@ -556,4 +763,37 @@ export type {
   PollParams,
   UpdateRunParams,
   ChatInjectParams,
+  // Automations
+  Automation,
+  AutomationSchedule,
+  AutomationAiModel,
+  AutomationRunMilestone,
+  AutomationArtifact,
+  AutomationConflict,
+  AutomationRunRecord,
+  AutomationsListParams,
+  AutomationsListResult,
+  AutomationsRunParams,
+  AutomationsUpdateParams,
+  AutomationsDeleteParams,
+  AutomationsCancelParams,
+  AutomationsHistoryParams,
+  AutomationsHistoryResult,
+  AutomationsCreateParams,
+  AutomationsArtifactDownloadParams,
+  AutomationsArtifactDownloadResult,
+  // Worktree
+  WorktreeListParams,
+  WorktreeListResult,
+  WorktreeReadParams,
+  WorktreeReadResult,
+  WorktreeWriteParams,
+  WorktreeWriteResult,
+  WorktreeDeleteParams,
+  WorktreeDeleteResult,
+  WorktreeMoveParams,
+  WorktreeMoveResult,
+  WorktreeMkdirParams,
+  WorktreeMkdirResult,
+  WorktreeFileEntry,
 };

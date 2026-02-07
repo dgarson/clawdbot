@@ -3,6 +3,30 @@ import { stripReasoningTagsFromText } from "../shared/text/reasoning-tags.js";
 import { sanitizeUserFacingText } from "./pi-embedded-helpers.js";
 import { formatToolDetail, resolveToolDisplay } from "./tool-display.js";
 
+const COMPACTION_HANDOFF_PATTERNS: RegExp[] = [
+  /This session is being continued from a previous conversation that ran out of context\./i,
+  /The summary below covers the earlier portion of the conversation\./i,
+  /If you need specific details from before compaction/i,
+  /Please continue the conversation from where we left it off/i,
+];
+
+export function stripCompactionHandoffText(text: string): string {
+  if (!text) {
+    return text;
+  }
+  let cutIndex = -1;
+  for (const pattern of COMPACTION_HANDOFF_PATTERNS) {
+    const idx = text.search(pattern);
+    if (idx >= 0 && (cutIndex === -1 || idx < cutIndex)) {
+      cutIndex = idx;
+    }
+  }
+  if (cutIndex === -1) {
+    return text;
+  }
+  return text.slice(0, cutIndex).trimEnd();
+}
+
 /**
  * Strip malformed Minimax tool invocations that leak into text content.
  * Minimax sometimes embeds tool calls as XML in text blocks instead of
@@ -218,7 +242,8 @@ export function extractAssistantText(msg: AssistantMessage): string {
         .filter(Boolean)
     : [];
   const extracted = blocks.join("\n").trim();
-  return sanitizeUserFacingText(extracted);
+  const withoutCompaction = stripCompactionHandoffText(extracted);
+  return sanitizeUserFacingText(withoutCompaction);
 }
 
 export function extractAssistantThinking(msg: AssistantMessage): string {

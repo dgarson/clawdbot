@@ -378,6 +378,10 @@ export async function runReplyAgent(params: {
     const cliSessionId = isCliProvider(providerUsed, cfg)
       ? runResult.meta.agentMeta?.sessionId?.trim()
       : undefined;
+    // Extract Claude SDK session ID for native session resume (SDK runtime only)
+    const claudeSdkSessionId = !isCliProvider(providerUsed, cfg)
+      ? runResult.meta.agentMeta?.claudeSessionId?.trim()
+      : undefined;
     const contextTokensUsed =
       agentCfgContextTokens ??
       lookupContextTokens(modelUsed) ??
@@ -393,6 +397,7 @@ export async function runReplyAgent(params: {
       contextTokensUsed,
       systemPromptReport: runResult.meta.systemPromptReport,
       cliSessionId,
+      claudeSdkSessionId,
     });
 
     // Drain any late tool/block deliveries before deciding there's "nothing to send".
@@ -495,16 +500,14 @@ export async function runReplyAgent(params: {
     let finalPayloads = replyPayloads;
     const verboseEnabled = resolvedVerboseLevel !== "off";
     if (autoCompactionCompleted) {
-      const count = await incrementCompactionCount({
+      await incrementCompactionCount({
         sessionEntry: activeSessionEntry,
         sessionStore: activeSessionStore,
         sessionKey,
         storePath,
       });
-      if (verboseEnabled) {
-        const suffix = typeof count === "number" ? ` (count ${count})` : "";
-        finalPayloads = [{ text: `🧹 Auto-compaction complete${suffix}.` }, ...finalPayloads];
-      }
+      // Compaction events are internal-only and sent via event broadcast
+      // to session-specific handlers. No user-facing message needed.
     }
     if (verboseEnabled && activeIsNewSession) {
       finalPayloads = [{ text: `🧭 New session: ${followupRun.run.sessionId}` }, ...finalPayloads];

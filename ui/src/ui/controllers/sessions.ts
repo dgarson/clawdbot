@@ -91,6 +91,63 @@ export async function patchSession(
   }
 }
 
+export async function abortSession(state: SessionsState, key: string) {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  const confirmed = window.confirm(
+    `Abort session "${key}"?\n\nThis will stop any active agent run for this session. The session itself will be preserved.`,
+  );
+  if (!confirmed) {
+    return;
+  }
+  state.sessionsLoading = true;
+  state.sessionsError = null;
+  try {
+    await state.client.request("chat.abort", { sessionKey: key });
+    await loadSessions(state);
+  } catch (err) {
+    state.sessionsError = String(err);
+  } finally {
+    state.sessionsLoading = false;
+  }
+}
+
+export async function abortAllSessions(state: SessionsState) {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  const sessions = state.sessionsResult?.sessions ?? [];
+  const activeSessions = sessions.filter(
+    (s) => s.updatedAt && Date.now() - s.updatedAt < 5 * 60 * 1000 && s.kind !== "global",
+  );
+  if (activeSessions.length === 0) {
+    state.sessionsError = "No active sessions to abort.";
+    return;
+  }
+  const confirmed = window.confirm(
+    `⚠️ EMERGENCY STOP\n\nAbort all ${activeSessions.length} active session(s)?\n\nThis will stop all running agent tasks. Sessions themselves will be preserved.`,
+  );
+  if (!confirmed) {
+    return;
+  }
+  state.sessionsLoading = true;
+  state.sessionsError = null;
+  const errors: string[] = [];
+  for (const session of activeSessions) {
+    try {
+      await state.client.request("chat.abort", { sessionKey: session.key });
+    } catch (err) {
+      errors.push(`${session.key}: ${String(err)}`);
+    }
+  }
+  if (errors.length > 0) {
+    state.sessionsError = `Some aborts failed:\n${errors.join("\n")}`;
+  }
+  await loadSessions(state);
+  state.sessionsLoading = false;
+}
+
 export async function deleteSession(state: SessionsState, key: string) {
   if (!state.client || !state.connected) {
     return;

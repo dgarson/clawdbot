@@ -17,6 +17,17 @@ export type ClientToolDefinition = {
   };
 };
 
+/**
+ * Simplified tool definition for extension-provided tools.
+ * These are converted to AnyAgentTool format before being passed to the agent.
+ */
+export type ExtensionToolDefinition = {
+  name: string;
+  description?: string;
+  parameters: Record<string, unknown>;
+  execute: (params: unknown) => Promise<string>;
+};
+
 export type RunEmbeddedPiAgentParams = {
   sessionId: string;
   sessionKey?: string;
@@ -39,6 +50,8 @@ export type RunEmbeddedPiAgentParams = {
   senderName?: string | null;
   senderUsername?: string | null;
   senderE164?: string | null;
+  /** Whether the sender is an owner (required for owner-only tools). */
+  senderIsOwner?: boolean;
   /** Current channel ID for auto-threading (Slack). */
   currentChannelId?: string;
   /** Current thread timestamp for auto-threading (Slack). */
@@ -99,4 +112,6 @@ export type RunEmbeddedPiAgentParams = {
   streamParams?: AgentStreamParams;
   ownerNumbers?: string[];
   enforceFinalTag?: boolean;
+  /** Extension-provided tools (e.g., voice recall_conversation). */
+  extraTools?: ExtensionToolDefinition[];
 };

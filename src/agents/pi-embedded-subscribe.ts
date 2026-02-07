@@ -15,7 +15,7 @@ import {
   normalizeTextForComparison,
 } from "./pi-embedded-helpers.js";
 import { createEmbeddedPiSessionEventHandler } from "./pi-embedded-subscribe.handlers.js";
-import { formatReasoningMessage } from "./pi-embedded-utils.js";
+import { formatReasoningMessage, stripCompactionHandoffText } from "./pi-embedded-utils.js";
 
 const THINKING_TAG_SCAN_RE = /<\s*(\/?)\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
 const FINAL_TAG_SCAN_RE = /<\s*(\/?)\s*final\s*>/gi;
@@ -31,10 +31,16 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   const reasoningMode = params.reasoningMode ?? "off";
   const toolResultFormat = params.toolResultFormat ?? "markdown";
   const useMarkdown = toolResultFormat === "markdown";
+  // Reasoning should only be emitted via onBlockReply if:
+  // 1. emitReasoningInBlockReply is explicitly true (caller opts in), OR
+  // 2. There's no onReasoningStream callback AND emitReasoningInBlockReply is true
+  // Channels (Discord, Slack, etc.) should NOT set emitReasoningInBlockReply to true.
+  const emitReasoningInBlockReply = params.emitReasoningInBlockReply === true;
   const state: EmbeddedPiSubscribeState = {
     assistantTexts: [],
     toolMetas: [],
     toolMetaById: new Map(),
+    toolArgsById: new Map(),
     toolSummaryById: new Set(),
     lastToolError: undefined,
     blockReplyBreak: params.blockReplyBreak ?? "text_end",
@@ -42,6 +48,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     includeReasoning: reasoningMode === "on",
     shouldEmitPartialReplies: !(reasoningMode === "on" && !params.onBlockReply),
     streamReasoning: reasoningMode === "stream" && typeof params.onReasoningStream === "function",
+    emitReasoningInBlockReply,
     deltaBuffer: "",
     blockBuffer: "",
     // Track if a streamed chunk opened a <think> block (stateful across chunks).
@@ -49,6 +56,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     partialBlockState: { thinking: false, final: false, inlineCode: createInlineCodeState() },
     lastStreamedAssistant: undefined,
     lastStreamedAssistantCleaned: undefined,
+    emittedAssistantUpdate: false,
     lastStreamedReasoning: undefined,
     lastBlockReplyText: undefined,
     assistantMessageIndex: 0,
@@ -95,6 +103,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     state.partialBlockState.inlineCode = createInlineCodeState();
     state.lastStreamedAssistant = undefined;
     state.lastStreamedAssistantCleaned = undefined;
+    state.emittedAssistantUpdate = false;
     state.lastBlockReplyText = undefined;
     state.lastStreamedReasoning = undefined;
     state.lastReasoningSent = undefined;
@@ -149,6 +158,14 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     // If we're not streaming block replies, ensure the final payload includes
     // the final text even when interim streaming was enabled.
     if (state.includeReasoning && text && !params.onBlockReply) {
+      log.trace("embedded_finalize_assistant_texts", {
+        mode: "includeReasoning_noBlockReply",
+        textLen: text.length,
+        assistantTextsLen: assistantTexts.length,
+        baseline: state.assistantTextBaseline,
+        addedDuringMessage,
+        chunkerHasBuffered,
+      });
       if (assistantTexts.length > state.assistantTextBaseline) {
         assistantTexts.splice(
           state.assistantTextBaseline,
@@ -161,9 +178,26 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       }
       state.suppressBlockChunks = true;
     } else if (!addedDuringMessage && !chunkerHasBuffered && text) {
+      log.trace("embedded_finalize_assistant_texts", {
+        mode: "nonStreaming_push_final",
+        textLen: text.length,
+        assistantTextsLen: assistantTexts.length,
+        baseline: state.assistantTextBaseline,
+        addedDuringMessage,
+        chunkerHasBuffered,
+      });
       // Non-streaming models (no text_delta): ensure assistantTexts gets the final
       // text when the chunker has nothing buffered to drain.
       pushAssistantText(text);
+    } else {
+      log.trace("embedded_finalize_assistant_texts", {
+        mode: "noop",
+        textLen: text.length,
+        assistantTextsLen: assistantTexts.length,
+        baseline: state.assistantTextBaseline,
+        addedDuringMessage,
+        chunkerHasBuffered,
+      });
     }
 
     state.assistantTextBaseline = assistantTexts.length;
@@ -401,7 +435,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       return;
     }
     // Strip <think> and <final> blocks across chunk boundaries to avoid leaking reasoning.
-    const chunk = stripBlockTags(text, state.blockState).trimEnd();
+    const chunk = stripCompactionHandoffText(stripBlockTags(text, state.blockState).trimEnd());
     if (!chunk) {
       return;
     }

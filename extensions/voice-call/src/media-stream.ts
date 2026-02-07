@@ -141,12 +141,18 @@ export class MediaStreamHandler {
   private async handleStart(
     ws: WebSocket,
     message: TwilioMediaMessage,
-    streamToken?: string,
+    streamTokenFromUrl?: string,
   ): Promise<StreamSession | null> {
     const streamSid = message.streamSid || "";
     const callSid = message.start?.callSid || "";
+    // Prefer token from customParameters (Twilio's official way), fall back to URL query string
+    const customParams = message.start?.customParameters;
+    const streamToken = customParams?.token || streamTokenFromUrl;
 
-    console.log(`[MediaStream] Stream started: ${streamSid} (call: ${callSid})`);
+    console.log(
+      `[MediaStream] Stream started: ${streamSid} (call: ${callSid}), ` +
+        `customParams=${JSON.stringify(customParams)}, tokenFromUrl=${streamTokenFromUrl ? "present" : "missing"}`,
+    );
     if (!callSid) {
       console.warn("[MediaStream] Missing callSid; closing stream");
       ws.close(1008, "Missing callSid");
@@ -398,6 +404,8 @@ interface TwilioMediaMessage {
       sampleRate: number;
       channels: number;
     };
+    /** Custom parameters passed via <Parameter> elements in TwiML */
+    customParameters?: Record<string, string>;
   };
   media?: {
     track?: string;

@@ -1,6 +1,8 @@
 packages:
   - .
   - ui
+  - apps/web
+  - security/info-demo
   - packages/*
   - extensions/*
 

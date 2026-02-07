@@ -28,6 +28,7 @@ import type {
   PluginHookName,
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
+  PluginSearchBackendRegistration,
 } from "./types.js";
 import { registerInternalHook } from "../hooks/internal-hooks.js";
 import { resolveUserPath } from "../utils.js";
@@ -134,7 +135,9 @@ export type PluginRegistry = {
   cliRegistrars: PluginCliRegistration[];
   services: PluginServiceRegistration[];
   commands: PluginCommandRegistration[];
+  searchBackends: PluginSearchBackendRegistration[];
   diagnostics: PluginDiagnostic[];
+  cronJobs?: any; // TODO: Add proper cron jobs type
 };
 
 export type PluginRegistryParams = {
@@ -157,6 +160,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     cliRegistrars: [],
     services: [],
     commands: [],
+    searchBackends: [],
+    cronJobs: undefined,
     diagnostics: [],
   };
   const coreGatewayMethods = new Set(Object.keys(registryParams.coreGatewayHandlers ?? {}));
@@ -493,6 +498,9 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerCli: (registrar, opts) => registerCli(record, registrar, opts),
       registerService: (service) => registerService(record, service),
       registerCommand: (command) => registerCommand(record, command),
+      registerSearchBackend: (backend) => {
+        registry.searchBackends.push({ ...backend, pluginId: record.id });
+      },
       resolvePath: (input: string) => resolveUserPath(input),
       on: (hookName, handler, opts) => registerTypedHook(record, hookName, handler, opts),
     };

@@ -29,6 +29,8 @@ export type SessionsProps = {
       reasoningLevel?: string | null;
     },
   ) => void;
+  onAbort: (key: string) => void;
+  onAbortAll: () => void;
   onDelete: (key: string) => void;
 };
 
@@ -85,6 +87,9 @@ function resolveThinkLevelPatchValue(value: string, isBinary: boolean): string |
 
 export function renderSessions(props: SessionsProps) {
   const rows = props.result?.sessions ?? [];
+  const activeCount = rows.filter(
+    (r) => r.updatedAt && Date.now() - r.updatedAt < 5 * 60 * 1000 && r.kind !== "global",
+  ).length;
   return html`
     <section class="card">
       <div class="row" style="justify-content: space-between;">
@@ -92,9 +97,25 @@ export function renderSessions(props: SessionsProps) {
           <div class="card-title">Sessions</div>
           <div class="card-sub">Active session keys and per-session overrides.</div>
         </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
+        <div class="row" style="gap: 8px;">
+          ${
+            activeCount > 0
+              ? html`
+                  <button
+                    class="btn danger"
+                    ?disabled=${props.loading}
+                    @click=${props.onAbortAll}
+                    title="Emergency stop — abort all active sessions"
+                  >
+                    ⛔ Stop All (${activeCount})
+                  </button>
+                `
+              : nothing
+          }
+          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+            ${props.loading ? "Loading…" : "Refresh"}
+          </button>
+        </div>
       </div>
 
       <div class="filters" style="margin-top: 14px;">
@@ -182,7 +203,14 @@ export function renderSessions(props: SessionsProps) {
                 <div class="muted">No sessions found.</div>
               `
             : rows.map((row) =>
-                renderRow(row, props.basePath, props.onPatch, props.onDelete, props.loading),
+                renderRow(
+                  row,
+                  props.basePath,
+                  props.onPatch,
+                  props.onAbort,
+                  props.onDelete,
+                  props.loading,
+                ),
               )
         }
       </div>
@@ -194,6 +222,7 @@ function renderRow(
   row: GatewaySessionRow,
   basePath: string,
   onPatch: SessionsProps["onPatch"],
+  onAbort: SessionsProps["onAbort"],
   onDelete: SessionsProps["onDelete"],
   disabled: boolean,
 ) {
@@ -271,11 +300,32 @@ function renderRow(
           )}
         </select>
       </div>
-      <div>
+      <div style="display: flex; gap: 4px; align-items: center;">
+        ${
+          isRecentlyActive(row)
+            ? html`
+                <button
+                  class="btn warning"
+                  ?disabled=${disabled}
+                  @click=${() => onAbort(row.key)}
+                  title="Abort active run for this session"
+                >
+                  ⏹ Abort
+                </button>
+              `
+            : nothing
+        }
         <button class="btn danger" ?disabled=${disabled} @click=${() => onDelete(row.key)}>
           Delete
         </button>
       </div>
     </div>
   `;
+}
+
+/** Check if a session was active in the last 5 minutes */
+function isRecentlyActive(row: GatewaySessionRow): boolean {
+  return Boolean(
+    row.updatedAt && Date.now() - row.updatedAt < 5 * 60 * 1000 && row.kind !== "global",
+  );
 }

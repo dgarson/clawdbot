@@ -122,4 +122,54 @@ describe("ensureAuthProfileStore", () => {
       fs.rmSync(root, { recursive: true, force: true });
     }
   });
+
+  it("uses provided mainAgentDir for inheritance when env points elsewhere", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-auth-main-override-"));
+    const previousAgentDir = process.env.OPENCLAW_AGENT_DIR;
+    const previousPiAgentDir = process.env.PI_CODING_AGENT_DIR;
+    try {
+      const mainDir = path.join(root, "agents", "primary", "agent");
+      const agentDir = path.join(root, "agents", "voice", "agent");
+      fs.mkdirSync(mainDir, { recursive: true });
+      fs.mkdirSync(agentDir, { recursive: true });
+
+      process.env.OPENCLAW_AGENT_DIR = agentDir;
+      process.env.PI_CODING_AGENT_DIR = agentDir;
+
+      const mainStore = {
+        version: AUTH_STORE_VERSION,
+        profiles: {
+          "openai:default": {
+            type: "api_key",
+            provider: "openai",
+            key: "main-key",
+          },
+        },
+      };
+      fs.writeFileSync(
+        path.join(mainDir, "auth-profiles.json"),
+        `${JSON.stringify(mainStore, null, 2)}\n`,
+        "utf8",
+      );
+
+      const store = ensureAuthProfileStore(agentDir, { mainAgentDir: mainDir });
+      expect(store.profiles["openai:default"]).toMatchObject({
+        type: "api_key",
+        provider: "openai",
+        key: "main-key",
+      });
+    } finally {
+      if (previousAgentDir === undefined) {
+        delete process.env.OPENCLAW_AGENT_DIR;
+      } else {
+        process.env.OPENCLAW_AGENT_DIR = previousAgentDir;
+      }
+      if (previousPiAgentDir === undefined) {
+        delete process.env.PI_CODING_AGENT_DIR;
+      } else {
+        process.env.PI_CODING_AGENT_DIR = previousPiAgentDir;
+      }
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

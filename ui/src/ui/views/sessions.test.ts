@@ -1,0 +1,189 @@
+import { render } from "lit";
+import { describe, expect, it } from "vitest";
+import type { SessionsListResult } from "../types";
+import { renderSessions, type SessionsProps } from "./sessions";
+
+function createSessions(now: number): SessionsListResult {
+  return {
+    ts: now,
+    path: "",
+    count: 2,
+    defaults: {
+      modelProvider: null,
+      model: null,
+      contextTokens: null,
+      thinkingDefault: "off",
+      verboseDefault: "off",
+      reasoningDefault: "off",
+      elevatedDefault: "off",
+    },
+    sessions: [
+      {
+        key: "session-one",
+        kind: "direct",
+        displayName: "One",
+        updatedAt: now - 2 * 60 * 60_000,
+      },
+      {
+        key: "session-two",
+        kind: "direct",
+        displayName: "Two",
+        updatedAt: now - 2 * 60 * 60_000,
+      },
+    ],
+  };
+}
+
+function createProps(overrides: Partial<SessionsProps> = {}): SessionsProps {
+  const now = Date.now();
+  const result = createSessions(now);
+  return {
+    loading: false,
+    result,
+    error: null,
+    activeMinutes: "",
+    limit: "",
+    includeGlobal: true,
+    includeUnknown: false,
+    basePath: "",
+    search: "",
+    sort: "updated",
+    sortDir: "desc",
+    kindFilter: "all",
+    statusFilter: "all",
+    agentLabelFilter: "",
+    laneFilter: "all",
+    tagFilter: [],
+    viewMode: "table",
+    showHidden: false,
+    autoHideCompletedMinutes: 0,
+    autoHideErroredMinutes: 0,
+    preset: "custom",
+    showAdvancedFilters: false,
+    drawerKey: null,
+    drawerExpanded: false,
+    drawerPreviewLoading: false,
+    drawerPreviewError: null,
+    drawerPreview: null,
+    onDrawerOpen: () => undefined,
+    onDrawerOpenExpanded: () => undefined,
+    onDrawerClose: () => undefined,
+    onDrawerToggleExpanded: () => undefined,
+    onDrawerRefreshPreview: () => undefined,
+    onSessionOpen: () => undefined,
+    onFiltersChange: () => undefined,
+    onSearchChange: () => undefined,
+    onSortChange: () => undefined,
+    onKindFilterChange: () => undefined,
+    onStatusFilterChange: () => undefined,
+    onAgentLabelFilterChange: () => undefined,
+    onTagFilterChange: () => undefined,
+    onLaneFilterChange: () => undefined,
+    onViewModeChange: () => undefined,
+    onShowHiddenChange: () => undefined,
+    onAutoHideChange: () => undefined,
+    onDeleteMany: () => undefined,
+    onRefresh: () => undefined,
+    onPatch: () => undefined,
+    onDelete: () => undefined,
+    onPresetChange: () => undefined,
+    onToggleAdvancedFilters: () => undefined,
+    ...overrides,
+  };
+}
+
+describe("sessions view", () => {
+  it("treats sessions with active tasks as active for filtering/counts", () => {
+    const container = document.createElement("div");
+    const now = Date.now();
+    const activeTasks = new Map([
+      [
+        "session-two",
+        [{ taskId: "run:1", taskName: "Run", status: "in-progress" as const, startedAt: now }],
+      ],
+    ]);
+
+    render(
+      renderSessions(
+        createProps({
+          statusFilter: "active",
+          activeTasks,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Active");
+    expect(container.textContent).toContain("1");
+    expect(container.textContent).toContain("Two");
+    expect(container.textContent).not.toContain("One");
+  });
+
+  it("shows override source label when session has explicit thinking level", () => {
+    const container = document.createElement("div");
+    const now = Date.now();
+    const result = createSessions(now);
+    result.sessions[0].thinkingLevel = "high";
+
+    render(
+      renderSessions(
+        createProps({
+          result,
+          viewMode: "list",
+        }),
+      ),
+      container,
+    );
+
+    // Tooltip should show (override)
+    expect(container.innerHTML).toContain("Thinking (override)");
+    // Effective line should show (override)
+    expect(container.innerHTML).toContain("(override)");
+  });
+
+  it("shows config source label when gateway defaults are configured", () => {
+    const container = document.createElement("div");
+    const now = Date.now();
+    const result = createSessions(now);
+    result.defaults.thinkingDefault = "low";
+
+    render(
+      renderSessions(
+        createProps({
+          result,
+          viewMode: "table",
+          drawerKey: "session-one",
+        }),
+      ),
+      container,
+    );
+
+    // Inherit option should show config default
+    expect(container.textContent).toContain("⚙ Use config default (low)");
+    // Effective line should show (config)
+    expect(container.textContent).toContain("(config)");
+  });
+
+  it("shows fallback source label when gateway defaults are not configured", () => {
+    const container = document.createElement("div");
+    const now = Date.now();
+    const result = createSessions(now);
+    result.defaults.thinkingDefault = null;
+
+    render(
+      renderSessions(
+        createProps({
+          result,
+          viewMode: "table",
+          drawerKey: "session-one",
+        }),
+      ),
+      container,
+    );
+
+    // Inherit option should show inherited default
+    expect(container.textContent).toContain("↓ Inherit default (off)");
+    // Effective line should show (fallback)
+    expect(container.textContent).toContain("(fallback)");
+  });
+});

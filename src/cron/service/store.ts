@@ -126,7 +126,15 @@ async function getFileMtimeMs(path: string): Promise<number | null> {
   }
 }
 
-export async function ensureLoaded(state: CronServiceState, opts?: { forceReload?: boolean }) {
+export async function ensureLoaded(
+  state: CronServiceState,
+  opts?: {
+    forceReload?: boolean;
+    /** Skip recomputing nextRunAtMs after load so the caller can run due
+     *  jobs against the persisted values first (see onTimer). */
+    skipRecompute?: boolean;
+  },
+) {
   // Fast path: store is already in memory. Other callers (add, list, run, …)
   // trust the in-memory copy to avoid a stat syscall on every operation.
   if (state.store && !opts?.forceReload) {
@@ -140,6 +148,13 @@ export async function ensureLoaded(state: CronServiceState, opts?: { forceReload
   const jobs = (loaded.jobs ?? []) as unknown as Array<Record<string, unknown>>;
   let mutated = false;
   for (const raw of jobs) {
+    // Migrate legacy jobId → id
+    if (!raw.id && typeof raw.jobId === "string") {
+      raw.id = raw.jobId;
+      delete raw.jobId;
+      mutated = true;
+    }
+
     const nameRaw = raw.name;
     if (typeof nameRaw !== "string" || nameRaw.trim().length === 0) {
       raw.name = inferLegacyName({
@@ -255,8 +270,9 @@ export async function ensureLoaded(state: CronServiceState, opts?: { forceReload
   state.storeLoadedAtMs = state.deps.nowMs();
   state.storeFileMtimeMs = fileMtimeMs;
 
-  // Recompute next runs after loading to ensure accuracy
-  recomputeNextRuns(state);
+  if (!opts?.skipRecompute) {
+    recomputeNextRuns(state);
+  }
 
   if (mutated) {
     await persist(state);

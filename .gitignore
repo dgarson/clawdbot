@@ -1,8 +1,10 @@
+**/*.mp3
 node_modules
 **/node_modules/
+**/__screenshots__/
 .env
 docker-compose.extra.yml
-dist
+dist/
 *.bun-build
 pnpm-lock.yaml
 bun.lock
@@ -19,21 +21,21 @@ ui/test-results/
 # Bun build artifacts
 *.bun-build
 apps/macos/.build/
-apps/shared/MoltbotKit/.build/
+apps/shared/OpenClawKit/.build/
 **/ModuleCache/
 bin/
-bin/clawdbot-mac
+bin/clawdbrain-mac
 bin/docs-list
 apps/macos/.build-local/
 apps/macos/.swiftpm/
-apps/shared/MoltbotKit/.swiftpm/
+apps/shared/OpenClawKit/.swiftpm/
 Core/
 apps/ios/*.xcodeproj/
 apps/ios/*.xcworkspace/
 apps/ios/.swiftpm/
 vendor/
-apps/ios/Clawdbot.xcodeproj/
-apps/ios/Clawdbot.xcodeproj/**
+apps/ios/Clawdbrain.xcodeproj/
+apps/ios/Clawdbrain.xcodeproj/**
 apps/macos/.build/**
 **/*.bun-build
 apps/ios/*.xcfilelist
@@ -64,10 +66,17 @@ apps/ios/*.mobileprovision
 
 # Local untracked files
 .local/
-.vscode/
 IDENTITY.md
 USER.md
 .tgz
 
 # local tooling
 .serena/
+/.archon-python-reference
+
+**/.tanstack/
+
+# Agent credentials and memory (NEVER COMMIT)
+memory/
+.agent/*.json
+!.agent/workflows/

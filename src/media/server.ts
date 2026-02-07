@@ -30,10 +30,29 @@ export function attachMediaRoutes(
   ttlMs = DEFAULT_TTL_MS,
   _runtime: RuntimeEnv = defaultRuntime,
 ) {
+  const handler = createMediaHandler({ ttlMs });
+  app.get("/media/:id", handler);
+
+  // periodic cleanup
+  setInterval(() => {
+    void cleanOldMedia(ttlMs);
+  }, ttlMs).unref();
+}
+
+export function createMediaHandler(params?: { ttlMs?: number; runtime?: RuntimeEnv }) {
+  const ttlMs = params?.ttlMs ?? DEFAULT_TTL_MS;
   const mediaDir = getMediaDir();
 
-  app.get("/media/:id", async (req, res) => {
-    const id = req.params.id;
+  return async (
+    req: { params: { id?: string } },
+    res: {
+      status: (code: number) => typeof res;
+      send: (body: string | Buffer) => void;
+      type: (value: string) => typeof res;
+      on: (event: string, handler: () => void) => void;
+    },
+  ) => {
+    const id = req.params.id ?? "";
     if (!isValidMediaId(id)) {
       res.status(400).send("invalid path");
       return;
@@ -80,12 +99,7 @@ export function attachMediaRoutes(
       }
       res.status(404).send("not found");
     }
-  });
-
-  // periodic cleanup
-  setInterval(() => {
-    void cleanOldMedia(ttlMs);
-  }, ttlMs).unref();
+  };
 }
 
 export async function startMediaServer(

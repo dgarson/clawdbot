@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { FailoverReason } from "./pi-embedded-helpers.js";
+import { resolveDefaultAgentDir } from "./agent-scope.js";
 import {
   ensureAuthProfileStore,
   isProfileInCooldown,
@@ -12,10 +13,11 @@ import {
   isFailoverError,
   isTimeoutError,
 } from "./failover-error.js";
+import { isProviderConfigured } from "./model-auth.js";
 import {
+  buildConfiguredAllowlistKeys,
   buildModelAliasIndex,
   modelKey,
-  parseModelRef,
   resolveConfiguredModelRef,
   resolveModelRefFromString,
 } from "./model-selection.js";
@@ -51,28 +53,6 @@ function shouldRethrowAbort(err: unknown): boolean {
   return isAbortError(err) && !isTimeoutError(err);
 }
 
-function buildAllowedModelKeys(
-  cfg: OpenClawConfig | undefined,
-  defaultProvider: string,
-): Set<string> | null {
-  const rawAllowlist = (() => {
-    const modelMap = cfg?.agents?.defaults?.models ?? {};
-    return Object.keys(modelMap);
-  })();
-  if (rawAllowlist.length === 0) {
-    return null;
-  }
-  const keys = new Set<string>();
-  for (const raw of rawAllowlist) {
-    const parsed = parseModelRef(String(raw ?? ""), defaultProvider);
-    if (!parsed) {
-      continue;
-    }
-    keys.add(modelKey(parsed.provider, parsed.model));
-  }
-  return keys.size > 0 ? keys : null;
-}
-
 function resolveImageFallbackCandidates(params: {
   cfg: OpenClawConfig | undefined;
   defaultProvider: string;
@@ -82,7 +62,10 @@ function resolveImageFallbackCandidates(params: {
     cfg: params.cfg ?? {},
     defaultProvider: params.defaultProvider,
   });
-  const allowlist = buildAllowedModelKeys(params.cfg, params.defaultProvider);
+  const allowlist = buildConfiguredAllowlistKeys({
+    cfg: params.cfg,
+    defaultProvider: params.defaultProvider,
+  });
   const seen = new Set<string>();
   const candidates: ModelCandidate[] = [];
 
@@ -138,7 +121,7 @@ function resolveImageFallbackCandidates(params: {
   })();
 
   for (const raw of imageFallbacks) {
-    addRaw(raw, true);
+    addRaw(raw, false);
   }
 
   return candidates;
@@ -148,8 +131,11 @@ function resolveFallbackCandidates(params: {
   cfg: OpenClawConfig | undefined;
   provider: string;
   model: string;
+  agentDir?: string;
   /** Optional explicit fallbacks list; when provided (even empty), replaces agents.defaults.model.fallbacks. */
   fallbacksOverride?: string[];
+  /** When using claude runtime with anthropic provider, SDK handles its own auth */
+  runtimeKind?: "pi" | "claude";
 }): ModelCandidate[] {
   const primary = params.cfg
     ? resolveConfiguredModelRef({
@@ -166,7 +152,10 @@ function resolveFallbackCandidates(params: {
     cfg: params.cfg ?? {},
     defaultProvider,
   });
-  const allowlist = buildAllowedModelKeys(params.cfg, defaultProvider);
+  const allowlist = buildConfiguredAllowlistKeys({
+    cfg: params.cfg,
+    defaultProvider,
+  });
   const seen = new Set<string>();
   const candidates: ModelCandidate[] = [];
 
@@ -210,14 +199,25 @@ function resolveFallbackCandidates(params: {
     if (!resolved) {
       continue;
     }
-    addCandidate(resolved.ref, true);
+    addCandidate(resolved.ref, false);
   }
 
   if (params.fallbacksOverride === undefined && primary?.provider && primary.model) {
     addCandidate({ provider: primary.provider, model: primary.model }, false);
   }
 
-  return candidates;
+  // Filter out providers without authentication
+  const authenticatedCandidates = candidates.filter((candidate) => {
+    const configured = isProviderConfigured({
+      provider: candidate.provider,
+      cfg: params.cfg,
+      agentDir: params.agentDir,
+      runtimeKind: params.runtimeKind,
+    });
+    return configured;
+  });
+
+  return authenticatedCandidates;
 }
 
 export async function runWithModelFallback<T>(params: {
@@ -227,6 +227,8 @@ export async function runWithModelFallback<T>(params: {
   agentDir?: string;
   /** Optional explicit fallbacks list; when provided (even empty), replaces agents.defaults.model.fallbacks. */
   fallbacksOverride?: string[];
+  /** When using claude runtime with anthropic provider, SDK handles its own auth */
+  runtimeKind?: "pi" | "claude";
   run: (provider: string, model: string) => Promise<T>;
   onError?: (attempt: {
     provider: string;
@@ -245,10 +247,25 @@ export async function runWithModelFallback<T>(params: {
     cfg: params.cfg,
     provider: params.provider,
     model: params.model,
+    agentDir: params.agentDir,
     fallbacksOverride: params.fallbacksOverride,
+    runtimeKind: params.runtimeKind,
   });
+
+  if (candidates.length === 0) {
+    throw new Error(
+      `No authenticated providers available for model failover. ` +
+        `Primary: ${params.provider}/${params.model}. ` +
+        `Configure authentication using 'clawdbrain login' or set API keys in environment.`,
+    );
+  }
+
+  const mainAgentDir = params.cfg ? resolveDefaultAgentDir(params.cfg) : undefined;
   const authStore = params.cfg
-    ? ensureAuthProfileStore(params.agentDir, { allowKeychainPrompt: false })
+    ? ensureAuthProfileStore(params.agentDir ?? mainAgentDir, {
+        allowKeychainPrompt: false,
+        mainAgentDir,
+      })
     : null;
   const attempts: FallbackAttempt[] = [];
   let lastError: unknown;
@@ -332,6 +349,27 @@ export async function runWithModelFallback<T>(params: {
   throw new Error(`All models failed (${attempts.length || candidates.length}): ${summary}`, {
     cause: lastError instanceof Error ? lastError : undefined,
   });
+}
+
+export function hasConfiguredModelFallback(params: {
+  cfg: OpenClawConfig | undefined;
+  provider: string;
+  model: string;
+  agentDir?: string;
+  /** Optional explicit fallbacks list; when provided (even empty), replaces agents.defaults.model.fallbacks. */
+  fallbacksOverride?: string[];
+  /** When using claude runtime with anthropic provider, SDK handles its own auth */
+  runtimeKind?: "pi" | "claude";
+}): boolean {
+  const candidates = resolveFallbackCandidates({
+    cfg: params.cfg,
+    provider: params.provider,
+    model: params.model,
+    agentDir: params.agentDir,
+    fallbacksOverride: params.fallbacksOverride,
+    runtimeKind: params.runtimeKind,
+  });
+  return candidates.length > 0;
 }
 
 export async function runWithImageModelFallback<T>(params: {

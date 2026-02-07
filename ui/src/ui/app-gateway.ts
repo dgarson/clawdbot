@@ -28,6 +28,9 @@ import { loadNodes } from "./controllers/nodes.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { GatewayBrowserClient } from "./gateway.ts";
 
+// 4008 = application-defined code for auth failure (browser rejects 1008)
+const AUTH_FAILED_CLOSE_CODE = 4008;
+
 type GatewayHost = {
   settings: UiSettings;
   password: string;
@@ -54,6 +57,9 @@ type GatewayHost = {
   refreshSessionsAfterChat: Set<string>;
   execApprovalQueue: ExecApprovalRequest[];
   execApprovalError: string | null;
+  // Auth modal state
+  authRequired: boolean;
+  authError: string | null;
 };
 
 type SessionDefaultsSnapshot = {
@@ -121,6 +127,7 @@ export function connectGateway(host: GatewayHost) {
   host.connected = false;
   host.execApprovalQueue = [];
   host.execApprovalError = null;
+  // Don't reset authRequired here - it may be intentionally set from a previous failure
 
   host.client?.stop();
   host.client = new GatewayBrowserClient({
@@ -132,6 +139,8 @@ export function connectGateway(host: GatewayHost) {
     onHello: (hello) => {
       host.connected = true;
       host.lastError = null;
+      host.authRequired = false;
+      host.authError = null;
       host.hello = hello;
       applySnapshot(host, hello);
       // Reset orphaned chat run state from before disconnect.
@@ -148,6 +157,13 @@ export function connectGateway(host: GatewayHost) {
     },
     onClose: ({ code, reason }) => {
       host.connected = false;
+      // Code 4008 = Auth failure - show the auth modal
+      if (code === AUTH_FAILED_CLOSE_CODE) {
+        host.authRequired = true;
+        host.authError = reason || "Authentication failed. Please check your credentials.";
+        host.lastError = null; // Clear generic error since we're showing auth modal
+        return;
+      }
       // Code 1012 = Service Restart (expected during config saves, don't show as error)
       if (code !== 1012) {
         host.lastError = `disconnected (${code}): ${reason || "no reason"}`;

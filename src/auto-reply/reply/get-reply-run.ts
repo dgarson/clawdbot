@@ -21,6 +21,7 @@ import {
   updateSessionStore,
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { clearCommandLane, getQueueSize } from "../../process/command-queue.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { isReasoningTagProvider } from "../../utils/provider-utils.js";
@@ -186,6 +187,18 @@ export async function runPreparedReply(
   // Use CommandBody/RawBody for bare reset detection (clean message without structural context).
   const rawBodyTrimmed = (ctx.CommandBody ?? ctx.RawBody ?? ctx.Body ?? "").trim();
   const baseBodyTrimmedRaw = baseBody.trim();
+  if (sessionKey) {
+    const hookEvent = createInternalHookEvent("session", "message", sessionKey, {
+      sessionId,
+      sessionKey,
+      messageId: ctx.MessageSid ?? ctx.MessageSidFull ?? ctx.MessageSidFirst ?? ctx.MessageSidLast,
+      body: baseBody,
+      channel: ctx.OriginatingChannel ?? ctx.Surface,
+      senderId: ctx.SenderId ?? ctx.From,
+      temporal: ctx.Timestamp ? { observedAt: new Date(ctx.Timestamp).toISOString() } : undefined,
+    });
+    await triggerInternalHook(hookEvent);
+  }
   if (
     allowTextCommands &&
     (!commandAuthorized || !command.isAuthorizedSender) &&
@@ -378,6 +391,7 @@ export async function runPreparedReply(
       senderName: sessionCtx.SenderName?.trim() || undefined,
       senderUsername: sessionCtx.SenderUsername?.trim() || undefined,
       senderE164: sessionCtx.SenderE164?.trim() || undefined,
+      senderIsOwner: command.senderIsOwner,
       sessionFile,
       workspaceDir,
       config: cfg,

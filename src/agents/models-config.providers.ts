@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { ModelDefinitionConfig } from "../config/types.models.js";
+import { logDebug } from "../logger.js";
 import {
   DEFAULT_COPILOT_API_BASE_URL,
   resolveCopilotApiToken,
@@ -125,6 +126,11 @@ async function discoverOllamaModels(): Promise<ModelDefinitionConfig[]> {
         cost: OLLAMA_DEFAULT_COST,
         contextWindow: OLLAMA_DEFAULT_CONTEXT_WINDOW,
         maxTokens: OLLAMA_DEFAULT_MAX_TOKENS,
+        // Disable streaming by default for Ollama to avoid SDK issue #1205
+        // See: https://github.com/badlogic/pi-mono/issues/1205
+        params: {
+          streaming: false,
+        },
       };
     });
   } catch (error) {
@@ -568,6 +574,14 @@ export async function resolveImplicitBedrockProvider(params: {
     return null;
   }
   if (enabled !== true && !hasAwsCreds) {
+    logDebug("[bedrock] Skipping implicit registration: no AWS credentials detected");
+    return null;
+  }
+  if (enabled === true && !hasAwsCreds) {
+    console.warn(
+      "[bedrock] Discovery enabled but no AWS credentials found. " +
+        "Set AWS_PROFILE or other AWS SDK environment variables.",
+    );
     return null;
   }
 

@@ -11,6 +11,8 @@ import {
 } from "./agent.js";
 import {
   AgentSummarySchema,
+  AgentsDescribeParamsSchema,
+  AgentsDescribeResultSchema,
   AgentsFileEntrySchema,
   AgentsFilesGetParamsSchema,
   AgentsFilesGetResultSchema,
@@ -27,6 +29,7 @@ import {
   SkillsBinsResultSchema,
   SkillsInstallParamsSchema,
   SkillsStatusParamsSchema,
+  SkillsUninstallParamsSchema,
   SkillsUpdateParamsSchema,
 } from "./agents-models-skills.js";
 import {
@@ -44,6 +47,9 @@ import {
   ConfigSchemaParamsSchema,
   ConfigSchemaResponseSchema,
   ConfigSetParamsSchema,
+  StartupCommandsAppendParamsSchema,
+  StartupCommandsListParamsSchema,
+  StartupCommandsRemoveParamsSchema,
   UpdateRunParamsSchema,
 } from "./config.js";
 import {
@@ -51,9 +57,11 @@ import {
   CronJobSchema,
   CronListParamsSchema,
   CronRemoveParamsSchema,
+  CronRunLogParamsSchema,
   CronRunLogEntrySchema,
   CronRunParamsSchema,
   CronRunsParamsSchema,
+  CronRunTimelineEntrySchema,
   CronStatusParamsSchema,
   CronUpdateParamsSchema,
 } from "./cron.js";
@@ -117,6 +125,7 @@ import {
   SessionsPreviewParamsSchema,
   SessionsResetParamsSchema,
   SessionsResolveParamsSchema,
+  SessionsUsageParamsSchema,
 } from "./sessions.js";
 import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import {
@@ -129,6 +138,21 @@ import {
   WizardStatusResultSchema,
   WizardStepSchema,
 } from "./wizard.js";
+import {
+  WorktreeListParams,
+  WorktreeListResult,
+  WorktreeReadParams,
+  WorktreeReadResult,
+  WorktreeWriteParams,
+  WorktreeWriteResult,
+  WorktreeDeleteParams,
+  WorktreeDeleteResult,
+  WorktreeMoveParams,
+  WorktreeMoveResult,
+  WorktreeMkdirParams,
+  WorktreeMkdirResult,
+  WorktreeFileEntry,
+} from "./worktree.js";
 
 export const ProtocolSchemas: Record<string, TSchema> = {
   ConnectParams: ConnectParamsSchema,
@@ -168,12 +192,16 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   SessionsResetParams: SessionsResetParamsSchema,
   SessionsDeleteParams: SessionsDeleteParamsSchema,
   SessionsCompactParams: SessionsCompactParamsSchema,
+  SessionsUsageParams: SessionsUsageParamsSchema,
   ConfigGetParams: ConfigGetParamsSchema,
   ConfigSetParams: ConfigSetParamsSchema,
   ConfigApplyParams: ConfigApplyParamsSchema,
   ConfigPatchParams: ConfigPatchParamsSchema,
   ConfigSchemaParams: ConfigSchemaParamsSchema,
   ConfigSchemaResponse: ConfigSchemaResponseSchema,
+  StartupCommandsListParams: StartupCommandsListParamsSchema,
+  StartupCommandsAppendParams: StartupCommandsAppendParamsSchema,
+  StartupCommandsRemoveParams: StartupCommandsRemoveParamsSchema,
   WizardStartParams: WizardStartParamsSchema,
   WizardNextParams: WizardNextParamsSchema,
   WizardCancelParams: WizardCancelParamsSchema,
@@ -198,6 +226,8 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   AgentsFilesSetResult: AgentsFilesSetResultSchema,
   AgentsListParams: AgentsListParamsSchema,
   AgentsListResult: AgentsListResultSchema,
+  AgentsDescribeParams: AgentsDescribeParamsSchema,
+  AgentsDescribeResult: AgentsDescribeResultSchema,
   ModelChoice: ModelChoiceSchema,
   ModelsListParams: ModelsListParamsSchema,
   ModelsListResult: ModelsListResultSchema,
@@ -205,6 +235,7 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   SkillsBinsParams: SkillsBinsParamsSchema,
   SkillsBinsResult: SkillsBinsResultSchema,
   SkillsInstallParams: SkillsInstallParamsSchema,
+  SkillsUninstallParams: SkillsUninstallParamsSchema,
   SkillsUpdateParams: SkillsUpdateParamsSchema,
   CronJob: CronJobSchema,
   CronListParams: CronListParamsSchema,
@@ -214,7 +245,9 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   CronRemoveParams: CronRemoveParamsSchema,
   CronRunParams: CronRunParamsSchema,
   CronRunsParams: CronRunsParamsSchema,
+  CronRunLogParams: CronRunLogParamsSchema,
   CronRunLogEntry: CronRunLogEntrySchema,
+  CronRunTimelineEntry: CronRunTimelineEntrySchema,
   LogsTailParams: LogsTailParamsSchema,
   LogsTailResult: LogsTailResultSchema,
   ExecApprovalsGetParams: ExecApprovalsGetParamsSchema,
@@ -239,6 +272,19 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   UpdateRunParams: UpdateRunParamsSchema,
   TickEvent: TickEventSchema,
   ShutdownEvent: ShutdownEventSchema,
+  WorktreeListParams: WorktreeListParams,
+  WorktreeListResult: WorktreeListResult,
+  WorktreeReadParams: WorktreeReadParams,
+  WorktreeReadResult: WorktreeReadResult,
+  WorktreeWriteParams: WorktreeWriteParams,
+  WorktreeWriteResult: WorktreeWriteResult,
+  WorktreeDeleteParams: WorktreeDeleteParams,
+  WorktreeDeleteResult: WorktreeDeleteResult,
+  WorktreeMoveParams: WorktreeMoveParams,
+  WorktreeMoveResult: WorktreeMoveResult,
+  WorktreeMkdirParams: WorktreeMkdirParams,
+  WorktreeMkdirResult: WorktreeMkdirResult,
+  WorktreeFileEntry: WorktreeFileEntry,
 };
 
 export const PROTOCOL_VERSION = 3 as const;

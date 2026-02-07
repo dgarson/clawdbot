@@ -43,6 +43,11 @@ Put under `plugins.entries.voice-call.config`:
   twilio: {
     accountSid: "ACxxxxxxxx",
     authToken: "your_token",
+    webhookSync: {
+      enabled: true,
+      required: false,
+      allowMultipleMatches: false,
+    },
   },
 
   plivo: {
@@ -77,6 +82,8 @@ Notes:
 - Twilio/Telnyx/Plivo require a **publicly reachable** webhook URL.
 - `mock` is a local dev provider (no network calls).
 - `tunnel.allowNgrokFreeTierLoopbackBypass: true` allows Twilio webhooks with invalid signatures **only** when `tunnel.provider="ngrok"` and `serve.bind` is loopback (ngrok local agent). Use for local dev only.
+- Twilio inbound webhook auto-sync updates the Twilio Incoming Phone Number `VoiceUrl` on gateway start when an HTTPS public URL is available. It uses `fromNumber` to look up the IncomingPhoneNumbers SID.
+- `tunnel.provider="tailscale-serve"` / `tailscale.mode="serve"` is private to your tailnet and not reachable by Twilio; webhook auto-sync is skipped in that mode.
 
 ## TTS for calls
 

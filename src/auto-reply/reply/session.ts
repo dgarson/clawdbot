@@ -26,6 +26,7 @@ import {
   type SessionScope,
   updateSessionStore,
 } from "../../config/sessions.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { normalizeSessionDeliveryFields } from "../../utils/delivery-context.js";
 import { resolveCommandAuthorization } from "../command-auth.js";
@@ -219,7 +220,14 @@ export async function initSessionState(params: {
     resetOverride: channelReset,
   });
   const freshEntry = entry
-    ? evaluateSessionFreshness({ updatedAt: entry.updatedAt, now, policy: resetPolicy }).fresh
+    ? evaluateSessionFreshness({
+        updatedAt: entry.updatedAt,
+        now,
+        policy: resetPolicy,
+        totalTokens: entry.totalTokens,
+        contextTokens: entry.contextTokens,
+        compactionCount: entry.compactionCount,
+      }).fresh
     : false;
 
   if (!isNewSession && freshEntry) {
@@ -313,6 +321,10 @@ export async function initSessionState(params: {
     parentSessionKey !== sessionKey &&
     sessionStore[parentSessionKey]
   ) {
+    console.warn(
+      `[session-init] forking from parent session: parentKey=${parentSessionKey} → sessionKey=${sessionKey} ` +
+        `parentTokens=${sessionStore[parentSessionKey].totalTokens ?? "?"}`,
+    );
     const forked = forkSessionFromParent({
       parentEntry: sessionStore[parentSessionKey],
     });
@@ -320,6 +332,7 @@ export async function initSessionState(params: {
       sessionId = forked.sessionId;
       sessionEntry.sessionId = forked.sessionId;
       sessionEntry.sessionFile = forked.sessionFile;
+      console.warn(`[session-init] forked session created: file=${forked.sessionFile}`);
     }
   }
   if (!sessionEntry.sessionFile) {
@@ -333,6 +346,18 @@ export async function initSessionState(params: {
     sessionEntry.compactionCount = 0;
     sessionEntry.memoryFlushCompactionCount = undefined;
     sessionEntry.memoryFlushAt = undefined;
+    // Clear runtime session IDs so the merge at sessionStore[key] = { ...old, ...new }
+    // doesn't preserve stale IDs from the previous session. Without this, the SDK/CLI
+    // session is never rotated and context compactions accumulate indefinitely.
+    sessionEntry.claudeSdkSessionId = undefined;
+    sessionEntry.claudeCliSessionId = undefined;
+    sessionEntry.cliSessionIds = undefined;
+    // Clear stale token metrics from previous session so /status doesn't
+    // display the old session's context usage after /new or /reset.
+    sessionEntry.totalTokens = undefined;
+    sessionEntry.inputTokens = undefined;
+    sessionEntry.outputTokens = undefined;
+    sessionEntry.contextTokens = undefined;
   }
   // Preserve per-session overrides while resetting compaction state on /new.
   sessionStore[sessionKey] = { ...sessionStore[sessionKey], ...sessionEntry };
@@ -340,6 +365,15 @@ export async function initSessionState(params: {
     // Preserve per-session overrides while resetting compaction state on /new.
     store[sessionKey] = { ...store[sessionKey], ...sessionEntry };
   });
+  if (isNewSession && sessionKey) {
+    const hookEvent = createInternalHookEvent("session", "start", sessionKey, {
+      sessionId,
+      sessionKey,
+      agentId,
+      channel: sessionEntry.channel,
+    });
+    await triggerInternalHook(hookEvent);
+  }
 
   const sessionCtx: TemplateContext = {
     ...ctx,

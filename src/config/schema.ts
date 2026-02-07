@@ -71,12 +71,14 @@ const GROUP_LABELS: Record<string, string> = {
   discovery: "Discovery",
   presence: "Presence",
   voicewake: "Voice Wake",
+  debugging: "Debugging",
 };
 
 const GROUP_ORDER: Record<string, number> = {
   wizard: 20,
   update: 25,
   diagnostics: 27,
+  debugging: 28,
   gateway: 30,
   nodeHost: 35,
   agents: 40,
@@ -133,6 +135,9 @@ const FIELD_LABELS: Record<string, string> = {
   "gateway.remote.tlsFingerprint": "Remote Gateway TLS Fingerprint",
   "gateway.auth.token": "Gateway Token",
   "gateway.auth.password": "Gateway Password",
+  "logging.enhanced.gatewayHealthSuppressCliConnectDisconnect":
+    "Gateway Health Suppress CLI Connect/Disconnect",
+  "logging.enhanced.gatewayHealthSuppressMethods": "Gateway Health Suppressed Methods",
   "tools.media.image.enabled": "Enable Image Understanding",
   "tools.media.image.maxBytes": "Image Understanding Max Bytes",
   "tools.media.image.maxChars": "Image Understanding Max Chars",
@@ -212,6 +217,21 @@ const FIELD_LABELS: Record<string, string> = {
   "gateway.nodes.browser.node": "Gateway Node Browser Pin",
   "gateway.nodes.allowCommands": "Gateway Node Allowlist (Extra Commands)",
   "gateway.nodes.denyCommands": "Gateway Node Denylist",
+  "gateway.startupCommands": "Gateway Startup Commands",
+  "gateway.startupCommands.*.id": "Gateway Startup Command ID",
+  "gateway.startupCommands.*.name": "Gateway Startup Command Name",
+  "gateway.startupCommands.*.command": "Gateway Startup Command",
+  "gateway.startupCommands.*.args": "Gateway Startup Command Arguments",
+  "gateway.startupCommands.*.cwd": "Gateway Startup Command Working Directory",
+  "gateway.startupCommands.*.env": "Gateway Startup Command Environment",
+  "gateway.startupCommands.*.enabled": "Gateway Startup Command Enabled",
+  "gateway.startupCommands.*.startPolicy": "Gateway Startup Command Start Policy",
+  "gateway.startupCommands.*.stopSignal": "Gateway Startup Command Stop Signal",
+  "gateway.startupCommands.*.stopTimeoutMs": "Gateway Startup Command Stop Timeout (ms)",
+  "gateway.startupCommands.*.restart": "Gateway Startup Command Restart Policy",
+  "gateway.startupCommands.*.log.mode": "Gateway Startup Command Log Mode",
+  "gateway.startupCommands.*.log.stdoutPath": "Gateway Startup Command Stdout Path",
+  "gateway.startupCommands.*.log.stderrPath": "Gateway Startup Command Stderr Path",
   "nodeHost.browserProxy.enabled": "Node Browser Proxy Enabled",
   "nodeHost.browserProxy.allowProfiles": "Node Browser Proxy Allowed Profiles",
   "skills.load.watch": "Watch Skills",
@@ -249,6 +269,9 @@ const FIELD_LABELS: Record<string, string> = {
   "agents.defaults.memorySearch.sync.sessions.deltaMessages": "Session Delta Messages",
   "agents.defaults.memorySearch.query.maxResults": "Memory Search Max Results",
   "agents.defaults.memorySearch.query.minScore": "Memory Search Min Score",
+  "agents.handoffLogging": "Agent Handoff Logging",
+  "agents.handoffLogging.enabled": "Enable Handoff Logging",
+  "agents.handoffLogging.level": "Handoff Log Level",
   "agents.defaults.memorySearch.query.hybrid.enabled": "Memory Search Hybrid",
   "agents.defaults.memorySearch.query.hybrid.vectorWeight": "Memory Search Vector Weight",
   "agents.defaults.memorySearch.query.hybrid.textWeight": "Memory Search Text Weight",
@@ -259,6 +282,9 @@ const FIELD_LABELS: Record<string, string> = {
   memory: "Memory",
   "memory.backend": "Memory Backend",
   "memory.citations": "Memory Citations Mode",
+  "memory.model": "Memory Model",
+  "memory.model.primary": "Memory Primary Model",
+  "memory.model.fallbacks": "Memory Model Fallbacks",
   "memory.qmd.command": "QMD Binary",
   "memory.qmd.includeDefaultMemory": "QMD Include Default Memory",
   "memory.qmd.paths": "QMD Extra Paths",
@@ -277,6 +303,15 @@ const FIELD_LABELS: Record<string, string> = {
   "memory.qmd.limits.maxInjectedChars": "QMD Max Injected Chars",
   "memory.qmd.limits.timeoutMs": "QMD Search Timeout (ms)",
   "memory.qmd.scope": "QMD Surface Scope",
+  "memory.progressive": "Progressive Memory",
+  "memory.progressive.enabled": "Enable Progressive Memory",
+  "memory.graphiti": "Graphiti Memory",
+  "memory.graphiti.enabled": "Enable Graphiti",
+  "memory.graphiti.serverHost": "Server Host",
+  "memory.graphiti.mcpPort": "MCP Port",
+  "memory.graphiti.servicePort": "Service Port",
+  "memory.graphiti.apiKey": "API Key",
+  "memory.graphiti.timeoutMs": "Timeout (ms)",
   "auth.profiles": "Auth Profiles",
   "auth.order": "Auth Profile Order",
   "auth.cooldowns.billingBackoffHours": "Billing Backoff (hours)",
@@ -301,6 +336,7 @@ const FIELD_LABELS: Record<string, string> = {
   "commands.debug": "Allow /debug",
   "commands.restart": "Allow Restart",
   "commands.useAccessGroups": "Use Access Groups",
+  "commands.ownerAllowFrom": "Command Owners",
   "ui.seamColor": "Accent Color",
   "ui.assistant.name": "Assistant Name",
   "ui.assistant.avatar": "Assistant Avatar",
@@ -389,6 +425,8 @@ const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.installPath": "Plugin Install Path",
   "plugins.installs.*.version": "Plugin Install Version",
   "plugins.installs.*.installedAt": "Plugin Install Time",
+  "debugging.channels": "Debug Channels",
+  "debugging.features": "Debug Features",
 };
 
 const FIELD_HELP: Record<string, string> = {
@@ -434,6 +472,25 @@ const FIELD_HELP: Record<string, string> = {
     "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings).",
   "gateway.nodes.denyCommands":
     "Commands to block even if present in node claims or default allowlist.",
+  "gateway.startupCommands":
+    "Optional list of startup processes to run alongside the gateway (best-effort; not a sandbox).",
+  "gateway.startupCommands.*.id": "Stable identifier used for logging and restart tracking.",
+  "gateway.startupCommands.*.name": "Optional display name for UI/logging.",
+  "gateway.startupCommands.*.command": "Executable or shell command to run.",
+  "gateway.startupCommands.*.args": "Arguments passed to the command.",
+  "gateway.startupCommands.*.cwd": "Working directory for the command.",
+  "gateway.startupCommands.*.env": "Extra environment variables applied to the command.",
+  "gateway.startupCommands.*.enabled": "Enable/disable this command entry (default: true).",
+  "gateway.startupCommands.*.startPolicy":
+    'When to start the process ("always", "reuse", or "never"; default: reuse).',
+  "gateway.startupCommands.*.stopSignal": "Signal used for graceful shutdown (default: SIGTERM).",
+  "gateway.startupCommands.*.stopTimeoutMs":
+    "Timeout in ms before force killing the process (default: 10000).",
+  "gateway.startupCommands.*.restart": 'Restart policy ("off" or "on-failure"; default: off).',
+  "gateway.startupCommands.*.log.mode":
+    'Log handling mode ("inherit", "file", or "discard"; default: inherit).',
+  "gateway.startupCommands.*.log.stdoutPath": 'File path for stdout when log mode is "file".',
+  "gateway.startupCommands.*.log.stderrPath": 'File path for stderr when log mode is "file".',
   "nodeHost.browserProxy.enabled": "Expose the local browser control server via node proxy.",
   "nodeHost.browserProxy.allowProfiles":
     "Optional allowlist of browser profile names exposed via the node proxy.",
@@ -580,6 +637,12 @@ const FIELD_HELP: Record<string, string> = {
   memory: "Memory backend configuration (global).",
   "memory.backend": 'Memory backend ("builtin" for OpenClaw embeddings, "qmd" for QMD sidecar).',
   "memory.citations": 'Default citation behavior ("auto", "on", or "off").',
+  "memory.model":
+    "Model preferences for memory subsystem runs (e.g. memory flush). Defaults to agents.defaults.model.",
+  "memory.model.primary":
+    "Primary model for memory subsystem runs (provider/model format, e.g. 'openai/gpt-4o').",
+  "memory.model.fallbacks":
+    "Ordered fallback models for memory subsystem runs (provider/model format).",
   "memory.qmd.command": "Path to the qmd binary (default: resolves from PATH).",
   "memory.qmd.includeDefaultMemory":
     "Whether to automatically index MEMORY.md + memory/**/*.md (default: true).",
@@ -608,6 +671,22 @@ const FIELD_HELP: Record<string, string> = {
   "memory.qmd.limits.timeoutMs": "Per-query timeout for QMD searches (default: 4000).",
   "memory.qmd.scope":
     "Session/channel scope for QMD recall (same syntax as session.sendPolicy; default: direct-only).",
+  "memory.graphiti": "Graphiti graph memory backend configuration.",
+  "memory.graphiti.enabled": "Enable Graphiti as a memory search backend (default: false).",
+  "memory.graphiti.serverHost": "Hostname for Graphiti services (default: localhost).",
+  "memory.graphiti.mcpPort": "Port for Graphiti MCP service (default: 8000).",
+  "memory.graphiti.servicePort": "Port for Graphiti REST API service (default: 8001).",
+  "memory.graphiti.apiKey": "API key for Graphiti authentication.",
+  "memory.graphiti.timeoutMs":
+    "Request timeout in milliseconds for Graphiti calls (default: 10000).",
+  "memory.entityExtraction":
+    "Entity extraction pipeline configuration for automatic knowledge graph enrichment.",
+  "memory.entityExtraction.enabled":
+    "Enable automatic entity extraction in the ingestion pipeline (default: true).",
+  "memory.entityExtraction.minTextLength":
+    "Minimum text length to attempt entity extraction (default: 20).",
+  "memory.entityExtraction.maxEntitiesPerEpisode":
+    "Maximum entities extracted per episode (default: 50).",
   "agents.defaults.memorySearch.cache.maxEntries":
     "Optional cap on cached embeddings (best-effort).",
   "agents.defaults.memorySearch.sync.onSearch":
@@ -648,6 +727,8 @@ const FIELD_HELP: Record<string, string> = {
   "agents.defaults.humanDelay.mode": 'Delay style for block replies ("off", "natural", "custom").',
   "agents.defaults.humanDelay.minMs": "Minimum delay in ms for custom humanDelay (default: 800).",
   "agents.defaults.humanDelay.maxMs": "Maximum delay in ms for custom humanDelay (default: 2500).",
+  "agents.handoffLogging.enabled": "Log agent transitions with detailed context (default: false).",
+  "agents.handoffLogging.level": "Log level for handoff events (debug|info|warn). Default: info.",
   "commands.native":
     "Register native commands with channels that support it (Discord/Slack/Telegram).",
   "commands.nativeSkills":
@@ -661,6 +742,8 @@ const FIELD_HELP: Record<string, string> = {
   "commands.debug": "Allow /debug chat command for runtime-only overrides (default: false).",
   "commands.restart": "Allow /restart and gateway restart tool actions (default: false).",
   "commands.useAccessGroups": "Enforce access-group allowlists/policies for commands.",
+  "commands.ownerAllowFrom":
+    "Explicit owner allowlist for owner-only tools/commands. Use channel-native IDs (optionally prefixed like \"whatsapp:+15551234567\"). '*' is ignored.",
   "session.dmScope":
     'DM session scoping: "main" keeps continuity; "per-peer", "per-channel-peer", or "per-account-channel-peer" isolates DM history (recommended for shared inboxes/multi-account).',
   "session.identityLinks":
@@ -748,6 +831,9 @@ const FIELD_HELP: Record<string, string> = {
     "Optional PluralKit token for resolving private systems or members.",
   "channels.slack.dm.policy":
     'Direct message access control ("pairing" recommended). "open" requires channels.slack.dm.allowFrom=["*"].',
+  "debugging.channels":
+    "Channels enabled for debugging (presence of key = enabled; value = channel-specific properties, e.g. slack: { sendTracing: true }).",
+  "debugging.features": "Arbitrary feature flag strings for short-term debugging and testing.",
 };
 
 const FIELD_PLACEHOLDERS: Record<string, string> = {

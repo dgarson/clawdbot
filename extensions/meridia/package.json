@@ -1,0 +1,20 @@
+{
+  "name": "@openclaw/meridia",
+  "version": "2026.2.3",
+  "description": "OpenClaw Meridia experiential continuity plugin",
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48"
+  },
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.1.26"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

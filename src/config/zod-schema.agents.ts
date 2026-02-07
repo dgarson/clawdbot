@@ -3,10 +3,34 @@ import { AgentDefaultsSchema } from "./zod-schema.agent-defaults.js";
 import { AgentEntrySchema } from "./zod-schema.agent-runtime.js";
 import { TranscribeAudioSchema } from "./zod-schema.core.js";
 
+const HandoffLoggingSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    level: z.union([z.literal("debug"), z.literal("info"), z.literal("warn")]).optional(),
+  })
+  .strict()
+  .optional();
+
 export const AgentsSchema = z
   .object({
+    main: z
+      .object({
+        runtime: z.enum(["pi", "claude"]).optional(),
+        sdk: z
+          .object({
+            hooksEnabled: z.boolean().optional(),
+            model: z.string().optional(),
+            thinkingBudget: z.enum(["none", "low", "medium", "high"]).optional(),
+            options: z.record(z.string(), z.unknown()).optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
     defaults: z.lazy(() => AgentDefaultsSchema).optional(),
     list: z.array(AgentEntrySchema).optional(),
+    handoffLogging: HandoffLoggingSchema,
   })
   .strict()
   .optional();

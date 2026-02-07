@@ -6,19 +6,26 @@ export type GatewaySessionsDefaults = {
   modelProvider: string | null;
   model: string | null;
   contextTokens: number | null;
+  thinkingDefault: string | null;
+  verboseDefault: string | null;
+  reasoningDefault: string | null;
+  elevatedDefault: string | null;
 };
 
 export type GatewaySessionRow = {
   key: string;
   kind: "direct" | "group" | "global" | "unknown";
   label?: string;
+  tags?: string[];
   displayName?: string;
   derivedTitle?: string;
   lastMessagePreview?: string;
+  description?: string;
   channel?: string;
   subject?: string;
   groupChannel?: string;
   space?: string;
+  workspaceDir?: string;
   chatType?: NormalizedChatType;
   origin?: SessionEntry["origin"];
   updatedAt: number | null;
@@ -33,6 +40,7 @@ export type GatewaySessionRow = {
   inputTokens?: number;
   outputTokens?: number;
   totalTokens?: number;
+  turnCount?: number;
   responseUsage?: "on" | "off" | "tokens" | "full";
   modelProvider?: string;
   model?: string;
@@ -46,6 +54,12 @@ export type GatewaySessionRow = {
 export type GatewayAgentRow = {
   id: string;
   name?: string;
+  model?: string;
+  runtime?: "pi" | "claude";
+  workspace?: string;
+  agentDir?: string;
+  toolRestrictions?: { allow?: string[]; deny?: string[] };
+  sandbox?: { mode: string; scope?: string };
   identity?: {
     name?: string;
     theme?: string;
@@ -84,4 +98,8 @@ export type SessionsPatchResult = {
   path: string;
   key: string;
   entry: SessionEntry;
+  resolved?: {
+    modelProvider?: string;
+    model?: string;
+  };
 };

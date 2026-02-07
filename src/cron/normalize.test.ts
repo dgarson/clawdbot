@@ -234,4 +234,31 @@ describe("normalizeCronJobCreate", () => {
     expect(delivery.mode).toBe("announce");
     expect((normalized as { isolation?: unknown }).isolation).toBeUndefined();
   });
+
+  it("defaults enabled to true when not specified", () => {
+    const normalized = normalizeCronJobCreate({
+      name: "no-enabled-field",
+      schedule: { kind: "cron", expr: "* * * * *" },
+      payload: {
+        kind: "agentTurn",
+        message: "hi",
+      },
+    }) as unknown as Record<string, unknown>;
+
+    expect(normalized.enabled).toBe(true);
+  });
+
+  it("respects explicit enabled: false", () => {
+    const normalized = normalizeCronJobCreate({
+      name: "disabled",
+      enabled: false,
+      schedule: { kind: "cron", expr: "* * * * *" },
+      payload: {
+        kind: "agentTurn",
+        message: "hi",
+      },
+    }) as unknown as Record<string, unknown>;
+
+    expect(normalized.enabled).toBe(false);
+  });
 });

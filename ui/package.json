@@ -16,8 +16,11 @@
     "vite": "7.3.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@vitest/browser-playwright": "4.0.18",
+    "autoprefixer": "^10.4.24",
     "playwright": "^1.58.1",
+    "tailwindcss": "^4.1.18",
     "vitest": "4.0.18"
   }
 }

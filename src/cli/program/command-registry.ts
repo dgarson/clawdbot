@@ -9,6 +9,8 @@ import { getFlagValue, getPositiveIntFlagValue, getVerboseFlag, hasFlag } from "
 import { registerBrowserCli } from "../browser-cli.js";
 import { registerConfigCli } from "../config-cli.js";
 import { registerMemoryCli, runMemoryStatus } from "../memory-cli.js";
+import { registerOverseerCli } from "../overseer-cli.js";
+import { registerWorkQueueCli } from "../work-queue-cli.js";
 import { registerAgentCommands } from "./register.agent.js";
 import { registerConfigureCommand } from "./register.configure.js";
 import { registerMaintenanceCommands } from "./register.maintenance.js";
@@ -91,7 +93,8 @@ const routeAgentsList: RouteSpec = {
   run: async (argv) => {
     const json = hasFlag(argv, "--json");
     const bindings = hasFlag(argv, "--bindings");
-    await agentsListCommand({ json, bindings }, defaultRuntime);
+    const verbose = hasFlag(argv, "--verbose");
+    await agentsListCommand({ json, bindings, verbose }, defaultRuntime);
     return true;
   },
 };
@@ -160,6 +163,14 @@ export const commandRegistry: CommandRegistration[] = [
   {
     id: "browser",
     register: ({ program }) => registerBrowserCli(program),
+  },
+  {
+    id: "overseer",
+    register: ({ program }) => registerOverseerCli(program),
+  },
+  {
+    id: "work-queue",
+    register: ({ program }) => registerWorkQueueCli(program),
   },
 ];
 

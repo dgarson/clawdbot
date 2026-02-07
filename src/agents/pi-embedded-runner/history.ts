@@ -96,3 +96,47 @@ export function getDmHistoryLimitFromSessionKey(
 
   return getLimit(resolveProviderConfig(config, provider));
 }
+
+/**
+ * History options that can be passed explicitly (e.g., for voice calls).
+ */
+export type HistoryOptions = {
+  /** Maximum tokens for conversation history */
+  maxHistoryTokens?: number;
+  /** Maximum conversation turns to retain */
+  historyLimit?: number;
+};
+
+/**
+ * Resolved history limits combining explicit options and config lookups.
+ */
+export type ResolvedHistoryLimits = {
+  /** Turn-based limit (number of user turns to keep) */
+  turnLimit?: number;
+  /** Token-based limit (max tokens for history) */
+  tokenLimit?: number;
+};
+
+/**
+ * Get history limits for a given context, combining explicit options with config-based defaults.
+ *
+ * Voice calls typically pass explicit limits via options, while other channels
+ * rely on config lookups by session key.
+ */
+export function getHistoryLimitForContext(
+  sessionKey: string | undefined,
+  config: OpenClawConfig | undefined,
+  options?: HistoryOptions,
+): ResolvedHistoryLimits {
+  // Voice calls (and other callers) can pass explicit limits via options
+  if (options?.maxHistoryTokens || options?.historyLimit) {
+    return {
+      turnLimit: options.historyLimit,
+      tokenLimit: options.maxHistoryTokens,
+    };
+  }
+
+  // Fall back to existing DM/channel config lookup
+  const dmLimit = getDmHistoryLimitFromSessionKey(sessionKey, config);
+  return { turnLimit: dmLimit };
+}

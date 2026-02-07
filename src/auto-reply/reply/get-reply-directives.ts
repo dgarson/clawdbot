@@ -8,6 +8,11 @@ import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "..
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import type { TypingController } from "./typing.js";
 import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
+import {
+  resolveForkThinkingLevelSync,
+  resolveForkVerboseLevel,
+} from "../../openclaw/agent-config-overrides.js";
+import { isDeliverableMessageChannel, resolveMessageChannel } from "../../utils/message-channel.js";
 import { listChatCommands, shouldHandleTextCommands } from "../commands-registry.js";
 import { listSkillCommandsForWorkspace } from "../skill-commands.js";
 import { resolveBlockStreamingChunking } from "./block-streaming.js";
@@ -343,19 +348,29 @@ export async function resolveReplyDirectives(params: {
     groupResolution,
   });
   const defaultActivation = defaultGroupActivation(requireMention);
-  const resolvedThinkLevel =
-    directives.thinkLevel ??
-    (sessionEntry?.thinkingLevel as ThinkLevel | undefined) ??
-    (agentCfg?.thinkingDefault as ThinkLevel | undefined);
+  const resolvedThinkLevel = resolveForkThinkingLevelSync({
+    directives,
+    sessionEntry,
+    cfg,
+    agentId,
+    agentCfg,
+  });
 
-  const resolvedVerboseLevel =
-    directives.verboseLevel ??
-    (sessionEntry?.verboseLevel as VerboseLevel | undefined) ??
-    (agentCfg?.verboseDefault as VerboseLevel | undefined);
-  const resolvedReasoningLevel: ReasoningLevel =
+  const resolvedVerboseLevel = resolveForkVerboseLevel({
+    directives,
+    sessionEntry,
+    cfg,
+    agentId,
+    agentCfg,
+  });
+  let resolvedReasoningLevel: ReasoningLevel =
     directives.reasoningLevel ??
     (sessionEntry?.reasoningLevel as ReasoningLevel | undefined) ??
     "off";
+  const resolvedChannel = resolveMessageChannel(sessionCtx.Surface, sessionCtx.Provider);
+  if (resolvedChannel && isDeliverableMessageChannel(resolvedChannel)) {
+    resolvedReasoningLevel = "off";
+  }
   const resolvedElevatedLevel = elevatedAllowed
     ? (directives.elevatedLevel ??
       (sessionEntry?.elevatedLevel as ElevatedLevel | undefined) ??
@@ -380,6 +395,7 @@ export async function resolveReplyDirectives(params: {
 
   const modelState = await createModelSelectionState({
     cfg,
+    agentId,
     agentCfg,
     sessionEntry,
     sessionStore,

@@ -1,11 +1,25 @@
 /**
  * Voice call response generator - uses the embedded Pi agent for tool support.
  * Routes voice responses through the same agent infrastructure as messaging.
+ *
+ * Session model:
+ * - Each call gets a unique session (keyed by `voice:{callId}`) so the Pi
+ *   session file tracks only the current call's conversation history.
+ * - The conversation transcript is NOT duplicated into the system prompt;
+ *   the Pi session file is the sole source of conversation history, preventing
+ *   the O(n²) context growth that occurred when every turn replayed the full
+ *   transcript via `extraSystemPrompt`.
+ * - Cross-call continuity (remembering prior calls from the same number) can
+ *   be added later via a summary injection or memory search.
  */
 
 import crypto from "node:crypto";
 import type { VoiceCallConfig } from "./config.js";
-import { loadCoreAgentDeps, type CoreConfig } from "./core-bridge.js";
+import { loadCoreAgentDeps, loadSessionMessages, type CoreConfig } from "./core-bridge.js";
+import {
+  recallConversationToolDefinition,
+  createRecallConversationExecutor,
+} from "./tools/recall-conversation.js";
 
 export type VoiceResponseParams = {
   /** Voice call config */
@@ -16,7 +30,7 @@ export type VoiceResponseParams = {
   callId: string;
   /** Caller's phone number */
   from: string;
-  /** Conversation transcript */
+  /** Conversation transcript (kept for reference but NOT injected into system prompt) */
   transcript: Array<{ speaker: "user" | "bot"; text: string }>;
   /** Latest user message */
   userMessage: string;
@@ -35,11 +49,16 @@ type SessionEntry = {
 /**
  * Generate a voice response using the embedded Pi agent with full tool support.
  * Uses the same agent infrastructure as messaging for consistent behavior.
+ *
+ * The Pi agent's session file handles conversation history natively — each
+ * `runEmbeddedPiAgent()` call appends the user message and assistant response
+ * to the session file, so the model sees prior turns automatically. We only
+ * need to provide a stable system prompt (no transcript replay).
  */
 export async function generateVoiceResponse(
   params: VoiceResponseParams,
 ): Promise<VoiceResponseResult> {
-  const { voiceConfig, callId, from, transcript, userMessage, coreConfig } = params;
+  const { voiceConfig, callId, from, userMessage, coreConfig } = params;
 
   if (!coreConfig) {
     return { text: null, error: "Core config unavailable for voice response" };
@@ -56,9 +75,9 @@ export async function generateVoiceResponse(
   }
   const cfg = coreConfig;
 
-  // Build voice-specific session key based on phone number
-  const normalizedPhone = from.replace(/\D/g, "");
-  const sessionKey = `voice:${normalizedPhone}`;
+  // Session key is per-call so each call gets a fresh context window.
+  // Cross-call continuity can be added later via memory/summary injection.
+  const sessionKey = `voice:call:${callId}`;
   const agentId = "main";
 
   // Resolve paths
@@ -101,18 +120,62 @@ export async function generateVoiceResponse(
   const identity = deps.resolveAgentIdentity(cfg, agentId);
   const agentName = identity?.name?.trim() || "assistant";
 
-  // Build system prompt with conversation history
-  const basePrompt =
-    voiceConfig.responseSystemPrompt ??
-    `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. You have access to tools - use them when helpful.`;
+  // Check feature flag for conversation recall (under tts config)
+  const enableRecall = voiceConfig.tts?.enableConversationRecall ?? false;
 
-  let extraSystemPrompt = basePrompt;
-  if (transcript.length > 0) {
-    const history = transcript
-      .map((entry) => `${entry.speaker === "bot" ? "You" : "Caller"}: ${entry.text}`)
-      .join("\n");
-    extraSystemPrompt = `${basePrompt}\n\nConversation so far:\n${history}`;
+  // Build extra tools array
+  const extraTools: Array<{
+    name: string;
+    description?: string;
+    parameters: Record<string, unknown>;
+    execute: (params: unknown) => Promise<string>;
+  }> = [];
+
+  if (enableRecall) {
+    // Load full session history for recall tool
+    const fullHistory = await loadSessionMessages(sessionFile);
+    console.log(
+      `[voice-call] recall_conversation enabled for call ${callId} (${fullHistory.length} messages in history)`,
+    );
+
+    extraTools.push({
+      name: recallConversationToolDefinition.name,
+      description: recallConversationToolDefinition.description,
+      parameters: recallConversationToolDefinition.parameters as Record<string, unknown>,
+      execute: createRecallConversationExecutor({ fullHistory }),
+    });
   }
+
+  // Build context awareness hints based on feature flags
+  // When recall is enabled, mention the tool; otherwise keep steps numbered correctly
+  const contextSteps = enableRecall
+    ? `1. Politely ask them to briefly remind you what they mentioned
+2. Use the "recall_conversation" tool to search earlier parts of this call
+3. Use memory tools to check if important facts were stored`
+    : `1. Politely ask them to briefly remind you what they mentioned
+2. Use memory tools to check if important facts were stored`;
+
+  // Build a stable system prompt — conversation history is tracked by the
+  // Pi session file, NOT duplicated here. This keeps the system prompt at
+  // constant size regardless of how many turns the call has had.
+  const extraSystemPrompt =
+    voiceConfig.responseSystemPrompt ??
+    `You are ${agentName}, a helpful voice assistant on a phone call.
+
+## Response Style
+- Keep responses brief and conversational (1-3 sentences max)
+- Be natural and friendly
+- Always greet callers warmly by name if you recognize them
+
+## Context Awareness
+Due to call duration limits, you may not see the full conversation history. If the caller references something you don't have context for:
+${contextSteps}
+
+If you need more context, ask naturally: "Could you remind me what we discussed about that?"
+
+## Caller Info
+- Phone number: ${from}
+- You have access to tools - use them when helpful`;
 
   // Resolve timeout
   const timeoutMs = voiceConfig.responseTimeoutMs ?? deps.resolveAgentTimeoutMs({ cfg });
@@ -136,6 +199,7 @@ export async function generateVoiceResponse(
       lane: "voice",
       extraSystemPrompt,
       agentDir,
+      extraTools: extraTools.length > 0 ? extraTools : undefined,
     });
 
     // Extract text from payloads
@@ -146,7 +210,7 @@ export async function generateVoiceResponse(
 
     const text = texts.join(" ") || null;
 
-    if (!text && result.meta.aborted) {
+    if (!text && result.meta?.aborted) {
       return { text: null, error: "Response generation was aborted" };
     }
 

@@ -24,6 +24,7 @@ export type EmbeddedPiSubscribeState = {
   assistantTexts: string[];
   toolMetas: Array<{ toolName?: string; meta?: string }>;
   toolMetaById: Map<string, string | undefined>;
+  toolArgsById: Map<string, unknown>;
   toolSummaryById: Set<string>;
   lastToolError?: ToolErrorSummary;
 
@@ -32,6 +33,12 @@ export type EmbeddedPiSubscribeState = {
   includeReasoning: boolean;
   shouldEmitPartialReplies: boolean;
   streamReasoning: boolean;
+  /**
+   * When true, reasoning is prefixed to block replies instead of using onReasoningStream.
+   * This should be false/undefined for channels (Discord, Slack, etc.) to prevent
+   * reasoning from leaking into channel messages.
+   */
+  emitReasoningInBlockReply: boolean;
 
   deltaBuffer: string;
   blockBuffer: string;
@@ -39,6 +46,7 @@ export type EmbeddedPiSubscribeState = {
   partialBlockState: { thinking: boolean; final: boolean; inlineCode: InlineCodeState };
   lastStreamedAssistant?: string;
   lastStreamedAssistantCleaned?: string;
+  emittedAssistantUpdate: boolean;
   lastStreamedReasoning?: string;
   lastBlockReplyText?: string;
   assistantMessageIndex: number;

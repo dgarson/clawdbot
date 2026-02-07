@@ -78,6 +78,8 @@ export type SessionEntry = {
   memoryFlushCompactionCount?: number;
   cliSessionIds?: Record<string, string>;
   claudeCliSessionId?: string;
+  /** Claude Agent SDK session ID for native session resume. */
+  claudeSdkSessionId?: string;
   label?: string;
   displayName?: string;
   channel?: string;
@@ -93,6 +95,20 @@ export type SessionEntry = {
   lastThreadId?: string | number;
   skillsSnapshot?: SessionSkillSnapshot;
   systemPromptReport?: SessionSystemPromptReport;
+  turnCount?: number;
+  activeGoal?: any; // GoalState type
+  /**
+   * Optional short description of what this conversation/session is about.
+   */
+  description?: string;
+  /** Timestamp (ms) when `description` was last generated/updated. */
+  descriptionUpdatedAt?: number;
+  /** Session turnCount when `description` was last generated/updated. */
+  descriptionTurnCount?: number;
+  /**
+   * Arbitrary user-defined tags/labels for slicing/filtering sessions.
+   */
+  tags?: string[];
 };
 
 export function mergeSessionEntry(

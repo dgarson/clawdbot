@@ -1,4 +1,5 @@
 import { html, type TemplateResult } from "lit";
+import { toast } from "../components/toast.ts";
 import { icons } from "../icons.ts";
 
 const COPIED_FOR_MS = 1500;
@@ -19,8 +20,10 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
 
   try {
     await navigator.clipboard.writeText(text);
+    toast.success("Copied as markdown");
     return true;
   } catch {
+    toast.error("Copy failed");
     return false;
   }
 }
