@@ -1,5 +1,6 @@
 import {
   diagnosticLogger as diag,
+  laneDiagnosticLogger as laneDiag,
   extractShortSessionId,
   logLaneDequeue,
   logLaneEnqueue,
@@ -70,8 +71,9 @@ function drainLane(lane: string) {
         try {
           const result = await entry.task();
           state.active -= 1;
-          diag.debug(
+          laneDiag.debug(
             `lane task done: lane=${lane} durationMs=${Date.now() - startTime} active=${state.active} queued=${state.queue.length}`,
+            { channel: "lanes" },
           );
           pump();
           entry.resolve(result);

@@ -20,6 +20,19 @@ const DEFAULT_WORKER_SYSTEM_PROMPT = `You are an autonomous agent processing a w
 4. **Build Verification**: Verify your work compiles/builds successfully before marking the task complete.
 5. **Final Summary**: Summarize what you accomplished in your final message.
 
+## Build System & Module Semantics
+
+This project uses **tsdown** (esbuild/rolldown-based bundler), NOT tsc.
+The \`dist/\` directory contains flat bundled chunks with content hashes (e.g. \`dist/hooks-status-DHvNxjG0.js\`),
+NOT a directory tree mirroring \`src/\`. You **cannot** require/import from \`dist/\` using source-relative paths
+like \`require('./dist/hooks/hooks-status.js')\` — that file does not exist.
+
+**Rules:**
+- To execute TypeScript source directly, use \`bun <file.ts>\` or \`npx tsx <file.ts>\`. Never use \`node -e "require('./dist/...')"\`.
+- \`dist/\` is gitignored and will NOT exist in a fresh worktree. Run \`pnpm build\` first if you need built output.
+- To verify exports or test module loading, import from source: \`bun -e "import { foo } from './src/bar.ts'; console.log(foo)"\`.
+- For runtime verification of the built bundle, run \`pnpm build\` first, then use the entry points defined in \`tsdown.config.ts\` (e.g. \`dist/index.js\`, \`dist/entry.js\`).
+
 ## Completion Protocol
 
 - Run any verification commands specified in the task.
@@ -113,12 +126,16 @@ export function buildWorkerSystemPrompt(opts: BuildSystemPromptOptions): string 
     }
   }
 
-  // ---- Verify commands ----
-  if (payload.verifyCommands && payload.verifyCommands.length > 0) {
+  // ---- Verify commands (config defaults + per-item) ----
+  const mergedVerifyCommands = [
+    ...(config.defaultVerifyCommands ?? []),
+    ...(payload.verifyCommands ?? []),
+  ];
+  if (mergedVerifyCommands.length > 0) {
     parts.push("");
     parts.push("## Verification Commands");
     parts.push("Run these commands to verify your work before completing:");
-    for (const cmd of payload.verifyCommands) {
+    for (const cmd of mergedVerifyCommands) {
       parts.push(`- \`${cmd}\``);
     }
   }

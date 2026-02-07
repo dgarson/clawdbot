@@ -38,6 +38,8 @@ export type DebuggingProps = {
   debug?: boolean;
   /** Enable trace logs only */
   trace?: boolean;
+  /** Suppress all debug/trace logging for this channel/feature (takes priority over verbose/debug/trace) */
+  suppressLogging?: boolean;
   /** Custom channel/feature-specific properties for backward compatibility */
   [key: string]: unknown;
 };

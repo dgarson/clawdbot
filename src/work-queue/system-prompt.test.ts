@@ -89,6 +89,17 @@ describe("buildWorkerSystemPrompt", () => {
     expect(prompt).toContain("**Title:** Implement retry logic");
   });
 
+  it("includes tsdown/tsx build semantics guidance in default prompt", () => {
+    const prompt = buildWorkerSystemPrompt({
+      item: makeItem(),
+      config: makeConfig(),
+    });
+    expect(prompt).toContain("## Build System & Module Semantics");
+    expect(prompt).toContain("tsdown");
+    expect(prompt).toContain("bun <file.ts>");
+    expect(prompt).toContain("dist/");
+  });
+
   it("uses config.defaultSystemPrompt when provided", () => {
     const prompt = buildWorkerSystemPrompt({
       item: makeItem(),
@@ -166,6 +177,42 @@ describe("buildWorkerSystemPrompt", () => {
     expect(prompt).toContain("## Verification Commands");
     expect(prompt).toContain("- `npm test`");
     expect(prompt).toContain("- `npm run lint`");
+  });
+
+  it("merges config.defaultVerifyCommands with payload.verifyCommands", () => {
+    const prompt = buildWorkerSystemPrompt({
+      item: makeItem({
+        payload: {
+          verifyCommands: ["pnpm test"],
+        } as Record<string, unknown>,
+      }),
+      config: makeConfig({ defaultVerifyCommands: ["pnpm build"] }),
+    });
+    expect(prompt).toContain("## Verification Commands");
+    // Config defaults come first, then per-item
+    const buildIdx = prompt.indexOf("- `pnpm build`");
+    const testIdx = prompt.indexOf("- `pnpm test`");
+    expect(buildIdx).toBeGreaterThan(-1);
+    expect(testIdx).toBeGreaterThan(-1);
+    expect(buildIdx).toBeLessThan(testIdx);
+  });
+
+  it("uses config.defaultVerifyCommands when payload has none", () => {
+    const prompt = buildWorkerSystemPrompt({
+      item: makeItem(),
+      config: makeConfig({ defaultVerifyCommands: ["pnpm build", "pnpm lint"] }),
+    });
+    expect(prompt).toContain("## Verification Commands");
+    expect(prompt).toContain("- `pnpm build`");
+    expect(prompt).toContain("- `pnpm lint`");
+  });
+
+  it("omits verification section when neither config nor payload has commands", () => {
+    const prompt = buildWorkerSystemPrompt({
+      item: makeItem(),
+      config: makeConfig(),
+    });
+    expect(prompt).not.toContain("## Verification Commands");
   });
 
   it("includes relevant files", () => {

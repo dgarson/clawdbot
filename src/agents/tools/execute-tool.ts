@@ -13,11 +13,14 @@
 
 import type { AgentToolResult, AgentToolUpdateCallback } from "@mariozechner/pi-agent-core";
 import type { AnyAgentTool } from "./common.js";
-import { logDebug, logError } from "../../logger.js";
+import { logDebug } from "../../logger.js";
 import { logToolError, measureOperation } from "../../logging/enhanced-events.js";
 import { redactSensitiveText } from "../../logging/redact.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { truncateForLog } from "../../logging/truncate.js";
 import { jsonResult } from "./common.js";
+
+const log = createSubsystemLogger("tools");
 
 // ---------------------------------------------------------------------------
 // Types
@@ -289,9 +292,7 @@ export async function executeToolWithErrorHandling(
 
     // Truncate message at first line for console logging
     const messageForLog = extractFirstLine(described.message, 240);
-    logError(
-      `[tools] ${ctx.normalizedToolName} failed: ${messageForLog} (${contextParts.join(" ")})`,
-    );
+    log.error(`${ctx.normalizedToolName} failed: ${messageForLog} (${contextParts.join(" ")})`);
 
     // Log debug details if available (e.g., wrapped error content from web_fetch)
     const debugDetail =

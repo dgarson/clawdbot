@@ -4,6 +4,7 @@ import {
   shouldLogDebug,
   shouldLogTrace,
   getDebugContext,
+  summarizeLoggingConfig,
   type DebugContext,
 } from "./debug-control.js";
 
@@ -179,6 +180,24 @@ describe("debug-control", () => {
       expect(shouldLogDebug("slack", {}, mockConfig)).toBe(true);
     });
 
+    it("should deny debug when channel has suppressLogging=true", () => {
+      mockConfig.debugging!.channels = {
+        lanes: { suppressLogging: true },
+      };
+
+      const ctx: DebugContext = { channel: "lanes" };
+      expect(shouldLogDebug("diagnostic/lanes", ctx, mockConfig)).toBe(false);
+    });
+
+    it("should deny debug when suppressLogging=true even if verbose=true", () => {
+      mockConfig.debugging!.channels = {
+        lanes: { suppressLogging: true, verbose: true },
+      };
+
+      const ctx: DebugContext = { channel: "lanes" };
+      expect(shouldLogDebug("diagnostic/lanes", ctx, mockConfig)).toBe(false);
+    });
+
     it("should deny debug by default when no rules match", () => {
       expect(shouldLogDebug("unknown-subsystem", {}, mockConfig)).toBe(false);
     });
@@ -290,6 +309,45 @@ describe("debug-control", () => {
       // Context channel should be checked before subsystem hierarchy
       const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogDebug("slack/send", ctx, mockConfig)).toBe(false);
+    });
+  });
+
+  describe("summarizeLoggingConfig", () => {
+    it("should return undefined when all defaults", () => {
+      expect(summarizeLoggingConfig(mockConfig)).toBeUndefined();
+    });
+
+    it("should summarize debugging channels", () => {
+      mockConfig.debugging!.channels = {
+        slack: { verbose: true },
+        lanes: { suppressLogging: true },
+      };
+      const result = summarizeLoggingConfig(mockConfig);
+      expect(result).toContain("channels=[slack(verbose), lanes(suppressed)]");
+    });
+
+    it("should summarize debugging features", () => {
+      mockConfig.debugging!.features = {
+        "compaction-hooks": { debug: true, trace: true },
+      };
+      const result = summarizeLoggingConfig(mockConfig);
+      expect(result).toContain("features=[compaction-hooks(debug,trace)]");
+    });
+
+    it("should summarize suppressed subsystems", () => {
+      mockConfig.logging!.suppressSubsystemDebugLogs = ["diagnostic/lanes", "slack/*"];
+      const result = summarizeLoggingConfig(mockConfig);
+      expect(result).toContain("suppressed=[diagnostic/lanes, slack/*]");
+    });
+
+    it("should combine all sections", () => {
+      mockConfig.debugging!.channels = { lanes: { suppressLogging: true } };
+      mockConfig.debugging!.features = { memory: { verbose: true } };
+      mockConfig.logging!.suppressSubsystemDebugLogs = ["diagnostic/lanes"];
+      const result = summarizeLoggingConfig(mockConfig);
+      expect(result).toContain("channels=");
+      expect(result).toContain("features=");
+      expect(result).toContain("suppressed=");
     });
   });
 });

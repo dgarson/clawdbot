@@ -167,6 +167,11 @@ export type WorkerConfig = {
    * or append via payload.systemPromptAppend.
    */
   defaultSystemPrompt?: string;
+  /**
+   * Default verification commands applied to all work items.
+   * Per-item `payload.verifyCommands` are appended after these defaults.
+   */
+  defaultVerifyCommands?: string[];
   /** Structured workflow pipeline config (plan → review → discover → decompose → execute). */
   workflow?: WorkerWorkflowConfig;
 };

@@ -179,6 +179,11 @@ function shouldLogAtLevel(
  * - undefined: not specified (continue checking parent rules)
  */
 function checkDebuggingProps(props: DebuggingProps, level: "debug" | "trace"): boolean | undefined {
+  // Highest priority: suppressLogging (explicit suppression)
+  if (props.suppressLogging === true) {
+    return false;
+  }
+
   // Standard property: verbose (enables both debug and trace)
   if (props.verbose === true) {
     return true;
@@ -229,6 +234,55 @@ function checkDebuggingProps(props: DebuggingProps, level: "debug" | "trace"): b
 
   // Not specified - continue checking parent rules
   return undefined;
+}
+
+/**
+ * Build a concise one-line summary of active debugging/logging configuration.
+ * Returns undefined if everything is at defaults (nothing to report).
+ */
+export function summarizeLoggingConfig(config: OpenClawConfig): string | undefined {
+  const parts: string[] = [];
+
+  // Debugging channels
+  const channels = config.debugging?.channels;
+  if (channels && Object.keys(channels).length > 0) {
+    const entries = Object.entries(channels).map(([id, props]) => {
+      const flags: string[] = [];
+      if (props.suppressLogging === true) flags.push("suppressed");
+      else if (props.verbose === true) flags.push("verbose");
+      else {
+        if (props.debug === true) flags.push("debug");
+        if (props.trace === true) flags.push("trace");
+      }
+      return flags.length > 0 ? `${id}(${flags.join(",")})` : id;
+    });
+    parts.push(`channels=[${entries.join(", ")}]`);
+  }
+
+  // Debugging features
+  const features = config.debugging?.features;
+  if (features && Object.keys(features).length > 0) {
+    const entries = Object.entries(features).map(([id, props]) => {
+      const flags: string[] = [];
+      if (props.suppressLogging === true) flags.push("suppressed");
+      else if (props.verbose === true) flags.push("verbose");
+      else {
+        if (props.debug === true) flags.push("debug");
+        if (props.trace === true) flags.push("trace");
+      }
+      return flags.length > 0 ? `${id}(${flags.join(",")})` : id;
+    });
+    parts.push(`features=[${entries.join(", ")}]`);
+  }
+
+  // Suppressed subsystems
+  const suppressed = config.logging?.suppressSubsystemDebugLogs;
+  if (suppressed && suppressed.length > 0) {
+    parts.push(`suppressed=[${suppressed.join(", ")}]`);
+  }
+
+  if (parts.length === 0) return undefined;
+  return parts.join(" ");
 }
 
 /**

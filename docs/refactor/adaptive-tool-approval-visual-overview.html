@@ -1221,7 +1221,7 @@
       }
 
       .hidden {
-        display: none;
+        display: none !important;
       }
 
       .approval-modal {
@@ -1396,6 +1396,248 @@
         }
       }
 
+      /* ── Threat Surface Infographic ── */
+      .threat-section h3 {
+        margin-bottom: 0.5rem;
+      }
+
+      .threat-section-intro {
+        color: var(--muted);
+        font-size: 0.82rem;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
+
+      .threat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+      }
+
+      .threat-card {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 14px;
+        padding: 0.85rem 0.9rem 0.85rem 1.1rem;
+        background:
+          radial-gradient(circle at 20% 30%, rgba(88, 168, 255, 0.05) 0%, transparent 60%),
+          rgba(15, 24, 38, 0.9);
+        cursor: pointer;
+        transition:
+          border-color 160ms ease,
+          transform 160ms ease,
+          box-shadow 160ms ease;
+        overflow: hidden;
+      }
+
+      .threat-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 14px 0 0 14px;
+      }
+
+      .threat-card[data-severity="critical"]::before {
+        background: linear-gradient(180deg, #ff6f7d, #ff4d5e);
+        box-shadow: 0 0 8px rgba(255, 111, 125, 0.4);
+      }
+
+      .threat-card[data-severity="high"]::before {
+        background: linear-gradient(180deg, #ffbb55, #ff9d2a);
+        box-shadow: 0 0 8px rgba(255, 187, 85, 0.4);
+      }
+
+      .threat-card[data-severity="medium"]::before {
+        background: linear-gradient(180deg, #5db4ff, #3d9aff);
+        box-shadow: 0 0 8px rgba(93, 180, 255, 0.4);
+      }
+
+      .threat-card:hover {
+        border-color: rgba(255, 255, 255, 0.28);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      }
+
+      .threat-card.active {
+        border-color: rgba(77, 212, 172, 0.9);
+        background:
+          conic-gradient(
+            from 45deg at 50% 50%,
+            rgba(77, 212, 172, 0.12) 0deg,
+            rgba(88, 168, 255, 0.12) 120deg,
+            rgba(77, 212, 172, 0.12) 240deg,
+            rgba(77, 212, 172, 0.12) 360deg
+          ),
+          rgba(15, 24, 38, 0.95);
+        box-shadow: 0 4px 24px rgba(77, 212, 172, 0.3);
+        animation: shimmer 3s ease-in-out infinite;
+      }
+
+      .threat-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .threat-card-icon {
+        width: 1.6rem;
+        height: 1.6rem;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .threat-card-icon svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .threat-card-title {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: #e8f2ff;
+        line-height: 1.25;
+      }
+
+      .severity-label {
+        display: inline-block;
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.18rem 0.45rem;
+        border-radius: 999px;
+        margin-bottom: 0.4rem;
+      }
+
+      .severity-label.critical {
+        background: rgba(255, 111, 125, 0.22);
+        color: #ffb5bf;
+        border: 1px solid rgba(255, 111, 125, 0.35);
+      }
+
+      .severity-label.high {
+        background: rgba(255, 187, 85, 0.22);
+        color: #ffe0a8;
+        border: 1px solid rgba(255, 187, 85, 0.35);
+      }
+
+      .severity-label.medium {
+        background: rgba(93, 180, 255, 0.22);
+        color: #b5daff;
+        border: 1px solid rgba(93, 180, 255, 0.35);
+      }
+
+      .threat-card-desc {
+        color: #b8c9e8;
+        font-size: 0.74rem;
+        line-height: 1.45;
+        margin-bottom: 0.55rem;
+      }
+
+      .threat-node-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .threat-node-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.28rem;
+        padding: 0.2rem 0.48rem;
+        border-radius: 999px;
+        font-size: 0.66rem;
+        font-weight: 500;
+        color: #c8daf0;
+        background: rgba(12, 20, 32, 0.8);
+        border: 1px solid rgba(88, 168, 255, 0.25);
+        cursor: pointer;
+        transition: all 160ms ease;
+        white-space: nowrap;
+      }
+
+      .threat-node-pill:hover {
+        border-color: rgba(88, 168, 255, 0.6);
+        color: #e5f0ff;
+        transform: translateY(-1px);
+        box-shadow: 0 0 10px rgba(88, 168, 255, 0.2);
+      }
+
+      .threat-node-dot {
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── 3D View Toggle & Canvas ── */
+      .view-toggle {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--bg-alt);
+      }
+
+      .view-toggle-btn {
+        border: none;
+        background: transparent;
+        color: #dce8f9;
+        font: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.42rem 0.7rem;
+        cursor: pointer;
+        transition: all 160ms ease;
+      }
+
+      .view-toggle-btn:hover {
+        background: var(--panel-soft);
+      }
+
+      .view-toggle-btn.active {
+        background: rgba(77, 212, 172, 0.2);
+        color: #e9fff7;
+      }
+
+      #threeCanvas {
+        width: 100%;
+        height: 560px;
+        display: block;
+        outline: none;
+      }
+
+      #labelOverlay3D {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .node-label-3d {
+        position: absolute;
+        color: #d9e8ff;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        transform: translate(-50%, 0);
+      }
+
+      .graph-wrap {
+        position: relative;
+      }
+
       @media (max-width: 1180px) {
         .grid {
           grid-template-columns: 1fr;
@@ -1411,6 +1653,10 @@
 
         .data-card-grid {
           grid-template-columns: 1fr;
+        }
+
+        .threat-grid {
+          grid-template-columns: repeat(2, 1fr);
         }
 
         .timeline {
@@ -1447,6 +1693,14 @@
       @media (max-width: 860px) {
         .stats {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .threat-grid {
+          grid-template-columns: 1fr;
+        }
+
+        #threeCanvas {
+          height: 430px;
         }
 
         .risk-row {
@@ -1490,7 +1744,7 @@
           any element to inspect responsibilities, interfaces, risk handling, rollout phase, and
           test strategy.
         </p>
-        <section class="stats">
+        <section class="stats" style="grid-template-columns: repeat(6, minmax(0, 1fr))">
           <article class="stat">
             <strong>20</strong>
             <span>Core architecture elements</span>
@@ -1498,6 +1752,10 @@
           <article class="stat">
             <strong>5</strong>
             <span>Risk classes (R0 → R4)</span>
+          </article>
+          <article class="stat">
+            <strong>8</strong>
+            <span>Threat surfaces mapped</span>
           </article>
           <article class="stat">
             <strong>5</strong>
@@ -1546,6 +1804,10 @@
           <div class="graph-head">
             <h2 class="graph-title">System Relationship Graph</h2>
             <div class="graph-actions">
+              <div class="view-toggle">
+                <button class="view-toggle-btn active" data-view="2d" type="button">2D</button>
+                <button class="view-toggle-btn" data-view="3d" type="button">3D</button>
+              </div>
               <button id="playFlow" class="ghost" type="button">Play Invocation Path</button>
               <button id="resetGraph" class="ghost" type="button">Reset View</button>
             </div>
@@ -1557,6 +1819,8 @@
               role="img"
               aria-label="Architecture relationship graph"
             ></svg>
+            <canvas id="threeCanvas" class="hidden"></canvas>
+            <div id="labelOverlay3D" class="hidden"></div>
           </div>
           <div class="legend">
             <span class="legend-item"
@@ -1621,6 +1885,15 @@
         </article>
       </section>
 
+      <article class="panel subpanel full-width-card threat-section">
+        <h3>Threat Surface Infographic</h3>
+        <p class="threat-section-intro">
+          Attack vectors mapped to architectural countermeasures. Click a threat card to inspect its
+          mitigating nodes, or click a node pill to jump to the architecture graph.
+        </p>
+        <div id="threatGrid" class="threat-grid"></div>
+      </article>
+
       <article class="panel subpanel full-width-card">
         <h3>Rollout Roadmap</h3>
         <p style="color: var(--muted); font-size: 0.82rem; margin: 0 0 1rem; line-height: 1.5">
@@ -1637,6 +1910,22 @@
         <span class="mono">docs/refactor/adaptive-tool-approval-implementation.md</span>
       </footer>
     </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      window.THREE = THREE;
+      window.THREE.OrbitControls = OrbitControls;
+      window.dispatchEvent(new Event("three-ready"));
+    </script>
 
     <script>
       const NODES = [
@@ -2280,6 +2569,81 @@
         },
       ];
 
+      const THREATS = [
+        {
+          id: "T1",
+          title: "Prompt Injection / Tool Misuse",
+          severity: "critical",
+          description:
+            "Adversarial inputs trick the model into invoking dangerous tools or bypassing safety checks through crafted prompts.",
+          mitigatingNodes: ["policy", "static-eval", "fast-classifier"],
+          riskClasses: ["R3", "R4"],
+        },
+        {
+          id: "T2",
+          title: "Policy Bypass",
+          severity: "critical",
+          description:
+            "An attacker or malfunctioning agent circumvents hard policy gates to execute denied operations.",
+          mitigatingNodes: ["policy", "decision-engine"],
+          riskClasses: ["R3", "R4"],
+        },
+        {
+          id: "T3",
+          title: "Unauthorized External Mutation",
+          severity: "high",
+          description:
+            "Tool executions that modify external state without proper approval, such as sending messages or writing to APIs.",
+          mitigatingNodes: ["orchestrator", "approval-manager", "risk-policy"],
+          riskClasses: ["R3"],
+        },
+        {
+          id: "T4",
+          title: "Approval Spoofing / Replay",
+          severity: "high",
+          description:
+            "Forged or replayed approval resolutions that grant unauthorized tool execution.",
+          mitigatingNodes: ["resolve-api", "approval-manager"],
+          riskClasses: ["R3", "R4"],
+        },
+        {
+          id: "T5",
+          title: "Channel Hijacking",
+          severity: "medium",
+          description:
+            "Compromise of a messaging channel adapter to intercept or manipulate approval requests and responses.",
+          mitigatingNodes: ["router", "chat-adapters"],
+          riskClasses: ["R2", "R3"],
+        },
+        {
+          id: "T6",
+          title: "Audit Evasion",
+          severity: "high",
+          description:
+            "Circumventing or corrupting audit trail to hide malicious tool invocations from post-incident analysis.",
+          mitigatingNodes: ["audit", "metrics"],
+          riskClasses: ["R3", "R4"],
+        },
+        {
+          id: "T7",
+          title: "Classifier Manipulation",
+          severity: "high",
+          description:
+            "Adversarial inputs that cause the risk classifier to systematically underestimate threat levels.",
+          mitigatingNodes: ["static-eval", "decision-engine", "risk-policy"],
+          riskClasses: ["R2", "R3", "R4"],
+        },
+        {
+          id: "T8",
+          title: "Migration Regression",
+          severity: "medium",
+          description:
+            "Bugs introduced during exec-to-generic migration that silently weaken approval enforcement.",
+          mitigatingNodes: ["compat", "rollout"],
+          riskClasses: ["R1", "R2"],
+        },
+      ];
+
       const GROUP_STYLES = {
         runtime: { fill: "#4dd4ac", glow: "rgba(77,212,172,0.42)" },
         gateway: { fill: "#58a8ff", glow: "rgba(88,168,255,0.42)" },
@@ -2292,6 +2656,7 @@
         selectedFlow: null,
         selectedRisk: null,
         selectedPhase: null,
+        selectedThreat: null,
         lens: "all",
         search: "",
         focus: false,
@@ -2299,6 +2664,7 @@
         approvalPending: false,
         approvalDecision: null,
         learningActive: false,
+        view3D: false,
       };
 
       const nodeMap = new Map(NODES.map((node) => [node.id, node]));
@@ -2387,6 +2753,10 @@
       }
 
       function renderGraph() {
+        if (state.view3D && ThreeView.active) {
+          ThreeView.updateOpacities();
+          return;
+        }
         graphSvg.innerHTML = "";
 
         const defs = createSvgElement("defs");
@@ -2630,6 +3000,7 @@
         state.selectedFlow = null;
         state.selectedRisk = null;
         state.selectedPhase = null;
+        state.selectedThreat = null;
         showNodeDetail(nodeId);
         renderGraph();
         updateSelectionStyles();
@@ -2639,6 +3010,7 @@
         state.selectedFlow = stepId;
         state.selectedRisk = null;
         state.selectedPhase = null;
+        state.selectedThreat = null;
         showFlowDetail(stepId);
         const step = FLOW_STEPS.find((entry) => entry.id === stepId);
         if (step) {
@@ -2652,6 +3024,7 @@
         state.selectedRisk = riskId;
         state.selectedFlow = null;
         state.selectedPhase = null;
+        state.selectedThreat = null;
         showRiskDetail(riskId);
         updateSelectionStyles();
       }
@@ -2660,6 +3033,7 @@
         state.selectedPhase = phaseId;
         state.selectedFlow = null;
         state.selectedRisk = null;
+        state.selectedThreat = null;
         showPhaseDetail(phaseId);
         updateSelectionStyles();
       }
@@ -2676,6 +3050,12 @@
         }
         for (const row of timeline.querySelectorAll(".phase")) {
           row.classList.toggle("active", row.dataset.id === state.selectedPhase);
+        }
+        const threatGrid = document.getElementById("threatGrid");
+        if (threatGrid) {
+          for (const card of threatGrid.querySelectorAll(".threat-card")) {
+            card.classList.toggle("active", card.dataset.id === state.selectedThreat);
+          }
         }
       }
 
@@ -2814,6 +3194,382 @@
         playFlowButton.disabled = false;
       }
 
+      function threatIcon(threatId) {
+        const icons = {
+          T1: '<svg viewBox="0 0 24 24" fill="none" stroke="#ff6f7d" stroke-width="2"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+          T2: '<svg viewBox="0 0 24 24" fill="none" stroke="#ff6f7d" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>',
+          T3: '<svg viewBox="0 0 24 24" fill="none" stroke="#ffbb55" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+          T4: '<svg viewBox="0 0 24 24" fill="none" stroke="#ffbb55" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
+          T5: '<svg viewBox="0 0 24 24" fill="none" stroke="#5db4ff" stroke-width="2"><path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0"/></svg>',
+          T6: '<svg viewBox="0 0 24 24" fill="none" stroke="#ffbb55" stroke-width="2"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>',
+          T7: '<svg viewBox="0 0 24 24" fill="none" stroke="#ffbb55" stroke-width="2"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>',
+          T8: '<svg viewBox="0 0 24 24" fill="none" stroke="#5db4ff" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>',
+        };
+        return icons[threatId] || icons.T1;
+      }
+
+      function renderThreats() {
+        const grid = document.getElementById("threatGrid");
+        grid.innerHTML = "";
+        for (const threat of THREATS) {
+          const card = document.createElement("div");
+          card.className = "threat-card";
+          card.dataset.id = threat.id;
+          card.dataset.severity = threat.severity;
+
+          const header = document.createElement("div");
+          header.className = "threat-card-header";
+          header.innerHTML = `<span class="threat-card-icon">${threatIcon(threat.id)}</span><span class="threat-card-title">${threat.id}: ${threat.title}</span>`;
+          card.appendChild(header);
+
+          const badge = document.createElement("span");
+          badge.className = `severity-label ${threat.severity}`;
+          badge.textContent = threat.severity;
+          card.appendChild(badge);
+
+          const desc = document.createElement("div");
+          desc.className = "threat-card-desc";
+          desc.textContent = threat.description;
+          card.appendChild(desc);
+
+          const pills = document.createElement("div");
+          pills.className = "threat-node-pills";
+          for (const nodeId of threat.mitigatingNodes) {
+            const node = nodeMap.get(nodeId);
+            if (!node) continue;
+            const pill = document.createElement("button");
+            pill.type = "button";
+            pill.className = "threat-node-pill";
+            const style = GROUP_STYLES[node.group];
+            pill.innerHTML = `<span class="threat-node-dot" style="background:${style.fill};box-shadow:0 0 4px ${style.glow}"></span>${node.label}`;
+            pill.addEventListener("click", (evt) => {
+              evt.stopPropagation();
+              selectNode(nodeId);
+              document
+                .querySelector(".graph-wrap")
+                .scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+            pills.appendChild(pill);
+          }
+          card.appendChild(pills);
+
+          card.addEventListener("click", () => selectThreat(threat.id));
+          grid.appendChild(card);
+        }
+      }
+
+      function selectThreat(threatId) {
+        state.selectedThreat = threatId;
+        state.selectedFlow = null;
+        state.selectedRisk = null;
+        state.selectedPhase = null;
+        state.selectedId = null;
+        showThreatDetail(threatId);
+        updateSelectionStyles();
+      }
+
+      function showThreatDetail(threatId) {
+        const threat = THREATS.find((t) => t.id === threatId);
+        if (!threat) return;
+        const mitigatingLabels = threat.mitigatingNodes
+          .map((id) => nodeMap.get(id)?.label)
+          .filter(Boolean);
+        renderDetail({
+          title: `${threat.id}: ${threat.title}`,
+          subtitle: threat.description,
+          chips: [`Severity: ${threat.severity}`, ...threat.riskClasses],
+          blocks: [
+            { title: "Attack Vector", text: threat.description },
+            { title: "Mitigating Architecture Nodes", list: mitigatingLabels },
+            {
+              title: "Affected Risk Classes",
+              list: threat.riskClasses.map((rc) => {
+                const risk = RISKS.find((r) => r.id === rc);
+                return risk ? `${rc}: ${risk.title} — ${risk.action}` : rc;
+              }),
+            },
+            {
+              title: "Countermeasure Strategy",
+              list: [
+                "Hard policy gates enforce deny-by-default for high-risk operations",
+                "Static risk evaluator detects known dangerous patterns deterministically",
+                "Approval lifecycle ensures human oversight for ambiguous decisions",
+                "Audit trail provides immutable evidence for incident response",
+              ],
+            },
+          ],
+        });
+      }
+
+      /* ── ThreeView: 3D Graph Visualization ── */
+      const ThreeView = {
+        initialized: false,
+        active: false,
+        scene: null,
+        camera: null,
+        renderer: null,
+        controls: null,
+        animationId: null,
+        nodeMeshes: new Map(),
+        glowMeshes: new Map(),
+        edgeLines: [],
+        labelOverlay: null,
+
+        init() {
+          if (this.initialized || !window.THREE) return false;
+          const canvas = document.getElementById("threeCanvas");
+          const wrap = document.querySelector(".graph-wrap");
+          this.labelOverlay = document.getElementById("labelOverlay3D");
+
+          this.scene = new THREE.Scene();
+          this.scene.background = new THREE.Color(0x101622);
+          this.scene.fog = new THREE.Fog(0x101622, 300, 800);
+
+          const w = wrap.clientWidth;
+          const h = canvas.clientHeight || 560;
+          this.camera = new THREE.PerspectiveCamera(50, w / h, 1, 2000);
+          this.camera.position.set(0, 50, 400);
+
+          this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+          this.renderer.setSize(w, h);
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+          this.controls = new THREE.OrbitControls(this.camera, canvas);
+          this.controls.enableDamping = true;
+          this.controls.dampingFactor = 0.08;
+          this.controls.minDistance = 100;
+          this.controls.maxDistance = 800;
+
+          const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+          this.scene.add(ambient);
+          const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+          dir.position.set(50, 100, 150);
+          this.scene.add(dir);
+
+          this.buildNodes();
+          this.buildEdges();
+
+          const ro = new ResizeObserver(() => {
+            if (!this.active) return;
+            const nw = wrap.clientWidth;
+            const nh = canvas.clientHeight || 560;
+            this.camera.aspect = nw / nh;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(nw, nh);
+          });
+          ro.observe(wrap);
+
+          canvas.addEventListener("click", (evt) => this.onClick(evt));
+
+          this.initialized = true;
+          return true;
+        },
+
+        toWorld(node) {
+          const groupDepth = { runtime: 0, gateway: -80, channels: -160, ops: -240 };
+          return new THREE.Vector3(
+            (node.x - 590) * 0.6,
+            -(node.y - 250) * 0.6,
+            groupDepth[node.group] || 0,
+          );
+        },
+
+        buildNodes() {
+          for (const node of NODES) {
+            const style = GROUP_STYLES[node.group];
+            const color = new THREE.Color(style.fill);
+            const pos = this.toWorld(node);
+
+            const coreMat = new THREE.MeshStandardMaterial({
+              color,
+              emissive: color,
+              emissiveIntensity: 0.3,
+              roughness: 0.4,
+              metalness: 0.3,
+            });
+            const coreGeo = new THREE.SphereGeometry(8, 24, 24);
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            core.position.copy(pos);
+            core.userData = { nodeId: node.id };
+            this.scene.add(core);
+            this.nodeMeshes.set(node.id, core);
+
+            const glowMat = new THREE.MeshBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0.15,
+            });
+            const glowGeo = new THREE.SphereGeometry(18, 16, 16);
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            glow.position.copy(pos);
+            this.scene.add(glow);
+            this.glowMeshes.set(node.id, glow);
+          }
+        },
+
+        buildEdges() {
+          for (const [from, to] of EDGES) {
+            const a = nodeMap.get(from);
+            const b = nodeMap.get(to);
+            if (!a || !b) continue;
+            const posA = this.toWorld(a);
+            const posB = this.toWorld(b);
+
+            const geo = new THREE.BufferGeometry().setFromPoints([posA, posB]);
+            const mat = new THREE.LineBasicMaterial({
+              color: 0xc4d6f2,
+              transparent: true,
+              opacity: 0.32,
+            });
+            const line = new THREE.Line(geo, mat);
+            line.userData = { from, to };
+            this.scene.add(line);
+            this.edgeLines.push(line);
+
+            const dir = new THREE.Vector3().subVectors(posB, posA);
+            const len = dir.length();
+            dir.normalize();
+            const coneGeo = new THREE.ConeGeometry(2.5, 8, 8);
+            const coneMat = new THREE.MeshBasicMaterial({
+              color: 0xc4d6f2,
+              transparent: true,
+              opacity: 0.5,
+            });
+            const cone = new THREE.Mesh(coneGeo, coneMat);
+            const tipPos = posA.clone().add(dir.clone().multiplyScalar(len * 0.85));
+            cone.position.copy(tipPos);
+            cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+            cone.userData = { from, to };
+            this.scene.add(cone);
+            this.edgeLines.push(cone);
+          }
+        },
+
+        updateOpacities() {
+          for (const node of NODES) {
+            const opacity = nodeOpacity(node);
+            const core = this.nodeMeshes.get(node.id);
+            const glow = this.glowMeshes.get(node.id);
+            if (!core) continue;
+
+            const isSelected = node.id === state.selectedId;
+            core.material.opacity = opacity;
+            core.material.transparent = opacity < 1;
+            core.material.emissiveIntensity = isSelected ? 0.8 : 0.3;
+            core.scale.setScalar(isSelected ? 1.3 : 1);
+
+            if (glow) {
+              glow.material.opacity = isSelected ? 0.35 : opacity < 1 ? 0.04 : 0.15;
+              glow.scale.setScalar(isSelected ? 1.5 : 1);
+            }
+          }
+
+          for (const obj of this.edgeLines) {
+            const { from, to } = obj.userData;
+            if (from && to) {
+              obj.material.opacity = edgeOpacity(from, to);
+            }
+          }
+        },
+
+        updateLabels() {
+          if (!this.labelOverlay) return;
+          this.labelOverlay.innerHTML = "";
+          const wrap = document.querySelector(".graph-wrap");
+          const rect = wrap.getBoundingClientRect();
+
+          for (const node of NODES) {
+            const opacity = nodeOpacity(node);
+            if (opacity < 0.5) continue;
+            const mesh = this.nodeMeshes.get(node.id);
+            if (!mesh) continue;
+
+            const pos = mesh.position.clone();
+            pos.y -= 14;
+            pos.project(this.camera);
+
+            const x = (pos.x * 0.5 + 0.5) * rect.width;
+            const y = (-pos.y * 0.5 + 0.5) * rect.height;
+
+            if (pos.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height) continue;
+
+            const label = document.createElement("div");
+            label.className = "node-label-3d";
+            label.textContent = node.label;
+            label.style.left = x + "px";
+            label.style.top = y + "px";
+            this.labelOverlay.appendChild(label);
+          }
+        },
+
+        onClick(evt) {
+          const canvas = this.renderer.domElement;
+          const rect = canvas.getBoundingClientRect();
+          const mouse = new THREE.Vector2(
+            ((evt.clientX - rect.left) / rect.width) * 2 - 1,
+            -((evt.clientY - rect.top) / rect.height) * 2 + 1,
+          );
+          const raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(mouse, this.camera);
+
+          const meshes = Array.from(this.nodeMeshes.values());
+          const hits = raycaster.intersectObjects(meshes);
+          if (hits.length > 0) {
+            const nodeId = hits[0].object.userData.nodeId;
+            if (nodeId) selectNode(nodeId);
+          }
+        },
+
+        animate() {
+          if (!this.active) return;
+          this.animationId = requestAnimationFrame(() => this.animate());
+          this.controls.update();
+          this.updateOpacities();
+          this.renderer.render(this.scene, this.camera);
+          this.updateLabels();
+        },
+
+        doActivate() {
+          if (!this.initialized) {
+            if (!this.init()) return;
+          }
+          this.active = true;
+          state.view3D = true;
+          document.getElementById("systemGraph").classList.add("hidden");
+          document.getElementById("threeCanvas").classList.remove("hidden");
+          document.getElementById("labelOverlay3D").classList.remove("hidden");
+
+          const wrap = document.querySelector(".graph-wrap");
+          const w = wrap.clientWidth;
+          const h = 560;
+          this.camera.aspect = w / h;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(w, h);
+
+          this.animate();
+        },
+
+        activate() {
+          if (window.THREE) {
+            this.doActivate();
+          } else {
+            window.addEventListener("three-ready", () => this.doActivate(), { once: true });
+          }
+        },
+
+        deactivate() {
+          this.active = false;
+          state.view3D = false;
+          if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+          }
+          document.getElementById("systemGraph").classList.remove("hidden");
+          document.getElementById("threeCanvas").classList.add("hidden");
+          document.getElementById("labelOverlay3D").classList.add("hidden");
+        },
+      };
+
       function downloadSnapshot() {
         const snapshot = {
           generatedAt: new Date().toISOString(),
@@ -2821,6 +3577,7 @@
           edges: EDGES,
           flow: FLOW_STEPS,
           riskTaxonomy: RISKS,
+          threats: THREATS,
           rolloutPhases: PHASES,
           currentState: {
             selectedId: state.selectedId,
@@ -2874,6 +3631,7 @@
           state.selectedFlow = null;
           state.selectedRisk = null;
           state.selectedPhase = null;
+          state.selectedThreat = null;
           state.focus = false;
           toggleFocusButton.textContent = "Focus: Off";
           renderGraph();
@@ -2896,6 +3654,21 @@
         });
 
         playFlowButton.addEventListener("click", playFlow);
+
+        for (const btn of document.querySelectorAll(".view-toggle-btn")) {
+          btn.addEventListener("click", () => {
+            const mode = btn.dataset.view;
+            for (const b of document.querySelectorAll(".view-toggle-btn")) {
+              b.classList.toggle("active", b.dataset.view === mode);
+            }
+            if (mode === "3d") {
+              ThreeView.activate();
+            } else {
+              ThreeView.deactivate();
+              renderGraph();
+            }
+          });
+        }
 
         document.addEventListener("keydown", (event) => {
           if (event.key === "/" && document.activeElement !== searchInput) {
@@ -2928,6 +3701,7 @@
       function init() {
         renderFlow();
         renderRisks();
+        renderThreats();
         renderTimeline();
         setupEvents();
         applyLens("all");
