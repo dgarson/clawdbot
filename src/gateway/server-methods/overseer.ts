@@ -753,8 +753,8 @@ export const overseerHandlers: GatewayRequestHandlers = {
     events.sort((a, b) => b.ts - a.ts);
 
     const total = events.length;
-    const offset = request.offset ?? 0;
-    const limit = Math.min(request.limit ?? 100, 500);
+    const offset = Math.max(0, request.offset ?? 0);
+    const limit = Math.max(1, Math.min(request.limit ?? 100, 500));
     const paged = events.slice(offset, offset + limit);
 
     const enrichedEvents: OverseerEventsResultEvent[] = paged.map((e) => ({

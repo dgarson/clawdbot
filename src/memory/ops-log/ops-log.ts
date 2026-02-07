@@ -72,9 +72,11 @@ export async function queryMemoryOpsEvents(
     status,
     startTs,
     endTs,
-    limit = 100,
-    offset = 0,
+    limit: rawLimit = 100,
+    offset: rawOffset = 0,
   } = params;
+  const limit = Math.max(1, rawLimit);
+  const offset = Math.max(0, rawOffset);
 
   const opsDir = resolveMemoryOpsDir(stateDir);
   let allEvents: MemoryOpsEvent[] = [];
