@@ -33,12 +33,12 @@ describe("isFeatureEnabled", () => {
     expect(isFeatureEnabled({}, "test")).toBe(false);
   });
 
-  it("returns false when feature is not in list", () => {
-    expect(isFeatureEnabled({ features: ["other"] }, "test")).toBe(false);
+  it("returns false when feature is not present", () => {
+    expect(isFeatureEnabled({ features: { other: {} } }, "test")).toBe(false);
   });
 
-  it("returns true when feature is in list", () => {
-    expect(isFeatureEnabled({ features: ["test"] }, "test")).toBe(true);
+  it("returns true when feature key exists", () => {
+    expect(isFeatureEnabled({ features: { test: {} } }, "test")).toBe(true);
   });
 });
 
