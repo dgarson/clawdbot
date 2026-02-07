@@ -36,6 +36,7 @@ import { logAcceptedEnvOption } from "../infra/env.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
+import { startJournalSubscriber } from "../infra/journal/index.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
 import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
 import { setGatewaySigusr1RestartPolicy } from "../infra/restart.js";
@@ -511,6 +512,9 @@ export async function startGatewayServer(
       toolEventRecipients,
     }),
   );
+
+  // Start the tool journal subscriber (always-on forensic log for tool calls)
+  startJournalSubscriber(cfgAtStart.logging?.journal);
 
   const heartbeatUnsub = onHeartbeatEvent((evt) => {
     broadcast("heartbeat", evt, { dropIfSlow: true });

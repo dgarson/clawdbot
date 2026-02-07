@@ -152,6 +152,16 @@ export type LoggingConfig = {
     /** Critical threshold (default: 90) */
     critical?: number;
   };
+
+  /** Tool journal for forensic tool call logging. */
+  journal?: {
+    enabled?: boolean;
+    file?: string;
+    maxResultChars?: number;
+    redactSensitive?: boolean;
+    toolFilter?: string[];
+    retentionHours?: number;
+  };
 };
 
 export type DiagnosticsOtelConfig = {

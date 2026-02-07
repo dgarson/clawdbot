@@ -425,6 +425,13 @@ const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.installPath": "Plugin Install Path",
   "plugins.installs.*.version": "Plugin Install Version",
   "plugins.installs.*.installedAt": "Plugin Install Time",
+  "logging.journal": "Tool Journal",
+  "logging.journal.enabled": "Tool Journal Enabled",
+  "logging.journal.file": "Tool Journal File",
+  "logging.journal.maxResultChars": "Tool Journal Max Result Chars",
+  "logging.journal.redactSensitive": "Tool Journal Redact Sensitive",
+  "logging.journal.toolFilter": "Tool Journal Tool Filter",
+  "logging.journal.retentionHours": "Tool Journal Retention (hours)",
   "debugging.channels": "Debug Channels",
   "debugging.features": "Debug Features",
 };
@@ -831,6 +838,18 @@ const FIELD_HELP: Record<string, string> = {
     "Optional PluralKit token for resolving private systems or members.",
   "channels.slack.dm.policy":
     'Direct message access control ("pairing" recommended). "open" requires channels.slack.dm.allowFrom=["*"].',
+  "logging.journal":
+    "Tool journal for forensic tool call logging (full args/results, never on console).",
+  "logging.journal.enabled": "Enable the tool journal (default: true).",
+  "logging.journal.file":
+    "Override the journal file path (default: /tmp/openclaw/journal-YYYY-MM-DD.log).",
+  "logging.journal.maxResultChars":
+    "Truncate tool results beyond this character count (0 = unlimited, default: 0).",
+  "logging.journal.redactSensitive":
+    "Redact sensitive fields in tool args (default: false for full forensic capture).",
+  "logging.journal.toolFilter":
+    'Tool names to journal (default: exec, process, edit, write, apply_patch). Set to ["*"] for all tools.',
+  "logging.journal.retentionHours": "Prune journal files older than this many hours (default: 72).",
   "debugging.channels":
     "Channels enabled for debugging. Set {verbose:true} for debug+trace, {debug:true} for debug only, {trace:true} for trace only, or {suppressLogging:true} to suppress all debug/trace. Supports hierarchical subsystem matching (e.g., slack matches slack/send). Example: lanes: { suppressLogging: true }",
   "debugging.features":
