@@ -215,6 +215,9 @@ export class WorkQueueStore {
     agentId?: string;
     assignTo: { sessionKey?: string; agentId?: string };
     workstream?: string;
+    unscopedOnly?: boolean;
+    unassignedOnly?: boolean;
+    explicitAgentId?: string;
   }): Promise<WorkItem | null> {
     await this.ensureInitialized();
     const queueId = params.queueId ?? params.agentId;
@@ -225,6 +228,9 @@ export class WorkQueueStore {
     await this.ensureQueueForAgent(normalized);
     return await this.backend.claimNextItem(normalized, params.assignTo, {
       workstream: params.workstream,
+      unscopedOnly: params.unscopedOnly,
+      unassignedOnly: params.unassignedOnly,
+      explicitAgentId: params.explicitAgentId,
     });
   }
 

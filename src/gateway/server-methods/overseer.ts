@@ -7,6 +7,7 @@ import type {
   OverseerTask,
 } from "../../infra/overseer/store.types.js";
 import type { OverseerGoalCreateResult, OverseerStatusResult } from "../protocol/index.js";
+import type { OverseerEventsResult, OverseerEventsResultEvent } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { parseDurationMs } from "../../cli/parse-duration.js";
@@ -26,6 +27,7 @@ import {
   validateOverseerStatusParams,
   validateOverseerTickParams,
   validateOverseerWorkUpdateParams,
+  validateOverseerEventsParams,
 } from "../protocol/index.js";
 import { loadSessionEntry } from "../session-utils.js";
 
@@ -698,6 +700,80 @@ export const overseerHandlers: GatewayRequestHandlers = {
       return { store, result: true };
     });
     respond(true, { ok: true }, undefined);
+  },
+
+  "overseer.events": ({ params, respond }) => {
+    if (!validateOverseerEventsParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid overseer.events params: ${formatValidationErrors(
+            validateOverseerEventsParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const request = params as {
+      goalId?: string;
+      type?: string;
+      since?: number;
+      until?: number;
+      limit?: number;
+      offset?: number;
+    };
+    const store = loadOverseerStoreFromDisk();
+    const goalTitleMap = new Map<string, string>();
+    for (const goal of Object.values(store.goals ?? {})) {
+      goalTitleMap.set(goal.goalId, goal.title);
+    }
+
+    let events = [...(store.events ?? [])];
+
+    // Apply filters
+    if (request.goalId) {
+      events = events.filter((e) => e.goalId === request.goalId);
+    }
+    if (request.type) {
+      const typeFilter = request.type;
+      events = events.filter((e) => e.type === typeFilter || e.type.startsWith(`${typeFilter}.`));
+    }
+    if (request.since) {
+      const since = request.since;
+      events = events.filter((e) => e.ts >= since);
+    }
+    if (request.until) {
+      const until = request.until;
+      events = events.filter((e) => e.ts <= until);
+    }
+
+    // Sort by timestamp descending (most recent first)
+    events.sort((a, b) => b.ts - a.ts);
+
+    const total = events.length;
+    const offset = Math.max(0, request.offset ?? 0);
+    const limit = Math.max(1, Math.min(request.limit ?? 100, 500));
+    const paged = events.slice(offset, offset + limit);
+
+    const enrichedEvents: OverseerEventsResultEvent[] = paged.map((e) => ({
+      ts: e.ts,
+      type: e.type,
+      goalId: e.goalId,
+      goalTitle: e.goalId ? goalTitleMap.get(e.goalId) : undefined,
+      assignmentId: e.assignmentId,
+      workNodeId: e.workNodeId,
+      data: e.data,
+    }));
+
+    const result: OverseerEventsResult = {
+      ts: Date.now(),
+      events: enrichedEvents,
+      total,
+      hasMore: offset + limit < total,
+    };
+    respond(true, result, undefined);
   },
 
   "overseer.simulator.injectEvent": async ({ params, respond, context }) => {

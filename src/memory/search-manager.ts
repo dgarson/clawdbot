@@ -116,12 +116,10 @@ export async function getMemorySearchManager(params: {
     }
   }
 
-  memLog.trace("getMemorySearchManager: backends resolved", {
-    agentId: params.agentId,
-    backends: backends.map((b) => b.id),
-  });
-
   if (backends.length === 0) {
+    memLog.trace("getMemorySearchManager: no backends available for agent", {
+      agentId: params.agentId,
+    });
     return { manager: null, error: "no memory backends available" };
   }
 

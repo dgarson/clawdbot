@@ -87,7 +87,9 @@ export async function getUnlockHistory(
   historyPath: string,
   options: { limit?: number; offset?: number } = {},
 ): Promise<{ events: UnlockEvent[]; total: number }> {
-  const { limit = 50, offset = 0 } = options;
+  const { limit: rawLimit = 50, offset: rawOffset = 0 } = options;
+  const offset = Math.max(0, rawOffset);
+  const limit = Math.max(1, rawLimit);
   const events = await loadUnlockHistory(historyPath);
 
   // Sort by timestamp descending (newest first)

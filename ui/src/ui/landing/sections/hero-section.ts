@@ -1,6 +1,7 @@
 import { html, css, LitElement, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { TextRotator, initParallax } from "../animation-utils";
+import "../components/demo-previews";
 
 interface FloatingCard {
   id: string;
@@ -560,6 +561,8 @@ export class LandingHero extends LitElement {
               Request Demo
             </button>
           </div>
+
+          <landing-demo-previews></landing-demo-previews>
 
           <div class="hero-social-hint">
             <div class="hero-avatars">

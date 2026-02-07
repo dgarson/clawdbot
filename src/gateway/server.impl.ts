@@ -46,6 +46,7 @@ import {
 } from "../infra/skills-remote.js";
 import { createToolApprovalForwarder } from "../infra/tool-approval-forwarder.js";
 import { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
+import { summarizeLoggingConfig } from "../logging/debug-control.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
 import { runOnboardingWizard } from "../wizard/onboarding.js";
@@ -238,6 +239,10 @@ export async function startGatewayServer(
   }
 
   const cfgAtStart = loadConfig();
+  const loggingSummary = summarizeLoggingConfig(cfgAtStart);
+  if (loggingSummary) {
+    log.info(`logging config: ${loggingSummary}`);
+  }
   const diagnosticsEnabled = isDiagnosticsEnabled(cfgAtStart);
   if (diagnosticsEnabled) {
     startDiagnosticHeartbeat();

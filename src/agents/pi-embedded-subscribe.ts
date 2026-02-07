@@ -189,15 +189,6 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       // Non-streaming models (no text_delta): ensure assistantTexts gets the final
       // text when the chunker has nothing buffered to drain.
       pushAssistantText(text);
-    } else {
-      log.trace("embedded_finalize_assistant_texts", {
-        mode: "noop",
-        textLen: text.length,
-        assistantTextsLen: assistantTexts.length,
-        baseline: state.assistantTextBaseline,
-        addedDuringMessage,
-        chunkerHasBuffered,
-      });
     }
 
     state.assistantTextBaseline = assistantTexts.length;

@@ -695,7 +695,7 @@ export const OpenClawSchema = z
     debugging: z
       .object({
         channels: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
-        features: z.array(z.string()).optional(),
+        features: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
       })
       .strict()
       .optional(),

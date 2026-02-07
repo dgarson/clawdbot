@@ -2,6 +2,8 @@ import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "./subsystem.js";
 
 const diag = createSubsystemLogger("diagnostic");
+/** Child logger for lane enqueue/dequeue/done debug messages (subsystem: diagnostic/lanes). */
+const laneDiag = diag.child("lanes");
 
 /**
  * Extract a shortened session ID from a lane name or session identifier.
@@ -273,7 +275,7 @@ export function logSessionStuck(params: SessionRef & { state: SessionStateValue;
 }
 
 export function logLaneEnqueue(lane: string, queueSize: number) {
-  diag.debug(`lane enqueue: lane=${lane} queueSize=${queueSize}`);
+  laneDiag.debug(`lane enqueue: lane=${lane} queueSize=${queueSize}`, { channel: "lanes" });
   emitDiagnosticEvent({
     type: "queue.lane.enqueue",
     lane,
@@ -283,7 +285,9 @@ export function logLaneEnqueue(lane: string, queueSize: number) {
 }
 
 export function logLaneDequeue(lane: string, waitMs: number, queueSize: number) {
-  diag.debug(`lane dequeue: lane=${lane} waitMs=${waitMs} queueSize=${queueSize}`);
+  laneDiag.debug(`lane dequeue: lane=${lane} waitMs=${waitMs} queueSize=${queueSize}`, {
+    channel: "lanes",
+  });
   emitDiagnosticEvent({
     type: "queue.lane.dequeue",
     lane,
@@ -388,4 +392,4 @@ export function stopDiagnosticHeartbeat() {
   }
 }
 
-export { diag as diagnosticLogger };
+export { diag as diagnosticLogger, laneDiag as laneDiagnosticLogger };

@@ -47,4 +47,38 @@ describe("MemoryWorkQueueBackend", () => {
 
     await backend.close();
   });
+
+  it("ignores undefined required patch values while clearing optional fields", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "agent-2",
+      agentId: "agent-2",
+      name: "Agent 2",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    const item = await backend.createItem({
+      queueId: queue.id,
+      title: "Keep me",
+      status: "in_progress",
+      priority: "medium",
+      statusReason: "running",
+      assignedTo: { agentId: "agent-2" },
+    });
+
+    const updated = await backend.updateItem(item.id, {
+      title: undefined,
+      status: "pending",
+      statusReason: undefined,
+      assignedTo: undefined,
+    });
+
+    expect(updated.title).toBe("Keep me");
+    expect(updated.status).toBe("pending");
+    expect(updated.statusReason).toBeUndefined();
+    expect(updated.assignedTo).toBeUndefined();
+  });
 });

@@ -1,11 +1,13 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import crypto from "node:crypto";
 import path from "node:path";
+import type { MemoryContentObject } from "../../../../src/memory/types.js";
 import type {
   MeridiaToolResultContext,
   MeridiaTraceEvent,
   CaptureDecision,
 } from "../../src/meridia/types.js";
+import { GraphitiClient } from "../../../../src/memory/graphiti/client.js";
 import { collectArtifacts } from "../../src/meridia/artifacts/collector.js";
 import { classifyMemoryType } from "../../src/meridia/classifier.js";
 import { resolveMeridiaPluginConfig } from "../../src/meridia/config.js";
@@ -134,6 +136,15 @@ const handler = async (event: HookEvent): Promise<void> => {
     "evaluationModel",
   ]);
 
+  // Graphiti graph persistence config (hook-level overrides)
+  const graphEnabled = readBoolean(hookCfg, ["graphiti", "enabled"], false);
+  const graphMinSignificance = readPositiveNumber(
+    hookCfg,
+    ["graphiti", "minSignificanceForGraph"],
+    0.7,
+  );
+  const graphGroupId = readString(hookCfg, ["graphiti", "groupId"]);
+
   const gatesConfig: GatesConfig = { maxCapturesPerHour: maxPerHour, minIntervalMs };
 
   // Build legacy context for evaluate.ts
@@ -147,6 +158,8 @@ const handler = async (event: HookEvent): Promise<void> => {
   // Detect content signals for classification
   const analysisText = extractTextForAnalysis(ctx);
   const contentSignals = detectContentSignals(analysisText);
+
+  // NOTE: Graphiti config may include a groupId for downstream filtering.
 
   // ── Load and update buffer ────────────────────────────────────────────
   let buffer = await loadBuffer(bufferPath, sessionId, sessionKey);
@@ -177,6 +190,11 @@ const handler = async (event: HookEvent): Promise<void> => {
   }
 
   const shouldCapture = gateResult.allowed && evaluation.score >= minThreshold;
+
+  // Separate decision for whether this experience should be persisted to the knowledge graph.
+  // This is intentionally stricter than capture.
+  const shouldPersistToGraph =
+    graphEnabled && shouldCapture && evaluation.score >= graphMinSignificance;
 
   // Record evaluation in buffer
   buffer = recordEvaluation(buffer, {
@@ -250,6 +268,54 @@ const handler = async (event: HookEvent): Promise<void> => {
 
     // Update buffer with capture info
     buffer = recordCapture(buffer, { toolName, score: evaluation.score, recordId });
+
+    // ── Optional: persist to graph via GraphitiClient ─────────────────────
+    if (shouldPersistToGraph && cfg?.memory?.graphiti?.enabled) {
+      try {
+        const graphiti = new GraphitiClient({
+          serverHost: cfg.memory.graphiti.serverHost,
+          servicePort: cfg.memory.graphiti.servicePort,
+          apiKey: cfg.memory.graphiti.apiKey,
+          timeoutMs: cfg.memory.graphiti.timeoutMs ?? 30_000,
+        });
+
+        const episodeText = [
+          record.content?.topic,
+          record.content?.summary,
+          record.content?.context,
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+
+        const episode: MemoryContentObject = {
+          id: record.id,
+          kind: "event",
+          text: episodeText,
+          tags: record.content?.tags,
+          provenance: {
+            source: "meridia.experiential-capture",
+            sessionKey: record.session?.key,
+            runId: record.session?.runId,
+            temporal: { observedAt: record.ts, updatedAt: record.ts },
+            ...(graphGroupId ? { citations: [graphGroupId] } : {}),
+          },
+          metadata: {
+            toolName: record.tool?.name,
+            toolCallId: record.tool?.callId,
+            score: record.capture.score,
+            memoryType: record.memoryType,
+            ...(graphGroupId ? { groupId: graphGroupId } : {}),
+          },
+        };
+
+        await graphiti.ingestEpisodes({
+          episodes: [episode],
+          traceId: `meridia-capture-${record.id.slice(0, 8)}`,
+        });
+      } catch {
+        // ignore graph fanout failures
+      }
+    }
   }
 
   // ── Trace event ───────────────────────────────────────────────────────

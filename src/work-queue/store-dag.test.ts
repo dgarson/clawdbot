@@ -203,4 +203,60 @@ describe("WorkQueueStore DAG-aware claiming (memory backend)", () => {
     });
     expect(claimed?.title).toBe("Beta task");
   });
+
+  it("supports explicit worker assignment claims", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    const store = new WorkQueueStore(backend);
+
+    const assignedToSelf = await store.createItem({
+      agentId: "test",
+      title: "Assigned to worker-a",
+      priority: "medium",
+      assignedTo: { agentId: "worker-a" },
+    });
+    await store.createItem({
+      agentId: "test",
+      title: "Assigned to worker-b",
+      priority: "critical",
+      assignedTo: { agentId: "worker-b" },
+    });
+
+    const claimed = await store.claimNextItem({
+      agentId: "test",
+      assignTo: { agentId: "worker-a" },
+      explicitAgentId: "worker-a",
+    });
+    expect(claimed?.id).toBe(assignedToSelf.id);
+  });
+
+  it("supports unscoped + unassigned claims", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    const store = new WorkQueueStore(backend);
+
+    const unscoped = await store.createItem({
+      agentId: "test",
+      title: "Unscoped and unassigned",
+      priority: "medium",
+    });
+    await store.createItem({
+      agentId: "test",
+      title: "Scoped",
+      priority: "critical",
+      workstream: "alpha",
+    });
+    await store.createItem({
+      agentId: "test",
+      title: "Explicitly assigned",
+      priority: "high",
+      assignedTo: { agentId: "worker-b" },
+    });
+
+    const claimed = await store.claimNextItem({
+      agentId: "test",
+      assignTo: { agentId: "worker-a" },
+      unscopedOnly: true,
+      unassignedOnly: true,
+    });
+    expect(claimed?.id).toBe(unscoped.id);
+  });
 });

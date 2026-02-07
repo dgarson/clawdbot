@@ -462,11 +462,14 @@ export const WorkerConfigSchema = z
     enabled: z.boolean().optional(),
     queueId: z.string().optional(),
     workstreams: z.array(z.string()).optional(),
+    flexible: z.boolean().optional(),
     pollIntervalMs: z.number().int().positive().optional(),
     model: z.string().optional(),
     thinking: z.string().optional(),
     contextExtractor: z.enum(["transcript", "llm"]).optional(),
     sessionTimeoutSeconds: z.number().int().positive().optional(),
+    defaultSystemPrompt: z.string().optional(),
+    defaultVerifyCommands: z.array(z.string()).optional(),
     workflow: WorkerWorkflowSchema,
   })
   .strict()

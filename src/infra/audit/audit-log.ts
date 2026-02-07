@@ -74,7 +74,17 @@ export async function queryAuditEvents(
   homeDir: string,
   params: AuditQueryParams = {},
 ): Promise<AuditQueryResult> {
-  const { category, action, severity, startTs, endTs, limit = 100, offset = 0 } = params;
+  const {
+    category,
+    action,
+    severity,
+    startTs,
+    endTs,
+    limit: rawLimit = 100,
+    offset: rawOffset = 0,
+  } = params;
+  const limit = Math.max(1, rawLimit);
+  const offset = Math.max(0, rawOffset);
 
   const auditDir = resolveAuditDir(homeDir);
   let allEvents: AuditEvent[] = [];

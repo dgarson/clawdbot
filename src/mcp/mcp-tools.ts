@@ -333,9 +333,6 @@ class McpConnection {
         if (this.client) {
           await this.client.listTools();
         }
-        logInfo(
-          `[mcp] Connected to remote MCP server "${this.serverId}" after ${attempt > 0 ? `${attempt} ${attempt === 1 ? "retry" : "retries"}` : "first attempt"}`,
-        );
         return;
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));

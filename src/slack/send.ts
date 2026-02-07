@@ -9,7 +9,6 @@ import {
 } from "../auto-reply/chunk.js";
 import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
-import { isDebuggingEnabled } from "../config/types.debugging.js";
 import { logVerbose } from "../globals.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadWebMedia } from "../web/media.js";
@@ -118,22 +117,12 @@ async function resolveChannelId(
   return { channelId, isDm: true };
 }
 
-function logTrace(msg: string, config: OpenClawConfig, obj: any) {
-  if (
-    isDebuggingEnabled(config.debugging, "slack") &&
-    config.debugging?.channels?.slack?.sendTracing
-  ) {
-    log.trace(msg, obj);
-  }
+function logTrace(msg: string, _config: OpenClawConfig, obj: any) {
+  log.trace(msg, { ...obj, channel: "slack" });
 }
 
-function logDebug(msg: string, config: OpenClawConfig, obj: any) {
-  if (
-    isDebuggingEnabled(config.debugging, "slack") &&
-    config.debugging?.channels?.slack?.sendDebug
-  ) {
-    log.debug(msg, obj);
-  }
+function logDebug(msg: string, _config: OpenClawConfig, obj: any) {
+  log.debug(msg, { ...obj, channel: "slack" });
 }
 
 async function uploadSlackFile(params: {

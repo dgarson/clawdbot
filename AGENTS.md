@@ -144,7 +144,17 @@ If a task mentions "UI work" or "control UI" or "web interface", it means `apps/
 
 - Framework: Vitest with V8 coverage thresholds (70% lines/branches/functions/statements).
 - Naming: match source names with `*.test.ts`; e2e in `*.e2e.test.ts`.
-- Run `pnpm test` (or `pnpm test:coverage`) before pushing when you touch logic.
+
+### Tiered Testing Workflow (REQUIRED)
+
+Use the 3-tier testing strategy to balance speed and coverage during development:
+
+1. **`pnpm test:affected`** — Run frequently during development. Uses Vitest's module graph to test only files related to your changes. Fast (~10-30s). Run after each significant code change to catch breakages quickly.
+2. **`pnpm test:smart`** — Run at the end of each major task or subtask. Extends `test:affected` with heuristic discovery (co-located tests, directory proximity, index/barrel fan-out). Catches ~95% of regressions in a fraction of full suite time.
+3. **`pnpm test`** — Run at the end of any major phase, OR when you believe all work is done. This is the full exhaustive suite. Iterate on any failures until they are all resolved before pushing.
+
+Both `test:affected` and `test:smart` accept `--base <ref>` (default: `main`), `--extra <file>`, and `--verbose` flags. `test:smart` also supports `--discovery-only` for dry runs.
+
 - Do not set test workers above 16; tried already.
 - Live tests (real keys): `CLAWDBOT_LIVE_TEST=1 pnpm test:live` (OpenClaw-only) or `LIVE=1 pnpm test:live` (includes provider live tests). Docker: `pnpm test:docker:live-models`, `pnpm test:docker:live-gateway`. Onboarding Docker E2E: `pnpm test:docker:onboard`.
 - Full kit + what's covered: `docs/testing.md`.

@@ -145,6 +145,12 @@ export type WorkerConfig = {
   queueId?: string;
   /** Only process items in these workstreams (omit = all). */
   workstreams?: string[];
+  /**
+   * Flexible claim mode. When true, skips workstream and agent-assignment
+   * filters so the worker claims any pending item in the target queue.
+   * Useful when items sit unclaimed due to routing constraints.
+   */
+  flexible?: boolean;
   /** Polling interval in ms when no work is available (default 5000). */
   pollIntervalMs?: number;
   /** Model override for worker sessions. */
@@ -155,6 +161,17 @@ export type WorkerConfig = {
   contextExtractor?: "transcript" | "llm";
   /** Max session timeout in seconds (default 300). */
   sessionTimeoutSeconds?: number;
+  /**
+   * Default system prompt for worker sessions.
+   * Replaces the built-in default. Items can further override via payload.systemPrompt
+   * or append via payload.systemPromptAppend.
+   */
+  defaultSystemPrompt?: string;
+  /**
+   * Default verification commands applied to all work items.
+   * Per-item `payload.verifyCommands` are appended after these defaults.
+   */
+  defaultVerifyCommands?: string[];
   /** Structured workflow pipeline config (plan → review → discover → decompose → execute). */
   workflow?: WorkerWorkflowConfig;
 };

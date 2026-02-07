@@ -33,6 +33,7 @@ import {
 import { saveSettings, type UiSettings } from "./storage.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode } from "./theme.ts";
+import { startViewTransition } from "./view-transition.ts";
 
 type SettingsHost = {
   settings: UiSettings;
@@ -136,10 +137,12 @@ export function applySettingsFromUrl(host: SettingsHost) {
   window.history.replaceState({}, "", url.toString());
 }
 
-export function setTab(host: SettingsHost, next: Tab) {
-  if (host.tab !== next) {
-    host.tab = next;
-  }
+/**
+ * Apply the actual tab change — sets host state, starts/stops polling,
+ * and refreshes data. Used by both setTab (animated) and setTabFromRoute (immediate).
+ */
+function applyTabChange(host: SettingsHost, next: Tab, opts?: { skipRefresh?: boolean }) {
+  host.tab = next;
   if (next === "chat") {
     host.chatHasAutoScrolled = false;
   }
@@ -153,7 +156,24 @@ export function setTab(host: SettingsHost, next: Tab) {
   } else {
     stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
   }
-  void refreshActiveTab(host);
+  if (!opts?.skipRefresh) {
+    void refreshActiveTab(host);
+  }
+}
+
+export function setTab(host: SettingsHost, next: Tab) {
+  const prev = host.tab;
+  if (prev === next) {
+    // Still refresh even for same-tab clicks
+    void refreshActiveTab(host);
+    return;
+  }
+
+  const applyChange = () => {
+    applyTabChange(host, next);
+  };
+
+  startViewTransition({ from: prev, to: next, applyChange });
   syncUrlWithTab(host, next, false);
 }
 
@@ -340,25 +360,9 @@ export function onPopState(host: SettingsHost) {
 }
 
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
-  if (host.tab !== next) {
-    host.tab = next;
-  }
-  if (next === "chat") {
-    host.chatHasAutoScrolled = false;
-  }
-  if (next === "logs") {
-    startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
-  } else {
-    stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
-  }
-  if (next === "debug") {
-    startDebugPolling(host as unknown as Parameters<typeof startDebugPolling>[0]);
-  } else {
-    stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
-  }
-  if (host.connected) {
-    void refreshActiveTab(host);
-  }
+  if (host.tab === next) return;
+  // Route-driven tab changes skip animation (initial load, popstate, etc.)
+  applyTabChange(host, next, { skipRefresh: !host.connected });
 }
 
 export function syncUrlWithTab(host: SettingsHost, tab: Tab, replace: boolean) {

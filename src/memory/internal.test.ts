@@ -2,7 +2,12 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { chunkMarkdown, listMemoryFiles, normalizeExtraMemoryPaths } from "./internal.js";
+import {
+  chunkMarkdown,
+  listMemoryFiles,
+  normalizeExtraMemoryPaths,
+  parseDatedFilename,
+} from "./internal.js";
 
 describe("normalizeExtraMemoryPaths", () => {
   it("trims, resolves, and dedupes paths", () => {
@@ -108,6 +113,42 @@ describe("listMemoryFiles", () => {
       expect(files.some((file) => file.endsWith("linked.md"))).toBe(false);
       expect(files.some((file) => file.endsWith("nested.md"))).toBe(false);
     }
+  });
+});
+
+describe("parseDatedFilename", () => {
+  it("returns date string for valid YYYY-MM-DD.md filenames", () => {
+    expect(parseDatedFilename("2026-01-25.md")).toBe("2026-01-25");
+    expect(parseDatedFilename("2024-12-31.md")).toBe("2024-12-31");
+    expect(parseDatedFilename("2025-02-07.md")).toBe("2025-02-07");
+  });
+
+  it("extracts basename from full paths", () => {
+    expect(parseDatedFilename("/home/user/memory/2026-01-25.md")).toBe("2026-01-25");
+    expect(parseDatedFilename("memory/2025-11-01.md")).toBe("2025-11-01");
+  });
+
+  it("returns null for non-dated filenames", () => {
+    expect(parseDatedFilename("MEMORY.md")).toBeNull();
+    expect(parseDatedFilename("reflections.md")).toBeNull();
+    expect(parseDatedFilename("notes.md")).toBeNull();
+  });
+
+  it("returns null for partial or malformed date patterns", () => {
+    expect(parseDatedFilename("2026-01.md")).toBeNull();
+    expect(parseDatedFilename("2026.md")).toBeNull();
+    expect(parseDatedFilename("01-25-2026.md")).toBeNull();
+    expect(parseDatedFilename("2026-1-5.md")).toBeNull();
+  });
+
+  it("returns null for non-.md files with date names", () => {
+    expect(parseDatedFilename("2026-01-25.txt")).toBeNull();
+    expect(parseDatedFilename("2026-01-25.json")).toBeNull();
+  });
+
+  it("returns null for files with extra text around the date", () => {
+    expect(parseDatedFilename("notes-2026-01-25.md")).toBeNull();
+    expect(parseDatedFilename("2026-01-25-notes.md")).toBeNull();
   });
 });
 

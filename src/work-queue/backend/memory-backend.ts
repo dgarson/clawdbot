@@ -9,7 +9,11 @@ import type {
   WorkQueue,
   WorkQueueStats,
 } from "../types.js";
-import type { WorkQueueBackend, WorkQueueBackendTransaction } from "./types.js";
+import type {
+  WorkQueueBackend,
+  WorkQueueBackendTransaction,
+  WorkQueueClaimOptions,
+} from "./types.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -36,11 +40,34 @@ function matchesTags(candidate: string[] | undefined, tags: string[] | undefined
 }
 
 function applyPatch(item: WorkItem, patch: WorkItemPatch): WorkItem {
-  return {
+  const updated: WorkItem = {
     ...item,
-    ...patch,
     updatedAt: new Date().toISOString(),
   };
+
+  if (patch.queueId !== undefined) updated.queueId = patch.queueId;
+  if (patch.title !== undefined) updated.title = patch.title;
+  if (Object.hasOwn(patch, "description")) updated.description = patch.description;
+  if (Object.hasOwn(patch, "payload")) updated.payload = patch.payload;
+  if (patch.status !== undefined) updated.status = patch.status;
+  if (Object.hasOwn(patch, "statusReason")) updated.statusReason = patch.statusReason;
+  if (Object.hasOwn(patch, "parentItemId")) updated.parentItemId = patch.parentItemId;
+  if (Object.hasOwn(patch, "dependsOn")) updated.dependsOn = patch.dependsOn;
+  if (Object.hasOwn(patch, "blockedBy")) updated.blockedBy = patch.blockedBy;
+  if (Object.hasOwn(patch, "assignedTo")) updated.assignedTo = patch.assignedTo;
+  if (patch.priority !== undefined) updated.priority = patch.priority;
+  if (Object.hasOwn(patch, "workstream")) updated.workstream = patch.workstream;
+  if (Object.hasOwn(patch, "tags")) updated.tags = patch.tags;
+  if (Object.hasOwn(patch, "retryCount")) updated.retryCount = patch.retryCount ?? 0;
+  if (Object.hasOwn(patch, "maxRetries")) updated.maxRetries = patch.maxRetries;
+  if (Object.hasOwn(patch, "deadline")) updated.deadline = patch.deadline;
+  if (Object.hasOwn(patch, "lastOutcome")) updated.lastOutcome = patch.lastOutcome;
+  if (Object.hasOwn(patch, "startedAt")) updated.startedAt = patch.startedAt;
+  if (Object.hasOwn(patch, "completedAt")) updated.completedAt = patch.completedAt;
+  if (Object.hasOwn(patch, "result")) updated.result = patch.result;
+  if (Object.hasOwn(patch, "error")) updated.error = patch.error;
+
+  return updated;
 }
 
 export class MemoryWorkQueueBackend implements WorkQueueBackend {
@@ -196,7 +223,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
   async claimNextItem(
     queueId: string,
     assignTo: { sessionKey?: string; agentId?: string },
-    opts?: { workstream?: string },
+    opts?: WorkQueueClaimOptions,
   ): Promise<WorkItem | null> {
     const queue = this.queues.get(queueId);
     if (!queue) {
@@ -220,6 +247,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
 
     const currentTime = new Date().toISOString();
     const wsFilter = opts?.workstream;
+    const explicitAgentId = opts?.explicitAgentId?.trim();
     const pending = Array.from(this.items.values())
       .filter((item) => item.queueId === queueId && item.status === "pending")
       .filter(depsReady)
@@ -231,7 +259,12 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
         if (item.deadline && item.deadline <= currentTime) return false;
         return true;
       })
+      .filter((item) =>
+        opts?.unscopedOnly ? !item.workstream || item.workstream.trim().length === 0 : true,
+      )
       .filter((item) => (wsFilter ? item.workstream === wsFilter : true))
+      .filter((item) => (opts?.unassignedOnly ? !item.assignedTo?.agentId : true))
+      .filter((item) => (explicitAgentId ? item.assignedTo?.agentId === explicitAgentId : true))
       .sort((a, b) => {
         const rank = priorityRank[a.priority] - priorityRank[b.priority];
         if (rank !== 0) {

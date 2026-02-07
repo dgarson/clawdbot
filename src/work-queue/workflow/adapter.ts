@@ -3,12 +3,13 @@ import type { WorkQueueStore } from "../store.js";
 import type { WorkItem, WorkItemOutcome } from "../types.js";
 import type { WorkstreamNotesStore } from "../workstream-notes.js";
 import type { GatewayCallFn, WorkflowLogger } from "./types.js";
+import {
+  BACKOFF_BASE_MS,
+  DEFAULT_POLL_INTERVAL_MS,
+  MAX_CONSECUTIVE_ERRORS,
+} from "../worker-defaults.js";
 import { WorkerMetrics, type WorkerMetricsSnapshot } from "../worker-metrics.js";
 import { WorkerWorkflowEngine } from "./engine.js";
-
-const DEFAULT_POLL_INTERVAL_MS = 5000;
-const MAX_CONSECUTIVE_ERRORS = 5;
-const BACKOFF_BASE_MS = 2000;
 
 export type WorkflowWorkerAdapterDeps = {
   store: WorkQueueStore;
@@ -201,12 +202,31 @@ export class WorkflowWorkerAdapter {
   private async claimNext(): Promise<WorkItem | null> {
     const queueId = this.targetQueueId;
     const workstreams = this.targetWorkstreams;
+    const explicitlyAssigned = await this.deps.store.claimNextItem({
+      queueId,
+      assignTo: { agentId: this.agentId },
+      explicitAgentId: this.agentId,
+    });
+    if (explicitlyAssigned) {
+      return explicitlyAssigned;
+    }
+
+    // Flexible mode: skip workstream and agent-assignment filters,
+    // claim any pending item in the target queue.
+    if (this.config.flexible) {
+      return await this.deps.store.claimNextItem({
+        queueId,
+        assignTo: { agentId: this.agentId },
+      });
+    }
+
     if (workstreams && workstreams.length > 0) {
       for (const ws of workstreams) {
         const item = await this.deps.store.claimNextItem({
           queueId,
           assignTo: { agentId: this.agentId },
           workstream: ws,
+          unassignedOnly: true,
         });
         if (item) {
           return item;
@@ -217,6 +237,8 @@ export class WorkflowWorkerAdapter {
     return this.deps.store.claimNextItem({
       queueId,
       assignTo: { agentId: this.agentId },
+      unscopedOnly: true,
+      unassignedOnly: true,
     });
   }
 

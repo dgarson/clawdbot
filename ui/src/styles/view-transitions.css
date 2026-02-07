@@ -1,0 +1,179 @@
+/* ===========================================
+   View Transition Animations
+   =========================================== */
+
+/* --- Native View Transitions API --- */
+
+/* Give the content area a view-transition-name so the API can capture it */
+.content {
+  view-transition-name: main-content;
+}
+
+/* Default cross-fade (works out of the box with any view-transition-name) */
+::view-transition-old(main-content) {
+  animation: view-fade-out 0.15s ease-out both;
+}
+
+::view-transition-new(main-content) {
+  animation: view-fade-in 0.15s ease-in 0.05s both;
+}
+
+/* Forward navigation: slide left */
+html[data-view-transition-direction="forward"]::view-transition-old(main-content) {
+  animation: view-slide-out-left 0.2s var(--ease-out, ease-out) both;
+}
+
+html[data-view-transition-direction="forward"]::view-transition-new(main-content) {
+  animation: view-slide-in-right 0.2s var(--ease-out, ease-out) both;
+}
+
+/* Backward navigation: slide right */
+html[data-view-transition-direction="backward"]::view-transition-old(main-content) {
+  animation: view-slide-out-right 0.2s var(--ease-out, ease-out) both;
+}
+
+html[data-view-transition-direction="backward"]::view-transition-new(main-content) {
+  animation: view-slide-in-left 0.2s var(--ease-out, ease-out) both;
+}
+
+/* --- Keyframes --- */
+
+@keyframes view-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes view-slide-out-left {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes view-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes view-slide-out-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes view-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* --- CSS Fallback (browsers without View Transitions API) --- */
+
+/* Fade-out transition for content swap */
+.content.view-fade-out {
+  opacity: 0;
+  transition: opacity 0.12s ease-out;
+}
+
+/* Fade-in animation after content swap */
+.content.view-fade-in {
+  animation: view-fade-in 0.12s ease-in both;
+}
+
+/* --- Reduced Motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    view-transition-name: none !important;
+  }
+
+  ::view-transition-old(main-content),
+  ::view-transition-new(main-content) {
+    animation: none !important;
+  }
+
+  .content.view-fade-out {
+    transition: none !important;
+    opacity: 1;
+  }
+
+  .content.view-fade-in {
+    animation: none !important;
+  }
+}
+
+/* --- Active tab indicator transition --- */
+
+.nav-item.active::after {
+  transition:
+    transform 0.2s var(--ease-out, ease-out),
+    opacity 0.15s ease-out;
+}
+
+/* Subtle scale-up on view entry for content sections */
+html.view-transitioning .content-header {
+  view-transition-name: content-header;
+}
+
+::view-transition-old(content-header) {
+  animation: view-fade-out 0.1s ease-out both;
+}
+
+::view-transition-new(content-header) {
+  animation: view-header-enter 0.2s var(--ease-out, ease-out) both;
+}
+
+@keyframes view-header-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.view-transitioning .content-header {
+    view-transition-name: none !important;
+  }
+
+  ::view-transition-old(content-header),
+  ::view-transition-new(content-header) {
+    animation: none !important;
+  }
+}

@@ -248,6 +248,8 @@ After **every text-based report**, generate **2–4 multiple-choice questions** 
 - Feature/approach selection (2–4 choices)
 - Post-report follow-ups (mandatory, see above)
 
+**Single-select vs Multi-select**: Use `allowMultiple=true` when David should be able to select **any number** of options (zero or more) — renders as checkboxes. Leave it `false` (default) when he should pick **exactly one** option — renders as radio buttons. If the question is "which of these do you want?" (could be several), use multi-select. If it's "which one?" or "A or B?", use single-select.
+
 #### Use `AskSlackForm` for
 
 - Collecting multiple data points at once (rare — prefer questions)
@@ -300,16 +302,17 @@ After **every text-based report**, generate **2–4 multiple-choice questions** 
 
 ## Tool Selection Guide
 
-| Need                           | Tool                                              |
-| ------------------------------ | ------------------------------------------------- |
-| Plain text message             | `message` action `send`                           |
-| Rich formatted blocks          | `SlackRichMessage`                                |
-| Yes/no approval                | `AskSlackConfirmation`                            |
-| Multiple choice (2-10 options) | `AskSlackQuestion`                                |
-| Multi-field data collection    | `AskSlackForm`                                    |
-| Status/progress indicator      | `SlackRichMessage` pattern `status` or `progress` |
-| Emoji reaction                 | `message` action `react`                          |
-| Read conversation context      | `message` action `read`                           |
+| Need                                      | Tool                                              |
+| ----------------------------------------- | ------------------------------------------------- |
+| Plain text message                        | `message` action `send`                           |
+| Rich formatted blocks                     | `SlackRichMessage`                                |
+| Yes/no approval                           | `AskSlackConfirmation`                            |
+| Multiple choice — pick one (2-10 options) | `AskSlackQuestion`                                |
+| Multiple choice — pick any number         | `AskSlackQuestion` with `allowMultiple=true`      |
+| Multi-field data collection               | `AskSlackForm`                                    |
+| Status/progress indicator                 | `SlackRichMessage` pattern `status` or `progress` |
+| Emoji reaction                            | `message` action `react`                          |
+| Read conversation context                 | `message` action `read`                           |
 
 ## Ideas to try
 

@@ -7,7 +7,6 @@ import {
   waitForEmbeddedPiRunEnd,
 } from "../../agents/pi-embedded.js";
 import { resolveSessionFilePath } from "../../config/sessions.js";
-import { isFeatureEnabled } from "../../config/types.debugging.js";
 import { logVerbose } from "../../globals.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
@@ -143,14 +142,13 @@ export const handleCompactCommand: CommandHandler = async (params) => {
     ok: result.ok,
     reason: result.reason,
   });
-  if (isFeatureEnabled(params.cfg.debugging, "compaction-hooks")) {
-    log.debug?.("Manual compaction hook emitted", {
-      sessionKey: params.sessionKey,
-      sessionId,
-      ok: result.ok,
-      compacted: result.compacted,
-    });
-  }
+  log.debug?.("Manual compaction hook emitted", {
+    sessionKey: params.sessionKey,
+    sessionId,
+    ok: result.ok,
+    compacted: result.compacted,
+    feature: "compaction-hooks",
+  });
   await triggerInternalHook(hookEvent);
   enqueueSystemEvent(line, { sessionKey: params.sessionKey });
   return { shouldContinue: false, reply: { text: `⚙️ ${line}` } };

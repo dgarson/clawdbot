@@ -4,14 +4,24 @@ import type { WorkContextExtractor, WorkItemCarryoverContext } from "./context-e
 import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
+import { SESSION_LABEL_MAX_LENGTH } from "../sessions/session-label.js";
+import {
+  buildWorkerSystemPrompt,
+  buildWorkerTaskMessage,
+  readPayload,
+  resolveRuntimeOverrides,
+} from "./system-prompt.js";
+
+import {
+  BACKOFF_BASE_MS,
+  DEFAULT_POLL_INTERVAL_MS,
+  DEFAULT_SESSION_TIMEOUT_S,
+  MAX_CONSECUTIVE_ERRORS,
+} from "./worker-defaults.js";
 import { WorkerMetrics, type WorkerMetricsSnapshot } from "./worker-metrics.js";
 
-const DEFAULT_POLL_INTERVAL_MS = 5000;
-const DEFAULT_SESSION_TIMEOUT_S = 300;
-const MAX_CONSECUTIVE_ERRORS = 5;
-const BACKOFF_BASE_MS = 2000;
-
 const APPROVAL_PATTERN = /approval|exec.*approv/i;
+const WORKER_LABEL_PREFIX = "W: ";
 
 export type WorkerDeps = {
   store: WorkQueueStore;
@@ -34,6 +44,17 @@ export type WorkerOptions = {
   agentId: string;
   config: WorkerConfig;
   deps: WorkerDeps;
+};
+
+export type WorkerStatus = {
+  agentId: string;
+  running: boolean;
+  currentItem: string | null;
+  consecutiveErrors: number;
+  lastPollTime: string | null;
+  queueId: string;
+  workstreams: string[];
+  metrics: WorkerMetricsSnapshot;
 };
 
 export class WorkQueueWorker {
@@ -282,6 +303,24 @@ export class WorkQueueWorker {
   private async claimNext(): Promise<WorkItem | null> {
     const queueId = this.targetQueueId;
     const workstreams = this.targetWorkstreams;
+    const explicitlyAssigned = await this.deps.store.claimNextItem({
+      queueId,
+      assignTo: { agentId: this.agentId },
+      explicitAgentId: this.agentId,
+    });
+    if (explicitlyAssigned) {
+      return explicitlyAssigned;
+    }
+
+    // Flexible mode: skip workstream and agent-assignment filters,
+    // claim any pending item in the target queue.
+    if (this.config.flexible) {
+      return await this.deps.store.claimNextItem({
+        queueId,
+        assignTo: { agentId: this.agentId },
+      });
+    }
+
     const workstreamDesc = workstreams.length > 0 ? workstreams.join(",") : "(all)";
     this.deps.log.debug(
       `worker[${this.agentId}]: attempting claim (queue=${queueId}, workstreams=${workstreamDesc})`,
@@ -294,6 +333,7 @@ export class WorkQueueWorker {
           queueId,
           assignTo: { agentId: this.agentId },
           workstream: ws,
+          unassignedOnly: true,
         });
         if (item) {
           this.deps.log.debug(
@@ -303,18 +343,86 @@ export class WorkQueueWorker {
         }
       }
       this.deps.log.debug(`worker[${this.agentId}]: no items available in any workstream`);
+      await this.logQueueDiagnostics(queueId, workstreams);
       return null;
     }
     const item = await this.deps.store.claimNextItem({
       queueId,
       assignTo: { agentId: this.agentId },
+      unscopedOnly: true,
+      unassignedOnly: true,
     });
     if (item) {
       this.deps.log.debug(`worker[${this.agentId}]: claimed item ${item.id}`);
     } else {
       this.deps.log.debug(`worker[${this.agentId}]: no items available to claim`);
+      await this.logQueueDiagnostics(queueId, workstreams);
     }
     return item;
+  }
+
+  /**
+   * Log a summary of all queue items when a claim attempt fails,
+   * so operators can see why nothing matched.
+   */
+  private async logQueueDiagnostics(queueId: string, workerWorkstreams: string[]): Promise<void> {
+    try {
+      const items = await this.deps.store.listItems({ queueId });
+      if (items.length === 0) {
+        this.deps.log.debug(`worker[${this.agentId}]: queue "${queueId}" is empty`);
+        return;
+      }
+
+      // Count by status.
+      const byStat: Record<string, number> = {};
+      for (const it of items) {
+        byStat[it.status] = (byStat[it.status] ?? 0) + 1;
+      }
+      const statDesc = Object.entries(byStat)
+        .map(([s, n]) => `${s}=${n}`)
+        .join(", ");
+      this.deps.log.debug(
+        `worker[${this.agentId}]: queue "${queueId}" has ${items.length} items (${statDesc})`,
+      );
+
+      // Show detail for pending items that didn't match.
+      const pending = items.filter((it) => it.status === "pending");
+      for (const it of pending) {
+        const parts: string[] = [`id=${it.id}`, `"${it.title}"`];
+        if (it.workstream) parts.push(`workstream=${it.workstream}`);
+        if (it.assignedTo?.agentId) parts.push(`assignedTo=${it.assignedTo.agentId}`);
+        if (it.dependsOn?.length) parts.push(`dependsOn=[${it.dependsOn.join(",")}]`);
+        if (it.blockedBy?.length) parts.push(`blockedBy=[${it.blockedBy.join(",")}]`);
+
+        // Identify why this item likely didn't match.
+        const reasons: string[] = [];
+        if (
+          workerWorkstreams.length > 0 &&
+          it.workstream &&
+          !workerWorkstreams.includes(it.workstream)
+        ) {
+          reasons.push(
+            `workstream "${it.workstream}" not in worker scopes [${workerWorkstreams.join(",")}]`,
+          );
+        }
+        if (workerWorkstreams.length > 0 && !it.workstream) {
+          reasons.push("item has no workstream (worker is workstream-scoped)");
+        }
+        if (it.assignedTo?.agentId && it.assignedTo.agentId !== this.agentId) {
+          reasons.push(`assigned to different agent "${it.assignedTo.agentId}"`);
+        }
+        if (it.dependsOn?.length || it.blockedBy?.length) {
+          reasons.push("has unresolved dependencies");
+        }
+        if (reasons.length > 0) {
+          parts.push(`skip-reason: ${reasons.join("; ")}`);
+        }
+
+        this.deps.log.debug(`worker[${this.agentId}]: pending item: ${parts.join(", ")}`);
+      }
+    } catch {
+      // Diagnostics are best-effort; don't disrupt the poll loop.
+    }
   }
 
   private get targetQueueId(): string {
@@ -334,24 +442,37 @@ export class WorkQueueWorker {
 
     const runId = randomUUID();
     const sessionKey = `agent:${this.agentId}:worker:${item.id}:${runId.slice(0, 8)}`;
-    const timeoutS = this.config.sessionTimeoutSeconds ?? DEFAULT_SESSION_TIMEOUT_S;
 
-    const systemPrompt = await this.buildSystemPrompt(item);
+    // Resolve runtime overrides: payload fields > WorkerConfig > defaults.
+    const payload = readPayload(item);
+    const runtime = resolveRuntimeOverrides(this.config, payload);
+    const timeoutS = runtime.timeoutSeconds;
+
+    // Build system prompt using the centralized builder.
+    const systemPrompt = buildWorkerSystemPrompt({
+      item,
+      config: this.config,
+      carryoverContext: this.carryoverContext,
+      notesStore: this.deps.notesStore,
+    });
+
+    // Build task message (title + description + instructions).
+    const taskMessage = buildWorkerTaskMessage(item);
 
     // Spawn the agent session.
     const spawnResult = await this.deps.callGateway<{ runId: string }>({
       method: "agent",
       params: {
-        message: this.buildTaskMessage(item),
+        message: taskMessage,
         sessionKey,
         idempotencyKey: runId,
         deliver: false,
         lane: "worker",
         extraSystemPrompt: systemPrompt,
-        model: this.config.model ?? undefined,
-        thinking: this.config.thinking ?? undefined,
+        model: runtime.model,
+        thinking: runtime.thinking,
         timeout: timeoutS,
-        label: `Worker: ${item.title}`,
+        label: truncateWorkerLabel(item.title),
         spawnedBy: `worker:${this.agentId}`,
       },
       timeoutMs: 10_000,
@@ -413,60 +534,6 @@ export class WorkQueueWorker {
     return { status: runStatus, error: runError, context, sessionKey, transcript };
   }
 
-  private async buildSystemPrompt(item: WorkItem): Promise<string> {
-    const parts: string[] = [];
-
-    parts.push("## Worker Task");
-    parts.push(`**Title:** ${item.title}`);
-    if (item.description) {
-      parts.push(`**Description:** ${item.description}`);
-    }
-    if (item.workstream) {
-      parts.push(`**Workstream:** ${item.workstream}`);
-    }
-    if (item.payload && Object.keys(item.payload).length > 0) {
-      parts.push(`**Payload:**\n\`\`\`json\n${JSON.stringify(item.payload, null, 2)}\n\`\`\``);
-    }
-
-    // Inject workstream notes if available.
-    if (item.workstream && this.deps.notesStore) {
-      try {
-        const notes = this.deps.notesStore.list(item.workstream, { limit: 10 });
-        if (notes.length > 0) {
-          const notesSummary = this.deps.notesStore.summarize(notes, { maxChars: 2000 });
-          if (notesSummary) {
-            parts.push("");
-            parts.push(notesSummary);
-          }
-        }
-      } catch {
-        // Notes injection is best-effort.
-      }
-    }
-
-    if (this.carryoverContext?.summary) {
-      parts.push("");
-      parts.push("## Previous Task Context");
-      parts.push(this.carryoverContext.summary);
-    }
-
-    parts.push("");
-    parts.push("## Instructions");
-    parts.push(
-      "Complete the task described above. When finished, summarize what you accomplished in your final message.",
-    );
-
-    return parts.join("\n");
-  }
-
-  private buildTaskMessage(item: WorkItem): string {
-    let msg = item.title;
-    if (item.description) {
-      msg += `\n\n${item.description}`;
-    }
-    return msg;
-  }
-
   private sleep(ms: number, signal: AbortSignal): Promise<void> {
     return new Promise((resolve) => {
       if (signal.aborted) {
@@ -481,6 +548,12 @@ export class WorkQueueWorker {
       signal.addEventListener("abort", onAbort, { once: true });
     });
   }
+}
+
+function truncateWorkerLabel(title: string): string {
+  const maxTitle = SESSION_LABEL_MAX_LENGTH - WORKER_LABEL_PREFIX.length;
+  const t = title.length > maxTitle ? title.slice(0, maxTitle - 1) + "\u2026" : title;
+  return `${WORKER_LABEL_PREFIX}${t}`;
 }
 
 type ProcessItemResult = {

@@ -169,6 +169,15 @@ export class BuiltinSqliteStore {
     return record?.hash;
   }
 
+  getFileRecord(
+    filePath: string,
+    source: MemorySource,
+  ): { hash: string; mtime: number; size: number } | undefined {
+    return this._db
+      .prepare(`SELECT hash, mtime, size FROM files WHERE path = ? AND source = ?`)
+      .get(filePath, source) as { hash: string; mtime: number; size: number } | undefined;
+  }
+
   upsertFile(entry: {
     path: string;
     source: MemorySource;
@@ -179,8 +188,7 @@ export class BuiltinSqliteStore {
     this._db
       .prepare(
         `INSERT INTO files (path, source, hash, mtime, size) VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(path) DO UPDATE SET
-           source=excluded.source,
+         ON CONFLICT(path, source) DO UPDATE SET
            hash=excluded.hash,
            mtime=excluded.mtime,
            size=excluded.size`,

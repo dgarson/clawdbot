@@ -1,5 +1,4 @@
 import type { OpenClawConfig } from "../config/config.js";
-import { isFeatureEnabled } from "../config/types.debugging.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { createInternalHookEvent, triggerInternalHook } from "./internal-hooks.js";
 
@@ -45,7 +44,6 @@ export function startCompactionScheduler(cfg?: OpenClawConfig): void {
   if (!Number.isFinite(intervalHours) || intervalHours <= 0) {
     return;
   }
-  const debugEnabled = isFeatureEnabled(cfg.debugging, "compaction-hooks");
   const intervalMs = intervalHours * 60 * 60 * 1000;
   compactionTimer = setInterval(() => {
     const hookEvent = createInternalHookEvent(
@@ -58,11 +56,10 @@ export function startCompactionScheduler(cfg?: OpenClawConfig): void {
         triggeredAt: new Date().toISOString(),
       },
     );
-    if (debugEnabled) {
-      log.debug?.("Scheduled compaction hook emitted", {
-        scheduleIntervalHours: intervalHours,
-      });
-    }
+    log.debug?.("Scheduled compaction hook emitted", {
+      scheduleIntervalHours: intervalHours,
+      feature: "compaction-hooks",
+    });
     void triggerInternalHook(hookEvent);
   }, intervalMs);
 }

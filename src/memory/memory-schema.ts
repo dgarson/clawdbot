@@ -14,11 +14,12 @@ export function ensureMemoryIndexSchema(params: {
   `);
   params.db.exec(`
     CREATE TABLE IF NOT EXISTS files (
-      path TEXT PRIMARY KEY,
+      path TEXT NOT NULL,
       source TEXT NOT NULL DEFAULT 'memory',
       hash TEXT NOT NULL,
       mtime INTEGER NOT NULL,
-      size INTEGER NOT NULL
+      size INTEGER NOT NULL,
+      PRIMARY KEY (path, source)
     );
   `);
   params.db.exec(`
@@ -79,7 +80,40 @@ export function ensureMemoryIndexSchema(params: {
   params.db.exec(`CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path);`);
   params.db.exec(`CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source);`);
 
+  migrateFilesCompositePK(params.db);
+
   return { ftsAvailable, ...(ftsError ? { ftsError } : {}) };
+}
+
+/**
+ * Migrate `files` table from single-column PK (path) to composite PK (path, source).
+ * This ensures records with the same path but different sources don't silently overwrite.
+ */
+function migrateFilesCompositePK(db: DatabaseSync): void {
+  const pkCols = (
+    db.prepare(`PRAGMA table_info(files)`).all() as Array<{ name: string; pk: number }>
+  ).filter((row) => row.pk > 0);
+
+  // Already composite or has source in PK — nothing to do
+  if (pkCols.length > 1 || pkCols.some((col) => col.name === "source")) {
+    return;
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS files_new (
+      path TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'memory',
+      hash TEXT NOT NULL,
+      mtime INTEGER NOT NULL,
+      size INTEGER NOT NULL,
+      PRIMARY KEY (path, source)
+    );
+  `);
+  db.exec(
+    `INSERT OR IGNORE INTO files_new (path, source, hash, mtime, size) SELECT path, source, hash, mtime, size FROM files;`,
+  );
+  db.exec(`DROP TABLE files;`);
+  db.exec(`ALTER TABLE files_new RENAME TO files;`);
 }
 
 function ensureColumn(

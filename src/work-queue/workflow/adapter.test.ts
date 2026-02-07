@@ -190,6 +190,18 @@ describe("WorkflowWorkerAdapter", () => {
       agentId: "test-agent",
       title: "Workflow unscoped task",
     });
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Workflow scoped task",
+      priority: "critical",
+      workstream: "alpha",
+    });
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Workflow explicit other worker",
+      priority: "critical",
+      assignedTo: { agentId: "other-worker" },
+    });
 
     mockExecuteWorkflow.mockResolvedValueOnce(makeSuccessState(item.id));
 
@@ -200,6 +212,32 @@ describe("WorkflowWorkerAdapter", () => {
 
     const updated = await store.getItem(item.id);
     expect(updated?.status).toBe("completed");
+
+    const items = await store.listItems({ queueId: "test-agent" });
+    const scoped = items.find((i) => i.title === "Workflow scoped task");
+    const explicitOther = items.find((i) => i.title === "Workflow explicit other worker");
+    expect(scoped?.status).toBe("pending");
+    expect(explicitOther?.status).toBe("pending");
+  });
+
+  it("claims explicitly assigned items for the current worker", async () => {
+    const item = await store.createItem({
+      agentId: "test-agent",
+      title: "Workflow explicit self",
+      workstream: "alpha",
+      assignedTo: { agentId: "test-agent" },
+    });
+
+    mockExecuteWorkflow.mockResolvedValueOnce(makeSuccessState(item.id));
+
+    const adapter = makeAdapter();
+    await adapter.start();
+    await new Promise((r) => setTimeout(r, 200));
+    await adapter.stop();
+
+    const updated = await store.getItem(item.id);
+    expect(updated?.status).toBe("completed");
+    expect(updated?.assignedTo?.agentId).toBe("test-agent");
   });
 
   it("treats blank workstream entries as unscoped", async () => {

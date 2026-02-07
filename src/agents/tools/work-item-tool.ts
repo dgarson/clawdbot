@@ -1,5 +1,6 @@
 import { Type } from "@sinclair/typebox";
-import type { OpenClawConfig } from "../../config/config.js";
+import { loadConfig, type OpenClawConfig } from "../../config/config.js";
+import { normalizeAgentId } from "../../routing/session-key.js";
 import { getDefaultWorkQueueStore } from "../../work-queue/index.js";
 import {
   WORK_ITEM_PRIORITIES,
@@ -90,6 +91,19 @@ function coerceStatuses(
   return undefined;
 }
 
+/** Build a map of normalised agentId → human-readable name from config. */
+function buildAgentNameMap(cfg: OpenClawConfig): Map<string, string> {
+  const map = new Map<string, string>();
+  const agents = Array.isArray(cfg.agents?.list) ? cfg.agents.list : [];
+  for (const entry of agents) {
+    const name = entry?.name?.trim();
+    if (name) {
+      map.set(normalizeAgentId(entry.id), name);
+    }
+  }
+  return map;
+}
+
 export function createWorkItemTool(options: WorkItemToolOptions = {}): AnyAgentTool {
   return {
     name: "work_item",
@@ -99,9 +113,9 @@ Items support DAG dependencies (dependsOn) — claim skips items with unsatisfie
 Use workstream to group related items across queues.
 
 Actions:
-- add: Create a new work item (supports dependsOn, workstream)
+- add: Create a new work item (supports dependsOn, workstream, optional assignedTo)
 - claim: Atomically claim the next DAG-ready item (optional workstream filter)
-- update: Update item fields (title, description, priority, tags, workstream)
+- update: Update item fields (title, description, priority, tags, workstream, assignedTo)
 - list: Query items with filters (status, priority, tags, workstream, date range)
 - get: Get a single item by ID with full details
 - complete: Mark item as completed with optional result
@@ -116,7 +130,8 @@ Actions:
       const store = await getDefaultWorkQueueStore();
       const itemId = readStringParam(params, "itemId");
       const queueId = readStringParam(params, "queueId");
-      const agentId = resolveAgentId(options, readStringParam(params, "agentId"));
+      const rawAgentId = readStringParam(params, "agentId");
+      const agentId = resolveAgentId(options, rawAgentId);
       const title = readStringParam(params, "title");
       const description = readStringParam(params, "description");
       const priority = readStringParam(params, "priority") as WorkItemPriority | undefined;
@@ -127,6 +142,8 @@ Actions:
       const tags = readStringArrayParam(params, "tags");
       const statusReason = readStringParam(params, "statusReason");
       const status = readStringParam(params, "status") as WorkItemStatus | undefined;
+      const assignedToAgentId = readStringParam(params, "assignedTo");
+      const hasAssignedToParam = Object.prototype.hasOwnProperty.call(params, "assignedTo");
       const result = (params as { result?: Record<string, unknown> }).result;
       const error = (params as { error?: Record<string, unknown> }).error as
         | import("../../work-queue/types.js").WorkItemError
@@ -155,6 +172,9 @@ Actions:
             blockedBy,
             tags,
             createdBy,
+            ...(hasAssignedToParam
+              ? { assignedTo: assignedToAgentId ? { agentId: assignedToAgentId } : undefined }
+              : {}),
             status: status ?? "pending",
             statusReason,
           });
@@ -181,15 +201,18 @@ Actions:
             dependsOn,
             blockedBy,
             parentItemId,
+            ...(hasAssignedToParam
+              ? { assignedTo: assignedToAgentId ? { agentId: assignedToAgentId } : undefined }
+              : {}),
           });
           return jsonResult({ item: updated });
         }
         case "list": {
           const statuses = readStringArrayParam(params, "statuses");
           const priorities = readStringArrayParam(params, "priorities");
-          const assignedTo = readStringParam(params, "assignedTo");
           const createdBy = readStringParam(params, "createdBy");
-          const includeCompleted = Boolean(params.includeCompleted);
+          const includeCompleted =
+            typeof params.includeCompleted === "boolean" ? params.includeCompleted : false;
           const limit = readNumberParam(params, "limit", { integer: true });
           const offset = readNumberParam(params, "offset", { integer: true });
           const orderBy = readStringParam(params, "orderBy") as
@@ -205,7 +228,7 @@ Actions:
             priority: priorities ? (priorities as WorkItemPriority[]) : undefined,
             workstream,
             tags,
-            assignedTo,
+            assignedTo: assignedToAgentId,
             createdBy,
             parentItemId,
             limit: limit ?? undefined,
@@ -213,7 +236,16 @@ Actions:
             orderBy,
             orderDir,
           });
-          return jsonResult({ items });
+
+          // Resolve agent names for assignedTo so callers see human-readable names.
+          const cfg = options.config ?? loadConfig();
+          const nameMap = buildAgentNameMap(cfg);
+          const enriched = items.map((item) => {
+            const aid = item.assignedTo?.agentId;
+            const agentName = aid ? nameMap.get(normalizeAgentId(aid)) : undefined;
+            return agentName ? { ...item, agentName } : item;
+          });
+          return jsonResult({ items: enriched });
         }
         case "get": {
           if (!itemId) {
@@ -284,9 +316,14 @@ Actions:
           if (!itemId) {
             throw new Error("itemId required");
           }
-          const targetQueueId = queueId ?? agentId;
-          if (!targetQueueId) {
+          if (!queueId && !rawAgentId) {
             throw new Error("queueId or agentId required");
+          }
+          const targetQueueId = queueId
+            ? (await store.getQueue(queueId))?.id
+            : (await store.ensureQueueForAgent(resolveAgentId(options, rawAgentId)))?.id;
+          if (!targetQueueId) {
+            throw new Error(`Queue not found: ${queueId}`);
           }
           const updated = await store.updateItem(itemId, {
             queueId: targetQueueId,

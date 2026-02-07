@@ -21,3 +21,6 @@
 
 /* Landing page */
 @import "./styles/landing-animations.css";
+
+/* View transitions */
+@import "./styles/view-transitions.css";

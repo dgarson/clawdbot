@@ -39,7 +39,7 @@ export class LandingPage extends LitElement {
       display: flex;
       flex-direction: column;
     }
-    
+
     /*
      * Below-fold sections use content-visibility: auto to skip
      * rendering until they enter the viewport. contain-intrinsic-size
@@ -54,7 +54,7 @@ export class LandingPage extends LitElement {
       content-visibility: auto;
       contain-intrinsic-size: auto 600px;
     }
-    
+
     /* The nav only needs will-change while scrolling */
     .landing-nav {
       will-change: auto;
@@ -62,7 +62,6 @@ export class LandingPage extends LitElement {
     .landing-nav.scrolled {
       will-change: background-color, padding;
     }
-    
 
     /* Skip-to-content for accessibility */
     .skip-to-content {
@@ -698,6 +697,9 @@ export { LandingFooter } from "./sections/footer-section";
 export { WaitlistModal } from "./components/waitlist-modal";
 export { DemoRequestModal } from "./components/demo-request-modal";
 export type { DemoRequestData } from "./components/demo-request-modal";
+
+// Interactive demo previews
+export { LandingDemoPreviews } from "./components/demo-previews";
 
 // SEO utilities
 export {

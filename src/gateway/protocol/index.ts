@@ -200,6 +200,11 @@ import {
   OverseerTickParamsSchema,
   type OverseerWorkUpdateParams,
   OverseerWorkUpdateParamsSchema,
+  type OverseerEventsParams,
+  OverseerEventsParamsSchema,
+  type OverseerEventsResult,
+  OverseerEventsResultSchema,
+  type OverseerEventsResultEvent,
   type SessionsUsageParams,
   SessionsUsageParamsSchema,
   type ShutdownEvent,
@@ -428,6 +433,9 @@ export const validateOverseerWorkUpdateParams = ajv.compile<OverseerWorkUpdatePa
   OverseerWorkUpdateParamsSchema,
 );
 export const validateOverseerTickParams = ajv.compile<OverseerTickParams>(OverseerTickParamsSchema);
+export const validateOverseerEventsParams = ajv.compile<OverseerEventsParams>(
+  OverseerEventsParamsSchema,
+);
 export const validateDevicePairListParams = ajv.compile<DevicePairListParams>(
   DevicePairListParamsSchema,
 );
@@ -638,6 +646,8 @@ export {
   OverseerGoalStatusResultSchema,
   OverseerWorkUpdateParamsSchema,
   OverseerTickParamsSchema,
+  OverseerEventsParamsSchema,
+  OverseerEventsResultSchema,
   LogsTailParamsSchema,
   LogsTailResultSchema,
   ChatHistoryParamsSchema,
@@ -774,6 +784,9 @@ export type {
   OverseerGoalStatusResult,
   OverseerWorkUpdateParams,
   OverseerTickParams,
+  OverseerEventsParams,
+  OverseerEventsResult,
+  OverseerEventsResultEvent,
   ExecApprovalsGetParams,
   ExecApprovalsSetParams,
   ExecApprovalsSnapshot,
