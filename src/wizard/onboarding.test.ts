@@ -163,7 +163,13 @@ describe("runOnboardingWizard", () => {
       prompter,
     );
 
-    expect(select).not.toHaveBeenCalled();
+    // Personalize phase always prompts for tool profile
+    const selectCalls = (select as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    const selectMessages = selectCalls.map((c) => (c[0] as { message?: string })?.message);
+    expect(selectMessages).toEqual([
+      // Only the tool profile select from Personalize phase
+      "What should your bot be able to do?",
+    ]);
     expect(setupChannels).not.toHaveBeenCalled();
     expect(setupSkills).not.toHaveBeenCalled();
     expect(healthCommand).not.toHaveBeenCalled();

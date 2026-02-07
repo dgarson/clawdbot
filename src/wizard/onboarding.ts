@@ -5,6 +5,7 @@ import type {
   ResetScope,
 } from "../commands/onboard-types.js";
 import type { OpenClawConfig } from "../config/config.js";
+import type { ToolProfileId } from "../config/types.tools.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { QuickstartGatewayDefaults, WizardFlow, WizardUxState } from "./onboarding.types.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
@@ -38,6 +39,7 @@ import {
 } from "../config/config.js";
 import { logConfigUpdated } from "../config/logging.js";
 import { defaultRuntime } from "../runtime.js";
+import { runSecurityAudit } from "../security/audit.js";
 import { resolveUserPath } from "../utils.js";
 import { createModeState, promptOnboardingMode } from "./onboarding-mode.js";
 import { createStepTracker } from "./onboarding-steps.js";
@@ -480,7 +482,107 @@ export async function runOnboardingWizard(
     }),
   );
 
-  // ── Phase 3: Connectivity (gateway + channels) ───────────────────────
+  // ── Phase 3: Personalize ──────────────────────────────────────────────
+  runtime.log(steps.advance());
+  runtime.log(
+    renderPhaseBanner({
+      title: ux.isRegular ? "Personality" : "Personalize",
+      subtitle: ux.isRegular
+        ? "Give your bot a name and personality"
+        : "Customize assistant identity and tool access",
+      stepNumber: steps.currentIndex() + 1,
+      totalSteps: steps.total(),
+    }),
+  );
+
+  // Bot name
+  const botName = await prompter.text({
+    message: ux.label("personalize.name"),
+    initialValue: nextConfig.ui?.assistant?.name ?? "OpenClaw",
+  });
+  if (botName.trim()) {
+    nextConfig = {
+      ...nextConfig,
+      ui: {
+        ...nextConfig.ui,
+        assistant: {
+          ...nextConfig.ui?.assistant,
+          name: botName.trim(),
+        },
+      },
+    };
+  }
+
+  // Bot avatar (emoji)
+  const botAvatar = await prompter.text({
+    message: ux.label("personalize.avatar"),
+    initialValue: nextConfig.ui?.assistant?.avatar ?? "🦞",
+  });
+  if (botAvatar.trim()) {
+    nextConfig = {
+      ...nextConfig,
+      ui: {
+        ...nextConfig.ui,
+        assistant: {
+          ...nextConfig.ui?.assistant,
+          avatar: botAvatar.trim(),
+        },
+      },
+    };
+  }
+
+  // Tool profile selection
+  const toolProfile = await prompter.select<string>({
+    message: ux.label("personalize.toolProfile"),
+    options: [
+      { value: "minimal", label: ux.label("personalize.toolProfile.minimal") },
+      { value: "messaging", label: ux.label("personalize.toolProfile.messaging") },
+      { value: "coding", label: ux.label("personalize.toolProfile.coding") },
+      { value: "full", label: ux.label("personalize.toolProfile.full") },
+    ],
+    initialValue: nextConfig.tools?.profile ?? "full",
+  });
+  nextConfig = {
+    ...nextConfig,
+    tools: {
+      ...nextConfig.tools,
+      profile: toolProfile as ToolProfileId,
+    },
+  };
+
+  // Accent color (Advanced only)
+  if (!ux.isRegular) {
+    const accentColor = await prompter.text({
+      message: ux.label("personalize.color"),
+      initialValue: nextConfig.ui?.seamColor ?? "#FF6B35",
+    });
+    if (accentColor.trim()) {
+      nextConfig = {
+        ...nextConfig,
+        ui: {
+          ...nextConfig.ui,
+          seamColor: accentColor.trim(),
+        },
+      };
+    }
+  }
+
+  // Personalize phase summary
+  runtime.log(
+    renderSummaryCard({
+      title: ux.isRegular ? "Personality" : "Personalize",
+      entries: [
+        { label: "Name", value: nextConfig.ui?.assistant?.name ?? "OpenClaw" },
+        { label: "Avatar", value: nextConfig.ui?.assistant?.avatar ?? "🦞" },
+        {
+          label: ux.isRegular ? "Can do" : "Tool profile",
+          value: toolProfile,
+        },
+      ],
+    }),
+  );
+
+  // ── Phase 4: Connectivity (gateway + channels) ───────────────────────
   runtime.log(steps.advance());
   runtime.log(
     renderPhaseBanner({
@@ -493,7 +595,7 @@ export async function runOnboardingWizard(
     }),
   );
 
-  // Improvement #14: Mid-wizard mode toggle opportunity
+  // Mid-wizard mode toggle opportunity
   if (ux.isRegular) {
     const wantsAdvanced = await prompter.confirm({
       message: "Want to see advanced network settings?",
@@ -586,23 +688,235 @@ export async function runOnboardingWizard(
   // Setup hooks (session memory on /new)
   nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
 
+  // Web search inline setup
+  const existingWebKey = (nextConfig.tools?.web?.search?.apiKey ?? "").trim();
+  const webSearchEnvKey = (process.env.BRAVE_API_KEY ?? "").trim();
+  const hasWebSearchKeyPreExisting = Boolean(existingWebKey || webSearchEnvKey);
+
+  if (!hasWebSearchKeyPreExisting) {
+    const wantsWebSearch = await prompter.confirm({
+      message: ux.label("webSearch.enable"),
+      initialValue: false,
+    });
+    if (wantsWebSearch) {
+      const apiKey = await prompter.text({
+        message: ux.label("webSearch.apiKey"),
+        initialValue: "",
+      });
+      if (apiKey.trim()) {
+        nextConfig = {
+          ...nextConfig,
+          tools: {
+            ...nextConfig.tools,
+            web: {
+              ...nextConfig.tools?.web,
+              search: {
+                ...nextConfig.tools?.web?.search,
+                apiKey: apiKey.trim(),
+              },
+            },
+          },
+        };
+      }
+    }
+  }
+
   nextConfig = applyWizardMetadata(nextConfig, { command: "onboard", mode });
   await writeConfigFile(nextConfig);
 
-  // Improvement #8: Capabilities phase summary
+  // Capabilities phase summary
   const skillCount = Object.keys(nextConfig.skills?.entries ?? {}).length;
   const hookCount = Object.keys(nextConfig.hooks?.internal?.entries ?? {}).length;
+  const webSearchConfigured = Boolean(
+    (nextConfig.tools?.web?.search?.apiKey ?? "").trim() || webSearchEnvKey,
+  );
   runtime.log(
     renderSummaryCard({
       title: ux.isRegular ? "Abilities" : "Capabilities",
       entries: [
         { label: ux.isRegular ? "Abilities" : "Skills", value: `${skillCount} configured` },
         { label: ux.isRegular ? "Automations" : "Hooks", value: `${hookCount} enabled` },
+        { label: "Web search", value: webSearchConfigured ? "Enabled" : "Not configured" },
       ],
     }),
   );
 
-  // ── Phase 5: Launch ───────────────────────────────────────────────────
+  // ── Configuration phase (Advanced only) ──────────────────────────────
+  if (steps.hasPhase("configuration")) {
+    runtime.log(steps.advance());
+    runtime.log(
+      renderPhaseBanner({
+        title: ux.label("configuration.title"),
+        subtitle: "Fine-tune logging, updates, and model fallback",
+        stepNumber: steps.currentIndex() + 1,
+        totalSteps: steps.total(),
+      }),
+    );
+
+    // Logging level
+    const logLevel = await prompter.select<string>({
+      message: ux.label("configuration.logging.level"),
+      options: [
+        { value: "info", label: "Info (default)" },
+        { value: "warn", label: "Warnings only" },
+        { value: "debug", label: "Debug" },
+        { value: "trace", label: "Trace (verbose)" },
+        { value: "error", label: "Errors only" },
+        { value: "silent", label: "Silent" },
+      ],
+      initialValue: nextConfig.logging?.level ?? "info",
+    });
+    nextConfig = {
+      ...nextConfig,
+      logging: {
+        ...nextConfig.logging,
+        level: logLevel as "silent" | "fatal" | "error" | "warn" | "info" | "debug" | "trace",
+      },
+    };
+
+    // Log file path
+    const logFileInput = await prompter.text({
+      message: ux.label("configuration.logging.file"),
+      initialValue: nextConfig.logging?.file ?? "",
+    });
+    if (logFileInput.trim()) {
+      nextConfig = {
+        ...nextConfig,
+        logging: {
+          ...nextConfig.logging,
+          file: logFileInput.trim(),
+        },
+      };
+    }
+
+    // Update channel
+    const updateChannel = await prompter.select<string>({
+      message: ux.label("configuration.update.channel"),
+      options: [
+        { value: "stable", label: "Stable (recommended)", hint: "Thoroughly tested releases" },
+        { value: "beta", label: "Beta", hint: "Preview releases, may have rough edges" },
+        { value: "dev", label: "Dev", hint: "Bleeding edge, straight from main" },
+      ],
+      initialValue: nextConfig.update?.channel ?? "stable",
+    });
+    nextConfig = {
+      ...nextConfig,
+      update: {
+        ...nextConfig.update,
+        channel: updateChannel as "stable" | "beta" | "dev",
+      },
+    };
+
+    // Model fallback
+    const currentModelCfg = nextConfig.agents?.defaults?.model;
+    const currentFallbacks =
+      typeof currentModelCfg === "object" ? currentModelCfg?.fallbacks : undefined;
+    const fallbackModelInput = await prompter.text({
+      message: ux.label("configuration.modelFallback"),
+      initialValue: currentFallbacks?.[0] ?? "",
+    });
+    if (fallbackModelInput.trim()) {
+      const currentPrimary =
+        typeof currentModelCfg === "string" ? currentModelCfg : currentModelCfg?.primary;
+      nextConfig = {
+        ...nextConfig,
+        agents: {
+          ...nextConfig.agents,
+          defaults: {
+            ...nextConfig.agents?.defaults,
+            model: {
+              primary: currentPrimary,
+              fallbacks: [fallbackModelInput.trim()],
+            },
+          },
+        },
+      };
+    }
+
+    await writeConfigFile(nextConfig);
+
+    // Configuration phase summary
+    runtime.log(
+      renderSummaryCard({
+        title: ux.label("configuration.title"),
+        entries: [
+          { label: "Log level", value: logLevel },
+          { label: "Update channel", value: updateChannel },
+          {
+            label: "Fallback model",
+            value: fallbackModelInput.trim() || "none",
+          },
+        ],
+      }),
+    );
+  }
+
+  // ── Security Audit phase (Advanced only) ────────────────────────────
+  if (steps.hasPhase("security")) {
+    runtime.log(steps.advance());
+    runtime.log(
+      renderPhaseBanner({
+        title: ux.label("securityAudit.title"),
+        subtitle: "Review your setup for potential issues",
+        stepNumber: steps.currentIndex() + 1,
+        totalSteps: steps.total(),
+      }),
+    );
+
+    const wantsAudit = await prompter.confirm({
+      message: ux.label("securityAudit.run"),
+      initialValue: true,
+    });
+
+    if (wantsAudit) {
+      const auditProgress = prompter.progress("Security audit");
+      try {
+        auditProgress.update("Running security audit…");
+        const report = await runSecurityAudit({ config: nextConfig });
+        auditProgress.stop("Security audit complete.");
+
+        const criticalCount = report.findings.filter((f) => f.severity === "critical").length;
+        const warnCount = report.findings.filter((f) => f.severity === "warn").length;
+        const infoCount = report.findings.filter((f) => f.severity === "info").length;
+
+        const summaryLines = [
+          `Findings: ${report.findings.length} total`,
+          criticalCount > 0 ? `  Critical: ${criticalCount}` : null,
+          warnCount > 0 ? `  Warnings: ${warnCount}` : null,
+          infoCount > 0 ? `  Info: ${infoCount}` : null,
+        ].filter(Boolean) as string[];
+
+        if (report.findings.length > 0) {
+          const topFindings = report.findings
+            .filter((f) => f.severity === "critical" || f.severity === "warn")
+            .slice(0, 5)
+            .map((f) => `[${f.severity.toUpperCase()}] ${f.title}: ${f.detail}`)
+            .join("\n");
+          if (topFindings) {
+            summaryLines.push("", "Top findings:", topFindings);
+          }
+          summaryLines.push("", "Run `openclaw security audit --deep` for a full report.");
+        }
+
+        await prompter.note(summaryLines.join("\n"), "Audit Results");
+      } catch {
+        auditProgress.stop("Security audit failed.");
+        await prompter.note(
+          "Security audit encountered an error. Run it manually later:\nopenclaw security audit",
+          "Audit",
+        );
+      }
+    }
+
+    runtime.log(
+      renderSummaryCard({
+        title: ux.label("securityAudit.title"),
+        entries: [{ label: "Status", value: wantsAudit ? "Completed" : "Skipped" }],
+      }),
+    );
+  }
+
+  // ── Launch phase ───────────────────────────────────────────────────────
   runtime.log(steps.advance());
   runtime.log(
     renderPhaseBanner({
@@ -613,13 +927,24 @@ export async function runOnboardingWizard(
     }),
   );
 
-  // Improvement #9: Configuration preview before finalizing
+  // Configuration preview before finalizing
   const previewSections = [
     {
       title: ux.isRegular ? "Your Bot" : "Identity",
       entries: [
         { label: ux.isRegular ? "Home folder" : "Workspace", value: workspaceDir },
         { label: ux.isRegular ? "AI model" : "Model", value: primaryModel },
+      ],
+    },
+    {
+      title: ux.isRegular ? "Personality" : "Personalize",
+      entries: [
+        { label: "Name", value: nextConfig.ui?.assistant?.name ?? "OpenClaw" },
+        { label: "Avatar", value: nextConfig.ui?.assistant?.avatar ?? "🦞" },
+        {
+          label: ux.isRegular ? "Can do" : "Tool profile",
+          value: nextConfig.tools?.profile ?? "full",
+        },
       ],
     },
     {
@@ -635,6 +960,7 @@ export async function runOnboardingWizard(
       entries: [
         { label: ux.isRegular ? "Abilities" : "Skills", value: `${skillCount} configured` },
         { label: ux.isRegular ? "Automations" : "Hooks", value: `${hookCount} enabled` },
+        { label: "Web search", value: webSearchConfigured ? "Enabled" : "Not configured" },
       ],
     },
   ];

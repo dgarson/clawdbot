@@ -135,6 +135,75 @@ export const FRIENDLY_LABELS: Record<string, { regular: string; advanced: string
   "config.keep": { regular: "Keep my current settings", advanced: "Use existing values" },
   "config.modify": { regular: "Update some settings", advanced: "Update values" },
   "config.reset": { regular: "Start fresh", advanced: "Reset" },
+
+  // Personalize phase
+  "personalize.title": { regular: "Personality", advanced: "Personalize" },
+  "personalize.name": {
+    regular: "What should your bot be called?",
+    advanced: "Assistant display name",
+  },
+  "personalize.avatar": {
+    regular: "Pick an emoji for your bot",
+    advanced: "Assistant avatar (emoji)",
+  },
+  "personalize.color": { regular: "Pick a color theme", advanced: "UI accent color (hex)" },
+  "personalize.toolProfile": {
+    regular: "What should your bot be able to do?",
+    advanced: "Tool access profile",
+  },
+  "personalize.toolProfile.minimal": {
+    regular: "Just chat (no file or system access)",
+    advanced: "Minimal (conversation only)",
+  },
+  "personalize.toolProfile.messaging": {
+    regular: "Chat + send messages",
+    advanced: "Messaging (conversation + outbound messages)",
+  },
+  "personalize.toolProfile.coding": {
+    regular: "Read files and help with code",
+    advanced: "Coding (file access + development tools)",
+  },
+  "personalize.toolProfile.full": {
+    regular: "Full assistant (files, web, commands, everything)",
+    advanced: "Full (all tools enabled)",
+  },
+
+  // Web search
+  "webSearch.title": { regular: "Web Search", advanced: "Web search" },
+  "webSearch.enable": {
+    regular: "Want your bot to search the web?",
+    advanced: "Enable web search (requires Brave Search API key)?",
+  },
+  "webSearch.apiKey": {
+    regular: "Paste your Brave Search API key",
+    advanced: "Brave Search API key",
+  },
+
+  // Configuration phase (Advanced only)
+  "configuration.title": { regular: "Fine-Tune", advanced: "Configuration" },
+  "configuration.logging.level": {
+    regular: "How much detail in logs?",
+    advanced: "Log level",
+  },
+  "configuration.logging.file": {
+    regular: "Save logs to a file?",
+    advanced: "Log file path",
+  },
+  "configuration.update.channel": {
+    regular: "Want early access to new features?",
+    advanced: "Update channel",
+  },
+  "configuration.modelFallback": {
+    regular: "Backup AI model",
+    advanced: "Fallback model",
+  },
+
+  // Security audit phase
+  "securityAudit.title": { regular: "Safety Check", advanced: "Security Audit" },
+  "securityAudit.run": {
+    regular: "Run a safety check on your setup?",
+    advanced: "Run security audit?",
+  },
 };
 
 export type OnboardingModeState = {

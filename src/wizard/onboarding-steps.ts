@@ -4,10 +4,21 @@
  * Provides a visual progress bar and phase tracking for the onboarding wizard.
  * Each phase groups related steps; the tracker renders a compact progress line
  * showing completed, active, and upcoming phases.
+ *
+ * The phase list is dynamic: Regular track has fewer phases while Advanced
+ * adds extra configuration phases (Personalize, Configuration, Security).
  */
 import { isRich, theme } from "../terminal/theme.js";
 
-export type WizardPhase = "welcome" | "identity" | "connectivity" | "capabilities" | "launch";
+export type WizardPhase =
+  | "welcome"
+  | "identity"
+  | "personalize"
+  | "connectivity"
+  | "capabilities"
+  | "configuration"
+  | "security"
+  | "launch";
 
 export type WizardPhaseInfo = {
   id: WizardPhase;
@@ -17,13 +28,57 @@ export type WizardPhaseInfo = {
   icon: string;
 };
 
-export const WIZARD_PHASES: WizardPhaseInfo[] = [
-  { id: "welcome", label: "Welcome", friendlyLabel: "Welcome", icon: "1" },
-  { id: "identity", label: "Identity", friendlyLabel: "Your Bot", icon: "2" },
-  { id: "connectivity", label: "Connectivity", friendlyLabel: "Connections", icon: "3" },
-  { id: "capabilities", label: "Capabilities", friendlyLabel: "Abilities", icon: "4" },
-  { id: "launch", label: "Launch", friendlyLabel: "Go Live", icon: "5" },
+/** All available phases. Tracks select a subset of these. */
+const ALL_PHASES: Record<WizardPhase, WizardPhaseInfo> = {
+  welcome: { id: "welcome", label: "Welcome", friendlyLabel: "Welcome", icon: "1" },
+  identity: { id: "identity", label: "Identity", friendlyLabel: "Your Bot", icon: "2" },
+  personalize: { id: "personalize", label: "Personalize", friendlyLabel: "Personality", icon: "3" },
+  connectivity: {
+    id: "connectivity",
+    label: "Connectivity",
+    friendlyLabel: "Connections",
+    icon: "4",
+  },
+  capabilities: {
+    id: "capabilities",
+    label: "Capabilities",
+    friendlyLabel: "Abilities",
+    icon: "5",
+  },
+  configuration: {
+    id: "configuration",
+    label: "Configuration",
+    friendlyLabel: "Fine-Tune",
+    icon: "6",
+  },
+  security: { id: "security", label: "Security Audit", friendlyLabel: "Safety Check", icon: "7" },
+  launch: { id: "launch", label: "Launch", friendlyLabel: "Go Live", icon: "8" },
+};
+
+/** Regular track: streamlined 6-step flow. */
+export const REGULAR_PHASES: WizardPhaseInfo[] = [
+  ALL_PHASES.welcome,
+  ALL_PHASES.identity,
+  ALL_PHASES.personalize,
+  ALL_PHASES.connectivity,
+  ALL_PHASES.capabilities,
+  ALL_PHASES.launch,
 ];
+
+/** Advanced track: full 8-step flow with configuration + security audit. */
+export const ADVANCED_PHASES: WizardPhaseInfo[] = [
+  ALL_PHASES.welcome,
+  ALL_PHASES.identity,
+  ALL_PHASES.personalize,
+  ALL_PHASES.connectivity,
+  ALL_PHASES.capabilities,
+  ALL_PHASES.configuration,
+  ALL_PHASES.security,
+  ALL_PHASES.launch,
+];
+
+/** @deprecated Use REGULAR_PHASES or ADVANCED_PHASES instead. */
+export const WIZARD_PHASES = REGULAR_PHASES;
 
 export type WizardStepTracker = {
   /** Move to the next phase and render the progress bar. */
@@ -36,20 +91,29 @@ export type WizardStepTracker = {
   currentIndex: () => number;
   /** Get total phase count. */
   total: () => number;
+  /** Check if a phase exists in this tracker's phase list. */
+  hasPhase: (id: WizardPhase) => boolean;
   /** Render a compact summary card for the completed phase. */
   renderPhaseSummary: (entries: Array<{ label: string; value: string }>) => string;
 };
 
-export function createStepTracker(options?: { friendly?: boolean }): WizardStepTracker {
+export function createStepTracker(options?: {
+  friendly?: boolean;
+  /** Phase list to use. Defaults based on friendly flag. */
+  phases?: WizardPhaseInfo[];
+}): WizardStepTracker {
   const friendly = options?.friendly ?? false;
+  const phases = options?.phases ?? (friendly ? REGULAR_PHASES : ADVANCED_PHASES);
   let index = 0;
+
+  const phaseIds = new Set(phases.map((p) => p.id));
 
   const renderBar = (): string => {
     const rich = isRich();
     const parts: string[] = [];
 
-    for (let i = 0; i < WIZARD_PHASES.length; i++) {
-      const phase = WIZARD_PHASES[i];
+    for (let i = 0; i < phases.length; i++) {
+      const phase = phases[i];
       const label = friendly ? phase.friendlyLabel : phase.label;
 
       if (i < index) {
@@ -59,7 +123,7 @@ export function createStepTracker(options?: { friendly?: boolean }): WizardStepT
         parts.push(`${check} ${text}`);
       } else if (i === index) {
         // Active - lightning accent
-        const marker = rich ? theme.accent(`◆`) : `◆`;
+        const marker = rich ? theme.accent("◆") : "◆";
         const text = rich ? theme.accentBright(label) : label;
         parts.push(`${marker} ${text}`);
       } else {
@@ -76,11 +140,9 @@ export function createStepTracker(options?: { friendly?: boolean }): WizardStepT
 
   const renderHeader = (): string => {
     const rich = isRich();
-    const phase = WIZARD_PHASES[index];
+    const phase = phases[index];
     const label = friendly ? phase.friendlyLabel : phase.label;
-    const stepLabel = `Step ${index + 1} of ${WIZARD_PHASES.length}`;
-
-    const bar = renderBar();
+    const stepLabel = `Step ${index + 1} of ${phases.length}`;
 
     // Build the styled header with box-drawing characters
     const topBorder = rich
@@ -100,23 +162,24 @@ export function createStepTracker(options?: { friendly?: boolean }): WizardStepT
       ? `${pipe}   ${theme.muted(stepLabel)}${" ".repeat(Math.max(0, 56 - stepLabel.length))}${pipe}`
       : `${pipe}   ${stepLabel}${" ".repeat(Math.max(0, 56 - stepLabel.length))}${pipe}`;
 
-    return [topBorder, titleLine, stepLine, bottomBorder, "", bar, ""].join("\n");
+    return [topBorder, titleLine, stepLine, bottomBorder, "", renderBar(), ""].join("\n");
   };
 
   return {
     advance: () => {
-      if (index < WIZARD_PHASES.length - 1) {
+      if (index < phases.length - 1) {
         index++;
       }
       return renderHeader();
     },
     render: () => renderHeader(),
-    current: () => WIZARD_PHASES[index],
+    current: () => phases[index],
     currentIndex: () => index,
-    total: () => WIZARD_PHASES.length,
+    total: () => phases.length,
+    hasPhase: (id) => phaseIds.has(id),
     renderPhaseSummary: (entries) => {
       const rich = isRich();
-      const phase = WIZARD_PHASES[index];
+      const phase = phases[index];
       const label = friendly ? phase.friendlyLabel : phase.label;
 
       const lines: string[] = [];
