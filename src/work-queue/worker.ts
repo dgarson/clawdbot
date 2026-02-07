@@ -36,6 +36,17 @@ export type WorkerOptions = {
   deps: WorkerDeps;
 };
 
+export type WorkerStatus = {
+  agentId: string;
+  running: boolean;
+  currentItem: string | null;
+  consecutiveErrors: number;
+  lastPollTime: string | null;
+  queueId: string;
+  workstreams: string[];
+  metrics: WorkerMetricsSnapshot;
+};
+
 export class WorkQueueWorker {
   private abortController = new AbortController();
   private running = false;
