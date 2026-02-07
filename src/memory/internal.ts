@@ -43,6 +43,18 @@ export function normalizeExtraMemoryPaths(workspaceDir: string, extraPaths?: str
   return Array.from(new Set(resolved));
 }
 
+const DATED_FILENAME_RE = /^(\d{4}-\d{2}-\d{2})\.md$/;
+
+/**
+ * If `filename` matches `YYYY-MM-DD.md`, return the date string (e.g. "2026-01-25").
+ * Works with both bare filenames and full paths (extracts basename).
+ */
+export function parseDatedFilename(filename: string): string | null {
+  const base = path.basename(filename);
+  const match = base.match(DATED_FILENAME_RE);
+  return match?.[1] ?? null;
+}
+
 export function isMemoryPath(relPath: string): boolean {
   const normalized = normalizeRelPath(relPath);
   if (!normalized) {

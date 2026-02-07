@@ -832,8 +832,9 @@ const FIELD_HELP: Record<string, string> = {
   "channels.slack.dm.policy":
     'Direct message access control ("pairing" recommended). "open" requires channels.slack.dm.allowFrom=["*"].',
   "debugging.channels":
-    "Channels enabled for debugging (presence of key = enabled; value = channel-specific properties, e.g. slack: { sendTracing: true }).",
-  "debugging.features": "Arbitrary feature flag strings for short-term debugging and testing.",
+    "Channels enabled for debugging. Set {verbose:true} for debug+trace, {debug:true} for debug only, or {trace:true} for trace only. Supports hierarchical subsystem matching (e.g., slack matches slack/send). Example: slack: { verbose: true }",
+  "debugging.features":
+    "Features enabled for debugging. Set {verbose:true} for debug+trace, {debug:true} for debug only, or {trace:true} for trace only. Supports hierarchical subsystem matching. Example: compaction-hooks: { verbose: true }",
 };
 
 const FIELD_PLACEHOLDERS: Record<string, string> = {

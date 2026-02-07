@@ -1,6 +1,13 @@
 import type { DatabaseSync } from "node:sqlite";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import { buildFileEntry, listMemoryFiles, type MemoryFileEntry } from "./internal.js";
+import {
+  buildFileEntry,
+  listMemoryFiles,
+  parseDatedFilename,
+  type MemoryFileEntry,
+} from "./internal.js";
 import { memLog } from "./memory-log.js";
 
 const log = createSubsystemLogger("memory");
@@ -29,20 +36,27 @@ export async function syncMemoryFiles(params: {
   model: string;
 }) {
   const files = await listMemoryFiles(params.workspaceDir, params.extraPaths);
-  const fileEntries = await Promise.all(
-    files.map(async (file) => buildFileEntry(file, params.workspaceDir)),
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Phase 1: stat all files, build lightweight info list
+  const fileInfos = await Promise.all(
+    files.map(async (absPath) => {
+      const stat = await fs.stat(absPath);
+      const relPath = path.relative(params.workspaceDir, absPath).replace(/\\/g, "/");
+      return { absPath, stat, relPath };
+    }),
   );
 
   log.debug("memory sync: indexing memory files", {
-    files: fileEntries.length,
+    files: fileInfos.length,
     needsFullReindex: params.needsFullReindex,
     batch: params.batchEnabled,
     concurrency: params.concurrency,
   });
 
-  const activePaths = new Set(fileEntries.map((entry) => entry.path));
+  const activePaths = new Set(fileInfos.map((info) => info.relPath));
   if (params.progress) {
-    params.progress.total += fileEntries.length;
+    params.progress.total += fileInfos.length;
     params.progress.report({
       completed: params.progress.completed,
       total: params.progress.total,
@@ -50,7 +64,39 @@ export async function syncMemoryFiles(params: {
     });
   }
 
-  const tasks = fileEntries.map((entry) => async () => {
+  let datedSkipped = 0;
+  const tasks = fileInfos.map((info) => async () => {
+    // Dated fast-path: for YYYY-MM-DD.md files with date < today, check mtime+size
+    if (!params.needsFullReindex) {
+      const dateStr = parseDatedFilename(info.relPath);
+      if (dateStr && dateStr < todayStr) {
+        const record = params.db
+          .prepare(`SELECT hash, mtime, size FROM files WHERE path = ? AND source = ?`)
+          .get(info.relPath, "memory") as { hash: string; mtime: number; size: number } | undefined;
+        if (
+          record &&
+          Math.floor(record.mtime) === Math.floor(info.stat.mtimeMs) &&
+          record.size === info.stat.size
+        ) {
+          memLog.trace("syncMemoryFiles (standalone): dated-fastpath-skip", {
+            path: info.relPath,
+            date: dateStr,
+          });
+          datedSkipped += 1;
+          if (params.progress) {
+            params.progress.completed += 1;
+            params.progress.report({
+              completed: params.progress.completed,
+              total: params.progress.total,
+            });
+          }
+          return;
+        }
+      }
+    }
+
+    // Full path: read file, compute hash, compare
+    const entry = await buildFileEntry(info.absPath, params.workspaceDir);
     const record = params.db
       .prepare(`SELECT hash FROM files WHERE path = ? AND source = ?`)
       .get(entry.path, "memory") as { hash: string } | undefined;

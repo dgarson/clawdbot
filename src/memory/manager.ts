@@ -44,6 +44,7 @@ import {
   isMemoryPath,
   listMemoryFiles,
   normalizeExtraMemoryPaths,
+  parseDatedFilename,
   type MemoryChunk,
   type MemoryFileEntry,
 } from "./internal.js";
@@ -882,18 +883,26 @@ export class MemoryIndexManager implements MemorySearchManager {
     progress?: MemorySyncProgressState;
   }) {
     const files = await listMemoryFiles(this.workspaceDir, this.settings.extraPaths);
-    const fileEntries = await Promise.all(
-      files.map(async (file) => buildFileEntry(file, this.workspaceDir)),
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    // Phase 1: stat all files, apply dated fast-path where possible
+    const fileInfos = await Promise.all(
+      files.map(async (absPath) => {
+        const stat = await fs.stat(absPath);
+        const relPath = path.relative(this.workspaceDir, absPath).replace(/\\/g, "/");
+        return { absPath, stat, relPath };
+      }),
     );
+
     log.debug("memory sync: indexing memory files", {
-      files: fileEntries.length,
+      files: fileInfos.length,
       needsFullReindex: params.needsFullReindex,
       batch: this.batch.enabled,
       concurrency: this.getIndexConcurrency(),
     });
-    const activePaths = new Set(fileEntries.map((entry) => entry.path));
+    const activePaths = new Set(fileInfos.map((info) => info.relPath));
     if (params.progress) {
-      params.progress.total += fileEntries.length;
+      params.progress.total += fileInfos.length;
       params.progress.report({
         completed: params.progress.completed,
         total: params.progress.total,
@@ -902,8 +911,38 @@ export class MemoryIndexManager implements MemorySearchManager {
     }
 
     let skippedCount = 0;
+    let datedSkipped = 0;
     let indexedCount = 0;
-    const tasks = fileEntries.map((entry) => async () => {
+    const tasks = fileInfos.map((info) => async () => {
+      // Dated fast-path: for YYYY-MM-DD.md files with date < today, check mtime+size
+      if (!params.needsFullReindex) {
+        const dateStr = parseDatedFilename(info.relPath);
+        if (dateStr && dateStr < todayStr) {
+          const record = this.store.getFileRecord(info.relPath, "memory");
+          if (
+            record &&
+            Math.floor(record.mtime) === Math.floor(info.stat.mtimeMs) &&
+            record.size === info.stat.size
+          ) {
+            memLog.trace("syncMemoryFiles: dated-fastpath-skip", {
+              path: info.relPath,
+              date: dateStr,
+            });
+            datedSkipped += 1;
+            if (params.progress) {
+              params.progress.completed += 1;
+              params.progress.report({
+                completed: params.progress.completed,
+                total: params.progress.total,
+              });
+            }
+            return;
+          }
+        }
+      }
+
+      // Full path: read file, compute hash, compare
+      const entry = await buildFileEntry(info.absPath, this.workspaceDir);
       const existingHash = this.store.getFileHash(entry.path, "memory");
       if (!params.needsFullReindex && existingHash === entry.hash) {
         memLog.trace("syncMemoryFiles: skip (unchanged)", { path: entry.path });
@@ -947,18 +986,21 @@ export class MemoryIndexManager implements MemorySearchManager {
     memLog.trace("syncMemoryFiles: done", {
       indexed: indexedCount,
       skipped: skippedCount,
+      datedSkipped,
       removed: removedCount,
-      total: fileEntries.length,
+      total: fileInfos.length,
     });
     this.opsLog?.log({
       action: "sync.file_indexed",
       status: "success",
       detail: {
         source: "memory",
+        agentId: this.agentId,
         indexed: indexedCount,
         skipped: skippedCount,
+        datedSkipped,
         removed: removedCount,
-        total: fileEntries.length,
+        total: fileInfos.length,
       },
     });
   }
@@ -1052,6 +1094,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       status: "success",
       detail: {
         source: "sessions",
+        agentId: this.agentId,
         indexed: sessionIndexedCount,
         skipped: sessionSkippedCount,
         removed: sessionRemovedCount,
@@ -1114,7 +1157,12 @@ export class MemoryIndexManager implements MemorySearchManager {
     this.opsLog?.log({
       action: "sync.start",
       status: "success",
-      detail: { reason: params?.reason, force: params?.force, needsFullReindex },
+      detail: {
+        agentId: this.agentId,
+        reason: params?.reason,
+        force: params?.force,
+        needsFullReindex,
+      },
     });
 
     memLog.trace("runSync: decision", {
@@ -1150,7 +1198,7 @@ export class MemoryIndexManager implements MemorySearchManager {
           action: "sync.complete",
           status: "success",
           durationMs: reindexElapsed,
-          detail: { reason: params?.reason, fullReindex: true },
+          detail: { agentId: this.agentId, reason: params?.reason, fullReindex: true },
         });
         return;
       }
@@ -1188,6 +1236,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         status: "success",
         durationMs: elapsedMs,
         detail: {
+          agentId: this.agentId,
           reason: params?.reason,
           syncedMemory: shouldSyncMemory,
           syncedSessions: shouldSyncSessions,

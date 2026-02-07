@@ -9,6 +9,7 @@ import {
   shouldLogSubsystemToConsole,
   isSubsystemDebugSuppressed,
 } from "./console.js";
+import { shouldLogDebug, shouldLogTrace, getDebugContext } from "./debug-control.js";
 import { type LogLevel, levelToMinLevel } from "./levels.js";
 import { getChildLogger } from "./logger.js";
 import { createSensitiveRedactor, getConfiguredRedactOptions } from "./redact.js";
@@ -276,13 +277,28 @@ export function createSubsystemLogger(subsystem: string): SubsystemLogger {
       fileMeta = Object.keys(rest).length > 0 ? rest : undefined;
     }
     logToFile(getFileLogger(), level, message, fileMeta);
+
+    // Early exit for debug/trace logs based on centralized debug control
+    if (level === "debug") {
+      const context = getDebugContext(meta);
+      if (!shouldLogDebug(subsystem, context)) {
+        return;
+      }
+    }
+    if (level === "trace") {
+      const context = getDebugContext(meta);
+      if (!shouldLogTrace(subsystem, context)) {
+        return;
+      }
+    }
+
     if (!shouldLogToConsole(level, { level: consoleSettings.level })) {
       return;
     }
     if (!shouldLogSubsystemToConsole(subsystem)) {
       return;
     }
-    // Check if debug/trace should be suppressed for this subsystem
+    // Keep existing suppression check for backward compatibility during rollout
     if ((level === "debug" || level === "trace") && isSubsystemDebugSuppressed(subsystem)) {
       return;
     }
