@@ -201,12 +201,22 @@ export class WorkflowWorkerAdapter {
   private async claimNext(): Promise<WorkItem | null> {
     const queueId = this.targetQueueId;
     const workstreams = this.targetWorkstreams;
+    const explicitlyAssigned = await this.deps.store.claimNextItem({
+      queueId,
+      assignTo: { agentId: this.agentId },
+      explicitAgentId: this.agentId,
+    });
+    if (explicitlyAssigned) {
+      return explicitlyAssigned;
+    }
+
     if (workstreams && workstreams.length > 0) {
       for (const ws of workstreams) {
         const item = await this.deps.store.claimNextItem({
           queueId,
           assignTo: { agentId: this.agentId },
           workstream: ws,
+          unassignedOnly: true,
         });
         if (item) {
           return item;
@@ -217,6 +227,8 @@ export class WorkflowWorkerAdapter {
     return this.deps.store.claimNextItem({
       queueId,
       assignTo: { agentId: this.agentId },
+      unscopedOnly: true,
+      unassignedOnly: true,
     });
   }
 

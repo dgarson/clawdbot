@@ -404,6 +404,93 @@ describeSqlite("SqliteWorkQueueBackend DAG enforcement", () => {
     fs.rmSync(dbPath, { force: true });
   });
 
+  it("supports explicit worker assignment claims", async () => {
+    const { dbPath, backend } = createBackend();
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "explicit-assignment",
+      agentId: "explicit-assignment",
+      name: "Explicit assignment",
+      concurrencyLimit: 5,
+      defaultPriority: "medium",
+    });
+
+    const assignedToSelf = await backend.createItem({
+      queueId: queue.id,
+      title: "Assigned to worker-a",
+      status: "pending",
+      priority: "medium",
+      assignedTo: { agentId: "worker-a" },
+    });
+    await backend.createItem({
+      queueId: queue.id,
+      title: "Assigned to worker-b",
+      status: "pending",
+      priority: "critical",
+      assignedTo: { agentId: "worker-b" },
+    });
+
+    const claimed = await backend.claimNextItem(
+      queue.id,
+      { agentId: "worker-a" },
+      {
+        explicitAgentId: "worker-a",
+      },
+    );
+    expect(claimed?.id).toBe(assignedToSelf.id);
+
+    await backend.close();
+    fs.rmSync(dbPath, { force: true });
+  });
+
+  it("supports unscoped + unassigned claims", async () => {
+    const { dbPath, backend } = createBackend();
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "unscoped-unassigned",
+      agentId: "unscoped-unassigned",
+      name: "Unscoped unassigned",
+      concurrencyLimit: 5,
+      defaultPriority: "medium",
+    });
+
+    const unscoped = await backend.createItem({
+      queueId: queue.id,
+      title: "Unscoped and unassigned",
+      status: "pending",
+      priority: "medium",
+    });
+    await backend.createItem({
+      queueId: queue.id,
+      title: "Scoped",
+      status: "pending",
+      priority: "critical",
+      workstream: "alpha",
+    });
+    await backend.createItem({
+      queueId: queue.id,
+      title: "Explicitly assigned",
+      status: "pending",
+      priority: "high",
+      assignedTo: { agentId: "worker-b" },
+    });
+
+    const claimed = await backend.claimNextItem(
+      queue.id,
+      { agentId: "worker-a" },
+      {
+        unscopedOnly: true,
+        unassignedOnly: true,
+      },
+    );
+    expect(claimed?.id).toBe(unscoped.id);
+
+    await backend.close();
+    fs.rmSync(dbPath, { force: true });
+  });
+
   it("claims any workstream when filter is not specified", async () => {
     const { dbPath, backend } = createBackend();
     await backend.initialize();

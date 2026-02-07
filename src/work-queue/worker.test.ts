@@ -225,6 +225,18 @@ describe("WorkQueueWorker", () => {
       agentId: "test-agent",
       title: "Unscoped task",
     });
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Scoped task",
+      priority: "critical",
+      workstream: "alpha",
+    });
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Explicitly assigned to other worker",
+      priority: "critical",
+      assignedTo: { agentId: "other-worker" },
+    });
 
     const worker = new WorkQueueWorker({
       agentId: "test-agent",
@@ -241,6 +253,40 @@ describe("WorkQueueWorker", () => {
 
     const updated = await store.getItem(item.id);
     expect(updated?.status).toBe("completed");
+
+    const items = await store.listItems({ queueId: "test-agent" });
+    const scoped = items.find((i) => i.title === "Scoped task");
+    const explicitOther = items.find((i) => i.title === "Explicitly assigned to other worker");
+    expect(scoped?.status).toBe("pending");
+    expect(explicitOther?.status).toBe("pending");
+  });
+
+  it("claims explicitly assigned items for the current worker", async () => {
+    const { store, deps } = createTestDeps();
+
+    const item = await store.createItem({
+      agentId: "test-agent",
+      title: "Explicitly assigned to this worker",
+      workstream: "alpha",
+      assignedTo: { agentId: "test-agent" },
+    });
+
+    const worker = new WorkQueueWorker({
+      agentId: "test-agent",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+      },
+      deps,
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 250));
+    await worker.stop();
+
+    const updated = await store.getItem(item.id);
+    expect(updated?.status).toBe("completed");
+    expect(updated?.assignedTo?.agentId).toBe("test-agent");
   });
 
   it("treats blank workstream entries as unscoped", async () => {
@@ -681,7 +727,7 @@ describe("WorkQueueWorker workstream notes injection", () => {
 
     const worker = new WorkQueueWorker({
       agentId: "test-agent",
-      config: { enabled: true, pollIntervalMs: 50 },
+      config: { enabled: true, pollIntervalMs: 50, workstreams: ["feature-dev"] },
       deps: { store, extractor, callGateway: gateway, log, notesStore },
     });
 

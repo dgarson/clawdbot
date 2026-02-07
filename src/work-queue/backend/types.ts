@@ -12,6 +12,17 @@ export interface WorkQueueBackendTransaction {
   rollback(): Promise<void>;
 }
 
+export type WorkQueueClaimOptions = {
+  /** Restrict to a specific workstream. */
+  workstream?: string;
+  /** Restrict to unscoped items (no workstream). */
+  unscopedOnly?: boolean;
+  /** Restrict to items without an explicit assignee agentId. */
+  unassignedOnly?: boolean;
+  /** Restrict to items explicitly assigned to this agentId. */
+  explicitAgentId?: string;
+};
+
 export interface WorkQueueBackend {
   initialize(): Promise<void>;
   close(): Promise<void>;
@@ -34,7 +45,7 @@ export interface WorkQueueBackend {
   claimNextItem(
     queueId: string,
     assignTo: { sessionKey?: string; agentId?: string },
-    opts?: { workstream?: string },
+    opts?: WorkQueueClaimOptions,
   ): Promise<WorkItem | null>;
 
   getQueueStats(queueId: string): Promise<WorkQueueStats>;

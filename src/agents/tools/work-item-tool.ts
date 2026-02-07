@@ -99,9 +99,9 @@ Items support DAG dependencies (dependsOn) — claim skips items with unsatisfie
 Use workstream to group related items across queues.
 
 Actions:
-- add: Create a new work item (supports dependsOn, workstream)
+- add: Create a new work item (supports dependsOn, workstream, optional assignedTo)
 - claim: Atomically claim the next DAG-ready item (optional workstream filter)
-- update: Update item fields (title, description, priority, tags, workstream)
+- update: Update item fields (title, description, priority, tags, workstream, assignedTo)
 - list: Query items with filters (status, priority, tags, workstream, date range)
 - get: Get a single item by ID with full details
 - complete: Mark item as completed with optional result
@@ -127,6 +127,8 @@ Actions:
       const tags = readStringArrayParam(params, "tags");
       const statusReason = readStringParam(params, "statusReason");
       const status = readStringParam(params, "status") as WorkItemStatus | undefined;
+      const assignedToAgentId = readStringParam(params, "assignedTo");
+      const hasAssignedToParam = Object.prototype.hasOwnProperty.call(params, "assignedTo");
       const result = (params as { result?: Record<string, unknown> }).result;
       const error = (params as { error?: Record<string, unknown> }).error as
         | import("../../work-queue/types.js").WorkItemError
@@ -155,6 +157,9 @@ Actions:
             blockedBy,
             tags,
             createdBy,
+            ...(hasAssignedToParam
+              ? { assignedTo: assignedToAgentId ? { agentId: assignedToAgentId } : undefined }
+              : {}),
             status: status ?? "pending",
             statusReason,
           });
@@ -181,13 +186,15 @@ Actions:
             dependsOn,
             blockedBy,
             parentItemId,
+            ...(hasAssignedToParam
+              ? { assignedTo: assignedToAgentId ? { agentId: assignedToAgentId } : undefined }
+              : {}),
           });
           return jsonResult({ item: updated });
         }
         case "list": {
           const statuses = readStringArrayParam(params, "statuses");
           const priorities = readStringArrayParam(params, "priorities");
-          const assignedTo = readStringParam(params, "assignedTo");
           const createdBy = readStringParam(params, "createdBy");
           const includeCompleted = Boolean(params.includeCompleted);
           const limit = readNumberParam(params, "limit", { integer: true });
@@ -205,7 +212,7 @@ Actions:
             priority: priorities ? (priorities as WorkItemPriority[]) : undefined,
             workstream,
             tags,
-            assignedTo,
+            assignedTo: assignedToAgentId,
             createdBy,
             parentItemId,
             limit: limit ?? undefined,

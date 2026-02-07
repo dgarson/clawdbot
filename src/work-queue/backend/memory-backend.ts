@@ -9,7 +9,11 @@ import type {
   WorkQueue,
   WorkQueueStats,
 } from "../types.js";
-import type { WorkQueueBackend, WorkQueueBackendTransaction } from "./types.js";
+import type {
+  WorkQueueBackend,
+  WorkQueueBackendTransaction,
+  WorkQueueClaimOptions,
+} from "./types.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -196,7 +200,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
   async claimNextItem(
     queueId: string,
     assignTo: { sessionKey?: string; agentId?: string },
-    opts?: { workstream?: string },
+    opts?: WorkQueueClaimOptions,
   ): Promise<WorkItem | null> {
     const queue = this.queues.get(queueId);
     if (!queue) {
@@ -220,6 +224,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
 
     const currentTime = new Date().toISOString();
     const wsFilter = opts?.workstream;
+    const explicitAgentId = opts?.explicitAgentId?.trim();
     const pending = Array.from(this.items.values())
       .filter((item) => item.queueId === queueId && item.status === "pending")
       .filter(depsReady)
@@ -231,7 +236,12 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
         if (item.deadline && item.deadline <= currentTime) return false;
         return true;
       })
+      .filter((item) =>
+        opts?.unscopedOnly ? !item.workstream || item.workstream.trim().length === 0 : true,
+      )
       .filter((item) => (wsFilter ? item.workstream === wsFilter : true))
+      .filter((item) => (opts?.unassignedOnly ? !item.assignedTo?.agentId : true))
+      .filter((item) => (explicitAgentId ? item.assignedTo?.agentId === explicitAgentId : true))
       .sort((a, b) => {
         const rank = priorityRank[a.priority] - priorityRank[b.priority];
         if (rank !== 0) {

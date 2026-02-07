@@ -12,7 +12,11 @@ import type {
   WorkQueue,
   WorkQueueStats,
 } from "../types.js";
-import type { WorkQueueBackend, WorkQueueBackendTransaction } from "./types.js";
+import type {
+  WorkQueueBackend,
+  WorkQueueBackendTransaction,
+  WorkQueueClaimOptions,
+} from "./types.js";
 import { requireNodeSqlite } from "../../memory/sqlite.js";
 import * as migration001 from "../migrations/001_baseline.js";
 import * as migration002 from "../migrations/002_workstream_and_tracking.js";
@@ -537,7 +541,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
   async claimNextItem(
     queueId: string,
     assignTo: { sessionKey?: string; agentId?: string },
-    opts?: { workstream?: string },
+    opts?: WorkQueueClaimOptions,
   ): Promise<WorkItem | null> {
     const db = this.requireDb();
     db.exec("BEGIN IMMEDIATE");
@@ -557,23 +561,49 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         return null;
       }
 
-      // Build the claim query with DAG enforcement and optional workstream filter.
+      // Build the claim query with DAG enforcement and optional routing filters.
       // Items whose dependsOn contains any non-completed items are skipped.
       const wsFilter = opts?.workstream;
+      const explicitAgentId = opts?.explicitAgentId?.trim();
       const now = new Date().toISOString();
+      const conditions: string[] = [
+        "wi.queue_id = ?",
+        "wi.status = 'pending'",
+        `NOT EXISTS (
+          SELECT 1 FROM json_each(wi.depends_on_json) AS dep
+          JOIN work_items dep_item ON dep_item.id = dep.value
+          WHERE dep_item.status != 'completed'
+        )`,
+        "(wi.max_retries IS NULL OR wi.retry_count < wi.max_retries)",
+        "(wi.deadline IS NULL OR wi.deadline > ?)",
+      ];
+      const params: Array<string | null> = [queueId, now];
+
+      if (wsFilter) {
+        conditions.push("wi.workstream = ?");
+        params.push(wsFilter);
+      }
+
+      if (opts?.unscopedOnly) {
+        conditions.push("(wi.workstream IS NULL OR wi.workstream = '')");
+      }
+
+      if (opts?.unassignedOnly) {
+        conditions.push(
+          "(json_extract(wi.assigned_to_json, '$.agentId') IS NULL OR json_extract(wi.assigned_to_json, '$.agentId') = '')",
+        );
+      }
+
+      if (explicitAgentId) {
+        conditions.push("json_extract(wi.assigned_to_json, '$.agentId') = ?");
+        params.push(explicitAgentId);
+      }
+
       const row = db
         .prepare(
           `
           SELECT wi.id FROM work_items wi
-          WHERE wi.queue_id = ? AND wi.status = 'pending'
-            AND NOT EXISTS (
-              SELECT 1 FROM json_each(wi.depends_on_json) AS dep
-              JOIN work_items dep_item ON dep_item.id = dep.value
-              WHERE dep_item.status != 'completed'
-            )
-            AND (wi.max_retries IS NULL OR wi.retry_count < wi.max_retries)
-            AND (wi.deadline IS NULL OR wi.deadline > ?)
-            AND (wi.workstream = ? OR ? IS NULL)
+          WHERE ${conditions.join(" AND ")}
           ORDER BY
             CASE wi.priority
               WHEN 'critical' THEN 0
@@ -585,7 +615,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
           LIMIT 1
         `,
         )
-        .get(queueId, now, wsFilter ?? null, wsFilter ?? null) as { id: string } | undefined;
+        .get(...params) as { id: string } | undefined;
       if (!row) {
         db.exec("ROLLBACK");
         return null;

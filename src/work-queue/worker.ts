@@ -282,6 +282,15 @@ export class WorkQueueWorker {
   private async claimNext(): Promise<WorkItem | null> {
     const queueId = this.targetQueueId;
     const workstreams = this.targetWorkstreams;
+    const explicitlyAssigned = await this.deps.store.claimNextItem({
+      queueId,
+      assignTo: { agentId: this.agentId },
+      explicitAgentId: this.agentId,
+    });
+    if (explicitlyAssigned) {
+      return explicitlyAssigned;
+    }
+
     const workstreamDesc = workstreams.length > 0 ? workstreams.join(",") : "(all)";
     this.deps.log.debug(
       `worker[${this.agentId}]: attempting claim (queue=${queueId}, workstreams=${workstreamDesc})`,
@@ -294,6 +303,7 @@ export class WorkQueueWorker {
           queueId,
           assignTo: { agentId: this.agentId },
           workstream: ws,
+          unassignedOnly: true,
         });
         if (item) {
           this.deps.log.debug(
@@ -308,6 +318,8 @@ export class WorkQueueWorker {
     const item = await this.deps.store.claimNextItem({
       queueId,
       assignTo: { agentId: this.agentId },
+      unscopedOnly: true,
+      unassignedOnly: true,
     });
     if (item) {
       this.deps.log.debug(`worker[${this.agentId}]: claimed item ${item.id}`);
