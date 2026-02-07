@@ -17,9 +17,18 @@ import type { SdkRunnerResult } from "./sdk-runner.types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 
 const log = createSubsystemLogger("sdk-runner-adapter");
+import { configureMemoryFeedback } from "../../memory/feedback/feedback-subscriber.js";
+import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { resolveAgentIdFromSessionKey, resolveDefaultAgentDir } from "../agent-scope.js";
 import { resolveApiKeyForProfile } from "../auth-profiles/oauth.js";
 import { ensureAuthProfileStore } from "../auth-profiles/store.js";
+import { resolveBootstrapContextForRun, makeBootstrapWarn } from "../bootstrap-files.js";
+import { resolveSessionLane, resolveGlobalLane } from "../pi-embedded-runner/lanes.js";
+import {
+  applySkillEnvOverrides,
+  applySkillEnvOverridesFromSnapshot,
+} from "../skills/env-overrides.js";
+import { loadWorkspaceSkillEntries, resolveSkillsPromptForRun } from "../skills/workspace.js";
 import {
   enrichProvidersWithAuthProfiles,
   resolveDefaultSdkProvider,
@@ -434,6 +443,8 @@ export type RunSdkAgentAdaptedParams = {
   thinkingBudget?: number;
   hooksEnabled?: boolean;
   sdkOptions?: Record<string, unknown>;
+  /** Execution lane for queue management. */
+  lane?: string;
 
   // Tools are lazily built to avoid import cycles.
   tools: AnyAgentTool[];
@@ -442,9 +453,53 @@ export type RunSdkAgentAdaptedParams = {
   onPartialReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
   onAssistantMessageStart?: () => void | Promise<void>;
   onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
+  /** Flush pending block replies (e.g., before tool execution). */
+  onBlockReplyFlush?: () => void | Promise<void>;
+  /** Called with reasoning/thinking text streamed separately. */
+  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
   onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
   onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+  /** Filter function controlling whether tool results are emitted. */
+  shouldEmitToolResult?: () => boolean;
+  /** Filter function controlling whether tool output is emitted. */
+  shouldEmitToolOutput?: () => boolean;
+
+  // Skills snapshot for parity with Pi agent.
+  skillsSnapshot?: import("../skills.js").SkillSnapshot;
 };
+
+// One-time lazy init: wire memory feedback evaluator (mirrors Pi runner's pattern).
+let sdkFeedbackConfigured = false;
+async function initSdkMemoryFeedback(cfg: OpenClawConfig): Promise<void> {
+  try {
+    const { resolveUtilityModelRef } = await import("../micro-model.js");
+    const { completeText } = await import("../../plugin-sdk/llm.js");
+
+    const ref = await resolveUtilityModelRef({ cfg, feature: "memoryFeedback" });
+    const evalProvider = ref.provider;
+    const evalModel = ref.model;
+
+    configureMemoryFeedback({
+      llmCall: async (feedbackParams) => {
+        const prompt = feedbackParams.systemPrompt
+          ? `${feedbackParams.systemPrompt}\n\n${feedbackParams.userPrompt}`
+          : feedbackParams.userPrompt;
+        const result = await completeText({
+          cfg,
+          provider: evalProvider,
+          model: evalModel,
+          prompt,
+          timeoutMs: 30_000,
+          maxTokens: feedbackParams.maxTokens,
+        });
+        return { text: result.text, inputTokens: 0, outputTokens: 0 };
+      },
+      model: `${evalProvider}/${evalModel}`,
+    });
+  } catch {
+    // Non-critical: feedback evaluation is optional.
+  }
+}
 
 /**
  * Run the SDK agent and return a Pi-compatible result.
@@ -505,100 +560,191 @@ export async function runSdkAgentAdapted(
     };
   }
 
-  // Resolve the SDK provider from config + auth profiles.
-  const mainAgentDir = params.config ? resolveDefaultAgentDir(params.config) : undefined;
-  let authStore;
-  try {
-    authStore = ensureAuthProfileStore(params.agentDir ?? mainAgentDir, {
-      mainAgentDir,
-    });
-  } catch {
-    log.trace("Could not load auth profile store");
-  }
+  // ── Lane/queue management (parity with Pi runner) ──────────────────────
+  const sessionLane = resolveSessionLane(params.sessionKey?.trim() || params.sessionId);
+  const globalLane = resolveGlobalLane(params.lane);
+  const enqueueSession = (task: () => Promise<EmbeddedPiRunResult>) =>
+    enqueueCommandInLane(sessionLane, task);
+  const enqueueGlobal = (task: () => Promise<EmbeddedPiRunResult>) =>
+    enqueueCommandInLane(globalLane, task);
 
-  // Resolve agent ID from session key to select the appropriate CCSDK provider.
-  const agentId = params.sessionKey ? resolveAgentIdFromSessionKey(params.sessionKey) : undefined;
+  return enqueueSession(() =>
+    enqueueGlobal(async () => {
+      // ── Memory feedback init (parity with Pi runner) ─────────────────────
+      if (!sdkFeedbackConfigured && params.config) {
+        sdkFeedbackConfigured = true;
+        initSdkMemoryFeedback(params.config).catch(() => {});
+      }
 
-  let providerEntry = resolveDefaultSdkProvider({
-    config: params.config,
-    agentId,
-  });
-  let authSource: string | undefined;
+      // ── Skills loading (parity with Pi runner) ───────────────────────────
+      let restoreSkillEnv: (() => void) | undefined;
+      let skillsPrompt = "";
+      try {
+        const shouldLoadSkillEntries =
+          !params.skillsSnapshot || !params.skillsSnapshot.resolvedSkills;
+        const skillEntries = shouldLoadSkillEntries
+          ? loadWorkspaceSkillEntries(params.workspaceDir)
+          : [];
+        restoreSkillEnv = params.skillsSnapshot
+          ? applySkillEnvOverridesFromSnapshot({
+              snapshot: params.skillsSnapshot,
+              config: params.config,
+            })
+          : applySkillEnvOverrides({
+              skills: skillEntries ?? [],
+              config: params.config,
+            });
+        skillsPrompt = resolveSkillsPromptForRun({
+          skillsSnapshot: params.skillsSnapshot,
+          entries: shouldLoadSkillEntries ? skillEntries : undefined,
+          config: params.config,
+          workspaceDir: params.workspaceDir,
+        });
+      } catch (err) {
+        log.debug(`Skills loading failed (non-critical): ${String(err)}`);
+      }
 
-  // Enrich with auth profile keys.
-  if (providerEntry && authStore) {
-    const enriched = enrichProvidersWithAuthProfiles({
-      providers: [providerEntry],
-      store: authStore,
-    });
-    providerEntry = enriched[0] ?? providerEntry;
-  }
+      // ── Bootstrap context (parity with Pi runner: triggers agent:bootstrap hook) ──
+      let bootstrapContext = "";
+      try {
+        const sessionLabel = params.sessionKey ?? params.sessionId;
+        const { contextFiles } = await resolveBootstrapContextForRun({
+          workspaceDir: params.workspaceDir,
+          config: params.config,
+          sessionKey: params.sessionKey,
+          sessionId: params.sessionId,
+          warn: makeBootstrapWarn({ sessionLabel, warn: (message) => log.warn(message) }),
+        });
+        // Build context file content to inject into system prompt
+        if (contextFiles.length > 0) {
+          bootstrapContext = contextFiles
+            .map((f) => (f.content ? `<context name="${f.name}">\n${f.content}\n</context>` : ""))
+            .filter(Boolean)
+            .join("\n\n");
+        }
+      } catch (err) {
+        log.debug(`Bootstrap context loading failed (non-critical): ${String(err)}`);
+      }
 
-  // Fall back to async OAuth resolution if sync enrichment didn't produce a key.
-  if (providerEntry && !providerEntry.config.env?.ANTHROPIC_AUTH_TOKEN) {
-    const result = await tryAsyncOAuthResolution(providerEntry, {
-      config: params.config,
-      agentDir: params.agentDir,
-    });
-    providerEntry = result.entry;
-    authSource = result.authSource;
-  }
+      // ── Compose system prompt with skills + bootstrap context ────────────
+      const systemPromptParts = [
+        bootstrapContext,
+        skillsPrompt
+          ? `## Skills (mandatory)\nBefore replying: scan <available_skills> <description> entries.\n- If exactly one skill clearly applies: read its SKILL.md at <location>, then follow it.\n- If multiple could apply: choose the most specific one, then read/follow it.\n- If none clearly apply: do not read any SKILL.md.\nConstraints: never read more than one skill up front; only read after selecting.\n${skillsPrompt}`
+          : "",
+        params.extraSystemPrompt,
+      ].filter(Boolean);
+      const composedSystemPrompt =
+        systemPromptParts.length > 0 ? systemPromptParts.join("\n\n") : undefined;
 
-  // Fall back to platform credential store for Claude Code subscription auth.
-  // This validates credentials exist and lets Claude Code use its own credential access.
-  if (providerEntry && !providerEntry.config.env?.ANTHROPIC_AUTH_TOKEN && !authSource) {
-    const result = tryPlatformCredentialResolution(providerEntry);
-    providerEntry = result.entry;
-    authSource = result.authSource;
-  } else if (!providerEntry) {
-    // Create a default anthropic provider entry for credential resolution
-    const defaultEntry: SdkProviderEntry = {
-      key: "anthropic",
-      config: { name: "Anthropic (Claude Code)" },
-    };
-    const result = tryPlatformCredentialResolution(defaultEntry);
-    providerEntry = result.entry;
-    authSource = result.authSource;
-  }
+      try {
+        // Resolve the SDK provider from config + auth profiles.
+        const mainAgentDir = params.config ? resolveDefaultAgentDir(params.config) : undefined;
+        let authStore;
+        try {
+          authStore = ensureAuthProfileStore(params.agentDir ?? mainAgentDir, {
+            mainAgentDir,
+          });
+        } catch {
+          log.trace("Could not load auth profile store");
+        }
 
-  log.debug(
-    `Running SDK agent with provider "${providerEntry?.config.name ?? "default"}"` +
-      (authSource ? ` (auth: ${authSource})` : ""),
+        // Resolve agent ID from session key to select the appropriate CCSDK provider.
+        const agentId = params.sessionKey
+          ? resolveAgentIdFromSessionKey(params.sessionKey)
+          : undefined;
+
+        let providerEntry = resolveDefaultSdkProvider({
+          config: params.config,
+          agentId,
+        });
+        let authSource: string | undefined;
+
+        // Enrich with auth profile keys.
+        if (providerEntry && authStore) {
+          const enriched = enrichProvidersWithAuthProfiles({
+            providers: [providerEntry],
+            store: authStore,
+          });
+          providerEntry = enriched[0] ?? providerEntry;
+        }
+
+        // Fall back to async OAuth resolution if sync enrichment didn't produce a key.
+        if (providerEntry && !providerEntry.config.env?.ANTHROPIC_AUTH_TOKEN) {
+          const result = await tryAsyncOAuthResolution(providerEntry, {
+            config: params.config,
+            agentDir: params.agentDir,
+          });
+          providerEntry = result.entry;
+          authSource = result.authSource;
+        }
+
+        // Fall back to platform credential store for Claude Code subscription auth.
+        // This validates credentials exist and lets Claude Code use its own credential access.
+        if (providerEntry && !providerEntry.config.env?.ANTHROPIC_AUTH_TOKEN && !authSource) {
+          const result = tryPlatformCredentialResolution(providerEntry);
+          providerEntry = result.entry;
+          authSource = result.authSource;
+        } else if (!providerEntry) {
+          // Create a default anthropic provider entry for credential resolution
+          const defaultEntry: SdkProviderEntry = {
+            key: "anthropic",
+            config: { name: "Anthropic (Claude Code)" },
+          };
+          const result = tryPlatformCredentialResolution(defaultEntry);
+          providerEntry = result.entry;
+          authSource = result.authSource;
+        }
+
+        log.debug(
+          `Running SDK agent with provider "${providerEntry?.config.name ?? "default"}"` +
+            (authSource ? ` (auth: ${authSource})` : ""),
+        );
+
+        const sdkResult = await runSdkAgent({
+          runId: params.runId,
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          prompt: params.prompt,
+          workspaceDir: params.workspaceDir,
+          agentDir: params.agentDir,
+          config: params.config,
+          tools: params.tools,
+          provider: providerEntry?.config,
+          systemPrompt: composedSystemPrompt,
+          model: params.model,
+          thinkingBudget: params.thinkingBudget,
+          timeoutMs: params.timeoutMs,
+          abortSignal: params.abortSignal,
+          claudeSessionId: params.claudeSessionId,
+          hooksEnabled: params.hooksEnabled,
+          sdkOptions: params.sdkOptions,
+          onPartialReply: params.onPartialReply,
+          onAssistantMessageStart: params.onAssistantMessageStart,
+          onBlockReply: params.onBlockReply,
+          onBlockReplyFlush: params.onBlockReplyFlush,
+          onReasoningStream: params.onReasoningStream,
+          onToolResult: params.onToolResult,
+          onAgentEvent: params.onAgentEvent,
+          shouldEmitToolResult: params.shouldEmitToolResult,
+          shouldEmitToolOutput: params.shouldEmitToolOutput,
+        });
+
+        // Persist a minimal user/assistant turn pair so SDK main-agent mode has multi-turn continuity.
+        // This intentionally records only text, not tool call structures.
+        appendSdkTurnPairToSessionTranscript({
+          sessionFile: params.sessionFile,
+          prompt: params.prompt,
+          assistantText: sdkResult.payloads.find(
+            (p) => !p.isError && typeof p.text === "string" && p.text.trim(),
+          )?.text,
+        });
+
+        return adaptSdkResultToPiResult({ result: sdkResult, sessionId: params.sessionId });
+      } finally {
+        // Restore skill env overrides (parity with Pi runner's finally block).
+        restoreSkillEnv?.();
+      }
+    }),
   );
-
-  const sdkResult = await runSdkAgent({
-    runId: params.runId,
-    sessionId: params.sessionId,
-    prompt: params.prompt,
-    workspaceDir: params.workspaceDir,
-    agentDir: params.agentDir,
-    config: params.config,
-    tools: params.tools,
-    provider: providerEntry?.config,
-    systemPrompt: params.extraSystemPrompt,
-    model: params.model,
-    thinkingBudget: params.thinkingBudget,
-    timeoutMs: params.timeoutMs,
-    abortSignal: params.abortSignal,
-    claudeSessionId: params.claudeSessionId,
-    hooksEnabled: params.hooksEnabled,
-    sdkOptions: params.sdkOptions,
-    onPartialReply: params.onPartialReply,
-    onAssistantMessageStart: params.onAssistantMessageStart,
-    onBlockReply: params.onBlockReply,
-    onToolResult: params.onToolResult,
-    onAgentEvent: params.onAgentEvent,
-  });
-
-  // Persist a minimal user/assistant turn pair so SDK main-agent mode has multi-turn continuity.
-  // This intentionally records only text, not tool call structures.
-  appendSdkTurnPairToSessionTranscript({
-    sessionFile: params.sessionFile,
-    prompt: params.prompt,
-    assistantText: sdkResult.payloads.find(
-      (p) => !p.isError && typeof p.text === "string" && p.text.trim(),
-    )?.text,
-  });
-
-  return adaptSdkResultToPiResult({ result: sdkResult, sessionId: params.sessionId });
 }

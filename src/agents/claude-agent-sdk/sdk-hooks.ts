@@ -1,3 +1,4 @@
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import {
   extractToolErrorMessage,
   extractToolResultText,
@@ -85,6 +86,18 @@ export function buildClawdbrainSdkHooks(params: {
     args?: Record<string, unknown>;
   }) => void;
   onToolEndEvent?: (evt: { name: string; toolCallId?: string; isError: boolean }) => void;
+  /** Flush pending block replies before tool execution (parity with Pi runner). */
+  onBlockReplyFlush?: () => void | Promise<void>;
+  /** Filter function controlling whether tool results are emitted. */
+  shouldEmitToolResult?: () => boolean;
+  /** Session key for bridging to internal hooks. */
+  sessionKey?: string;
+  /** Run ID for internal hook context. */
+  runId?: string;
+  /** Session ID for internal hook context. */
+  sessionId?: string;
+  /** Config for internal hook context. */
+  config?: unknown;
 }): SdkHooksConfig {
   const emitHook = (hookEventName: SdkHookEventName, input: unknown, toolUseId: unknown) => {
     const payload = isRecord(input) ? input : { input };
@@ -93,6 +106,15 @@ export function buildClawdbrainSdkHooks(params: {
 
   const toolStartHook: SdkHookCallback = async (input, toolUseId) => {
     emitHook("PreToolUse", input, toolUseId);
+
+    // Flush pending block replies before tool execution (parity with Pi runner).
+    if (params.onBlockReplyFlush) {
+      try {
+        await params.onBlockReplyFlush();
+      } catch {
+        // ignore callback errors
+      }
+    }
 
     const record = isRecord(input) ? input : undefined;
     const rawName = typeof record?.tool_name === "string" ? record.tool_name : "";
@@ -148,7 +170,9 @@ export function buildClawdbrainSdkHooks(params: {
       }
     }
 
-    if (resultText && params.onToolResult) {
+    // Apply shouldEmitToolResult filter (parity with Pi runner).
+    const shouldEmit = params.shouldEmitToolResult?.() ?? true;
+    if (shouldEmit && resultText && params.onToolResult) {
       try {
         await params.onToolResult({ text: resultText });
       } catch {
@@ -231,6 +255,24 @@ export function buildClawdbrainSdkHooks(params: {
       trigger,
       source: "claude-agent-sdk",
     });
+
+    // Bridge to internal hook system (parity with Pi runner's agent:precompact).
+    const hookSessionKey = params.sessionKey ?? params.sessionId ?? params.runId;
+    if (hookSessionKey) {
+      try {
+        const hookEvent = createInternalHookEvent("agent", "precompact", hookSessionKey, {
+          cfg: params.config,
+          runId: params.runId,
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          trigger,
+          source: "claude-agent-sdk",
+        });
+        void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
+      } catch {
+        // ignore hook errors
+      }
+    }
 
     return {};
   };

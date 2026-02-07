@@ -77,7 +77,7 @@ async function coerceAsyncIterable(value: unknown): Promise<AsyncIterable<unknow
  * - "system": lifecycle/diagnostic event
  * - "unknown": unrecognized shape
  */
-type EventKind = "result" | "assistant" | "tool" | "system" | "unknown";
+type EventKind = "result" | "assistant" | "tool" | "system" | "reasoning" | "unknown";
 
 function classifyEvent(event: unknown): { kind: EventKind; event: unknown } {
   if (!isRecord(event)) {
@@ -106,10 +106,9 @@ function classifyEvent(event: unknown): { kind: EventKind; event: unknown } {
     return { kind: "system", event };
   }
 
-  // Thinking/reasoning events should NOT be classified as assistant messages.
-  // These should never produce text output that reaches channels.
+  // Thinking/reasoning events — routed to onReasoningStream if available.
   if (type === "thinking" || type === "thinking_delta" || type === "reasoning") {
-    return { kind: "system", event };
+    return { kind: "reasoning" as EventKind, event };
   }
 
   // Assistant message events (has text content).
@@ -619,6 +618,14 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           trackMessagingToolEnd(evt.name, evt.toolCallId, evt.isError);
         }
       },
+      // Parity callbacks (Pi runner equivalents).
+      onBlockReplyFlush: params.onBlockReplyFlush,
+      shouldEmitToolResult: params.shouldEmitToolResult,
+      // Internal hook bridging context.
+      sessionKey: params.sessionKey,
+      runId: params.runId,
+      sessionId: params.sessionId,
+      config: params.config,
     }) as unknown as Record<string, unknown>;
   }
 
@@ -784,9 +791,55 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           willRetry: false, // SDK doesn't expose retry info
           source: "claude-agent-sdk",
         });
+
+        // Bridge to internal hook system (parity with Pi runner's agent:compaction:end).
+        const hookSessionKey = params.sessionKey ?? params.sessionId;
+        if (hookSessionKey) {
+          try {
+            const { createInternalHookEvent, triggerInternalHook } =
+              await import("../../hooks/internal-hooks.js");
+            const hookEvent = createInternalHookEvent("agent", "compaction:end", hookSessionKey, {
+              cfg: params.config,
+              runId: params.runId,
+              sessionId: params.sessionId,
+              sessionKey: params.sessionKey,
+              willRetry: false,
+              trigger,
+              source: "claude-agent-sdk",
+            });
+            void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
+          } catch {
+            // ignore hook errors
+          }
+        }
       }
 
       const { kind } = classifyEvent(event);
+
+      // Route reasoning/thinking events to onReasoningStream callback.
+      if (kind === "reasoning" && params.onReasoningStream) {
+        const text = extractTextFromClaudeAgentSdkEvent(event);
+        if (text) {
+          try {
+            await params.onReasoningStream({ text });
+          } catch {
+            // Don't break the stream on callback errors.
+          }
+        }
+      }
+
+      // Flush block replies before tool execution (parity with Pi runner).
+      if (kind === "tool" && params.onBlockReplyFlush) {
+        const record = isRecord(event) ? event : undefined;
+        const type = record && typeof record.type === "string" ? record.type : undefined;
+        if (type === "tool_execution_start" || type === "tool_use") {
+          try {
+            await params.onBlockReplyFlush();
+          } catch {
+            // Don't break the stream on callback errors.
+          }
+        }
+      }
 
       // Emit tool results via callback.
       if (!hooksEnabled && kind === "tool") {
@@ -846,17 +899,21 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       }
 
       if (!hooksEnabled && kind === "tool" && params.onToolResult) {
-        const toolText = extractTextFromClaudeAgentSdkEvent(event);
-        if (toolText) {
-          try {
-            // Only emit tool results for terminal tool events to match Pi semantics more closely.
-            const record = isRecord(event) ? event : undefined;
-            const type = record && typeof record.type === "string" ? record.type : "";
-            if (isSdkTerminalToolEventType(type)) {
-              await params.onToolResult({ text: toolText });
+        // Apply shouldEmitToolResult filter (parity with Pi runner).
+        const shouldEmit = params.shouldEmitToolResult?.() ?? true;
+        if (shouldEmit) {
+          const toolText = extractTextFromClaudeAgentSdkEvent(event);
+          if (toolText) {
+            try {
+              // Only emit tool results for terminal tool events to match Pi semantics more closely.
+              const record = isRecord(event) ? event : undefined;
+              const type = record && typeof record.type === "string" ? record.type : "";
+              if (isSdkTerminalToolEventType(type)) {
+                await params.onToolResult({ text: toolText });
+              }
+            } catch {
+              // Don't break the stream on callback errors.
             }
-          } catch {
-            // Don't break the stream on callback errors.
           }
         }
       }

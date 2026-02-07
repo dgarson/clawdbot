@@ -44,8 +44,16 @@ export type AgentRuntimeCallbacks = {
   onPartialReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
   onAssistantMessageStart?: () => void | Promise<void>;
   onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
+  /** Flush pending block replies (e.g., before tool execution to preserve message boundaries). */
+  onBlockReplyFlush?: () => void | Promise<void>;
+  /** Called with reasoning/thinking text streamed separately from assistant text. */
+  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
   onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
   onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+  /** Filter function controlling whether tool results are emitted. */
+  shouldEmitToolResult?: () => boolean;
+  /** Filter function controlling whether tool output is emitted. */
+  shouldEmitToolOutput?: () => boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -68,6 +76,10 @@ export type AgentRuntimeRunParams = {
   abortSignal?: AbortSignal;
   /** Optional inbound images/audio/video (multimodal input support). */
   images?: ImageContent[];
+  /** Pre-computed skills snapshot for injection into system prompt. */
+  skillsSnapshot?: unknown;
+  /** Execution lane for queue management. */
+  lane?: string;
 } & AgentRuntimeCallbacks;
 
 // ---------------------------------------------------------------------------

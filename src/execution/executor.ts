@@ -597,6 +597,20 @@ export class DefaultTurnExecutor implements TurnExecutor {
             ? (evt: { stream: string; data: Record<string, unknown> }) =>
                 request.onAgentEvent?.(evt)
             : undefined,
+          // Parity callbacks (Pi runner equivalents).
+          onBlockReplyFlush: request.onBlockReplyFlush,
+          onReasoningStream: request.onReasoningStream
+            ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
+                request.onReasoningStream?.({
+                  text: payload.text,
+                  mediaUrls: payload.mediaUrls,
+                })
+            : undefined,
+          shouldEmitToolResult: request.shouldEmitToolResult,
+          shouldEmitToolOutput: request.shouldEmitToolOutput,
+          // Skills and lane parity.
+          skillsSnapshot: hints?.skillsSnapshot,
+          lane: hints?.lane,
         });
 
         // Map EmbeddedPiRunResult to RuntimeAdapterResult (same shape as Pi)

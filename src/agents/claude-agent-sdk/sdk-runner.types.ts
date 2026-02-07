@@ -133,11 +133,26 @@ export type SdkRunnerParams = {
   /** Called when the agent completes a block reply. */
   onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
 
+  /** Flush pending block replies (e.g., before tool execution to preserve message boundaries). */
+  onBlockReplyFlush?: () => void | Promise<void>;
+
+  /** Called with reasoning/thinking text streamed separately from assistant text. */
+  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
+
   /** Called when a tool result is produced. */
   onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
 
   /** Called for lifecycle / diagnostic events. */
   onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+
+  /** Filter function controlling whether tool results are emitted. */
+  shouldEmitToolResult?: () => boolean;
+
+  /** Filter function controlling whether tool output is emitted. */
+  shouldEmitToolOutput?: () => boolean;
+
+  /** Session key for internal hook integration. */
+  sessionKey?: string;
 
   /**
    * MCP server name for the bridged Clawdbrain tools.
