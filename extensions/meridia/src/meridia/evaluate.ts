@@ -1,10 +1,5 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import { completeTextWithModelRef } from "openclaw/plugin-sdk";
-<<<<<<< HEAD
-import type { ScoringConfig, ScoringContext, ScoringResult } from "./scoring/types.js";
-import type { MeridiaEvaluation, MeridiaToolResultContext } from "./types.js";
-import { evaluateMemoryRelevance } from "./scoring/index.js";
-=======
 import type { ScoringBreakdown, ScoringConfig, ScoringContext } from "./scoring/types.js";
 import type { MeridiaEvaluation, MeridiaToolResultContext } from "./types.js";
 import {
@@ -15,7 +10,6 @@ import {
   breakdownToTrace,
   formatBreakdown,
 } from "./scoring/scorer.js";
->>>>>>> origin/main
 
 function clamp01(value: number): number {
   if (value <= 0) {
@@ -57,57 +51,45 @@ function extractFirstJsonObject(raw: string): Record<string, unknown> | null {
   }
 }
 
-/**
- * Convert a MeridiaToolResultContext to a ScoringContext for the multi-factor scorer.
- */
-function toScoringContext(ctx: MeridiaToolResultContext): ScoringContext {
-  return {
-    tool: ctx.tool,
-    args: ctx.args,
-    result: ctx.result,
-    session: ctx.session,
-  };
-}
+export function evaluateHeuristic(ctx: MeridiaToolResultContext): MeridiaEvaluation {
+  const tool = ctx.tool.name.trim().toLowerCase();
+  const isError = ctx.tool.isError;
+  let score = 0.1;
+  let reason = "default";
 
-/**
- * Legacy heuristic evaluation — maintained for backward compatibility.
- * Internally delegates to the new multi-factor scoring system.
- */
-export function evaluateHeuristic(
-  ctx: MeridiaToolResultContext,
-  scoringConfig?: Partial<ScoringConfig>,
-): MeridiaEvaluation {
-  const scoringCtx = toScoringContext(ctx);
-  const result = evaluateMemoryRelevance(scoringCtx, scoringConfig);
+  if (isError) {
+    score = 0.55;
+    reason = "tool_error";
+  }
 
+  if (tool === "exec" || tool === "bash") {
+    score = Math.max(score, 0.5);
+    reason = reason === "tool_error" ? reason : "shell_exec";
+  } else if (tool === "write" || tool === "apply_patch" || tool === "edit") {
+    score = Math.max(score, 0.6);
+    reason = reason === "tool_error" ? reason : "filesystem_write";
+  } else if (tool === "message" || tool === "sessions_send") {
+    score = Math.max(score, 0.65);
+    reason = reason === "tool_error" ? reason : "external_message";
+  } else if (tool === "browser") {
+    score = Math.max(score, 0.35);
+    reason = reason === "tool_error" ? reason : "web_browse";
+  } else if (tool === "read") {
+    score = Math.max(score, 0.15);
+    reason = reason === "tool_error" ? reason : "filesystem_read";
+  }
+
+  const resultPreviewLen = summarize(ctx.result, 2000).length;
+  if (resultPreviewLen > 2000) {
+    score = Math.max(score, 0.4);
+    reason = reason === "tool_error" ? reason : "large_result";
+  }
+
+  const finalScore = clamp01(score);
   return {
     kind: "heuristic",
-    score: result.score,
-    reason: result.reason,
-  };
-}
-
-/**
- * Enhanced heuristic evaluation that returns full scoring details.
- */
-export function evaluateHeuristicDetailed(
-  ctx: MeridiaToolResultContext,
-  scoringConfig?: Partial<ScoringConfig>,
-): {
-  evaluation: MeridiaEvaluation;
-  scoring: ScoringResult;
-} {
-  const scoringCtx = toScoringContext(ctx);
-  const scoring = evaluateMemoryRelevance(scoringCtx, scoringConfig);
-
-  return {
-    evaluation: {
-      kind: "heuristic",
-      score: scoring.score,
-      reason: scoring.reason,
-      durationMs: scoring.durationMs,
-    },
-    scoring,
+    score: finalScore,
+    reason,
   };
 }
 
