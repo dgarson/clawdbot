@@ -177,7 +177,12 @@ describe("runOnboardingWizard", () => {
     await fs.writeFile(path.join(workspaceDir, DEFAULT_BOOTSTRAP_FILENAME), "{}");
 
     const select: WizardPrompter["select"] = vi.fn(async (opts) => {
-      if (opts.message === "How do you want to hatch your bot?") {
+      // Regular mode: "How do you want to start chatting?"
+      // Advanced mode: "How do you want to hatch your bot?"
+      if (
+        opts.message === "How do you want to start chatting?" ||
+        opts.message === "How do you want to hatch your bot?"
+      ) {
         return "tui";
       }
       return "quickstart";
@@ -234,7 +239,12 @@ describe("runOnboardingWizard", () => {
     const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-onboard-"));
 
     const select: WizardPrompter["select"] = vi.fn(async (opts) => {
-      if (opts.message === "How do you want to hatch your bot?") {
+      // Regular mode: "How do you want to start chatting?"
+      // Advanced mode: "How do you want to hatch your bot?"
+      if (
+        opts.message === "How do you want to start chatting?" ||
+        opts.message === "How do you want to hatch your bot?"
+      ) {
         return "tui";
       }
       return "quickstart";
@@ -325,7 +335,10 @@ describe("runOnboardingWizard", () => {
 
       const calls = (note as unknown as { mock: { calls: unknown[][] } }).mock.calls;
       expect(calls.length).toBeGreaterThan(0);
-      expect(calls.some((call) => call?.[1] === "Web search (optional)")).toBe(true);
+      // Regular mode: "Web Search"; Advanced mode: "Web search (optional)"
+      expect(
+        calls.some((call) => call?.[1] === "Web Search" || call?.[1] === "Web search (optional)"),
+      ).toBe(true);
     } finally {
       if (prevBraveKey === undefined) {
         delete process.env.BRAVE_API_KEY;

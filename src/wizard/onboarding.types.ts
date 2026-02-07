@@ -1,4 +1,5 @@
 import type { GatewayAuthChoice } from "../commands/onboard-types.js";
+import type { OnboardingMode } from "./onboarding-mode.js";
 
 export type WizardFlow = "quickstart" | "advanced";
 
@@ -22,4 +23,14 @@ export type GatewayWizardSettings = {
   gatewayToken?: string;
   tailscaleMode: "off" | "serve" | "funnel";
   tailscaleResetOnExit: boolean;
+};
+
+/** Wizard UX state passed through all phases. */
+export type WizardUxState = {
+  /** Whether wizard uses Regular or Advanced terminology. */
+  onboardingMode: OnboardingMode;
+  /** Resolve a label key to the appropriate terminology for the current mode. */
+  label: (key: string) => string;
+  /** Whether onboarding mode is regular. */
+  isRegular: boolean;
 };

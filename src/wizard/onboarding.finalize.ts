@@ -3,7 +3,7 @@ import path from "node:path";
 import type { OnboardOptions } from "../commands/onboard-types.js";
 import type { OpenClawConfig } from "../config/config.js";
 import type { RuntimeEnv } from "../runtime.js";
-import type { GatewayWizardSettings, WizardFlow } from "./onboarding.types.js";
+import type { GatewayWizardSettings, WizardFlow, WizardUxState } from "./onboarding.types.js";
 import type { WizardPrompter } from "./prompts.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../agents/workspace.js";
 import { resolveCliName } from "../cli/cli-name.js";
@@ -47,12 +47,16 @@ type FinalizeOnboardingOptions = {
   settings: GatewayWizardSettings;
   prompter: WizardPrompter;
   runtime: RuntimeEnv;
+  /** UX state for mode-aware labels. */
+  ux?: WizardUxState;
 };
 
 export async function finalizeOnboardingWizard(
   options: FinalizeOnboardingOptions,
 ): Promise<{ launchedTui: boolean }> {
-  const { flow, opts, baseConfig, nextConfig, settings, prompter, runtime } = options;
+  const { flow, opts, baseConfig, nextConfig, settings, prompter, runtime, ux } = options;
+  // Helper for mode-aware labels
+  const label = (key: string, fallback: string): string => ux?.label(key) ?? fallback;
 
   const withWizardProgress = async <T>(
     label: string,
@@ -101,7 +105,7 @@ export async function finalizeOnboardingWizard(
     installDaemon = true;
   } else {
     installDaemon = await prompter.confirm({
-      message: "Install Gateway service (recommended)",
+      message: label("gateway.install", "Install Gateway service (recommended)"),
       initialValue: true,
     });
   }
@@ -119,7 +123,7 @@ export async function finalizeOnboardingWizard(
       flow === "quickstart"
         ? DEFAULT_GATEWAY_DAEMON_RUNTIME
         : await prompter.select({
-            message: "Gateway service runtime",
+            message: label("gateway.runtime", "Gateway service runtime"),
             options: GATEWAY_DAEMON_RUNTIME_OPTIONS,
             initialValue: opts.daemonRuntime ?? DEFAULT_GATEWAY_DAEMON_RUNTIME,
           });
@@ -238,12 +242,19 @@ export async function finalizeOnboardingWizard(
   }
 
   await prompter.note(
-    [
-      "Add nodes for extra features:",
-      "- macOS app (system + notifications)",
-      "- iOS app (camera/canvas)",
-      "- Android app (camera/canvas)",
-    ].join("\n"),
+    ux?.isRegular
+      ? [
+          "Extend your bot with companion apps:",
+          "- Mac app (system-level features + notifications)",
+          "- iPhone app (camera & canvas)",
+          "- Android app (camera & canvas)",
+        ].join("\n")
+      : [
+          "Add nodes for extra features:",
+          "- macOS app (system + notifications)",
+          "- iOS app (camera/canvas)",
+          "- Android app (camera/canvas)",
+        ].join("\n"),
     "Optional apps",
   );
 
@@ -304,25 +315,32 @@ export async function finalizeOnboardingWizard(
       );
     }
 
+    // Improvement #6 + #11: Progressive disclosure - compact in Regular, full in Advanced
     await prompter.note(
-      [
-        "Gateway token: shared auth for the Gateway + Control UI.",
-        "Stored in: ~/.openclaw/openclaw.json (gateway.auth.token) or OPENCLAW_GATEWAY_TOKEN.",
-        `View token: ${formatCliCommand("openclaw config get gateway.auth.token")}`,
-        `Generate token: ${formatCliCommand("openclaw doctor --generate-gateway-token")}`,
-        "Web UI stores a copy in this browser's localStorage (openclaw.control.settings.v1).",
-        `Open the dashboard anytime: ${formatCliCommand("openclaw dashboard --no-open")}`,
-        "Paste the token into Control UI settings if prompted.",
-      ].join("\n"),
-      "Token",
+      ux?.isRegular
+        ? [
+            "Your access key is saved automatically.",
+            `View it anytime: ${formatCliCommand("openclaw config get gateway.auth.token")}`,
+            `Open dashboard: ${formatCliCommand("openclaw dashboard")}`,
+          ].join("\n")
+        : [
+            "Gateway token: shared auth for the Gateway + Control UI.",
+            "Stored in: ~/.openclaw/openclaw.json (gateway.auth.token) or OPENCLAW_GATEWAY_TOKEN.",
+            `View token: ${formatCliCommand("openclaw config get gateway.auth.token")}`,
+            `Generate token: ${formatCliCommand("openclaw doctor --generate-gateway-token")}`,
+            "Web UI stores a copy in this browser's localStorage (openclaw.control.settings.v1).",
+            `Open the dashboard anytime: ${formatCliCommand("openclaw dashboard --no-open")}`,
+            "Paste the token into Control UI settings if prompted.",
+          ].join("\n"),
+      ux?.isRegular ? "Access Key" : "Token",
     );
 
     hatchChoice = await prompter.select({
-      message: "How do you want to hatch your bot?",
+      message: label("launch.hatch", "How do you want to hatch your bot?"),
       options: [
-        { value: "tui", label: "Hatch in TUI (recommended)" },
-        { value: "web", label: "Open the Web UI" },
-        { value: "later", label: "Do this later" },
+        { value: "tui", label: label("launch.tui", "Hatch in TUI (recommended)") },
+        { value: "web", label: label("launch.web", "Open the Web UI") },
+        { value: "later", label: label("launch.later", "Do this later") },
       ],
       initialValue: "tui",
     });
@@ -385,8 +403,10 @@ export async function finalizeOnboardingWizard(
   );
 
   await prompter.note(
-    "Running agents on your computer is risky — harden your setup: https://docs.openclaw.ai/security",
-    "Security",
+    ux?.isRegular
+      ? "Keep your bot secure: https://docs.openclaw.ai/security"
+      : "Running agents on your computer is risky — harden your setup: https://docs.openclaw.ai/security",
+    label("security.title", "Security"),
   );
 
   // Shell completion setup
@@ -473,30 +493,43 @@ export async function finalizeOnboardingWizard(
   const webSearchKey = (nextConfig.tools?.web?.search?.apiKey ?? "").trim();
   const webSearchEnv = (process.env.BRAVE_API_KEY ?? "").trim();
   const hasWebSearchKey = Boolean(webSearchKey || webSearchEnv);
-  await prompter.note(
-    hasWebSearchKey
-      ? [
-          "Web search is enabled, so your agent can look things up online when needed.",
-          "",
-          webSearchKey
-            ? "API key: stored in config (tools.web.search.apiKey)."
-            : "API key: provided via BRAVE_API_KEY env var (Gateway environment).",
-          "Docs: https://docs.openclaw.ai/tools/web",
-        ].join("\n")
-      : [
-          "If you want your agent to be able to search the web, you’ll need an API key.",
-          "",
-          "OpenClaw uses Brave Search for the `web_search` tool. Without a Brave Search API key, web search won’t work.",
-          "",
-          "Set it up interactively:",
-          `- Run: ${formatCliCommand("openclaw configure --section web")}`,
-          "- Enable web_search and paste your Brave Search API key",
-          "",
-          "Alternative: set BRAVE_API_KEY in the Gateway environment (no config changes).",
-          "Docs: https://docs.openclaw.ai/tools/web",
-        ].join("\n"),
-    "Web search (optional)",
-  );
+  // Improvement #6: Progressive disclosure - compact web search note in Regular mode
+  if (hasWebSearchKey) {
+    await prompter.note(
+      ux?.isRegular
+        ? "Web search is enabled. Your bot can look things up online."
+        : [
+            "Web search is enabled, so your agent can look things up online when needed.",
+            "",
+            webSearchKey
+              ? "API key: stored in config (tools.web.search.apiKey)."
+              : "API key: provided via BRAVE_API_KEY env var (Gateway environment).",
+            "Docs: https://docs.openclaw.ai/tools/web",
+          ].join("\n"),
+      ux?.isRegular ? "Web Search" : "Web search (optional)",
+    );
+  } else {
+    await prompter.note(
+      ux?.isRegular
+        ? [
+            "Want your bot to search the web? Add a Brave Search API key.",
+            `Run: ${formatCliCommand("openclaw configure --section web")}`,
+          ].join("\n")
+        : [
+            "If you want your agent to be able to search the web, you'll need an API key.",
+            "",
+            "OpenClaw uses Brave Search for the `web_search` tool. Without a Brave Search API key, web search won't work.",
+            "",
+            "Set it up interactively:",
+            `- Run: ${formatCliCommand("openclaw configure --section web")}`,
+            "- Enable web_search and paste your Brave Search API key",
+            "",
+            "Alternative: set BRAVE_API_KEY in the Gateway environment (no config changes).",
+            "Docs: https://docs.openclaw.ai/tools/web",
+          ].join("\n"),
+      ux?.isRegular ? "Web Search" : "Web search (optional)",
+    );
+  }
 
   await prompter.note(
     'What now: https://openclaw.ai/showcase ("What People Are Building").',

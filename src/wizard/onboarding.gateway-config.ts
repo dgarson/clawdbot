@@ -5,6 +5,7 @@ import type {
   GatewayWizardSettings,
   QuickstartGatewayDefaults,
   WizardFlow,
+  WizardUxState,
 } from "./onboarding.types.js";
 import type { WizardPrompter } from "./prompts.js";
 import { normalizeGatewayTokenInput, randomToken } from "../commands/onboard-helpers.js";
@@ -18,6 +19,8 @@ type ConfigureGatewayOptions = {
   quickstartGateway: QuickstartGatewayDefaults;
   prompter: WizardPrompter;
   runtime: RuntimeEnv;
+  /** UX state for mode-aware labels. */
+  ux?: WizardUxState;
 };
 
 type ConfigureGatewayResult = {
@@ -28,8 +31,11 @@ type ConfigureGatewayResult = {
 export async function configureGatewayForOnboarding(
   opts: ConfigureGatewayOptions,
 ): Promise<ConfigureGatewayResult> {
-  const { flow, localPort, quickstartGateway, prompter } = opts;
+  const { flow, localPort, quickstartGateway, prompter, ux } = opts;
   let { nextConfig } = opts;
+
+  // Helper: resolve label for current mode
+  const label = (key: string, fallback: string): string => ux?.label(key) ?? fallback;
 
   const port =
     flow === "quickstart"
@@ -37,7 +43,7 @@ export async function configureGatewayForOnboarding(
       : Number.parseInt(
           String(
             await prompter.text({
-              message: "Gateway port",
+              message: label("gateway.port", "Gateway port"),
               initialValue: String(localPort),
               validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
             }),
@@ -49,13 +55,13 @@ export async function configureGatewayForOnboarding(
     flow === "quickstart"
       ? quickstartGateway.bind
       : await prompter.select<GatewayWizardSettings["bind"]>({
-          message: "Gateway bind",
+          message: label("gateway.bind", "Gateway bind"),
           options: [
-            { value: "loopback", label: "Loopback (127.0.0.1)" },
-            { value: "lan", label: "LAN (0.0.0.0)" },
-            { value: "tailnet", label: "Tailnet (Tailscale IP)" },
-            { value: "auto", label: "Auto (Loopback → LAN)" },
-            { value: "custom", label: "Custom IP" },
+            { value: "loopback", label: label("bind.loopback", "Loopback (127.0.0.1)") },
+            { value: "lan", label: label("bind.lan", "LAN (0.0.0.0)") },
+            { value: "tailnet", label: label("bind.tailnet", "Tailnet (Tailscale IP)") },
+            { value: "auto", label: label("bind.auto", "Auto (Loopback → LAN)") },
+            { value: "custom", label: label("bind.custom", "Custom IP") },
           ],
         });
 
@@ -95,14 +101,14 @@ export async function configureGatewayForOnboarding(
     flow === "quickstart"
       ? quickstartGateway.authMode
       : ((await prompter.select({
-          message: "Gateway auth",
+          message: label("gateway.auth", "Gateway auth"),
           options: [
             {
               value: "token",
-              label: "Token",
+              label: label("auth.token", "Token"),
               hint: "Recommended default (local + remote)",
             },
-            { value: "password", label: "Password" },
+            { value: "password", label: label("auth.password", "Password") },
           ],
           initialValue: "token",
         })) as GatewayAuthChoice);
@@ -111,18 +117,26 @@ export async function configureGatewayForOnboarding(
     flow === "quickstart"
       ? quickstartGateway.tailscaleMode
       : await prompter.select<GatewayWizardSettings["tailscaleMode"]>({
-          message: "Tailscale exposure",
+          message: label("tailscale.title", "Tailscale exposure"),
           options: [
-            { value: "off", label: "Off", hint: "No Tailscale exposure" },
+            {
+              value: "off",
+              label: label("tailscale.off", "Off"),
+              hint: ux?.isRegular ? "Only this machine" : "No Tailscale exposure",
+            },
             {
               value: "serve",
-              label: "Serve",
-              hint: "Private HTTPS for your tailnet (devices on Tailscale)",
+              label: label("tailscale.serve", "Serve"),
+              hint: ux?.isRegular
+                ? "Your devices on Tailscale can reach the bot"
+                : "Private HTTPS for your tailnet (devices on Tailscale)",
             },
             {
               value: "funnel",
-              label: "Funnel",
-              hint: "Public HTTPS via Tailscale Funnel (internet)",
+              label: label("tailscale.funnel", "Funnel"),
+              hint: ux?.isRegular
+                ? "Anyone with the link can reach the bot"
+                : "Public HTTPS via Tailscale Funnel (internet)",
             },
           ],
         });
@@ -150,11 +164,11 @@ export async function configureGatewayForOnboarding(
       ["Docs:", "https://docs.openclaw.ai/gateway/tailscale", "https://docs.openclaw.ai/web"].join(
         "\n",
       ),
-      "Tailscale",
+      ux?.isRegular ? "Remote Access" : "Tailscale",
     );
     tailscaleResetOnExit = Boolean(
       await prompter.confirm({
-        message: "Reset Tailscale serve/funnel on exit?",
+        message: label("tailscale.reset", "Reset Tailscale serve/funnel on exit?"),
         initialValue: false,
       }),
     );
@@ -164,13 +178,23 @@ export async function configureGatewayForOnboarding(
   // - Tailscale wants bind=loopback so we never expose a non-loopback server + tailscale serve/funnel at once.
   // - Funnel requires password auth.
   if (tailscaleMode !== "off" && bind !== "loopback") {
-    await prompter.note("Tailscale requires bind=loopback. Adjusting bind to loopback.", "Note");
+    await prompter.note(
+      ux?.isRegular
+        ? "Remote access requires local-only binding. Adjusting automatically."
+        : "Tailscale requires bind=loopback. Adjusting bind to loopback.",
+      "Note",
+    );
     bind = "loopback";
     customBindHost = undefined;
   }
 
   if (tailscaleMode === "funnel" && authMode !== "password") {
-    await prompter.note("Tailscale funnel requires password auth.", "Note");
+    await prompter.note(
+      ux?.isRegular
+        ? "Public access requires password authentication."
+        : "Tailscale funnel requires password auth.",
+      "Note",
+    );
     authMode = "password";
   }
 
@@ -180,8 +204,10 @@ export async function configureGatewayForOnboarding(
       gatewayToken = quickstartGateway.token ?? randomToken();
     } else {
       const tokenInput = await prompter.text({
-        message: "Gateway token (blank to generate)",
-        placeholder: "Needed for multi-machine or non-loopback access",
+        message: label("gateway.auth.token", "Gateway token (blank to generate)"),
+        placeholder: ux?.isRegular
+          ? "Leave blank for an auto-generated key"
+          : "Needed for multi-machine or non-loopback access",
         initialValue: quickstartGateway.token ?? "",
       });
       gatewayToken = normalizeGatewayTokenInput(tokenInput) || randomToken();
@@ -193,7 +219,7 @@ export async function configureGatewayForOnboarding(
       flow === "quickstart" && quickstartGateway.password
         ? quickstartGateway.password
         : await prompter.text({
-            message: "Gateway password",
+            message: label("gateway.auth.password", "Gateway password"),
             validate: (value) => (value?.trim() ? undefined : "Required"),
           });
     nextConfig = {
