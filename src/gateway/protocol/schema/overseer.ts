@@ -240,6 +240,7 @@ const OverseerEventSchema = Type.Object({
   goalId: Type.Optional(Type.String()),
   assignmentId: Type.Optional(Type.String()),
   workNodeId: Type.Optional(Type.String()),
+  data: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
 });
 
 export const OverseerGoalStatusResultSchema = Type.Object({
@@ -438,4 +439,58 @@ export const OverseerTickParamsSchema = Type.Object({
 
 export type OverseerTickParams = {
   reason?: string;
+};
+
+// --- overseer.events endpoint ---
+
+export const OverseerEventsParamsSchema = Type.Object({
+  goalId: Type.Optional(Type.String()),
+  type: Type.Optional(Type.String()),
+  since: Type.Optional(Type.Number()),
+  until: Type.Optional(Type.Number()),
+  limit: Type.Optional(Type.Number()),
+  offset: Type.Optional(Type.Number()),
+});
+
+export type OverseerEventsParams = {
+  goalId?: string;
+  type?: string;
+  since?: number;
+  until?: number;
+  limit?: number;
+  offset?: number;
+};
+
+export type OverseerEventsResultEvent = {
+  ts: number;
+  type: string;
+  goalId?: string;
+  goalTitle?: string;
+  assignmentId?: string;
+  workNodeId?: string;
+  data?: Record<string, unknown>;
+};
+
+export const OverseerEventsResultSchema = Type.Object({
+  ts: Type.Number(),
+  events: Type.Array(
+    Type.Object({
+      ts: Type.Number(),
+      type: Type.String(),
+      goalId: Type.Optional(Type.String()),
+      goalTitle: Type.Optional(Type.String()),
+      assignmentId: Type.Optional(Type.String()),
+      workNodeId: Type.Optional(Type.String()),
+      data: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+    }),
+  ),
+  total: Type.Number(),
+  hasMore: Type.Boolean(),
+});
+
+export type OverseerEventsResult = {
+  ts: number;
+  events: OverseerEventsResultEvent[];
+  total: number;
+  hasMore: boolean;
 };

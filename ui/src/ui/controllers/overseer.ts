@@ -1,5 +1,10 @@
 import type { GatewayBrowserClient } from "../gateway";
-import type { OverseerGoalStatusResult, OverseerStatusResult } from "../types/overseer";
+import type {
+  OverseerGoalStatusResult,
+  OverseerStatusResult,
+  OverseerEventsResult,
+} from "../types/overseer";
+import type { AuditLogFilter, AuditLogState } from "../views/overseer-audit-log";
 import {
   createInitialSimulatorState,
   RULE_TEMPLATES,
@@ -42,6 +47,8 @@ export type OverseerState = {
   };
   // Simulator state
   simulator: SimulatorState;
+  // Audit log state
+  auditLog: AuditLogState;
 };
 
 export async function loadOverseerStatus(state: OverseerState, opts?: { quiet?: boolean }) {
@@ -238,6 +245,7 @@ export function initOverseerState(): Pick<
   | "overseerCreateGoalOpen"
   | "overseerCreateGoalForm"
   | "simulator"
+  | "auditLog"
 > {
   return {
     overseerGoalActionPending: false,
@@ -252,7 +260,78 @@ export function initOverseerState(): Pick<
       generatePlan: true,
     },
     simulator: createInitialSimulatorState(),
+    auditLog: {
+      loading: false,
+      error: null,
+      events: [],
+      total: 0,
+      hasMore: false,
+      filter: { timeRange: "all" },
+      expandedEventIndex: null,
+    },
   };
+}
+
+// ============================================================================
+// Audit Log State Management
+// ============================================================================
+
+const TIME_RANGE_MS: Record<string, number> = {
+  "1h": 60 * 60 * 1000,
+  "24h": 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000,
+};
+
+export async function loadAuditLogEvents(state: OverseerState, opts?: { append?: boolean }) {
+  if (!state.client || !state.connected) return;
+  if (state.auditLog.loading) return;
+  state.auditLog.loading = true;
+  state.auditLog.error = null;
+  try {
+    const filter = state.auditLog.filter;
+    const params: Record<string, unknown> = {
+      limit: 50,
+    };
+    if (filter.goalId) params.goalId = filter.goalId;
+    if (filter.eventType) params.type = filter.eventType;
+    if (filter.timeRange && filter.timeRange !== "all") {
+      const rangeMs = TIME_RANGE_MS[filter.timeRange];
+      if (rangeMs) params.since = Date.now() - rangeMs;
+    }
+    if (opts?.append) {
+      params.offset = state.auditLog.events.length;
+    }
+
+    const res = (await state.client.request("overseer.events", params)) as
+      | OverseerEventsResult
+      | undefined;
+    if (res) {
+      if (opts?.append) {
+        state.auditLog.events = [...state.auditLog.events, ...res.events];
+      } else {
+        state.auditLog.events = res.events;
+      }
+      state.auditLog.total = res.total;
+      state.auditLog.hasMore = res.hasMore;
+    }
+  } catch (err) {
+    state.auditLog.error = String(err);
+  } finally {
+    state.auditLog.loading = false;
+  }
+}
+
+export function updateAuditLogFilter(state: OverseerState, updates: Partial<AuditLogFilter>) {
+  state.auditLog.filter = { ...state.auditLog.filter, ...updates };
+  state.auditLog.events = [];
+  state.auditLog.total = 0;
+  state.auditLog.hasMore = false;
+  state.auditLog.expandedEventIndex = null;
+}
+
+export function toggleAuditLogExpand(state: OverseerState, index: number) {
+  state.auditLog.expandedEventIndex = state.auditLog.expandedEventIndex === index ? null : index;
 }
 
 // ============================================================================

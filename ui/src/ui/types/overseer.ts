@@ -143,6 +143,26 @@ export type OverseerEvent = {
   goalId?: string;
   assignmentId?: string;
   workNodeId?: string;
+  data?: Record<string, unknown>;
+};
+
+/** Enriched event returned by overseer.events endpoint */
+export type OverseerEventsResultEvent = {
+  ts: number;
+  type: string;
+  goalId?: string;
+  goalTitle?: string;
+  assignmentId?: string;
+  workNodeId?: string;
+  data?: Record<string, unknown>;
+};
+
+/** Result from overseer.events endpoint */
+export type OverseerEventsResult = {
+  ts: number;
+  events: OverseerEventsResultEvent[];
+  total: number;
+  hasMore: boolean;
 };
 
 export type OverseerGoalStatusResult = {
