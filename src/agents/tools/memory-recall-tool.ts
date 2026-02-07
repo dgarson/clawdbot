@@ -17,7 +17,6 @@ import type {
 } from "../../memory/progressive-types.js";
 import type { MemoryProviderStatus, MemorySearchResult } from "../../memory/types.js";
 import type { AnyAgentTool } from "./common.js";
-import { isFeatureEnabled } from "../../config/types.debugging.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getMemorySearchManager } from "../../memory/index.js";
 import { getProgressiveStore } from "../../memory/progressive-manager.js";
@@ -131,11 +130,12 @@ export function createMemoryRecallTool(options: {
           query,
           resultsCount: budgetedEntries.length,
         });
-        if (fallback && isFeatureEnabled(cfg.debugging, "memory-recall-fallback")) {
+        if (fallback) {
           log.debug?.("memory_recall fallback used", {
             results: budgetedEntries.length,
             fallbackResults: "results" in fallback ? fallback.results.length : 0,
             error: "error" in fallback ? fallback.error : undefined,
+            feature: "memory-recall-fallback",
           });
         }
 

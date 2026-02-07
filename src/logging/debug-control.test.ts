@@ -27,9 +27,9 @@ describe("debug-control", () => {
   });
 
   describe("getDebugContext", () => {
-    it("should extract channelId, feature, and runId", () => {
+    it("should extract channel, feature, and runId", () => {
       const meta = {
-        channelId: "slack",
+        channel: "slack",
         feature: "compaction-hooks",
         runId: "abc123",
         other: "data",
@@ -37,7 +37,7 @@ describe("debug-control", () => {
 
       const ctx = getDebugContext(meta);
 
-      expect(ctx.channelId).toBe("slack");
+      expect(ctx.channel).toBe("slack");
       expect(ctx.feature).toBe("compaction-hooks");
       expect(ctx.runId).toBe("abc123");
     });
@@ -54,14 +54,14 @@ describe("debug-control", () => {
 
     it("should ignore non-string values", () => {
       const meta = {
-        channelId: 123,
+        channel: 123,
         feature: null,
         runId: undefined,
       };
 
       const ctx = getDebugContext(meta);
 
-      expect(ctx.channelId).toBeUndefined();
+      expect(ctx.channel).toBeUndefined();
       expect(ctx.feature).toBeUndefined();
       expect(ctx.runId).toBeUndefined();
     });
@@ -100,7 +100,7 @@ describe("debug-control", () => {
         slack: { verbose: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogDebug("any-subsystem", ctx, mockConfig)).toBe(true);
     });
 
@@ -109,7 +109,7 @@ describe("debug-control", () => {
         slack: { debug: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogDebug("any-subsystem", ctx, mockConfig)).toBe(true);
     });
 
@@ -118,7 +118,7 @@ describe("debug-control", () => {
         slack: { trace: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogDebug("any-subsystem", ctx, mockConfig)).toBe(false);
     });
 
@@ -189,7 +189,7 @@ describe("debug-control", () => {
         slack: { verbose: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogDebug("slack", ctx, mockConfig)).toBe(false);
     });
   });
@@ -216,7 +216,7 @@ describe("debug-control", () => {
         slack: { verbose: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogTrace("any-subsystem", ctx, mockConfig)).toBe(true);
     });
 
@@ -225,7 +225,7 @@ describe("debug-control", () => {
         slack: { trace: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogTrace("any-subsystem", ctx, mockConfig)).toBe(true);
     });
 
@@ -234,7 +234,7 @@ describe("debug-control", () => {
         slack: { debug: true },
       };
 
-      const ctx: DebugContext = { channelId: "slack" };
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogTrace("any-subsystem", ctx, mockConfig)).toBe(false);
     });
 
@@ -270,7 +270,7 @@ describe("debug-control", () => {
 
       // Channel context should take priority
       const channelCtx: DebugContext = {
-        channelId: "slack",
+        channel: "slack",
         feature: "compaction-hooks",
       };
       expect(shouldLogDebug("any-subsystem", channelCtx, mockConfig)).toBe(true);
@@ -287,8 +287,8 @@ describe("debug-control", () => {
         slack: { debug: false },
       };
 
-      // Context channelId should be checked before subsystem hierarchy
-      const ctx: DebugContext = { channelId: "slack" };
+      // Context channel should be checked before subsystem hierarchy
+      const ctx: DebugContext = { channel: "slack" };
       expect(shouldLogDebug("slack/send", ctx, mockConfig)).toBe(false);
     });
   });

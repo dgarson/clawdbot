@@ -25,7 +25,7 @@ import { isVerbose } from "../globals.js";
  */
 export type DebugContext = {
   /** Channel ID to check against debugging.channels */
-  channelId?: string;
+  channel?: string;
   /** Feature name to check against debugging.features */
   feature?: string;
   /** Run ID for potential run-level verbosity overrides */
@@ -36,13 +36,13 @@ export type DebugContext = {
 
 /**
  * Extract debug context from log metadata.
- * Looks for standard fields: channelId, feature, runId.
+ * Looks for standard fields: channel, feature, runId.
  */
 export function getDebugContext(meta?: Record<string, unknown>): DebugContext {
   if (!meta) return {};
 
   return {
-    channelId: typeof meta.channelId === "string" ? meta.channelId : undefined,
+    channel: typeof meta.channel === "string" ? meta.channel : undefined,
     feature: typeof meta.feature === "string" ? meta.feature : undefined,
     runId: typeof meta.runId === "string" ? meta.runId : undefined,
   };
@@ -52,7 +52,7 @@ export function getDebugContext(meta?: Record<string, unknown>): DebugContext {
  * Check if a subsystem should emit debug logs.
  *
  * @param subsystem - Subsystem name (e.g., "slack/send", "work-queue")
- * @param context - Optional context with channelId/feature for additional checks
+ * @param context - Optional context with channel/feature for additional checks
  * @param config - OpenClaw configuration (optional, loaded from getConfig() if not provided)
  * @returns true if debug logs should be emitted
  */
@@ -68,7 +68,7 @@ export function shouldLogDebug(
  * Check if a subsystem should emit trace logs.
  *
  * @param subsystem - Subsystem name (e.g., "slack/send", "work-queue")
- * @param context - Optional context with channelId/feature for additional checks
+ * @param context - Optional context with channel/feature for additional checks
  * @param config - OpenClaw configuration (optional, loaded from getConfig() if not provided)
  * @returns true if trace logs should be emitted
  */
@@ -109,9 +109,9 @@ function shouldLogAtLevel(
   // Extract context if needed
   const ctx = context as DebugContext | undefined;
 
-  // Priority 3: Channel config (if channelId in context)
-  if (ctx?.channelId) {
-    const channelProps = cfg.debugging?.channels?.[ctx.channelId];
+  // Priority 3: Channel config (if channel in context)
+  if (ctx?.channel) {
+    const channelProps = cfg.debugging?.channels?.[ctx.channel];
     if (channelProps) {
       const result = checkDebuggingProps(channelProps, level);
       if (result !== undefined) {

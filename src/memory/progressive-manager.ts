@@ -10,7 +10,6 @@ import type { OpenClawConfig } from "../config/config.js";
 import { resolveAgentDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveStateDir } from "../config/paths.js";
-import { isFeatureEnabled } from "../config/types.debugging.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { createEmbeddingProvider } from "./embeddings.js";
 import { createMemoryOpsLogger } from "./ops-log/index.js";
@@ -115,23 +114,19 @@ export async function resolveProgressiveMemoryIndex(params: {
   if (!isProgressiveMemoryEnabled(params.cfg)) {
     return undefined;
   }
-  const debugEnabled = isFeatureEnabled(params.cfg.debugging, "progressive-memory-index");
   try {
     const { store } = await getProgressiveStore(params);
     store.archiveExpired();
     const index = generateMemoryIndex(store, { maxTokens: params.maxTokens });
-    if (debugEnabled) {
-      log.debug?.("Progressive memory index generated", {
-        agentId: params.agentId,
-        maxTokens: params.maxTokens,
-        chars: index.length,
-      });
-    }
+    log.debug?.("Progressive memory index generated", {
+      agentId: params.agentId,
+      maxTokens: params.maxTokens,
+      chars: index.length,
+      feature: "progressive-memory-index",
+    });
     return index;
   } catch (err) {
-    if (debugEnabled) {
-      log.warn?.(`Progressive memory index build failed: ${String(err)}`);
-    }
+    log.warn?.(`Progressive memory index build failed: ${String(err)}`);
     return undefined;
   }
 }
