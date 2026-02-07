@@ -40,7 +40,8 @@ export class WorkQueueWorkerManager {
 
   constructor(opts: WorkerManagerOptions) {
     this.config = opts.config;
-    this.log = opts.log ?? createWorkQueueLogger(opts.config);
+    // Closure over `this` so the logger lazily reads the latest config after reconcile().
+    this.log = opts.log ?? createWorkQueueLogger(() => this.config);
   }
 
   async start(): Promise<void> {
