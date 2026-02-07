@@ -11,7 +11,7 @@ export async function pollUntil<T>(
   fn: () => Promise<T | null | undefined>,
   opts: PollOptions = {},
 ): Promise<T | undefined> {
-  const timeoutMs = opts.timeoutMs ?? 2000;
+  const timeoutMs = opts.timeoutMs ?? 10000;
   const intervalMs = opts.intervalMs ?? 25;
   const start = Date.now();
 

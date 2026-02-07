@@ -211,6 +211,15 @@ export class WorkflowWorkerAdapter {
       return explicitlyAssigned;
     }
 
+    // Flexible mode: skip workstream and agent-assignment filters,
+    // claim any pending item in the target queue.
+    if (this.config.flexible) {
+      return await this.deps.store.claimNextItem({
+        queueId,
+        assignTo: { agentId: this.agentId },
+      });
+    }
+
     if (workstreams && workstreams.length > 0) {
       for (const ws of workstreams) {
         const item = await this.deps.store.claimNextItem({

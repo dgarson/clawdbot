@@ -44,6 +44,21 @@ function statusColor(status: WorkItemStatus): string {
   }
 }
 
+function formatElapsed(ms: number): string {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  if (totalSeconds < 60) {
+    return `${totalSeconds}s`;
+  }
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (totalMinutes < 60) {
+    return `${totalMinutes}m ${seconds}s`;
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
 function renderTree(items: WorkItem[], workstream: string): void {
   defaultRuntime.log(theme.heading(`Workstream DAG: ${workstream}`));
   defaultRuntime.log("");
@@ -500,35 +515,67 @@ export function registerWorkQueueCli(program: Command) {
     .description("Show running worker status")
     .option("--json", "Print JSON", false)
     .action(async (opts) => {
-      // Workers are in-process, so this reads from config and shows what would run.
       const cfg = loadConfig();
       const agents = cfg.agents?.list ?? [];
       const workerAgents = agents.filter((a) => a.worker?.enabled);
+
+      // Query runtime state from the work queue DB.
+      let store: Awaited<ReturnType<typeof getDefaultWorkQueueStore>> | null = null;
+      const activeItems = new Map<string, { id: string; title: string; startedAt?: string }>();
+      try {
+        store = await getDefaultWorkQueueStore();
+        for (const a of workerAgents) {
+          const queueId = a.worker?.queueId ?? a.id;
+          const items = await store.listItems({
+            queueId,
+            status: "in_progress",
+            assignedTo: a.id,
+            limit: 1,
+          });
+          if (items.length > 0) {
+            const item = items[0]!;
+            activeItems.set(a.id, {
+              id: item.id,
+              title: item.title,
+              startedAt: item.startedAt,
+            });
+          }
+        }
+      } catch {
+        // DB may not exist yet; proceed with config-only data.
+      }
 
       if (opts.json) {
         defaultRuntime.log(
           JSON.stringify(
             {
-              workers: workerAgents.map((a) => ({
-                agentId: a.id,
-                queueId: a.worker?.queueId ?? a.id,
-                workstreams: a.worker?.workstreams ?? [],
-                pollIntervalMs: a.worker?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
-                model: a.worker?.model,
-                contextExtractor: a.worker?.contextExtractor ?? "transcript",
-                workflowEnabled: a.worker?.workflow?.enabled ?? false,
-              })),
+              workers: workerAgents.map((a) => {
+                const active = activeItems.get(a.id) ?? null;
+                return {
+                  agentId: a.id,
+                  queueId: a.worker?.queueId ?? a.id,
+                  workstreams: a.worker?.workstreams ?? [],
+                  flexible: a.worker?.flexible ?? false,
+                  pollIntervalMs: a.worker?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
+                  model: a.worker?.model,
+                  contextExtractor: a.worker?.contextExtractor ?? "transcript",
+                  workflowEnabled: a.worker?.workflow?.enabled ?? false,
+                  currentItem: active,
+                };
+              }),
             },
             null,
             2,
           ),
         );
+        if (store) await store.close();
         return;
       }
 
       if (workerAgents.length === 0) {
         defaultRuntime.log(theme.muted("No worker agents configured."));
         defaultRuntime.log(theme.muted("Enable with: agents.list[].worker.enabled = true"));
+        if (store) await store.close();
         return;
       }
 
@@ -540,22 +587,30 @@ export function registerWorkQueueCli(program: Command) {
             { key: "Agent", header: "Agent", minWidth: 12 },
             { key: "Queue", header: "Queue", minWidth: 12 },
             { key: "Mode", header: "Mode", minWidth: 8 },
-            { key: "Workstreams", header: "Workstreams", minWidth: 12, flex: true },
-            { key: "Poll", header: "Poll (ms)", minWidth: 9 },
+            { key: "Workstreams", header: "Workstreams", minWidth: 12 },
             { key: "Model", header: "Model", minWidth: 10 },
-            { key: "Extractor", header: "Extractor", minWidth: 10 },
+            { key: "CurrentItem", header: "Current Item", minWidth: 16, flex: true },
+            { key: "Elapsed", header: "Elapsed", minWidth: 8 },
           ],
-          rows: workerAgents.map((a) => ({
-            Agent: a.id,
-            Queue: a.worker?.queueId ?? a.id,
-            Mode: a.worker?.workflow?.enabled ? "workflow" : "classic",
-            Workstreams: a.worker?.workstreams?.join(", ") || "(all)",
-            Poll: String(a.worker?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS),
-            Model: a.worker?.model ?? "(default)",
-            Extractor: a.worker?.contextExtractor ?? "transcript",
-          })),
+          rows: workerAgents.map((a) => {
+            const active = activeItems.get(a.id);
+            let elapsed = "-";
+            if (active?.startedAt) {
+              elapsed = formatElapsed(Date.now() - new Date(active.startedAt).getTime());
+            }
+            return {
+              Agent: a.id,
+              Queue: a.worker?.queueId ?? a.id,
+              Mode: a.worker?.workflow?.enabled ? "workflow" : "classic",
+              Workstreams: a.worker?.workstreams?.join(", ") || "(all)",
+              Model: a.worker?.model ?? "(default)",
+              CurrentItem: active ? active.title : theme.muted("(idle)"),
+              Elapsed: active ? elapsed : "-",
+            };
+          }),
         }).trimEnd(),
       );
+      if (store) await store.close();
     });
 
   // --- retry <itemId> ---

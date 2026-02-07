@@ -54,7 +54,8 @@ export class GraphitiSearchAdapter implements MemorySearchManager {
       }
       return results.slice(0, opts?.maxResults ?? 6);
     } catch (err) {
-      memLog.warn("graphiti search failed", { error: String(err) });
+      const cause = err instanceof Error && err.cause ? ` (cause: ${String(err.cause)})` : "";
+      memLog.warn("graphiti search failed", { error: `${String(err)}${cause}` });
       return [];
     }
   }

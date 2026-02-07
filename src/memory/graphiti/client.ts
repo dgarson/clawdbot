@@ -131,9 +131,10 @@ export class GraphitiClient {
       memLog.debug("graphiti health ok", { body });
       return { ok: body.status === "healthy", message: body.status };
     } catch (err) {
-      const msg = `Graphiti health check error: ${String(err)}`;
-      memLog.debug("graphiti health error", { error: String(err) });
-      return { ok: false, message: msg };
+      const cause = err instanceof Error && err.cause ? ` (cause: ${String(err.cause)})` : "";
+      const detail = `${String(err)}${cause}`;
+      memLog.debug("graphiti health error", { error: detail });
+      return { ok: false, message: `Graphiti health check error: ${detail}` };
     }
   }
 

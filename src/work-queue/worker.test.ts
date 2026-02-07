@@ -769,6 +769,71 @@ describe("WorkQueueWorker metrics", () => {
   });
 });
 
+describe("WorkQueueWorker flexible claim mode", () => {
+  it("claims items assigned to another agent when flexible is true", async () => {
+    const { store, deps } = createTestDeps();
+
+    // Create an item assigned to worker-b in the shared queue.
+    const item = await store.createItem({
+      agentId: "shared-queue",
+      title: "Assigned to worker-b",
+      assignedTo: { agentId: "worker-b" },
+    });
+
+    // Worker-a with flexible: true should claim it anyway.
+    const worker = new WorkQueueWorker({
+      agentId: "worker-a",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+        queueId: "shared-queue",
+        flexible: true,
+      },
+      deps,
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 300));
+    await worker.stop();
+
+    const updated = await store.getItem(item.id);
+    expect(updated?.status).toBe("completed");
+    expect(updated?.assignedTo?.agentId).toBe("worker-a");
+  });
+
+  it("claims items from any workstream when flexible is true", async () => {
+    const { store, deps } = createTestDeps();
+
+    // Create an item in workstream "alpha" in the shared queue.
+    await store.createItem({
+      agentId: "shared-queue",
+      title: "Alpha workstream item",
+      workstream: "alpha",
+    });
+
+    // Worker configured for workstream "beta" but with flexible: true.
+    const worker = new WorkQueueWorker({
+      agentId: "worker-a",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+        queueId: "shared-queue",
+        workstreams: ["beta"],
+        flexible: true,
+      },
+      deps,
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 300));
+    await worker.stop();
+
+    const items = await store.listItems({ queueId: "shared-queue" });
+    const alpha = items.find((i) => i.workstream === "alpha");
+    expect(alpha?.status).toBe("completed");
+  });
+});
+
 describe("TranscriptContextExtractor", () => {
   it("extracts summary from successful session", async () => {
     const extractor = new TranscriptContextExtractor({

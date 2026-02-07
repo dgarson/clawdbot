@@ -462,6 +462,7 @@ export const WorkerConfigSchema = z
     enabled: z.boolean().optional(),
     queueId: z.string().optional(),
     workstreams: z.array(z.string()).optional(),
+    flexible: z.boolean().optional(),
     pollIntervalMs: z.number().int().positive().optional(),
     model: z.string().optional(),
     thinking: z.string().optional(),
