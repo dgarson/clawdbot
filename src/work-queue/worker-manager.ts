@@ -5,6 +5,7 @@ import type { WorkerMetricsSnapshot } from "./worker-metrics.js";
 import { readLatestAssistantReply } from "../agents/tools/agent-step.js";
 import { callGateway } from "../gateway/call.js";
 import { LlmContextExtractor, TranscriptContextExtractor } from "./context-extractor.js";
+import { createWorkQueueLogger } from "./logger.js";
 import { getDefaultWorkQueueStore } from "./store.js";
 import { WorkQueueWorker, type WorkerDeps } from "./worker.js";
 import { WorkflowWorkerAdapter } from "./workflow/adapter.js";
@@ -18,13 +19,6 @@ export type WorkerManagerOptions = {
     error: (msg: string) => void;
     debug: (msg: string) => void;
   };
-};
-
-const defaultLog = {
-  info: (msg: string) => console.log(`[work-queue] ${msg}`),
-  warn: (msg: string) => console.warn(`[work-queue] ${msg}`),
-  error: (msg: string) => console.error(`[work-queue] ${msg}`),
-  debug: (_msg: string) => {},
 };
 
 /** Common interface between WorkQueueWorker and WorkflowWorkerAdapter. */
@@ -46,7 +40,7 @@ export class WorkQueueWorkerManager {
 
   constructor(opts: WorkerManagerOptions) {
     this.config = opts.config;
-    this.log = opts.log ?? defaultLog;
+    this.log = opts.log ?? createWorkQueueLogger(opts.config);
   }
 
   async start(): Promise<void> {
