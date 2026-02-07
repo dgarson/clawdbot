@@ -20,9 +20,25 @@ This doc is a “how we test” guide:
 
 ## Quick start
 
-Most days:
+### Tiered testing workflow (recommended)
 
-- Full gate (expected before push): `pnpm build && pnpm check && pnpm test`
+Use the 3-tier strategy to balance speed and thoroughness during development:
+
+| Tier | Command              | When to use                                      | Speed      |
+| ---- | -------------------- | ------------------------------------------------ | ---------- |
+| 1    | `pnpm test:affected` | After each significant code change               | ~10-30s    |
+| 2    | `pnpm test:smart`    | End of each major task or subtask                | ~30s-2min  |
+| 3    | `pnpm test`          | End of any major phase, or when all work is done | Full suite |
+
+- **Tier 1 — `pnpm test:affected`**: Uses Vitest's `related` command with the Vite module graph to find and run only tests that transitively import your changed files. Run this frequently to catch breakages quickly.
+- **Tier 2 — `pnpm test:smart`**: Extends `test:affected` with heuristic discovery — co-located tests (`foo.ts` → `foo.test.ts`), directory proximity (all tests in the same directory tree), and index/barrel fan-out. Catches ~95% of regressions.
+- **Tier 3 — `pnpm test`**: The full exhaustive suite. Iterate on any failures until all resolved before pushing.
+
+Both `test:affected` and `test:smart` accept `--base <ref>` (default: `main`), `--extra <file>`, and `--verbose` flags. `test:smart` also supports `--discovery-only` for dry-run discovery.
+
+### Full gate
+
+Before push: `pnpm build && pnpm check && pnpm test`
 
 When you touch tests or want extra confidence:
 
