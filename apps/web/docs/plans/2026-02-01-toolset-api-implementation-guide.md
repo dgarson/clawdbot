@@ -17,7 +17,7 @@ The codebase follows a consistent pattern for RPC-based CRUD operations:
 1. **Gateway RPC Methods** - Defined in `src/gateway/server-methods/` with handlers exported in `src/gateway/server-methods.ts`
 2. **Protocol Schemas** - JSON Schema validation in `src/gateway/protocol/`
 3. **Service Layer** - Business logic encapsulated in service classes (e.g., `CronService`, `AutomationService`)
-4. **File-based Storage** - JSON files in `~/.clawdbrain/` directory with atomic write patterns
+4. **File-based Storage** - JSON files in `~/.openclaw/` directory with atomic write patterns
 
 ### Key Reference Files
 
@@ -151,10 +151,10 @@ export const BUILTIN_TOOLSETS: Toolset[] = [
 ### Recommended Path
 
 ```
-~/.clawdbrain/toolsets/toolsets.json
+~/.openclaw/toolsets/toolsets.json
 ```
 
-This follows the existing pattern used by automations (`~/.clawdbrain/automations/automations.json`).
+This follows the existing pattern used by automations (`~/.openclaw/automations/automations.json`).
 
 ### Path Resolution
 

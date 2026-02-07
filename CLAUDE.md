@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-- Repo: https://github.com/clawdbrain/clawdbrain
+- Repo: https://github.com/dgarson/clawdbrain
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
 
 ## Project Structure & Module Organization
@@ -19,13 +19,13 @@
 
 ## Docs Linking (Mintlify)
 
-- Docs are hosted on Mintlify (docs.clawdbrain.bot).
+- Docs are hosted on Mintlify (docs.openclaw.ai).
 - Internal doc links in `docs/**/*.md`: root-relative, no `.md`/`.mdx` (example: `[Config](/configuration)`).
 - Section cross-references: use anchors on root-relative paths (example: `[Hooks](/configuration#hooks)`).
 - Doc headings and anchors: avoid em dashes and apostrophes in headings because they break Mintlify anchor links.
-- When Peter asks for links, reply with full `https://docs.clawdbrain.bot/...` URLs (not root-relative).
-- When you touch docs, end the reply with the `https://docs.clawdbrain.bot/...` URLs you referenced.
-- README (GitHub): keep absolute docs URLs (`https://docs.clawdbrain.bot/...`) so links work on GitHub.
+- When Peter asks for links, reply with full `https://docs.openclaw.ai/...` URLs (not root-relative).
+- When you touch docs, end the reply with the `https://docs.openclaw.ai/...` URLs you referenced.
+- README (GitHub): keep absolute docs URLs (`https://docs.openclaw.ai/...`) so links work on GitHub.
 - Docs content must be generic: no personal device names/hostnames/paths; use placeholders like `user@gateway-host` and "gateway host".
 
 ## exe.dev VM ops (general)
@@ -121,8 +121,8 @@ Both `test:affected` and `test:smart` accept `--base <ref>` (default: `main`), `
 
 ## Security & Configuration Tips
 
-- Web provider stores creds at `~/.clawdbrain/credentials/`; rerun `clawdbrain login` if logged out.
-- Pi sessions live under `~/.clawdbrain/sessions/` by default; the base directory is not configurable.
+- Web provider stores creds at `~/.openclaw/credentials/`; rerun `clawdbrain login` if logged out.
+- Pi sessions live under `~/.openclaw/sessions/` by default; the base directory is not configurable.
 - Environment variables: see `~/.profile`.
 - Never commit or publish real phone numbers, videos, or live configuration values. Use obviously fake placeholders in docs, tests, and examples.
 - Release flow: always read `docs/reference/RELEASING.md` and `docs/platforms/mac/release.md` before any release work; do not ask routine questions once those docs answer them.
@@ -130,6 +130,38 @@ Both `test:affected` and `test:smart` accept `--base <ref>` (default: `main`), `
 ## Troubleshooting
 
 - Rebrand/migration issues or legacy config/service warnings: run `clawdbrain doctor` (see `docs/gateway/doctor.md`).
+
+## Work Queue & Worker Task Structure
+
+Work items use a typed payload schema (`WorkItemPayload`) to carry all execution context for worker agents. When creating or processing work items, use these fields:
+
+**Top-level work item fields** (queue management):
+
+- `title`: Short task summary
+- `description`: Full markdown task specification (can be multi-paragraph with acceptance criteria)
+- `payload`: Structured JSON with execution-time configuration (see below)
+- `dependsOn`: DAG dependencies (stays top-level for SQL query efficiency)
+
+**Payload fields** (`payload` JSON — execution-time concerns):
+
+- `systemPrompt`: Full system prompt override for the worker session
+- `systemPromptAppend`: Text appended to the default system prompt (additive)
+- `instructions`: Additional task-specific instructions
+- `repo`: Target repository path
+- `baseBranch`: Branch to base work off of (default: `main`)
+- `branchPrefix` / `branchName`: Git branch naming
+- `model` / `thinking`: Model and thinking level overrides
+- `timeoutSeconds`: Execution timeout
+- `acceptanceCriteria`: What "done" looks like (verified by worker)
+- `verifyCommands`: Shell commands to run for verification (e.g., `pnpm build && pnpm test`)
+- `relevantFiles`: File paths the worker should focus on
+- `contextUrls`: URLs for reference material
+- `phases[]`: Multi-phase task definitions (worker commits after each phase)
+- `notifyOnComplete`: Notification settings on completion
+
+**System prompt priority**: `payload.systemPrompt` > `WorkerConfig.defaultSystemPrompt` > built-in default.
+
+**Built-in default** enforces: git worktree usage, branching from main, commit & push per phase, build verification.
 
 ## Agent-Specific Notes
 
@@ -171,7 +203,7 @@ Both `test:affected` and `test:smart` accept `--base <ref>` (default: `main`), `
 - Code style: add brief comments for tricky logic; keep files under ~500 LOC when feasible (split/refactor as needed).
 - Tool schema guardrails (google-antigravity): avoid `Type.Union` in tool input schemas; no `anyOf`/`oneOf`/`allOf`. Use `stringEnum`/`optionalStringEnum` (Type.Unsafe enum) for string lists, and `Type.Optional(...)` instead of `... | null`. Keep top-level tool schema as `type: "object"` with `properties`.
 - Tool schema guardrails: avoid raw `format` property names in tool schemas; some validators treat `format` as a reserved keyword and reject the schema.
-- When asked to open a "session" file, open the Pi session logs under `~/.clawdbrain/agents/<agentId>/sessions/*.jsonl` (use the `agent=<id>` value in the Runtime line of the system prompt; newest unless a specific ID is given), not the default `sessions.json`. If logs are needed from another machine, SSH via Tailscale and read the same path there.
+- When asked to open a "session" file, open the Pi session logs under `~/.openclaw/agents/<agentId>/sessions/*.jsonl` (use the `agent=<id>` value in the Runtime line of the system prompt; newest unless a specific ID is given), not the default `sessions.json`. If logs are needed from another machine, SSH via Tailscale and read the same path there.
 - Do not rebuild the macOS app over SSH; rebuilds must be run directly on the Mac.
 - Never send streaming/partial replies to external messaging surfaces (WhatsApp, Telegram); only final replies should be delivered there. Streaming/tool events may still go to internal UIs/control channel.
 - Voice wake forwarding tips:

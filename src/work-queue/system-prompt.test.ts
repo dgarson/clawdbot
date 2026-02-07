@@ -39,13 +39,13 @@ describe("readPayload", () => {
     const result = readPayload(
       makeItem({
         payload: {
-          repo: "openclaw/clawdbrain",
+          repo: "dgarson/clawdbrain",
           baseBranch: "develop",
           acceptanceCriteria: ["tests pass"],
         },
       }),
     );
-    expect(result.repo).toBe("openclaw/clawdbrain");
+    expect(result.repo).toBe("dgarson/clawdbrain");
     expect(result.baseBranch).toBe("develop");
     expect(result.acceptanceCriteria).toEqual(["tests pass"]);
   });
@@ -138,7 +138,7 @@ describe("buildWorkerSystemPrompt", () => {
     const prompt = buildWorkerSystemPrompt({
       item: makeItem({
         payload: {
-          repo: "openclaw/clawdbrain",
+          repo: "dgarson/clawdbrain",
           baseBranch: "develop",
           branchName: "feat/retry-logic",
         } as Record<string, unknown>,
@@ -146,7 +146,7 @@ describe("buildWorkerSystemPrompt", () => {
       config: makeConfig(),
     });
     expect(prompt).toContain("## Git Configuration");
-    expect(prompt).toContain("**Repository:** openclaw/clawdbrain");
+    expect(prompt).toContain("**Repository:** dgarson/clawdbrain");
     expect(prompt).toContain("**Base Branch:** develop");
     expect(prompt).toContain("**Branch Name:** feat/retry-logic");
   });
@@ -279,7 +279,7 @@ describe("buildWorkerSystemPrompt", () => {
         payload: {
           customField: "hello",
           anotherThing: 42,
-          repo: "openclaw/clawdbrain", // known field — should NOT appear in additional context
+          repo: "dgarson/clawdbrain", // known field — should NOT appear in additional context
         } as Record<string, unknown>,
       }),
       config: makeConfig(),

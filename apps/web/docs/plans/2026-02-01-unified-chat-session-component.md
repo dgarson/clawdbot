@@ -1644,7 +1644,7 @@ function FullChatLayout({
               isMaximized={workspacePaneMaximized}
               onToggleMaximize={onToggleWorkspaceMaximize}
               sessionKey={sessionKey}
-              workspaceDir={workspaceDir ?? "~/.clawdbrain/workspace"}
+              workspaceDir={workspaceDir ?? "~/.openclaw/workspace"}
               className="h-full"
             />
           </div>
@@ -1987,7 +1987,7 @@ return (
       onStop={handleStop}
       disabled={false}
       activities={activities}
-      workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
+      workspaceDir={`~/.openclaw/agents/${agentId}/workspace`}
       sessionKey={sessionKey}
       settings={{
         showReasoningToggle: true,

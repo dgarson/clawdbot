@@ -7,7 +7,7 @@ import type { MemoryCategory } from "../../config.js";
 import type { Extractor } from "../types.js";
 
 async function logTrace(api: ClawdbrainPluginApi, type: string, data: Record<string, unknown>) {
-  const logDir = join(homedir(), ".clawdbrain", "logs");
+  const logDir = join(homedir(), ".openclaw", "logs");
   const logPath = join(logDir, "memory-trace.jsonl");
   const entry = {
     timestamp: new Date().toISOString(),

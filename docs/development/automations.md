@@ -335,12 +335,12 @@ class ArtifactStorage {
 
 ### Storage Location
 
-Default: `~/.clawdbrain/automations/artifacts/`
+Default: `~/.openclaw/automations/artifacts/`
 
 Structure:
 
 ```
-~/.clawdbrain/automations/artifacts/
+~/.openclaw/automations/artifacts/
 ├── <run-id-1>/
 │   ├── <artifact-id-1>-<filename>
 │   └── <artifact-id-2>-<filename>
@@ -528,10 +528,10 @@ for (const run of history.runs) {
 
 ### Debug Issues
 
-1. Check logs: `~/.clawdbrain/logs/gateway.log`
+1. Check logs: `~/.openclaw/logs/gateway.log`
 2. Enable debug logging in config
 3. Run with `CLAWDBRAIN_DEBUG=1`
-4. Check store file: `~/.clawdbrain/automations/automations.json`
+4. Check store file: `~/.openclaw/automations/automations.json`
 
 ### Common Issues
 

@@ -124,7 +124,7 @@ Browse and edit files in the agent's data directory.
 
 #### Features
 
-- Tree navigation of `~/.clawdbrain/` directory
+- Tree navigation of `~/.openclaw/` directory
 - File preview (markdown, YAML, JSON)
 - Inline editing with syntax highlighting
 - Create/rename/delete files

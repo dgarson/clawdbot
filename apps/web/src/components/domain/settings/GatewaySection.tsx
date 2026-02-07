@@ -55,7 +55,7 @@ export function GatewaySection({ className }: GatewaySectionProps) {
             </div>
             <div className="rounded-lg bg-muted p-3">
               <p className="text-xs font-medium text-muted-foreground mb-1">View Logs</p>
-              <code className="text-sm font-mono">tail -f ~/.clawdbrain/logs/gateway.log</code>
+              <code className="text-sm font-mono">tail -f ~/.openclaw/logs/gateway.log</code>
             </div>
           </div>
         </CardContent>

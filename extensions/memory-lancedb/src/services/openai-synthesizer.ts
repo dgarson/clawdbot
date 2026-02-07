@@ -6,7 +6,7 @@ import OpenAI from "openai";
 import type { Synthesizer, MemoryEntry } from "../types.js";
 
 async function logLedger(api: ClawdbrainPluginApi, action: string, data: Record<string, unknown>) {
-  const logDir = join(homedir(), ".clawdbrain", "logs");
+  const logDir = join(homedir(), ".openclaw", "logs");
   const logPath = join(logDir, "memory-ledger.jsonl");
   const entry = {
     timestamp: new Date().toISOString(),

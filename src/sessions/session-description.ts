@@ -125,7 +125,7 @@ function resolveTranscriptCandidates(params: {
     candidates.push(resolveSessionTranscriptPath(params.entry.sessionId, params.agentId));
   }
   candidates.push(
-    path.join(os.homedir(), ".clawdbrain", "sessions", `${params.entry.sessionId}.jsonl`),
+    path.join(os.homedir(), ".openclaw", "sessions", `${params.entry.sessionId}.jsonl`),
   );
   return candidates;
 }

@@ -146,7 +146,7 @@ describe("resolveArtifactsDir", () => {
 
   it("should use default when no custom dir", () => {
     const result = resolveArtifactsDir();
-    expect(result).toContain(".clawdbrain");
+    expect(result).toContain(".openclaw");
     expect(result).toContain("automations");
     expect(result).toContain("artifacts");
   });

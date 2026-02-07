@@ -259,6 +259,38 @@ await client.request("config.schema", { ifNoneMatch: cachedVersion, section: "ag
 
 - Rebrand/migration issues or legacy config/service warnings: run `openclaw doctor` (see `docs/gateway/doctor.md`).
 
+## Work Queue & Worker Task Structure
+
+Work items use a typed payload schema (`WorkItemPayload`) to carry all execution context for worker agents. When creating or processing work items, use these fields:
+
+**Top-level work item fields** (queue management):
+
+- `title`: Short task summary
+- `description`: Full markdown task specification (can be multi-paragraph with acceptance criteria)
+- `payload`: Structured JSON with execution-time configuration (see below)
+- `dependsOn`: DAG dependencies (stays top-level for SQL query efficiency)
+
+**Payload fields** (`payload` JSON — execution-time concerns):
+
+- `systemPrompt`: Full system prompt override for the worker session
+- `systemPromptAppend`: Text appended to the default system prompt (additive)
+- `instructions`: Additional task-specific instructions
+- `repo`: Target repository path
+- `baseBranch`: Branch to base work off of (default: `main`)
+- `branchPrefix` / `branchName`: Git branch naming
+- `model` / `thinking`: Model and thinking level overrides
+- `timeoutSeconds`: Execution timeout
+- `acceptanceCriteria`: What "done" looks like (verified by worker)
+- `verifyCommands`: Shell commands to run for verification (e.g., `pnpm build && pnpm test`)
+- `relevantFiles`: File paths the worker should focus on
+- `contextUrls`: URLs for reference material
+- `phases[]`: Multi-phase task definitions (worker commits after each phase)
+- `notifyOnComplete`: Notification settings on completion
+
+**System prompt priority**: `payload.systemPrompt` > `WorkerConfig.defaultSystemPrompt` > built-in default.
+
+**Built-in default** enforces: git worktree usage, branching from main, commit & push per phase, build verification.
+
 ## Agent-Specific Notes
 
 - Vocabulary: "makeup" = "mac app".

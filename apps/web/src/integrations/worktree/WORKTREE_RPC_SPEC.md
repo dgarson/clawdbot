@@ -20,7 +20,7 @@ The Worktree RPC system provides secure, session-scoped access to agent workspac
 │  1. Validate RPC request format                                         │
 │  2. Extract agentId from params                                         │
 │  3. Resolve agent → get agent config/metadata                           │
-│  4. Locate workspace → ~/.clawdbrain/agents/{agentId}/workspace         │
+│  4. Locate workspace → ~/.openclaw/agents/{agentId}/workspace         │
 │  5. Validate path (security checks)                                     │
 │  6. Perform file operation                                              │
 │  7. Apply content filters (redaction, sanitization)                     │
@@ -84,7 +84,7 @@ List files and directories within an agent's workspace.
 **Resolution Flow:**
 1. Extract `agentId` from params
 2. Resolve agent → `/agents/{agentId}` config lookup
-3. Locate workspace → `~/.clawdbrain/agents/{agentId}/workspace`
+3. Locate workspace → `~/.openclaw/agents/{agentId}/workspace`
 4. Normalize path → Join workspace root + requested path
 5. Validate path → Must be within workspace bounds (no `..` escapes)
 6. Read directory → Use `fs.readdir()` with `withFileTypes`
@@ -140,7 +140,7 @@ Read the contents of a file within an agent's workspace.
 **Resolution Flow:**
 1. Extract `agentId` and `path` from params
 2. Resolve agent → `/agents/{agentId}` config lookup
-3. Locate workspace → `~/.clawdbrain/agents/{agentId}/workspace`
+3. Locate workspace → `~/.openclaw/agents/{agentId}/workspace`
 4. Normalize path → Join workspace root + requested path
 5. Validate path → Must be within workspace bounds
 6. Check file size → If > maxBytes, prepare to truncate
@@ -238,7 +238,7 @@ Write or create a file within an agent's workspace.
 **Resolution Flow:**
 1. Extract `agentId`, `path`, `content` from params
 2. Resolve agent → `/agents/{agentId}` config lookup
-3. Locate workspace → `~/.clawdbrain/agents/{agentId}/workspace`
+3. Locate workspace → `~/.openclaw/agents/{agentId}/workspace`
 4. Normalize path → Join workspace root + requested path
 5. Validate path → Must be within workspace bounds
 6. Check parent directory → Create if `createDirs: true`
@@ -291,7 +291,7 @@ Delete a file or directory within an agent's workspace.
 **Resolution Flow:**
 1. Extract `agentId`, `path` from params
 2. Resolve agent → `/agents/{agentId}` config lookup
-3. Locate workspace → `~/.clawdbrain/agents/{agentId}/workspace`
+3. Locate workspace → `~/.openclaw/agents/{agentId}/workspace`
 4. Normalize path → Join workspace root + requested path
 5. Validate path → Must be within workspace bounds, cannot delete workspace root
 6. Check if exists → Error if not found
@@ -344,7 +344,7 @@ Move or rename a file or directory within an agent's workspace.
 **Resolution Flow:**
 1. Extract `agentId`, `fromPath`, `toPath` from params
 2. Resolve agent → `/agents/{agentId}` config lookup
-3. Locate workspace → `~/.clawdbrain/agents/{agentId}/workspace`
+3. Locate workspace → `~/.openclaw/agents/{agentId}/workspace`
 4. Normalize paths → Join workspace root + both paths
 5. Validate paths → Both must be within workspace bounds
 6. Check source exists → Error if not found
@@ -396,7 +396,7 @@ Create a directory within an agent's workspace.
 **Resolution Flow:**
 1. Extract `agentId`, `path` from params
 2. Resolve agent → `/agents/{agentId}` config lookup
-3. Locate workspace → `~/.clawdbrain/agents/{agentId}/workspace`
+3. Locate workspace → `~/.openclaw/agents/{agentId}/workspace`
 4. Normalize path → Join workspace root + requested path
 5. Validate path → Must be within workspace bounds
 6. Create directory → Use `fs.mkdir()` with `recursive` option

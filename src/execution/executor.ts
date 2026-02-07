@@ -689,7 +689,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
   private resolveSessionFile(request: ExecutionRequest): string {
     // Default session file path based on workspace and session
     // This matches the pattern used in existing code
-    return `${request.workspaceDir}/.clawdbrain/sessions/${request.sessionId}.jsonl`;
+    return `${request.workspaceDir}/.openclaw/sessions/${request.sessionId}.jsonl`;
   }
 
   // ---------------------------------------------------------------------------

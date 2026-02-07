@@ -29,7 +29,7 @@ planner contracts, delivery strategies, safety/policy, and testing.
 
 - Perfect semantic "understanding" of progress. Overseer should be robust with simple signals first, and only consult a model when necessary.
 - Replacing existing heartbeat/cron workflows. Overseer complements them (and can use them).
-- Storing full transcripts in the Overseer store. Session transcripts already live in `~/.clawdbrain/agents/<id>/sessions/*.jsonl`; Overseer stores references.
+- Storing full transcripts in the Overseer store. Session transcripts already live in `~/.openclaw/agents/<id>/sessions/*.jsonl`; Overseer stores references.
 
 ## Terminology
 
@@ -483,8 +483,8 @@ Notes:
 
 Suggested default:
 
-- Store dir: `~/.clawdbrain/overseer/`
-- Store file: `~/.clawdbrain/overseer/store.json`
+- Store dir: `~/.openclaw/overseer/`
+- Store file: `~/.openclaw/overseer/store.json`
 
 If desired, allow overrides via environment variables (e.g., `CLAWDBRAIN_OVERSEER_DIR`) but keep defaults stable.
 
@@ -832,7 +832,7 @@ This is a proposed `clawdbrain.json` schema; implement as needed.
       allowCrossAgent: false,
     },
     storage: {
-      dir: "~/.clawdbrain/overseer",
+      dir: "~/.openclaw/overseer",
     },
   },
 }

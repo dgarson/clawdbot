@@ -195,7 +195,7 @@ interface AutomationSchedule {
 
 **Purpose:** Ensure only ONE automation runs against a specific repository at a time, regardless of how many automations target that repo.
 
-**Implementation:** File-based locking in `~/.clawdbrain/automations/locks/`
+**Implementation:** File-based locking in `~/.openclaw/automations/locks/`
 
 ```typescript
 interface RepositoryLockManager {
@@ -296,7 +296,7 @@ interface ConcurrencyInfo {
 }
 ```
 
-**State File:** `~/.clawdbrain/automations/concurrency-state.json`
+**State File:** `~/.openclaw/automations/concurrency-state.json`
 
 ```json
 {
@@ -318,7 +318,7 @@ interface ConcurrencyInfo {
 ### Global Settings
 
 ```typescript
-// Stored in ~/.clawdbrain/automations/dispatcher-config.json
+// Stored in ~/.openclaw/automations/dispatcher-config.json
 interface DispatcherConfig {
   // Maximum concurrent automations (default: 3)
   maxConcurrent: number;
@@ -366,7 +366,7 @@ interface DispatcherConfig {
 
 - File locks are fast (microsecond scale)
 - No blocking: `tryAcquire` returns null immediately if locked
-- Lock files stored in `~/.clawdbrain/automations/locks/` for fast access
+- Lock files stored in `~/.openclaw/automations/locks/` for fast access
 
 ### Concurrency Check
 
@@ -406,7 +406,7 @@ interface DispatchMetrics {
 
 ### Logging
 
-- All dispatch operations logged to `~/.clawdbrain/automations/logs/dispatcher.log`
+- All dispatch operations logged to `~/.openclaw/automations/logs/dispatcher.log`
 - Log rotation: 10MB per file, keep 5 files
 - Structured JSON logging for easy parsing
 

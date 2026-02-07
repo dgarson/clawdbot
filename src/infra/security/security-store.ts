@@ -38,7 +38,7 @@ import {
 } from "./unlock-history.js";
 
 /** Directory for security data */
-const SECURITY_DIR = ".clawdbrain/security";
+const SECURITY_DIR = ".openclaw/security";
 
 /** Security config file name */
 const SECURITY_CONFIG_FILE = "security.json";

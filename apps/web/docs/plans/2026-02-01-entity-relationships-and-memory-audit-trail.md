@@ -233,7 +233,7 @@ interface SessionWithAudit extends GatewaySessionRow {
 ### 3.2 Storage Location
 
 ```
-~/.clawdbrain/
+~/.openclaw/
 ├── sessions/
 │   ├── {sessionKey}/
 │   │   ├── transcript.jsonl      # Existing chat history
@@ -1014,7 +1014,7 @@ Rituals remain the **user-friendly** interface for scheduled agent tasks:
 
 1. **Backend Cron Service**
    - Implement `cron.*` RPC methods
-   - Job storage at `~/.clawdbrain/jobs/`
+   - Job storage at `~/.openclaw/jobs/`
    - Execution engine with retry logic
    - Dependency resolution for job chains
 

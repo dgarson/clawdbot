@@ -113,7 +113,7 @@ async function fetchSessions(): Promise<SessionsListResult> {
     await new Promise((r) => setTimeout(r, 300));
     return {
       ts: Date.now(),
-      path: "~/.clawdbrain/sessions.json",
+      path: "~/.openclaw/sessions.json",
       count: mockSessions.length,
       defaults: { mainKey: "main" },
       sessions: mockSessions,

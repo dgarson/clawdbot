@@ -9,7 +9,7 @@ import type { PersonalAccessToken, TokenInfo, TokenCreationResult, TokenScope } 
 import { TOKEN_PREFIX, TOKEN_PREFIX_DISPLAY_LENGTH } from "./types.js";
 
 /** Directory for security data */
-const SECURITY_DIR = ".clawdbrain/security";
+const SECURITY_DIR = ".openclaw/security";
 
 /** Tokens file name */
 const TOKENS_FILE = "tokens.json";
