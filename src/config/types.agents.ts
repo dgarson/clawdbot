@@ -145,6 +145,12 @@ export type WorkerConfig = {
   queueId?: string;
   /** Only process items in these workstreams (omit = all). */
   workstreams?: string[];
+  /**
+   * Flexible claim mode. When true, skips workstream and agent-assignment
+   * filters so the worker claims any pending item in the target queue.
+   * Useful when items sit unclaimed due to routing constraints.
+   */
+  flexible?: boolean;
   /** Polling interval in ms when no work is available (default 5000). */
   pollIntervalMs?: number;
   /** Model override for worker sessions. */

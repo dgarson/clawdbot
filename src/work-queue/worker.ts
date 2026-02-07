@@ -324,6 +324,7 @@ export class WorkQueueWorker {
         }
       }
       this.deps.log.debug(`worker[${this.agentId}]: no items available in any workstream`);
+      await this.logQueueDiagnostics(queueId, workstreams);
       return null;
     }
     const item = await this.deps.store.claimNextItem({
@@ -336,8 +337,73 @@ export class WorkQueueWorker {
       this.deps.log.debug(`worker[${this.agentId}]: claimed item ${item.id}`);
     } else {
       this.deps.log.debug(`worker[${this.agentId}]: no items available to claim`);
+      await this.logQueueDiagnostics(queueId, workstreams);
     }
     return item;
+  }
+
+  /**
+   * Log a summary of all queue items when a claim attempt fails,
+   * so operators can see why nothing matched.
+   */
+  private async logQueueDiagnostics(queueId: string, workerWorkstreams: string[]): Promise<void> {
+    try {
+      const items = await this.deps.store.listItems({ queueId });
+      if (items.length === 0) {
+        this.deps.log.debug(`worker[${this.agentId}]: queue "${queueId}" is empty`);
+        return;
+      }
+
+      // Count by status.
+      const byStat: Record<string, number> = {};
+      for (const it of items) {
+        byStat[it.status] = (byStat[it.status] ?? 0) + 1;
+      }
+      const statDesc = Object.entries(byStat)
+        .map(([s, n]) => `${s}=${n}`)
+        .join(", ");
+      this.deps.log.debug(
+        `worker[${this.agentId}]: queue "${queueId}" has ${items.length} items (${statDesc})`,
+      );
+
+      // Show detail for pending items that didn't match.
+      const pending = items.filter((it) => it.status === "pending");
+      for (const it of pending) {
+        const parts: string[] = [`id=${it.id}`, `"${it.title}"`];
+        if (it.workstream) parts.push(`workstream=${it.workstream}`);
+        if (it.assignedTo?.agentId) parts.push(`assignedTo=${it.assignedTo.agentId}`);
+        if (it.dependsOn?.length) parts.push(`dependsOn=[${it.dependsOn.join(",")}]`);
+        if (it.blockedBy?.length) parts.push(`blockedBy=[${it.blockedBy.join(",")}]`);
+
+        // Identify why this item likely didn't match.
+        const reasons: string[] = [];
+        if (
+          workerWorkstreams.length > 0 &&
+          it.workstream &&
+          !workerWorkstreams.includes(it.workstream)
+        ) {
+          reasons.push(
+            `workstream "${it.workstream}" not in worker scopes [${workerWorkstreams.join(",")}]`,
+          );
+        }
+        if (workerWorkstreams.length > 0 && !it.workstream) {
+          reasons.push("item has no workstream (worker is workstream-scoped)");
+        }
+        if (it.assignedTo?.agentId && it.assignedTo.agentId !== this.agentId) {
+          reasons.push(`assigned to different agent "${it.assignedTo.agentId}"`);
+        }
+        if (it.dependsOn?.length || it.blockedBy?.length) {
+          reasons.push("has unresolved dependencies");
+        }
+        if (reasons.length > 0) {
+          parts.push(`skip-reason: ${reasons.join("; ")}`);
+        }
+
+        this.deps.log.debug(`worker[${this.agentId}]: pending item: ${parts.join(", ")}`);
+      }
+    } catch {
+      // Diagnostics are best-effort; don't disrupt the poll loop.
+    }
   }
 
   private get targetQueueId(): string {
