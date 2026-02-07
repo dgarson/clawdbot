@@ -129,6 +129,11 @@ import {
 } from "./sessions.js";
 import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import {
+  ToolApprovalRequestParamsSchema,
+  ToolApprovalResolveParamsSchema,
+  ToolApprovalsGetParamsSchema,
+} from "./tool-approvals.js";
+import {
   WizardCancelParamsSchema,
   WizardNextParamsSchema,
   WizardNextResultSchema,
@@ -257,6 +262,9 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   ExecApprovalsSnapshot: ExecApprovalsSnapshotSchema,
   ExecApprovalRequestParams: ExecApprovalRequestParamsSchema,
   ExecApprovalResolveParams: ExecApprovalResolveParamsSchema,
+  ToolApprovalRequestParams: ToolApprovalRequestParamsSchema,
+  ToolApprovalResolveParams: ToolApprovalResolveParamsSchema,
+  ToolApprovalsGetParams: ToolApprovalsGetParamsSchema,
   DevicePairListParams: DevicePairListParamsSchema,
   DevicePairApproveParams: DevicePairApproveParamsSchema,
   DevicePairRejectParams: DevicePairRejectParamsSchema,

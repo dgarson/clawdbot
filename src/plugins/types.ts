@@ -83,6 +83,8 @@ export type OpenClawPluginToolOptions = {
   name?: string;
   names?: string[];
   optional?: boolean;
+  /** Optional risk profile for the tool approval system. */
+  riskProfile?: import("../agents/tool-risk/types.js").ToolRiskProfile;
 };
 
 export type OpenClawPluginHookOptions = {

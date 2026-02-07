@@ -9,6 +9,7 @@ const log = createSubsystemLogger("plugins");
 type PluginToolMeta = {
   pluginId: string;
   optional: boolean;
+  riskProfile?: import("../agents/tool-risk/types.js").ToolRiskProfile;
 };
 
 const pluginToolMeta = new WeakMap<AnyAgentTool, PluginToolMeta>();
@@ -120,6 +121,7 @@ export function resolvePluginTools(params: {
       pluginToolMeta.set(tool, {
         pluginId: entry.pluginId,
         optional: entry.optional,
+        riskProfile: entry.riskProfile,
       });
       tools.push(tool);
     }

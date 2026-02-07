@@ -44,6 +44,7 @@ import {
   refreshRemoteBinsForConnectedNodes,
   setSkillsRemoteRegistry,
 } from "../infra/skills-remote.js";
+import { createToolApprovalForwarder } from "../infra/tool-approval-forwarder.js";
 import { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
@@ -66,6 +67,7 @@ import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
 import { coreGatewayHandlers } from "./server-methods.js";
 import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
+import { createToolApprovalHandlers } from "./server-methods/tool-approval.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
@@ -93,6 +95,7 @@ import {
   refreshGatewayHealthSnapshot,
 } from "./server/health-state.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
+import { ToolApprovalManager } from "./tool-approval-manager.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -521,6 +524,12 @@ export async function startGatewayServer(
     forwarder: execApprovalForwarder,
   });
 
+  const toolApprovalManager = new ToolApprovalManager();
+  const toolApprovalForwarder = createToolApprovalForwarder();
+  const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
+    forwarder: toolApprovalForwarder,
+  });
+
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
   // Context object is mutable; triggerConfigReload is wired up after reload handlers are created.
@@ -580,6 +589,7 @@ export async function startGatewayServer(
     extraHandlers: {
       ...pluginRegistry.gatewayHandlers,
       ...execApprovalHandlers,
+      ...toolApprovalHandlers,
     },
     broadcast,
     context: gatewayContext,
