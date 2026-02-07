@@ -126,9 +126,12 @@ export function startViewTransition({ from, to, applyChange }: ViewTransitionOpt
   // CSS fallback path: brief opacity transition
   const content = doc.querySelector(".content") as HTMLElement | null;
   if (content) {
+    let applied = false;
     content.classList.add("view-fade-out");
     // Wait for the fade-out to complete, then swap content and fade in
     const onTransitionEnd = () => {
+      if (applied) return;
+      applied = true;
       content.removeEventListener("transitionend", onTransitionEnd);
       applyChange();
       content.classList.remove("view-fade-out");
@@ -144,10 +147,11 @@ export function startViewTransition({ from, to, applyChange }: ViewTransitionOpt
 
     // Safety timeout in case transitionend doesn't fire (e.g. display: none)
     setTimeout(() => {
-      if (content.classList.contains("view-fade-out")) {
-        content.classList.remove("view-fade-out");
-        applyChange();
-      }
+      if (applied) return;
+      applied = true;
+      content.removeEventListener("transitionend", onTransitionEnd);
+      content.classList.remove("view-fade-out");
+      applyChange();
     }, 200);
   } else {
     applyChange();
