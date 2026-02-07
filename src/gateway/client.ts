@@ -288,10 +288,14 @@ export class GatewayClient {
       })
       .catch((err) => {
         if (canFallbackToShared && this.opts.deviceIdentity) {
-          clearDeviceAuthToken({
-            deviceId: this.opts.deviceIdentity.deviceId,
-            role,
-          });
+          try {
+            clearDeviceAuthToken({
+              deviceId: this.opts.deviceIdentity.deviceId,
+              role,
+            });
+          } catch {
+            // best-effort; don't mask the original connect error
+          }
         }
         this.opts.onConnectError?.(err instanceof Error ? err : new Error(String(err)));
         const msg = `gateway connect failed: ${String(err)}`;

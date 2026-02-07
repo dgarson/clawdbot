@@ -47,18 +47,29 @@ function filterSkillEntries(
   skillFilter?: string[],
   eligibility?: SkillEligibilityContext,
 ): SkillEntry[] {
+  // Check debug flag directly from config to avoid lazy-load issues
+  const debugEnabled =
+    config?.debugging?.features?.skills?.enabled === true ||
+    config?.debugging?.features?.skills?.verbose === true;
+
   let filtered = entries.filter((entry) => shouldIncludeSkill({ entry, config, eligibility }));
+
   // If skillFilter is provided, only include skills in the filter list.
   if (skillFilter !== undefined) {
     const normalized = skillFilter.map((entry) => String(entry).trim()).filter(Boolean);
-    const label = normalized.length > 0 ? normalized.join(", ") : "(none)";
-    console.log(`[skills] Applying skill filter: ${label}`);
+    if (debugEnabled) {
+      const label = normalized.length > 0 ? normalized.join(", ") : "(none)";
+      skillsLogger.debug(`Applying skill filter: ${label}`);
+    }
     filtered =
       normalized.length > 0
         ? filtered.filter((entry) => normalized.includes(entry.skill.name))
         : [];
-    console.log(`[skills] After filter: ${filtered.map((entry) => entry.skill.name).join(", ")}`);
+    if (debugEnabled) {
+      skillsLogger.debug(`After filter: ${filtered.map((entry) => entry.skill.name).join(", ")}`);
+    }
   }
+
   return filtered;
 }
 
@@ -208,6 +219,16 @@ export function buildWorkspaceSkillSnapshot(
     opts?.skillFilter,
     opts?.eligibility,
   );
+
+  // Always log a summary of loaded skills
+  // Use info level so it's always visible (not gated on debug flags)
+  if (eligible.length > 0) {
+    const skillNames = eligible.map((entry) => entry.skill.name).join(", ");
+    skillsLogger.info(
+      `Loaded ${eligible.length} skill${eligible.length === 1 ? "" : "s"}: ${skillNames}`,
+    );
+  }
+
   const promptEntries = eligible.filter(
     (entry) => entry.invocation?.disableModelInvocation !== true,
   );

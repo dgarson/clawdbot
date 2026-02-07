@@ -97,8 +97,13 @@ function shouldLogAtLevel(
   // Load config if not provided (lazy require to avoid circular dep: config → logging)
   let cfg: OpenClawConfig = config!;
   if (!cfg) {
-    const { getConfig } = require("../config/config.js");
-    cfg = getConfig();
+    try {
+      const { getConfig } = require("../config/config.js");
+      cfg = getConfig();
+    } catch {
+      // Config module unavailable (e.g., in isolated test environments) — default to no debug
+      return false;
+    }
   }
 
   // Priority 2: Suppression list

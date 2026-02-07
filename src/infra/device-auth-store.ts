@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
+import { logError } from "../logger.js";
 
 export type DeviceAuthEntry = {
   token: string;
@@ -138,5 +139,9 @@ export function clearDeviceAuthToken(params: {
     tokens: { ...store.tokens },
   };
   delete next.tokens[role];
-  writeStore(filePath, next);
+  try {
+    writeStore(filePath, next);
+  } catch (err) {
+    logError(`failed to clear device auth token: ${err}`);
+  }
 }
