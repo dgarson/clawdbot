@@ -30,6 +30,12 @@ export type { WorkItemCarryoverContext, WorkContextExtractor } from "./context-e
 export { LlmContextExtractor, TranscriptContextExtractor } from "./context-extractor.js";
 export { WorkerMetrics } from "./worker-metrics.js";
 export type { WorkerMetricsSnapshot } from "./worker-metrics.js";
+export {
+  BACKOFF_BASE_MS,
+  DEFAULT_POLL_INTERVAL_MS,
+  DEFAULT_SESSION_TIMEOUT_S,
+  MAX_CONSECUTIVE_ERRORS,
+} from "./worker-defaults.js";
 export { WorkQueueWorker, type WorkerDeps, type WorkerOptions } from "./worker.js";
 export { WorkQueueWorkerManager, type WorkerManagerOptions } from "./worker-manager.js";
 export {

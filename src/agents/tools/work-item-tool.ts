@@ -1,5 +1,6 @@
 import { Type } from "@sinclair/typebox";
-import type { OpenClawConfig } from "../../config/config.js";
+import { loadConfig, type OpenClawConfig } from "../../config/config.js";
+import { normalizeAgentId } from "../../routing/session-key.js";
 import { getDefaultWorkQueueStore } from "../../work-queue/index.js";
 import {
   WORK_ITEM_PRIORITIES,
@@ -88,6 +89,19 @@ function coerceStatuses(
     return ["pending", "in_progress", "blocked"];
   }
   return undefined;
+}
+
+/** Build a map of normalised agentId → human-readable name from config. */
+function buildAgentNameMap(cfg: OpenClawConfig): Map<string, string> {
+  const map = new Map<string, string>();
+  const agents = Array.isArray(cfg.agents?.list) ? cfg.agents.list : [];
+  for (const entry of agents) {
+    const name = entry?.name?.trim();
+    if (name) {
+      map.set(normalizeAgentId(entry.id), name);
+    }
+  }
+  return map;
 }
 
 export function createWorkItemTool(options: WorkItemToolOptions = {}): AnyAgentTool {
@@ -222,7 +236,16 @@ Actions:
             orderBy,
             orderDir,
           });
-          return jsonResult({ items });
+
+          // Resolve agent names for assignedTo so callers see human-readable names.
+          const cfg = options.config ?? loadConfig();
+          const nameMap = buildAgentNameMap(cfg);
+          const enriched = items.map((item) => {
+            const aid = item.assignedTo?.agentId;
+            const agentName = aid ? nameMap.get(normalizeAgentId(aid)) : undefined;
+            return agentName ? { ...item, agentName } : item;
+          });
+          return jsonResult({ items: enriched });
         }
         case "get": {
           if (!itemId) {

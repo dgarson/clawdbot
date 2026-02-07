@@ -3,12 +3,13 @@ import type { WorkQueueStore } from "../store.js";
 import type { WorkItem, WorkItemOutcome } from "../types.js";
 import type { WorkstreamNotesStore } from "../workstream-notes.js";
 import type { GatewayCallFn, WorkflowLogger } from "./types.js";
+import {
+  BACKOFF_BASE_MS,
+  DEFAULT_POLL_INTERVAL_MS,
+  MAX_CONSECUTIVE_ERRORS,
+} from "../worker-defaults.js";
 import { WorkerMetrics, type WorkerMetricsSnapshot } from "../worker-metrics.js";
 import { WorkerWorkflowEngine } from "./engine.js";
-
-const DEFAULT_POLL_INTERVAL_MS = 5000;
-const MAX_CONSECUTIVE_ERRORS = 5;
-const BACKOFF_BASE_MS = 2000;
 
 export type WorkflowWorkerAdapterDeps = {
   store: WorkQueueStore;

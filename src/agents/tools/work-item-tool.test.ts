@@ -26,6 +26,12 @@ vi.mock("../agent-scope.js", () => ({
   resolveSessionAgentId: () => "main",
 }));
 
+const loadConfigMock = vi.fn().mockReturnValue({});
+
+vi.mock("../../config/config.js", () => ({
+  loadConfig: (...args: unknown[]) => loadConfigMock(...args),
+}));
+
 import { createWorkItemTool } from "./work-item-tool.js";
 
 describe("work_item tool", () => {
@@ -37,6 +43,7 @@ describe("work_item tool", () => {
     getItemMock.mockReset();
     ensureQueueForAgentMock.mockReset();
     getQueueMock.mockReset();
+    loadConfigMock.mockReset().mockReturnValue({});
   });
 
   it("update action only forwards explicitly provided fields", async () => {
@@ -99,6 +106,31 @@ describe("work_item tool", () => {
       }),
     ).rejects.toThrow("Queue not found: missing-queue");
     expect(updateItemMock).not.toHaveBeenCalled();
+  });
+
+  it("list enriches items with agentName from config", async () => {
+    loadConfigMock.mockReturnValue({
+      agents: {
+        list: [
+          { id: "agent-a", name: "Alice" },
+          { id: "agent-b", name: "Bob" },
+        ],
+      },
+    });
+    listItemsMock.mockResolvedValue([
+      { id: "item-1", title: "task 1", assignedTo: { agentId: "agent-a" } },
+      { id: "item-2", title: "task 2", assignedTo: { agentId: "agent-b" } },
+      { id: "item-3", title: "task 3" },
+      { id: "item-4", title: "task 4", assignedTo: { agentId: "unknown-agent" } },
+    ]);
+    const tool = createWorkItemTool();
+    const result = await tool.execute("call-names", { action: "list", includeCompleted: true });
+    const textContent = result.content[0] as { type: "text"; text: string };
+    const parsed = JSON.parse(textContent.text);
+    expect(parsed.items[0].agentName).toBe("Alice");
+    expect(parsed.items[1].agentName).toBe("Bob");
+    expect(parsed.items[2].agentName).toBeUndefined();
+    expect(parsed.items[3].agentName).toBeUndefined();
   });
 
   it("list treats non-boolean includeCompleted values as false", async () => {

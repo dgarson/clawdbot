@@ -11,6 +11,7 @@ import {
   type WorkItemPriority,
   SqliteWorkQueueBackend,
 } from "../work-queue/index.js";
+import { DEFAULT_POLL_INTERVAL_MS } from "../work-queue/worker-defaults.js";
 import {
   WorkstreamNotesStore,
   SqliteWorkstreamNotesBackend,
@@ -512,7 +513,7 @@ export function registerWorkQueueCli(program: Command) {
                 agentId: a.id,
                 queueId: a.worker?.queueId ?? a.id,
                 workstreams: a.worker?.workstreams ?? [],
-                pollIntervalMs: a.worker?.pollIntervalMs ?? 5000,
+                pollIntervalMs: a.worker?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
                 model: a.worker?.model,
                 contextExtractor: a.worker?.contextExtractor ?? "transcript",
                 workflowEnabled: a.worker?.workflow?.enabled ?? false,
@@ -549,7 +550,7 @@ export function registerWorkQueueCli(program: Command) {
             Queue: a.worker?.queueId ?? a.id,
             Mode: a.worker?.workflow?.enabled ? "workflow" : "classic",
             Workstreams: a.worker?.workstreams?.join(", ") || "(all)",
-            Poll: String(a.worker?.pollIntervalMs ?? 5000),
+            Poll: String(a.worker?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS),
             Model: a.worker?.model ?? "(default)",
             Extractor: a.worker?.contextExtractor ?? "transcript",
           })),

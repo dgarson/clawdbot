@@ -4,12 +4,13 @@ import type { WorkContextExtractor, WorkItemCarryoverContext } from "./context-e
 import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
+import {
+  BACKOFF_BASE_MS,
+  DEFAULT_POLL_INTERVAL_MS,
+  DEFAULT_SESSION_TIMEOUT_S,
+  MAX_CONSECUTIVE_ERRORS,
+} from "./worker-defaults.js";
 import { WorkerMetrics, type WorkerMetricsSnapshot } from "./worker-metrics.js";
-
-const DEFAULT_POLL_INTERVAL_MS = 5000;
-const DEFAULT_SESSION_TIMEOUT_S = 300;
-const MAX_CONSECUTIVE_ERRORS = 5;
-const BACKOFF_BASE_MS = 2000;
 
 const APPROVAL_PATTERN = /approval|exec.*approv/i;
 
