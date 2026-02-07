@@ -80,3 +80,17 @@ export function enabledForChannel(config: DebuggingConfig | undefined, channelId
 export function enabledForFeature(config: DebuggingConfig | undefined, featureId: string): boolean {
   return !!config?.features?.[featureId];
 }
+
+/**
+ * Check if a specific boolean property is enabled on a debugging channel.
+ * Returns true only when the channel is enabled AND the property is exactly `true`.
+ */
+export function isChannelPropertyEnabled(
+  config: DebuggingConfig | undefined,
+  channelId: string,
+  property: string,
+): boolean {
+  return (
+    isDebuggingEnabled(config, channelId) && config?.channels?.[channelId]?.[property] === true
+  );
+}
