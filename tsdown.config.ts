@@ -17,6 +17,11 @@ export default defineConfig([
     env,
     fixedExtension: false,
     platform: "node",
+    // Disable code splitting to work around rolldown circular chunk dependency
+    // bug (rolldown#2654) where __esmMin runtime helpers are used before init.
+    // strictExecutionOrder doesn't help since the bug is in rolldown's own
+    // runtime, not user module ordering.
+    outputOptions: { codeSplitting: false },
   },
   {
     dts: true,
