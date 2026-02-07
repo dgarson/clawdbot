@@ -130,7 +130,7 @@ register("web_fetch", {
 
 register("image", {
   riskClass: "R1",
-  sideEffects: ["filesystem_read"],
+  sideEffects: ["filesystem_read", "network_egress"],
   description: "View/process an image",
 });
 
