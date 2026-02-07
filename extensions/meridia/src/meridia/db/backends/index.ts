@@ -8,6 +8,7 @@ import type {
 } from "../backend.js";
 import { resolveMeridiaPluginConfig } from "../../config.js";
 import { resolveMeridiaDir } from "../../paths.js";
+import { createPostgresBackend } from "./postgresql.js";
 import { createSqliteBackend, resolveMeridiaDbPath } from "./sqlite.js";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -83,8 +84,23 @@ backendRegistry.register("sqlite", (config: BackendConfig) => {
   });
 });
 
-// PostgreSQL backend is registered dynamically when imported
-// See: ./postgresql.ts
+// Register PostgreSQL backend.
+// The pg module is dynamically imported inside PostgresBackend.init(), so construction
+// is synchronous and doesn't require pg to be installed unless actually used.
+backendRegistry.register("postgresql", (config: BackendConfig) => {
+  return createPostgresBackend({
+    connectionString: config.postgresql?.connectionString,
+    host: config.postgresql?.host,
+    port: config.postgresql?.port,
+    database: config.postgresql?.database,
+    user: config.postgresql?.user,
+    password: config.postgresql?.password,
+    ssl: config.postgresql?.ssl,
+    poolSize: config.postgresql?.poolSize,
+    idleTimeoutMs: config.postgresql?.idleTimeoutMs,
+    connectionTimeoutMs: config.postgresql?.connectionTimeoutMs,
+  });
+});
 
 // ────────────────────────────────────────────────────────────────────────────
 // Backend Instance Management

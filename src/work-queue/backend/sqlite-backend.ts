@@ -494,17 +494,21 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     // Use Object.hasOwn so that explicitly passing `undefined` (to clear a field)
     // is distinguished from omitting the key entirely (no change).
     const has = (key: string) => Object.hasOwn(patch, key);
-    if (has("queueId")) apply("queue_id", patch.queueId);
-    if (has("title")) apply("title", patch.title);
+    const hasDefined = <K extends keyof WorkItemPatch>(key: K) =>
+      Object.hasOwn(patch, key) && patch[key] !== undefined;
+    // Required fields are only updated when a concrete value is provided.
+    // This avoids binding `undefined` into SQLite parameters.
+    if (hasDefined("queueId")) apply("queue_id", patch.queueId);
+    if (hasDefined("title")) apply("title", patch.title);
     if (has("description")) apply("description", patch.description ?? null);
     if (has("payload")) apply("payload_json", encodeJson(patch.payload));
-    if (has("status")) apply("status", patch.status);
+    if (hasDefined("status")) apply("status", patch.status);
     if (has("statusReason")) apply("status_reason", patch.statusReason ?? null);
     if (has("parentItemId")) apply("parent_item_id", patch.parentItemId ?? null);
     if (has("dependsOn")) apply("depends_on_json", encodeJson(patch.dependsOn));
     if (has("blockedBy")) apply("blocked_by_json", encodeJson(patch.blockedBy));
     if (has("assignedTo")) apply("assigned_to_json", encodeJson(patch.assignedTo));
-    if (has("priority")) apply("priority", patch.priority);
+    if (hasDefined("priority")) apply("priority", patch.priority);
     if (has("workstream")) apply("workstream", patch.workstream ?? null);
     if (has("tags")) apply("tags_json", encodeJson(patch.tags));
     if (has("result")) apply("result_json", encodeJson(patch.result));

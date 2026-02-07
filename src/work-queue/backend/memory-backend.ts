@@ -40,11 +40,34 @@ function matchesTags(candidate: string[] | undefined, tags: string[] | undefined
 }
 
 function applyPatch(item: WorkItem, patch: WorkItemPatch): WorkItem {
-  return {
+  const updated: WorkItem = {
     ...item,
-    ...patch,
     updatedAt: new Date().toISOString(),
   };
+
+  if (patch.queueId !== undefined) updated.queueId = patch.queueId;
+  if (patch.title !== undefined) updated.title = patch.title;
+  if (Object.hasOwn(patch, "description")) updated.description = patch.description;
+  if (Object.hasOwn(patch, "payload")) updated.payload = patch.payload;
+  if (patch.status !== undefined) updated.status = patch.status;
+  if (Object.hasOwn(patch, "statusReason")) updated.statusReason = patch.statusReason;
+  if (Object.hasOwn(patch, "parentItemId")) updated.parentItemId = patch.parentItemId;
+  if (Object.hasOwn(patch, "dependsOn")) updated.dependsOn = patch.dependsOn;
+  if (Object.hasOwn(patch, "blockedBy")) updated.blockedBy = patch.blockedBy;
+  if (Object.hasOwn(patch, "assignedTo")) updated.assignedTo = patch.assignedTo;
+  if (patch.priority !== undefined) updated.priority = patch.priority;
+  if (Object.hasOwn(patch, "workstream")) updated.workstream = patch.workstream;
+  if (Object.hasOwn(patch, "tags")) updated.tags = patch.tags;
+  if (Object.hasOwn(patch, "retryCount")) updated.retryCount = patch.retryCount ?? 0;
+  if (Object.hasOwn(patch, "maxRetries")) updated.maxRetries = patch.maxRetries;
+  if (Object.hasOwn(patch, "deadline")) updated.deadline = patch.deadline;
+  if (Object.hasOwn(patch, "lastOutcome")) updated.lastOutcome = patch.lastOutcome;
+  if (Object.hasOwn(patch, "startedAt")) updated.startedAt = patch.startedAt;
+  if (Object.hasOwn(patch, "completedAt")) updated.completedAt = patch.completedAt;
+  if (Object.hasOwn(patch, "result")) updated.result = patch.result;
+  if (Object.hasOwn(patch, "error")) updated.error = patch.error;
+
+  return updated;
 }
 
 export class MemoryWorkQueueBackend implements WorkQueueBackend {

@@ -32,3 +32,7 @@ export {
 
 // SQLite backend
 export { createSqliteBackend, SqliteBackend } from "./backends/sqlite.js";
+
+// PostgreSQL backend
+export { createPostgresBackend, PostgresBackend } from "./backends/postgresql.js";
+export type { PostgresBackendConfig } from "./backends/postgresql.js";

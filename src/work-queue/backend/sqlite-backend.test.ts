@@ -91,6 +91,45 @@ describeSqlite("SqliteWorkQueueBackend", () => {
     fs.rmSync(dbPath, { force: true });
   });
 
+  it("ignores undefined values for required patch fields", async () => {
+    const dbPath = path.join(os.tmpdir(), `work-queue-required-${Date.now()}.sqlite`);
+    const backend = new SqliteWorkQueueBackend(dbPath);
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "required-test",
+      agentId: "required-test",
+      name: "Required test queue",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    const item = await backend.createItem({
+      queueId: queue.id,
+      title: "Original title",
+      description: "Original description",
+      status: "pending",
+      priority: "medium",
+    });
+
+    const updated = await backend.updateItem(item.id, {
+      title: undefined,
+      status: "blocked",
+      statusReason: "blocked for review",
+    });
+
+    expect(updated.title).toBe("Original title");
+    expect(updated.status).toBe("blocked");
+    expect(updated.statusReason).toBe("blocked for review");
+
+    const reloaded = await backend.getItem(item.id);
+    expect(reloaded?.title).toBe("Original title");
+    expect(reloaded?.status).toBe("blocked");
+
+    await backend.close();
+    fs.rmSync(dbPath, { force: true });
+  });
+
   describe("schema migrations", () => {
     it("runs all migrations on a fresh database", async () => {
       const dbPath = path.join(os.tmpdir(), `work-queue-fresh-${Date.now()}.sqlite`);

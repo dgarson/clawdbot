@@ -112,6 +112,25 @@ function migration003Phenomenology(db: DatabaseSync): void {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Migration 004: Add memory_type and classification_json columns
+// ────────────────────────────────────────────────────────────────────────────
+
+function migration004Classification(db: DatabaseSync): void {
+  const cols = [
+    { name: "memory_type", type: "TEXT" },
+    { name: "classification_json", type: "TEXT" },
+  ];
+  for (const col of cols) {
+    if (!columnExists(db, "meridia_records", col.name)) {
+      db.exec(`ALTER TABLE meridia_records ADD COLUMN ${col.name} ${col.type}`);
+    }
+  }
+  db.exec(
+    `CREATE INDEX IF NOT EXISTS idx_meridia_records_memory_type ON meridia_records(memory_type);`,
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Migration Registry
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -119,6 +138,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 1, name: "baseline", up: migration001Baseline },
   { version: 2, name: "add_vector", up: migration002Vector },
   { version: 3, name: "add_phenomenology", up: migration003Phenomenology },
+  { version: 4, name: "add_classification", up: migration004Classification },
 ];
 
 // ────────────────────────────────────────────────────────────────────────────

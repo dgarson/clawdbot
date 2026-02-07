@@ -116,7 +116,8 @@ Actions:
       const store = await getDefaultWorkQueueStore();
       const itemId = readStringParam(params, "itemId");
       const queueId = readStringParam(params, "queueId");
-      const agentId = resolveAgentId(options, readStringParam(params, "agentId"));
+      const rawAgentId = readStringParam(params, "agentId");
+      const agentId = resolveAgentId(options, rawAgentId);
       const title = readStringParam(params, "title");
       const description = readStringParam(params, "description");
       const priority = readStringParam(params, "priority") as WorkItemPriority | undefined;
@@ -196,7 +197,8 @@ Actions:
           const statuses = readStringArrayParam(params, "statuses");
           const priorities = readStringArrayParam(params, "priorities");
           const createdBy = readStringParam(params, "createdBy");
-          const includeCompleted = Boolean(params.includeCompleted);
+          const includeCompleted =
+            typeof params.includeCompleted === "boolean" ? params.includeCompleted : false;
           const limit = readNumberParam(params, "limit", { integer: true });
           const offset = readNumberParam(params, "offset", { integer: true });
           const orderBy = readStringParam(params, "orderBy") as
@@ -291,9 +293,14 @@ Actions:
           if (!itemId) {
             throw new Error("itemId required");
           }
-          const targetQueueId = queueId ?? agentId;
-          if (!targetQueueId) {
+          if (!queueId && !rawAgentId) {
             throw new Error("queueId or agentId required");
+          }
+          const targetQueueId = queueId
+            ? (await store.getQueue(queueId))?.id
+            : (await store.ensureQueueForAgent(resolveAgentId(options, rawAgentId)))?.id;
+          if (!targetQueueId) {
+            throw new Error(`Queue not found: ${queueId}`);
           }
           const updated = await store.updateItem(itemId, {
             queueId: targetQueueId,
