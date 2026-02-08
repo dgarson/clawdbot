@@ -207,6 +207,31 @@
   --info: #60a5fa;
   --info-muted: rgba(96, 165, 250, 0.15);
 
+  /* Data visualization palette */
+  --chart-red: #ef4444;
+  --chart-amber: #f59e0b;
+  --chart-green: #10b981;
+  --chart-cyan: #06b6d4;
+  --chart-violet: #8b5cf6;
+  --chart-pink: #ec4899;
+
+  /* Log level colors */
+  --log-trace: #8b5cf6;
+  --log-debug: #6b7280;
+  --log-info: #3b82f6;
+  --log-warn: #f59e0b;
+  --log-error: #ef4444;
+  --log-fatal: #dc2626;
+
+  /* Syntax highlighting (code blocks) */
+  --syntax-keyword: #ff7b72;
+  --syntax-string: #a5d6ff;
+  --syntax-function: #79c0ff;
+  --syntax-comment: #8b949e;
+  --syntax-type: #d2a8ff;
+  --syntax-number: #ffa657;
+  --syntax-literal: #7ee787;
+
   /* Focus & interaction */
   --focus: rgba(245, 159, 74, 0.35);
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
@@ -346,6 +371,31 @@
   --danger-muted: rgba(212, 72, 72, 0.12);
   --info: #3b82f6;
   --info-muted: rgba(59, 130, 246, 0.12);
+
+  /* Data visualization (light) */
+  --chart-red: #dc2626;
+  --chart-amber: #d97706;
+  --chart-green: #059669;
+  --chart-cyan: #0891b2;
+  --chart-violet: #7c3aed;
+  --chart-pink: #db2777;
+
+  /* Log level colors (light) */
+  --log-trace: #7c3aed;
+  --log-debug: #6b7280;
+  --log-info: #2563eb;
+  --log-warn: #d97706;
+  --log-error: #dc2626;
+  --log-fatal: #b91c1c;
+
+  /* Syntax highlighting (light) */
+  --syntax-keyword: #cf222e;
+  --syntax-string: #0369a1;
+  --syntax-function: #0550ae;
+  --syntax-comment: #6e7781;
+  --syntax-type: #8250df;
+  --syntax-number: #b45309;
+  --syntax-literal: #116329;
 
   --focus: rgba(226, 138, 63, 0.35);
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);

@@ -100,8 +100,11 @@ export class WaitlistModal extends CtaModalBase {
             @blur=${this.handleEmailBlur}
             autocomplete="email"
             required
+            aria-required="true"
+            aria-invalid=${this.emailError && this.touched ? "true" : "false"}
+            aria-describedby=${this.emailError && this.touched ? "waitlist-email-error" : "waitlist-email-hint"}
           />
-          ${this.touched ? this.renderFieldError(this.emailError) : html``}
+          ${this.touched ? this.renderFieldError(this.emailError, "waitlist-email-error") : html``}
           ${
             !this.emailError && !this.touched
               ? html`

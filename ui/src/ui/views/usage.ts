@@ -59,16 +59,16 @@ const usageStylesString = `
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
-    background: rgba(255, 77, 77, 0.1);
+    background: var(--danger-muted);
     border-radius: 4px;
     font-size: 12px;
-    color: #ff4d4d;
+    color: var(--danger);
   }
   .usage-refresh-indicator::before {
     content: "";
     width: 10px;
     height: 10px;
-    border: 2px solid #ff4d4d;
+    border: 2px solid var(--danger);
     border-top-color: transparent;
     border-radius: 50%;
     animation: usage-spin 0.6s linear infinite;
@@ -166,36 +166,34 @@ const usageStylesString = `
     border-color: var(--border-strong);
   }
   .usage-primary-btn {
-    background: #ff4d4d;
+    background: var(--danger);
     color: #fff;
-    border-color: #ff4d4d;
+    border-color: var(--danger);
     box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   }
   .btn.usage-primary-btn {
-    background: #ff4d4d !important;
-    border-color: #ff4d4d !important;
+    background: var(--danger) !important;
+    border-color: var(--danger) !important;
     color: #fff !important;
   }
   .usage-primary-btn:hover {
-    background: #e64545;
-    border-color: #e64545;
+    filter: brightness(0.9);
   }
   .btn.usage-primary-btn:hover {
-    background: #e64545 !important;
-    border-color: #e64545 !important;
+    filter: brightness(0.9);
   }
   .usage-primary-btn:disabled {
-    background: rgba(255, 77, 77, 0.18);
-    border-color: rgba(255, 77, 77, 0.3);
-    color: #ff4d4d;
+    background: var(--danger-muted);
+    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+    color: var(--danger);
     box-shadow: none;
     cursor: default;
     opacity: 1;
   }
   .usage-primary-btn[disabled] {
-    background: rgba(255, 77, 77, 0.18) !important;
-    border-color: rgba(255, 77, 77, 0.3) !important;
-    color: #ff4d4d !important;
+    background: var(--danger-muted) !important;
+    border-color: color-mix(in srgb, var(--danger) 30%, transparent) !important;
+    color: var(--danger) !important;
     opacity: 1 !important;
   }
   .usage-secondary-btn {
@@ -643,13 +641,13 @@ const usageStylesString = `
     color: var(--text-strong);
   }
   .usage-summary-value.good {
-    color: #1f8f4e;
+    color: var(--ok);
   }
   .usage-summary-value.warn {
-    color: #c57a00;
+    color: var(--warn);
   }
   .usage-summary-value.bad {
-    color: #c9372c;
+    color: var(--danger);
   }
   .usage-summary-hint {
     font-size: 10px;
@@ -804,7 +802,7 @@ const usageStylesString = `
     color: var(--text);
   }
   .chart-toggle .toggle-btn.active {
-    background: #ff4d4d;
+    background: var(--danger);
     color: white;
   }
   .chart-toggle.small .toggle-btn {
@@ -861,14 +859,14 @@ const usageStylesString = `
   .daily-bar {
     width: 100%;
     max-width: var(--bar-max-width, 32px);
-    background: #ff4d4d;
+    background: var(--danger);
     border-radius: 3px 3px 0 0;
     min-height: 2px;
     transition: all 0.15s;
     overflow: hidden;
   }
   .daily-bar-wrapper:hover .daily-bar {
-    background: #cc3d3d;
+    filter: brightness(0.85);
   }
   .daily-bar-label {
     position: absolute;
@@ -937,16 +935,16 @@ const usageStylesString = `
     position: relative;
   }
   .cost-segment.output {
-    background: #ef4444;
+    background: var(--chart-red);
   }
   .cost-segment.input {
-    background: #f59e0b;
+    background: var(--chart-amber);
   }
   .cost-segment.cache-write {
-    background: #10b981;
+    background: var(--chart-green);
   }
   .cost-segment.cache-read {
-    background: #06b6d4;
+    background: var(--chart-cyan);
   }
   .cost-breakdown-legend {
     display: flex;
@@ -974,28 +972,28 @@ const usageStylesString = `
     flex-shrink: 0;
   }
   .legend-dot.output {
-    background: #ef4444;
+    background: var(--chart-red);
   }
   .legend-dot.input {
-    background: #f59e0b;
+    background: var(--chart-amber);
   }
   .legend-dot.cache-write {
-    background: #10b981;
+    background: var(--chart-green);
   }
   .legend-dot.cache-read {
-    background: #06b6d4;
+    background: var(--chart-cyan);
   }
   .legend-dot.system {
-    background: #ff4d4d;
+    background: var(--danger);
   }
   .legend-dot.skills {
-    background: #8b5cf6;
+    background: var(--chart-violet);
   }
   .legend-dot.tools {
-    background: #ec4899;
+    background: var(--chart-pink);
   }
   .legend-dot.files {
-    background: #f59e0b;
+    background: var(--chart-amber);
   }
   .cost-breakdown-note {
     margin-top: 10px;
@@ -1064,7 +1062,7 @@ const usageStylesString = `
   }
   .session-bar-fill {
     height: 100%;
-    background: rgba(255, 77, 77, 0.7);
+    background: color-mix(in srgb, var(--danger) 70%, transparent);
     border-radius: 4px;
     transition: width 0.3s ease;
   }
@@ -1135,32 +1133,32 @@ const usageStylesString = `
     fill: var(--text-muted);
   }
   .timeseries-svg .ts-area {
-    fill: #ff4d4d;
+    fill: var(--danger);
     fill-opacity: 0.1;
   }
   .timeseries-svg .ts-line {
     fill: none;
-    stroke: #ff4d4d;
+    stroke: var(--danger);
     stroke-width: 2;
   }
   .timeseries-svg .ts-dot {
-    fill: #ff4d4d;
+    fill: var(--danger);
     transition: r 0.15s, fill 0.15s;
   }
   .timeseries-svg .ts-dot:hover {
     r: 5;
   }
   .timeseries-svg .ts-bar {
-    fill: #ff4d4d;
+    fill: var(--danger);
     transition: fill 0.15s;
   }
   .timeseries-svg .ts-bar:hover {
-    fill: #cc3d3d;
+    opacity: 0.8;
   }
-  .timeseries-svg .ts-bar.output { fill: #ef4444; }
-  .timeseries-svg .ts-bar.input { fill: #f59e0b; }
-  .timeseries-svg .ts-bar.cache-write { fill: #10b981; }
-  .timeseries-svg .ts-bar.cache-read { fill: #06b6d4; }
+  .timeseries-svg .ts-bar.output { fill: var(--chart-red); }
+  .timeseries-svg .ts-bar.input { fill: var(--chart-amber); }
+  .timeseries-svg .ts-bar.cache-write { fill: var(--chart-green); }
+  .timeseries-svg .ts-bar.cache-read { fill: var(--chart-cyan); }
   .timeseries-summary {
     margin-top: 12px;
     font-size: 13px;
@@ -1286,16 +1284,16 @@ const usageStylesString = `
     transition: width 0.3s ease;
   }
   .context-segment.system {
-    background: #ff4d4d;
+    background: var(--danger);
   }
   .context-segment.skills {
-    background: #8b5cf6;
+    background: var(--chart-violet);
   }
   .context-segment.tools {
-    background: #ec4899;
+    background: var(--chart-pink);
   }
   .context-segment.files {
-    background: #f59e0b;
+    background: var(--chart-amber);
   }
   .context-legend {
     display: flex;
@@ -1525,7 +1523,7 @@ const usageStylesString = `
   .sessions-card .session-bar-row.selected {
     border-color: var(--accent);
     background: var(--accent-subtle);
-    box-shadow: inset 0 0 0 1px rgba(255, 77, 77, 0.15);
+    box-shadow: inset 0 0 0 1px var(--danger-muted);
   }
   .sessions-card .session-bar-label {
     flex: 1 1 auto;

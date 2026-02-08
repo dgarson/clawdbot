@@ -5,7 +5,7 @@
  * Provides backdrop, open/close, focus trapping, escape key, and animated transitions.
  */
 
-import { html, css, LitElement, TemplateResult, PropertyValues } from "lit";
+import { html, css, LitElement, nothing, TemplateResult, PropertyValues } from "lit";
 import { property, state, query } from "lit/decorators.js";
 
 export class CtaModalBase extends LitElement {
@@ -547,10 +547,10 @@ export class CtaModalBase extends LitElement {
     `;
   }
 
-  protected renderFieldError(error: string): TemplateResult {
+  protected renderFieldError(error: string, id?: string): TemplateResult {
     return html`
-      <div class="form-error ${error ? "visible" : ""}" role="alert" aria-live="polite">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="form-error ${error ? "visible" : ""}" role="alert" aria-live="polite" id=${id ?? nothing}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>

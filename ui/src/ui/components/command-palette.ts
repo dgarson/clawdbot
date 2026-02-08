@@ -197,6 +197,7 @@ export function renderCommandPalette(props: CommandPaletteProps) {
     const idx = globalIndex++;
     const isSelected = idx === state.selectedIndex;
     const starred = isFavorite(cmd.id);
+    const itemId = `command-palette-item-${idx}`;
     return html`
       <button
         class="command-palette__item ${isSelected ? "command-palette__item--selected" : ""}"
@@ -207,13 +208,14 @@ export function renderCommandPalette(props: CommandPaletteProps) {
         role="option"
         aria-selected=${isSelected}
       >
-        <span class="command-palette__item-icon">${icon(cmd.icon, { size: 16 })}</span>
+        <span class="command-palette__item-icon" aria-hidden="true">${icon(cmd.icon, { size: 16 })}</span>
         <span class="command-palette__item-label">${cmd.label}</span>
         ${
           starred
             ? html`<span
               class="command-palette__item-fav"
               title="Favorited (${navigator.platform?.includes("Mac") ? "⌘" : "Ctrl+"}D to toggle)"
+              aria-label="Remove from favorites"
               @click=${(e: Event) => {
                 e.stopPropagation();
                 handleToggleFavorite(cmd);
@@ -224,7 +226,7 @@ export function renderCommandPalette(props: CommandPaletteProps) {
         }
         ${
           cmd.shortcut
-            ? html`<kbd class="command-palette__item-shortcut">${cmd.shortcut}</kbd>`
+            ? html`<kbd class="command-palette__item-shortcut" aria-hidden="true">${cmd.shortcut}</kbd>`
             : nothing
         }
       </button>
@@ -271,9 +273,9 @@ export function renderCommandPalette(props: CommandPaletteProps) {
             aria-activedescendant=${selectedItemId ?? nothing}
             aria-label="Search commands"
           />
-          <kbd class="command-palette__kbd">ESC</kbd>
+          <kbd class="command-palette__kbd" aria-hidden="true">ESC</kbd>
         </div>
-        <div class="command-palette__categories">
+        <div class="command-palette__categories" role="tablist" aria-label="Command categories">
           ${allCategories.map(
             (cat) => html`
               <button
@@ -284,6 +286,9 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                   onCategoryChange(cat);
                   onIndexChange(0);
                 }}
+                role="tab"
+                aria-selected=${cat === state.activeCategory}
+                aria-controls="command-palette-listbox"
               >
                 ${cat}
               </button>
@@ -301,8 +306,8 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 ${
                   favoriteCommands.length > 0
                     ? html`
-                      <div class="command-palette__group">
-                        <div class="command-palette__group-label">★ Favorites</div>
+                      <div class="command-palette__group" role="group" aria-label="Favorites">
+                        <div class="command-palette__group-label" id="group-favorites" aria-hidden="true">★ Favorites</div>
                         ${favoriteCommands.map(renderItem)}
                       </div>
                     `
@@ -311,8 +316,8 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 ${
                   recentCommands.length > 0
                     ? html`
-                      <div class="command-palette__group">
-                        <div class="command-palette__group-label">Recents</div>
+                      <div class="command-palette__group" role="group" aria-label="Recent commands">
+                        <div class="command-palette__group-label" id="group-recents" aria-hidden="true">Recents</div>
                         ${recentCommands.map(renderItem)}
                       </div>
                     `
@@ -320,8 +325,8 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 }
                 ${[...grouped.entries()].map(
                   ([category, cmds]) => html`
-                    <div class="command-palette__group">
-                      <div class="command-palette__group-label">${category}</div>
+                    <div class="command-palette__group" role="group" aria-label="${category}">
+                      <div class="command-palette__group-label" aria-hidden="true">${category}</div>
                       ${cmds.map(renderItem)}
                     </div>
                   `,

@@ -482,71 +482,71 @@
   border-radius: 50%;
 }
 
-/* Level colors */
+/* Level colors — uses --log-* tokens from design-system.css */
 .logs-level-chip--trace {
-  color: #8b5cf6;
+  color: var(--log-trace);
 }
 .logs-level-chip--trace .logs-level-chip__dot {
-  background: #8b5cf6;
+  background: var(--log-trace);
 }
 .logs-level-chip--trace.logs-level-chip--active {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: color-mix(in srgb, var(--log-trace) 15%, transparent);
+  border-color: color-mix(in srgb, var(--log-trace) 40%, transparent);
 }
 
 .logs-level-chip--debug {
-  color: #6b7280;
+  color: var(--log-debug);
 }
 .logs-level-chip--debug .logs-level-chip__dot {
-  background: #6b7280;
+  background: var(--log-debug);
 }
 .logs-level-chip--debug.logs-level-chip--active {
-  background: rgba(107, 114, 128, 0.15);
-  border-color: rgba(107, 114, 128, 0.4);
+  background: color-mix(in srgb, var(--log-debug) 15%, transparent);
+  border-color: color-mix(in srgb, var(--log-debug) 40%, transparent);
 }
 
 .logs-level-chip--info {
-  color: #3b82f6;
+  color: var(--log-info);
 }
 .logs-level-chip--info .logs-level-chip__dot {
-  background: #3b82f6;
+  background: var(--log-info);
 }
 .logs-level-chip--info.logs-level-chip--active {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: color-mix(in srgb, var(--log-info) 15%, transparent);
+  border-color: color-mix(in srgb, var(--log-info) 40%, transparent);
 }
 
 .logs-level-chip--warn {
-  color: #f59e0b;
+  color: var(--log-warn);
 }
 .logs-level-chip--warn .logs-level-chip__dot {
-  background: #f59e0b;
+  background: var(--log-warn);
 }
 .logs-level-chip--warn.logs-level-chip--active {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: color-mix(in srgb, var(--log-warn) 15%, transparent);
+  border-color: color-mix(in srgb, var(--log-warn) 40%, transparent);
 }
 
 .logs-level-chip--error {
-  color: #ef4444;
+  color: var(--log-error);
 }
 .logs-level-chip--error .logs-level-chip__dot {
-  background: #ef4444;
+  background: var(--log-error);
 }
 .logs-level-chip--error.logs-level-chip--active {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
+  background: color-mix(in srgb, var(--log-error) 15%, transparent);
+  border-color: color-mix(in srgb, var(--log-error) 40%, transparent);
 }
 
 .logs-level-chip--fatal {
-  color: #dc2626;
+  color: var(--log-fatal);
 }
 .logs-level-chip--fatal .logs-level-chip__dot {
-  background: #dc2626;
+  background: var(--log-fatal);
 }
 .logs-level-chip--fatal.logs-level-chip--active {
-  background: rgba(220, 38, 38, 0.15);
-  border-color: rgba(220, 38, 38, 0.4);
+  background: color-mix(in srgb, var(--log-fatal) 15%, transparent);
+  border-color: color-mix(in srgb, var(--log-fatal) 40%, transparent);
 }
 
 /* Subsystem filter tags */
@@ -862,33 +862,33 @@
 }
 
 .log-entry__level--trace {
-  background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  background: color-mix(in srgb, var(--log-trace) 15%, transparent);
+  color: var(--log-trace);
 }
 
 .log-entry__level--debug {
-  background: rgba(107, 114, 128, 0.15);
-  color: #6b7280;
+  background: color-mix(in srgb, var(--log-debug) 15%, transparent);
+  color: var(--log-debug);
 }
 
 .log-entry__level--info {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  background: color-mix(in srgb, var(--log-info) 15%, transparent);
+  color: var(--log-info);
 }
 
 .log-entry__level--warn {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--log-warn) 15%, transparent);
+  color: var(--log-warn);
 }
 
 .log-entry__level--error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--log-error) 15%, transparent);
+  color: var(--log-error);
 }
 
 .log-entry__level--fatal {
-  background: rgba(220, 38, 38, 0.2);
-  color: #dc2626;
+  background: color-mix(in srgb, var(--log-fatal) 20%, transparent);
+  color: var(--log-fatal);
   font-weight: 700;
 }
 
@@ -1011,40 +1011,24 @@
   white-space: pre;
 }
 
-/* JSON syntax highlighting */
+/* JSON syntax highlighting — uses --syntax-* tokens from design-system.css */
 .json-key {
-  color: #a5d6ff;
+  color: var(--syntax-string);
 }
 .json-string {
-  color: #a5d6a7;
+  color: var(--syntax-literal);
 }
 .json-number {
-  color: #ffcc80;
+  color: var(--syntax-number);
 }
 .json-boolean {
-  color: #ce93d8;
+  color: var(--syntax-type);
 }
 .json-null {
-  color: #ef9a9a;
+  color: var(--syntax-keyword);
 }
 .json-bracket {
   color: var(--muted);
-}
-
-:root[data-theme="light"] .json-key {
-  color: #0369a1;
-}
-:root[data-theme="light"] .json-string {
-  color: #166534;
-}
-:root[data-theme="light"] .json-number {
-  color: #b45309;
-}
-:root[data-theme="light"] .json-boolean {
-  color: #7c3aed;
-}
-:root[data-theme="light"] .json-null {
-  color: #dc2626;
 }
 
 /* =============================================================================

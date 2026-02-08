@@ -173,8 +173,11 @@ export class DemoRequestModal extends CtaModalBase {
               @blur=${() => this.handleBlur("name")}
               autocomplete="name"
               required
+              aria-required="true"
+              aria-invalid=${this.errors.name && this.touched.name ? "true" : "false"}
+              aria-describedby=${this.errors.name && this.touched.name ? "demo-name-error" : nothing}
             />
-            ${this.touched.name ? this.renderFieldError(this.errors.name) : html``}
+            ${this.touched.name ? this.renderFieldError(this.errors.name, "demo-name-error") : html``}
           </div>
 
           <div class="form-group">
@@ -191,8 +194,11 @@ export class DemoRequestModal extends CtaModalBase {
               @blur=${() => this.handleBlur("email")}
               autocomplete="email"
               required
+              aria-required="true"
+              aria-invalid=${this.errors.email && this.touched.email ? "true" : "false"}
+              aria-describedby=${this.errors.email && this.touched.email ? "demo-email-error" : nothing}
             />
-            ${this.touched.email ? this.renderFieldError(this.errors.email) : html``}
+            ${this.touched.email ? this.renderFieldError(this.errors.email, "demo-email-error") : html``}
           </div>
         </div>
 
@@ -210,8 +216,11 @@ export class DemoRequestModal extends CtaModalBase {
             @blur=${() => this.handleBlur("company")}
             autocomplete="organization"
             required
+            aria-required="true"
+            aria-invalid=${this.errors.company && this.touched.company ? "true" : "false"}
+            aria-describedby=${this.errors.company && this.touched.company ? "demo-company-error" : nothing}
           />
-          ${this.touched.company ? this.renderFieldError(this.errors.company) : html``}
+          ${this.touched.company ? this.renderFieldError(this.errors.company, "demo-company-error") : html``}
         </div>
 
         <div class="form-group">
@@ -225,12 +234,15 @@ export class DemoRequestModal extends CtaModalBase {
             @change=${(e: Event) => this.handleSelectChange("useCase", e)}
             @blur=${() => this.handleBlur("useCase")}
             required
+            aria-required="true"
+            aria-invalid=${this.errors.useCase && this.touched.useCase ? "true" : "false"}
+            aria-describedby=${this.errors.useCase && this.touched.useCase ? "demo-usecase-error" : nothing}
           >
             ${USE_CASES.map(
               (uc) => html`<option value=${uc.value} ?disabled=${!uc.value}>${uc.label}</option>`,
             )}
           </select>
-          ${this.touched.useCase ? this.renderFieldError(this.errors.useCase) : html``}
+          ${this.touched.useCase ? this.renderFieldError(this.errors.useCase, "demo-usecase-error") : html``}
         </div>
 
         <button
