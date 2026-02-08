@@ -441,8 +441,17 @@ export class ErrorBoundary extends LitElement {
   }
 
   updated(changed: Map<string, unknown>): void {
-    if (changed.has("error") && this.error && this.maxRetries > 0) {
-      this.scheduleAutoRetry();
+    if (changed.has("error")) {
+      if (!this.error || changed.get("error") !== this.error) {
+        this.clearTimers();
+        this.retryCount = 0;
+        this.autoRetrying = false;
+        this.countdown = 0;
+      }
+
+      if (this.error && this.maxRetries > 0) {
+        this.scheduleAutoRetry();
+      }
     }
   }
 
@@ -454,6 +463,7 @@ export class ErrorBoundary extends LitElement {
   private scheduleAutoRetry(): void {
     if (this.retryCount >= this.maxRetries || !this.onRetry) return;
 
+    this.clearTimers();
     const delay = this.retryDelay * Math.pow(2, this.retryCount);
     this.autoRetrying = true;
     this.countdown = Math.ceil(delay / 1000);
