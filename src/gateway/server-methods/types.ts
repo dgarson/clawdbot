@@ -95,9 +95,9 @@ export type GatewayRequestContext = {
     prompter: import("../../wizard/prompts.js").WizardPrompter,
   ) => Promise<void>;
   broadcastVoiceWakeChanged: (triggers: string[]) => void;
-  automations?: any; // TODO: Add proper type
-  overseerRunner?: any; // TODO: Add proper type
-  artifactStorage?: any; // TODO: Add proper type
+  automations?: import("../../automations/service.js").AutomationService;
+  overseerRunner?: import("../../infra/overseer/runner.js").OverseerRunner;
+  artifactStorage?: import("../../automations/artifacts.js").ArtifactStorage;
   triggerConfigReload?: (opts?: {
     forceRestart?: boolean;
     graceful?: boolean;
