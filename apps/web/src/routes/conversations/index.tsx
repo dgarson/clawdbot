@@ -24,6 +24,10 @@ function ConversationsPage() {
   const createConversation = useCreateConversation();
 
   const handleSelectConversation = (conversation: Conversation) => {
+    if (!conversation.id) {
+      toast.error("Unable to open conversation");
+      return;
+    }
     navigate({ to: "/conversations/$id", params: { id: conversation.id } });
   };
 

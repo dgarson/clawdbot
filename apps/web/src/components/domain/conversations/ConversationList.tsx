@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ListItemSkeleton } from "@/components/composed";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConversationItem } from "./ConversationItem";
 import { useConversations, type Conversation } from "@/hooks/queries/useConversations";
@@ -37,8 +37,18 @@ export function ConversationList({
   const [agentFilter, setAgentFilter] = React.useState<string>("all");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const { data: conversations, isLoading: conversationsLoading } = useConversations();
-  const { data: agents, isLoading: agentsLoading } = useAgents();
+  const {
+    data: conversations,
+    isLoading: conversationsLoading,
+    error: conversationsError,
+    refetch: refetchConversations,
+  } = useConversations();
+  const {
+    data: agents,
+    isLoading: agentsLoading,
+    error: agentsError,
+    refetch: refetchAgents,
+  } = useAgents();
 
   // Create agent lookup map
   const agentMap = React.useMemo(() => {
@@ -66,6 +76,12 @@ export function ConversationList({
   }, [conversations, debouncedSearch, agentFilter]);
 
   const isLoading = conversationsLoading || agentsLoading;
+  const error = conversationsError ?? agentsError;
+
+  const handleRetry = () => {
+    refetchConversations();
+    refetchAgents();
+  };
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
@@ -112,17 +128,27 @@ export function ConversationList({
           {isLoading ? (
             // Loading skeletons
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-4 space-y-2">
-                <div className="flex items-start gap-3">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/4" />
-                    <Skeleton className="h-3 w-full" />
-                  </div>
-                </div>
-              </div>
+              <ListItemSkeleton key={i} className="mx-2" />
             ))
+          ) : error ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-12 px-4 text-center"
+            >
+              <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center mb-4">
+                <Search className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-sm font-medium text-foreground mb-1">
+                Failed to load conversations
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                {error instanceof Error ? error.message : "Please try again."}
+              </p>
+              <Button variant="outline" size="sm" onClick={handleRetry}>
+                Retry
+              </Button>
+            </motion.div>
           ) : filteredConversations.length === 0 ? (
             // Empty state
             <motion.div
