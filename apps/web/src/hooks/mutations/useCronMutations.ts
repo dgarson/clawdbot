@@ -7,10 +7,11 @@ import { toast } from "sonner";
 import {
   addCronJob,
   updateCronJob,
+  enableCronJob,
+  disableCronJob,
   removeCronJob,
   runCronJob,
   type CronJobCreateParams,
-  type CronJobPatch,
   type CronJobUpdateParams,
 } from "@/lib/api/cron";
 import { cronKeys } from "@/hooks/queries/useCron";
@@ -80,11 +81,7 @@ export function useEnableCronJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      updateCronJob({
-        id,
-        patch: { enabled: true } satisfies CronJobPatch,
-      }),
+    mutationFn: (id: string) => enableCronJob(id),
     onSuccess: (_, id) => {
       void queryClient.invalidateQueries({ queryKey: cronKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: cronKeys.lists() });
@@ -104,11 +101,7 @@ export function useDisableCronJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      updateCronJob({
-        id,
-        patch: { enabled: false } satisfies CronJobPatch,
-      }),
+    mutationFn: (id: string) => disableCronJob(id),
     onSuccess: (_, id) => {
       void queryClient.invalidateQueries({ queryKey: cronKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: cronKeys.lists() });

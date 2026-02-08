@@ -181,6 +181,8 @@ export {
   getCronJob,
   addCronJob,
   updateCronJob,
+  enableCronJob,
+  disableCronJob,
   removeCronJob,
   runCronJob,
   getCronRuns,

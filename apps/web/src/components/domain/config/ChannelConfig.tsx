@@ -50,18 +50,6 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "messaging",
     platform: { supported: ["any"] },
-    activity: [
-      {
-        id: "tg-live-1",
-        title: "Inbound support triage",
-        summary: "Handling new customer questions",
-        status: "active",
-        agentId: "agent-001",
-        agentName: "Support Concierge",
-        sessionId: "session-tele-001",
-        timestamp: "2m ago",
-      },
-    ],
   },
   {
     id: "whatsapp",
@@ -70,18 +58,6 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "messaging",
     platform: { supported: ["any"] },
-    activity: [
-      {
-        id: "wa-last-1",
-        title: "Last sync",
-        summary: "No active session",
-        status: "idle",
-        agentId: "agent-002",
-        agentName: "Inbox Keeper",
-        sessionId: "session-wa-014",
-        timestamp: "48m ago",
-      },
-    ],
   },
   {
     id: "discord",
@@ -90,18 +66,6 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "messaging",
     platform: { supported: ["any"] },
-    activity: [
-      {
-        id: "dc-live-1",
-        title: "Community moderation",
-        summary: "Watching #general and #help",
-        status: "active",
-        agentId: "agent-003",
-        agentName: "Community Mod",
-        sessionId: "session-dc-902",
-        timestamp: "Just now",
-      },
-    ],
   },
   {
     id: "signal",
@@ -117,18 +81,6 @@ const defaultChannels: ChannelConfigType[] = [
       installationApp: "signal-cli",
       installationUrl: "https://docs.openclaw.ai/channels/signal",
     },
-    activity: [
-      {
-        id: "sig-last-1",
-        title: "Awaiting verification",
-        summary: "Signal number pending",
-        status: "idle",
-        agentId: "agent-004",
-        agentName: "Secure Ops",
-        sessionId: "session-sig-003",
-        timestamp: "—",
-      },
-    ],
   },
   {
     id: "imessage",
@@ -177,18 +129,6 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "enterprise",
     platform: { supported: ["any"] },
-    activity: [
-      {
-        id: "slk-live-1",
-        title: "Incident updates",
-        summary: "Monitoring #ops-alerts",
-        status: "active",
-        agentId: "agent-005",
-        agentName: "Ops Relay",
-        sessionId: "session-slk-221",
-        timestamp: "5m ago",
-      },
-    ],
   },
   {
     id: "msteams",
@@ -862,7 +802,6 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
   });
 
   const handleUninstall = async (channelId: ChannelId) => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
     setInstallOverrides((prev) => ({ ...prev, [channelId]: false }));
     toast.success(`${getChannel(channelId)?.name} uninstalled`);
   };

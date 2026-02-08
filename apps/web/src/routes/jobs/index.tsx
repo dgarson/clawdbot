@@ -22,6 +22,8 @@ import { useCronEventSubscription, useCronJobs } from "@/hooks/queries/useCron";
 import {
   useCreateCronJob,
   useDeleteCronJob,
+  useDisableCronJob,
+  useEnableCronJob,
   useUpdateCronJob,
 } from "@/hooks/mutations/useCronMutations";
 import {
@@ -75,6 +77,8 @@ function JobsPage() {
   const createCronJob = useCreateCronJob();
   const updateCronJob = useUpdateCronJob();
   const deleteCronJob = useDeleteCronJob();
+  const enableCronJob = useEnableCronJob();
+  const disableCronJob = useDisableCronJob();
   useCronEventSubscription();
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -170,10 +174,11 @@ function JobsPage() {
     if (!target) {
       return;
     }
-    updateCronJob.mutate({
-      id,
-      patch: { enabled: !target.enabled },
-    });
+    if (target.enabled) {
+      disableCronJob.mutate(id);
+      return;
+    }
+    enableCronJob.mutate(id);
   };
 
   const confirmDelete = (job: CronJob) => {
@@ -521,18 +526,6 @@ function CronHelper({ value, onChange }: CronHelperProps) {
     onChange(newParts.join(" "));
   };
 
-  const getNextRuns = (_schedule: string): Date[] => {
-    void _schedule;
-    // Simplified next run calculation for demo
-    const now = new Date();
-    const runs: Date[] = [];
-    for (let i = 1; i <= 5; i++) {
-      const next = new Date(now.getTime() + i * 3600000);
-      runs.push(next);
-    }
-    return runs;
-  };
-
   const getHumanReadable = (schedule: string): string => {
     const preset = cronPresets.find((p) => p.value === schedule);
     if (preset) {return preset.label;}
@@ -630,12 +623,7 @@ function CronHelper({ value, onChange }: CronHelperProps) {
       <div className="p-3 rounded-lg bg-muted/50 space-y-2">
         <div className="text-sm font-medium">{getHumanReadable(value)}</div>
         <div className="text-xs text-muted-foreground">
-          <div className="font-medium mb-1">Next 5 runs:</div>
-          <ul className="space-y-0.5">
-            {getNextRuns(value).map((run, i) => (
-              <li key={i}>{run.toLocaleString()}</li>
-            ))}
-          </ul>
+          Next run times are computed by the gateway after you save the job.
         </div>
       </div>
     </div>
