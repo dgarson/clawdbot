@@ -28,15 +28,7 @@ export type ExecApprovalRequest = {
   expiresAtMs: number;
 };
 
-export type ExecApprovalResolved = {
-  id: string;
-  decision: ExecApprovalDecision;
-  resolvedBy?: string | null;
-  ts: number;
-};
-
-/** Canonical tool approval request event payload. */
-export type ToolApprovalRequested = {
+export type ToolApprovalRequest = {
   id: string;
   toolName: string;
   paramsSummary?: string | null;
@@ -50,25 +42,21 @@ export type ToolApprovalRequested = {
   expiresAtMs: number;
 };
 
+export type ExecApprovalResolved = {
+  id: string;
+  decision: ExecApprovalDecision;
+  resolvedBy?: string | null;
+  ts: number;
+};
+
+type ApprovalRequestRecord =
+  | { kind: "exec"; request: ExecApprovalRequest }
+  | { kind: "tool"; request: ToolApprovalRequest };
+
 type PendingApproval = {
   discordMessageId: string;
   discordChannelId: string;
   timeoutId: NodeJS.Timeout;
-};
-
-type DiscordApprovalEmbedField = {
-  name: string;
-  value: string;
-  inline: boolean;
-};
-
-type DiscordApprovalEmbed = {
-  title: string;
-  description: string;
-  color: number;
-  fields: DiscordApprovalEmbedField[];
-  footer: { text: string };
-  timestamp: string;
 };
 
 function encodeCustomIdValue(value: string): string {
@@ -91,9 +79,6 @@ export function buildExecApprovalCustomId(
     ";",
   );
 }
-
-/** Generic alias — works for any tool approval, not just exec. */
-export const buildApprovalCustomId = buildExecApprovalCustomId;
 
 export function parseExecApprovalData(
   data: ComponentData,
@@ -118,16 +103,13 @@ export function parseExecApprovalData(
   };
 }
 
-/** Generic alias — works for any tool approval, not just exec. */
-export const parseApprovalData = parseExecApprovalData;
-
-function formatExecApprovalEmbed(request: ExecApprovalRequest): DiscordApprovalEmbed {
+function formatExecApprovalEmbed(request: ExecApprovalRequest) {
   const commandText = request.request.command;
   const commandPreview =
     commandText.length > 1000 ? `${commandText.slice(0, 1000)}...` : commandText;
   const expiresIn = Math.max(0, Math.round((request.expiresAtMs - Date.now()) / 1000));
 
-  const fields: DiscordApprovalEmbedField[] = [
+  const fields: Array<{ name: string; value: string; inline: boolean }> = [
     {
       name: "Command",
       value: `\`\`\`\n${commandPreview}\n\`\`\``,
@@ -169,20 +151,88 @@ function formatExecApprovalEmbed(request: ExecApprovalRequest): DiscordApprovalE
   };
 }
 
+function formatToolApprovalEmbed(request: ToolApprovalRequest) {
+  const expiresIn = Math.max(0, Math.round((request.expiresAtMs - Date.now()) / 1000));
+
+  const fields: Array<{ name: string; value: string; inline: boolean }> = [
+    {
+      name: "Tool",
+      value: request.toolName,
+      inline: true,
+    },
+  ];
+
+  if (request.paramsSummary) {
+    const summary =
+      request.paramsSummary.length > 900
+        ? `${request.paramsSummary.slice(0, 900)}...`
+        : request.paramsSummary;
+    fields.push({
+      name: "Params",
+      value: `\`\`\`\n${summary}\n\`\`\``,
+      inline: false,
+    });
+  }
+
+  if (request.riskClass) {
+    fields.push({
+      name: "Risk",
+      value: request.riskClass,
+      inline: true,
+    });
+  }
+
+  if (request.sideEffects?.length) {
+    fields.push({
+      name: "Side effects",
+      value: request.sideEffects.join(", "),
+      inline: true,
+    });
+  }
+
+  if (request.agentId) {
+    fields.push({
+      name: "Agent",
+      value: request.agentId,
+      inline: true,
+    });
+  }
+
+  if (request.sessionKey) {
+    fields.push({
+      name: "Session",
+      value: request.sessionKey,
+      inline: false,
+    });
+  }
+
+  return {
+    title: "Tool Approval Required",
+    description: "A tool call needs your approval.",
+    color: 0xffa500, // Orange
+    fields,
+    footer: { text: `Expires in ${expiresIn}s | ID: ${request.id}` },
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function formatDecisionLabel(decision: ExecApprovalDecision) {
+  return decision === "allow-once"
+    ? "Allowed (once)"
+    : decision === "allow-always"
+      ? "Allowed (always)"
+      : "Denied";
+}
+
 function formatResolvedEmbed(
   request: ExecApprovalRequest,
   decision: ExecApprovalDecision,
   resolvedBy?: string | null,
-): DiscordApprovalEmbed {
+) {
   const commandText = request.request.command;
   const commandPreview = commandText.length > 500 ? `${commandText.slice(0, 500)}...` : commandText;
 
-  const decisionLabel =
-    decision === "allow-once"
-      ? "Allowed (once)"
-      : decision === "allow-always"
-        ? "Allowed (always)"
-        : "Denied";
+  const decisionLabel = formatDecisionLabel(decision);
 
   const color = decision === "deny" ? 0xed4245 : decision === "allow-always" ? 0x5865f2 : 0x57f287;
 
@@ -202,7 +252,45 @@ function formatResolvedEmbed(
   };
 }
 
-function formatExpiredEmbed(request: ExecApprovalRequest): DiscordApprovalEmbed {
+function formatToolResolvedEmbed(
+  request: ToolApprovalRequest,
+  decision: ExecApprovalDecision,
+  resolvedBy?: string | null,
+) {
+  const title = `Tool Approval: ${formatDecisionLabel(decision)}`;
+  const color = decision === "deny" ? 0xed4245 : decision === "allow-always" ? 0x5865f2 : 0x57f287;
+
+  const fields: Array<{ name: string; value: string; inline: boolean }> = [
+    {
+      name: "Tool",
+      value: request.toolName,
+      inline: true,
+    },
+  ];
+
+  if (request.paramsSummary) {
+    const summary =
+      request.paramsSummary.length > 500
+        ? `${request.paramsSummary.slice(0, 500)}...`
+        : request.paramsSummary;
+    fields.push({
+      name: "Params",
+      value: `\`\`\`\n${summary}\n\`\`\``,
+      inline: false,
+    });
+  }
+
+  return {
+    title,
+    description: resolvedBy ? `Resolved by ${resolvedBy}` : "Resolved",
+    color,
+    fields,
+    footer: { text: `ID: ${request.id}` },
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function formatExpiredEmbed(request: ExecApprovalRequest) {
   const commandText = request.request.command;
   const commandPreview = commandText.length > 500 ? `${commandText.slice(0, 500)}...` : commandText;
 
@@ -222,104 +310,7 @@ function formatExpiredEmbed(request: ExecApprovalRequest): DiscordApprovalEmbed 
   };
 }
 
-// ---------------------------------------------------------------------------
-// Generic tool approval embed formatters
-// ---------------------------------------------------------------------------
-
-function formatToolApprovalEmbed(request: ToolApprovalRequested): DiscordApprovalEmbed {
-  const expiresIn = Math.max(0, Math.round((request.expiresAtMs - Date.now()) / 1000));
-
-  const fields: DiscordApprovalEmbedField[] = [
-    {
-      name: "Tool",
-      value: request.toolName,
-      inline: true,
-    },
-  ];
-
-  if (request.paramsSummary) {
-    const preview =
-      request.paramsSummary.length > 1000
-        ? `${request.paramsSummary.slice(0, 1000)}...`
-        : request.paramsSummary;
-    fields.push({
-      name: "Parameters",
-      value: `\`\`\`\n${preview}\n\`\`\``,
-      inline: false,
-    });
-  }
-
-  if (request.riskClass) {
-    fields.push({
-      name: "Risk",
-      value: request.riskClass,
-      inline: true,
-    });
-  }
-
-  if (request.agentId) {
-    fields.push({
-      name: "Agent",
-      value: request.agentId,
-      inline: true,
-    });
-  }
-
-  return {
-    title: "Tool Approval Required",
-    description: `A tool needs your approval: **${request.toolName}**`,
-    color: 0xffa500, // Orange
-    fields,
-    footer: { text: `Expires in ${expiresIn}s | ID: ${request.id}` },
-    timestamp: new Date().toISOString(),
-  };
-}
-
-function formatToolResolvedEmbed(
-  request: ToolApprovalRequested,
-  decision: ExecApprovalDecision,
-  resolvedBy?: string | null,
-): DiscordApprovalEmbed {
-  const decisionLabel =
-    decision === "allow-once"
-      ? "Allowed (once)"
-      : decision === "allow-always"
-        ? "Allowed (always)"
-        : "Denied";
-
-  const color = decision === "deny" ? 0xed4245 : decision === "allow-always" ? 0x5865f2 : 0x57f287;
-
-  const fields: DiscordApprovalEmbedField[] = [
-    {
-      name: "Tool",
-      value: request.toolName,
-      inline: true,
-    },
-  ];
-
-  if (request.paramsSummary) {
-    const preview =
-      request.paramsSummary.length > 500
-        ? `${request.paramsSummary.slice(0, 500)}...`
-        : request.paramsSummary;
-    fields.push({
-      name: "Parameters",
-      value: `\`\`\`\n${preview}\n\`\`\``,
-      inline: false,
-    });
-  }
-
-  return {
-    title: `Tool Approval: ${decisionLabel}`,
-    description: resolvedBy ? `Resolved by ${resolvedBy}` : "Resolved",
-    color,
-    fields,
-    footer: { text: `ID: ${request.id}` },
-    timestamp: new Date().toISOString(),
-  };
-}
-
-function formatToolExpiredEmbed(request: ToolApprovalRequested): DiscordApprovalEmbed {
+function formatToolExpiredEmbed(request: ToolApprovalRequest) {
   return {
     title: "Tool Approval: Expired",
     description: "This approval request has expired.",
@@ -349,10 +340,7 @@ export type DiscordExecApprovalHandlerOpts = {
 export class DiscordExecApprovalHandler {
   private gatewayClient: GatewayClient | null = null;
   private pending = new Map<string, PendingApproval>();
-  private deferredTimers = new Set<NodeJS.Timeout>();
-  private requestCache = new Map<string, ExecApprovalRequest>();
-  private toolRequestCache = new Map<string, ToolApprovalRequested>();
-  private requestHashCache = new Map<string, string>();
+  private requestCache = new Map<string, ApprovalRequestRecord>();
   private opts: DiscordExecApprovalHandlerOpts;
   private started = false;
 
@@ -361,6 +349,23 @@ export class DiscordExecApprovalHandler {
   }
 
   shouldHandle(request: ExecApprovalRequest): boolean {
+    return this.shouldHandleMeta({
+      agentId: request.request.agentId ?? null,
+      sessionKey: request.request.sessionKey ?? null,
+    });
+  }
+
+  private shouldHandleTool(request: ToolApprovalRequest): boolean {
+    return this.shouldHandleMeta({
+      agentId: request.agentId ?? null,
+      sessionKey: request.sessionKey ?? null,
+    });
+  }
+
+  private shouldHandleMeta(params: {
+    agentId?: string | null;
+    sessionKey?: string | null;
+  }): boolean {
     const config = this.opts.config;
     if (!config.enabled) {
       return false;
@@ -371,55 +376,17 @@ export class DiscordExecApprovalHandler {
 
     // Check agent filter
     if (config.agentFilter?.length) {
-      if (!request.request.agentId) {
+      if (!params.agentId) {
         return false;
       }
-      if (!config.agentFilter.includes(request.request.agentId)) {
+      if (!config.agentFilter.includes(params.agentId)) {
         return false;
       }
     }
 
     // Check session filter (substring match)
     if (config.sessionFilter?.length) {
-      const session = request.request.sessionKey;
-      if (!session) {
-        return false;
-      }
-      const matches = config.sessionFilter.some((p) => {
-        try {
-          return session.includes(p) || new RegExp(p).test(session);
-        } catch {
-          return session.includes(p);
-        }
-      });
-      if (!matches) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  shouldHandleToolApproval(request: ToolApprovalRequested): boolean {
-    const config = this.opts.config;
-    if (!config.enabled) {
-      return false;
-    }
-    if (!config.approvers || config.approvers.length === 0) {
-      return false;
-    }
-
-    if (config.agentFilter?.length) {
-      if (!request.agentId) {
-        return false;
-      }
-      if (!config.agentFilter.includes(request.agentId)) {
-        return false;
-      }
-    }
-
-    if (config.sessionFilter?.length) {
-      const session = request.sessionKey;
+      const session = params.sessionKey;
       if (!session) {
         return false;
       }
@@ -489,13 +456,7 @@ export class DiscordExecApprovalHandler {
       clearTimeout(pending.timeoutId);
     }
     this.pending.clear();
-    for (const timeoutId of this.deferredTimers) {
-      clearTimeout(timeoutId);
-    }
-    this.deferredTimers.clear();
     this.requestCache.clear();
-    this.toolRequestCache.clear();
-    this.requestHashCache.clear();
 
     this.gatewayClient?.stop();
     this.gatewayClient = null;
@@ -504,40 +465,45 @@ export class DiscordExecApprovalHandler {
   }
 
   private handleGatewayEvent(evt: EventFrame): void {
-    if (evt.event === "tool.approval.requested") {
-      const request = evt.payload as ToolApprovalRequested;
-      void this.handleToolApprovalRequested(request);
-    } else if (evt.event === "tool.approval.resolved") {
+    if (evt.event === "exec.approval.requested") {
+      const request = evt.payload as ExecApprovalRequest;
+      void this.handleApprovalRequested({ kind: "exec", request });
+    } else if (evt.event === "exec.approval.resolved") {
       const resolved = evt.payload as ExecApprovalResolved;
       void this.handleApprovalResolved(resolved);
-    } else if (evt.event === "exec.approval.requested") {
-      const request = evt.payload as ExecApprovalRequest;
-      void this.handleApprovalRequested(request);
-    } else if (evt.event === "exec.approval.resolved") {
+    } else if (evt.event === "tool.approval.requested") {
+      const request = evt.payload as ToolApprovalRequest;
+      if (request.toolName === "exec") {
+        return;
+      }
+      void this.handleApprovalRequested({ kind: "tool", request });
+    } else if (evt.event === "tool.approval.resolved") {
       const resolved = evt.payload as ExecApprovalResolved;
       void this.handleApprovalResolved(resolved);
     }
   }
 
-  private async handleApprovalRequested(request: ExecApprovalRequest): Promise<void> {
-    if (!this.shouldHandle(request)) {
+  private async handleApprovalRequested(record: ApprovalRequestRecord): Promise<void> {
+    if (
+      (record.kind === "exec" && !this.shouldHandle(record.request)) ||
+      (record.kind === "tool" && !this.shouldHandleTool(record.request))
+    ) {
       return;
     }
 
-    if (this.pending.has(request.id)) {
-      return;
-    }
+    logDebug(`discord exec approvals: received request ${record.request.id}`);
 
-    logDebug(`discord exec approvals: received request ${request.id}`);
-
-    this.requestCache.set(request.id, request);
+    this.requestCache.set(record.request.id, record);
 
     const { rest, request: discordRequest } = createDiscordClient(
       { token: this.opts.token, accountId: this.opts.accountId },
       this.opts.cfg,
     );
 
-    const embed = formatExecApprovalEmbed(request);
+    const embed =
+      record.kind === "exec"
+        ? formatExecApprovalEmbed(record.request)
+        : formatToolApprovalEmbed(record.request);
 
     // Build action rows with buttons
     const components = [
@@ -548,19 +514,19 @@ export class DiscordExecApprovalHandler {
             type: 2, // BUTTON
             style: ButtonStyle.Success,
             label: "Allow once",
-            custom_id: buildExecApprovalCustomId(request.id, "allow-once"),
+            custom_id: buildExecApprovalCustomId(record.request.id, "allow-once"),
           },
           {
             type: 2, // BUTTON
             style: ButtonStyle.Primary,
             label: "Always allow",
-            custom_id: buildExecApprovalCustomId(request.id, "allow-always"),
+            custom_id: buildExecApprovalCustomId(record.request.id, "allow-always"),
           },
           {
             type: 2, // BUTTON
             style: ButtonStyle.Danger,
             label: "Deny",
-            custom_id: buildExecApprovalCustomId(request.id, "deny"),
+            custom_id: buildExecApprovalCustomId(record.request.id, "deny"),
           },
         ],
       },
@@ -603,222 +569,81 @@ export class DiscordExecApprovalHandler {
         }
 
         // Set up timeout
-        const timeoutMs = Math.max(0, request.expiresAtMs - Date.now());
+        const timeoutMs = Math.max(0, record.request.expiresAtMs - Date.now());
         const timeoutId = setTimeout(() => {
-          void this.handleApprovalTimeout(request.id);
+          void this.handleApprovalTimeout(record.request.id);
         }, timeoutMs);
 
-        this.pending.set(request.id, {
+        this.pending.set(record.request.id, {
           discordMessageId: message.id,
           discordChannelId: dmChannel.id,
           timeoutId,
         });
 
-        logDebug(`discord exec approvals: sent approval ${request.id} to user ${userId}`);
+        logDebug(`discord exec approvals: sent approval ${record.request.id} to user ${userId}`);
       } catch (err) {
         logError(`discord exec approvals: failed to notify user ${userId}: ${String(err)}`);
       }
     }
   }
 
-  private async handleToolApprovalRequested(request: ToolApprovalRequested): Promise<void> {
-    const shouldHandle = this.shouldHandleToolApproval(request);
-    if (!shouldHandle) {
-      return;
-    }
-
-    // Cache only approvals this handler actually tracks/surfaces.
-    this.requestHashCache.set(request.id, request.requestHash);
-    this.toolRequestCache.set(request.id, request);
-
-    if (request.toolName === "exec") {
-      // The legacy exec.approval.requested mirror (broadcast right after this
-      // event) creates the exec-specific embed with full command/cwd detail.
-      // Defer briefly so it can arrive first; if it doesn't (e.g. legacy mirror
-      // removed in the future), fall back to a generic tool embed.
-      const timeoutId = setTimeout(() => {
-        this.deferredTimers.delete(timeoutId);
-        if (!this.started) {
-          return;
-        }
-        if (!this.pending.has(request.id)) {
-          void this.sendToolApprovalEmbed(request);
-        }
-      }, 200);
-      this.deferredTimers.add(timeoutId);
-      return;
-    }
-
-    // Skip if already pending (dedup)
-    if (this.pending.has(request.id)) {
-      return;
-    }
-
-    await this.sendToolApprovalEmbed(request);
-  }
-
-  /** Send a generic tool approval embed + buttons to all configured approvers. */
-  private async sendToolApprovalEmbed(request: ToolApprovalRequested): Promise<void> {
-    logDebug(`discord tool approvals: received request ${request.id} (${request.toolName})`);
-
-    const { rest, request: discordRequest } = createDiscordClient(
-      { token: this.opts.token, accountId: this.opts.accountId },
-      this.opts.cfg,
-    );
-
-    const embed = formatToolApprovalEmbed(request);
-
-    const components = [
-      {
-        type: 1, // ACTION_ROW
-        components: [
-          {
-            type: 2, // BUTTON
-            style: ButtonStyle.Success,
-            label: "Allow once",
-            custom_id: buildApprovalCustomId(request.id, "allow-once"),
-          },
-          {
-            type: 2, // BUTTON
-            style: ButtonStyle.Primary,
-            label: "Always allow",
-            custom_id: buildApprovalCustomId(request.id, "allow-always"),
-          },
-          {
-            type: 2, // BUTTON
-            style: ButtonStyle.Danger,
-            label: "Deny",
-            custom_id: buildApprovalCustomId(request.id, "deny"),
-          },
-        ],
-      },
-    ];
-
-    const approvers = this.opts.config.approvers ?? [];
-
-    for (const approver of approvers) {
-      const userId = String(approver);
-      try {
-        const dmChannel = (await discordRequest(
-          () =>
-            rest.post(Routes.userChannels(), {
-              body: { recipient_id: userId },
-            }) as Promise<{ id: string }>,
-          "dm-channel",
-        )) as { id: string };
-
-        if (!dmChannel?.id) {
-          logError(`discord tool approvals: failed to create DM for user ${userId}`);
-          continue;
-        }
-
-        const message = (await discordRequest(
-          () =>
-            rest.post(Routes.channelMessages(dmChannel.id), {
-              body: {
-                embeds: [embed],
-                components,
-              },
-            }) as Promise<{ id: string; channel_id: string }>,
-          "send-approval",
-        )) as { id: string; channel_id: string };
-
-        if (!message?.id) {
-          logError(`discord tool approvals: failed to send message to user ${userId}`);
-          continue;
-        }
-
-        const timeoutMs = Math.max(0, request.expiresAtMs - Date.now());
-        const timeoutId = setTimeout(() => {
-          void this.handleApprovalTimeout(request.id);
-        }, timeoutMs);
-
-        this.pending.set(request.id, {
-          discordMessageId: message.id,
-          discordChannelId: dmChannel.id,
-          timeoutId,
-        });
-
-        logDebug(`discord tool approvals: sent approval ${request.id} to user ${userId}`);
-      } catch (err) {
-        logError(`discord tool approvals: failed to notify user ${userId}: ${String(err)}`);
-      }
-    }
-  }
-
   private async handleApprovalResolved(resolved: ExecApprovalResolved): Promise<void> {
     const pending = this.pending.get(resolved.id);
-    if (pending) {
-      clearTimeout(pending.timeoutId);
-      this.pending.delete(resolved.id);
-    }
-
-    this.requestHashCache.delete(resolved.id);
-
-    const execRequest = this.requestCache.get(resolved.id);
-    const toolRequest = this.toolRequestCache.get(resolved.id);
-    this.requestCache.delete(resolved.id);
-    this.toolRequestCache.delete(resolved.id);
-
     if (!pending) {
       return;
     }
 
-    if (execRequest) {
-      logDebug(`discord exec approvals: resolved ${resolved.id} with ${resolved.decision}`);
-      await this.updateMessage(
-        pending.discordChannelId,
-        pending.discordMessageId,
-        formatResolvedEmbed(execRequest, resolved.decision, resolved.resolvedBy),
-      );
-    } else if (toolRequest) {
-      logDebug(`discord tool approvals: resolved ${resolved.id} with ${resolved.decision}`);
-      await this.updateMessage(
-        pending.discordChannelId,
-        pending.discordMessageId,
-        formatToolResolvedEmbed(toolRequest, resolved.decision, resolved.resolvedBy),
-      );
+    clearTimeout(pending.timeoutId);
+    this.pending.delete(resolved.id);
+
+    const request = this.requestCache.get(resolved.id);
+    this.requestCache.delete(resolved.id);
+
+    if (!request) {
+      return;
     }
+
+    logDebug(`discord exec approvals: resolved ${resolved.id} with ${resolved.decision}`);
+
+    await this.updateMessage(
+      pending.discordChannelId,
+      pending.discordMessageId,
+      request.kind === "exec"
+        ? formatResolvedEmbed(request.request, resolved.decision, resolved.resolvedBy)
+        : formatToolResolvedEmbed(request.request, resolved.decision, resolved.resolvedBy),
+    );
   }
 
   private async handleApprovalTimeout(approvalId: string): Promise<void> {
     const pending = this.pending.get(approvalId);
-    if (pending) {
-      this.pending.delete(approvalId);
-    }
-
-    this.requestHashCache.delete(approvalId);
-
-    const execRequest = this.requestCache.get(approvalId);
-    const toolRequest = this.toolRequestCache.get(approvalId);
-    this.requestCache.delete(approvalId);
-    this.toolRequestCache.delete(approvalId);
-
     if (!pending) {
       return;
     }
 
-    if (execRequest) {
-      logDebug(`discord exec approvals: timeout for ${approvalId}`);
-      await this.updateMessage(
-        pending.discordChannelId,
-        pending.discordMessageId,
-        formatExpiredEmbed(execRequest),
-      );
-    } else if (toolRequest) {
-      logDebug(`discord tool approvals: timeout for ${approvalId}`);
-      await this.updateMessage(
-        pending.discordChannelId,
-        pending.discordMessageId,
-        formatToolExpiredEmbed(toolRequest),
-      );
+    this.pending.delete(approvalId);
+
+    const request = this.requestCache.get(approvalId);
+    this.requestCache.delete(approvalId);
+
+    if (!request) {
+      return;
     }
+
+    logDebug(`discord exec approvals: timeout for ${approvalId}`);
+
+    await this.updateMessage(
+      pending.discordChannelId,
+      pending.discordMessageId,
+      request.kind === "exec"
+        ? formatExpiredEmbed(request.request)
+        : formatToolExpiredEmbed(request.request),
+    );
   }
 
   private async updateMessage(
     channelId: string,
     messageId: string,
-    embed: DiscordApprovalEmbed,
+    embed: ReturnType<typeof formatExpiredEmbed> | ReturnType<typeof formatToolExpiredEmbed>,
   ): Promise<void> {
     try {
       const { rest, request: discordRequest } = createDiscordClient(
@@ -847,31 +672,63 @@ export class DiscordExecApprovalHandler {
       return false;
     }
 
-    const requestHash = this.requestHashCache.get(approvalId);
-
     logDebug(`discord exec approvals: resolving ${approvalId} with ${decision}`);
 
+    let resolvedWithTool = false;
     try {
-      if (requestHash) {
-        // Canonical tool approval path
-        await this.gatewayClient.request("tool.approval.resolve", {
-          id: approvalId,
-          decision,
-          requestHash,
-        });
-      } else {
-        // Legacy exec-only path
-        await this.gatewayClient.request("exec.approval.resolve", {
-          id: approvalId,
-          decision,
-        });
+      resolvedWithTool = await this.resolveToolApproval(approvalId, decision);
+      if (resolvedWithTool) {
+        logDebug(`discord exec approvals: resolved ${approvalId} via tool approvals`);
+        return true;
       }
-      logDebug(`discord exec approvals: resolved ${approvalId} successfully`);
+    } catch (err) {
+      logError(`discord exec approvals: tool resolve failed: ${String(err)}`);
+      return false;
+    }
+
+    try {
+      await this.gatewayClient.request("exec.approval.resolve", {
+        id: approvalId,
+        decision,
+      });
+      logDebug(`discord exec approvals: resolved ${approvalId} via legacy exec`);
       return true;
     } catch (err) {
       logError(`discord exec approvals: resolve failed: ${String(err)}`);
       return false;
     }
+  }
+
+  private async resolveToolApproval(
+    approvalId: string,
+    decision: ExecApprovalDecision,
+  ): Promise<boolean> {
+    if (!this.gatewayClient) {
+      return false;
+    }
+    const cached = this.requestCache.get(approvalId);
+    if (cached?.kind === "tool") {
+      await this.gatewayClient.request("tool.approval.resolve", {
+        id: approvalId,
+        decision,
+        requestHash: cached.request.requestHash,
+      });
+      return true;
+    }
+
+    const response = (await this.gatewayClient.request("tool.approvals.get", {})) as {
+      approvals?: Array<{ id: string; requestHash: string }>;
+    };
+    const match = response.approvals?.find((approval) => approval.id === approvalId);
+    if (!match) {
+      return false;
+    }
+    await this.gatewayClient.request("tool.approval.resolve", {
+      id: approvalId,
+      decision,
+      requestHash: match.requestHash,
+    });
+    return true;
   }
 }
 

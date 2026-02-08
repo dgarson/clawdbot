@@ -26,6 +26,8 @@ type ParsedApproveCommand =
   | { ok: true; id: string; decision: "allow-once" | "allow-always" | "deny" }
   | { ok: false; error: string };
 
+type ToolApprovalSummary = { id: string; requestHash: string };
+
 function parseApproveCommand(raw: string): ParsedApproveCommand | null {
   const trimmed = raw.trim();
   if (!trimmed.toLowerCase().startsWith(COMMAND)) {
@@ -66,41 +68,6 @@ function buildResolvedByLabel(params: Parameters<CommandHandler>[0]): string {
   return `${channel}:${sender}`;
 }
 
-function formatApprovalResolveError(err: unknown): string {
-  const message = err instanceof Error ? err.message : String(err);
-  const normalized = message.toLowerCase();
-  if (normalized.includes("unknown approval id") || normalized.includes("request hash mismatch")) {
-    return "Failed to submit approval. This approval may have already been resolved or expired.";
-  }
-  return `Failed to submit approval: ${message}`;
-}
-
-type PendingToolApproval = {
-  id: string;
-  requestHash: string;
-};
-
-/** Look up the canonical tool approval record for the given id. */
-async function findCanonicalApproval(
-  resolvedBy: string,
-  approvalId: string,
-): Promise<PendingToolApproval | null> {
-  try {
-    const result = await callGateway<{
-      approvals: Array<{ id: string; requestHash: string }>;
-    }>({
-      method: "tool.approvals.get",
-      clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
-      clientDisplayName: `Chat approval lookup (${resolvedBy})`,
-      mode: GATEWAY_CLIENT_MODES.BACKEND,
-    });
-    const match = result.approvals?.find((a) => a.id === approvalId);
-    return match ? { id: match.id, requestHash: match.requestHash } : null;
-  } catch {
-    return null;
-  }
-}
-
 export const handleApproveCommand: CommandHandler = async (params, allowTextCommands) => {
   if (!allowTextCommands) {
     return null;
@@ -136,21 +103,34 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
   }
 
   const resolvedBy = buildResolvedByLabel(params);
-
-  // Try canonical tool approval first, fall back to legacy exec path
-  const canonical = await findCanonicalApproval(resolvedBy, parsed.id);
+  let toolApproval: ToolApprovalSummary | null = null;
+  try {
+    const response = (await callGateway({
+      method: "tool.approvals.get",
+      params: {},
+      clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
+      clientDisplayName: `Chat approval (${resolvedBy})`,
+      mode: GATEWAY_CLIENT_MODES.BACKEND,
+    })) as { approvals?: ToolApprovalSummary[] };
+    toolApproval = response.approvals?.find((approval) => approval.id === parsed.id) ?? null;
+  } catch (err) {
+    logVerbose(`Failed to query tool approvals for /approve: ${String(err)}`);
+  }
 
   try {
-    if (canonical) {
+    if (toolApproval) {
       await callGateway({
         method: "tool.approval.resolve",
-        params: { id: parsed.id, decision: parsed.decision, requestHash: canonical.requestHash },
+        params: {
+          id: parsed.id,
+          decision: parsed.decision,
+          requestHash: toolApproval.requestHash,
+        },
         clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
         clientDisplayName: `Chat approval (${resolvedBy})`,
         mode: GATEWAY_CLIENT_MODES.BACKEND,
       });
     } else {
-      // Legacy fallback for exec-only approvals or when canonical lookup fails
       await callGateway({
         method: "exec.approval.resolve",
         params: { id: parsed.id, decision: parsed.decision },
@@ -163,13 +143,17 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
     return {
       shouldContinue: false,
       reply: {
-        text: `❌ ${formatApprovalResolveError(err)}`,
+        text: `❌ Failed to submit approval: ${String(err)}`,
       },
     };
   }
 
   return {
     shouldContinue: false,
-    reply: { text: `✅ Tool approval ${parsed.decision} submitted for ${parsed.id}.` },
+    reply: {
+      text: `✅ ${toolApproval ? "Tool" : "Exec"} approval ${parsed.decision} submitted for ${
+        parsed.id
+      }.`,
+    },
   };
 };
