@@ -355,7 +355,7 @@ function AgentSessionPage() {
                   session={selectedSession}
                   messageCount={messageCount}
                   lastActiveAt={lastActiveAt}
-                  workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
+                  workspaceDir={`~/.openclaw/agents/${agentId}/workspace`}
                   chatBackend={chatBackend}
                   onNewSession={handleNewSession}
                 />
@@ -560,7 +560,7 @@ function AgentSessionPage() {
                       isMaximized={workspacePaneMaximized}
                       onToggleMaximize={() => setWorkspacePaneMaximized((v) => !v)}
                       sessionKey={sessionKey}
-                      workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
+                      workspaceDir={`~/.openclaw/agents/${agentId}/workspace`}
                       agentId={agentId}
                       className="h-full"
                     />

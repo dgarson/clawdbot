@@ -77,7 +77,7 @@ const mockFileTree: FileNode[] = [
 export function SessionWorkspacePane({
   isMaximized = false,
   onToggleMaximize,
-  workspaceDir = "~/.clawdbrain/agents/default/workspace",
+  workspaceDir = "~/.openclaw/agents/default/workspace",
   sessionKey,
   agentId,
   onTerminalData,

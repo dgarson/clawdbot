@@ -232,8 +232,8 @@ const agent = createAgent({
   model: {
     provider: "openai",
     modelId: "gpt-4",
-    apiKey: userSettings.clawdbrainAIApiKey, // Clawdbrain key
-    baseUrl: "https://api.clawdbrain.bot/v1", // Your backend
+    apiKey: userSettings.openclawAIApiKey, // Clawdbrain key
+    baseUrl: "https://api.openclaw.bot/v1", // Your backend
   },
   systemPrompt: "You are a helpful assistant",
 });
@@ -252,8 +252,8 @@ const agent = createAgent({
   model: {
     provider: "openai",
     modelId: "gpt-4",
-    apiKey: userSettings.clawdbrainAIApiKey, // Configured for agent mode
-    baseUrl: "https://api.clawdbrain.bot/v1",
+    apiKey: userSettings.openclawAIApiKey, // Configured for agent mode
+    baseUrl: "https://api.openclaw.bot/v1",
   },
   tools: {
     getCurrentWeather: weatherTool, // Optional client-side tools

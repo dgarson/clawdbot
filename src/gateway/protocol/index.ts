@@ -111,6 +111,12 @@ import {
   ExecApprovalRequestParamsSchema,
   type ExecApprovalResolveParams,
   ExecApprovalResolveParamsSchema,
+  type ToolApprovalRequestParams,
+  ToolApprovalRequestParamsSchema,
+  type ToolApprovalResolveParams,
+  ToolApprovalResolveParamsSchema,
+  type ToolApprovalsGetParams,
+  ToolApprovalsGetParamsSchema,
   ErrorCodes,
   type ErrorShape,
   ErrorShapeSchema,
@@ -463,6 +469,15 @@ export const validateExecApprovalsNodeGetParams = ajv.compile<ExecApprovalsNodeG
 export const validateExecApprovalsNodeSetParams = ajv.compile<ExecApprovalsNodeSetParams>(
   ExecApprovalsNodeSetParamsSchema,
 );
+export const validateToolApprovalRequestParams = ajv.compile<ToolApprovalRequestParams>(
+  ToolApprovalRequestParamsSchema,
+);
+export const validateToolApprovalResolveParams = ajv.compile<ToolApprovalResolveParams>(
+  ToolApprovalResolveParamsSchema,
+);
+export const validateToolApprovalsGetParams = ajv.compile<ToolApprovalsGetParams>(
+  ToolApprovalsGetParamsSchema,
+);
 export const validateLogsTailParams = ajv.compile<LogsTailParams>(LogsTailParamsSchema);
 export const validateChatHistoryParams = ajv.compile(ChatHistoryParamsSchema);
 export const validateChatSendParams = ajv.compile(ChatSendParamsSchema);
@@ -667,6 +682,10 @@ export {
   // Gateway reload
   GatewayReloadParamsSchema,
   GatewayReloadResultSchema,
+  // Tool approvals
+  ToolApprovalRequestParamsSchema,
+  ToolApprovalResolveParamsSchema,
+  ToolApprovalsGetParamsSchema,
 };
 
 export type {
@@ -795,6 +814,10 @@ export type {
   AutomationsCreateParams,
   AutomationsArtifactDownloadParams,
   AutomationsArtifactDownloadResult,
+  // Tool approvals
+  ToolApprovalRequestParams,
+  ToolApprovalResolveParams,
+  ToolApprovalsGetParams,
   // Worktree
   WorktreeListParams,
   WorktreeListResult,

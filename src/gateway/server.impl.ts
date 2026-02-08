@@ -33,7 +33,7 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
-import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
+// exec-approval-forwarder no longer needed; exec handlers delegate through the tool forwarder
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { startJournalSubscriber } from "../infra/journal/index.js";
@@ -45,6 +45,7 @@ import {
   refreshRemoteBinsForConnectedNodes,
   setSkillsRemoteRegistry,
 } from "../infra/skills-remote.js";
+import { createToolApprovalForwarder } from "../infra/tool-approval-forwarder.js";
 import { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
 import { summarizeLoggingConfig } from "../logging/debug-control.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
@@ -55,7 +56,7 @@ import {
   diffConfigPaths,
   startGatewayConfigReloader,
 } from "./config-reload.js";
-import { ExecApprovalManager } from "./exec-approval-manager.js";
+// ExecApprovalManager replaced by unified ToolApprovalManager
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
@@ -68,6 +69,7 @@ import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
 import { coreGatewayHandlers } from "./server-methods.js";
 import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
+import { createToolApprovalHandlers } from "./server-methods/tool-approval.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
@@ -95,6 +97,7 @@ import {
   refreshGatewayHealthSnapshot,
 } from "./server/health-state.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
+import { ToolApprovalManager } from "./tool-approval-manager.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -524,10 +527,15 @@ export async function startGatewayServer(
 
   void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
 
-  const execApprovalManager = new ExecApprovalManager();
-  const execApprovalForwarder = createExecApprovalForwarder();
-  const execApprovalHandlers = createExecApprovalHandlers(execApprovalManager, {
-    forwarder: execApprovalForwarder,
+  // Unified approval manager — both legacy exec.approval.* and canonical
+  // tool.approval.* handlers share the same pending-state machine.
+  const toolApprovalManager = new ToolApprovalManager();
+  const toolApprovalForwarder = createToolApprovalForwarder();
+  const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
+    forwarder: toolApprovalForwarder,
+  });
+  const execApprovalHandlers = createExecApprovalHandlers(toolApprovalManager, {
+    forwarder: toolApprovalForwarder,
   });
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
@@ -589,6 +597,7 @@ export async function startGatewayServer(
     extraHandlers: {
       ...pluginRegistry.gatewayHandlers,
       ...execApprovalHandlers,
+      ...toolApprovalHandlers,
     },
     broadcast,
     context: gatewayContext,

@@ -142,6 +142,11 @@ import type {
 } from "./sessions.js";
 import type { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import type {
+  ToolApprovalRequestParamsSchema,
+  ToolApprovalResolveParamsSchema,
+  ToolApprovalsGetParamsSchema,
+} from "./tool-approvals.js";
+import type {
   WizardCancelParamsSchema,
   WizardNextParamsSchema,
   WizardNextResultSchema,
@@ -273,6 +278,9 @@ export type ExecApprovalsNodeSetParams = Static<typeof ExecApprovalsNodeSetParam
 export type ExecApprovalsSnapshot = Static<typeof ExecApprovalsSnapshotSchema>;
 export type ExecApprovalRequestParams = Static<typeof ExecApprovalRequestParamsSchema>;
 export type ExecApprovalResolveParams = Static<typeof ExecApprovalResolveParamsSchema>;
+export type ToolApprovalRequestParams = Static<typeof ToolApprovalRequestParamsSchema>;
+export type ToolApprovalResolveParams = Static<typeof ToolApprovalResolveParamsSchema>;
+export type ToolApprovalsGetParams = Static<typeof ToolApprovalsGetParamsSchema>;
 export type DevicePairListParams = Static<typeof DevicePairListParamsSchema>;
 export type DevicePairApproveParams = Static<typeof DevicePairApproveParamsSchema>;
 export type DevicePairRejectParams = Static<typeof DevicePairRejectParamsSchema>;

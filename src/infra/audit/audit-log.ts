@@ -12,7 +12,7 @@ import { emitAuditEvent } from "./audit-events.js";
 import { AUDIT_LOG_RETENTION_DAYS, MAX_AUDIT_EVENTS_PER_QUERY } from "./types.js";
 
 /** Directory for audit data */
-const AUDIT_DIR = ".clawdbrain/audit";
+const AUDIT_DIR = ".openclaw/audit";
 
 /** Get the current month's log file name */
 function getCurrentLogFileName(): string {

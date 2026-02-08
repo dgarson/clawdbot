@@ -136,7 +136,7 @@ export function SignalConfigSheet({
                   Signal requires a dedicated phone number and signal-cli to be installed on the gateway host.
                 </p>
                 <a
-                  href="https://docs.clawdbrain.bot/channels/signal"
+                  href="https://docs.openclaw.ai/channels/signal"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline inline-flex items-center gap-1 mt-1"

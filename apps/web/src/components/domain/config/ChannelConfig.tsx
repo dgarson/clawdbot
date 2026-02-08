@@ -115,7 +115,7 @@ const defaultChannels: ChannelConfigType[] = [
       requiresInstallation: true,
       installed: false,
       installationApp: "signal-cli",
-      installationUrl: "https://docs.clawdbrain.bot/channels/signal",
+      installationUrl: "https://docs.openclaw.ai/channels/signal",
     },
     activity: [
       {

@@ -39,7 +39,7 @@ This document outlines a comprehensive plan to transform Clawdbrain from a singl
 │                    CURRENT: Single-User Model                    │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  ~/.clawdbrain/                                                    │
+│  ~/.openclaw/                                                    │
 │  ├── clawdbrain.json          (Single config file)                │
 │  ├── sessions/              (All agent sessions)                 │
 │  ├── agents/<id>/           (Per-agent memory DBs)              │
@@ -818,7 +818,7 @@ CREATE INDEX idx_tenant_plugins_tenant ON tenant_plugins(tenant_id);
 │  └── Create indexes and constraints                              │
 │                                                                  │
 │  Phase 2: Self-Hosted Import Tool                                │
-│  ├── Read ~/.clawdbrain/clawdbrain.json → tenant + agents           │
+│  ├── Read ~/.openclaw/clawdbrain.json → tenant + agents           │
 │  ├── Read sessions/*.json → sessions + messages                  │
 │  ├── Read agents/*/memory.db → memory_documents + chunks        │
 │  ├── Read overseer-store.json → goals + work_nodes              │

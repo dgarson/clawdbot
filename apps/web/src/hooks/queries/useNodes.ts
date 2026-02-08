@@ -98,7 +98,7 @@ const mockDevices: DevicePairingList = {
 };
 
 const mockExecApprovals: ExecApprovalsSnapshot = {
-  path: "~/.clawdbrain/exec-approvals.json",
+  path: "~/.openclaw/exec-approvals.json",
   exists: true,
   hash: "mock-hash-001",
   file: {

@@ -48,9 +48,11 @@ export function armTimer(state: CronServiceState) {
     clampedDelay = Math.min(clampedDelay, LOAD_ERROR_RETRY_DELAY_MS);
   }
   state.timer = setTimeout(() => {
-    void onTimer(state).catch((err) => {
+    const run = onTimer(state).catch((err) => {
       state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
     });
+    // Expose for test synchronization (CronService._waitForTimerRun).
+    state._lastTimerRun = run;
   }, clampedDelay);
   state.timer.unref?.();
 
@@ -62,7 +64,6 @@ export function armTimer(state: CronServiceState) {
 
 export async function onTimer(state: CronServiceState) {
   if (state.running) {
-    // Fix 3: Log when onTimer bails because a previous run is still in progress.
     const stuckMs = state.runningStartedAtMs ? state.deps.nowMs() - state.runningStartedAtMs : null;
     state.deps.log.warn(
       { runningForMs: stuckMs },
@@ -73,15 +74,50 @@ export async function onTimer(state: CronServiceState) {
   state.running = true;
   state.runningStartedAtMs = state.deps.nowMs();
   try {
-    await locked(state, async () => {
-      // Reload persisted due-times without recomputing so runDueJobs sees
-      // the original nextRunAtMs values.  Recomputing first would advance
-      // every/cron slots past the current tick when the timer fires late (#9788).
+    // Phase 1 (locked): reload store, find due jobs, claim them, persist.
+    // Persist is inside the lock so other services sharing the same store
+    // see the runningAtMs markers before their own Phase 1 forceReload.
+    const claimed = await locked(state, async () => {
       await ensureLoaded(state, { forceReload: true, skipRecompute: true });
-      await runDueJobs(state);
-      recomputeNextRuns(state);
-      await persist(state);
+      const jobs = claimDueJobs(state);
+      if (jobs.length > 0) {
+        await persist(state);
+      }
+      return jobs;
     });
+
+    // Phase 2 (unlocked): execute each claimed job.
+    const results: Array<{ job: CronJob; result: JobExecResult; nowMs: number }> = [];
+    for (const job of claimed) {
+      const nowMs = state.deps.nowMs();
+      let result: JobExecResult;
+      try {
+        result = await executeJobPayload(state, job);
+      } catch (err) {
+        result = { status: "error", error: String(err) };
+      }
+      results.push({ job, result, nowMs });
+    }
+
+    // Phase 3 (locked): finalize all results, recompute next runs, persist.
+    if (results.length > 0) {
+      await locked(state, async () => {
+        // Re-read store to see latest state (other ops may have mutated it).
+        await ensureLoaded(state, { forceReload: true, skipRecompute: true });
+        for (const { job, result, nowMs } of results) {
+          finalizeJobRun(state, job, result, { forced: false, nowMs });
+        }
+        recomputeNextRuns(state);
+        await persist(state);
+      });
+    } else {
+      // No jobs were due, but still recompute + persist under lock in case
+      // the store was stale or nextRunAtMs needs updating.
+      await locked(state, async () => {
+        recomputeNextRuns(state);
+        await persist(state);
+      });
+    }
   } finally {
     state.running = false;
     state.runningStartedAtMs = null;
@@ -90,9 +126,13 @@ export async function onTimer(state: CronServiceState) {
   }
 }
 
-export async function runDueJobs(state: CronServiceState) {
+/**
+ * Find due jobs and claim them (set runningAtMs + emit started).
+ * Must be called under lock. Returns the claimed jobs for unlocked execution.
+ */
+export function claimDueJobs(state: CronServiceState): CronJob[] {
   if (!state.store) {
-    return;
+    return [];
   }
   const now = state.deps.nowMs();
   const due = state.store.jobs.filter((j) => {
@@ -105,168 +145,212 @@ export async function runDueJobs(state: CronServiceState) {
     const next = j.state.nextRunAtMs;
     return typeof next === "number" && now >= next;
   });
+  const claimed: CronJob[] = [];
   for (const job of due) {
-    await executeJob(state, job, now, { forced: false });
+    if (claimJobRun(state, job)) {
+      claimed.push(job);
+    }
   }
+  return claimed;
 }
 
-export async function executeJob(
-  state: CronServiceState,
-  job: CronJob,
-  nowMs: number,
-  opts: { forced: boolean },
-) {
+// ---------------------------------------------------------------------------
+// Claim / Execute / Finalize — split so the lock is only held briefly.
+// ---------------------------------------------------------------------------
+
+/** Result of the unlocked execution phase, consumed by finalizeJobRun. */
+export type JobExecResult = {
+  status: "ok" | "error" | "skipped";
+  error?: string;
+  summary?: string;
+};
+
+/**
+ * Phase 1 (locked): mark the job as running, emit "started", persist.
+ * Returns false if the job is already running (caller should skip).
+ */
+export function claimJobRun(state: CronServiceState, job: CronJob): boolean {
+  if (typeof job.state.runningAtMs === "number") {
+    return false;
+  }
   const startedAt = state.deps.nowMs();
   job.state.runningAtMs = startedAt;
   job.state.lastError = undefined;
   emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
+  return true;
+}
 
-  let deleted = false;
-
-  const finish = async (status: "ok" | "error" | "skipped", err?: string, summary?: string) => {
-    const endedAt = state.deps.nowMs();
-    job.state.runningAtMs = undefined;
-    job.state.lastRunAtMs = startedAt;
-    job.state.lastStatus = status;
-    job.state.lastDurationMs = Math.max(0, endedAt - startedAt);
-    job.state.lastError = err;
-
-    const shouldDelete =
-      job.schedule.kind === "at" && status === "ok" && job.deleteAfterRun === true;
-
-    if (!shouldDelete) {
-      if (job.schedule.kind === "at" && status === "ok") {
-        // One-shot job completed successfully; disable it.
-        job.enabled = false;
-        job.state.nextRunAtMs = undefined;
-      } else if (job.enabled) {
-        job.state.nextRunAtMs = computeJobNextRunAtMs(job, endedAt);
-      } else {
-        job.state.nextRunAtMs = undefined;
-      }
-    }
-
-    emit(state, {
-      jobId: job.id,
-      action: "finished",
-      status,
-      error: err,
-      summary,
-      runAtMs: startedAt,
-      durationMs: job.state.lastDurationMs,
-      nextRunAtMs: job.state.nextRunAtMs,
-    });
-
-    if (shouldDelete && state.store) {
-      state.store.jobs = state.store.jobs.filter((j) => j.id !== job.id);
-      deleted = true;
-      emit(state, { jobId: job.id, action: "removed" });
-    }
-  };
-
-  try {
-    if (job.sessionTarget === "main") {
-      const text = resolveJobPayloadTextForMain(job);
-      if (!text) {
-        const kind = job.payload.kind;
-        await finish(
-          "skipped",
+/**
+ * Phase 2 (unlocked): run the actual job payload. Returns the result
+ * for finalizeJobRun to persist under lock.
+ */
+export async function executeJobPayload(
+  state: CronServiceState,
+  job: CronJob,
+): Promise<JobExecResult> {
+  if (job.sessionTarget === "main") {
+    const text = resolveJobPayloadTextForMain(job);
+    if (!text) {
+      const kind = job.payload.kind;
+      return {
+        status: "skipped",
+        error:
           kind === "systemEvent"
             ? "main job requires non-empty systemEvent text"
             : 'main job requires payload.kind="systemEvent"',
-        );
-        return;
+      };
+    }
+    state.deps.enqueueSystemEvent(text, { agentId: job.agentId });
+    if (job.wakeMode === "now" && state.deps.runHeartbeatOnce) {
+      const reason = `cron:${job.id}`;
+      const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+      const maxWaitMs = 2 * 60_000;
+      const waitStartedAt = state.deps.nowMs();
+
+      let heartbeatResult: HeartbeatRunResult;
+      for (;;) {
+        heartbeatResult = await state.deps.runHeartbeatOnce({ reason });
+        if (
+          heartbeatResult.status !== "skipped" ||
+          heartbeatResult.reason !== "requests-in-flight"
+        ) {
+          break;
+        }
+        if (state.deps.nowMs() - waitStartedAt > maxWaitMs) {
+          heartbeatResult = {
+            status: "skipped",
+            reason: "timeout waiting for main lane to become idle",
+          };
+          break;
+        }
+        await delay(250);
       }
-      state.deps.enqueueSystemEvent(text, { agentId: job.agentId });
-      if (job.wakeMode === "now" && state.deps.runHeartbeatOnce) {
-        const reason = `cron:${job.id}`;
-        const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-        const maxWaitMs = 2 * 60_000;
-        const waitStartedAt = state.deps.nowMs();
 
-        let heartbeatResult: HeartbeatRunResult;
-        for (;;) {
-          heartbeatResult = await state.deps.runHeartbeatOnce({ reason });
-          if (
-            heartbeatResult.status !== "skipped" ||
-            heartbeatResult.reason !== "requests-in-flight"
-          ) {
-            break;
-          }
-          if (state.deps.nowMs() - waitStartedAt > maxWaitMs) {
-            heartbeatResult = {
-              status: "skipped",
-              reason: "timeout waiting for main lane to become idle",
-            };
-            break;
-          }
-          await delay(250);
-        }
-
-        if (heartbeatResult.status === "ran") {
-          await finish("ok", undefined, text);
-        } else if (heartbeatResult.status === "skipped") {
-          await finish("skipped", heartbeatResult.reason, text);
-        } else {
-          await finish("error", heartbeatResult.reason, text);
-        }
+      if (heartbeatResult.status === "ran") {
+        return { status: "ok", summary: text };
+      } else if (heartbeatResult.status === "skipped") {
+        return { status: "skipped", error: heartbeatResult.reason, summary: text };
       } else {
-        // wakeMode is "next-heartbeat" or runHeartbeatOnce not available
-        state.deps.requestHeartbeatNow({ reason: `cron:${job.id}` });
-        await finish("ok", undefined, text);
-      }
-      return;
-    }
-
-    if (job.payload.kind !== "agentTurn") {
-      await finish("skipped", "isolated job requires payload.kind=agentTurn");
-      return;
-    }
-
-    // Fix 1: Hard timeout wrapper around runIsolatedAgentJob.
-    // Uses 2× the job's own timeout (or default) as a safety-net ceiling so a
-    // hung isolated job can never block the cron service indefinitely.
-    const jobTimeoutS = job.payload.timeoutSeconds ?? DEFAULT_JOB_TIMEOUT_S;
-    const hardTimeoutMs = jobTimeoutS * 1000 * HARD_TIMEOUT_MULTIPLIER;
-    const res = await promiseWithTimeout(
-      state.deps.runIsolatedAgentJob({
-        job,
-        message: job.payload.message,
-      }),
-      hardTimeoutMs,
-      `cron job ${job.id} (${job.name}) exceeded hard timeout of ${hardTimeoutMs / 1000}s`,
-    );
-
-    // Post a short summary back to the main session so the user sees
-    // the cron result without opening the isolated session.
-    const summaryText = res.summary?.trim();
-    const deliveryMode = job.delivery?.mode ?? "announce";
-    if (summaryText && deliveryMode !== "none") {
-      const prefix = "📋 Cron";
-      const label =
-        res.status === "error" ? `${prefix} (error): ${summaryText}` : `${prefix}: ${summaryText}`;
-      state.deps.enqueueSystemEvent(label, { agentId: job.agentId });
-      if (job.wakeMode === "now") {
-        state.deps.requestHeartbeatNow({ reason: `cron:${job.id}` });
+        return { status: "error", error: heartbeatResult.reason, summary: text };
       }
     }
+    // wakeMode is "next-heartbeat" or runHeartbeatOnce not available
+    state.deps.requestHeartbeatNow({ reason: `cron:${job.id}` });
+    return { status: "ok", summary: text };
+  }
 
-    if (res.status === "ok") {
-      await finish("ok", undefined, res.summary);
-    } else if (res.status === "skipped") {
-      await finish("skipped", undefined, res.summary);
-    } else {
-      await finish("error", res.error ?? "cron job failed", res.summary);
-    }
-  } catch (err) {
-    await finish("error", String(err));
-  } finally {
-    job.updatedAtMs = nowMs;
-    if (!opts.forced && job.enabled && !deleted) {
-      // Keep nextRunAtMs in sync in case the schedule advanced during a long run.
-      job.state.nextRunAtMs = computeJobNextRunAtMs(job, state.deps.nowMs());
+  if (job.payload.kind !== "agentTurn") {
+    return { status: "skipped", error: "isolated job requires payload.kind=agentTurn" };
+  }
+
+  // Hard timeout wrapper around runIsolatedAgentJob.
+  const jobTimeoutS = job.payload.timeoutSeconds ?? DEFAULT_JOB_TIMEOUT_S;
+  const hardTimeoutMs = jobTimeoutS * 1000 * HARD_TIMEOUT_MULTIPLIER;
+  const res = await promiseWithTimeout(
+    state.deps.runIsolatedAgentJob({
+      job,
+      message: job.payload.message,
+    }),
+    hardTimeoutMs,
+    `cron job ${job.id} (${job.name}) exceeded hard timeout of ${hardTimeoutMs / 1000}s`,
+  );
+
+  // Post a short summary back to the main session so the user sees
+  // the cron result without opening the isolated session.
+  const summaryText = res.summary?.trim();
+  const deliveryMode = job.delivery?.mode ?? "announce";
+  if (summaryText && deliveryMode !== "none") {
+    const prefix = "\u{1f4cb} Cron";
+    const label =
+      res.status === "error" ? `${prefix} (error): ${summaryText}` : `${prefix}: ${summaryText}`;
+    state.deps.enqueueSystemEvent(label, { agentId: job.agentId });
+    if (job.wakeMode === "now") {
+      state.deps.requestHeartbeatNow({ reason: `cron:${job.id}` });
     }
   }
+
+  if (res.status === "ok") {
+    return { status: "ok", summary: res.summary };
+  } else if (res.status === "skipped") {
+    return { status: "skipped", summary: res.summary };
+  } else {
+    return { status: "error", error: res.error ?? "cron job failed", summary: res.summary };
+  }
+}
+
+/**
+ * Phase 3 (locked): apply results to the job, emit "finished", persist.
+ * If the job was removed during execution, this is a no-op (stale finalize).
+ */
+export function finalizeJobRun(
+  state: CronServiceState,
+  job: CronJob,
+  result: JobExecResult,
+  opts: { forced: boolean; nowMs: number },
+): { deleted: boolean } {
+  // Stale finalize: job was removed while we were executing.
+  const liveJob = state.store?.jobs.find((j) => j.id === job.id);
+  if (!liveJob) {
+    emit(state, {
+      jobId: job.id,
+      action: "finished",
+      status: result.status,
+      error: result.error,
+      summary: result.summary,
+      runAtMs: job.state.runningAtMs ?? opts.nowMs,
+      durationMs: 0,
+    });
+    return { deleted: false };
+  }
+
+  const startedAt = liveJob.state.runningAtMs ?? opts.nowMs;
+  const endedAt = state.deps.nowMs();
+  liveJob.state.runningAtMs = undefined;
+  liveJob.state.lastRunAtMs = startedAt;
+  liveJob.state.lastStatus = result.status;
+  liveJob.state.lastDurationMs = Math.max(0, endedAt - startedAt);
+  liveJob.state.lastError = result.error;
+
+  let deleted = false;
+  const shouldDelete =
+    liveJob.schedule.kind === "at" && result.status === "ok" && liveJob.deleteAfterRun === true;
+
+  if (!shouldDelete) {
+    if (liveJob.schedule.kind === "at" && result.status === "ok") {
+      // One-shot job completed successfully; disable it.
+      liveJob.enabled = false;
+      liveJob.state.nextRunAtMs = undefined;
+    } else if (liveJob.enabled) {
+      liveJob.state.nextRunAtMs = computeJobNextRunAtMs(liveJob, endedAt);
+    } else {
+      liveJob.state.nextRunAtMs = undefined;
+    }
+  }
+
+  emit(state, {
+    jobId: liveJob.id,
+    action: "finished",
+    status: result.status,
+    error: result.error,
+    summary: result.summary,
+    runAtMs: startedAt,
+    durationMs: liveJob.state.lastDurationMs,
+    nextRunAtMs: liveJob.state.nextRunAtMs,
+  });
+
+  if (shouldDelete && state.store) {
+    state.store.jobs = state.store.jobs.filter((j) => j.id !== liveJob.id);
+    deleted = true;
+    emit(state, { jobId: liveJob.id, action: "removed" });
+  }
+
+  liveJob.updatedAtMs = opts.nowMs;
+  if (!opts.forced && liveJob.enabled && !deleted) {
+    // Keep nextRunAtMs in sync in case the schedule advanced during a long run.
+    liveJob.state.nextRunAtMs = computeJobNextRunAtMs(liveJob, endedAt);
+  }
+
+  return { deleted };
 }
 
 export function wake(

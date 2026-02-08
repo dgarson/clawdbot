@@ -1,3 +1,5 @@
+firebase-debug.log
+**/firebase-debug.log
 **/*.mp3
 node_modules
 **/node_modules/
@@ -63,6 +65,9 @@ apps/ios/*.dSYM.zip
 # provisioning profiles (local)
 apps/ios/*.mobileprovision
 .env
+
+# Firebase
+firebase-debug.log
 
 # Local untracked files
 .local/

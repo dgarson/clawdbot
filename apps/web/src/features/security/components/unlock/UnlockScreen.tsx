@@ -216,7 +216,7 @@ export function UnlockScreen() {
               <p className="text-center text-xs text-muted-foreground">
                 Need help?{" "}
                 <a
-                  href="https://docs.clawdbrain.bot"
+                  href="https://docs.openclaw.ai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"

@@ -261,7 +261,7 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <a
-              href="https://docs.clawdbrain.bot"
+              href="https://docs.openclaw.ai"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

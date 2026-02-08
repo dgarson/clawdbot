@@ -98,8 +98,17 @@ export type SdkRunnerParams = {
   /** Permission mode for the SDK ("default", "acceptEdits", "bypassPermissions"). */
   permissionMode?: string;
 
+  /** Session key for internal hook system bridging (used by Meridia, etc.). */
+  sessionKey?: string;
+
   /** Enable Claude Code hook wiring for richer lifecycle/tool parity. */
   hooksEnabled?: boolean;
+
+  /**
+   * When true, tool output text (not just summaries) is emitted via onToolResult.
+   * Mirrors Pi agent's shouldEmitToolOutput behavior.
+   */
+  shouldEmitToolOutput?: boolean;
 
   /**
    * When true, only content inside `<final>...</final>` tags is returned.

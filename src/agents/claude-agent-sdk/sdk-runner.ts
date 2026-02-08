@@ -16,16 +16,25 @@
 
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
 import type { SdkRunnerParams, SdkRunnerResult } from "./sdk-runner.types.js";
+import type { SdkHooksRunState } from "./sdk-hooks.js";
 import type { SdkRunnerQueryOptions } from "./tool-bridge.types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import {
+  emitAgentEvent,
+  registerAgentRunContext,
+  clearAgentRunContext,
+} from "../../infra/agent-events.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
+import { splitMediaFromOutput } from "../../media/parse.js";
 import { formatMcpToolNamesForLog } from "../../mcp/tool-name-format.js";
+import { parseReplyDirectives } from "../../auto-reply/reply/reply-directives.js";
 import {
   extractFinalTagContent,
   stripReasoningTagsFromText,
 } from "../../shared/text/reasoning-tags.js";
 import { isMessagingTool, isMessagingToolSendAction } from "../pi-embedded-messaging.js";
-import { extractMessagingToolSend } from "../pi-embedded-subscribe.tools.js";
-import { stripCompactionHandoffText } from "../pi-embedded-utils.js";
+import { extractMessagingToolSend, sanitizeToolResult } from "../pi-embedded-subscribe.tools.js";
+import { inferToolMetaFromArgs, stripCompactionHandoffText } from "../pi-embedded-utils.js";
 import { normalizeToolName } from "../tool-policy.js";
 
 const log = createSubsystemLogger("sdk-runner");
@@ -340,7 +349,26 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     );
   }
 
+  // Register run context for global event emission (P4)
+  registerAgentRunContext(params.runId, {
+    sessionKey: params.sessionKey,
+  });
+
+  // Shared mutable state for hooks (P2): tracks assistant texts, tool metas, errors
+  const runState: SdkHooksRunState = {
+    assistantTexts: [],
+    toolMetas: [],
+    lastToolError: undefined,
+  };
+
   const emitEvent = (stream: string, data: Record<string, unknown>) => {
+    // Bridge to global event emitter for system-wide subscribers (P4)
+    try {
+      emitAgentEvent({ runId: params.runId, stream, data });
+    } catch {
+      // Don't let global event emission break the runner.
+    }
+    // Also fire the callback chain
     try {
       void Promise.resolve(params.onAgentEvent?.({ stream, data })).catch(() => {
         // Don't let async callback errors trigger unhandled rejections.
@@ -377,6 +405,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       truncated: false,
       turnCount: 0,
     });
+    // Clean up run context after events but before early return (exits before try/finally)
+    clearAgentRunContext(params.runId);
     return {
       payloads: [],
       meta: {
@@ -413,6 +443,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       runtime: "claude",
       error: message,
     });
+    clearAgentRunContext(params.runId);
     return {
       payloads: [
         {
@@ -460,6 +491,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       runtime: "claude",
       error: message,
     });
+    clearAgentRunContext(params.runId);
     return {
       payloads: [
         {
@@ -622,6 +654,13 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           trackMessagingToolEnd(evt.name, evt.toolCallId, evt.isError);
         }
       },
+      // Internal hook bridging params (P1, P2, P5, P6, P7)
+      config: params.config,
+      runId: params.runId,
+      sessionId: params.sessionId,
+      sessionKey: params.sessionKey,
+      runState,
+      shouldEmitToolOutput: params.shouldEmitToolOutput,
     }) as unknown as Record<string, unknown>;
   }
 
@@ -665,12 +704,15 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
    * Emit a block reply for the given text if onBlockReply is configured and
    * blockReplyBreak is set. Returns true if the block was emitted.
    */
-  const emitBlockReply = async (text: string): Promise<boolean> => {
+  const emitBlockReply = async (text: string, mediaUrls?: string[]): Promise<boolean> => {
     if (!params.onBlockReply || !text.trim()) {
       return false;
     }
     try {
-      await params.onBlockReply({ text: text.trim() });
+      await params.onBlockReply({
+        text: text.trim(),
+        ...(mediaUrls?.length ? { mediaUrls } : {}),
+      });
       didStreamBlockReply = true;
       return true;
     } catch (err) {
@@ -692,7 +734,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     }
     const currentText = chunks.join("\n\n").trim();
     if (currentText) {
-      await emitBlockReply(currentText);
+      const split = splitMediaFromOutput(currentText);
+      await emitBlockReply(split.text, split.mediaUrls);
     }
   };
 
@@ -713,6 +756,9 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     }
     assistantTextBaseline = assistantTexts.length;
   };
+
+  // Resolve session key once for internal hook bridging (P3/P4/P5)
+  const hookSessionKey = params.sessionKey ?? params.sessionId ?? params.runId;
 
   // Usage and turn tracking
   let accumulatedUsage: NormalizedUsage | undefined;
@@ -833,6 +879,19 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           willRetry: false, // SDK doesn't expose retry info
           source: "claude-agent-sdk",
         });
+
+        // Bridge to internal hook system for Meridia compaction (matches Pi agent)
+        if (hookSessionKey) {
+          const hookEvent = createInternalHookEvent("agent", "compaction:end", hookSessionKey, {
+            cfg: params.config,
+            runId: params.runId,
+            sessionId: params.sessionId,
+            sessionKey: params.sessionKey,
+            trigger,
+            willRetry: false,
+          });
+          void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
+        }
       }
 
       const { kind } = classifyEvent(event);
@@ -892,11 +951,29 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
               : Boolean(record?.error);
 
         const toolArgs = record ? extractToolArgsFromSdkToolEvent(record) : undefined;
+        // Infer tool meta for enriched events (mirrors hooks path P5)
+        const toolMeta = toolArgs
+          ? inferToolMetaFromArgs(normalizedName.name, toolArgs)
+          : undefined;
+
         if (phase === "start" && toolCallId && toolArgs) {
           trackMessagingToolStart(normalizedName.name, toolCallId, toolArgs);
         }
         if (phase === "result" && toolCallId) {
           trackMessagingToolEnd(normalizedName.name, toolCallId, isError);
+        }
+
+        // Populate runState for precompact context parity (#4)
+        if (phase === "result") {
+          runState.toolMetas.push({ toolName: normalizedName.name, meta: toolMeta });
+          if (isError) {
+            const errorMsg = toolText ?? (record?.error ? String(record.error) : undefined);
+            runState.lastToolError = {
+              toolName: normalizedName.name,
+              meta: toolMeta,
+              error: errorMsg,
+            };
+          }
         }
 
         emitEvent("tool", {
@@ -905,21 +982,46 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           toolCallId,
           sdkType: type,
           ...(normalizedName.rawName ? { rawName: normalizedName.rawName } : {}),
+          ...(toolMeta ? { meta: toolMeta } : {}),
           isError,
           ...(toolText ? { resultText: toolText } : {}),
         });
-      }
 
-      if (!hooksEnabled && kind === "tool" && params.onToolResult) {
-        const toolText = extractTextFromClaudeAgentSdkEvent(event);
-        if (toolText) {
+        // Bridge terminal tool events to internal hook system for Meridia (non-hooks path)
+        if (phase === "result" && hookSessionKey) {
+          const sanitized = sanitizeToolResult(toolText ?? record ?? event);
+          const hookEvent = createInternalHookEvent("agent", "tool:result", hookSessionKey, {
+            cfg: params.config,
+            runId: params.runId,
+            sessionId: params.sessionId,
+            sessionKey: params.sessionKey,
+            toolName: normalizedName.name,
+            toolCallId,
+            meta: toolMeta,
+            isError,
+            args: toolArgs,
+            result: sanitized,
+            recentAssistantText: runState.assistantTexts
+              .slice(-3)
+              .join("\n")
+              .slice(-2000),
+          });
+          void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
+        }
+
+        // Emit tool output text via onToolResult for terminal events (P6 gated)
+        if (
+          phase === "result" &&
+          toolText &&
+          params.onToolResult &&
+          params.shouldEmitToolOutput !== false
+        ) {
           try {
-            // Only emit tool results for terminal tool events to match Pi semantics more closely.
-            const record = isRecord(event) ? event : undefined;
-            const type = record && typeof record.type === "string" ? record.type : "";
-            if (isSdkTerminalToolEventType(type)) {
-              await params.onToolResult({ text: toolText });
-            }
+            const toolSplit = splitMediaFromOutput(toolText);
+            await params.onToolResult({
+              text: toolSplit.text,
+              ...(toolSplit.mediaUrls?.length ? { mediaUrls: toolSplit.mediaUrls } : {}),
+            });
           } catch {
             // Don't break the stream on callback errors.
           }
@@ -1014,18 +1116,29 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
         chunks.push(trimmed);
         assistantTexts.push(trimmed); // Track per-message boundary
+        runState.assistantTexts.push(trimmed); // Sync to shared hook state (P2)
         extractedChars += trimmed.length;
 
         const prev = assistantSoFar;
         assistantSoFar = chunks.join("\n\n");
         const delta = assistantSoFar.startsWith(prev) ? assistantSoFar.slice(prev.length) : trimmed;
 
-        emitEvent("assistant", { text: assistantSoFar, delta });
+        // Split media from accumulated text once; use for both event and callback (#3)
+        const assistantSplit = splitMediaFromOutput(assistantSoFar);
 
-        // Stream partial reply.
+        emitEvent("assistant", {
+          text: assistantSplit.text,
+          delta,
+          ...(assistantSplit.mediaUrls?.length ? { mediaUrls: assistantSplit.mediaUrls } : {}),
+        });
+
+        // Stream partial reply with media extraction (P3).
         if (params.onPartialReply) {
           try {
-            await params.onPartialReply({ text: assistantSoFar });
+            await params.onPartialReply({
+              text: assistantSplit.text,
+              ...(assistantSplit.mediaUrls?.length ? { mediaUrls: assistantSplit.mediaUrls } : {}),
+            });
           } catch {
             // Don't break the stream on callback errors.
           }
@@ -1033,7 +1146,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
         // Emit block reply in "text_end" mode (per text extraction).
         if (params.blockReplyBreak === "text_end" && params.onBlockReply) {
-          await emitBlockReply(trimmed);
+          const blockSplit = splitMediaFromOutput(trimmed);
+          await emitBlockReply(blockSplit.text, blockSplit.mediaUrls);
         }
 
         // Truncate if we've extracted too much text.
@@ -1138,6 +1252,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
+    // Clean up global run context (P4)
+    clearAgentRunContext(params.runId);
   }
 
   // Finalize the last assistant message's text entries before building the result.
@@ -1252,8 +1368,10 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     };
   }
 
+  // Parse reply directives (media URLs, reply-to, audio-as-voice) from final text (P3)
+  const parsed = parseReplyDirectives(text);
   const suffix = truncated ? "\n\n[Output truncated]" : "";
-  const finalText = `${text}${suffix}`;
+  const finalText = `${parsed.text}${suffix}`;
 
   // Emit the final block reply — but only when we did NOT already stream
   // content via blockReplyBreak during the run. When streaming was active,
@@ -1264,7 +1382,10 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // payload-key-based dedup.
   if (params.onBlockReply && !didStreamBlockReply) {
     try {
-      await params.onBlockReply({ text: finalText });
+      await params.onBlockReply({
+        text: finalText,
+        ...(parsed.mediaUrls?.length ? { mediaUrls: parsed.mediaUrls } : {}),
+      });
     } catch {
       // Don't fail the run on callback errors.
     }
@@ -1308,7 +1429,14 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   );
 
   return {
-    payloads: [{ text: finalText }],
+    payloads: [{
+      text: finalText,
+      ...(parsed.mediaUrls?.length ? { mediaUrls: parsed.mediaUrls, mediaUrl: parsed.mediaUrl } : {}),
+      ...(parsed.replyToId ? { replyToId: parsed.replyToId } : {}),
+      ...(parsed.replyToTag ? { replyToTag: parsed.replyToTag } : {}),
+      ...(parsed.replyToCurrent ? { replyToCurrent: parsed.replyToCurrent } : {}),
+      ...(parsed.audioAsVoice ? { audioAsVoice: parsed.audioAsVoice } : {}),
+    }],
     meta: {
       durationMs: Date.now() - startedAt,
       provider: params.provider?.name,

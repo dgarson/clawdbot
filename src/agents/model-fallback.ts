@@ -256,7 +256,7 @@ export async function runWithModelFallback<T>(params: {
     throw new Error(
       `No authenticated providers available for model failover. ` +
         `Primary: ${params.provider}/${params.model}. ` +
-        `Configure authentication using 'clawdbrain login' or set API keys in environment.`,
+        `Configure authentication using 'openclaw login' or set API keys in environment.`,
     );
   }
 

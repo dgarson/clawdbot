@@ -225,7 +225,7 @@ export function IMessageConfigSheet({
 
               <div className="pt-2">
                 <a
-                  href="https://docs.clawdbrain.bot/channels/imessage"
+                  href="https://docs.openclaw.ai/channels/imessage"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-primary hover:underline inline-flex items-center gap-1"

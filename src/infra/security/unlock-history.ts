@@ -11,7 +11,7 @@ import type { UnlockEvent, UnlockFailureReason } from "./types.js";
 import { MAX_UNLOCK_HISTORY_ENTRIES } from "./types.js";
 
 /** Directory for security data */
-const SECURITY_DIR = ".clawdbrain/security";
+const SECURITY_DIR = ".openclaw/security";
 
 /** Unlock history file name */
 const UNLOCK_HISTORY_FILE = "unlock-history.json";

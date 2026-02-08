@@ -41,6 +41,7 @@ export type PluginToolRegistration = {
   names: string[];
   optional: boolean;
   source: string;
+  riskProfile?: import("../agents/tool-risk/types.js").ToolRiskProfile;
 };
 
 export type PluginCliRegistration = {
@@ -173,7 +174,12 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
   const registerTool = (
     record: PluginRecord,
     tool: AnyAgentTool | OpenClawPluginToolFactory,
-    opts?: { name?: string; names?: string[]; optional?: boolean },
+    opts?: {
+      name?: string;
+      names?: string[];
+      optional?: boolean;
+      riskProfile?: import("../agents/tool-risk/types.js").ToolRiskProfile;
+    },
   ) => {
     const names = opts?.names ?? (opts?.name ? [opts.name] : []);
     const optional = opts?.optional === true;
@@ -194,6 +200,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       names: normalized,
       optional,
       source: record.source,
+      riskProfile: opts?.riskProfile,
     });
   };
 

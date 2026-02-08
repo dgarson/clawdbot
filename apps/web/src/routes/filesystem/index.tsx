@@ -47,7 +47,7 @@ export const Route = createFileRoute("/filesystem/")({
   errorComponent: RouteErrorFallback,
 });
 
-// Mock filesystem structure representing ~/.clawdbrain/
+// Mock filesystem structure representing ~/.openclaw/
 interface FileNode {
   id: string;
   name: string;
@@ -61,21 +61,21 @@ interface FileNode {
 
 const mockFileSystem: FileNode = {
   id: "root",
-  name: ".clawdbrain",
+  name: ".openclaw",
   type: "folder",
-  path: "~/.clawdbrain",
+  path: "~/.openclaw",
   children: [
     {
       id: "config",
       name: "config",
       type: "folder",
-      path: "~/.clawdbrain/config",
+      path: "~/.openclaw/config",
       children: [
         {
           id: "config-json",
           name: "config.json",
           type: "file",
-          path: "~/.clawdbrain/config/config.json",
+          path: "~/.openclaw/config/config.json",
           size: 2048,
           lastModified: new Date(Date.now() - 86400000),
           content: JSON.stringify(
@@ -95,7 +95,7 @@ const mockFileSystem: FileNode = {
           id: "agents-json",
           name: "agents.json",
           type: "file",
-          path: "~/.clawdbrain/config/agents.json",
+          path: "~/.openclaw/config/agents.json",
           size: 4096,
           lastModified: new Date(Date.now() - 3600000),
           content: JSON.stringify(
@@ -115,13 +115,13 @@ const mockFileSystem: FileNode = {
       id: "sessions",
       name: "sessions",
       type: "folder",
-      path: "~/.clawdbrain/sessions",
+      path: "~/.openclaw/sessions",
       children: [
         {
           id: "session-1",
           name: "session-2024-01-15.jsonl",
           type: "file",
-          path: "~/.clawdbrain/sessions/session-2024-01-15.jsonl",
+          path: "~/.openclaw/sessions/session-2024-01-15.jsonl",
           size: 15360,
           lastModified: new Date(Date.now() - 172800000),
           content:
@@ -131,7 +131,7 @@ const mockFileSystem: FileNode = {
           id: "session-2",
           name: "session-2024-01-20.jsonl",
           type: "file",
-          path: "~/.clawdbrain/sessions/session-2024-01-20.jsonl",
+          path: "~/.openclaw/sessions/session-2024-01-20.jsonl",
           size: 8192,
           lastModified: new Date(Date.now() - 43200000),
           content:
@@ -143,13 +143,13 @@ const mockFileSystem: FileNode = {
       id: "logs",
       name: "logs",
       type: "folder",
-      path: "~/.clawdbrain/logs",
+      path: "~/.openclaw/logs",
       children: [
         {
           id: "app-log",
           name: "app.log",
           type: "file",
-          path: "~/.clawdbrain/logs/app.log",
+          path: "~/.openclaw/logs/app.log",
           size: 51200,
           lastModified: new Date(),
           content:
@@ -159,7 +159,7 @@ const mockFileSystem: FileNode = {
           id: "error-log",
           name: "error.log",
           type: "file",
-          path: "~/.clawdbrain/logs/error.log",
+          path: "~/.openclaw/logs/error.log",
           size: 2048,
           lastModified: new Date(Date.now() - 7200000),
           content:
@@ -171,13 +171,13 @@ const mockFileSystem: FileNode = {
       id: "credentials",
       name: "credentials",
       type: "folder",
-      path: "~/.clawdbrain/credentials",
+      path: "~/.openclaw/credentials",
       children: [
         {
           id: "api-keys",
           name: "api-keys.enc",
           type: "file",
-          path: "~/.clawdbrain/credentials/api-keys.enc",
+          path: "~/.openclaw/credentials/api-keys.enc",
           size: 512,
           lastModified: new Date(Date.now() - 604800000),
           content: "[encrypted content]",
@@ -188,7 +188,7 @@ const mockFileSystem: FileNode = {
       id: "readme",
       name: "README.md",
       type: "file",
-      path: "~/.clawdbrain/README.md",
+      path: "~/.openclaw/README.md",
       size: 1024,
       lastModified: new Date(Date.now() - 2592000000),
       content:
@@ -480,7 +480,7 @@ function FilesystemPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Files</CardTitle>
-              <CardDescription>~/.clawdbrain</CardDescription>
+              <CardDescription>~/.openclaw</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[500px]">

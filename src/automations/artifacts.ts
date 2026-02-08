@@ -46,14 +46,14 @@ export interface StoredArtifactMetadata {
 
 /**
  * Resolves the artifacts directory path.
- * Defaults to ~/.clawdbrain/automations/artifacts
+ * Defaults to ~/.openclaw/automations/artifacts
  */
 export function resolveArtifactsDir(customDir?: string): string {
   if (customDir) {
     return path.resolve(customDir);
   }
   const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? ".";
-  return path.join(homeDir, ".clawdbrain", "automations", "artifacts");
+  return path.join(homeDir, ".openclaw", "automations", "artifacts");
 }
 
 /**

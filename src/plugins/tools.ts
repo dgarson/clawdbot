@@ -1,6 +1,7 @@
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { OpenClawPluginToolContext } from "./types.js";
 import { normalizeToolName } from "../agents/tool-policy.js";
+import { setPluginToolMetaAccessor } from "../agents/tool-risk/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadOpenClawPlugins } from "./loader.js";
 
@@ -9,6 +10,7 @@ const log = createSubsystemLogger("plugins");
 type PluginToolMeta = {
   pluginId: string;
   optional: boolean;
+  riskProfile?: import("../agents/tool-risk/types.js").ToolRiskProfile;
 };
 
 const pluginToolMeta = new WeakMap<AnyAgentTool, PluginToolMeta>();
@@ -16,6 +18,9 @@ const pluginToolMeta = new WeakMap<AnyAgentTool, PluginToolMeta>();
 export function getPluginToolMeta(tool: AnyAgentTool): PluginToolMeta | undefined {
   return pluginToolMeta.get(tool);
 }
+
+// Wire the accessor so the tool-risk resolver can look up plugin-declared risk profiles.
+setPluginToolMetaAccessor(getPluginToolMeta);
 
 function normalizeAllowlist(list?: string[]) {
   return new Set((list ?? []).map(normalizeToolName).filter(Boolean));
@@ -120,6 +125,7 @@ export function resolvePluginTools(params: {
       pluginToolMeta.set(tool, {
         pluginId: entry.pluginId,
         optional: entry.optional,
+        riskProfile: entry.riskProfile,
       });
       tools.push(tool);
     }

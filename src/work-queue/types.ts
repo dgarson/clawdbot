@@ -56,7 +56,7 @@ export type WorkItemPayload = {
   instructions?: string;
 
   // --- Git / branch configuration ---
-  /** Target repository (e.g. "openclaw/clawdbrain"). */
+  /** Target repository (e.g. "dgarson/clawdbrain"). */
   repo?: string;
   /** Branch to create the worktree from (default: "main"). */
   baseBranch?: string;

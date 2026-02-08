@@ -127,7 +127,7 @@ describe("overseer graph layouts", () => {
       },
       sessions: {
         ts: Date.now(),
-        path: "~/.clawdbrain/agents/main/sessions.jsonl",
+        path: "~/.openclaw/agents/main/sessions.jsonl",
         count: 1,
         defaults: {
           modelProvider: null,

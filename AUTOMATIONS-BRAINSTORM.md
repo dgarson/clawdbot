@@ -42,7 +42,7 @@ An automation system for Clawdbrain that automatically syncs forked repositories
 **Workspace Structure:**
 
 ```
-~/.clawdbrain/automations/
+~/.openclaw/automations/
 ├── smart-sync-fork/
 │   ├── <automation-id-1>/
 │   │   ├── fork/          # Cloned fork repo
@@ -86,7 +86,7 @@ An automation system for Clawdbrain that automatically syncs forked repositories
 ### Data Persistence
 
 - **Config:** JSON5-based with Zod validation
-- **Storage:** File-based in `~/.clawdbrain/`
+- **Storage:** File-based in `~/.openclaw/`
 - **Paths:** `/src/config/config-paths.ts`
 
 ## Key Technical Considerations
@@ -180,7 +180,7 @@ Smart-Sync Fork: [automation-name]
 
 ### Q1: Git Isolation Strategy
 
-**Answer:** Option B - Separate clone per automation in `~/.clawdbrain/automations/`
+**Answer:** Option B - Separate clone per automation in `~/.openclaw/automations/`
 
 ## Comprehensive Design Documents
 

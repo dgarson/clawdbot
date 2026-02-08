@@ -11,7 +11,15 @@ import {
 } from "./jobs.js";
 import { locked } from "./locked.js";
 import { ensureLoaded, migrateJob, persist, warnIfDisabled } from "./store.js";
-import { armTimer, emit, executeJob, stopTimer, wake } from "./timer.js";
+import {
+  armTimer,
+  claimJobRun,
+  emit,
+  executeJobPayload,
+  finalizeJobRun,
+  stopTimer,
+  wake,
+} from "./timer.js";
 
 export async function start(state: CronServiceState) {
   await locked(state, async () => {
@@ -39,26 +47,25 @@ export function stop(state: CronServiceState) {
 }
 
 export async function status(state: CronServiceState) {
-  return await locked(state, async () => {
-    await ensureLoaded(state);
-    return {
-      enabled: state.deps.cronEnabled,
-      storePath: state.deps.storePath,
-      jobs: state.store?.jobs.length ?? 0,
-      nextWakeAtMs: state.deps.cronEnabled ? (nextWakeAtMs(state) ?? null) : null,
-      storeLoadError: state.storeLoadError,
-      consecutiveLoadFailures: state.consecutiveLoadFailures,
-    };
-  });
+  // Lock-free read: ensureLoaded without forceReload trusts the in-memory
+  // copy, which is safe and avoids blocking behind a long-running job.
+  await ensureLoaded(state);
+  return {
+    enabled: state.deps.cronEnabled,
+    storePath: state.deps.storePath,
+    jobs: state.store?.jobs.length ?? 0,
+    nextWakeAtMs: state.deps.cronEnabled ? (nextWakeAtMs(state) ?? null) : null,
+    storeLoadError: state.storeLoadError,
+    consecutiveLoadFailures: state.consecutiveLoadFailures,
+  };
 }
 
 export async function list(state: CronServiceState, opts?: { includeDisabled?: boolean }) {
-  return await locked(state, async () => {
-    await ensureLoaded(state);
-    const includeDisabled = opts?.includeDisabled === true;
-    const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
-    return jobs.toSorted((a, b) => (a.state.nextRunAtMs ?? 0) - (b.state.nextRunAtMs ?? 0));
-  });
+  // Lock-free read: same rationale as status() — avoids blocking behind jobs.
+  await ensureLoaded(state);
+  const includeDisabled = opts?.includeDisabled === true;
+  const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
+  return jobs.toSorted((a, b) => (a.state.nextRunAtMs ?? 0) - (b.state.nextRunAtMs ?? 0));
 }
 
 export async function add(state: CronServiceState, input: CronJobCreate) {
@@ -136,20 +143,50 @@ export async function remove(state: CronServiceState, id: string) {
 }
 
 export async function run(state: CronServiceState, id: string, mode?: "due" | "force") {
-  return await locked(state, async () => {
+  const forced = mode === "force";
+
+  // Phase 1 (locked): validate, claim the job.
+  const claimed = await locked(state, async () => {
     warnIfDisabled(state, "run");
     await ensureLoaded(state);
     const job = findJobOrThrow(state, id);
     const now = state.deps.nowMs();
-    const due = isJobDue(job, now, { forced: mode === "force" });
+    const due = isJobDue(job, now, { forced });
     if (!due) {
-      return { ok: true, ran: false, reason: "not-due" as const };
+      return null;
     }
-    await executeJob(state, job, now, { forced: mode === "force" });
+    if (!claimJobRun(state, job)) {
+      return null; // already running
+    }
+    // No persist here — in-memory runningAtMs prevents duplicate claims
+    // within this service instance. Phase 3 will persist the final state.
+    return job;
+  });
+
+  if (!claimed) {
+    return { ok: true, ran: false, reason: "not-due" as const };
+  }
+
+  // Phase 2 (unlocked): execute the job payload.
+  let result;
+  try {
+    result = await executeJobPayload(state, claimed);
+  } catch (err) {
+    result = { status: "error" as const, error: String(err) };
+  }
+
+  // Phase 3 (locked): finalize, persist, re-arm.
+  // No forceReload — the in-memory store is consistent for in-process ops.
+  await locked(state, async () => {
+    finalizeJobRun(state, claimed, result, {
+      forced,
+      nowMs: state.deps.nowMs(),
+    });
     await persist(state);
     armTimer(state);
-    return { ok: true, ran: true } as const;
   });
+
+  return { ok: true, ran: true } as const;
 }
 
 export function wakeNow(
