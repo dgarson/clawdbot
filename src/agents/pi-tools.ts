@@ -7,6 +7,7 @@ import {
 } from "@mariozechner/pi-coding-agent";
 import type { OpenClawConfig } from "../config/config.js";
 import type { ModelAuthMode } from "./model-auth.js";
+import type { BeforeToolCallContext } from "./pi-tools.before-tool-call.js";
 import type { AnyAgentTool } from "./pi-tools.types.js";
 import type { SandboxContext } from "./sandbox.js";
 import { logWarn } from "../logger.js";
@@ -52,6 +53,7 @@ import {
   resolveToolProfilePolicy,
   stripPluginOnlyAllowlist,
 } from "./tool-policy.js";
+import { callGatewayTool } from "./tools/gateway.js";
 
 function isOpenAIProvider(provider?: string) {
   const normalized = provider?.trim().toLowerCase();
@@ -443,10 +445,29 @@ export function createOpenClawCodingTools(options?: {
   // Always normalize tool JSON Schemas before handing them to pi-agent/pi-ai.
   // Without this, some providers (notably OpenAI) will reject root-level union schemas.
   const normalized = subagentFiltered.map(normalizeToolParameters);
+  // Build tool approval context from config (dormant when approvals.tools is absent)
+  const toolApprovalsConfig = options?.config?.approvals?.tools;
+  const toolApprovalCtx: BeforeToolCallContext["toolApproval"] =
+    toolApprovalsConfig && toolApprovalsConfig.enabled !== false
+      ? {
+          agentId,
+          sessionKey: options?.sessionKey,
+          channel: resolveGatewayMessageChannel(options?.messageProvider) ?? undefined,
+          toolApprovalsConfig,
+          callGateway: async (opts) => {
+            return await callGatewayTool<{ decision: string | null }>(
+              opts.method,
+              { timeoutMs: opts.timeoutMs },
+              opts.params,
+            );
+          },
+        }
+      : undefined;
   const withHooks = normalized.map((tool) =>
     wrapToolWithBeforeToolCallHook(tool, {
       agentId,
       sessionKey: options?.sessionKey,
+      toolApproval: toolApprovalCtx,
     }),
   );
   const withAbort = options?.abortSignal
