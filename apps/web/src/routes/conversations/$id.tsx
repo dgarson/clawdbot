@@ -19,9 +19,12 @@ import {
 } from "@/hooks/mutations/useConversationMutations";
 import { useConversationStore } from "@/stores/useConversationStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { RouteErrorFallback } from "@/components/composed";
 
 export const Route = createFileRoute("/conversations/$id")({
   component: ConversationDetailPage,
+  errorComponent: RouteErrorFallback,
 });
 
 function ConversationDetailPage() {
@@ -62,15 +65,6 @@ function ConversationDetailPage() {
         role: "user",
         content: value.trim(),
       });
-
-      // Simulate an AI response after a delay
-      setTimeout(async () => {
-        await sendMessage.mutateAsync({
-          conversationId: id,
-          role: "assistant",
-          content: "I received your message and I'm processing it. This is a simulated response for the demo.",
-        });
-      }, 1000);
     } catch {
       toast.error("Failed to send message");
     }
@@ -134,12 +128,12 @@ function ConversationDetailPage() {
           <p className="text-muted-foreground mb-4">
             This conversation may have been deleted or does not exist.
           </p>
-          <button
+          <Button
+            variant="outline"
             onClick={handleBack}
-            className="text-primary hover:underline"
           >
             Back to conversations
-          </button>
+          </Button>
         </motion.div>
       </div>
     );

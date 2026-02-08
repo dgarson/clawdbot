@@ -29,14 +29,24 @@ import {
   Square,
   Zap,
 } from "lucide-react";
+import { RouteErrorFallback } from "@/components/composed";
 
 export const Route = createFileRoute("/conversations/$id/agentic")({
   component: AgenticConversationPage,
+  errorComponent: RouteErrorFallback,
 });
 
 function uid(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+// This route is currently a demo harness; keep delays centralized for easy removal.
+const DEMO_DELAYS_MS = {
+  toolExecution: 1000,
+  answerQuestion: 800,
+  initialResponse: 700,
+  autoApproveFollowup: 500,
+} as const;
 
 function AgenticConversationPage() {
   const { id } = Route.useParams();
@@ -134,7 +144,7 @@ function AgenticConversationPage() {
         { id: uid("assistant"), role: "assistant", content: `Tool executed: ${toolCallId}`, timestamp: new Date().toLocaleTimeString() },
       ]);
       setStatus("complete");
-    }, 1000);
+    }, DEMO_DELAYS_MS.toolExecution);
   };
 
   const rejectTool = (toolCallId: string) => {
@@ -160,7 +170,7 @@ function AgenticConversationPage() {
         },
       ]);
       setStatus("complete");
-    }, 800);
+    }, DEMO_DELAYS_MS.answerQuestion);
   };
 
   const onSend = ({ content, attachments }: { content: string; attachments: AgenticChatMessage["attachments"] }) => {
@@ -189,7 +199,7 @@ function AgenticConversationPage() {
       };
       setPendingToolCalls((prev) => [...prev, tc]);
       setStatus(autoApprove ? "executing" : "waiting_approval");
-      if (autoApprove) {window.setTimeout(() => approveTool(tc.toolCallId), 500);}
+      if (autoApprove) {window.setTimeout(() => approveTool(tc.toolCallId), DEMO_DELAYS_MS.autoApproveFollowup);}
 
       const q: Question = {
         id: uid("q"),
@@ -205,7 +215,7 @@ function AgenticConversationPage() {
       };
       setPendingQuestions((prev) => [...prev, q]);
       if (!autoApprove) {setStatus("waiting_input");}
-    }, 700);
+    }, DEMO_DELAYS_MS.initialResponse);
   };
 
   const onExecuteCommand = (cmd: PaletteCommand) => {
@@ -305,4 +315,3 @@ function AgenticConversationPage() {
     </>
   );
 }
-

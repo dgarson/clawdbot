@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -290,7 +291,25 @@ function JobsPage() {
           <ScrollArea className="h-[500px]">
             <div className="space-y-3">
               {isLoading && (
-                <div className="text-sm text-muted-foreground">Loading cron jobs…</div>
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={`job-skeleton-${index}`}
+                      className="rounded-lg border border-border p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="ml-auto h-6 w-16 rounded-full" />
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
               {error && (
                 <div className="text-sm text-destructive">
@@ -302,8 +321,9 @@ function JobsPage() {
                   No cron jobs configured yet.
                 </div>
               )}
-              <AnimatePresence>
-                {(jobsResult?.jobs ?? []).map((job) => {
+              {!isLoading && (
+                <AnimatePresence>
+                  {(jobsResult?.jobs ?? []).map((job) => {
                   const status = getJobStatus(job);
                   const scheduleLabel = formatCronSchedule(job.schedule);
                   const message = getCronPayloadMessage(job.payload);
@@ -378,7 +398,8 @@ function JobsPage() {
                     </motion.div>
                   );
                 })}
-              </AnimatePresence>
+                </AnimatePresence>
+              )}
             </div>
           </ScrollArea>
         </CardContent>
