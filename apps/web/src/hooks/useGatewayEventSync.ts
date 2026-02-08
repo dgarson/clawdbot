@@ -14,6 +14,7 @@ import type { GatewayEvent } from "@/lib/api";
 import type { PresenceEntry } from "@/lib/api/gateway-snapshot";
 import { cronKeys } from "@/hooks/queries/useCron";
 import { nodeKeys } from "@/hooks/queries/useNodes";
+import { toolApprovalKeys } from "@/hooks/queries/useToolApprovals";
 import { useOptionalGateway } from "@/providers/GatewayProvider";
 import { useGatewaySnapshotStore } from "@/stores/useGatewaySnapshotStore";
 
@@ -48,6 +49,10 @@ export function useGatewayEventSync(options: UseGatewayEventSyncOptions = {}) {
     });
   }, [queryClient]);
 
+  const invalidateToolApprovals = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: toolApprovalKeys.list() });
+  }, [queryClient]);
+
   const handleEvent = useCallback(
     (event: GatewayEvent) => {
       switch (event.event) {
@@ -69,9 +74,13 @@ export function useGatewayEventSync(options: UseGatewayEventSyncOptions = {}) {
         case "exec.approval.resolved":
           invalidateExecApprovals();
           break;
+        case "tool.approval.requested":
+        case "tool.approval.resolved":
+          invalidateToolApprovals();
+          break;
       }
     },
-    [invalidateCron, invalidateDevices, invalidateExecApprovals, setPresence]
+    [invalidateCron, invalidateDevices, invalidateExecApprovals, invalidateToolApprovals, setPresence]
   );
 
   useEffect(() => {

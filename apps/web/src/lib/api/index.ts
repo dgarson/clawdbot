@@ -198,6 +198,15 @@ export {
   type CronPayload,
 } from "./cron";
 
+// Tool approvals API functions
+export {
+  listToolApprovals,
+  resolveToolApproval,
+  type ToolApprovalDecision,
+  type ToolApprovalEntry,
+  type ToolApprovalsListResult,
+} from "./tool-approvals";
+
 // Automations API functions
 export {
   listAutomations,

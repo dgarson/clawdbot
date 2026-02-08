@@ -141,7 +141,7 @@ export interface TokenCreationResult {
 // Audit Log Types
 // =============================================================================
 
-export type AuditCategory = "config" | "agent" | "security" | "token";
+export type AuditCategory = "config" | "agent" | "security" | "token" | "approval";
 
 export type AuditSeverity = "info" | "warn" | "error";
 
@@ -169,6 +169,11 @@ export type AgentAuditAction =
   | "tool.reject"
   | "tool.error";
 
+export type ApprovalAuditAction =
+  | "tool.approval.requested"
+  | "tool.approval.resolved"
+  | "tool.approval.timeout";
+
 export type TokenAuditAction =
   | "token.create"
   | "token.revoke"
@@ -178,6 +183,7 @@ export type AuditAction =
   | ConfigAuditAction
   | SecurityAuditAction
   | AgentAuditAction
+  | ApprovalAuditAction
   | TokenAuditAction;
 
 export interface AuditEventBase {
@@ -231,6 +237,25 @@ export interface AgentAuditEvent extends AuditEventBase {
   };
 }
 
+export interface ApprovalAuditEvent extends AuditEventBase {
+  category: "approval";
+  action: ApprovalAuditAction;
+  detail: {
+    approvalId: string;
+    toolName: string;
+    requestHash: string;
+    agentId?: string | null;
+    sessionKey?: string | null;
+    paramsSummary?: string | null;
+    riskClass?: string | null;
+    createdAtMs?: number | null;
+    expiresAtMs?: number | null;
+    resolvedAtMs?: number | null;
+    decision?: string | null;
+    resolvedBy?: string | null;
+  };
+}
+
 export interface TokenAuditEvent extends AuditEventBase {
   category: "token";
   action: TokenAuditAction;
@@ -245,6 +270,7 @@ export type AuditEvent =
   | ConfigAuditEvent
   | SecurityAuditEvent
   | AgentAuditEvent
+  | ApprovalAuditEvent
   | TokenAuditEvent;
 
 // =============================================================================

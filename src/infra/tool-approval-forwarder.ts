@@ -376,6 +376,13 @@ export function createToolApprovalForwarder(
       return;
     }
 
+    log.info("tool approval forward request", {
+      approvalId: request.id,
+      toolName: request.request.toolName,
+      targetCount: filteredTargets.length,
+      sources: filteredTargets.map((t) => t.source),
+    });
+
     const expiresInMs = Math.max(0, request.expiresAtMs - nowMs());
     const timeoutId = setTimeout(() => {
       void (async () => {
@@ -384,6 +391,11 @@ export function createToolApprovalForwarder(
           return;
         }
         pending.delete(request.id);
+        log.info("tool approval forward expired", {
+          approvalId: request.id,
+          toolName: request.request.toolName,
+          targetCount: entry.targets.length,
+        });
         const expiredText = buildExpiredMessage(request);
         await deliverToTargets({ cfg, targets: entry.targets, text: expiredText, deliver });
       })();
@@ -416,6 +428,12 @@ export function createToolApprovalForwarder(
       clearTimeout(entry.timeoutId);
     }
     pending.delete(resolved.id);
+    log.info("tool approval forward resolved", {
+      approvalId: resolved.id,
+      decision: resolved.decision,
+      resolvedBy: resolved.resolvedBy ?? null,
+      targetCount: entry.targets.length,
+    });
 
     const cfg = getConfig();
     const text = buildResolvedMessage(resolved);

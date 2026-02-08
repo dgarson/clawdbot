@@ -20,6 +20,91 @@ afterEach(() => {
 });
 
 describe("tool approval forwarder", () => {
+  it("forwards to session target and resolves", async () => {
+    vi.useFakeTimers();
+    const deliver = vi.fn().mockResolvedValue([]);
+    const cfg = {
+      approvals: { exec: { enabled: true, mode: "session" } },
+    } as OpenClawConfig;
+
+    const forwarder = createToolApprovalForwarder({
+      getConfig: () => cfg,
+      deliver,
+      nowMs: () => 1000,
+      resolveSessionTarget: () => ({ channel: "slack", to: "U1" }),
+    });
+
+    await forwarder.handleRequested(baseRequest);
+    expect(deliver).toHaveBeenCalledTimes(1);
+
+    await forwarder.handleResolved({
+      id: baseRequest.id,
+      decision: "allow-once",
+      resolvedBy: "slack:U1",
+      ts: 2000,
+    });
+    expect(deliver).toHaveBeenCalledTimes(2);
+
+    await vi.runAllTimersAsync();
+    expect(deliver).toHaveBeenCalledTimes(2);
+  });
+
+  it("dedupes session target against explicit targets", async () => {
+    vi.useFakeTimers();
+    const deliver = vi.fn().mockResolvedValue([]);
+    const cfg = {
+      approvals: {
+        exec: {
+          enabled: true,
+          mode: "both",
+          targets: [{ channel: "slack", to: "U1" }],
+        },
+      },
+    } as OpenClawConfig;
+
+    const forwarder = createToolApprovalForwarder({
+      getConfig: () => cfg,
+      deliver,
+      nowMs: () => 1000,
+      resolveSessionTarget: () => ({ channel: "slack", to: "U1" }),
+    });
+
+    await forwarder.handleRequested(baseRequest);
+    expect(deliver).toHaveBeenCalledTimes(1);
+
+    forwarder.stop();
+  });
+
+  it("sends expiration notices on timeout", async () => {
+    vi.useFakeTimers();
+    const deliver = vi.fn().mockResolvedValue([]);
+    const cfg = {
+      approvals: {
+        exec: {
+          enabled: true,
+          mode: "targets",
+          targets: [{ channel: "telegram", to: "123" }],
+        },
+      },
+    } as OpenClawConfig;
+
+    const forwarder = createToolApprovalForwarder({
+      getConfig: () => cfg,
+      deliver,
+      nowMs: () => 1000,
+      resolveSessionTarget: () => null,
+    });
+
+    await forwarder.handleRequested({
+      ...baseRequest,
+      expiresAtMs: 2000,
+    });
+    expect(deliver).toHaveBeenCalledTimes(1);
+
+    await vi.runAllTimersAsync();
+    expect(deliver).toHaveBeenCalledTimes(2);
+  });
+
   it("skips discord targets when discord exec approvals are enabled", async () => {
     vi.useFakeTimers();
     const deliver = vi.fn().mockResolvedValue([]);

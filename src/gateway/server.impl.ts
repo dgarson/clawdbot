@@ -792,6 +792,8 @@ export async function startGatewayServer(
     pluginServices,
     cron,
     heartbeatRunner,
+    execApprovalForwarder,
+    toolApprovalForwarder,
     nodePresenceTimers,
     broadcast,
     tickInterval,

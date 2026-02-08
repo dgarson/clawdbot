@@ -22,6 +22,10 @@ vi.mock("@/stores/useUIStore", () => ({
     selector({ useLiveGateway: hoisted.useLiveGateway }),
 }));
 
+vi.mock("@/providers", () => ({
+  useGateway: () => ({ isConnected: false }),
+}));
+
 import { useNodes, useDevices, useExecApprovals, nodeKeys } from "./useNodes";
 
 function createWrapper() {
