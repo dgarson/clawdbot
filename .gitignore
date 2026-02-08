@@ -1,3 +1,5 @@
+firebase-debug.log
+**/firebase-debug.log
 **/*.mp3
 node_modules
 **/node_modules/
