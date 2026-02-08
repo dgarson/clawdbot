@@ -527,6 +527,151 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     return (rows as any[]).map((row) => this.mapItem(row));
   }
 
+  async rebuildRefs(opts?: {
+    queueId?: string;
+    workstream?: string;
+    itemIds?: string[];
+    limit?: number;
+    mode?: "sync" | "append";
+    dryRun?: boolean;
+  }): Promise<{
+    scanned: number;
+    updated: number;
+    inserted: number;
+    deleted: number;
+    skippedInvalidJson: number;
+    skippedEmpty: number;
+  }> {
+    const db = this.requireDb();
+    const where: string[] = [];
+    const params: Array<string | number> = [];
+
+    if (opts?.queueId) {
+      where.push("queue_id = ?");
+      params.push(opts.queueId);
+    }
+    if (opts?.workstream) {
+      where.push("workstream = ?");
+      params.push(opts.workstream);
+    }
+    if (opts?.itemIds?.length) {
+      where.push(`id IN (${opts.itemIds.map(() => "?").join(", ")})`);
+      params.push(...opts.itemIds);
+    }
+
+    const limit = opts?.limit && opts.limit > 0 ? `LIMIT ${opts.limit}` : "";
+    const whereClause = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+    const rows = db
+      .prepare(`SELECT id, payload_json FROM work_items ${whereClause} ${limit}`)
+      .all(...params) as Array<{ id: string; payload_json: string | null }>;
+
+    const stats = {
+      scanned: 0,
+      updated: 0,
+      inserted: 0,
+      deleted: 0,
+      skippedInvalidJson: 0,
+      skippedEmpty: 0,
+    };
+
+    if (rows.length === 0) {
+      return stats;
+    }
+
+    const mode = opts?.mode ?? "sync";
+    const dryRun = opts?.dryRun ?? false;
+    const deleteStmt = db.prepare("DELETE FROM work_item_refs WHERE item_id = ?");
+    const countStmt = db.prepare("SELECT COUNT(*) as count FROM work_item_refs WHERE item_id = ?");
+    const insertStmt = db.prepare(
+      `
+      INSERT OR IGNORE INTO work_item_refs (item_id, kind, ref_id, label, uri)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    );
+
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      for (const row of rows) {
+        stats.scanned += 1;
+        let payload: Record<string, unknown> | null = null;
+        if (row.payload_json) {
+          try {
+            payload = JSON.parse(row.payload_json) as Record<string, unknown>;
+          } catch {
+            stats.skippedInvalidJson += 1;
+            continue;
+          }
+        }
+        const refs = payload ? readRefs(payload) : [];
+        if (refs.length === 0) {
+          stats.skippedEmpty += 1;
+        }
+
+        if (mode === "sync") {
+          let deleted = 0;
+          if (dryRun) {
+            const existing = countStmt.get(row.id) as { count: number };
+            deleted = existing.count;
+          } else {
+            const result = deleteStmt.run(row.id);
+            deleted = result.changes;
+          }
+          stats.deleted += deleted;
+
+          if (refs.length > 0) {
+            for (const ref of refs) {
+              if (dryRun) {
+                stats.inserted += 1;
+              } else {
+                const result = insertStmt.run(
+                  row.id,
+                  ref.kind,
+                  ref.id,
+                  ref.label ?? null,
+                  ref.uri ?? formatRef(ref),
+                );
+                stats.inserted += result.changes;
+              }
+            }
+          }
+
+          if (deleted > 0 || refs.length > 0) {
+            stats.updated += 1;
+          }
+          continue;
+        }
+
+        if (refs.length > 0) {
+          for (const ref of refs) {
+            if (dryRun) {
+              stats.inserted += 1;
+            } else {
+              const result = insertStmt.run(
+                row.id,
+                ref.kind,
+                ref.id,
+                ref.label ?? null,
+                ref.uri ?? formatRef(ref),
+              );
+              stats.inserted += result.changes;
+            }
+          }
+          stats.updated += 1;
+        }
+      }
+      if (dryRun) {
+        db.exec("ROLLBACK");
+      } else {
+        db.exec("COMMIT");
+      }
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
+    }
+
+    return stats;
+  }
+
   async updateItem(itemId: string, patch: WorkItemPatch): Promise<WorkItem> {
     const db = this.requireDb();
     const current = await this.getItem(itemId);

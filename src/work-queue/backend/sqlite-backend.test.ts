@@ -2,7 +2,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isNodeSqliteAvailable } from "../../memory/sqlite.js";
+import { isNodeSqliteAvailable, requireNodeSqlite } from "../../memory/sqlite.js";
+import * as migration001 from "../migrations/001_baseline.js";
+import * as migration002 from "../migrations/002_workstream_and_tracking.js";
+import * as migration003 from "../migrations/003_work_item_refs.js";
 import { SqliteWorkQueueBackend } from "./sqlite-backend.js";
 
 const describeSqlite = isNodeSqliteAvailable() ? describe : describe.skip;
@@ -131,6 +134,56 @@ describeSqlite("SqliteWorkQueueBackend", () => {
   });
 
   describe("schema migrations", () => {
+    it("backfills work item refs from existing payloads", async () => {
+      const dbPath = path.join(os.tmpdir(), `work-queue-refs-migrate-${Date.now()}.sqlite`);
+      const { DatabaseSync } = requireNodeSqlite();
+      const db = new DatabaseSync(dbPath);
+      db.exec("PRAGMA foreign_keys = ON");
+
+      await migration001.up({ context: db });
+      await migration002.up({ context: db });
+
+      db.prepare("INSERT INTO work_queues (id, agent_id, name) VALUES (?, ?, ?)").run(
+        "queue-1",
+        "queue-1",
+        "Queue 1",
+      );
+      db.prepare(
+        `
+        INSERT INTO work_items (id, queue_id, title, payload_json, status, priority)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `,
+      ).run(
+        "item-1",
+        "queue-1",
+        "Item 1",
+        JSON.stringify({ refs: [{ kind: "work:queue", id: "queue-1", label: "Queue" }] }),
+        "pending",
+        "medium",
+      );
+
+      await migration003.up({ context: db });
+
+      const rows = db
+        .prepare("SELECT kind, ref_id, label, uri FROM work_item_refs WHERE item_id = ?")
+        .all("item-1") as Array<{
+        kind: string;
+        ref_id: string;
+        label: string | null;
+        uri: string;
+      }>;
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        kind: "work:queue",
+        ref_id: "queue-1",
+        label: "Queue",
+        uri: "oc://work:queue/queue-1",
+      });
+
+      db.close();
+      fs.rmSync(dbPath, { force: true });
+    });
+
     it("runs all migrations on a fresh database", async () => {
       const dbPath = path.join(os.tmpdir(), `work-queue-fresh-${Date.now()}.sqlite`);
       const backend = new SqliteWorkQueueBackend(dbPath);
@@ -291,6 +344,52 @@ describeSqlite("SqliteWorkQueueBackend", () => {
 
       const newMatches = await backend.listItemsByRef({ kind: "work:item", id: "item-456" });
       expect(newMatches).toHaveLength(1);
+
+      await backend.close();
+      fs.rmSync(dbPath, { force: true });
+    });
+
+    it("reindexes work item refs from payload updates", async () => {
+      const dbPath = path.join(os.tmpdir(), `work-queue-refs-reindex-${Date.now()}.sqlite`);
+      const backend = new SqliteWorkQueueBackend(dbPath);
+      await backend.initialize();
+
+      const queue = await backend.createQueue({
+        id: "refs-reindex",
+        agentId: "refs-reindex",
+        name: "Refs Reindex",
+        concurrencyLimit: 1,
+        defaultPriority: "medium",
+      });
+
+      const item = await backend.createItem({
+        queueId: queue.id,
+        title: "Original refs",
+        status: "pending",
+        priority: "medium",
+        payload: {
+          refs: [{ kind: "work:item", id: "old-ref", label: "Old ref" }],
+        },
+      });
+
+      const db = backend.getDb();
+      expect(db).not.toBeNull();
+      if (!db) return;
+
+      db.prepare("UPDATE work_items SET payload_json = ? WHERE id = ?").run(
+        JSON.stringify({ refs: [{ kind: "work:queue", id: "new-ref", label: "New ref" }] }),
+        item.id,
+      );
+
+      const stats = await backend.rebuildRefs({ mode: "sync" });
+      expect(stats.scanned).toBeGreaterThan(0);
+      expect(stats.updated).toBeGreaterThan(0);
+
+      const oldMatches = await backend.listItemsByRef({ kind: "work:item", id: "old-ref" });
+      expect(oldMatches).toHaveLength(0);
+
+      const newMatches = await backend.listItemsByRef({ kind: "work:queue", id: "new-ref" });
+      expect(newMatches.map((match) => match.id)).toEqual([item.id]);
 
       await backend.close();
       fs.rmSync(dbPath, { force: true });

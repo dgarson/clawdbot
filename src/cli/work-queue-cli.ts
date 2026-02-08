@@ -708,6 +708,69 @@ export function registerWorkQueueCli(program: Command) {
       defaultRuntime.log(theme.success(`Cancelled ${cancelled} pending item(s)`));
     });
 
+  // --- refs-reindex ---
+  workQueue
+    .command("refs-reindex")
+    .description("Rebuild work item refs from payloads")
+    .option("--queue <queueId>", "Filter by queue ID")
+    .option("--workstream <ws>", "Filter by workstream")
+    .option(
+      "--item <itemId>",
+      "Filter by item ID (repeatable)",
+      (val, prev) => {
+        prev.push(val);
+        return prev;
+      },
+      [] as string[],
+    )
+    .option("--limit <n>", "Max items to process", "0")
+    .option("--mode <mode>", "Mode: sync (replace) or append", "sync")
+    .option("--dry-run", "Report changes without writing", false)
+    .option("--json", "Print JSON", false)
+    .action(async (opts) => {
+      const store = await getDefaultWorkQueueStore();
+      const backend = store.backend;
+      if (!(backend instanceof SqliteWorkQueueBackend)) {
+        defaultRuntime.log(theme.error("Ref reindexing is only supported by the SQLite backend."));
+        return;
+      }
+
+      const limitRaw = Number.parseInt(opts.limit, 10);
+      const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
+      const mode = opts.mode === "append" ? "append" : "sync";
+
+      const stats = await backend.rebuildRefs({
+        queueId: opts.queue,
+        workstream: opts.workstream,
+        itemIds: opts.item.length > 0 ? opts.item : undefined,
+        limit,
+        mode,
+        dryRun: Boolean(opts.dryRun),
+      });
+
+      if (opts.json) {
+        defaultRuntime.log(JSON.stringify({ mode, dryRun: Boolean(opts.dryRun), stats }, null, 2));
+        return;
+      }
+
+      defaultRuntime.log(theme.heading("Work item refs reindex"));
+      defaultRuntime.log(`  Mode:     ${mode}`);
+      defaultRuntime.log(`  Dry run:  ${opts.dryRun ? "yes" : "no"}`);
+      defaultRuntime.log(`  Scanned:  ${stats.scanned}`);
+      defaultRuntime.log(`  Updated:  ${stats.updated}`);
+      defaultRuntime.log(`  Inserted: ${stats.inserted}`);
+      defaultRuntime.log(`  Deleted:  ${stats.deleted}`);
+      if (stats.skippedInvalidJson > 0) {
+        defaultRuntime.log(`  Skipped invalid JSON: ${stats.skippedInvalidJson}`);
+      }
+      if (stats.skippedEmpty > 0) {
+        defaultRuntime.log(`  Skipped empty payloads: ${stats.skippedEmpty}`);
+      }
+      if (opts.dryRun) {
+        defaultRuntime.log(theme.muted("Dry run complete. Re-run without --dry-run to apply."));
+      }
+    });
+
   // --- tail ---
   workQueue
     .command("tail")
