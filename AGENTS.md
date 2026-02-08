@@ -113,6 +113,7 @@ If a task mentions "UI work" or "control UI" or "web interface", it means `apps/
 ## Build, Test, and Development Commands
 
 - Runtime baseline: Node **22+** (keep Node + Bun paths working).
+- First step in every workspace/worktree: run `pnpm install` immediately before any other command.
 - Install deps: `pnpm install`
 - Pre-commit hooks: `prek install` (runs same checks as CI)
 - Also supported: `bun install` (keep `pnpm-lock.yaml` + Bun patching in sync when touching deps/patches).

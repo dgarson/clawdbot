@@ -8,6 +8,7 @@ import type {
   BlockReplyChunking,
   SubscribeEmbeddedPiSessionParams,
 } from "./pi-embedded-subscribe.types.js";
+import type { StreamingMiddleware } from "./stream/index.js";
 
 export type EmbeddedSubscribeLogger = {
   debug: (message: string) => void;
@@ -73,6 +74,8 @@ export type EmbeddedPiSubscribeContext = {
   params: SubscribeEmbeddedPiSessionParams;
   state: EmbeddedPiSubscribeState;
   log: EmbeddedSubscribeLogger;
+  /** When present, raw stream events are pushed to the middleware alongside legacy callbacks. */
+  streamMiddleware?: StreamingMiddleware;
   blockChunking?: BlockReplyChunking;
   blockChunker: EmbeddedBlockChunker | null;
 

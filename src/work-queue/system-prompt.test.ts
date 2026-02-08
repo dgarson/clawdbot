@@ -228,6 +228,23 @@ describe("buildWorkerSystemPrompt", () => {
     expect(prompt).toContain("- `src/http/client.ts`");
   });
 
+  it("includes context URLs", () => {
+    const prompt = buildWorkerSystemPrompt({
+      item: makeItem({
+        payload: {
+          contextUrls: [
+            "https://docs.example.com/retry-patterns",
+            "https://github.com/openclaw/clawdbrain/issues/42",
+          ],
+        } as Record<string, unknown>,
+      }),
+      config: makeConfig(),
+    });
+    expect(prompt).toContain("## Context URLs");
+    expect(prompt).toContain("- https://docs.example.com/retry-patterns");
+    expect(prompt).toContain("- https://github.com/openclaw/clawdbrain/issues/42");
+  });
+
   it("includes multi-phase definition", () => {
     const prompt = buildWorkerSystemPrompt({
       item: makeItem({
@@ -299,6 +316,7 @@ describe("buildWorkerSystemPrompt", () => {
       config: makeConfig(),
       carryoverContext: {
         summary: "Previously implemented the database schema for retry tracking.",
+        extractedAt: new Date().toISOString(),
       },
     });
     expect(prompt).toContain("## Previous Task Context");

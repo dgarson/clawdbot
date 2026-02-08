@@ -11,11 +11,9 @@ import {
   readPayload,
   resolveRuntimeOverrides,
 } from "./system-prompt.js";
-
 import {
   BACKOFF_BASE_MS,
   DEFAULT_POLL_INTERVAL_MS,
-  DEFAULT_SESSION_TIMEOUT_S,
   MAX_CONSECUTIVE_ERRORS,
 } from "./worker-defaults.js";
 import { WorkerMetrics, type WorkerMetricsSnapshot } from "./worker-metrics.js";

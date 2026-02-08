@@ -125,7 +125,7 @@ export class WorkflowWorkerAdapter {
         const outcome: WorkItemOutcome = state.phase === "completed" ? "success" : "error";
 
         const now = new Date().toISOString();
-        // attemptNumber is 1-indexed; retryCount tracks how many re-attempts after the first.
+        // attemptNumber is 1-indexed total attempts (retryCount in the DB uses the same value).
         const attemptNumber = (item.retryCount ?? 0) + 1;
 
         // Record execution.
@@ -199,6 +199,15 @@ export class WorkflowWorkerAdapter {
     }
   }
 
+  private get targetQueueId(): string {
+    const configured = this.config.queueId?.trim();
+    return configured || this.agentId;
+  }
+
+  private get targetWorkstreams(): string[] {
+    return (this.config.workstreams ?? []).map((w) => w.trim()).filter((w) => w.length > 0);
+  }
+
   private async claimNext(): Promise<WorkItem | null> {
     const queueId = this.targetQueueId;
     const workstreams = this.targetWorkstreams;
@@ -240,15 +249,6 @@ export class WorkflowWorkerAdapter {
       unscopedOnly: true,
       unassignedOnly: true,
     });
-  }
-
-  private get targetQueueId(): string {
-    const configured = this.config.queueId?.trim();
-    return configured || this.agentId;
-  }
-
-  private get targetWorkstreams(): string[] {
-    return (this.config.workstreams ?? []).map((w) => w.trim()).filter((w) => w.length > 0);
   }
 
   private sleep(ms: number, signal: AbortSignal): Promise<void> {

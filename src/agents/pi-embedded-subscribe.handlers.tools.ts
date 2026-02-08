@@ -44,6 +44,8 @@ export async function handleToolExecutionStart(
   // Flush pending block replies to preserve message boundaries before tool execution.
   ctx.flushBlockReplyBuffer();
   if (ctx.params.onBlockReplyFlush) {
+    // Push to middleware (dual-path) — flushBlockReplyBuffer already pushes block_reply_flush
+    // when mw is present, so only push here for the onBlockReplyFlush callback path
     void ctx.params.onBlockReplyFlush();
   }
 
@@ -81,6 +83,18 @@ export async function handleToolExecutionStart(
       toolCallId,
       args: args as Record<string, unknown>,
     },
+  });
+  // Push to middleware (dual-path)
+  ctx.streamMiddleware?.push({
+    kind: "tool_start",
+    name: toolName,
+    id: toolCallId,
+    args: args as Record<string, unknown> | undefined,
+  });
+  ctx.streamMiddleware?.push({
+    kind: "agent_event",
+    stream: "tool",
+    data: { phase: "start", name: toolName, toolCallId },
   });
   // Best-effort typing signal; do not block tool summaries on slow emitters.
   try {
@@ -120,6 +134,14 @@ export async function handleToolExecutionStart(
         ctx.state.pendingMessagingTexts.set(toolCallId, text);
         ctx.log.debug(`Tracking pending messaging text: tool=${toolName} len=${text.length}`);
       }
+      // Push to middleware (dual-path)
+      ctx.streamMiddleware?.push({
+        kind: "messaging_tool_start",
+        toolName,
+        toolCallId,
+        text: text && typeof text === "string" ? text : undefined,
+        target: sendTarget,
+      });
     }
   }
 }
@@ -145,6 +167,12 @@ export function handleToolExecutionUpdate(
       toolCallId,
       partialResult: sanitized,
     },
+  });
+  // Push to middleware (dual-path)
+  ctx.streamMiddleware?.push({
+    kind: "agent_event",
+    stream: "tool",
+    data: { phase: "update", name: toolName, toolCallId },
   });
   try {
     void Promise.resolve(
@@ -214,6 +242,15 @@ export function handleToolExecutionEnd(
       ctx.trimMessagingToolSent();
     }
   }
+  // Push messaging_tool_end to middleware if this was a tracked messaging tool
+  if (ctx.streamMiddleware && (pendingText || pendingTarget)) {
+    ctx.streamMiddleware.push({
+      kind: "messaging_tool_end",
+      toolName,
+      toolCallId,
+      isError: isToolError,
+    });
+  }
 
   emitAgentEvent({
     runId: ctx.params.runId,
@@ -226,6 +263,19 @@ export function handleToolExecutionEnd(
       isError: isToolError,
       result: sanitizedResult,
     },
+  });
+  // Push tool_end and agent_event to middleware (dual-path)
+  ctx.streamMiddleware?.push({
+    kind: "tool_end",
+    name: toolName,
+    id: toolCallId,
+    isError: isToolError,
+    text: typeof sanitizedResult === "string" ? sanitizedResult : undefined,
+  });
+  ctx.streamMiddleware?.push({
+    kind: "agent_event",
+    stream: "tool",
+    data: { phase: "result", name: toolName, toolCallId, meta, isError: isToolError },
   });
   try {
     void Promise.resolve(

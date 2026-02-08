@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { toClientToolDefinitions } from "./pi-tool-definition-adapter.js";
-import { wrapToolWithBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
+import {
+  ToolApprovalBlockedError,
+  wrapToolWithBeforeToolCallHook,
+} from "./pi-tools.before-tool-call.js";
 
 vi.mock("../plugins/hook-runner-global.js");
 
@@ -105,6 +108,110 @@ describe("before_tool_call hook integration", () => {
         sessionKey: "main",
       },
     );
+  });
+});
+
+describe("tool approval orchestrator integration", () => {
+  beforeEach(() => {
+    const hookRunner = {
+      hasHooks: vi.fn().mockReturnValue(false),
+      runBeforeToolCall: vi.fn(),
+    };
+    // oxlint-disable-next-line typescript/no-explicit-any
+    mockGetGlobalHookRunner.mockReturnValue(hookRunner as any);
+  });
+
+  it("allows execution when no toolApproval context is provided (backward compat)", async () => {
+    const execute = vi.fn().mockResolvedValue({ content: [], details: { ok: true } });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const tool = wrapToolWithBeforeToolCallHook({ name: "exec", execute } as any, {
+      agentId: "main",
+      sessionKey: "main",
+    });
+
+    await tool.execute("call-approval-1", { command: "ls" }, undefined, undefined);
+    expect(execute).toHaveBeenCalled();
+  });
+
+  it("allows low-risk tool when approval is enabled in adaptive mode", async () => {
+    const execute = vi.fn().mockResolvedValue({ content: [], details: { ok: true } });
+    const callGateway = vi.fn();
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const tool = wrapToolWithBeforeToolCallHook({ name: "ripgrep", execute } as any, {
+      agentId: "main",
+      sessionKey: "main",
+      toolApproval: {
+        agentId: "main",
+        sessionKey: "main",
+        toolApprovalsConfig: { enabled: true, mode: "adaptive" },
+        callGateway,
+      },
+    });
+
+    await tool.execute("call-approval-2", { pattern: "test" }, undefined, undefined);
+    expect(execute).toHaveBeenCalled();
+    expect(callGateway).not.toHaveBeenCalled();
+  });
+
+  it("blocks high-risk tool and throws ToolApprovalBlockedError", async () => {
+    const execute = vi.fn();
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const tool = wrapToolWithBeforeToolCallHook({ name: "exec", execute } as any, {
+      agentId: "main",
+      sessionKey: "main",
+      toolApproval: {
+        agentId: "main",
+        sessionKey: "main",
+        toolApprovalsConfig: {
+          enabled: true,
+          mode: "adaptive",
+          policy: { denyAtOrAbove: "R3" },
+        },
+      },
+    });
+
+    try {
+      await tool.execute("call-approval-3", { command: "rm -rf /" }, undefined, undefined);
+      expect.unreachable("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ToolApprovalBlockedError);
+      const blocked = err as ToolApprovalBlockedError;
+      expect(blocked.code).toBe("TOOL_APPROVAL_BLOCKED");
+      expect(blocked.reason).toBe("policy_deny");
+      expect(blocked.toolName).toBe("exec");
+    }
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it("runs orchestrator on hook-mutated params", async () => {
+    const hookRunner = {
+      hasHooks: vi.fn().mockReturnValue(true),
+      runBeforeToolCall: vi.fn().mockResolvedValue({ params: { command: "safe-command" } }),
+    };
+    // oxlint-disable-next-line typescript/no-explicit-any
+    mockGetGlobalHookRunner.mockReturnValue(hookRunner as any);
+
+    const execute = vi.fn().mockResolvedValue({ content: [], details: { ok: true } });
+    const callGateway = vi.fn().mockResolvedValue({ decision: "allow-once" });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const tool = wrapToolWithBeforeToolCallHook({ name: "exec", execute } as any, {
+      agentId: "main",
+      sessionKey: "main",
+      toolApproval: {
+        agentId: "main",
+        sessionKey: "main",
+        toolApprovalsConfig: { enabled: true, mode: "adaptive" },
+        callGateway,
+      },
+    });
+
+    await tool.execute("call-approval-4", { command: "original" }, undefined, undefined);
+
+    // The gateway call should have the mutated params
+    expect(callGateway).toHaveBeenCalled();
+    const callArgs = callGateway.mock.calls[0][0];
+    expect(callArgs.params.paramsSummary).toContain("safe-command");
+    expect(execute).toHaveBeenCalled();
   });
 });
 

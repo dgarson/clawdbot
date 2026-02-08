@@ -227,6 +227,14 @@ export interface ExecutionRequest {
   /** Called for each execution event. */
   onEvent?: OnExecutionEventCallback;
 
+  /**
+   * Optional StreamingMiddleware instance. When provided, the executor passes
+   * it through to the runner where raw events are pushed in. The caller
+   * subscribes for normalized output. Callbacks are still honored for backward
+   * compatibility — the middleware is an additional event sink.
+   */
+  streamMiddleware?: import("../agents/stream/index.js").StreamingMiddleware;
+
   // --- Block streaming config ---
 
   /** Block reply break mode ("text_end" or "message_end"). */

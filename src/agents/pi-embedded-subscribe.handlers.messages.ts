@@ -45,6 +45,8 @@ export function handleMessageStart(
   // may deliver late text_end updates after message_end, which would otherwise
   // re-trigger block replies.
   ctx.resetAssistantMessageState(ctx.state.assistantTexts.length);
+  // Push to middleware (dual-path)
+  ctx.streamMiddleware?.push({ kind: "message_start" });
   // Use assistant message_start as the earliest "writing" signal for typing.
   void ctx.params.onAssistantMessageStart?.();
 }
@@ -156,6 +158,16 @@ export function handleMessageUpdate(
           mediaUrls: hasMedia ? mediaUrls : undefined,
         },
       });
+      // Push to middleware (dual-path)
+      ctx.streamMiddleware?.push({
+        kind: "agent_event",
+        stream: "assistant",
+        data: {
+          text: cleanedText,
+          delta: deltaText,
+          mediaUrls: hasMedia ? mediaUrls : undefined,
+        },
+      });
       void ctx.params.onAgentEvent?.({
         stream: "assistant",
         data: {
@@ -165,11 +177,17 @@ export function handleMessageUpdate(
         },
       });
       ctx.state.emittedAssistantUpdate = true;
-      if (ctx.params.onPartialReply && ctx.state.shouldEmitPartialReplies) {
-        void ctx.params.onPartialReply({
-          text: cleanedText,
-          mediaUrls: hasMedia ? mediaUrls : undefined,
-        });
+      if (ctx.state.shouldEmitPartialReplies) {
+        // Push text_delta to middleware (dual-path)
+        if (ctx.streamMiddleware) {
+          ctx.streamMiddleware.push({ kind: "text_delta", text: cleanedText });
+        }
+        if (ctx.params.onPartialReply) {
+          void ctx.params.onPartialReply({
+            text: cleanedText,
+            mediaUrls: hasMedia ? mediaUrls : undefined,
+          });
+        }
       }
     }
   }
@@ -247,6 +265,19 @@ export function handleMessageEnd(
         mediaUrls: hasMedia ? mediaUrls : undefined,
       },
     });
+    // Push to middleware (dual-path)
+    ctx.streamMiddleware?.push({
+      kind: "agent_event",
+      stream: "assistant",
+      data: {
+        text: cleanedText,
+        delta: cleanedText,
+        mediaUrls: hasMedia ? mediaUrls : undefined,
+      },
+    });
+    if (ctx.streamMiddleware) {
+      ctx.streamMiddleware.push({ kind: "text_delta", text: cleanedText });
+    }
     void ctx.params.onAgentEvent?.({
       stream: "assistant",
       data: {
@@ -384,6 +415,9 @@ export function handleMessageEnd(
       }
     }
   }
+
+  // Push message_end to middleware (dual-path)
+  ctx.streamMiddleware?.push({ kind: "message_end" });
 
   ctx.state.deltaBuffer = "";
   ctx.state.blockBuffer = "";

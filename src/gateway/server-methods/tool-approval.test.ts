@@ -381,6 +381,66 @@ describe("tool approval handlers", () => {
   });
 
   // -----------------------------------------------------------------------
+  // resolveCompat: legacy compatibility resolve (no requestHash)
+  // -----------------------------------------------------------------------
+
+  describe("resolveCompat (legacy compat)", () => {
+    it("resolves without requiring requestHash", async () => {
+      const manager = new ToolApprovalManager();
+      const record = manager.create(
+        { toolName: "exec", requestHash: "hash-abc", command: "echo test" },
+        5000,
+      );
+      const decisionPromise = manager.waitForDecision(record, 5000);
+
+      const ok = manager.resolveCompat(record.id, "allow-once", "Operator");
+      expect(ok).toBe(true);
+
+      const decision = await decisionPromise;
+      expect(decision).toBe("allow-once");
+      expect(manager.listPending()).toHaveLength(0);
+    });
+
+    it("returns false for unknown id", () => {
+      const manager = new ToolApprovalManager();
+      expect(manager.resolveCompat("nonexistent", "deny")).toBe(false);
+    });
+
+    it("sets resolvedBy on the record", async () => {
+      const manager = new ToolApprovalManager();
+      const record = manager.create({ toolName: "exec", requestHash: "hash-xyz" }, 5000);
+      void manager.waitForDecision(record, 5000);
+
+      // Peek before resolve
+      const snapshot = manager.getSnapshot(record.id);
+      expect(snapshot?.resolvedBy).toBeUndefined();
+
+      manager.resolveCompat(record.id, "allow-always", "WebUI");
+
+      // Record is no longer pending so getSnapshot returns null,
+      // but the resolved record mutated in-place has the data
+      expect(record.resolvedBy).toBe("WebUI");
+      expect(record.decision).toBe("allow-always");
+      expect(record.resolvedAtMs).toBeTypeOf("number");
+    });
+
+    it("resolveCompat works even with mismatched requestHash (intentional bypass)", async () => {
+      const manager = new ToolApprovalManager();
+      const record = manager.create({ toolName: "exec", requestHash: "original-hash" }, 5000);
+      void manager.waitForDecision(record, 5000);
+
+      // Standard resolve would fail with wrong hash
+      expect(manager.resolve(record.id, "allow-once", "wrong-hash")).toBe(false);
+      // Record is still pending
+      expect(manager.getSnapshot(record.id)).not.toBeNull();
+
+      // resolveCompat bypasses the hash check
+      expect(manager.resolveCompat(record.id, "deny")).toBe(true);
+      expect(manager.getSnapshot(record.id)).toBeNull();
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // Duplicate id rejection
   // -----------------------------------------------------------------------
 

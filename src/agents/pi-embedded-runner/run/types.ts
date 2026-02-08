@@ -9,6 +9,7 @@ import type { MessagingToolSend } from "../../pi-embedded-messaging.js";
 import type { BlockReplyChunking, ToolResultFormat } from "../../pi-embedded-subscribe.js";
 import type { AuthStorage, ModelRegistry } from "../../pi-model-discovery.js";
 import type { SkillSnapshot } from "../../skills.js";
+import type { StreamingMiddleware } from "../../stream/index.js";
 import type { HistoryOptions } from "../history.js";
 import type { ClientToolDefinition, ExtensionToolDefinition } from "./params.js";
 
@@ -93,6 +94,8 @@ export type EmbeddedRunAttemptParams = {
   historyOptions?: HistoryOptions;
   /** Extension-provided tools (e.g., voice recall_conversation). */
   extraTools?: ExtensionToolDefinition[];
+  /** StreamingMiddleware instance — passed through to subscribeEmbeddedPiSession. */
+  streamMiddleware?: StreamingMiddleware;
 };
 
 export type EmbeddedRunAttemptResult = {

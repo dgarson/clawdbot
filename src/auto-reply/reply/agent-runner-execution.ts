@@ -17,6 +17,7 @@ import {
 } from "../../agents/pi-embedded-helpers.js";
 import { stripCompactionHandoffText } from "../../agents/pi-embedded-utils.js";
 import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
+import { StreamingMiddleware } from "../../agents/stream/index.js";
 import {
   resolveAgentIdFromSessionKey,
   resolveGroupSessionKey,
@@ -210,6 +211,19 @@ async function runAgentTurnWithKernel(
           return isMarkdownCapableMessageChannel(channel) ? "markdown" : "plain";
         })();
 
+        // Create stream middleware for this fallback attempt
+        const streamMiddleware = new StreamingMiddleware({
+          reasoningLevel:
+            params.followupRun.run.reasoningLevel === "stream"
+              ? "stream"
+              : params.followupRun.run.reasoningLevel === "on"
+                ? "tags"
+                : "off",
+          isHeartbeat: params.isHeartbeat,
+          blockReplyBreak: params.resolvedBlockStreamingBreak,
+          blockReplyChunking: params.blockReplyChunking,
+        });
+
         // Build ExecutionRequest
         const request: ExecutionRequest = {
           agentId: params.followupRun.run.agentId,
@@ -278,6 +292,9 @@ async function runAgentTurnWithKernel(
             currentThreadTs: threadingCtx.currentThreadTs,
             replyToMode: threadingCtx.replyToMode,
           },
+
+          // Stream middleware (additive — both middleware and callbacks fire)
+          streamMiddleware,
 
           // --- Callbacks ---
           onPartialReply: allowPartialStream
@@ -417,7 +434,12 @@ async function runAgentTurnWithKernel(
         };
 
         // Execute via kernel
-        const result = await kernel.execute(request);
+        let result: ExecutionResult;
+        try {
+          result = await kernel.execute(request);
+        } finally {
+          streamMiddleware.destroy();
+        }
 
         // Map ExecutionResult → EmbeddedPiRunResult for compatibility
         return mapExecutionResultToLegacy(result);
