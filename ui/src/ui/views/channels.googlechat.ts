@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { GoogleChatStatus } from "../types.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 
@@ -50,13 +51,7 @@ export function renderGoogleChatCard(params: {
         </div>
       </div>
 
-      ${
-        googleChat?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${googleChat.lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(googleChat?.lastError ?? null)}
 
       ${
         googleChat?.probe

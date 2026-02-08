@@ -10,6 +10,7 @@ import type {
   ExecApprovalsFile,
   ExecApprovalsSnapshot,
 } from "../controllers/exec-approvals.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { clampText, formatAgo, formatList } from "../format.ts";
 
 export type NodesProps = {
@@ -94,11 +95,7 @@ function renderDevices(props: NodesProps) {
           ${props.devicesLoading ? "Loading…" : "Refresh"}
         </button>
       </div>
-      ${
-        props.devicesError
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.devicesError}</div>`
-          : nothing
-      }
+      ${renderErrorIf(props.devicesError)}
       <div class="list" style="margin-top: 16px;">
         ${
           pending.length > 0

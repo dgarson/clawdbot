@@ -17,6 +17,7 @@ import {
   normalizeToolName,
   resolveToolProfilePolicy,
 } from "../../../../src/agents/tool-policy.js";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import {
   formatCronPayload,
@@ -570,11 +571,7 @@ export function renderAgents(props: AgentsProps) {
             ${props.loading ? "Loading…" : "Refresh"}
           </button>
         </div>
-        ${
-          props.error
-            ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-            : nothing
-        }
+        ${renderErrorIf(props.error)}
         <div class="agent-list" style="margin-top: 12px;">
           ${
             agents.length === 0
@@ -1168,11 +1165,7 @@ function renderAgentChannels(params: {
         <div class="muted" style="margin-top: 8px;">
           Last refresh: ${lastSuccessLabel}
         </div>
-        ${
-          params.error
-            ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-            : nothing
-        }
+        ${renderErrorIf(params.error)}
         ${
           !params.snapshot
             ? html`
@@ -1273,11 +1266,7 @@ function renderAgentCron(params: {
             <div class="stat-value">${formatNextRun(params.status?.nextWakeAtMs ?? null)}</div>
           </div>
         </div>
-        ${
-          params.error
-            ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-            : nothing
-        }
+        ${renderErrorIf(params.error)}
       </section>
     </section>
     <section class="card">
@@ -1357,13 +1346,7 @@ function renderAgentFiles(params: {
         </button>
       </div>
       ${list ? html`<div class="muted mono" style="margin-top: 8px;">Workspace: ${list.workspace}</div>` : nothing}
-      ${
-        params.agentFilesError
-          ? html`<div class="callout danger" style="margin-top: 12px;">${
-              params.agentFilesError
-            }</div>`
-          : nothing
-      }
+      ${renderErrorIf(params.agentFilesError)}
       ${
         !list
           ? html`
@@ -1855,11 +1838,7 @@ function renderAgentSkills(params: {
             `
           : nothing
       }
-      ${
-        params.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(params.error)}
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field" style="flex: 1;">

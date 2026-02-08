@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { ChannelAccountSnapshot, NostrStatus } from "../types.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import {
@@ -219,11 +220,7 @@ export function renderNostrCard(params: {
           `
       }
 
-      ${
-        summaryLastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">${summaryLastError}</div>`
-          : nothing
-      }
+      ${renderErrorIf(summaryLastError)}
 
       ${renderProfileSection()}
 

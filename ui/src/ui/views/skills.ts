@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { SkillMessageMap } from "../controllers/skills.ts";
 import type { SkillStatusEntry, SkillStatusReport } from "../types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { clampText } from "../format.ts";
 
 type SkillGroup = {
@@ -92,11 +93,7 @@ export function renderSkills(props: SkillsProps) {
         <div class="muted">${filtered.length} shown</div>
       </div>
 
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(props.error)}
 
       ${
         filtered.length === 0

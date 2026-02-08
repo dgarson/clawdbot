@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { IMessageStatus } from "../types.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 
@@ -36,13 +37,7 @@ export function renderIMessageCard(params: {
         </div>
       </div>
 
-      ${
-        imessage?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${imessage.lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(imessage?.lastError ?? null)}
 
       ${
         imessage?.probe

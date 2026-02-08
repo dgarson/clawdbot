@@ -12,6 +12,7 @@ import type {
   CronJob,
   CronStatus,
 } from "../types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -507,11 +508,7 @@ export function renderAgentDashboard(props: AgentDashboardProps): TemplateResult
         </div>
       </div>
 
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(props.error)}
 
       ${renderSummaryCards(entries)}
 

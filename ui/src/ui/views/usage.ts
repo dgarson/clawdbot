@@ -1,4 +1,5 @@
 import { html, svg, nothing } from "lit";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { extractQueryTerms, filterSessionsByQuery, parseToolSummary } from "../usage-helpers.ts";
 
 // Inline styles for usage view (app uses light DOM, so static styles don't work)
@@ -5326,11 +5327,7 @@ export function renderUsage(props: UsageProps) {
         }
       </div>
 
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(props.error)}
 
       ${
         props.sessionsLimitReached
