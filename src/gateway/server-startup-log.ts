@@ -3,6 +3,7 @@ import type { loadConfig } from "../config/config.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveMainAgentRuntimeKind } from "../agents/main-agent-runtime-factory.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
+import { getJournalFilePath } from "../infra/journal/index.js";
 import { getResolvedLoggerSettings } from "../logging.js";
 
 export function logGatewayStartup(params: {
@@ -36,6 +37,10 @@ export function logGatewayStartup(params: {
     params.log.info(`listening on ${scheme}://${formatHost(host)}:${params.port}`);
   }
   params.log.info(`log file: ${getResolvedLoggerSettings().file}`);
+  const journalPath = getJournalFilePath();
+  if (journalPath) {
+    params.log.info(`tool journal: ${journalPath}`);
+  }
   if (params.isNixMode) {
     params.log.info("gateway: running in Nix mode (config managed externally)");
   }

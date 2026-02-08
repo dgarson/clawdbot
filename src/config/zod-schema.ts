@@ -259,6 +259,17 @@ export const OpenClawSchema = z
           })
           .strict()
           .optional(),
+        journal: z
+          .object({
+            enabled: z.boolean().optional(),
+            file: z.string().optional(),
+            maxResultChars: z.number().int().nonnegative().optional(),
+            redactSensitive: z.boolean().optional(),
+            toolFilter: z.array(z.string()).optional(),
+            retentionHours: z.number().int().positive().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
