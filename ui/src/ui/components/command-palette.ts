@@ -203,6 +203,9 @@ export function renderCommandPalette(props: CommandPaletteProps) {
         @click=${() => handleSelect(cmd)}
         @mouseenter=${() => onIndexChange(idx)}
         data-index=${idx}
+        id="cmd-option-${idx}"
+        role="option"
+        aria-selected=${isSelected}
       >
         <span class="command-palette__item-icon">${icon(cmd.icon, { size: 16 })}</span>
         <span class="command-palette__item-label">${cmd.label}</span>
@@ -231,9 +234,13 @@ export function renderCommandPalette(props: CommandPaletteProps) {
   // Flat list for keyboard navigation: favorites first, then recents, then grouped.
   const allVisible = [...favoriteCommands, ...recentCommands, ...[...grouped.values()].flat()];
 
+  // Generate an ID for the selected item for aria-activedescendant
+  const selectedItem = allVisible[state.selectedIndex];
+  const selectedItemId = selectedItem ? `cmd-option-${state.selectedIndex}` : undefined;
+
   return html`
-    <div class="command-palette-overlay" @click=${onClose}>
-      <div class="command-palette" @click=${(e: Event) => e.stopPropagation()}>
+    <div class="command-palette-overlay" @click=${onClose} role="presentation">
+      <div class="command-palette" @click=${(e: Event) => e.stopPropagation()} role="combobox" aria-expanded="true" aria-haspopup="listbox" aria-owns="command-palette-listbox">
         <div class="command-palette__search">
           ${icon("search", { size: 18, class: "command-palette__search-icon" })}
           <input
@@ -258,6 +265,11 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 handleToggleFavorite,
               )}
             autofocus
+            role="searchbox"
+            aria-autocomplete="list"
+            aria-controls="command-palette-listbox"
+            aria-activedescendant=${selectedItemId ?? nothing}
+            aria-label="Search commands"
           />
           <kbd class="command-palette__kbd">ESC</kbd>
         </div>
@@ -278,10 +290,10 @@ export function renderCommandPalette(props: CommandPaletteProps) {
             `,
           )}
         </div>
-        <div class="command-palette__list">
+        <div class="command-palette__list" id="command-palette-listbox" role="listbox" aria-label="Commands">
           ${
             totalVisible === 0
-              ? html`<div class="command-palette__empty">
+              ? html`<div class="command-palette__empty" role="status">
                 ${icon("search", { size: 24 })}
                 <span>No commands found</span>
               </div>`
@@ -374,6 +386,14 @@ export function createDefaultCommands(
       action: () => setTab("sessions"),
     },
     {
+      id: "nav-usage",
+      label: "Go to Usage",
+      icon: "barChart",
+      shortcut: `${mod}5`,
+      category: "Navigation",
+      action: () => setTab("usage"),
+    },
+    {
       id: "nav-instances",
       label: "Go to Instances",
       icon: "radio",
@@ -384,6 +404,7 @@ export function createDefaultCommands(
       id: "nav-cron",
       label: "Go to Cron Jobs",
       icon: "clock",
+      shortcut: `${mod}6`,
       category: "Navigation",
       action: () => setTab("cron"),
     },
@@ -395,9 +416,18 @@ export function createDefaultCommands(
       action: () => setTab("automations"),
     },
     {
+      id: "nav-agents",
+      label: "Go to Agents",
+      icon: "folder",
+      shortcut: `${mod}7`,
+      category: "Navigation",
+      action: () => setTab("agents"),
+    },
+    {
       id: "nav-skills",
       label: "Go to Skills",
       icon: "zap",
+      shortcut: `${mod}8`,
       category: "Navigation",
       action: () => setTab("skills"),
     },
@@ -405,6 +435,7 @@ export function createDefaultCommands(
       id: "nav-nodes",
       label: "Go to Nodes",
       icon: "server",
+      shortcut: `${mod}9`,
       category: "Navigation",
       action: () => setTab("nodes"),
     },
@@ -427,6 +458,7 @@ export function createDefaultCommands(
       id: "nav-logs",
       label: "Go to Logs",
       icon: "scrollText",
+      shortcut: `${mod}0`,
       category: "Navigation",
       action: () => setTab("logs"),
     },
