@@ -291,6 +291,9 @@ function resolveConversationType(params: {
     if (channelId.startsWith("D")) {
       return "dm";
     }
+    if (channelId.startsWith("U")) {
+      return "dm";
+    }
     if (channelId.startsWith("C") || channelId.startsWith("G")) {
       return "group";
     }
@@ -312,6 +315,7 @@ function resolveConversationType(params: {
     }
   }
 
+  // CONFLICT, removed:  if (threadTs && provider && provider !== "slack") {
   // Fallback: infer from channelId patterns without provider context
   if (channelId?.startsWith("D")) {
     return "dm";

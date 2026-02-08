@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const tableAddMock = vi.fn(async () => undefined);
 const tableDeleteMock = vi.fn(async () => undefined);
@@ -29,11 +29,19 @@ vi.mock("@lancedb/lancedb", () => ({
 const embeddingsCreateMock = vi.fn(async () => ({
   data: [{ embedding: [0.1, 0.2, 0.3] }],
 }));
+const chatCompletionsCreateMock = vi.fn(async () => ({
+  choices: [{ message: { content: "Summary: key points" } }],
+}));
 
 vi.mock("openai", () => ({
   default: class {
     embeddings = {
       create: embeddingsCreateMock,
+    };
+    chat = {
+      completions: {
+        create: chatCompletionsCreateMock,
+      },
     };
   },
 }));
@@ -41,6 +49,17 @@ vi.mock("openai", () => ({
 describe("memory-lancedb agent_end auto-capture", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        text: async () => "Example content",
+      })),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   function createMockApi() {
@@ -117,5 +136,89 @@ describe("memory-lancedb agent_end auto-capture", () => {
     });
 
     expect(tableAddMock).not.toHaveBeenCalled();
+  });
+
+  it("summarizes Slack DM thread URLs", async () => {
+    const { default: memoryPlugin } = await import("./index.js");
+    const { api, hooks } = createMockApi();
+    memoryPlugin.register(api as never);
+
+    const agentEnd = hooks["agent_end"];
+    expect(agentEnd).toBeDefined();
+
+    await agentEnd?.(
+      {
+        success: true,
+        channelId: "D123",
+        threadTs: "1710000000.0001",
+        messages: [{ role: "user", content: "Check this https://example.com" }],
+      },
+      { messageProvider: "slack" },
+    );
+
+    expect(chatCompletionsCreateMock).toHaveBeenCalled();
+    expect(tableAddMock).toHaveBeenCalledTimes(1);
+    expect(tableAddMock.mock.calls[0]?.[0]?.[0]).toMatchObject({
+      text: "Summary: key points",
+      category: "other",
+    });
+  });
+
+  it("does not summarize Slack group thread URLs", async () => {
+    const { default: memoryPlugin } = await import("./index.js");
+    const { api, hooks } = createMockApi();
+    memoryPlugin.register(api as never);
+
+    const agentEnd = hooks["agent_end"];
+    expect(agentEnd).toBeDefined();
+
+    await agentEnd?.(
+      {
+        success: true,
+        channelId: "C123",
+        threadTs: "1710000000.0001",
+        messages: [{ role: "user", content: "Check this https://example.com" }],
+      },
+      { messageProvider: "slack" },
+    );
+
+    expect(chatCompletionsCreateMock).not.toHaveBeenCalled();
+    expect(tableAddMock).not.toHaveBeenCalled();
+  });
+
+  it("does not summarize Telegram group URLs", async () => {
+    const { default: memoryPlugin } = await import("./index.js");
+    const { api, hooks } = createMockApi();
+    memoryPlugin.register(api as never);
+
+    const agentEnd = hooks["agent_end"];
+    expect(agentEnd).toBeDefined();
+
+    await agentEnd?.({
+      success: true,
+      channelId: "-100123",
+      messages: [{ role: "user", content: "Check this https://example.com" }],
+    });
+
+    expect(chatCompletionsCreateMock).not.toHaveBeenCalled();
+    expect(tableAddMock).not.toHaveBeenCalled();
+  });
+
+  it("summarizes Discord DM URLs when channelType is dm", async () => {
+    const { default: memoryPlugin } = await import("./index.js");
+    const { api, hooks } = createMockApi();
+    memoryPlugin.register(api as never);
+
+    const agentEnd = hooks["agent_end"];
+    expect(agentEnd).toBeDefined();
+
+    await agentEnd?.({
+      success: true,
+      channelType: "dm",
+      messages: [{ role: "user", content: "Check this https://example.com" }],
+    });
+
+    expect(chatCompletionsCreateMock).toHaveBeenCalled();
+    expect(tableAddMock).toHaveBeenCalledTimes(1);
   });
 });
