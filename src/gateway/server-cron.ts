@@ -12,6 +12,7 @@ import { enqueueSystemEvent } from "../infra/system-events.js";
 import { getChildLogger } from "../logging.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
+import { buildCronJobCrn } from "../shared/crn/index.js";
 
 export type GatewayCronState = {
   cron: CronService;
@@ -79,6 +80,7 @@ export function buildGatewayCronService(params: {
     onEvent: (evt) => {
       params.broadcast("cron", evt, { dropIfSlow: true });
       if (evt.action === "finished") {
+        const jobCrn = buildCronJobCrn({ jobId: evt.jobId });
         const logPath = resolveCronRunLogPath({
           storePath,
           jobId: evt.jobId,
@@ -86,6 +88,7 @@ export function buildGatewayCronService(params: {
         void appendCronRunLog(logPath, {
           ts: Date.now(),
           jobId: evt.jobId,
+          jobCrn,
           action: "finished",
           status: evt.status,
           error: evt.error,

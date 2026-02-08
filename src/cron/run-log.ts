@@ -4,6 +4,7 @@ import path from "node:path";
 export type CronRunLogEntry = {
   ts: number;
   jobId: string;
+  jobCrn?: string;
   action: "finished";
   status?: "ok" | "error" | "skipped";
   error?: string;
