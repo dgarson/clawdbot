@@ -16,11 +16,29 @@ vi.mock("./tool-bridge.js", () => ({
   bridgeClawdbrainToolsToMcpServer: vi.fn(),
 }));
 
+// Mock internal hooks (avoid side effects in unit tests).
+vi.mock("../../hooks/internal-hooks.js", () => ({
+  createInternalHookEvent: vi.fn((_type, action, _key, ctx) => ({ action, ...ctx })),
+  triggerInternalHook: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock agent-events (avoid global side effects).
+vi.mock("../../infra/agent-events.js", () => ({
+  emitAgentEvent: vi.fn(),
+  registerAgentRunContext: vi.fn(),
+  clearAgentRunContext: vi.fn(),
+}));
+
 import { loadClaudeAgentSdk } from "./sdk.js";
 import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
+import { clearAgentRunContext } from "../../infra/agent-events.js";
 
 const mockLoadSdk = vi.mocked(loadClaudeAgentSdk);
 const mockBridge = vi.mocked(bridgeClawdbrainToolsToMcpServer);
+const mockCreateHookEvent = vi.mocked(createInternalHookEvent);
+const mockTriggerHook = vi.mocked(triggerInternalHook);
+const mockClearRunContext = vi.mocked(clearAgentRunContext);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -752,6 +770,272 @@ describe("runSdkAgent", () => {
       const result = await runSdkAgent(baseParams());
 
       expect(result.payloads[0].text).toBe("Summary line.");
+    });
+  });
+
+  describe("P6: shouldEmitToolOutput gating", () => {
+    it("suppresses onToolResult when shouldEmitToolOutput is false (non-hooks)", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { type: "tool_result", text: "tool output", id: "t1" },
+          { type: "result", result: "done" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onToolResult = vi.fn();
+      await runSdkAgent(baseParams({ onToolResult, shouldEmitToolOutput: false }));
+
+      expect(onToolResult).not.toHaveBeenCalled();
+    });
+
+    it("still emits tool events via onAgentEvent when shouldEmitToolOutput is false", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { type: "tool_result", text: "tool output", id: "t1" },
+          { type: "result", result: "done" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onAgentEvent = vi.fn();
+      await runSdkAgent(baseParams({ onAgentEvent, shouldEmitToolOutput: false }));
+
+      // Tool events should still be emitted for diagnostics even though onToolResult is suppressed
+      const toolEvents = onAgentEvent.mock.calls
+        .map((c) => c[0] as { stream?: string; data?: { phase?: string } })
+        .filter((evt) => evt.stream === "tool");
+      expect(toolEvents.length).toBeGreaterThan(0);
+    });
+
+    it("suppresses onToolResult when shouldEmitToolOutput is false (hooks path)", async () => {
+      const queryFn = vi.fn().mockImplementation(async (args: any) => {
+        const hooks = args?.options?.hooks;
+        const pre = hooks?.PreToolUse?.[0]?.hooks?.[0];
+        const post = hooks?.PostToolUse?.[0]?.hooks?.[0];
+
+        await pre?.(
+          { tool_name: "mcp__clawdbrain__exec", tool_input: { command: "echo hi" } },
+          "t1",
+          {},
+        );
+        await post?.(
+          {
+            tool_name: "mcp__clawdbrain__exec",
+            tool_response: { content: [{ type: "text", text: "hello" }] },
+          },
+          "t1",
+          {},
+        );
+
+        return eventsFrom([{ type: "result", result: "done" }]);
+      });
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onToolResult = vi.fn();
+      await runSdkAgent(
+        baseParams({ hooksEnabled: true, onToolResult, shouldEmitToolOutput: false }),
+      );
+
+      expect(onToolResult).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("P3: mediaUrls in callbacks", () => {
+    it("extracts mediaUrls from assistant text in onPartialReply", async () => {
+      const queryFn = vi
+        .fn()
+        .mockReturnValue(eventsFrom([{ text: "Here is the image\nMEDIA: https://example.com/img.png" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onPartialReply = vi.fn();
+      await runSdkAgent(baseParams({ onPartialReply }));
+
+      expect(onPartialReply).toHaveBeenCalledTimes(1);
+      const call = onPartialReply.mock.calls[0][0] as { text?: string; mediaUrls?: string[] };
+      expect(call.text).toBe("Here is the image");
+      expect(call.mediaUrls).toContain("https://example.com/img.png");
+    });
+
+    it("extracts mediaUrls in final result payload", async () => {
+      const queryFn = vi
+        .fn()
+        .mockReturnValue(eventsFrom([{ text: "Answer\nMEDIA: https://example.com/file.mp3" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const result = await runSdkAgent(baseParams());
+
+      expect(result.payloads[0].text).toBe("Answer");
+      expect(result.payloads[0].mediaUrls).toContain("https://example.com/file.mp3");
+    });
+
+    it("extracts mediaUrls in onBlockReply", async () => {
+      const queryFn = vi
+        .fn()
+        .mockReturnValue(
+          eventsFrom([{ type: "result", result: "Response\nMEDIA: https://example.com/a.jpg" }]),
+        );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onBlockReply = vi.fn();
+      await runSdkAgent(baseParams({ onBlockReply }));
+
+      expect(onBlockReply).toHaveBeenCalledTimes(1);
+      const call = onBlockReply.mock.calls[0][0] as { text?: string; mediaUrls?: string[] };
+      expect(call.text).toBe("Response");
+      expect(call.mediaUrls).toContain("https://example.com/a.jpg");
+    });
+
+    it("extracts mediaUrls from tool results in onToolResult (non-hooks)", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { type: "tool_result", text: "Result\nMEDIA: https://example.com/tool.png", id: "t1" },
+          { type: "result", result: "done" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onToolResult = vi.fn();
+      await runSdkAgent(baseParams({ onToolResult }));
+
+      expect(onToolResult).toHaveBeenCalledTimes(1);
+      const call = onToolResult.mock.calls[0][0] as { text?: string; mediaUrls?: string[] };
+      expect(call.text).toBe("Result");
+      expect(call.mediaUrls).toContain("https://example.com/tool.png");
+    });
+
+    it("emits clean text (no MEDIA tokens) in assistant events", async () => {
+      const queryFn = vi
+        .fn()
+        .mockReturnValue(eventsFrom([{ text: "Text\nMEDIA: https://example.com/x.png" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onAgentEvent = vi.fn();
+      await runSdkAgent(baseParams({ onAgentEvent }));
+
+      const assistantEvents = onAgentEvent.mock.calls
+        .map((c) => c[0] as { stream?: string; data?: { text?: string } })
+        .filter((evt) => evt.stream === "assistant");
+      expect(assistantEvents.length).toBeGreaterThan(0);
+      // The text should be cleaned of MEDIA tokens
+      for (const evt of assistantEvents) {
+        expect(evt.data?.text).not.toContain("MEDIA:");
+      }
+    });
+  });
+
+  describe("early return context cleanup", () => {
+    it("clears agent run context on SDK load failure", async () => {
+      mockLoadSdk.mockRejectedValue(new Error("SDK not found"));
+      mockClearRunContext.mockClear();
+
+      await runSdkAgent(baseParams());
+
+      expect(mockClearRunContext).toHaveBeenCalledWith("test-run-1");
+    });
+
+    it("clears agent run context on MCP bridge failure", async () => {
+      mockLoadSdk.mockResolvedValue({ query: vi.fn().mockReturnValue(eventsFrom([])) });
+      mockBridge.mockRejectedValue(new Error("Bridge broken"));
+      mockClearRunContext.mockClear();
+
+      await runSdkAgent(baseParams());
+
+      expect(mockClearRunContext).toHaveBeenCalledWith("test-run-1");
+    });
+
+    it("clears agent run context on successful run (via finally block)", async () => {
+      const queryFn = vi.fn().mockReturnValue(eventsFrom([{ type: "result", result: "ok" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+      mockClearRunContext.mockClear();
+
+      await runSdkAgent(baseParams());
+
+      expect(mockClearRunContext).toHaveBeenCalledWith("test-run-1");
+    });
+  });
+
+  describe("compaction:end internal hook", () => {
+    it("fires agent:compaction:end internal hook on compact_boundary event", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          {
+            type: "system",
+            subtype: "compact_boundary",
+            compact_metadata: { trigger: "auto", pre_tokens: 50000 },
+          },
+          { type: "result", result: "ok" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+      mockCreateHookEvent.mockClear();
+      mockTriggerHook.mockClear();
+
+      await runSdkAgent(baseParams({ sessionKey: "sk-1" }));
+
+      // Find the compaction:end hook event
+      const compactionCalls = mockCreateHookEvent.mock.calls.filter(
+        (call) => call[1] === "compaction:end",
+      );
+      expect(compactionCalls.length).toBe(1);
+      expect(compactionCalls[0][0]).toBe("agent");
+      expect(compactionCalls[0][2]).toBe("sk-1");
+      const ctx = compactionCalls[0][3] as Record<string, unknown>;
+      expect(ctx.trigger).toBe("auto");
+      expect(ctx.willRetry).toBe(false);
+    });
+  });
+
+  describe("non-hooks tool:result internal hook bridging", () => {
+    it("fires agent:tool:result internal hook for terminal tool events", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { type: "tool_result", text: "tool output", id: "t1", name: "exec" },
+          { type: "result", result: "done" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+      mockCreateHookEvent.mockClear();
+
+      await runSdkAgent(baseParams({ sessionKey: "sk-2" }));
+
+      const toolResultCalls = mockCreateHookEvent.mock.calls.filter(
+        (call) => call[1] === "tool:result",
+      );
+      expect(toolResultCalls.length).toBe(1);
+      expect(toolResultCalls[0][0]).toBe("agent");
+      expect(toolResultCalls[0][2]).toBe("sk-2");
+      const ctx = toolResultCalls[0][3] as Record<string, unknown>;
+      expect(ctx.toolName).toBeDefined();
+    });
+
+    it("includes meta and recentAssistantText in non-hooks tool:result hook", async () => {
+      const queryFn = vi.fn().mockReturnValue(
+        eventsFrom([
+          { text: "I will run the command" },
+          {
+            type: "tool_result",
+            text: "command output",
+            id: "t1",
+            name: "mcp__clawdbrain__exec",
+            input: { command: "echo hi" },
+          },
+          { type: "result", result: "done" },
+        ]),
+      );
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+      mockCreateHookEvent.mockClear();
+
+      await runSdkAgent(baseParams({ sessionKey: "sk-3" }));
+
+      const toolResultCalls = mockCreateHookEvent.mock.calls.filter(
+        (call) => call[1] === "tool:result",
+      );
+      expect(toolResultCalls.length).toBe(1);
+      const ctx = toolResultCalls[0][3] as Record<string, unknown>;
+      // recentAssistantText should include the assistant text from before the tool call
+      expect(typeof ctx.recentAssistantText).toBe("string");
+      expect((ctx.recentAssistantText as string).length).toBeGreaterThan(0);
     });
   });
 });
