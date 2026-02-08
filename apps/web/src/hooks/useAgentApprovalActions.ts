@@ -17,14 +17,14 @@ export function useAgentApprovalActions() {
       const approvals = toolApprovals?.approvals ?? [];
       const agent = useAgentStore.getState().agents.find((entry) => entry.id === agentId);
       const pendingIds = new Set(agent?.pendingToolCallIds ?? []);
-      let pending =
+      const agentApprovals = approvals.filter((approval) => approval.agentId === agentId);
+      const approvalsById =
         pendingIds.size > 0
           ? approvals.filter((approval) => pendingIds.has(approval.id))
-          : approvals.filter((approval) => approval.agentId === agentId);
-
-      if (pendingIds.size > 0 && pending.length === 0) {
-        pending = approvals.filter((approval) => approval.agentId === agentId);
-      }
+          : [];
+      // If tool call IDs don't align with approval IDs (e.g. gateway-generated UUIDs),
+      // fall back to the agent-level approvals so we don't block resolution.
+      const pending = approvalsById.length > 0 ? approvalsById : agentApprovals;
 
       if (!pending.length) {
         showWarning("No pending approvals for this agent.");
