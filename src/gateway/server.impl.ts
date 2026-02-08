@@ -33,7 +33,7 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
-import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
+// exec-approval-forwarder no longer needed; exec handlers delegate through the tool forwarder
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
@@ -55,8 +55,7 @@ import {
   diffConfigPaths,
   startGatewayConfigReloader,
 } from "./config-reload.js";
-// ExecApprovalManager is superseded by ToolApprovalManager; legacy exec.approval
-// handlers now delegate to the shared ToolApprovalManager instance.
+// ExecApprovalManager replaced by unified ToolApprovalManager
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
@@ -524,16 +523,15 @@ export async function startGatewayServer(
 
   void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
 
-  // Single ToolApprovalManager shared by both canonical and legacy exec handlers.
+  // Unified approval manager — both legacy exec.approval.* and canonical
+  // tool.approval.* handlers share the same pending-state machine.
   const toolApprovalManager = new ToolApprovalManager();
   const toolApprovalForwarder = createToolApprovalForwarder();
   const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
     forwarder: toolApprovalForwarder,
   });
-
-  const execApprovalForwarder = createExecApprovalForwarder();
   const execApprovalHandlers = createExecApprovalHandlers(toolApprovalManager, {
-    forwarder: execApprovalForwarder,
+    forwarder: toolApprovalForwarder,
   });
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;

@@ -122,6 +122,28 @@ export class ToolApprovalManager {
   }
 
   /**
+   * Compatibility resolve for legacy callers that only provide `{ id, decision }`
+   * without a requestHash. Skips the anti-stale requestHash check.
+   */
+  resolveCompat(
+    recordId: string,
+    decision: ToolApprovalDecision,
+    resolvedBy?: string | null,
+  ): boolean {
+    const pending = this.pending.get(recordId);
+    if (!pending) {
+      return false;
+    }
+    clearTimeout(pending.timer);
+    pending.record.resolvedAtMs = Date.now();
+    pending.record.decision = decision;
+    pending.record.resolvedBy = resolvedBy ?? null;
+    this.pending.delete(recordId);
+    pending.resolve(decision);
+    return true;
+  }
+
+  /**
    * Look up a pending record by id. Returns null if not found or already resolved.
    */
   getSnapshot(recordId: string): ToolApprovalRecord | null {
