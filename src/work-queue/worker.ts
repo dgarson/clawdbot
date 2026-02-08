@@ -4,6 +4,7 @@ import type { WorkContextExtractor, WorkItemCarryoverContext } from "./context-e
 import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
+import { linkCodexTaskForWorkItem } from "./codex-task-linker.js";
 import { truncateSessionLabel } from "../sessions/session-label.js";
 import {
   buildWorkerSystemPrompt,
@@ -507,7 +508,7 @@ export class WorkQueueWorker {
       waitResult?.error ?? (runStatus === "error" ? "session failed or timed out" : undefined);
 
     // Extract context from completed session.
-    const context = await this.deps.extractor.extract({
+    let context = await this.deps.extractor.extract({
       sessionKey,
       item,
       runResult: { status: runStatus, error: runError },
@@ -527,6 +528,25 @@ export class WorkQueueWorker {
       transcript = historyResult?.messages;
     } catch (err) {
       this.deps.log.debug(`worker[${this.agentId}]: transcript read failed: ${String(err)}`);
+    }
+
+    if (runStatus === "ok") {
+      const payload = readPayload(item);
+      const linkResult = await linkCodexTaskForWorkItem({
+        item,
+        payload,
+        transcript,
+        log: this.deps.log.debug,
+      });
+      if (linkResult?.note) {
+        context = {
+          ...(context ?? { extractedAt: new Date().toISOString() }),
+          outputs: {
+            ...(context?.outputs ?? {}),
+            codexTaskLink: linkResult.note,
+          },
+        };
+      }
     }
 
     // Clean up the session.
