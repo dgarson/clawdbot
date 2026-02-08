@@ -5,9 +5,9 @@ import type {
   PresenceEntry,
   SessionsListResult,
   SkillStatusReport,
-} from "../types";
-import type { OverseerGoalStatusResult } from "../types/overseer";
-import type { GraphViewport } from "../ui-types";
+} from "../types.js";
+import type { OverseerGoalStatusResult } from "../types/overseer.js";
+import type { GraphViewport } from "../ui-types.js";
 
 export type GraphNodeKind =
   | "goal"

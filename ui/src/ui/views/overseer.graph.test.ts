@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ChannelsStatusSnapshot } from "../types";
-import type { OverseerGoalStatusResult } from "../types/overseer";
+import type { ChannelsStatusSnapshot } from "../types.js";
+import type { OverseerGoalStatusResult } from "../types/overseer.js";
 import {
   buildOverseerGraphLayout,
   buildSystemGraphLayout,

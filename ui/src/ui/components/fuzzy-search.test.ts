@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterByFuzzy, fuzzyScorePart, scoreCommand, type Scorable } from "./fuzzy-search";
+import { filterByFuzzy, fuzzyScorePart, scoreCommand, type Scorable } from "./fuzzy-search.js";
 
 // ---------------------------------------------------------------------------
 // helpers

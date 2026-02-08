@@ -7,7 +7,7 @@
 
 import { html, css, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { CtaModalBase } from "./cta-modal-base";
+import { CtaModalBase } from "./cta-modal-base.js";
 
 /** Email regex — generous but reasonable */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

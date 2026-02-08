@@ -4,7 +4,7 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import { icon } from "../icons";
+import { icon } from "../icons.js";
 
 export type AuthMethod = "token" | "password";
 

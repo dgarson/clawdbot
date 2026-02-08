@@ -6,9 +6,9 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import type { JsonSchema } from "./config-form";
-import { icon } from "../icons";
-import { renderNode } from "./config-form";
+import type { JsonSchema } from "./config-form.js";
+import { icon } from "../icons.js";
+import { renderNode } from "./config-form.js";
 
 // ============================================================================
 // Types

@@ -3,7 +3,7 @@
  * Used for testing and demoing the Overseer/continuation hook framework.
  */
 
-import type { OverseerAssignmentDetail, OverseerGoalDetail, OverseerEvent } from "./overseer";
+import type { OverseerAssignmentDetail, OverseerGoalDetail, OverseerEvent } from "./overseer.js";
 
 // ============================================================================
 // Rule System Types

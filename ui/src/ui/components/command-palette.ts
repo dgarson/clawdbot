@@ -4,11 +4,11 @@
  */
 
 import { html, nothing } from "lit";
-import type { Tab } from "../navigation";
-import { icon, type IconName } from "../icons";
-import { getFavoriteIds, isFavorite, toggleFavorite } from "./command-favorites";
-import { getRecentCommandIds, recordCommandUsage } from "./command-history";
-import { filterByFuzzy } from "./fuzzy-search";
+import type { Tab } from "../navigation.js";
+import { icon, type IconName } from "../icons.js";
+import { getFavoriteIds, isFavorite, toggleFavorite } from "./command-favorites.js";
+import { getRecentCommandIds, recordCommandUsage } from "./command-history.js";
+import { filterByFuzzy } from "./fuzzy-search.js";
 
 export type Command = {
   id: string;

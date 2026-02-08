@@ -11,9 +11,9 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import type { OverseerStatusResult } from "../types/overseer";
-import { clampText, formatAgo, formatDurationMs } from "../format";
-import { icon, type IconName } from "../icons";
+import type { OverseerStatusResult } from "../types/overseer.js";
+import { clampText, formatAgo, formatDurationMs } from "../format.js";
+import { icon, type IconName } from "../icons.js";
 import {
   RULE_TEMPLATES,
   SCENARIO_TEMPLATES,
@@ -28,7 +28,7 @@ import {
   type QueuedSimulatedEvent,
   type SimulatedEventType,
   type SimulatorActivityEntry,
-} from "../types/overseer-simulator";
+} from "../types/overseer-simulator.js";
 
 // ============================================================================
 // Types

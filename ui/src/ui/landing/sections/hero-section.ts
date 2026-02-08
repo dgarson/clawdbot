@@ -1,6 +1,6 @@
 import { html, css, LitElement, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { TextRotator, initParallax } from "../animation-utils";
+import { TextRotator, initParallax } from "../animation-utils.js";
 import "../components/demo-previews";
 
 interface FloatingCard {

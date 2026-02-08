@@ -7,14 +7,14 @@ import type {
   PresenceEntry,
   SessionsListResult,
   SkillStatusReport,
-} from "../types";
-import type { OverseerGoalStatusResult, OverseerStatusResult } from "../types/overseer";
-import type { SimulatorState } from "../types/overseer-simulator";
-import type { GraphDragState, GraphViewport } from "../ui-types";
-import { skeleton } from "../components/design-utils";
-import { clampText, formatAgo, formatDurationMs, formatList } from "../format";
-import { icon, type IconName } from "../icons";
-import { renderSimulator, type SimulatorProps } from "./overseer-simulator";
+} from "../types.js";
+import type { SimulatorState } from "../types/overseer-simulator.js";
+import type { OverseerGoalStatusResult, OverseerStatusResult } from "../types/overseer.js";
+import type { GraphDragState, GraphViewport } from "../ui-types.js";
+import { skeleton } from "../components/design-utils.js";
+import { clampText, formatAgo, formatDurationMs, formatList } from "../format.js";
+import { icon, type IconName } from "../icons.js";
+import { renderSimulator, type SimulatorProps } from "./overseer-simulator.js";
 import {
   buildOverseerGraphLayout,
   buildSystemGraphLayout,

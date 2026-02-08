@@ -3,7 +3,7 @@
  * Manages state and gateway interactions for testing the Overseer/continuation hook framework.
  */
 
-import type { GatewayBrowserClient } from "../gateway";
+import type { GatewayBrowserClient } from "../gateway.js";
 import {
   createInitialSimulatorState,
   createActivityEntry,
@@ -24,7 +24,7 @@ import {
   type SimulatorFilters,
   type SimulatorActivityEntry,
   type SimulationRunState,
-} from "../types/overseer-simulator";
+} from "../types/overseer-simulator.js";
 
 // Re-export templates for external use
 export { RULE_TEMPLATES, SCENARIO_TEMPLATES };

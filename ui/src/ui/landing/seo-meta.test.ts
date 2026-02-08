@@ -6,7 +6,7 @@ import {
   removeJsonLd,
   LANDING_SEO_DEFAULTS,
   type SeoMeta,
-} from "./seo-meta";
+} from "./seo-meta.js";
 
 describe("seo-meta", () => {
   /** Remove all meta tags and canonical link we create during tests */
@@ -89,21 +89,21 @@ describe("seo-meta", () => {
     };
     updateSeoMeta(meta);
 
-    expect(
-      (document.querySelector('meta[property="og:title"]') as HTMLMetaElement)?.content,
-    ).toBe("OG Title");
+    expect((document.querySelector('meta[property="og:title"]') as HTMLMetaElement)?.content).toBe(
+      "OG Title",
+    );
     expect(
       (document.querySelector('meta[property="og:description"]') as HTMLMetaElement)?.content,
     ).toBe("OG Description");
-    expect(
-      (document.querySelector('meta[property="og:image"]') as HTMLMetaElement)?.content,
-    ).toBe("https://example.com/og.png");
+    expect((document.querySelector('meta[property="og:image"]') as HTMLMetaElement)?.content).toBe(
+      "https://example.com/og.png",
+    );
     expect(
       (document.querySelector('meta[property="og:image:alt"]') as HTMLMetaElement)?.content,
     ).toBe("OG image alt text");
-    expect(
-      (document.querySelector('meta[property="og:type"]') as HTMLMetaElement)?.content,
-    ).toBe("article");
+    expect((document.querySelector('meta[property="og:type"]') as HTMLMetaElement)?.content).toBe(
+      "article",
+    );
   });
 
   it("updateSeoMeta should set Twitter Card tags", () => {
@@ -116,18 +116,18 @@ describe("seo-meta", () => {
     };
     updateSeoMeta(meta);
 
-    expect(
-      (document.querySelector('meta[name="twitter:card"]') as HTMLMetaElement)?.content,
-    ).toBe("summary");
-    expect(
-      (document.querySelector('meta[name="twitter:title"]') as HTMLMetaElement)?.content,
-    ).toBe("Twitter Title");
+    expect((document.querySelector('meta[name="twitter:card"]') as HTMLMetaElement)?.content).toBe(
+      "summary",
+    );
+    expect((document.querySelector('meta[name="twitter:title"]') as HTMLMetaElement)?.content).toBe(
+      "Twitter Title",
+    );
     expect(
       (document.querySelector('meta[name="twitter:description"]') as HTMLMetaElement)?.content,
     ).toBe("Twitter Desc");
-    expect(
-      (document.querySelector('meta[name="twitter:image"]') as HTMLMetaElement)?.content,
-    ).toBe("https://example.com/tw.png");
+    expect((document.querySelector('meta[name="twitter:image"]') as HTMLMetaElement)?.content).toBe(
+      "https://example.com/tw.png",
+    );
     expect(
       (document.querySelector('meta[name="twitter:image:alt"]') as HTMLMetaElement)?.content,
     ).toBe("Twitter alt");
@@ -157,9 +157,9 @@ describe("seo-meta", () => {
   it("updateSeoMeta should use defaults for missing values", () => {
     updateSeoMeta({});
     expect(document.title).toBe(LANDING_SEO_DEFAULTS.title);
-    expect(
-      (document.querySelector('meta[name="description"]') as HTMLMetaElement)?.content,
-    ).toBe(LANDING_SEO_DEFAULTS.description);
+    expect((document.querySelector('meta[name="description"]') as HTMLMetaElement)?.content).toBe(
+      LANDING_SEO_DEFAULTS.description,
+    );
   });
 
   it("updateSeoMeta should update existing meta tags rather than duplicate", () => {
@@ -182,14 +182,18 @@ describe("seo-meta", () => {
     updateSeoMeta({ title: "Custom Title", description: "Custom Desc" });
     resetSeoMeta();
     expect(document.title).toBe(LANDING_SEO_DEFAULTS.title);
-    expect(
-      (document.querySelector('meta[name="description"]') as HTMLMetaElement)?.content,
-    ).toBe(LANDING_SEO_DEFAULTS.description);
+    expect((document.querySelector('meta[name="description"]') as HTMLMetaElement)?.content).toBe(
+      LANDING_SEO_DEFAULTS.description,
+    );
   });
 
   describe("JSON-LD", () => {
     it("injectJsonLd should create a new script element", () => {
-      injectJsonLd("test-schema", { "@context": "https://schema.org", "@type": "WebSite", name: "Test" });
+      injectJsonLd("test-schema", {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Test",
+      });
       const script = document.querySelector('script[data-seo-id="test-schema"]');
       expect(script).not.toBeNull();
       expect(JSON.parse(script!.textContent!)).toEqual({

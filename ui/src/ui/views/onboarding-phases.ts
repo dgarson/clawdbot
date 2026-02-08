@@ -6,8 +6,8 @@
  * Advanced options are embedded within each phase.
  */
 
-import type { IconName } from "../icons";
-import type { ChannelCard, ModelCard, CardStatus } from "./onboarding-cards";
+import type { IconName } from "../icons.js";
+import type { ChannelCard, ModelCard, CardStatus } from "./onboarding-cards.js";
 
 // ============================================================================
 // Types

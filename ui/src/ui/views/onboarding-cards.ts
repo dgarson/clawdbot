@@ -7,7 +7,7 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import { icon, type IconName } from "../icons";
+import { icon, type IconName } from "../icons.js";
 
 // ============================================================================
 // Types

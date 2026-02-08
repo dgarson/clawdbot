@@ -4,7 +4,7 @@
  */
 
 import { html, render, nothing, type TemplateResult } from "lit";
-import { icon } from "../icons";
+import { icon } from "../icons.js";
 
 type ShortcutCategory = {
   name: string;

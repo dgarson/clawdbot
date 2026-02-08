@@ -1,4 +1,4 @@
-import type { GatewayBrowserClient } from "../gateway";
+import type { GatewayBrowserClient } from "../gateway.js";
 
 export type TtsProviderId = "openai" | "elevenlabs" | "edge";
 

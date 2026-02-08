@@ -399,7 +399,7 @@ export const icons = {
 
 export type IconName = keyof typeof icons;
 
-export function icon(name: IconName): TemplateResult {
+export function icon(name: IconName, _options?: { size?: number; class?: string }): TemplateResult {
   return icons[name];
 }
 

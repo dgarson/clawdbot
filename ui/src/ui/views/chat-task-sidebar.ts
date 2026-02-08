@@ -4,9 +4,9 @@
  */
 
 import { html, nothing } from "lit";
-import type { ChatTask, ChatActivityLog, TaskStatus } from "../types/task-types";
-import { formatAgo } from "../format";
-import { icon, type IconName } from "../icons";
+import type { ChatTask, ChatActivityLog, TaskStatus } from "../types/task-types.js";
+import { formatAgo } from "../format.js";
+import { icon, type IconName } from "../icons.js";
 
 export type ChatTaskSidebarProps = {
   open: boolean;

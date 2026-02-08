@@ -4,7 +4,7 @@
  */
 
 import { html, type TemplateResult } from "lit";
-import { icon } from "../icons";
+import { icon } from "../icons.js";
 
 export type SaveButtonState = "idle" | "saving" | "saved" | "error";
 

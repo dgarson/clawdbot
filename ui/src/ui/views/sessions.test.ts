@@ -1,7 +1,7 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
-import type { SessionsListResult } from "../types";
-import { renderSessions, type SessionsProps } from "./sessions";
+import type { SessionsListResult } from "../types.js";
+import { renderSessions, type SessionsProps } from "./sessions.js";
 
 function createSessions(now: number): SessionsListResult {
   return {

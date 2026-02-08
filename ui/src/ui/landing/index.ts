@@ -11,7 +11,7 @@ import { customElement, state } from "lit/decorators.js";
 // Hero is above the fold — load eagerly
 import "./sections/hero-section";
 // Below-fold sections are lazy-loaded via IntersectionObserver
-import { observeSection, preloadAllSections, cleanupLazyObserver } from "./lazy-section";
+import { observeSection, preloadAllSections, cleanupLazyObserver } from "./lazy-section.js";
 import "./sections/understanding-section";
 import "./sections/activity-section";
 import "./sections/control-section";
@@ -22,7 +22,7 @@ import "./sections/footer-section";
 import "./components/waitlist-modal";
 import "./components/demo-request-modal";
 // SEO meta management
-import { resetSeoMeta } from "./seo-meta";
+import { resetSeoMeta } from "./seo-meta.js";
 
 @customElement("landing-page")
 export class LandingPage extends LitElement {
@@ -685,21 +685,21 @@ declare global {
 }
 
 // Export all components for potential individual use
-export { LandingHero } from "./sections/hero-section";
-export { LandingUnderstanding } from "./sections/understanding-section";
-export { LandingActivity } from "./sections/activity-section";
-export { LandingControl } from "./sections/control-section";
-export { LandingFeatures } from "./sections/features-section";
-export { LandingSocialProof } from "./sections/social-proof-section";
-export { LandingFooter } from "./sections/footer-section";
+export { LandingHero } from "./sections/hero-section.js";
+export { LandingUnderstanding } from "./sections/understanding-section.js";
+export { LandingActivity } from "./sections/activity-section.js";
+export { LandingControl } from "./sections/control-section.js";
+export { LandingFeatures } from "./sections/features-section.js";
+export { LandingSocialProof } from "./sections/social-proof-section.js";
+export { LandingFooter } from "./sections/footer-section.js";
 
 // CTA modal components
-export { WaitlistModal } from "./components/waitlist-modal";
-export { DemoRequestModal } from "./components/demo-request-modal";
-export type { DemoRequestData } from "./components/demo-request-modal";
+export { WaitlistModal } from "./components/waitlist-modal.js";
+export { DemoRequestModal } from "./components/demo-request-modal.js";
+export type { DemoRequestData } from "./components/demo-request-modal.js";
 
 // Interactive demo previews
-export { LandingDemoPreviews } from "./components/demo-previews";
+export { LandingDemoPreviews } from "./components/demo-previews.js";
 
 // SEO utilities
 export {
@@ -708,5 +708,5 @@ export {
   injectJsonLd,
   removeJsonLd,
   LANDING_SEO_DEFAULTS,
-} from "./seo-meta";
-export type { SeoMeta } from "./seo-meta";
+} from "./seo-meta.js";
+export type { SeoMeta } from "./seo-meta.js";

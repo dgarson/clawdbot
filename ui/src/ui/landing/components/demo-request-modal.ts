@@ -8,8 +8,8 @@
 
 import { html, css, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { CtaModalBase } from "./cta-modal-base";
-import { validateEmail } from "./waitlist-modal";
+import { CtaModalBase } from "./cta-modal-base.js";
+import { validateEmail } from "./waitlist-modal.js";
 
 export interface DemoRequestData {
   name: string;

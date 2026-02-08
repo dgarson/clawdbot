@@ -10,10 +10,10 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import type { ConfigUiHints } from "../types";
+import type { ConfigUiHints } from "../types.js";
 import type { ChannelKey, ChannelsProps } from "./channels.types";
-import { icon, type IconName } from "../icons";
-import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./config-form";
+import { icon, type IconName } from "../icons.js";
+import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./config-form.js";
 
 // ============================================================================
 // Types

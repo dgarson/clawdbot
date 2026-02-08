@@ -7,21 +7,21 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import type { ConfigUiHints } from "../types";
-import type { JsonSchema } from "./config-form";
-import { icon } from "../icons";
+import type { ConfigUiHints } from "../types.js";
+import type { JsonSchema } from "./config-form.js";
+import { icon } from "../icons.js";
 import {
   renderChannelCardList,
   renderModelCardList,
   renderAddCardModal,
   type ChannelCard as ChannelCardType,
   type ModelCard as ModelCardType,
-} from "./onboarding-cards";
+} from "./onboarding-cards.js";
 import {
   renderConfigModal,
   type ConfigModalState,
   createConfigModalState,
-} from "./onboarding-modal";
+} from "./onboarding-modal.js";
 import {
   ONBOARDING_PHASES,
   type QuickStartForm,
@@ -36,7 +36,7 @@ import {
   getChannelById,
   getModelById,
   getDefaultQuickStartForm,
-} from "./onboarding-phases";
+} from "./onboarding-phases.js";
 
 // ============================================================================
 // Types

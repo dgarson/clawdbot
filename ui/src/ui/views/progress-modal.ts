@@ -1,6 +1,6 @@
 import { html, nothing } from "lit";
-import type { ProgressModalState, AutomationRunMilestone } from "../controllers/automations";
-import { icon } from "../icons";
+import type { ProgressModalState, AutomationRunMilestone } from "../controllers/automations.js";
+import { icon } from "../icons.js";
 
 type MilestoneStatus = AutomationRunMilestone["status"];
 

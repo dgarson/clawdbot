@@ -5,12 +5,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // handle that carefully.
 
 describe("lazy-section", () => {
-  let mod: typeof import("./lazy-section");
+  let mod: typeof import("./lazy-section.js");
 
   beforeEach(async () => {
     // Fresh import for each test via dynamic import with cache bust
     vi.resetModules();
-    mod = await import("./lazy-section");
+    mod = await import("./lazy-section.js");
   });
 
   afterEach(() => {

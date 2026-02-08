@@ -4,8 +4,8 @@ import type {
   AutomationRunRecord,
   AutomationArtifact,
   AutomationConflict,
-} from "../controllers/automations";
-import { icon } from "../icons";
+} from "../controllers/automations.js";
+import { icon } from "../icons.js";
 
 export interface RunHistoryProps {
   state: Pick<
@@ -36,7 +36,7 @@ export interface RunHistoryProps {
 
 function getStatusConfig(status: AutomationRunRecord["status"]): {
   classes: string;
-  icon: import("../icons").IconName;
+  icon: import("../icons.js").IconName;
 } {
   switch (status) {
     case "success":
