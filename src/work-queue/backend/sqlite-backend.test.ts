@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { isNodeSqliteAvailable, requireNodeSqlite } from "../../memory/sqlite.js";
 import * as migration001 from "../migrations/001_baseline.js";
 import * as migration002 from "../migrations/002_workstream_and_tracking.js";
-import * as migration003 from "../migrations/003_work_item_refs.js";
+import * as migration004 from "../migrations/004_work_item_refs.js";
 import { SqliteWorkQueueBackend } from "./sqlite-backend.js";
 
 const describeSqlite = isNodeSqliteAvailable() ? describe : describe.skip;
@@ -162,7 +162,7 @@ describeSqlite("SqliteWorkQueueBackend", () => {
         "medium",
       );
 
-      await migration003.up({ context: db });
+      await migration004.up({ context: db });
 
       const rows = db
         .prepare("SELECT kind, ref_id, label, uri FROM work_item_refs WHERE item_id = ?")
@@ -200,9 +200,11 @@ describeSqlite("SqliteWorkQueueBackend", () => {
         .all() as Array<{
         name: string;
       }>;
-      expect(migrations).toHaveLength(3);
+      expect(migrations).toHaveLength(4);
       expect(migrations[0]?.name).toBe("001_baseline.ts");
       expect(migrations[1]?.name).toBe("002_workstream_and_tracking.ts");
+      expect(migrations[2]?.name).toBe("003_work_item_heartbeat.ts");
+      expect(migrations[3]?.name).toBe("004_work_item_refs.ts");
 
       // Verify all tables exist
       const tables = db
@@ -257,7 +259,7 @@ describeSqlite("SqliteWorkQueueBackend", () => {
         .all() as Array<{
         name: string;
       }>;
-      expect(migrations).toHaveLength(3);
+      expect(migrations).toHaveLength(4);
 
       await backend1.close();
       await backend2.close();

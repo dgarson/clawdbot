@@ -4,8 +4,8 @@ import type { WorkContextExtractor, WorkItemCarryoverContext } from "./context-e
 import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
-import { linkCodexTaskForWorkItem } from "./codex-task-linker.js";
 import { truncateSessionLabel } from "../sessions/session-label.js";
+import { linkCodexTaskForWorkItem } from "./codex-task-linker.js";
 import {
   buildWorkerSystemPrompt,
   buildWorkerTaskMessage,
