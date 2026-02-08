@@ -113,6 +113,10 @@ export type OverseerProps = {
   onActivityFilterChange?: (status: string | null) => void;
   onActivityLimitChange?: (limit: number) => void;
   onActivityEventClick?: (event: ActivityEvent) => void;
+  // Abort / safety controls
+  onAbortSession?: (sessionKey: string) => void;
+  onAbortAllForAgent?: (agentId: string) => void;
+  onEmergencyStopAll?: () => void;
 };
 
 export function setupOverseerKeyboardShortcuts(props: {
@@ -438,6 +442,22 @@ function renderHeader(props: OverseerProps, goalsCount: number, stalledCount: nu
           ${icon("zap", { size: 16 })}
           <span>Tick</span>
         </button>
+        ${
+          props.onEmergencyStopAll
+            ? html`
+              <button
+                class="btn btn--danger"
+                ?disabled=${props.loading}
+                @click=${props.onEmergencyStopAll}
+                title="Emergency stop — abort all active agent sessions"
+                style="margin-left: 8px;"
+              >
+                ${icon("octagon", { size: 16 })}
+                <span>Stop All</span>
+              </button>
+            `
+            : nothing
+        }
       </div>
     </div>
   `;
@@ -849,6 +869,23 @@ function renderOverseerDetails(props: OverseerProps, layout: GraphLayout) {
                 ? detailRow("Backoff", formatAgo(assignment.backoffUntil))
                 : nothing
             }
+            ${
+              assignment.sessionKey && props.onAbortSession
+                ? html`
+                  <div style="margin-top: 8px;">
+                    <button
+                      class="btn btn--sm btn--danger"
+                      ?disabled=${actionPending}
+                      @click=${() => props.onAbortSession!(assignment.sessionKey!)}
+                      title="Abort this assignment's agent session"
+                    >
+                      ${icon("xCircle", { size: 12 })}
+                      <span>Abort Assignment</span>
+                    </button>
+                  </div>
+                `
+                : nothing
+            }
           </div>
         `
         : nothing
@@ -932,20 +969,54 @@ function renderSystemDetails(props: OverseerProps, layout: GraphLayout) {
   if (node.kind === "agent") {
     const data = (node.data ?? {}) as Record<string, unknown>;
     const identity = data.identity as Record<string, unknown> | undefined;
+    const agentId = String(data.id ?? "");
     return html`
       <div class="graph-details__title">${node.label}</div>
-      ${detailRow("Agent ID", String(data.id ?? ""))}
+      ${detailRow("Agent ID", agentId)}
       ${identity?.role ? detailRow("Role", String(identity.role)) : nothing}
       ${identity?.emoji ? detailRow("Emoji", String(identity.emoji)) : nothing}
+      ${
+        props.onAbortAllForAgent && agentId
+          ? html`
+            <div class="graph-details__actions" style="margin-top: 12px;">
+              <button
+                class="btn btn--sm btn--danger"
+                @click=${() => props.onAbortAllForAgent!(agentId)}
+                title="Stop all sessions for this agent"
+              >
+                ${icon("stopCircle", { size: 12 })}
+                <span>Stop Agent</span>
+              </button>
+            </div>
+          `
+          : nothing
+      }
     `;
   }
   if (node.kind === "session") {
     const data = (node.data ?? {}) as Record<string, unknown>;
+    const sessionKey = String(data.key ?? "");
     return html`
       <div class="graph-details__title">${node.label}</div>
-      ${detailRow("Key", String(data.key ?? ""))}
+      ${detailRow("Key", sessionKey)}
       ${detailRow("Kind", String(data.kind ?? ""))}
       ${data.updatedAt ? detailRow("Updated", formatAgo(data.updatedAt as number)) : nothing}
+      ${
+        props.onAbortSession && sessionKey
+          ? html`
+            <div class="graph-details__actions" style="margin-top: 12px;">
+              <button
+                class="btn btn--sm btn--danger"
+                @click=${() => props.onAbortSession!(sessionKey)}
+                title="Abort this session's active agent run"
+              >
+                ${icon("xCircle", { size: 12 })}
+                <span>Abort Session</span>
+              </button>
+            </div>
+          `
+          : nothing
+      }
     `;
   }
   if (node.kind === "channel") {
@@ -1060,7 +1131,7 @@ function buildDrawerContent(props: OverseerProps): {
     return {
       title: session.displayName ?? session.key,
       subtitle: "Session",
-      body: renderSessionDrawerBody(session),
+      body: renderSessionDrawerBody(session, props),
     };
   }
   if (props.drawerKind === "skill") {
@@ -1162,7 +1233,10 @@ function renderCronDrawerBody(job: CronJob, runs: CronRunLogEntry[], props: Over
   `;
 }
 
-function renderSessionDrawerBody(session: SessionsListResult["sessions"][number]) {
+function renderSessionDrawerBody(
+  session: SessionsListResult["sessions"][number],
+  props: OverseerProps,
+) {
   return html`
     <div class="overseer-drawer__section">
       ${detailRow("Key", session.key)}
@@ -1171,6 +1245,22 @@ function renderSessionDrawerBody(session: SessionsListResult["sessions"][number]
       ${session.modelProvider ? detailRow("Provider", session.modelProvider) : nothing}
       ${session.updatedAt ? detailRow("Updated", formatAgo(session.updatedAt)) : nothing}
       ${session.totalTokens != null ? detailRow("Tokens", String(session.totalTokens)) : nothing}
+      ${
+        props.onAbortSession
+          ? html`
+            <div style="margin-top: 12px;">
+              <button
+                class="btn btn--sm btn--danger"
+                @click=${() => props.onAbortSession!(session.key)}
+                title="Abort this session's active agent run"
+              >
+                ${icon("xCircle", { size: 12 })}
+                <span>Abort Session</span>
+              </button>
+            </div>
+          `
+          : nothing
+      }
     </div>
   `;
 }

@@ -46,6 +46,7 @@ import { loadPresence } from "./controllers/presence.ts";
 import {
   abortAllSessions,
   abortSession,
+  abortSessionsForAgent,
   deleteSession,
   loadSessions,
   patchSession,
@@ -983,6 +984,9 @@ export function renderApp(state: AppViewState) {
                     : { fallbacks: normalized };
                   updateConfigFormValue(state, basePath, next);
                 },
+                onAbortSession: (sessionKey) => abortSession(state, sessionKey),
+                onAbortAllForAgent: (agentId) => abortSessionsForAgent(state, agentId),
+                onEmergencyStopAll: () => abortAllSessions(state),
               })
             : nothing
         }
