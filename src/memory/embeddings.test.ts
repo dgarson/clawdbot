@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { EmbeddingModality } from "./embeddings.js";
 import { DEFAULT_GEMINI_EMBEDDING_MODEL } from "./embeddings-gemini.js";
 
 vi.mock("../agents/model-auth.js", () => ({
@@ -478,5 +479,169 @@ describe("local embedding normalization", () => {
       const magnitude = Math.sqrt(embedding.reduce((sum, x) => sum + x * x, 0));
       expect(magnitude).toBeCloseTo(1.0, 5);
     }
+  });
+});
+
+describe("embedding modality support", () => {
+  afterEach(() => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    vi.unstubAllGlobals();
+  });
+
+  it("openai provider defaults to text modality", async () => {
+    const fetchMock = createFetchMock();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createEmbeddingProvider } = await import("./embeddings.js");
+    const authModule = await import("../agents/model-auth.js");
+    vi.mocked(authModule.resolveApiKeyForProvider).mockResolvedValue({
+      apiKey: "test-key",
+      mode: "api-key",
+      source: "test",
+    });
+
+    const result = await createEmbeddingProvider({
+      config: {} as never,
+      provider: "openai",
+      model: "text-embedding-3-small",
+      fallback: "none",
+    });
+
+    expect(result.provider.modality).toBe("text");
+    expect(result.requestedModality).toBeUndefined();
+  });
+
+  it("gemini provider defaults to text+image modality", async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ embedding: { values: [1, 2, 3] } }),
+    })) as unknown as typeof fetch;
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createEmbeddingProvider } = await import("./embeddings.js");
+    const authModule = await import("../agents/model-auth.js");
+    vi.mocked(authModule.resolveApiKeyForProvider).mockResolvedValue({
+      apiKey: "test-key",
+      mode: "api-key",
+      source: "test",
+    });
+
+    const result = await createEmbeddingProvider({
+      config: {} as never,
+      provider: "gemini",
+      model: "gemini-embedding-001",
+      fallback: "none",
+    });
+
+    expect(result.provider.modality).toBe("text+image");
+    expect(result.requestedModality).toBeUndefined();
+  });
+
+  it("voyage provider defaults to text modality", async () => {
+    const fetchMock = createFetchMock();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createEmbeddingProvider } = await import("./embeddings.js");
+    const authModule = await import("../agents/model-auth.js");
+    vi.mocked(authModule.resolveApiKeyForProvider).mockResolvedValue({
+      apiKey: "test-key",
+      mode: "api-key",
+      source: "test",
+    });
+
+    const result = await createEmbeddingProvider({
+      config: {} as never,
+      provider: "voyage",
+      model: "voyage-4-large",
+      fallback: "none",
+    });
+
+    expect(result.provider.modality).toBe("text");
+    expect(result.requestedModality).toBeUndefined();
+  });
+
+  it("passes through requested modality to result", async () => {
+    const fetchMock = createFetchMock();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createEmbeddingProvider } = await import("./embeddings.js");
+    const authModule = await import("../agents/model-auth.js");
+    vi.mocked(authModule.resolveApiKeyForProvider).mockResolvedValue({
+      apiKey: "test-key",
+      mode: "api-key",
+      source: "test",
+    });
+
+    const requestedModality: EmbeddingModality = "text+image";
+    const result = await createEmbeddingProvider({
+      config: {} as never,
+      provider: "openai",
+      model: "text-embedding-3-small",
+      fallback: "none",
+      modality: requestedModality,
+    });
+
+    expect(result.requestedModality).toBe("text+image");
+    // When explicit modality is provided, the provider should use it
+    expect(result.provider.modality).toBe("text+image");
+  });
+
+  it("auto selection preserves modality on the provider", async () => {
+    const fetchMock = createFetchMock();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createEmbeddingProvider } = await import("./embeddings.js");
+    const authModule = await import("../agents/model-auth.js");
+    vi.mocked(authModule.resolveApiKeyForProvider).mockImplementation(async ({ provider }) => {
+      if (provider === "openai") {
+        return { apiKey: "openai-key", source: "env: OPENAI_API_KEY", mode: "api-key" };
+      }
+      throw new Error(`No API key found for provider "${provider}".`);
+    });
+
+    const result = await createEmbeddingProvider({
+      config: {} as never,
+      provider: "auto",
+      model: "",
+      fallback: "none",
+    });
+
+    expect(result.provider.modality).toBe("text");
+    expect(result.requestedModality).toBeUndefined();
+  });
+
+  it("preserves requestedModality through fallback path", async () => {
+    vi.doMock("./node-llama.js", () => ({
+      importNodeLlamaCpp: async () => {
+        throw Object.assign(new Error("Cannot find package 'node-llama-cpp'"), {
+          code: "ERR_MODULE_NOT_FOUND",
+        });
+      },
+    }));
+
+    const fetchMock = createFetchMock();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createEmbeddingProvider } = await import("./embeddings.js");
+    const authModule = await import("../agents/model-auth.js");
+    vi.mocked(authModule.resolveApiKeyForProvider).mockResolvedValue({
+      apiKey: "test-key",
+      mode: "api-key",
+      source: "test",
+    });
+
+    const result = await createEmbeddingProvider({
+      config: {} as never,
+      provider: "local",
+      model: "",
+      fallback: "openai",
+      modality: "text",
+    });
+
+    expect(result.requestedModality).toBe("text");
+    expect(result.fallbackFrom).toBe("local");
+    expect(result.provider.modality).toBe("text");
   });
 });
