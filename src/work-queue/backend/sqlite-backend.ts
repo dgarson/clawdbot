@@ -20,6 +20,7 @@ import type {
 import { requireNodeSqlite } from "../../memory/sqlite.js";
 import * as migration001 from "../migrations/001_baseline.js";
 import * as migration002 from "../migrations/002_workstream_and_tracking.js";
+import * as migration003 from "../migrations/003_work_item_heartbeat.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -38,6 +39,11 @@ const WORK_QUEUE_MIGRATIONS = [
     name: "002_workstream_and_tracking.ts",
     up: migration002.up,
     down: migration002.down,
+  },
+  {
+    name: "003_work_item_heartbeat.ts",
+    up: migration003.up,
+    down: migration003.down,
   },
 ];
 
@@ -199,6 +205,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     created_at: string;
     updated_at: string;
     started_at: string | null;
+    last_heartbeat_at: string | null;
     completed_at: string | null;
   }): WorkItem {
     return {
@@ -226,6 +233,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       startedAt: row.started_at ?? undefined,
+      lastHeartbeatAt: row.last_heartbeat_at ?? undefined,
       completedAt: row.completed_at ?? undefined,
     };
   }
@@ -348,8 +356,8 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         id, queue_id, title, description, payload_json, status, status_reason, parent_item_id,
         depends_on_json, blocked_by_json, created_by_json, assigned_to_json, priority, workstream,
         tags_json, result_json, error_json, retry_count, max_retries, deadline, last_outcome,
-        created_at, updated_at, started_at, completed_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        created_at, updated_at, started_at, last_heartbeat_at, completed_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     ).run(
       id,
@@ -376,6 +384,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
       now,
       now,
       item.startedAt ?? null,
+      item.lastHeartbeatAt ?? null,
       item.completedAt ?? null,
     );
     return { ...item, id, createdAt: now, updatedAt: now };
@@ -518,6 +527,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     if (has("deadline")) apply("deadline", patch.deadline ?? null);
     if (has("lastOutcome")) apply("last_outcome", patch.lastOutcome ?? null);
     if (has("startedAt")) apply("started_at", patch.startedAt ?? null);
+    if (has("lastHeartbeatAt")) apply("last_heartbeat_at", patch.lastHeartbeatAt ?? null);
     if (has("completedAt")) apply("completed_at", patch.completedAt ?? null);
 
     apply("updated_at", now);
@@ -631,10 +641,11 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         SET status = 'in_progress',
             assigned_to_json = ?,
             started_at = ?,
+            last_heartbeat_at = ?,
             updated_at = ?
         WHERE id = ?
       `,
-      ).run(encodeJson(assignTo), now, now, row.id);
+      ).run(encodeJson(assignTo), now, now, now, row.id);
 
       db.exec("COMMIT");
       return await this.getItem(row.id);

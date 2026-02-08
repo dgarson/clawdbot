@@ -256,6 +256,8 @@ export type GatewayNodesConfig = {
 export type GatewayWorkQueueConfig = {
   /** Auto-recover orphaned in_progress items on startup (default: true). */
   recoverOnStartup?: boolean;
+  /** Heartbeat TTL in ms before recovery considers a work item stale (default: 300000). */
+  heartbeatTtlMs?: number;
 };
 
 export type GatewayConfig = {

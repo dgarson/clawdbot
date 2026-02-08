@@ -63,6 +63,7 @@ function applyPatch(item: WorkItem, patch: WorkItemPatch): WorkItem {
   if (Object.hasOwn(patch, "deadline")) updated.deadline = patch.deadline;
   if (Object.hasOwn(patch, "lastOutcome")) updated.lastOutcome = patch.lastOutcome;
   if (Object.hasOwn(patch, "startedAt")) updated.startedAt = patch.startedAt;
+  if (Object.hasOwn(patch, "lastHeartbeatAt")) updated.lastHeartbeatAt = patch.lastHeartbeatAt;
   if (Object.hasOwn(patch, "completedAt")) updated.completedAt = patch.completedAt;
   if (Object.hasOwn(patch, "result")) updated.result = patch.result;
   if (Object.hasOwn(patch, "error")) updated.error = patch.error;
@@ -284,6 +285,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
       status: "in_progress",
       assignedTo: assignTo,
       startedAt: now,
+      lastHeartbeatAt: now,
       updatedAt: now,
     };
     this.items.set(updated.id, updated);

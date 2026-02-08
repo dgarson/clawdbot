@@ -472,6 +472,8 @@ export const WorkerConfigSchema = z
     workstreams: z.array(z.string()).optional(),
     flexible: z.boolean().optional(),
     pollIntervalMs: z.number().int().positive().optional(),
+    heartbeatIntervalMs: z.number().int().positive().optional(),
+    heartbeatTtlMs: z.number().int().positive().optional(),
     model: z.string().optional(),
     thinking: z.string().optional(),
     contextExtractor: z.enum(["transcript", "llm"]).optional(),

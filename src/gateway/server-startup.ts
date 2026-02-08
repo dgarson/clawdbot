@@ -141,7 +141,15 @@ export async function startGatewaySidecars(params: {
   // Runs before channels start so new agents can't claim items that recovery would reset.
   if (params.cfg.gateway?.workQueue?.recoverOnStartup !== false) {
     try {
-      const recoveryResult = await recoverOrphanedWorkItems();
+      const workerTtls = (params.cfg.agents?.list ?? [])
+        .map((agent) => agent.worker?.heartbeatTtlMs)
+        .filter((ttl): ttl is number => typeof ttl === "number" && Number.isFinite(ttl));
+      const heartbeatTtlMs =
+        params.cfg.gateway?.workQueue?.heartbeatTtlMs ??
+        (workerTtls.length > 0 ? Math.min(...workerTtls) : undefined);
+      const recoveryResult = await recoverOrphanedWorkItems(undefined, {
+        heartbeatTtlMs,
+      });
       if (recoveryResult.recovered.length > 0) {
         params.log.warn(
           `work-queue: recovered ${recoveryResult.recovered.length} orphaned item(s)`,

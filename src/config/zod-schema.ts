@@ -614,6 +614,7 @@ export const OpenClawSchema = z
         workQueue: z
           .object({
             recoverOnStartup: z.boolean().optional(),
+            heartbeatTtlMs: z.number().int().positive().optional(),
           })
           .strict()
           .optional(),

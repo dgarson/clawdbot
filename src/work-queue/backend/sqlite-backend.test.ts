@@ -147,7 +147,7 @@ describeSqlite("SqliteWorkQueueBackend", () => {
         .all() as Array<{
         name: string;
       }>;
-      expect(migrations).toHaveLength(2);
+      expect(migrations).toHaveLength(3);
       expect(migrations[0]?.name).toBe("001_baseline.ts");
       expect(migrations[1]?.name).toBe("002_workstream_and_tracking.ts");
 

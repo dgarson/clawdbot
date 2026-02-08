@@ -149,6 +149,8 @@ export type WorkItem = {
   deadline?: string;
   lastOutcome?: WorkItemOutcome;
   startedAt?: string;
+  /** Timestamp for the last worker heartbeat while in_progress. */
+  lastHeartbeatAt?: string;
   completedAt?: string;
   result?: WorkItemResult;
   error?: WorkItemError;
@@ -212,6 +214,7 @@ export type WorkItemPatch = Partial<
     | "deadline"
     | "lastOutcome"
     | "startedAt"
+    | "lastHeartbeatAt"
     | "completedAt"
     | "result"
     | "error"
