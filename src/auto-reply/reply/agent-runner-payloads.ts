@@ -2,6 +2,7 @@ import type { ReplyToMode } from "../../config/types.js";
 import type { OriginatingChannelType } from "../templating.js";
 import type { ReplyPayload } from "../types.js";
 import { logVerbose } from "../../globals.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
@@ -14,6 +15,8 @@ import {
   isRenderablePayload,
   shouldSuppressMessagingToolReplies,
 } from "./reply-payloads.js";
+
+const log = createSubsystemLogger("agent/reply-payloads");
 
 export function buildReplyPayloads(params: {
   payloads: ReplyPayload[];
@@ -101,6 +104,19 @@ export function buildReplyPayloads(params: {
     params.blockStreamingEnabled &&
     Boolean(params.blockReplyPipeline?.didStream()) &&
     !params.blockReplyPipeline?.isAborted();
+
+  log.debug("buildReplyPayloads: assembling final payloads", {
+    feature: "streaming",
+    inputPayloadCount: params.payloads.length,
+    sanitizedCount: sanitizedPayloads.length,
+    replyTaggedCount: replyTaggedPayloads.length,
+    shouldDropFinalPayloads,
+    blockStreamingEnabled: params.blockStreamingEnabled,
+    pipelineDidStream: params.blockReplyPipeline?.didStream() ?? false,
+    pipelineIsAborted: params.blockReplyPipeline?.isAborted() ?? false,
+    directlySentBlockKeysCount: params.directlySentBlockKeys?.size ?? 0,
+    messagingToolSentCount: params.messagingToolSentTexts?.length ?? 0,
+  });
   const messagingToolSentTexts = params.messagingToolSentTexts ?? [];
   const messagingToolSentTargets = params.messagingToolSentTargets ?? [];
   const suppressMessagingToolReplies = shouldSuppressMessagingToolReplies({
@@ -124,6 +140,15 @@ export function buildReplyPayloads(params: {
           )
         : dedupedPayloads;
   const replyPayloads = suppressMessagingToolReplies ? [] : filteredPayloads;
+
+  log.debug("buildReplyPayloads: final result", {
+    feature: "streaming",
+    replyPayloadCount: replyPayloads.length,
+    suppressMessagingToolReplies,
+    dedupedCount: dedupedPayloads.length,
+    filteredCount: filteredPayloads.length,
+    replyPayloadTexts: replyPayloads.map((p) => (p.text ?? "").slice(0, 60)),
+  });
 
   return {
     replyPayloads,

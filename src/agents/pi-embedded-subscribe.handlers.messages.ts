@@ -39,8 +39,18 @@ export function handleMessageStart(
     return;
   }
 
+  ctx.log.debug("handleMessageStart: new assistant message", {
+    feature: "streaming",
+    assistantTextsLen: ctx.state.assistantTexts.length,
+    messageIndex: ctx.state.assistantMessageIndex,
+    blockReplyBreak: ctx.state.blockReplyBreak,
+    reasoningMode: ctx.state.reasoningMode,
+    streamReasoning: ctx.state.streamReasoning,
+    includeReasoning: ctx.state.includeReasoning,
+  });
+
   // KNOWN: Resetting at `text_end` is unsafe (late/duplicate end events).
-  // ASSUME: `message_start` is the only reliable boundary for “new assistant message begins”.
+  // ASSUME: `message_start` is the only reliable boundary for "new assistant message begins".
   // Start-of-message is a safer reset point than message_end: some providers
   // may deliver late text_end updates after message_end, which would otherwise
   // re-trigger block replies.
@@ -103,6 +113,15 @@ export function handleMessageUpdate(
     }
   }
 
+  ctx.log.trace("handleMessageUpdate: chunk extraction", {
+    feature: "streaming",
+    evtType,
+    chunkLen: chunk.length,
+    deltaBufferLen: ctx.state.deltaBuffer.length,
+    blockBufferLen: ctx.state.blockBuffer.length,
+    hasBlockChunker: Boolean(ctx.blockChunker),
+  });
+
   if (chunk) {
     ctx.state.deltaBuffer += chunk;
     if (ctx.blockChunker) {
@@ -114,7 +133,13 @@ export function handleMessageUpdate(
 
   if (ctx.state.streamReasoning) {
     // Handle partial <think> tags: stream whatever reasoning is visible so far.
-    ctx.emitReasoningStream(extractThinkingFromTaggedStream(ctx.state.deltaBuffer));
+    const reasoning = extractThinkingFromTaggedStream(ctx.state.deltaBuffer);
+    ctx.log.trace("handleMessageUpdate: streaming reasoning extraction", {
+      feature: "streaming",
+      reasoningLen: reasoning?.length ?? 0,
+      deltaBufferLen: ctx.state.deltaBuffer.length,
+    });
+    ctx.emitReasoningStream(reasoning);
   }
 
   const next = ctx
@@ -147,6 +172,16 @@ export function handleMessageUpdate(
 
     ctx.state.lastStreamedAssistant = next;
     ctx.state.lastStreamedAssistantCleaned = cleanedText;
+
+    ctx.log.trace("handleMessageUpdate: partial emit decision", {
+      feature: "streaming",
+      shouldEmit,
+      deltaTextLen: deltaText.length,
+      cleanedTextLen: cleanedText.length,
+      hasMedia,
+      hasAudio,
+      shouldEmitPartialReplies: ctx.state.shouldEmitPartialReplies,
+    });
 
     if (shouldEmit) {
       emitAgentEvent({
@@ -197,6 +232,13 @@ export function handleMessageUpdate(
   }
 
   if (evtType === "text_end" && ctx.state.blockReplyBreak === "text_end") {
+    const chunkerBuffered = ctx.blockChunker?.hasBuffered() ?? false;
+    ctx.log.debug("handleMessageUpdate: text_end block reply drain", {
+      feature: "streaming",
+      chunkerBuffered,
+      blockBufferLen: ctx.state.blockBuffer.length,
+      blockReplyBreak: ctx.state.blockReplyBreak,
+    });
     if (ctx.blockChunker?.hasBuffered()) {
       ctx.blockChunker.drain({ force: true, emit: ctx.emitBlockChunk });
       ctx.blockChunker.reset();
@@ -220,13 +262,29 @@ export function handleMessageEnd(
   promoteThinkingTagsToBlocks(assistantMessage);
 
   const rawText = extractAssistantText(assistantMessage);
+  const rawThinkingExtract = extractAssistantThinking(assistantMessage);
+  ctx.log.debug("handleMessageEnd: assistant message finalized", {
+    feature: "streaming",
+    rawTextLen: rawText.length,
+    rawThinkingLen: rawThinkingExtract?.length ?? 0,
+    deltaBufferLen: ctx.state.deltaBuffer.length,
+    blockBufferLen: ctx.state.blockBuffer.length,
+    assistantTextsLen: ctx.state.assistantTexts.length,
+    assistantTextBaseline: ctx.state.assistantTextBaseline,
+    emittedAssistantUpdate: ctx.state.emittedAssistantUpdate,
+    includeReasoning: ctx.state.includeReasoning,
+    streamReasoning: ctx.state.streamReasoning,
+    blockReplyBreak: ctx.state.blockReplyBreak,
+    hasOnBlockReply: Boolean(ctx.params.onBlockReply),
+    hasOnReasoningStream: Boolean(ctx.params.onReasoningStream),
+  });
   appendRawStream({
     ts: Date.now(),
     event: "assistant_message_end",
     runId: ctx.params.runId,
     sessionId: (ctx.params.session as { id?: string }).id,
     rawText,
-    rawThinking: extractAssistantThinking(assistantMessage),
+    rawThinking: rawThinkingExtract,
   });
 
   const text = stripCompactionHandoffText(
@@ -316,6 +374,16 @@ export function handleMessageEnd(
     shouldEmitReasoningViaBlockReply &&
     ctx.state.blockReplyBreak === "message_end" &&
     !addedDuringMessage;
+
+  ctx.log.debug("handleMessageEnd: reasoning emission decision", {
+    feature: "streaming",
+    shouldEmitReasoningViaBlockReply,
+    shouldEmitReasoningBeforeAnswer,
+    hasReasoningStreamCallback,
+    formattedReasoningLen: formattedReasoning.length,
+    emitReasoningInBlockReply: ctx.state.emitReasoningInBlockReply,
+    addedDuringMessage,
+  });
   const maybeEmitReasoningViaBlockReply = () => {
     if (!shouldEmitReasoningViaBlockReply || !formattedReasoning) {
       return;
@@ -328,12 +396,24 @@ export function handleMessageEnd(
     maybeEmitReasoningViaBlockReply();
   }
 
-  if (
+  const shouldEmitBlockReplyAtEnd =
     (ctx.state.blockReplyBreak === "message_end" ||
       (ctx.blockChunker ? ctx.blockChunker.hasBuffered() : ctx.state.blockBuffer.length > 0)) &&
-    text &&
-    onBlockReply
-  ) {
+    Boolean(text) &&
+    Boolean(onBlockReply);
+
+  ctx.log.debug("handleMessageEnd: block reply emission decision", {
+    feature: "streaming",
+    shouldEmitBlockReplyAtEnd,
+    blockReplyBreak: ctx.state.blockReplyBreak,
+    chunkerBuffered: ctx.blockChunker?.hasBuffered() ?? false,
+    blockBufferLen: ctx.state.blockBuffer.length,
+    textLen: text.length,
+    hasOnBlockReply: Boolean(onBlockReply),
+    lastBlockReplyTextLen: ctx.state.lastBlockReplyText?.length ?? 0,
+  });
+
+  if (shouldEmitBlockReplyAtEnd && onBlockReply) {
     if (ctx.blockChunker?.hasBuffered()) {
       ctx.blockChunker.drain({ force: true, emit: ctx.emitBlockChunk });
       ctx.blockChunker.reset();
@@ -388,6 +468,11 @@ export function handleMessageEnd(
     hasReasoningStreamCallback &&
     rawThinking &&
     (ctx.state.includeReasoning || ctx.state.streamReasoning);
+  ctx.log.trace("handleMessageEnd: reasoning stream emission", {
+    feature: "streaming",
+    shouldEmitReasoningViaStream,
+    rawThinkingLen: rawThinking.length,
+  });
   if (shouldEmitReasoningViaStream) {
     ctx.emitReasoningStream(rawThinking);
   }
@@ -418,6 +503,12 @@ export function handleMessageEnd(
 
   // Push message_end to middleware (dual-path)
   ctx.streamMiddleware?.push({ kind: "message_end" });
+
+  ctx.log.debug("handleMessageEnd: resetting state", {
+    feature: "streaming",
+    finalAssistantTextsLen: ctx.state.assistantTexts.length,
+    finalAssistantTextBaseline: ctx.state.assistantTextBaseline,
+  });
 
   ctx.state.deltaBuffer = "";
   ctx.state.blockBuffer = "";
