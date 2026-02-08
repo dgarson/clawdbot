@@ -97,6 +97,7 @@ function ConversationDetailPage() {
 
   const isLoading = conversationLoading || messagesLoading;
   const error = conversationError ?? messagesError;
+  const showBlockingError = Boolean(error) && !conversation;
 
   if (conversationLoading) {
     return (
@@ -125,7 +126,7 @@ function ConversationDetailPage() {
     );
   }
 
-  if (error) {
+  if (showBlockingError) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <motion.div
@@ -192,6 +193,26 @@ function ConversationDetailPage() {
           onBack={handleBack}
           onSettings={() => setIsSettingsOpen(true)}
         />
+
+        {error && (
+          <div className="mx-4 mt-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-destructive">
+                Failed to refresh conversation. Showing last loaded messages.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  refetchConversation();
+                  refetchMessages();
+                }}
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Chat Thread */}
         <ChatThread
