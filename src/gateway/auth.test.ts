@@ -98,4 +98,32 @@ describe("gateway auth", () => {
     expect(res.method).toBe("tailscale");
     expect(res.user).toBe("peter");
   });
+
+  it("allows local connections when auth mode is none", async () => {
+    const res = await authorizeGatewayConnect({
+      auth: { mode: "none", allowTailscale: false },
+      connectAuth: null,
+      req: {
+        socket: { remoteAddress: "127.0.0.1" },
+        headers: { host: "localhost:18789" },
+      } as never,
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.method).toBe("none");
+  });
+
+  it("rejects non-local connections when auth mode is none", async () => {
+    const res = await authorizeGatewayConnect({
+      auth: { mode: "none", allowTailscale: false },
+      connectAuth: null,
+      req: {
+        socket: { remoteAddress: "10.1.2.3" },
+        headers: { host: "gateway.example.com" },
+      } as never,
+    });
+
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("auth_disabled");
+  });
 });

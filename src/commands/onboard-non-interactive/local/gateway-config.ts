@@ -29,8 +29,8 @@ export function applyNonInteractiveGatewayConfig(params: {
   const port = hasGatewayPort ? (opts.gatewayPort as number) : params.defaultPort;
   let bind = opts.gatewayBind ?? "loopback";
   const authModeRaw = opts.gatewayAuth ?? "token";
-  if (authModeRaw !== "token" && authModeRaw !== "password") {
-    runtime.error("Invalid --gateway-auth (use token|password).");
+  if (authModeRaw !== "token" && authModeRaw !== "password" && authModeRaw !== "none") {
+    runtime.error("Invalid --gateway-auth (use token|password|none).");
     runtime.exit(1);
     return null;
   }
@@ -83,6 +83,19 @@ export function applyNonInteractiveGatewayConfig(params: {
           ...nextConfig.gateway?.auth,
           mode: "password",
           password,
+        },
+      },
+    };
+  }
+
+  if (authMode === "none") {
+    nextConfig = {
+      ...nextConfig,
+      gateway: {
+        ...nextConfig.gateway,
+        auth: {
+          ...nextConfig.gateway?.auth,
+          mode: "none",
         },
       },
     };

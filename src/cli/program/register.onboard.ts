@@ -90,7 +90,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--qianfan-api-key <key>", "QIANFAN API key")
     .option("--gateway-port <port>", "Gateway port")
     .option("--gateway-bind <mode>", "Gateway bind: loopback|tailnet|lan|auto|custom")
-    .option("--gateway-auth <mode>", "Gateway auth: token|password")
+    .option("--gateway-auth <mode>", "Gateway auth: token|password|none")
     .option("--gateway-token <token>", "Gateway token (token auth)")
     .option("--gateway-password <password>", "Gateway password (password auth)")
     .option("--remote-url <url>", "Remote Gateway WebSocket URL")

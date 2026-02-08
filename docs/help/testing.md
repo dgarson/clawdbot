@@ -106,6 +106,23 @@ Use this decision table:
 - Touching gateway networking / WS protocol / pairing: add `pnpm test:e2e`
 - Debugging “my bot is down” / provider-specific failures / tool calling: run a narrowed `pnpm test:live`
 
+## Local preview / agentic UI testing (no-auth Control UI)
+
+If you need Playwright/Codex/Claude preview access to the Control UI without a password, use the
+local-only no-auth mode:
+
+```bash
+pnpm gateway:local-preview
+```
+
+This is intentionally gated for safety. It only starts when:
+
+- `gateway.bind=loopback`
+- `gateway.tailscale.mode=off`
+- **No channels are configured** (anything under `channels.*` besides `channels.defaults`)
+
+If any of those conditions fail, the gateway will refuse to start in `auth=none`.
+
 ## Live: model smoke (profile keys)
 
 Live tests are split into two layers so we can isolate failures:

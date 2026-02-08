@@ -29,6 +29,14 @@ export type GatewayRuntimeConfig = {
   canvasHostEnabled: boolean;
 };
 
+function hasConfiguredChannels(cfg: ReturnType<typeof loadConfig>): boolean {
+  const channels = cfg.channels as Record<string, unknown> | undefined;
+  if (!channels) {
+    return false;
+  }
+  return Object.keys(channels).some((key) => key !== "defaults");
+}
+
 export async function resolveGatewayRuntimeConfig(params: {
   cfg: ReturnType<typeof loadConfig>;
   port: number;
@@ -81,11 +89,25 @@ export async function resolveGatewayRuntimeConfig(params: {
     typeof resolvedAuth.password === "string" && resolvedAuth.password.trim().length > 0;
   const hasSharedSecret =
     (authMode === "token" && hasToken) || (authMode === "password" && hasPassword);
+  const channelsConfigured = hasConfiguredChannels(params.cfg);
   const hooksConfig = resolveHooksConfig(params.cfg);
   const canvasHostEnabled =
     process.env.OPENCLAW_SKIP_CANVAS_HOST !== "1" && params.cfg.canvasHost?.enabled !== false;
 
   assertGatewayAuthConfigured(resolvedAuth);
+  if (authMode === "none") {
+    if (channelsConfigured) {
+      throw new Error(
+        "gateway auth mode=none requires zero channels configured (remove channels.* entries from config)",
+      );
+    }
+    if (tailscaleMode !== "off") {
+      throw new Error("gateway auth mode=none cannot be used with tailscale serve/funnel");
+    }
+    if (!isLoopbackHost(bindHost)) {
+      throw new Error("gateway auth mode=none requires gateway.bind=loopback");
+    }
+  }
   if (tailscaleMode === "funnel" && authMode !== "password") {
     throw new Error(
       "tailscale funnel requires gateway auth mode=password (set gateway.auth.password or OPENCLAW_GATEWAY_PASSWORD)",
