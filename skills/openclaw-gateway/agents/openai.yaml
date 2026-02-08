@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenClaw Gateway"
+  short_description: "Gateway RPCs, events, hooks, and extension architecture"
+  default_prompt: "Use the OpenClaw Gateway skill to map natural-language requests to gateway RPCs, WebSocket events, hooks/callbacks, approvals, and extension APIs with architecture-first guidance."
