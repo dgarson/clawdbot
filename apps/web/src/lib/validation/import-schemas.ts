@@ -54,10 +54,24 @@ const agentEntrySchema = z.object({
   systemPrompt: z.string().optional(),
 });
 
-const agentsConfigSchema = z.record(
+const agentsRecordSchema = z.record(
   z.string(),
   z.union([z.string(), agentEntrySchema])
-).optional();
+);
+
+const agentListEntrySchema = z
+  .object({
+    id: z.string(),
+  })
+  .passthrough();
+
+const agentsListBlockSchema = z
+  .object({
+    list: z.array(agentListEntrySchema),
+  })
+  .passthrough();
+
+const agentsConfigSchema = z.union([agentsRecordSchema, agentsListBlockSchema]).optional();
 
 const channelEntrySchema = z.object({
   enabled: z.boolean().optional(),

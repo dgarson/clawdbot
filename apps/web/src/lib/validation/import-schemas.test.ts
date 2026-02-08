@@ -97,6 +97,28 @@ describe("Configuration Import Schema", () => {
       expect(result.success).toBe(true);
     });
 
+    it("accepts agents.list entries with worker config", () => {
+      const withAgentsList = {
+        ...validConfigExport,
+        sections: ["gatewayConfig"],
+        data: {
+          gatewayConfig: {
+            agents: {
+              list: [
+                {
+                  id: "worker-1",
+                  agentType: "worker",
+                  worker: { enabled: true, queueId: "default" },
+                },
+              ],
+            },
+          },
+        },
+      };
+      const result = configurationExportSchema.safeParse(withAgentsList);
+      expect(result.success).toBe(true);
+    });
+
     it("validates UI settings theme enum", () => {
       const validThemes = ["light", "dark", "system"];
       for (const theme of validThemes) {

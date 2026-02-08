@@ -81,6 +81,16 @@ export const LEGACY_CONFIG_RULES: LegacyConfigRule[] = [
     message: "identity was moved; use agents.list[].identity instead (auto-migrated on load).",
   },
   {
+    path: ["agents", "worker"],
+    message:
+      "agents.worker is not valid; move it to the matching agents.list[].worker entry instead.",
+  },
+  {
+    path: ["agents", "agentType"],
+    message:
+      "agents.agentType is not valid; move it to the matching agents.list[].agentType entry instead.",
+  },
+  {
     path: ["agent"],
     message:
       "agent.* was moved; use agents.defaults (and tools.* for tool/elevated/exec settings) instead (auto-migrated on load).",

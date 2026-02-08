@@ -70,6 +70,27 @@ Verify with:
 openclaw agents list --bindings
 ```
 
+## Agent list entry example
+
+Place per-agent settings like `agentType` and `worker` under `agents.list[]`:
+
+```json5
+{
+  agents: {
+    list: [
+      {
+        id: "research-worker",
+        agentType: "worker",
+        worker: {
+          enabled: true,
+          queueId: "research",
+        },
+      },
+    ],
+  },
+}
+```
+
 ## When to create a new agent
 
 Create a new agent when you need **true isolation**:
