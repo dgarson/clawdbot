@@ -7,9 +7,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AgentCard } from "@/components/domain/agents";
-import { AgentCardSkeleton } from "@/components/composed/skeletons";
 import { useAgents } from "@/hooks/queries/useAgents";
-import { Users, ArrowRight } from "lucide-react";
+import { Users, ArrowRight, Loader2 } from "lucide-react";
 
 interface TeamAgentGridProps {
   maxAgents?: number;
@@ -38,7 +37,6 @@ export function TeamAgentGrid({
   className,
 }: TeamAgentGridProps) {
   const { data: agents, isLoading, error } = useAgents();
-  const skeletonCount = Math.min(maxAgents, 6);
 
   // Sort by last active and take top N agents
   const displayAgents = React.useMemo(() => {
@@ -82,10 +80,8 @@ export function TeamAgentGrid({
 
         <CardContent className="pt-4">
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: skeletonCount }).map((_, index) => (
-                <AgentCardSkeleton key={index} />
-              ))}
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
             <div className="py-8 text-center text-sm text-muted-foreground">

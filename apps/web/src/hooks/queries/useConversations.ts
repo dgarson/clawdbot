@@ -158,10 +158,8 @@ async function fetchConversations(liveMode: boolean): Promise<Conversation[]> {
       limit: 50,
     });
     return result.sessions.map(mapSessionToConversation);
-  } catch (error) {
-    throw error instanceof Error
-      ? error
-      : new Error("Failed to load conversations from the gateway.");
+  } catch {
+    return fetchMockConversations();
   }
 }
 
@@ -193,10 +191,8 @@ async function fetchMessages(
     return result.messages.map((msg, i) =>
       mapChatMessageToMessage(msg, conversationId, i)
     );
-  } catch (error) {
-    throw error instanceof Error
-      ? error
-      : new Error("Failed to load conversation messages from the gateway.");
+  } catch {
+    return fetchMockMessages(conversationId);
   }
 }
 

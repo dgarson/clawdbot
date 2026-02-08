@@ -42,18 +42,8 @@ function ConversationDetailPage() {
   }, [id, setActiveConversation]);
 
   // Fetch data
-  const {
-    data: conversation,
-    isLoading: conversationLoading,
-    error: conversationError,
-    refetch: refetchConversation,
-  } = useConversation(id);
-  const {
-    data: messages,
-    isLoading: messagesLoading,
-    error: messagesError,
-    refetch: refetchMessages,
-  } = useMessages(id);
+  const { data: conversation, isLoading: conversationLoading } = useConversation(id);
+  const { data: messages, isLoading: messagesLoading } = useMessages(id);
   const { data: agent } = useAgent(conversation?.agentId || "");
 
   // Mutations
@@ -96,7 +86,6 @@ function ConversationDetailPage() {
   };
 
   const isLoading = conversationLoading || messagesLoading;
-  const error = conversationError ?? messagesError;
 
   if (conversationLoading) {
     return (
@@ -121,38 +110,6 @@ function ConversationDetailPage() {
             ))}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
-        >
-          <h2 className="text-xl font-semibold text-foreground mb-2">
-            Failed to load conversation
-          </h2>
-          <p className="text-muted-foreground mb-4">
-            {error instanceof Error ? error.message : "Please try again."}
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <Button variant="outline" onClick={handleBack}>
-              Back to conversations
-            </Button>
-            <Button
-              onClick={() => {
-                refetchConversation();
-                refetchMessages();
-              }}
-            >
-              Retry
-            </Button>
-          </div>
-        </motion.div>
       </div>
     );
   }

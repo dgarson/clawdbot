@@ -7,9 +7,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ListItemSkeleton } from "@/components/composed";
 import { useRituals } from "@/hooks/queries";
-import { RefreshCw, ArrowRight, Clock, Bot } from "lucide-react";
+import { RefreshCw, ArrowRight, Loader2, Clock, Bot } from "lucide-react";
 
 interface UpcomingRitualsPanelProps {
   maxRituals?: number;
@@ -104,10 +103,8 @@ export function UpcomingRitualsPanel({
 
         <CardContent className="pt-4">
           {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <ListItemSkeleton key={index} />
-              ))}
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
             <div className="py-8 text-center text-sm text-muted-foreground">

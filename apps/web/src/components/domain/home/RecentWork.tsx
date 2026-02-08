@@ -6,7 +6,6 @@ import { Clock, ArrowRight, MessageCircle, ListTodo } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ListItemSkeleton } from "@/components/composed";
 import { useWorkstreams } from "@/hooks/queries";
 import { useConversations } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
@@ -44,9 +43,8 @@ interface RecentWorkProps {
  * Shows 3 most recent workstreams/conversations with Resume actions.
  */
 export function RecentWork({ maxItems = 3, className }: RecentWorkProps) {
-  const { data: workstreams, isLoading: workstreamsLoading } = useWorkstreams();
-  const { data: conversations, isLoading: conversationsLoading } = useConversations();
-  const isLoading = workstreamsLoading || conversationsLoading;
+  const { data: workstreams } = useWorkstreams();
+  const { data: conversations } = useConversations();
 
   // Merge and sort by updatedAt
   const items: RecentItem[] = [];
@@ -81,23 +79,6 @@ export function RecentWork({ maxItems = 3, className }: RecentWorkProps) {
   );
 
   const recent = items.slice(0, maxItems);
-
-  if (isLoading) {
-    return (
-      <div className={cn("space-y-3", className)}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Recent work
-          </h3>
-        </div>
-        <div className="space-y-2">
-          {Array.from({ length: maxItems }).map((_, index) => (
-            <ListItemSkeleton key={index} />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   if (recent.length === 0) {
     return null;

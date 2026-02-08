@@ -8,9 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ListItemSkeleton } from "@/components/composed";
 import { useWorkstreams } from "@/hooks/queries";
-import { GitBranch, ArrowRight, CheckCircle2 } from "lucide-react";
+import { GitBranch, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 
 interface ActiveWorkstreamsSectionProps {
   maxWorkstreams?: number;
@@ -80,10 +79,8 @@ export function ActiveWorkstreamsSection({
 
         <CardContent className="pt-4">
           {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <ListItemSkeleton key={index} />
-              ))}
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
             <div className="py-8 text-center text-sm text-muted-foreground">

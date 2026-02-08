@@ -7,9 +7,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ListItemSkeleton } from "@/components/composed";
 import { useGoals } from "@/hooks/queries";
-import { Target, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Target, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 
 interface GoalProgressPanelProps {
   maxGoals?: number;
@@ -130,10 +129,8 @@ export function GoalProgressPanel({
 
         <CardContent className="pt-4">
           {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <ListItemSkeleton key={index} />
-              ))}
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
             <div className="py-8 text-center text-sm text-muted-foreground">

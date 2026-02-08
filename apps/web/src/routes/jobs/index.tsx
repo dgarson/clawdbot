@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ListItemSkeleton } from "@/components/composed";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -293,7 +293,21 @@ function JobsPage() {
               {isLoading && (
                 <div className="space-y-3">
                   {Array.from({ length: 4 }).map((_, index) => (
-                    <ListItemSkeleton key={`job-skeleton-${index}`} />
+                    <div
+                      key={`job-skeleton-${index}`}
+                      className="rounded-lg border border-border p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="ml-auto h-6 w-16 rounded-full" />
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}

@@ -18,7 +18,6 @@ import type {
   WorkflowStatus,
 } from "@/components/domain/agentic-workflow";
 import { Switch } from "@/components/ui/switch";
-import { AGENTIC_DEMO_DELAYS_MS } from "@/lib/agenticDemo";
 import {
   Bot,
   Command as CommandIcon,
@@ -40,6 +39,14 @@ export const Route = createFileRoute("/conversations/$id/agentic")({
 function uid(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+// This route is currently a demo harness; keep delays centralized for easy removal.
+const DEMO_DELAYS_MS = {
+  toolExecution: 1000,
+  answerQuestion: 800,
+  initialResponse: 700,
+  autoApproveFollowup: 500,
+} as const;
 
 function AgenticConversationPage() {
   const { id } = Route.useParams();
@@ -137,7 +144,7 @@ function AgenticConversationPage() {
         { id: uid("assistant"), role: "assistant", content: `Tool executed: ${toolCallId}`, timestamp: new Date().toLocaleTimeString() },
       ]);
       setStatus("complete");
-    }, AGENTIC_DEMO_DELAYS_MS.toolExecution);
+    }, DEMO_DELAYS_MS.toolExecution);
   };
 
   const rejectTool = (toolCallId: string) => {
@@ -163,7 +170,7 @@ function AgenticConversationPage() {
         },
       ]);
       setStatus("complete");
-    }, AGENTIC_DEMO_DELAYS_MS.answerQuestion);
+    }, DEMO_DELAYS_MS.answerQuestion);
   };
 
   const onSend = ({ content, attachments }: { content: string; attachments: AgenticChatMessage["attachments"] }) => {
@@ -192,12 +199,7 @@ function AgenticConversationPage() {
       };
       setPendingToolCalls((prev) => [...prev, tc]);
       setStatus(autoApprove ? "executing" : "waiting_approval");
-      if (autoApprove) {
-        window.setTimeout(
-          () => approveTool(tc.toolCallId),
-          AGENTIC_DEMO_DELAYS_MS.autoApproveFollowup
-        );
-      }
+      if (autoApprove) {window.setTimeout(() => approveTool(tc.toolCallId), DEMO_DELAYS_MS.autoApproveFollowup);}
 
       const q: Question = {
         id: uid("q"),
@@ -213,7 +215,7 @@ function AgenticConversationPage() {
       };
       setPendingQuestions((prev) => [...prev, q]);
       if (!autoApprove) {setStatus("waiting_input");}
-    }, AGENTIC_DEMO_DELAYS_MS.initialResponse);
+    }, DEMO_DELAYS_MS.initialResponse);
   };
 
   const onExecuteCommand = (cmd: PaletteCommand) => {
