@@ -41,8 +41,7 @@ async function getRecentSessionContent(
           if ((role === "user" || role === "assistant") && msg.content) {
             // Extract text content
             const text = Array.isArray(msg.content)
-              ? // oxlint-disable-next-line typescript/no-explicit-any
-                msg.content.find((c: any) => c.type === "text")?.text
+              ? msg.content.find((c: { type: string; text?: string }) => c.type === "text")?.text
               : msg.content;
             if (text && !text.startsWith("/")) {
               allMessages.push(`${role}: ${text}`);

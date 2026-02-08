@@ -5,6 +5,7 @@
  * conflict detection, and pull request creation.
  */
 
+import type { SimpleGit } from "simple-git";
 import { Octokit } from "@octokit/rest";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
@@ -22,8 +23,7 @@ import { ArtifactStorage } from "../artifacts.js";
 import { emitAutomationProgress } from "../events.js";
 
 // Import simple-git dynamically to avoid namespace issues
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let simpleGitInstance: any;
+let simpleGitInstance: typeof import("simple-git") | undefined;
 try {
   simpleGitInstance = require("simple-git");
 } catch {
@@ -65,7 +65,7 @@ export class SmartSyncForkExecutor {
   private readonly milestones: AutomationMilestone[] = [];
   private readonly conflicts: AutomationConflict[] = [];
   private artifactStorage: ArtifactStorage;
-  private git: any; // simple-git SimpleGit instance
+  private git!: SimpleGit;
   private tempDir: string;
   private octokit?: Octokit;
 

@@ -109,11 +109,11 @@ function resolveOverseerConfig(cfg = loadConfig()): OverseerResolvedConfig {
   const backoffMaxMs = safeDuration(cfg.overseer?.backoff?.max ?? DEFAULT_BACKOFF_MAX, 30 * 60_000);
   const allowCrossAgent = cfg.overseer?.policy?.allowCrossAgent === true;
   const allowAgentsRaw = cfg.overseer?.policy?.allowAgents ?? [];
-  const allowAnyAgent = allowAgentsRaw.some((value: any) => value.trim() === "*");
+  const allowAnyAgent = allowAgentsRaw.some((value: string) => value.trim() === "*");
   const allowAgents = new Set<string>(
     allowAgentsRaw
-      .filter((value: any) => value.trim() && value.trim() !== "*")
-      .map((value: any) => normalizeAgentId(value)),
+      .filter((value: string) => value.trim() && value.trim() !== "*")
+      .map((value: string) => normalizeAgentId(value)),
   );
   return {
     enabled,

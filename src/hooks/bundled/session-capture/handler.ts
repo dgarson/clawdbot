@@ -36,8 +36,7 @@ async function getSessionMessages(
           const msg = entry.message;
           if ((msg.role === "user" || msg.role === "assistant") && msg.content) {
             const text = Array.isArray(msg.content)
-              ? // oxlint-disable-next-line typescript/no-explicit-any
-                msg.content.find((c: any) => c.type === "text")?.text
+              ? msg.content.find((c: { type: string; text?: string }) => c.type === "text")?.text
               : msg.content;
             if (text && !text.startsWith("/")) {
               messages.push({ role: msg.role, content: text });

@@ -199,11 +199,11 @@ async function resolveChannelId(
   return { channelId, isDm: true };
 }
 
-function logTrace(msg: string, _config: OpenClawConfig, obj: any) {
+function logTrace(msg: string, _config: OpenClawConfig, obj: Record<string, unknown>) {
   log.trace(msg, { ...obj, channel: "slack" });
 }
 
-function logDebug(msg: string, _config: OpenClawConfig, obj: any) {
+function logDebug(msg: string, _config: OpenClawConfig, obj: Record<string, unknown>) {
   log.debug(msg, { ...obj, channel: "slack" });
 }
 
