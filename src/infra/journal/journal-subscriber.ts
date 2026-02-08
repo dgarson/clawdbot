@@ -49,11 +49,15 @@ export function startJournalSubscriber(config?: JournalConfig): void {
 
     const data = event.data as {
       name?: string;
+      toolCallId?: string;
       callId?: string;
       phase?: string;
+      args?: unknown;
       input?: Record<string, unknown>;
+      result?: unknown;
       output?: unknown;
       error?: unknown;
+      isError?: boolean;
       durationMs?: number;
     };
 
@@ -62,7 +66,7 @@ export function startJournalSubscriber(config?: JournalConfig): void {
       return;
     }
 
-    const toolCallId = data.callId ?? event.runId;
+    const toolCallId = data.toolCallId ?? data.callId ?? event.runId;
     const phase = normalizePhase(data.phase);
 
     if (phase === "start") {
@@ -79,10 +83,11 @@ export function startJournalSubscriber(config?: JournalConfig): void {
       durationMs = durationMs ?? data.durationMs;
     }
 
-    const args = phase === "start" ? maybeRedact(data.input, redactSensitive) : undefined;
+    const args =
+      phase === "start" ? maybeRedact(data.args ?? data.input, redactSensitive) : undefined;
     let result: unknown;
     if (phase === "result") {
-      result = data.error ?? data.output;
+      result = data.error ?? data.result ?? data.output;
       result = maybeTruncate(result, maxResultChars);
     }
 
@@ -96,7 +101,9 @@ export function startJournalSubscriber(config?: JournalConfig): void {
       toolCallId,
       ...(args !== undefined ? { args } : {}),
       ...(result !== undefined ? { result } : {}),
-      ...(phase === "result" && data.error !== undefined ? { isError: true } : {}),
+      ...(phase === "result" && (data.error !== undefined || data.isError === true)
+        ? { isError: true }
+        : {}),
       ...(durationMs !== undefined ? { durationMs } : {}),
     };
 
@@ -129,17 +136,18 @@ function normalizePhase(phase?: string): "start" | "update" | "result" {
 
 const SENSITIVE_KEYS = ["password", "apikey", "api_key", "secret", "token", "credential", "auth"];
 
-function maybeRedact(
-  input: Record<string, unknown> | undefined,
-  redact: boolean,
-): Record<string, unknown> | undefined {
-  if (!input) {
+function maybeRedact(input: unknown, redact: boolean): unknown {
+  if (input === undefined) {
     return undefined;
   }
-  if (!redact) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
     return input;
   }
-  const redacted = { ...input };
+  const inputRecord = input as Record<string, unknown>;
+  if (!redact) {
+    return inputRecord;
+  }
+  const redacted = { ...inputRecord };
   for (const key of Object.keys(redacted)) {
     const lower = key.toLowerCase();
     if (SENSITIVE_KEYS.some((sk) => lower.includes(sk))) {

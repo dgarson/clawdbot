@@ -72,6 +72,61 @@ describe("startJournalSubscriber", () => {
     expect(typeof lines[1].durationMs).toBe("number");
   });
 
+  it("supports emitted tool payload fields (toolCallId/args/result/isError)", () => {
+    const filePath = path.join(TEST_DIR, "sub-emitted-fields.log");
+    startJournalSubscriber({ file: filePath });
+
+    emitAgentEvent({
+      runId: "run-shared",
+      stream: "tool",
+      data: { name: "exec", toolCallId: "tool-1", phase: "start", args: { command: "echo one" } },
+    });
+    emitAgentEvent({
+      runId: "run-shared",
+      stream: "tool",
+      data: { name: "exec", toolCallId: "tool-2", phase: "start", args: { command: "echo two" } },
+    });
+    emitAgentEvent({
+      runId: "run-shared",
+      stream: "tool",
+      data: {
+        name: "exec",
+        toolCallId: "tool-1",
+        phase: "result",
+        result: "one\n",
+        isError: false,
+      },
+    });
+    emitAgentEvent({
+      runId: "run-shared",
+      stream: "tool",
+      data: {
+        name: "exec",
+        toolCallId: "tool-2",
+        phase: "result",
+        result: "failed",
+        isError: true,
+      },
+    });
+
+    const lines = readJournalLines(filePath);
+    expect(lines).toHaveLength(4);
+
+    expect(lines[0].toolCallId).toBe("tool-1");
+    expect(lines[0].args).toEqual({ command: "echo one" });
+    expect(lines[1].toolCallId).toBe("tool-2");
+    expect(lines[1].args).toEqual({ command: "echo two" });
+    expect(lines[2].toolCallId).toBe("tool-1");
+    expect(lines[2].result).toBe("one\n");
+    expect(lines[3].toolCallId).toBe("tool-2");
+    expect(lines[3].result).toBe("failed");
+    expect(lines[3].isError).toBe(true);
+    expect(lines[2].toolCallId).not.toBe("run-shared");
+    expect(lines[3].toolCallId).not.toBe("run-shared");
+    expect(typeof lines[2].durationMs).toBe("number");
+    expect(typeof lines[3].durationMs).toBe("number");
+  });
+
   it("filters by default tool list", () => {
     const filePath = path.join(TEST_DIR, "sub-filter.log");
     startJournalSubscriber({ file: filePath });
