@@ -180,8 +180,8 @@ export async function setExecApprovals(
     return client.request("exec.approvals.node.set", {
       nodeId,
       file,
-      hash,
+      baseHash: hash,
     });
   }
-  return client.request("exec.approvals.set", { file, hash });
+  return client.request("exec.approvals.set", { file, baseHash: hash });
 }
