@@ -1,11 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions.js";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
 const runWithModelFallbackMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -18,7 +27,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -102,20 +111,26 @@ function createRun(params: { responseUsage: "tokens" | "full"; sessionKey: strin
 
 describe("runReplyAgent response usage footer", () => {
   beforeEach(() => {
-    runEmbeddedPiAgentMock.mockReset();
+    kernelExecuteMock.mockReset();
     runWithModelFallbackMock.mockReset();
   });
 
   it("appends session key when responseUsage=full", async () => {
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "ok" }],
-      meta: {
-        agentMeta: {
+    kernelExecuteMock.mockImplementation(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "ok" }],
+        runtime: {
+          kind: "pi",
           provider: "anthropic",
           model: "claude",
-          usage: { input: 12, output: 3 },
+          fallbackUsed: false,
         },
-      },
+        usage: {
+          inputTokens: 12,
+          outputTokens: 3,
+          durationMs: 100,
+        },
+      });
     });
     runWithModelFallbackMock.mockImplementationOnce(
       async ({ run }: { run: (provider: string, model: string) => Promise<unknown> }) => ({
@@ -133,15 +148,21 @@ describe("runReplyAgent response usage footer", () => {
   });
 
   it("does not append session key when responseUsage=tokens", async () => {
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "ok" }],
-      meta: {
-        agentMeta: {
+    kernelExecuteMock.mockImplementation(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "ok" }],
+        runtime: {
+          kind: "pi",
           provider: "anthropic",
           model: "claude",
-          usage: { input: 12, output: 3 },
+          fallbackUsed: false,
         },
-      },
+        usage: {
+          inputTokens: 12,
+          outputTokens: 3,
+          durationMs: 100,
+        },
+      });
     });
     runWithModelFallbackMock.mockImplementationOnce(
       async ({ run }: { run: (provider: string, model: string) => Promise<unknown> }) => ({

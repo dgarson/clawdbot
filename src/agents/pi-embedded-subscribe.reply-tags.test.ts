@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -16,12 +17,14 @@ describe("subscribeEmbeddedPiSession reply tags", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
       blockReplyChunking: {
         minChars: 1,
@@ -51,11 +54,17 @@ describe("subscribeEmbeddedPiSession reply tags", () => {
     } as AssistantMessage;
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
-    const payload = onBlockReply.mock.calls[0]?.[0];
-    expect(payload?.text).toBe("Hello");
-    expect(payload?.replyToCurrent).toBe(true);
-    expect(payload?.replyToTag).toBe(true);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
+    const payload = blockReplies[0];
+    if (payload.kind === "block_reply") {
+      expect(payload.text).toBe("Hello");
+      expect(payload.replyToCurrent).toBe(true);
+      expect(payload.replyToTag).toBe(true);
+    }
+
+    unsub();
+    mw.destroy();
   });
 
   it("flushes trailing directive tails on stream end", () => {
@@ -67,12 +76,14 @@ describe("subscribeEmbeddedPiSession reply tags", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
       blockReplyChunking: {
         minChars: 1,
@@ -99,9 +110,17 @@ describe("subscribeEmbeddedPiSession reply tags", () => {
     } as AssistantMessage;
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(2);
-    expect(onBlockReply.mock.calls[0]?.[0]?.text).toBe("Hello");
-    expect(onBlockReply.mock.calls[1]?.[0]?.text).toBe("[[");
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(2);
+    if (blockReplies[0].kind === "block_reply") {
+      expect(blockReplies[0].text).toBe("Hello");
+    }
+    if (blockReplies[1].kind === "block_reply") {
+      expect(blockReplies[1].text).toBe("[[");
+    }
+
+    unsub();
+    mw.destroy();
   });
 
   it("streams partial replies past reply_to tags split across chunks", () => {
@@ -113,12 +132,14 @@ describe("subscribeEmbeddedPiSession reply tags", () => {
       },
     };
 
-    const onPartialReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onPartialReply,
+      streamMiddleware: mw,
     });
 
     handler?.({ type: "message_start", message: { role: "assistant" } });
@@ -143,10 +164,18 @@ describe("subscribeEmbeddedPiSession reply tags", () => {
       assistantMessageEvent: { type: "text_end" },
     });
 
-    const lastPayload = onPartialReply.mock.calls.at(-1)?.[0];
-    expect(lastPayload?.text).toBe("Hello world");
-    for (const call of onPartialReply.mock.calls) {
-      expect(call[0]?.text?.includes("[[reply_to")).toBe(false);
+    const partialReplies = events.filter((e) => e.kind === "partial_reply");
+    const lastPartial = partialReplies.at(-1);
+    if (lastPartial?.kind === "partial_reply") {
+      expect(lastPartial.text).toBe("Hello world");
     }
+    for (const e of partialReplies) {
+      if (e.kind === "partial_reply") {
+        expect(e.text?.includes("[[reply_to")).toBe(false);
+      }
+    }
+
+    unsub();
+    mw.destroy();
   });
 });

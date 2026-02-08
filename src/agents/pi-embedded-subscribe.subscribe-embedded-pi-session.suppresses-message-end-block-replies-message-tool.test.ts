@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -23,12 +24,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
     });
 
@@ -59,7 +62,11 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).not.toHaveBeenCalled();
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(0);
+
+    unsub();
+    mw.destroy();
   });
   it("does not suppress message_end replies when message tool reports error", async () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -70,12 +77,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
     });
 
@@ -106,7 +115,11 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
+
+    unsub();
+    mw.destroy();
   });
   it("clears block reply state on message_start", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -117,12 +130,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -137,7 +152,8 @@ describe("subscribeEmbeddedPiSession", () => {
       message: { role: "assistant" },
       assistantMessageEvent: { type: "text_end" },
     });
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockReplies1 = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies1).toHaveLength(1);
 
     // New assistant message with identical output should still emit.
     handler?.({ type: "message_start", message: { role: "assistant" } });
@@ -151,6 +167,10 @@ describe("subscribeEmbeddedPiSession", () => {
       message: { role: "assistant" },
       assistantMessageEvent: { type: "text_end" },
     });
-    expect(onBlockReply).toHaveBeenCalledTimes(2);
+    const blockReplies2 = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies2).toHaveLength(2);
+
+    unsub();
+    mw.destroy();
   });
 });

@@ -24,7 +24,6 @@ export default defineConfig([
     outputOptions: { codeSplitting: false },
   },
   {
-    dts: true,
     entry: "src/plugin-sdk/index.ts",
     outDir: "dist/plugin-sdk",
     env,

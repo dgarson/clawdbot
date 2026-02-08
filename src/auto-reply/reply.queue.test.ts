@@ -1,14 +1,23 @@
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest, ExecutionResult } from "../execution/types.js";
 import { pollUntil } from "../../test/helpers/poll.js";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import {
-  isEmbeddedPiRunActive,
-  isEmbeddedPiRunStreaming,
-  runEmbeddedPiAgent,
-} from "../agents/pi-embedded.js";
+import { isEmbeddedPiRunActive, isEmbeddedPiRunStreaming } from "../agents/pi-embedded.js";
 import { getReplyFromConfig } from "./reply.js";
+import { makeExecutionResult } from "./reply/test-helpers.js";
 
+// Mock kernel — the production code calls createDefaultExecutionKernel().execute()
+const kernelExecuteMock = vi.fn<(request: ExecutionRequest) => Promise<ExecutionResult>>();
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: (req: ExecutionRequest) => kernelExecuteMock(req),
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
+
+// Keep pi-embedded mock for state-check functions used in queue logic
 vi.mock("../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
   runEmbeddedPiAgent: vi.fn(),
@@ -18,20 +27,10 @@ vi.mock("../agents/pi-embedded.js", () => ({
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
 }));
 
-function makeResult(text: string) {
-  return {
-    payloads: [{ text }],
-    meta: {
-      durationMs: 5,
-      agentMeta: { sessionId: "s", provider: "p", model: "m" },
-    },
-  };
-}
-
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   return withTempHomeBase(
     async (home) => {
-      vi.mocked(runEmbeddedPiAgent).mockReset();
+      kernelExecuteMock.mockReset();
       return await fn(home);
     },
     { prefix: "openclaw-queue-" },
@@ -61,12 +60,12 @@ describe("queue followups", () => {
     vi.useFakeTimers();
     await withTempHome(async (home) => {
       const prompts: string[] = [];
-      vi.mocked(runEmbeddedPiAgent).mockImplementation(async (params) => {
-        prompts.push(params.prompt);
-        if (params.prompt.includes("[Queued messages while agent was busy]")) {
-          return makeResult("followup");
+      kernelExecuteMock.mockImplementation(async (req: ExecutionRequest) => {
+        prompts.push(req.prompt);
+        if (req.prompt.includes("[Queued messages while agent was busy]")) {
+          return makeExecutionResult({ payloads: [{ text: "followup" }] });
         }
-        return makeResult("main");
+        return makeExecutionResult({ payloads: [{ text: "main" }] });
       });
 
       vi.mocked(isEmbeddedPiRunActive).mockReturnValue(true);
@@ -85,7 +84,7 @@ describe("queue followups", () => {
         cfg,
       );
       expect(first).toBeUndefined();
-      expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+      expect(kernelExecuteMock).not.toHaveBeenCalled();
 
       vi.mocked(isEmbeddedPiRunActive).mockReturnValue(false);
       vi.mocked(isEmbeddedPiRunStreaming).mockReturnValue(false);
@@ -102,7 +101,7 @@ describe("queue followups", () => {
       await vi.advanceTimersByTimeAsync(500);
       await Promise.resolve();
 
-      expect(runEmbeddedPiAgent).toHaveBeenCalledTimes(2);
+      expect(kernelExecuteMock).toHaveBeenCalledTimes(2);
       const queuedPrompt = prompts.find((p) =>
         p.includes("[Queued messages while agent was busy]"),
       );
@@ -114,9 +113,9 @@ describe("queue followups", () => {
   it("summarizes dropped followups when cap is exceeded", async () => {
     await withTempHome(async (home) => {
       const prompts: string[] = [];
-      vi.mocked(runEmbeddedPiAgent).mockImplementation(async (params) => {
-        prompts.push(params.prompt);
-        return makeResult("ok");
+      kernelExecuteMock.mockImplementation(async (req: ExecutionRequest) => {
+        prompts.push(req.prompt);
+        return makeExecutionResult({ payloads: [{ text: "ok" }] });
       });
 
       vi.mocked(isEmbeddedPiRunActive).mockReturnValue(true);

@@ -1,9 +1,21 @@
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest, ExecutionResult } from "../execution/types.js";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { getReplyFromConfig } from "./reply.js";
+import { makeExecutionResult } from "./reply/test-helpers.js";
 
+// Mock kernel — the production code calls createDefaultExecutionKernel().execute()
+const kernelExecuteMock = vi.fn<(request: ExecutionRequest) => Promise<ExecutionResult>>();
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: (req: ExecutionRequest) => kernelExecuteMock(req),
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
+
+// Keep simplified pi-embedded mock for state-check functions
 vi.mock("../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
   runEmbeddedPiAgent: vi.fn(),
@@ -13,20 +25,10 @@ vi.mock("../agents/pi-embedded.js", () => ({
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
 }));
 
-function makeResult(text: string) {
-  return {
-    payloads: [{ text }],
-    meta: {
-      durationMs: 5,
-      agentMeta: { sessionId: "s", provider: "p", model: "m" },
-    },
-  };
-}
-
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   return withTempHomeBase(
     async (home) => {
-      vi.mocked(runEmbeddedPiAgent).mockReset();
+      kernelExecuteMock.mockReset();
       return await fn(home);
     },
     {
@@ -55,9 +57,9 @@ describe("getReplyFromConfig media note plumbing", () => {
   it("includes all MediaPaths in the agent prompt", async () => {
     await withTempHome(async (home) => {
       let seenPrompt: string | undefined;
-      vi.mocked(runEmbeddedPiAgent).mockImplementation(async (params) => {
-        seenPrompt = params.prompt;
-        return makeResult("ok");
+      kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+        seenPrompt = req.prompt;
+        return makeExecutionResult({ payloads: [{ text: "ok" }] });
       });
 
       const cfg = makeCfg(home);

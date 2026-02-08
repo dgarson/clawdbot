@@ -6,8 +6,8 @@
  * - AgentStreamEvent: normalized output consumed by the delivery pipeline
  */
 
-import type { MessagingToolSend } from "../pi-embedded-messaging.js";
 import type { BlockReplyChunking } from "../pi-embedded-block-chunker.js";
+import type { MessagingToolSend } from "../pi-embedded-messaging.js";
 
 // ---------------------------------------------------------------------------
 // Raw events — what runners produce

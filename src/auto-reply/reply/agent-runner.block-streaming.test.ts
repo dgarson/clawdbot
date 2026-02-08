@@ -1,9 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -24,7 +33,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -41,14 +50,11 @@ import { runReplyAgent } from "./agent-runner.js";
 describe("runReplyAgent block streaming", () => {
   it("coalesces duplicate text_end block replies", async () => {
     const onBlockReply = vi.fn();
-    runEmbeddedPiAgentMock.mockImplementationOnce(async (params) => {
-      const block = params.onBlockReply as ((payload: { text?: string }) => void) | undefined;
-      block?.({ text: "Hello" });
-      block?.({ text: "Hello" });
-      return {
-        payloads: [{ text: "Final message" }],
-        meta: {},
-      };
+    kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+      // Push two identical block replies through middleware to test coalescing
+      req.streamMiddleware?.push({ kind: "block_reply", text: "Hello" });
+      req.streamMiddleware?.push({ kind: "block_reply", text: "Hello" });
+      return makeExecutionResult({ payloads: [{ text: "Final message" }] });
     });
 
     const typing = createMockTypingController();

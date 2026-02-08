@@ -337,9 +337,19 @@ async function runFollowupWithKernel(params: {
           messageTo: queued.originatingTo,
           messageProvider: queued.run.messageProvider,
         },
-        onAgentEvent: (evt) => {
+      };
+
+      // Subscribe to middleware for compaction tracking
+      const { StreamingMiddleware } = await import("../../agents/stream/index.js");
+      const mw = new StreamingMiddleware({
+        reasoningLevel: "off",
+        isHeartbeat: false,
+      });
+      request.streamMiddleware = mw;
+      const unsub = mw.subscribe((event) => {
+        if (event.kind === "agent_event") {
+          const evt = event as { stream: string; data: Record<string, unknown> };
           onCompactionEvent(evt);
-          // Track auto-compaction in the kernel path too
           if (
             evt.stream === "compaction" &&
             typeof evt.data.phase === "string" &&
@@ -348,11 +358,16 @@ async function runFollowupWithKernel(params: {
           ) {
             autoCompactionCompleted = true;
           }
-        },
-      };
+        }
+      });
 
-      const result = await kernel.execute(request);
-      return mapFollowupExecutionResultToLegacy(result);
+      try {
+        const result = await kernel.execute(request);
+        return mapFollowupExecutionResultToLegacy(result);
+      } finally {
+        unsub();
+        mw.destroy();
+      }
     },
   });
 

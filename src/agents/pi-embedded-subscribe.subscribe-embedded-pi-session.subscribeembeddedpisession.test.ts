@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -25,14 +26,14 @@ describe("subscribeEmbeddedPiSession", () => {
         },
       };
 
-      const onReasoningStream = vi.fn();
-      const onBlockReply = vi.fn();
+      const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((e) => events.push(e));
 
       subscribeEmbeddedPiSession({
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
-        onReasoningStream,
-        onBlockReply,
+        streamMiddleware: mw,
         blockReplyBreak: "message_end",
         reasoningMode: "stream",
       });
@@ -67,11 +68,16 @@ describe("subscribeEmbeddedPiSession", () => {
 
       handler?.({ type: "message_end", message: assistantMessage });
 
-      expect(onBlockReply).toHaveBeenCalledTimes(1);
-      expect(onBlockReply.mock.calls[0][0].text).toBe("Final answer");
+      const blockReplies = events.filter((e) => e.kind === "block_reply");
+      expect(blockReplies).toHaveLength(1);
+      if (blockReplies[0].kind === "block_reply") {
+        expect(blockReplies[0].text).toBe("Final answer");
+      }
 
-      const streamTexts = onReasoningStream.mock.calls
-        .map((call) => call[0]?.text)
+      // Reasoning events are pushed as thinking_delta -> emitted as "reasoning"
+      const reasoningEvents = events.filter((e) => e.kind === "reasoning");
+      const streamTexts = reasoningEvents
+        .map((e) => (e.kind === "reasoning" ? e.text : undefined))
         .filter((value): value is string => typeof value === "string");
       expect(streamTexts.at(-1)).toBe("Reasoning:\n_Because it helps_");
 
@@ -79,6 +85,9 @@ describe("subscribeEmbeddedPiSession", () => {
         { type: "thinking", thinking: "Because it helps" },
         { type: "text", text: "Final answer" },
       ]);
+
+      unsub();
+      mw.destroy();
     },
   );
   it.each(THINKING_TAG_CASES)(
@@ -92,12 +101,14 @@ describe("subscribeEmbeddedPiSession", () => {
         },
       };
 
-      const onBlockReply = vi.fn();
+      const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((e) => events.push(e));
 
       subscribeEmbeddedPiSession({
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
-        onBlockReply,
+        streamMiddleware: mw,
         blockReplyBreak: "text_end",
         blockReplyChunking: {
           minChars: 5,
@@ -117,7 +128,8 @@ describe("subscribeEmbeddedPiSession", () => {
         },
       });
 
-      expect(onBlockReply).not.toHaveBeenCalled();
+      const blockRepliesEarly = events.filter((e) => e.kind === "block_reply");
+      expect(blockRepliesEarly).toHaveLength(0);
 
       handler?.({
         type: "message_update",
@@ -134,8 +146,9 @@ describe("subscribeEmbeddedPiSession", () => {
         assistantMessageEvent: { type: "text_end" },
       });
 
-      const payloadTexts = onBlockReply.mock.calls
-        .map((call) => call[0]?.text)
+      const blockReplies = events.filter((e) => e.kind === "block_reply");
+      const payloadTexts = blockReplies
+        .map((e) => (e.kind === "block_reply" ? e.text : undefined))
         .filter((value): value is string => typeof value === "string");
       expect(payloadTexts.length).toBeGreaterThan(0);
       for (const text of payloadTexts) {
@@ -144,6 +157,9 @@ describe("subscribeEmbeddedPiSession", () => {
       }
       const combined = payloadTexts.join(" ").replace(/\s+/g, " ").trim();
       expect(combined).toBe("Final answer");
+
+      unsub();
+      mw.destroy();
     },
   );
 
@@ -156,12 +172,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     handler?.({ type: "message_start", message: { role: "assistant" } });
@@ -176,13 +194,17 @@ describe("subscribeEmbeddedPiSession", () => {
       assistantMessageEvent: { type: "text_delta", delta: " world" },
     });
 
-    const payloads = onAgentEvent.mock.calls
-      .map((call) => call[0]?.data as Record<string, unknown> | undefined)
+    const agentEvents = events.filter((e) => e.kind === "agent_event");
+    const payloads = agentEvents
+      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads[0]?.text).toBe("Hello");
     expect(payloads[0]?.delta).toBe("Hello");
     expect(payloads[1]?.text).toBe("Hello world");
     expect(payloads[1]?.delta).toBe(" world");
+
+    unsub();
+    mw.destroy();
   });
 
   it("emits agent events on message_end for non-streaming assistant text", () => {
@@ -194,12 +216,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     const assistantMessage = {
@@ -210,12 +234,16 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_start", message: assistantMessage });
     handler?.({ type: "message_end", message: assistantMessage });
 
-    const payloads = onAgentEvent.mock.calls
-      .map((call) => call[0]?.data as Record<string, unknown> | undefined)
+    const agentEvents = events.filter((e) => e.kind === "agent_event");
+    const payloads = agentEvents
+      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("Hello world");
     expect(payloads[0]?.delta).toBe("Hello world");
+
+    unsub();
+    mw.destroy();
   });
 
   it("does not emit duplicate agent events when message_end repeats", () => {
@@ -227,12 +255,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     const assistantMessage = {
@@ -244,10 +274,16 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_end", message: assistantMessage });
     handler?.({ type: "message_end", message: assistantMessage });
 
-    const payloads = onAgentEvent.mock.calls
-      .map((call) => call[0]?.data as Record<string, unknown> | undefined)
+    const agentEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "assistant",
+    );
+    const payloads = agentEvents
+      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
+
+    unsub();
+    mw.destroy();
   });
 
   it("skips agent events when cleaned text rewinds mid-stream", () => {
@@ -259,12 +295,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     handler?.({ type: "message_start", message: { role: "assistant" } });
@@ -279,11 +317,17 @@ describe("subscribeEmbeddedPiSession", () => {
       assistantMessageEvent: { type: "text_delta", delta: " https://example.com/a.png\nCaption" },
     });
 
-    const payloads = onAgentEvent.mock.calls
-      .map((call) => call[0]?.data as Record<string, unknown> | undefined)
+    const agentEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "assistant",
+    );
+    const payloads = agentEvents
+      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("MEDIA:");
+
+    unsub();
+    mw.destroy();
   });
 
   it("emits agent events when media arrives without text", () => {
@@ -295,12 +339,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     handler?.({ type: "message_start", message: { role: "assistant" } });
@@ -310,11 +356,17 @@ describe("subscribeEmbeddedPiSession", () => {
       assistantMessageEvent: { type: "text_delta", delta: "MEDIA: https://example.com/a.png" },
     });
 
-    const payloads = onAgentEvent.mock.calls
-      .map((call) => call[0]?.data as Record<string, unknown> | undefined)
+    const agentEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "assistant",
+    );
+    const payloads = agentEvents
+      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("");
     expect(payloads[0]?.mediaUrls).toEqual(["https://example.com/a.png"]);
+
+    unsub();
+    mw.destroy();
   });
 });

@@ -33,11 +33,6 @@ export type PiRuntimeContext = Omit<
   | "timeoutMs"
   | "runId"
   | "abortSignal"
-  | "onPartialReply"
-  | "onAssistantMessageStart"
-  | "onBlockReply"
-  | "onToolResult"
-  | "onAgentEvent"
 >;
 
 // ---------------------------------------------------------------------------
@@ -80,11 +75,6 @@ export function splitRunEmbeddedPiAgentParamsForRuntime(params: RunEmbeddedPiAge
     timeoutMs,
     runId,
     abortSignal,
-    onPartialReply,
-    onAssistantMessageStart,
-    onBlockReply,
-    onToolResult,
-    onAgentEvent,
     ...context
   } = params;
 
@@ -103,11 +93,6 @@ export function splitRunEmbeddedPiAgentParamsForRuntime(params: RunEmbeddedPiAge
       timeoutMs,
       runId,
       abortSignal,
-      onPartialReply,
-      onAssistantMessageStart,
-      onBlockReply,
-      onToolResult,
-      onAgentEvent,
     },
   };
 }

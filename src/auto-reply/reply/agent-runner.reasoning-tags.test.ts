@@ -1,12 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions.js";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 import { DEFAULT_MEMORY_FLUSH_PROMPT } from "./memory-flush.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
 const runWithModelFallbackMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -19,7 +28,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -32,11 +41,6 @@ vi.mock("./queue.js", async () => {
 });
 
 import { runReplyAgent } from "./agent-runner.js";
-
-type EmbeddedPiAgentParams = {
-  enforceFinalTag?: boolean;
-  prompt?: string;
-};
 
 function createRun(params?: {
   sessionEntry?: SessionEntry;
@@ -107,14 +111,13 @@ function createRun(params?: {
 
 describe("runReplyAgent fallback reasoning tags", () => {
   beforeEach(() => {
-    runEmbeddedPiAgentMock.mockReset();
+    kernelExecuteMock.mockReset();
     runWithModelFallbackMock.mockReset();
   });
 
   it("enforces <final> when the fallback provider requires reasoning tags", async () => {
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "ok" }],
-      meta: {},
+    kernelExecuteMock.mockImplementation(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({ payloads: [{ text: "ok" }] });
     });
     runWithModelFallbackMock.mockImplementationOnce(
       async ({ run }: { run: (provider: string, model: string) => Promise<unknown> }) => ({
@@ -126,16 +129,14 @@ describe("runReplyAgent fallback reasoning tags", () => {
 
     await createRun();
 
-    const call = runEmbeddedPiAgentMock.mock.calls[0]?.[0] as EmbeddedPiAgentParams | undefined;
-    expect(call?.enforceFinalTag).toBe(true);
+    // The kernel should have received a request with enforceFinalTag in runtimeHints
+    const req = kernelExecuteMock.mock.calls[0]?.[0] as ExecutionRequest | undefined;
+    expect(req?.runtimeHints?.enforceFinalTag).toBe(true);
   });
 
   it("enforces <final> during memory flush on fallback providers", async () => {
-    runEmbeddedPiAgentMock.mockImplementation(async (params: EmbeddedPiAgentParams) => {
-      if (params.prompt === DEFAULT_MEMORY_FLUSH_PROMPT) {
-        return { payloads: [], meta: {} };
-      }
-      return { payloads: [{ text: "ok" }], meta: {} };
+    kernelExecuteMock.mockImplementation(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({ payloads: [{ text: "ok" }] });
     });
     runWithModelFallbackMock.mockImplementation(
       async ({ run }: { run: (provider: string, model: string) => Promise<unknown> }) => ({
@@ -154,11 +155,11 @@ describe("runReplyAgent fallback reasoning tags", () => {
       },
     });
 
-    const flushCall = runEmbeddedPiAgentMock.mock.calls.find(
-      ([params]) =>
-        (params as EmbeddedPiAgentParams | undefined)?.prompt === DEFAULT_MEMORY_FLUSH_PROMPT,
-    )?.[0] as EmbeddedPiAgentParams | undefined;
+    // Find the memory flush kernel call by checking for the flush prompt
+    const flushCall = kernelExecuteMock.mock.calls.find(
+      ([req]: [ExecutionRequest]) => req.prompt === DEFAULT_MEMORY_FLUSH_PROMPT,
+    )?.[0] as ExecutionRequest | undefined;
 
-    expect(flushCall?.enforceFinalTag).toBe(true);
+    expect(flushCall?.runtimeHints?.enforceFinalTag).toBe(true);
   });
 });

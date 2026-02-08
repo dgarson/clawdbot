@@ -49,64 +49,6 @@ export interface ExecutionEvent {
 }
 
 // ---------------------------------------------------------------------------
-// Callback Types
-// ---------------------------------------------------------------------------
-
-/**
- * Callback invoked with partial text during streaming.
- * Receives the full ReplyPayload for richer streaming (text + media).
- */
-export type OnPartialReplyCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked with a complete block reply (Pi runtime block streaming).
- */
-export type OnBlockReplyCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked to flush buffered block replies (e.g. before tool execution).
- */
-export type OnBlockReplyFlushCallback = () => void | Promise<void>;
-
-/**
- * Callback invoked with reasoning/thinking stream deltas.
- */
-export type OnReasoningStreamCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked with tool result payloads for delivery.
- */
-export type OnToolResultCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked when a new assistant message starts.
- */
-export type OnAssistantMessageStartCallback = () => void | Promise<void>;
-
-/**
- * Callback invoked for raw agent events (tool phases, compaction, etc.).
- */
-export type OnAgentEventCallback = (evt: {
-  stream: string;
-  data: Record<string, unknown>;
-}) => void | Promise<void>;
-
-/**
- * Callback invoked when a tool execution starts.
- */
-export type OnToolStartCallback = (name: string, id: string) => void | Promise<void>;
-
-/**
- * Callback invoked when a tool execution completes.
- */
-export type OnToolEndCallback = (name: string, id: string, result: unknown) => void | Promise<void>;
-
-/**
- * Callback invoked for each execution event.
- */
-export type OnExecutionEventCallback = (event: ExecutionEvent) => void | Promise<void>;
-
-// ---------------------------------------------------------------------------
 // Message Context (from inbound message)
 // ---------------------------------------------------------------------------
 
@@ -204,28 +146,20 @@ export interface ExecutionRequest {
   /** Abort signal for cooperative cancellation (set by ExecutionKernel). */
   abortSignal?: AbortSignal;
 
-  // --- Callbacks (optional, for streaming) ---
+  /**
+   * Optional StreamingMiddleware instance. When provided, the executor passes
+   * it through to the runner where raw events are pushed in. The caller
+   * subscribes for normalized AgentStreamEvent output.
+   */
+  streamMiddleware?: import("../agents/stream/index.js").StreamingMiddleware;
 
-  /** Called with partial text during streaming. */
-  onPartialReply?: OnPartialReplyCallback;
-  /** Called with complete block replies (Pi block streaming). */
-  onBlockReply?: OnBlockReplyCallback;
-  /** Called to flush buffered block replies before tool execution. */
-  onBlockReplyFlush?: OnBlockReplyFlushCallback;
-  /** Called with reasoning/thinking stream deltas. */
-  onReasoningStream?: OnReasoningStreamCallback;
-  /** Called with tool result payloads for delivery. */
-  onToolResult?: OnToolResultCallback;
-  /** Called when a new assistant message starts. */
-  onAssistantMessageStart?: OnAssistantMessageStartCallback;
-  /** Called for raw agent events (tool phases, compaction, etc.). */
-  onAgentEvent?: OnAgentEventCallback;
-  /** Called when a tool execution starts. */
-  onToolStart?: OnToolStartCallback;
-  /** Called when a tool execution completes. */
-  onToolEnd?: OnToolEndCallback;
-  /** Called for each execution event. */
-  onEvent?: OnExecutionEventCallback;
+  /**
+   * Optional StreamingMiddleware instance. When provided, the executor passes
+   * it through to the runner where raw events are pushed in. The caller
+   * subscribes for normalized output. Callbacks are still honored for backward
+   * compatibility — the middleware is an additional event sink.
+   */
+  streamMiddleware?: import("../agents/stream/index.js").StreamingMiddleware;
 
   /**
    * Optional StreamingMiddleware instance. When provided, the executor passes
@@ -250,8 +184,6 @@ export interface ExecutionRequest {
   shouldEmitToolResult?: () => boolean;
   /** Whether tool output should be emitted. */
   shouldEmitToolOutput?: () => boolean;
-  /** Suppress partial streaming (e.g. when reasoning-level = stream). */
-  suppressPartialStream?: boolean;
 
   // --- Runtime overrides (for model fallback) ---
 

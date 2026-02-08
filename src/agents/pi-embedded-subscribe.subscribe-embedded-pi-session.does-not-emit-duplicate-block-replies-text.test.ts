@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -25,12 +26,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -59,8 +62,12 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello block"]);
+
+    unsub();
+    mw.destroy();
   });
   it("does not duplicate assistantTexts when message_end repeats", () => {
     let handler: SessionEventHandler | undefined;
@@ -71,9 +78,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
+      streamMiddleware: mw,
     });
 
     const assistantMessage = {
@@ -85,6 +97,9 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_end", message: assistantMessage });
 
     expect(subscription.assistantTexts).toEqual(["Hello world"]);
+
+    unsub();
+    mw.destroy();
   });
   it("does not duplicate assistantTexts when message_end repeats with trailing whitespace changes", () => {
     let handler: SessionEventHandler | undefined;
@@ -95,9 +110,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
+      streamMiddleware: mw,
     });
 
     const assistantMessageWithNewline = {
@@ -114,6 +134,9 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_end", message: assistantMessageTrimmed });
 
     expect(subscription.assistantTexts).toEqual(["Hello world"]);
+
+    unsub();
+    mw.destroy();
   });
   it("does not duplicate assistantTexts when message_end repeats with reasoning blocks", () => {
     let handler: SessionEventHandler | undefined;
@@ -124,9 +147,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
+      streamMiddleware: mw,
       reasoningMode: "on",
     });
 
@@ -142,6 +170,9 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_end", message: assistantMessage });
 
     expect(subscription.assistantTexts).toEqual(["Hello world"]);
+
+    unsub();
+    mw.destroy();
   });
   it("populates assistantTexts for non-streaming models with chunking enabled", () => {
     // Non-streaming models (e.g. zai/glm-4.7): no text_delta events; message_end
@@ -154,9 +185,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
+      streamMiddleware: mw,
       blockReplyChunking: { minChars: 50, maxChars: 200 }, // Chunking enabled
     });
 
@@ -171,5 +207,8 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_end", message: assistantMessage });
 
     expect(subscription.assistantTexts).toEqual(["Response from non-streaming model"]);
+
+    unsub();
+    mw.destroy();
   });
 });

@@ -5,7 +5,6 @@
 
 import type { ImageContent } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
-import type { AgentRuntimePayload } from "../agent-runtime.js";
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
 import type { StreamingMiddleware } from "../stream/index.js";
 import type { AnyAgentTool } from "../tools/common.js";
@@ -138,21 +137,6 @@ export type SdkRunnerParams = {
   /** Optional inbound images/audio/video (multimodal input support). */
   images?: ImageContent[];
 
-  // --- Streaming callbacks with full multimodal support (voice, video, pictures) ---
-
-  /** Called with partial text as the agent streams a response. */
-  onPartialReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-
-  /** Called when the agent starts a new assistant message. */
-  onAssistantMessageStart?: () => void | Promise<void>;
-
-  /**
-   * Called with block reply text during streaming and at run completion.
-   * With `blockReplyBreak`, block replies are emitted at message boundaries
-   * during the run (not just once at the end).
-   */
-  onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-
   /**
    * Block reply break mode:
    * - `"message_end"`: emit accumulated text at assistant message boundaries
@@ -171,14 +155,11 @@ export type SdkRunnerParams = {
     flushOnParagraph?: boolean;
   };
 
-  /** Called when a tool result is produced. */
-  onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
+  /** When provided, raw stream events are pushed to the middleware. */
+  streamMiddleware?: StreamingMiddleware;
 
-  /** Called with thinking/reasoning text as the agent streams reasoning. */
-  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
-
-  /** Called for lifecycle / diagnostic events. */
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+  /** When provided, raw stream events are pushed to the middleware alongside legacy callbacks. */
+  streamMiddleware?: StreamingMiddleware;
 
   /** When provided, raw stream events are pushed to the middleware alongside legacy callbacks. */
   streamMiddleware?: StreamingMiddleware;

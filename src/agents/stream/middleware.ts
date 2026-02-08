@@ -7,17 +7,6 @@
  */
 
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
-import { EmbeddedBlockChunker } from "../pi-embedded-block-chunker.js";
-import { stripHeartbeatToken } from "../../auto-reply/heartbeat.js";
-import { sanitizeUserFacingText } from "../pi-embedded-helpers/errors.js";
-import { stripCompactionHandoffText } from "../pi-embedded-utils.js";
-import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
-import { isSilentReplyText } from "../../auto-reply/tokens.js";
-import {
-  normalizeTextForComparison,
-  isMessagingToolDuplicateNormalized,
-} from "../pi-embedded-helpers/messaging-dedupe.js";
-import { TypedEventEmitter } from "./emitter.js";
 import type {
   RawStreamEvent,
   AgentStreamEvent,
@@ -25,6 +14,17 @@ import type {
   DeliveryState,
   StreamEventListener,
 } from "./types.js";
+import { stripHeartbeatToken } from "../../auto-reply/heartbeat.js";
+import { isSilentReplyText } from "../../auto-reply/tokens.js";
+import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
+import { EmbeddedBlockChunker } from "../pi-embedded-block-chunker.js";
+import { sanitizeUserFacingText } from "../pi-embedded-helpers/errors.js";
+import {
+  normalizeTextForComparison,
+  isMessagingToolDuplicateNormalized,
+} from "../pi-embedded-helpers/messaging-dedupe.js";
+import { stripCompactionHandoffText } from "../pi-embedded-utils.js";
+import { TypedEventEmitter } from "./emitter.js";
 
 // ---------------------------------------------------------------------------
 // StreamingMiddleware
@@ -209,9 +209,7 @@ export class StreamingMiddleware {
     }
   }
 
-  #handleMessagingToolStart(
-    event: RawStreamEvent & { kind: "messaging_tool_start" },
-  ): void {
+  #handleMessagingToolStart(event: RawStreamEvent & { kind: "messaging_tool_start" }): void {
     if (event.text) {
       this.#pendingMessagingTexts.set(event.toolCallId, event.text);
     }
@@ -220,9 +218,7 @@ export class StreamingMiddleware {
     }
   }
 
-  #handleMessagingToolEnd(
-    event: RawStreamEvent & { kind: "messaging_tool_end" },
-  ): void {
+  #handleMessagingToolEnd(event: RawStreamEvent & { kind: "messaging_tool_end" }): void {
     const text = this.#pendingMessagingTexts.get(event.toolCallId);
     const target = this.#pendingMessagingTargets.get(event.toolCallId);
 
@@ -238,9 +234,7 @@ export class StreamingMiddleware {
     this.#delivery.didSendViaMessagingTool = true;
     if (text) {
       this.#delivery.messagingToolSentTexts.push(text);
-      this.#delivery.messagingToolSentTextsNormalized.push(
-        normalizeTextForComparison(text),
-      );
+      this.#delivery.messagingToolSentTextsNormalized.push(normalizeTextForComparison(text));
     }
     if (target) {
       this.#delivery.messagingToolSentTargets.push(target);

@@ -4,13 +4,22 @@ import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { TypingMode } from "../../config/types.js";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { GetReplyOptions } from "../types.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 import * as sessions from "../../config/sessions.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -31,7 +40,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -123,7 +132,7 @@ function createMinimalRun(params?: {
 
 describe("runReplyAgent typing (heartbeat)", () => {
   beforeEach(() => {
-    runEmbeddedPiAgentMock.mockReset();
+    kernelExecuteMock.mockReset();
   });
 
   it("retries after compaction failure by resetting the session", async () => {
@@ -142,7 +151,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
       await fs.mkdir(path.dirname(transcriptPath), { recursive: true });
       await fs.writeFile(transcriptPath, "ok", "utf-8");
 
-      runEmbeddedPiAgentMock.mockImplementationOnce(async () => {
+      kernelExecuteMock.mockImplementationOnce(async () => {
         throw new Error(
           'Context overflow: Summarization failed: 400 {"message":"prompt is too long"}',
         );
@@ -156,7 +165,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
       });
       const res = await run();
 
-      expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
+      expect(kernelExecuteMock).toHaveBeenCalledTimes(1);
       const payload = Array.isArray(res) ? res[0] : res;
       expect(payload).toMatchObject({
         text: expect.stringContaining("Context limit exceeded during compaction"),
@@ -191,16 +200,15 @@ describe("runReplyAgent typing (heartbeat)", () => {
       await fs.mkdir(path.dirname(transcriptPath), { recursive: true });
       await fs.writeFile(transcriptPath, "ok", "utf-8");
 
-      runEmbeddedPiAgentMock.mockImplementationOnce(async () => ({
-        payloads: [{ text: "Context overflow: prompt too large", isError: true }],
-        meta: {
-          durationMs: 1,
-          error: {
+      kernelExecuteMock.mockImplementationOnce(async () =>
+        makeExecutionResult({
+          payloads: [{ text: "Context overflow: prompt too large", isError: true }],
+          embeddedError: {
             kind: "context_overflow",
             message: 'Context overflow: Summarization failed: 400 {"message":"prompt is too long"}',
           },
-        },
-      }));
+        }),
+      );
 
       const { run } = createMinimalRun({
         sessionEntry,
@@ -210,7 +218,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
       });
       const res = await run();
 
-      expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
+      expect(kernelExecuteMock).toHaveBeenCalledTimes(1);
       const payload = Array.isArray(res) ? res[0] : res;
       expect(payload).toMatchObject({
         text: expect.stringContaining("Context limit exceeded"),
@@ -245,16 +253,15 @@ describe("runReplyAgent typing (heartbeat)", () => {
       await fs.mkdir(path.dirname(transcriptPath), { recursive: true });
       await fs.writeFile(transcriptPath, "ok", "utf-8");
 
-      runEmbeddedPiAgentMock.mockImplementationOnce(async () => ({
-        payloads: [{ text: "Message ordering conflict - please try again.", isError: true }],
-        meta: {
-          durationMs: 1,
-          error: {
+      kernelExecuteMock.mockImplementationOnce(async () =>
+        makeExecutionResult({
+          payloads: [{ text: "Message ordering conflict - please try again.", isError: true }],
+          embeddedError: {
             kind: "role_ordering",
             message: 'messages: roles must alternate between "user" and "assistant"',
           },
-        },
-      }));
+        }),
+      );
 
       const { run } = createMinimalRun({
         sessionEntry,

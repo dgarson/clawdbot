@@ -1,10 +1,13 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
 };
+
+type SessionEventHandler = (evt: unknown) => void;
 
 describe("subscribeEmbeddedPiSession", () => {
   const _THINKING_TAG_CASES = [
@@ -23,12 +26,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
       blockReplyChunking: {
         minChars: 10,
@@ -55,13 +60,19 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply.mock.calls.length).toBeGreaterThan(1);
-    for (const call of onBlockReply.mock.calls) {
-      const chunk = call[0].text as string;
-      expect(chunk.startsWith("```json")).toBe(true);
-      const fenceCount = chunk.match(/```/g)?.length ?? 0;
-      expect(fenceCount).toBeGreaterThanOrEqual(2);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies.length).toBeGreaterThan(1);
+    for (const reply of blockReplies) {
+      if (reply.kind === "block_reply") {
+        const chunk = reply.text;
+        expect(chunk.startsWith("```json")).toBe(true);
+        const fenceCount = chunk.match(/```/g)?.length ?? 0;
+        expect(fenceCount).toBeGreaterThanOrEqual(2);
+      }
     }
+
+    unsub();
+    mw.destroy();
   });
   it("waits for auto-compaction retry and clears buffered text", async () => {
     const listeners: SessionEventHandler[] = [];
@@ -77,9 +88,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     } as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"];
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session,
       runId: "run-1",
+      streamMiddleware: mw,
     });
 
     const assistantMessage = {
@@ -117,6 +133,9 @@ describe("subscribeEmbeddedPiSession", () => {
 
     await waitPromise;
     expect(resolved).toBe(true);
+
+    unsub();
+    mw.destroy();
   });
   it("resolves after compaction ends without retry", async () => {
     const listeners: SessionEventHandler[] = [];
@@ -127,9 +146,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     } as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"];
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session,
       runId: "run-2",
+      streamMiddleware: mw,
     });
 
     for (const listener of listeners) {
@@ -153,5 +177,8 @@ describe("subscribeEmbeddedPiSession", () => {
     await waitPromise;
     expect(resolved).toBe(true);
     expect(subscription.isCompacting()).toBe(false);
+
+    unsub();
+    mw.destroy();
   });
 });

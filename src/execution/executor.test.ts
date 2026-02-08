@@ -617,45 +617,8 @@ describe("Claude SDK adapter", () => {
     expect(outcome.claudeSdkSessionId).toBe("claude-session-123");
   });
 
-  it("should wire onPartialReply callback through to AgentRuntime.run()", async () => {
-    const { factory, mockRun } = createMockClaudeSdkRuntime();
-    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
-
-    const onPartialReply = vi.fn();
-    const request = createMockRequest({ onPartialReply });
-
-    await executor.execute(createMockContext(), request, emitter);
-
-    // Verify onPartialReply was wired (passed as callback in run params)
-    const runCall = mockRun.mock.calls[0]?.[0];
-    expect(runCall.onPartialReply).toBeDefined();
-  });
-
-  it("should wire onToolResult from request to AgentRuntime.run()", async () => {
-    const { factory, mockRun } = createMockClaudeSdkRuntime();
-    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
-
-    const onToolResult = vi.fn();
-    const request = createMockRequest({ onToolResult });
-
-    await executor.execute(createMockContext(), request, emitter);
-
-    const runCall = mockRun.mock.calls[0]?.[0];
-    expect(runCall.onToolResult).toBeDefined();
-  });
-
-  it("should wire onAgentEvent from request to AgentRuntime.run()", async () => {
-    const { factory, mockRun } = createMockClaudeSdkRuntime();
-    const executor = createTurnExecutor({ claudeSdkRuntimeFn: factory });
-
-    const onAgentEvent = vi.fn();
-    const request = createMockRequest({ onAgentEvent });
-
-    await executor.execute(createMockContext(), request, emitter);
-
-    const runCall = mockRun.mock.calls[0]?.[0];
-    expect(runCall.onAgentEvent).toBeDefined();
-  });
+  // Legacy callback wiring tests (onPartialReply, onToolResult, onAgentEvent) removed in Phase 5.
+  // Events are now delivered via StreamingMiddleware.
 
   it("should handle didSendViaMessagingTool from Claude SDK result", async () => {
     const { factory } = createMockClaudeSdkRuntime({ didSendViaMessagingTool: true });

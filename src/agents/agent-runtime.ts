@@ -17,10 +17,6 @@ import type { EmbeddedPiRunResult } from "./pi-embedded-runner/types.js";
 /** Discriminant for the active agent runtime backend. */
 export type AgentRuntimeKind = "pi" | "claude";
 
-// ---------------------------------------------------------------------------
-// Shared callback types
-// ---------------------------------------------------------------------------
-
 /** Multimodal payload with full support for voice, video, and pictures. */
 export type AgentRuntimePayload = {
   text?: string;
@@ -37,17 +33,6 @@ export type AgentRuntimePayload = {
   isError?: boolean;
   /** Channel-specific payload data (per-channel envelope). */
   channelData?: Record<string, unknown>;
-};
-
-/** Streaming callbacks shared by all agent runtimes. */
-export type AgentRuntimeCallbacks = {
-  onPartialReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onAssistantMessageStart?: () => void | Promise<void>;
-  onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  /** Called with thinking/reasoning text as the agent streams reasoning. */
-  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
 };
 
 // ---------------------------------------------------------------------------
@@ -81,7 +66,9 @@ export type AgentRuntimeRunParams = {
     breakPreference?: "paragraph" | "newline" | "sentence";
     flushOnParagraph?: boolean;
   };
-} & AgentRuntimeCallbacks;
+  /** StreamingMiddleware instance for normalized event delivery. */
+  streamMiddleware?: import("./stream/index.js").StreamingMiddleware;
+};
 
 // ---------------------------------------------------------------------------
 // Result type (same shape for all runtimes)

@@ -252,10 +252,7 @@ export function buildClawdbrainSdkHooks(params: {
         args: toolArgs,
         result: sanitized,
         // Include recent assistant text for richer context (P7)
-        recentAssistantText: params.runState?.assistantTexts
-          .slice(-3)
-          .join("\n")
-          .slice(-2000),
+        recentAssistantText: params.runState?.assistantTexts.slice(-3).join("\n").slice(-2000),
       });
       void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
     }
@@ -336,10 +333,7 @@ export function buildClawdbrainSdkHooks(params: {
         isError: true,
         args: toolArgs,
         result: error,
-        recentAssistantText: params.runState?.assistantTexts
-          .slice(-3)
-          .join("\n")
-          .slice(-2000),
+        recentAssistantText: params.runState?.assistantTexts.slice(-3).join("\n").slice(-2000),
       });
       void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
     }

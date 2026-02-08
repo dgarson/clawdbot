@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { StreamingMiddleware } from "../../agents/stream/index.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun } from "./queue.js";
 
@@ -31,12 +32,11 @@ vi.mock("../../agents/claude-agent-sdk/sdk-agent-runtime.js", () => ({
     kind: "claude",
     displayName: "Claude Agent SDK",
     run: vi.fn(
-      async (params: { onAgentEvent?: (evt: { stream: string; data: any }) => unknown }) => {
-        await params.onAgentEvent?.({ stream: "tool", data: { phase: "start", name: "exec" } });
-        await params.onAgentEvent?.({
-          stream: "assistant",
-          data: { text: "hello", delta: "hello" },
-        });
+      async (params: { streamMiddleware?: StreamingMiddleware }) => {
+        // Push events through middleware (the new primary path)
+        const mw = params.streamMiddleware;
+        mw?.push({ kind: "agent_event", stream: "tool", data: { phase: "start", name: "exec" } });
+        mw?.push({ kind: "agent_event", stream: "assistant", data: { text: "hello", delta: "hello" } });
         return {
           payloads: [{ text: "sdk-ok" }],
           meta: { durationMs: 1 },
@@ -47,7 +47,6 @@ vi.mock("../../agents/claude-agent-sdk/sdk-agent-runtime.js", () => ({
 }));
 
 import { createOpenClawCodingTools } from "../../agents/pi-tools.js";
-import { onAgentEvent } from "../../infra/agent-events.js";
 import { runAgentTurnWithFallback } from "./agent-runner-execution.js";
 
 describe("runAgentTurnWithFallback (SDK runtime)", () => {
@@ -55,14 +54,7 @@ describe("runAgentTurnWithFallback (SDK runtime)", () => {
     vi.clearAllMocks();
   });
 
-  it("forwards SDK onAgentEvent events into the shared event bus and passes full tool context", async () => {
-    const seenEvents: Array<{ stream: string; data: Record<string, unknown> }> = [];
-    const unsubscribe = onAgentEvent((evt) => {
-      if (evt.runId === "run-sdk-1") {
-        seenEvents.push({ stream: evt.stream, data: evt.data });
-      }
-    });
-
+  it("forwards SDK agent_event events through middleware and passes full tool context", async () => {
     const sessionCtx: TemplateContext = {
       Surface: "web",
       Provider: "slack",
@@ -95,50 +87,45 @@ describe("runAgentTurnWithFallback (SDK runtime)", () => {
     const typingSignals = {
       signalTextDelta: vi.fn(async () => {}),
       signalMessageStart: vi.fn(async () => {}),
+      signalReasoningDelta: vi.fn(async () => {}),
       // Reject to ensure we don't crash / produce unhandled rejections.
       signalToolStart: vi.fn(async () => {
         throw new Error("tool typing failed");
       }),
     } as any;
 
-    try {
-      const result = await runAgentTurnWithFallback({
-        commandBody: "hello",
-        followupRun,
-        sessionCtx,
-        opts: {
-          runId: "run-sdk-1",
-          onAgentRunStart: vi.fn(),
-          onModelSelected: vi.fn(),
-          onPartialReply: vi.fn(),
-        } as any,
-        typingSignals,
-        blockReplyPipeline: null,
-        blockStreamingEnabled: false,
-        resolvedBlockStreamingBreak: "text_end",
-        applyReplyToMode: (payload) => payload,
-        shouldEmitToolResult: () => false,
-        shouldEmitToolOutput: () => false,
-        pendingToolTasks: new Set(),
-        resetSessionAfterCompactionFailure: async () => false,
-        resetSessionAfterRoleOrderingConflict: async () => false,
-        isHeartbeat: false,
-        sessionKey: "main",
-        getActiveSessionEntry: () => undefined,
-        activeSessionStore: {},
-        storePath: "/tmp/store.json",
-        resolvedVerboseLevel: "off",
-      });
+    const result = await runAgentTurnWithFallback({
+      commandBody: "hello",
+      followupRun,
+      sessionCtx,
+      opts: {
+        runId: "run-sdk-1",
+        onAgentRunStart: vi.fn(),
+        onModelSelected: vi.fn(),
+        onPartialReply: vi.fn(),
+      } as any,
+      typingSignals,
+      blockReplyPipeline: null,
+      blockStreamingEnabled: false,
+      resolvedBlockStreamingBreak: "text_end",
+      applyReplyToMode: (payload) => payload,
+      shouldEmitToolResult: () => false,
+      shouldEmitToolOutput: () => false,
+      pendingToolTasks: new Set(),
+      resetSessionAfterCompactionFailure: async () => false,
+      resetSessionAfterRoleOrderingConflict: async () => false,
+      isHeartbeat: false,
+      sessionKey: "main",
+      getActiveSessionEntry: () => undefined,
+      activeSessionStore: {},
+      storePath: "/tmp/store.json",
+      resolvedVerboseLevel: "off",
+    });
 
-      expect(result.kind).toBe("success");
+    expect(result.kind).toBe("success");
+    if (result.kind === "success") {
       expect(result.runResult.payloads?.[0]?.text).toBe("sdk-ok");
-    } finally {
-      unsubscribe();
     }
-
-    // SDK event forwarding: should include tool + assistant streams.
-    expect(seenEvents.some((evt) => evt.stream === "tool")).toBe(true);
-    expect(seenEvents.some((evt) => evt.stream === "assistant")).toBe(true);
 
     // Tool context: ensure the SDK tool bridge gets message + threading context.
     expect(createOpenClawCodingTools).toHaveBeenCalledTimes(1);

@@ -147,11 +147,6 @@ export class DefaultExecutionKernel implements ExecutionKernel {
       logger: this.logger,
     });
 
-    // Wire up request's onEvent callback if provided
-    if (request.onEvent) {
-      emitter.subscribe(request.onEvent);
-    }
-
     // Create abort controller for this run
     const abortController = new AbortController();
 

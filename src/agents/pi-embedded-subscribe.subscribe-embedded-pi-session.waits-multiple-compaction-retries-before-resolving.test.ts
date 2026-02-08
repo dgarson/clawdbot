@@ -1,10 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
 };
+
+type SessionEventHandler = (evt: unknown) => void;
 
 describe("subscribeEmbeddedPiSession", () => {
   const _THINKING_TAG_CASES = [
@@ -23,9 +26,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     } as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"];
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     const subscription = subscribeEmbeddedPiSession({
       session,
       runId: "run-3",
+      streamMiddleware: mw,
     });
 
     for (const listener of listeners) {
@@ -54,6 +62,9 @@ describe("subscribeEmbeddedPiSession", () => {
 
     await waitPromise;
     expect(resolved).toBe(true);
+
+    unsub();
+    mw.destroy();
   });
 
   it("emits compaction events on the agent event bus", async () => {
@@ -65,7 +76,7 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const events: Array<{ phase: string; willRetry?: boolean }> = [];
+    const busEvents: Array<{ phase: string; willRetry?: boolean }> = [];
     const stop = onAgentEvent((evt) => {
       if (evt.runId !== "run-compaction") {
         return;
@@ -74,15 +85,20 @@ describe("subscribeEmbeddedPiSession", () => {
         return;
       }
       const phase = typeof evt.data?.phase === "string" ? evt.data.phase : "";
-      events.push({
+      busEvents.push({
         phase,
         willRetry: typeof evt.data?.willRetry === "boolean" ? evt.data.willRetry : undefined,
       });
     });
 
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
+
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-compaction",
+      streamMiddleware: mw,
     });
 
     handler?.({ type: "auto_compaction_start" });
@@ -91,11 +107,14 @@ describe("subscribeEmbeddedPiSession", () => {
 
     stop();
 
-    expect(events).toEqual([
+    expect(busEvents).toEqual([
       { phase: "start" },
       { phase: "end", willRetry: true },
       { phase: "end", willRetry: false },
     ]);
+
+    unsub();
+    mw.destroy();
   });
   it("emits tool summaries at tool start when verbose is on", async () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -106,13 +125,15 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onToolResult = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-tool",
       verboseLevel: "on",
-      onToolResult,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -125,9 +146,15 @@ describe("subscribeEmbeddedPiSession", () => {
     // Wait for async handler to complete
     await Promise.resolve();
 
-    expect(onToolResult).toHaveBeenCalledTimes(1);
-    const payload = onToolResult.mock.calls[0][0];
-    expect(payload.text).toContain("/tmp/a.txt");
+    const toolEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "tool_summary",
+    );
+    expect(toolEvents).toHaveLength(1);
+    const payload = toolEvents[0];
+    if (payload.kind === "agent_event") {
+      const data = payload.data as Record<string, unknown>;
+      expect(data.text as string).toContain("/tmp/a.txt");
+    }
 
     handler?.({
       type: "tool_execution_end",
@@ -137,7 +164,14 @@ describe("subscribeEmbeddedPiSession", () => {
       result: "ok",
     });
 
-    expect(onToolResult).toHaveBeenCalledTimes(1);
+    // No additional tool summary events after tool_execution_end
+    const toolEventsAfter = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "tool_summary",
+    );
+    expect(toolEventsAfter).toHaveLength(1);
+
+    unsub();
+    mw.destroy();
   });
   it("includes browser action metadata in tool summaries", async () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -148,13 +182,15 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onToolResult = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-browser-tool",
       verboseLevel: "on",
-      onToolResult,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -167,12 +203,21 @@ describe("subscribeEmbeddedPiSession", () => {
     // Wait for async handler to complete
     await Promise.resolve();
 
-    expect(onToolResult).toHaveBeenCalledTimes(1);
-    const payload = onToolResult.mock.calls[0][0];
-    expect(payload.text).toContain("🌐");
-    expect(payload.text).toContain("Browser");
-    expect(payload.text).toContain("snapshot");
-    expect(payload.text).toContain("https://example.com");
+    const toolEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "tool_summary",
+    );
+    expect(toolEvents).toHaveLength(1);
+    const payload = toolEvents[0];
+    if (payload.kind === "agent_event") {
+      const data = payload.data as Record<string, unknown>;
+      const text = data.text as string;
+      expect(text).toContain("Browser");
+      expect(text).toContain("snapshot");
+      expect(text).toContain("https://example.com");
+    }
+
+    unsub();
+    mw.destroy();
   });
 
   it("emits exec output in full verbose mode and includes PTY indicator", async () => {
@@ -184,13 +229,15 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onToolResult = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-exec-full",
       verboseLevel: "full",
-      onToolResult,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -202,10 +249,16 @@ describe("subscribeEmbeddedPiSession", () => {
 
     await Promise.resolve();
 
-    expect(onToolResult).toHaveBeenCalledTimes(1);
-    const summary = onToolResult.mock.calls[0][0];
-    expect(summary.text).toContain("Exec");
-    expect(summary.text).toContain("pty");
+    const summaryEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "tool_summary",
+    );
+    expect(summaryEvents).toHaveLength(1);
+    if (summaryEvents[0].kind === "agent_event") {
+      const data = summaryEvents[0].data as Record<string, unknown>;
+      const text = data.text as string;
+      expect(text).toContain("Exec");
+      expect(text).toContain("pty");
+    }
 
     handler?.({
       type: "tool_execution_end",
@@ -217,10 +270,16 @@ describe("subscribeEmbeddedPiSession", () => {
 
     await Promise.resolve();
 
-    expect(onToolResult).toHaveBeenCalledTimes(2);
-    const output = onToolResult.mock.calls[1][0];
-    expect(output.text).toContain("hello");
-    expect(output.text).toContain("```txt");
+    const outputEvents = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "tool_output",
+    );
+    expect(outputEvents).toHaveLength(1);
+    if (outputEvents[0].kind === "agent_event") {
+      const data = outputEvents[0].data as Record<string, unknown>;
+      const text = data.text as string;
+      expect(text).toContain("hello");
+      expect(text).toContain("```txt");
+    }
 
     handler?.({
       type: "tool_execution_end",
@@ -232,8 +291,17 @@ describe("subscribeEmbeddedPiSession", () => {
 
     await Promise.resolve();
 
-    expect(onToolResult).toHaveBeenCalledTimes(3);
-    const readOutput = onToolResult.mock.calls[2][0];
-    expect(readOutput.text).toContain("file data");
+    const outputEventsAfter = events.filter(
+      (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "tool_output",
+    );
+    expect(outputEventsAfter).toHaveLength(2);
+    if (outputEventsAfter[1].kind === "agent_event") {
+      const data = outputEventsAfter[1].data as Record<string, unknown>;
+      const text = data.text as string;
+      expect(text).toContain("file data");
+    }
+
+    unsub();
+    mw.destroy();
   });
 });

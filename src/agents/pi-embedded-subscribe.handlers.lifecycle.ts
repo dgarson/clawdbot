@@ -32,7 +32,11 @@ export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
     data: { phase: "start" },
   });
   // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({ kind: "agent_event", stream: "compaction", data: { phase: "start" } });
+  ctx.streamMiddleware?.push({
+    kind: "agent_event",
+    stream: "compaction",
+    data: { phase: "start" },
+  });
   void ctx.params.onAgentEvent?.({
     stream: "compaction",
     data: { phase: "start" },
@@ -76,7 +80,11 @@ export function handleAutoCompactionEnd(
     data: { phase: "end", willRetry },
   });
   // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({ kind: "agent_event", stream: "compaction", data: { phase: "end", willRetry } });
+  ctx.streamMiddleware?.push({
+    kind: "agent_event",
+    stream: "compaction",
+    data: { phase: "end", willRetry },
+  });
   void ctx.params.onAgentEvent?.({
     stream: "compaction",
     data: { phase: "end", willRetry },

@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -23,12 +24,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -49,9 +52,11 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
-    const payload = onBlockReply.mock.calls[0][0];
-    expect(payload.text).toBe("Hello block");
+    const blockRepliesAfterTextEnd = events.filter((e) => e.kind === "block_reply");
+    expect(blockRepliesAfterTextEnd).toHaveLength(1);
+    if (blockRepliesAfterTextEnd[0].kind === "block_reply") {
+      expect(blockRepliesAfterTextEnd[0].text).toBe("Hello block");
+    }
     expect(subscription.assistantTexts).toEqual(["Hello block"]);
 
     const assistantMessage = {
@@ -61,8 +66,12 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockRepliesAfterMessageEnd = events.filter((e) => e.kind === "block_reply");
+    expect(blockRepliesAfterMessageEnd).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello block"]);
+
+    unsub();
+    mw.destroy();
   });
   it("does not duplicate when message_end flushes and a late text_end arrives", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -73,12 +82,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -101,7 +112,8 @@ describe("subscribeEmbeddedPiSession", () => {
     // Simulate a provider that ends the message without emitting text_end.
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockRepliesAfterEnd = events.filter((e) => e.kind === "block_reply");
+    expect(blockRepliesAfterEnd).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello block"]);
 
     // Some providers can still emit a late text_end; this must not re-emit.
@@ -114,7 +126,11 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockRepliesAfterLate = events.filter((e) => e.kind === "block_reply");
+    expect(blockRepliesAfterLate).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello block"]);
+
+    unsub();
+    mw.destroy();
   });
 });

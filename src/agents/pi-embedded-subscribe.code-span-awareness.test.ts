@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -15,12 +16,14 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
       },
     };
 
-    const onPartialReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onPartialReply,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -32,9 +35,13 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
       },
     });
 
-    expect(onPartialReply).toHaveBeenCalled();
-    const lastCall = onPartialReply.mock.calls[onPartialReply.mock.calls.length - 1];
-    expect(lastCall[0].text).toContain("`<thinking>`");
+    const partialReplies = events.filter((e) => e.kind === "partial_reply");
+    expect(partialReplies.length).toBeGreaterThan(0);
+    const lastPartial = partialReplies[partialReplies.length - 1];
+    expect(lastPartial.kind === "partial_reply" && lastPartial.text).toContain("`<thinking>`");
+
+    unsub();
+    mw.destroy();
   });
 
   it("does not strip thinking tags inside fenced code blocks", () => {
@@ -46,12 +53,14 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
       },
     };
 
-    const onPartialReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onPartialReply,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -63,9 +72,15 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
       },
     });
 
-    expect(onPartialReply).toHaveBeenCalled();
-    const lastCall = onPartialReply.mock.calls[onPartialReply.mock.calls.length - 1];
-    expect(lastCall[0].text).toContain("<thinking>code example</thinking>");
+    const partialReplies = events.filter((e) => e.kind === "partial_reply");
+    expect(partialReplies.length).toBeGreaterThan(0);
+    const lastPartial = partialReplies[partialReplies.length - 1];
+    expect(lastPartial.kind === "partial_reply" && lastPartial.text).toContain(
+      "<thinking>code example</thinking>",
+    );
+
+    unsub();
+    mw.destroy();
   });
 
   it("still strips actual thinking tags outside code spans", () => {
@@ -77,12 +92,14 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
       },
     };
 
-    const onPartialReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onPartialReply,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -94,10 +111,16 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
       },
     });
 
-    expect(onPartialReply).toHaveBeenCalled();
-    const lastCall = onPartialReply.mock.calls[onPartialReply.mock.calls.length - 1];
-    expect(lastCall[0].text).not.toContain("internal thought");
-    expect(lastCall[0].text).toContain("Hello");
-    expect(lastCall[0].text).toContain("world");
+    const partialReplies = events.filter((e) => e.kind === "partial_reply");
+    expect(partialReplies.length).toBeGreaterThan(0);
+    const lastPartial = partialReplies[partialReplies.length - 1];
+    if (lastPartial.kind === "partial_reply") {
+      expect(lastPartial.text).not.toContain("internal thought");
+      expect(lastPartial.text).toContain("Hello");
+      expect(lastPartial.text).toContain("world");
+    }
+
+    unsub();
+    mw.destroy();
   });
 });

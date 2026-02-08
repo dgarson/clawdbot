@@ -4,13 +4,22 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { TypingMode } from "../../config/types.js";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { GetReplyOptions } from "../types.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 import * as sessions from "../../config/sessions.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -31,7 +40,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -137,7 +146,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
       await fs.mkdir(path.dirname(transcriptPath), { recursive: true });
       await fs.writeFile(transcriptPath, "bad", "utf-8");
 
-      runEmbeddedPiAgentMock.mockImplementationOnce(async () => {
+      kernelExecuteMock.mockImplementationOnce(async () => {
         throw new Error(
           "function call turn comes immediately after a user turn or after a function response turn",
         );
@@ -166,15 +175,16 @@ describe("runReplyAgent typing (heartbeat)", () => {
     }
   });
   it("rewrites Bun socket errors into friendly text", async () => {
-    runEmbeddedPiAgentMock.mockImplementationOnce(async () => ({
-      payloads: [
-        {
-          text: "TypeError: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
-          isError: true,
-        },
-      ],
-      meta: {},
-    }));
+    kernelExecuteMock.mockImplementationOnce(async () =>
+      makeExecutionResult({
+        payloads: [
+          {
+            text: "TypeError: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+            isError: true,
+          },
+        ],
+      }),
+    );
 
     const { run } = createMinimalRun();
     const res = await run();

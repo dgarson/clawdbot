@@ -284,7 +284,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     // Push to middleware (dual-path: both middleware and legacy callback fire)
     if (mw) {
-      mw.push({ kind: "agent_event", stream: "tool_summary", data: { text: cleanedText, mediaUrls } });
+      mw.push({
+        kind: "agent_event",
+        stream: "tool_summary",
+        data: { text: cleanedText, mediaUrls },
+      });
     }
     try {
       void params.onToolResult({
@@ -309,7 +313,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     // Push to middleware (dual-path)
     if (mw) {
-      mw.push({ kind: "agent_event", stream: "tool_output", data: { text: cleanedText, mediaUrls } });
+      mw.push({
+        kind: "agent_event",
+        stream: "tool_output",
+        data: { text: cleanedText, mediaUrls },
+      });
     }
     try {
       void params.onToolResult({

@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -23,12 +24,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
       reasoningMode: "on",
       // Must explicitly opt-in to emit reasoning via block reply (prevents leaking to channels)
@@ -45,9 +48,17 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(2);
-    expect(onBlockReply.mock.calls[0][0].text).toBe("Reasoning:\n_Because it helps_");
-    expect(onBlockReply.mock.calls[1][0].text).toBe("Final answer");
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(2);
+    if (blockReplies[0].kind === "block_reply") {
+      expect(blockReplies[0].text).toBe("Reasoning:\n_Because it helps_");
+    }
+    if (blockReplies[1].kind === "block_reply") {
+      expect(blockReplies[1].text).toBe("Final answer");
+    }
+
+    unsub();
+    mw.destroy();
   });
   it.each(THINKING_TAG_CASES)(
     "promotes <%s> tags to thinking blocks at write-time",
@@ -60,12 +71,14 @@ describe("subscribeEmbeddedPiSession", () => {
         },
       };
 
-      const onBlockReply = vi.fn();
+      const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((e) => events.push(e));
 
       subscribeEmbeddedPiSession({
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
-        onBlockReply,
+        streamMiddleware: mw,
         blockReplyBreak: "message_end",
         reasoningMode: "on",
         // Must explicitly opt-in to emit reasoning via block reply (prevents leaking to channels)
@@ -84,14 +97,22 @@ describe("subscribeEmbeddedPiSession", () => {
 
       handler?.({ type: "message_end", message: assistantMessage });
 
-      expect(onBlockReply).toHaveBeenCalledTimes(2);
-      expect(onBlockReply.mock.calls[0][0].text).toBe("Reasoning:\n_Because it helps_");
-      expect(onBlockReply.mock.calls[1][0].text).toBe("Final answer");
+      const blockReplies = events.filter((e) => e.kind === "block_reply");
+      expect(blockReplies).toHaveLength(2);
+      if (blockReplies[0].kind === "block_reply") {
+        expect(blockReplies[0].text).toBe("Reasoning:\n_Because it helps_");
+      }
+      if (blockReplies[1].kind === "block_reply") {
+        expect(blockReplies[1].text).toBe("Final answer");
+      }
 
       expect(assistantMessage.content).toEqual([
         { type: "thinking", thinking: "Because it helps" },
         { type: "text", text: "Final answer" },
       ]);
+
+      unsub();
+      mw.destroy();
     },
   );
 });

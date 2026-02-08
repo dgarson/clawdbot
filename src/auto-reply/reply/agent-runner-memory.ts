@@ -295,9 +295,18 @@ export async function runMemoryFlushIfNeeded(params: {
             currentThreadTs: threadingCtx.currentThreadTs,
             replyToMode: threadingCtx.replyToMode,
           },
+        };
 
-          // Agent event callback for compaction + tool tracking
-          onAgentEvent: (evt) => {
+        // Subscribe to middleware for compaction + tool tracking
+        const { StreamingMiddleware } = await import("../../agents/stream/index.js");
+        const mw = new StreamingMiddleware({
+          reasoningLevel: "off",
+          isHeartbeat: false,
+        });
+        request.streamMiddleware = mw;
+        const unsub = mw.subscribe((event) => {
+          if (event.kind === "agent_event") {
+            const evt = event as { stream: string; data: Record<string, unknown> };
             if (evt.stream === "compaction") {
               const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
               const willRetry = Boolean(evt.data.willRetry);
@@ -310,7 +319,6 @@ export async function runMemoryFlushIfNeeded(params: {
               const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
               if (phase === "start") {
                 toolCounts.set(toolName, (toolCounts.get(toolName) ?? 0) + 1);
-                // Track file paths written to (memory file captures)
                 if (toolName === "write") {
                   const args = evt.data.args as Record<string, unknown> | undefined;
                   const filePath = typeof args?.path === "string" ? args.path : undefined;
@@ -323,11 +331,16 @@ export async function runMemoryFlushIfNeeded(params: {
                 toolErrors.set(toolName, (toolErrors.get(toolName) ?? 0) + 1);
               }
             }
-          },
-        };
+          }
+        });
 
-        const result = await kernel.execute(request);
-        return mapMemoryFlushResultToLegacy(result);
+        try {
+          const result = await kernel.execute(request);
+          return mapMemoryFlushResultToLegacy(result);
+        } finally {
+          unsub();
+          mw.destroy();
+        }
       },
     });
     // Extract metrics from the flush agent run

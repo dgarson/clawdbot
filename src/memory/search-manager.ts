@@ -206,6 +206,7 @@ class FallbackMemoryManager implements MemorySearchManager {
   private fallback: MemorySearchManager | null = null;
   private primaryFailed = false;
   private lastError?: string;
+  private cacheEvicted = false;
 
   constructor(
     private readonly deps: {
@@ -231,6 +232,8 @@ class FallbackMemoryManager implements MemorySearchManager {
           query: query.slice(0, 80),
         });
         await this.deps.primary.close?.().catch(() => {});
+        // Evict the failed wrapper so the next request can retry QMD with a fresh manager.
+        this.evictCacheEntry();
       }
     }
     memLog.trace("FallbackMemoryManager: using fallback for search", {
@@ -318,7 +321,7 @@ class FallbackMemoryManager implements MemorySearchManager {
   async close() {
     await this.deps.primary.close?.();
     await this.fallback?.close?.();
-    this.onClose?.();
+    this.evictCacheEntry();
   }
 
   private async ensureFallback(): Promise<MemorySearchManager | null> {
@@ -332,6 +335,14 @@ class FallbackMemoryManager implements MemorySearchManager {
     }
     this.fallback = fallback;
     return this.fallback;
+  }
+
+  private evictCacheEntry(): void {
+    if (this.cacheEvicted) {
+      return;
+    }
+    this.cacheEvicted = true;
+    this.onClose?.();
   }
 }
 
