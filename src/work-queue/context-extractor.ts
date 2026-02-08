@@ -1,4 +1,5 @@
 import type { WorkItem } from "./types.js";
+import { truncateSessionLabel } from "../sessions/session-label.js";
 
 export type WorkItemCarryoverContext = {
   summary?: string;
@@ -143,7 +144,7 @@ export class LlmContextExtractor implements WorkContextExtractor {
           deliver: false,
           lane: "worker",
           timeout: 30,
-          label: `Extract: ${params.item.title}`,
+          label: truncateSessionLabel(`Extract: ${params.item.title}`),
         },
         timeoutMs: 5_000,
       });

@@ -4,7 +4,7 @@ import type { WorkContextExtractor, WorkItemCarryoverContext } from "./context-e
 import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
-import { SESSION_LABEL_MAX_LENGTH } from "../sessions/session-label.js";
+import { truncateSessionLabel } from "../sessions/session-label.js";
 import {
   buildWorkerSystemPrompt,
   buildWorkerTaskMessage,
@@ -481,7 +481,7 @@ export class WorkQueueWorker {
         model: runtime.model,
         thinking: runtime.thinking,
         timeout: timeoutS,
-        label: truncateWorkerLabel(item.title),
+        label: truncateSessionLabel(`${WORKER_LABEL_PREFIX}${item.title}`),
         spawnedBy: `worker:${this.agentId}`,
       },
       timeoutMs: 10_000,
@@ -584,12 +584,6 @@ export class WorkQueueWorker {
     signal.addEventListener("abort", stop, { once: true });
     return { stop };
   }
-}
-
-function truncateWorkerLabel(title: string): string {
-  const maxTitle = SESSION_LABEL_MAX_LENGTH - WORKER_LABEL_PREFIX.length;
-  const t = title.length > maxTitle ? title.slice(0, maxTitle - 1) + "\u2026" : title;
-  return `${WORKER_LABEL_PREFIX}${t}`;
 }
 
 type ProcessItemResult = {

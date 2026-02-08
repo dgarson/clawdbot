@@ -10,6 +10,7 @@ import {
   normalizeAgentId,
   parseAgentSessionKey,
 } from "../../routing/session-key.js";
+import { SESSION_LABEL_MAX_LENGTH, truncateSessionLabel } from "../../sessions/session-label.js";
 import { normalizeDeliveryContext } from "../../utils/delivery-context.js";
 import { resolveAgentConfig } from "../agent-scope.js";
 import { AGENT_LANE_SUBAGENT } from "../lanes.js";
@@ -29,7 +30,10 @@ const SessionsSpawnToolSchema = Type.Object({
       "REQUIRED. The task description for the sub-agent to execute. Must be a non-empty string.",
   }),
   label: Type.Optional(
-    Type.String({ description: "Optional label to identify this sub-agent run." }),
+    Type.String({
+      maxLength: SESSION_LABEL_MAX_LENGTH,
+      description: "Optional label to identify this sub-agent run.",
+    }),
   ),
   agentId: Type.Optional(
     Type.String({ description: "Optional target agent ID (defaults to current agent)." }),
@@ -129,7 +133,7 @@ export function createSessionsSpawnTool(opts?: {
         });
       }
       const task = taskRaw.trim();
-      const label = typeof params.label === "string" ? params.label.trim() : "";
+      const label = typeof params.label === "string" ? truncateSessionLabel(params.label) : "";
       const requestedAgentId = readStringParam(params, "agentId");
       const modelOverride = readStringParam(params, "model");
       const thinkingOverrideRaw = readStringParam(params, "thinking");

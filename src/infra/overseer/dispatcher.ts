@@ -6,6 +6,7 @@ import { registerSubagentRun } from "../../agents/subagent-registry.js";
 import { callGateway } from "../../gateway/call.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
+import { truncateSessionLabel } from "../../sessions/session-label.js";
 import { normalizeDeliveryContext } from "../../utils/delivery-context.js";
 
 const log = createSubsystemLogger("gateway/overseer.dispatcher");
@@ -81,11 +82,12 @@ async function dispatchSpawn(params: {
   const requesterSessionKey = params.requesterSessionKey ?? "agent:main";
   const requesterOrigin = normalizeDeliveryContext(params.requesterOrigin);
   const requesterDisplayKey = requesterSessionKey;
+  const truncatedLabel = params.label ? truncateSessionLabel(params.label) : undefined;
   const systemPrompt = buildSubagentSystemPrompt({
     requesterSessionKey,
     requesterOrigin,
     childSessionKey,
-    label: params.label,
+    label: truncatedLabel,
     task: params.message,
   });
   const response = await callGateway({
@@ -97,7 +99,7 @@ async function dispatchSpawn(params: {
       deliver: false,
       lane: AGENT_LANE_SUBAGENT,
       extraSystemPrompt: systemPrompt,
-      label: params.label,
+      label: truncatedLabel,
       spawnedBy: requesterSessionKey,
     },
     timeoutMs: 10_000,
@@ -111,7 +113,7 @@ async function dispatchSpawn(params: {
     requesterDisplayKey,
     task: params.message,
     cleanup: params.cleanup ?? "keep",
-    label: params.label,
+    label: truncatedLabel,
   });
   return runId;
 }

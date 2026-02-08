@@ -7,6 +7,7 @@ import type {
   WorkflowPlan,
 } from "../types.js";
 import { AGENT_LANE_SUBAGENT } from "../../../agents/lanes.js";
+import { truncateSessionLabel } from "../../../sessions/session-label.js";
 import { awaitJoinBarrier } from "../join-barrier.js";
 import { parseSubagentReport } from "../report.js";
 
@@ -109,7 +110,7 @@ export async function runDiscoveryPhase(opts: {
             thinking: opts.thinking,
             model: opts.model,
             timeout: timeoutSeconds,
-            label: `Discovery: ${question.slice(0, 50)}`,
+            label: truncateSessionLabel(`Discovery: ${question}`),
             spawnedBy: `workflow:${agentId}`,
           },
           timeoutMs: 10_000,
@@ -119,7 +120,7 @@ export async function runDiscoveryPhase(opts: {
         entries.push({
           runId: actualRunId,
           sessionKey,
-          label: question.slice(0, 80),
+          label: truncateSessionLabel(question),
         });
         entryQuestions.push(question);
 

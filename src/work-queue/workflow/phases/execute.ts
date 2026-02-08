@@ -3,6 +3,7 @@ import type { OverseerPlan } from "../../../infra/overseer/store.types.js";
 import type { ExecutionProgress, GatewayCallFn, WorkflowLogger } from "../types.js";
 import { AGENT_LANE_SUBAGENT } from "../../../agents/lanes.js";
 import { readLatestAssistantReply } from "../../../agents/tools/agent-step.js";
+import { truncateSessionLabel } from "../../../sessions/session-label.js";
 
 const DEFAULT_NODE_TIMEOUT_S = 300;
 
@@ -165,7 +166,7 @@ export async function runExecutePhase(opts: {
           model: opts.model,
           thinking: opts.thinking,
           timeout: timeoutS,
-          label: `Workflow node: ${node.name}`,
+          label: truncateSessionLabel(`Workflow node: ${node.name}`),
           spawnedBy: `workflow:${agentId}`,
         },
         timeoutMs: 10_000,

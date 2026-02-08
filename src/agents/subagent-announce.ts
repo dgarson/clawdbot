@@ -11,6 +11,7 @@ import {
 import { callGateway } from "../gateway/call.js";
 import { normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
+import { truncateSessionLabel } from "../sessions/session-label.js";
 import {
   type DeliveryContext,
   deliveryContextFromSession,
@@ -545,11 +546,12 @@ export async function runSubagentAnnounceFlow(params: {
     // Best-effort follow-ups; ignore failures to avoid breaking the caller response.
   } finally {
     // Patch label after all writes complete
-    if (params.label) {
+    const patchedLabel = params.label ? truncateSessionLabel(params.label) : "";
+    if (patchedLabel) {
       try {
         await callGateway({
           method: "sessions.patch",
-          params: { key: params.childSessionKey, label: params.label },
+          params: { key: params.childSessionKey, label: patchedLabel },
           timeoutMs: 10_000,
         });
       } catch {
