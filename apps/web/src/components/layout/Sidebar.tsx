@@ -25,6 +25,7 @@ import {
   Calendar,
   Share2,
   Search,
+  Layers3,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { NavItem } from "./NavItem";
@@ -287,6 +288,12 @@ export function Sidebar({ className, onSearchClick }: SidebarProps) {
                   href="/jobs"
                   icon={Calendar}
                   label="Jobs"
+                  collapsed={sidebarCollapsed}
+                />
+                <NavItem
+                  href="/debug/page-scaffold"
+                  icon={Layers3}
+                  label="Scaffold"
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>
