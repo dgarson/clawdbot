@@ -1,7 +1,8 @@
 import type { ExecApprovalForwarder } from "../../infra/exec-approval-forwarder.js";
 import type { ExecApprovalDecision } from "../../infra/exec-approvals.js";
-import type { ExecApprovalManager } from "../exec-approval-manager.js";
+import type { ToolApprovalManager } from "../tool-approval-manager.js";
 import type { GatewayRequestHandlers } from "./types.js";
+import { computeToolApprovalRequestHash } from "../../infra/tool-approval-hash.js";
 import {
   ErrorCodes,
   errorShape,
@@ -10,8 +11,13 @@ import {
   validateExecApprovalResolveParams,
 } from "../protocol/index.js";
 
+/**
+ * Legacy exec.approval.request/resolve handlers.
+ * Thin adapters that delegate to the canonical ToolApprovalManager,
+ * preserving the legacy param/response shapes for backward compatibility.
+ */
 export function createExecApprovalHandlers(
-  manager: ExecApprovalManager,
+  manager: ToolApprovalManager,
   opts?: { forwarder?: ExecApprovalForwarder },
 ): GatewayRequestHandlers {
   return {
@@ -51,7 +57,18 @@ export function createExecApprovalHandlers(
         );
         return;
       }
+
+      // Build a canonical ToolApprovalRequestPayload from legacy exec params.
+      const requestHash = computeToolApprovalRequestHash({
+        toolName: "exec",
+        paramsSummary: p.command,
+        sessionKey: p.sessionKey,
+        agentId: p.agentId,
+      });
       const request = {
+        toolName: "exec" as const,
+        paramsSummary: p.command,
+        requestHash,
         command: p.command,
         cwd: p.cwd ?? null,
         host: p.host ?? null,
@@ -61,13 +78,25 @@ export function createExecApprovalHandlers(
         resolvedPath: p.resolvedPath ?? null,
         sessionKey: p.sessionKey ?? null,
       };
+
       const record = manager.create(request, timeoutMs, explicitId);
       const decisionPromise = manager.waitForDecision(record, timeoutMs);
+
+      // Emit the legacy event shape for backward-compatible listeners.
       context.broadcast(
         "exec.approval.requested",
         {
           id: record.id,
-          request: record.request,
+          request: {
+            command: record.request.command ?? "",
+            cwd: record.request.cwd ?? null,
+            host: record.request.host ?? null,
+            security: record.request.security ?? null,
+            ask: record.request.ask ?? null,
+            agentId: record.request.agentId ?? null,
+            resolvedPath: record.request.resolvedPath ?? null,
+            sessionKey: record.request.sessionKey ?? null,
+          },
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         },
@@ -76,13 +105,23 @@ export function createExecApprovalHandlers(
       void opts?.forwarder
         ?.handleRequested({
           id: record.id,
-          request: record.request,
+          request: {
+            command: record.request.command ?? "",
+            cwd: record.request.cwd ?? null,
+            host: record.request.host ?? null,
+            security: record.request.security ?? null,
+            ask: record.request.ask ?? null,
+            agentId: record.request.agentId ?? null,
+            resolvedPath: record.request.resolvedPath ?? null,
+            sessionKey: record.request.sessionKey ?? null,
+          },
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         })
         .catch((err) => {
           context.logGateway?.error?.(`exec approvals: forward request failed: ${String(err)}`);
         });
+
       const decision = await decisionPromise;
       respond(
         true,
@@ -115,8 +154,17 @@ export function createExecApprovalHandlers(
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "invalid decision"));
         return;
       }
+
+      // Legacy callers don't supply requestHash — retrieve it from the pending record.
+      const snapshot = manager.getSnapshot(p.id);
+      if (!snapshot) {
+        respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
+        return;
+      }
+      const requestHash = snapshot.request.requestHash;
       const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
-      const ok = manager.resolve(p.id, decision, resolvedBy ?? null);
+
+      const ok = manager.resolve(p.id, decision, requestHash, resolvedBy ?? null);
       if (!ok) {
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
         return;

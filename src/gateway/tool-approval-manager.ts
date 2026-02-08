@@ -1,4 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { computeToolApprovalRequestHash } from "../infra/tool-approval-hash.js";
 
 // ---------------------------------------------------------------------------
 // Shared decision type (same values as exec approval for compatibility)
@@ -137,6 +138,7 @@ export class ToolApprovalManager {
 
   /**
    * Compute a deterministic SHA-256 request hash for anti-stale validation.
+   * Delegates to the shared helper in src/infra/tool-approval-hash.ts.
    */
   static computeRequestHash(payload: {
     toolName: string;
@@ -144,12 +146,6 @@ export class ToolApprovalManager {
     sessionKey?: string | null;
     agentId?: string | null;
   }): string {
-    const canonical = JSON.stringify({
-      toolName: payload.toolName,
-      paramsSummary: payload.paramsSummary ?? "",
-      sessionKey: payload.sessionKey ?? "",
-      agentId: payload.agentId ?? "",
-    });
-    return createHash("sha256").update(canonical).digest("hex");
+    return computeToolApprovalRequestHash(payload);
   }
 }

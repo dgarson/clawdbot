@@ -50,7 +50,7 @@ describe("exec approvals", () => {
     });
 
     vi.mocked(callGatewayTool).mockImplementation(async (method, _opts, params) => {
-      if (method === "exec.approval.request") {
+      if (method === "tool.approval.request") {
         return { decision: "allow-once" };
       }
       if (method === "node.invoke") {
@@ -108,7 +108,7 @@ describe("exec approvals", () => {
       if (method === "node.invoke") {
         return { payload: { success: true, stdout: "ok" } };
       }
-      if (method === "exec.approval.request") {
+      if (method === "tool.approval.request") {
         return { decision: "allow-once" };
       }
       return { ok: true };
@@ -127,7 +127,7 @@ describe("exec approvals", () => {
     expect(result.details.status).toBe("completed");
     expect(calls).toContain("exec.approvals.node.get");
     expect(calls).toContain("node.invoke");
-    expect(calls).not.toContain("exec.approval.request");
+    expect(calls).not.toContain("tool.approval.request");
   });
 
   it("honors ask=off for elevated gateway exec without prompting", async () => {
@@ -148,7 +148,7 @@ describe("exec approvals", () => {
 
     const result = await tool.execute("call3", { command: "echo ok", elevated: true });
     expect(result.details.status).toBe("completed");
-    expect(calls).not.toContain("exec.approval.request");
+    expect(calls).not.toContain("tool.approval.request");
   });
 
   it("requires approval for elevated ask when allowlist misses", async () => {
@@ -161,7 +161,7 @@ describe("exec approvals", () => {
 
     vi.mocked(callGatewayTool).mockImplementation(async (method) => {
       calls.push(method);
-      if (method === "exec.approval.request") {
+      if (method === "tool.approval.request") {
         resolveApproval?.();
         return { decision: "deny" };
       }
@@ -179,6 +179,6 @@ describe("exec approvals", () => {
     const result = await tool.execute("call4", { command: "echo ok", elevated: true });
     expect(result.details.status).toBe("approval-pending");
     await approvalSeen;
-    expect(calls).toContain("exec.approval.request");
+    expect(calls).toContain("tool.approval.request");
   });
 });

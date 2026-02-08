@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { ExecApprovalManager } from "../exec-approval-manager.js";
 import { validateExecApprovalRequestParams } from "../protocol/index.js";
+import { ToolApprovalManager } from "../tool-approval-manager.js";
 import { createExecApprovalHandlers } from "./exec-approval.js";
 
 const noop = () => {};
@@ -50,7 +50,7 @@ describe("exec approval handlers", () => {
   });
 
   it("broadcasts request + resolve", async () => {
-    const manager = new ExecApprovalManager();
+    const manager = new ToolApprovalManager();
     const handlers = createExecApprovalHandlers(manager);
     const broadcasts: Array<{ event: string; payload: unknown }> = [];
 
@@ -106,7 +106,7 @@ describe("exec approval handlers", () => {
   });
 
   it("accepts resolve during broadcast", async () => {
-    const manager = new ExecApprovalManager();
+    const manager = new ToolApprovalManager();
     const handlers = createExecApprovalHandlers(manager);
     const respond = vi.fn();
     const resolveRespond = vi.fn();
@@ -159,7 +159,7 @@ describe("exec approval handlers", () => {
   });
 
   it("accepts explicit approval ids", async () => {
-    const manager = new ExecApprovalManager();
+    const manager = new ToolApprovalManager();
     const handlers = createExecApprovalHandlers(manager);
     const broadcasts: Array<{ event: string; payload: unknown }> = [];
 
@@ -212,7 +212,7 @@ describe("exec approval handlers", () => {
   });
 
   it("rejects duplicate approval ids", async () => {
-    const manager = new ExecApprovalManager();
+    const manager = new ToolApprovalManager();
     const handlers = createExecApprovalHandlers(manager);
     const respondA = vi.fn();
     const respondB = vi.fn();

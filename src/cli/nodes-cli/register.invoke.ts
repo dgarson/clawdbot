@@ -13,6 +13,7 @@ import {
   resolveExecApprovalsFromFile,
 } from "../../infra/exec-approvals.js";
 import { buildNodeShellCommand } from "../../infra/node-shell.js";
+import { computeToolApprovalRequestHash } from "../../infra/tool-approval-hash.js";
 import { defaultRuntime } from "../../runtime.js";
 import { parseEnvPairs, parseTimeoutMs } from "../nodes-run.js";
 import { getNodesTheme, runNodesCommand } from "./cli-utils.js";
@@ -270,8 +271,18 @@ export function registerNodesInvokeCommands(nodes: Command) {
 
           const requiresAsk = hostAsk === "always" || hostAsk === "on-miss";
           if (requiresAsk) {
-            const decisionResult = (await callGatewayCli("exec.approval.request", opts, {
-              command: rawCommand ?? argv.join(" "),
+            const commandSummary = rawCommand ?? argv.join(" ");
+            const requestHash = computeToolApprovalRequestHash({
+              toolName: "exec",
+              paramsSummary: commandSummary,
+              sessionKey: undefined,
+              agentId,
+            });
+            const decisionResult = (await callGatewayCli("tool.approval.request", opts, {
+              toolName: "exec",
+              paramsSummary: commandSummary,
+              requestHash,
+              command: commandSummary,
               cwd: opts.cwd,
               host: "node",
               security: hostSecurity,

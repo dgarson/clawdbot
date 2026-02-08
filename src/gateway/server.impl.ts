@@ -55,7 +55,8 @@ import {
   diffConfigPaths,
   startGatewayConfigReloader,
 } from "./config-reload.js";
-import { ExecApprovalManager } from "./exec-approval-manager.js";
+// ExecApprovalManager is superseded by ToolApprovalManager; legacy exec.approval
+// handlers now delegate to the shared ToolApprovalManager instance.
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
@@ -523,16 +524,16 @@ export async function startGatewayServer(
 
   void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
 
-  const execApprovalManager = new ExecApprovalManager();
-  const execApprovalForwarder = createExecApprovalForwarder();
-  const execApprovalHandlers = createExecApprovalHandlers(execApprovalManager, {
-    forwarder: execApprovalForwarder,
-  });
-
+  // Single ToolApprovalManager shared by both canonical and legacy exec handlers.
   const toolApprovalManager = new ToolApprovalManager();
   const toolApprovalForwarder = createToolApprovalForwarder();
   const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
     forwarder: toolApprovalForwarder,
+  });
+
+  const execApprovalForwarder = createExecApprovalForwarder();
+  const execApprovalHandlers = createExecApprovalHandlers(toolApprovalManager, {
+    forwarder: execApprovalForwarder,
   });
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;

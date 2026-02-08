@@ -26,6 +26,7 @@ import {
   resolveShellEnvFallbackTimeoutMs,
 } from "../infra/shell-env.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
+import { computeToolApprovalRequestHash } from "../infra/tool-approval-hash.js";
 import { logInfo, logWarn } from "../logger.js";
 import { redactToolDetail } from "../logging/redact.js";
 import { formatSpawnError, spawnWithFallback } from "../process/spawn-utils.js";
@@ -1129,11 +1130,20 @@ export function createExecTool(
           void (async () => {
             let decision: string | null = null;
             try {
+              const requestHash = computeToolApprovalRequestHash({
+                toolName: "exec",
+                paramsSummary: commandText,
+                sessionKey: defaults?.sessionKey,
+                agentId,
+              });
               const decisionResult = await callGatewayTool<{ decision: string }>(
-                "exec.approval.request",
+                "tool.approval.request",
                 { timeoutMs: DEFAULT_APPROVAL_REQUEST_TIMEOUT_MS },
                 {
                   id: approvalId,
+                  toolName: "exec",
+                  paramsSummary: commandText,
+                  requestHash,
                   command: commandText,
                   cwd: workdir,
                   host: "node",
@@ -1313,11 +1323,20 @@ export function createExecTool(
           void (async () => {
             let decision: string | null = null;
             try {
+              const requestHash = computeToolApprovalRequestHash({
+                toolName: "exec",
+                paramsSummary: commandText,
+                sessionKey: defaults?.sessionKey,
+                agentId,
+              });
               const decisionResult = await callGatewayTool<{ decision: string }>(
-                "exec.approval.request",
+                "tool.approval.request",
                 { timeoutMs: DEFAULT_APPROVAL_REQUEST_TIMEOUT_MS },
                 {
                   id: approvalId,
+                  toolName: "exec",
+                  paramsSummary: commandText,
+                  requestHash,
                   command: commandText,
                   cwd: workdir,
                   host: "gateway",
