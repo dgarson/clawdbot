@@ -1,0 +1,41 @@
+{
+  "name": "memclawd",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MemClawd Memory Composition Service",
+  "type": "module",
+  "scripts": {
+    "bench": "node --import tsx bench/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --import tsx src/index.ts",
+    "docker:build": "docker build -t memclawd -f docker/Dockerfile .",
+    "docker:dev": "docker compose -f docker/docker-compose.yml up --build",
+    "lint": "oxlint --type-aware",
+    "migrate": "node --import tsx scripts/migrate.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@sinclair/typebox": "0.34.48",
+    "better-sqlite3": "^12.2.0",
+    "bullmq": "^5.58.5",
+    "drizzle-orm": "^0.44.5",
+    "hono": "4.11.8",
+    "ioredis": "^5.7.0",
+    "nanoid": "^5.1.5",
+    "pg": "^8.16.3",
+    "pgvector": "^0.2.1",
+    "pino": "^9.9.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

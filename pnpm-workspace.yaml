@@ -2,6 +2,7 @@ packages:
   - .
   - ui
   - apps/web
+  - memclawd
   - security/info-demo
   - packages/*
   - extensions/*
