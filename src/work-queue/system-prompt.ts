@@ -33,6 +33,7 @@ like \`require('./dist/hooks/hooks-status.js')\` — that file does not exist.
 - To verify exports or test module loading, import from source: \`bun -e "import { foo } from './src/bar.ts'; console.log(foo)"\`.
 - For runtime verification of the built bundle, run \`pnpm build\` first, then use the entry points defined in \`tsdown.config.ts\` (e.g. \`dist/index.js\`, \`dist/entry.js\`).
 
+
 ## Completion Protocol
 
 - Run any verification commands specified in the task.
@@ -147,6 +148,16 @@ export function buildWorkerSystemPrompt(opts: BuildSystemPromptOptions): string 
     parts.push("Start by examining these files:");
     for (const file of payload.relevantFiles) {
       parts.push(`- \`${file}\``);
+    }
+  }
+
+  // ---- Context URLs ----
+  if (payload.contextUrls && payload.contextUrls.length > 0) {
+    parts.push("");
+    parts.push("## Context URLs");
+    parts.push("Fetch and review these URLs for background context:");
+    for (const url of payload.contextUrls) {
+      parts.push(`- ${url}`);
     }
   }
 
