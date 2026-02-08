@@ -249,7 +249,10 @@ function ToolCallTimeline({ toolCalls, taskTitle }: ToolCallTimelineProps) {
                 <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-foreground">
                   {tool.name}
                 </span>
-                <span className="rounded-md bg-background/80 px-2 py-0.5 font-mono text-xs text-foreground/80">
+                <span
+                  className="inline-block max-w-[240px] truncate rounded-md bg-background/80 px-2 py-0.5 font-mono text-xs text-foreground/80 sm:max-w-[360px] lg:max-w-[480px]"
+                  title={getToolLine(tool)}
+                >
                   {getToolLine(tool)}
                 </span>
               </div>
