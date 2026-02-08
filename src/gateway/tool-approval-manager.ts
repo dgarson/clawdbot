@@ -13,6 +13,8 @@ export type ToolApprovalDecision = "allow-once" | "allow-always" | "deny";
 
 export type ToolApprovalRequestPayload = {
   toolName: string;
+  /** Marker for legacy exec.approval.* origins (used for compatibility). */
+  source?: "exec-legacy" | null;
   paramsSummary?: string | null;
   riskClass?: string | null;
   sideEffects?: string[] | null;

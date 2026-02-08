@@ -55,7 +55,6 @@ import {
   diffConfigPaths,
   startGatewayConfigReloader,
 } from "./config-reload.js";
-// ExecApprovalManager replaced by unified ToolApprovalManager
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
@@ -533,8 +532,9 @@ export async function startGatewayServer(
   const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
     forwarder: toolApprovalForwarder,
   });
+  const execApprovalForwarder = createExecApprovalForwarder();
   const execApprovalHandlers = createExecApprovalHandlers(toolApprovalManager, {
-    forwarder: toolApprovalForwarder,
+    forwarder: execApprovalForwarder,
   });
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
