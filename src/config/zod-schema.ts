@@ -377,6 +377,16 @@ export const OpenClawSchema = z
     commands: CommandsSchema,
     approvals: ApprovalsSchema,
     session: SessionSchema,
+    prReviewMonitor: z
+      .object({
+        enabled: z.boolean().optional(),
+        repo: z.string().optional(),
+        slackChannel: z.string().optional(),
+        botAccounts: z.array(z.string()).optional(),
+        pageSize: z.number().int().positive().max(100).optional(),
+      })
+      .strict()
+      .optional(),
     cron: z
       .object({
         enabled: z.boolean().optional(),
