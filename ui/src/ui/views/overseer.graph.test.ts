@@ -6,7 +6,7 @@ import {
   buildSystemGraphLayout,
   fitGraphViewport,
   zoomGraphViewport,
-} from "./overseer.graph";
+} from "./overseer.graph.js";
 
 describe("overseer graph layouts", () => {
   it("builds plan nodes and edges", () => {
@@ -54,13 +54,25 @@ describe("overseer graph layouts", () => {
     };
 
     const layout = buildOverseerGraphLayout(goal);
-    expect(layout.nodes.some((node) => node.id === "goal:G_1")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "P1")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "T1")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "S1")).toBe(true);
-    expect(layout.edges.some((edge) => edge.from === "goal:G_1" && edge.to === "P1")).toBe(true);
-    expect(layout.edges.some((edge) => edge.from === "P1" && edge.to === "T1")).toBe(true);
-    expect(layout.edges.some((edge) => edge.from === "T1" && edge.to === "S1")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "goal:G_1")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "P1")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "T1")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "S1")).toBe(true);
+    expect(
+      layout.edges.some(
+        (edge: { from: string; to: string }) => edge.from === "goal:G_1" && edge.to === "P1",
+      ),
+    ).toBe(true);
+    expect(
+      layout.edges.some(
+        (edge: { from: string; to: string }) => edge.from === "P1" && edge.to === "T1",
+      ),
+    ).toBe(true);
+    expect(
+      layout.edges.some(
+        (edge: { from: string; to: string }) => edge.from === "T1" && edge.to === "S1",
+      ),
+    ).toBe(true);
     expect(layout.bounds.width).toBeGreaterThan(0);
     expect(layout.bounds.height).toBeGreaterThan(0);
   });
@@ -143,14 +155,14 @@ describe("overseer graph layouts", () => {
       channels,
     });
 
-    expect(layout.nodes.some((node) => node.id === "gateway")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:nodes")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:agents")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:sessions")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:instances")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:cron")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:skills")).toBe(true);
-    expect(layout.nodes.some((node) => node.id === "group:channels")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "gateway")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:nodes")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:agents")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:sessions")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:instances")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:cron")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:skills")).toBe(true);
+    expect(layout.nodes.some((node: { id: string }) => node.id === "group:channels")).toBe(true);
   });
 
   it("computes viewport transforms", () => {

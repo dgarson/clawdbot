@@ -85,13 +85,27 @@ ${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : "No snapshot yet."}
 }
 
 function resolveChannelOrder(snapshot: ChannelsStatusSnapshot | null): ChannelKey[] {
+  const validChannelKeys: ChannelKey[] = [
+    "whatsapp",
+    "telegram",
+    "discord",
+    "googlechat",
+    "slack",
+    "signal",
+    "imessage",
+    "nostr",
+  ];
   if (snapshot?.channelMeta?.length) {
-    return snapshot.channelMeta.map((entry) => entry.id);
+    return snapshot.channelMeta
+      .map((entry) => entry.id)
+      .filter((id): id is ChannelKey => validChannelKeys.includes(id as ChannelKey));
   }
   if (snapshot?.channelOrder?.length) {
-    return snapshot.channelOrder;
+    return snapshot.channelOrder.filter((id): id is ChannelKey =>
+      validChannelKeys.includes(id as ChannelKey),
+    );
   }
-  return ["whatsapp", "telegram", "discord", "googlechat", "slack", "signal", "imessage", "nostr"];
+  return validChannelKeys;
 }
 
 function renderChannel(key: ChannelKey, props: ChannelsProps, data: ChannelsChannelData) {

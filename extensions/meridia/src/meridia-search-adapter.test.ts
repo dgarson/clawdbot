@@ -72,3 +72,22 @@ describe("MeridiaSearchAdapter.readFile", () => {
     expect(result.path).toBe("");
   });
 });
+
+describe("MeridiaSearchAdapter probes", () => {
+  it("reports embedding probe failure without config", async () => {
+    const mockBackend = {} as MeridiaDbBackend;
+    const adapter = new MeridiaSearchAdapter(mockBackend);
+    const probe = await adapter.probeEmbeddingAvailability();
+    expect(probe.ok).toBe(false);
+    expect(probe.error).toBe("missing_config");
+  });
+
+  it("reports vector probe failure without config", async () => {
+    const mockBackend = {
+      loadVectorExtension: vi.fn().mockResolvedValue({ ok: true }),
+    } as unknown as MeridiaDbBackend;
+    const adapter = new MeridiaSearchAdapter(mockBackend);
+    const available = await adapter.probeVectorAvailability();
+    expect(available).toBe(false);
+  });
+});

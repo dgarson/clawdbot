@@ -37,6 +37,7 @@ import { startViewTransition } from "./view-transition.ts";
 
 type SettingsHost = {
   settings: UiSettings;
+  password?: string;
   theme: ThemeMode;
   themeResolved: ResolvedTheme;
   applySessionKey: string;
@@ -50,11 +51,10 @@ type SettingsHost = {
   basePath: string;
   agentsList?: AgentsListResult | null;
   agentsSelectedId?: string | null;
-  agentsPanel?: "overview" | "dashboard" | "files" | "tools" | "skills" | "channels" | "cron";
+  agentsPanel?: "overview" | "files" | "tools" | "skills" | "channels" | "cron" | "dashboard";
   themeMedia: MediaQueryList | null;
   themeMediaHandler: ((event: MediaQueryListEvent) => void) | null;
   pendingGatewayUrl?: string | null;
-  password: string;
 };
 
 export function applySettings(host: SettingsHost, next: UiSettings) {

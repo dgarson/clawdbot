@@ -303,6 +303,7 @@ export type ConfigSchemaResponse = {
   uiHints: ConfigUiHints;
   version: string;
   generatedAt: string;
+  notModified?: boolean;
 };
 
 export type PresenceEntry = {

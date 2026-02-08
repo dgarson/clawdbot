@@ -105,10 +105,10 @@ export type SdkRunnerParams = {
   hooksEnabled?: boolean;
 
   /**
-   * When true, tool output text (not just summaries) is emitted via onToolResult.
-   * Mirrors Pi agent's shouldEmitToolOutput behavior.
+   * Controls whether tool output text is emitted via onToolResult.
+   * Accepts a boolean or a function returning boolean for parity with Pi agent.
    */
-  shouldEmitToolOutput?: boolean;
+  shouldEmitToolOutput?: boolean | (() => boolean);
 
   /**
    * When true, only content inside `<final>...</final>` tags is returned.

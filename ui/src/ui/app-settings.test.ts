@@ -5,6 +5,12 @@ import { setTabFromRoute } from "./app-settings.ts";
 type SettingsHost = Parameters<typeof setTabFromRoute>[0] & {
   logsPollInterval: number | null;
   debugPollInterval: number | null;
+  logsAutoFollow: boolean;
+  logsFilterText: string;
+  logsShowRelativeTime: boolean;
+  logsKeyboardCleanup: (() => void) | null;
+  configKeyboardCleanup: (() => void) | null;
+  overseerKeyboardCleanup: (() => void) | null;
 };
 
 const createHost = (tab: Tab): SettingsHost => ({

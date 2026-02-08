@@ -8,7 +8,6 @@
 import type { ConfigSnapshot, ConfigUiHints } from "../types.js";
 import type { OnboardingProgress, OnboardingWizardState } from "../views/onboarding-phases.js";
 import { toast } from "../components/toast.js";
-import { cloneConfigObject, serializeConfigForm } from "../config/form-utils";
 import {
   createWizardState,
   openWizard,
@@ -20,6 +19,7 @@ import {
   showConfirmClose,
   hideConfirmClose,
 } from "../views/onboarding-wizard.js";
+import { cloneConfigObject, serializeConfigForm } from "./config/form-utils.js";
 
 // ============================================================================
 // Types

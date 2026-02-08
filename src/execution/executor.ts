@@ -596,6 +596,8 @@ export class DefaultTurnExecutor implements TurnExecutor {
           // Block streaming config (mirroring Pi runtime adapter)
           blockReplyBreak: request.blockReplyBreak,
           blockReplyChunking: request.blockReplyChunking,
+          shouldEmitToolResult: request.shouldEmitToolResult,
+          shouldEmitToolOutput: request.shouldEmitToolOutput,
           onToolResult: request.onToolResult
             ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
                 request.onToolResult?.({

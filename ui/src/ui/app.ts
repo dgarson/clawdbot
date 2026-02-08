@@ -238,6 +238,26 @@ export class OpenClawApp extends LitElement {
   @state() sessionsFilterLimit = "120";
   @state() sessionsIncludeGlobal = true;
   @state() sessionsIncludeUnknown = false;
+  @state() sessionsSearch = "";
+  @state() sessionsSort: import("./views/sessions.js").SessionSortColumn = "updated";
+  @state() sessionsSortDir: import("./views/sessions.js").SessionSortDir = "desc";
+  @state() sessionsKindFilter: import("./views/sessions.js").SessionKindFilter = "all";
+  @state() sessionsStatusFilter: import("./views/sessions.js").SessionStatusFilter = "all";
+  @state() sessionsAgentLabelFilter = "";
+  @state() sessionsLaneFilter: import("./views/sessions.js").SessionLaneFilter = "all";
+  @state() sessionsTagFilter: string[] = [];
+  @state() sessionsViewMode: import("./views/sessions.js").SessionViewMode = "table";
+  @state() sessionsShowHidden = false;
+  @state() sessionsAutoHideCompletedMinutes = 0;
+  @state() sessionsAutoHideErroredMinutes = 0;
+  @state() sessionsPreset: import("./views/sessions.js").SessionPreset = "all";
+  @state() sessionsExpandedGroups: Set<string> = new Set();
+  @state() sessionsSelectedKeys: Set<string> = new Set();
+  @state() sessionsPreviewKey: string | null = null;
+  @state() sessionsPreviewLoading = false;
+  @state() sessionsPreviewError: string | null = null;
+  @state() sessionsPreviewData: import("./types.js").SessionsPreviewEntry | null = null;
+  @state() sessionsBusyKeys: Set<string> = new Set();
 
   @state() usageLoading = false;
   @state() usageResult: import("./types.js").SessionsUsageResult | null = null;

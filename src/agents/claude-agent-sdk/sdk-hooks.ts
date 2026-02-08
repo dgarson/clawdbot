@@ -14,6 +14,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
+/** Evaluate a shouldEmit flag that may be boolean or function. */
+function evalShouldEmit(flag: boolean | (() => boolean) | undefined): boolean {
+  if (typeof flag === "function") return flag();
+  return flag !== false;
+}
+
 /**
  * Mutable run state shared between the SDK runner and hooks.
  * The runner updates `assistantTexts`; hooks update `toolMetas` and `lastToolError`.
@@ -133,7 +139,7 @@ export function buildClawdbrainSdkHooks(params: {
   /** Mutable run state for precompact context and tool:result bridging. */
   runState?: SdkHooksRunState;
   /** When false, suppress tool output via onToolResult (P6). */
-  shouldEmitToolOutput?: boolean;
+  shouldEmitToolOutput?: boolean | (() => boolean);
 }): SdkHooksConfig {
   // Tool metadata tracking (P5): maps toolCallId → inferred meta string
   const toolMetaById = new Map<string, string | undefined>();
@@ -257,7 +263,7 @@ export function buildClawdbrainSdkHooks(params: {
       void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
     }
 
-    if (resultText && params.onToolResult && params.shouldEmitToolOutput !== false) {
+    if (resultText && params.onToolResult && evalShouldEmit(params.shouldEmitToolOutput)) {
       try {
         const resultSplit = splitMediaFromOutput(resultText);
         await params.onToolResult({
@@ -338,7 +344,7 @@ export function buildClawdbrainSdkHooks(params: {
       void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
     }
 
-    if (error && params.onToolResult && params.shouldEmitToolOutput !== false) {
+    if (error && params.onToolResult && evalShouldEmit(params.shouldEmitToolOutput)) {
       try {
         const errorSplit = splitMediaFromOutput(error);
         await params.onToolResult({

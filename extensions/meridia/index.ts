@@ -54,7 +54,7 @@ const meridiaPlugin = {
         const { MeridiaSearchAdapter } = await import("./src/meridia-search-adapter.js");
         const backend = createBackend({ cfg: ctx.config });
         if (!backend) return null;
-        return new MeridiaSearchAdapter(backend) as any;
+        return new MeridiaSearchAdapter(backend, ctx.config) as any;
       },
     });
   },

@@ -5,7 +5,7 @@
  * Dispatches "waitlist-submit" event with email on successful submission.
  */
 
-import { html, css, TemplateResult } from "lit";
+import { html, css, TemplateResult, type CSSResultGroup } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { CtaModalBase } from "./cta-modal-base.js";
 
@@ -22,8 +22,8 @@ export function validateEmail(value: string): string {
 
 @customElement("waitlist-modal")
 export class WaitlistModal extends CtaModalBase {
-  static styles = [
-    CtaModalBase.styles,
+  static styles: CSSResultGroup = [
+    ...(Array.isArray(CtaModalBase.styles) ? CtaModalBase.styles : [CtaModalBase.styles]),
     css`
       .email-hint {
         font-size: 0.75rem;

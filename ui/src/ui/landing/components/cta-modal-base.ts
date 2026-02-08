@@ -5,11 +5,11 @@
  * Provides backdrop, open/close, focus trapping, escape key, and animated transitions.
  */
 
-import { html, css, LitElement, nothing, TemplateResult, PropertyValues } from "lit";
+import { html, css, LitElement, nothing, TemplateResult, PropertyValues, type CSSResultGroup } from "lit";
 import { property, state, query } from "lit/decorators.js";
 
 export class CtaModalBase extends LitElement {
-  static styles = css`
+  static styles: CSSResultGroup = css`
     :host {
       display: contents;
       font-family: var(--landing-font-body, system-ui, sans-serif);
@@ -479,13 +479,15 @@ export class CtaModalBase extends LitElement {
       const first = focusableEls[0];
       const last = focusableEls[focusableEls.length - 1];
 
+      const shadowActive = (this.renderRoot as ShadowRoot).activeElement as HTMLElement | null;
+
       if (e.shiftKey) {
-        if (document.activeElement === first || this.renderRoot.activeElement === first) {
+        if (document.activeElement === first || shadowActive === first) {
           e.preventDefault();
           last.focus();
         }
       } else {
-        if (document.activeElement === last || this.renderRoot.activeElement === last) {
+        if (document.activeElement === last || shadowActive === last) {
           e.preventDefault();
           first.focus();
         }

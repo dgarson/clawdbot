@@ -54,10 +54,18 @@ export type CardListProps = {
  */
 function renderCardStatus(status: CardStatus): TemplateResult {
   const statusConfig = {
-    configured: { icon: "check-circle", color: "var(--success, 34, 197, 94)", label: "Connected" },
-    "not-configured": { icon: "circle", color: "var(--muted)", label: "Not configured" },
-    connecting: { icon: "loader", color: "var(--warning, 245, 158, 11)", label: "Connecting..." },
-    error: { icon: "alert-circle", color: "var(--danger, 239, 68, 68)", label: "Error" },
+    configured: {
+      icon: "check-circle" as const,
+      color: "var(--success, 34, 197, 94)",
+      label: "Connected",
+    },
+    "not-configured": { icon: "circle" as const, color: "var(--muted)", label: "Not configured" },
+    connecting: {
+      icon: "loader" as const,
+      color: "var(--warning, 245, 158, 11)",
+      label: "Connecting...",
+    },
+    error: { icon: "alert-circle" as const, color: "var(--danger, 239, 68, 68)", label: "Error" },
   };
 
   const config = statusConfig[status];

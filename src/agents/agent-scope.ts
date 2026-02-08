@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
+import type { AgentRuntime, ClaudeSdkOptions } from "../config/types.agent-defaults.js";
 import { resolveStateDir } from "../config/paths.js";
 import {
   DEFAULT_AGENT_ID,
@@ -31,8 +32,8 @@ type ResolvedAgentConfig = {
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
   mcpServers?: AgentEntry["mcpServers"];
-  runtime?: AgentEntry["runtime"];
-  claudeSdkOptions?: AgentEntry["claudeSdkOptions"];
+  runtime?: AgentRuntime;
+  claudeSdkOptions?: ClaudeSdkOptions;
 };
 
 let defaultAgentWarned = false;

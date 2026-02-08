@@ -27,6 +27,7 @@ import {
   type QuickStartForm,
   type ChannelCard,
   type ModelCard,
+  type OnboardingProgress,
   getChannelCards,
   getModelCards,
   createChannelCard,
@@ -56,11 +57,7 @@ export type OnboardingWizardState = {
   isDirty: boolean;
   isSaving: boolean;
   showConfirmClose: boolean;
-  progress: {
-    startedAt: string;
-    completedPhases: string[];
-    lastSavedAt: string;
-  } | null;
+  progress: OnboardingProgress | null;
 };
 
 export type OnboardingWizardProps = {
@@ -668,4 +665,76 @@ export function prevPhase(state: OnboardingWizardState): OnboardingWizardState {
     };
   }
   return state;
+}
+
+/**
+ * Set the active phase
+ */
+export function setActivePhase(
+  state: OnboardingWizardState,
+  phaseId: string,
+): OnboardingWizardState {
+  const phaseIndex = ONBOARDING_PHASES.findIndex((p) => p.id === phaseId);
+  if (phaseIndex === -1) {
+    return state;
+  }
+  return {
+    ...state,
+    currentPhase: phaseId,
+    step: phaseIndex + 1,
+  };
+}
+
+/**
+ * Set the active section within a phase
+ */
+export function setActiveSection(
+  state: OnboardingWizardState,
+  sectionId: string,
+): OnboardingWizardState {
+  // This is a placeholder - section management would be expanded based on phase structure
+  return state;
+}
+
+/**
+ * Mark the wizard as dirty (has unsaved changes)
+ */
+export function setDirty(state: OnboardingWizardState, isDirty: boolean): OnboardingWizardState {
+  return {
+    ...state,
+    isDirty,
+  };
+}
+
+/**
+ * Toggle advanced options in quickstart form
+ */
+export function toggleAdvanced(state: OnboardingWizardState): OnboardingWizardState {
+  return {
+    ...state,
+    quickStartForm: {
+      ...state.quickStartForm,
+      showAdvanced: !state.quickStartForm.showAdvanced,
+    },
+  };
+}
+
+/**
+ * Show confirm close dialog
+ */
+export function showConfirmClose(state: OnboardingWizardState): OnboardingWizardState {
+  return {
+    ...state,
+    showConfirmClose: true,
+  };
+}
+
+/**
+ * Hide confirm close dialog
+ */
+export function hideConfirmClose(state: OnboardingWizardState): OnboardingWizardState {
+  return {
+    ...state,
+    showConfirmClose: false,
+  };
 }

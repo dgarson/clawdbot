@@ -445,6 +445,9 @@ export type RunSdkAgentAdaptedParams = {
   // Tools are lazily built to avoid import cycles.
   tools: AnyAgentTool[];
 
+  /** Controls whether tool output text is emitted via onToolResult. */
+  shouldEmitToolOutput?: boolean | (() => boolean);
+
   /** Block reply break mode for streaming block replies during the run. */
   blockReplyBreak?: "text_end" | "message_end";
   /** Chunking configuration for block replies. */
@@ -568,6 +571,7 @@ export async function runSdkAgentAdapted(
     hooksEnabled: params.hooksEnabled,
     sdkOptions: params.sdkOptions,
     enforceFinalTag: params.enforceFinalTag,
+    shouldEmitToolOutput: params.shouldEmitToolOutput,
     blockReplyBreak: params.blockReplyBreak,
     blockReplyChunking: params.blockReplyChunking,
   });

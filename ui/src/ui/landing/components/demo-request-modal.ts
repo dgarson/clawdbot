@@ -6,7 +6,7 @@
  * Dispatches "demo-submit" event with form data on successful submission.
  */
 
-import { html, css, TemplateResult } from "lit";
+import { html, css, TemplateResult, type CSSResultGroup } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { CtaModalBase } from "./cta-modal-base.js";
 import { validateEmail } from "./waitlist-modal.js";
@@ -73,8 +73,8 @@ const USE_CASES = [
 
 @customElement("demo-request-modal")
 export class DemoRequestModal extends CtaModalBase {
-  static styles = [
-    CtaModalBase.styles,
+  static styles: CSSResultGroup = [
+    ...(Array.isArray(CtaModalBase.styles) ? CtaModalBase.styles : [CtaModalBase.styles]),
     css`
       .form-row {
         display: grid;

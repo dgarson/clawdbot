@@ -9,6 +9,9 @@
 import type { IconName } from "../icons.js";
 import type { ChannelCard, ModelCard, CardStatus } from "./onboarding-cards.js";
 
+// Re-export types for use by other modules
+export type { ChannelCard, ModelCard, CardStatus } from "./onboarding-cards.js";
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -32,6 +35,15 @@ export type QuickStartForm = {
   gatewayMode?: "local" | "remote";
   showAdvanced: boolean;
 };
+
+export type OnboardingProgress = {
+  startedAt: string;
+  completedPhases: string[];
+  lastSavedAt: string;
+};
+
+// Re-export OnboardingWizardState from onboarding-wizard.ts to avoid duplication
+export type { OnboardingWizardState } from "./onboarding-wizard.js";
 
 // ============================================================================
 // Phase Definitions
@@ -230,7 +242,8 @@ export function getDefaultQuickStartForm(): QuickStartForm {
  */
 export function createChannelCard(channelId: string, config: Record<string, unknown>): ChannelCard {
   const channelDef = getChannelById(channelId);
-  const channelConfig = config.channels?.[channelId] as Record<string, unknown> | undefined;
+  const channels = config.channels as Record<string, unknown> | undefined;
+  const channelConfig = channels?.[channelId] as Record<string, unknown> | undefined;
 
   // Determine status
   let status: CardStatus = "not-configured";
@@ -267,7 +280,8 @@ export function createModelCard(modelId: string, config: Record<string, unknown>
   const modelDef = getModelById(modelId);
 
   // Determine status (default model from quickstart is always configured)
-  const isDefaultModel = config.agents?.defaults?.model === modelId;
+  const agents = config.agents as { defaults?: { model?: string } } | undefined;
+  const isDefaultModel = agents?.defaults?.model === modelId;
   const status: CardStatus = isDefaultModel ? "configured" : "not-configured";
 
   return {
@@ -305,7 +319,8 @@ export function getModelCards(config: Record<string, unknown>): ModelCard[] {
   const cards: ModelCard[] = [];
 
   // Add default model
-  const defaultModel = config.agents?.defaults?.model;
+  const agents = config.agents as { defaults?: { model?: string } } | undefined;
+  const defaultModel = agents?.defaults?.model;
   if (typeof defaultModel === "string") {
     cards.push(createModelCard(defaultModel, config));
   }

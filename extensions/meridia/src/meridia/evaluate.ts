@@ -5,6 +5,7 @@ import type { MeridiaEvaluation, MeridiaToolResultContext, Phenomenology } from 
 import { sanitizeForPersistence } from "./sanitize.js";
 import {
   evaluateMemoryRelevance,
+  getActiveProfile as getActiveScoringProfile,
   shouldCapture as checkShouldCapture,
   isHighValue as checkIsHighValue,
   shouldUseLlmEval as checkShouldUseLlmEval,
@@ -357,6 +358,7 @@ export function buildScoringContext(
     userMarkedImportant?: boolean;
     contentTags?: string[];
     contentSummary?: string;
+    contentSignals?: ScoringContext["contentSignals"];
     heuristicEval?: { score: number; reason?: string };
   },
 ): ScoringContext {
@@ -369,6 +371,7 @@ export function buildScoringContext(
     userMarkedImportant: extras?.userMarkedImportant,
     contentTags: extras?.contentTags,
     contentSummary: extras?.contentSummary,
+    contentSignals: extras?.contentSignals,
     heuristicEval: extras?.heuristicEval,
   };
 }
@@ -388,6 +391,7 @@ export function evaluateRelevance(
 // Re-export scoring utilities for convenience
 export {
   evaluateMemoryRelevance,
+  getActiveScoringProfile as getActiveProfile,
   checkShouldCapture as shouldCaptureMultiFactor,
   checkIsHighValue as isHighValueMultiFactor,
   checkShouldUseLlmEval as shouldUseLlmEvalMultiFactor,

@@ -4,7 +4,17 @@ import crypto from "node:crypto";
 import { jsonResult, readNumberParam, readStringParam } from "openclaw/plugin-sdk";
 import type { MeridiaExperienceRecord } from "../meridia/types.js";
 import { createBackend } from "../meridia/db/index.js";
+import {
+  resolveHookConfig,
+  asObject,
+  readBoolean,
+  readPositiveNumber,
+  readString,
+} from "../meridia/event.js";
+import { enqueueGraphFanout } from "../meridia/fanout.js";
 import { resolveMeridiaDir } from "../meridia/paths.js";
+import { sanitizeExperienceRecord } from "../meridia/sanitize/record.js";
+import { indexRecordVector } from "../meridia/vector/search.js";
 
 const ExperienceCaptureSchema = Type.Object({
   topic: Type.String({
@@ -107,9 +117,44 @@ export function createExperienceCaptureTool(opts?: {
             result: reason ? { reason } : undefined,
           },
         };
+        const sanitizedRecord = sanitizeExperienceRecord(record);
 
         const backend = createBackend({ cfg: opts?.config });
-        await backend.insertExperienceRecord(record);
+        await backend.insertExperienceRecord(sanitizedRecord);
+        void indexRecordVector({
+          backend,
+          cfg: opts?.config,
+          record: sanitizedRecord,
+        });
+
+        // Match experiential-capture hook thresholds for graph linking.
+        const hookCfg = resolveHookConfig(opts?.config, "experiential-capture");
+        const graphitiCfg = asObject(hookCfg?.graphiti) ?? {};
+        const graphEnabled = readBoolean(
+          graphitiCfg,
+          "enabled",
+          opts?.config?.memory?.graphiti?.enabled === true,
+        );
+        const graphMinSignificance = readPositiveNumber(
+          graphitiCfg,
+          "minSignificanceForGraph",
+          0.7,
+        );
+        const graphGroupId = readString(graphitiCfg, "groupId");
+        if (graphEnabled && significance >= graphMinSignificance) {
+          const queueResult = enqueueGraphFanout({
+            record: sanitizedRecord,
+            cfg: opts?.config,
+            options: {
+              source: "meridia.manual-capture",
+              groupId: graphGroupId,
+            },
+          });
+          if (!queueResult.enqueued && queueResult.reason === "queue_full") {
+            // eslint-disable-next-line no-console
+            console.warn(`[fanout] Graph queue full, dropped manual record ${sanitizedRecord.id}`);
+          }
+        }
 
         const meridiaDir = resolveMeridiaDir(opts?.config);
 
@@ -119,7 +164,7 @@ export function createExperienceCaptureTool(opts?: {
           timestamp: now,
           topic,
           significance,
-          reason: record.capture.evaluation.reason,
+          reason: sanitizedRecord.capture.evaluation.reason,
           sessionKey: sessionKey ?? null,
           meridiaDir,
         });

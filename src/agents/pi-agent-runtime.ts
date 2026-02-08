@@ -50,9 +50,19 @@ export function createPiAgentRuntime(context: PiRuntimeContext): AgentRuntime {
     kind: "pi",
     displayName: "Pi Agent",
     async run(params: AgentRuntimeRunParams): Promise<AgentRuntimeResult> {
+      // Normalize shouldEmit* from boolean|function to function for Pi runner compat.
+      const { shouldEmitToolResult, shouldEmitToolOutput, ...rest } = params;
       return runEmbeddedPiAgent({
         ...context,
-        ...params,
+        ...rest,
+        shouldEmitToolResult:
+          typeof shouldEmitToolResult === "boolean"
+            ? () => shouldEmitToolResult
+            : shouldEmitToolResult,
+        shouldEmitToolOutput:
+          typeof shouldEmitToolOutput === "boolean"
+            ? () => shouldEmitToolOutput
+            : shouldEmitToolOutput,
       });
     },
   };

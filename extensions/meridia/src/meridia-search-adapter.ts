@@ -1,5 +1,11 @@
+import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import type { MeridiaDbBackend, RecordQueryResult } from "./meridia/db/backend.js";
 import { isMeridiaUri, resolveKitUri } from "./meridia/kit/resolver.js";
+import {
+  probeEmbeddingProviderAvailability,
+  probeVectorBackendAvailability,
+  searchRecordsByVector,
+} from "./meridia/vector/search.js";
 
 // Types duck-typed to match core MemorySearchManager interface
 
@@ -47,21 +53,71 @@ function buildMeridiaSnippet(result: RecordQueryResult): string {
 }
 
 export class MeridiaSearchAdapter {
-  constructor(private backend: MeridiaDbBackend) {}
+  constructor(
+    private backend: MeridiaDbBackend,
+    private config?: OpenClawConfig,
+  ) {}
 
   async search(
     query: string,
     opts?: { maxResults?: number; minScore?: number; sessionKey?: string },
   ): Promise<MemorySearchResult[]> {
-    const results = await this.backend.searchRecords(query, {
+    const textResults = await this.backend.searchRecords(query, {
       limit: opts?.maxResults ?? 6,
       minScore: opts?.minScore,
+      sessionKey: opts?.sessionKey,
     });
-    return results.map((r) => ({
+
+    const vectorResults = (
+      await searchRecordsByVector({
+        backend: this.backend,
+        cfg: this.config,
+        query,
+        limit: opts?.maxResults ?? 6,
+        minSimilarity: 0.3,
+        minScore: opts?.minScore,
+      })
+    ).filter((entry) => (opts?.sessionKey ? entry.record.session?.key === opts.sessionKey : true));
+
+    const byId = new Map<
+      string,
+      RecordQueryResult & {
+        vectorSimilarity?: number;
+      }
+    >();
+
+    for (const result of textResults) {
+      byId.set(result.record.id, result);
+    }
+    for (const vectorResult of vectorResults) {
+      const existing = byId.get(vectorResult.record.id);
+      if (existing) {
+        byId.set(vectorResult.record.id, {
+          ...existing,
+          vectorSimilarity: Math.max(existing.vectorSimilarity ?? 0, vectorResult.similarity),
+        });
+      } else {
+        byId.set(vectorResult.record.id, {
+          record: vectorResult.record,
+          vectorSimilarity: vectorResult.similarity,
+        });
+      }
+    }
+
+    const ranked = Array.from(byId.values()).sort((a, b) => {
+      const scoreA = Math.max(a.vectorSimilarity ?? 0, a.record.capture.score);
+      const scoreB = Math.max(b.vectorSimilarity ?? 0, b.record.capture.score);
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+      return b.record.ts.localeCompare(a.record.ts);
+    });
+
+    return ranked.map((r) => ({
       path: `meridia://${r.record.id}`,
       startLine: 0,
       endLine: 0,
-      score: r.rank ?? r.record.capture.score ?? 0.5,
+      score: Math.max(r.vectorSimilarity ?? 0, r.rank ?? 0, r.record.capture.score ?? 0.5),
       snippet: buildMeridiaSnippet(r),
       source: "memory" as const,
       citation: `[meridia:${r.record.id}]`,
@@ -118,12 +174,14 @@ export class MeridiaSearchAdapter {
   }
 
   async probeEmbeddingAvailability(): Promise<MemoryEmbeddingProbeResult> {
-    return { ok: true };
+    return probeEmbeddingProviderAvailability(this.config);
   }
 
   async probeVectorAvailability(): Promise<boolean> {
-    const sqliteBackend = this.backend as MeridiaDbBackend & { vecAvailable?: boolean };
-    return sqliteBackend.vecAvailable ?? false;
+    return probeVectorBackendAvailability({
+      backend: this.backend,
+      cfg: this.config,
+    });
   }
 
   async close(): Promise<void> {

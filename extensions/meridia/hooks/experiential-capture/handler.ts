@@ -1,24 +1,28 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import crypto from "node:crypto";
 import path from "node:path";
-import type { MemoryContentObject } from "../../../../src/memory/types.js";
 import type {
   MeridiaToolResultContext,
   MeridiaTraceEvent,
   CaptureDecision,
 } from "../../src/meridia/types.js";
-import { GraphitiClient } from "../../../../src/memory/graphiti/client.js";
 import { collectArtifacts } from "../../src/meridia/artifacts/collector.js";
 import { classifyMemoryType } from "../../src/meridia/classifier.js";
 import { resolveMeridiaPluginConfig } from "../../src/meridia/config.js";
 import { extractTextForAnalysis, detectContentSignals } from "../../src/meridia/content-signals.js";
 import { createBackend } from "../../src/meridia/db/index.js";
-import { evaluateHeuristic, evaluateWithLlm } from "../../src/meridia/evaluate.js";
+import {
+  breakdownToTrace,
+  evaluateHeuristic,
+  evaluateRelevance,
+  evaluateWithLlm,
+  getActiveProfile,
+  shouldUseLlmEvalMultiFactor,
+} from "../../src/meridia/evaluate.js";
 import {
   type HookEvent,
   asObject,
   resolveHookConfig,
-  readNumber,
   readPositiveNumber,
   readString,
   readBoolean,
@@ -26,6 +30,7 @@ import {
 } from "../../src/meridia/event.js";
 // V2 components
 import { normalizeToolResult } from "../../src/meridia/event/normalizer.js";
+import { enqueueGraphFanout } from "../../src/meridia/fanout.js";
 import {
   checkGates,
   ensureBuffer,
@@ -38,6 +43,7 @@ import {
 import { buildExperienceKit, kitToLegacyRecord } from "../../src/meridia/kit/builder.js";
 import { resolveMeridiaDir } from "../../src/meridia/paths.js";
 import { extractPhenomenology } from "../../src/meridia/phenomenology/extractor.js";
+import { sanitizeExperienceRecord } from "../../src/meridia/sanitize/record.js";
 import { sanitizeForPersistence } from "../../src/meridia/sanitize/redact.js";
 import {
   appendJsonl,
@@ -45,6 +51,7 @@ import {
   writeJson,
   readJsonIfExists,
 } from "../../src/meridia/storage.js";
+import { indexRecordVector } from "../../src/meridia/vector/search.js";
 
 // Local helpers removed — shared via event.js imports
 
@@ -65,6 +72,16 @@ async function loadBuffer(
 ): Promise<SessionBuffer> {
   const existing = await readJsonIfExists<SessionBuffer>(bufferPath);
   return ensureBuffer(existing ?? { sessionId, sessionKey });
+}
+
+function clamp01(value: number): number {
+  if (value <= 0) {
+    return 0;
+  }
+  if (value >= 1) {
+    return 1;
+  }
+  return value;
 }
 
 const handler = async (event: HookEvent): Promise<void> => {
@@ -97,14 +114,18 @@ const handler = async (event: HookEvent): Promise<void> => {
   const bufferPath = resolveBufferPath(meridiaDir, sessionId, sessionKey, event.sessionKey);
   const now = new Date().toISOString();
   const nowMs = Date.now();
-  const writeTraceJsonl = resolveMeridiaPluginConfig(cfg).debug.writeTraceJsonl;
+  const pluginCfg = resolveMeridiaPluginConfig(cfg);
+  const writeTraceJsonl = pluginCfg.debug.writeTraceJsonl;
+  const scoringConfig = pluginCfg.scoring;
+  const activeScoringProfile = getActiveProfile(scoringConfig);
 
   // ── Read config values (positive-only to prevent degenerate thresholds) ─
-  const minThreshold = readPositiveNumber(
+  const legacyMinThreshold = readPositiveNumber(
     hookCfg,
     ["min_significance_threshold", "minSignificanceThreshold", "threshold"],
     0.6,
   );
+  const captureThreshold = Math.max(activeScoringProfile.captureThreshold, legacyMinThreshold);
   const maxPerHour = readPositiveNumber(
     hookCfg,
     ["max_captures_per_hour", "maxCapturesPerHour"],
@@ -137,13 +158,10 @@ const handler = async (event: HookEvent): Promise<void> => {
   ]);
 
   // Graphiti graph persistence config (hook-level overrides)
-  const graphEnabled = readBoolean(hookCfg, ["graphiti", "enabled"], false);
-  const graphMinSignificance = readPositiveNumber(
-    hookCfg,
-    ["graphiti", "minSignificanceForGraph"],
-    0.7,
-  );
-  const graphGroupId = readString(hookCfg, ["graphiti", "groupId"]);
+  const graphitiCfg = asObject(hookCfg?.graphiti) ?? {};
+  const graphEnabled = readBoolean(graphitiCfg, "enabled", cfg?.memory?.graphiti?.enabled === true);
+  const graphMinSignificance = readPositiveNumber(graphitiCfg, "minSignificanceForGraph", 0.7);
+  const graphGroupId = readString(graphitiCfg, "groupId");
 
   const gatesConfig: GatesConfig = { maxCapturesPerHour: maxPerHour, minIntervalMs };
 
@@ -171,9 +189,23 @@ const handler = async (event: HookEvent): Promise<void> => {
   // ── Gate check via Component 2 ────────────────────────────────────────
   const gateResult = checkGates(buffer, gatesConfig);
 
-  // ── Pass 1: Significance evaluation (existing heuristic + optional LLM) ─
+  // ── Pass 1: Multi-factor relevance scoring ─────────────────────────────
   let evaluation = evaluateHeuristic(ctx);
-  if (cfg && evaluationModel) {
+  let scoringBreakdown = evaluateRelevance(
+    ctx,
+    {
+      recentCaptures: buffer.recentCaptures,
+      contentSummary: analysisText,
+      contentSignals,
+      heuristicEval: { score: evaluation.score, reason: evaluation.reason },
+    },
+    scoringConfig,
+  );
+
+  // Optional uncertain-zone LLM pass. The multi-factor score remains primary.
+  const shouldRunLlmEval =
+    Boolean(cfg && evaluationModel) && shouldUseLlmEvalMultiFactor(scoringBreakdown, scoringConfig);
+  if (shouldRunLlmEval && cfg && evaluationModel) {
     try {
       evaluation = await evaluateWithLlm({
         cfg,
@@ -181,6 +213,12 @@ const handler = async (event: HookEvent): Promise<void> => {
         modelRef: evaluationModel,
         timeoutMs: evaluationTimeoutMs,
       });
+
+      // Blend LLM and multi-factor scores conservatively for uncertain-zone refinement.
+      scoringBreakdown = {
+        ...scoringBreakdown,
+        compositeScore: clamp01((scoringBreakdown.compositeScore + evaluation.score) / 2),
+      };
     } catch (err) {
       evaluation = {
         ...evaluation,
@@ -189,19 +227,19 @@ const handler = async (event: HookEvent): Promise<void> => {
     }
   }
 
-  const shouldCapture = gateResult.allowed && evaluation.score >= minThreshold;
+  const finalScore = scoringBreakdown.compositeScore;
+  const shouldCapture = gateResult.allowed && finalScore >= captureThreshold;
 
   // Separate decision for whether this experience should be persisted to the knowledge graph.
   // This is intentionally stricter than capture.
-  const shouldPersistToGraph =
-    graphEnabled && shouldCapture && evaluation.score >= graphMinSignificance;
+  const shouldPersistToGraph = graphEnabled && shouldCapture && finalScore >= graphMinSignificance;
 
   // Record evaluation in buffer
   buffer = recordEvaluation(buffer, {
     toolName,
-    score: evaluation.score,
+    score: finalScore,
     recommendation: shouldCapture ? "capture" : "skip",
-    reason: evaluation.reason,
+    reason: evaluation.reason ?? "multi_factor",
   });
 
   let recordId: string | undefined;
@@ -217,7 +255,7 @@ const handler = async (event: HookEvent): Promise<void> => {
 
     // ── Pass 2: Phenomenology extraction (V2 Component 4) ─────────────
     const phenomenology = phenomenologyEnabled
-      ? await extractPhenomenology(meridiaEvent, evaluation.score, evaluation.reason, cfg, {
+      ? await extractPhenomenology(meridiaEvent, finalScore, evaluation.reason, cfg, {
           llmEnabled: Boolean(phenomenologyModel),
           modelRef: phenomenologyModel,
         })
@@ -229,10 +267,10 @@ const handler = async (event: HookEvent): Promise<void> => {
     // ── Build CaptureDecision (V2) ────────────────────────────────────
     const captureDecision: CaptureDecision = {
       shouldCapture: true,
-      significance: evaluation.score,
-      threshold: minThreshold,
+      significance: finalScore,
+      threshold: captureThreshold,
       mode: "full",
-      reason: evaluation.reason,
+      reason: evaluation.reason ?? "multi_factor",
     };
 
     // ── Build ExperienceKit via Component 6 ───────────────────────────
@@ -240,7 +278,7 @@ const handler = async (event: HookEvent): Promise<void> => {
       event: meridiaEvent,
       decision: captureDecision,
       phenomenology,
-      summary: evaluation.reason,
+      summary: evaluation.reason ?? "multi_factor_capture",
       artifacts: artifacts.length > 0 ? artifacts : undefined,
     });
 
@@ -258,62 +296,40 @@ const handler = async (event: HookEvent): Promise<void> => {
       confidence: classification.confidence,
       reasons: classification.reasons,
     };
+    const sanitizedRecord = sanitizeExperienceRecord(record);
 
+    let captureBackend: ReturnType<typeof createBackend> | undefined;
     try {
-      const backend = createBackend({ cfg, hookKey: "experiential-capture" });
-      await backend.insertExperienceRecord(record);
+      captureBackend = createBackend({ cfg, hookKey: "experiential-capture" });
+      await captureBackend.insertExperienceRecord(sanitizedRecord);
     } catch {
       // ignore
     }
 
+    if (captureBackend) {
+      void indexRecordVector({
+        backend: captureBackend,
+        cfg,
+        record: sanitizedRecord,
+      });
+    }
+
     // Update buffer with capture info
-    buffer = recordCapture(buffer, { toolName, score: evaluation.score, recordId });
+    buffer = recordCapture(buffer, { toolName, score: finalScore, recordId });
 
-    // ── Optional: persist to graph via GraphitiClient ─────────────────────
-    if (shouldPersistToGraph && cfg?.memory?.graphiti?.enabled) {
-      try {
-        const graphiti = new GraphitiClient({
-          serverHost: cfg.memory.graphiti.serverHost,
-          servicePort: cfg.memory.graphiti.servicePort,
-          apiKey: cfg.memory.graphiti.apiKey,
-          timeoutMs: cfg.memory.graphiti.timeoutMs ?? 30_000,
-        });
-
-        const episodeText = [
-          record.content?.topic,
-          record.content?.summary,
-          record.content?.context,
-        ]
-          .filter(Boolean)
-          .join("\n\n");
-
-        const episode: MemoryContentObject = {
-          id: record.id,
-          kind: "event",
-          text: episodeText,
-          tags: record.content?.tags,
-          provenance: {
-            source: "meridia.experiential-capture",
-            sessionKey: record.session?.key,
-            runId: record.session?.runId,
-            temporal: { observedAt: record.ts, updatedAt: record.ts },
-            ...(graphGroupId ? { citations: [graphGroupId] } : {}),
-          },
-          metadata: {
-            toolName: record.tool?.name,
-            toolCallId: record.tool?.callId,
-            score: record.capture.score,
-            memoryType: record.memoryType,
-            ...(graphGroupId ? { groupId: graphGroupId } : {}),
-          },
-        };
-
-        await graphiti.ingestEpisodes({
-          episodes: [episode],
-          traceId: `meridia-capture-${record.id.slice(0, 8)}`,
-        });
-      } catch {
-        // ignore graph fanout failures
+    // ── Optional: queue async graph linking (per-capture) ────────────────
+    if (shouldPersistToGraph) {
+      const queueResult = enqueueGraphFanout({
+        record: sanitizedRecord,
+        cfg,
+        options: {
+          source: "meridia.experiential-capture",
+          groupId: graphGroupId,
+        },
+      });
+      if (!queueResult.enqueued && queueResult.reason === "queue_full") {
+        // eslint-disable-next-line no-console
+        console.warn(`[fanout] Graph queue full, dropped record ${sanitizedRecord.id}`);
       }
     }
   }
@@ -333,12 +349,13 @@ const handler = async (event: HookEvent): Promise<void> => {
           : evaluation.error
             ? "error"
             : "skip",
-      score: evaluation.score,
-      threshold: minThreshold,
+      score: finalScore,
+      threshold: captureThreshold,
       limited: !gateResult.allowed
         ? { reason: gateResult.reason ?? "min_interval", detail: gateResult.detail }
         : undefined,
       evaluation,
+      scoring: breakdownToTrace(scoringBreakdown),
       recordId,
       error: evaluation.error,
     },

@@ -81,6 +81,10 @@ export type AgentRuntimeRunParams = {
   }) => void | Promise<void>;
   /** Called with reasoning/thinking text as it streams. */
   onReasoningStream?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Whether tool results should be emitted via onToolResult. */
+  shouldEmitToolResult?: (() => boolean) | boolean;
+  /** Whether tool output text should be emitted via onToolResult. */
+  shouldEmitToolOutput?: (() => boolean) | boolean;
   /** Called with tool result output text. */
   onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
   /** Called with agent lifecycle/diagnostic events. */

@@ -22,7 +22,8 @@ import {
   zoomGraphViewport,
   type GraphLayout,
   type GraphNode,
-} from "./overseer.graph";
+  type GraphEdge,
+} from "./overseer.graph.js";
 
 export type OverseerProps = {
   loading: boolean;
@@ -659,9 +660,9 @@ function renderGraph(
   return html`
     <svg class="graph-svg" aria-hidden="true">
       <g transform=${transform}>
-        ${layout.edges.map((edge) => {
-          const from = layout.nodes.find((node) => node.id === edge.from);
-          const to = layout.nodes.find((node) => node.id === edge.to);
+        ${layout.edges.map((edge: GraphEdge) => {
+          const from = layout.nodes.find((node: GraphNode) => node.id === edge.from);
+          const to = layout.nodes.find((node: GraphNode) => node.id === edge.to);
           if (!from || !to) return nothing;
           const x1 = from.x + from.width;
           const y1 = from.y + from.height / 2;
@@ -669,7 +670,7 @@ function renderGraph(
           const y2 = to.y + to.height / 2;
           return html`<path class="graph-edge" d="M ${x1} ${y1} L ${x2} ${y2}" />`;
         })}
-        ${layout.nodes.map((node) => renderGraphNode(node, selectedId === node.id, onSelect))}
+        ${layout.nodes.map((node: GraphNode) => renderGraphNode(node, selectedId === node.id, onSelect))}
       </g>
     </svg>
   `;
@@ -927,7 +928,7 @@ function renderSystemDetails(props: OverseerProps, layout: GraphLayout) {
       ${detailRow("Channels", String(props.channels?.channelOrder?.length ?? 0))}
     `;
   }
-  const node = layout.nodes.find((entry) => entry.id === selectedId);
+  const node = layout.nodes.find((entry: GraphNode) => entry.id === selectedId);
   if (!node) {
     return html`
       <div class="graph-details__empty">Select a node to see details.</div>
@@ -948,7 +949,7 @@ function renderSystemDetails(props: OverseerProps, layout: GraphLayout) {
   if (node.kind === "group") {
     return html`
       <div class="graph-details__title">${node.label}</div>
-      ${detailRow("Items", String(layout.edges.filter((edge) => edge.from === node.id).length))}
+      ${detailRow("Items", String(layout.edges.filter((edge: GraphEdge) => edge.from === node.id).length))}
     `;
   }
   if (node.kind === "node") {

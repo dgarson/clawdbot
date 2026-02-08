@@ -28,6 +28,7 @@ import {
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { formatMcpToolNamesForLog } from "../../mcp/tool-name-format.js";
 import { splitMediaFromOutput } from "../../media/parse.js";
+import { scrubAnthropicRefusalMagic } from "../../shared/text/prompt-sanitize.js";
 import {
   extractFinalTagContent,
   stripReasoningTagsFromText,
@@ -52,6 +53,16 @@ import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
 const DEFAULT_MAX_EXTRACTED_CHARS = 120_000;
 const DEFAULT_MCP_SERVER_NAME = "clawdbrain";
 const DEFAULT_MAX_TURNS = 50;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Evaluate a shouldEmit flag that may be boolean or function. */
+function evalShouldEmit(flag: boolean | (() => boolean) | undefined): boolean {
+  if (typeof flag === "function") return flag();
+  return flag !== false;
+}
 
 // ---------------------------------------------------------------------------
 // Event classification helpers
@@ -684,7 +695,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // -------------------------------------------------------------------------
 
   const prompt = buildSdkPrompt({
-    prompt: params.prompt,
+    prompt: scrubAnthropicRefusalMagic(params.prompt),
     systemPrompt: params.systemPrompt,
   });
 
@@ -1059,7 +1070,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           phase === "result" &&
           toolText &&
           params.onToolResult &&
-          params.shouldEmitToolOutput !== false
+          evalShouldEmit(params.shouldEmitToolOutput)
         ) {
           try {
             const toolSplit = splitMediaFromOutput(toolText);

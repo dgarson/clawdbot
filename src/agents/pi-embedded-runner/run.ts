@@ -62,21 +62,9 @@ import { describeUnknownError } from "./utils.js";
 
 type ApiKeyInfo = ResolvedProviderAuth;
 
-// Avoid Anthropic's refusal test token poisoning session transcripts.
-const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
-const ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)";
+import { scrubAnthropicRefusalMagic } from "../../shared/text/prompt-sanitize.js";
 
 let feedbackConfigured = false;
-
-function scrubAnthropicRefusalMagic(prompt: string): string {
-  if (!prompt.includes(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL)) {
-    return prompt;
-  }
-  return prompt.replaceAll(
-    ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL,
-    ANTHROPIC_MAGIC_STRING_REPLACEMENT,
-  );
-}
 
 export async function runEmbeddedPiAgent(
   params: RunEmbeddedPiAgentParams,
@@ -754,6 +742,7 @@ export async function runEmbeddedPiAgent(
               durationMs: Date.now() - started,
               agentMeta,
               aborted,
+              turnCount: aborted ? 0 : 1,
               systemPromptReport: attempt.systemPromptReport,
               // Handle client tool calls (OpenResponses hosted tools)
               stopReason: attempt.clientToolCall ? "tool_calls" : undefined,
