@@ -1,11 +1,14 @@
 "use client";
 
+import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { ShieldAlert, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAgentStore } from "@/stores/useAgentStore";
+import { useToolApprovals } from "@/hooks/queries/useToolApprovals";
+import { parseAgentSessionKey } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface ApprovalsInboxProps {
@@ -18,16 +21,40 @@ interface ApprovalsInboxProps {
  */
 export function ApprovalsInbox({ className }: ApprovalsInboxProps) {
   const agents = useAgentStore((s) => s.agents);
+  const { data: toolApprovals } = useToolApprovals();
+
+  const approvals = toolApprovals?.approvals ?? null;
+  const approvalsByAgent = React.useMemo(() => {
+    if (!approvals) {
+      return null;
+    }
+    const map = new Map<string, number>();
+    let unknown = 0;
+    for (const approval of approvals) {
+      const resolvedAgentId =
+        approval.agentId ??
+        (approval.sessionKey ? parseAgentSessionKey(approval.sessionKey)?.agentId : null);
+      if (!resolvedAgentId) {
+        unknown += 1;
+        continue;
+      }
+      map.set(resolvedAgentId, (map.get(resolvedAgentId) ?? 0) + 1);
+    }
+    return { map, unknown };
+  }, [approvals]);
 
   // Sum pending approvals across all agents
-  const totalPending = agents.reduce(
-    (sum, agent) => sum + (agent.pendingApprovals ?? 0),
-    0
-  );
+  const totalPending =
+    approvals?.length ??
+    agents.reduce((sum, agent) => sum + (agent.pendingApprovals ?? 0), 0);
 
-  const agentsWithApprovals = agents.filter(
-    (a) => (a.pendingApprovals ?? 0) > 0
-  );
+  const agentsWithApprovals = approvalsByAgent
+    ? agents.filter((agent) => approvalsByAgent.map.has(agent.id))
+    : agents.filter((a) => (a.pendingApprovals ?? 0) > 0);
+  const unknownAgentApprovals = approvalsByAgent?.unknown ?? 0;
+  const totalAgentsWithApprovals = approvalsByAgent
+    ? agentsWithApprovals.length + (unknownAgentApprovals > 0 ? 1 : 0)
+    : agentsWithApprovals.length;
 
   if (totalPending === 0) {
     return null;
@@ -54,9 +81,9 @@ export function ApprovalsInbox({ className }: ApprovalsInboxProps) {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {agentsWithApprovals.length === 1
-              ? `${agentsWithApprovals[0].name} needs your review`
-              : `${agentsWithApprovals.length} agents need your review`}
+            {totalAgentsWithApprovals === 1
+              ? `${agentsWithApprovals[0]?.name ?? "An agent"} needs your review`
+              : `${totalAgentsWithApprovals} agents need your review`}
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>

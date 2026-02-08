@@ -15,7 +15,15 @@ import type {
 import type { ChannelWizardState } from "./channel-config-wizard.ts";
 import type { NostrProfileFormState } from "./channels.nostr-profile-form.ts";
 
-export type ChannelKey = string;
+export type ChannelKey =
+  | "discord"
+  | "slack"
+  | "telegram"
+  | "whatsapp"
+  | "signal"
+  | "imessage"
+  | "googlechat"
+  | "nostr";
 
 export type ChannelsProps = {
   connected: boolean;
@@ -49,14 +57,14 @@ export type ChannelsProps = {
   onNostrProfileImport: () => void;
   onNostrProfileToggleAdvanced: () => void;
   // Channel wizard state and callbacks
-  wizardState: ChannelWizardState;
-  onWizardOpen: (channelId: ChannelKey) => void;
-  onWizardClose: () => void;
-  onWizardSave: () => void;
-  onWizardDiscard: () => void;
-  onWizardSectionChange: (sectionId: string) => void;
-  onWizardConfirmClose: () => void;
-  onWizardCancelClose: () => void;
+  wizardState?: ChannelWizardState;
+  onWizardOpen?: (channelId: ChannelKey) => void;
+  onWizardClose?: () => void;
+  onWizardSave?: () => void;
+  onWizardDiscard?: () => void;
+  onWizardSectionChange?: (sectionId: string) => void;
+  onWizardConfirmClose?: () => void;
+  onWizardCancelClose?: () => void;
 };
 
 export type ChannelsChannelData = {

@@ -76,7 +76,7 @@ export type GatewayControlUiConfig = {
   dangerouslyDisableDeviceAuth?: boolean;
 };
 
-export type GatewayAuthMode = "token" | "password";
+export type GatewayAuthMode = "token" | "password" | "none";
 
 export type GatewayAuthConfig = {
   /** Authentication mode for Gateway connections. Defaults to token when set. */
@@ -256,6 +256,8 @@ export type GatewayNodesConfig = {
 export type GatewayWorkQueueConfig = {
   /** Auto-recover orphaned in_progress items on startup (default: true). */
   recoverOnStartup?: boolean;
+  /** Heartbeat TTL in ms before recovery considers a work item stale (default: 300000). */
+  heartbeatTtlMs?: number;
 };
 
 export type GatewayConfig = {

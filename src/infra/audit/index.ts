@@ -25,6 +25,7 @@ export {
   createSecurityAuditEvent,
   createTokenAuditEvent,
   createAgentAuditEvent,
+  createToolApprovalAuditEvent,
 } from "./audit-log.js";
 
 // Subscriber

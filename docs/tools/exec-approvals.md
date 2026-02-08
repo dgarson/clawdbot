@@ -102,7 +102,7 @@ Legacy `agents.default` entries are migrated to `agents.main` on load.
 
 Examples:
 
-- `~/Projects/**/bin/bird`
+- `~/Projects/**/bin/peekaboo`
 - `~/.local/bin/*`
 - `/opt/homebrew/bin/rg`
 
@@ -176,6 +176,10 @@ Actions:
 You can forward exec approval prompts to any chat channel (including plugin channels) and approve
 them with `/approve`. This uses the normal outbound delivery pipeline.
 
+By default, Discord forwarding is skipped when Discord exec approvals are enabled, so operators
+only receive the button UI once. Set `approvals.exec.skipDiscordWhenExecApprovalsEnabled: false`
+to keep both the plain-text forward and the Discord DM buttons.
+
 Config:
 
 ```json5
@@ -184,6 +188,7 @@ Config:
     exec: {
       enabled: true,
       mode: "session", // "session" | "targets" | "both"
+      skipDiscordWhenExecApprovalsEnabled: true,
       agentFilter: ["main"],
       sessionFilter: ["discord"], // substring or regex
       targets: [

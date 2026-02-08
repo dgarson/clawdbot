@@ -1,6 +1,7 @@
 import { html } from "lit";
 import type { GatewayHelloOk } from "../gateway.ts";
 import type { UiSettings } from "../storage.ts";
+import { renderError } from "../components/error-boundary.js";
 import { formatAgo, formatDurationMs } from "../format.ts";
 import { formatNextRun } from "../presenter.ts";
 
@@ -204,11 +205,11 @@ export function renderOverview(props: OverviewProps) {
         </div>
         ${
           props.lastError
-            ? html`<div class="callout danger" style="margin-top: 14px;">
-              <div>${props.lastError}</div>
+            ? html`
+              ${renderError({ message: props.lastError })}
               ${authHint ?? ""}
               ${insecureContextHint ?? ""}
-            </div>`
+            `
             : html`
                 <div class="callout" style="margin-top: 14px">
                   Use Channels to link WhatsApp, Telegram, Discord, Signal, or iMessage.

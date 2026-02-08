@@ -339,6 +339,12 @@ export type PluginHookAgentEndEvent = {
   success: boolean;
   error?: string;
   durationMs?: number;
+  /** Optional chat kind metadata (e.g. "dm", "group", "channel"). */
+  channelType?: string;
+  /** Optional channel or peer identifier for the originating conversation. */
+  channelId?: string;
+  /** Optional Slack thread timestamp when available. */
+  threadTs?: string;
 };
 
 // Compaction hooks

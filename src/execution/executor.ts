@@ -596,6 +596,8 @@ export class DefaultTurnExecutor implements TurnExecutor {
           // Block streaming config (mirroring Pi runtime adapter)
           blockReplyBreak: request.blockReplyBreak,
           blockReplyChunking: request.blockReplyChunking,
+          shouldEmitToolResult: request.shouldEmitToolResult,
+          shouldEmitToolOutput: request.shouldEmitToolOutput,
           onToolResult: request.onToolResult
             ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
                 request.onToolResult?.({
@@ -610,10 +612,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
                   mediaUrls: payload.mediaUrls,
                 })
             : undefined,
-          onAgentEvent: request.onAgentEvent
-            ? (evt: { stream: string; data: Record<string, unknown> }) =>
-                request.onAgentEvent?.(evt)
-            : undefined,
+          onAgentEvent: request.onAgentEvent ? (evt) => request.onAgentEvent?.(evt) : undefined,
         });
 
         // Map EmbeddedPiRunResult to RuntimeAdapterResult (same shape as Pi)
@@ -626,7 +625,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
    * Dynamically import the Pi runtime to avoid circular dependencies.
    */
   private async importPiRuntime(): Promise<RunEmbeddedPiAgentFn> {
-    const { runEmbeddedPiAgent } = await import("../agents/pi-embedded-runner/run.js");
+    const { runEmbeddedPiAgent } = await import("../agents/pi-embedded.js");
     return runEmbeddedPiAgent;
   }
 

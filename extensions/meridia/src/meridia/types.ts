@@ -175,6 +175,7 @@ export type MeridiaTraceEvent = {
     threshold?: number;
     limited?: { reason: "min_interval" | "max_per_hour" | "budget"; detail?: string };
     evaluation?: MeridiaEvaluation;
+    scoring?: Record<string, unknown>;
     recordId?: string;
     error?: string;
   };

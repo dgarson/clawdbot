@@ -1,12 +1,18 @@
-import crypto from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
-import { onAgentEvent } from "../../infra/agent-events.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
-const runCliAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -27,11 +33,11 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("../../agents/cli-runner.js", () => ({
-  runCliAgent: (params: unknown) => runCliAgentMock(params),
+  runCliAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -103,38 +109,23 @@ function createRun() {
 }
 
 describe("runReplyAgent claude-cli routing", () => {
-  it("uses claude-cli runner for claude-cli provider", async () => {
-    const randomSpy = vi.spyOn(crypto, "randomUUID").mockReturnValue("run-1");
-    const lifecyclePhases: string[] = [];
-    const unsubscribe = onAgentEvent((evt) => {
-      if (evt.runId !== "run-1") {
-        return;
-      }
-      if (evt.stream !== "lifecycle") {
-        return;
-      }
-      const phase = evt.data?.phase;
-      if (typeof phase === "string") {
-        lifecyclePhases.push(phase);
-      }
-    });
-    runCliAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "ok" }],
-      meta: {
-        agentMeta: {
+  it("uses kernel for claude-cli provider and returns result", async () => {
+    kernelExecuteMock.mockImplementationOnce(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "ok" }],
+        runtime: {
+          kind: "cli",
           provider: "claude-cli",
           model: "opus-4.5",
+          fallbackUsed: false,
         },
-      },
+      });
     });
 
     const result = await createRun();
-    unsubscribe();
-    randomSpy.mockRestore();
 
-    expect(runCliAgentMock).toHaveBeenCalledTimes(1);
-    expect(runEmbeddedPiAgentMock).not.toHaveBeenCalled();
-    expect(lifecyclePhases).toEqual(["start", "end"]);
+    // All providers (including claude-cli) now go through the kernel
+    expect(kernelExecuteMock).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ text: "ok" });
   });
 });

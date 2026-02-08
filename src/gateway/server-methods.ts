@@ -192,6 +192,9 @@ function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["c
     method.startsWith("wizard.") ||
     method.startsWith("update.") ||
     method === "channels.logout" ||
+    method === "agents.create" ||
+    method === "agents.update" ||
+    method === "agents.delete" ||
     method === "skills.install" ||
     method === "skills.uninstall" ||
     method === "skills.update" ||

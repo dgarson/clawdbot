@@ -18,6 +18,7 @@ import type {
   TransactionOptions,
 } from "../backend.js";
 import { resolveMeridiaDir } from "../../paths.js";
+import { sanitizeExperienceRecord } from "../../sanitize/record.js";
 import { runMigrations, getCurrentVersion } from "../migrations.js";
 
 const require = createRequire(import.meta.url);
@@ -85,6 +86,21 @@ function ensureVecTable(
     return { vecAvailable: true };
   } catch (err) {
     return { vecAvailable: false, vecError: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function readVectorDims(db: DatabaseSync): number | null {
+  try {
+    const row = db.prepare(`SELECT value FROM meridia_meta WHERE key = 'vector_dims'`).get() as
+      | { value?: string }
+      | undefined;
+    const parsed = Number.parseInt(row?.value ?? "", 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
   }
 }
 
@@ -278,14 +294,19 @@ function insertRecordSync(
   record: MeridiaExperienceRecord,
   ftsAvailable: boolean,
 ): boolean {
-  const dataJson = JSON.stringify(record);
-  const dataText = buildSearchableText(record);
-  const tagsJson = record.content?.tags?.length ? JSON.stringify(record.content.tags) : null;
-  const evaluation = record.capture.evaluation;
-  const classificationJson = record.classification ? JSON.stringify(record.classification) : null;
+  const sanitizedRecord = sanitizeExperienceRecord(record);
+  const dataJson = JSON.stringify(sanitizedRecord);
+  const dataText = buildSearchableText(sanitizedRecord);
+  const tagsJson = sanitizedRecord.content?.tags?.length
+    ? JSON.stringify(sanitizedRecord.content.tags)
+    : null;
+  const evaluation = sanitizedRecord.capture.evaluation;
+  const classificationJson = sanitizedRecord.classification
+    ? JSON.stringify(sanitizedRecord.classification)
+    : null;
 
   // V2 phenomenology columns
-  const phenom = record.phenomenology;
+  const phenom = sanitizedRecord.phenomenology;
   const emotionalPrimary = phenom?.emotionalSignature?.primary?.join(",") ?? null;
   const emotionalIntensity = phenom?.emotionalSignature?.intensity ?? null;
   const emotionalValence = phenom?.emotionalSignature?.valence ?? null;
@@ -302,24 +323,24 @@ function insertRecordSync(
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .run(
-      record.id,
-      record.ts,
-      record.kind,
-      record.session?.key ?? null,
-      record.session?.id ?? null,
-      record.session?.runId ?? null,
-      record.tool?.name ?? null,
-      record.tool?.callId ?? null,
-      record.tool?.isError ? 1 : 0,
-      record.capture.score,
-      record.capture.threshold ?? null,
+      sanitizedRecord.id,
+      sanitizedRecord.ts,
+      sanitizedRecord.kind,
+      sanitizedRecord.session?.key ?? null,
+      sanitizedRecord.session?.id ?? null,
+      sanitizedRecord.session?.runId ?? null,
+      sanitizedRecord.tool?.name ?? null,
+      sanitizedRecord.tool?.callId ?? null,
+      sanitizedRecord.tool?.isError ? 1 : 0,
+      sanitizedRecord.capture.score,
+      sanitizedRecord.capture.threshold ?? null,
       evaluation.kind,
       evaluation.model ?? null,
       evaluation.reason ?? null,
       tagsJson,
       dataJson,
       dataText,
-      record.memoryType ?? null,
+      sanitizedRecord.memoryType ?? null,
       classificationJson,
       emotionalPrimary,
       emotionalIntensity,
@@ -331,13 +352,13 @@ function insertRecordSync(
   const inserted = (result.changes ?? 0) > 0;
   if (inserted && ftsAvailable && tableExists(db, "meridia_records_fts")) {
     try {
-      const row = db.prepare(`SELECT rowid FROM meridia_records WHERE id = ?`).get(record.id) as
-        | { rowid: number }
-        | undefined;
+      const row = db
+        .prepare(`SELECT rowid FROM meridia_records WHERE id = ?`)
+        .get(sanitizedRecord.id) as { rowid: number } | undefined;
       if (row) {
         db.prepare(
           `INSERT INTO meridia_records_fts (rowid, tool_name, eval_reason, data_text) VALUES (?, ?, ?, ?)`,
-        ).run(row.rowid, record.tool?.name ?? "", evaluation.reason ?? "", dataText);
+        ).run(row.rowid, sanitizedRecord.tool?.name ?? "", evaluation.reason ?? "", dataText);
       }
     } catch {
       // ignore FTS insert failures
@@ -867,9 +888,18 @@ export class SqliteBackend implements MeridiaDbBackend {
   // ──────────────────────────────────────────────────────────────────────────
 
   /** Load the sqlite-vec extension and create the vec0 virtual table. */
-  async loadVectorExtension(extensionPath?: string): Promise<{ ok: boolean; error?: string }> {
+  async loadVectorExtension(
+    extensionPath?: string,
+    dims?: number,
+  ): Promise<{ ok: boolean; error?: string }> {
     this.ensureDb();
     try {
+      const requestedDims =
+        typeof dims === "number" && Number.isFinite(dims) ? Math.floor(dims) : undefined;
+      if (requestedDims && requestedDims > 0) {
+        this.embeddingDimensions = requestedDims;
+      }
+
       const { loadSqliteVecExtension } = await import(
         /* webpackIgnore: true */ "../../../../../../src/memory/sqlite-vec.js"
       );
@@ -880,12 +910,22 @@ export class SqliteBackend implements MeridiaDbBackend {
       if (!loadResult.ok) {
         return { ok: false, error: loadResult.error };
       }
+
+      const existingDims = readVectorDims(this.db!);
+      if (existingDims && existingDims !== this.embeddingDimensions) {
+        // Embedding model changed dimensions; reset vector table to match.
+        this.db!.exec(`DROP TABLE IF EXISTS meridia_vec`);
+      }
+
       const vecResult = ensureVecTable(this.db!, this.embeddingDimensions);
       this.vecAvailable = vecResult.vecAvailable;
       if (vecResult.vecAvailable) {
         this.db!.prepare(
           `INSERT OR REPLACE INTO meridia_meta (key, value) VALUES ('vector_enabled', 'true')`,
         ).run();
+        this.db!.prepare(
+          `INSERT OR REPLACE INTO meridia_meta (key, value) VALUES ('vector_dims', ?)`,
+        ).run(String(this.embeddingDimensions));
       }
       return { ok: this.vecAvailable, error: vecResult.vecError };
     } catch (err) {
@@ -896,6 +936,7 @@ export class SqliteBackend implements MeridiaDbBackend {
   /** Insert an embedding vector for a record. */
   async insertEmbedding(recordId: string, embedding: Float32Array): Promise<boolean> {
     if (!this.vecAvailable) return false;
+    if (embedding.length !== this.embeddingDimensions) return false;
     this.ensureDb();
     try {
       // vec0 doesn't support upsert; delete-then-insert
@@ -916,6 +957,7 @@ export class SqliteBackend implements MeridiaDbBackend {
     limit: number = 20,
   ): Promise<Array<{ recordId: string; distance: number }>> {
     if (!this.vecAvailable) return [];
+    if (embedding.length !== this.embeddingDimensions) return [];
     this.ensureDb();
     try {
       const rows = this.db!.prepare(

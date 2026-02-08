@@ -6,6 +6,7 @@
 
 import { html, nothing, type TemplateResult } from "lit";
 import type { NostrProfile as NostrProfileType } from "../types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 
 // ============================================================================
 // Types
@@ -170,11 +171,7 @@ export function renderNostrProfileForm(params: {
         <div style="font-size: 12px; color: var(--text-muted);">Account: ${accountId}</div>
       </div>
 
-      ${
-        state.error
-          ? html`<div class="callout danger" style="margin-bottom: 12px;">${state.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(state.error)}
 
       ${
         state.success

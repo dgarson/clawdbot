@@ -3,20 +3,24 @@ import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CliDeps } from "../cli/deps.js";
 import type { OpenClawConfig } from "../config/config.js";
+import type { ExecutionResult } from "../execution/types.js";
 import type { CronJob } from "./types.js";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 
-vi.mock("../agents/pi-embedded.js", () => ({
-  abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: vi.fn(),
-  resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
-}));
+const executeKernelMock = vi.fn();
+
 vi.mock("../agents/model-catalog.js", () => ({
   loadModelCatalog: vi.fn(),
 }));
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: vi.fn().mockReturnValue({
+    execute: (request: unknown) => executeKernelMock(request),
+    abort: vi.fn(),
+    getActiveRunCount: vi.fn().mockReturnValue(0),
+  }),
+}));
 
 import { loadModelCatalog } from "../agents/model-catalog.js";
-import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { runCronIsolatedAgentTurn } from "./isolated-agent.js";
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
@@ -48,7 +52,7 @@ async function writeSessionStore(home: string) {
 
 async function readSessionEntry(storePath: string, key: string) {
   const raw = await fs.readFile(storePath, "utf-8");
-  const store = JSON.parse(raw) as Record<string, { sessionId?: string }>;
+  const store = JSON.parse(raw) as Record<string, { sessionId?: string; label?: string }>;
   return store[key];
 }
 
@@ -84,10 +88,70 @@ function makeJob(payload: CronJob["payload"]): CronJob {
   };
 }
 
+function createExecutionResult(overrides: Partial<ExecutionResult> = {}): ExecutionResult {
+  return {
+    success: true,
+    aborted: false,
+    error: undefined,
+    reply: "ok",
+    payloads: [{ text: "ok" }],
+    runtime: {
+      kind: "pi",
+      provider: "anthropic",
+      model: "claude-opus-4-5",
+      fallbackUsed: false,
+    },
+    usage: {
+      inputTokens: 1,
+      outputTokens: 1,
+      durationMs: 5,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    },
+    events: [],
+    toolCalls: [],
+    didSendViaMessagingTool: false,
+    ...overrides,
+  };
+}
+
 describe("runCronIsolatedAgentTurn", () => {
   beforeEach(() => {
-    vi.mocked(runEmbeddedPiAgent).mockReset();
+    executeKernelMock.mockReset();
+    executeKernelMock.mockResolvedValue(createExecutionResult());
     vi.mocked(loadModelCatalog).mockResolvedValue([]);
+  });
+
+  it("treats blank model overrides as unset", async () => {
+    await withTempHome(async (home) => {
+      const storePath = await writeSessionStore(home);
+      const deps: CliDeps = {
+        sendMessageWhatsApp: vi.fn(),
+        sendMessageTelegram: vi.fn(),
+        sendMessageDiscord: vi.fn(),
+        sendMessageSignal: vi.fn(),
+        sendMessageIMessage: vi.fn(),
+      };
+      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
+        payloads: [{ text: "ok" }],
+        meta: {
+          durationMs: 5,
+          agentMeta: { sessionId: "s", provider: "p", model: "m" },
+        },
+      });
+
+      const res = await runCronIsolatedAgentTurn({
+        cfg: makeCfg(home, storePath),
+        deps,
+        job: makeJob({ kind: "agentTurn", message: "do it", model: "   " }),
+        message: "do it",
+        sessionKey: "cron:job-1",
+        lane: "cron",
+      });
+
+      expect(res.status).toBe("ok");
+      expect(vi.mocked(runEmbeddedPiAgent)).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("uses last non-empty agent text as summary", async () => {
@@ -100,13 +164,9 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "first" }, { text: " " }, { text: " last " }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(
+        createExecutionResult({ payloads: [{ text: "first" }, { text: " " }, { text: " last " }] }),
+      );
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -132,13 +192,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -149,7 +203,7 @@ describe("runCronIsolatedAgentTurn", () => {
         lane: "cron",
       });
 
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0] as {
+      const call = executeKernelMock.mock.calls.at(-1)?.[0] as {
         prompt?: string;
       };
       const lines = call?.prompt?.split("\n") ?? [];
@@ -169,13 +223,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageIMessage: vi.fn(),
       };
       const opsWorkspace = path.join(home, "ops-workspace");
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       const cfg = makeCfg(
         home,
@@ -210,7 +258,7 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0] as {
+      const call = executeKernelMock.mock.calls.at(-1)?.[0] as {
         sessionKey?: string;
         workspaceDir?: string;
         sessionFile?: string;
@@ -231,13 +279,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -253,12 +295,12 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls[0]?.[0] as {
-        provider?: string;
-        model?: string;
+      const call = executeKernelMock.mock.calls[0]?.[0] as {
+        providerOverride?: string;
+        modelOverride?: string;
       };
-      expect(call?.provider).toBe("openai");
-      expect(call?.model).toBe("gpt-4.1-mini");
+      expect(call?.providerOverride).toBe("openai");
+      expect(call?.modelOverride).toBe("gpt-4.1-mini");
     });
   });
 
@@ -272,13 +314,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
@@ -296,12 +332,12 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls[0]?.[0] as {
-        provider?: string;
-        model?: string;
+      const call = executeKernelMock.mock.calls[0]?.[0] as {
+        providerOverride?: string;
+        modelOverride?: string;
       };
-      expect(call?.provider).toBe("openrouter");
-      expect(call?.model).toBe("meta-llama/llama-3.3-70b:free");
+      expect(call?.providerOverride).toBe("openrouter");
+      expect(call?.modelOverride).toBe("meta-llama/llama-3.3-70b:free");
     });
   });
 
@@ -315,13 +351,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -333,7 +363,7 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls[0]?.[0] as { prompt?: string };
+      const call = executeKernelMock.mock.calls[0]?.[0] as { prompt?: string };
       expect(call?.prompt).toContain("EXTERNAL, UNTRUSTED");
       expect(call?.prompt).toContain("Hello");
     });
@@ -349,13 +379,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
@@ -373,7 +397,7 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls[0]?.[0] as { prompt?: string };
+      const call = executeKernelMock.mock.calls[0]?.[0] as { prompt?: string };
       expect(call?.prompt).not.toContain("EXTERNAL, UNTRUSTED");
       expect(call?.prompt).toContain("Hello");
     });
@@ -389,13 +413,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
       vi.mocked(loadModelCatalog).mockResolvedValueOnce([
         {
           id: "claude-opus-4-5",
@@ -428,12 +446,12 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      const call = vi.mocked(runEmbeddedPiAgent).mock.calls[0]?.[0] as {
-        provider?: string;
-        model?: string;
+      const call = executeKernelMock.mock.calls[0]?.[0] as {
+        providerOverride?: string;
+        modelOverride?: string;
       };
-      expect(call?.provider).toBe("anthropic");
-      expect(call?.model).toBe("claude-opus-4-5");
+      expect(call?.providerOverride).toBe("anthropic");
+      expect(call?.modelOverride).toBe("claude-opus-4-5");
     });
   });
 
@@ -447,7 +465,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockReset();
+      executeKernelMock.mockReset();
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -464,7 +482,7 @@ describe("runCronIsolatedAgentTurn", () => {
 
       expect(res.status).toBe("error");
       expect(res.error).toMatch("invalid model");
-      expect(vi.mocked(runEmbeddedPiAgent)).not.toHaveBeenCalled();
+      expect(executeKernelMock).not.toHaveBeenCalled();
     });
   });
 
@@ -478,13 +496,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "done" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "done" }] }));
       vi.mocked(loadModelCatalog).mockResolvedValueOnce([
         {
           id: "claude-opus-4-5",
@@ -503,8 +515,10 @@ describe("runCronIsolatedAgentTurn", () => {
         lane: "cron",
       });
 
-      const callArgs = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0];
-      expect(callArgs?.thinkLevel).toBe("low");
+      const callArgs = executeKernelMock.mock.calls.at(-1)?.[0] as {
+        runtimeHints?: { thinkLevel?: string };
+      };
+      expect(callArgs?.runtimeHints?.thinkLevel).toBe("low");
     });
   });
 
@@ -519,13 +533,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageIMessage: vi.fn(),
       };
       const long = "a".repeat(2001);
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: long }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: long }] }));
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -551,13 +559,7 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "ok" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(createExecutionResult({ payloads: [{ text: "ok" }] }));
 
       const cfg = makeCfg(home, storePath);
       const job = makeJob({ kind: "agentTurn", message: "ping", deliver: false });
@@ -585,6 +587,49 @@ describe("runCronIsolatedAgentTurn", () => {
       expect(first?.sessionId).toBeDefined();
       expect(second?.sessionId).toBeDefined();
       expect(second?.sessionId).not.toBe(first?.sessionId);
+      expect(first?.label).toBe("Cron: job-1");
+      expect(second?.label).toBe("Cron: job-1");
+    });
+  });
+
+  it("preserves an existing cron session label", async () => {
+    await withTempHome(async (home) => {
+      const storePath = await writeSessionStore(home);
+      const raw = await fs.readFile(storePath, "utf-8");
+      const store = JSON.parse(raw) as Record<string, Record<string, unknown>>;
+      store["agent:main:cron:job-1"] = {
+        sessionId: "old",
+        updatedAt: Date.now(),
+        label: "Nightly digest",
+      };
+      await fs.writeFile(storePath, JSON.stringify(store, null, 2), "utf-8");
+
+      const deps: CliDeps = {
+        sendMessageWhatsApp: vi.fn(),
+        sendMessageTelegram: vi.fn(),
+        sendMessageDiscord: vi.fn(),
+        sendMessageSignal: vi.fn(),
+        sendMessageIMessage: vi.fn(),
+      };
+      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
+        payloads: [{ text: "ok" }],
+        meta: {
+          durationMs: 5,
+          agentMeta: { sessionId: "s", provider: "p", model: "m" },
+        },
+      });
+
+      await runCronIsolatedAgentTurn({
+        cfg: makeCfg(home, storePath),
+        deps,
+        job: makeJob({ kind: "agentTurn", message: "ping", deliver: false }),
+        message: "ping",
+        sessionKey: "cron:job-1",
+        lane: "cron",
+      });
+      const entry = await readSessionEntry(storePath, "agent:main:cron:job-1");
+
+      expect(entry?.label).toBe("Nightly digest");
     });
   });
 });

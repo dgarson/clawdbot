@@ -5,9 +5,9 @@
  * Dispatches "waitlist-submit" event with email on successful submission.
  */
 
-import { html, css, TemplateResult } from "lit";
+import { html, css, TemplateResult, type CSSResultGroup } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { CtaModalBase } from "./cta-modal-base";
+import { CtaModalBase } from "./cta-modal-base.js";
 
 /** Email regex — generous but reasonable */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -22,8 +22,8 @@ export function validateEmail(value: string): string {
 
 @customElement("waitlist-modal")
 export class WaitlistModal extends CtaModalBase {
-  static styles = [
-    CtaModalBase.styles,
+  static styles: CSSResultGroup = [
+    ...(Array.isArray(CtaModalBase.styles) ? CtaModalBase.styles : [CtaModalBase.styles]),
     css`
       .email-hint {
         font-size: 0.75rem;
@@ -100,8 +100,11 @@ export class WaitlistModal extends CtaModalBase {
             @blur=${this.handleEmailBlur}
             autocomplete="email"
             required
+            aria-required="true"
+            aria-invalid=${this.emailError && this.touched ? "true" : "false"}
+            aria-describedby=${this.emailError && this.touched ? "waitlist-email-error" : "waitlist-email-hint"}
           />
-          ${this.touched ? this.renderFieldError(this.emailError) : html``}
+          ${this.touched ? this.renderFieldError(this.emailError, "waitlist-email-error") : html``}
           ${
             !this.emailError && !this.touched
               ? html`

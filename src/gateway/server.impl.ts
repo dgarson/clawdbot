@@ -33,7 +33,6 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
-// exec-approval-forwarder no longer needed; exec handlers delegate through the tool forwarder
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { startJournalSubscriber } from "../infra/journal/index.js";
@@ -56,7 +55,6 @@ import {
   diffConfigPaths,
   startGatewayConfigReloader,
 } from "./config-reload.js";
-// ExecApprovalManager replaced by unified ToolApprovalManager
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
@@ -534,8 +532,9 @@ export async function startGatewayServer(
   const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
     forwarder: toolApprovalForwarder,
   });
+  const execApprovalForwarder = createExecApprovalForwarder();
   const execApprovalHandlers = createExecApprovalHandlers(toolApprovalManager, {
-    forwarder: toolApprovalForwarder,
+    forwarder: execApprovalForwarder,
   });
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
@@ -792,6 +791,7 @@ export async function startGatewayServer(
     pluginServices,
     cron,
     heartbeatRunner,
+    toolApprovalForwarder,
     nodePresenceTimers,
     broadcast,
     tickInterval,

@@ -4,14 +4,14 @@ import type {
   AutomationSchedule,
   AutomationStatus,
   AutomationsState,
-} from "../controllers/automations";
-import { statusConfig } from "../controllers/automations";
-import { icon } from "../icons";
+} from "../controllers/automations.js";
+import { statusConfig } from "../controllers/automations.js";
+import { icon } from "../icons.js";
 
 // Re-export automation-related view components
-export { renderAutomationForm } from "./automation-form";
-export { renderProgressModal } from "./progress-modal";
-export { renderRunHistory } from "./run-history";
+export { renderAutomationForm } from "./automation-form.js";
+export { renderProgressModal } from "./progress-modal.js";
+export { renderRunHistory } from "./run-history.js";
 
 export interface AutomationCardProps {
   automation: Automation;
@@ -111,7 +111,7 @@ export function renderAutomationCard(props: AutomationCardProps) {
           <div class="automation-card__title-row">
             <h3 class="automation-card__name">${automation.name}</h3>
             <span class="status-badge ${getStatusClass(automation.status)}">
-              ${icon(statusInfo.icon as import("../icons").IconName, { size: 14 })}
+              ${icon(statusInfo.icon as import("../icons.js").IconName, { size: 14 })}
               ${statusInfo.label}
             </span>
           </div>

@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { SignalStatus } from "../types.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 
@@ -40,13 +41,7 @@ export function renderSignalCard(params: {
         </div>
       </div>
 
-      ${
-        signal?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${signal.lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(signal?.lastError ?? null)}
 
       ${
         signal?.probe

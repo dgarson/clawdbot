@@ -1,9 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -21,7 +30,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -91,8 +100,10 @@ function createBaseRun(params: { runOverrides?: Partial<FollowupRun["run"]> }) {
 
 describe("authProfileId fallback scoping", () => {
   it("drops authProfileId when provider changes during fallback", async () => {
-    runEmbeddedPiAgentMock.mockReset();
-    runEmbeddedPiAgentMock.mockResolvedValue({ payloads: [{ text: "ok" }], meta: {} });
+    kernelExecuteMock.mockReset();
+    kernelExecuteMock.mockImplementation(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({ payloads: [{ text: "ok" }] });
+    });
 
     const sessionKey = "main";
     const sessionEntry = {
@@ -136,15 +147,13 @@ describe("authProfileId fallback scoping", () => {
       typingMode: "instant",
     });
 
-    expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
-    const call = runEmbeddedPiAgentMock.mock.calls[0]?.[0] as {
-      authProfileId?: unknown;
-      authProfileIdSource?: unknown;
-      provider?: unknown;
-    };
+    expect(kernelExecuteMock).toHaveBeenCalledTimes(1);
+    const req = kernelExecuteMock.mock.calls[0]?.[0] as ExecutionRequest;
 
-    expect(call.provider).toBe("openai-codex");
-    expect(call.authProfileId).toBeUndefined();
-    expect(call.authProfileIdSource).toBeUndefined();
+    // When cross-provider fallback occurs (anthropic -> openai-codex),
+    // the authProfileId should be dropped
+    expect(req.providerOverride).toBe("openai-codex");
+    expect(req.runtimeHints?.authProfileId).toBeUndefined();
+    expect(req.runtimeHints?.authProfileIdSource).toBeUndefined();
   });
 });

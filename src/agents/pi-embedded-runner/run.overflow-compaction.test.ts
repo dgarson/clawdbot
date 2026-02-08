@@ -8,7 +8,7 @@ vi.mock("./compact.js", () => ({
   compactEmbeddedPiSessionDirect: vi.fn(),
 }));
 
-vi.mock("./model.js", () => ({
+vi.mock("../model-resolution.js", () => ({
   resolveModel: vi.fn(() => ({
     model: {
       id: "test-model",
@@ -22,6 +22,7 @@ vi.mock("./model.js", () => ({
     },
     modelRegistry: {},
   })),
+  buildModelAliasLines: vi.fn(() => []),
 }));
 
 vi.mock("../model-auth.js", () => ({
@@ -69,7 +70,20 @@ vi.mock("../agent-paths.js", () => ({
   resolveOpenClawAgentDir: vi.fn(() => "/tmp/agent-dir"),
 }));
 
+vi.mock("../agent-scope.js", () => ({
+  resolveDefaultAgentDir: vi.fn(() => "/tmp/agent-dir"),
+}));
+
+vi.mock("../model-selection.js", () => ({
+  normalizeProviderId: vi.fn((id: string) => id),
+}));
+
+vi.mock("../../memory/feedback/feedback-subscriber.js", () => ({
+  configureMemoryFeedback: vi.fn(),
+}));
+
 vi.mock("../auth-profiles.js", () => ({
+  isProfileInCooldown: vi.fn(() => false),
   markAuthProfileFailure: vi.fn(async () => {}),
   markAuthProfileGood: vi.fn(async () => {}),
   markAuthProfileUsed: vi.fn(async () => {}),
@@ -143,6 +157,8 @@ vi.mock("../pi-embedded-helpers.js", async () => {
     pickFallbackThinkingLevel: vi.fn(() => null),
     isTimeoutErrorMessage: vi.fn(() => false),
     parseImageDimensionError: vi.fn(() => null),
+    parseImageSizeError: vi.fn(() => null),
+    BILLING_ERROR_USER_MESSAGE: "Billing error",
   };
 });
 

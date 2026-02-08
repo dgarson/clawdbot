@@ -5,6 +5,7 @@ import type {
   WorkItemListOptions,
   WorkItemPatch,
   WorkItemPriority,
+  WorkItemRefKind,
   WorkItemStatus,
   WorkQueue,
   WorkQueueStats,
@@ -14,6 +15,7 @@ import type {
   WorkQueueBackendTransaction,
   WorkQueueClaimOptions,
 } from "./types.js";
+import { readRefs } from "../refs.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -63,6 +65,7 @@ function applyPatch(item: WorkItem, patch: WorkItemPatch): WorkItem {
   if (Object.hasOwn(patch, "deadline")) updated.deadline = patch.deadline;
   if (Object.hasOwn(patch, "lastOutcome")) updated.lastOutcome = patch.lastOutcome;
   if (Object.hasOwn(patch, "startedAt")) updated.startedAt = patch.startedAt;
+  if (Object.hasOwn(patch, "lastHeartbeatAt")) updated.lastHeartbeatAt = patch.lastHeartbeatAt;
   if (Object.hasOwn(patch, "completedAt")) updated.completedAt = patch.completedAt;
   if (Object.hasOwn(patch, "result")) updated.result = patch.result;
   if (Object.hasOwn(patch, "error")) updated.error = patch.error;
@@ -206,6 +209,13 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
     return sliced;
   }
 
+  async listItemsByRef(ref: { kind: WorkItemRefKind; id: string }): Promise<WorkItem[]> {
+    return Array.from(this.items.values()).filter((item) => {
+      const refs = readRefs(item.payload);
+      return refs.some((candidate) => candidate.kind === ref.kind && candidate.id === ref.id);
+    });
+  }
+
   async updateItem(itemId: string, patch: WorkItemPatch): Promise<WorkItem> {
     const current = this.items.get(itemId);
     if (!current) {
@@ -284,6 +294,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
       status: "in_progress",
       assignedTo: assignTo,
       startedAt: now,
+      lastHeartbeatAt: now,
       updatedAt: now,
     };
     this.items.set(updated.id, updated);

@@ -96,8 +96,8 @@ export class MemoryIndexManager implements MemorySearchManager {
   private readonly workspaceDir: string;
   private readonly settings: ResolvedMemorySearchConfig;
   private provider: EmbeddingProvider;
-  private readonly requestedProvider: "openai" | "local" | "gemini" | "auto";
-  private fallbackFrom?: "openai" | "local" | "gemini";
+  private readonly requestedProvider: "openai" | "local" | "gemini" | "voyage" | "auto";
+  private fallbackFrom?: "openai" | "local" | "gemini" | "voyage";
   private fallbackReason?: string;
   private openAi?: OpenAiEmbeddingClient;
   private gemini?: GeminiEmbeddingClient;
@@ -156,6 +156,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       model: settings.model,
       fallback: settings.fallback,
       local: settings.local,
+      modality: settings.modality,
     });
     const opsLog = createMemoryOpsLogger(resolveStateDir());
     const manager = new MemoryIndexManager({
@@ -1293,7 +1294,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     if (this.fallbackFrom) {
       return false;
     }
-    const fallbackFrom = this.provider.id as "openai" | "gemini" | "local";
+    const fallbackFrom = this.provider.id as "openai" | "gemini" | "local" | "voyage";
 
     const fallbackModel =
       fallback === "gemini"
@@ -1310,6 +1311,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       model: fallbackModel,
       fallback: "none",
       local: this.settings.local,
+      modality: this.settings.modality,
     });
 
     this.fallbackFrom = fallbackFrom;

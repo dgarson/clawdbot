@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -24,14 +25,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReplyFlush = vi.fn();
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-flush-test",
-      onBlockReply,
-      onBlockReplyFlush,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -50,7 +51,8 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReplyFlush).not.toHaveBeenCalled();
+    const flushBeforeTool = events.filter((e) => e.kind === "block_reply_flush");
+    expect(flushBeforeTool).toHaveLength(0);
 
     // Tool execution starts - should trigger flush
     handler?.({
@@ -60,7 +62,8 @@ describe("subscribeEmbeddedPiSession", () => {
       args: { command: "echo hello" },
     });
 
-    expect(onBlockReplyFlush).toHaveBeenCalledTimes(1);
+    const flushAfterFirst = events.filter((e) => e.kind === "block_reply_flush");
+    expect(flushAfterFirst).toHaveLength(1);
 
     // Another tool - should flush again
     handler?.({
@@ -70,7 +73,11 @@ describe("subscribeEmbeddedPiSession", () => {
       args: { path: "/tmp/test.txt" },
     });
 
-    expect(onBlockReplyFlush).toHaveBeenCalledTimes(2);
+    const flushAfterSecond = events.filter((e) => e.kind === "block_reply_flush");
+    expect(flushAfterSecond).toHaveLength(2);
+
+    unsub();
+    mw.destroy();
   });
   it("flushes buffered block chunks before tool execution", () => {
     let handler: SessionEventHandler | undefined;
@@ -81,14 +88,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
-    const onBlockReplyFlush = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-flush-buffer",
-      onBlockReply,
-      onBlockReplyFlush,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
       blockReplyChunking: { minChars: 50, maxChars: 200 },
     });
@@ -107,7 +114,8 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).not.toHaveBeenCalled();
+    const blockRepliesBeforeTool = events.filter((e) => e.kind === "block_reply");
+    expect(blockRepliesBeforeTool).toHaveLength(0);
 
     handler?.({
       type: "tool_execution_start",
@@ -116,11 +124,19 @@ describe("subscribeEmbeddedPiSession", () => {
       args: { command: "echo flush" },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
-    expect(onBlockReply.mock.calls[0]?.[0]?.text).toBe("Short chunk.");
-    expect(onBlockReplyFlush).toHaveBeenCalledTimes(1);
-    expect(onBlockReply.mock.invocationCallOrder[0]).toBeLessThan(
-      onBlockReplyFlush.mock.invocationCallOrder[0],
-    );
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
+    if (blockReplies[0].kind === "block_reply") {
+      expect(blockReplies[0].text).toBe("Short chunk.");
+    }
+    const flushEvents = events.filter((e) => e.kind === "block_reply_flush");
+    expect(flushEvents).toHaveLength(1);
+    // block_reply must come before block_reply_flush
+    const blockReplyIdx = events.findIndex((e) => e.kind === "block_reply");
+    const flushIdx = events.findIndex((e) => e.kind === "block_reply_flush");
+    expect(blockReplyIdx).toBeLessThan(flushIdx);
+
+    unsub();
+    mw.destroy();
   });
 });

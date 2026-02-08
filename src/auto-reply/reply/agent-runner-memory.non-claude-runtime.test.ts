@@ -62,7 +62,7 @@ function createFollowupRun(params: { config?: Record<string, unknown> }): Follow
       sessionFile: "/tmp/session.jsonl",
       workspaceDir: "/tmp",
       config: params.config ?? {},
-      skillsSnapshot: {},
+      skillsSnapshot: { prompt: "", skills: [] },
       provider: "anthropic",
       model: "claude-opus-4-5",
       thinkLevel: "low",

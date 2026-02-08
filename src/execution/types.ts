@@ -49,64 +49,6 @@ export interface ExecutionEvent {
 }
 
 // ---------------------------------------------------------------------------
-// Callback Types
-// ---------------------------------------------------------------------------
-
-/**
- * Callback invoked with partial text during streaming.
- * Receives the full ReplyPayload for richer streaming (text + media).
- */
-export type OnPartialReplyCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked with a complete block reply (Pi runtime block streaming).
- */
-export type OnBlockReplyCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked to flush buffered block replies (e.g. before tool execution).
- */
-export type OnBlockReplyFlushCallback = () => void | Promise<void>;
-
-/**
- * Callback invoked with reasoning/thinking stream deltas.
- */
-export type OnReasoningStreamCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked with tool result payloads for delivery.
- */
-export type OnToolResultCallback = (payload: ReplyPayload) => void | Promise<void>;
-
-/**
- * Callback invoked when a new assistant message starts.
- */
-export type OnAssistantMessageStartCallback = () => void | Promise<void>;
-
-/**
- * Callback invoked for raw agent events (tool phases, compaction, etc.).
- */
-export type OnAgentEventCallback = (evt: {
-  stream: string;
-  data: Record<string, unknown>;
-}) => void | Promise<void>;
-
-/**
- * Callback invoked when a tool execution starts.
- */
-export type OnToolStartCallback = (name: string, id: string) => void | Promise<void>;
-
-/**
- * Callback invoked when a tool execution completes.
- */
-export type OnToolEndCallback = (name: string, id: string, result: unknown) => void | Promise<void>;
-
-/**
- * Callback invoked for each execution event.
- */
-export type OnExecutionEventCallback = (event: ExecutionEvent) => void | Promise<void>;
-
-// ---------------------------------------------------------------------------
 // Message Context (from inbound message)
 // ---------------------------------------------------------------------------
 
@@ -204,29 +146,6 @@ export interface ExecutionRequest {
   /** Abort signal for cooperative cancellation (set by ExecutionKernel). */
   abortSignal?: AbortSignal;
 
-  // --- Callbacks (optional, for streaming) ---
-
-  /** Called with partial text during streaming. */
-  onPartialReply?: OnPartialReplyCallback;
-  /** Called with complete block replies (Pi block streaming). */
-  onBlockReply?: OnBlockReplyCallback;
-  /** Called to flush buffered block replies before tool execution. */
-  onBlockReplyFlush?: OnBlockReplyFlushCallback;
-  /** Called with reasoning/thinking stream deltas. */
-  onReasoningStream?: OnReasoningStreamCallback;
-  /** Called with tool result payloads for delivery. */
-  onToolResult?: OnToolResultCallback;
-  /** Called when a new assistant message starts. */
-  onAssistantMessageStart?: OnAssistantMessageStartCallback;
-  /** Called for raw agent events (tool phases, compaction, etc.). */
-  onAgentEvent?: OnAgentEventCallback;
-  /** Called when a tool execution starts. */
-  onToolStart?: OnToolStartCallback;
-  /** Called when a tool execution completes. */
-  onToolEnd?: OnToolEndCallback;
-  /** Called for each execution event. */
-  onEvent?: OnExecutionEventCallback;
-
   /**
    * Optional StreamingMiddleware instance. When provided, the executor passes
    * it through to the runner where raw events are pushed in. The caller
@@ -250,8 +169,27 @@ export interface ExecutionRequest {
   shouldEmitToolResult?: () => boolean;
   /** Whether tool output should be emitted. */
   shouldEmitToolOutput?: () => boolean;
-  /** Suppress partial streaming (e.g. when reasoning-level = stream). */
+  /** Suppress partial text streaming (when reasoning-level is "stream"). */
   suppressPartialStream?: boolean;
+
+  // --- Streaming callbacks ---
+
+  /** Called with partial text chunks as they are generated. */
+  onPartialReply?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called with accumulated text blocks at message/text boundaries. */
+  onBlockReply?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called when a block reply should be flushed. */
+  onBlockReplyFlush?: () => void | Promise<void>;
+  /** Called with reasoning/thinking text as it streams. */
+  onReasoningStream?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called with tool result output text. */
+  onToolResult?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called when a tool starts execution. */
+  onToolStart?: (payload: { toolName: string }) => void | Promise<void>;
+  /** Called with agent lifecycle/diagnostic events. */
+  onAgentEvent?: (evt: unknown) => void | Promise<void>;
+  /** Called when an assistant message starts. */
+  onAssistantMessageStart?: () => void | Promise<void>;
 
   // --- Runtime overrides (for model fallback) ---
 

@@ -1,6 +1,6 @@
-import type { GatewayBrowserClient } from "../gateway";
-import { showDangerConfirmDialog } from "../components/confirm-dialog";
-import { toast } from "../components/toast";
+import type { GatewayBrowserClient } from "../gateway.js";
+import { showDangerConfirmDialog } from "../components/confirm-dialog.js";
+import { toast } from "../components/toast.js";
 
 export type AutomationStatus = "active" | "suspended" | "error";
 export type AutomationType = "smart-sync-fork" | "custom-script" | "webhook";

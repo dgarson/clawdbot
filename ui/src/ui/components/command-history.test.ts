@@ -4,7 +4,7 @@ import {
   getRecentCommandIds,
   MAX_HISTORY,
   recordCommandUsage,
-} from "./command-history";
+} from "./command-history.js";
 
 describe("command-history", () => {
   afterEach(() => {

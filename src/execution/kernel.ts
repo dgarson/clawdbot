@@ -25,6 +25,7 @@ import type {
   RuntimeContext,
   UsageMetrics,
 } from "./types.js";
+import { emitAgentEvent } from "../infra/agent-events.js";
 import {
   createEventRouter,
   createLifecycleStartEvent,
@@ -95,6 +96,13 @@ export interface ExecutionKernelOptions {
   stateService: StateService;
   /** Optional logger for debug output. */
   logger?: ExecutionKernelLogger;
+  /** Optional legacy event emitter for backward compatibility. */
+  legacyEmit?: (event: {
+    runId: string;
+    stream: string;
+    data: Record<string, unknown>;
+    sessionKey?: string;
+  }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +136,7 @@ export class DefaultExecutionKernel implements ExecutionKernel {
   private executor: TurnExecutor;
   private stateService: StateService;
   private logger?: ExecutionKernelLogger;
+  private legacyEmit?: ExecutionKernelOptions["legacyEmit"];
   private activeRuns = new Map<string, ActiveRun>();
 
   constructor(options: ExecutionKernelOptions) {
@@ -135,6 +144,7 @@ export class DefaultExecutionKernel implements ExecutionKernel {
     this.executor = options.executor;
     this.stateService = options.stateService;
     this.logger = options.logger;
+    this.legacyEmit = options.legacyEmit;
   }
 
   async execute(request: ExecutionRequest): Promise<ExecutionResult> {
@@ -143,14 +153,7 @@ export class DefaultExecutionKernel implements ExecutionKernel {
     const startTime = Date.now();
 
     // Create event router for this run
-    const emitter = createEventRouter({
-      logger: this.logger,
-    });
-
-    // Wire up request's onEvent callback if provided
-    if (request.onEvent) {
-      emitter.subscribe(request.onEvent);
-    }
+    const emitter = createEventRouter({ logger: this.logger }, this.legacyEmit);
 
     // Create abort controller for this run
     const abortController = new AbortController();
@@ -568,5 +571,6 @@ export function createDefaultExecutionKernel(logger?: ExecutionKernelLogger): Ex
     executor: createTurnExecutor({ logger }),
     stateService: createStateService({ logger }),
     logger,
+    legacyEmit: emitAgentEvent,
   });
 }

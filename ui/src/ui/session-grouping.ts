@@ -8,9 +8,9 @@
  * into a single primary entry + N older entries accessible via expand.
  */
 
-import type { GatewaySessionRow, AgentsListResult, GatewayAgentRow } from "./types";
+import type { GatewaySessionRow, AgentsListResult, GatewayAgentRow } from "./types.js";
 import { parseAgentSessionKey } from "../../../src/sessions/session-key-utils.js";
-import { inferSessionType } from "./session-meta";
+import { inferSessionType } from "./session-meta.js";
 
 // ---------------------------------------------------------------------------
 // Types

@@ -66,12 +66,20 @@ function buildResolvedByLabel(params: Parameters<CommandHandler>[0]): string {
   return `${channel}:${sender}`;
 }
 
+function formatApprovalResolveError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const normalized = message.toLowerCase();
+  if (normalized.includes("unknown approval id") || normalized.includes("request hash mismatch")) {
+    return "Failed to submit approval. This approval may have already been resolved or expired.";
+  }
+  return `Failed to submit approval: ${message}`;
+}
+
 type PendingToolApproval = {
   id: string;
   requestHash: string;
 };
 
-/** Look up the canonical tool approval record for the given id. */
 async function findCanonicalApproval(
   resolvedBy: string,
   approvalId: string,
@@ -91,7 +99,6 @@ async function findCanonicalApproval(
     return null;
   }
 }
-
 export const handleApproveCommand: CommandHandler = async (params, allowTextCommands) => {
   if (!allowTextCommands) {
     return null;
@@ -127,21 +134,22 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
   }
 
   const resolvedBy = buildResolvedByLabel(params);
-
-  // Try canonical tool approval first, fall back to legacy exec path
-  const canonical = await findCanonicalApproval(resolvedBy, parsed.id);
+  const toolApproval = await findCanonicalApproval(resolvedBy, parsed.id);
 
   try {
-    if (canonical) {
+    if (toolApproval) {
       await callGateway({
         method: "tool.approval.resolve",
-        params: { id: parsed.id, decision: parsed.decision, requestHash: canonical.requestHash },
+        params: {
+          id: parsed.id,
+          decision: parsed.decision,
+          requestHash: toolApproval.requestHash,
+        },
         clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
         clientDisplayName: `Chat approval (${resolvedBy})`,
         mode: GATEWAY_CLIENT_MODES.BACKEND,
       });
     } else {
-      // Legacy fallback for exec-only approvals or when canonical lookup fails
       await callGateway({
         method: "exec.approval.resolve",
         params: { id: parsed.id, decision: parsed.decision },
@@ -154,13 +162,17 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
     return {
       shouldContinue: false,
       reply: {
-        text: `❌ Failed to submit approval: ${String(err)}`,
+        text: `❌ ${formatApprovalResolveError(err)}`,
       },
     };
   }
 
   return {
     shouldContinue: false,
-    reply: { text: `✅ Tool approval ${parsed.decision} submitted for ${parsed.id}.` },
+    reply: {
+      text: `✅ ${toolApproval ? "Tool" : "Exec"} approval ${parsed.decision} submitted for ${
+        parsed.id
+      }.`,
+    },
   };
 };

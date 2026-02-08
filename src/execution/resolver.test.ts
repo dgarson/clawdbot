@@ -392,7 +392,7 @@ describe("RuntimeResolver", () => {
       const request = createRequest({});
       const result = await resolver.resolve(request);
       expect(result.provider).toBe("anthropic");
-      expect(result.model).toBe("claude-opus-4-5");
+      expect(result.model).toBe("claude-opus-4-6");
     });
 
     it("resolves provider and model from config", async () => {

@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import type { PresenceEntry } from "../types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatPresenceAge, formatPresenceSummary } from "../presenter.ts";
 
 export type InstancesProps = {
@@ -22,13 +23,7 @@ export function renderInstances(props: InstancesProps) {
           ${props.loading ? "Loading…" : "Refresh"}
         </button>
       </div>
-      ${
-        props.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${props.lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(props.lastError)}
       ${
         props.statusMessage
           ? html`<div class="callout" style="margin-top: 12px;">

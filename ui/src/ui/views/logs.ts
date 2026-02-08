@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import type { LogEntry, LogLevel } from "../types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
 
@@ -126,11 +127,7 @@ export function renderLogs(props: LogsProps) {
             `
           : nothing
       }
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 10px;">${props.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(props.error)}
 
       <div class="log-stream" style="margin-top: 12px;" @scroll=${props.onScroll}>
         ${

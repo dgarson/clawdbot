@@ -279,6 +279,7 @@ describe("deliverAgentCommandResult", () => {
       opts: {
         message: "hello",
         deliver: false,
+        enablePayloadLogging: true,
         lane: "nested",
         sessionKey: "agent:main:main",
         runId: "run-announce",

@@ -8,6 +8,7 @@ import type {
   WorkItemListOptions,
   WorkItemPatch,
   WorkItemPriority,
+  WorkItemRefKind,
   WorkItemStatus,
   WorkQueue,
   WorkQueueStats,
@@ -192,6 +193,11 @@ export class WorkQueueStore {
   async listItems(opts: WorkItemListOptions): Promise<WorkItem[]> {
     await this.ensureInitialized();
     return await this.backend.listItems(opts);
+  }
+
+  async listItemsByRef(ref: { kind: WorkItemRefKind; id: string }): Promise<WorkItem[]> {
+    await this.ensureInitialized();
+    return await this.backend.listItemsByRef(ref);
   }
 
   async updateItem(itemId: string, patch: WorkItemPatch): Promise<WorkItem> {

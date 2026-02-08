@@ -5,11 +5,19 @@
  * Provides backdrop, open/close, focus trapping, escape key, and animated transitions.
  */
 
-import { html, css, LitElement, TemplateResult, PropertyValues } from "lit";
+import {
+  html,
+  css,
+  LitElement,
+  nothing,
+  TemplateResult,
+  PropertyValues,
+  type CSSResultGroup,
+} from "lit";
 import { property, state, query } from "lit/decorators.js";
 
 export class CtaModalBase extends LitElement {
-  static styles = css`
+  static styles: CSSResultGroup = css`
     :host {
       display: contents;
       font-family: var(--landing-font-body, system-ui, sans-serif);
@@ -479,13 +487,15 @@ export class CtaModalBase extends LitElement {
       const first = focusableEls[0];
       const last = focusableEls[focusableEls.length - 1];
 
+      const shadowActive = (this.renderRoot as ShadowRoot).activeElement as HTMLElement | null;
+
       if (e.shiftKey) {
-        if (document.activeElement === first || this.renderRoot.activeElement === first) {
+        if (document.activeElement === first || shadowActive === first) {
           e.preventDefault();
           last.focus();
         }
       } else {
-        if (document.activeElement === last || this.renderRoot.activeElement === last) {
+        if (document.activeElement === last || shadowActive === last) {
           e.preventDefault();
           first.focus();
         }
@@ -547,10 +557,10 @@ export class CtaModalBase extends LitElement {
     `;
   }
 
-  protected renderFieldError(error: string): TemplateResult {
+  protected renderFieldError(error: string, id?: string): TemplateResult {
     return html`
-      <div class="form-error ${error ? "visible" : ""}" role="alert" aria-live="polite">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="form-error ${error ? "visible" : ""}" role="alert" aria-live="polite" id=${id ?? nothing}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>

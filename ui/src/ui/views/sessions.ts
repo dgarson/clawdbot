@@ -1,8 +1,31 @@
 import { html, nothing } from "lit";
-import type { GatewaySessionRow, SessionsListResult } from "../types.ts";
+import type {
+  AgentsListResult,
+  GatewaySessionRow,
+  SessionsListResult,
+  SessionsPreviewEntry,
+} from "../types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { pathForTab } from "../navigation.ts";
 import { formatSessionTokens } from "../presenter.ts";
+
+export type SessionActiveTask = {
+  taskId: string;
+  taskName: string;
+  status: "in-progress" | "pending";
+  startedAt?: number;
+};
+
+export type SessionStatus = "active" | "idle" | "completed";
+export type SessionSortColumn = "name" | "updated" | "tokens" | "status" | "kind";
+export type SessionSortDir = "asc" | "desc";
+export type SessionKindFilter = "all" | "direct" | "group" | "global" | "unknown";
+export type SessionStatusFilter = "all" | "active" | "idle" | "completed";
+export type SessionLaneFilter = "all" | "cron" | "regular";
+export type SessionViewMode = "list" | "table" | "grouped";
+
+export type SessionPreset = "all" | "active" | "errored" | "cron" | "custom";
 
 export type SessionsProps = {
   loading: boolean;
@@ -13,17 +36,57 @@ export type SessionsProps = {
   includeGlobal: boolean;
   includeUnknown: boolean;
   basePath: string;
+  search: string;
+  sort: SessionSortColumn;
+  sortDir: SessionSortDir;
+  kindFilter: SessionKindFilter;
+  statusFilter: SessionStatusFilter;
+  agentLabelFilter: string;
+  laneFilter: SessionLaneFilter;
+  tagFilter: string[];
+  viewMode: SessionViewMode;
+  showHidden: boolean;
+  autoHideCompletedMinutes: number;
+  autoHideErroredMinutes: number;
+  preset: SessionPreset;
+  showAdvancedFilters: boolean;
+  drawerKey: string | null;
+  drawerExpanded: boolean;
+  drawerPreviewLoading: boolean;
+  drawerPreviewError: string | null;
+  drawerPreview: SessionsPreviewEntry | null;
+  onDrawerOpen: (key: string) => void;
+  onDrawerOpenExpanded: (key: string) => void;
+  onDrawerClose: () => void;
+  onDrawerToggleExpanded: () => void;
+  onDrawerRefreshPreview: () => void;
+  activeTasks?: Map<string, SessionActiveTask[]>;
+  onSessionOpen?: (key: string) => void;
   onFiltersChange: (next: {
     activeMinutes: string;
     limit: string;
     includeGlobal: boolean;
     includeUnknown: boolean;
   }) => void;
+  onSearchChange: (search: string) => void;
+  onSortChange: (column: SessionSortColumn) => void;
+  onKindFilterChange: (kind: SessionKindFilter) => void;
+  onStatusFilterChange: (status: SessionStatusFilter) => void;
+  onAgentLabelFilterChange: (label: string) => void;
+  onTagFilterChange: (tags: string[]) => void;
+  onLaneFilterChange: (lane: SessionLaneFilter) => void;
+  onViewModeChange: (mode: SessionViewMode) => void;
+  onShowHiddenChange: (show: boolean) => void;
+  onPresetChange?: (preset: SessionPreset) => void;
+  onToggleAdvancedFilters?: () => void;
+  onAutoHideChange: (next: { completedMinutes: number; erroredMinutes: number }) => void;
+  onDeleteMany: (keys: string[]) => void;
   onRefresh: () => void;
   onPatch: (
     key: string,
     patch: {
       label?: string | null;
+      tags?: string[] | null;
       thinkingLevel?: string | null;
       verboseLevel?: string | null;
       reasoningLevel?: string | null;
@@ -32,16 +95,47 @@ export type SessionsProps = {
   onAbort: (key: string) => void;
   onAbortAll: () => void;
   onDelete: (key: string) => void;
+  onViewSessionLogs?: (key: string) => void;
+  agentsList?: AgentsListResult | null;
+  groupedExpandedAgents?: Set<string>;
+  onToggleGroupedAgent?: (agentId: string) => void;
 };
 
-const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high"] as const;
+const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high", "xhigh"] as const;
 const BINARY_THINK_LEVELS = ["", "off", "on"] as const;
 const VERBOSE_LEVELS = [
   { value: "", label: "inherit" },
   { value: "off", label: "off (explicit)" },
   { value: "on", label: "on" },
+  { value: "full", label: "full" },
 ] as const;
 const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
+
+const ACTIVE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const IDLE_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
+
+export function deriveSessionStatus(
+  row: GatewaySessionRow,
+  activeTasks?: SessionActiveTask[],
+): SessionStatus {
+  if (activeTasks && activeTasks.length > 0) return "active";
+  if (!row.updatedAt) return "completed";
+  const age = Date.now() - row.updatedAt;
+  if (age < ACTIVE_THRESHOLD_MS) return "active";
+  if (age < IDLE_THRESHOLD_MS) return "idle";
+  return "completed";
+}
+
+export function getStatusBadgeClass(status: SessionStatus): string {
+  switch (status) {
+    case "active":
+      return "badge--success badge--animated";
+    case "idle":
+      return "badge--warning";
+    case "completed":
+      return "badge--muted";
+  }
+}
 
 function normalizeProviderId(provider?: string | null): string {
   if (!provider) {
@@ -60,6 +154,29 @@ function isBinaryThinkingProvider(provider?: string | null): boolean {
 
 function resolveThinkLevelOptions(provider?: string | null): readonly string[] {
   return isBinaryThinkingProvider(provider) ? BINARY_THINK_LEVELS : THINK_LEVELS;
+}
+
+function withCurrentOption(options: readonly string[], current: string): string[] {
+  if (!current) {
+    return [...options];
+  }
+  if (options.includes(current)) {
+    return [...options];
+  }
+  return [...options, current];
+}
+
+function withCurrentLabeledOption(
+  options: readonly { value: string; label: string }[],
+  current: string,
+): Array<{ value: string; label: string }> {
+  if (!current) {
+    return [...options];
+  }
+  if (options.some((option) => option.value === current)) {
+    return [...options];
+  }
+  return [...options, { value: current, label: `${current} (custom)` }];
 }
 
 function resolveThinkLevelDisplay(value: string, isBinary: boolean): string {
@@ -175,11 +292,7 @@ export function renderSessions(props: SessionsProps) {
         </label>
       </div>
 
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-          : nothing
-      }
+      ${renderErrorIf(props.error)}
 
       <div class="muted" style="margin-top: 12px;">
         ${props.result ? `Store: ${props.result.path}` : ""}
@@ -230,10 +343,17 @@ function renderRow(
   const rawThinking = row.thinkingLevel ?? "";
   const isBinaryThinking = isBinaryThinkingProvider(row.modelProvider);
   const thinking = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
-  const thinkLevels = resolveThinkLevelOptions(row.modelProvider);
+  const thinkLevels = withCurrentOption(resolveThinkLevelOptions(row.modelProvider), thinking);
   const verbose = row.verboseLevel ?? "";
+  const verboseLevels = withCurrentLabeledOption(VERBOSE_LEVELS, verbose);
   const reasoning = row.reasoningLevel ?? "";
-  const displayName = row.displayName ?? row.key;
+  const reasoningLevels = withCurrentOption(REASONING_LEVELS, reasoning);
+  const displayName =
+    typeof row.displayName === "string" && row.displayName.trim().length > 0
+      ? row.displayName.trim()
+      : null;
+  const label = typeof row.label === "string" ? row.label.trim() : "";
+  const showDisplayName = Boolean(displayName && displayName !== row.key && displayName !== label);
   const canLink = row.kind !== "global";
   const chatUrl = canLink
     ? `${pathForTab("chat", basePath)}?session=${encodeURIComponent(row.key)}`
@@ -241,9 +361,10 @@ function renderRow(
 
   return html`
     <div class="table-row">
-      <div class="mono">${
-        canLink ? html`<a href=${chatUrl} class="session-link">${displayName}</a>` : displayName
-      }</div>
+      <div class="mono session-key-cell">
+        ${canLink ? html`<a href=${chatUrl} class="session-link">${row.key}</a>` : row.key}
+        ${showDisplayName ? html`<span class="muted session-key-display-name">${displayName}</span>` : nothing}
+      </div>
       <div>
         <input
           .value=${row.label ?? ""}
@@ -260,7 +381,6 @@ function renderRow(
       <div>${formatSessionTokens(row)}</div>
       <div>
         <select
-          .value=${thinking}
           ?disabled=${disabled}
           @change=${(e: Event) => {
             const value = (e.target as HTMLSelectElement).value;
@@ -269,34 +389,43 @@ function renderRow(
             });
           }}
         >
-          ${thinkLevels.map((level) => html`<option value=${level}>${level || "inherit"}</option>`)}
+          ${thinkLevels.map(
+            (level) =>
+              html`<option value=${level} ?selected=${thinking === level}>
+                ${level || "inherit"}
+              </option>`,
+          )}
         </select>
       </div>
       <div>
         <select
-          .value=${verbose}
           ?disabled=${disabled}
           @change=${(e: Event) => {
             const value = (e.target as HTMLSelectElement).value;
             onPatch(row.key, { verboseLevel: value || null });
           }}
         >
-          ${VERBOSE_LEVELS.map(
-            (level) => html`<option value=${level.value}>${level.label}</option>`,
+          ${verboseLevels.map(
+            (level) =>
+              html`<option value=${level.value} ?selected=${verbose === level.value}>
+                ${level.label}
+              </option>`,
           )}
         </select>
       </div>
       <div>
         <select
-          .value=${reasoning}
           ?disabled=${disabled}
           @change=${(e: Event) => {
             const value = (e.target as HTMLSelectElement).value;
             onPatch(row.key, { reasoningLevel: value || null });
           }}
         >
-          ${REASONING_LEVELS.map(
-            (level) => html`<option value=${level}>${level || "inherit"}</option>`,
+          ${reasoningLevels.map(
+            (level) =>
+              html`<option value=${level} ?selected=${reasoning === level}>
+                ${level || "inherit"}
+              </option>`,
           )}
         </select>
       </div>

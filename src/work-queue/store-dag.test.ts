@@ -163,22 +163,22 @@ describe("WorkQueueStore DAG-aware claiming (memory backend)", () => {
     expect(claimed?.id).toBe(item.id);
   });
 
-  it("claims items with no maxRetries set (unlimited)", async () => {
+  it("applies default maxRetries when not set", async () => {
     const backend = new MemoryWorkQueueBackend();
     const store = new WorkQueueStore(backend);
 
-    const item = await store.createItem({
+    await store.createItem({
       agentId: "test",
       title: "No max retries",
-      retryCount: 100,
-      // maxRetries not set → unlimited
+      retryCount: 3,
+      // maxRetries not set -> store default is applied.
     });
 
     const claimed = await store.claimNextItem({
       agentId: "test",
       assignTo: { agentId: "test" },
     });
-    expect(claimed?.id).toBe(item.id);
+    expect(claimed).toBeNull();
   });
 
   it("filters by workstream in claim", async () => {

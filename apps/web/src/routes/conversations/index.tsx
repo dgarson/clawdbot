@@ -2,6 +2,7 @@ import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import {
   ConversationList,
   NewConversationModal,
@@ -9,6 +10,7 @@ import {
 import { useCreateConversation } from "@/hooks/mutations/useConversationMutations";
 import type { Conversation } from "@/hooks/queries/useConversations";
 import type { Agent } from "@/hooks/queries/useAgents";
+import { Button } from "@/components/ui/button";
 
 import { RouteErrorFallback } from "@/components/composed";
 export const Route = createFileRoute("/conversations/")({
@@ -22,6 +24,10 @@ function ConversationsPage() {
   const createConversation = useCreateConversation();
 
   const handleSelectConversation = (conversation: Conversation) => {
+    if (!conversation.id) {
+      toast.error("Unable to open conversation");
+      return;
+    }
     navigate({ to: "/conversations/$id", params: { id: conversation.id } });
   };
 
@@ -30,15 +36,23 @@ function ConversationsPage() {
   };
 
   const handleSelectAgent = async (agent: Agent) => {
-    // Create a new conversation with the selected agent
-    const newConversation = await createConversation.mutateAsync({
-      title: `Chat with ${agent.name}`,
-      agentId: agent.id,
-      preview: "",
-    });
+    try {
+      const newConversation = await createConversation.mutateAsync({
+        title: `Chat with ${agent.name}`,
+        agentId: agent.id,
+        preview: "",
+      });
 
-    // Navigate to the new conversation
-    navigate({ to: "/conversations/$id", params: { id: newConversation.id } });
+      if (!newConversation?.id) {
+        toast.error("Failed to create conversation");
+        return;
+      }
+
+      setIsNewChatOpen(false);
+      navigate({ to: "/conversations/$id", params: { id: newConversation.id } });
+    } catch {
+      toast.error("Failed to create conversation");
+    }
   };
 
   return (
@@ -47,7 +61,7 @@ function ConversationsPage() {
         <motion.aside
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-md border-r border-border bg-card/50"
+          className="w-full md:max-w-md md:border-r border-border bg-card/50"
         >
           <ConversationList
             onSelectConversation={handleSelectConversation}
@@ -57,7 +71,7 @@ function ConversationsPage() {
         </motion.aside>
 
         {/* Empty State / Welcome */}
-        <main className="flex-1 flex items-center justify-center p-8">
+        <main className="hidden md:flex flex-1 items-center justify-center p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -76,13 +90,13 @@ function ConversationsPage() {
               Select a conversation from the list to continue chatting, or start
               a new conversation with one of your AI agents.
             </p>
-            <button
+            <Button
+              size="lg"
               onClick={handleNewConversation}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             >
               <MessageSquare className="h-5 w-5" />
               Start New Chat
-            </button>
+            </Button>
           </motion.div>
         </main>
 

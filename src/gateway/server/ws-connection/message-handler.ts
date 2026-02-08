@@ -109,6 +109,8 @@ function formatGatewayAuthFailureMessage(params: {
       return `unauthorized: gateway password mismatch (${passwordHint})`;
     case "password_missing_config":
       return "unauthorized: gateway password not configured on gateway (set gateway.auth.password)";
+    case "auth_disabled":
+      return "unauthorized: gateway auth disabled (local connections only)";
     case "tailscale_user_missing":
       return "unauthorized: tailscale identity missing (use Tailscale Serve auth or gateway token/password)";
     case "tailscale_proxy_missing":
@@ -126,6 +128,9 @@ function formatGatewayAuthFailureMessage(params: {
   }
   if (authMode === "password" && authProvided === "none") {
     return `unauthorized: gateway password missing (${passwordHint})`;
+  }
+  if (authMode === "none") {
+    return "unauthorized: gateway auth disabled (local connections only)";
   }
   return "unauthorized";
 }
@@ -407,7 +412,10 @@ export function attachGatewayWsMessageHandler(params: {
           isControlUi && configSnapshot.gateway?.controlUi?.allowInsecureAuth === true;
         const disableControlUiDeviceAuth =
           isControlUi && configSnapshot.gateway?.controlUi?.dangerouslyDisableDeviceAuth === true;
-        const allowControlUiBypass = allowInsecureControlUi || disableControlUiDeviceAuth;
+        const allowControlUiBypass =
+          allowInsecureControlUi ||
+          disableControlUiDeviceAuth ||
+          (resolvedAuth.mode === "none" && isLocalClient);
         const device = disableControlUiDeviceAuth ? null : deviceRaw;
 
         const authResult = await authorizeGatewayConnect({
@@ -418,7 +426,12 @@ export function attachGatewayWsMessageHandler(params: {
         });
         let authOk = authResult.ok;
         let authMethod =
-          authResult.method ?? (resolvedAuth.mode === "password" ? "password" : "token");
+          authResult.method ??
+          (resolvedAuth.mode === "password"
+            ? "password"
+            : resolvedAuth.mode === "none"
+              ? "none"
+              : "token");
         const sharedAuthResult = hasSharedAuth
           ? await authorizeGatewayConnect({
               auth: { ...resolvedAuth, allowTailscale: false },
@@ -465,7 +478,7 @@ export function attachGatewayWsMessageHandler(params: {
           close(1008, truncateCloseReason(authMessage));
         };
         if (!device) {
-          const canSkipDevice = sharedAuthOk;
+          const canSkipDevice = sharedAuthOk || (resolvedAuth.mode === "none" && isLocalClient);
 
           if (isControlUi && !allowControlUiBypass) {
             const errorMessage = "control ui requires HTTPS or localhost (secure context)";

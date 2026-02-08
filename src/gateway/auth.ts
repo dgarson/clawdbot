@@ -3,7 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import type { GatewayAuthConfig, GatewayTailscaleMode } from "../config/config.js";
 import { readTailscaleWhoisIdentity, type TailscaleWhoisIdentity } from "../infra/tailscale.js";
 import { isTrustedProxyAddress, parseForwardedForClientIp, resolveGatewayClientIp } from "./net.js";
-export type ResolvedGatewayAuthMode = "token" | "password";
+export type ResolvedGatewayAuthMode = "token" | "password" | "none";
 
 export type ResolvedGatewayAuth = {
   mode: ResolvedGatewayAuthMode;
@@ -14,7 +14,7 @@ export type ResolvedGatewayAuth = {
 
 export type GatewayAuthResult = {
   ok: boolean;
-  method?: "token" | "password" | "tailscale" | "device-token";
+  method?: "token" | "password" | "tailscale" | "device-token" | "none";
   user?: string;
   reason?: string;
 };
@@ -211,8 +211,9 @@ export function resolveGatewayAuth(params: {
     env.CLAWDBOT_GATEWAY_PASSWORD ??
     undefined;
   const mode: ResolvedGatewayAuth["mode"] = authConfig.mode ?? (password ? "password" : "token");
-  const allowTailscale =
+  const allowTailscaleBase =
     authConfig.allowTailscale ?? (params.tailscaleMode === "serve" && mode !== "password");
+  const allowTailscale = mode === "none" ? false : allowTailscaleBase;
   return {
     mode,
     token,
@@ -222,6 +223,9 @@ export function resolveGatewayAuth(params: {
 }
 
 export function assertGatewayAuthConfigured(auth: ResolvedGatewayAuth): void {
+  if (auth.mode === "none") {
+    return;
+  }
   if (auth.mode === "token" && !auth.token) {
     if (auth.allowTailscale) {
       return;
@@ -245,6 +249,13 @@ export async function authorizeGatewayConnect(params: {
   const { auth, connectAuth, req, trustedProxies } = params;
   const tailscaleWhois = params.tailscaleWhois ?? readTailscaleWhoisIdentity;
   const localDirect = isLocalDirectRequest(req, trustedProxies);
+
+  if (auth.mode === "none") {
+    if (localDirect) {
+      return { ok: true, method: "none" };
+    }
+    return { ok: false, reason: "auth_disabled" };
+  }
 
   if (auth.allowTailscale && !localDirect) {
     const tailscaleCheck = await resolveVerifiedTailscaleUser({

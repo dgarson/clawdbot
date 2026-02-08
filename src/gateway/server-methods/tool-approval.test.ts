@@ -333,6 +333,8 @@ describe("tool approval handlers", () => {
         toolName: "exec",
         requestHash: "hash-1",
         command: "echo pending",
+        agentId: "main",
+        sessionKey: "agent:main:main",
         timeoutMs: 30_000,
       },
       respond: vi.fn(),
@@ -362,6 +364,8 @@ describe("tool approval handlers", () => {
           expect.objectContaining({
             toolName: "exec",
             requestHash: "hash-1",
+            agentId: "main",
+            sessionKey: "agent:main:main",
           }),
         ]),
       }),

@@ -65,6 +65,7 @@ export async function getProgressiveStore(params: {
         fallback: memSearchConfig.fallback,
         local: memSearchConfig.local,
         remote: memSearchConfig.remote,
+        modality: memSearchConfig.modality,
         agentDir: resolveAgentDir(params.cfg, agentId),
       });
       if (providerResult?.provider) {

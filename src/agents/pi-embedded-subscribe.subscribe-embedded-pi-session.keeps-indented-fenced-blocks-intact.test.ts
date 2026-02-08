@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -23,12 +24,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
       blockReplyChunking: {
         minChars: 5,
@@ -55,8 +58,14 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(3);
-    expect(onBlockReply.mock.calls[1][0].text).toBe("  ```js\n  const x = 1;\n  ```");
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(3);
+    if (blockReplies[1].kind === "block_reply") {
+      expect(blockReplies[1].text).toBe("  ```js\n  const x = 1;\n  ```");
+    }
+
+    unsub();
+    mw.destroy();
   });
   it("accepts longer fence markers for close", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -67,12 +76,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
       blockReplyChunking: {
         minChars: 10,
@@ -99,8 +110,9 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    const payloadTexts = onBlockReply.mock.calls
-      .map((call) => call[0]?.text)
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    const payloadTexts = blockReplies
+      .map((e) => (e.kind === "block_reply" ? e.text : undefined))
       .filter((value): value is string => typeof value === "string");
     expect(payloadTexts.length).toBeGreaterThan(0);
     const combined = payloadTexts.join(" ").replace(/\s+/g, " ").trim();
@@ -110,5 +122,8 @@ describe("subscribeEmbeddedPiSession", () => {
     expect(combined).toContain("````");
     expect(combined).toContain("Intro");
     expect(combined).toContain("Outro");
+
+    unsub();
+    mw.destroy();
   });
 });

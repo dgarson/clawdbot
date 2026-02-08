@@ -10,8 +10,8 @@ import {
   hasErrors,
   type DemoRequestData,
   type DemoFormErrors,
-} from "./demo-request-modal";
-import { validateEmail } from "./waitlist-modal";
+} from "./demo-request-modal.js";
+import { validateEmail } from "./waitlist-modal.js";
 
 // ---------------------------------------------------------------------------
 // Email validation
@@ -187,12 +187,12 @@ describe("WaitlistModal component", () => {
 
   it("registers as a custom element", async () => {
     // Importing the module should register the element
-    await import("./waitlist-modal");
+    await import("./waitlist-modal.js");
     expect(customElements.get("waitlist-modal")).toBeDefined();
   });
 
   it("creates element and toggles open property", async () => {
-    await import("./waitlist-modal");
+    await import("./waitlist-modal.js");
     const el = document.createElement("waitlist-modal") as any;
     container.appendChild(el);
     expect(el.open).toBe(false);
@@ -201,7 +201,7 @@ describe("WaitlistModal component", () => {
   });
 
   it("dispatches modal-close event on close", async () => {
-    await import("./waitlist-modal");
+    await import("./waitlist-modal.js");
     const el = document.createElement("waitlist-modal") as any;
     container.appendChild(el);
     el.open = true;
@@ -233,19 +233,19 @@ describe("DemoRequestModal component", () => {
   });
 
   it("registers as a custom element", async () => {
-    await import("./demo-request-modal");
+    await import("./demo-request-modal.js");
     expect(customElements.get("demo-request-modal")).toBeDefined();
   });
 
   it("creates element and defaults to closed", async () => {
-    await import("./demo-request-modal");
+    await import("./demo-request-modal.js");
     const el = document.createElement("demo-request-modal") as any;
     container.appendChild(el);
     expect(el.open).toBe(false);
   });
 
   it("sets open property", async () => {
-    await import("./demo-request-modal");
+    await import("./demo-request-modal.js");
     const el = document.createElement("demo-request-modal") as any;
     container.appendChild(el);
     el.open = true;

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getMemorySearchManager, type MemoryIndexManager } from "./index.js";
+import { MemoryIndexManager } from "./index.js";
 
 vi.mock("chokidar", () => ({
   default: {
@@ -73,12 +73,12 @@ describe("memory manager sync failures", () => {
       },
     };
 
-    const result = await getMemorySearchManager({ cfg, agentId: "main" });
-    expect(result.manager).not.toBeNull();
-    if (!result.manager) {
+    const maybeManager = await MemoryIndexManager.get({ cfg, agentId: "main" });
+    expect(maybeManager).not.toBeNull();
+    if (!maybeManager) {
       throw new Error("manager missing");
     }
-    manager = result.manager;
+    manager = maybeManager;
     const syncSpy = vi.spyOn(manager, "sync");
 
     // Call the internal scheduler directly; it uses fire-and-forget sync.

@@ -3,6 +3,12 @@
 /** How often an idle worker polls the queue for new items (ms). */
 export const DEFAULT_POLL_INTERVAL_MS = 300_000;
 
+/** How often an in-progress work item heartbeat is refreshed (ms). */
+export const DEFAULT_HEARTBEAT_INTERVAL_MS = 30_000;
+
+/** Work item heartbeat TTL before recovery considers it stale (ms). */
+export const DEFAULT_HEARTBEAT_TTL_MS = 5 * 60_000;
+
 /** Per-item agent session timeout (seconds). */
 export const DEFAULT_SESSION_TIMEOUT_S = 1200;
 

@@ -79,7 +79,11 @@ const MemoryQmdUpdateSchema = z
     interval: z.string().optional(),
     debounceMs: z.number().int().nonnegative().optional(),
     onBoot: z.boolean().optional(),
+    waitForBootSync: z.boolean().optional(),
     embedInterval: z.string().optional(),
+    commandTimeoutMs: z.number().int().nonnegative().optional(),
+    updateTimeoutMs: z.number().int().nonnegative().optional(),
+    embedTimeoutMs: z.number().int().nonnegative().optional(),
   })
   .strict();
 
@@ -373,6 +377,16 @@ export const OpenClawSchema = z
     commands: CommandsSchema,
     approvals: ApprovalsSchema,
     session: SessionSchema,
+    prReviewMonitor: z
+      .object({
+        enabled: z.boolean().optional(),
+        repo: z.string().optional(),
+        slackChannel: z.string().optional(),
+        botAccounts: z.array(z.string()).optional(),
+        pageSize: z.number().int().positive().max(100).optional(),
+      })
+      .strict()
+      .optional(),
     cron: z
       .object({
         enabled: z.boolean().optional(),
@@ -476,7 +490,9 @@ export const OpenClawSchema = z
           .optional(),
         auth: z
           .object({
-            mode: z.union([z.literal("token"), z.literal("password")]).optional(),
+            mode: z
+              .union([z.literal("token"), z.literal("password"), z.literal("none")])
+              .optional(),
             token: z.string().optional(),
             password: z.string().optional(),
             allowTailscale: z.boolean().optional(),
@@ -598,6 +614,7 @@ export const OpenClawSchema = z
         workQueue: z
           .object({
             recoverOnStartup: z.boolean().optional(),
+            heartbeatTtlMs: z.number().int().positive().optional(),
           })
           .strict()
           .optional(),

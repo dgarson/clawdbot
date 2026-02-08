@@ -4,11 +4,11 @@
  */
 
 import { html, nothing } from "lit";
-import type { Tab } from "../navigation";
-import { icon, type IconName } from "../icons";
-import { getFavoriteIds, isFavorite, toggleFavorite } from "./command-favorites";
-import { getRecentCommandIds, recordCommandUsage } from "./command-history";
-import { filterByFuzzy } from "./fuzzy-search";
+import type { Tab } from "../navigation.js";
+import { icon, type IconName } from "../icons.js";
+import { getFavoriteIds, isFavorite, toggleFavorite } from "./command-favorites.js";
+import { getRecentCommandIds, recordCommandUsage } from "./command-history.js";
+import { filterByFuzzy } from "./fuzzy-search.js";
 
 export type Command = {
   id: string;
@@ -197,20 +197,25 @@ export function renderCommandPalette(props: CommandPaletteProps) {
     const idx = globalIndex++;
     const isSelected = idx === state.selectedIndex;
     const starred = isFavorite(cmd.id);
+    const itemId = `command-palette-item-${idx}`;
     return html`
       <button
         class="command-palette__item ${isSelected ? "command-palette__item--selected" : ""}"
         @click=${() => handleSelect(cmd)}
         @mouseenter=${() => onIndexChange(idx)}
         data-index=${idx}
+        id="cmd-option-${idx}"
+        role="option"
+        aria-selected=${isSelected}
       >
-        <span class="command-palette__item-icon">${icon(cmd.icon, { size: 16 })}</span>
+        <span class="command-palette__item-icon" aria-hidden="true">${icon(cmd.icon, { size: 16 })}</span>
         <span class="command-palette__item-label">${cmd.label}</span>
         ${
           starred
             ? html`<span
               class="command-palette__item-fav"
               title="Favorited (${navigator.platform?.includes("Mac") ? "⌘" : "Ctrl+"}D to toggle)"
+              aria-label="Remove from favorites"
               @click=${(e: Event) => {
                 e.stopPropagation();
                 handleToggleFavorite(cmd);
@@ -221,7 +226,7 @@ export function renderCommandPalette(props: CommandPaletteProps) {
         }
         ${
           cmd.shortcut
-            ? html`<kbd class="command-palette__item-shortcut">${cmd.shortcut}</kbd>`
+            ? html`<kbd class="command-palette__item-shortcut" aria-hidden="true">${cmd.shortcut}</kbd>`
             : nothing
         }
       </button>
@@ -231,9 +236,13 @@ export function renderCommandPalette(props: CommandPaletteProps) {
   // Flat list for keyboard navigation: favorites first, then recents, then grouped.
   const allVisible = [...favoriteCommands, ...recentCommands, ...[...grouped.values()].flat()];
 
+  // Generate an ID for the selected item for aria-activedescendant
+  const selectedItem = allVisible[state.selectedIndex];
+  const selectedItemId = selectedItem ? `cmd-option-${state.selectedIndex}` : undefined;
+
   return html`
-    <div class="command-palette-overlay" @click=${onClose}>
-      <div class="command-palette" @click=${(e: Event) => e.stopPropagation()}>
+    <div class="command-palette-overlay" @click=${onClose} role="presentation">
+      <div class="command-palette" @click=${(e: Event) => e.stopPropagation()} role="combobox" aria-expanded="true" aria-haspopup="listbox" aria-owns="command-palette-listbox">
         <div class="command-palette__search">
           ${icon("search", { size: 18, class: "command-palette__search-icon" })}
           <input
@@ -258,10 +267,15 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 handleToggleFavorite,
               )}
             autofocus
+            role="searchbox"
+            aria-autocomplete="list"
+            aria-controls="command-palette-listbox"
+            aria-activedescendant=${selectedItemId ?? nothing}
+            aria-label="Search commands"
           />
-          <kbd class="command-palette__kbd">ESC</kbd>
+          <kbd class="command-palette__kbd" aria-hidden="true">ESC</kbd>
         </div>
-        <div class="command-palette__categories">
+        <div class="command-palette__categories" role="tablist" aria-label="Command categories">
           ${allCategories.map(
             (cat) => html`
               <button
@@ -272,16 +286,19 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                   onCategoryChange(cat);
                   onIndexChange(0);
                 }}
+                role="tab"
+                aria-selected=${cat === state.activeCategory}
+                aria-controls="command-palette-listbox"
               >
                 ${cat}
               </button>
             `,
           )}
         </div>
-        <div class="command-palette__list">
+        <div class="command-palette__list" id="command-palette-listbox" role="listbox" aria-label="Commands">
           ${
             totalVisible === 0
-              ? html`<div class="command-palette__empty">
+              ? html`<div class="command-palette__empty" role="status">
                 ${icon("search", { size: 24 })}
                 <span>No commands found</span>
               </div>`
@@ -289,8 +306,8 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 ${
                   favoriteCommands.length > 0
                     ? html`
-                      <div class="command-palette__group">
-                        <div class="command-palette__group-label">★ Favorites</div>
+                      <div class="command-palette__group" role="group" aria-label="Favorites">
+                        <div class="command-palette__group-label" id="group-favorites" aria-hidden="true">★ Favorites</div>
                         ${favoriteCommands.map(renderItem)}
                       </div>
                     `
@@ -299,8 +316,8 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 ${
                   recentCommands.length > 0
                     ? html`
-                      <div class="command-palette__group">
-                        <div class="command-palette__group-label">Recents</div>
+                      <div class="command-palette__group" role="group" aria-label="Recent commands">
+                        <div class="command-palette__group-label" id="group-recents" aria-hidden="true">Recents</div>
                         ${recentCommands.map(renderItem)}
                       </div>
                     `
@@ -308,8 +325,8 @@ export function renderCommandPalette(props: CommandPaletteProps) {
                 }
                 ${[...grouped.entries()].map(
                   ([category, cmds]) => html`
-                    <div class="command-palette__group">
-                      <div class="command-palette__group-label">${category}</div>
+                    <div class="command-palette__group" role="group" aria-label="${category}">
+                      <div class="command-palette__group-label" aria-hidden="true">${category}</div>
                       ${cmds.map(renderItem)}
                     </div>
                   `,
@@ -374,6 +391,14 @@ export function createDefaultCommands(
       action: () => setTab("sessions"),
     },
     {
+      id: "nav-usage",
+      label: "Go to Usage",
+      icon: "barChart",
+      shortcut: `${mod}5`,
+      category: "Navigation",
+      action: () => setTab("usage"),
+    },
+    {
       id: "nav-instances",
       label: "Go to Instances",
       icon: "radio",
@@ -384,6 +409,7 @@ export function createDefaultCommands(
       id: "nav-cron",
       label: "Go to Cron Jobs",
       icon: "clock",
+      shortcut: `${mod}6`,
       category: "Navigation",
       action: () => setTab("cron"),
     },
@@ -395,9 +421,18 @@ export function createDefaultCommands(
       action: () => setTab("automations"),
     },
     {
+      id: "nav-agents",
+      label: "Go to Agents",
+      icon: "folder",
+      shortcut: `${mod}7`,
+      category: "Navigation",
+      action: () => setTab("agents"),
+    },
+    {
       id: "nav-skills",
       label: "Go to Skills",
       icon: "zap",
+      shortcut: `${mod}8`,
       category: "Navigation",
       action: () => setTab("skills"),
     },
@@ -405,6 +440,7 @@ export function createDefaultCommands(
       id: "nav-nodes",
       label: "Go to Nodes",
       icon: "server",
+      shortcut: `${mod}9`,
       category: "Navigation",
       action: () => setTab("nodes"),
     },
@@ -427,6 +463,7 @@ export function createDefaultCommands(
       id: "nav-logs",
       label: "Go to Logs",
       icon: "scrollText",
+      shortcut: `${mod}0`,
       category: "Navigation",
       action: () => setTab("logs"),
     },

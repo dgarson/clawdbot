@@ -46,6 +46,7 @@ import { loadPresence } from "./controllers/presence.ts";
 import {
   abortAllSessions,
   abortSession,
+  abortSessionsForAgent,
   deleteSession,
   loadSessions,
   patchSession,
@@ -124,8 +125,9 @@ export function renderApp(state: AppViewState) {
     null;
 
   return html`
+    <a class="skip-nav" href="#main-content">Skip to main content</a>
     <div class="shell ${isChat ? "shell--chat" : ""} ${chatFocus ? "shell--chat-focus" : ""} ${state.settings.navCollapsed ? "shell--nav-collapsed" : ""} ${state.onboarding ? "shell--onboarding" : ""}">
-      <header class="topbar">
+      <header class="topbar" role="banner">
         <div class="topbar-left">
           <button
             class="nav-collapse-toggle"
@@ -158,7 +160,7 @@ export function renderApp(state: AppViewState) {
           ${renderThemeToggle(state)}
         </div>
       </header>
-      <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
+      <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}" role="navigation" aria-label="Main navigation">
         ${TAB_GROUPS.map((group) => {
           const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
           const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
@@ -203,7 +205,7 @@ export function renderApp(state: AppViewState) {
           </div>
         </div>
       </aside>
-      <main class="content ${isChat ? "content--chat" : ""}">
+      <main class="content ${isChat ? "content--chat" : ""}" id="main-content">
         <section class="content-header">
           <div>
             ${state.tab === "usage" ? nothing : html`<div class="page-title">${titleForTab(state.tab)}</div>`}
@@ -282,6 +284,14 @@ export function renderApp(state: AppViewState) {
                 onNostrProfileSave: () => state.handleNostrProfileSave(),
                 onNostrProfileImport: () => state.handleNostrProfileImport(),
                 onNostrProfileToggleAdvanced: () => state.handleNostrProfileToggleAdvanced(),
+                wizardState: undefined,
+                onWizardOpen: undefined,
+                onWizardClose: undefined,
+                onWizardSave: undefined,
+                onWizardDiscard: undefined,
+                onWizardSectionChange: undefined,
+                onWizardConfirmClose: undefined,
+                onWizardCancelClose: undefined,
               })
             : nothing
         }
@@ -309,12 +319,74 @@ export function renderApp(state: AppViewState) {
                 includeGlobal: state.sessionsIncludeGlobal,
                 includeUnknown: state.sessionsIncludeUnknown,
                 basePath: state.basePath,
+                search: state.sessionsSearch,
+                sort: state.sessionsSort,
+                sortDir: state.sessionsSortDir,
+                kindFilter: state.sessionsKindFilter,
+                statusFilter: state.sessionsStatusFilter,
+                agentLabelFilter: state.sessionsAgentLabelFilter,
+                laneFilter: state.sessionsLaneFilter,
+                tagFilter: state.sessionsTagFilter,
+                viewMode: state.sessionsViewMode,
+                showHidden: state.sessionsShowHidden,
+                autoHideCompletedMinutes: state.sessionsAutoHideCompletedMinutes,
+                autoHideErroredMinutes: state.sessionsAutoHideErroredMinutes,
+                preset: state.sessionsPreset,
+                showAdvancedFilters: false,
+                drawerKey: state.sessionsPreviewKey,
+                drawerExpanded: false,
+                drawerPreviewLoading: state.sessionsPreviewLoading,
+                drawerPreviewError: state.sessionsPreviewError,
+                drawerPreview: state.sessionsPreviewData,
+                onDrawerOpen: (key: string) => {
+                  state.sessionsPreviewKey = key;
+                },
+                onDrawerOpenExpanded: (key: string) => {
+                  state.sessionsPreviewKey = key;
+                },
+                onDrawerClose: () => {
+                  state.sessionsPreviewKey = null;
+                },
+                onDrawerToggleExpanded: () => {},
+                onDrawerRefreshPreview: () => {},
                 onFiltersChange: (next) => {
                   state.sessionsFilterActive = next.activeMinutes;
                   state.sessionsFilterLimit = next.limit;
                   state.sessionsIncludeGlobal = next.includeGlobal;
                   state.sessionsIncludeUnknown = next.includeUnknown;
                 },
+                onSearchChange: (search: string) => {
+                  state.sessionsSearch = search;
+                },
+                onSortChange: (column) => {
+                  state.sessionsSort = column;
+                },
+                onKindFilterChange: (kind) => {
+                  state.sessionsKindFilter = kind;
+                },
+                onStatusFilterChange: (status) => {
+                  state.sessionsStatusFilter = status;
+                },
+                onAgentLabelFilterChange: (label) => {
+                  state.sessionsAgentLabelFilter = label;
+                },
+                onTagFilterChange: (tags) => {
+                  state.sessionsTagFilter = tags;
+                },
+                onLaneFilterChange: (lane) => {
+                  state.sessionsLaneFilter = lane;
+                },
+                onViewModeChange: (mode) => {
+                  state.sessionsViewMode = mode;
+                },
+                onShowHiddenChange: (show) => {
+                  state.sessionsShowHidden = show;
+                },
+                onAutoHideChange: (next) => {
+                  state.sessionsAutoHideCompletedMinutes = next.completedMinutes;
+                  state.sessionsAutoHideErroredMinutes = next.erroredMinutes;
+                },
+                onDeleteMany: (keys: string[]) => {},
                 onRefresh: () => loadSessions(state),
                 onPatch: (key, patch) => patchSession(state, key, patch),
                 onAbort: (key) => abortSession(state, key),
@@ -590,6 +662,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "cron"
             ? renderCron({
+                basePath: state.basePath,
                 loading: state.cronLoading,
                 status: state.cronStatus,
                 jobs: state.cronJobs,
@@ -982,6 +1055,9 @@ export function renderApp(state: AppViewState) {
                     : { fallbacks: normalized };
                   updateConfigFormValue(state, basePath, next);
                 },
+                onAbortSession: (sessionKey) => abortSession(state, sessionKey),
+                onAbortAllForAgent: (agentId) => abortSessionsForAgent(state, agentId),
+                onEmergencyStopAll: () => abortAllSessions(state),
               })
             : nothing
         }

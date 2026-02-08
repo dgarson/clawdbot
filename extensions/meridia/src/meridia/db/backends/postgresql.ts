@@ -19,6 +19,7 @@ import type {
   RecordQueryResult,
   TransactionOptions,
 } from "../backend.js";
+import { sanitizeExperienceRecord } from "../../sanitize/record.js";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Text Helpers
@@ -59,6 +60,24 @@ function buildSearchableText(record: MeridiaExperienceRecord): string {
   if (record.data?.result !== undefined)
     parts.push(clampText(safeJsonStringify(record.data.result), 1000));
   return parts.join(" ");
+}
+
+function toPgVectorLiteral(embedding: Float32Array): string {
+  const values = Array.from(embedding, (value) => {
+    if (!Number.isFinite(value)) {
+      return "0";
+    }
+    return String(value);
+  });
+  return `[${values.join(",")}]`;
+}
+
+function parsePositiveInt(value: unknown): number | null {
+  const parsed = Number.parseInt(typeof value === "string" ? value : "", 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -307,11 +326,16 @@ const INSERT_RECORD_SQL = `
 `;
 
 function buildRecordParams(record: MeridiaExperienceRecord): unknown[] {
-  const dataText = buildSearchableText(record);
-  const tagsJson = record.content?.tags?.length ? JSON.stringify(record.content.tags) : null;
-  const evaluation = record.capture.evaluation;
-  const classificationJson = record.classification ? JSON.stringify(record.classification) : null;
-  const phenom = record.phenomenology;
+  const sanitizedRecord = sanitizeExperienceRecord(record);
+  const dataText = buildSearchableText(sanitizedRecord);
+  const tagsJson = sanitizedRecord.content?.tags?.length
+    ? JSON.stringify(sanitizedRecord.content.tags)
+    : null;
+  const evaluation = sanitizedRecord.capture.evaluation;
+  const classificationJson = sanitizedRecord.classification
+    ? JSON.stringify(sanitizedRecord.classification)
+    : null;
+  const phenom = sanitizedRecord.phenomenology;
   const emotionalPrimary = phenom?.emotionalSignature?.primary?.join(",") ?? null;
   const emotionalIntensity = phenom?.emotionalSignature?.intensity ?? null;
   const emotionalValence = phenom?.emotionalSignature?.valence ?? null;
@@ -319,24 +343,24 @@ function buildRecordParams(record: MeridiaExperienceRecord): unknown[] {
   const phenomenologyJson = phenom ? JSON.stringify(phenom) : null;
 
   return [
-    record.id,
-    record.ts,
-    record.kind,
-    record.session?.key ?? null,
-    record.session?.id ?? null,
-    record.session?.runId ?? null,
-    record.tool?.name ?? null,
-    record.tool?.callId ?? null,
-    record.tool?.isError ?? false,
-    record.capture.score,
-    record.capture.threshold ?? null,
+    sanitizedRecord.id,
+    sanitizedRecord.ts,
+    sanitizedRecord.kind,
+    sanitizedRecord.session?.key ?? null,
+    sanitizedRecord.session?.id ?? null,
+    sanitizedRecord.session?.runId ?? null,
+    sanitizedRecord.tool?.name ?? null,
+    sanitizedRecord.tool?.callId ?? null,
+    sanitizedRecord.tool?.isError ?? false,
+    sanitizedRecord.capture.score,
+    sanitizedRecord.capture.threshold ?? null,
     evaluation.kind,
     evaluation.model ?? null,
     evaluation.reason ?? null,
     tagsJson,
-    JSON.stringify(record),
+    JSON.stringify(sanitizedRecord),
     dataText,
-    record.memoryType ?? null,
+    sanitizedRecord.memoryType ?? null,
     classificationJson,
     emotionalPrimary,
     emotionalIntensity,
@@ -381,6 +405,8 @@ export class PostgresBackend implements MeridiaDbBackend {
   private schemaVersion: string | null = null;
   private ftsAvailable = false;
   private initCalled = false;
+  vecAvailable = false;
+  private embeddingDimensions = 384;
 
   constructor(config: PostgresBackendConfig) {
     this.config = config;
@@ -438,10 +464,14 @@ export class PostgresBackend implements MeridiaDbBackend {
 
       // Set schema version
       await this.pool!.query(
-        `INSERT INTO meridia_meta (key, value) VALUES ('schema_version', '3')
-         ON CONFLICT (key) DO UPDATE SET value = '3'`,
+        `INSERT INTO meridia_meta (key, value) VALUES ('schema_version', '4')
+         ON CONFLICT (key) DO UPDATE SET value = '4'`,
       );
-      this.schemaVersion = "3";
+      this.schemaVersion = "4";
+      await this.pool!.query(
+        `INSERT INTO meridia_meta (key, value) VALUES ('vector_enabled', 'pending')
+         ON CONFLICT (key) DO NOTHING`,
+      );
 
       return { ftsAvailable: true };
     } catch (err) {
@@ -937,6 +967,122 @@ export class PostgresBackend implements MeridiaDbBackend {
        ON CONFLICT (key) DO UPDATE SET value = $2`,
       [key, value],
     );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Vector Operations (pgvector)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  async loadVectorExtension(
+    _extensionPath?: string,
+    dims?: number,
+  ): Promise<{ ok: boolean; error?: string }> {
+    this.ensurePool();
+    try {
+      const requestedDims =
+        typeof dims === "number" && Number.isFinite(dims) ? Math.floor(dims) : 0;
+      if (requestedDims > 0) {
+        this.embeddingDimensions = requestedDims;
+      }
+
+      await this.pool!.query(`CREATE EXTENSION IF NOT EXISTS vector`);
+
+      const existingDimsResult = await this.pool!.query(
+        `SELECT value FROM meridia_meta WHERE key = 'vector_dims'`,
+      );
+      const existingDims = parsePositiveInt(existingDimsResult.rows[0]?.value);
+      if (existingDims && existingDims !== this.embeddingDimensions) {
+        await this.pool!.query(`DROP TABLE IF EXISTS meridia_vec`);
+      }
+
+      await this.pool!.query(
+        `CREATE TABLE IF NOT EXISTS meridia_vec (
+           record_id TEXT PRIMARY KEY REFERENCES meridia_records(id) ON DELETE CASCADE,
+           embedding vector(${this.embeddingDimensions}) NOT NULL,
+           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+         )`,
+      );
+
+      try {
+        await this.pool!.query(
+          `CREATE INDEX IF NOT EXISTS idx_meridia_vec_embedding
+             ON meridia_vec USING ivfflat (embedding vector_l2_ops)
+             WITH (lists = 100)`,
+        );
+      } catch {
+        // index creation can fail on restricted environments; table remains usable
+      }
+
+      await this.pool!.query(
+        `INSERT INTO meridia_meta (key, value) VALUES ('vector_enabled', 'true')
+         ON CONFLICT (key) DO UPDATE SET value = 'true'`,
+      );
+      await this.pool!.query(
+        `INSERT INTO meridia_meta (key, value) VALUES ('vector_dims', $1)
+         ON CONFLICT (key) DO UPDATE SET value = $1`,
+        [String(this.embeddingDimensions)],
+      );
+
+      this.vecAvailable = true;
+      return { ok: true };
+    } catch (err) {
+      this.vecAvailable = false;
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  async insertEmbedding(recordId: string, embedding: Float32Array): Promise<boolean> {
+    if (!this.vecAvailable) {
+      return false;
+    }
+    if (embedding.length !== this.embeddingDimensions) {
+      return false;
+    }
+    this.ensurePool();
+    try {
+      const literal = toPgVectorLiteral(embedding);
+      await this.pool!.query(
+        `INSERT INTO meridia_vec (record_id, embedding, updated_at)
+         VALUES ($1, $2::vector, NOW())
+         ON CONFLICT (record_id)
+         DO UPDATE SET embedding = EXCLUDED.embedding, updated_at = NOW()`,
+        [recordId, literal],
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async searchByVector(
+    embedding: Float32Array,
+    limit: number = 20,
+  ): Promise<Array<{ recordId: string; distance: number }>> {
+    if (!this.vecAvailable) {
+      return [];
+    }
+    if (embedding.length !== this.embeddingDimensions) {
+      return [];
+    }
+    this.ensurePool();
+    try {
+      const literal = toPgVectorLiteral(embedding);
+      const result = await this.pool!.query(
+        `SELECT record_id, embedding <-> $1::vector AS distance
+         FROM meridia_vec
+         ORDER BY embedding <-> $1::vector ASC
+         LIMIT $2`,
+        [literal, limit],
+      );
+      return result.rows
+        .map((row) => ({
+          recordId: String(row.record_id),
+          distance: Number(row.distance),
+        }))
+        .filter((row) => Number.isFinite(row.distance));
+    } catch {
+      return [];
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────────

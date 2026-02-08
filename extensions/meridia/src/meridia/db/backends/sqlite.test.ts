@@ -73,6 +73,41 @@ describe("meridia sqlite backend", () => {
     await backend.close();
   });
 
+  it("sanitizes sensitive data on insert", async () => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-meridia-"));
+    process.env.OPENCLAW_STATE_DIR = stateDir;
+
+    const dbPath = resolveMeridiaDbPath({ cfg: {} });
+    const backend = createSqliteBackend({ dbPath });
+    await backend.init();
+
+    const rawSecret = "sk-live-1234567890abcdefghijklmnopqrstuvwxyz";
+    const record: MeridiaExperienceRecord = {
+      id: "rec-sensitive",
+      ts: new Date().toISOString(),
+      kind: "manual",
+      session: { key: "s-sensitive" },
+      tool: { name: "experience_capture", callId: "t-sensitive", isError: false },
+      capture: {
+        score: 0.9,
+        evaluation: { kind: "heuristic", score: 0.9, reason: `reason ${rawSecret}` },
+      },
+      content: { topic: "sensitive test" },
+      data: { args: { apiKey: rawSecret }, result: { password: "hunter2" } },
+    };
+
+    const inserted = await backend.insertExperienceRecord(record);
+    expect(inserted).toBe(true);
+
+    const stored = await backend.getRecordById(record.id);
+    expect(stored).not.toBeNull();
+    const serialized = JSON.stringify(stored?.record);
+    expect(serialized).not.toContain(rawSecret);
+    expect(serialized).not.toContain("hunter2");
+
+    await backend.close();
+  });
+
   it("resolves default db path from config", () => {
     const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-meridia-"));
     process.env.OPENCLAW_STATE_DIR = stateDir;

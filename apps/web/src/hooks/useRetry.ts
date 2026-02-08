@@ -114,17 +114,7 @@ export function useRetry<T>(
   const cancelledRef = useRef(false);
   const mountedRef = useRef(true);
 
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, []);
-
-  const cancel = useCallback(() => {
-    cancelledRef.current = true;
+  const clearTimers = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -133,10 +123,23 @@ export function useRetry<T>(
       clearInterval(countdownRef.current);
       countdownRef.current = null;
     }
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      clearTimers();
+    };
+  }, [clearTimers]);
+
+  const cancel = useCallback(() => {
+    cancelledRef.current = true;
+    clearTimers();
     if (mountedRef.current) {
       setState((prev) => ({ ...prev, isRetrying: false, nextRetryIn: null }));
     }
-  }, []);
+  }, [clearTimers]);
 
   const reset = useCallback(() => {
     cancel();
@@ -154,6 +157,7 @@ export function useRetry<T>(
 
   const execute = useCallback(async (): Promise<T | undefined> => {
     cancelledRef.current = false;
+    clearTimers();
     setState((prev) => ({
       ...prev,
       isRetrying: true,
@@ -237,7 +241,7 @@ export function useRetry<T>(
     }
 
     return undefined;
-  }, [operation, maxRetries, baseDelay, maxDelay, backoffFactor, jitter, onExhausted, onRetry, isRetryable]);
+  }, [operation, maxRetries, baseDelay, maxDelay, backoffFactor, jitter, onExhausted, onRetry, isRetryable, clearTimers]);
 
   return { ...state, execute, cancel, reset };
 }

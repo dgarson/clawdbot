@@ -8,6 +8,7 @@ import { createMockTypingController } from "./test-helpers.js";
 
 const runEmbeddedPiAgentMock = vi.fn();
 const runCliAgentMock = vi.fn();
+const executeMock = vi.fn();
 
 type EmbeddedRunParams = {
   prompt?: string;
@@ -38,6 +39,14 @@ vi.mock("../../agents/cli-runner.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
+  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+}));
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: (params: unknown) => executeMock(params),
+  }),
+}));
+vi.mock("../../agents/pi-embedded-runner/run.js", () => ({
   runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
 }));
 
@@ -92,9 +101,9 @@ function createBaseRun(params: {
       sessionFile: "/tmp/session.jsonl",
       workspaceDir: "/tmp",
       config: params.config ?? {},
-      skillsSnapshot: {},
+      skillsSnapshot: { prompt: "", skills: [] },
       provider: "anthropic",
-      model: "claude",
+      model: "claude-opus-4-6",
       thinkLevel: "low",
       verboseLevel: "off",
       elevatedLevel: "off",
@@ -123,31 +132,37 @@ function createBaseRun(params: {
 
 describe("runReplyAgent memory flush", () => {
   it("skips memory flush for CLI providers", async () => {
-    runEmbeddedPiAgentMock.mockReset();
-    runCliAgentMock.mockReset();
+    executeMock.mockReset();
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     const sessionEntry = {
       sessionId: "session",
       updatedAt: Date.now(),
-      totalTokens: 80_000,
+      totalTokens: 2_000_000,
       compactionCount: 1,
     };
 
     await seedSessionStore({ storePath, sessionKey, entry: sessionEntry });
 
     const calls: Array<{ prompt?: string }> = [];
-    runEmbeddedPiAgentMock.mockImplementation(async (params: EmbeddedRunParams) => {
+    executeMock.mockImplementation(async (params: EmbeddedRunParams) => {
       calls.push({ prompt: params.prompt });
       return {
-        payloads: [{ text: "ok" }],
-        meta: { agentMeta: { usage: { input: 1, output: 1 } } },
+        payloads: [{ text: "ok", isError: false }],
+        usage: {
+          durationMs: 1,
+          inputTokens: 1,
+          outputTokens: 1,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+        runtime: { kind: "cli", provider: "codex-cli", model: "gpt-5.2" },
+        aborted: false,
+        didSendViaMessagingTool: false,
+        messagingToolSentTexts: [],
+        messagingToolSentTargets: [],
       };
-    });
-    runCliAgentMock.mockResolvedValue({
-      payloads: [{ text: "ok" }],
-      meta: { agentMeta: { usage: { input: 1, output: 1 } } },
     });
 
     const { typing, sessionCtx, resolvedQueue, followupRun } = createBaseRun({
@@ -181,9 +196,6 @@ describe("runReplyAgent memory flush", () => {
       typingMode: "instant",
     });
 
-    expect(runCliAgentMock).toHaveBeenCalledTimes(1);
-    const call = runCliAgentMock.mock.calls[0]?.[0] as { prompt?: string } | undefined;
-    expect(call?.prompt).toBe("hello");
-    expect(runEmbeddedPiAgentMock).not.toHaveBeenCalled();
+    expect(calls.map((call) => call.prompt)).toEqual(["hello"]);
   });
 });

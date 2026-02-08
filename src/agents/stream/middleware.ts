@@ -7,17 +7,6 @@
  */
 
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
-import { EmbeddedBlockChunker } from "../pi-embedded-block-chunker.js";
-import { stripHeartbeatToken } from "../../auto-reply/heartbeat.js";
-import { sanitizeUserFacingText } from "../pi-embedded-helpers/errors.js";
-import { stripCompactionHandoffText } from "../pi-embedded-utils.js";
-import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
-import { isSilentReplyText } from "../../auto-reply/tokens.js";
-import {
-  normalizeTextForComparison,
-  isMessagingToolDuplicateNormalized,
-} from "../pi-embedded-helpers/messaging-dedupe.js";
-import { TypedEventEmitter } from "./emitter.js";
 import type {
   RawStreamEvent,
   AgentStreamEvent,
@@ -25,6 +14,20 @@ import type {
   DeliveryState,
   StreamEventListener,
 } from "./types.js";
+import { stripHeartbeatToken } from "../../auto-reply/heartbeat.js";
+import { isSilentReplyText } from "../../auto-reply/tokens.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
+import { EmbeddedBlockChunker } from "../pi-embedded-block-chunker.js";
+import { sanitizeUserFacingText } from "../pi-embedded-helpers/errors.js";
+import {
+  normalizeTextForComparison,
+  isMessagingToolDuplicateNormalized,
+} from "../pi-embedded-helpers/messaging-dedupe.js";
+import { stripCompactionHandoffText } from "../pi-embedded-utils.js";
+import { TypedEventEmitter } from "./emitter.js";
+
+const log = createSubsystemLogger("agent/stream-middleware");
 
 // ---------------------------------------------------------------------------
 // StreamingMiddleware
@@ -51,6 +54,11 @@ export class StreamingMiddleware {
 
   /** Accept a raw event from the runner and normalize it. */
   push(event: RawStreamEvent): void {
+    log.trace("push: received raw event", {
+      feature: "streaming",
+      kind: event.kind,
+      textLen: "text" in event && typeof event.text === "string" ? event.text.length : undefined,
+    });
     switch (event.kind) {
       case "text_delta":
         this.#handleTextDelta(event);
@@ -124,6 +132,10 @@ export class StreamingMiddleware {
     // When reasoning is streaming, text deltas are suppressed (reasoning
     // events carry the content instead).
     if (!allowPartialStream) {
+      log.trace("handleTextDelta: suppressed (reasoning stream mode)", {
+        feature: "streaming",
+        textLen: event.text.length,
+      });
       // Still feed the chunker so block replies accumulate text
       if (this.#chunker && this.#config.blockReplyBreak === "text_end") {
         this.#appendToChunker(event.text);
@@ -133,15 +145,24 @@ export class StreamingMiddleware {
 
     const normalized = this.#normalizePartialText(event.text);
     if (normalized === undefined) {
+      log.trace("handleTextDelta: normalized to skip", { feature: "streaming" });
       return;
     }
 
     // When chunking is active, text goes through the chunker → block_reply
     if (this.#chunker && this.#config.blockReplyBreak === "text_end") {
+      log.trace("handleTextDelta: routing to chunker", {
+        feature: "streaming",
+        normalizedLen: normalized.length,
+      });
       this.#appendToChunker(normalized);
       return;
     }
 
+    log.trace("handleTextDelta: emitting partial_reply", {
+      feature: "streaming",
+      normalizedLen: normalized.length,
+    });
     this.#emit({ kind: "partial_reply", text: normalized });
   }
 
@@ -157,14 +178,27 @@ export class StreamingMiddleware {
       trim: "both",
     });
     if (!text.trim()) {
+      log.trace("handleBlockReply: empty after reasoning strip", { feature: "streaming" });
       return;
     }
 
     // Check against messaging tool dedup
     if (this.#isBlockReplyDuplicate(text)) {
+      log.debug("handleBlockReply: skipping duplicate (messaging tool dedup)", {
+        feature: "streaming",
+        textLen: text.length,
+        textPreview: text.slice(0, 60),
+      });
       return;
     }
 
+    log.debug("handleBlockReply: emitting block_reply", {
+      feature: "streaming",
+      textLen: text.length,
+      textPreview: text.slice(0, 60),
+      hasMedia: Boolean(event.mediaUrls?.length),
+      didStreamBlockReplyBefore: this.#delivery.didStreamBlockReply,
+    });
     this.#delivery.didStreamBlockReply = true;
     this.#emit({
       kind: "block_reply",
@@ -209,9 +243,7 @@ export class StreamingMiddleware {
     }
   }
 
-  #handleMessagingToolStart(
-    event: RawStreamEvent & { kind: "messaging_tool_start" },
-  ): void {
+  #handleMessagingToolStart(event: RawStreamEvent & { kind: "messaging_tool_start" }): void {
     if (event.text) {
       this.#pendingMessagingTexts.set(event.toolCallId, event.text);
     }
@@ -220,9 +252,7 @@ export class StreamingMiddleware {
     }
   }
 
-  #handleMessagingToolEnd(
-    event: RawStreamEvent & { kind: "messaging_tool_end" },
-  ): void {
+  #handleMessagingToolEnd(event: RawStreamEvent & { kind: "messaging_tool_end" }): void {
     const text = this.#pendingMessagingTexts.get(event.toolCallId);
     const target = this.#pendingMessagingTargets.get(event.toolCallId);
 
@@ -238,9 +268,7 @@ export class StreamingMiddleware {
     this.#delivery.didSendViaMessagingTool = true;
     if (text) {
       this.#delivery.messagingToolSentTexts.push(text);
-      this.#delivery.messagingToolSentTextsNormalized.push(
-        normalizeTextForComparison(text),
-      );
+      this.#delivery.messagingToolSentTextsNormalized.push(normalizeTextForComparison(text));
     }
     if (target) {
       this.#delivery.messagingToolSentTargets.push(target);
@@ -255,7 +283,12 @@ export class StreamingMiddleware {
 
   #handleMessageStart(): void {
     // Flush chunker at message boundary
-    if (this.#chunker?.hasBuffered()) {
+    const hasBuffered = this.#chunker?.hasBuffered() ?? false;
+    log.debug("handleMessageStart: message boundary", {
+      feature: "streaming",
+      chunkerHasBuffered: hasBuffered,
+    });
+    if (hasBuffered) {
       this.#drainChunker(true);
     }
     this.#emit({ kind: "message_start" });
@@ -263,7 +296,17 @@ export class StreamingMiddleware {
 
   #handleMessageEnd(): void {
     // Drain remaining chunker content at message end
-    if (this.#chunker?.hasBuffered()) {
+    const hasBuffered = this.#chunker?.hasBuffered() ?? false;
+    log.debug("handleMessageEnd: message boundary", {
+      feature: "streaming",
+      chunkerHasBuffered: hasBuffered,
+      deliveryState: {
+        didStreamBlockReply: this.#delivery.didStreamBlockReply,
+        didSendViaMessagingTool: this.#delivery.didSendViaMessagingTool,
+        messagingToolSentCount: this.#delivery.messagingToolSentTexts.length,
+      },
+    });
+    if (hasBuffered) {
       this.#drainChunker(true);
     }
     this.#emit({ kind: "message_end" });
@@ -338,12 +381,22 @@ export class StreamingMiddleware {
     if (!this.#chunker) {
       return;
     }
+    log.trace("drainChunker: draining", { feature: "streaming", force });
     this.#chunker.drain({
       force,
       emit: (chunk: string) => {
         if (this.#isBlockReplyDuplicate(chunk)) {
+          log.debug("drainChunker: skipping duplicate chunk", {
+            feature: "streaming",
+            chunkLen: chunk.length,
+          });
           return;
         }
+        log.debug("drainChunker: emitting block_reply from chunk", {
+          feature: "streaming",
+          chunkLen: chunk.length,
+          chunkPreview: chunk.slice(0, 60),
+        });
         this.#delivery.didStreamBlockReply = true;
         this.#emit({ kind: "block_reply", text: chunk });
       },

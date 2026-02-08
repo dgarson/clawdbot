@@ -738,25 +738,7 @@ describe("ExecutionKernel", () => {
       expect(endEvent?.data.durationMs as number).toBeGreaterThanOrEqual(0);
     });
 
-    it("should wire onEvent callback to receive all events", async () => {
-      const kernel = createExecutionKernel({
-        resolver: mockResolver,
-        executor: mockExecutor,
-        stateService: mockStateService,
-      });
-
-      const receivedEvents: ExecutionEvent[] = [];
-      const request = createValidRequest({
-        onEvent: (event) => {
-          receivedEvents.push(event);
-        },
-      });
-
-      const result = await kernel.execute(request);
-
-      // Callback should receive the same events as the result
-      expect(receivedEvents.length).toBe(result.events.length);
-    });
+    // onEvent callback was removed in Phase 5 — events are now delivered via StreamingMiddleware
   });
 
   describe("execute() - result building", () => {

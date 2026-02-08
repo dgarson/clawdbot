@@ -1,6 +1,8 @@
+import { homedir } from "node:os";
 import type { ToolApprovalForwarder } from "../../infra/tool-approval-forwarder.js";
 import type { ToolApprovalDecision, ToolApprovalManager } from "../tool-approval-manager.js";
 import type { GatewayRequestHandlers } from "./types.js";
+import { createToolApprovalAuditEvent, logAuditEvent } from "../../infra/audit/index.js";
 import {
   ErrorCodes,
   errorShape,
@@ -8,6 +10,24 @@ import {
   validateToolApprovalRequestParams,
   validateToolApprovalResolveParams,
 } from "../protocol/index.js";
+
+const homeDir = homedir();
+
+const shouldWriteAuditLog = !process.env.VITEST && process.env.NODE_ENV !== "test";
+
+async function logToolApprovalAuditEvent(params: {
+  action: "tool.approval.requested" | "tool.approval.resolved" | "tool.approval.timeout";
+  detail: Parameters<typeof createToolApprovalAuditEvent>[1];
+}) {
+  if (!shouldWriteAuditLog) {
+    return;
+  }
+  try {
+    await logAuditEvent(homeDir, createToolApprovalAuditEvent(params.action, params.detail));
+  } catch (error) {
+    console.error("Failed to write tool approval audit event:", error);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helpers for legacy exec.approval.* compatibility
@@ -148,6 +168,30 @@ export function createToolApprovalHandlers(
         },
         { dropIfSlow: true },
       );
+      context.logGateway?.info?.("tool approval requested", {
+        approvalId: record.id,
+        toolName: record.request.toolName,
+        agentId: record.request.agentId ?? null,
+        sessionKey: record.request.sessionKey ?? null,
+        requestHash: record.request.requestHash,
+        createdAtMs: record.createdAtMs,
+        expiresAtMs: record.expiresAtMs,
+        riskClass: record.request.riskClass ?? null,
+      });
+      void logToolApprovalAuditEvent({
+        action: "tool.approval.requested",
+        detail: {
+          approvalId: record.id,
+          toolName: record.request.toolName,
+          agentId: record.request.agentId ?? null,
+          sessionKey: record.request.sessionKey ?? null,
+          requestHash: record.request.requestHash,
+          paramsSummary: record.request.paramsSummary ?? null,
+          riskClass: record.request.riskClass ?? null,
+          createdAtMs: record.createdAtMs,
+          expiresAtMs: record.expiresAtMs,
+        },
+      });
 
       // Legacy exec mirror event
       if (isExecRecord(record.request)) {
@@ -169,6 +213,31 @@ export function createToolApprovalHandlers(
         });
 
       const decision = await decisionPromise;
+      if (decision === null) {
+        context.logGateway?.info?.("tool approval timed out", {
+          approvalId: record.id,
+          toolName: record.request.toolName,
+          agentId: record.request.agentId ?? null,
+          sessionKey: record.request.sessionKey ?? null,
+          requestHash: record.request.requestHash,
+          createdAtMs: record.createdAtMs,
+          expiresAtMs: record.expiresAtMs,
+        });
+        void logToolApprovalAuditEvent({
+          action: "tool.approval.timeout",
+          detail: {
+            approvalId: record.id,
+            toolName: record.request.toolName,
+            agentId: record.request.agentId ?? null,
+            sessionKey: record.request.sessionKey ?? null,
+            requestHash: record.request.requestHash,
+            paramsSummary: record.request.paramsSummary ?? null,
+            riskClass: record.request.riskClass ?? null,
+            createdAtMs: record.createdAtMs,
+            expiresAtMs: record.expiresAtMs,
+          },
+        });
+      }
 
       respond(
         true,
@@ -226,6 +295,34 @@ export function createToolApprovalHandlers(
         { id: p.id, decision, resolvedBy, ts: Date.now() },
         { dropIfSlow: true },
       );
+      context.logGateway?.info?.("tool approval resolved", {
+        approvalId: p.id,
+        decision,
+        resolvedBy: resolvedBy ?? null,
+        toolName: snapshot?.request.toolName ?? null,
+        agentId: snapshot?.request.agentId ?? null,
+        sessionKey: snapshot?.request.sessionKey ?? null,
+        requestHash: snapshot?.request.requestHash ?? p.requestHash,
+        createdAtMs: snapshot?.createdAtMs ?? null,
+        expiresAtMs: snapshot?.expiresAtMs ?? null,
+      });
+      void logToolApprovalAuditEvent({
+        action: "tool.approval.resolved",
+        detail: {
+          approvalId: p.id,
+          toolName: snapshot?.request.toolName ?? "unknown",
+          agentId: snapshot?.request.agentId ?? null,
+          sessionKey: snapshot?.request.sessionKey ?? null,
+          requestHash: snapshot?.request.requestHash ?? p.requestHash,
+          paramsSummary: snapshot?.request.paramsSummary ?? null,
+          riskClass: snapshot?.request.riskClass ?? null,
+          createdAtMs: snapshot?.createdAtMs ?? null,
+          expiresAtMs: snapshot?.expiresAtMs ?? null,
+          decision,
+          resolvedBy: resolvedBy ?? null,
+          resolvedAtMs: Date.now(),
+        },
+      });
 
       // Legacy exec mirror event
       if (snapshot && isExecRecord(snapshot.request)) {
@@ -255,6 +352,10 @@ export function createToolApprovalHandlers(
         toolName: r.request.toolName,
         paramsSummary: r.request.paramsSummary,
         riskClass: r.request.riskClass,
+        sideEffects: r.request.sideEffects,
+        reasonCodes: r.request.reasonCodes,
+        agentId: r.request.agentId,
+        sessionKey: r.request.sessionKey,
         requestHash: r.request.requestHash,
         createdAtMs: r.createdAtMs,
         expiresAtMs: r.expiresAtMs,

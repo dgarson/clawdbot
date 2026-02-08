@@ -95,7 +95,7 @@ describe("startViewTransition", () => {
     });
 
     const doc = document as Document & { startViewTransition?: unknown };
-    if (doc.startViewTransition) {
+    if (typeof doc.startViewTransition === "function") {
       // Native path: direction attribute is set synchronously
       const applyChange = vi.fn();
       startViewTransition({ from: "chat", to: "logs", applyChange });

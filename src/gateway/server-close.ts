@@ -3,6 +3,7 @@ import type { WebSocketServer } from "ws";
 import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { OverseerRunner } from "../infra/overseer/runner.js";
+import type { ToolApprovalForwarder } from "../infra/tool-approval-forwarder.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import { stopCompactionScheduler } from "../hooks/compaction-scheduler.js";
@@ -35,6 +36,7 @@ export function createGatewayCloseHandler(params: {
   browserControl: { stop: () => Promise<void> } | null;
   managedProcesses?: { stopAll: (opts?: { reason?: string }) => Promise<void> } | null;
   workerManager?: { stop: () => Promise<void> } | null;
+  toolApprovalForwarder?: ToolApprovalForwarder | null;
   persistInterval?: ReturnType<typeof setInterval>;
   persistChatRunState?: () => Promise<void>;
   wss: WebSocketServer;
@@ -112,6 +114,7 @@ export function createGatewayCloseHandler(params: {
     stopCompactionScheduler();
     params.cron.stop();
     params.heartbeatRunner.stop();
+    params.toolApprovalForwarder?.stop();
     if (params.overseerRunner) {
       params.overseerRunner.stop();
     }

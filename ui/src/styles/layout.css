@@ -1,4 +1,31 @@
 /* ===========================================
+   Skip Navigation (Accessibility)
+   =========================================== */
+
+.skip-nav {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent, #4f8cf7);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 var(--radius-md, 0.5rem) var(--radius-md, 0.5rem);
+  text-decoration: none;
+  transition: top 0.15s ease-out;
+  box-shadow: var(--shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+}
+
+.skip-nav:focus {
+  top: 0;
+  outline: 2px solid var(--focus, #4f8cf7);
+  outline-offset: 2px;
+}
+
+/* ===========================================
    Shell Layout
    =========================================== */
 

@@ -18,6 +18,7 @@ import type {
   WorkflowStatus,
 } from "@/components/domain/agentic-workflow";
 import { Switch } from "@/components/ui/switch";
+import { AGENTIC_DEMO_DELAYS_MS } from "@/lib/agenticDemo";
 import {
   Bot,
   Command as CommandIcon,
@@ -29,9 +30,11 @@ import {
   Square,
   Zap,
 } from "lucide-react";
+import { RouteErrorFallback } from "@/components/composed";
 
 export const Route = createFileRoute("/conversations/$id/agentic")({
   component: AgenticConversationPage,
+  errorComponent: RouteErrorFallback,
 });
 
 function uid(prefix: string) {
@@ -134,7 +137,7 @@ function AgenticConversationPage() {
         { id: uid("assistant"), role: "assistant", content: `Tool executed: ${toolCallId}`, timestamp: new Date().toLocaleTimeString() },
       ]);
       setStatus("complete");
-    }, 1000);
+    }, AGENTIC_DEMO_DELAYS_MS.toolExecution);
   };
 
   const rejectTool = (toolCallId: string) => {
@@ -160,7 +163,7 @@ function AgenticConversationPage() {
         },
       ]);
       setStatus("complete");
-    }, 800);
+    }, AGENTIC_DEMO_DELAYS_MS.answerQuestion);
   };
 
   const onSend = ({ content, attachments }: { content: string; attachments: AgenticChatMessage["attachments"] }) => {
@@ -189,7 +192,12 @@ function AgenticConversationPage() {
       };
       setPendingToolCalls((prev) => [...prev, tc]);
       setStatus(autoApprove ? "executing" : "waiting_approval");
-      if (autoApprove) {window.setTimeout(() => approveTool(tc.toolCallId), 500);}
+      if (autoApprove) {
+        window.setTimeout(
+          () => approveTool(tc.toolCallId),
+          AGENTIC_DEMO_DELAYS_MS.autoApproveFollowup
+        );
+      }
 
       const q: Question = {
         id: uid("q"),
@@ -205,7 +213,7 @@ function AgenticConversationPage() {
       };
       setPendingQuestions((prev) => [...prev, q]);
       if (!autoApprove) {setStatus("waiting_input");}
-    }, 700);
+    }, AGENTIC_DEMO_DELAYS_MS.initialResponse);
   };
 
   const onExecuteCommand = (cmd: PaletteCommand) => {
@@ -305,4 +313,3 @@ function AgenticConversationPage() {
     </>
   );
 }
-

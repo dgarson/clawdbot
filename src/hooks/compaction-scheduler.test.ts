@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
-const triggerInternalHook = vi.fn(async () => {});
+const hooks = vi.hoisted(() => ({
+  triggerInternalHook: vi.fn(async () => {}),
+}));
 
 vi.mock("./internal-hooks.js", () => ({
   createInternalHookEvent: (
@@ -16,7 +18,7 @@ vi.mock("./internal-hooks.js", () => ({
     timestamp: new Date(),
     messages: [],
   }),
-  triggerInternalHook,
+  triggerInternalHook: hooks.triggerInternalHook,
 }));
 
 import { startCompactionScheduler, stopCompactionScheduler } from "./compaction-scheduler.js";
@@ -24,7 +26,7 @@ import { startCompactionScheduler, stopCompactionScheduler } from "./compaction-
 describe("compaction scheduler", () => {
   afterEach(() => {
     stopCompactionScheduler();
-    triggerInternalHook.mockClear();
+    hooks.triggerInternalHook.mockClear();
     vi.useRealTimers();
   });
 
@@ -46,6 +48,6 @@ describe("compaction scheduler", () => {
     });
 
     vi.advanceTimersByTime(3600);
-    expect(triggerInternalHook).toHaveBeenCalled();
+    expect(hooks.triggerInternalHook).toHaveBeenCalled();
   });
 });

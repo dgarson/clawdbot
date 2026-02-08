@@ -7,7 +7,13 @@
 import crypto from "node:crypto";
 import { mkdir, readFile, appendFile, readdir, unlink } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { AuditEvent, AuditSeverity, AuditQueryParams, AuditQueryResult } from "./types.js";
+import type {
+  AuditEvent,
+  AuditSeverity,
+  AuditQueryParams,
+  AuditQueryResult,
+  ApprovalAuditAction,
+} from "./types.js";
 import { emitAuditEvent } from "./audit-events.js";
 import { AUDIT_LOG_RETENTION_DAYS, MAX_AUDIT_EVENTS_PER_QUERY } from "./types.js";
 
@@ -265,6 +271,32 @@ export function createAgentAuditEvent(
 ): Omit<AuditEvent, "id" | "ts"> {
   return {
     category: "agent",
+    action,
+    severity,
+    detail,
+  } as Omit<AuditEvent, "id" | "ts">;
+}
+
+export function createToolApprovalAuditEvent(
+  action: ApprovalAuditAction,
+  detail: {
+    approvalId: string;
+    toolName: string;
+    requestHash: string;
+    agentId?: string | null;
+    sessionKey?: string | null;
+    paramsSummary?: string | null;
+    riskClass?: string | null;
+    createdAtMs?: number | null;
+    expiresAtMs?: number | null;
+    resolvedAtMs?: number | null;
+    decision?: string | null;
+    resolvedBy?: string | null;
+  },
+  severity: AuditSeverity = "info",
+): Omit<AuditEvent, "id" | "ts"> {
+  return {
+    category: "approval",
     action,
     severity,
     detail,

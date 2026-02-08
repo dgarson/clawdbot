@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getMemorySearchManager } from "./index.js";
+import { MemoryIndexManager } from "./index.js";
 
 vi.mock("./embeddings.js", () => ({
   createEmbeddingProvider: async () => ({
@@ -26,6 +26,7 @@ describe("MemoryIndexManager session delta counting", () => {
   let tmpRoot: string;
   let workspaceDir: string;
   let stateDir: string;
+  let manager: MemoryIndexManager | null = null;
 
   beforeEach(async () => {
     tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-mem-delta-"));
@@ -37,6 +38,10 @@ describe("MemoryIndexManager session delta counting", () => {
   });
 
   afterEach(async () => {
+    if (manager) {
+      await manager.close();
+      manager = null;
+    }
     if (previousStateDir === undefined) {
       delete process.env.OPENCLAW_STATE_DIR;
     } else {
@@ -70,12 +75,13 @@ describe("MemoryIndexManager session delta counting", () => {
       },
     };
 
-    const result = await getMemorySearchManager({ cfg, agentId: "main" });
-    expect(result.manager).not.toBeNull();
-    if (!result.manager) {
+    const maybeManager = await MemoryIndexManager.get({ cfg, agentId: "main" });
+    expect(maybeManager).not.toBeNull();
+    if (!maybeManager) {
       throw new Error("manager missing");
     }
-    const manager = result.manager as unknown as {
+    manager = maybeManager;
+    const managerWithInternals = manager as unknown as {
       close: () => Promise<void>;
       updateSessionDelta: (sessionFile: string) => Promise<{
         pendingMessages: number;
@@ -92,7 +98,7 @@ describe("MemoryIndexManager session delta counting", () => {
     });
 
     await fs.writeFile(sessionFile, Array.from({ length: 250 }, () => logLine).join("\n") + "\n");
-    const first = await manager.updateSessionDelta(sessionFile);
+    const first = await managerWithInternals.updateSessionDelta(sessionFile);
     expect(first).not.toBeNull();
     expect(first?.pendingMessages).toBe(0);
 
@@ -108,10 +114,11 @@ describe("MemoryIndexManager session delta counting", () => {
       Array.from({ length: 200 }, () => logLine).join("\n") + `\n${messageLine}\n`,
     );
 
-    const second = await manager.updateSessionDelta(sessionFile);
+    const second = await managerWithInternals.updateSessionDelta(sessionFile);
     expect(second).not.toBeNull();
     expect(second?.pendingMessages).toBe(1);
 
-    await manager.close();
+    await managerWithInternals.close();
+    manager = null;
   });
 });

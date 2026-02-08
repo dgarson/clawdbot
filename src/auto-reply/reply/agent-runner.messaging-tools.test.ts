@@ -2,12 +2,21 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 import { loadSessionStore, saveSessionStore, type SessionEntry } from "../../config/sessions.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -28,7 +37,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -107,11 +116,12 @@ function createRun(
 
 describe("runReplyAgent messaging tool suppression", () => {
   it("drops replies when a messaging tool sent via the same provider + target", async () => {
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "hello world!" }],
-      messagingToolSentTexts: ["different message"],
-      messagingToolSentTargets: [{ tool: "slack", provider: "slack", to: "channel:C1" }],
-      meta: {},
+    kernelExecuteMock.mockImplementationOnce(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "hello world!" }],
+        messagingToolSentTexts: ["different message"],
+        messagingToolSentTargets: [{ tool: "slack", provider: "slack", to: "channel:C1" }],
+      });
     });
 
     const result = await createRun("slack");
@@ -120,11 +130,12 @@ describe("runReplyAgent messaging tool suppression", () => {
   });
 
   it("delivers replies when tool provider does not match", async () => {
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "hello world!" }],
-      messagingToolSentTexts: ["different message"],
-      messagingToolSentTargets: [{ tool: "discord", provider: "discord", to: "channel:C1" }],
-      meta: {},
+    kernelExecuteMock.mockImplementationOnce(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "hello world!" }],
+        messagingToolSentTexts: ["different message"],
+        messagingToolSentTargets: [{ tool: "discord", provider: "discord", to: "channel:C1" }],
+      });
     });
 
     const result = await createRun("slack");
@@ -133,18 +144,19 @@ describe("runReplyAgent messaging tool suppression", () => {
   });
 
   it("delivers replies when account ids do not match", async () => {
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "hello world!" }],
-      messagingToolSentTexts: ["different message"],
-      messagingToolSentTargets: [
-        {
-          tool: "slack",
-          provider: "slack",
-          to: "channel:C1",
-          accountId: "alt",
-        },
-      ],
-      meta: {},
+    kernelExecuteMock.mockImplementationOnce(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "hello world!" }],
+        messagingToolSentTexts: ["different message"],
+        messagingToolSentTargets: [
+          {
+            tool: "slack",
+            provider: "slack",
+            to: "channel:C1",
+            accountId: "alt",
+          },
+        ],
+      });
     });
 
     const result = await createRun("slack");
@@ -161,17 +173,23 @@ describe("runReplyAgent messaging tool suppression", () => {
     const entry: SessionEntry = { sessionId: "session", updatedAt: Date.now() };
     await saveSessionStore(storePath, { [sessionKey]: entry });
 
-    runEmbeddedPiAgentMock.mockResolvedValueOnce({
-      payloads: [{ text: "hello world!" }],
-      messagingToolSentTexts: ["different message"],
-      messagingToolSentTargets: [{ tool: "slack", provider: "slack", to: "channel:C1" }],
-      meta: {
-        agentMeta: {
-          usage: { input: 10, output: 5 },
-          model: "claude-opus-4-5",
+    kernelExecuteMock.mockImplementationOnce(async (_req: ExecutionRequest) => {
+      return makeExecutionResult({
+        payloads: [{ text: "hello world!" }],
+        messagingToolSentTexts: ["different message"],
+        messagingToolSentTargets: [{ tool: "slack", provider: "slack", to: "channel:C1" }],
+        runtime: {
+          kind: "pi",
           provider: "anthropic",
+          model: "claude-opus-4-5",
+          fallbackUsed: false,
         },
-      },
+        usage: {
+          inputTokens: 10,
+          outputTokens: 5,
+          durationMs: 100,
+        },
+      });
     });
 
     const result = await createRun("slack", { storePath, sessionKey });

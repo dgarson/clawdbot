@@ -9,9 +9,9 @@
  */
 
 import { html, nothing } from "lit";
-import type { OverseerEventsResultEvent } from "../types/overseer";
-import { clampText, formatAgo } from "../format";
-import { icon, type IconName } from "../icons";
+import type { OverseerEventsResultEvent } from "../types/overseer.js";
+import { clampText, formatAgo } from "../format.js";
+import { icon, type IconName } from "../icons.js";
 
 // --- Types ---
 

@@ -3,8 +3,8 @@
  * Handles app-wide keyboard shortcuts that work regardless of current view
  */
 
-import type { Tab } from "./navigation";
-import { toggleKeyboardShortcutsModal } from "./components/keyboard-shortcuts-modal";
+import type { Tab } from "./navigation.js";
+import { toggleKeyboardShortcutsModal } from "./components/keyboard-shortcuts-modal.js";
 
 export type GlobalShortcutsConfig = {
   onNavigate: (tab: Tab) => void;
@@ -12,6 +12,11 @@ export type GlobalShortcutsConfig = {
   getCurrentTab: () => Tab;
   onSaveConfig?: () => void;
   onRefresh?: () => void;
+  /** View-specific action callbacks */
+  onFocusSearch?: () => void;
+  onToggleAutoFollow?: () => void;
+  onJumpToBottom?: () => void;
+  onFocusChatInput?: () => void;
 };
 
 let config: GlobalShortcutsConfig | null = null;
@@ -75,13 +80,18 @@ function handleGlobalKeydown(event: KeyboardEvent): void {
   // Skip other shortcuts if in input or modal is open
   if (isInput || isModalOpen()) return;
 
-  // Cmd+1-4 - Quick navigation
+  // Cmd+1-9 - Quick navigation (ordered by TAB_GROUPS)
   if (cmdKey && !shiftKey && !altKey) {
     const navShortcuts: Record<string, Tab> = {
       "1": "chat",
       "2": "overview",
       "3": "channels",
       "4": "sessions",
+      "5": "usage",
+      "6": "cron",
+      "7": "agents",
+      "8": "skills",
+      "9": "nodes",
     };
 
     if (key in navShortcuts) {
@@ -89,6 +99,13 @@ function handleGlobalKeydown(event: KeyboardEvent): void {
       config.onNavigate(navShortcuts[key]);
       return;
     }
+  }
+
+  // Cmd+0 - Go to logs (overflow shortcut)
+  if (cmdKey && key === "0" && !shiftKey && !altKey) {
+    event.preventDefault();
+    config.onNavigate("logs");
+    return;
   }
 
   // Cmd+, - Go to config
@@ -112,6 +129,45 @@ function handleGlobalKeydown(event: KeyboardEvent): void {
     if (config.onRefresh) {
       event.preventDefault();
       config.onRefresh();
+      return;
+    }
+  }
+
+  // --- View-specific shortcuts (only when not in input) ---
+  const currentTab = config.getCurrentTab();
+
+  // / - Focus search (in logs, config, skills views)
+  if (key === "/" && !cmdKey && !altKey && !shiftKey) {
+    if (
+      (currentTab === "logs" || currentTab === "config" || currentTab === "skills") &&
+      config.onFocusSearch
+    ) {
+      event.preventDefault();
+      config.onFocusSearch();
+      return;
+    }
+    // In chat view, / focuses the chat input
+    if (currentTab === "chat" && config.onFocusChatInput) {
+      event.preventDefault();
+      config.onFocusChatInput();
+      return;
+    }
+  }
+
+  // G - Jump to bottom (logs view)
+  if (key.toLowerCase() === "g" && !cmdKey && !altKey && !shiftKey) {
+    if (currentTab === "logs" && config.onJumpToBottom) {
+      event.preventDefault();
+      config.onJumpToBottom();
+      return;
+    }
+  }
+
+  // F - Toggle auto-follow (logs view)
+  if (key.toLowerCase() === "f" && !cmdKey && !altKey && !shiftKey) {
+    if (currentTab === "logs" && config.onToggleAutoFollow) {
+      event.preventDefault();
+      config.onToggleAutoFollow();
       return;
     }
   }

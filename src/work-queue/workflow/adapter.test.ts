@@ -58,6 +58,7 @@ describe("WorkflowWorkerAdapter", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockExecuteWorkflow.mockReset();
     const backend = new MemoryWorkQueueBackend();
     store = new WorkQueueStore(backend);
   });
@@ -77,6 +78,20 @@ describe("WorkflowWorkerAdapter", () => {
         log: mockLog,
       },
     });
+  }
+
+  async function waitForItemStatus(
+    itemId: string,
+    status: WorkItem["status"],
+    timeoutMs = 1000,
+  ): Promise<WorkItem | null> {
+    const started = Date.now();
+    let current = await store.getItem(itemId);
+    while (current?.status !== status && Date.now() - started < timeoutMs) {
+      await new Promise((r) => setTimeout(r, 25));
+      current = await store.getItem(itemId);
+    }
+    return current ?? null;
   }
 
   it("starts and stops cleanly", async () => {
@@ -122,16 +137,17 @@ describe("WorkflowWorkerAdapter", () => {
     const item = await store.createItem({
       agentId: "test-agent",
       title: "Failing workflow",
+      maxRetries: 1,
     });
 
-    mockExecuteWorkflow.mockResolvedValueOnce(makeFailedState(item.id, "plan phase crashed"));
+    mockExecuteWorkflow.mockResolvedValue(makeFailedState(item.id, "plan phase crashed"));
 
     const adapter = makeAdapter();
     await adapter.start();
     await new Promise((r) => setTimeout(r, 150));
     await adapter.stop();
 
-    const updated = await store.getItem(item.id);
+    const updated = await waitForItemStatus(item.id, "failed");
     expect(updated?.status).toBe("failed");
     expect(updated?.error?.message).toContain("plan phase crashed");
   });
@@ -140,20 +156,25 @@ describe("WorkflowWorkerAdapter", () => {
     const item = await store.createItem({
       agentId: "test-agent",
       title: "Retryable workflow",
-      maxRetries: 2,
+      maxRetries: 3,
     });
 
-    // First call fails, second succeeds.
-    mockExecuteWorkflow
-      .mockResolvedValueOnce(makeFailedState(item.id, "transient error"))
-      .mockResolvedValueOnce(makeSuccessState(item.id));
+    // First call fails, subsequent calls succeed.
+    let attempts = 0;
+    mockExecuteWorkflow.mockImplementation(async () => {
+      attempts += 1;
+      if (attempts === 1) {
+        return makeFailedState(item.id, "transient error");
+      }
+      return makeSuccessState(item.id);
+    });
 
     const adapter = makeAdapter();
     await adapter.start();
     await new Promise((r) => setTimeout(r, 300));
     await adapter.stop();
 
-    const updated = await store.getItem(item.id);
+    const updated = await waitForItemStatus(item.id, "completed", 2000);
     expect(updated?.status).toBe("completed");
     expect(updated?.lastOutcome).toBe("success");
   });

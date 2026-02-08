@@ -50,7 +50,13 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useGatewayClient } from "@/providers";
-import type { HealthResponse, StatusResponse, ModelsListResponse } from "@/lib/api";
+import {
+  getHealth,
+  getStatus,
+  listModels,
+  type StatusResponse,
+  type ModelsListResponse,
+} from "@/lib/api";
 
 import { RouteErrorFallback } from "@/components/composed";
 export const Route = createFileRoute("/debug/")({
@@ -288,9 +294,9 @@ function HealthTab() {
     setError(null);
     try {
       const [status, health, modelResponse, heartbeatResponse] = await Promise.all([
-        client.request<StatusResponse>("status", {}),
-        client.request<HealthResponse>("health", {}),
-        client.request<ModelsListResponse>("models.list", {}),
+        getStatus(),
+        getHealth(false),
+        listModels(),
         client.request<HeartbeatPayload | null>("last-heartbeat", {}),
       ]);
 

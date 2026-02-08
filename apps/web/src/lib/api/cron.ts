@@ -232,6 +232,28 @@ export async function updateCronJob(params: CronJobUpdateParams): Promise<CronJo
 }
 
 /**
+ * Enable an existing cron job
+ */
+export async function enableCronJob(id: string): Promise<CronJob> {
+  const client = getGatewayClient();
+  return client.request<CronJob>("cron.update", {
+    id,
+    patch: { enabled: true },
+  });
+}
+
+/**
+ * Disable an existing cron job
+ */
+export async function disableCronJob(id: string): Promise<CronJob> {
+  const client = getGatewayClient();
+  return client.request<CronJob>("cron.update", {
+    id,
+    patch: { enabled: false },
+  });
+}
+
+/**
  * Remove a cron job
  */
 export async function removeCronJob(id: string): Promise<{ ok: boolean }> {

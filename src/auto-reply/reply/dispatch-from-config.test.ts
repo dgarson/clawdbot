@@ -23,6 +23,10 @@ const hookMocks = vi.hoisted(() => ({
     runMessageReceived: vi.fn(async () => {}),
   },
 }));
+const sessionMocks = vi.hoisted(() => ({
+  loadSessionStore: vi.fn(() => ({})),
+  resolveStorePath: vi.fn(() => "/tmp/sessions.json"),
+}));
 
 vi.mock("./route-reply.js", () => ({
   isRoutableChannel: (channel: string | undefined) =>
@@ -37,10 +41,10 @@ vi.mock("./abort.js", () => ({
   tryFastAbortFromMessage: mocks.tryFastAbortFromMessage,
   formatAbortReplyText: (stoppedSubagents?: number) => {
     if (typeof stoppedSubagents !== "number" || stoppedSubagents <= 0) {
-      return "⚙️ Agent was aborted.";
+      return "\u2699\uFE0F Agent was aborted.";
     }
     const label = stoppedSubagents === 1 ? "sub-agent" : "sub-agents";
-    return `⚙️ Agent was aborted. Stopped ${stoppedSubagents} ${label}.`;
+    return `\u2699\uFE0F Agent was aborted. Stopped ${stoppedSubagents} ${label}.`;
   },
 }));
 
@@ -53,6 +57,16 @@ vi.mock("../../logging/diagnostic.js", () => ({
 vi.mock("../../plugins/hook-runner-global.js", () => ({
   getGlobalHookRunner: () => hookMocks.runner,
 }));
+
+// Mock sessions so resolveSessionVerboseLevel can return a controlled value
+vi.mock("../../config/sessions.js", async (importOriginal) => {
+  const orig = await importOriginal<typeof import("../../config/sessions.js")>();
+  return {
+    ...orig,
+    loadSessionStore: sessionMocks.loadSessionStore,
+    resolveStorePath: sessionMocks.resolveStorePath,
+  };
+});
 
 const { dispatchReplyFromConfig } = await import("./dispatch-from-config.js");
 const { resetInboundDedupe } = await import("./inbound-dedupe.js");
@@ -76,6 +90,8 @@ describe("dispatchReplyFromConfig", () => {
     hookMocks.runner.hasHooks.mockReset();
     hookMocks.runner.hasHooks.mockReturnValue(false);
     hookMocks.runner.runMessageReceived.mockReset();
+    // Default: session store returns empty (verbose=off/undefined)
+    sessionMocks.loadSessionStore.mockReturnValue({});
   });
   it("does not route when Provider matches OriginatingChannel (even if Surface is missing)", async () => {
     mocks.tryFastAbortFromMessage.mockResolvedValue({
@@ -137,17 +153,22 @@ describe("dispatchReplyFromConfig", () => {
     );
   });
 
-  it("provides onToolResult in DM sessions", async () => {
+  it("provides onToolResult in DM sessions when verbose is on", async () => {
     mocks.tryFastAbortFromMessage.mockResolvedValue({
       handled: false,
       aborted: false,
     });
     mocks.routeReply.mockClear();
+    // Set up session store with verbose level "on" so onToolResult is provided
+    sessionMocks.loadSessionStore.mockReturnValue({
+      "agent:main:main": { verboseLevel: "on", sessionId: "s", updatedAt: Date.now() },
+    });
     const cfg = {} as OpenClawConfig;
     const dispatcher = createDispatcher();
     const ctx = buildTestCtx({
       Provider: "telegram",
       ChatType: "direct",
+      SessionKey: "agent:main:main",
     });
 
     const replyResolver = async (
@@ -194,11 +215,16 @@ describe("dispatchReplyFromConfig", () => {
       handled: false,
       aborted: false,
     });
+    // Set up session store with verbose level "on" so onToolResult is provided
+    sessionMocks.loadSessionStore.mockReturnValue({
+      "agent:main:main": { verboseLevel: "on", sessionId: "s", updatedAt: Date.now() },
+    });
     const cfg = {} as OpenClawConfig;
     const dispatcher = createDispatcher();
     const ctx = buildTestCtx({
       Provider: "telegram",
       ChatType: "direct",
+      SessionKey: "agent:main:main",
     });
 
     const replyResolver = async (
@@ -207,13 +233,13 @@ describe("dispatchReplyFromConfig", () => {
       _cfg: OpenClawConfig,
     ) => {
       // Simulate tool result emission
-      await opts?.onToolResult?.({ text: "🔧 exec: ls" });
+      await opts?.onToolResult?.({ text: "\uD83D\uDD27 exec: ls" });
       return { text: "done" } satisfies ReplyPayload;
     };
 
     await dispatchReplyFromConfig({ ctx, cfg, dispatcher, replyResolver });
     expect(dispatcher.sendToolResult).toHaveBeenCalledWith(
-      expect.objectContaining({ text: "🔧 exec: ls" }),
+      expect.objectContaining({ text: "\uD83D\uDD27 exec: ls" }),
     );
     expect(dispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
   });
@@ -261,7 +287,7 @@ describe("dispatchReplyFromConfig", () => {
 
     expect(replyResolver).not.toHaveBeenCalled();
     expect(dispatcher.sendFinalReply).toHaveBeenCalledWith({
-      text: "⚙️ Agent was aborted.",
+      text: "\u2699\uFE0F Agent was aborted.",
     });
   });
 
@@ -286,7 +312,7 @@ describe("dispatchReplyFromConfig", () => {
     });
 
     expect(dispatcher.sendFinalReply).toHaveBeenCalledWith({
-      text: "⚙️ Agent was aborted. Stopped 2 sub-agents.",
+      text: "\u2699\uFE0F Agent was aborted. Stopped 2 sub-agents.",
     });
   });
 

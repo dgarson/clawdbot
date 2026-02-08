@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -22,12 +23,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -49,8 +52,12 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello world"]);
+
+    unsub();
+    mw.destroy();
   });
   it("does not append when text_end content is already contained", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -61,12 +68,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -88,8 +97,12 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello world"]);
+
+    unsub();
+    mw.destroy();
   });
   it("appends suffix when text_end content extends deltas", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -100,12 +113,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "text_end",
     });
 
@@ -127,7 +142,11 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(1);
     expect(subscription.assistantTexts).toEqual(["Hello world"]);
+
+    unsub();
+    mw.destroy();
   });
 });

@@ -11,8 +11,9 @@ import type {
 import type { StreamingMiddleware } from "./stream/index.js";
 
 export type EmbeddedSubscribeLogger = {
-  debug: (message: string) => void;
-  warn: (message: string) => void;
+  trace: (message: string, meta?: Record<string, unknown>) => void;
+  debug: (message: string, meta?: Record<string, unknown>) => void;
+  warn: (message: string, meta?: Record<string, unknown>) => void;
 };
 
 export type ToolErrorSummary = {

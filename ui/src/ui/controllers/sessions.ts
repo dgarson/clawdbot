@@ -1,5 +1,6 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
-import type { SessionsListResult } from "../types.ts";
+import type { SessionsListResult, GatewaySessionRow } from "../types.ts";
+import { showDangerConfirmDialog } from "../components/confirm-dialog.ts";
 import { toNumber } from "../format.ts";
 
 export type SessionsState = {
@@ -95,8 +96,10 @@ export async function abortSession(state: SessionsState, key: string) {
   if (!state.client || !state.connected) {
     return;
   }
-  const confirmed = window.confirm(
+  const confirmed = await showDangerConfirmDialog(
+    "Abort Session",
     `Abort session "${key}"?\n\nThis will stop any active agent run for this session. The session itself will be preserved.`,
+    "Abort",
   );
   if (!confirmed) {
     return;
@@ -113,20 +116,29 @@ export async function abortSession(state: SessionsState, key: string) {
   }
 }
 
+/** Get active sessions (updated within the last 5 minutes, excluding global). */
+function getActiveSessions(sessions: GatewaySessionRow[]): GatewaySessionRow[] {
+  const now = Date.now();
+  const ACTIVE_THRESHOLD_MS = 5 * 60 * 1000;
+  return sessions.filter(
+    (s) => s.updatedAt && now - s.updatedAt < ACTIVE_THRESHOLD_MS && s.kind !== "global",
+  );
+}
+
 export async function abortAllSessions(state: SessionsState) {
   if (!state.client || !state.connected) {
     return;
   }
   const sessions = state.sessionsResult?.sessions ?? [];
-  const activeSessions = sessions.filter(
-    (s) => s.updatedAt && Date.now() - s.updatedAt < 5 * 60 * 1000 && s.kind !== "global",
-  );
+  const activeSessions = getActiveSessions(sessions);
   if (activeSessions.length === 0) {
     state.sessionsError = "No active sessions to abort.";
     return;
   }
-  const confirmed = window.confirm(
-    `⚠️ EMERGENCY STOP\n\nAbort all ${activeSessions.length} active session(s)?\n\nThis will stop all running agent tasks. Sessions themselves will be preserved.`,
+  const confirmed = await showDangerConfirmDialog(
+    "⛔ Emergency Stop — All Agents",
+    `Abort all ${activeSessions.length} active session(s)?\n\nThis will immediately stop all running agent tasks across every agent. Sessions themselves will be preserved.`,
+    `Stop All (${activeSessions.length})`,
   );
   if (!confirmed) {
     return;
@@ -148,6 +160,48 @@ export async function abortAllSessions(state: SessionsState) {
   state.sessionsLoading = false;
 }
 
+/**
+ * Abort all active sessions for a specific agent.
+ * Used by the Agent Dashboard to stop one agent without affecting others.
+ */
+export async function abortSessionsForAgent(state: SessionsState, agentId: string) {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  const sessions = state.sessionsResult?.sessions ?? [];
+  const agentSessions = getActiveSessions(sessions).filter((s) => {
+    const parts = s.key.split(":");
+    return parts.length >= 2 && parts[0] === "agent" && parts[1] === agentId;
+  });
+  if (agentSessions.length === 0) {
+    state.sessionsError = `No active sessions for agent "${agentId}".`;
+    return;
+  }
+  const confirmed = await showDangerConfirmDialog(
+    `Stop Agent: ${agentId}`,
+    `Abort all ${agentSessions.length} active session(s) for agent "${agentId}"?\n\nThis will stop all running tasks for this agent. Other agents will not be affected.`,
+    `Stop ${agentSessions.length} Session${agentSessions.length > 1 ? "s" : ""}`,
+  );
+  if (!confirmed) {
+    return;
+  }
+  state.sessionsLoading = true;
+  state.sessionsError = null;
+  const errors: string[] = [];
+  for (const session of agentSessions) {
+    try {
+      await state.client.request("chat.abort", { sessionKey: session.key });
+    } catch (err) {
+      errors.push(`${session.key}: ${String(err)}`);
+    }
+  }
+  if (errors.length > 0) {
+    state.sessionsError = `Some aborts failed:\n${errors.join("\n")}`;
+  }
+  await loadSessions(state);
+  state.sessionsLoading = false;
+}
+
 export async function deleteSession(state: SessionsState, key: string) {
   if (!state.client || !state.connected) {
     return;
@@ -155,8 +209,10 @@ export async function deleteSession(state: SessionsState, key: string) {
   if (state.sessionsLoading) {
     return;
   }
-  const confirmed = window.confirm(
-    `Delete session "${key}"?\n\nDeletes the session entry and archives its transcript.`,
+  const confirmed = await showDangerConfirmDialog(
+    "Delete Session",
+    `Delete session "${key}"?\n\nThis deletes the session entry and archives its transcript.`,
+    "Delete",
   );
   if (!confirmed) {
     return;

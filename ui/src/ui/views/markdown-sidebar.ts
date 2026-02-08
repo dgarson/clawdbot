@@ -1,5 +1,6 @@
 import { html } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { renderError } from "../components/error-boundary.js";
 import { icons } from "../icons.ts";
 import { toSanitizedMarkdownHtml } from "../markdown.ts";
 
@@ -23,7 +24,7 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
         ${
           props.error
             ? html`
-              <div class="callout danger">${props.error}</div>
+              ${renderError({ message: props.error })}
               <button @click=${props.onViewRawText} class="btn" style="margin-top: 12px;">
                 View Raw Text
               </button>

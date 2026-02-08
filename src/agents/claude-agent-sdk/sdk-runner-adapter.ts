@@ -10,7 +10,6 @@ import type { ImageContent } from "@mariozechner/pi-ai";
 import { execSync } from "node:child_process";
 import os from "node:os";
 import type { OpenClawConfig } from "../../config/config.js";
-import type { AgentRuntimePayload } from "../agent-runtime.js";
 import type { EmbeddedPiRunResult } from "../pi-embedded-runner/types.js";
 import type { AnyAgentTool } from "../tools/common.js";
 import type { SdkRunnerResult } from "./sdk-runner.types.js";
@@ -446,13 +445,9 @@ export type RunSdkAgentAdaptedParams = {
   // Tools are lazily built to avoid import cycles.
   tools: AnyAgentTool[];
 
-  // Callbacks with full multimodal support (voice, video, pictures).
-  onPartialReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onAssistantMessageStart?: () => void | Promise<void>;
-  onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+  /** Controls whether tool output text is emitted via onToolResult. */
+  shouldEmitToolOutput?: boolean | (() => boolean);
+
   /** Block reply break mode for streaming block replies during the run. */
   blockReplyBreak?: "text_end" | "message_end";
   /** Chunking configuration for block replies. */
@@ -479,33 +474,6 @@ export async function runSdkAgentAdapted(
     log.debug(
       `Skipping SDK agent run: empty prompt (runId=${params.runId} sessionId=${params.sessionId} sessionKey=${params.sessionKey ?? "n/a"})`,
     );
-    try {
-      void Promise.resolve(
-        params.onAgentEvent?.({
-          stream: "lifecycle",
-          data: { phase: "start", startedAt, runtime: "claude", skipped: true },
-        }),
-      ).catch(() => {
-        // ignore
-      });
-      void Promise.resolve(
-        params.onAgentEvent?.({
-          stream: "lifecycle",
-          data: {
-            phase: "end",
-            startedAt,
-            endedAt: Date.now(),
-            runtime: "claude",
-            skipped: true,
-            turnCount: 0,
-          },
-        }),
-      ).catch(() => {
-        // ignore
-      });
-    } catch {
-      // ignore
-    }
     return {
       payloads: [],
       meta: {
@@ -603,14 +571,9 @@ export async function runSdkAgentAdapted(
     hooksEnabled: params.hooksEnabled,
     sdkOptions: params.sdkOptions,
     enforceFinalTag: params.enforceFinalTag,
-    onPartialReply: params.onPartialReply,
-    onAssistantMessageStart: params.onAssistantMessageStart,
-    onBlockReply: params.onBlockReply,
+    shouldEmitToolOutput: params.shouldEmitToolOutput,
     blockReplyBreak: params.blockReplyBreak,
     blockReplyChunking: params.blockReplyChunking,
-    onToolResult: params.onToolResult,
-    onReasoningStream: params.onReasoningStream,
-    onAgentEvent: params.onAgentEvent,
   });
 
   // Persist a minimal user/assistant turn pair so SDK main-agent mode has multi-turn continuity.

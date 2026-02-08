@@ -387,7 +387,7 @@ export class DefaultRuntimeResolver implements RuntimeResolver {
     return {
       supportsTools: kind !== "cli",
       supportsStreaming: kind !== "cli",
-      supportsImages: kind !== "cli", // Conservative default
+      supportsImages: kind === "pi", // SDK doesn't forward images yet; only Pi supports them
       supportsThinking: supportsXHighThinking(provider, model),
     };
   }

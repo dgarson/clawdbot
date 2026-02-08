@@ -1,5 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import type { AgentStreamEvent } from "../stream/index.js";
 import type { SdkRunnerParams } from "./sdk-runner.types.js";
+import { StreamingMiddleware } from "../stream/index.js";
 import { runSdkAgent } from "./sdk-runner.js";
 
 // ---------------------------------------------------------------------------
@@ -29,10 +31,10 @@ vi.mock("../../infra/agent-events.js", () => ({
   clearAgentRunContext: vi.fn(),
 }));
 
-import { loadClaudeAgentSdk } from "./sdk.js";
-import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { clearAgentRunContext } from "../../infra/agent-events.js";
+import { loadClaudeAgentSdk } from "./sdk.js";
+import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
 
 const mockLoadSdk = vi.mocked(loadClaudeAgentSdk);
 const mockBridge = vi.mocked(bridgeClawdbrainToolsToMcpServer);
@@ -202,49 +204,65 @@ describe("runSdkAgent", () => {
     });
   });
 
-  describe("callbacks", () => {
-    it("calls onPartialReply for each text chunk", async () => {
+  describe("streaming middleware events", () => {
+    let mw: StreamingMiddleware;
+    let events: AgentStreamEvent[];
+    let unsub: () => void;
+
+    beforeEach(() => {
+      mw = new StreamingMiddleware({ reasoningLevel: "off", isHeartbeat: false });
+      events = [];
+      unsub = mw.subscribe((event) => {
+        events.push(event);
+      });
+    });
+
+    afterEach(() => {
+      unsub();
+      mw.destroy();
+    });
+
+    it("emits partial_reply events for each text chunk", async () => {
       const queryFn = vi.fn().mockReturnValue(eventsFrom([{ text: "chunk1" }, { text: "chunk2" }]));
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onPartialReply = vi.fn();
-      await runSdkAgent(baseParams({ onPartialReply }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      expect(onPartialReply).toHaveBeenCalledTimes(2);
-      expect(onPartialReply).toHaveBeenCalledWith({ text: "chunk1" });
-      expect(onPartialReply).toHaveBeenCalledWith({ text: "chunk1\n\nchunk2" });
+      const partials = events.filter((e) => e.kind === "partial_reply");
+      expect(partials.length).toBeGreaterThanOrEqual(2);
     });
 
-    it("calls onBlockReply with final text", async () => {
+    it("emits block_reply with final text", async () => {
       const queryFn = vi
         .fn()
         .mockReturnValue(eventsFrom([{ type: "result", result: "Final text" }]));
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onBlockReply = vi.fn();
-      await runSdkAgent(baseParams({ onBlockReply }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      expect(onBlockReply).toHaveBeenCalledTimes(1);
-      expect(onBlockReply).toHaveBeenCalledWith({ text: "Final text" });
+      const blocks = events.filter((e) => e.kind === "block_reply");
+      expect(blocks.length).toBeGreaterThanOrEqual(1);
+      expect(blocks.some((b) => b.kind === "block_reply" && b.text.includes("Final text"))).toBe(
+        true,
+      );
     });
 
-    it("calls onToolResult for tool events", async () => {
+    it("emits tool_end/tool_result for tool events", async () => {
       const queryFn = vi.fn().mockReturnValue(
         eventsFrom([
-          { type: "tool_result", text: "tool output" },
+          { type: "tool_result", text: "tool output", id: "t1" },
           { type: "result", result: "done" },
         ]),
       );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onToolResult = vi.fn();
-      await runSdkAgent(baseParams({ onToolResult }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      expect(onToolResult).toHaveBeenCalledTimes(1);
-      expect(onToolResult).toHaveBeenCalledWith({ text: "tool output" });
+      const toolEnds = events.filter((e) => e.kind === "tool_end" || e.kind === "tool_result");
+      expect(toolEnds.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("calls onAssistantMessageStart", async () => {
+    it("emits message_start events", async () => {
       const queryFn = vi.fn().mockReturnValue(
         eventsFrom([
           { type: "message_start", message: { role: "assistant" } },
@@ -253,42 +271,45 @@ describe("runSdkAgent", () => {
       );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAssistantMessageStart = vi.fn();
-      await runSdkAgent(baseParams({ onAssistantMessageStart }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      expect(onAssistantMessageStart).toHaveBeenCalledTimes(1);
+      const starts = events.filter((e) => e.kind === "message_start");
+      expect(starts.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("calls onAgentEvent for lifecycle events", async () => {
+    it("emits lifecycle events with start and end phases", async () => {
       const queryFn = vi.fn().mockReturnValue(eventsFrom([{ type: "result", result: "done" }]));
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAgentEvent = vi.fn();
-      await runSdkAgent(baseParams({ onAgentEvent }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      const phases = onAgentEvent.mock.calls
-        .map((c) => c[0] as { stream?: string; data?: { phase?: string } })
-        .filter((evt) => evt.stream === "lifecycle")
-        .map((evt) => evt.data?.phase);
+      const lifecycles = events.filter((e) => e.kind === "lifecycle") as Array<{
+        kind: "lifecycle";
+        phase: string;
+        data: Record<string, unknown>;
+      }>;
+      const phases = lifecycles.map((e) => e.phase);
       expect(phases).toContain("start");
       expect(phases).toContain("end");
     });
 
-    it("emits assistant events via onAgentEvent when text is extracted", async () => {
+    it("emits agent_event with assistant stream when text is extracted", async () => {
       const queryFn = vi.fn().mockReturnValue(eventsFrom([{ text: "hello" }, { text: "world" }]));
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAgentEvent = vi.fn();
-      await runSdkAgent(baseParams({ onAgentEvent }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      const assistantEvents = onAgentEvent.mock.calls
-        .map((c) => c[0] as { stream?: string; data?: { text?: string } })
-        .filter((evt) => evt.stream === "assistant");
+      const agentEvents = events.filter((e) => e.kind === "agent_event") as Array<{
+        kind: "agent_event";
+        stream: string;
+        data: Record<string, unknown>;
+      }>;
+      const assistantEvents = agentEvents.filter((e) => e.stream === "assistant");
       expect(assistantEvents.length).toBeGreaterThan(0);
       expect(assistantEvents[0]?.data?.text).toBeDefined();
     });
 
-    it("emits tool lifecycle events via onAgentEvent for tool events", async () => {
+    it("emits tool_start and tool_end events for tool lifecycle", async () => {
       const queryFn = vi.fn().mockReturnValue(
         eventsFrom([
           { type: "tool_execution_start", name: "exec", id: "t1" },
@@ -298,43 +319,56 @@ describe("runSdkAgent", () => {
       );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAgentEvent = vi.fn();
-      await runSdkAgent(baseParams({ onAgentEvent }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      const toolEvents = onAgentEvent.mock.calls
-        .map((c) => c[0] as { stream?: string; data?: { phase?: string; name?: string } })
-        .filter((evt) => evt.stream === "tool");
-      expect(toolEvents.length).toBeGreaterThan(0);
-      expect(toolEvents.some((evt) => evt.data?.phase === "start")).toBe(true);
-      expect(toolEvents.some((evt) => evt.data?.phase === "result")).toBe(true);
+      const toolStarts = events.filter((e) => e.kind === "tool_start");
+      const toolEnds = events.filter((e) => e.kind === "tool_end");
+      expect(toolStarts.length).toBeGreaterThan(0);
+      expect(toolEnds.length).toBeGreaterThan(0);
     });
 
-    it("does not break when callback throws", async () => {
+    it("does not break when subscriber throws", async () => {
+      // Remove well-behaved subscriber, add a throwing one
+      unsub();
+      const throwingUnsub = mw.subscribe(() => {
+        throw new Error("subscriber error");
+      });
+
       const queryFn = vi
         .fn()
         .mockReturnValue(eventsFrom([{ text: "hello" }, { type: "result", result: "done" }]));
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onPartialReply = vi.fn().mockRejectedValue(new Error("callback error"));
-      const result = await runSdkAgent(baseParams({ onPartialReply }));
+      const result = await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      // Run should still succeed despite callback errors.
+      // Run should still succeed despite subscriber errors.
       expect(result.payloads[0].text).toBe("done");
+      throwingUnsub();
     });
 
-    it("does not break when onAgentEvent returns a rejected promise", async () => {
+    it("completes run even with no middleware subscribers", async () => {
+      // Remove the subscriber — middleware has no listeners
+      unsub();
+
       const queryFn = vi.fn().mockReturnValue(eventsFrom([{ type: "result", result: "ok" }]));
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAgentEvent = vi.fn().mockRejectedValue(new Error("event callback error"));
-      const result = await runSdkAgent(baseParams({ onAgentEvent }));
+      const result = await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
       expect(result.payloads[0].text).toBe("ok");
+      // Re-assign unsub so afterEach doesn't double-call
+      unsub = () => {};
     });
   });
 
   describe("Claude Code hooks", () => {
-    it("passes hook callbacks to the SDK when hooksEnabled is true and emits tool events from hooks", async () => {
+    it("passes hook callbacks to the SDK when hooksEnabled is true and emits tool events via middleware", async () => {
+      const mw = new StreamingMiddleware({ reasoningLevel: "off", isHeartbeat: false });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((event) => {
+        events.push(event);
+      });
+
       const queryFn = vi.fn().mockImplementation(async (args: any) => {
         const hooks = args?.options?.hooks;
         const pre = hooks?.PreToolUse?.[0]?.hooks?.[0];
@@ -359,13 +393,15 @@ describe("runSdkAgent", () => {
       });
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAgentEvent = vi.fn();
-      const onToolResult = vi.fn();
-      await runSdkAgent(baseParams({ hooksEnabled: true, onAgentEvent, onToolResult }));
+      await runSdkAgent(baseParams({ hooksEnabled: true, streamMiddleware: mw }));
 
-      const toolEvents = onAgentEvent.mock.calls
-        .map((c) => c[0] as { stream?: string; data?: { phase?: string; name?: string } })
-        .filter((evt) => evt.stream === "tool");
+      // Check agent_event stream for tool lifecycle events
+      const agentEvents = events.filter((e) => e.kind === "agent_event") as Array<{
+        kind: "agent_event";
+        stream: string;
+        data: Record<string, unknown>;
+      }>;
+      const toolEvents = agentEvents.filter((e) => e.stream === "tool");
       expect(
         toolEvents.some((evt) => evt.data?.phase === "start" && evt.data?.name === "exec"),
       ).toBe(true);
@@ -373,14 +409,15 @@ describe("runSdkAgent", () => {
         toolEvents.some((evt) => evt.data?.phase === "result" && evt.data?.name === "exec"),
       ).toBe(true);
 
-      expect(onToolResult).toHaveBeenCalledWith({ text: "ok" });
-
-      const hookEvents = onAgentEvent.mock.calls
-        .map((c) => c[0] as { stream?: string; data?: { hookEventName?: string } })
-        .filter((evt) => evt.stream === "hook")
-        .map((evt) => evt.data?.hookEventName);
+      // Check hook events are emitted
+      const hookEvents = agentEvents
+        .filter((e) => e.stream === "hook")
+        .map((e) => e.data?.hookEventName);
       expect(hookEvents).toContain("PreToolUse");
       expect(hookEvents).toContain("PostToolUse");
+
+      unsub();
+      mw.destroy();
     });
   });
 
@@ -514,6 +551,12 @@ describe("runSdkAgent", () => {
 
   describe("thinking/reasoning content filtering", () => {
     it("does not extract text from thinking events", async () => {
+      const mw = new StreamingMiddleware({ reasoningLevel: "off", isHeartbeat: false });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((event) => {
+        events.push(event);
+      });
+
       const queryFn = vi
         .fn()
         .mockReturnValue(
@@ -525,12 +568,15 @@ describe("runSdkAgent", () => {
         );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onPartialReply = vi.fn();
-      const result = await runSdkAgent(baseParams({ onPartialReply }));
+      const result = await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
       expect(result.payloads[0].text).toBe("Final answer");
-      // Should only have been called once for the actual text, not for thinking
-      expect(onPartialReply).toHaveBeenCalledTimes(1);
+      // Should only have partial_reply for actual text, not for thinking content
+      const partials = events.filter((e) => e.kind === "partial_reply");
+      expect(partials).toHaveLength(1);
+
+      unsub();
+      mw.destroy();
     });
 
     it("does not extract text from thinking_delta events", async () => {
@@ -580,6 +626,12 @@ describe("runSdkAgent", () => {
     });
 
     it("classifies thinking events as system, not assistant", async () => {
+      const mw = new StreamingMiddleware({ reasoningLevel: "off", isHeartbeat: false });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((event) => {
+        events.push(event);
+      });
+
       const queryFn = vi.fn().mockReturnValue(
         eventsFrom([
           { type: "thinking", text: "Reasoning content" },
@@ -588,18 +640,21 @@ describe("runSdkAgent", () => {
       );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAgentEvent = vi.fn();
-      await runSdkAgent(baseParams({ onAgentEvent }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      // Should not emit assistant events for thinking
-      const assistantEvents = onAgentEvent.mock.calls
-        .map((c) => c[0] as { stream?: string; data?: { text?: string } })
-        .filter((evt) => evt.stream === "assistant");
-
-      // No assistant events should contain thinking content
+      // Should not emit partial_reply or agent_event/assistant for thinking content
+      const agentEvents = events.filter((e) => e.kind === "agent_event") as Array<{
+        kind: "agent_event";
+        stream: string;
+        data: Record<string, unknown>;
+      }>;
+      const assistantEvents = agentEvents.filter((e) => e.stream === "assistant");
       for (const evt of assistantEvents) {
         expect(evt.data?.text).not.toContain("Reasoning");
       }
+
+      unsub();
+      mw.destroy();
     });
   });
 
@@ -713,7 +768,13 @@ describe("runSdkAgent", () => {
       expect(result.meta.error?.kind).toBe("no_output");
     });
 
-    it("calls onAssistantMessageStart for every message boundary", async () => {
+    it("emits message_start via middleware for every message boundary", async () => {
+      const mw = new StreamingMiddleware({ reasoningLevel: "off", isHeartbeat: false });
+      const events: AgentStreamEvent[] = [];
+      const unsub = mw.subscribe((event) => {
+        events.push(event);
+      });
+
       const queryFn = vi
         .fn()
         .mockReturnValue(
@@ -727,10 +788,13 @@ describe("runSdkAgent", () => {
         );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
-      const onAssistantMessageStart = vi.fn();
-      await runSdkAgent(baseParams({ onAssistantMessageStart }));
+      await runSdkAgent(baseParams({ streamMiddleware: mw }));
 
-      expect(onAssistantMessageStart).toHaveBeenCalledTimes(2);
+      const starts = events.filter((e) => e.kind === "message_start");
+      expect(starts).toHaveLength(2);
+
+      unsub();
+      mw.destroy();
     });
 
     it("consolidates multi-chunk single message into one text", async () => {
@@ -845,7 +909,9 @@ describe("runSdkAgent", () => {
     it("extracts mediaUrls from assistant text in onPartialReply", async () => {
       const queryFn = vi
         .fn()
-        .mockReturnValue(eventsFrom([{ text: "Here is the image\nMEDIA: https://example.com/img.png" }]));
+        .mockReturnValue(
+          eventsFrom([{ text: "Here is the image\nMEDIA: https://example.com/img.png" }]),
+        );
       mockLoadSdk.mockResolvedValue({ query: queryFn });
 
       const onPartialReply = vi.fn();

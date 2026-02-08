@@ -23,7 +23,11 @@ export type Tab =
   | "chat"
   | "config"
   | "debug"
-  | "logs";
+  | "logs"
+  | "automations"
+  | "overseer"
+  | "landing"
+  | "dashboard";
 
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
@@ -39,6 +43,10 @@ const TAB_PATHS: Record<Tab, string> = {
   config: "/config",
   debug: "/debug",
   logs: "/logs",
+  automations: "/automations",
+  overseer: "/overseer",
+  landing: "/landing",
+  dashboard: "/dashboard",
 };
 
 const PATH_TO_TAB = new Map(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab as Tab]));

@@ -10,6 +10,7 @@ const AuditCategorySchema = Type.Union([
   Type.Literal("agent"),
   Type.Literal("security"),
   Type.Literal("token"),
+  Type.Literal("approval"),
 ]);
 
 const AuditSeveritySchema = Type.Union([

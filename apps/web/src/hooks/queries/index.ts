@@ -242,3 +242,7 @@ export type {
   ExecApprovalsAgent,
   ExecApprovalsAllowlistEntry,
 } from "./useNodes";
+
+// Tool approvals
+export { useToolApprovals, toolApprovalKeys } from "./useToolApprovals";
+export type { ToolApprovalEntry, ToolApprovalsListResult } from "./useToolApprovals";

@@ -1,10 +1,10 @@
-import type { GatewayBrowserClient } from "../gateway";
+import type { GatewayBrowserClient } from "../gateway.js";
 import type {
   OverseerGoalStatusResult,
   OverseerStatusResult,
   OverseerEventsResult,
-} from "../types/overseer";
-import type { AuditLogFilter, AuditLogState } from "../views/overseer-audit-log";
+} from "../types/overseer.js";
+import type { AuditLogFilter, AuditLogState } from "../views/overseer-audit-log.js";
 import {
   createInitialSimulatorState,
   RULE_TEMPLATES,
@@ -16,11 +16,11 @@ import {
   type RuleAction,
   type SimulatedEventType,
   type QueuedSimulatedEvent,
-} from "../types/overseer-simulator";
-import * as SimulatorController from "./overseer-simulator";
+} from "../types/overseer-simulator.js";
+import * as SimulatorController from "./overseer-simulator.js";
 
 // Re-export for convenience
-export { RULE_TEMPLATES, SCENARIO_TEMPLATES } from "../types/overseer-simulator";
+export { RULE_TEMPLATES, SCENARIO_TEMPLATES } from "../types/overseer-simulator.js";
 
 export type OverseerState = {
   client: GatewayBrowserClient | null;

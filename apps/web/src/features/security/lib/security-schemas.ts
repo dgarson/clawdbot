@@ -101,7 +101,7 @@ export const revokeTokenParamsSchema = z.object({
 // Audit Schemas
 // =============================================================================
 
-export const auditCategorySchema = z.enum(["config", "agent", "security", "token"]);
+export const auditCategorySchema = z.enum(["config", "agent", "security", "token", "approval"]);
 
 export const auditSeveritySchema = z.enum(["info", "warn", "error"]);
 

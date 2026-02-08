@@ -20,6 +20,7 @@ export * from "./types.mcp.js";
 export * from "./types.node-host.js";
 export * from "./types.msteams.js";
 export * from "./types.plugins.js";
+export * from "./types.pr-review-monitor.js";
 export * from "./types.queue.js";
 export * from "./types.sandbox.js";
 export * from "./types.signal.js";

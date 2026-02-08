@@ -5,10 +5,9 @@
  * Handles incremental config writes, progress tracking, and validation.
  */
 
-import type { ConfigSnapshot, ConfigUiHints } from "../types";
-import type { OnboardingProgress, OnboardingWizardState } from "../views/onboarding-phases";
-import { toast } from "../components/toast";
-import { cloneConfigObject, serializeConfigForm } from "../config/form-utils";
+import type { ConfigSnapshot, ConfigUiHints } from "../types.js";
+import type { OnboardingProgress, OnboardingWizardState } from "../views/onboarding-phases.js";
+import { toast } from "../components/toast.js";
 import {
   createWizardState,
   openWizard,
@@ -19,7 +18,8 @@ import {
   toggleAdvanced,
   showConfirmClose,
   hideConfirmClose,
-} from "../views/onboarding-wizard";
+} from "../views/onboarding-wizard.js";
+import { cloneConfigObject, serializeConfigForm } from "./config/form-utils.js";
 
 // ============================================================================
 // Types
@@ -27,7 +27,7 @@ import {
 
 export type OnboardingState = {
   wizard: OnboardingWizardState;
-  client: import("../gateway").GatewayBrowserClient | null;
+  client: import("../gateway.js").GatewayBrowserClient | null;
   connected: boolean;
   configLoading: boolean;
   configSaving: boolean;

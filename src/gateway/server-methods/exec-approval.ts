@@ -17,7 +17,7 @@ import { ToolApprovalManager } from "../tool-approval-manager.js";
  */
 export function createExecApprovalHandlers(
   manager: ToolApprovalManager,
-  opts?: { forwarder?: ToolApprovalForwarder },
+  opts?: { forwarder?: ExecApprovalForwarder },
 ): GatewayRequestHandlers {
   return {
     "exec.approval.request": async ({ params, respond, context }) => {
@@ -56,17 +56,23 @@ export function createExecApprovalHandlers(
         );
         return;
       }
-
-      // Build a canonical ToolApprovalRequestPayload from legacy exec params.
-      const requestHash = computeToolApprovalRequestHash({
+      const paramsSummary = p.command;
+      const requestHash = ToolApprovalManager.computeRequestHash({
         toolName: "exec",
-        paramsSummary: p.command,
-        sessionKey: p.sessionKey,
-        agentId: p.agentId,
+        paramsSummary,
+        sessionKey: p.sessionKey ?? null,
+        agentId: p.agentId ?? null,
       });
       const request = {
-        toolName: "exec" as const,
-        paramsSummary: p.command,
+        toolName: "exec",
+        source: "exec-legacy",
+        paramsSummary,
+        riskClass: null,
+        sideEffects: null,
+        reasonCodes: null,
+        sessionKey: p.sessionKey ?? null,
+        agentId: p.agentId ?? null,
+        expiresAtMs: null,
         requestHash,
         command: p.command,
         cwd: p.cwd ?? null,
@@ -78,22 +84,38 @@ export function createExecApprovalHandlers(
 
       const record = manager.create(request, timeoutMs, explicitId);
       const decisionPromise = manager.waitForDecision(record, timeoutMs);
-
-      // Emit the legacy event shape for backward-compatible listeners.
+      const execRequest = {
+        command: record.request.command ?? "",
+        cwd: record.request.cwd ?? null,
+        host: record.request.host ?? null,
+        security: record.request.security ?? null,
+        ask: record.request.ask ?? null,
+        agentId: record.request.agentId ?? null,
+        resolvedPath: record.request.resolvedPath ?? null,
+        sessionKey: record.request.sessionKey ?? null,
+      };
+      context.broadcast(
+        "tool.approval.requested",
+        {
+          id: record.id,
+          toolName: record.request.toolName,
+          paramsSummary: record.request.paramsSummary,
+          riskClass: record.request.riskClass,
+          sideEffects: record.request.sideEffects,
+          reasonCodes: record.request.reasonCodes,
+          sessionKey: record.request.sessionKey,
+          agentId: record.request.agentId,
+          requestHash: record.request.requestHash,
+          createdAtMs: record.createdAtMs,
+          expiresAtMs: record.expiresAtMs,
+        },
+        { dropIfSlow: true },
+      );
       context.broadcast(
         "exec.approval.requested",
         {
           id: record.id,
-          request: {
-            command: record.request.command ?? "",
-            cwd: record.request.cwd ?? null,
-            host: record.request.host ?? null,
-            security: record.request.security ?? null,
-            ask: record.request.ask ?? null,
-            agentId: record.request.agentId ?? null,
-            resolvedPath: record.request.resolvedPath ?? null,
-            sessionKey: record.request.sessionKey ?? null,
-          },
+          request: execRequest,
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         },
@@ -123,19 +145,7 @@ export function createExecApprovalHandlers(
       void opts?.forwarder
         ?.handleRequested({
           id: record.id,
-          request: {
-            toolName: record.request.toolName,
-            paramsSummary: record.request.paramsSummary,
-            requestHash: record.request.requestHash,
-            command: record.request.command ?? "",
-            cwd: record.request.cwd ?? null,
-            host: record.request.host ?? null,
-            security: record.request.security ?? null,
-            ask: record.request.ask ?? null,
-            agentId: record.request.agentId ?? null,
-            resolvedPath: record.request.resolvedPath ?? null,
-            sessionKey: record.request.sessionKey ?? null,
-          },
+          request: execRequest,
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         })
@@ -169,49 +179,60 @@ export function createExecApprovalHandlers(
         );
         return;
       }
-      const p = params as { id: string; decision: string };
+      const p = params as { id: string; decision: string; requestHash?: string };
       const decision = p.decision as ExecApprovalDecision;
       if (decision !== "allow-once" && decision !== "allow-always" && decision !== "deny") {
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "invalid decision"));
         return;
       }
 
-      // Guard: legacy exec.approval.resolve must only touch exec approvals.
-      // Legacy callers don't supply requestHash — retrieve it from the pending record.
+      const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
       const snapshot = manager.getSnapshot(p.id);
       if (!snapshot || snapshot.request.toolName !== "exec") {
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
         return;
       }
-      const requestHash = snapshot.request.requestHash;
-      const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
-
-      const ok = manager.resolve(p.id, decision, requestHash, resolvedBy ?? null);
-      if (!ok) {
-        respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
+      const requestHash = typeof p.requestHash === "string" ? p.requestHash : null;
+      const isLegacyExec = snapshot.request.source === "exec-legacy";
+      if (!requestHash && !isLegacyExec) {
+        respond(
+          false,
+          undefined,
+          errorShape(
+            ErrorCodes.INVALID_REQUEST,
+            "request hash required for tool-origin exec approvals",
+          ),
+        );
         return;
       }
-
-      // Legacy event
-      context.broadcast(
-        "exec.approval.resolved",
-        { id: p.id, decision, resolvedBy, ts: Date.now() },
-        { dropIfSlow: true },
+      const ok = manager.resolve(
+        p.id,
+        decision,
+        requestHash ?? snapshot.request.requestHash,
+        resolvedBy ?? null,
       );
-
-      // Canonical event
+      if (!ok) {
+        respond(
+          false,
+          undefined,
+          errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id or request hash mismatch"),
+        );
+        return;
+      }
+      const ts = Date.now();
       context.broadcast(
         "tool.approval.resolved",
-        { id: p.id, decision, resolvedBy, ts: Date.now() },
+        { id: p.id, decision, resolvedBy, ts },
         { dropIfSlow: true },
       );
-
-      // Forward to messaging channels
-      void opts?.forwarder
-        ?.handleResolved({ id: p.id, decision, resolvedBy, ts: Date.now() })
-        .catch((err) => {
-          context.logGateway?.error?.(`exec approvals: forward resolve failed: ${String(err)}`);
-        });
+      context.broadcast(
+        "exec.approval.resolved",
+        { id: p.id, decision, resolvedBy, ts },
+        { dropIfSlow: true },
+      );
+      void opts?.forwarder?.handleResolved({ id: p.id, decision, resolvedBy, ts }).catch((err) => {
+        context.logGateway?.error?.(`exec approvals: forward resolve failed: ${String(err)}`);
+      });
       respond(true, { ok: true }, undefined);
     },
   };

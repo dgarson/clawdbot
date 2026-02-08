@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
+import type { AgentRuntime, ClaudeSdkOptions } from "../config/types.agent-defaults.js";
 import { resolveStateDir } from "../config/paths.js";
 import {
   DEFAULT_AGENT_ID,
@@ -31,8 +32,8 @@ type ResolvedAgentConfig = {
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
   mcpServers?: AgentEntry["mcpServers"];
-  runtime?: any; // TODO: Add proper runtime type
-  claudeSdkOptions?: any; // TODO: Add proper ClaudeSdkOptions type
+  runtime?: AgentEntry["runtime"];
+  claudeSdkOptions?: AgentEntry["claudeSdkOptions"];
 };
 
 let defaultAgentWarned = false;
@@ -216,7 +217,8 @@ export function resolveAgentWorkspaceDir(cfg: OpenClawConfig, agentId: string) {
     }
     return DEFAULT_AGENT_WORKSPACE_DIR;
   }
-  return path.join(os.homedir(), ".openclaw", `workspace-${id}`);
+  const stateDir = resolveStateDir(process.env, os.homedir);
+  return path.join(stateDir, `workspace-${id}`);
 }
 
 export function resolveAgentDir(cfg: OpenClawConfig, agentId: string) {

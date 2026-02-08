@@ -35,6 +35,7 @@ export type PipelineEventEnvelope<TPayload = Record<string, unknown>> = {
   ts: string;
   source: PipelineEventSource;
   sessionKey?: string;
+  sessionKeyCrn?: string;
   runId?: string;
   traceId?: string;
   stage?: MemoryIngestionStage;
@@ -60,7 +61,9 @@ export type PipelineError = {
 
 export type SessionStartEventPayload = {
   sessionKey: string;
+  sessionKeyCrn?: string;
   sessionId?: string;
+  sessionIdCrn?: string;
   agentId?: string;
   channel?: string;
   startedAt: string;
@@ -68,7 +71,9 @@ export type SessionStartEventPayload = {
 
 export type MessageReceivedEventPayload = {
   sessionKey: string;
+  sessionKeyCrn?: string;
   sessionId?: string;
+  sessionIdCrn?: string;
   messageId?: string;
   body: string;
   channel?: string;
@@ -79,7 +84,9 @@ export type MessageReceivedEventPayload = {
 
 export type CompactionSummaryEventPayload = {
   sessionKey: string;
+  sessionKeyCrn?: string;
   sessionId?: string;
+  sessionIdCrn?: string;
   summary: string;
   tokensBefore?: number;
   tokensAfter?: number;

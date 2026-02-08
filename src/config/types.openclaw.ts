@@ -24,7 +24,9 @@ import type {
 } from "./types.messages.js";
 import type { ModelsConfig } from "./types.models.js";
 import type { NodeHostConfig } from "./types.node-host.js";
+import type { OverseerConfig } from "./types.overseer.js";
 import type { PluginsConfig } from "./types.plugins.js";
+import type { PrReviewMonitorConfig } from "./types.pr-review-monitor.js";
 import type { SkillsConfig } from "./types.skills.js";
 import type { ToolsConfig } from "./types.tools.js";
 
@@ -58,7 +60,7 @@ export type OpenClawConfig = {
     lastRunCommit?: string;
     lastRunCommand?: string;
     lastRunMode?: "local" | "remote";
-    onboarding?: any; // TODO: Add proper OnboardingProgress type
+    onboarding?: import("../wizard/onboarding-metadata.js").OnboardingProgress;
   };
   diagnostics?: DiagnosticsConfig;
   logging?: LoggingConfig;
@@ -103,6 +105,7 @@ export type OpenClawConfig = {
   talk?: TalkConfig;
   gateway?: GatewayConfig;
   memory?: MemoryConfig;
+  prReviewMonitor?: PrReviewMonitorConfig;
   /** Execution layer configuration (feature flags for gradual migration). */
   execution?: ExecutionConfig;
   /** Debugging configuration (short-term testing flags and channel overrides). */
@@ -121,8 +124,8 @@ export type OpenClawConfig = {
       dbPath?: string;
     };
   };
-  overseer?: any; // TODO: Add proper OverseerConfig type
-  onboarding?: any; // TODO: Add proper OnboardingConfig type
+  overseer?: OverseerConfig;
+  onboarding?: Record<string, unknown>;
 };
 
 export type ConfigValidationIssue = {

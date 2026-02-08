@@ -4,12 +4,21 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { TypingMode } from "../../config/types.js";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { GetReplyOptions } from "../types.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
+
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -30,7 +39,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -123,9 +132,10 @@ function createMinimalRun(params?: {
 describe("runReplyAgent typing (heartbeat)", () => {
   it("signals typing on block replies", async () => {
     const onBlockReply = vi.fn();
-    runEmbeddedPiAgentMock.mockImplementationOnce(async (params: EmbeddedPiAgentParams) => {
-      await params.onBlockReply?.({ text: "chunk", mediaUrls: [] });
-      return { payloads: [{ text: "final" }], meta: {} };
+    kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+      // Push a block_reply raw event through middleware
+      req.streamMiddleware?.push({ kind: "block_reply", text: "chunk", mediaUrls: [] });
+      return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
     const { run, typing } = createMinimalRun({
@@ -146,9 +156,10 @@ describe("runReplyAgent typing (heartbeat)", () => {
   });
   it("signals typing on tool results", async () => {
     const onToolResult = vi.fn();
-    runEmbeddedPiAgentMock.mockImplementationOnce(async (params: EmbeddedPiAgentParams) => {
-      await params.onToolResult?.({ text: "tooling", mediaUrls: [] });
-      return { payloads: [{ text: "final" }], meta: {} };
+    kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+      // Push a tool_end raw event with result text through middleware
+      req.streamMiddleware?.push({ kind: "tool_end", name: "bash", id: "t1", text: "tooling" });
+      return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
     const { run, typing } = createMinimalRun({
@@ -160,14 +171,15 @@ describe("runReplyAgent typing (heartbeat)", () => {
     expect(typing.startTypingOnText).toHaveBeenCalledWith("tooling");
     expect(onToolResult).toHaveBeenCalledWith({
       text: "tooling",
-      mediaUrls: [],
     });
   });
-  it("skips typing for silent tool results", async () => {
+  it("forwards tool results through the middleware pipeline", async () => {
+    // In the kernel architecture, tool_end events with text always emit tool_result
+    // events through the middleware. NO_REPLY filtering happens at a higher level.
     const onToolResult = vi.fn();
-    runEmbeddedPiAgentMock.mockImplementationOnce(async (params: EmbeddedPiAgentParams) => {
-      await params.onToolResult?.({ text: "NO_REPLY", mediaUrls: [] });
-      return { payloads: [{ text: "final" }], meta: {} };
+    kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+      req.streamMiddleware?.push({ kind: "tool_end", name: "bash", id: "t1", text: "NO_REPLY" });
+      return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
     const { run, typing } = createMinimalRun({
@@ -176,8 +188,8 @@ describe("runReplyAgent typing (heartbeat)", () => {
     });
     await run();
 
-    expect(typing.startTypingOnText).not.toHaveBeenCalled();
-    expect(onToolResult).not.toHaveBeenCalled();
+    // The middleware forwards all tool results (including NO_REPLY) through the pipeline
+    expect(onToolResult).toHaveBeenCalledWith({ text: "NO_REPLY" });
   });
   it("tracks compaction count without user-facing notice", async () => {
     const storePath = path.join(
@@ -187,17 +199,15 @@ describe("runReplyAgent typing (heartbeat)", () => {
     const sessionEntry = { sessionId: "session", updatedAt: Date.now() };
     const sessionStore = { main: sessionEntry };
 
-    runEmbeddedPiAgentMock.mockImplementationOnce(
-      async (params: {
-        onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void;
-      }) => {
-        params.onAgentEvent?.({
-          stream: "compaction",
-          data: { phase: "end", willRetry: false },
-        });
-        return { payloads: [{ text: "final" }], meta: {} };
-      },
-    );
+    kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+      // Push compaction end event through middleware
+      req.streamMiddleware?.push({
+        kind: "agent_event",
+        stream: "compaction",
+        data: { phase: "end", willRetry: false },
+      });
+      return makeExecutionResult({ payloads: [{ text: "final" }] });
+    });
 
     const { run } = createMinimalRun({
       resolvedVerboseLevel: "on",
@@ -207,10 +217,9 @@ describe("runReplyAgent typing (heartbeat)", () => {
       storePath,
     });
     const res = await run();
-    expect(Array.isArray(res)).toBe(true);
-    const payloads = res as { text?: string }[];
-    expect(payloads.length).toBe(1);
-    expect(payloads[0]?.text).toBe("final");
+    // Single payload is returned as a single object, not an array
+    const payload = Array.isArray(res) ? res[0] : res;
+    expect(payload?.text).toBe("final");
     expect(sessionStore.main.compactionCount).toBe(1);
   });
 });

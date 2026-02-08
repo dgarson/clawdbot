@@ -3,6 +3,7 @@ import type {
   WorkItemExecution,
   WorkItemListOptions,
   WorkItemPatch,
+  WorkItemRefKind,
   WorkQueue,
   WorkQueueStats,
 } from "../types.js";
@@ -39,6 +40,7 @@ export interface WorkQueueBackend {
   createItem(item: Omit<WorkItem, "id" | "createdAt" | "updatedAt">): Promise<WorkItem>;
   getItem(itemId: string): Promise<WorkItem | null>;
   listItems(opts: WorkItemListOptions): Promise<WorkItem[]>;
+  listItemsByRef(ref: { kind: WorkItemRefKind; id: string }): Promise<WorkItem[]>;
   updateItem(itemId: string, patch: WorkItemPatch): Promise<WorkItem>;
   deleteItem(itemId: string): Promise<boolean>;
 

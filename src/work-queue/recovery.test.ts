@@ -109,4 +109,40 @@ describe("recoverOrphanedWorkItems", () => {
     expect(result.recovered).toHaveLength(1);
     expect(result.recovered[0].statusReason).toContain("unknown");
   });
+
+  it("skips in_progress items with recent heartbeats", async () => {
+    const now = new Date("2024-01-01T00:00:00Z");
+    await store.createItem({
+      agentId: "heartbeat-agent",
+      title: "Fresh heartbeat",
+      status: "in_progress",
+      lastHeartbeatAt: new Date(now.getTime() - 60_000).toISOString(),
+    });
+
+    const result = await recoverOrphanedWorkItems(store, {
+      now,
+      heartbeatTtlMs: 5 * 60_000,
+    });
+
+    expect(result.recovered).toHaveLength(0);
+    expect(result.failed).toHaveLength(0);
+  });
+
+  it("recovers in_progress items with stale heartbeats", async () => {
+    const now = new Date("2024-01-01T00:00:00Z");
+    await store.createItem({
+      agentId: "heartbeat-agent",
+      title: "Stale heartbeat",
+      status: "in_progress",
+      lastHeartbeatAt: new Date(now.getTime() - 10 * 60_000).toISOString(),
+    });
+
+    const result = await recoverOrphanedWorkItems(store, {
+      now,
+      heartbeatTtlMs: 5 * 60_000,
+    });
+
+    expect(result.recovered).toHaveLength(1);
+    expect(result.recovered[0].status).toBe("pending");
+  });
 });

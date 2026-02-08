@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { WhatsAppStatus } from "../types.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { formatDuration } from "./channels.shared.ts";
@@ -55,13 +56,7 @@ export function renderWhatsAppCard(params: {
         </div>
       </div>
 
-      ${
-        whatsapp?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${whatsapp.lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(whatsapp?.lastError ?? null)}
 
       ${
         props.whatsappMessage

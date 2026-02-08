@@ -3,8 +3,8 @@
  * Converts tool stream entries into tasks and activity logs.
  */
 
-import type { ToolStreamEntry } from "../app-tool-stream";
-import type { ChatTask, ChatActivityLog, TaskStatus } from "../types/task-types";
+import type { ToolStreamEntry } from "../app-tool-stream.js";
+import type { ChatTask, ChatActivityLog, TaskStatus } from "../types/task-types.js";
 
 /** Format a tool name for human-readable display */
 export function formatToolName(name: string): string {

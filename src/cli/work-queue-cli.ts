@@ -6,6 +6,8 @@ import { renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
 import {
   getDefaultWorkQueueStore,
+  formatRef,
+  readRefs,
   type WorkItem,
   type WorkItemStatus,
   type WorkItemPriority,
@@ -42,6 +44,22 @@ function statusColor(status: WorkItemStatus): string {
     default:
       return status;
   }
+}
+
+function refsSummary(payload?: WorkItem["payload"]): string {
+  const refs = readRefs(payload);
+  if (refs.length === 0) return "";
+  const first = formatRef(refs[0]);
+  if (refs.length === 1) return first;
+  return `${first} (+${refs.length - 1})`;
+}
+
+function refsList(payload?: WorkItem["payload"]): string[] {
+  const refs = readRefs(payload);
+  return refs.map((ref) => {
+    const label = ref.label ? ` (${ref.label})` : "";
+    return `${formatRef(ref)}${label}`;
+  });
 }
 
 function formatElapsed(ms: number): string {
@@ -283,6 +301,7 @@ export function registerWorkQueueCli(program: Command) {
             { key: "Priority", header: "Pri", minWidth: 8 },
             { key: "Workstream", header: "Workstream", minWidth: 10 },
             { key: "Deps", header: "Deps", minWidth: 4 },
+            { key: "Refs", header: "Refs", minWidth: 18 },
             { key: "Updated", header: "Updated", minWidth: 18 },
           ],
           rows: items.map((item) => ({
@@ -292,6 +311,7 @@ export function registerWorkQueueCli(program: Command) {
             Priority: item.priority,
             Workstream: item.workstream ?? "",
             Deps: item.dependsOn?.length ? String(item.dependsOn.length) : "",
+            Refs: refsSummary(item.payload),
             Updated: item.updatedAt,
           })),
         }).trimEnd(),
@@ -335,6 +355,13 @@ export function registerWorkQueueCli(program: Command) {
         defaultRuntime.log(`  Blocked By:  ${item.blockedBy.join(", ")}`);
       }
       if (item.tags?.length) defaultRuntime.log(`  Tags:        ${item.tags.join(", ")}`);
+      const refs = refsList(item.payload);
+      if (refs.length > 0) {
+        defaultRuntime.log("  Refs:");
+        for (const ref of refs) {
+          defaultRuntime.log(`    ${ref}`);
+        }
+      }
       defaultRuntime.log(`  Created:     ${item.createdAt}`);
       defaultRuntime.log(`  Updated:     ${item.updatedAt}`);
       if (item.startedAt) defaultRuntime.log(`  Started:     ${item.startedAt}`);

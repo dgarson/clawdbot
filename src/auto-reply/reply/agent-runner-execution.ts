@@ -29,6 +29,9 @@ import { createDefaultExecutionKernel } from "../../execution/kernel.js";
 import { logVerbose } from "../../globals.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { logPerformanceOutlier, getPerformanceThresholds } from "../../logging/enhanced-events.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+
+const log = createSubsystemLogger("agent/runner-execution");
 import { defaultRuntime } from "../../runtime.js";
 import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
 import {
@@ -37,7 +40,12 @@ import {
 } from "../../utils/message-channel.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
-import { buildThreadingToolContext, resolveEnforceFinalTag } from "./agent-runner-utils.js";
+import {
+  buildThreadingToolContext,
+  formatBunFetchSocketError,
+  isBunFetchSocketError,
+  resolveEnforceFinalTag,
+} from "./agent-runner-utils.js";
 import { createBlockReplyPayloadKey, type BlockReplyPipeline } from "./block-reply-pipeline.js";
 import { parseReplyDirectives } from "./reply-directives.js";
 import { applyReplyTagsToPayload, isRenderablePayload } from "./reply-payloads.js";
@@ -301,8 +309,15 @@ async function runAgentTurnWithKernel(
             ? async (payload) => {
                 const { text, skip } = normalizeStreamText(payload);
                 if (skip || !text) {
+                  log.trace("onPartialReply: skipped after normalization", {
+                    feature: "streaming",
+                  });
                   return;
                 }
+                log.trace("onPartialReply: delivering partial reply", {
+                  feature: "streaming",
+                  textLen: text.length,
+                });
                 await params.typingSignals.signalTextDelta(text);
                 if (params.opts?.onPartialReply) {
                   await params.opts.onPartialReply({
@@ -318,6 +333,11 @@ async function runAgentTurnWithKernel(
           onReasoningStream:
             params.typingSignals.shouldStartOnReasoning || params.opts?.onReasoningStream
               ? async (payload) => {
+                  log.debug("onReasoningStream: delivering reasoning", {
+                    feature: "streaming",
+                    textLen: payload.text?.length ?? 0,
+                    textPreview: payload.text?.slice(0, 60),
+                  });
                   await params.typingSignals.signalReasoningDelta();
                   await params.opts?.onReasoningStream?.({
                     text: payload.text,
@@ -330,8 +350,17 @@ async function runAgentTurnWithKernel(
                 const { text, skip } = normalizeStreamText(payload);
                 const hasPayloadMedia = (payload.mediaUrls?.length ?? 0) > 0;
                 if (skip && !hasPayloadMedia) {
+                  log.trace("onBlockReply: skipped after normalization", { feature: "streaming" });
                   return;
                 }
+                log.debug("onBlockReply: processing block reply", {
+                  feature: "streaming",
+                  textLen: text?.length ?? 0,
+                  textPreview: text?.slice(0, 60),
+                  hasMedia: hasPayloadMedia,
+                  blockStreamingEnabled: params.blockStreamingEnabled,
+                  hasPipeline: Boolean(params.blockReplyPipeline),
+                });
 
                 const taggedPayload = applyReplyTagsToPayload(
                   {
@@ -383,8 +412,16 @@ async function runAgentTurnWithKernel(
                   });
 
                 if (params.blockStreamingEnabled && params.blockReplyPipeline) {
+                  log.debug("onBlockReply: enqueuing to pipeline", {
+                    feature: "streaming",
+                    textLen: blockPayload.text?.length ?? 0,
+                  });
                   params.blockReplyPipeline.enqueue(blockPayload);
                 } else if (params.blockStreamingEnabled) {
+                  log.debug("onBlockReply: direct send (no pipeline)", {
+                    feature: "streaming",
+                    textLen: blockPayload.text?.length ?? 0,
+                  });
                   directlySentBlockKeys.add(createBlockReplyPayloadKey(blockPayload));
                   await params.opts?.onBlockReply?.(blockPayload);
                 }
@@ -397,15 +434,20 @@ async function runAgentTurnWithKernel(
                 }
               : undefined,
           onAgentEvent: async (evt) => {
-            if (evt.stream === "tool") {
-              const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
+            const event = evt as { stream: string; data: Record<string, unknown> };
+            if (event.stream === "tool") {
+              const phase = typeof event.data.phase === "string" ? event.data.phase : "";
               if (phase === "start" || phase === "update") {
-                await params.typingSignals.signalToolStart();
+                try {
+                  await params.typingSignals.signalToolStart();
+                } catch (err) {
+                  logVerbose(`tool start typing signal failed: ${String(err)}`);
+                }
               }
             }
-            if (evt.stream === "compaction") {
-              const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
-              const willRetry = Boolean(evt.data.willRetry);
+            if (event.stream === "compaction") {
+              const phase = typeof event.data.phase === "string" ? event.data.phase : "";
+              const willRetry = Boolean(event.data.willRetry);
               if (phase === "end" && !willRetry) {
                 autoCompactionCompleted = true;
               }
@@ -415,7 +457,8 @@ async function runAgentTurnWithKernel(
             ? (payload) => {
                 const task = (async () => {
                   const { text, skip } = normalizeStreamText(payload);
-                  if (skip && !payload.mediaUrls) return;
+                  const hasMedia = (payload.mediaUrls?.length ?? 0) > 0;
+                  if (skip && !hasMedia) return;
                   await params.typingSignals.signalTextDelta(text);
                   await onToolResult({
                     text,
@@ -439,6 +482,12 @@ async function runAgentTurnWithKernel(
           result = await kernel.execute(request);
         } finally {
           streamMiddleware.destroy();
+        }
+
+        if (!result.success) {
+          throw new Error(
+            result.error?.message ?? result.embeddedError?.message ?? "Execution failed",
+          );
         }
 
         // Map ExecutionResult → EmbeddedPiRunResult for compatibility
@@ -471,28 +520,41 @@ async function runAgentTurnWithKernel(
 
     // Error recovery from embedded errors
     const embeddedError = runResult.meta?.error;
-    if (
-      embeddedError &&
-      isContextOverflowError(embeddedError.message) &&
-      !didResetAfterCompactionFailure &&
-      (await params.resetSessionAfterCompactionFailure(embeddedError.message))
-    ) {
-      return {
-        kind: "final",
-        payload: {
-          text: "⚠️ Context limit exceeded. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
-        },
-      };
-    }
-    if (embeddedError?.kind === "role_ordering") {
-      const didReset = await params.resetSessionAfterRoleOrderingConflict(embeddedError.message);
-      if (didReset) {
+    if (embeddedError) {
+      if (
+        isCompactionFailureError(embeddedError.message) &&
+        !didResetAfterCompactionFailure &&
+        (await params.resetSessionAfterCompactionFailure(embeddedError.message))
+      ) {
         return {
           kind: "final",
           payload: {
-            text: "⚠️ Message ordering conflict. I've reset the conversation - please try again.",
+            text: "⚠️ Context limit exceeded during compaction. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
           },
         };
+      }
+      if (
+        isContextOverflowError(embeddedError.message) &&
+        !didResetAfterCompactionFailure &&
+        (await params.resetSessionAfterCompactionFailure(embeddedError.message))
+      ) {
+        return {
+          kind: "final",
+          payload: {
+            text: "⚠️ Context limit exceeded. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
+          },
+        };
+      }
+      if (embeddedError.kind === "role_ordering") {
+        const didReset = await params.resetSessionAfterRoleOrderingConflict(embeddedError.message);
+        if (didReset) {
+          return {
+            kind: "final",
+            payload: {
+              text: "⚠️ Message ordering conflict. I've reset the conversation - please try again.",
+            },
+          };
+        }
       }
     }
 
@@ -575,7 +637,9 @@ async function runAgentTurnWithKernel(
       ? "⚠️ Context overflow — prompt too large for this model. Try a shorter message or a larger-context model."
       : isRoleOrderingError
         ? "⚠️ Message ordering conflict - please try again. If this persists, use /new to start a fresh session."
-        : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: openclaw logs --follow`;
+        : isBunFetchSocketError(message)
+          ? formatBunFetchSocketError(message)
+          : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: openclaw logs --follow`;
 
     return {
       kind: "final",
@@ -591,6 +655,24 @@ async function runAgentTurnWithKernel(
 function mapExecutionResultToLegacy(
   result: ExecutionResult,
 ): Awaited<ReturnType<typeof runEmbeddedPiAgent>> {
+  const fallbackError = (() => {
+    if (!result.error) {
+      return undefined;
+    }
+    const message = result.error.message ?? "";
+    if (/incorrect role information|roles must alternate/i.test(message)) {
+      return { kind: "role_ordering" as const, message };
+    }
+    if (isCompactionFailureError(message)) {
+      return { kind: "compaction_failure" as const, message };
+    }
+    if (isContextOverflowError(message)) {
+      return { kind: "context_overflow" as const, message };
+    }
+    return undefined;
+  })();
+  const embeddedError = result.embeddedError ?? fallbackError;
+
   return {
     payloads: result.payloads.map((p) => ({
       text: p.text,
@@ -618,14 +700,14 @@ function mapExecutionResultToLegacy(
       systemPromptReport: result.systemPromptReport as Awaited<
         ReturnType<typeof runEmbeddedPiAgent>
       >["meta"]["systemPromptReport"],
-      error: result.embeddedError
+      error: embeddedError
         ? {
-            kind: result.embeddedError.kind as
+            kind: embeddedError.kind as
               | "context_overflow"
               | "compaction_failure"
               | "role_ordering"
               | "image_size",
-            message: result.embeddedError.message,
+            message: embeddedError.message,
           }
         : undefined,
     },

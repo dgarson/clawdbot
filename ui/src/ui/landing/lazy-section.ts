@@ -138,9 +138,9 @@ export function cleanupLazyObserver(): void {
 
 // ── Register all below-fold sections ──
 
-registerLazySection("landing-features", () => import("./sections/features-section"));
-registerLazySection("landing-understanding", () => import("./sections/understanding-section"));
-registerLazySection("landing-control", () => import("./sections/control-section"));
-registerLazySection("landing-activity", () => import("./sections/activity-section"));
-registerLazySection("landing-social-proof", () => import("./sections/social-proof-section"));
-registerLazySection("landing-footer", () => import("./sections/footer-section"));
+registerLazySection("landing-features", () => import("./sections/features-section.js"));
+registerLazySection("landing-understanding", () => import("./sections/understanding-section.js"));
+registerLazySection("landing-control", () => import("./sections/control-section.js"));
+registerLazySection("landing-activity", () => import("./sections/activity-section.js"));
+registerLazySection("landing-social-proof", () => import("./sections/social-proof-section.js"));
+registerLazySection("landing-footer", () => import("./sections/footer-section.js"));

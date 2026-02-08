@@ -6,8 +6,8 @@
  * Provides seamless auto-recall and auto-capture via lifecycle hooks.
  */
 
+import type * as LanceDB from "@lancedb/lancedb";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-import * as lancedb from "@lancedb/lancedb";
 import { Type } from "@sinclair/typebox";
 import { randomUUID } from "node:crypto";
 import OpenAI from "openai";
@@ -18,10 +18,24 @@ import {
   memoryConfigSchema,
   vectorDimsForModel,
 } from "./config.js";
+import { OpenAiExtractor } from "./src/services/openai-extractor.js";
 
 // ============================================================================
 // Types
 // ============================================================================
+
+let lancedbImportPromise: Promise<typeof import("@lancedb/lancedb")> | null = null;
+const loadLanceDB = async (): Promise<typeof import("@lancedb/lancedb")> => {
+  if (!lancedbImportPromise) {
+    lancedbImportPromise = import("@lancedb/lancedb");
+  }
+  try {
+    return await lancedbImportPromise;
+  } catch (err) {
+    // Common on macOS today: upstream package may not ship darwin native bindings.
+    throw new Error(`memory-lancedb: failed to load LanceDB. ${String(err)}`, { cause: err });
+  }
+};
 
 type MemoryEntry = {
   id: string;
@@ -44,8 +58,8 @@ type MemorySearchResult = {
 const TABLE_NAME = "memories";
 
 class MemoryDB {
-  private db: lancedb.Connection | null = null;
-  private table: lancedb.Table | null = null;
+  private db: LanceDB.Connection | null = null;
+  private table: LanceDB.Table | null = null;
   private initPromise: Promise<void> | null = null;
 
   constructor(
@@ -66,6 +80,7 @@ class MemoryDB {
   }
 
   private async doInitialize(): Promise<void> {
+    const lancedb = await loadLanceDB();
     this.db = await lancedb.connect(this.dbPath);
     const tables = await this.db.tableNames();
 
@@ -181,7 +196,7 @@ const MEMORY_TRIGGERS = [
   /always|never|important/i,
 ];
 
-function shouldCapture(text: string): boolean {
+export function shouldCapture(text: string): boolean {
   if (text.length < 10 || text.length > 500) {
     return false;
   }
@@ -205,7 +220,7 @@ function shouldCapture(text: string): boolean {
   return MEMORY_TRIGGERS.some((r) => r.test(text));
 }
 
-function detectCategory(text: string): MemoryCategory {
+export function detectCategory(text: string): MemoryCategory {
   const lower = text.toLowerCase();
   if (/prefer|radši|like|love|hate|want/i.test(lower)) {
     return "preference";
@@ -220,6 +235,95 @@ function detectCategory(text: string): MemoryCategory {
     return "fact";
   }
   return "other";
+}
+
+const URL_PATTERN = /\bhttps?:\/\/[^\s<>()]+/i;
+
+function extractFirstUrl(texts: string[]): string | null {
+  for (const text of texts) {
+    const match = text.match(URL_PATTERN);
+    if (match?.[0]) {
+      return match[0];
+    }
+  }
+  return null;
+}
+
+function normalizeLower(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const normalized = value.trim().toLowerCase();
+  return normalized || undefined;
+}
+
+function resolveConversationType(params: {
+  channelType?: unknown;
+  channelId?: unknown;
+  threadTs?: unknown;
+  messageProvider?: unknown;
+}): "dm" | "group" | undefined {
+  const channelType = normalizeLower(params.channelType);
+  if (channelType === "dm" || channelType === "im" || channelType === "direct_message") {
+    return "dm";
+  }
+  if (
+    channelType === "group" ||
+    channelType === "channel" ||
+    channelType === "mpim" ||
+    channelType === "private_channel" ||
+    channelType === "public_channel"
+  ) {
+    return "group";
+  }
+
+  const provider = normalizeLower(params.messageProvider);
+  const channelId =
+    typeof params.channelId === "string" && params.channelId.trim()
+      ? params.channelId.trim()
+      : undefined;
+  const threadTs =
+    typeof params.threadTs === "string" && params.threadTs.trim()
+      ? params.threadTs.trim()
+      : undefined;
+
+  if (provider === "slack" && channelId) {
+    if (channelId.startsWith("D")) {
+      return "dm";
+    }
+    if (channelId.startsWith("C") || channelId.startsWith("G")) {
+      return "group";
+    }
+  }
+
+  if (provider === "telegram" && channelId) {
+    if (channelId.startsWith("-")) {
+      return "group";
+    }
+    return "dm";
+  }
+
+  if ((provider === "whatsapp" || provider === "web") && channelId) {
+    if (channelId.endsWith("@g.us")) {
+      return "group";
+    }
+    if (channelId.endsWith("@c.us") || channelId.startsWith("+")) {
+      return "dm";
+    }
+  }
+
+  if (threadTs) {
+    return "group";
+  }
+
+  if (channelId?.endsWith("@g.us")) {
+    return "group";
+  }
+  if (channelId?.endsWith("@c.us")) {
+    return "dm";
+  }
+
+  return undefined;
 }
 
 // ============================================================================
@@ -239,6 +343,9 @@ const memoryPlugin = {
     const vectorDim = vectorDimsForModel(cfg.embedding.model ?? "text-embedding-3-small");
     const db = new MemoryDB(resolvedDbPath, vectorDim);
     const embeddings = new Embeddings(cfg.embedding.apiKey, cfg.embedding.model!);
+    const extractionModel =
+      (cfg as { extraction?: { model?: string } }).extraction?.model ?? "gpt-4o-mini";
+    const extractor = new OpenAiExtractor(cfg.embedding.apiKey, extractionModel);
 
     api.logger.info(`memory-lancedb: plugin registered (db: ${resolvedDbPath}, lazy init)`);
 
@@ -505,7 +612,7 @@ const memoryPlugin = {
 
     // Auto-capture: analyze and store important information after agent ends
     if (cfg.autoCapture) {
-      api.on("agent_end", async (event) => {
+      api.on("agent_end", async (event, ctx) => {
         if (!event.success || !event.messages || event.messages.length === 0) {
           return;
         }
@@ -553,12 +660,35 @@ const memoryPlugin = {
 
           // Filter for capturable content
           const toCapture = texts.filter((text) => text && shouldCapture(text));
-          if (toCapture.length === 0) {
+          const conversationType = resolveConversationType({
+            channelType: event.channelType,
+            channelId: event.channelId,
+            threadTs: event.threadTs,
+            messageProvider: ctx?.messageProvider,
+          });
+          const url = conversationType === "dm" ? extractFirstUrl(texts) : null;
+          if (toCapture.length === 0 && !url) {
             return;
           }
 
           // Store each capturable piece (limit to 3 per conversation)
           let stored = 0;
+          if (url) {
+            const summary = await extractor.summarizeUrl(url, api);
+            if (summary && summary.trim()) {
+              const vector = await embeddings.embed(summary);
+              const existing = await db.search(vector, 1, 0.95);
+              if (existing.length === 0) {
+                await db.store({
+                  text: summary.trim(),
+                  vector,
+                  importance: 0.6,
+                  category: "other",
+                });
+                stored++;
+              }
+            }
+          }
           for (const text of toCapture.slice(0, 3)) {
             const category = detectCategory(text);
             const vector = await embeddings.embed(text);

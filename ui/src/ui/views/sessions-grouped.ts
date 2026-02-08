@@ -7,12 +7,12 @@
  */
 
 import { html, nothing } from "lit";
-import type { GatewaySessionRow } from "../types";
-import { formatAgo } from "../format";
-import { icon } from "../icons";
-import { formatSessionTokens } from "../presenter";
-import { groupSessionsByAgent, type AgentNode } from "../session-grouping";
-import { deriveSessionStatus, getStatusBadgeClass, type SessionsProps } from "./sessions";
+import type { GatewaySessionRow } from "../types.js";
+import { formatAgo } from "../format.js";
+import { icon } from "../icons.js";
+import { formatSessionTokens } from "../presenter.js";
+import { groupSessionsByAgent, type AgentNode } from "../session-grouping.js";
+import { deriveSessionStatus, getStatusBadgeClass, type SessionsProps } from "./sessions.js";
 
 // ---------------------------------------------------------------------------
 // Entry point

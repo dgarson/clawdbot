@@ -6,9 +6,10 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import type { JsonSchema } from "./config-form";
-import { icon } from "../icons";
-import { renderNode } from "./config-form";
+import type { ConfigUiHints } from "../types.js";
+import type { JsonSchema } from "./config-form.js";
+import { icon } from "../icons.js";
+import { renderNode } from "./config-form.js";
 
 // ============================================================================
 // Types
@@ -28,7 +29,7 @@ export type ConfigModalProps = {
   state: ConfigModalState;
   schema: JsonSchema | null;
   configValue: Record<string, unknown>;
-  configUiHints: Record<string, unknown>;
+  configUiHints: ConfigUiHints;
   unsupported: Set<string>;
   disabled: boolean;
   onSave: () => void;
@@ -104,8 +105,6 @@ export function renderConfigModal(params: ConfigModalProps): TemplateResult | ty
                   unsupported,
                   disabled,
                   showLabel: true,
-                  compactToggles: true,
-                  flattenObjects: true,
                   onPatch: onConfigPatch,
                 })
               : html`

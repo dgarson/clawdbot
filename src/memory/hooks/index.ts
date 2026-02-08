@@ -11,6 +11,7 @@ import {
   unregisterInternalHook,
   type InternalHookEvent,
 } from "../../hooks/internal-hooks.js";
+import { buildSessionIdCrn, buildSessionKeyCrn } from "../../shared/crn/index.js";
 
 export type MemoryPipelineEmitter = (event: PipelineEventEnvelope) => void;
 
@@ -23,9 +24,13 @@ export function registerMemoryPipelineHooks(options?: {
 
   const sessionStartHandler = (event: InternalHookEvent) => {
     const context = event.context as Record<string, unknown>;
+    const sessionKeyCrn = buildSessionKeyCrn({ sessionKey: event.sessionKey });
+    const sessionId = typeof context.sessionId === "string" ? context.sessionId : undefined;
     const payload: SessionStartEventPayload = {
       sessionKey: event.sessionKey,
-      sessionId: typeof context.sessionId === "string" ? context.sessionId : undefined,
+      sessionKeyCrn,
+      sessionId,
+      sessionIdCrn: sessionId ? buildSessionIdCrn({ sessionId }) : undefined,
       agentId: typeof context.agentId === "string" ? context.agentId : undefined,
       channel: typeof context.channel === "string" ? context.channel : undefined,
       startedAt: new Date(event.timestamp).toISOString(),
@@ -35,6 +40,7 @@ export function registerMemoryPipelineHooks(options?: {
         type: "session.start",
         source,
         sessionKey: event.sessionKey,
+        sessionKeyCrn,
         runId: typeof context.runId === "string" ? context.runId : undefined,
         traceId: typeof context.traceId === "string" ? context.traceId : undefined,
         payload,
@@ -44,9 +50,13 @@ export function registerMemoryPipelineHooks(options?: {
 
   const messageReceivedHandler = (event: InternalHookEvent) => {
     const context = event.context as Record<string, unknown>;
+    const sessionKeyCrn = buildSessionKeyCrn({ sessionKey: event.sessionKey });
+    const sessionId = typeof context.sessionId === "string" ? context.sessionId : undefined;
     const payload: MessageReceivedEventPayload = {
       sessionKey: event.sessionKey,
-      sessionId: typeof context.sessionId === "string" ? context.sessionId : undefined,
+      sessionKeyCrn,
+      sessionId,
+      sessionIdCrn: sessionId ? buildSessionIdCrn({ sessionId }) : undefined,
       messageId: typeof context.messageId === "string" ? context.messageId : undefined,
       body: typeof context.body === "string" ? context.body : "",
       channel: typeof context.channel === "string" ? context.channel : undefined,
@@ -62,6 +72,7 @@ export function registerMemoryPipelineHooks(options?: {
         type: "message.received",
         source,
         sessionKey: event.sessionKey,
+        sessionKeyCrn,
         runId: typeof context.runId === "string" ? context.runId : undefined,
         traceId: typeof context.traceId === "string" ? context.traceId : undefined,
         payload,
@@ -71,9 +82,13 @@ export function registerMemoryPipelineHooks(options?: {
 
   const compactionSummaryHandler = (event: InternalHookEvent) => {
     const context = event.context as Record<string, unknown>;
+    const sessionKeyCrn = buildSessionKeyCrn({ sessionKey: event.sessionKey });
+    const sessionId = typeof context.sessionId === "string" ? context.sessionId : undefined;
     const payload: CompactionSummaryEventPayload = {
       sessionKey: event.sessionKey,
-      sessionId: typeof context.sessionId === "string" ? context.sessionId : undefined,
+      sessionKeyCrn,
+      sessionId,
+      sessionIdCrn: sessionId ? buildSessionIdCrn({ sessionId }) : undefined,
       summary: typeof context.summary === "string" ? context.summary : "",
       tokensBefore: typeof context.tokensBefore === "number" ? context.tokensBefore : undefined,
       tokensAfter: typeof context.tokensAfter === "number" ? context.tokensAfter : undefined,
@@ -84,6 +99,7 @@ export function registerMemoryPipelineHooks(options?: {
         type: "compaction.summary",
         source,
         sessionKey: event.sessionKey,
+        sessionKeyCrn,
         runId: typeof context.runId === "string" ? context.runId : undefined,
         traceId: typeof context.traceId === "string" ? context.traceId : undefined,
         payload,
@@ -106,6 +122,7 @@ function createEnvelope(params: {
   type: PipelineEventEnvelope["type"];
   source: PipelineEventSource;
   sessionKey?: string;
+  sessionKeyCrn?: string;
   runId?: string;
   traceId?: string;
   payload: PipelineEventEnvelope["payload"];
@@ -116,6 +133,7 @@ function createEnvelope(params: {
     ts: new Date().toISOString(),
     source: params.source,
     sessionKey: params.sessionKey,
+    sessionKeyCrn: params.sessionKeyCrn,
     runId: params.runId,
     traceId: params.traceId,
     payload: params.payload,

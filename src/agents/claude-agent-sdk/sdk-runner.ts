@@ -15,19 +15,20 @@
  */
 
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
-import type { SdkRunnerParams, SdkRunnerResult } from "./sdk-runner.types.js";
 import type { SdkHooksRunState } from "./sdk-hooks.js";
+import type { SdkRunnerParams, SdkRunnerResult } from "./sdk-runner.types.js";
 import type { SdkRunnerQueryOptions } from "./tool-bridge.types.js";
-import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { parseReplyDirectives } from "../../auto-reply/reply/reply-directives.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import {
   emitAgentEvent,
   registerAgentRunContext,
   clearAgentRunContext,
 } from "../../infra/agent-events.js";
-import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
-import { splitMediaFromOutput } from "../../media/parse.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { formatMcpToolNamesForLog } from "../../mcp/tool-name-format.js";
-import { parseReplyDirectives } from "../../auto-reply/reply/reply-directives.js";
+import { splitMediaFromOutput } from "../../media/parse.js";
+import { scrubAnthropicRefusalMagic } from "../../shared/text/prompt-sanitize.js";
 import {
   extractFinalTagContent,
   stripReasoningTagsFromText,
@@ -52,6 +53,16 @@ import { bridgeClawdbrainToolsToMcpServer } from "./tool-bridge.js";
 const DEFAULT_MAX_EXTRACTED_CHARS = 120_000;
 const DEFAULT_MCP_SERVER_NAME = "clawdbrain";
 const DEFAULT_MAX_TURNS = 50;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Evaluate a shouldEmit flag that may be boolean or function. */
+function evalShouldEmit(flag: boolean | (() => boolean) | undefined): boolean {
+  if (typeof flag === "function") return flag();
+  return flag !== false;
+}
 
 // ---------------------------------------------------------------------------
 // Event classification helpers
@@ -684,7 +695,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // -------------------------------------------------------------------------
 
   const prompt = buildSdkPrompt({
-    prompt: params.prompt,
+    prompt: scrubAnthropicRefusalMagic(params.prompt),
     systemPrompt: params.systemPrompt,
   });
 
@@ -927,9 +938,11 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           mw?.push({ kind: "thinking_delta", text: thinkingText });
           if (params.onReasoningStream) {
             try {
-              void Promise.resolve(params.onReasoningStream({ text: thinkingText })).catch((err) => {
-                log.trace(`onReasoningStream callback error: ${String(err)}`);
-              });
+              void Promise.resolve(params.onReasoningStream({ text: thinkingText })).catch(
+                (err) => {
+                  log.trace(`onReasoningStream callback error: ${String(err)}`);
+                },
+              );
             } catch (err) {
               log.trace(`onReasoningStream callback error: ${String(err)}`);
             }
@@ -1004,10 +1017,21 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         // Push tool_start/tool_end to middleware (dual-path)
         if (mw && toolCallId) {
           if (phase === "start") {
-            mw.push({ kind: "tool_start", name: normalizedName.name, id: toolCallId, args: toolArgs });
+            mw.push({
+              kind: "tool_start",
+              name: normalizedName.name,
+              id: toolCallId,
+              args: toolArgs,
+            });
           } else if (phase === "result") {
             const toolResultText = extractTextFromClaudeAgentSdkEvent(event);
-            mw.push({ kind: "tool_end", name: normalizedName.name, id: toolCallId, isError, text: toolResultText ?? undefined });
+            mw.push({
+              kind: "tool_end",
+              name: normalizedName.name,
+              id: toolCallId,
+              isError,
+              text: toolResultText ?? undefined,
+            });
           }
         }
 
@@ -1036,10 +1060,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
             isError,
             args: toolArgs,
             result: sanitized,
-            recentAssistantText: runState.assistantTexts
-              .slice(-3)
-              .join("\n")
-              .slice(-2000),
+            recentAssistantText: runState.assistantTexts.slice(-3).join("\n").slice(-2000),
           });
           void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
         }
@@ -1049,7 +1070,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           phase === "result" &&
           toolText &&
           params.onToolResult &&
-          params.shouldEmitToolOutput !== false
+          evalShouldEmit(params.shouldEmitToolOutput)
         ) {
           try {
             const toolSplit = splitMediaFromOutput(toolText);
@@ -1328,8 +1349,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
   // Check middleware delivery state alongside local tracking for messaging tool sends
   const earlyMwDelivery = mw?.getDeliveryState();
-  const earlyDidSendViaMessaging = didSendViaMessagingTool ||
-    (earlyMwDelivery?.didSendViaMessagingTool ?? false);
+  const earlyDidSendViaMessaging =
+    didSendViaMessagingTool || (earlyMwDelivery?.didSendViaMessagingTool ?? false);
 
   if (!text) {
     if (earlyDidSendViaMessaging) {
@@ -1432,8 +1453,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // tracking (blockReplyStreamedText) doesn't match the pipeline's
   // payload-key-based dedup.
   // Check both local state and middleware delivery state for block reply dedup
-  const effectiveDidStreamBlockReply = didStreamBlockReply ||
-    (mw ? mw.getDeliveryState().didStreamBlockReply : false);
+  const effectiveDidStreamBlockReply =
+    didStreamBlockReply || (mw ? mw.getDeliveryState().didStreamBlockReply : false);
   if (params.onBlockReply && !effectiveDidStreamBlockReply) {
     // Push final block reply to middleware (dual-path)
     mw?.push({ kind: "block_reply", text: finalText });
@@ -1478,8 +1499,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
   // Merge middleware delivery state with local state for backward compat
   const mwDelivery = mw?.getDeliveryState();
-  const effectiveDidSendViaMessagingTool = didSendViaMessagingTool ||
-    (mwDelivery?.didSendViaMessagingTool ?? false);
+  const effectiveDidSendViaMessagingTool =
+    didSendViaMessagingTool || (mwDelivery?.didSendViaMessagingTool ?? false);
   const effectiveMessagingTexts = messagingToolSentTexts.length
     ? messagingToolSentTexts
     : (mwDelivery?.messagingToolSentTexts ?? []);
@@ -1496,14 +1517,18 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   );
 
   return {
-    payloads: [{
-      text: finalText,
-      ...(parsed.mediaUrls?.length ? { mediaUrls: parsed.mediaUrls, mediaUrl: parsed.mediaUrl } : {}),
-      ...(parsed.replyToId ? { replyToId: parsed.replyToId } : {}),
-      ...(parsed.replyToTag ? { replyToTag: parsed.replyToTag } : {}),
-      ...(parsed.replyToCurrent ? { replyToCurrent: parsed.replyToCurrent } : {}),
-      ...(parsed.audioAsVoice ? { audioAsVoice: parsed.audioAsVoice } : {}),
-    }],
+    payloads: [
+      {
+        text: finalText,
+        ...(parsed.mediaUrls?.length
+          ? { mediaUrls: parsed.mediaUrls, mediaUrl: parsed.mediaUrl }
+          : {}),
+        ...(parsed.replyToId ? { replyToId: parsed.replyToId } : {}),
+        ...(parsed.replyToTag ? { replyToTag: parsed.replyToTag } : {}),
+        ...(parsed.replyToCurrent ? { replyToCurrent: parsed.replyToCurrent } : {}),
+        ...(parsed.audioAsVoice ? { audioAsVoice: parsed.audioAsVoice } : {}),
+      },
+    ],
     meta: {
       durationMs: Date.now() - startedAt,
       provider: params.provider?.name,

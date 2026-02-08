@@ -13,9 +13,9 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
-import type { GatewaySessionRow, AgentsListResult, SessionsListResult } from "../types";
-import { formatAgo, clampText } from "../format";
-import { icon } from "../icons";
+import type { GatewaySessionRow, AgentsListResult, SessionsListResult } from "../types.js";
+import { formatAgo, clampText } from "../format.js";
+import { icon } from "../icons.js";
 import {
   groupSessionsByAgent,
   filterAgentNodes,
@@ -23,7 +23,7 @@ import {
   type AgentNode,
   type ChannelSection,
   type SessionGroup,
-} from "../session-grouping";
+} from "../session-grouping.js";
 
 // ---------------------------------------------------------------------------
 // State (managed externally via AppViewState)
@@ -198,10 +198,7 @@ function positionPanel(el: Element | undefined): void {
 // ---------------------------------------------------------------------------
 
 export function renderSessionNavigatorPanel(props: SessionNavigatorProps): TemplateResult {
-  if (!props.navigatorState.open)
-    return html`
-      
-    `;
+  if (!props.navigatorState.open) return html``;
 
   const sessions = props.sessionsResult?.sessions ?? [];
   const agentNodes = groupSessionsByAgent(sessions, props.agentsList);
@@ -362,10 +359,7 @@ function renderChannelSection(
 ): TemplateResult {
   const hasGroups = section.groups.length > 0;
   const hasThreads = section.threads.length > 0;
-  if (!hasGroups && !hasThreads)
-    return html`
-      
-    `;
+  if (!hasGroups && !hasThreads) return html``;
 
   return html`
     <div class="sn-channel">

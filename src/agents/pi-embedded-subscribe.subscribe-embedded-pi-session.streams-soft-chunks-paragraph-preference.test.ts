@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -23,12 +24,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     const subscription = subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
       blockReplyChunking: {
         minChars: 5,
@@ -55,10 +58,18 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(2);
-    expect(onBlockReply.mock.calls[0][0].text).toBe("First block line");
-    expect(onBlockReply.mock.calls[1][0].text).toBe("Second block line");
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(2);
+    if (blockReplies[0].kind === "block_reply") {
+      expect(blockReplies[0].text).toBe("First block line");
+    }
+    if (blockReplies[1].kind === "block_reply") {
+      expect(blockReplies[1].text).toBe("Second block line");
+    }
     expect(subscription.assistantTexts).toEqual(["First block line", "Second block line"]);
+
+    unsub();
+    mw.destroy();
   });
   it("avoids splitting inside fenced code blocks", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -69,12 +80,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
       blockReplyChunking: {
         minChars: 5,
@@ -101,9 +114,19 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalledTimes(3);
-    expect(onBlockReply.mock.calls[0][0].text).toBe("Intro");
-    expect(onBlockReply.mock.calls[1][0].text).toBe("```bash\nline1\nline2\n```");
-    expect(onBlockReply.mock.calls[2][0].text).toBe("Outro");
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies).toHaveLength(3);
+    if (blockReplies[0].kind === "block_reply") {
+      expect(blockReplies[0].text).toBe("Intro");
+    }
+    if (blockReplies[1].kind === "block_reply") {
+      expect(blockReplies[1].text).toBe("```bash\nline1\nline2\n```");
+    }
+    if (blockReplies[2].kind === "block_reply") {
+      expect(blockReplies[2].text).toBe("Outro");
+    }
+
+    unsub();
+    mw.destroy();
   });
 });

@@ -12,6 +12,9 @@ vi.mock("../../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(true),
   resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
 }));
+vi.mock("../../agents/pi-embedded-runner/run.js", () => ({
+  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+}));
 
 const commandQueueMocks = vi.hoisted(() => ({
   clearCommandLane: vi.fn(),

@@ -138,7 +138,7 @@ export type PluginRegistry = {
   commands: PluginCommandRegistration[];
   searchBackends: PluginSearchBackendRegistration[];
   diagnostics: PluginDiagnostic[];
-  cronJobs?: any; // TODO: Add proper cron jobs type
+  cronJobs?: import("../cron/types.js").CronJob[];
 };
 
 export type PluginRegistryParams = {

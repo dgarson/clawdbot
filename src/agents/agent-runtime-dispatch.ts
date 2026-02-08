@@ -13,6 +13,7 @@ import type { AgentRuntime } from "./agent-runtime.js";
 import type { MainAgentRuntimeKind } from "./main-agent-runtime-factory.js";
 import type { CreateSdkMainAgentRuntimeParams } from "./main-agent-runtime-factory.js";
 import type { PiRuntimeContext } from "./pi-agent-runtime.js";
+import { emitAgentEvent } from "../infra/agent-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
   createSdkMainAgentRuntime,
@@ -71,11 +72,16 @@ export async function resolveAndCreateRuntime(
     }
 
     // Graceful degradation — caller doesn't support SDK context yet.
-    log.warn(
+    const fallbackMsg =
       `Runtime "claude" resolved for agent=${params.agentId} ` +
-        `session=${params.sessionKey ?? "n/a"} but no SDK context provided; ` +
-        `falling back to Pi runtime`,
-    );
+      `session=${params.sessionKey ?? "n/a"} but no SDK context provided; ` +
+      `falling back to Pi runtime`;
+    log.warn(fallbackMsg);
+    emitAgentEvent({
+      runId: params.sessionKey ?? params.agentId,
+      stream: "lifecycle",
+      data: { phase: "runtime_fallback", from: "claude", to: "pi", reason: fallbackMsg },
+    });
   }
 
   if (!params.piContext) {

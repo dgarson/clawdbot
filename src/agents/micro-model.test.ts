@@ -152,8 +152,8 @@ describe("micro-model", () => {
       // Empty catalog → micro-auto returns null → falls to primary
       mockedLoadCatalog.mockResolvedValue([]);
       const result = await resolveUtilityModelRef({ cfg: makeCfg() });
-      // Primary model defaults to anthropic/claude-opus-4-5
-      expect(result).toEqual({ provider: "anthropic", model: "claude-opus-4-5" });
+      // Primary model defaults to anthropic/claude-opus-4-6
+      expect(result).toEqual({ provider: "anthropic", model: "claude-opus-4-6" });
     });
 
     it("resolves alias strings via model catalog", async () => {

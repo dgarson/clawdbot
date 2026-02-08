@@ -1,4 +1,4 @@
-import { type FilesUploadV2Arguments, type WebClient } from "@slack/web-api";
+import { ErrorCode, type FilesUploadV2Arguments, type WebClient } from "@slack/web-api";
 import type { OpenClawConfig } from "../config/config.js";
 import type { SlackTokenSource } from "./accounts.js";
 import type { SlackBlock } from "./blocks/types.js";
@@ -19,6 +19,9 @@ import { parseSlackTarget } from "./targets.js";
 import { resolveSlackBotToken } from "./token.js";
 
 const SLACK_TEXT_LIMIT = 4000;
+const SLACK_RATE_LIMIT_RETRY_LIMIT = 3;
+const SLACK_RATE_LIMIT_BASE_DELAY_MS = 1000;
+const SLACK_RATE_LIMIT_MAX_DELAY_MS = 30000;
 const log = createSubsystemLogger("slack/send");
 
 function isReasoningLikeText(text: string): boolean {
@@ -43,6 +46,80 @@ function textPreview(text: string, max = 120): string {
     return compact;
   }
   return `${compact.slice(0, max)}...`;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function extractRetryAfterSeconds(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+  if ("retryAfter" in error && typeof error.retryAfter === "number") {
+    return error.retryAfter;
+  }
+  const headers = (error as { headers?: Record<string, string> }).headers;
+  const retryAfterHeader = headers?.["retry-after"];
+  if (!retryAfterHeader) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(retryAfterHeader, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function isRateLimitError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  if ("code" in error && error.code === ErrorCode.RateLimitedError) {
+    return true;
+  }
+  const platformError = (error as { data?: { error?: string } }).data?.error;
+  if (platformError === "ratelimited") {
+    return true;
+  }
+  const statusCode = (error as { statusCode?: number }).statusCode;
+  return statusCode === 429;
+}
+
+function resolveRateLimitDelayMs(error: unknown, attempt: number): number {
+  const retryAfterSeconds = extractRetryAfterSeconds(error);
+  if (typeof retryAfterSeconds === "number") {
+    return Math.min(SLACK_RATE_LIMIT_MAX_DELAY_MS, Math.max(0, retryAfterSeconds * 1000));
+  }
+  const backoff = SLACK_RATE_LIMIT_BASE_DELAY_MS * 2 ** attempt;
+  return Math.min(SLACK_RATE_LIMIT_MAX_DELAY_MS, backoff);
+}
+
+async function withSlackRateLimitRetry<T>(params: {
+  cfg: OpenClawConfig;
+  action: string;
+  run: () => Promise<T>;
+  maxRetries?: number;
+}): Promise<T> {
+  const maxRetries = params.maxRetries ?? SLACK_RATE_LIMIT_RETRY_LIMIT;
+  let attempt = 0;
+  while (true) {
+    try {
+      return await params.run();
+    } catch (error) {
+      if (!isRateLimitError(error) || attempt >= maxRetries) {
+        throw error;
+      }
+      const delayMs = resolveRateLimitDelayMs(error, attempt);
+      logDebug("slack rate limit retry", params.cfg, {
+        action: params.action,
+        attempt: attempt + 1,
+        delayMs,
+        retryAfterSeconds: extractRetryAfterSeconds(error),
+      });
+      if (delayMs > 0) {
+        await sleep(delayMs);
+      }
+      attempt += 1;
+    }
+  }
 }
 
 type SlackRecipient =
@@ -105,11 +182,16 @@ function parseRecipient(raw: string): SlackRecipient {
 async function resolveChannelId(
   client: WebClient,
   recipient: SlackRecipient,
+  cfg: OpenClawConfig,
 ): Promise<{ channelId: string; isDm?: boolean }> {
   if (recipient.kind === "channel") {
     return { channelId: recipient.id };
   }
-  const response = await client.conversations.open({ users: recipient.id });
+  const response = await withSlackRateLimitRetry({
+    cfg,
+    action: "conversations.open",
+    run: () => client.conversations.open({ users: recipient.id }),
+  });
   const channelId = response.channel?.id;
   if (!channelId) {
     throw new Error("Failed to open Slack DM channel");
@@ -132,6 +214,7 @@ async function uploadSlackFile(params: {
   caption?: string;
   threadTs?: string;
   maxBytes?: number;
+  cfg: OpenClawConfig;
 }): Promise<string> {
   const {
     buffer,
@@ -148,7 +231,11 @@ async function uploadSlackFile(params: {
   const payload: FilesUploadV2Arguments = params.threadTs
     ? { ...basePayload, thread_ts: params.threadTs }
     : basePayload;
-  const response = await params.client.files.uploadV2(payload);
+  const response = await withSlackRateLimitRetry({
+    cfg: params.cfg,
+    action: "files.uploadV2",
+    run: () => params.client.files.uploadV2(payload),
+  });
   const parsed = response as {
     files?: Array<{ id?: string; name?: string }>;
     file?: { id?: string; name?: string };
@@ -184,7 +271,7 @@ export async function sendMessageSlack(
   });
   const client = opts.client ?? createSlackWebClient(token);
   const recipient = parseRecipient(to);
-  const { channelId } = await resolveChannelId(client, recipient);
+  const { channelId } = await resolveChannelId(client, recipient, cfg);
   const textLimit = resolveTextChunkLimit(cfg, "slack", account.accountId);
   const chunkLimit = Math.min(textLimit, SLACK_TEXT_LIMIT);
   const tableMode = resolveMarkdownTableMode({
@@ -241,6 +328,7 @@ export async function sendMessageSlack(
       caption: firstChunk,
       threadTs: opts.threadTs,
       maxBytes: mediaMaxBytes,
+      cfg,
     });
     for (const chunk of rest) {
       logTrace("slack chunk send", cfg, {
@@ -250,11 +338,16 @@ export async function sendMessageSlack(
         chunkLen: chunk.length,
         reasoningLike: isReasoningLikeText(chunk),
       });
-      const response = await client.chat.postMessage({
-        channel: channelId,
-        text: chunk,
-        thread_ts: opts.threadTs,
-        ...(opts.blocks ? { blocks: opts.blocks } : {}),
+      const response = await withSlackRateLimitRetry({
+        cfg,
+        action: "chat.postMessage",
+        run: () =>
+          client.chat.postMessage({
+            channel: channelId,
+            text: chunk,
+            thread_ts: opts.threadTs,
+            ...(opts.blocks ? { blocks: opts.blocks } : {}),
+          }),
       });
       lastMessageId = response.ts ?? lastMessageId;
     }
@@ -269,11 +362,16 @@ export async function sendMessageSlack(
       reasoningLike: isReasoningLikeText(text),
       preview: textPreview(text),
     });
-    const response = await client.chat.postMessage({
-      channel: channelId,
-      text,
-      blocks: opts.blocks,
-      thread_ts: opts.threadTs,
+    const response = await withSlackRateLimitRetry({
+      cfg,
+      action: "chat.postMessage",
+      run: () =>
+        client.chat.postMessage({
+          channel: channelId,
+          text,
+          blocks: opts.blocks,
+          thread_ts: opts.threadTs,
+        }),
     });
     lastMessageId = response.ts ?? "unknown";
   } else {
@@ -285,10 +383,15 @@ export async function sendMessageSlack(
         chunkLen: chunk.length,
         reasoningLike: isReasoningLikeText(chunk),
       });
-      const response = await client.chat.postMessage({
-        channel: channelId,
-        text: chunk,
-        thread_ts: opts.threadTs,
+      const response = await withSlackRateLimitRetry({
+        cfg,
+        action: "chat.postMessage",
+        run: () =>
+          client.chat.postMessage({
+            channel: channelId,
+            text: chunk,
+            thread_ts: opts.threadTs,
+          }),
       });
       lastMessageId = response.ts ?? lastMessageId;
     }

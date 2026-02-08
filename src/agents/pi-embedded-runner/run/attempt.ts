@@ -16,7 +16,7 @@ import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { handleAgentEnd as handleMemoryFeedback } from "../../../memory/feedback/feedback-subscriber.js";
 import { warnIfThinkingBudgetConflict } from "../../../openclaw/thinking-budget-integration.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
-import { isSubagentSessionKey } from "../../../routing/session-key.js";
+import { isSubagentSessionKey, normalizeAgentId } from "../../../routing/session-key.js";
 import { resolveSignalReactionLevel } from "../../../signal/reaction-level.js";
 import { resolveTelegramInlineButtonsScope } from "../../../telegram/inline-buttons.js";
 import { resolveTelegramReactionLevel } from "../../../telegram/reaction-level.js";
@@ -56,6 +56,7 @@ import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
 import { guardSessionManager } from "../../session-tool-result-guard-wrapper.js";
 import { acquireSessionWriteLock } from "../../session-write-lock.js";
+import { detectRuntimeShell } from "../../shell-utils.js";
 import {
   applySkillEnvOverrides,
   applySkillEnvOverridesFromSnapshot,
@@ -92,6 +93,7 @@ import {
 } from "../system-prompt.js";
 import { splitSdkTools } from "../tool-split.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";
+import { resolveAgentEndHookMetadata } from "./agent-end-context.js";
 import { detectAndLoadPromptImages } from "./images.js";
 
 /**
@@ -394,6 +396,7 @@ export async function runEmbeddedAttempt(
         node: process.version,
         model: `${params.provider}/${params.modelId}`,
         defaultModel: defaultModelLabel,
+        shell: detectRuntimeShell(),
         channel: runtimeChannel,
         capabilities: runtimeCapabilities,
         channelActions,
@@ -709,15 +712,8 @@ export async function runEmbeddedAttempt(
         toolResultFormat: params.toolResultFormat,
         shouldEmitToolResult: params.shouldEmitToolResult,
         shouldEmitToolOutput: params.shouldEmitToolOutput,
-        onToolResult: params.onToolResult,
-        onReasoningStream: params.onReasoningStream,
-        onBlockReply: params.onBlockReply,
-        onBlockReplyFlush: params.onBlockReplyFlush,
         blockReplyBreak: params.blockReplyBreak,
         blockReplyChunking: params.blockReplyChunking,
-        onPartialReply: params.onPartialReply,
-        onAssistantMessageStart: params.onAssistantMessageStart,
-        onAgentEvent: params.onAgentEvent,
         enforceFinalTag: params.enforceFinalTag,
         streamMiddleware: params.streamMiddleware,
       });
@@ -788,6 +784,13 @@ export async function runEmbeddedAttempt(
 
       // Get hook runner once for both before_agent_start and agent_end hooks
       const hookRunner = getGlobalHookRunner();
+      const hookAgentId =
+        typeof params.agentId === "string" && params.agentId.trim()
+          ? normalizeAgentId(params.agentId)
+          : resolveSessionAgentIds({
+              sessionKey: params.sessionKey,
+              config: params.config,
+            }).sessionAgentId;
 
       let promptError: unknown = null;
       try {
@@ -803,7 +806,7 @@ export async function runEmbeddedAttempt(
                 messages: activeSession.messages,
               },
               {
-                agentId: params.sessionKey?.split(":")[0] ?? "main",
+                agentId: hookAgentId,
                 sessionKey: params.sessionKey,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
@@ -924,6 +927,16 @@ export async function runEmbeddedAttempt(
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await
         if (hookRunner?.hasHooks("agent_end")) {
+          const agentEndMetadata = resolveAgentEndHookMetadata({
+            messageProvider: params.messageProvider,
+            messageTo: params.messageTo,
+            messageThreadId: params.messageThreadId,
+            groupId: params.groupId,
+            groupChannel: params.groupChannel,
+            groupSpace: params.groupSpace,
+            currentChannelId: params.currentChannelId,
+            currentThreadTs: params.currentThreadTs,
+          });
           hookRunner
             .runAgentEnd(
               {
@@ -931,9 +944,12 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                channelType: agentEndMetadata.channelType,
+                channelId: agentEndMetadata.channelId,
+                threadTs: agentEndMetadata.threadTs,
               },
               {
-                agentId: params.sessionKey?.split(":")[0] ?? "main",
+                agentId: hookAgentId,
                 sessionKey: params.sessionKey,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,

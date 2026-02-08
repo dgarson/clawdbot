@@ -303,6 +303,7 @@ export type ConfigSchemaResponse = {
   uiHints: ConfigUiHints;
   version: string;
   generatedAt: string;
+  notModified?: boolean;
 };
 
 export type PresenceEntry = {
@@ -735,6 +736,8 @@ export type CronRunLogEntry = {
   durationMs?: number;
   error?: string;
   summary?: string;
+  sessionId?: string;
+  sessionKey?: string;
 };
 
 export type SkillsStatusConfigCheck = {

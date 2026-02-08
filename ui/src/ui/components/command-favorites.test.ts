@@ -6,7 +6,7 @@ import {
   isFavorite,
   removeFavorite,
   toggleFavorite,
-} from "./command-favorites";
+} from "./command-favorites.js";
 
 describe("command-favorites", () => {
   afterEach(() => {

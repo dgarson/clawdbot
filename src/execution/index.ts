@@ -15,17 +15,6 @@ export type {
   ExecutionEventKind,
   EventListener,
   Unsubscribe,
-  // Callback types
-  OnPartialReplyCallback,
-  OnBlockReplyCallback,
-  OnBlockReplyFlushCallback,
-  OnReasoningStreamCallback,
-  OnToolResultCallback,
-  OnAssistantMessageStartCallback,
-  OnAgentEventCallback,
-  OnToolStartCallback,
-  OnToolEndCallback,
-  OnExecutionEventCallback,
   // Request/Result types
   ExecutionRequest,
   ExecutionResult,

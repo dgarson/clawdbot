@@ -1,7 +1,10 @@
 import type { AnyAgentTool, OpenClawConfig } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
 import { jsonResult, readNumberParam, readStringParam } from "openclaw/plugin-sdk";
+import type { RecordQueryResult } from "../meridia/db/backend.js";
+import type { MeridiaExperienceRecord } from "../meridia/types.js";
 import { createBackend } from "../meridia/db/index.js";
+import { searchRecordsByVector } from "../meridia/vector/search.js";
 
 const ExperienceSearchSchema = Type.Object({
   query: Type.Optional(
@@ -52,6 +55,95 @@ const ExperienceSearchSchema = Type.Object({
   ),
 });
 
+function matchesRecordFilters(
+  record: MeridiaExperienceRecord,
+  filters: {
+    sessionKey?: string;
+    toolName?: string;
+    minScore?: number;
+    from?: string;
+    to?: string;
+    tag?: string;
+  },
+): boolean {
+  if (filters.sessionKey && record.session?.key !== filters.sessionKey) {
+    return false;
+  }
+  if (filters.toolName && record.tool?.name !== filters.toolName) {
+    return false;
+  }
+  if (filters.minScore !== undefined && record.capture.score < filters.minScore) {
+    return false;
+  }
+  if (filters.from && record.ts < filters.from) {
+    return false;
+  }
+  if (filters.to && record.ts > filters.to) {
+    return false;
+  }
+  if (filters.tag) {
+    const tags = record.content?.tags ?? [];
+    if (!tags.includes(filters.tag)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function mergeRankedResults(params: {
+  textResults: RecordQueryResult[];
+  vectorResults: Array<{ record: MeridiaExperienceRecord; similarity: number }>;
+  limit: number;
+}): Array<
+  RecordQueryResult & {
+    vectorSimilarity?: number;
+  }
+> {
+  const byId = new Map<
+    string,
+    RecordQueryResult & {
+      vectorSimilarity?: number;
+    }
+  >();
+
+  for (const result of params.textResults) {
+    byId.set(result.record.id, { ...result });
+  }
+
+  for (const vectorResult of params.vectorResults) {
+    const existing = byId.get(vectorResult.record.id);
+    if (existing) {
+      byId.set(vectorResult.record.id, {
+        ...existing,
+        vectorSimilarity: Math.max(existing.vectorSimilarity ?? 0, vectorResult.similarity),
+      });
+      continue;
+    }
+    byId.set(vectorResult.record.id, {
+      record: vectorResult.record,
+      vectorSimilarity: vectorResult.similarity,
+    });
+  }
+
+  const toTextScore = (rank: number | undefined): number => {
+    if (rank === undefined || !Number.isFinite(rank)) {
+      return 0;
+    }
+    return 1 / (1 + Math.max(0, rank));
+  };
+
+  return Array.from(byId.values())
+    .sort((a, b) => {
+      const scoreA = Math.max(a.vectorSimilarity ?? 0, toTextScore(a.rank), a.record.capture.score);
+      const scoreB = Math.max(b.vectorSimilarity ?? 0, toTextScore(b.rank), b.record.capture.score);
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+      return b.record.ts.localeCompare(a.record.ts);
+    })
+    .slice(0, params.limit);
+}
+
 export function createExperienceSearchTool(opts?: { config?: OpenClawConfig }): AnyAgentTool {
   return {
     label: "ExperienceSearch",
@@ -93,7 +185,7 @@ export function createExperienceSearchTool(opts?: { config?: OpenClawConfig }): 
           tag,
         };
 
-        const results =
+        let results =
           recent && !query && !from && !to
             ? await backend.getRecentRecords(limit, { sessionKey, toolName, minScore, tag })
             : query
@@ -118,6 +210,25 @@ export function createExperienceSearchTool(opts?: { config?: OpenClawConfig }): 
                         tag,
                       });
 
+        if (query) {
+          const vectorResults = (
+            await searchRecordsByVector({
+              backend,
+              cfg: opts?.config,
+              query,
+              limit,
+              minSimilarity: 0.3,
+              minScore,
+            })
+          ).filter((entry) => matchesRecordFilters(entry.record, filters));
+
+          results = mergeRankedResults({
+            textResults: results,
+            vectorResults,
+            limit,
+          });
+        }
+
         const stats = await backend.getStats();
 
         const formatted = results.map((r) => ({
@@ -133,6 +244,9 @@ export function createExperienceSearchTool(opts?: { config?: OpenClawConfig }): 
           reason: r.record.capture.evaluation.reason ?? null,
           tags: r.record.content?.tags ?? null,
           ...(r.rank !== undefined ? { ftsRank: r.rank } : {}),
+          ...("vectorSimilarity" in r
+            ? { vectorSimilarity: (r as { vectorSimilarity?: number }).vectorSimilarity ?? null }
+            : {}),
           preview:
             r.record.content?.topic ??
             r.record.content?.summary ??

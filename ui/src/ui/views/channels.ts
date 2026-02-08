@@ -14,6 +14,7 @@ import type {
   WhatsAppStatus,
 } from "../types.ts";
 import type { ChannelKey, ChannelsChannelData, ChannelsProps } from "./channels.types.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatAgo } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { renderDiscordCard } from "./channels.discord.ts";
@@ -75,13 +76,7 @@ export function renderChannels(props: ChannelsProps) {
         </div>
         <div class="muted">${props.lastSuccessAt ? formatAgo(props.lastSuccessAt) : "n/a"}</div>
       </div>
-      ${
-        props.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${props.lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(props.lastError)}
       <pre class="code-block" style="margin-top: 12px;">
 ${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : "No snapshot yet."}
       </pre>
@@ -90,13 +85,27 @@ ${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : "No snapshot yet."}
 }
 
 function resolveChannelOrder(snapshot: ChannelsStatusSnapshot | null): ChannelKey[] {
+  const validChannelKeys: ChannelKey[] = [
+    "whatsapp",
+    "telegram",
+    "discord",
+    "googlechat",
+    "slack",
+    "signal",
+    "imessage",
+    "nostr",
+  ];
   if (snapshot?.channelMeta?.length) {
-    return snapshot.channelMeta.map((entry) => entry.id);
+    return snapshot.channelMeta
+      .map((entry) => entry.id)
+      .filter((id): id is ChannelKey => validChannelKeys.includes(id as ChannelKey));
   }
   if (snapshot?.channelOrder?.length) {
-    return snapshot.channelOrder;
+    return snapshot.channelOrder.filter((id): id is ChannelKey =>
+      validChannelKeys.includes(id as ChannelKey),
+    );
   }
-  return ["whatsapp", "telegram", "discord", "googlechat", "slack", "signal", "imessage", "nostr"];
+  return validChannelKeys;
 }
 
 function renderChannel(key: ChannelKey, props: ChannelsProps, data: ChannelsChannelData) {
@@ -222,13 +231,7 @@ function renderGenericChannelCard(
           `
       }
 
-      ${
-        lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${lastError}
-          </div>`
-          : nothing
-      }
+      ${renderErrorIf(lastError)}
 
       ${renderChannelConfigSection({ channelId: key, props })}
     </div>

@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig, MemorySearchConfig } from "../config/config.js";
+import type { EmbeddingModality } from "../memory/embeddings.js";
 import { resolveStateDir } from "../config/paths.js";
 import { clampInt, clampNumber, resolveUserPath } from "../utils.js";
 import { resolveAgentConfig } from "./agent-scope.js";
@@ -9,7 +10,7 @@ export type ResolvedMemorySearchConfig = {
   enabled: boolean;
   sources: Array<"memory" | "sessions">;
   extraPaths: string[];
-  provider: "openai" | "local" | "gemini" | "auto";
+  provider: "openai" | "local" | "gemini" | "voyage" | "auto";
   remote?: {
     baseUrl?: string;
     apiKey?: string;
@@ -25,7 +26,9 @@ export type ResolvedMemorySearchConfig = {
   experimental: {
     sessionMemory: boolean;
   };
-  fallback: "openai" | "gemini" | "local" | "none";
+  fallback: "openai" | "gemini" | "local" | "voyage" | "none";
+  /** Embedding modality hint — what content types the embeddings will handle. */
+  modality?: EmbeddingModality;
   model: string;
   local: {
     modelPath?: string;
@@ -72,6 +75,7 @@ export type ResolvedMemorySearchConfig = {
 
 const DEFAULT_OPENAI_MODEL = "text-embedding-3-small";
 const DEFAULT_GEMINI_MODEL = "gemini-embedding-001";
+const DEFAULT_VOYAGE_MODEL = "voyage-4-large";
 const DEFAULT_CHUNK_TOKENS = 400;
 const DEFAULT_CHUNK_OVERLAP = 80;
 const DEFAULT_WATCH_DEBOUNCE_MS = 1500;
@@ -136,7 +140,11 @@ function mergeConfig(
     defaultRemote?.headers,
   );
   const includeRemote =
-    hasRemoteConfig || provider === "openai" || provider === "gemini" || provider === "auto";
+    hasRemoteConfig ||
+    provider === "openai" ||
+    provider === "gemini" ||
+    provider === "voyage" ||
+    provider === "auto";
   const batch = {
     enabled: overrideRemote?.batch?.enabled ?? defaultRemote?.batch?.enabled ?? true,
     wait: overrideRemote?.batch?.wait ?? defaultRemote?.batch?.wait ?? true,
@@ -158,12 +166,15 @@ function mergeConfig(
       }
     : undefined;
   const fallback = overrides?.fallback ?? defaults?.fallback ?? "none";
+  const modality = overrides?.modality ?? defaults?.modality;
   const modelDefault =
     provider === "gemini"
       ? DEFAULT_GEMINI_MODEL
       : provider === "openai"
         ? DEFAULT_OPENAI_MODEL
-        : undefined;
+        : provider === "voyage"
+          ? DEFAULT_VOYAGE_MODEL
+          : undefined;
   const model = overrides?.model ?? defaults?.model ?? modelDefault ?? "";
   const local = {
     modelPath: overrides?.local?.modelPath ?? defaults?.local?.modelPath,
@@ -255,6 +266,7 @@ function mergeConfig(
       sessionMemory,
     },
     fallback,
+    modality,
     model,
     local,
     store,

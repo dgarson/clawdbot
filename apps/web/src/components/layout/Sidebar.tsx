@@ -25,6 +25,9 @@ import {
   Calendar,
   Share2,
   Search,
+  Layers3,
+  History,
+  ScrollText,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { NavItem } from "./NavItem";
@@ -215,6 +218,12 @@ export function Sidebar({ className, onSearchClick }: SidebarProps) {
               collapsed={sidebarCollapsed}
             />
             <NavItem
+              href="/sessions"
+              icon={History}
+              label="Sessions"
+              collapsed={sidebarCollapsed}
+            />
+            <NavItem
               href="/workstreams"
               icon={ListTodo}
               label="Workstreams"
@@ -272,6 +281,12 @@ export function Sidebar({ className, onSearchClick }: SidebarProps) {
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
+                  href="/logs"
+                  icon={ScrollText}
+                  label="Logs"
+                  collapsed={sidebarCollapsed}
+                />
+                <NavItem
                   href="/debug/graph"
                   icon={Share2}
                   label="Graph"
@@ -287,6 +302,12 @@ export function Sidebar({ className, onSearchClick }: SidebarProps) {
                   href="/jobs"
                   icon={Calendar}
                   label="Jobs"
+                  collapsed={sidebarCollapsed}
+                />
+                <NavItem
+                  href="/debug/page-scaffold"
+                  icon={Layers3}
+                  label="Scaffold"
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>

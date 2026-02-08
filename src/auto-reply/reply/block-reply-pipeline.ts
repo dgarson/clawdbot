@@ -1,7 +1,10 @@
 import type { ReplyPayload } from "../types.js";
 import type { BlockStreamingCoalescing } from "./block-streaming.js";
 import { logVerbose } from "../../globals.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { createBlockReplyCoalescer } from "./block-reply-coalescer.js";
+
+const log = createSubsystemLogger("agent/block-reply-pipeline");
 
 export type BlockReplyPipeline = {
   enqueue: (payload: ReplyPayload) => void;
@@ -92,18 +95,29 @@ export function createBlockReplyPipeline(params: {
 
   const sendPayload = (payload: ReplyPayload, skipSeen?: boolean) => {
     if (aborted) {
+      log.trace("sendPayload: aborted, skipping", { feature: "streaming" });
       return;
     }
     const payloadKey = createBlockReplyPayloadKey(payload);
     if (!skipSeen) {
       if (seenKeys.has(payloadKey)) {
+        log.trace("sendPayload: skipping seen payload", { feature: "streaming" });
         return;
       }
       seenKeys.add(payloadKey);
     }
     if (sentKeys.has(payloadKey) || pendingKeys.has(payloadKey)) {
+      log.trace("sendPayload: skipping already sent/pending", { feature: "streaming" });
       return;
     }
+    log.debug("sendPayload: queuing block reply delivery", {
+      feature: "streaming",
+      textLen: payload.text?.length ?? 0,
+      textPreview: payload.text?.slice(0, 60),
+      hasMedia: Boolean(payload.mediaUrl || payload.mediaUrls?.length),
+      pendingCount: pendingKeys.size,
+      sentCount: sentKeys.size,
+    });
     pendingKeys.add(payloadKey);
 
     const timeoutError = new Error(`block reply delivery timed out after ${timeoutMs}ms`);
@@ -194,9 +208,19 @@ export function createBlockReplyPipeline(params: {
 
   const enqueue = (payload: ReplyPayload) => {
     if (aborted) {
+      log.trace("enqueue: aborted, skipping", { feature: "streaming" });
       return;
     }
+    log.debug("enqueue: received payload", {
+      feature: "streaming",
+      textLen: payload.text?.length ?? 0,
+      textPreview: payload.text?.slice(0, 60),
+      hasMedia: Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0,
+      hasCoalescer: Boolean(coalescer),
+      hasBuffer: Boolean(buffer),
+    });
     if (bufferPayload(payload)) {
+      log.trace("enqueue: payload buffered (audio/special)", { feature: "streaming" });
       return;
     }
     const hasMedia = Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0;
@@ -208,9 +232,11 @@ export function createBlockReplyPipeline(params: {
     if (coalescer) {
       const payloadKey = createBlockReplyPayloadKey(payload);
       if (seenKeys.has(payloadKey) || pendingKeys.has(payloadKey) || bufferedKeys.has(payloadKey)) {
+        log.trace("enqueue: skipping coalescer duplicate", { feature: "streaming" });
         return;
       }
       bufferedKeys.add(payloadKey);
+      log.trace("enqueue: routing to coalescer", { feature: "streaming" });
       coalescer.enqueue(payload);
       return;
     }
@@ -218,6 +244,14 @@ export function createBlockReplyPipeline(params: {
   };
 
   const flush = async (options?: { force?: boolean }) => {
+    log.debug("flush: flushing pipeline", {
+      feature: "streaming",
+      force: options?.force,
+      hasCoalescer: Boolean(coalescer),
+      bufferedPayloadsCount: bufferedPayloads.length,
+      sentCount: sentKeys.size,
+      pendingCount: pendingKeys.size,
+    });
     await coalescer?.flush(options);
     flushBuffered();
     await sendChain;

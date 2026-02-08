@@ -47,17 +47,17 @@ export function stop(state: CronServiceState) {
 }
 
 export async function status(state: CronServiceState) {
-  // Lock-free read: ensureLoaded without forceReload trusts the in-memory
-  // copy, which is safe and avoids blocking behind a long-running job.
-  await ensureLoaded(state);
-  return {
-    enabled: state.deps.cronEnabled,
-    storePath: state.deps.storePath,
-    jobs: state.store?.jobs.length ?? 0,
-    nextWakeAtMs: state.deps.cronEnabled ? (nextWakeAtMs(state) ?? null) : null,
-    storeLoadError: state.storeLoadError,
-    consecutiveLoadFailures: state.consecutiveLoadFailures,
-  };
+  return await locked(state, async () => {
+    await ensureLoaded(state, { skipRecompute: true });
+    return {
+      enabled: state.deps.cronEnabled,
+      storePath: state.deps.storePath,
+      jobs: state.store?.jobs.length ?? 0,
+      nextWakeAtMs: state.deps.cronEnabled ? (nextWakeAtMs(state) ?? null) : null,
+      storeLoadError: state.storeLoadError,
+      consecutiveLoadFailures: state.consecutiveLoadFailures,
+    };
+  });
 }
 
 export async function list(state: CronServiceState, opts?: { includeDisabled?: boolean }) {
@@ -92,6 +92,22 @@ export async function update(state: CronServiceState, id: string, patch: CronJob
     const job = findJobOrThrow(state, id);
     const now = state.deps.nowMs();
     applyJobPatch(job, patch);
+    if (job.schedule.kind === "every") {
+      const anchor = job.schedule.anchorMs;
+      if (typeof anchor !== "number" || !Number.isFinite(anchor)) {
+        const patchSchedule = patch.schedule;
+        const fallbackAnchorMs =
+          patchSchedule?.kind === "every"
+            ? now
+            : typeof job.createdAtMs === "number" && Number.isFinite(job.createdAtMs)
+              ? job.createdAtMs
+              : now;
+        job.schedule = {
+          ...job.schedule,
+          anchorMs: Math.max(0, Math.floor(fallbackAnchorMs)),
+        };
+      }
+    }
     job.updatedAtMs = now;
 
     // If the job had a migration error, try re-migrating after the patch
@@ -145,26 +161,27 @@ export async function remove(state: CronServiceState, id: string) {
 export async function run(state: CronServiceState, id: string, mode?: "due" | "force") {
   const forced = mode === "force";
 
-  // Phase 1 (locked): validate, claim the job.
+  // Phase 1 (locked): validate and claim the job.
   const claimed = await locked(state, async () => {
     warnIfDisabled(state, "run");
-    await ensureLoaded(state);
+    await ensureLoaded(state, { skipRecompute: true });
     const job = findJobOrThrow(state, id);
+    if (typeof job.state.runningAtMs === "number") {
+      return { ok: true, ran: false, reason: "already-running" as const };
+    }
     const now = state.deps.nowMs();
     const due = isJobDue(job, now, { forced });
     if (!due) {
-      return null;
+      return { ok: true, ran: false, reason: "not-due" as const };
     }
     if (!claimJobRun(state, job)) {
-      return null; // already running
+      return { ok: true, ran: false, reason: "already-running" as const };
     }
-    // No persist here — in-memory runningAtMs prevents duplicate claims
-    // within this service instance. Phase 3 will persist the final state.
     return job;
   });
 
-  if (!claimed) {
-    return { ok: true, ran: false, reason: "not-due" as const };
+  if ("ok" in claimed) {
+    return claimed;
   }
 
   // Phase 2 (unlocked): execute the job payload.
@@ -175,8 +192,7 @@ export async function run(state: CronServiceState, id: string, mode?: "due" | "f
     result = { status: "error" as const, error: String(err) };
   }
 
-  // Phase 3 (locked): finalize, persist, re-arm.
-  // No forceReload — the in-memory store is consistent for in-process ops.
+  // Phase 3 (locked): finalize, persist, and re-arm.
   await locked(state, async () => {
     finalizeJobRun(state, claimed, result, {
       forced,

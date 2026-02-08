@@ -153,6 +153,10 @@ export type WorkerConfig = {
   flexible?: boolean;
   /** Polling interval in ms when no work is available (default 5000). */
   pollIntervalMs?: number;
+  /** Heartbeat interval in ms while processing an item (default: 30000). */
+  heartbeatIntervalMs?: number;
+  /** Heartbeat lease TTL in ms before recovery considers an item stale (default: 300000). */
+  heartbeatTtlMs?: number;
   /** Model override for worker sessions. */
   model?: string;
   /** Thinking level override for worker sessions. */

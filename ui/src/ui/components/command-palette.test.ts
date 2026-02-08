@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createContextCommands, createDefaultCommands } from "./command-palette";
+import { createContextCommands, createDefaultCommands } from "./command-palette.js";
 
 describe("createContextCommands", () => {
   const noop = () => {};

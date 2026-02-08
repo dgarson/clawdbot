@@ -1,11 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { StreamingMiddleware } from "./middleware.js";
+import type { AgentStreamEvent, RawStreamEvent, StreamMiddlewareConfig } from "./types.js";
 import { TypedEventEmitter } from "./emitter.js";
-import type {
-  AgentStreamEvent,
-  RawStreamEvent,
-  StreamMiddlewareConfig,
-} from "./types.js";
+import { StreamingMiddleware } from "./middleware.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -292,9 +288,7 @@ describe("StreamingMiddleware — tool results", () => {
       id: "call-1",
       args: { q: "test" },
     });
-    expect(events).toEqual([
-      { kind: "tool_start", name: "search", id: "call-1" },
-    ]);
+    expect(events).toEqual([{ kind: "tool_start", name: "search", id: "call-1" }]);
   });
 });
 
@@ -314,9 +308,7 @@ describe("StreamingMiddleware — block reply chunking", () => {
     mw.push({ kind: "message_end" });
     const blockReplies = events.filter((e) => e.kind === "block_reply");
     expect(blockReplies.length).toBeGreaterThanOrEqual(1);
-    const allText = blockReplies
-      .map((e) => (e as { text: string }).text)
-      .join("");
+    const allText = blockReplies.map((e) => (e as { text: string }).text).join("");
     expect(allText).toContain("Hello");
   });
 
@@ -342,9 +334,7 @@ describe("StreamingMiddleware — block reply chunking", () => {
     mw.push({ kind: "message_start" });
     const blockReplies = events.filter((e) => e.kind === "block_reply");
     expect(blockReplies.length).toBe(1);
-    expect((blockReplies[0] as { text: string }).text).toBe(
-      "buffered content",
-    );
+    expect((blockReplies[0] as { text: string }).text).toBe("buffered content");
   });
 });
 
@@ -552,10 +542,7 @@ describe("StreamingMiddleware — delivery state", () => {
     ]);
 
     const state = mw.getDeliveryState();
-    expect(state.messagingToolSentTexts).toEqual([
-      "first message",
-      "second message",
-    ]);
+    expect(state.messagingToolSentTexts).toEqual(["first message", "second message"]);
     expect(state.messagingToolSentTargets).toEqual([
       { tool: "sessions_send", provider: "telegram" },
       { tool: "sessions_send", provider: "discord" },
@@ -573,9 +560,7 @@ describe("StreamingMiddleware — passthrough events", () => {
   it("passes lifecycle events through", () => {
     const { mw, events } = createMiddleware();
     mw.push({ kind: "lifecycle", phase: "start", data: { foo: "bar" } });
-    expect(events).toEqual([
-      { kind: "lifecycle", phase: "start", data: { foo: "bar" } },
-    ]);
+    expect(events).toEqual([{ kind: "lifecycle", phase: "start", data: { foo: "bar" } }]);
   });
 
   it("passes agent_event through", () => {
@@ -585,9 +570,7 @@ describe("StreamingMiddleware — passthrough events", () => {
       stream: "custom",
       data: { value: 42 },
     });
-    expect(events).toEqual([
-      { kind: "agent_event", stream: "custom", data: { value: 42 } },
-    ]);
+    expect(events).toEqual([{ kind: "agent_event", stream: "custom", data: { value: 42 } }]);
   });
 
   it("passes message_start and message_end through", () => {

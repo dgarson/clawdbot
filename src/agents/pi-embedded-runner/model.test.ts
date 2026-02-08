@@ -6,8 +6,8 @@ vi.mock("../pi-model-discovery.js", () => ({
 }));
 
 import type { OpenClawConfig } from "../../config/config.js";
+import { buildInlineProviderModels, resolveModel } from "../model-resolution.js";
 import { discoverModels } from "../pi-model-discovery.js";
-import { buildInlineProviderModels, resolveModel } from "./model.js";
 
 const makeModel = (id: string) => ({
   id,
@@ -169,6 +169,41 @@ describe("resolveModel", () => {
       reasoning: true,
       contextWindow: 272000,
       maxTokens: 128000,
+    });
+  });
+
+  it("builds an anthropic forward-compat fallback for claude-opus-4-6", () => {
+    const templateModel = {
+      id: "claude-opus-4-5",
+      name: "Claude Opus 4.5",
+      provider: "anthropic",
+      api: "anthropic-messages",
+      baseUrl: "https://api.anthropic.com",
+      reasoning: true,
+      input: ["text", "image"] as const,
+      cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
+      contextWindow: 200000,
+      maxTokens: 64000,
+    };
+
+    vi.mocked(discoverModels).mockReturnValue({
+      find: vi.fn((provider: string, modelId: string) => {
+        if (provider === "anthropic" && modelId === "claude-opus-4-5") {
+          return templateModel;
+        }
+        return null;
+      }),
+    } as unknown as ReturnType<typeof discoverModels>);
+
+    const result = resolveModel("anthropic", "claude-opus-4-6", "/tmp/agent");
+
+    expect(result.error).toBeUndefined();
+    expect(result.model).toMatchObject({
+      provider: "anthropic",
+      id: "claude-opus-4-6",
+      api: "anthropic-messages",
+      baseUrl: "https://api.anthropic.com",
+      reasoning: true,
     });
   });
 

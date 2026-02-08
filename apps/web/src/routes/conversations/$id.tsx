@@ -19,9 +19,12 @@ import {
 } from "@/hooks/mutations/useConversationMutations";
 import { useConversationStore } from "@/stores/useConversationStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { RouteErrorFallback } from "@/components/composed";
 
 export const Route = createFileRoute("/conversations/$id")({
   component: ConversationDetailPage,
+  errorComponent: RouteErrorFallback,
 });
 
 function ConversationDetailPage() {
@@ -39,8 +42,18 @@ function ConversationDetailPage() {
   }, [id, setActiveConversation]);
 
   // Fetch data
-  const { data: conversation, isLoading: conversationLoading } = useConversation(id);
-  const { data: messages, isLoading: messagesLoading } = useMessages(id);
+  const {
+    data: conversation,
+    isLoading: conversationLoading,
+    error: conversationError,
+    refetch: refetchConversation,
+  } = useConversation(id);
+  const {
+    data: messages,
+    isLoading: messagesLoading,
+    error: messagesError,
+    refetch: refetchMessages,
+  } = useMessages(id);
   const { data: agent } = useAgent(conversation?.agentId || "");
 
   // Mutations
@@ -62,15 +75,6 @@ function ConversationDetailPage() {
         role: "user",
         content: value.trim(),
       });
-
-      // Simulate an AI response after a delay
-      setTimeout(async () => {
-        await sendMessage.mutateAsync({
-          conversationId: id,
-          role: "assistant",
-          content: "I received your message and I'm processing it. This is a simulated response for the demo.",
-        });
-      }, 1000);
     } catch {
       toast.error("Failed to send message");
     }
@@ -92,6 +96,8 @@ function ConversationDetailPage() {
   };
 
   const isLoading = conversationLoading || messagesLoading;
+  const error = conversationError ?? messagesError;
+  const showBlockingError = Boolean(error) && !conversation;
 
   if (conversationLoading) {
     return (
@@ -120,6 +126,38 @@ function ConversationDetailPage() {
     );
   }
 
+  if (showBlockingError) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            Failed to load conversation
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            {error instanceof Error ? error.message : "Please try again."}
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <Button variant="outline" onClick={handleBack}>
+              Back to conversations
+            </Button>
+            <Button
+              onClick={() => {
+                refetchConversation();
+                refetchMessages();
+              }}
+            >
+              Retry
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (!conversation) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -134,12 +172,12 @@ function ConversationDetailPage() {
           <p className="text-muted-foreground mb-4">
             This conversation may have been deleted or does not exist.
           </p>
-          <button
+          <Button
+            variant="outline"
             onClick={handleBack}
-            className="text-primary hover:underline"
           >
             Back to conversations
-          </button>
+          </Button>
         </motion.div>
       </div>
     );
@@ -155,6 +193,26 @@ function ConversationDetailPage() {
           onBack={handleBack}
           onSettings={() => setIsSettingsOpen(true)}
         />
+
+        {error && (
+          <div className="mx-4 mt-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-destructive">
+                Failed to refresh conversation. Showing last loaded messages.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  refetchConversation();
+                  refetchMessages();
+                }}
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Chat Thread */}
         <ChatThread

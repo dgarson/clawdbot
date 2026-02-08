@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { subscribeEmbeddedPiSession } from "./pi-embedded-subscribe.js";
+import { StreamingMiddleware, type AgentStreamEvent } from "./stream/index.js";
 
 type StubSession = {
   subscribe: (fn: (evt: unknown) => void) => () => void;
@@ -23,15 +24,15 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onPartialReply = vi.fn();
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
       enforceFinalTag: true,
-      onPartialReply,
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     handler?.({ type: "message_start", message: { role: "assistant" } });
@@ -44,11 +45,15 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onPartialReply).toHaveBeenCalled();
-    const firstPayload = onPartialReply.mock.calls[0][0];
-    expect(firstPayload.text).toBe("Hi there");
+    const partialReplies = events.filter((e) => e.kind === "partial_reply");
+    expect(partialReplies.length).toBeGreaterThan(0);
+    const firstPayload = partialReplies[0];
+    if (firstPayload.kind === "partial_reply") {
+      expect(firstPayload.text).toBe("Hi there");
+    }
 
-    onPartialReply.mockReset();
+    // Clear events for next part of the test
+    events.length = 0;
 
     handler?.({ type: "message_start", message: { role: "assistant" } });
     handler?.({
@@ -60,7 +65,11 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    expect(onPartialReply).not.toHaveBeenCalled();
+    const partialReplies2 = events.filter((e) => e.kind === "partial_reply");
+    expect(partialReplies2).toHaveLength(0);
+
+    unsub();
+    mw.destroy();
   });
   it("emits agent events on message_end even without <final> tags", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -71,13 +80,15 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onAgentEvent = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
       enforceFinalTag: true,
-      onAgentEvent,
+      streamMiddleware: mw,
     });
 
     const assistantMessage = {
@@ -88,12 +99,16 @@ describe("subscribeEmbeddedPiSession", () => {
     handler?.({ type: "message_start", message: assistantMessage });
     handler?.({ type: "message_end", message: assistantMessage });
 
-    const payloads = onAgentEvent.mock.calls
-      .map((call) => call[0]?.data as Record<string, unknown> | undefined)
+    const agentEvents = events.filter((e) => e.kind === "agent_event");
+    const payloads = agentEvents
+      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("Hello world");
     expect(payloads[0]?.delta).toBe("Hello world");
+
+    unsub();
+    mw.destroy();
   });
   it("does not require <final> when enforcement is off", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -104,12 +119,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onPartialReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onPartialReply,
+      streamMiddleware: mw,
     });
 
     handler?.({
@@ -121,8 +138,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     });
 
-    const payload = onPartialReply.mock.calls[0][0];
-    expect(payload.text).toBe("Hello world");
+    const partialReplies = events.filter((e) => e.kind === "partial_reply");
+    expect(partialReplies.length).toBeGreaterThan(0);
+    if (partialReplies[0].kind === "partial_reply") {
+      expect(partialReplies[0].text).toBe("Hello world");
+    }
+
+    unsub();
+    mw.destroy();
   });
   it("emits block replies on message_end", () => {
     let handler: ((evt: unknown) => void) | undefined;
@@ -133,12 +156,14 @@ describe("subscribeEmbeddedPiSession", () => {
       },
     };
 
-    const onBlockReply = vi.fn();
+    const mw = new StreamingMiddleware({ reasoningLevel: "off" });
+    const events: AgentStreamEvent[] = [];
+    const unsub = mw.subscribe((e) => events.push(e));
 
     subscribeEmbeddedPiSession({
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
-      onBlockReply,
+      streamMiddleware: mw,
       blockReplyBreak: "message_end",
     });
 
@@ -149,8 +174,13 @@ describe("subscribeEmbeddedPiSession", () => {
 
     handler?.({ type: "message_end", message: assistantMessage });
 
-    expect(onBlockReply).toHaveBeenCalled();
-    const payload = onBlockReply.mock.calls[0][0];
-    expect(payload.text).toBe("Hello block");
+    const blockReplies = events.filter((e) => e.kind === "block_reply");
+    expect(blockReplies.length).toBeGreaterThan(0);
+    if (blockReplies[0].kind === "block_reply") {
+      expect(blockReplies[0].text).toBe("Hello block");
+    }
+
+    unsub();
+    mw.destroy();
   });
 });

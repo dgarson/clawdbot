@@ -32,6 +32,7 @@ export type ExtensionToolDefinition = {
 export type RunEmbeddedPiAgentParams = {
   sessionId: string;
   sessionKey?: string;
+  agentId?: string;
   messageChannel?: string;
   messageProvider?: string;
   agentAccountId?: string;
@@ -91,22 +92,8 @@ export type RunEmbeddedPiAgentParams = {
   abortSignal?: AbortSignal;
   shouldEmitToolResult?: () => boolean;
   shouldEmitToolOutput?: () => boolean;
-  onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
-  onAssistantMessageStart?: () => void | Promise<void>;
-  onBlockReply?: (payload: {
-    text?: string;
-    mediaUrls?: string[];
-    audioAsVoice?: boolean;
-    replyToId?: string;
-    replyToTag?: boolean;
-    replyToCurrent?: boolean;
-  }) => void | Promise<void>;
-  onBlockReplyFlush?: () => void | Promise<void>;
   blockReplyBreak?: "text_end" | "message_end";
   blockReplyChunking?: BlockReplyChunking;
-  onReasoningStream?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
-  onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void;
   lane?: string;
   enqueue?: typeof enqueueCommand;
   extraSystemPrompt?: string;
@@ -117,4 +104,25 @@ export type RunEmbeddedPiAgentParams = {
   extraTools?: ExtensionToolDefinition[];
   /** StreamingMiddleware instance — passed through to subscribeEmbeddedPiSession. */
   streamMiddleware?: StreamingMiddleware;
+  /** Called with partial text chunks as they are generated. */
+  onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with accumulated text blocks at message/text boundaries. */
+  onBlockReply?: (payload: {
+    text?: string;
+    mediaUrls?: string[];
+    replyToId?: string;
+    replyToTag?: boolean;
+    replyToCurrent?: boolean;
+    audioAsVoice?: boolean;
+  }) => void | Promise<void>;
+  /** Called when a block reply should be flushed. */
+  onBlockReplyFlush?: () => void | Promise<void>;
+  /** Called with reasoning/thinking text as it streams. */
+  onReasoningStream?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with tool result output text. */
+  onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with agent lifecycle/diagnostic events. */
+  onAgentEvent?: (evt: unknown) => void | Promise<void>;
+  /** Called when an assistant message starts. */
+  onAssistantMessageStart?: () => void | Promise<void>;
 };

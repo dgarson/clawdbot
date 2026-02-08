@@ -13,6 +13,7 @@ import {
 } from "./system-prompt.js";
 import {
   BACKOFF_BASE_MS,
+  DEFAULT_HEARTBEAT_INTERVAL_MS,
   DEFAULT_POLL_INTERVAL_MS,
   MAX_CONSECUTIVE_ERRORS,
 } from "./worker-defaults.js";
@@ -146,8 +147,14 @@ export class WorkQueueWorker {
         this.consecutiveErrors = 0;
         this.currentItemId = item.id;
 
+        const heartbeat = this.startHeartbeat(item.id, signal);
         const startTime = Date.now();
-        const result = await this.processItem(item);
+        let result: ProcessItemResult;
+        try {
+          result = await this.processItem(item);
+        } finally {
+          heartbeat.stop();
+        }
         const durationMs = Date.now() - startTime;
 
         // Determine outcome.
@@ -194,6 +201,7 @@ export class WorkQueueWorker {
               outputs: result.context?.outputs,
             },
             completedAt: now,
+            lastHeartbeatAt: undefined,
           });
           this.deps.log.info(
             `worker[${this.agentId}]: completed item ${item.id} in ${durationMs}ms`,
@@ -266,6 +274,7 @@ export class WorkQueueWorker {
         statusReason: `max retries exceeded (${retryCount}/${maxRetries})`,
         error: { message: error ?? "unknown error", recoverable: false },
         completedAt: now,
+        lastHeartbeatAt: undefined,
       });
       this.deps.log.warn(
         `worker[${this.agentId}]: item ${item.id} exhausted retries (${retryCount}/${maxRetries})`,
@@ -281,6 +290,7 @@ export class WorkQueueWorker {
         assignedTo: undefined,
         startedAt: undefined,
         completedAt: undefined,
+        lastHeartbeatAt: undefined,
       });
       this.deps.log.info(
         `worker[${this.agentId}]: item ${item.id} returned to pending for retry ${retryCount}/${maxRetries}`,
@@ -293,6 +303,7 @@ export class WorkQueueWorker {
         lastOutcome: outcome,
         error: { message: error ?? "unknown error", recoverable: true },
         completedAt: now,
+        lastHeartbeatAt: undefined,
       });
       this.deps.log.warn(`worker[${this.agentId}]: failed item ${item.id}: ${error}`);
     }
@@ -545,6 +556,33 @@ export class WorkQueueWorker {
       };
       signal.addEventListener("abort", onAbort, { once: true });
     });
+  }
+
+  private startHeartbeat(itemId: string, signal: AbortSignal): { stop: () => void } {
+    const intervalMs = this.config.heartbeatIntervalMs ?? DEFAULT_HEARTBEAT_INTERVAL_MS;
+    if (intervalMs <= 0) {
+      return { stop: () => {} };
+    }
+
+    const bump = () => {
+      const now = new Date().toISOString();
+      this.deps.store
+        .updateItem(itemId, { lastHeartbeatAt: now })
+        .catch((err: unknown) =>
+          this.deps.log.debug(
+            `worker[${this.agentId}]: heartbeat update failed for ${itemId}: ${String(err)}`,
+          ),
+        );
+    };
+
+    bump();
+    const timer = setInterval(bump, intervalMs);
+    const stop = () => {
+      clearInterval(timer);
+      signal.removeEventListener("abort", stop);
+    };
+    signal.addEventListener("abort", stop, { once: true });
+    return { stop };
   }
 }
 

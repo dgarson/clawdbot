@@ -9,10 +9,12 @@
  */
 
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
+import type { VectorSearchAdapter } from "../retrieve/vector-adapter.js";
 import type { ReconstitutionPack } from "../types.js";
 import { createBackend } from "../db/backends/index.js";
 import { hybridRetrieve, type AvailableSources } from "../retrieve/hybrid.js";
 import { buildReconstitutionIntent } from "../retrieve/intent.js";
+import { probeVectorBackendAvailability, searchRecordsByVector } from "../vector/search.js";
 import { buildStructuredPack, renderPackAsMarkdown } from "./pack-builder.js";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -60,6 +62,41 @@ export async function generateEnhancedReconstitution(
 
   const backend = createBackend({ cfg: opts.config });
 
+  const vectorAdapter: VectorSearchAdapter = {
+    isAvailable: async () =>
+      probeVectorBackendAvailability({
+        backend,
+        cfg: opts.config,
+      }),
+    search: async (query, options) => {
+      const matches = await searchRecordsByVector({
+        backend,
+        cfg: opts.config,
+        query,
+        limit: options?.topK ?? 10,
+        minSimilarity: options?.minSimilarity ?? 0.3,
+        minScore: options?.filter?.minScore,
+      });
+
+      const sessionFilter = options?.filter?.sessionKey;
+      const qualityFilter = options?.filter?.engagementQuality;
+
+      return matches
+        .filter((entry) => (sessionFilter ? entry.record.session?.key === sessionFilter : true))
+        .filter((entry) =>
+          qualityFilter ? entry.record.phenomenology?.engagementQuality === qualityFilter : true,
+        )
+        .map((entry) => ({
+          id: entry.record.id,
+          similarity: entry.similarity,
+          metadata: {
+            sessionKey: entry.record.session?.key,
+            score: entry.record.capture.score,
+          },
+        }));
+    },
+  };
+
   // Build retrieval intent
   const intent = buildReconstitutionIntent({
     lookbackHours,
@@ -71,7 +108,7 @@ export async function generateEnhancedReconstitution(
   // Set up available sources (canonical always available)
   const sources: AvailableSources = {
     canonical: backend,
-    // vector adapter would be injected here when available
+    vector: vectorAdapter,
   };
 
   // Retrieve from all sources

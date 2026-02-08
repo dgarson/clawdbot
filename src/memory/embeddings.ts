@@ -4,6 +4,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import { resolveUserPath } from "../utils.js";
 import { createGeminiEmbeddingProvider, type GeminiEmbeddingClient } from "./embeddings-gemini.js";
 import { createOpenAiEmbeddingProvider, type OpenAiEmbeddingClient } from "./embeddings-openai.js";
+import { createVoyageEmbeddingProvider, type VoyageEmbeddingClient } from "./embeddings-voyage.js";
 import { importNodeLlamaCpp } from "./node-llama.js";
 
 function sanitizeAndNormalizeEmbedding(vec: number[]): number[] {
@@ -17,38 +18,54 @@ function sanitizeAndNormalizeEmbedding(vec: number[]): number[] {
 
 export type { GeminiEmbeddingClient } from "./embeddings-gemini.js";
 export type { OpenAiEmbeddingClient } from "./embeddings-openai.js";
+export type { VoyageEmbeddingClient } from "./embeddings-voyage.js";
+
+/**
+ * Supported embedding modalities.
+ * - "text" — text-only embeddings (default for all providers)
+ * - "image" — image-only embeddings
+ * - "text+image" — multimodal embeddings (e.g. Gemini multimodal)
+ */
+export type EmbeddingModality = "text" | "image" | "text+image";
 
 export type EmbeddingProvider = {
   id: string;
   model: string;
+  /** What modality this provider supports. Defaults to "text" if unset. */
+  modality?: EmbeddingModality;
   embedQuery: (text: string) => Promise<number[]>;
   embedBatch: (texts: string[]) => Promise<number[][]>;
 };
 
 export type EmbeddingProviderResult = {
   provider: EmbeddingProvider;
-  requestedProvider: "openai" | "local" | "gemini" | "auto";
-  fallbackFrom?: "openai" | "local" | "gemini";
+  requestedProvider: "openai" | "local" | "gemini" | "voyage" | "auto";
+  /** The modality requested, if any (from options). */
+  requestedModality?: EmbeddingModality;
+  fallbackFrom?: "openai" | "local" | "gemini" | "voyage";
   fallbackReason?: string;
   openAi?: OpenAiEmbeddingClient;
   gemini?: GeminiEmbeddingClient;
+  voyage?: VoyageEmbeddingClient;
 };
 
 export type EmbeddingProviderOptions = {
   config: OpenClawConfig;
   agentDir?: string;
-  provider: "openai" | "local" | "gemini" | "auto";
+  provider: "openai" | "local" | "gemini" | "voyage" | "auto";
   remote?: {
     baseUrl?: string;
     apiKey?: string;
     headers?: Record<string, string>;
   };
   model: string;
-  fallback: "openai" | "gemini" | "local" | "none";
+  fallback: "openai" | "gemini" | "local" | "voyage" | "none";
   local?: {
     modelPath?: string;
     modelCacheDir?: string;
   };
+  /** Optional modality hint — describes what modality the caller needs. */
+  modality?: EmbeddingModality;
 };
 
 const DEFAULT_LOCAL_MODEL = "hf:ggml-org/embeddinggemma-300M-GGUF/embeddinggemma-300M-Q8_0.gguf";
@@ -128,21 +145,38 @@ export async function createEmbeddingProvider(
   const requestedProvider = options.provider;
   const fallback = options.fallback;
 
-  const createProvider = async (id: "openai" | "local" | "gemini") => {
+  /** Determine the default modality for a given provider. */
+  const defaultModality = (id: "openai" | "local" | "gemini" | "voyage"): EmbeddingModality => {
+    // Gemini embedding models support multimodal (text+image) natively.
+    if (id === "gemini") return "text+image";
+    return "text";
+  };
+
+  const createProvider = async (id: "openai" | "local" | "gemini" | "voyage") => {
     if (id === "local") {
       const provider = await createLocalEmbeddingProvider(options);
+      provider.modality = options.modality ?? defaultModality(id);
       return { provider };
     }
     if (id === "gemini") {
       const { provider, client } = await createGeminiEmbeddingProvider(options);
+      provider.modality = options.modality ?? defaultModality(id);
       return { provider, gemini: client };
     }
+    if (id === "voyage") {
+      const { provider, client } = await createVoyageEmbeddingProvider(options);
+      provider.modality = options.modality ?? defaultModality(id);
+      return { provider, voyage: client };
+    }
     const { provider, client } = await createOpenAiEmbeddingProvider(options);
+    provider.modality = options.modality ?? defaultModality(id);
     return { provider, openAi: client };
   };
 
-  const formatPrimaryError = (err: unknown, provider: "openai" | "local" | "gemini") =>
+  const formatPrimaryError = (err: unknown, provider: "openai" | "local" | "gemini" | "voyage") =>
     provider === "local" ? formatLocalSetupError(err) : formatError(err);
+
+  const requestedModality = options.modality;
 
   if (requestedProvider === "auto") {
     const missingKeyErrors: string[] = [];
@@ -151,16 +185,16 @@ export async function createEmbeddingProvider(
     if (canAutoSelectLocal(options)) {
       try {
         const local = await createProvider("local");
-        return { ...local, requestedProvider };
+        return { ...local, requestedProvider, requestedModality };
       } catch (err) {
         localError = formatLocalSetupError(err);
       }
     }
 
-    for (const provider of ["openai", "gemini"] as const) {
+    for (const provider of ["openai", "gemini", "voyage"] as const) {
       try {
         const result = await createProvider(provider);
-        return { ...result, requestedProvider };
+        return { ...result, requestedProvider, requestedModality };
       } catch (err) {
         const message = formatPrimaryError(err, provider);
         if (isMissingApiKeyError(err)) {
@@ -180,7 +214,7 @@ export async function createEmbeddingProvider(
 
   try {
     const primary = await createProvider(requestedProvider);
-    return { ...primary, requestedProvider };
+    return { ...primary, requestedProvider, requestedModality };
   } catch (primaryErr) {
     const reason = formatPrimaryError(primaryErr, requestedProvider);
     if (fallback && fallback !== "none" && fallback !== requestedProvider) {
@@ -189,6 +223,7 @@ export async function createEmbeddingProvider(
         return {
           ...fallbackResult,
           requestedProvider,
+          requestedModality,
           fallbackFrom: requestedProvider,
           fallbackReason: reason,
         };
@@ -240,6 +275,7 @@ function formatLocalSetupError(err: unknown): string {
       : null,
     "3) If you use pnpm: pnpm approve-builds (select node-llama-cpp), then pnpm rebuild node-llama-cpp",
     'Or set agents.defaults.memorySearch.provider = "openai" (remote).',
+    'Or set agents.defaults.memorySearch.provider = "voyage" (remote).',
   ]
     .filter(Boolean)
     .join("\n");

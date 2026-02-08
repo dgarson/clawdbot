@@ -17,10 +17,6 @@ import type { EmbeddedPiRunResult } from "./pi-embedded-runner/types.js";
 /** Discriminant for the active agent runtime backend. */
 export type AgentRuntimeKind = "pi" | "claude";
 
-// ---------------------------------------------------------------------------
-// Shared callback types
-// ---------------------------------------------------------------------------
-
 /** Multimodal payload with full support for voice, video, and pictures. */
 export type AgentRuntimePayload = {
   text?: string;
@@ -37,17 +33,6 @@ export type AgentRuntimePayload = {
   isError?: boolean;
   /** Channel-specific payload data (per-channel envelope). */
   channelData?: Record<string, unknown>;
-};
-
-/** Streaming callbacks shared by all agent runtimes. */
-export type AgentRuntimeCallbacks = {
-  onPartialReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onAssistantMessageStart?: () => void | Promise<void>;
-  onBlockReply?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onToolResult?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  /** Called with thinking/reasoning text as the agent streams reasoning. */
-  onReasoningStream?: (payload: AgentRuntimePayload) => void | Promise<void>;
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
 };
 
 // ---------------------------------------------------------------------------
@@ -81,7 +66,32 @@ export type AgentRuntimeRunParams = {
     breakPreference?: "paragraph" | "newline" | "sentence";
     flushOnParagraph?: boolean;
   };
-} & AgentRuntimeCallbacks;
+  /** StreamingMiddleware instance for normalized event delivery. */
+  streamMiddleware?: import("./stream/index.js").StreamingMiddleware;
+  /** Called with partial text chunks as they are generated. */
+  onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with accumulated text blocks at message/text boundaries. */
+  onBlockReply?: (payload: {
+    text?: string;
+    mediaUrls?: string[];
+    replyToId?: string;
+    replyToTag?: boolean;
+    replyToCurrent?: boolean;
+    audioAsVoice?: boolean;
+  }) => void | Promise<void>;
+  /** Called with reasoning/thinking text as it streams. */
+  onReasoningStream?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Whether tool results should be emitted via onToolResult. */
+  shouldEmitToolResult?: (() => boolean) | boolean;
+  /** Whether tool output text should be emitted via onToolResult. */
+  shouldEmitToolOutput?: (() => boolean) | boolean;
+  /** Called with tool result output text. */
+  onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with agent lifecycle/diagnostic events. */
+  onAgentEvent?: (evt: unknown) => void | Promise<void>;
+  /** Called when an assistant message starts. */
+  onAssistantMessageStart?: () => void | Promise<void>;
+};
 
 // ---------------------------------------------------------------------------
 // Result type (same shape for all runtimes)

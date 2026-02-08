@@ -1,23 +1,30 @@
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest, ExecutionResult } from "../execution/types.js";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import { getReplyFromConfig } from "./reply.js";
+import { makeExecutionResult } from "./reply/test-helpers.js";
 
-type RunEmbeddedPiAgent = typeof import("../agents/pi-embedded.js").runEmbeddedPiAgent;
-type RunEmbeddedPiAgentParams = Parameters<RunEmbeddedPiAgent>[0];
+// Mock kernel — the production code calls createDefaultExecutionKernel().execute()
+const kernelExecuteMock = vi.fn<(request: ExecutionRequest) => Promise<ExecutionResult>>();
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: (req: ExecutionRequest) => kernelExecuteMock(req),
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
-const piEmbeddedMock = vi.hoisted(() => ({
+// Keep simplified pi-embedded mock for state-check functions (isEmbeddedPiRunActive, etc.)
+vi.mock("../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: vi.fn<ReturnType<RunEmbeddedPiAgent>, Parameters<RunEmbeddedPiAgent>>(),
+  runEmbeddedPiAgent: vi.fn(),
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
   resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
   isEmbeddedPiRunActive: vi.fn().mockReturnValue(false),
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
 }));
-
-vi.mock("/src/agents/pi-embedded.js", () => piEmbeddedMock);
-vi.mock("../agents/pi-embedded.js", () => piEmbeddedMock);
 vi.mock("../agents/model-catalog.js", () => ({
   loadModelCatalog: vi.fn(),
 }));
@@ -57,11 +64,7 @@ async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
 
 describe("block streaming", () => {
   beforeEach(() => {
-    piEmbeddedMock.abortEmbeddedPiRun.mockReset().mockReturnValue(false);
-    piEmbeddedMock.queueEmbeddedPiMessage.mockReset().mockReturnValue(false);
-    piEmbeddedMock.isEmbeddedPiRunActive.mockReset().mockReturnValue(false);
-    piEmbeddedMock.isEmbeddedPiRunStreaming.mockReset().mockReturnValue(false);
-    piEmbeddedMock.runEmbeddedPiAgent.mockReset();
+    kernelExecuteMock.mockReset();
     vi.mocked(loadModelCatalog).mockResolvedValue([
       { id: "claude-opus-4-5", name: "Opus 4.5", provider: "anthropic" },
       { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
@@ -87,17 +90,11 @@ describe("block streaming", () => {
       const onReplyStart = vi.fn(() => typingGate);
       const onBlockReply = vi.fn().mockResolvedValue(undefined);
 
-      const impl = async (params: RunEmbeddedPiAgentParams) => {
-        void params.onBlockReply?.({ text: "hello" });
-        return {
-          payloads: [{ text: "hello" }],
-          meta: {
-            durationMs: 5,
-            agentMeta: { sessionId: "s", provider: "p", model: "m" },
-          },
-        };
-      };
-      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(impl);
+      kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+        // Push block_reply event through the stream middleware
+        req.streamMiddleware?.push({ kind: "block_reply", text: "hello" });
+        return makeExecutionResult({ payloads: [{ text: "hello" }] });
+      });
 
       const replyPromise = getReplyFromConfig(
         {
@@ -145,18 +142,14 @@ describe("block streaming", () => {
         seen.push(payload.text ?? "");
       });
 
-      const impl = async (params: RunEmbeddedPiAgentParams) => {
-        void params.onBlockReply?.({ text: "first" });
-        void params.onBlockReply?.({ text: "second" });
-        return {
+      kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+        // Push two block_reply events through the stream middleware
+        req.streamMiddleware?.push({ kind: "block_reply", text: "first" });
+        req.streamMiddleware?.push({ kind: "block_reply", text: "second" });
+        return makeExecutionResult({
           payloads: [{ text: "first" }, { text: "second" }],
-          meta: {
-            durationMs: 5,
-            agentMeta: { sessionId: "s", provider: "p", model: "m" },
-          },
-        };
-      };
-      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(impl);
+        });
+      });
 
       const replyPromise = getReplyFromConfig(
         {
@@ -196,17 +189,12 @@ describe("block streaming", () => {
     await withTempHome(async (home) => {
       const onBlockReply = vi.fn().mockResolvedValue(undefined);
 
-      const impl = async (params: RunEmbeddedPiAgentParams) => {
-        void params.onBlockReply?.({ text: "chunk-1" });
-        return {
+      kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+        req.streamMiddleware?.push({ kind: "block_reply", text: "chunk-1" });
+        return makeExecutionResult({
           payloads: [{ text: "chunk-1\nchunk-2" }],
-          meta: {
-            durationMs: 5,
-            agentMeta: { sessionId: "s", provider: "p", model: "m" },
-          },
-        };
-      };
-      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(impl);
+        });
+      });
 
       const res = await getReplyFromConfig(
         {
@@ -253,17 +241,10 @@ describe("block streaming", () => {
         });
       });
 
-      const impl = async (params: RunEmbeddedPiAgentParams) => {
-        void params.onBlockReply?.({ text: "streamed" });
-        return {
-          payloads: [{ text: "final" }],
-          meta: {
-            durationMs: 5,
-            agentMeta: { sessionId: "s", provider: "p", model: "m" },
-          },
-        };
-      };
-      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(impl);
+      kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
+        req.streamMiddleware?.push({ kind: "block_reply", text: "streamed" });
+        return makeExecutionResult({ payloads: [{ text: "final" }] });
+      });
 
       const replyPromise = getReplyFromConfig(
         {
@@ -300,14 +281,9 @@ describe("block streaming", () => {
     await withTempHome(async (home) => {
       const onBlockReply = vi.fn().mockResolvedValue(undefined);
 
-      const impl = async () => ({
-        payloads: [{ text: "final" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
+      kernelExecuteMock.mockImplementationOnce(async () => {
+        return makeExecutionResult({ payloads: [{ text: "final" }] });
       });
-      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(impl);
 
       const res = await getReplyFromConfig(
         {

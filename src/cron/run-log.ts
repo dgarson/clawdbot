@@ -4,10 +4,13 @@ import path from "node:path";
 export type CronRunLogEntry = {
   ts: number;
   jobId: string;
+  jobCrn?: string;
   action: "finished";
   status?: "ok" | "error" | "skipped";
   error?: string;
   summary?: string;
+  sessionId?: string;
+  sessionKey?: string;
   runAtMs?: number;
   durationMs?: number;
   nextRunAtMs?: number;
@@ -93,7 +96,24 @@ export async function readCronRunLogEntries(
       if (jobId && obj.jobId !== jobId) {
         continue;
       }
-      parsed.push(obj as CronRunLogEntry);
+      const entry: CronRunLogEntry = {
+        ts: obj.ts,
+        jobId: obj.jobId,
+        action: "finished",
+        status: obj.status,
+        error: obj.error,
+        summary: obj.summary,
+        runAtMs: obj.runAtMs,
+        durationMs: obj.durationMs,
+        nextRunAtMs: obj.nextRunAtMs,
+      };
+      if (typeof obj.sessionId === "string" && obj.sessionId.trim().length > 0) {
+        entry.sessionId = obj.sessionId;
+      }
+      if (typeof obj.sessionKey === "string" && obj.sessionKey.trim().length > 0) {
+        entry.sessionKey = obj.sessionKey;
+      }
+      parsed.push(entry);
     } catch {
       // ignore invalid lines
     }

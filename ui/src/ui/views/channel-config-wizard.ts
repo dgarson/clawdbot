@@ -10,10 +10,10 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
-import type { ConfigUiHints } from "../types";
-import type { ChannelKey, ChannelsProps } from "./channels.types";
-import { icon, type IconName } from "../icons";
-import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./config-form";
+import type { ConfigUiHints } from "../types.js";
+import type { ChannelKey, ChannelsProps } from "./channels.types.js";
+import { icon, type IconName } from "../icons.js";
+import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./config-form.js";
 
 // ============================================================================
 // Types
@@ -476,8 +476,6 @@ function renderFieldGroup(params: {
           unsupported,
           disabled,
           showLabel: false,
-          compactToggles: true,
-          flattenObjects: true,
           onPatch,
         })}
       </div>
@@ -600,8 +598,6 @@ function renderContent(params: {
             unsupported,
             disabled,
             showLabel: false,
-            compactToggles: true,
-            flattenObjects: true,
             onPatch,
           })}
         </div>

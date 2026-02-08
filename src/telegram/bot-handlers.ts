@@ -13,6 +13,7 @@ import { resolveStoredModelOverride } from "../auto-reply/reply/model-selection.
 import { listSkillCommandsForAgents } from "../auto-reply/skill-commands.js";
 import { buildCommandsMessagePaginated } from "../auto-reply/status.js";
 import { resolveChannelConfigWrites } from "../channels/plugins/config-writes.js";
+import { getCallbackRouter } from "../channels/telegram/callback-router.js";
 import { loadConfig } from "../config/config.js";
 import { writeConfigFile } from "../config/io.js";
 import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
@@ -437,6 +438,21 @@ export const registerTelegramHandlers = ({
             return;
           }
         }
+      }
+
+      const callbackRouter = getCallbackRouter();
+      const routed = await callbackRouter.route({
+        callbackData: data,
+        prefix: "",
+        actionId: "",
+        chatId: String(chatId),
+        userId: senderId,
+        username: senderUsername || undefined,
+        callbackQueryId: callback.id,
+        messageId: callbackMessage.message_id,
+      });
+      if (routed) {
+        return;
       }
 
       const paginationMatch = data.match(/^commands_page_(\d+|noop)(?::(.+))?$/);

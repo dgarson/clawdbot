@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import type { EventLogEntry } from "../app-events.ts";
+import { renderErrorIf } from "../components/error-boundary.js";
 import { formatEventPayload } from "../presenter.ts";
 
 export type DebugProps = {
@@ -93,13 +94,7 @@ export function renderDebug(props: DebugProps) {
         <div class="row" style="margin-top: 12px;">
           <button class="btn primary" @click=${props.onCall}>Call</button>
         </div>
-        ${
-          props.callError
-            ? html`<div class="callout danger" style="margin-top: 12px;">
-              ${props.callError}
-            </div>`
-            : nothing
-        }
+        ${renderErrorIf(props.callError)}
         ${
           props.callResult
             ? html`<pre class="code-block" style="margin-top: 12px;">${props.callResult}</pre>`

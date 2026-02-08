@@ -2,19 +2,21 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 import { DEFAULT_MEMORY_FLUSH_PROMPT } from "./memory-flush.js";
-import { createMockTypingController } from "./test-helpers.js";
+import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
-const runCliAgentMock = vi.fn();
+const kernelExecuteMock = vi.fn();
 
-type EmbeddedRunParams = {
-  prompt?: string;
-  extraSystemPrompt?: string;
-  onAgentEvent?: (evt: { stream?: string; data?: { phase?: string; willRetry?: boolean } }) => void;
-};
+vi.mock("../../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: () => ({
+    execute: kernelExecuteMock,
+    abort: vi.fn(),
+    getActiveRunCount: () => 0,
+  }),
+}));
 
 vi.mock("../../agents/model-fallback.js", () => ({
   hasConfiguredModelFallback: vi.fn().mockReturnValue(true),
@@ -34,12 +36,12 @@ vi.mock("../../agents/model-fallback.js", () => ({
 }));
 
 vi.mock("../../agents/cli-runner.js", () => ({
-  runCliAgent: (params: unknown) => runCliAgentMock(params),
+  runCliAgent: vi.fn(),
 }));
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
+  runEmbeddedPiAgent: vi.fn(),
 }));
 
 vi.mock("./queue.js", async () => {
@@ -124,7 +126,7 @@ function createBaseRun(params: {
 
 describe("runReplyAgent memory flush", () => {
   it("runs a memory flush turn and updates session metadata", async () => {
-    runEmbeddedPiAgentMock.mockReset();
+    kernelExecuteMock.mockReset();
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
@@ -138,15 +140,12 @@ describe("runReplyAgent memory flush", () => {
     await seedSessionStore({ storePath, sessionKey, entry: sessionEntry });
 
     const calls: Array<{ prompt?: string }> = [];
-    runEmbeddedPiAgentMock.mockImplementation(async (params: EmbeddedRunParams) => {
-      calls.push({ prompt: params.prompt });
-      if (params.prompt === DEFAULT_MEMORY_FLUSH_PROMPT) {
-        return { payloads: [], meta: {} };
+    kernelExecuteMock.mockImplementation(async (req: ExecutionRequest) => {
+      calls.push({ prompt: req.prompt });
+      if (req.prompt === DEFAULT_MEMORY_FLUSH_PROMPT) {
+        return makeExecutionResult({ payloads: [] });
       }
-      return {
-        payloads: [{ text: "ok" }],
-        meta: { agentMeta: { usage: { input: 1, output: 1 } } },
-      };
+      return makeExecutionResult({ payloads: [{ text: "ok" }] });
     });
 
     const { typing, sessionCtx, resolvedQueue, followupRun } = createBaseRun({
@@ -186,7 +185,7 @@ describe("runReplyAgent memory flush", () => {
     expect(stored[sessionKey].memoryFlushCompactionCount).toBe(1);
   });
   it("skips memory flush when disabled in config", async () => {
-    runEmbeddedPiAgentMock.mockReset();
+    kernelExecuteMock.mockReset();
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
@@ -199,10 +198,9 @@ describe("runReplyAgent memory flush", () => {
 
     await seedSessionStore({ storePath, sessionKey, entry: sessionEntry });
 
-    runEmbeddedPiAgentMock.mockImplementation(async (_params: EmbeddedRunParams) => ({
-      payloads: [{ text: "ok" }],
-      meta: { agentMeta: { usage: { input: 1, output: 1 } } },
-    }));
+    kernelExecuteMock.mockImplementation(async () =>
+      makeExecutionResult({ payloads: [{ text: "ok" }] }),
+    );
 
     const { typing, sessionCtx, resolvedQueue, followupRun } = createBaseRun({
       storePath,
@@ -239,8 +237,8 @@ describe("runReplyAgent memory flush", () => {
       typingMode: "instant",
     });
 
-    expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
-    const call = runEmbeddedPiAgentMock.mock.calls[0]?.[0] as { prompt?: string } | undefined;
+    expect(kernelExecuteMock).toHaveBeenCalledTimes(1);
+    const call = kernelExecuteMock.mock.calls[0]?.[0] as ExecutionRequest | undefined;
     expect(call?.prompt).toBe("hello");
 
     const stored = JSON.parse(await fs.readFile(storePath, "utf-8"));

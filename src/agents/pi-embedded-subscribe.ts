@@ -31,6 +31,18 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   const reasoningMode = params.reasoningMode ?? "off";
   const toolResultFormat = params.toolResultFormat ?? "markdown";
   const useMarkdown = toolResultFormat === "markdown";
+
+  log.debug("subscribeEmbeddedPiSession: initializing", {
+    feature: "streaming",
+    reasoningMode,
+    blockReplyBreak: params.blockReplyBreak ?? "text_end",
+    hasOnBlockReply: Boolean(params.onBlockReply),
+    hasOnReasoningStream: Boolean(params.onReasoningStream),
+    hasBlockChunking: Boolean(params.blockReplyChunking),
+    emitReasoningInBlockReply: params.emitReasoningInBlockReply === true,
+    verboseLevel: params.verboseLevel,
+    hasStreamMiddleware: Boolean(params.streamMiddleware),
+  });
   // Reasoning should only be emitted via onBlockReply if:
   // 1. emitReasoningInBlockReply is explicitly true (caller opts in), OR
   // 2. There's no onReasoningStream callback AND emitReasoningInBlockReply is true
@@ -284,7 +296,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     // Push to middleware (dual-path: both middleware and legacy callback fire)
     if (mw) {
-      mw.push({ kind: "agent_event", stream: "tool_summary", data: { text: cleanedText, mediaUrls } });
+      mw.push({
+        kind: "agent_event",
+        stream: "tool_summary",
+        data: { text: cleanedText, mediaUrls },
+      });
     }
     try {
       void params.onToolResult({
@@ -309,7 +325,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     // Push to middleware (dual-path)
     if (mw) {
-      mw.push({ kind: "agent_event", stream: "tool_output", data: { text: cleanedText, mediaUrls } });
+      mw.push({
+        kind: "agent_event",
+        stream: "tool_output",
+        data: { text: cleanedText, mediaUrls },
+      });
     }
     try {
       void params.onToolResult({
@@ -433,14 +453,17 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
 
   const emitBlockChunk = (text: string) => {
     if (state.suppressBlockChunks) {
+      log.trace("emitBlockChunk: suppressed (suppressBlockChunks=true)", { feature: "streaming" });
       return;
     }
     // Strip <think> and <final> blocks across chunk boundaries to avoid leaking reasoning.
     const chunk = stripCompactionHandoffText(stripBlockTags(text, state.blockState).trimEnd());
     if (!chunk) {
+      log.trace("emitBlockChunk: empty after tag stripping", { feature: "streaming" });
       return;
     }
     if (chunk === state.lastBlockReplyText) {
+      log.trace("emitBlockChunk: duplicate of last block reply", { feature: "streaming" });
       return;
     }
 
@@ -453,8 +476,17 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
 
     if (shouldSkipAssistantText(chunk)) {
+      log.trace("emitBlockChunk: skipping duplicate assistant text", { feature: "streaming" });
       return;
     }
+
+    log.debug("emitBlockChunk: emitting block chunk", {
+      feature: "streaming",
+      chunkLen: chunk.length,
+      chunkPreview: chunk.slice(0, 60),
+      assistantTextsLen: assistantTexts.length,
+      hasOnBlockReply: Boolean(params.onBlockReply),
+    });
 
     state.lastBlockReplyText = chunk;
     assistantTexts.push(chunk);
@@ -509,6 +541,12 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!params.onBlockReply) {
       return;
     }
+    const chunkerBuffered = blockChunker?.hasBuffered() ?? false;
+    log.debug("flushBlockReplyBuffer: flushing", {
+      feature: "streaming",
+      chunkerBuffered,
+      blockBufferLen: state.blockBuffer.length,
+    });
     if (blockChunker?.hasBuffered()) {
       blockChunker.drain({ force: true, emit: emitBlockChunk });
       blockChunker.reset();
@@ -531,8 +569,14 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       return;
     }
     if (formatted === state.lastStreamedReasoning) {
+      log.trace("emitReasoningStream: skipping duplicate reasoning", { feature: "streaming" });
       return;
     }
+    log.debug("emitReasoningStream: emitting reasoning", {
+      feature: "streaming",
+      formattedLen: formatted.length,
+      formattedPreview: formatted.slice(0, 60),
+    });
     state.lastStreamedReasoning = formatted;
     // Push to middleware (dual-path)
     if (mw) {

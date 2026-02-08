@@ -11,9 +11,9 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 16px;
-  background: var(--surface-bg, #1a1a2e);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
 }
 
 /* ─── Summary Cards ─────────────────────────────────────────────────── */
@@ -28,33 +28,33 @@
   flex: 1;
   min-width: 100px;
   padding: 14px 16px;
-  background: var(--surface-bg, #1a1a2e);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   text-align: center;
   transition: border-color 0.2s;
 }
 
 .summary-card--active {
-  border-color: var(--ok-color, #4caf50);
-  background: rgba(76, 175, 80, 0.06);
+  border-color: var(--ok);
+  background: var(--ok-muted);
 }
 
 .summary-card--error {
-  border-color: var(--danger-color, #e74c3c);
-  background: rgba(231, 76, 60, 0.06);
+  border-color: var(--danger);
+  background: var(--danger-muted);
 }
 
 .summary-value {
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--text-color, #e0e0e0);
+  color: var(--text);
 }
 
 .summary-label {
   font-size: 0.75rem;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   margin-top: 2px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -68,9 +68,9 @@
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.82rem;
-  background: var(--surface-bg, #1a1a2e);
-  border-radius: 6px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
 
 /* ─── Agent Cards Grid ──────────────────────────────────────────────── */
@@ -88,9 +88,9 @@
 }
 
 .dashboard-agent-card {
-  background: var(--surface-bg, #1a1a2e);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   padding: 16px;
   cursor: pointer;
   transition:
@@ -100,30 +100,30 @@
 }
 
 .dashboard-agent-card:hover {
-  border-color: var(--accent-color, #6c5ce7);
-  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 2px 12px var(--accent-muted);
   transform: translateY(-1px);
 }
 
 .dashboard-agent-card:focus-visible {
-  outline: 2px solid var(--accent-color, #6c5ce7);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .dashboard-agent-card.health--active {
-  border-left: 3px solid var(--ok-color, #4caf50);
+  border-left: 3px solid var(--ok);
 }
 
 .dashboard-agent-card.health--errored {
-  border-left: 3px solid var(--danger-color, #e74c3c);
+  border-left: 3px solid var(--danger);
 }
 
 .dashboard-agent-card.health--stalled {
-  border-left: 3px solid var(--warn-color, #f0ad4e);
+  border-left: 3px solid var(--warn);
 }
 
 .dashboard-agent-card.health--idle {
-  border-left: 3px solid var(--text-muted, #888);
+  border-left: 3px solid var(--muted);
 }
 
 /* ─── Agent Card Header ─────────────────────────────────────────────── */
@@ -151,7 +151,7 @@
 
 .dashboard-agent-id {
   font-size: 0.75rem;
-  color: var(--text-muted, #888);
+  color: var(--muted);
 }
 
 /* ─── Health Badge ──────────────────────────────────────────────────── */
@@ -161,35 +161,35 @@
   align-items: center;
   gap: 5px;
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .dashboard-health-badge.health--active {
-  background: rgba(76, 175, 80, 0.12);
-  color: var(--ok-color, #4caf50);
+  background: var(--ok-muted);
+  color: var(--ok);
 }
 
 .dashboard-health-badge.health--idle {
-  background: rgba(136, 136, 136, 0.12);
-  color: var(--text-muted, #888);
+  background: var(--bg-overlay);
+  color: var(--muted);
 }
 
 .dashboard-health-badge.health--stalled {
-  background: rgba(240, 173, 78, 0.12);
-  color: var(--warn-color, #f0ad4e);
+  background: var(--warn-muted);
+  color: var(--warn);
 }
 
 .dashboard-health-badge.health--errored {
-  background: rgba(231, 76, 60, 0.12);
-  color: var(--danger-color, #e74c3c);
+  background: var(--danger-muted);
+  color: var(--danger);
 }
 
 .dashboard-health-badge.health--unknown {
-  background: rgba(136, 136, 136, 0.08);
-  color: var(--text-muted, #888);
+  background: var(--bg-overlay);
+  color: var(--muted);
 }
 
 .health-dot {
@@ -202,22 +202,22 @@
 .dashboard-current-task {
   margin-bottom: 12px;
   padding: 8px 10px;
-  background: rgba(108, 92, 231, 0.04);
-  border-radius: 6px;
-  border-left: 2px solid var(--accent-color, #6c5ce7);
+  background: var(--accent-muted);
+  border-radius: var(--radius-md);
+  border-left: 2px solid var(--accent);
 }
 
 .dashboard-task-label {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   margin-bottom: 2px;
 }
 
 .dashboard-task-text {
   font-size: 0.82rem;
-  color: var(--text-color, #e0e0e0);
+  color: var(--text);
   line-height: 1.4;
   word-break: break-word;
 }
@@ -236,21 +236,21 @@
   min-width: 60px;
   text-align: center;
   padding: 6px 4px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 4px;
+  background: var(--bg-overlay);
+  border-radius: var(--radius-sm);
 }
 
 .metric-value {
   display: block;
   font-weight: 600;
   font-size: 0.85rem;
-  color: var(--text-color, #e0e0e0);
+  color: var(--text);
 }
 
 .metric-label {
   display: block;
   font-size: 0.65rem;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -258,7 +258,7 @@
 /* ─── Session List within Card ──────────────────────────────────────── */
 
 .dashboard-sessions-list {
-  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid var(--border);
   padding-top: 10px;
 }
 
@@ -266,7 +266,7 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   margin-bottom: 6px;
 }
 
@@ -296,12 +296,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text-color, #e0e0e0);
+  color: var(--text);
 }
 
 .dashboard-session-meta {
   font-size: 0.7rem;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -316,10 +316,10 @@
 /* ─── Pill Variants ─────────────────────────────────────────────────── */
 
 .pill--danger {
-  background: rgba(231, 76, 60, 0.12);
-  color: var(--danger-color, #e74c3c);
+  background: var(--danger-muted);
+  color: var(--danger);
   font-size: 0.7rem;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }

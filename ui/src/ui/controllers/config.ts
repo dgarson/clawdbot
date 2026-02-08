@@ -50,7 +50,7 @@ export async function loadConfig(state: ConfigState) {
   }
 }
 
-export async function loadConfigSchema(state: ConfigState) {
+export async function loadConfigSchema(state: ConfigState, forceRefresh = false) {
   if (!state.client || !state.connected) {
     return;
   }
@@ -59,12 +59,44 @@ export async function loadConfigSchema(state: ConfigState) {
   }
   state.configSchemaLoading = true;
   try {
-    const res = await state.client.request<ConfigSchemaResponse>("config.schema", {});
-    applyConfigSchema(state, res);
+    const params: Record<string, unknown> = { full: true };
+    if (!forceRefresh && state.configSchemaVersion) {
+      params.ifNoneMatch = state.configSchemaVersion;
+    }
+    const res = await state.client.request<ConfigSchemaResponse>("config.schema", params);
+    if (!res.notModified) {
+      applyConfigSchema(state, res);
+      // Persist to localStorage
+      try {
+        localStorage.setItem(
+          "openclaw:config-schema-cache",
+          JSON.stringify({
+            schema: res.schema,
+            uiHints: res.uiHints,
+            version: res.version,
+            generatedAt: res.generatedAt,
+            cachedAt: Date.now(),
+          }),
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
   } catch (err) {
     state.lastError = String(err);
   } finally {
     state.configSchemaLoading = false;
+  }
+}
+
+export function clearSchemaCache(state: ConfigState) {
+  state.configSchema = null;
+  state.configSchemaVersion = null;
+  state.configUiHints = {};
+  try {
+    localStorage.removeItem("openclaw:config-schema-cache");
+  } catch {
+    // Ignore localStorage errors
   }
 }
 

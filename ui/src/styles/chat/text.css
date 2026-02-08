@@ -239,39 +239,39 @@
   color: var(--text);
 }
 
-/* Syntax highlighting colors */
+/* Syntax highlighting colors — uses --syntax-* tokens from design-system.css */
 .code-block .hljs-keyword,
 .code-block .hljs-selector-tag,
 .code-block .hljs-built_in {
-  color: #ff7b72;
+  color: var(--syntax-keyword);
 }
 
 .code-block .hljs-string,
 .code-block .hljs-attr {
-  color: #a5d6ff;
+  color: var(--syntax-string);
 }
 
 .code-block .hljs-number,
 .code-block .hljs-literal {
-  color: #79c0ff;
+  color: var(--syntax-function);
 }
 
 .code-block .hljs-comment {
-  color: #8b949e;
+  color: var(--syntax-comment);
   font-style: italic;
 }
 
 .code-block .hljs-function,
 .code-block .hljs-title {
-  color: #d2a8ff;
+  color: var(--syntax-type);
 }
 
 .code-block .hljs-variable,
 .code-block .hljs-params {
-  color: #ffa657;
+  color: var(--syntax-number);
 }
 
 .code-block .hljs-type,
 .code-block .hljs-class {
-  color: #7ee787;
+  color: var(--syntax-literal);
 }

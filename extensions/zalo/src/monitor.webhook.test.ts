@@ -1,27 +1,42 @@
-import type { AddressInfo } from "node:net";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OpenClawConfig, PluginRuntime } from "openclaw/plugin-sdk";
-import { createServer } from "node:http";
+import { EventEmitter } from "node:events";
 import { describe, expect, it } from "vitest";
 import type { ResolvedZaloAccount } from "./types.js";
 import { handleZaloWebhookRequest, registerZaloWebhookTarget } from "./monitor.js";
 
-async function withServer(
-  handler: Parameters<typeof createServer>[0],
-  fn: (baseUrl: string) => Promise<void>,
-) {
-  const server = createServer(handler);
-  await new Promise<void>((resolve) => {
-    server.listen(0, "127.0.0.1", () => resolve());
+function createMockRequest(
+  method: string,
+  url: string,
+  body: unknown,
+  headers: Record<string, string> = {},
+): IncomingMessage {
+  const req = new EventEmitter() as IncomingMessage;
+  req.method = method;
+  req.url = url;
+  req.headers = headers;
+  (req as unknown as { socket: { remoteAddress: string } }).socket = { remoteAddress: "127.0.0.1" };
+
+  // oxlint-disable-next-line no-floating-promises
+  Promise.resolve().then(() => {
+    const bodyStr = typeof body === "string" ? body : JSON.stringify(body);
+    req.emit("data", Buffer.from(bodyStr));
+    req.emit("end");
   });
-  const address = server.address() as AddressInfo | null;
-  if (!address) {
-    throw new Error("missing server address");
-  }
-  try {
-    await fn(`http://127.0.0.1:${address.port}`);
-  } finally {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
-  }
+
+  return req;
+}
+
+function createMockResponse(): ServerResponse & { body: string; statusCode: number } {
+  const res = {
+    statusCode: 200,
+    body: "",
+    setHeader: () => undefined,
+    end: (data?: string) => {
+      res.body = data ?? "";
+    },
+  } as unknown as ServerResponse & { body: string; statusCode: number };
+  return res;
 }
 
 describe("handleZaloWebhookRequest", () => {
@@ -46,26 +61,15 @@ describe("handleZaloWebhookRequest", () => {
     });
 
     try {
-      await withServer(
-        async (req, res) => {
-          const handled = await handleZaloWebhookRequest(req, res);
-          if (!handled) {
-            res.statusCode = 404;
-            res.end("not found");
-          }
-        },
-        async (baseUrl) => {
-          const response = await fetch(`${baseUrl}/hook`, {
-            method: "POST",
-            headers: {
-              "x-bot-api-secret-token": "secret",
-            },
-            body: "null",
-          });
+      const req = createMockRequest("POST", "/hook", "null", {
+        "x-bot-api-secret-token": "secret",
+      });
+      const res = createMockResponse();
 
-          expect(response.status).toBe(400);
-        },
-      );
+      const handled = await handleZaloWebhookRequest(req, res);
+
+      expect(handled).toBe(true);
+      expect(res.statusCode).toBe(400);
     } finally {
       unregister();
     }
