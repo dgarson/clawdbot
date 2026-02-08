@@ -106,15 +106,9 @@ export function createToolApprovalHandlers(
         reasonCodes?: string[];
         sessionKey?: string;
         agentId?: string;
-        expiresAtMs?: number;
+        policyVersion?: string;
         requestHash: string;
         timeoutMs?: number;
-        command?: string;
-        cwd?: string;
-        host?: string;
-        security?: string;
-        ask?: string;
-        resolvedPath?: string;
       };
 
       const timeoutMs = typeof p.timeoutMs === "number" ? p.timeoutMs : 120_000;
@@ -137,14 +131,8 @@ export function createToolApprovalHandlers(
         reasonCodes: p.reasonCodes ?? null,
         sessionKey: p.sessionKey ?? null,
         agentId: p.agentId ?? null,
-        expiresAtMs: p.expiresAtMs ?? null,
+        policyVersion: p.policyVersion ?? null,
         requestHash: p.requestHash,
-        command: p.command ?? null,
-        cwd: p.cwd ?? null,
-        host: p.host ?? null,
-        security: p.security ?? null,
-        ask: p.ask ?? null,
-        resolvedPath: p.resolvedPath ?? null,
       };
 
       const record = manager.create(request, timeoutMs, explicitId);

@@ -123,6 +123,18 @@ describe("evaluateToolApproval", () => {
       }
     });
 
+    it("passes decision reason in reasonCodes to gateway", async () => {
+      const callGateway: GatewayCallFn = vi.fn().mockResolvedValue({
+        decision: "allow-once",
+      });
+      await evaluateToolApproval("exec", { command: "ls" }, makeCtx(), null, {
+        callGateway,
+      });
+      const callArgs = (callGateway as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      // reasonCodes should contain the decision reason (e.g. "policy_threshold")
+      expect(callArgs.params.reasonCodes).toContain("policy_threshold");
+    });
+
     it("allows when approval is allow-always", async () => {
       const callGateway: GatewayCallFn = vi.fn().mockResolvedValue({
         decision: "allow-always",

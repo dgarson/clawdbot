@@ -7,6 +7,20 @@ import type { RiskClass, SideEffectType, ToolRiskAssessment } from "../tool-risk
 export type ToolApprovalDecisionOutcome = "allow" | "deny" | "approval_required";
 
 // ---------------------------------------------------------------------------
+// Decision reason codes (machine-readable, stable)
+// ---------------------------------------------------------------------------
+
+export type ToolApprovalDecisionReason =
+  | "mode_off"
+  | "mode_always"
+  | "config_disabled"
+  | "policy_deny"
+  | "policy_threshold"
+  | "policy_external_write"
+  | "policy_message_send"
+  | "policy_allow";
+
+// ---------------------------------------------------------------------------
 // Blocked reason codes (machine-readable, stable)
 // ---------------------------------------------------------------------------
 

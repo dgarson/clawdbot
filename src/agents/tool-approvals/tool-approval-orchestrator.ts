@@ -40,14 +40,14 @@ export async function evaluateToolApproval(
   // Assess the tool's risk
   const assessment = assessToolRisk(toolName, params, tool);
 
-  // Apply decision engine
-  const decision = decideToolApproval(assessment, ctx);
+  // Apply decision engine (returns structured { outcome, reason })
+  const { outcome, reason } = decideToolApproval(assessment, ctx);
 
-  if (decision === "allow") {
+  if (outcome === "allow") {
     return { allowed: true };
   }
 
-  if (decision === "deny") {
+  if (outcome === "deny") {
     return {
       allowed: false,
       code: "TOOL_APPROVAL_BLOCKED",
@@ -58,10 +58,9 @@ export async function evaluateToolApproval(
     };
   }
 
-  // decision === "approval_required" — request approval from gateway
+  // outcome === "approval_required" — request approval from gateway
   const callGateway = opts?.callGateway;
   if (!callGateway) {
-    // No gateway call function available — cannot request approval, block.
     return {
       allowed: false,
       code: "TOOL_APPROVAL_BLOCKED",
@@ -74,6 +73,8 @@ export async function evaluateToolApproval(
 
   const timeoutMs = ctx.toolApprovalsConfig?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const paramsSummary = summarizeToolParams(params);
+  // Include decision reason in reasonCodes sent to gateway
+  const reasonCodes = [...assessment.reasonCodes, reason];
   const requestHash = ToolApprovalManager.computeRequestHash({
     toolName: assessment.toolName,
     paramsSummary,
@@ -89,7 +90,7 @@ export async function evaluateToolApproval(
         paramsSummary,
         riskClass: assessment.riskClass,
         sideEffects: assessment.sideEffects,
-        reasonCodes: assessment.reasonCodes,
+        reasonCodes,
         sessionKey: ctx.sessionKey ?? null,
         agentId: ctx.agentId ?? null,
         requestHash,

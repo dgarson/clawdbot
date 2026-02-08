@@ -1,11 +1,8 @@
 import { randomUUID } from "node:crypto";
+import type { ToolApprovalDecision } from "../infra/tool-approvals.js";
 import { computeToolApprovalRequestHash } from "../infra/tool-approval-hash.js";
 
-// ---------------------------------------------------------------------------
-// Shared decision type (same values as exec approval for compatibility)
-// ---------------------------------------------------------------------------
-
-export type ToolApprovalDecision = "allow-once" | "allow-always" | "deny";
+export type { ToolApprovalDecision };
 
 // ---------------------------------------------------------------------------
 // Request & record types
@@ -21,14 +18,20 @@ export type ToolApprovalRequestPayload = {
   reasonCodes?: string[] | null;
   sessionKey?: string | null;
   agentId?: string | null;
+  policyVersion?: string | null;
   expiresAtMs?: number | null;
   requestHash: string;
-  /** Legacy exec-specific fields preserved for backward compatibility. */
+  /** @deprecated Legacy exec field — only set for exec.approval.* compatibility. */
   command?: string | null;
+  /** @deprecated Legacy exec field — only set for exec.approval.* compatibility. */
   cwd?: string | null;
+  /** @deprecated Legacy exec field — only set for exec.approval.* compatibility. */
   host?: string | null;
+  /** @deprecated Legacy exec field — only set for exec.approval.* compatibility. */
   security?: string | null;
+  /** @deprecated Legacy exec field — only set for exec.approval.* compatibility. */
   ask?: string | null;
+  /** @deprecated Legacy exec field — only set for exec.approval.* compatibility. */
   resolvedPath?: string | null;
 };
 

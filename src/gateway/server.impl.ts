@@ -532,9 +532,8 @@ export async function startGatewayServer(
   const toolApprovalHandlers = createToolApprovalHandlers(toolApprovalManager, {
     forwarder: toolApprovalForwarder,
   });
-  const execApprovalForwarder = createExecApprovalForwarder();
   const execApprovalHandlers = createExecApprovalHandlers(toolApprovalManager, {
-    forwarder: execApprovalForwarder,
+    forwarder: toolApprovalForwarder,
   });
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;

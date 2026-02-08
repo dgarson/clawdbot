@@ -319,6 +319,31 @@ async function deliverToTargets(params: {
 }
 
 // ---------------------------------------------------------------------------
+// Config resolution — prefer tools.routing for non-exec tools, fallback exec
+// ---------------------------------------------------------------------------
+
+function resolveForwardingConfig(
+  cfg: OpenClawConfig,
+  request: ToolApprovalRequest,
+): ExecApprovalForwardingConfig | undefined {
+  // For non-exec tools, prefer the tools.routing config when present
+  if (request.request.toolName !== "exec") {
+    const toolsRouting = cfg.approvals?.tools?.routing;
+    if (toolsRouting) {
+      return {
+        enabled: true,
+        mode: toolsRouting.mode,
+        targets: toolsRouting.targets,
+        agentFilter: toolsRouting.agentFilter,
+        sessionFilter: toolsRouting.sessionFilter,
+      };
+    }
+  }
+  // Fall back to exec forwarding config
+  return cfg.approvals?.exec;
+}
+
+// ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
 
@@ -333,7 +358,7 @@ export function createToolApprovalForwarder(
 
   const handleRequested = async (request: ToolApprovalRequest) => {
     const cfg = getConfig();
-    const config = cfg.approvals?.exec;
+    const config = resolveForwardingConfig(cfg, request);
     if (!shouldForward({ config, request })) {
       return;
     }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ToolRiskAssessment } from "../tool-risk/types.js";
 import type { ToolApprovalContext } from "./types.js";
-import { decideToolApproval } from "./tool-approval-decision-engine.js";
+import { decideToolApproval, resolveToolApprovalConfig } from "./tool-approval-decision-engine.js";
 
 function makeAssessment(overrides: Partial<ToolRiskAssessment> = {}): ToolRiskAssessment {
   return {
@@ -33,12 +33,14 @@ describe("decideToolApproval", () => {
   describe("disabled / no config", () => {
     it("returns allow when toolApprovalsConfig is undefined", () => {
       const result = decideToolApproval(makeAssessment(), { agentId: "main" });
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("config_disabled");
     });
 
     it("returns allow when enabled is false", () => {
       const result = decideToolApproval(makeAssessment(), makeCtx({ enabled: false }));
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("config_disabled");
     });
 
     it("returns allow when mode is off", () => {
@@ -46,7 +48,8 @@ describe("decideToolApproval", () => {
         makeAssessment({ riskClass: "R4" }),
         makeCtx({ mode: "off" }),
       );
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("mode_off");
     });
   });
 
@@ -56,7 +59,8 @@ describe("decideToolApproval", () => {
         makeAssessment({ riskClass: "R0" }),
         makeCtx({ mode: "always" }),
       );
-      expect(result).toBe("approval_required");
+      expect(result.outcome).toBe("approval_required");
+      expect(result.reason).toBe("mode_always");
     });
 
     it("denies before requiring approval when denyAtOrAbove matches", () => {
@@ -67,7 +71,8 @@ describe("decideToolApproval", () => {
           policy: { denyAtOrAbove: "R4" },
         }),
       );
-      expect(result).toBe("deny");
+      expect(result.outcome).toBe("deny");
+      expect(result.reason).toBe("policy_deny");
     });
   });
 
@@ -77,7 +82,8 @@ describe("decideToolApproval", () => {
         makeAssessment({ riskClass: "R0" }),
         makeCtx({ mode: "adaptive" }),
       );
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("policy_allow");
     });
 
     it("allows R2 tools when threshold is default R3", () => {
@@ -85,7 +91,8 @@ describe("decideToolApproval", () => {
         makeAssessment({ riskClass: "R2" }),
         makeCtx({ mode: "adaptive" }),
       );
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("policy_allow");
     });
 
     it("requires approval at default R3 threshold", () => {
@@ -93,7 +100,8 @@ describe("decideToolApproval", () => {
         makeAssessment({ riskClass: "R3" }),
         makeCtx({ mode: "adaptive" }),
       );
-      expect(result).toBe("approval_required");
+      expect(result.outcome).toBe("approval_required");
+      expect(result.reason).toBe("policy_threshold");
     });
 
     it("requires approval above threshold", () => {
@@ -101,7 +109,8 @@ describe("decideToolApproval", () => {
         makeAssessment({ riskClass: "R4" }),
         makeCtx({ mode: "adaptive" }),
       );
-      expect(result).toBe("approval_required");
+      expect(result.outcome).toBe("approval_required");
+      expect(result.reason).toBe("policy_threshold");
     });
 
     it("uses custom requireApprovalAtOrAbove threshold", () => {
@@ -112,7 +121,8 @@ describe("decideToolApproval", () => {
           policy: { requireApprovalAtOrAbove: "R2" },
         }),
       );
-      expect(result).toBe("approval_required");
+      expect(result.outcome).toBe("approval_required");
+      expect(result.reason).toBe("policy_threshold");
     });
 
     it("denies at denyAtOrAbove threshold", () => {
@@ -123,7 +133,8 @@ describe("decideToolApproval", () => {
           policy: { denyAtOrAbove: "R4" },
         }),
       );
-      expect(result).toBe("deny");
+      expect(result.outcome).toBe("deny");
+      expect(result.reason).toBe("policy_deny");
     });
 
     it("deny takes priority over approval_required", () => {
@@ -137,7 +148,8 @@ describe("decideToolApproval", () => {
           },
         }),
       );
-      expect(result).toBe("deny");
+      expect(result.outcome).toBe("deny");
+      expect(result.reason).toBe("policy_deny");
     });
   });
 
@@ -153,7 +165,8 @@ describe("decideToolApproval", () => {
           policy: { requireApprovalForExternalWrite: true },
         }),
       );
-      expect(result).toBe("approval_required");
+      expect(result.outcome).toBe("approval_required");
+      expect(result.reason).toBe("policy_external_write");
     });
 
     it("does not require approval for external write when flag is not set", () => {
@@ -164,7 +177,8 @@ describe("decideToolApproval", () => {
         }),
         makeCtx({ mode: "adaptive" }),
       );
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("policy_allow");
     });
 
     it("requires approval for messaging send when flag is set", () => {
@@ -178,7 +192,8 @@ describe("decideToolApproval", () => {
           policy: { requireApprovalForMessagingSend: true },
         }),
       );
-      expect(result).toBe("approval_required");
+      expect(result.outcome).toBe("approval_required");
+      expect(result.reason).toBe("policy_message_send");
     });
 
     it("does not require approval for messaging when flag is not set", () => {
@@ -189,7 +204,60 @@ describe("decideToolApproval", () => {
         }),
         makeCtx({ mode: "adaptive" }),
       );
-      expect(result).toBe("allow");
+      expect(result.outcome).toBe("allow");
+      expect(result.reason).toBe("policy_allow");
     });
+  });
+});
+
+describe("resolveToolApprovalConfig", () => {
+  it("returns disabled defaults when config is undefined", () => {
+    const resolved = resolveToolApprovalConfig(undefined);
+    expect(resolved.enabled).toBe(false);
+    expect(resolved.mode).toBe("off");
+    expect(resolved.timeoutMs).toBe(120_000);
+    expect(resolved.requireApprovalAtOrAbove).toBe("R3");
+    expect(resolved.denyAtOrAbove).toBeNull();
+    expect(resolved.requireApprovalForExternalWrite).toBe(false);
+    expect(resolved.requireApprovalForMessagingSend).toBe(false);
+  });
+
+  it("returns disabled defaults when enabled is false", () => {
+    const resolved = resolveToolApprovalConfig({ enabled: false });
+    expect(resolved.enabled).toBe(false);
+    expect(resolved.mode).toBe("off");
+  });
+
+  it("returns enabled config with overrides", () => {
+    const resolved = resolveToolApprovalConfig({
+      enabled: true,
+      mode: "always",
+      timeoutMs: 5000,
+      policy: {
+        requireApprovalAtOrAbove: "R2",
+        denyAtOrAbove: "R4",
+        requireApprovalForExternalWrite: true,
+        requireApprovalForMessagingSend: true,
+      },
+    });
+    expect(resolved.enabled).toBe(true);
+    expect(resolved.mode).toBe("always");
+    expect(resolved.timeoutMs).toBe(5000);
+    expect(resolved.requireApprovalAtOrAbove).toBe("R2");
+    expect(resolved.denyAtOrAbove).toBe("R4");
+    expect(resolved.requireApprovalForExternalWrite).toBe(true);
+    expect(resolved.requireApprovalForMessagingSend).toBe(true);
+  });
+
+  it("uses defaults for missing policy fields", () => {
+    const resolved = resolveToolApprovalConfig({
+      enabled: true,
+      mode: "adaptive",
+    });
+    expect(resolved.enabled).toBe(true);
+    expect(resolved.mode).toBe("adaptive");
+    expect(resolved.timeoutMs).toBe(120_000);
+    expect(resolved.requireApprovalAtOrAbove).toBe("R3");
+    expect(resolved.denyAtOrAbove).toBeNull();
   });
 });

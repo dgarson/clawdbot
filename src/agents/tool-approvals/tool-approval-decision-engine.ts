@@ -1,5 +1,9 @@
-import type { ToolRiskAssessment } from "../tool-risk/types.js";
-import type { ToolApprovalContext, ToolApprovalDecisionOutcome } from "./types.js";
+import type { RiskClass, ToolRiskAssessment } from "../tool-risk/types.js";
+import type {
+  ToolApprovalContext,
+  ToolApprovalDecisionOutcome,
+  ToolApprovalDecisionReason,
+} from "./types.js";
 import { compareRiskClass } from "../tool-risk/types.js";
 
 // ---------------------------------------------------------------------------
@@ -18,6 +22,58 @@ const EXTERNAL_WRITE_EFFECTS = new Set([
 const MESSAGING_SEND_EFFECTS = new Set(["message_send"]);
 
 // ---------------------------------------------------------------------------
+// Structured decision result
+// ---------------------------------------------------------------------------
+
+export type ToolApprovalDecisionResult = {
+  outcome: ToolApprovalDecisionOutcome;
+  reason: ToolApprovalDecisionReason;
+};
+
+// ---------------------------------------------------------------------------
+// Config resolution with smart defaults
+// ---------------------------------------------------------------------------
+
+export type ResolvedToolApprovalConfig = {
+  enabled: boolean;
+  mode: "off" | "adaptive" | "always";
+  timeoutMs: number;
+  requireApprovalAtOrAbove: RiskClass;
+  denyAtOrAbove: RiskClass | null;
+  requireApprovalForExternalWrite: boolean;
+  requireApprovalForMessagingSend: boolean;
+};
+
+const DEFAULTS = {
+  mode: "off" as const,
+  timeoutMs: 120_000,
+  requireApprovalAtOrAbove: "R3" as RiskClass,
+  denyAtOrAbove: null,
+  requireApprovalForExternalWrite: false,
+  requireApprovalForMessagingSend: false,
+};
+
+export function resolveToolApprovalConfig(
+  config?: ToolApprovalContext["toolApprovalsConfig"],
+): ResolvedToolApprovalConfig {
+  if (!config || config.enabled === false) {
+    return { enabled: false, ...DEFAULTS };
+  }
+  return {
+    enabled: true,
+    mode: config.mode ?? DEFAULTS.mode,
+    timeoutMs: config.timeoutMs ?? DEFAULTS.timeoutMs,
+    requireApprovalAtOrAbove:
+      config.policy?.requireApprovalAtOrAbove ?? DEFAULTS.requireApprovalAtOrAbove,
+    denyAtOrAbove: config.policy?.denyAtOrAbove ?? DEFAULTS.denyAtOrAbove,
+    requireApprovalForExternalWrite:
+      config.policy?.requireApprovalForExternalWrite ?? DEFAULTS.requireApprovalForExternalWrite,
+    requireApprovalForMessagingSend:
+      config.policy?.requireApprovalForMessagingSend ?? DEFAULTS.requireApprovalForMessagingSend,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Decision Engine
 //
 // Applies the config-driven policy to a risk assessment and returns
@@ -27,19 +83,19 @@ const MESSAGING_SEND_EFFECTS = new Set(["message_send"]);
 export function decideToolApproval(
   assessment: ToolRiskAssessment,
   ctx: ToolApprovalContext,
-): ToolApprovalDecisionOutcome {
+): ToolApprovalDecisionResult {
   const config = ctx.toolApprovalsConfig;
 
   // No config or disabled = allow (backward-compatible default)
   if (!config || config.enabled === false) {
-    return "allow";
+    return { outcome: "allow", reason: "config_disabled" };
   }
 
   const mode = config.mode ?? "off";
 
   // mode=off -> always allow
   if (mode === "off") {
-    return "allow";
+    return { outcome: "allow", reason: "mode_off" };
   }
 
   const policy = config.policy;
@@ -47,19 +103,19 @@ export function decideToolApproval(
   // Check deny threshold first (deny wins over approval)
   if (policy?.denyAtOrAbove) {
     if (compareRiskClass(assessment.riskClass, policy.denyAtOrAbove) >= 0) {
-      return "deny";
+      return { outcome: "deny", reason: "policy_deny" };
     }
   }
 
   // mode=always -> everything not denied requires approval
   if (mode === "always") {
-    return "approval_required";
+    return { outcome: "approval_required", reason: "mode_always" };
   }
 
   // mode=adaptive -> use policy thresholds
   const approvalThreshold = policy?.requireApprovalAtOrAbove ?? "R3";
   if (compareRiskClass(assessment.riskClass, approvalThreshold) >= 0) {
-    return "approval_required";
+    return { outcome: "approval_required", reason: "policy_threshold" };
   }
 
   // Check side-effect-based policy flags
@@ -68,7 +124,7 @@ export function decideToolApproval(
       EXTERNAL_WRITE_EFFECTS.has(effect),
     );
     if (hasExternalWrite) {
-      return "approval_required";
+      return { outcome: "approval_required", reason: "policy_external_write" };
     }
   }
 
@@ -77,9 +133,9 @@ export function decideToolApproval(
       MESSAGING_SEND_EFFECTS.has(effect),
     );
     if (hasMessaging) {
-      return "approval_required";
+      return { outcome: "approval_required", reason: "policy_message_send" };
     }
   }
 
-  return "allow";
+  return { outcome: "allow", reason: "policy_allow" };
 }

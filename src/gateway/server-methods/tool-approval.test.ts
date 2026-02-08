@@ -80,6 +80,45 @@ describe("tool approval handlers", () => {
         }),
       ).toBe(false);
     });
+
+    it("rejects legacy exec fields (command, cwd, host)", () => {
+      expect(
+        validateToolApprovalRequestParams({
+          toolName: "exec",
+          requestHash: "hash-1",
+          command: "echo test",
+          cwd: "/tmp",
+          host: "gateway",
+        }),
+      ).toBe(false);
+    });
+
+    it("accepts policyVersion field", () => {
+      expect(
+        validateToolApprovalRequestParams({
+          toolName: "exec",
+          requestHash: "hash-1",
+          policyVersion: "v2.1",
+        }),
+      ).toBe(true);
+    });
+
+    it("validates riskClass as R0-R4 enum", () => {
+      expect(
+        validateToolApprovalRequestParams({
+          toolName: "exec",
+          requestHash: "hash-1",
+          riskClass: "R3",
+        }),
+      ).toBe(true);
+      expect(
+        validateToolApprovalRequestParams({
+          toolName: "exec",
+          requestHash: "hash-1",
+          riskClass: "INVALID",
+        }),
+      ).toBe(false);
+    });
   });
 
   describe("ToolApprovalResolveParams validation", () => {
@@ -98,6 +137,23 @@ describe("tool approval handlers", () => {
         validateToolApprovalResolveParams({
           id: "approval-1",
           decision: "allow-once",
+        }),
+      ).toBe(false);
+    });
+
+    it("validates decision as allow-once/allow-always/deny enum", () => {
+      expect(
+        validateToolApprovalResolveParams({
+          id: "approval-1",
+          decision: "deny",
+          requestHash: "hash-1",
+        }),
+      ).toBe(true);
+      expect(
+        validateToolApprovalResolveParams({
+          id: "approval-1",
+          decision: "invalid-decision",
+          requestHash: "hash-1",
         }),
       ).toBe(false);
     });
@@ -174,9 +230,7 @@ describe("tool approval handlers", () => {
       params: {
         toolName: "exec",
         requestHash,
-        command: "echo hello",
-        cwd: "/tmp",
-        host: "gateway",
+        paramsSummary: "echo hello",
         timeoutMs: 2000,
       },
       respond,
@@ -192,11 +246,12 @@ describe("tool approval handlers", () => {
     expect(canonicalRequested).toBeTruthy();
     expect(legacyRequested).toBeTruthy();
 
-    // Legacy event should have exec-compatible shape
+    // Legacy event has exec-compatible shape (fields default to empty/null
+    // since tool.approval.request no longer carries exec-specific fields)
     const legacyPayload = legacyRequested?.payload as Record<string, unknown>;
     const legacyRequest = legacyPayload?.request as Record<string, unknown>;
-    expect(legacyRequest?.command).toBe("echo hello");
-    expect(legacyRequest?.cwd).toBe("/tmp");
+    expect(legacyRequest?.command).toBe("");
+    expect(legacyRequest?.cwd).toBeNull();
 
     const id = payloadId(broadcasts, "tool.approval.requested");
 
@@ -273,7 +328,7 @@ describe("tool approval handlers", () => {
       params: {
         toolName: "exec",
         requestHash,
-        command: "echo test",
+        paramsSummary: "echo test",
         timeoutMs: 2000,
       },
       respond,
@@ -332,7 +387,7 @@ describe("tool approval handlers", () => {
       params: {
         toolName: "exec",
         requestHash: "hash-1",
-        command: "echo pending",
+        paramsSummary: "echo pending",
         agentId: "main",
         sessionKey: "agent:main:main",
         timeoutMs: 30_000,
@@ -461,7 +516,6 @@ describe("tool approval handlers", () => {
         id: "dup-1",
         toolName: "exec",
         requestHash: "hash-a",
-        command: "echo ok",
       },
       respond: respondA,
       context,
@@ -475,7 +529,6 @@ describe("tool approval handlers", () => {
         id: "dup-1",
         toolName: "exec",
         requestHash: "hash-b",
-        command: "echo again",
       },
       respond: respondB,
       context,

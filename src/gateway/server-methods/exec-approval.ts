@@ -1,7 +1,6 @@
 import type { ExecApprovalDecision } from "../../infra/exec-approvals.js";
 import type { ToolApprovalForwarder } from "../../infra/tool-approval-forwarder.js";
 import type { GatewayRequestHandlers } from "./types.js";
-import { computeToolApprovalRequestHash } from "../../infra/tool-approval-hash.js";
 import {
   ErrorCodes,
   errorShape,
@@ -17,7 +16,7 @@ import { ToolApprovalManager } from "../tool-approval-manager.js";
  */
 export function createExecApprovalHandlers(
   manager: ToolApprovalManager,
-  opts?: { forwarder?: ExecApprovalForwarder },
+  opts?: { forwarder?: ToolApprovalForwarder },
 ): GatewayRequestHandlers {
   return {
     "exec.approval.request": async ({ params, respond, context }) => {
@@ -65,7 +64,7 @@ export function createExecApprovalHandlers(
       });
       const request = {
         toolName: "exec",
-        source: "exec-legacy",
+        source: "exec-legacy" as const,
         paramsSummary,
         riskClass: null,
         sideEffects: null,
@@ -94,34 +93,6 @@ export function createExecApprovalHandlers(
         resolvedPath: record.request.resolvedPath ?? null,
         sessionKey: record.request.sessionKey ?? null,
       };
-      context.broadcast(
-        "tool.approval.requested",
-        {
-          id: record.id,
-          toolName: record.request.toolName,
-          paramsSummary: record.request.paramsSummary,
-          riskClass: record.request.riskClass,
-          sideEffects: record.request.sideEffects,
-          reasonCodes: record.request.reasonCodes,
-          sessionKey: record.request.sessionKey,
-          agentId: record.request.agentId,
-          requestHash: record.request.requestHash,
-          createdAtMs: record.createdAtMs,
-          expiresAtMs: record.expiresAtMs,
-        },
-        { dropIfSlow: true },
-      );
-      context.broadcast(
-        "exec.approval.requested",
-        {
-          id: record.id,
-          request: execRequest,
-          createdAtMs: record.createdAtMs,
-          expiresAtMs: record.expiresAtMs,
-        },
-        { dropIfSlow: true },
-      );
-
       // Canonical event
       context.broadcast(
         "tool.approval.requested",
@@ -140,16 +111,27 @@ export function createExecApprovalHandlers(
         },
         { dropIfSlow: true },
       );
+      // Legacy exec event
+      context.broadcast(
+        "exec.approval.requested",
+        {
+          id: record.id,
+          request: execRequest,
+          createdAtMs: record.createdAtMs,
+          expiresAtMs: record.expiresAtMs,
+        },
+        { dropIfSlow: true },
+      );
 
       // Forward to messaging channels via the unified tool forwarder
       void opts?.forwarder
         ?.handleRequested({
           id: record.id,
-          request: execRequest,
+          request: record.request,
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           context.logGateway?.error?.(`exec approvals: forward request failed: ${String(err)}`);
         });
 
@@ -186,15 +168,22 @@ export function createExecApprovalHandlers(
         return;
       }
 
-      const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
+      // Guard: legacy exec.approval.resolve must only touch exec approvals.
       const snapshot = manager.getSnapshot(p.id);
       if (!snapshot || snapshot.request.toolName !== "exec") {
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
         return;
       }
+      const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
       const requestHash = typeof p.requestHash === "string" ? p.requestHash : null;
       const isLegacyExec = snapshot.request.source === "exec-legacy";
-      if (!requestHash && !isLegacyExec) {
+
+      // Legacy exec callers may not supply requestHash — use resolveCompat to bypass hash check.
+      // Non-legacy callers (tool-origin exec approvals routed through exec.approval.*) must supply it.
+      let ok: boolean;
+      if (!requestHash && isLegacyExec) {
+        ok = manager.resolveCompat(p.id, decision, resolvedBy ?? null);
+      } else if (!requestHash) {
         respond(
           false,
           undefined,
@@ -204,13 +193,9 @@ export function createExecApprovalHandlers(
           ),
         );
         return;
+      } else {
+        ok = manager.resolve(p.id, decision, requestHash, resolvedBy ?? null);
       }
-      const ok = manager.resolve(
-        p.id,
-        decision,
-        requestHash ?? snapshot.request.requestHash,
-        resolvedBy ?? null,
-      );
       if (!ok) {
         respond(
           false,
