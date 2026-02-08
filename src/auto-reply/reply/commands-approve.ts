@@ -66,6 +66,32 @@ function buildResolvedByLabel(params: Parameters<CommandHandler>[0]): string {
   return `${channel}:${sender}`;
 }
 
+type PendingToolApproval = {
+  id: string;
+  requestHash: string;
+};
+
+/** Look up the canonical tool approval record for the given id. */
+async function findCanonicalApproval(
+  resolvedBy: string,
+  approvalId: string,
+): Promise<PendingToolApproval | null> {
+  try {
+    const result = await callGateway<{
+      approvals: Array<{ id: string; requestHash: string }>;
+    }>({
+      method: "tool.approvals.get",
+      clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
+      clientDisplayName: `Chat approval lookup (${resolvedBy})`,
+      mode: GATEWAY_CLIENT_MODES.BACKEND,
+    });
+    const match = result.approvals?.find((a) => a.id === approvalId);
+    return match ? { id: match.id, requestHash: match.requestHash } : null;
+  } catch {
+    return null;
+  }
+}
+
 export const handleApproveCommand: CommandHandler = async (params, allowTextCommands) => {
   if (!allowTextCommands) {
     return null;
@@ -101,14 +127,29 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
   }
 
   const resolvedBy = buildResolvedByLabel(params);
+
+  // Try canonical tool approval first, fall back to legacy exec path
+  const canonical = await findCanonicalApproval(resolvedBy, parsed.id);
+
   try {
-    await callGateway({
-      method: "exec.approval.resolve",
-      params: { id: parsed.id, decision: parsed.decision },
-      clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
-      clientDisplayName: `Chat approval (${resolvedBy})`,
-      mode: GATEWAY_CLIENT_MODES.BACKEND,
-    });
+    if (canonical) {
+      await callGateway({
+        method: "tool.approval.resolve",
+        params: { id: parsed.id, decision: parsed.decision, requestHash: canonical.requestHash },
+        clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
+        clientDisplayName: `Chat approval (${resolvedBy})`,
+        mode: GATEWAY_CLIENT_MODES.BACKEND,
+      });
+    } else {
+      // Legacy fallback for exec-only approvals or when canonical lookup fails
+      await callGateway({
+        method: "exec.approval.resolve",
+        params: { id: parsed.id, decision: parsed.decision },
+        clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
+        clientDisplayName: `Chat approval (${resolvedBy})`,
+        mode: GATEWAY_CLIENT_MODES.BACKEND,
+      });
+    }
   } catch (err) {
     return {
       shouldContinue: false,
@@ -120,6 +161,6 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
 
   return {
     shouldContinue: false,
-    reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` },
+    reply: { text: `✅ Tool approval ${parsed.decision} submitted for ${parsed.id}.` },
   };
 };
