@@ -37,6 +37,16 @@ describe("crn", () => {
     expect(crn).toBe("crn:v1:browser:main:page:https://github.com/Org/Repo");
   });
 
+  it("preserves explicit ports for query-only URLs", () => {
+    const crn = buildCrn({
+      service: "browser",
+      scope: "main",
+      resourceType: "page",
+      resourceId: "https://example.com:443?x=1",
+    });
+    expect(crn).toBe("crn:v1:browser:main:page:https://example.com:443/?x=1");
+  });
+
   it("matches CRN patterns", () => {
     const pattern = parseCrn("crn:v1:channel:*:message:slack/*", { mode: "pattern" });
     const target = parseCrn(
