@@ -246,11 +246,11 @@ describe("tool approval handlers", () => {
     expect(canonicalRequested).toBeTruthy();
     expect(legacyRequested).toBeTruthy();
 
-    // Legacy event has exec-compatible shape (fields default to empty/null
-    // since tool.approval.request no longer carries exec-specific fields)
+    // Legacy event has exec-compatible shape, including exec command derived
+    // from paramsSummary for tool.approval.request.
     const legacyPayload = legacyRequested?.payload as Record<string, unknown>;
     const legacyRequest = legacyPayload?.request as Record<string, unknown>;
-    expect(legacyRequest?.command).toBe("");
+    expect(legacyRequest?.command).toBe("echo hello");
     expect(legacyRequest?.cwd).toBeNull();
 
     const id = payloadId(broadcasts, "tool.approval.requested");

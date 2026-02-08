@@ -43,6 +43,7 @@ function toExecRequestedEvent(record: {
   id: string;
   request: {
     command?: string | null;
+    paramsSummary?: string | null;
     cwd?: string | null;
     host?: string | null;
     security?: string | null;
@@ -57,7 +58,7 @@ function toExecRequestedEvent(record: {
   return {
     id: record.id,
     request: {
-      command: record.request.command ?? "",
+      command: record.request.command ?? record.request.paramsSummary ?? "",
       cwd: record.request.cwd ?? null,
       host: record.request.host ?? null,
       security: record.request.security ?? null,
@@ -133,6 +134,7 @@ export function createToolApprovalHandlers(
         agentId: p.agentId ?? null,
         policyVersion: p.policyVersion ?? null,
         requestHash: p.requestHash,
+        command: p.toolName === "exec" ? (p.paramsSummary ?? null) : null,
       };
 
       const record = manager.create(request, timeoutMs, explicitId);
