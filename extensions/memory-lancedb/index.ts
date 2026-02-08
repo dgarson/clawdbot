@@ -312,15 +312,22 @@ function resolveConversationType(params: {
     }
   }
 
-  if (threadTs) {
+  // Fallback: infer from channelId patterns without provider context
+  if (channelId?.startsWith("D")) {
+    return "dm";
+  }
+  if (channelId?.startsWith("C") || channelId?.startsWith("G")) {
     return "group";
   }
-
   if (channelId?.endsWith("@g.us")) {
     return "group";
   }
   if (channelId?.endsWith("@c.us")) {
     return "dm";
+  }
+
+  if (threadTs) {
+    return "group";
   }
 
   return undefined;
