@@ -719,6 +719,7 @@ export async function runEmbeddedAttempt(
         onAssistantMessageStart: params.onAssistantMessageStart,
         onAgentEvent: params.onAgentEvent,
         enforceFinalTag: params.enforceFinalTag,
+        streamMiddleware: params.streamMiddleware,
       });
 
       const {

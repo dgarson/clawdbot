@@ -17,6 +17,7 @@ import type { AgentRuntime } from "../agents/agent-runtime.js";
 import type { CreateSdkMainAgentRuntimeParams } from "../agents/main-agent-runtime-factory.js";
 import type { RunEmbeddedPiAgentParams } from "../agents/pi-embedded-runner/run/params.js";
 import type { EmbeddedPiRunResult } from "../agents/pi-embedded-runner/types.js";
+import type { StreamingMiddleware } from "../agents/stream/index.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { EventRouter } from "./events.js";
 import type {
@@ -192,6 +193,8 @@ export interface RuntimeAdapterParams {
     error?: string,
   ) => void | Promise<void>;
   onAssistantMessageStart?: () => void | Promise<void>;
+  /** StreamingMiddleware instance to pass through to the runner. */
+  streamMiddleware?: StreamingMiddleware;
 }
 
 /**
@@ -286,6 +289,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
         onToolEnd: (name, id, success, result, error) =>
           this.handleToolEnd(state, name, id, success, result, error, emitter),
         onAssistantMessageStart: () => this.handleAssistantMessageStart(state, request, emitter),
+        streamMiddleware: request.streamMiddleware,
       });
 
       // Update state from result
@@ -456,6 +460,8 @@ export class DefaultTurnExecutor implements TurnExecutor {
           currentThreadTs: hints?.currentThreadTs,
           replyToMode: hints?.replyToMode,
           hasRepliedRef: hints?.hasRepliedRef,
+          // Stream middleware (Phase 4)
+          streamMiddleware: params.streamMiddleware,
         };
 
         // Execute Pi runtime

@@ -264,6 +264,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   const mcpServerName = params.mcpServerName ?? DEFAULT_MCP_SERVER_NAME;
   const hooksEnabled = params.hooksEnabled === true;
 
+  const mw = params.streamMiddleware;
+
   const pendingMessagingToolSends = new Map<
     string,
     { toolName: string; text?: string; target?: MessagingToolSend }
@@ -304,6 +306,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       target = undefined;
     }
     pendingMessagingToolSends.set(toolCallId, { toolName, text, target });
+    // Push to middleware (dual-path)
+    mw?.push({ kind: "messaging_tool_start", toolName, toolCallId, text, target });
   };
 
   const trackMessagingToolEnd = (toolName: string, toolCallId: string, isError: boolean) => {
@@ -313,6 +317,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       return;
     }
     pendingMessagingToolSends.delete(toolCallId);
+    // Push to middleware (dual-path)
+    mw?.push({ kind: "messaging_tool_end", toolName, toolCallId, isError });
     if (isError) {
       return;
     }
@@ -367,6 +373,15 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       emitAgentEvent({ runId: params.runId, stream, data });
     } catch {
       // Don't let global event emission break the runner.
+    }
+    // Push to middleware (dual-path)
+    if (mw) {
+      if (stream === "lifecycle") {
+        const phase = typeof data.phase === "string" ? data.phase : "start";
+        mw.push({ kind: "lifecycle", phase: phase as "start" | "end" | "error", data });
+      } else {
+        mw.push({ kind: "agent_event", stream, data });
+      }
     }
     // Also fire the callback chain
     try {
@@ -708,6 +723,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     if (!params.onBlockReply || !text.trim()) {
       return false;
     }
+    // Push to middleware (dual-path)
+    mw?.push({ kind: "block_reply", text: text.trim() });
     try {
       await params.onBlockReply({
         text: text.trim(),
@@ -737,6 +754,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       const split = splitMediaFromOutput(currentText);
       await emitBlockReply(split.text, split.mediaUrls);
     }
+    // Push message_end to middleware (dual-path)
+    mw?.push({ kind: "message_end" });
   };
 
   /**
@@ -822,6 +841,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           if (!didAssistantMessageStart) {
             didAssistantMessageStart = true;
           }
+          // Push to middleware (dual-path)
+          mw?.push({ kind: "message_start" });
           // Fire on every message_start (not just first), matching Pi agent behavior.
           try {
             void Promise.resolve(params.onAssistantMessageStart?.()).catch((err) => {
@@ -899,15 +920,19 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
       // Stream reasoning/thinking events when callback is provided.
       // Thinking events are classified as "system" by classifyEvent but we
       // still want to extract and emit their text for reasoning display.
-      if (params.onReasoningStream && kind === "system" && isRecord(event)) {
+      if (kind === "system" && isRecord(event)) {
         const thinkingText = extractThinkingFromSdkEvent(event);
         if (thinkingText) {
-          try {
-            void Promise.resolve(params.onReasoningStream({ text: thinkingText })).catch((err) => {
+          // Push to middleware (dual-path)
+          mw?.push({ kind: "thinking_delta", text: thinkingText });
+          if (params.onReasoningStream) {
+            try {
+              void Promise.resolve(params.onReasoningStream({ text: thinkingText })).catch((err) => {
+                log.trace(`onReasoningStream callback error: ${String(err)}`);
+              });
+            } catch (err) {
               log.trace(`onReasoningStream callback error: ${String(err)}`);
-            });
-          } catch (err) {
-            log.trace(`onReasoningStream callback error: ${String(err)}`);
+            }
           }
         }
       }
@@ -973,6 +998,16 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
               meta: toolMeta,
               error: errorMsg,
             };
+          }
+        }
+
+        // Push tool_start/tool_end to middleware (dual-path)
+        if (mw && toolCallId) {
+          if (phase === "start") {
+            mw.push({ kind: "tool_start", name: normalizedName.name, id: toolCallId, args: toolArgs });
+          } else if (phase === "result") {
+            const toolResultText = extractTextFromClaudeAgentSdkEvent(event);
+            mw.push({ kind: "tool_end", name: normalizedName.name, id: toolCallId, isError, text: toolResultText ?? undefined });
           }
         }
 
@@ -1049,6 +1084,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
             assistantMessageCount = 1;
           }
           turnCount += 1;
+          // Push to middleware (dual-path)
+          mw?.push({ kind: "message_start" });
           try {
             void Promise.resolve(params.onAssistantMessageStart?.()).catch((err) => {
               log.trace(`onAssistantMessageStart callback error: ${String(err)}`);
@@ -1099,6 +1136,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           if (assistantMessageCount === 0) {
             assistantMessageCount = 1;
           }
+          // Push to middleware (dual-path)
+          mw?.push({ kind: "message_start" });
           try {
             void Promise.resolve(params.onAssistantMessageStart?.()).catch((err) => {
               log.trace(`onAssistantMessageStart callback error: ${String(err)}`);
@@ -1131,6 +1170,9 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           delta,
           ...(assistantSplit.mediaUrls?.length ? { mediaUrls: assistantSplit.mediaUrls } : {}),
         });
+
+        // Push text_delta to middleware (dual-path)
+        mw?.push({ kind: "text_delta", text: assistantSoFar });
 
         // Stream partial reply with media extraction (P3).
         if (params.onPartialReply) {
@@ -1284,8 +1326,13 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     text = extractFinalTagContent(text) ?? text;
   }
 
+  // Check middleware delivery state alongside local tracking for messaging tool sends
+  const earlyMwDelivery = mw?.getDeliveryState();
+  const earlyDidSendViaMessaging = didSendViaMessagingTool ||
+    (earlyMwDelivery?.didSendViaMessagingTool ?? false);
+
   if (!text) {
-    if (didSendViaMessagingTool) {
+    if (earlyDidSendViaMessaging) {
       emitEvent("sdk", {
         type: "sdk_runner_end",
         eventCount,
@@ -1307,6 +1354,12 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         turnCount: turnCount > 0 ? turnCount : undefined,
         didSendViaMessagingTool: true,
       });
+      const earlyMsgTexts = messagingToolSentTexts.length
+        ? messagingToolSentTexts
+        : (earlyMwDelivery?.messagingToolSentTexts ?? []);
+      const earlyMsgTargets = messagingToolSentTargets.length
+        ? messagingToolSentTargets
+        : (earlyMwDelivery?.messagingToolSentTargets ?? []);
       return {
         payloads: [],
         meta: {
@@ -1326,10 +1379,8 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           },
         },
         didSendViaMessagingTool: true,
-        messagingToolSentTexts: messagingToolSentTexts.length ? messagingToolSentTexts : undefined,
-        messagingToolSentTargets: messagingToolSentTargets.length
-          ? messagingToolSentTargets
-          : undefined,
+        messagingToolSentTexts: earlyMsgTexts.length ? earlyMsgTexts : undefined,
+        messagingToolSentTargets: earlyMsgTargets.length ? earlyMsgTargets : undefined,
       };
     }
 
@@ -1380,7 +1431,12 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // Emitting again here would cause duplicates because the string-based
   // tracking (blockReplyStreamedText) doesn't match the pipeline's
   // payload-key-based dedup.
-  if (params.onBlockReply && !didStreamBlockReply) {
+  // Check both local state and middleware delivery state for block reply dedup
+  const effectiveDidStreamBlockReply = didStreamBlockReply ||
+    (mw ? mw.getDeliveryState().didStreamBlockReply : false);
+  if (params.onBlockReply && !effectiveDidStreamBlockReply) {
+    // Push final block reply to middleware (dual-path)
+    mw?.push({ kind: "block_reply", text: finalText });
     try {
       await params.onBlockReply({
         text: finalText,
@@ -1389,7 +1445,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     } catch {
       // Don't fail the run on callback errors.
     }
-  } else if (params.onBlockReply && didStreamBlockReply && suffix) {
+  } else if (params.onBlockReply && effectiveDidStreamBlockReply && suffix) {
     // Only emit the truncation suffix (if any) — the main content was
     // already delivered via streaming block replies.
     try {
@@ -1419,6 +1475,17 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     usage: accumulatedUsage,
     turnCount: turnCount > 0 ? turnCount : undefined,
   });
+
+  // Merge middleware delivery state with local state for backward compat
+  const mwDelivery = mw?.getDeliveryState();
+  const effectiveDidSendViaMessagingTool = didSendViaMessagingTool ||
+    (mwDelivery?.didSendViaMessagingTool ?? false);
+  const effectiveMessagingTexts = messagingToolSentTexts.length
+    ? messagingToolSentTexts
+    : (mwDelivery?.messagingToolSentTexts ?? []);
+  const effectiveMessagingTargets = messagingToolSentTargets.length
+    ? messagingToolSentTargets
+    : (mwDelivery?.messagingToolSentTargets ?? []);
 
   // Log usage summary if available - this is the key session end log
   const usageLog = accumulatedUsage
@@ -1453,14 +1520,14 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         skippedTools: bridgeResult.skippedTools,
       },
     },
-    ...(didSendViaMessagingTool
+    ...(effectiveDidSendViaMessagingTool
       ? {
           didSendViaMessagingTool: true,
-          messagingToolSentTexts: messagingToolSentTexts.length
-            ? messagingToolSentTexts
+          messagingToolSentTexts: effectiveMessagingTexts.length
+            ? effectiveMessagingTexts
             : undefined,
-          messagingToolSentTargets: messagingToolSentTargets.length
-            ? messagingToolSentTargets
+          messagingToolSentTargets: effectiveMessagingTargets.length
+            ? effectiveMessagingTargets
             : undefined,
         }
       : {}),

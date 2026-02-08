@@ -7,6 +7,7 @@ import type { ImageContent } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AgentRuntimePayload } from "../agent-runtime.js";
 import type { MessagingToolSend } from "../pi-embedded-messaging.js";
+import type { StreamingMiddleware } from "../stream/index.js";
 import type { AnyAgentTool } from "../tools/common.js";
 
 // ---------------------------------------------------------------------------
@@ -178,6 +179,9 @@ export type SdkRunnerParams = {
 
   /** Called for lifecycle / diagnostic events. */
   onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+
+  /** When provided, raw stream events are pushed to the middleware alongside legacy callbacks. */
+  streamMiddleware?: StreamingMiddleware;
 
   /**
    * MCP server name for the bridged Clawdbrain tools.

@@ -269,6 +269,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     return `\`\`\`txt\n${trimmed}\n\`\`\``;
   };
+  const mw = params.streamMiddleware;
+
   const emitToolSummary = (toolName?: string, meta?: string) => {
     if (!params.onToolResult) {
       return;
@@ -279,6 +281,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     const { text: cleanedText, mediaUrls } = parseReplyDirectives(agg);
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0)) {
       return;
+    }
+    // Push to middleware (dual-path: both middleware and legacy callback fire)
+    if (mw) {
+      mw.push({ kind: "agent_event", stream: "tool_summary", data: { text: cleanedText, mediaUrls } });
     }
     try {
       void params.onToolResult({
@@ -300,6 +306,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     const { text: cleanedText, mediaUrls } = parseReplyDirectives(message);
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0)) {
       return;
+    }
+    // Push to middleware (dual-path)
+    if (mw) {
+      mw.push({ kind: "agent_event", stream: "tool_output", data: { text: cleanedText, mediaUrls } });
     }
     try {
       void params.onToolResult({
@@ -468,6 +478,18 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0) && !audioAsVoice) {
       return;
     }
+    // Push to middleware (dual-path)
+    if (mw) {
+      mw.push({
+        kind: "block_reply",
+        text: cleanedText,
+        mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
+        audioAsVoice,
+        replyToId,
+        replyToTag,
+        replyToCurrent,
+      });
+    }
     void params.onBlockReply({
       text: cleanedText,
       mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
@@ -490,11 +512,13 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (blockChunker?.hasBuffered()) {
       blockChunker.drain({ force: true, emit: emitBlockChunk });
       blockChunker.reset();
-      return;
-    }
-    if (state.blockBuffer.length > 0) {
+    } else if (state.blockBuffer.length > 0) {
       emitBlockChunk(state.blockBuffer);
       state.blockBuffer = "";
+    }
+    // Push flush event to middleware after draining
+    if (mw) {
+      mw.push({ kind: "block_reply_flush" });
     }
   };
 
@@ -510,6 +534,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       return;
     }
     state.lastStreamedReasoning = formatted;
+    // Push to middleware (dual-path)
+    if (mw) {
+      mw.push({ kind: "thinking_delta", text: formatted });
+    }
     void params.onReasoningStream({
       text: formatted,
     });
@@ -533,6 +561,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     params,
     state,
     log,
+    streamMiddleware: mw,
     blockChunking,
     blockChunker,
     shouldEmitToolResult,
