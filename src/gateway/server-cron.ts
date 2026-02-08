@@ -1,16 +1,20 @@
 import type { CliDeps } from "../cli/deps.js";
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { loadConfig } from "../config/config.js";
-import { resolveAgentMainSessionKey } from "../config/sessions.js";
+import {
+  appendAssistantMessageToSessionTranscript,
+  resolveAgentMainSessionKey,
+} from "../config/sessions.js";
 import { runCronIsolatedAgentTurn } from "../cron/isolated-agent.js";
 import { appendCronRunLog, resolveCronRunLogPath } from "../cron/run-log.js";
-import { CronService } from "../cron/service.js";
-import { resolveCronStorePath } from "../cron/store.js";
+import { CronService, type CronEvent } from "../cron/service.js";
+import { loadCronStore, resolveCronStorePath } from "../cron/store.js";
+import { formatDurationMs } from "../infra/format-duration.js";
 import { runHeartbeatOnce } from "../infra/heartbeat-runner.js";
 import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
 import { getChildLogger } from "../logging.js";
-import { normalizeAgentId } from "../routing/session-key.js";
+import { buildAgentMainSessionKey, normalizeAgentId } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 import { buildCronJobCrn } from "../shared/crn/index.js";
 
@@ -42,6 +46,24 @@ export function buildGatewayCronService(params: {
       );
     const agentId = hasAgent ? normalized : resolveDefaultAgentId(runtimeConfig);
     return { agentId, cfg: runtimeConfig };
+  };
+
+  const formatCronLifecycleMessage = (evt: CronEvent, jobName?: string) => {
+    const status = evt.status ?? (evt.action === "started" ? "started" : "unknown");
+    const duration = typeof evt.durationMs === "number" ? formatDurationMs(evt.durationMs) : "n/a";
+    const summary = evt.summary?.trim() || "—";
+    const error = evt.error?.trim();
+    const jobLabel = jobName?.trim() ? ` ${jobName.trim()}` : "";
+    const lines = [
+      `[cron:${evt.jobId}${jobLabel}] ${evt.action}`,
+      `Status: ${status}`,
+      `Duration: ${duration}`,
+      `Summary: ${summary}`,
+    ];
+    if (error) {
+      lines.push(`Error: ${error}`);
+    }
+    return lines.join("\n");
   };
 
   const cron = new CronService({
@@ -100,6 +122,30 @@ export function buildGatewayCronService(params: {
           nextRunAtMs: evt.nextRunAtMs,
         }).catch((err) => {
           cronLogger.warn({ err: String(err), logPath }, "cron: run log append failed");
+        });
+      }
+      if (evt.action === "finished") {
+        void (async () => {
+          const store = await loadCronStore(storePath);
+          const job = store.jobs.find((entry) => entry.id === evt.jobId);
+          const { agentId, cfg: runtimeConfig } = resolveCronAgent(job?.agentId);
+          const sessionKey = buildAgentMainSessionKey({
+            agentId,
+            mainKey: `cron:${evt.jobId}`,
+          });
+          const appended = await appendAssistantMessageToSessionTranscript({
+            agentId,
+            sessionKey,
+            text: formatCronLifecycleMessage(evt, job?.name),
+          });
+          if (!appended.ok) {
+            cronLogger.warn(
+              { reason: appended.reason, sessionKey },
+              "cron: transcript append failed",
+            );
+          }
+        })().catch((err) => {
+          cronLogger.warn({ err: String(err), jobId: evt.jobId }, "cron: transcript append failed");
         });
       }
     },
