@@ -205,21 +205,21 @@ Supports `stopReason: "tool_calls"` with `pendingToolCalls` for external tool ex
 
 These fields exist in `RunEmbeddedPiAgentParams` but NOT in `SdkRunnerParams` and are NOT forwarded through `AgentRuntimeRunParams`:
 
-| Parameter | Purpose |
-|-----------|---------|
-| `messageChannel` | Channel routing (e.g., "telegram", "discord") |
-| `provider` / `model` (as strings) | Direct model selection by name |
-| `authProfileId` / `authProfileIdSource` | Auth profile selection |
-| `thinkLevel` / `verboseLevel` / `reasoningLevel` | Thinking/reasoning control tiers |
-| `toolResultFormat` | Output format for tool results ("markdown" vs "plain") |
-| `execOverrides` / `bashElevated` | Exec tool security/host configuration |
-| `senderIsOwner` | Owner-only tool gating |
-| `clientTools` | OpenResponses hosted tool definitions |
-| `disableTools` | LLM-only mode (no tools) |
-| `skillsSnapshot` | Workspace skill entries for prompt injection |
-| `lane` / `enqueue` | Command queue lane serialization |
-| `streamParams` | Agent stream parameters |
-| `requireExplicitMessageTarget` | Messaging tool routing control |
-| `disableMessageTool` | Suppress messaging tool entirely |
-| `extraTools` (ExtensionToolDefinition[]) | Extension-provided tools |
-| `onBlockReplyFlush` | Block reply flush callback |
+| Parameter                                        | Purpose                                                |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| `messageChannel`                                 | Channel routing (e.g., "telegram", "discord")          |
+| `provider` / `model` (as strings)                | Direct model selection by name                         |
+| `authProfileId` / `authProfileIdSource`          | Auth profile selection                                 |
+| `thinkLevel` / `verboseLevel` / `reasoningLevel` | Thinking/reasoning control tiers                       |
+| `toolResultFormat`                               | Output format for tool results ("markdown" vs "plain") |
+| `execOverrides` / `bashElevated`                 | Exec tool security/host configuration                  |
+| `senderIsOwner`                                  | Owner-only tool gating                                 |
+| `clientTools`                                    | OpenResponses hosted tool definitions                  |
+| `disableTools`                                   | LLM-only mode (no tools)                               |
+| `skillsSnapshot`                                 | Workspace skill entries for prompt injection           |
+| `lane` / `enqueue`                               | Command queue lane serialization                       |
+| `streamParams`                                   | Agent stream parameters                                |
+| `requireExplicitMessageTarget`                   | Messaging tool routing control                         |
+| `disableMessageTool`                             | Suppress messaging tool entirely                       |
+| `extraTools` (ExtensionToolDefinition[])         | Extension-provided tools                               |
+| `onBlockReplyFlush`                              | Block reply flush callback                             |

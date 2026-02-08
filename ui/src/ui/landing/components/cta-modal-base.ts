@@ -5,7 +5,15 @@
  * Provides backdrop, open/close, focus trapping, escape key, and animated transitions.
  */
 
-import { html, css, LitElement, nothing, TemplateResult, PropertyValues, type CSSResultGroup } from "lit";
+import {
+  html,
+  css,
+  LitElement,
+  nothing,
+  TemplateResult,
+  PropertyValues,
+  type CSSResultGroup,
+} from "lit";
 import { property, state, query } from "lit/decorators.js";
 
 export class CtaModalBase extends LitElement {

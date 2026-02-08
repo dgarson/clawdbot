@@ -20,6 +20,8 @@ const storeMock = {
 
 vi.mock("../../work-queue/index.js", () => ({
   getDefaultWorkQueueStore: async () => storeMock,
+  readRefs: (payload?: { refs?: unknown[] }) => (Array.isArray(payload?.refs) ? payload.refs : []),
+  validateRef: () => true,
 }));
 
 vi.mock("../agent-scope.js", () => ({
@@ -147,5 +149,39 @@ describe("work_item tool", () => {
         status: ["pending", "in_progress", "blocked"],
       }),
     );
+  });
+
+  it("add action merges refs into payload", async () => {
+    createItemMock.mockResolvedValue({ id: "item-refs" });
+    const tool = createWorkItemTool();
+
+    await tool.execute("call-refs-add", {
+      action: "add",
+      queueId: "queue-1",
+      title: "Ref task",
+      refs: [{ kind: "work:item", id: "item-123", label: "Upstream" }],
+    });
+
+    expect(createItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: { refs: [{ kind: "work:item", id: "item-123", label: "Upstream" }] },
+      }),
+    );
+  });
+
+  it("update action preserves payload when setting refs", async () => {
+    getItemMock.mockResolvedValue({ id: "item-1", payload: { foo: "bar" } });
+    updateItemMock.mockResolvedValue({ id: "item-1" });
+    const tool = createWorkItemTool();
+
+    await tool.execute("call-refs-update", {
+      action: "update",
+      itemId: "item-1",
+      refs: [{ kind: "work:queue", id: "queue-1" }],
+    });
+
+    expect(updateItemMock).toHaveBeenCalledWith("item-1", {
+      payload: { foo: "bar", refs: [{ kind: "work:queue", id: "queue-1" }] },
+    });
   });
 });

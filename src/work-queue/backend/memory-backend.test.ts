@@ -81,4 +81,30 @@ describe("MemoryWorkQueueBackend", () => {
     expect(updated.statusReason).toBeUndefined();
     expect(updated.assignedTo).toBeUndefined();
   });
+
+  it("lists items by refs", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "refs",
+      agentId: "refs",
+      name: "Refs",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    const item = await backend.createItem({
+      queueId: queue.id,
+      title: "With refs",
+      status: "pending",
+      priority: "medium",
+      payload: {
+        refs: [{ kind: "work:queue", id: "queue-123", label: "Queue" }],
+      },
+    });
+
+    const matches = await backend.listItemsByRef({ kind: "work:queue", id: "queue-123" });
+    expect(matches.map((match) => match.id)).toEqual([item.id]);
+  });
 });

@@ -10,12 +10,16 @@ export type {
   WorkItemPayload,
   WorkItemPhase,
   WorkItemPriority,
+  WorkItemRef,
+  WorkItemRefKind,
   WorkItemResult,
   WorkItemStatus,
   WorkQueue,
   WorkQueueStats,
 } from "./types.js";
-export { WORK_ITEM_PRIORITIES, WORK_ITEM_STATUSES } from "./types.js";
+export { WORK_ITEM_PRIORITIES, WORK_ITEM_REF_KINDS, WORK_ITEM_STATUSES } from "./types.js";
+export { formatRef, parseRef, readRefs, resolveRef, validateRef } from "./refs.js";
+export type { WorkItemRefResolverContext } from "./refs.js";
 export {
   buildWorkerSystemPrompt,
   buildWorkerTaskMessage,

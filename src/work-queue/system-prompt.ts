@@ -201,6 +201,7 @@ export function buildWorkerSystemPrompt(opts: BuildSystemPromptOptions): string 
     "verifyCommands",
     "relevantFiles",
     "contextUrls",
+    "refs",
     "phases",
     "notifyOnComplete",
   ]);

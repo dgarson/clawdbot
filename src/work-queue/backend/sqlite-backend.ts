@@ -8,6 +8,7 @@ import type {
   WorkItemOutcome,
   WorkItemPatch,
   WorkItemPriority,
+  WorkItemRefKind,
   WorkItemStatus,
   WorkQueue,
   WorkQueueStats,
@@ -21,6 +22,8 @@ import { requireNodeSqlite } from "../../memory/sqlite.js";
 import * as migration001 from "../migrations/001_baseline.js";
 import * as migration002 from "../migrations/002_workstream_and_tracking.js";
 import * as migration003 from "../migrations/003_work_item_heartbeat.js";
+import * as migration004 from "../migrations/004_work_item_refs.js";
+import { formatRef, readRefs } from "../refs.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -44,6 +47,11 @@ const WORK_QUEUE_MIGRATIONS = [
     name: "003_work_item_heartbeat.ts",
     up: migration003.up,
     down: migration003.down,
+  },
+  {
+    name: "004_work_item_refs.ts",
+    up: migration004.up,
+    down: migration004.down,
   },
 ];
 
@@ -238,6 +246,24 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     };
   }
 
+  private syncRefs(itemId: string, payload?: Record<string, unknown>) {
+    const db = this.requireDb();
+    db.prepare("DELETE FROM work_item_refs WHERE item_id = ?").run(itemId);
+    const refs = readRefs(payload);
+    if (refs.length === 0) {
+      return;
+    }
+    const stmt = db.prepare(
+      `
+      INSERT INTO work_item_refs (item_id, kind, ref_id, label, uri)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    );
+    for (const ref of refs) {
+      stmt.run(itemId, ref.kind, ref.id, ref.label ?? null, ref.uri ?? formatRef(ref));
+    }
+  }
+
   async createQueue(queue: Omit<WorkQueue, "createdAt" | "updatedAt">): Promise<WorkQueue> {
     const db = this.requireDb();
     const now = new Date().toISOString();
@@ -387,6 +413,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
       item.lastHeartbeatAt ?? null,
       item.completedAt ?? null,
     );
+    this.syncRefs(id, item.payload);
     return { ...item, id, createdAt: now, updatedAt: now };
   }
 
@@ -484,6 +511,22 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
       .filter((item) => matchesTags(item.tags, opts.tags));
   }
 
+  async listItemsByRef(ref: { kind: WorkItemRefKind; id: string }): Promise<WorkItem[]> {
+    const db = this.requireDb();
+    const rows = db
+      .prepare(
+        `
+        SELECT wi.*
+        FROM work_items wi
+        JOIN work_item_refs r ON r.item_id = wi.id
+        WHERE r.kind = ? AND r.ref_id = ?
+        ORDER BY wi.created_at ASC
+      `,
+      )
+      .all(ref.kind, ref.id);
+    return (rows as any[]).map((row) => this.mapItem(row));
+  }
+
   async updateItem(itemId: string, patch: WorkItemPatch): Promise<WorkItem> {
     const db = this.requireDb();
     const current = await this.getItem(itemId);
@@ -538,6 +581,9 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
 
     const sql = `UPDATE work_items SET ${updates.join(", ")} WHERE id = ?`;
     db.prepare(sql).run(...params, itemId);
+    if (has("payload")) {
+      this.syncRefs(itemId, patch.payload as Record<string, unknown> | undefined);
+    }
 
     const updated = await this.getItem(itemId);
     if (!updated) {

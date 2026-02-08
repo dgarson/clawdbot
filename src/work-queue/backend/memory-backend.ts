@@ -5,6 +5,7 @@ import type {
   WorkItemListOptions,
   WorkItemPatch,
   WorkItemPriority,
+  WorkItemRefKind,
   WorkItemStatus,
   WorkQueue,
   WorkQueueStats,
@@ -14,6 +15,7 @@ import type {
   WorkQueueBackendTransaction,
   WorkQueueClaimOptions,
 } from "./types.js";
+import { readRefs } from "../refs.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -205,6 +207,13 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
     const limit = opts.limit ? Math.max(1, opts.limit) : undefined;
     const sliced = limit ? sorted.slice(offset, offset + limit) : sorted.slice(offset);
     return sliced;
+  }
+
+  async listItemsByRef(ref: { kind: WorkItemRefKind; id: string }): Promise<WorkItem[]> {
+    return Array.from(this.items.values()).filter((item) => {
+      const refs = readRefs(item.payload);
+      return refs.some((candidate) => candidate.kind === ref.kind && candidate.id === ref.id);
+    });
   }
 
   async updateItem(itemId: string, patch: WorkItemPatch): Promise<WorkItem> {

@@ -13,6 +13,33 @@ export const WORK_ITEM_PRIORITIES = ["critical", "high", "medium", "low"] as con
 
 export type WorkItemPriority = (typeof WORK_ITEM_PRIORITIES)[number];
 
+export const WORK_ITEM_REF_KINDS = [
+  "graphiti:node",
+  "graphiti:edge",
+  "graphiti:episode",
+  "memory:entry",
+  "memory:legacy",
+  "agent",
+  "session",
+  "conversation",
+  "work:queue",
+  "work:item",
+  "cron:job",
+  "document",
+  "embedding:chunk",
+  "node",
+  "experience",
+] as const;
+
+export type WorkItemRefKind = (typeof WORK_ITEM_REF_KINDS)[number];
+
+export type WorkItemRef = {
+  kind: WorkItemRefKind;
+  id: string;
+  label?: string;
+  uri?: string;
+};
+
 export type WorkItemActor = {
   sessionKey?: string;
   agentId?: string;
@@ -84,6 +111,8 @@ export type WorkItemPayload = {
   relevantFiles?: string[];
   /** URLs to fetch for background context. */
   contextUrls?: string[];
+  /** Cross-entity references for this work item. */
+  refs?: WorkItemRef[];
 
   // --- Multi-phase definition ---
   /** Ordered phases for a multi-phase task. */

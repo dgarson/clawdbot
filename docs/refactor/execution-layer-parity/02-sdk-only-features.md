@@ -28,10 +28,16 @@ Full hook lifecycle integration with Claude Code:
 
 ```typescript
 type SdkHookEventName =
-  | "PreToolUse" | "PostToolUse" | "PostToolUseFailure"
-  | "Notification" | "SessionStart" | "SessionEnd"
-  | "UserPromptSubmit" | "Stop"
-  | "SubagentStart" | "SubagentStop"
+  | "PreToolUse"
+  | "PostToolUse"
+  | "PostToolUseFailure"
+  | "Notification"
+  | "SessionStart"
+  | "SessionEnd"
+  | "UserPromptSubmit"
+  | "Stop"
+  | "SubagentStart"
+  | "SubagentStop";
 ```
 
 Gated by `hooksEnabled` in `SdkRuntimeContext` (`sdk-agent-runtime.ts:25`).
@@ -62,7 +68,7 @@ Supports `betas` arrays for opting into preview features:
 
 ```typescript
 // Example: 1M context window on Sonnet 4/4.5
-betas: ["context-1m-2025-08-07"]
+betas: ["context-1m-2025-08-07"];
 ```
 
 **Pi equivalent**: Not supported. No mechanism for enabling API-level beta features.

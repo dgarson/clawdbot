@@ -11,12 +11,12 @@ This document set tracks feature parity between the two primary `AgentRuntime` i
 
 ## Documents
 
-| File | Contents |
-|------|----------|
-| [`01-pi-only-features.md`](./01-pi-only-features.md) | Features present in Pi Runtime but missing from Claude Agent SDK |
-| [`02-sdk-only-features.md`](./02-sdk-only-features.md) | Features present in Claude Agent SDK but missing from Pi Runtime |
-| [`03-execution-layer-asymmetries.md`](./03-execution-layer-asymmetries.md) | Bugs and inconsistencies in the shared execution layer itself |
-| [`04-recommendations.md`](./04-recommendations.md) | Prioritized action plan and next 20 steps |
+| File                                                                       | Contents                                                         |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [`01-pi-only-features.md`](./01-pi-only-features.md)                       | Features present in Pi Runtime but missing from Claude Agent SDK |
+| [`02-sdk-only-features.md`](./02-sdk-only-features.md)                     | Features present in Claude Agent SDK but missing from Pi Runtime |
+| [`03-execution-layer-asymmetries.md`](./03-execution-layer-asymmetries.md) | Bugs and inconsistencies in the shared execution layer itself    |
+| [`04-recommendations.md`](./04-recommendations.md)                         | Prioritized action plan and next 20 steps                        |
 
 ## Architecture Context
 
@@ -46,7 +46,7 @@ Both runtimes implement the common `AgentRuntime` interface (`src/agents/agent-r
 
 ```typescript
 interface AgentRuntime {
-  readonly kind: AgentRuntimeKind;  // "pi" | "claude"
+  readonly kind: AgentRuntimeKind; // "pi" | "claude"
   readonly displayName: string;
   run(params: AgentRuntimeRunParams): Promise<AgentRuntimeResult>;
 }

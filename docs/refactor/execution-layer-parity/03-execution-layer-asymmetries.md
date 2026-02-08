@@ -12,7 +12,7 @@
 return {
   supportsTools: kind !== "cli",
   supportsStreaming: kind !== "cli",
-  supportsImages: kind !== "cli",   // ← SDK never actually forwards images
+  supportsImages: kind !== "cli", // ← SDK never actually forwards images
   supportsThinking: supportsXHighThinking(provider, model),
 };
 ```
@@ -107,11 +107,11 @@ These comments explicitly acknowledge parity work that remains incomplete.
 
 ## Summary Table
 
-| Asymmetry | Severity | Affects |
-|-----------|----------|---------|
-| `supportsImages` false advertising | High | Callers sending images to SDK |
-| Silent Pi fallback on missing sdkContext | Medium | Observability, debugging |
-| Error taxonomy mismatch | High | Error recovery, user messaging |
-| `shouldEmitToolResult`/`Output` type mismatch | Low | Tool output streaming behavior |
-| `"cli"` not in `AgentRuntimeKind` | Low | CLI runtime maintenance |
-| Incomplete parity TODOs | Info | Tracking only |
+| Asymmetry                                     | Severity | Affects                        |
+| --------------------------------------------- | -------- | ------------------------------ |
+| `supportsImages` false advertising            | High     | Callers sending images to SDK  |
+| Silent Pi fallback on missing sdkContext      | Medium   | Observability, debugging       |
+| Error taxonomy mismatch                       | High     | Error recovery, user messaging |
+| `shouldEmitToolResult`/`Output` type mismatch | Low      | Tool output streaming behavior |
+| `"cli"` not in `AgentRuntimeKind`             | Low      | CLI runtime maintenance        |
+| Incomplete parity TODOs                       | Info     | Tracking only                  |

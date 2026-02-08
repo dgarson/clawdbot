@@ -204,7 +204,7 @@ describeSqlite("SqliteWorkQueueBackend", () => {
         .all() as Array<{
         name: string;
       }>;
-      expect(migrations).toHaveLength(2);
+      expect(migrations).toHaveLength(3);
 
       await backend1.close();
       await backend2.close();
@@ -248,6 +248,49 @@ describeSqlite("SqliteWorkQueueBackend", () => {
       });
       expect(itemsByWorkstream).toHaveLength(1);
       expect(itemsByWorkstream[0]?.id).toBe(item.id);
+
+      await backend.close();
+      fs.rmSync(dbPath, { force: true });
+    });
+
+    it("indexes work item refs for lookups", async () => {
+      const dbPath = path.join(os.tmpdir(), `work-queue-refs-${Date.now()}.sqlite`);
+      const backend = new SqliteWorkQueueBackend(dbPath);
+      await backend.initialize();
+
+      const queue = await backend.createQueue({
+        id: "refs-queue",
+        agentId: "refs-queue",
+        name: "Refs Queue",
+        concurrencyLimit: 1,
+        defaultPriority: "medium",
+      });
+
+      const item = await backend.createItem({
+        queueId: queue.id,
+        title: "Item with refs",
+        status: "pending",
+        priority: "medium",
+        payload: {
+          refs: [{ kind: "memory:entry", id: "mem-123", label: "Memory entry" }],
+        },
+      });
+
+      const matches = await backend.listItemsByRef({ kind: "memory:entry", id: "mem-123" });
+      expect(matches.map((match) => match.id)).toEqual([item.id]);
+
+      const updated = await backend.updateItem(item.id, {
+        payload: {
+          refs: [{ kind: "work:item", id: "item-456", label: "Related item" }],
+        },
+      });
+      expect(updated.id).toBe(item.id);
+
+      const oldMatches = await backend.listItemsByRef({ kind: "memory:entry", id: "mem-123" });
+      expect(oldMatches).toHaveLength(0);
+
+      const newMatches = await backend.listItemsByRef({ kind: "work:item", id: "item-456" });
+      expect(newMatches).toHaveLength(1);
 
       await backend.close();
       fs.rmSync(dbPath, { force: true });

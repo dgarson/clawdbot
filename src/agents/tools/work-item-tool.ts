@@ -1,12 +1,14 @@
 import { Type } from "@sinclair/typebox";
 import { loadConfig, type OpenClawConfig } from "../../config/config.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
-import { getDefaultWorkQueueStore } from "../../work-queue/index.js";
+import { getDefaultWorkQueueStore, readRefs, validateRef } from "../../work-queue/index.js";
 import {
   WORK_ITEM_PRIORITIES,
+  WORK_ITEM_REF_KINDS,
   WORK_ITEM_STATUSES,
   type WorkItemPatch,
   type WorkItemPriority,
+  type WorkItemRef,
   type WorkItemStatus,
 } from "../../work-queue/types.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
@@ -33,6 +35,40 @@ const WORK_ITEM_ACTIONS = [
   "reassign",
 ] as const;
 
+const attachRefs = <T extends { payload?: Record<string, unknown> }>(item: T): T => {
+  const refs = readRefs(item.payload);
+  return refs.length > 0 ? ({ ...item, refs } as T) : item;
+};
+
+const parseRefsParam = (params: Record<string, unknown>): WorkItemRef[] | undefined => {
+  if (!Object.prototype.hasOwnProperty.call(params, "refs")) {
+    return undefined;
+  }
+  const refs = (params as { refs?: unknown }).refs;
+  if (refs === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(refs)) {
+    throw new Error("refs must be an array");
+  }
+  for (const ref of refs) {
+    if (!validateRef(ref as WorkItemRef)) {
+      throw new Error(`Invalid ref: ${JSON.stringify(ref)}`);
+    }
+  }
+  return refs as WorkItemRef[];
+};
+
+const mergePayloadRefs = (
+  payload: Record<string, unknown> | undefined,
+  refs: WorkItemRef[] | undefined,
+): Record<string, unknown> | undefined => {
+  if (!refs) {
+    return payload;
+  }
+  return { ...(payload ?? {}), refs };
+};
+
 const WorkItemToolSchema = Type.Object({
   action: stringEnum(WORK_ITEM_ACTIONS),
   itemId: Type.Optional(Type.String()),
@@ -41,6 +77,16 @@ const WorkItemToolSchema = Type.Object({
   title: Type.Optional(Type.String()),
   description: Type.Optional(Type.String()),
   payload: Type.Optional(Type.Object({}, { additionalProperties: true })),
+  refs: Type.Optional(
+    Type.Array(
+      Type.Object({
+        kind: stringEnum(WORK_ITEM_REF_KINDS),
+        id: Type.String(),
+        label: Type.Optional(Type.String()),
+        uri: Type.Optional(Type.String()),
+      }),
+    ),
+  ),
   priority: optionalStringEnum(WORK_ITEM_PRIORITIES),
   parentItemId: Type.Optional(Type.String()),
   dependsOn: Type.Optional(Type.Array(Type.String())),
@@ -111,12 +157,13 @@ export function createWorkItemTool(options: WorkItemToolOptions = {}): AnyAgentT
     label: "Work Item",
     description: `Manage work items in agent queues. Items persist after completion for history.
 Items support DAG dependencies (dependsOn) — claim skips items with unsatisfied deps.
-Use workstream to group related items across queues.
+Use workstream to group related items across queues (workstream is shared context, not a queue id).
+To attach cross-entity references, pass refs: [{kind, id, label?, uri?}] so the system can index and link them.
 
 Actions:
-- add: Create a new work item (supports dependsOn, workstream, optional assignedTo)
+- add: Create a new work item (supports dependsOn, workstream, optional assignedTo, refs)
 - claim: Atomically claim the next DAG-ready item (optional workstream filter)
-- update: Update item fields (title, description, priority, tags, workstream, assignedTo)
+- update: Update item fields (title, description, priority, tags, workstream, assignedTo, refs)
 - list: Query items with filters (status, priority, tags, workstream, date range)
 - get: Get a single item by ID with full details
 - complete: Mark item as completed with optional result
@@ -150,6 +197,7 @@ Actions:
         | import("../../work-queue/types.js").WorkItemError
         | undefined;
       const payload = (params as { payload?: Record<string, unknown> }).payload;
+      const refs = parseRefsParam(params);
 
       switch (action) {
         case "add": {
@@ -165,7 +213,7 @@ Actions:
             agentId,
             title,
             description,
-            payload,
+            payload: mergePayloadRefs(payload, refs),
             priority,
             workstream,
             parentItemId,
@@ -196,7 +244,14 @@ Actions:
 
           if (hasParam("title")) patch.title = title;
           if (hasParam("description")) patch.description = description;
-          if (hasParam("payload")) patch.payload = payload;
+          if (hasParam("payload") || refs) {
+            if (!hasParam("payload") && refs) {
+              const existing = await store.getItem(itemId);
+              patch.payload = mergePayloadRefs(existing?.payload, refs);
+            } else {
+              patch.payload = mergePayloadRefs(payload, refs);
+            }
+          }
           if (hasParam("priority")) patch.priority = priority;
           if (hasParam("workstream")) patch.workstream = workstream;
           if (hasParam("tags")) patch.tags = tags;
@@ -254,14 +309,14 @@ Actions:
             const agentName = aid ? nameMap.get(normalizeAgentId(aid)) : undefined;
             return agentName ? { ...item, agentName } : item;
           });
-          return jsonResult({ items: enriched });
+          return jsonResult({ items: enriched.map((item) => attachRefs(item)) });
         }
         case "get": {
           if (!itemId) {
             throw new Error("itemId required");
           }
           const item = await store.getItem(itemId);
-          return jsonResult({ item });
+          return jsonResult({ item: item ? attachRefs(item) : item });
         }
         case "complete": {
           if (!itemId) {
