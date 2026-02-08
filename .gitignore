@@ -66,6 +66,9 @@ apps/ios/*.dSYM.zip
 apps/ios/*.mobileprovision
 .env
 
+# Firebase
+firebase-debug.log
+
 # Local untracked files
 .local/
 IDENTITY.md

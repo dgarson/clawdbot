@@ -1008,27 +1008,20 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           });
           void Promise.resolve(triggerInternalHook(hookEvent)).catch(() => {});
         }
-      }
 
-      if (
-        !hooksEnabled &&
-        kind === "tool" &&
-        params.onToolResult &&
-        params.shouldEmitToolOutput !== false
-      ) {
-        const toolText = extractTextFromClaudeAgentSdkEvent(event);
-        if (toolText) {
+        // Emit tool output text via onToolResult for terminal events (P6 gated)
+        if (
+          phase === "result" &&
+          toolText &&
+          params.onToolResult &&
+          params.shouldEmitToolOutput !== false
+        ) {
           try {
-            // Only emit tool results for terminal tool events to match Pi semantics more closely.
-            const record = isRecord(event) ? event : undefined;
-            const type = record && typeof record.type === "string" ? record.type : "";
-            if (isSdkTerminalToolEventType(type)) {
-              const toolSplit = splitMediaFromOutput(toolText);
-              await params.onToolResult({
-                text: toolSplit.text,
-                ...(toolSplit.mediaUrls?.length ? { mediaUrls: toolSplit.mediaUrls } : {}),
-              });
-            }
+            const toolSplit = splitMediaFromOutput(toolText);
+            await params.onToolResult({
+              text: toolSplit.text,
+              ...(toolSplit.mediaUrls?.length ? { mediaUrls: toolSplit.mediaUrls } : {}),
+            });
           } catch {
             // Don't break the stream on callback errors.
           }
