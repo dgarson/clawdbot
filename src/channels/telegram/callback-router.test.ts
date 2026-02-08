@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   TelegramCallbackRouter,
   getCallbackRouter,
+  parseCallbackData,
   resetCallbackRouter,
   type CallbackEvent,
 } from "./callback-router.js";
@@ -9,6 +10,7 @@ import {
 function makeEvent(overrides: Partial<CallbackEvent> = {}): CallbackEvent {
   return {
     callbackData: "test_sel:option_1",
+    prefix: "",
     actionId: "",
     chatId: "12345",
     userId: "67890",
@@ -130,6 +132,7 @@ describe("TelegramCallbackRouter", () => {
       expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           callbackData: "test_sel:option_1",
+          prefix: "test_sel",
           actionId: "option_1",
         }),
       );
@@ -145,10 +148,12 @@ describe("TelegramCallbackRouter", () => {
         timeoutMs: 5000,
       });
 
-      const event = makeEvent({ callbackData: "mc_sel:my_value" });
+      const event = makeEvent({ callbackData: "mc_sel:my_value:extra" });
       await router.route(event);
 
-      expect(handler).toHaveBeenCalledWith(expect.objectContaining({ actionId: "my_value" }));
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ actionId: "my_value", payload: "extra" }),
+      );
     });
 
     it("returns false when no handler matches", async () => {
@@ -339,6 +344,32 @@ describe("TelegramCallbackRouter", () => {
 
       expect(router.hasHandler("scoped:val", "chat_A")).toBe(true);
       expect(router.hasHandler("scoped:val", "chat_B")).toBe(false);
+    });
+  });
+
+  // ─── Parsing ─────────────────────────────────────────────────────────────
+
+  describe("parseCallbackData", () => {
+    it("parses prefix, actionId, and payload", () => {
+      expect(parseCallbackData("prefix:action:payload")).toEqual({
+        prefix: "prefix",
+        actionId: "action",
+        payload: "payload",
+      });
+    });
+
+    it("supports payloads with colons", () => {
+      expect(parseCallbackData("prefix:action:one:two")).toEqual({
+        prefix: "prefix",
+        actionId: "action",
+        payload: "one:two",
+      });
+    });
+
+    it("returns null when the format is invalid", () => {
+      expect(parseCallbackData("missing")).toBeNull();
+      expect(parseCallbackData("noaction:")).toBeNull();
+      expect(parseCallbackData(":nope")).toBeNull();
     });
   });
 

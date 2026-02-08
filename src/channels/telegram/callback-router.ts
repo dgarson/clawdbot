@@ -12,7 +12,7 @@
  * Supports both one-shot (question/confirmation) and toggle (checklist) callbacks.
  */
 
-import { createSubsystemLogger } from "../logging/subsystem.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 
 const log = createSubsystemLogger("telegram/callback-router");
 
@@ -42,8 +42,12 @@ export interface CallbackHandlerRegistration {
 export interface CallbackEvent {
   /** The full callback_data string from Telegram. */
   callbackData: string;
+  /** The parsed prefix portion of callback_data. */
+  prefix: string;
   /** The parsed action ID (everything after the prefix). */
   actionId: string;
+  /** Optional payload segment after actionId. */
+  payload?: string;
   /** Chat ID where the callback originated. */
   chatId: string;
   /** User ID of the person who clicked. */
@@ -135,10 +139,14 @@ export class TelegramCallbackRouter {
    */
   async route(event: CallbackEvent): Promise<boolean> {
     const { callbackData, chatId } = event;
+    const parsed = parseCallbackData(callbackData);
+    if (!parsed) {
+      this.stats.totalUnmatched++;
+      return false;
+    }
 
     for (const [id, entry] of this.handlers) {
-      // Match prefix
-      if (!callbackData.startsWith(entry.prefix)) {
+      if (parsed.prefix !== entry.prefix) {
         continue;
       }
 
@@ -147,10 +155,9 @@ export class TelegramCallbackRouter {
         continue;
       }
 
-      // Parse the action ID (part after prefix + separator)
-      const prefixLen = entry.prefix.length;
-      const separator = callbackData[prefixLen] === ":" ? 1 : 0;
-      event.actionId = callbackData.slice(prefixLen + separator);
+      event.prefix = parsed.prefix;
+      event.actionId = parsed.actionId;
+      event.payload = parsed.payload;
 
       this.stats.totalRouted++;
 
@@ -179,8 +186,13 @@ export class TelegramCallbackRouter {
    * Non-destructive — does not invoke the handler.
    */
   hasHandler(callbackData: string, chatId?: string): boolean {
+    const parsed = parseCallbackData(callbackData);
+    if (!parsed) {
+      return false;
+    }
+
     for (const entry of this.handlers.values()) {
-      if (!callbackData.startsWith(entry.prefix)) {
+      if (parsed.prefix !== entry.prefix) {
         continue;
       }
       if (entry.chatId && chatId && entry.chatId !== chatId) {
@@ -230,6 +242,32 @@ export class TelegramCallbackRouter {
       `Callback handler timed out: id=${id} prefix="${entry.prefix}" after ${entry.timeoutMs}ms`,
     );
   }
+}
+
+export type ParsedCallbackData = {
+  prefix: string;
+  actionId: string;
+  payload?: string;
+};
+
+/**
+ * Parse compact callback_data encoding: prefix:actionId:payload
+ * Payload is optional and may contain additional colons.
+ */
+export function parseCallbackData(callbackData: string): ParsedCallbackData | null {
+  if (!callbackData) {
+    return null;
+  }
+  const parts = callbackData.split(":");
+  if (parts.length < 2) {
+    return null;
+  }
+  const [prefix, actionId, ...payloadParts] = parts;
+  if (!prefix || !actionId) {
+    return null;
+  }
+  const payload = payloadParts.length > 0 ? payloadParts.join(":") : undefined;
+  return { prefix, actionId, payload };
 }
 
 // ─── Singleton ───────────────────────────────────────────────────────────────
