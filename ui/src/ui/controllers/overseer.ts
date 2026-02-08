@@ -189,6 +189,30 @@ export async function createOverseerGoal(
   }
 }
 
+export async function updateOverseerGoal(
+  state: OverseerState,
+  params: {
+    goalId: string;
+    title?: string;
+    problemStatement?: string;
+    successCriteria?: string[];
+    constraints?: string[];
+  },
+) {
+  if (!state.client || !state.connected) return;
+  if (state.overseerGoalActionPending) return;
+  state.overseerGoalActionPending = true;
+  state.overseerGoalActionError = null;
+  try {
+    await state.client.request("overseer.goal.update", params);
+    await refreshOverseer(state, { quiet: true });
+  } catch (err) {
+    state.overseerGoalActionError = String(err);
+  } finally {
+    state.overseerGoalActionPending = false;
+  }
+}
+
 export async function updateOverseerWorkNode(
   state: OverseerState,
   params: {

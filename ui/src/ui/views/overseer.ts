@@ -97,6 +97,14 @@ export type OverseerProps = {
     generatePlan: boolean;
   }) => void;
   onUpdateCreateGoalForm?: (updates: Partial<OverseerProps["createGoalForm"]>) => void;
+  // Inline goal editing handler
+  onUpdateGoal?: (params: {
+    goalId: string;
+    title?: string;
+    problemStatement?: string;
+    successCriteria?: string[];
+    constraints?: string[];
+  }) => void;
   // Work node management handlers
   onMarkWorkDone?: (goalId: string, workNodeId: string, summary?: string) => void;
   onBlockWork?: (goalId: string, workNodeId: string, reason: string) => void;
@@ -691,19 +699,40 @@ function renderOverseerDetails(props: OverseerProps, layout: GraphLayout) {
   const actionPending = props.goalActionPending ?? false;
 
   if (!selected || selected.startsWith("goal:")) {
+    const canEdit = !!props.onUpdateGoal && !actionPending;
+    const saveGoalField = (field: string, value: string | string[]) => {
+      if (props.onUpdateGoal) {
+        props.onUpdateGoal({ goalId: goal.goalId, [field]: value });
+      }
+    };
+
     return html`
       <div class="graph-details__title">Goal</div>
+      ${editableDetailRow("Title", goal.title, {
+        onSave: (v) => saveGoalField("title", v),
+        disabled: !canEdit,
+        placeholder: "Goal title",
+      })}
       ${detailRow("Status", goal.status)}
       ${detailRow("Priority", goal.priority)}
       ${detailRow("Updated", formatAgo(goal.updatedAt))}
       ${goal.tags.length ? detailRow("Tags", goal.tags.join(", ")) : nothing}
-      ${detailRow("Problem", goal.problemStatement)}
-      ${
-        goal.successCriteria.length
-          ? detailRow("Success", formatList(goal.successCriteria))
-          : nothing
-      }
-      ${goal.constraints?.length ? detailRow("Constraints", formatList(goal.constraints)) : nothing}
+      ${editableDetailRow("Problem", goal.problemStatement, {
+        multiline: true,
+        onSave: (v) => saveGoalField("problemStatement", v),
+        disabled: !canEdit,
+        placeholder: "Describe the problem to solve",
+      })}
+      ${editableListDetailRow("Success", goal.successCriteria, {
+        onSave: (v) => saveGoalField("successCriteria", v),
+        disabled: !canEdit,
+        placeholder: "Success criteria (one per line)",
+      })}
+      ${editableListDetailRow("Constraints", goal.constraints ?? [], {
+        onSave: (v) => saveGoalField("constraints", v),
+        disabled: !canEdit,
+        placeholder: "Constraints (one per line)",
+      })}
       ${goal.assumptions?.length ? detailRow("Assumptions", formatList(goal.assumptions)) : nothing}
     `;
   }
@@ -1254,6 +1283,193 @@ function detailRow(label: string, value: string) {
     <div class="graph-details__row">
       <span class="graph-details__label">${label}</span>
       <span class="graph-details__value">${value}</span>
+    </div>
+  `;
+}
+
+/**
+ * Editable detail row — shows read-only text with a pencil icon.
+ * On click, switches to an inline input/textarea for editing.
+ * Saves on blur or Enter, cancels on Escape.
+ */
+function editableDetailRow(
+  label: string,
+  value: string,
+  opts: {
+    multiline?: boolean;
+    onSave: (newValue: string) => void;
+    disabled?: boolean;
+    placeholder?: string;
+  },
+) {
+  const handleClick = (e: Event) => {
+    const row = (e.target as HTMLElement).closest(".graph-details__row") as HTMLElement;
+    if (!row || opts.disabled) return;
+    const valueEl = row.querySelector(".graph-details__value") as HTMLElement;
+    const editEl = row.querySelector(".graph-details__edit") as HTMLElement;
+    if (!valueEl || !editEl) return;
+    valueEl.style.display = "none";
+    editEl.style.display = "block";
+    const input = editEl.querySelector("input, textarea") as HTMLInputElement | HTMLTextAreaElement;
+    if (input) {
+      input.value = value;
+      input.focus();
+      input.select();
+    }
+  };
+
+  const handleSave = (e: Event) => {
+    const input = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const row = input.closest(".graph-details__row") as HTMLElement;
+    const newValue = input.value.trim();
+    if (newValue !== value.trim()) {
+      opts.onSave(newValue);
+    }
+    // Restore read-only display
+    if (row) {
+      const valueEl = row.querySelector(".graph-details__value") as HTMLElement;
+      const editEl = row.querySelector(".graph-details__edit") as HTMLElement;
+      if (valueEl) valueEl.style.display = "";
+      if (editEl) editEl.style.display = "none";
+    }
+  };
+
+  const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && !opts.multiline) {
+      e.preventDefault();
+      handleSave(e);
+    } else if (e.key === "Enter" && opts.multiline && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSave(e);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      const input = e.target as HTMLInputElement | HTMLTextAreaElement;
+      const row = input.closest(".graph-details__row") as HTMLElement;
+      if (row) {
+        const valueEl = row.querySelector(".graph-details__value") as HTMLElement;
+        const editEl = row.querySelector(".graph-details__edit") as HTMLElement;
+        if (valueEl) valueEl.style.display = "";
+        if (editEl) editEl.style.display = "none";
+      }
+    }
+  };
+
+  const inputTemplate = opts.multiline
+    ? html`<textarea
+        class="graph-details__edit-input"
+        rows="3"
+        placeholder=${opts.placeholder ?? ""}
+        @blur=${handleSave}
+        @keydown=${handleKeydown}
+      >${value}</textarea>`
+    : html`<input
+        class="graph-details__edit-input"
+        type="text"
+        placeholder=${opts.placeholder ?? ""}
+        .value=${value}
+        @blur=${handleSave}
+        @keydown=${handleKeydown}
+      />`;
+
+  return html`
+    <div class="graph-details__row graph-details__row--editable">
+      <span class="graph-details__label">${label}</span>
+      <span class="graph-details__value" @click=${handleClick}>
+        ${value}
+        ${!opts.disabled ? html`<span class="graph-details__edit-icon" title="Click to edit">${icon("edit" as IconName)}</span>` : nothing}
+      </span>
+      <div class="graph-details__edit" style="display:none">
+        ${inputTemplate}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Editable list detail row — for fields like successCriteria and constraints
+ * that are arrays of strings (displayed as newline-separated).
+ */
+function editableListDetailRow(
+  label: string,
+  items: string[],
+  opts: {
+    onSave: (newItems: string[]) => void;
+    disabled?: boolean;
+    placeholder?: string;
+  },
+) {
+  const displayValue = items.length ? formatList(items) : "(none)";
+  const editValue = items.join("\n");
+
+  const handleClick = (e: Event) => {
+    const row = (e.target as HTMLElement).closest(".graph-details__row") as HTMLElement;
+    if (!row || opts.disabled) return;
+    const valueEl = row.querySelector(".graph-details__value") as HTMLElement;
+    const editEl = row.querySelector(".graph-details__edit") as HTMLElement;
+    if (!valueEl || !editEl) return;
+    valueEl.style.display = "none";
+    editEl.style.display = "block";
+    const textarea = editEl.querySelector("textarea") as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.value = editValue;
+      textarea.focus();
+    }
+  };
+
+  const handleSave = (e: Event) => {
+    const textarea = e.target as HTMLTextAreaElement;
+    const row = textarea.closest(".graph-details__row") as HTMLElement;
+    const newItems = textarea.value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const changed =
+      newItems.length !== items.length || newItems.some((item, i) => item !== items[i]);
+    if (changed) {
+      opts.onSave(newItems);
+    }
+    if (row) {
+      const valueEl = row.querySelector(".graph-details__value") as HTMLElement;
+      const editEl = row.querySelector(".graph-details__edit") as HTMLElement;
+      if (valueEl) valueEl.style.display = "";
+      if (editEl) editEl.style.display = "none";
+    }
+  };
+
+  const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSave(e);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      const textarea = e.target as HTMLTextAreaElement;
+      const row = textarea.closest(".graph-details__row") as HTMLElement;
+      if (row) {
+        const valueEl = row.querySelector(".graph-details__value") as HTMLElement;
+        const editEl = row.querySelector(".graph-details__edit") as HTMLElement;
+        if (valueEl) valueEl.style.display = "";
+        if (editEl) editEl.style.display = "none";
+      }
+    }
+  };
+
+  return html`
+    <div class="graph-details__row graph-details__row--editable">
+      <span class="graph-details__label">${label}</span>
+      <span class="graph-details__value" @click=${handleClick}>
+        ${displayValue}
+        ${!opts.disabled ? html`<span class="graph-details__edit-icon" title="Click to edit">${icon("edit" as IconName)}</span>` : nothing}
+      </span>
+      <div class="graph-details__edit" style="display:none">
+        <textarea
+          class="graph-details__edit-input"
+          rows="3"
+          placeholder=${opts.placeholder ?? "One item per line"}
+          @blur=${handleSave}
+          @keydown=${handleKeydown}
+        >${editValue}</textarea>
+        <div class="graph-details__edit-hint">One item per line · Ctrl+Enter to save · Esc to cancel</div>
+      </div>
     </div>
   `;
 }
