@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ListItemSkeleton } from "@/components/composed";
 import { useMemories } from "@/hooks/queries";
-import { Brain, ArrowRight, Loader2, Tag, Calendar } from "lucide-react";
+import { Brain, ArrowRight, Tag, Calendar } from "lucide-react";
 
 interface RecentMemoriesPanelProps {
   maxMemories?: number;
@@ -102,8 +103,10 @@ export function RecentMemoriesPanel({
 
         <CardContent className="pt-4">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <ListItemSkeleton key={index} />
+              ))}
             </div>
           ) : error ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
