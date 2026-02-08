@@ -75,9 +75,15 @@ export function RetryableError({
     cancel,
     reset,
   } = useRetry(onRetry, retryOptions);
+  const previousErrorRef = React.useRef<Error | null>(error);
 
   // Auto-retry on mount if configured and there's an error
   React.useEffect(() => {
+    if (error !== previousErrorRef.current) {
+      reset();
+      previousErrorRef.current = error;
+    }
+
     if (autoRetry && error && !isRetrying && !isExhausted) {
       execute();
     }
