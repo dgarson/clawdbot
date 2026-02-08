@@ -186,14 +186,6 @@ export function createExecApprovalHandlers(
         return;
       }
 
-      // Guard: legacy exec.approval.resolve must only touch exec approvals.
-      // Legacy callers don't supply requestHash — retrieve it from the pending record.
-      const snapshot = manager.getSnapshot(p.id);
-      if (!snapshot || snapshot.request.toolName !== "exec") {
-        respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
-        return;
-      }
-      const requestHash = snapshot.request.requestHash;
       const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
       const snapshot = manager.getSnapshot(p.id);
       if (!snapshot || snapshot.request.toolName !== "exec") {
