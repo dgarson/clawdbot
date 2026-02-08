@@ -19,7 +19,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@vitest/browser-playwright": "4.0.18",
     "autoprefixer": "^10.4.24",
-    "playwright": "^1.58.1",
+    "playwright": "^1.58.2",
     "tailwindcss": "^4.1.18",
     "vitest": "4.0.18"
   }
