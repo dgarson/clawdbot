@@ -255,6 +255,7 @@ const FIELD_LABELS: Record<string, string> = {
   "agents.defaults.memorySearch.remote.batch.concurrency": "Remote Batch Concurrency",
   "agents.defaults.memorySearch.model": "Memory Search Model",
   "agents.defaults.memorySearch.fallback": "Memory Search Fallback",
+  "agents.defaults.memorySearch.modality": "Embedding Modality",
   "agents.defaults.memorySearch.local.modelPath": "Local Embedding Model Path",
   "agents.defaults.memorySearch.store.path": "Memory Search Index Path",
   "agents.defaults.memorySearch.store.vector.enabled": "Memory Search Vector Index",
@@ -630,6 +631,8 @@ const FIELD_HELP: Record<string, string> = {
     "Local GGUF model path or hf: URI (node-llama-cpp).",
   "agents.defaults.memorySearch.fallback":
     'Fallback provider when embeddings fail ("openai", "gemini", "local", or "none").',
+  "agents.defaults.memorySearch.modality":
+    'Embedding modality hint ("text", "image", or "text+image"). Defaults to provider-specific default (e.g. "text+image" for Gemini, "text" for others).',
   "agents.defaults.memorySearch.store.path":
     "SQLite index path (default: ~/.openclaw/memory/{agentId}.sqlite).",
   "agents.defaults.memorySearch.store.vector.enabled":

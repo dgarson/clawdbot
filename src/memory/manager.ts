@@ -156,6 +156,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       model: settings.model,
       fallback: settings.fallback,
       local: settings.local,
+      modality: settings.modality,
     });
     const opsLog = createMemoryOpsLogger(resolveStateDir());
     const manager = new MemoryIndexManager({
@@ -1310,6 +1311,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       model: fallbackModel,
       fallback: "none",
       local: this.settings.local,
+      modality: this.settings.modality,
     });
 
     this.fallbackFrom = fallbackFrom;

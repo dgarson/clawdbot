@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig, MemorySearchConfig } from "../config/config.js";
+import type { EmbeddingModality } from "../memory/embeddings.js";
 import { resolveStateDir } from "../config/paths.js";
 import { clampInt, clampNumber, resolveUserPath } from "../utils.js";
 import { resolveAgentConfig } from "./agent-scope.js";
@@ -26,6 +27,8 @@ export type ResolvedMemorySearchConfig = {
     sessionMemory: boolean;
   };
   fallback: "openai" | "gemini" | "local" | "voyage" | "none";
+  /** Embedding modality hint — what content types the embeddings will handle. */
+  modality?: EmbeddingModality;
   model: string;
   local: {
     modelPath?: string;
@@ -163,6 +166,7 @@ function mergeConfig(
       }
     : undefined;
   const fallback = overrides?.fallback ?? defaults?.fallback ?? "none";
+  const modality = overrides?.modality ?? defaults?.modality;
   const modelDefault =
     provider === "gemini"
       ? DEFAULT_GEMINI_MODEL
@@ -262,6 +266,7 @@ function mergeConfig(
       sessionMemory,
     },
     fallback,
+    modality,
     model,
     local,
     store,
