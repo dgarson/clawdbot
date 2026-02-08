@@ -334,6 +334,10 @@ function mergeCronDelivery(
 }
 
 export function isJobDue(job: CronJob, nowMs: number, opts: { forced: boolean }) {
+  // Never claim a job that is already running — prevents overlap.
+  if (typeof job.state.runningAtMs === "number") {
+    return false;
+  }
   if (opts.forced) {
     return true;
   }

@@ -65,8 +65,8 @@ describe("CronService interval/cron jobs fire on time", () => {
     // Simulate setTimeout firing 5ms late (the race condition).
     vi.setSystemTime(new Date(firstDueAt + 5));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
-    // Wait for the async onTimer to complete via the lock queue.
     const jobs = await cron.list();
     const updated = jobs.find((j) => j.id === job.id);
 
@@ -111,8 +111,8 @@ describe("CronService interval/cron jobs fire on time", () => {
     // Simulate setTimeout firing 5ms late.
     vi.setSystemTime(new Date(firstDueAt + 5));
     await vi.runOnlyPendingTimersAsync();
+    await cron._waitForTimerRun();
 
-    // Wait for the async onTimer to complete via the lock queue.
     const jobs = await cron.list();
     const updated = jobs.find((j) => j.id === job.id);
 
