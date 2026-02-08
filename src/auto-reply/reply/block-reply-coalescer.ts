@@ -1,5 +1,8 @@
 import type { ReplyPayload } from "../types.js";
 import type { BlockStreamingCoalescing } from "./block-streaming.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+
+const log = createSubsystemLogger("agent/block-reply-coalescer");
 
 export type BlockReplyCoalescer = {
   enqueue: (payload: ReplyPayload) => void;
@@ -52,6 +55,7 @@ export function createBlockReplyCoalescer(params: {
   const flush = async (options?: { force?: boolean }) => {
     clearIdleTimer();
     if (shouldAbort()) {
+      log.trace("coalescer flush: aborted", { feature: "streaming" });
       resetBuffer();
       return;
     }
@@ -59,9 +63,20 @@ export function createBlockReplyCoalescer(params: {
       return;
     }
     if (!options?.force && !flushOnEnqueue && bufferText.length < minChars) {
+      log.trace("coalescer flush: below minChars, scheduling idle", {
+        feature: "streaming",
+        bufferLen: bufferText.length,
+        minChars,
+      });
       scheduleIdleFlush();
       return;
     }
+    log.debug("coalescer flush: flushing coalesced text", {
+      feature: "streaming",
+      bufferLen: bufferText.length,
+      force: options?.force,
+      textPreview: bufferText.slice(0, 60),
+    });
     const payload: ReplyPayload = {
       text: bufferText,
       replyToId: bufferReplyToId,
@@ -78,6 +93,14 @@ export function createBlockReplyCoalescer(params: {
     const hasMedia = Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0;
     const text = payload.text ?? "";
     const hasText = text.trim().length > 0;
+    log.trace("coalescer enqueue: received", {
+      feature: "streaming",
+      textLen: text.length,
+      hasMedia,
+      hasText,
+      currentBufferLen: bufferText.length,
+      flushOnEnqueue,
+    });
     if (hasMedia) {
       void flush({ force: true });
       void onFlush(payload);

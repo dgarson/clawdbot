@@ -29,6 +29,9 @@ import { createDefaultExecutionKernel } from "../../execution/kernel.js";
 import { logVerbose } from "../../globals.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { logPerformanceOutlier, getPerformanceThresholds } from "../../logging/enhanced-events.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+
+const log = createSubsystemLogger("agent/runner-execution");
 import { defaultRuntime } from "../../runtime.js";
 import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
 import {
@@ -306,8 +309,15 @@ async function runAgentTurnWithKernel(
             ? async (payload) => {
                 const { text, skip } = normalizeStreamText(payload);
                 if (skip || !text) {
+                  log.trace("onPartialReply: skipped after normalization", {
+                    feature: "streaming",
+                  });
                   return;
                 }
+                log.trace("onPartialReply: delivering partial reply", {
+                  feature: "streaming",
+                  textLen: text.length,
+                });
                 await params.typingSignals.signalTextDelta(text);
                 if (params.opts?.onPartialReply) {
                   await params.opts.onPartialReply({
@@ -323,6 +333,11 @@ async function runAgentTurnWithKernel(
           onReasoningStream:
             params.typingSignals.shouldStartOnReasoning || params.opts?.onReasoningStream
               ? async (payload) => {
+                  log.debug("onReasoningStream: delivering reasoning", {
+                    feature: "streaming",
+                    textLen: payload.text?.length ?? 0,
+                    textPreview: payload.text?.slice(0, 60),
+                  });
                   await params.typingSignals.signalReasoningDelta();
                   await params.opts?.onReasoningStream?.({
                     text: payload.text,
@@ -335,8 +350,17 @@ async function runAgentTurnWithKernel(
                 const { text, skip } = normalizeStreamText(payload);
                 const hasPayloadMedia = (payload.mediaUrls?.length ?? 0) > 0;
                 if (skip && !hasPayloadMedia) {
+                  log.trace("onBlockReply: skipped after normalization", { feature: "streaming" });
                   return;
                 }
+                log.debug("onBlockReply: processing block reply", {
+                  feature: "streaming",
+                  textLen: text?.length ?? 0,
+                  textPreview: text?.slice(0, 60),
+                  hasMedia: hasPayloadMedia,
+                  blockStreamingEnabled: params.blockStreamingEnabled,
+                  hasPipeline: Boolean(params.blockReplyPipeline),
+                });
 
                 const taggedPayload = applyReplyTagsToPayload(
                   {
@@ -388,8 +412,16 @@ async function runAgentTurnWithKernel(
                   });
 
                 if (params.blockStreamingEnabled && params.blockReplyPipeline) {
+                  log.debug("onBlockReply: enqueuing to pipeline", {
+                    feature: "streaming",
+                    textLen: blockPayload.text?.length ?? 0,
+                  });
                   params.blockReplyPipeline.enqueue(blockPayload);
                 } else if (params.blockStreamingEnabled) {
+                  log.debug("onBlockReply: direct send (no pipeline)", {
+                    feature: "streaming",
+                    textLen: blockPayload.text?.length ?? 0,
+                  });
                   directlySentBlockKeys.add(createBlockReplyPayloadKey(blockPayload));
                   await params.opts?.onBlockReply?.(blockPayload);
                 }
