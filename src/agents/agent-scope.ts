@@ -32,8 +32,8 @@ type ResolvedAgentConfig = {
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
   mcpServers?: AgentEntry["mcpServers"];
-  runtime?: AgentRuntime;
-  claudeSdkOptions?: ClaudeSdkOptions;
+  runtime?: AgentEntry["runtime"];
+  claudeSdkOptions?: AgentEntry["claudeSdkOptions"];
 };
 
 let defaultAgentWarned = false;
