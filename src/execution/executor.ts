@@ -610,10 +610,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
                   mediaUrls: payload.mediaUrls,
                 })
             : undefined,
-          onAgentEvent: request.onAgentEvent
-            ? (evt: { stream: string; data: Record<string, unknown> }) =>
-                request.onAgentEvent?.(evt)
-            : undefined,
+          onAgentEvent: request.onAgentEvent ? (evt) => request.onAgentEvent?.(evt) : undefined,
         });
 
         // Map EmbeddedPiRunResult to RuntimeAdapterResult (same shape as Pi)

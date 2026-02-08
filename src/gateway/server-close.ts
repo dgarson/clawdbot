@@ -1,7 +1,6 @@
 import type { Server as HttpServer } from "node:http";
 import type { WebSocketServer } from "ws";
 import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.js";
-import type { ExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { OverseerRunner } from "../infra/overseer/runner.js";
 import type { ToolApprovalForwarder } from "../infra/tool-approval-forwarder.js";
@@ -37,7 +36,6 @@ export function createGatewayCloseHandler(params: {
   browserControl: { stop: () => Promise<void> } | null;
   managedProcesses?: { stopAll: (opts?: { reason?: string }) => Promise<void> } | null;
   workerManager?: { stop: () => Promise<void> } | null;
-  execApprovalForwarder?: ExecApprovalForwarder | null;
   toolApprovalForwarder?: ToolApprovalForwarder | null;
   persistInterval?: ReturnType<typeof setInterval>;
   persistChatRunState?: () => Promise<void>;
@@ -116,7 +114,6 @@ export function createGatewayCloseHandler(params: {
     stopCompactionScheduler();
     params.cron.stop();
     params.heartbeatRunner.stop();
-    params.execApprovalForwarder?.stop();
     params.toolApprovalForwarder?.stop();
     if (params.overseerRunner) {
       params.overseerRunner.stop();

@@ -33,7 +33,6 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
-// exec-approval-forwarder no longer needed; exec handlers delegate through the tool forwarder
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { startJournalSubscriber } from "../infra/journal/index.js";
@@ -792,7 +791,6 @@ export async function startGatewayServer(
     pluginServices,
     cron,
     heartbeatRunner,
-    execApprovalForwarder,
     toolApprovalForwarder,
     nodePresenceTimers,
     broadcast,

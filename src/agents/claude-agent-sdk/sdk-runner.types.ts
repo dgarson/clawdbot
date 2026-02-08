@@ -155,14 +155,30 @@ export type SdkRunnerParams = {
     flushOnParagraph?: boolean;
   };
 
-  /** When provided, raw stream events are pushed to the middleware. */
-  streamMiddleware?: StreamingMiddleware;
-
   /** When provided, raw stream events are pushed to the middleware alongside legacy callbacks. */
   streamMiddleware?: StreamingMiddleware;
 
-  /** When provided, raw stream events are pushed to the middleware alongside legacy callbacks. */
-  streamMiddleware?: StreamingMiddleware;
+  // --- Streaming callbacks ---
+
+  /** Called with partial text chunks as they are generated. */
+  onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with accumulated text blocks at message/text boundaries. */
+  onBlockReply?: (payload: {
+    text?: string;
+    mediaUrls?: string[];
+    replyToId?: string;
+    replyToTag?: boolean;
+    replyToCurrent?: boolean;
+    audioAsVoice?: boolean;
+  }) => void | Promise<void>;
+  /** Called with reasoning/thinking text as it streams. */
+  onReasoningStream?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with tool result output text. */
+  onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
+  /** Called with agent lifecycle/diagnostic events. */
+  onAgentEvent?: (evt: unknown) => void | Promise<void>;
+  /** Called when an assistant message starts. */
+  onAssistantMessageStart?: () => void | Promise<void>;
 
   /**
    * MCP server name for the bridged Clawdbrain tools.

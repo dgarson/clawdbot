@@ -149,21 +149,6 @@ export interface ExecutionRequest {
   /**
    * Optional StreamingMiddleware instance. When provided, the executor passes
    * it through to the runner where raw events are pushed in. The caller
-   * subscribes for normalized AgentStreamEvent output.
-   */
-  streamMiddleware?: import("../agents/stream/index.js").StreamingMiddleware;
-
-  /**
-   * Optional StreamingMiddleware instance. When provided, the executor passes
-   * it through to the runner where raw events are pushed in. The caller
-   * subscribes for normalized output. Callbacks are still honored for backward
-   * compatibility — the middleware is an additional event sink.
-   */
-  streamMiddleware?: import("../agents/stream/index.js").StreamingMiddleware;
-
-  /**
-   * Optional StreamingMiddleware instance. When provided, the executor passes
-   * it through to the runner where raw events are pushed in. The caller
    * subscribes for normalized output. Callbacks are still honored for backward
    * compatibility — the middleware is an additional event sink.
    */
@@ -184,6 +169,27 @@ export interface ExecutionRequest {
   shouldEmitToolResult?: () => boolean;
   /** Whether tool output should be emitted. */
   shouldEmitToolOutput?: () => boolean;
+  /** Suppress partial text streaming (when reasoning-level is "stream"). */
+  suppressPartialStream?: boolean;
+
+  // --- Streaming callbacks ---
+
+  /** Called with partial text chunks as they are generated. */
+  onPartialReply?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called with accumulated text blocks at message/text boundaries. */
+  onBlockReply?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called when a block reply should be flushed. */
+  onBlockReplyFlush?: () => void | Promise<void>;
+  /** Called with reasoning/thinking text as it streams. */
+  onReasoningStream?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called with tool result output text. */
+  onToolResult?: (payload: ReplyPayload) => void | Promise<void>;
+  /** Called when a tool starts execution. */
+  onToolStart?: (payload: { toolName: string }) => void | Promise<void>;
+  /** Called with agent lifecycle/diagnostic events. */
+  onAgentEvent?: (evt: unknown) => void | Promise<void>;
+  /** Called when an assistant message starts. */
+  onAssistantMessageStart?: () => void | Promise<void>;
 
   // --- Runtime overrides (for model fallback) ---
 

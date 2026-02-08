@@ -402,8 +402,9 @@ async function runAgentTurnWithKernel(
                 }
               : undefined,
           onAgentEvent: async (evt) => {
-            if (evt.stream === "tool") {
-              const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
+            const event = evt as { stream: string; data: Record<string, unknown> };
+            if (event.stream === "tool") {
+              const phase = typeof event.data.phase === "string" ? event.data.phase : "";
               if (phase === "start" || phase === "update") {
                 try {
                   await params.typingSignals.signalToolStart();
@@ -412,9 +413,9 @@ async function runAgentTurnWithKernel(
                 }
               }
             }
-            if (evt.stream === "compaction") {
-              const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
-              const willRetry = Boolean(evt.data.willRetry);
+            if (event.stream === "compaction") {
+              const phase = typeof event.data.phase === "string" ? event.data.phase : "";
+              const willRetry = Boolean(event.data.willRetry);
               if (phase === "end" && !willRetry) {
                 autoCompactionCompleted = true;
               }
@@ -669,7 +670,11 @@ function mapExecutionResultToLegacy(
       >["meta"]["systemPromptReport"],
       error: embeddedError
         ? {
-            kind: embeddedError.kind,
+            kind: embeddedError.kind as
+              | "context_overflow"
+              | "compaction_failure"
+              | "role_ordering"
+              | "image_size",
             message: embeddedError.message,
           }
         : undefined,
