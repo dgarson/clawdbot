@@ -587,6 +587,7 @@ export async function runSdkAgentAdapted(
   const sdkResult = await runSdkAgent({
     runId: params.runId,
     sessionId: params.sessionId,
+    sessionKey: params.sessionKey,
     prompt: params.prompt,
     workspaceDir: params.workspaceDir,
     agentDir: params.agentDir,

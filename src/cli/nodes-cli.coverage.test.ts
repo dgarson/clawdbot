@@ -43,7 +43,7 @@ const callGateway = vi.fn(async (opts: { method?: string }) => {
       },
     };
   }
-  if (opts.method === "exec.approval.request") {
+  if (opts.method === "tool.approval.request") {
     return { decision: "allow-once" };
   }
   return { ok: true };
@@ -123,6 +123,17 @@ describe("nodes-cli coverage", () => {
       ],
       { from: "user" },
     );
+
+    // Verify tool.approval.request was called with canonical fields.
+    const approvalCall = callGateway.mock.calls.find(
+      (call) => call[0]?.method === "tool.approval.request",
+    )?.[0];
+    expect(approvalCall).toBeTruthy();
+    expect(approvalCall?.params?.toolName).toBe("exec");
+    expect(typeof approvalCall?.params?.requestHash).toBe("string");
+    expect(approvalCall?.params?.requestHash.length).toBeGreaterThan(0);
+    expect(approvalCall?.params?.paramsSummary).toBe("echo hi");
+    expect(approvalCall?.params?.command).toBe("echo hi");
 
     const invoke = callGateway.mock.calls.find((call) => call[0]?.method === "node.invoke")?.[0];
 

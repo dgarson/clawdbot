@@ -1,7 +1,7 @@
-import type { ExecApprovalForwarder } from "../../infra/exec-approval-forwarder.js";
 import type { ExecApprovalDecision } from "../../infra/exec-approvals.js";
-import type { ExecApprovalManager } from "../exec-approval-manager.js";
+import type { ToolApprovalForwarder } from "../../infra/tool-approval-forwarder.js";
 import type { GatewayRequestHandlers } from "./types.js";
+import { computeToolApprovalRequestHash } from "../../infra/tool-approval-hash.js";
 import {
   ErrorCodes,
   errorShape,
@@ -9,10 +9,15 @@ import {
   validateExecApprovalRequestParams,
   validateExecApprovalResolveParams,
 } from "../protocol/index.js";
+import { ToolApprovalManager } from "../tool-approval-manager.js";
 
+/**
+ * Legacy exec.approval.* handlers that delegate to the canonical
+ * ToolApprovalManager so there is one pending-approval state machine.
+ */
 export function createExecApprovalHandlers(
-  manager: ExecApprovalManager,
-  opts?: { forwarder?: ExecApprovalForwarder },
+  manager: ToolApprovalManager,
+  opts?: { forwarder?: ToolApprovalForwarder },
 ): GatewayRequestHandlers {
   return {
     "exec.approval.request": async ({ params, respond, context }) => {
@@ -51,38 +56,93 @@ export function createExecApprovalHandlers(
         );
         return;
       }
+
+      // Build a canonical ToolApprovalRequestPayload from legacy exec params.
+      const requestHash = computeToolApprovalRequestHash({
+        toolName: "exec",
+        paramsSummary: p.command,
+        sessionKey: p.sessionKey,
+        agentId: p.agentId,
+      });
       const request = {
+        toolName: "exec" as const,
+        paramsSummary: p.command,
+        requestHash,
         command: p.command,
         cwd: p.cwd ?? null,
         host: p.host ?? null,
         security: p.security ?? null,
         ask: p.ask ?? null,
-        agentId: p.agentId ?? null,
         resolvedPath: p.resolvedPath ?? null,
-        sessionKey: p.sessionKey ?? null,
       };
+
       const record = manager.create(request, timeoutMs, explicitId);
       const decisionPromise = manager.waitForDecision(record, timeoutMs);
+
+      // Emit the legacy event shape for backward-compatible listeners.
       context.broadcast(
         "exec.approval.requested",
         {
           id: record.id,
-          request: record.request,
+          request: {
+            command: record.request.command ?? "",
+            cwd: record.request.cwd ?? null,
+            host: record.request.host ?? null,
+            security: record.request.security ?? null,
+            ask: record.request.ask ?? null,
+            agentId: record.request.agentId ?? null,
+            resolvedPath: record.request.resolvedPath ?? null,
+            sessionKey: record.request.sessionKey ?? null,
+          },
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         },
         { dropIfSlow: true },
       );
+
+      // Canonical event
+      context.broadcast(
+        "tool.approval.requested",
+        {
+          id: record.id,
+          toolName: record.request.toolName,
+          paramsSummary: record.request.paramsSummary,
+          riskClass: record.request.riskClass,
+          sideEffects: record.request.sideEffects,
+          reasonCodes: record.request.reasonCodes,
+          sessionKey: record.request.sessionKey,
+          agentId: record.request.agentId,
+          requestHash: record.request.requestHash,
+          createdAtMs: record.createdAtMs,
+          expiresAtMs: record.expiresAtMs,
+        },
+        { dropIfSlow: true },
+      );
+
+      // Forward to messaging channels via the unified tool forwarder
       void opts?.forwarder
         ?.handleRequested({
           id: record.id,
-          request: record.request,
+          request: {
+            toolName: record.request.toolName,
+            paramsSummary: record.request.paramsSummary,
+            requestHash: record.request.requestHash,
+            command: record.request.command ?? "",
+            cwd: record.request.cwd ?? null,
+            host: record.request.host ?? null,
+            security: record.request.security ?? null,
+            ask: record.request.ask ?? null,
+            agentId: record.request.agentId ?? null,
+            resolvedPath: record.request.resolvedPath ?? null,
+            sessionKey: record.request.sessionKey ?? null,
+          },
           createdAtMs: record.createdAtMs,
           expiresAtMs: record.expiresAtMs,
         })
         .catch((err) => {
           context.logGateway?.error?.(`exec approvals: forward request failed: ${String(err)}`);
         });
+
       const decision = await decisionPromise;
       respond(
         true,
@@ -115,17 +175,38 @@ export function createExecApprovalHandlers(
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "invalid decision"));
         return;
       }
+
+      // Guard: legacy exec.approval.resolve must only touch exec approvals.
+      // Legacy callers don't supply requestHash — retrieve it from the pending record.
+      const snapshot = manager.getSnapshot(p.id);
+      if (!snapshot || snapshot.request.toolName !== "exec") {
+        respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
+        return;
+      }
+      const requestHash = snapshot.request.requestHash;
       const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
-      const ok = manager.resolve(p.id, decision, resolvedBy ?? null);
+
+      const ok = manager.resolve(p.id, decision, requestHash, resolvedBy ?? null);
       if (!ok) {
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown approval id"));
         return;
       }
+
+      // Legacy event
       context.broadcast(
         "exec.approval.resolved",
         { id: p.id, decision, resolvedBy, ts: Date.now() },
         { dropIfSlow: true },
       );
+
+      // Canonical event
+      context.broadcast(
+        "tool.approval.resolved",
+        { id: p.id, decision, resolvedBy, ts: Date.now() },
+        { dropIfSlow: true },
+      );
+
+      // Forward to messaging channels
       void opts?.forwarder
         ?.handleResolved({ id: p.id, decision, resolvedBy, ts: Date.now() })
         .catch((err) => {
