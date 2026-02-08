@@ -24,6 +24,7 @@ export function normalizeCrnPartsInput(params: {
   const resourceType = normalizeStructuralToken(params.resourceType, {
     allowWildcard: mode === "pattern",
   });
+  assertValidResourceId(params.resourceId, mode);
   const resourceId = canonicalizeResourceId({
     service,
     resourceType,
