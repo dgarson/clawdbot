@@ -222,7 +222,8 @@ describe("memory index", () => {
     expect(before.files).toBeGreaterThan(0);
 
     failEmbeddings = true;
-    await expect(manager.sync({ force: true })).rejects.toThrow(/mock embeddings failed/i);
+    // Sync now preserves existing index and returns without throwing.
+    await expect(manager.sync({ force: true })).resolves.toBeUndefined();
 
     const after = manager.status();
     expect(after.files).toBe(before.files);

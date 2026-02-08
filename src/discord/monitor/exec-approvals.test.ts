@@ -349,3 +349,108 @@ describe("buildApprovalCustomId / parseApprovalData aliases", () => {
     expect(result).toEqual({ approvalId: "abc", action: "allow-once" });
   });
 });
+
+describe("DiscordExecApprovalHandler tool approval cache lifecycle", () => {
+  function createHandler(config: DiscordExecApprovalConfig) {
+    return new DiscordExecApprovalHandler({
+      token: "test-token",
+      accountId: "default",
+      config,
+      cfg: {},
+    });
+  }
+
+  function createToolRequest(
+    overrides: Partial<ToolApprovalRequested> = {},
+  ): ToolApprovalRequested {
+    return {
+      id: "tool-approval-id",
+      toolName: "file-read",
+      paramsSummary: "path=/tmp/example.txt",
+      riskClass: "medium",
+      requestHash: "hash-123",
+      agentId: "test-agent",
+      sessionKey: "agent:test-agent:discord:123",
+      createdAtMs: Date.now(),
+      expiresAtMs: Date.now() + 60000,
+      ...overrides,
+    };
+  }
+
+  function getInternals(handler: DiscordExecApprovalHandler): {
+    handleToolApprovalRequested: (request: ToolApprovalRequested) => Promise<void>;
+    handleApprovalResolved: (resolved: { id: string; decision: "allow-once" }) => Promise<void>;
+    handleApprovalTimeout: (approvalId: string) => Promise<void>;
+    requestHashCache: Map<string, string>;
+    toolRequestCache: Map<string, ToolApprovalRequested>;
+  } {
+    const internal = handler as unknown as Record<string, unknown>;
+    return {
+      handleToolApprovalRequested: (request: ToolApprovalRequested) =>
+        (
+          internal.handleToolApprovalRequested as (
+            this: DiscordExecApprovalHandler,
+            request: ToolApprovalRequested,
+          ) => Promise<void>
+        ).call(handler, request),
+      handleApprovalResolved: (resolved: { id: string; decision: "allow-once" }) =>
+        (
+          internal.handleApprovalResolved as (
+            this: DiscordExecApprovalHandler,
+            resolved: { id: string; decision: "allow-once" },
+          ) => Promise<void>
+        ).call(handler, resolved),
+      handleApprovalTimeout: (approvalId: string) =>
+        (
+          internal.handleApprovalTimeout as (
+            this: DiscordExecApprovalHandler,
+            approvalId: string,
+          ) => Promise<void>
+        ).call(handler, approvalId),
+      requestHashCache: internal.requestHashCache as Map<string, string>,
+      toolRequestCache: internal.toolRequestCache as Map<string, ToolApprovalRequested>,
+    };
+  }
+
+  it("does not cache filtered tool approvals", async () => {
+    const handler = createHandler({
+      enabled: true,
+      approvers: ["123"],
+      agentFilter: ["allowed-agent"],
+    });
+    const internals = getInternals(handler);
+
+    await internals.handleToolApprovalRequested(createToolRequest({ agentId: "other-agent" }));
+
+    expect(internals.requestHashCache.size).toBe(0);
+    expect(internals.toolRequestCache.size).toBe(0);
+  });
+
+  it("clears tool approval caches on resolved events without a pending entry", async () => {
+    const handler = createHandler({ enabled: true, approvers: ["123"] });
+    const internals = getInternals(handler);
+    const request = createToolRequest();
+
+    internals.requestHashCache.set(request.id, request.requestHash);
+    internals.toolRequestCache.set(request.id, request);
+
+    await internals.handleApprovalResolved({ id: request.id, decision: "allow-once" });
+
+    expect(internals.requestHashCache.has(request.id)).toBe(false);
+    expect(internals.toolRequestCache.has(request.id)).toBe(false);
+  });
+
+  it("clears tool approval caches on timeout events without a pending entry", async () => {
+    const handler = createHandler({ enabled: true, approvers: ["123"] });
+    const internals = getInternals(handler);
+    const request = createToolRequest();
+
+    internals.requestHashCache.set(request.id, request.requestHash);
+    internals.toolRequestCache.set(request.id, request);
+
+    await internals.handleApprovalTimeout(request.id);
+
+    expect(internals.requestHashCache.has(request.id)).toBe(false);
+    expect(internals.toolRequestCache.has(request.id)).toBe(false);
+  });
+});

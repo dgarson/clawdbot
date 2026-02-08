@@ -336,6 +336,11 @@ export async function runMemoryFlushIfNeeded(params: {
 
         try {
           const result = await kernel.execute(request);
+          if (!result.success) {
+            throw new Error(
+              result.error?.message ?? result.embeddedError?.message ?? "Execution failed",
+            );
+          }
           return mapMemoryFlushResultToLegacy(result);
         } finally {
           unsub();

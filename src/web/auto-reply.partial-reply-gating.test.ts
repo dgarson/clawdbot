@@ -3,18 +3,25 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExecutionResult } from "../execution/types.js";
 
 vi.mock("../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
   isEmbeddedPiRunActive: vi.fn().mockReturnValue(false),
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: vi.fn(),
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
   resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
 }));
+const executeKernelMock = vi.hoisted(() => vi.fn());
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: vi.fn().mockReturnValue({
+    execute: (request: unknown) => executeKernelMock(request),
+    abort: vi.fn(),
+    getActiveRunCount: vi.fn().mockReturnValue(0),
+  }),
+}));
 
 import type { OpenClawConfig } from "../config/config.js";
-import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { getReplyFromConfig } from "../auto-reply/reply.js";
 import { resetInboundDedupe } from "../auto-reply/reply/inbound-dedupe.js";
 import { monitorWebChannel } from "./auto-reply.js";
@@ -315,13 +322,24 @@ describe("partial reply gating", () => {
     await store.cleanup();
   });
   it("defaults to self-only when no config is present", async () => {
-    vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
+    executeKernelMock.mockResolvedValue({
+      success: true,
+      aborted: false,
+      error: undefined,
+      reply: "ok",
       payloads: [{ text: "ok" }],
-      meta: {
+      runtime: { kind: "pi", provider: "p", model: "m", fallbackUsed: false },
+      usage: {
+        inputTokens: 1,
+        outputTokens: 1,
         durationMs: 1,
-        agentMeta: { sessionId: "s", provider: "p", model: "m" },
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
       },
-    });
+      events: [],
+      toolCalls: [],
+      didSendViaMessagingTool: false,
+    } satisfies ExecutionResult);
 
     // Not self: should be blocked
     const blocked = await getReplyFromConfig(
@@ -334,7 +352,7 @@ describe("partial reply gating", () => {
       {},
     );
     expect(blocked).toBeUndefined();
-    expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+    expect(executeKernelMock).not.toHaveBeenCalled();
 
     // Self: should be allowed
     const allowed = await getReplyFromConfig(
@@ -347,6 +365,6 @@ describe("partial reply gating", () => {
       {},
     );
     expect(allowed).toMatchObject({ text: "ok", audioAsVoice: false });
-    expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
+    expect(executeKernelMock).toHaveBeenCalledOnce();
   });
 });

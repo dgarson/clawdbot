@@ -3,10 +3,12 @@ import type {
   ExecApprovalForwardingConfig,
   ExecApprovalForwardTarget,
 } from "../config/types.approvals.js";
+import type { DiscordExecApprovalConfig } from "../config/types.discord.js";
 import type { ToolApprovalDecision } from "../gateway/tool-approval-manager.js";
 import { loadConfig } from "../config/config.js";
 import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { resolveDiscordAccount } from "../discord/accounts.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
 import { isDeliverableMessageChannel, normalizeMessageChannel } from "../utils/message-channel.js";
 import { deliverOutboundPayloads } from "./outbound/deliver.js";
@@ -119,6 +121,62 @@ function shouldForward(params: {
     }
   }
   return true;
+}
+
+function shouldHandleDiscordApproval(params: {
+  config?: DiscordExecApprovalConfig;
+  request: ToolApprovalRequest;
+}): boolean {
+  const config = params.config;
+  if (!config?.enabled) {
+    return false;
+  }
+  if (!config.approvers || config.approvers.length === 0) {
+    return false;
+  }
+  if (config.agentFilter?.length) {
+    const agentId = params.request.request.agentId;
+    if (!agentId) {
+      return false;
+    }
+    if (!config.agentFilter.includes(agentId)) {
+      return false;
+    }
+  }
+  if (config.sessionFilter?.length) {
+    const sessionKey = params.request.request.sessionKey;
+    if (!sessionKey) {
+      return false;
+    }
+    if (!matchSessionFilter(sessionKey, config.sessionFilter)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function shouldSkipDiscordForwarding(params: {
+  cfg: OpenClawConfig;
+  forwardConfig?: ExecApprovalForwardingConfig;
+  target: ForwardTarget;
+  request: ToolApprovalRequest;
+}): boolean {
+  if (params.forwardConfig?.skipDiscordWhenExecApprovalsEnabled === false) {
+    return false;
+  }
+  const channel = normalizeMessageChannel(params.target.channel) ?? params.target.channel;
+  if (channel !== "discord") {
+    return false;
+  }
+  const account = resolveDiscordAccount({
+    cfg: params.cfg,
+    accountId: params.target.accountId,
+  });
+  if (!account.enabled) {
+    return false;
+  }
+  const execApprovals = account.config.execApprovals;
+  return shouldHandleDiscordApproval({ config: execApprovals, request: params.request });
 }
 
 function buildTargetKey(target: ExecApprovalForwardTarget): string {
@@ -311,6 +369,13 @@ export function createToolApprovalForwarder(
       return;
     }
 
+    const filteredTargets = targets.filter(
+      (target) => !shouldSkipDiscordForwarding({ cfg, forwardConfig: config, target, request }),
+    );
+    if (filteredTargets.length === 0) {
+      return;
+    }
+
     const expiresInMs = Math.max(0, request.expiresAtMs - nowMs());
     const timeoutId = setTimeout(() => {
       void (async () => {
@@ -325,7 +390,7 @@ export function createToolApprovalForwarder(
     }, expiresInMs);
     timeoutId.unref?.();
 
-    const pendingEntry: PendingApproval = { request, targets, timeoutId };
+    const pendingEntry: PendingApproval = { request, targets: filteredTargets, timeoutId };
     pending.set(request.id, pendingEntry);
 
     if (pending.get(request.id) !== pendingEntry) {
@@ -335,7 +400,7 @@ export function createToolApprovalForwarder(
     const text = buildRequestMessage(request, nowMs());
     await deliverToTargets({
       cfg,
-      targets,
+      targets: filteredTargets,
       text,
       deliver,
       shouldSend: () => pending.get(request.id) === pendingEntry,

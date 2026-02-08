@@ -66,6 +66,15 @@ function buildResolvedByLabel(params: Parameters<CommandHandler>[0]): string {
   return `${channel}:${sender}`;
 }
 
+function formatApprovalResolveError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const normalized = message.toLowerCase();
+  if (normalized.includes("unknown approval id") || normalized.includes("request hash mismatch")) {
+    return "Failed to submit approval. This approval may have already been resolved or expired.";
+  }
+  return `Failed to submit approval: ${message}`;
+}
+
 type PendingToolApproval = {
   id: string;
   requestHash: string;
@@ -154,7 +163,7 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
     return {
       shouldContinue: false,
       reply: {
-        text: `❌ Failed to submit approval: ${String(err)}`,
+        text: `❌ ${formatApprovalResolveError(err)}`,
       },
     };
   }

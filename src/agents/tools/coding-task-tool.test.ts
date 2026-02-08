@@ -8,25 +8,20 @@ vi.mock("../claude-agent-sdk/sdk.js", () => ({
   },
 }));
 
-import { createClawdbrainTools } from "../clawdbrain-tools.js";
+import { createCodingTaskTool } from "./coding-task-tool.js";
 
 describe("coding_task tool", () => {
-  it("is not registered by default", () => {
-    const tool = createClawdbrainTools().find((candidate) => candidate.name === "coding_task");
-    expect(tool).toBeUndefined();
+  it("is disabled by default", async () => {
+    const tool = createCodingTaskTool();
+    const result = await tool.execute("call1", { task: "Plan how to refactor foo" });
+    expect(result.details).toMatchObject({ status: "disabled" });
   });
 
   it("registers when enabled and fails gracefully when SDK is missing", async () => {
     const cfg: OpenClawConfig = {
       tools: { codingTask: { enabled: true } },
     };
-    const tool = createClawdbrainTools({ config: cfg }).find(
-      (candidate) => candidate.name === "coding_task",
-    );
-    expect(tool).toBeTruthy();
-    if (!tool) {
-      return;
-    }
+    const tool = createCodingTaskTool({ config: cfg });
 
     const result = await tool.execute("call1", { task: "Plan how to refactor foo" });
     expect(result.details).toMatchObject({

@@ -37,7 +37,12 @@ import {
 } from "../../utils/message-channel.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
-import { buildThreadingToolContext, resolveEnforceFinalTag } from "./agent-runner-utils.js";
+import {
+  buildThreadingToolContext,
+  formatBunFetchSocketError,
+  isBunFetchSocketError,
+  resolveEnforceFinalTag,
+} from "./agent-runner-utils.js";
 import { createBlockReplyPayloadKey, type BlockReplyPipeline } from "./block-reply-pipeline.js";
 import { parseReplyDirectives } from "./reply-directives.js";
 import { applyReplyTagsToPayload, isRenderablePayload } from "./reply-payloads.js";
@@ -400,7 +405,11 @@ async function runAgentTurnWithKernel(
             if (evt.stream === "tool") {
               const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
               if (phase === "start" || phase === "update") {
-                await params.typingSignals.signalToolStart();
+                try {
+                  await params.typingSignals.signalToolStart();
+                } catch (err) {
+                  logVerbose(`tool start typing signal failed: ${String(err)}`);
+                }
               }
             }
             if (evt.stream === "compaction") {
@@ -415,7 +424,8 @@ async function runAgentTurnWithKernel(
             ? (payload) => {
                 const task = (async () => {
                   const { text, skip } = normalizeStreamText(payload);
-                  if (skip && !payload.mediaUrls) return;
+                  const hasMedia = (payload.mediaUrls?.length ?? 0) > 0;
+                  if (skip && !hasMedia) return;
                   await params.typingSignals.signalTextDelta(text);
                   await onToolResult({
                     text,
@@ -439,6 +449,12 @@ async function runAgentTurnWithKernel(
           result = await kernel.execute(request);
         } finally {
           streamMiddleware.destroy();
+        }
+
+        if (!result.success) {
+          throw new Error(
+            result.error?.message ?? result.embeddedError?.message ?? "Execution failed",
+          );
         }
 
         // Map ExecutionResult → EmbeddedPiRunResult for compatibility
@@ -575,7 +591,9 @@ async function runAgentTurnWithKernel(
       ? "⚠️ Context overflow — prompt too large for this model. Try a shorter message or a larger-context model."
       : isRoleOrderingError
         ? "⚠️ Message ordering conflict - please try again. If this persists, use /new to start a fresh session."
-        : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: openclaw logs --follow`;
+        : isBunFetchSocketError(message)
+          ? formatBunFetchSocketError(message)
+          : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: openclaw logs --follow`;
 
     return {
       kind: "final",

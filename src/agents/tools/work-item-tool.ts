@@ -5,6 +5,7 @@ import { getDefaultWorkQueueStore } from "../../work-queue/index.js";
 import {
   WORK_ITEM_PRIORITIES,
   WORK_ITEM_STATUSES,
+  type WorkItemPatch,
   type WorkItemPriority,
   type WorkItemStatus,
 } from "../../work-queue/types.js";
@@ -189,22 +190,30 @@ Actions:
           if (!itemId) {
             throw new Error("itemId required");
           }
-          const updated = await store.updateItem(itemId, {
-            title,
-            description,
-            payload,
-            priority,
-            workstream,
-            tags,
-            status,
-            statusReason,
-            dependsOn,
-            blockedBy,
-            parentItemId,
-            ...(hasAssignedToParam
-              ? { assignedTo: assignedToAgentId ? { agentId: assignedToAgentId } : undefined }
-              : {}),
-          });
+
+          const hasParam = (key: string) => Object.prototype.hasOwnProperty.call(params, key);
+          const patch: WorkItemPatch = {};
+
+          if (hasParam("title")) patch.title = title;
+          if (hasParam("description")) patch.description = description;
+          if (hasParam("payload")) patch.payload = payload;
+          if (hasParam("priority")) patch.priority = priority;
+          if (hasParam("workstream")) patch.workstream = workstream;
+          if (hasParam("tags")) patch.tags = tags;
+          if (hasParam("status")) patch.status = status;
+          if (hasParam("statusReason")) patch.statusReason = statusReason;
+          if (hasParam("dependsOn")) patch.dependsOn = dependsOn;
+          if (hasParam("blockedBy")) patch.blockedBy = blockedBy;
+          if (hasParam("parentItemId")) patch.parentItemId = parentItemId;
+          if (hasAssignedToParam) {
+            patch.assignedTo = assignedToAgentId ? { agentId: assignedToAgentId } : undefined;
+          }
+
+          if (Object.keys(patch).length === 0) {
+            throw new Error("No update fields provided");
+          }
+
+          const updated = await store.updateItem(itemId, patch);
           return jsonResult({ item: updated });
         }
         case "list": {

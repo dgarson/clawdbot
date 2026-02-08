@@ -223,14 +223,17 @@ export class ComposableMemoryManager implements MemorySearchManager {
     const primary = this.getPrimary();
     const primaryStatus = primary?.status();
     const backendIds = this.backends.map((b) => b.id);
-    return {
-      backend: primaryStatus?.backend ?? "builtin",
+    const baseStatus: MemoryProviderStatus = primaryStatus ?? {
+      backend: "builtin",
       provider: "composable",
+    };
+    return {
+      ...baseStatus,
       custom: {
+        ...(baseStatus.custom ?? {}),
         composable: true,
         backends: backendIds,
         primary: this.primaryId ?? backendIds[0],
-        ...primaryStatus?.custom,
       },
     };
   }

@@ -86,9 +86,9 @@ const mocks = vi.hoisted(() => ({
   }),
 }));
 
-vi.mock("../memory/manager.js", () => ({
-  MemoryIndexManager: {
-    get: vi.fn(async ({ agentId }: { agentId: string }) => ({
+vi.mock("../memory/index.js", () => ({
+  getMemorySearchManager: vi.fn(async ({ agentId }: { agentId: string }) => ({
+    manager: {
       probeVectorAvailability: vi.fn(async () => true),
       status: () => ({
         files: 2,
@@ -112,8 +112,8 @@ vi.mock("../memory/manager.js", () => ({
       }),
       close: vi.fn(async () => {}),
       __agentId: agentId,
-    })),
-  },
+    },
+  })),
 }));
 
 vi.mock("../config/sessions.js", () => ({

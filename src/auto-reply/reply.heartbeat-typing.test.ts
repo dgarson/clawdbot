@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 
-const runEmbeddedPiAgentMock = vi.fn();
+const executeKernelMock = vi.fn();
 
 vi.mock("../agents/model-fallback.js", () => ({
   runWithModelFallback: async ({
@@ -22,11 +22,17 @@ vi.mock("../agents/model-fallback.js", () => ({
 
 vi.mock("../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: (params: unknown) => runEmbeddedPiAgentMock(params),
   queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
   resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
   isEmbeddedPiRunActive: vi.fn().mockReturnValue(false),
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
+}));
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: vi.fn().mockReturnValue({
+    execute: (request: unknown) => executeKernelMock(request),
+    abort: vi.fn(),
+    getActiveRunCount: vi.fn().mockReturnValue(0),
+  }),
 }));
 
 const webMocks = vi.hoisted(() => ({
@@ -42,7 +48,7 @@ import { getReplyFromConfig } from "./reply.js";
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   return withTempHomeBase(
     async (home) => {
-      runEmbeddedPiAgentMock.mockClear();
+      executeKernelMock.mockClear();
       return await fn(home);
     },
     { prefix: "openclaw-typing-" },
@@ -73,9 +79,22 @@ afterEach(() => {
 describe("getReplyFromConfig typing (heartbeat)", () => {
   it("starts typing for normal runs", async () => {
     await withTempHome(async (home) => {
-      runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      executeKernelMock.mockResolvedValueOnce({
+        success: true,
+        aborted: false,
+        reply: "ok",
         payloads: [{ text: "ok" }],
-        meta: {},
+        runtime: { kind: "pi", provider: "anthropic", model: "claude", fallbackUsed: false },
+        usage: {
+          inputTokens: 1,
+          outputTokens: 1,
+          durationMs: 1,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+        events: [],
+        toolCalls: [],
+        didSendViaMessagingTool: false,
       });
       const onReplyStart = vi.fn();
 
@@ -91,9 +110,22 @@ describe("getReplyFromConfig typing (heartbeat)", () => {
 
   it("does not start typing for heartbeat runs", async () => {
     await withTempHome(async (home) => {
-      runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      executeKernelMock.mockResolvedValueOnce({
+        success: true,
+        aborted: false,
+        reply: "ok",
         payloads: [{ text: "ok" }],
-        meta: {},
+        runtime: { kind: "pi", provider: "anthropic", model: "claude", fallbackUsed: false },
+        usage: {
+          inputTokens: 1,
+          outputTokens: 1,
+          durationMs: 1,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+        events: [],
+        toolCalls: [],
+        didSendViaMessagingTool: false,
       });
       const onReplyStart = vi.fn();
 

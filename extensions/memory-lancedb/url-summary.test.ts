@@ -1,164 +1,121 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Use class-based mocks to ensure constructor compatibility
-vi.mock("./src/services/lancedb-store.js", () => {
-  return {
-    LanceDbStore: class {
-      async search() {
-        return [];
-      }
-      async store() {
-        return { id: "123" };
-      }
-    },
-  };
-});
+const tableAddMock = vi.fn(async () => undefined);
+const tableDeleteMock = vi.fn(async () => undefined);
+const tableCountRowsMock = vi.fn(async () => 0);
+const tableToArrayMock = vi.fn(async () => []);
+const tableLimitMock = vi.fn(() => ({ toArray: tableToArrayMock }));
+const tableVectorSearchMock = vi.fn(() => ({ limit: tableLimitMock }));
 
-vi.mock("./src/services/openai-embedder.js", () => {
-  return {
-    OpenAiEmbedder: class {
-      async embed() {
-        return [];
-      }
-    },
-  };
-});
+const tableMock = {
+  add: tableAddMock,
+  delete: tableDeleteMock,
+  countRows: tableCountRowsMock,
+  vectorSearch: tableVectorSearchMock,
+};
 
-vi.mock("./src/services/openai-extractor.js", () => {
-  return {
-    OpenAiExtractor: class {
-      async extract() {
-        return [];
-      }
-      async summarizeUrl() {
-        return "Mocked Summary of URL";
-      }
-    },
-  };
-});
+const dbTableNamesMock = vi.fn(async () => ["memories"]);
+const dbOpenTableMock = vi.fn(async () => tableMock);
+const dbCreateTableMock = vi.fn(async () => tableMock);
 
-vi.mock("./src/services/openai-expander.js", () => {
-  return {
-    OpenAiExpander: class {
-      async expand() {
-        return "expanded";
-      }
-    },
-  };
-});
-
-vi.mock("./src/services/openai-synthesizer.js", () => {
-  return {
-    OpenAiSynthesizer: class {
-      async synthesize() {
-        return { merged: [], archived: [], summary: "" };
-      }
-    },
-  };
-});
-
-vi.mock("./src/services/digest-service.js", () => {
-  return {
-    DigestService: class {
-      async runDailyMaintenance() {
-        return "Summary";
-      }
-    },
-  };
-});
-
-vi.mock("./config.js", () => ({
-  memoryConfigSchema: {
-    parse: (cfg: unknown) => ({
-      ...(cfg as Record<string, unknown>),
-      embedding: { apiKey: "sk-mock", model: "text-embedding-3-small" },
-      extraction: { apiKey: "sk-mock", model: "gpt-4o-mini" },
-    }),
-  },
-  vectorDimsForModel: () => 1536,
-  MEMORY_CATEGORIES: ["other"],
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn(async () => ({
+    tableNames: dbTableNamesMock,
+    openTable: dbOpenTableMock,
+    createTable: dbCreateTableMock,
+  })),
 }));
 
-describe("Inbox URL Summarization", () => {
-  let memoryPlugin: unknown;
-  let mockApi: unknown;
-  let agentEndHandler: Function;
+const embeddingsCreateMock = vi.fn(async () => ({
+  data: [{ embedding: [0.1, 0.2, 0.3] }],
+}));
 
-  beforeEach(async () => {
-    vi.clearAllMocks();
-
-    // Import index.js dynamically
-    const module = await import("./index.js");
-    memoryPlugin = module.default;
-
-    // To spy on methods, we need to spy on the prototype or the instance.
-    // Since we returned a class in the mock, we can spy on the prototype methods.
-    const extractorModule = await import("./src/services/openai-extractor.js");
-    vi.spyOn(extractorModule.OpenAiExtractor.prototype, "summarizeUrl");
-    vi.spyOn(extractorModule.OpenAiExtractor.prototype, "extract");
-
-    const registeredHooks: Record<string, unknown> = {};
-    mockApi = {
-      pluginConfig: {
-        dbPath: "/tmp/test",
-        autoCapture: true,
-      },
-      resolvePath: (p: string) => p,
-      logger: {
-        info: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-        error: vi.fn(),
-      },
-      registerTool: vi.fn(),
-      registerCli: vi.fn(),
-      registerService: vi.fn(),
-      registerCron: vi.fn(),
-      on: vi.fn((event, handler) => {
-        registeredHooks[event] = handler;
-      }),
+vi.mock("openai", () => ({
+  default: class {
+    embeddings = {
+      create: embeddingsCreateMock,
     };
+  },
+}));
 
-    memoryPlugin.register(mockApi);
-    agentEndHandler = registeredHooks["agent_end"];
+describe("memory-lancedb agent_end auto-capture", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  test("agent_end hook detects URL in DM and calls summarizeUrl", async () => {
-    expect(agentEndHandler).toBeDefined();
+  function createMockApi() {
+    const hooks: Record<string, (event: unknown) => Promise<unknown> | unknown> = {};
+    return {
+      hooks,
+      api: {
+        pluginConfig: {
+          embedding: { apiKey: "sk-test", model: "text-embedding-3-small" },
+          dbPath: "/tmp/memory-lancedb-test",
+          autoCapture: true,
+          autoRecall: false,
+        },
+        resolvePath: (p: string) => p,
+        logger: {
+          info: vi.fn(),
+          warn: vi.fn(),
+          debug: vi.fn(),
+          error: vi.fn(),
+        },
+        registerTool: vi.fn(),
+        registerCli: vi.fn(),
+        registerService: vi.fn(),
+        registerCron: vi.fn(),
+        on: vi.fn((event: string, handler: (event: unknown) => Promise<unknown> | unknown) => {
+          hooks[event] = handler;
+        }),
+      },
+    };
+  }
 
-    const mockEvent = {
+  it("captures durable DM-like content on agent_end", async () => {
+    const { default: memoryPlugin } = await import("./index.js");
+    const { api, hooks } = createMockApi();
+    memoryPlugin.register(api as never);
+
+    const agentEnd = hooks["agent_end"];
+    expect(agentEnd).toBeDefined();
+
+    await agentEnd?.({
       success: true,
       channelType: "dm",
       channelId: "test-dm",
       messages: [
-        { role: "user", content: "Check this out https://example.com/article" },
-        { role: "assistant", content: "Okay, I will." },
+        { role: "user", content: "Remember that I prefer dark mode in every editor." },
+        { role: "assistant", content: "Saved." },
       ],
-    };
+    });
 
-    await agentEndHandler(mockEvent);
-
-    const extractorModule = await import("./src/services/openai-extractor.js");
-    expect(extractorModule.OpenAiExtractor.prototype.summarizeUrl).toHaveBeenCalledWith(
-      "https://example.com/article",
-      mockApi,
-    );
+    expect(embeddingsCreateMock).toHaveBeenCalled();
+    expect(tableAddMock).toHaveBeenCalledTimes(1);
+    expect(tableAddMock.mock.calls[0]?.[0]?.[0]).toMatchObject({
+      text: expect.stringContaining("prefer dark mode"),
+      category: "preference",
+    });
   });
 
-  test("agent_end hook ignores URL in Group chat", async () => {
-    const mockEvent = {
+  it("does not capture non-trigger text (e.g. plain URL share)", async () => {
+    const { default: memoryPlugin } = await import("./index.js");
+    const { api, hooks } = createMockApi();
+    memoryPlugin.register(api as never);
+
+    const agentEnd = hooks["agent_end"];
+    expect(agentEnd).toBeDefined();
+
+    await agentEnd?.({
       success: true,
       channelType: "group",
       channelId: "test-group",
       messages: [
         { role: "user", content: "Check this out https://example.com/article" },
-        { role: "assistant", content: "Okay." },
+        { role: "assistant", content: "Looks useful." },
       ],
-    };
+    });
 
-    await agentEndHandler(mockEvent);
-
-    const extractorModule = await import("./src/services/openai-extractor.js");
-    expect(extractorModule.OpenAiExtractor.prototype.summarizeUrl).not.toHaveBeenCalled();
+    expect(tableAddMock).not.toHaveBeenCalled();
   });
 });

@@ -6,8 +6,8 @@ vi.mock("../pi-model-discovery.js", () => ({
 }));
 
 import type { OpenClawConfig } from "../../config/config.js";
+import { buildInlineProviderModels, resolveModel } from "../model-resolution.js";
 import { discoverModels } from "../pi-model-discovery.js";
-import { buildInlineProviderModels, resolveModel } from "./model.js";
 
 const makeModel = (id: string) => ({
   id,

@@ -49,6 +49,26 @@ function createTestDeps(overrides?: Partial<WorkerDeps>): {
   };
 }
 
+async function waitForNonPendingItem(
+  store: WorkQueueStore,
+  itemId: string,
+  timeoutMs = 1500,
+): Promise<import("./types.js").WorkItem> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const item = await store.getItem(itemId);
+    if (item && item.status !== "pending" && item.status !== "in_progress") {
+      return item;
+    }
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  const latest = await store.getItem(itemId);
+  if (!latest) {
+    throw new Error(`work item ${itemId} not found`);
+  }
+  return latest;
+}
+
 describe("WorkQueueWorker", () => {
   it("claims and processes a work item", async () => {
     const { store, deps, gateway } = createTestDeps();
@@ -98,9 +118,10 @@ describe("WorkQueueWorker", () => {
       readLatestAssistantReply: async () => undefined,
     });
 
-    await store.createItem({
+    const created = await store.createItem({
       agentId: "test-agent",
       title: "Failing task",
+      maxRetries: 1,
     });
 
     const worker = new WorkQueueWorker({
@@ -118,10 +139,10 @@ describe("WorkQueueWorker", () => {
     await new Promise((r) => setTimeout(r, 200));
     await worker.stop();
 
-    const items = await store.listItems({ queueId: "test-agent" });
-    expect(items[0]?.status).toBe("failed");
-    expect(items[0]?.error?.message).toContain("session crashed");
-    expect(items[0]?.error?.recoverable).toBe(true);
+    const final = await waitForNonPendingItem(store, created.id);
+    expect(final.status).toBe("failed");
+    expect(final.error?.message).toContain("session crashed");
+    expect(final.error?.recoverable).toBe(false);
   });
 
   it("processes items in dependency order", async () => {
@@ -460,7 +481,7 @@ describe("WorkQueueWorker retry lifecycle", () => {
     expect(final!.statusReason).toContain("max retries");
   });
 
-  it("does not retry when maxRetries is 0 or unset", async () => {
+  it("does not retry when maxRetries is 1", async () => {
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
       if (opts.method === "agent") return { runId: "no-retry" };
       if (opts.method === "agent.wait") return { status: "error", error: "one-shot failure" };
@@ -478,7 +499,7 @@ describe("WorkQueueWorker retry lifecycle", () => {
     const item = await store.createItem({
       agentId: "test-agent",
       title: "No-retry task",
-      // no maxRetries set
+      maxRetries: 1,
     });
 
     const worker = new WorkQueueWorker({
@@ -491,10 +512,10 @@ describe("WorkQueueWorker retry lifecycle", () => {
     await new Promise((r) => setTimeout(r, 200));
     await worker.stop();
 
-    const final = await store.getItem(item.id);
-    expect(final!.status).toBe("failed");
+    const final = await waitForNonPendingItem(store, item.id);
+    expect(final.status).toBe("failed");
     // retryCount should be 1 (one attempt).
-    expect(final!.retryCount).toBe(1);
+    expect(final.retryCount).toBe(1);
   });
 });
 

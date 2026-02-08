@@ -90,6 +90,9 @@ vi.mock("@slack/bolt", () => {
     event(name: string, handler: (args: unknown) => Promise<void>) {
       handlers.set(name, handler);
     }
+    action() {
+      /* no-op */
+    }
     command() {
       /* no-op */
     }

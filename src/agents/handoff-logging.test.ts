@@ -28,18 +28,21 @@ vi.mock("../config/sessions.js", () => ({
   loadSessionStore: vi.fn(),
 }));
 
-vi.mock("../logging/subsystem.js", () => ({
-  createSubsystemLogger: vi.fn(() => ({
+const subsystemMocks = vi.hoisted(() => ({
+  logger: {
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-  })),
+  },
+}));
+
+vi.mock("../logging/subsystem.js", () => ({
+  createSubsystemLogger: vi.fn(() => subsystemMocks.logger),
 }));
 
 import { loadConfig } from "../config/config.js";
 import { resolveStorePath, loadSessionStore } from "../config/sessions.js";
-import { createSubsystemLogger } from "../logging/subsystem.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
 import { resolveAgentWorkspaceDir } from "./agent-scope.js";
 
@@ -48,7 +51,6 @@ const mockResolveAgentWorkspaceDir = vi.mocked(resolveAgentWorkspaceDir);
 const mockParseAgentSessionKey = vi.mocked(parseAgentSessionKey);
 const mockResolveStorePath = vi.mocked(resolveStorePath);
 const mockLoadSessionStore = vi.mocked(loadSessionStore);
-const mockCreateSubsystemLogger = vi.mocked(createSubsystemLogger);
 
 describe("handoff-logging", () => {
   let mockLogger: {
@@ -59,13 +61,11 @@ describe("handoff-logging", () => {
   };
 
   beforeEach(() => {
-    mockLogger = {
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    };
-    mockCreateSubsystemLogger.mockReturnValue(mockLogger as any);
+    mockLogger = subsystemMocks.logger;
+    mockLogger.debug.mockReset();
+    mockLogger.info.mockReset();
+    mockLogger.warn.mockReset();
+    mockLogger.error.mockReset();
     mockLoadConfig.mockReturnValue({} as OpenClawConfig);
   });
 

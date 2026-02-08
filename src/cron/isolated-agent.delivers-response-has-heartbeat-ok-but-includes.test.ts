@@ -3,23 +3,27 @@ import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CliDeps } from "../cli/deps.js";
 import type { OpenClawConfig } from "../config/config.js";
+import type { ExecutionResult } from "../execution/types.js";
 import type { CronJob } from "./types.js";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 import { telegramOutbound } from "../channels/plugins/outbound/telegram.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import { createOutboundTestPlugin, createTestRegistry } from "../test-utils/channel-plugins.js";
 
-vi.mock("../agents/pi-embedded.js", () => ({
-  abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: vi.fn(),
-  resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
-}));
+const executeKernelMock = vi.fn();
+
 vi.mock("../agents/model-catalog.js", () => ({
   loadModelCatalog: vi.fn(),
 }));
+vi.mock("../execution/kernel.js", () => ({
+  createDefaultExecutionKernel: vi.fn().mockReturnValue({
+    execute: (request: unknown) => executeKernelMock(request),
+    abort: vi.fn(),
+    getActiveRunCount: vi.fn().mockReturnValue(0),
+  }),
+}));
 
 import { loadModelCatalog } from "../agents/model-catalog.js";
-import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { runCronIsolatedAgentTurn } from "./isolated-agent.js";
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
@@ -82,9 +86,37 @@ function makeJob(payload: CronJob["payload"]): CronJob {
   };
 }
 
+function createExecutionResult(overrides: Partial<ExecutionResult> = {}): ExecutionResult {
+  return {
+    success: true,
+    aborted: false,
+    error: undefined,
+    reply: "ok",
+    payloads: [{ text: "ok" }],
+    runtime: {
+      kind: "pi",
+      provider: "anthropic",
+      model: "claude-opus-4-5",
+      fallbackUsed: false,
+    },
+    usage: {
+      inputTokens: 1,
+      outputTokens: 1,
+      durationMs: 5,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    },
+    events: [],
+    toolCalls: [],
+    didSendViaMessagingTool: false,
+    ...overrides,
+  };
+}
+
 describe("runCronIsolatedAgentTurn", () => {
   beforeEach(() => {
-    vi.mocked(runEmbeddedPiAgent).mockReset();
+    executeKernelMock.mockReset();
+    executeKernelMock.mockResolvedValue(createExecutionResult());
     vi.mocked(loadModelCatalog).mockResolvedValue([]);
     setActivePluginRegistry(
       createTestRegistry([
@@ -111,13 +143,11 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageIMessage: vi.fn(),
       };
       // Media should still be delivered even if text is just HEARTBEAT_OK.
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "HEARTBEAT_OK", mediaUrl: "https://example.com/img.png" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(
+        createExecutionResult({
+          payloads: [{ text: "HEARTBEAT_OK", mediaUrl: "https://example.com/img.png" }],
+        }),
+      );
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath),
@@ -152,13 +182,9 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "HEARTBEAT_OK 🦞" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(
+        createExecutionResult({ payloads: [{ text: "HEARTBEAT_OK 🦞" }] }),
+      );
 
       const cfg = makeCfg(home, storePath);
       cfg.agents = {

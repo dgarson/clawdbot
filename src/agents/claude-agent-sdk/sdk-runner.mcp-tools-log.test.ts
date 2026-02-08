@@ -10,7 +10,9 @@ vi.mock("../../logging/subsystem.js", () => ({
       info: vi.fn(),
       warn: vi.fn(),
       error: vi.fn(),
+      child: vi.fn(),
     };
+    logger.child.mockReturnValue(logger);
     loggers.push(logger);
     return logger;
   }),
@@ -66,10 +68,13 @@ describe("runSdkAgent MCP tools logging", () => {
       tools: [{ name: "exec" }, { name: "mcp__github__create_issue" }] as any,
     });
 
-    const logger = loggers[0] as any;
-    expect(logger?.debug).toBeTypeOf("function");
-
-    const debugCalls = (logger.debug as any).mock.calls.map((c: unknown[]) => String(c[0]));
+    const debugCalls = loggers.flatMap((logger) => {
+      const debug = logger.debug as { mock?: { calls?: unknown[][] } } | undefined;
+      if (!debug?.mock?.calls) {
+        return [];
+      }
+      return debug.mock.calls.map((c) => String(c[0]));
+    });
     const mcpLine = debugCalls.find((l) => l.includes("sdk mcp tools:"));
     expect(mcpLine).toBeTruthy();
     expect(mcpLine).toContain("mcpTools=github:create_issue");

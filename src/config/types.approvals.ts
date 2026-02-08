@@ -16,6 +16,11 @@ export type ExecApprovalForwardingConfig = {
   enabled?: boolean;
   /** Delivery mode (session=origin chat, targets=config targets, both=both). Default: session. */
   mode?: ExecApprovalForwardingMode;
+  /**
+   * Skip forwarding to Discord when Discord exec approvals are enabled, to avoid duplicate
+   * approval prompts (plain text + button UI). Default: true.
+   */
+  skipDiscordWhenExecApprovalsEnabled?: boolean;
   /** Only forward approvals for these agent IDs. Omit = all agents. */
   agentFilter?: string[];
   /** Only forward approvals matching these session key patterns (substring or regex). */

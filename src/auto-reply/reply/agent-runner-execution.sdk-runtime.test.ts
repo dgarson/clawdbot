@@ -31,18 +31,20 @@ vi.mock("../../agents/claude-agent-sdk/sdk-agent-runtime.js", () => ({
   createSdkAgentRuntime: vi.fn(() => ({
     kind: "claude",
     displayName: "Claude Agent SDK",
-    run: vi.fn(
-      async (params: { streamMiddleware?: StreamingMiddleware }) => {
-        // Push events through middleware (the new primary path)
-        const mw = params.streamMiddleware;
-        mw?.push({ kind: "agent_event", stream: "tool", data: { phase: "start", name: "exec" } });
-        mw?.push({ kind: "agent_event", stream: "assistant", data: { text: "hello", delta: "hello" } });
-        return {
-          payloads: [{ text: "sdk-ok" }],
-          meta: { durationMs: 1 },
-        };
-      },
-    ),
+    run: vi.fn(async (params: { streamMiddleware?: StreamingMiddleware }) => {
+      // Push events through middleware (the new primary path)
+      const mw = params.streamMiddleware;
+      mw?.push({ kind: "agent_event", stream: "tool", data: { phase: "start", name: "exec" } });
+      mw?.push({
+        kind: "agent_event",
+        stream: "assistant",
+        data: { text: "hello", delta: "hello" },
+      });
+      return {
+        payloads: [{ text: "sdk-ok" }],
+        meta: { durationMs: 1 },
+      };
+    }),
   })),
 }));
 
