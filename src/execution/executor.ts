@@ -626,7 +626,7 @@ export class DefaultTurnExecutor implements TurnExecutor {
    * Dynamically import the Pi runtime to avoid circular dependencies.
    */
   private async importPiRuntime(): Promise<RunEmbeddedPiAgentFn> {
-    const { runEmbeddedPiAgent } = await import("../agents/pi-embedded-runner/run.js");
+    const { runEmbeddedPiAgent } = await import("../agents/pi-embedded.js");
     return runEmbeddedPiAgent;
   }
 

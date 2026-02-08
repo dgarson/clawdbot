@@ -26,8 +26,6 @@ type ParsedApproveCommand =
   | { ok: true; id: string; decision: "allow-once" | "allow-always" | "deny" }
   | { ok: false; error: string };
 
-type ToolApprovalSummary = { id: string; requestHash: string };
-
 function parseApproveCommand(raw: string): ParsedApproveCommand | null {
   const trimmed = raw.trim();
   if (!trimmed.toLowerCase().startsWith(COMMAND)) {
@@ -68,6 +66,39 @@ function buildResolvedByLabel(params: Parameters<CommandHandler>[0]): string {
   return `${channel}:${sender}`;
 }
 
+function formatApprovalResolveError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const normalized = message.toLowerCase();
+  if (normalized.includes("unknown approval id") || normalized.includes("request hash mismatch")) {
+    return "Failed to submit approval. This approval may have already been resolved or expired.";
+  }
+  return `Failed to submit approval: ${message}`;
+}
+
+type PendingToolApproval = {
+  id: string;
+  requestHash: string;
+};
+
+async function findCanonicalApproval(
+  resolvedBy: string,
+  approvalId: string,
+): Promise<PendingToolApproval | null> {
+  try {
+    const result = await callGateway<{
+      approvals: Array<{ id: string; requestHash: string }>;
+    }>({
+      method: "tool.approvals.get",
+      clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
+      clientDisplayName: `Chat approval lookup (${resolvedBy})`,
+      mode: GATEWAY_CLIENT_MODES.BACKEND,
+    });
+    const match = result.approvals?.find((a) => a.id === approvalId);
+    return match ? { id: match.id, requestHash: match.requestHash } : null;
+  } catch {
+    return null;
+  }
+}
 export const handleApproveCommand: CommandHandler = async (params, allowTextCommands) => {
   if (!allowTextCommands) {
     return null;
@@ -103,19 +134,7 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
   }
 
   const resolvedBy = buildResolvedByLabel(params);
-  let toolApproval: ToolApprovalSummary | null = null;
-  try {
-    const response = (await callGateway({
-      method: "tool.approvals.get",
-      params: {},
-      clientName: GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
-      clientDisplayName: `Chat approval (${resolvedBy})`,
-      mode: GATEWAY_CLIENT_MODES.BACKEND,
-    })) as { approvals?: ToolApprovalSummary[] };
-    toolApproval = response.approvals?.find((approval) => approval.id === parsed.id) ?? null;
-  } catch (err) {
-    logVerbose(`Failed to query tool approvals for /approve: ${String(err)}`);
-  }
+  const toolApproval = await findCanonicalApproval(resolvedBy, parsed.id);
 
   try {
     if (toolApproval) {
@@ -143,7 +162,7 @@ export const handleApproveCommand: CommandHandler = async (params, allowTextComm
     return {
       shouldContinue: false,
       reply: {
-        text: `❌ Failed to submit approval: ${String(err)}`,
+        text: `❌ ${formatApprovalResolveError(err)}`,
       },
     };
   }

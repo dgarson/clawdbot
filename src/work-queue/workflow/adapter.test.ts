@@ -80,6 +80,20 @@ describe("WorkflowWorkerAdapter", () => {
     });
   }
 
+  async function waitForItemStatus(
+    itemId: string,
+    status: WorkItem["status"],
+    timeoutMs = 1000,
+  ): Promise<WorkItem | null> {
+    const started = Date.now();
+    let current = await store.getItem(itemId);
+    while (current?.status !== status && Date.now() - started < timeoutMs) {
+      await new Promise((r) => setTimeout(r, 25));
+      current = await store.getItem(itemId);
+    }
+    return current ?? null;
+  }
+
   it("starts and stops cleanly", async () => {
     const adapter = makeAdapter();
     expect(adapter.isRunning).toBe(false);
@@ -133,7 +147,7 @@ describe("WorkflowWorkerAdapter", () => {
     await new Promise((r) => setTimeout(r, 150));
     await adapter.stop();
 
-    const updated = await store.getItem(item.id);
+    const updated = await waitForItemStatus(item.id, "failed");
     expect(updated?.status).toBe("failed");
     expect(updated?.error?.message).toContain("plan phase crashed");
   });
@@ -160,7 +174,7 @@ describe("WorkflowWorkerAdapter", () => {
     await new Promise((r) => setTimeout(r, 300));
     await adapter.stop();
 
-    const updated = await store.getItem(item.id);
+    const updated = await waitForItemStatus(item.id, "completed", 2000);
     expect(updated?.status).toBe("completed");
     expect(updated?.lastOutcome).toBe("success");
   });

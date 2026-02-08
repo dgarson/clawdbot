@@ -93,6 +93,7 @@ import {
 } from "../system-prompt.js";
 import { splitSdkTools } from "../tool-split.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";
+import { resolveAgentEndHookMetadata } from "./agent-end-context.js";
 import { detectAndLoadPromptImages } from "./images.js";
 
 /**
@@ -926,6 +927,16 @@ export async function runEmbeddedAttempt(
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await
         if (hookRunner?.hasHooks("agent_end")) {
+          const agentEndMetadata = resolveAgentEndHookMetadata({
+            messageProvider: params.messageProvider,
+            messageTo: params.messageTo,
+            messageThreadId: params.messageThreadId,
+            groupId: params.groupId,
+            groupChannel: params.groupChannel,
+            groupSpace: params.groupSpace,
+            currentChannelId: params.currentChannelId,
+            currentThreadTs: params.currentThreadTs,
+          });
           hookRunner
             .runAgentEnd(
               {
@@ -933,6 +944,9 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                channelType: agentEndMetadata.channelType,
+                channelId: agentEndMetadata.channelId,
+                threadTs: agentEndMetadata.threadTs,
               },
               {
                 agentId: hookAgentId,

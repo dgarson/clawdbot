@@ -487,28 +487,41 @@ async function runAgentTurnWithKernel(
 
     // Error recovery from embedded errors
     const embeddedError = runResult.meta?.error;
-    if (
-      embeddedError &&
-      isContextOverflowError(embeddedError.message) &&
-      !didResetAfterCompactionFailure &&
-      (await params.resetSessionAfterCompactionFailure(embeddedError.message))
-    ) {
-      return {
-        kind: "final",
-        payload: {
-          text: "⚠️ Context limit exceeded. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
-        },
-      };
-    }
-    if (embeddedError?.kind === "role_ordering") {
-      const didReset = await params.resetSessionAfterRoleOrderingConflict(embeddedError.message);
-      if (didReset) {
+    if (embeddedError) {
+      if (
+        isCompactionFailureError(embeddedError.message) &&
+        !didResetAfterCompactionFailure &&
+        (await params.resetSessionAfterCompactionFailure(embeddedError.message))
+      ) {
         return {
           kind: "final",
           payload: {
-            text: "⚠️ Message ordering conflict. I've reset the conversation - please try again.",
+            text: "⚠️ Context limit exceeded during compaction. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
           },
         };
+      }
+      if (
+        isContextOverflowError(embeddedError.message) &&
+        !didResetAfterCompactionFailure &&
+        (await params.resetSessionAfterCompactionFailure(embeddedError.message))
+      ) {
+        return {
+          kind: "final",
+          payload: {
+            text: "⚠️ Context limit exceeded. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
+          },
+        };
+      }
+      if (embeddedError.kind === "role_ordering") {
+        const didReset = await params.resetSessionAfterRoleOrderingConflict(embeddedError.message);
+        if (didReset) {
+          return {
+            kind: "final",
+            payload: {
+              text: "⚠️ Message ordering conflict. I've reset the conversation - please try again.",
+            },
+          };
+        }
       }
     }
 
@@ -609,6 +622,24 @@ async function runAgentTurnWithKernel(
 function mapExecutionResultToLegacy(
   result: ExecutionResult,
 ): Awaited<ReturnType<typeof runEmbeddedPiAgent>> {
+  const fallbackError = (() => {
+    if (!result.error) {
+      return undefined;
+    }
+    const message = result.error.message ?? "";
+    if (/incorrect role information|roles must alternate/i.test(message)) {
+      return { kind: "role_ordering" as const, message };
+    }
+    if (isCompactionFailureError(message)) {
+      return { kind: "compaction_failure" as const, message };
+    }
+    if (isContextOverflowError(message)) {
+      return { kind: "context_overflow" as const, message };
+    }
+    return undefined;
+  })();
+  const embeddedError = result.embeddedError ?? fallbackError;
+
   return {
     payloads: result.payloads.map((p) => ({
       text: p.text,
@@ -636,14 +667,10 @@ function mapExecutionResultToLegacy(
       systemPromptReport: result.systemPromptReport as Awaited<
         ReturnType<typeof runEmbeddedPiAgent>
       >["meta"]["systemPromptReport"],
-      error: result.embeddedError
+      error: embeddedError
         ? {
-            kind: result.embeddedError.kind as
-              | "context_overflow"
-              | "compaction_failure"
-              | "role_ordering"
-              | "image_size",
-            message: result.embeddedError.message,
+            kind: embeddedError.kind,
+            message: embeddedError.message,
           }
         : undefined,
     },

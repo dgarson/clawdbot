@@ -49,7 +49,7 @@ function buildParams(commandBody: string, cfg: OpenClawConfig, ctxOverrides?: Pa
 
 describe("/approve command", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("rejects invalid usage", async () => {
@@ -182,5 +182,29 @@ describe("/approve command", () => {
         params: { id: "abc", decision: "allow-once" },
       }),
     );
+  });
+
+  it("returns a friendly error when approval is stale", async () => {
+    const cfg = {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as OpenClawConfig;
+    const params = buildParams("/approve abc allow-once", cfg, { SenderId: "123" });
+
+    const mockCallGateway = vi.mocked(callGateway);
+    // oxlint-disable-next-line typescript/no-explicit-any
+    mockCallGateway.mockImplementation(async (opts: any) => {
+      if (opts.method === "tool.approvals.get") {
+        return { approvals: [{ id: "abc", requestHash: "hash123" }] };
+      }
+      if (opts.method === "tool.approval.resolve") {
+        throw new Error("unknown approval id or request hash mismatch");
+      }
+      return { ok: true };
+    });
+
+    const result = await handleCommands(params);
+    expect(result.shouldContinue).toBe(false);
+    expect(result.reply?.text).toContain("already been resolved or expired");
   });
 });
