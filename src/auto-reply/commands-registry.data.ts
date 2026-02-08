@@ -183,7 +183,7 @@ function buildChatCommands(): ChatCommandDefinition[] {
     defineChatCommand({
       key: "approve",
       nativeName: "approve",
-      description: "Approve or deny exec requests.",
+      description: "Approve or deny tool approval requests.",
       textAlias: "/approve",
       acceptsArgs: true,
       category: "management",
