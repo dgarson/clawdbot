@@ -481,6 +481,7 @@ export const WorkerConfigSchema = z
     defaultSystemPrompt: z.string().optional(),
     defaultVerifyCommands: z.array(z.string()).optional(),
     workflow: WorkerWorkflowSchema,
+    autoRecoverStaleItems: z.boolean().optional(),
   })
   .strict()
   .optional();

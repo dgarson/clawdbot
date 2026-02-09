@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { WorkItem } from "./types.js";
 import { MemoryWorkQueueBackend } from "./backend/memory-backend.js";
 import { TranscriptContextExtractor } from "./context-extractor.js";
+import { resetItemToPending } from "./recovery.js";
 import { WorkQueueStore } from "./store.js";
 import {
   CHRONIC_BLOCKER_THRESHOLD,
@@ -1238,5 +1239,245 @@ describe("detectStaleItems", () => {
     expect(result).toHaveLength(2);
     const ids = result.map((r) => r.item.id).toSorted();
     expect(ids).toEqual(["A", "B"]);
+  });
+});
+
+// =============================================================================
+// resetItemToPending unit tests
+// =============================================================================
+
+describe("resetItemToPending", () => {
+  it("resets item to pending and clears assignment fields", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    const store = new WorkQueueStore(backend);
+    await store.initialize();
+
+    const item = await store.createItem({
+      agentId: "test-agent",
+      title: "Stale task",
+      status: "in_progress",
+      assignedTo: { agentId: "dead-worker", sessionKey: "agent:dead-worker:session:123" },
+      startedAt: new Date().toISOString(),
+      lastHeartbeatAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+    });
+
+    const updated = await resetItemToPending(store, item, "test recovery reason");
+
+    expect(updated.status).toBe("pending");
+    expect(updated.statusReason).toBe("test recovery reason");
+    expect(updated.assignedTo).toBeUndefined();
+    expect(updated.startedAt).toBeUndefined();
+    expect(updated.lastHeartbeatAt).toBeUndefined();
+  });
+});
+
+// =============================================================================
+// Runtime stale item auto-recovery integration tests
+// =============================================================================
+
+describe("WorkQueueWorker runtime stale item recovery", () => {
+  it("recovers stale in_progress items during diagnostics", async () => {
+    const { store, deps } = createTestDeps();
+
+    // Create a stale in_progress item (simulating a dead worker).
+    const staleItem = await store.createItem({
+      agentId: "test-agent",
+      title: "Stale worker task",
+      status: "in_progress",
+      assignedTo: { agentId: "dead-worker" },
+      startedAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+      // No heartbeat — will be detected as stale.
+    });
+
+    // Also create a pending item in a different workstream so the worker
+    // has nothing to claim (triggers diagnostics).
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Other workstream task",
+      workstream: "other",
+    });
+
+    const worker = new WorkQueueWorker({
+      agentId: "test-agent",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+        workstreams: ["main"],
+      },
+      deps,
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 300));
+    await worker.stop();
+
+    // The stale item should have been recovered to pending.
+    const updated = await store.getItem(staleItem.id);
+    expect(updated).toBeDefined();
+    expect(updated!.status).toBe("pending");
+    expect(updated!.assignedTo).toBeUndefined();
+    expect(updated!.startedAt).toBeUndefined();
+    expect(updated!.lastHeartbeatAt).toBeUndefined();
+    expect(updated!.statusReason).toContain("Auto-recovered");
+    expect(updated!.statusReason).toContain("dead-worker");
+
+    // Verify recovery was logged.
+    const infoMessages = (deps.log.info as ReturnType<typeof vi.fn>).mock.calls
+      .map((c: any) => c[0])
+      .filter((msg: string) => msg.includes("auto-recovered"));
+    expect(infoMessages.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("does not recover items with fresh heartbeats", async () => {
+    const { store, deps } = createTestDeps();
+
+    // Create an in_progress item with a fresh heartbeat (should NOT be recovered).
+    const freshItem = await store.createItem({
+      agentId: "test-agent",
+      title: "Active worker task",
+      status: "in_progress",
+      assignedTo: { agentId: "active-worker" },
+      startedAt: new Date().toISOString(),
+      lastHeartbeatAt: new Date().toISOString(), // Fresh heartbeat.
+    });
+
+    // Pending item in different workstream to force diagnostics.
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Unrelated task",
+      workstream: "other",
+    });
+
+    const worker = new WorkQueueWorker({
+      agentId: "test-agent",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+        workstreams: ["main"],
+      },
+      deps,
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 300));
+    await worker.stop();
+
+    // The fresh item should still be in_progress.
+    const updated = await store.getItem(freshItem.id);
+    expect(updated).toBeDefined();
+    expect(updated!.status).toBe("in_progress");
+    expect(updated!.assignedTo?.agentId).toBe("active-worker");
+  });
+
+  it("does not recover when autoRecoverStaleItems is false", async () => {
+    const { store, deps } = createTestDeps();
+
+    // Create a stale item.
+    const staleItem = await store.createItem({
+      agentId: "test-agent",
+      title: "Stale but no recovery",
+      status: "in_progress",
+      assignedTo: { agentId: "dead-worker" },
+      startedAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+    });
+
+    // Pending item in different workstream to force diagnostics.
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Unrelated task",
+      workstream: "other",
+    });
+
+    const worker = new WorkQueueWorker({
+      agentId: "test-agent",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+        workstreams: ["main"],
+        autoRecoverStaleItems: false,
+      },
+      deps,
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 300));
+    await worker.stop();
+
+    // Item should remain in_progress (not recovered).
+    const updated = await store.getItem(staleItem.id);
+    expect(updated).toBeDefined();
+    expect(updated!.status).toBe("in_progress");
+    expect(updated!.assignedTo?.agentId).toBe("dead-worker");
+  });
+
+  it("recovery failure for one item does not block others", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    const store = new WorkQueueStore(backend);
+
+    // Create two stale items.
+    const staleA = await store.createItem({
+      agentId: "test-agent",
+      title: "Stale A",
+      status: "in_progress",
+      assignedTo: { agentId: "dead-worker-a" },
+      startedAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+    });
+    const staleB = await store.createItem({
+      agentId: "test-agent",
+      title: "Stale B",
+      status: "in_progress",
+      assignedTo: { agentId: "dead-worker-b" },
+      startedAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+    });
+
+    // Pending item in different workstream to force diagnostics.
+    await store.createItem({
+      agentId: "test-agent",
+      title: "Unrelated",
+      workstream: "other",
+    });
+
+    // Spy on updateItem and make it fail for item A.
+    const originalUpdate = store.updateItem.bind(store);
+    let failOnce = true;
+    vi.spyOn(store, "updateItem").mockImplementation(async (id, updates) => {
+      if (id === staleA.id && failOnce) {
+        failOnce = false;
+        throw new Error("simulated store failure");
+      }
+      return originalUpdate(id, updates);
+    });
+
+    const extractor = new TranscriptContextExtractor({
+      readLatestAssistantReply: async () => "done",
+    });
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
+    const gateway = vi.fn().mockImplementation(async () => ({}));
+
+    const worker = new WorkQueueWorker({
+      agentId: "test-agent",
+      config: {
+        enabled: true,
+        pollIntervalMs: 50,
+        workstreams: ["main"],
+      },
+      deps: { store, extractor, callGateway: gateway, log },
+    });
+
+    await worker.start();
+    await new Promise((r) => setTimeout(r, 300));
+    await worker.stop();
+
+    // Stale B should have been recovered despite A's failure.
+    const updatedB = await store.getItem(staleB.id);
+    expect(updatedB).toBeDefined();
+    expect(updatedB!.status).toBe("pending");
+    expect(updatedB!.statusReason).toContain("Auto-recovered");
+
+    // Verify a warning was logged for the failed recovery.
+    const warnMessages = (log.warn as ReturnType<typeof vi.fn>).mock.calls
+      .map((c: any) => c[0])
+      .filter((msg: string) => msg.includes("failed to recover stale item"));
+    expect(warnMessages.length).toBeGreaterThanOrEqual(1);
   });
 });

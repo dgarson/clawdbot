@@ -16,6 +16,24 @@ export type RecoveryOptions = {
 };
 
 /**
+ * Reset a single work item back to pending, clearing assignment and heartbeat fields.
+ * Shared helper used by both startup recovery and runtime auto-recovery.
+ */
+export async function resetItemToPending(
+  store: WorkQueueStore,
+  item: WorkItem,
+  reason: string,
+): Promise<WorkItem> {
+  return store.updateItem(item.id, {
+    status: "pending",
+    statusReason: reason,
+    assignedTo: undefined,
+    startedAt: undefined,
+    lastHeartbeatAt: undefined,
+  });
+}
+
+/**
  * Scan for in_progress work items and reset them to pending.
  * Called on gateway startup to recover from crashes/restarts.
  *
@@ -60,13 +78,11 @@ export async function recoverOrphanedWorkItems(
       const previousAssignment =
         item.assignedTo?.sessionKey ?? item.assignedTo?.agentId ?? "unknown";
       const heartbeatNote = item.lastHeartbeatAt ? "stale heartbeat" : "missing heartbeat";
-      const updated = await store.updateItem(item.id, {
-        status: "pending",
-        statusReason: `Recovered after gateway restart (${heartbeatNote}; was assigned to ${previousAssignment})`,
-        assignedTo: undefined,
-        startedAt: undefined,
-        lastHeartbeatAt: undefined,
-      });
+      const updated = await resetItemToPending(
+        store,
+        item,
+        `Recovered after gateway restart (${heartbeatNote}; was assigned to ${previousAssignment})`,
+      );
       recovered.push(updated);
     } catch (err) {
       failed.push({

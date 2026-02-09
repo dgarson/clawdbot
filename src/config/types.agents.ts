@@ -178,6 +178,8 @@ export type WorkerConfig = {
   defaultVerifyCommands?: string[];
   /** Structured workflow pipeline config (plan → review → discover → decompose → execute). */
   workflow?: WorkerWorkflowConfig;
+  /** Auto-recover stale in_progress items during poll cycles (default: true). */
+  autoRecoverStaleItems?: boolean;
 };
 
 export type AgentHandoffLoggingConfig = {

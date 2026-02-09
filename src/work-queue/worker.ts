@@ -7,6 +7,7 @@ import type { WorkstreamNotesStore } from "./workstream-notes.js";
 import { formatDurationCompact } from "../infra/format-time/format-duration.js";
 import { truncateSessionLabel } from "../sessions/session-label.js";
 import { linkCodexTaskForWorkItem } from "./codex-task-linker.js";
+import { resetItemToPending } from "./recovery.js";
 import {
   buildWorkerSystemPrompt,
   buildWorkerTaskMessage,
@@ -651,6 +652,16 @@ export class WorkQueueWorker {
             `worker[${this.agentId}]: stale item: ${shortId} "${si.item.title}" assignedTo=${assigned} ${si.reason} staleFor=${duration}`,
           );
         }
+
+        // Auto-recover stale items if enabled (default: true).
+        if (this.config.autoRecoverStaleItems !== false) {
+          const recoveredCount = await this.recoverStaleItems(staleItems);
+          if (recoveredCount > 0) {
+            this.deps.log.info(
+              `worker[${this.agentId}]: auto-recovered ${recoveredCount} stale item(s)`,
+            );
+          }
+        }
       }
     } catch {
       // Diagnostics are best-effort; don't disrupt the poll loop.
@@ -804,6 +815,30 @@ export class WorkQueueWorker {
       });
 
     return { status: runStatus, error: runError, context, sessionKey, transcript };
+  }
+
+  private async recoverStaleItems(staleItems: StaleItemInfo[]): Promise<number> {
+    let recovered = 0;
+    for (const si of staleItems) {
+      try {
+        const prev = si.item.assignedTo?.sessionKey ?? si.item.assignedTo?.agentId ?? "unknown";
+        const duration = formatDurationCompact(si.staleSinceMs, { spaced: true }) ?? "unknown";
+        await resetItemToPending(
+          this.deps.store,
+          si.item,
+          `Auto-recovered by worker ${this.agentId}: ${si.reason} (was assigned to ${prev}, stale for ${duration})`,
+        );
+        recovered++;
+        this.deps.log.info(
+          `worker[${this.agentId}]: recovered stale item ${si.item.id.slice(0, 8)} "${si.item.title}" (${si.reason}, staleFor=${duration})`,
+        );
+      } catch (err) {
+        this.deps.log.warn(
+          `worker[${this.agentId}]: failed to recover stale item ${si.item.id}: ${String(err)}`,
+        );
+      }
+    }
+    return recovered;
   }
 
   private sleep(ms: number, signal: AbortSignal): Promise<void> {
