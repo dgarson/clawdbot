@@ -6,7 +6,11 @@ import type {
   OverseerPlanNodeBase,
   OverseerTask,
 } from "../../infra/overseer/store.types.js";
-import type { OverseerGoalCreateResult, OverseerStatusResult } from "../protocol/index.js";
+import type {
+  OverseerGoalCreateResult,
+  OverseerGoalListResult,
+  OverseerStatusResult,
+} from "../protocol/index.js";
 import type { OverseerEventsResult, OverseerEventsResultEvent } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
@@ -22,6 +26,7 @@ import {
   errorShape,
   formatValidationErrors,
   validateOverseerGoalCreateParams,
+  validateOverseerGoalListParams,
   validateOverseerGoalStatusParams,
   validateOverseerGoalUpdateParams,
   validateOverseerStatusParams,
@@ -124,6 +129,46 @@ function summarizeStatus(): OverseerStatusResult {
       retryCount: assignment.retryCount,
     }));
   return { ts: Date.now(), goals, stalledAssignments };
+}
+
+function resolveGoalStartedAt(goal: OverseerGoalRecord): number {
+  let earliest: number | undefined;
+  const consider = (value?: number) => {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      return;
+    }
+    if (earliest === undefined || value < earliest) {
+      earliest = value;
+    }
+  };
+  const plan = goal.plan;
+  if (plan) {
+    for (const phase of plan.phases) {
+      consider(phase.startedAt);
+      for (const task of phase.tasks) {
+        consider(task.startedAt);
+        for (const subtask of task.subtasks) {
+          consider(subtask.startedAt);
+        }
+      }
+    }
+  }
+  consider(goal.createdAt);
+  return earliest ?? goal.createdAt;
+}
+
+function serializeGoalForList(goal: OverseerGoalRecord) {
+  return {
+    goalId: goal.goalId,
+    title: goal.title,
+    status: goal.status,
+    priority: goal.priority,
+    createdAt: goal.createdAt,
+    updatedAt: goal.updatedAt,
+    startedAt: resolveGoalStartedAt(goal),
+    tags: goal.tags ?? [],
+    problemStatement: goal.problemStatement,
+  };
 }
 
 function serializePlanNodeBase(node: OverseerPlanNodeBase) {
@@ -255,6 +300,51 @@ export const overseerHandlers: GatewayRequestHandlers = {
     }
     respond(true, result, undefined);
   },
+  "overseer.goal.list": ({ params, respond }) => {
+    if (!validateOverseerGoalListParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid overseer.goal.list params: ${formatValidationErrors(
+            validateOverseerGoalListParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const request = params as { status?: string; limit?: number; offset?: number };
+    const store = loadOverseerStoreFromDisk();
+    const offset =
+      typeof request.offset === "number" && Number.isFinite(request.offset)
+        ? Math.max(0, Math.trunc(request.offset))
+        : 0;
+    const limit =
+      typeof request.limit === "number" && Number.isFinite(request.limit)
+        ? Math.max(0, Math.trunc(request.limit))
+        : null;
+    let goals = Object.values(store.goals ?? {});
+    if (request.status) {
+      goals = goals.filter((goal) => goal.status === request.status);
+    }
+    goals.sort((a, b) => b.updatedAt - a.updatedAt);
+    const total = goals.length;
+    if (offset > 0) {
+      goals = goals.slice(offset);
+    }
+    if (limit !== null) {
+      goals = goals.slice(0, limit);
+    }
+    const result: OverseerGoalListResult = {
+      goals: goals.map((goal) => serializeGoalForList(goal)),
+      total,
+    };
+    respond(true, result, undefined);
+  },
+  "overseer.goals.list": (options) => {
+    overseerHandlers["overseer.goal.list"](options);
+  },
   "overseer.goal.create": async ({ params, respond }) => {
     if (!validateOverseerGoalCreateParams(params)) {
       respond(
@@ -374,6 +464,9 @@ export const overseerHandlers: GatewayRequestHandlers = {
     const result: OverseerGoalCreateResult = { goalId, planGenerated };
     respond(true, result, undefined);
   },
+  "overseer.goals.create": async (options) => {
+    await overseerHandlers["overseer.goal.create"](options);
+  },
   "overseer.goal.status": ({ params, respond }) => {
     if (!validateOverseerGoalStatusParams(params)) {
       respond(
@@ -412,6 +505,9 @@ export const overseerHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
+  "overseer.goals.status": (options) => {
+    overseerHandlers["overseer.goal.status"](options);
+  },
   "overseer.goal.pause": async ({ params, respond }) => {
     if (!validateOverseerGoalStatusParams(params)) {
       respond(
@@ -442,6 +538,9 @@ export const overseerHandlers: GatewayRequestHandlers = {
     });
     respond(true, { ok: true }, undefined);
   },
+  "overseer.goals.pause": async (options) => {
+    await overseerHandlers["overseer.goal.pause"](options);
+  },
   "overseer.goal.resume": async ({ params, respond }) => {
     if (!validateOverseerGoalStatusParams(params)) {
       respond(
@@ -471,6 +570,9 @@ export const overseerHandlers: GatewayRequestHandlers = {
       return { store, result: true };
     });
     respond(true, { ok: true }, undefined);
+  },
+  "overseer.goals.resume": async (options) => {
+    await overseerHandlers["overseer.goal.resume"](options);
   },
   "overseer.goal.update": async ({ params, respond }) => {
     if (!validateOverseerGoalUpdateParams(params)) {
@@ -513,6 +615,9 @@ export const overseerHandlers: GatewayRequestHandlers = {
       return { store, result: true };
     });
     respond(true, { ok: true }, undefined);
+  },
+  "overseer.goals.update": async (options) => {
+    await overseerHandlers["overseer.goal.update"](options);
   },
   "overseer.goal.cancel": async ({ params, respond }) => {
     if (!validateOverseerGoalStatusParams(params)) {
@@ -573,6 +678,9 @@ export const overseerHandlers: GatewayRequestHandlers = {
       return { store, result: true };
     });
     respond(true, { ok: true }, undefined);
+  },
+  "overseer.goals.cancel": async (options) => {
+    await overseerHandlers["overseer.goal.cancel"](options);
   },
   "overseer.work.update": async ({ params, respond }) => {
     if (!validateOverseerWorkUpdateParams(params)) {

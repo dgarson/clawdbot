@@ -197,6 +197,10 @@ import {
   OverseerGoalCreateParamsSchema,
   type OverseerGoalCreateResult,
   OverseerGoalCreateResultSchema,
+  type OverseerGoalListParams,
+  OverseerGoalListParamsSchema,
+  type OverseerGoalListResult,
+  OverseerGoalListResultSchema,
   type OverseerGoalStatusParams,
   OverseerGoalStatusParamsSchema,
   type OverseerGoalUpdateParams,
@@ -437,6 +441,9 @@ export const validateOverseerStatusParams = ajv.compile<OverseerStatusParams>(
 export const validateOverseerGoalCreateParams = ajv.compile<OverseerGoalCreateParams>(
   OverseerGoalCreateParamsSchema,
 );
+export const validateOverseerGoalListParams = ajv.compile<OverseerGoalListParams>(
+  OverseerGoalListParamsSchema,
+);
 export const validateOverseerGoalStatusParams = ajv.compile<OverseerGoalStatusParams>(
   OverseerGoalStatusParamsSchema,
 );
@@ -661,6 +668,8 @@ export {
   OverseerStatusResultSchema,
   OverseerGoalCreateParamsSchema,
   OverseerGoalCreateResultSchema,
+  OverseerGoalListParamsSchema,
+  OverseerGoalListResultSchema,
   OverseerGoalStatusParamsSchema,
   OverseerGoalUpdateParamsSchema,
   OverseerGoalStatusResultSchema,
@@ -805,6 +814,8 @@ export type {
   OverseerStatusResult,
   OverseerGoalCreateParams,
   OverseerGoalCreateResult,
+  OverseerGoalListParams,
+  OverseerGoalListResult,
   OverseerGoalStatusParams,
   OverseerGoalUpdateParams,
   OverseerGoalStatusResult,

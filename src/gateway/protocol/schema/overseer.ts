@@ -21,6 +21,52 @@ export const OverseerGoalSummarySchema = Type.Object({
   tags: Type.Array(Type.String()),
 });
 
+export const OverseerGoalListParamsSchema = Type.Object({
+  status: Type.Optional(Type.String()),
+  limit: Type.Optional(Type.Number()),
+  offset: Type.Optional(Type.Number()),
+});
+
+export type OverseerGoalListParams = {
+  status?: string;
+  limit?: number;
+  offset?: number;
+};
+
+export const OverseerGoalListEntrySchema = Type.Object({
+  goalId: Type.String(),
+  title: Type.String(),
+  status: Type.String(),
+  priority: Type.String(),
+  createdAt: Type.Number(),
+  updatedAt: Type.Number(),
+  startedAt: Type.Optional(Type.Number()),
+  tags: Type.Array(Type.String()),
+  problemStatement: Type.Optional(Type.String()),
+});
+
+export type OverseerGoalListEntry = {
+  goalId: string;
+  title: string;
+  status: string;
+  priority: string;
+  createdAt: number;
+  updatedAt: number;
+  startedAt?: number;
+  tags: string[];
+  problemStatement?: string;
+};
+
+export const OverseerGoalListResultSchema = Type.Object({
+  goals: Type.Array(OverseerGoalListEntrySchema),
+  total: Type.Number(),
+});
+
+export type OverseerGoalListResult = {
+  goals: OverseerGoalListEntry[];
+  total: number;
+};
+
 export const OverseerAssignmentSummarySchema = Type.Object({
   assignmentId: Type.String(),
   goalId: Type.String(),

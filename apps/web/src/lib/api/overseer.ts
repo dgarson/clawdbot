@@ -8,12 +8,24 @@
 import { getGatewayClient } from "./gateway-client";
 
 export interface OverseerStatusResult {
-  running: boolean;
-  currentGoalId?: string;
-  pendingGoals: number;
-  completedGoals: number;
-  failedGoals: number;
-  lastRunAt?: string;
+  ts: number;
+  goals: Array<{
+    goalId: string;
+    title: string;
+    status: string;
+    priority: string;
+    updatedAt: number;
+    tags: string[];
+  }>;
+  stalledAssignments: Array<{
+    assignmentId: string;
+    goalId: string;
+    workNodeId: string;
+    status: string;
+    lastDispatchAt?: number;
+    lastObservedActivityAt?: number;
+    retryCount?: number;
+  }>;
 }
 
 export interface OverseerGoal {
@@ -41,7 +53,7 @@ export interface OverseerGoalCreateResult {
 }
 
 export interface OverseerGoalStatusResult {
-  goal: OverseerGoal;
+  goal?: OverseerGoal;
   logs?: Array<{
     timestamp: string;
     level: string;
@@ -52,6 +64,100 @@ export interface OverseerGoalStatusResult {
 export interface OverseerGoalListResult {
   goals: OverseerGoal[];
   total: number;
+}
+
+type GatewayOverseerGoalListEntry = {
+  goalId: string;
+  title: string;
+  status: string;
+  priority: string;
+  createdAt: number;
+  updatedAt: number;
+  startedAt?: number;
+  tags: string[];
+  problemStatement?: string;
+};
+
+type GatewayOverseerGoalListResult = {
+  goals: GatewayOverseerGoalListEntry[];
+  total: number;
+};
+
+type GatewayOverseerGoalDetail = GatewayOverseerGoalListEntry & {
+  successCriteria?: string[];
+  nonGoals?: string[];
+  constraints?: string[];
+  owner?: string;
+  stakeholders?: string[];
+  repoContextSnapshot?: string;
+  assumptions?: string[];
+};
+
+type GatewayOverseerGoalStatusResult = {
+  goal?: GatewayOverseerGoalDetail;
+};
+
+function toIsoTimestamp(value?: number): string {
+  if (!Number.isFinite(value)) {
+    return new Date(0).toISOString();
+  }
+  return new Date(value as number).toISOString();
+}
+
+function toOptionalIsoTimestamp(value?: number): string | undefined {
+  if (!Number.isFinite(value)) {
+    return undefined;
+  }
+  return new Date(value as number).toISOString();
+}
+
+function normalizeGoalStatus(status?: string): OverseerGoal["status"] {
+  switch (status) {
+    case "active":
+      return "running";
+    case "paused":
+      return "paused";
+    case "completed":
+      return "completed";
+    case "cancelled":
+    case "archived":
+      return "failed";
+    default:
+      return "pending";
+  }
+}
+
+function normalizeGatewayStatusFilter(status?: OverseerGoal["status"]): string | undefined {
+  switch (status) {
+    case "running":
+    case "pending":
+      return "active";
+    case "paused":
+      return "paused";
+    case "completed":
+      return "completed";
+    case "failed":
+      return "cancelled";
+    default:
+      return undefined;
+  }
+}
+
+function mapGatewayGoalToOverseerGoal(goal: GatewayOverseerGoalListEntry): OverseerGoal {
+  return {
+    id: goal.goalId,
+    title: goal.title,
+    description: goal.problemStatement,
+    status: normalizeGoalStatus(goal.status),
+    progress: 0,
+    createdAt: toIsoTimestamp(goal.createdAt),
+    updatedAt: toIsoTimestamp(goal.updatedAt),
+    startedAt: toOptionalIsoTimestamp(goal.startedAt),
+    metadata: {
+      tags: goal.tags,
+      priority: goal.priority,
+    },
+  };
 }
 
 /**
@@ -71,7 +177,20 @@ export async function listOverseerGoals(params?: {
   offset?: number;
 }): Promise<OverseerGoalListResult> {
   const client = getGatewayClient();
-  return client.request<OverseerGoalListResult>("overseer.goals.list", params);
+  const requestParams = params
+    ? {
+        ...params,
+        status: normalizeGatewayStatusFilter(params.status),
+      }
+    : undefined;
+  const result = await client.request<GatewayOverseerGoalListResult>(
+    "overseer.goal.list",
+    requestParams,
+  );
+  return {
+    goals: result.goals.map((goal) => mapGatewayGoalToOverseerGoal(goal)),
+    total: result.total,
+  };
 }
 
 /**
@@ -79,7 +198,7 @@ export async function listOverseerGoals(params?: {
  */
 export async function createGoal(params: OverseerGoalCreateParams): Promise<OverseerGoalCreateResult> {
   const client = getGatewayClient();
-  return client.request<OverseerGoalCreateResult>("overseer.goals.create", params);
+  return client.request<OverseerGoalCreateResult>("overseer.goal.create", params);
 }
 
 /**
@@ -87,7 +206,12 @@ export async function createGoal(params: OverseerGoalCreateParams): Promise<Over
  */
 export async function getGoalStatus(goalId: string): Promise<OverseerGoalStatusResult> {
   const client = getGatewayClient();
-  return client.request<OverseerGoalStatusResult>("overseer.goals.status", { goalId });
+  const result = await client.request<GatewayOverseerGoalStatusResult>("overseer.goal.status", {
+    goalId,
+  });
+  return {
+    goal: result.goal ? mapGatewayGoalToOverseerGoal(result.goal) : undefined,
+  };
 }
 
 /**
@@ -95,7 +219,7 @@ export async function getGoalStatus(goalId: string): Promise<OverseerGoalStatusR
  */
 export async function pauseGoal(goalId: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("overseer.goals.pause", { goalId });
+  return client.request<{ ok: boolean }>("overseer.goal.pause", { goalId });
 }
 
 /**
@@ -103,7 +227,7 @@ export async function pauseGoal(goalId: string): Promise<{ ok: boolean }> {
  */
 export async function resumeGoal(goalId: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("overseer.goals.resume", { goalId });
+  return client.request<{ ok: boolean }>("overseer.goal.resume", { goalId });
 }
 
 /**
@@ -111,7 +235,7 @@ export async function resumeGoal(goalId: string): Promise<{ ok: boolean }> {
  */
 export async function cancelGoal(goalId: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("overseer.goals.cancel", { goalId });
+  return client.request<{ ok: boolean }>("overseer.goal.cancel", { goalId });
 }
 
 /**
@@ -119,5 +243,5 @@ export async function cancelGoal(goalId: string): Promise<{ ok: boolean }> {
  */
 export async function deleteGoal(goalId: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("overseer.goals.delete", { goalId });
+  return client.request<{ ok: boolean }>("overseer.goal.cancel", { goalId });
 }
