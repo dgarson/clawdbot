@@ -16,6 +16,7 @@ import {
   Activity,
   Trash2,
   ChevronDown,
+  HelpCircle,
 } from "lucide-react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 
@@ -89,8 +90,8 @@ export function ChannelCard({
   onUninstall,
   className,
 }: ChannelCardProps) {
-  const IconComponent = channelIconMap[channel.id];
-  const channelColor = channelColorMap[channel.id];
+  const IconComponent = channelIconMap[channel.id] ?? HelpCircle;
+  const channelColor = channelColorMap[channel.id] ?? "hsl(var(--muted-foreground))";
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
 
