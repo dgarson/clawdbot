@@ -7,17 +7,17 @@ describe("parseSlackTarget", () => {
     expect(parseSlackTarget("<@U123>")).toMatchObject({
       kind: "user",
       id: "U123",
-      normalized: "user:u123",
+      normalized: "user:U123",
     });
     expect(parseSlackTarget("user:U456")).toMatchObject({
       kind: "user",
       id: "U456",
-      normalized: "user:u456",
+      normalized: "user:U456",
     });
     expect(parseSlackTarget("slack:U789")).toMatchObject({
       kind: "user",
       id: "U789",
-      normalized: "user:u789",
+      normalized: "user:U789",
     });
   });
 
@@ -25,12 +25,12 @@ describe("parseSlackTarget", () => {
     expect(parseSlackTarget("channel:C123")).toMatchObject({
       kind: "channel",
       id: "C123",
-      normalized: "channel:c123",
+      normalized: "channel:C123",
     });
     expect(parseSlackTarget("#C999")).toMatchObject({
       kind: "channel",
       id: "C999",
-      normalized: "channel:c999",
+      normalized: "channel:C999",
     });
   });
 
@@ -38,17 +38,17 @@ describe("parseSlackTarget", () => {
     expect(parseSlackTarget("channel:c0aap72r7l5")).toMatchObject({
       kind: "channel",
       id: "C0AAP72R7L5",
-      normalized: "channel:c0aap72r7l5",
+      normalized: "channel:C0AAP72R7L5",
     });
     expect(parseSlackTarget("#c0aap72r7l5")).toMatchObject({
       kind: "channel",
       id: "C0AAP72R7L5",
-      normalized: "channel:c0aap72r7l5",
+      normalized: "channel:C0AAP72R7L5",
     });
     expect(parseSlackTarget("c0aap72r7l5")).toMatchObject({
       kind: "channel",
       id: "C0AAP72R7L5",
-      normalized: "channel:c0aap72r7l5",
+      normalized: "channel:C0AAP72R7L5",
     });
   });
 
@@ -56,22 +56,22 @@ describe("parseSlackTarget", () => {
     expect(parseSlackTarget("user:u0a3bc4d")).toMatchObject({
       kind: "user",
       id: "U0A3BC4D",
-      normalized: "user:u0a3bc4d",
+      normalized: "user:U0A3BC4D",
     });
     expect(parseSlackTarget("<@u0a3bc4d>")).toMatchObject({
       kind: "user",
       id: "U0A3BC4D",
-      normalized: "user:u0a3bc4d",
+      normalized: "user:U0A3BC4D",
     });
     expect(parseSlackTarget("@u0a3bc4d")).toMatchObject({
       kind: "user",
       id: "U0A3BC4D",
-      normalized: "user:u0a3bc4d",
+      normalized: "user:U0A3BC4D",
     });
     expect(parseSlackTarget("slack:u0a3bc4d")).toMatchObject({
       kind: "user",
       id: "U0A3BC4D",
-      normalized: "user:u0a3bc4d",
+      normalized: "user:U0A3BC4D",
     });
   });
 
@@ -100,6 +100,6 @@ describe("resolveSlackChannelId", () => {
 
 describe("normalizeSlackMessagingTarget", () => {
   it("defaults raw ids to channels", () => {
-    expect(normalizeSlackMessagingTarget("C123")).toBe("channel:c123");
+    expect(normalizeSlackMessagingTarget("C123")).toBe("channel:C123");
   });
 });

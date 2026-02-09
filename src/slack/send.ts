@@ -271,7 +271,21 @@ export async function sendMessageSlack(
   });
   const client = opts.client ?? createSlackWebClient(token);
   const recipient = parseRecipient(to);
-  const { channelId } = await resolveChannelId(client, recipient, cfg);
+  let channelId: string;
+  try {
+    const result = await resolveChannelId(client, recipient, cfg);
+    channelId = result.channelId;
+  } catch (error) {
+    log.error("Slack channel resolution failed", {
+      to,
+      recipientKind: recipient.kind,
+      recipientId: recipient.id,
+      accountId: account.accountId,
+      error: error instanceof Error ? error.message : String(error),
+      errorData: error && typeof error === "object" ? JSON.stringify(error, null, 2) : undefined,
+    });
+    throw error;
+  }
   const textLimit = resolveTextChunkLimit(cfg, "slack", account.accountId);
   const chunkLimit = Math.min(textLimit, SLACK_TEXT_LIMIT);
   const tableMode = resolveMarkdownTableMode({
@@ -312,89 +326,107 @@ export async function sendMessageSlack(
       : undefined;
 
   let lastMessageId = "";
-  if (opts.mediaUrl) {
-    const [firstChunk, ...rest] = chunks;
-    logTrace("slack send media upload", cfg, {
+  try {
+    if (opts.mediaUrl) {
+      const [firstChunk, ...rest] = chunks;
+      logTrace("slack send media upload", cfg, {
+        to,
+        channelId,
+        threadTs: opts.threadTs ?? undefined,
+        captionLen: (firstChunk ?? "").length,
+        mediaUrl: opts.mediaUrl,
+      });
+      lastMessageId = await uploadSlackFile({
+        client,
+        channelId,
+        mediaUrl: opts.mediaUrl,
+        caption: firstChunk,
+        threadTs: opts.threadTs,
+        maxBytes: mediaMaxBytes,
+        cfg,
+      });
+      for (const chunk of rest) {
+        logTrace("slack chunk send", cfg, {
+          to,
+          channelId,
+          threadTs: opts.threadTs ?? undefined,
+          chunkLen: chunk.length,
+          reasoningLike: isReasoningLikeText(chunk),
+        });
+        const response = await withSlackRateLimitRetry({
+          cfg,
+          action: "chat.postMessage",
+          run: () =>
+            client.chat.postMessage({
+              channel: channelId,
+              text: chunk,
+              thread_ts: opts.threadTs,
+              ...(opts.blocks ? { blocks: opts.blocks } : {}),
+            }),
+        });
+        lastMessageId = response.ts ?? lastMessageId;
+      }
+    } else if (opts.blocks) {
+      // When blocks are provided, send them with text as fallback
+      const text = chunks[0] || trimmedMessage || "Message";
+      logTrace("slack send blocks", cfg, {
+        to,
+        channelId,
+        threadTs: opts.threadTs ?? undefined,
+        textLen: text.length,
+        reasoningLike: isReasoningLikeText(text),
+        preview: textPreview(text),
+      });
+      const response = await withSlackRateLimitRetry({
+        cfg,
+        action: "chat.postMessage",
+        run: () =>
+          client.chat.postMessage({
+            channel: channelId,
+            text,
+            blocks: opts.blocks,
+            thread_ts: opts.threadTs,
+          }),
+      });
+      lastMessageId = response.ts ?? "unknown";
+    } else {
+      for (const chunk of chunks.length ? chunks : [""]) {
+        logTrace("slack send chunk", cfg, {
+          to,
+          channelId,
+          threadTs: opts.threadTs ?? undefined,
+          chunkLen: chunk.length,
+          reasoningLike: isReasoningLikeText(chunk),
+        });
+        const response = await withSlackRateLimitRetry({
+          cfg,
+          action: "chat.postMessage",
+          run: () =>
+            client.chat.postMessage({
+              channel: channelId,
+              text: chunk,
+              thread_ts: opts.threadTs,
+            }),
+        });
+        lastMessageId = response.ts ?? lastMessageId;
+      }
+    }
+  } catch (error) {
+    log.error("Slack message send failed", {
       to,
       channelId,
-      threadTs: opts.threadTs ?? undefined,
-      captionLen: (firstChunk ?? "").length,
-      mediaUrl: opts.mediaUrl,
-    });
-    lastMessageId = await uploadSlackFile({
-      client,
-      channelId,
-      mediaUrl: opts.mediaUrl,
-      caption: firstChunk,
+      recipientKind: recipient.kind,
+      recipientId: recipient.id,
+      accountId: account.accountId,
       threadTs: opts.threadTs,
-      maxBytes: mediaMaxBytes,
-      cfg,
+      hasMedia: Boolean(opts.mediaUrl),
+      hasBlocks: Boolean(opts.blocks),
+      chunkCount: chunks.length,
+      error: error instanceof Error ? error.message : String(error),
+      errorCode: error && typeof error === "object" && "code" in error ? error.code : undefined,
+      errorData: error && typeof error === "object" ? JSON.stringify(error, null, 2) : undefined,
     });
-    for (const chunk of rest) {
-      logTrace("slack chunk send", cfg, {
-        to,
-        channelId,
-        threadTs: opts.threadTs ?? undefined,
-        chunkLen: chunk.length,
-        reasoningLike: isReasoningLikeText(chunk),
-      });
-      const response = await withSlackRateLimitRetry({
-        cfg,
-        action: "chat.postMessage",
-        run: () =>
-          client.chat.postMessage({
-            channel: channelId,
-            text: chunk,
-            thread_ts: opts.threadTs,
-            ...(opts.blocks ? { blocks: opts.blocks } : {}),
-          }),
-      });
-      lastMessageId = response.ts ?? lastMessageId;
-    }
-  } else if (opts.blocks) {
-    // When blocks are provided, send them with text as fallback
-    const text = chunks[0] || trimmedMessage || "Message";
-    logTrace("slack send blocks", cfg, {
-      to,
-      channelId,
-      threadTs: opts.threadTs ?? undefined,
-      textLen: text.length,
-      reasoningLike: isReasoningLikeText(text),
-      preview: textPreview(text),
-    });
-    const response = await withSlackRateLimitRetry({
-      cfg,
-      action: "chat.postMessage",
-      run: () =>
-        client.chat.postMessage({
-          channel: channelId,
-          text,
-          blocks: opts.blocks,
-          thread_ts: opts.threadTs,
-        }),
-    });
-    lastMessageId = response.ts ?? "unknown";
-  } else {
-    for (const chunk of chunks.length ? chunks : [""]) {
-      logTrace("slack send chunk", cfg, {
-        to,
-        channelId,
-        threadTs: opts.threadTs ?? undefined,
-        chunkLen: chunk.length,
-        reasoningLike: isReasoningLikeText(chunk),
-      });
-      const response = await withSlackRateLimitRetry({
-        cfg,
-        action: "chat.postMessage",
-        run: () =>
-          client.chat.postMessage({
-            channel: channelId,
-            text: chunk,
-            thread_ts: opts.threadTs,
-          }),
-      });
-      lastMessageId = response.ts ?? lastMessageId;
-    }
+    throw error;
   }
 
   return {
