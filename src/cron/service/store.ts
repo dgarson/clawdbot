@@ -282,194 +282,204 @@ export async function ensureLoaded(
   const loaded = await loadCronStore(state.deps.storePath);
   const jobs = (loaded.jobs ?? []) as unknown as Array<Record<string, unknown>>;
   let mutated = false;
-  for (const raw of jobs) {
-    const state = raw.state;
-    if (!state || typeof state !== "object" || Array.isArray(state)) {
-      raw.state = {};
-      mutated = true;
-    }
 
-    const nameRaw = raw.name;
-    if (typeof nameRaw !== "string" || nameRaw.trim().length === 0) {
-      raw.name = inferLegacyName({
-        schedule: raw.schedule as never,
-        payload: raw.payload as never,
-      });
-      mutated = true;
-    } else {
-      raw.name = nameRaw.trim();
-    }
+  // Migrations/normalization only need to run once per process lifetime.
+  // After the first successful run (typically at scheduler init), subsequent
+  // reloads skip the expensive per-job migration loop since the persisted
+  // store already contains migrated data.
+  const skipMigrations = state.migrationsRanAtMs !== null;
 
-    const desc = normalizeOptionalText(raw.description);
-    if (raw.description !== desc) {
-      raw.description = desc;
-      mutated = true;
-    }
-
-    if (typeof raw.enabled !== "boolean") {
-      raw.enabled = true;
-      mutated = true;
-    }
-
-    const payload = raw.payload;
-    if (
-      (!payload || typeof payload !== "object" || Array.isArray(payload)) &&
-      inferPayloadIfMissing(raw)
-    ) {
-      mutated = true;
-    }
-
-    const payloadRecord =
-      raw.payload && typeof raw.payload === "object" && !Array.isArray(raw.payload)
-        ? (raw.payload as Record<string, unknown>)
-        : null;
-
-    if (payloadRecord) {
-      if (normalizePayloadKind(payloadRecord)) {
-        mutated = true;
-      }
-      if (!payloadRecord.kind) {
-        if (typeof payloadRecord.message === "string" && payloadRecord.message.trim()) {
-          payloadRecord.kind = "agentTurn";
-          mutated = true;
-        } else if (typeof payloadRecord.text === "string" && payloadRecord.text.trim()) {
-          payloadRecord.kind = "systemEvent";
-          mutated = true;
-        }
-      }
-      if (payloadRecord.kind === "agentTurn") {
-        if (copyTopLevelAgentTurnFields(raw, payloadRecord)) {
-          mutated = true;
-        }
-      }
-    }
-
-    const hadLegacyTopLevelFields =
-      "model" in raw ||
-      "thinking" in raw ||
-      "timeoutSeconds" in raw ||
-      "allowUnsafeExternalContent" in raw ||
-      "message" in raw ||
-      "text" in raw ||
-      "deliver" in raw ||
-      "channel" in raw ||
-      "to" in raw ||
-      "bestEffortDeliver" in raw ||
-      "provider" in raw;
-    if (hadLegacyTopLevelFields) {
-      stripLegacyTopLevelFields(raw);
-      mutated = true;
-    }
-
-    if (payloadRecord) {
-      if (migrateLegacyCronPayload(payloadRecord)) {
-        mutated = true;
-      }
-    }
-
-    const schedule = raw.schedule;
-    if (schedule && typeof schedule === "object" && !Array.isArray(schedule)) {
-      const sched = schedule as Record<string, unknown>;
-      const kind = typeof sched.kind === "string" ? sched.kind.trim().toLowerCase() : "";
-      if (!kind && ("at" in sched || "atMs" in sched)) {
-        sched.kind = "at";
-        mutated = true;
-      }
-      const atRaw = typeof sched.at === "string" ? sched.at.trim() : "";
-      const atMsRaw = sched.atMs;
-      const parsedAtMs =
-        typeof atMsRaw === "number"
-          ? atMsRaw
-          : typeof atMsRaw === "string"
-            ? parseAbsoluteTimeMs(atMsRaw)
-            : atRaw
-              ? parseAbsoluteTimeMs(atRaw)
-              : null;
-      if (parsedAtMs !== null) {
-        sched.at = new Date(parsedAtMs).toISOString();
-        if ("atMs" in sched) {
-          delete sched.atMs;
-        }
+  if (!skipMigrations) {
+    for (const raw of jobs) {
+      const state = raw.state;
+      if (!state || typeof state !== "object" || Array.isArray(state)) {
+        raw.state = {};
         mutated = true;
       }
 
-      const everyMsRaw = sched.everyMs;
-      const everyMs =
-        typeof everyMsRaw === "number" && Number.isFinite(everyMsRaw)
-          ? Math.floor(everyMsRaw)
+      const nameRaw = raw.name;
+      if (typeof nameRaw !== "string" || nameRaw.trim().length === 0) {
+        raw.name = inferLegacyName({
+          schedule: raw.schedule as never,
+          payload: raw.payload as never,
+        });
+        mutated = true;
+      } else {
+        raw.name = nameRaw.trim();
+      }
+
+      const desc = normalizeOptionalText(raw.description);
+      if (raw.description !== desc) {
+        raw.description = desc;
+        mutated = true;
+      }
+
+      if (typeof raw.enabled !== "boolean") {
+        raw.enabled = true;
+        mutated = true;
+      }
+
+      const payload = raw.payload;
+      if (
+        (!payload || typeof payload !== "object" || Array.isArray(payload)) &&
+        inferPayloadIfMissing(raw)
+      ) {
+        mutated = true;
+      }
+
+      const payloadRecord =
+        raw.payload && typeof raw.payload === "object" && !Array.isArray(raw.payload)
+          ? (raw.payload as Record<string, unknown>)
           : null;
-      if ((kind === "every" || sched.kind === "every") && everyMs !== null) {
-        const anchorRaw = sched.anchorMs;
-        const normalizedAnchor =
-          typeof anchorRaw === "number" && Number.isFinite(anchorRaw)
-            ? Math.max(0, Math.floor(anchorRaw))
-            : typeof raw.createdAtMs === "number" && Number.isFinite(raw.createdAtMs)
-              ? Math.max(0, Math.floor(raw.createdAtMs))
-              : typeof raw.updatedAtMs === "number" && Number.isFinite(raw.updatedAtMs)
-                ? Math.max(0, Math.floor(raw.updatedAtMs))
-                : null;
-        if (normalizedAnchor !== null && anchorRaw !== normalizedAnchor) {
-          sched.anchorMs = normalizedAnchor;
+
+      if (payloadRecord) {
+        if (normalizePayloadKind(payloadRecord)) {
           mutated = true;
         }
-      }
-    }
-
-    const delivery = raw.delivery;
-    if (delivery && typeof delivery === "object" && !Array.isArray(delivery)) {
-      const modeRaw = (delivery as { mode?: unknown }).mode;
-      if (typeof modeRaw === "string") {
-        const lowered = modeRaw.trim().toLowerCase();
-        if (lowered === "deliver") {
-          (delivery as { mode?: unknown }).mode = "announce";
-          mutated = true;
-        }
-      } else if (modeRaw === undefined || modeRaw === null) {
-        // Explicitly persist the default so existing jobs don't silently
-        // change behaviour when the runtime default shifts.
-        (delivery as { mode?: unknown }).mode = "announce";
-        mutated = true;
-      }
-    }
-
-    const isolation = raw.isolation;
-    if (isolation && typeof isolation === "object" && !Array.isArray(isolation)) {
-      delete raw.isolation;
-      mutated = true;
-    }
-
-    const payloadKind =
-      payloadRecord && typeof payloadRecord.kind === "string" ? payloadRecord.kind : "";
-    const sessionTarget =
-      typeof raw.sessionTarget === "string" ? raw.sessionTarget.trim().toLowerCase() : "";
-    const isIsolatedAgentTurn =
-      sessionTarget === "isolated" || (sessionTarget === "" && payloadKind === "agentTurn");
-    const hasDelivery = delivery && typeof delivery === "object" && !Array.isArray(delivery);
-    const hasLegacyDelivery = payloadRecord ? hasLegacyDeliveryHints(payloadRecord) : false;
-
-    if (isIsolatedAgentTurn && payloadKind === "agentTurn") {
-      if (!hasDelivery) {
-        raw.delivery =
-          payloadRecord && hasLegacyDelivery
-            ? buildDeliveryFromLegacyPayload(payloadRecord)
-            : { mode: "announce" };
-        mutated = true;
-      }
-      if (payloadRecord && hasLegacyDelivery) {
-        if (hasDelivery) {
-          const merged = mergeLegacyDeliveryInto(
-            delivery as Record<string, unknown>,
-            payloadRecord,
-          );
-          if (merged.mutated) {
-            raw.delivery = merged.delivery;
+        if (!payloadRecord.kind) {
+          if (typeof payloadRecord.message === "string" && payloadRecord.message.trim()) {
+            payloadRecord.kind = "agentTurn";
+            mutated = true;
+          } else if (typeof payloadRecord.text === "string" && payloadRecord.text.trim()) {
+            payloadRecord.kind = "systemEvent";
             mutated = true;
           }
         }
-        stripLegacyDeliveryFields(payloadRecord);
+        if (payloadRecord.kind === "agentTurn") {
+          if (copyTopLevelAgentTurnFields(raw, payloadRecord)) {
+            mutated = true;
+          }
+        }
+      }
+
+      const hadLegacyTopLevelFields =
+        "model" in raw ||
+        "thinking" in raw ||
+        "timeoutSeconds" in raw ||
+        "allowUnsafeExternalContent" in raw ||
+        "message" in raw ||
+        "text" in raw ||
+        "deliver" in raw ||
+        "channel" in raw ||
+        "to" in raw ||
+        "bestEffortDeliver" in raw ||
+        "provider" in raw;
+      if (hadLegacyTopLevelFields) {
+        stripLegacyTopLevelFields(raw);
         mutated = true;
       }
+
+      if (payloadRecord) {
+        if (migrateLegacyCronPayload(payloadRecord)) {
+          mutated = true;
+        }
+      }
+
+      const schedule = raw.schedule;
+      if (schedule && typeof schedule === "object" && !Array.isArray(schedule)) {
+        const sched = schedule as Record<string, unknown>;
+        const kind = typeof sched.kind === "string" ? sched.kind.trim().toLowerCase() : "";
+        if (!kind && ("at" in sched || "atMs" in sched)) {
+          sched.kind = "at";
+          mutated = true;
+        }
+        const atRaw = typeof sched.at === "string" ? sched.at.trim() : "";
+        const atMsRaw = sched.atMs;
+        const parsedAtMs =
+          typeof atMsRaw === "number"
+            ? atMsRaw
+            : typeof atMsRaw === "string"
+              ? parseAbsoluteTimeMs(atMsRaw)
+              : atRaw
+                ? parseAbsoluteTimeMs(atRaw)
+                : null;
+        if (parsedAtMs !== null) {
+          sched.at = new Date(parsedAtMs).toISOString();
+          if ("atMs" in sched) {
+            delete sched.atMs;
+          }
+          mutated = true;
+        }
+
+        const everyMsRaw = sched.everyMs;
+        const everyMs =
+          typeof everyMsRaw === "number" && Number.isFinite(everyMsRaw)
+            ? Math.floor(everyMsRaw)
+            : null;
+        if ((kind === "every" || sched.kind === "every") && everyMs !== null) {
+          const anchorRaw = sched.anchorMs;
+          const normalizedAnchor =
+            typeof anchorRaw === "number" && Number.isFinite(anchorRaw)
+              ? Math.max(0, Math.floor(anchorRaw))
+              : typeof raw.createdAtMs === "number" && Number.isFinite(raw.createdAtMs)
+                ? Math.max(0, Math.floor(raw.createdAtMs))
+                : typeof raw.updatedAtMs === "number" && Number.isFinite(raw.updatedAtMs)
+                  ? Math.max(0, Math.floor(raw.updatedAtMs))
+                  : null;
+          if (normalizedAnchor !== null && anchorRaw !== normalizedAnchor) {
+            sched.anchorMs = normalizedAnchor;
+            mutated = true;
+          }
+        }
+      }
+
+      const delivery = raw.delivery;
+      if (delivery && typeof delivery === "object" && !Array.isArray(delivery)) {
+        const modeRaw = (delivery as { mode?: unknown }).mode;
+        if (typeof modeRaw === "string") {
+          const lowered = modeRaw.trim().toLowerCase();
+          if (lowered === "deliver") {
+            (delivery as { mode?: unknown }).mode = "announce";
+            mutated = true;
+          }
+        } else if (modeRaw === undefined || modeRaw === null) {
+          // Explicitly persist the default so existing jobs don't silently
+          // change behaviour when the runtime default shifts.
+          (delivery as { mode?: unknown }).mode = "announce";
+          mutated = true;
+        }
+      }
+
+      const isolation = raw.isolation;
+      if (isolation && typeof isolation === "object" && !Array.isArray(isolation)) {
+        delete raw.isolation;
+        mutated = true;
+      }
+
+      const payloadKind =
+        payloadRecord && typeof payloadRecord.kind === "string" ? payloadRecord.kind : "";
+      const sessionTarget =
+        typeof raw.sessionTarget === "string" ? raw.sessionTarget.trim().toLowerCase() : "";
+      const isIsolatedAgentTurn =
+        sessionTarget === "isolated" || (sessionTarget === "" && payloadKind === "agentTurn");
+      const hasDelivery = delivery && typeof delivery === "object" && !Array.isArray(delivery);
+      const hasLegacyDelivery = payloadRecord ? hasLegacyDeliveryHints(payloadRecord) : false;
+
+      if (isIsolatedAgentTurn && payloadKind === "agentTurn") {
+        if (!hasDelivery) {
+          raw.delivery =
+            payloadRecord && hasLegacyDelivery
+              ? buildDeliveryFromLegacyPayload(payloadRecord)
+              : { mode: "announce" };
+          mutated = true;
+        }
+        if (payloadRecord && hasLegacyDelivery) {
+          if (hasDelivery) {
+            const merged = mergeLegacyDeliveryInto(
+              delivery as Record<string, unknown>,
+              payloadRecord,
+            );
+            if (merged.mutated) {
+              raw.delivery = merged.delivery;
+              mutated = true;
+            }
+          }
+          stripLegacyDeliveryFields(payloadRecord);
+          mutated = true;
+        }
+      }
     }
+    state.migrationsRanAtMs = state.deps.nowMs();
   }
   state.store = { version: 1, jobs: jobs as unknown as CronJob[] };
   state.storeLoadedAtMs = state.deps.nowMs();

@@ -44,30 +44,34 @@ export async function onTimer(state: CronServiceState) {
   }
   state.running = true;
   try {
-    const dueJobs = await locked(state, async () => {
-      await ensureLoaded(state, { forceReload: true, skipRecompute: true });
-      const due = findDueJobs(state);
+    const dueJobs = await locked(
+      state,
+      async () => {
+        await ensureLoaded(state, { forceReload: true, skipRecompute: true });
+        const due = findDueJobs(state);
 
-      if (due.length === 0) {
-        const changed = recomputeNextRuns(state);
-        if (changed) {
-          await persist(state);
+        if (due.length === 0) {
+          const changed = recomputeNextRuns(state);
+          if (changed) {
+            await persist(state);
+          }
+          return [];
         }
-        return [];
-      }
 
-      const now = state.deps.nowMs();
-      for (const job of due) {
-        job.state.runningAtMs = now;
-        job.state.lastError = undefined;
-      }
-      await persist(state);
+        const now = state.deps.nowMs();
+        for (const job of due) {
+          job.state.runningAtMs = now;
+          job.state.lastError = undefined;
+        }
+        await persist(state);
 
-      return due.map((j) => ({
-        id: j.id,
-        job: j,
-      }));
-    });
+        return due.map((j) => ({
+          id: j.id,
+          job: j,
+        }));
+      },
+      { action: "onTimer:findDue" },
+    );
 
     const results: Array<{
       jobId: string;
@@ -99,60 +103,64 @@ export async function onTimer(state: CronServiceState) {
     }
 
     if (results.length > 0) {
-      await locked(state, async () => {
-        await ensureLoaded(state, { forceReload: true, skipRecompute: true });
+      await locked(
+        state,
+        async () => {
+          await ensureLoaded(state, { forceReload: true, skipRecompute: true });
 
-        for (const result of results) {
-          const job = state.store?.jobs.find((j) => j.id === result.jobId);
-          if (!job) {
-            continue;
-          }
-
-          const startedAt = result.startedAt;
-          job.state.runningAtMs = undefined;
-          job.state.lastRunAtMs = startedAt;
-          job.state.lastStatus = result.status;
-          job.state.lastDurationMs = Math.max(0, result.endedAt - startedAt);
-          job.state.lastError = result.error;
-
-          const shouldDelete =
-            job.schedule.kind === "at" && result.status === "ok" && job.deleteAfterRun === true;
-
-          if (!shouldDelete) {
-            if (job.schedule.kind === "at" && result.status === "ok") {
-              job.enabled = false;
-              job.state.nextRunAtMs = undefined;
-            } else if (job.enabled) {
-              job.state.nextRunAtMs = computeJobNextRunAtMs(job, result.endedAt);
-            } else {
-              job.state.nextRunAtMs = undefined;
+          for (const result of results) {
+            const job = state.store?.jobs.find((j) => j.id === result.jobId);
+            if (!job) {
+              continue;
             }
+
+            const startedAt = result.startedAt;
+            job.state.runningAtMs = undefined;
+            job.state.lastRunAtMs = startedAt;
+            job.state.lastStatus = result.status;
+            job.state.lastDurationMs = Math.max(0, result.endedAt - startedAt);
+            job.state.lastError = result.error;
+
+            const shouldDelete =
+              job.schedule.kind === "at" && result.status === "ok" && job.deleteAfterRun === true;
+
+            if (!shouldDelete) {
+              if (job.schedule.kind === "at" && result.status === "ok") {
+                job.enabled = false;
+                job.state.nextRunAtMs = undefined;
+              } else if (job.enabled) {
+                job.state.nextRunAtMs = computeJobNextRunAtMs(job, result.endedAt);
+              } else {
+                job.state.nextRunAtMs = undefined;
+              }
+            }
+
+            emit(state, {
+              jobId: job.id,
+              action: "finished",
+              status: result.status,
+              error: result.error,
+              summary: result.summary,
+              sessionId: result.sessionId,
+              sessionKey: result.sessionKey,
+              runAtMs: startedAt,
+              durationMs: job.state.lastDurationMs,
+              nextRunAtMs: job.state.nextRunAtMs,
+            });
+
+            if (shouldDelete && state.store) {
+              state.store.jobs = state.store.jobs.filter((j) => j.id !== job.id);
+              emit(state, { jobId: job.id, action: "removed" });
+            }
+
+            job.updatedAtMs = result.endedAt;
           }
 
-          emit(state, {
-            jobId: job.id,
-            action: "finished",
-            status: result.status,
-            error: result.error,
-            summary: result.summary,
-            sessionId: result.sessionId,
-            sessionKey: result.sessionKey,
-            runAtMs: startedAt,
-            durationMs: job.state.lastDurationMs,
-            nextRunAtMs: job.state.nextRunAtMs,
-          });
-
-          if (shouldDelete && state.store) {
-            state.store.jobs = state.store.jobs.filter((j) => j.id !== job.id);
-            emit(state, { jobId: job.id, action: "removed" });
-          }
-
-          job.updatedAtMs = result.endedAt;
-        }
-
-        recomputeNextRuns(state);
-        await persist(state);
-      });
+          recomputeNextRuns(state);
+          await persist(state);
+        },
+        { action: "onTimer:persist" },
+      );
     }
   } finally {
     state.running = false;
