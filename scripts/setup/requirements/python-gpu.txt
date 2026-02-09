@@ -1,0 +1,35 @@
+# ============================================================================
+# python-gpu.txt — GPU/ML Python dependencies for OpenClaw
+# ============================================================================
+# Only installed when NVIDIA GPU is detected. Used for local model serving
+# (vLLM, embedding models, vision models).
+# ============================================================================
+
+# PyTorch (CUDA 12.x)
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch>=2.6.0
+torchvision>=0.21.0
+torchaudio>=2.6.0
+
+# vLLM — high-throughput LLM inference engine
+vllm>=0.8.0
+
+# Transformers ecosystem
+transformers>=4.48.0
+tokenizers>=0.21.0
+accelerate>=1.3.0
+safetensors>=0.5.0
+huggingface-hub>=0.28.0
+
+# ONNX Runtime (GPU)
+onnxruntime-gpu>=1.20.0
+
+# Flash Attention (if supported)
+# flash-attn>=2.7.0  # Uncomment if flash-attn builds on your system
+
+# Quantization
+bitsandbytes>=0.45.0
+auto-gptq>=0.7.0
+
+# Monitoring
+nvidia-ml-py>=12.0.0
