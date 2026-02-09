@@ -1,9 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from "vitest";
+import type { WorkItem } from "./types.js";
 import { MemoryWorkQueueBackend } from "./backend/memory-backend.js";
 import { TranscriptContextExtractor } from "./context-extractor.js";
 import { WorkQueueStore } from "./store.js";
-import { WorkQueueWorker, type WorkerDeps } from "./worker.js";
+import {
+  CHRONIC_BLOCKER_THRESHOLD,
+  WorkQueueWorker,
+  detectChronicBlockers,
+  detectStaleItems,
+  findLeafDependencies,
+  type BlockerHistoryEntry,
+  type WorkerDeps,
+} from "./worker.js";
 
 function createTestDeps(overrides?: Partial<WorkerDeps>): {
   store: WorkQueueStore;
@@ -35,6 +44,7 @@ function createTestDeps(overrides?: Partial<WorkerDeps>): {
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
+    trace: vi.fn(),
   };
 
   return {
@@ -136,7 +146,7 @@ describe("WorkQueueWorker", () => {
         store,
         extractor,
         callGateway: gateway,
-        log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+        log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() },
       },
     });
 
@@ -420,7 +430,7 @@ describe("WorkQueueWorker retry lifecycle", () => {
     const extractor = new TranscriptContextExtractor({
       readLatestAssistantReply: async () => undefined,
     });
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     const item = await store.createItem({
       agentId: "test-agent",
@@ -470,7 +480,7 @@ describe("WorkQueueWorker retry lifecycle", () => {
     const extractor = new TranscriptContextExtractor({
       readLatestAssistantReply: async () => undefined,
     });
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     const item = await store.createItem({
       agentId: "test-agent",
@@ -517,7 +527,7 @@ describe("WorkQueueWorker retry lifecycle", () => {
     const extractor = new TranscriptContextExtractor({
       readLatestAssistantReply: async () => undefined,
     });
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     const item = await store.createItem({
       agentId: "test-agent",
@@ -562,7 +572,7 @@ describe("WorkQueueWorker deadline enforcement", () => {
     const extractor = new TranscriptContextExtractor({
       readLatestAssistantReply: async () => "done",
     });
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     // Set deadline in the past.
     const pastDeadline = new Date(Date.now() - 60_000).toISOString();
@@ -628,7 +638,7 @@ describe("WorkQueueWorker approval timeout detection", () => {
     const extractor = new TranscriptContextExtractor({
       readLatestAssistantReply: async () => undefined,
     });
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     const item = await store.createItem({
       agentId: "test-agent",
@@ -707,7 +717,7 @@ describe("WorkQueueWorker transcript archival", () => {
     const extractor = new TranscriptContextExtractor({
       readLatestAssistantReply: async () => "done",
     });
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     const item = await store.createItem({
       agentId: "test-agent",
@@ -781,7 +791,7 @@ describe("WorkQueueWorker workstream notes injection", () => {
       createdBy: { agentId: "prev-agent" },
     });
 
-    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), trace: vi.fn() };
 
     await store.createItem({
       agentId: "test-agent",
@@ -942,5 +952,291 @@ describe("TranscriptContextExtractor", () => {
     });
 
     expect(context.summary).toContain("Failed: timeout");
+  });
+});
+
+// =============================================================================
+// findLeafDependencies unit tests
+// =============================================================================
+
+function makeItem(overrides: Partial<WorkItem> & { id: string }): WorkItem {
+  return {
+    queueId: "q1",
+    title: overrides.id,
+    status: "pending",
+    priority: "medium",
+    createdAt: "",
+    updatedAt: "",
+    ...overrides,
+  };
+}
+
+describe("findLeafDependencies", () => {
+  it("returns empty when no items have dependencies", () => {
+    const items = [makeItem({ id: "A" }), makeItem({ id: "B" })];
+    expect(findLeafDependencies(items)).toEqual([]);
+  });
+
+  it("finds leaf in a simple chain (A→B)", () => {
+    const items = [makeItem({ id: "A", dependsOn: ["B"] }), makeItem({ id: "B" })];
+    const leaves = findLeafDependencies(items);
+    expect(leaves).toHaveLength(1);
+    expect(leaves[0].id).toBe("B");
+  });
+
+  it("deduplicates in a diamond (A→C, B→C)", () => {
+    const items = [
+      makeItem({ id: "A", dependsOn: ["C"] }),
+      makeItem({ id: "B", dependsOn: ["C"] }),
+      makeItem({ id: "C" }),
+    ];
+    const leaves = findLeafDependencies(items);
+    expect(leaves).toHaveLength(1);
+    expect(leaves[0].id).toBe("C");
+  });
+
+  it("excludes completed leaves", () => {
+    const items = [
+      makeItem({ id: "A", dependsOn: ["B"] }),
+      makeItem({ id: "B", status: "completed" }),
+    ];
+    expect(findLeafDependencies(items)).toEqual([]);
+  });
+
+  it("finds multiple leaves (A→B, C→D)", () => {
+    const items = [
+      makeItem({ id: "A", dependsOn: ["B"] }),
+      makeItem({ id: "B" }),
+      makeItem({ id: "C", dependsOn: ["D"] }),
+      makeItem({ id: "D" }),
+    ];
+    const leaves = findLeafDependencies(items);
+    expect(leaves).toHaveLength(2);
+    const ids = leaves.map((l) => l.id).toSorted();
+    expect(ids).toEqual(["B", "D"]);
+  });
+
+  it("finds deepest leaf in transitive chain (A→B→C)", () => {
+    const items = [
+      makeItem({ id: "A", dependsOn: ["B"] }),
+      makeItem({ id: "B", dependsOn: ["C"] }),
+      makeItem({ id: "C" }),
+    ];
+    const leaves = findLeafDependencies(items);
+    // B has uncompleted dep C, so B is NOT a leaf. C is the leaf.
+    expect(leaves).toHaveLength(1);
+    expect(leaves[0].id).toBe("C");
+  });
+
+  it("ignores missing deps (A→X where X not in items)", () => {
+    const items = [makeItem({ id: "A", dependsOn: ["X"] })];
+    expect(findLeafDependencies(items)).toEqual([]);
+  });
+
+  it("includes in_progress items as leaves", () => {
+    const items = [
+      makeItem({ id: "A", dependsOn: ["B"] }),
+      makeItem({ id: "B", status: "in_progress" }),
+    ];
+    const leaves = findLeafDependencies(items);
+    expect(leaves).toHaveLength(1);
+    expect(leaves[0].id).toBe("B");
+    expect(leaves[0].status).toBe("in_progress");
+  });
+});
+
+// =============================================================================
+// detectChronicBlockers unit tests
+// =============================================================================
+
+describe("detectChronicBlockers", () => {
+  const now = new Date("2025-01-15T10:00:00.000Z");
+
+  it("first cycle never crosses threshold", () => {
+    const leaves = [makeItem({ id: "A" })];
+    const history = new Map<string, BlockerHistoryEntry>();
+    const { updatedHistory, chronic } = detectChronicBlockers(leaves, history, { now });
+    expect(chronic).toEqual([]);
+    expect(updatedHistory.get("A")?.consecutiveCount).toBe(1);
+  });
+
+  it("crosses threshold after 3 consecutive cycles", () => {
+    const leaf = makeItem({ id: "A" });
+    let history = new Map<string, BlockerHistoryEntry>();
+
+    // Cycle 1
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now }));
+    expect(history.get("A")?.consecutiveCount).toBe(1);
+
+    // Cycle 2
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now }));
+    expect(history.get("A")?.consecutiveCount).toBe(2);
+
+    // Cycle 3 — should now be chronic
+    const { updatedHistory: finalHistory, chronic } = detectChronicBlockers([leaf], history, {
+      now,
+    });
+    expect(chronic).toHaveLength(1);
+    expect(chronic[0].item.id).toBe("A");
+    expect(chronic[0].consecutiveCount).toBe(3);
+    expect(finalHistory.get("A")?.consecutiveCount).toBe(3);
+  });
+
+  it("resets streak when item leaves the leaf set", () => {
+    const leaf = makeItem({ id: "A" });
+    let history = new Map<string, BlockerHistoryEntry>();
+
+    // 2 cycles present
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now }));
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now }));
+    expect(history.get("A")?.consecutiveCount).toBe(2);
+
+    // 1 cycle absent — streak broken
+    ({ updatedHistory: history } = detectChronicBlockers([], history, { now }));
+    expect(history.has("A")).toBe(false);
+
+    // 2 cycles present again — count restarts
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now }));
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now }));
+    expect(history.get("A")?.consecutiveCount).toBe(2);
+
+    // Not chronic yet (only 2, threshold is 3)
+    const { chronic } = detectChronicBlockers([leaf], history, { now });
+    expect(chronic).toHaveLength(1); // 3rd cycle
+  });
+
+  it("prunes items that leave the leaf set", () => {
+    const a = makeItem({ id: "A" });
+    const b = makeItem({ id: "B" });
+    let history = new Map<string, BlockerHistoryEntry>();
+
+    ({ updatedHistory: history } = detectChronicBlockers([a, b], history, { now }));
+    expect(history.size).toBe(2);
+
+    // Only A remains
+    ({ updatedHistory: history } = detectChronicBlockers([a], history, { now }));
+    expect(history.size).toBe(1);
+    expect(history.has("A")).toBe(true);
+    expect(history.has("B")).toBe(false);
+  });
+
+  it("uses custom threshold", () => {
+    const leaf = makeItem({ id: "A" });
+    let history = new Map<string, BlockerHistoryEntry>();
+
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now, threshold: 2 }));
+    const { chronic } = detectChronicBlockers([leaf], history, { now, threshold: 2 });
+    expect(chronic).toHaveLength(1);
+    expect(chronic[0].consecutiveCount).toBe(2);
+  });
+
+  it("detects multiple chronic blockers in same cycle", () => {
+    const a = makeItem({ id: "A" });
+    const b = makeItem({ id: "B" });
+    let history = new Map<string, BlockerHistoryEntry>();
+
+    for (let i = 0; i < CHRONIC_BLOCKER_THRESHOLD - 1; i++) {
+      ({ updatedHistory: history } = detectChronicBlockers([a, b], history, { now }));
+    }
+    const { chronic } = detectChronicBlockers([a, b], history, { now });
+    expect(chronic).toHaveLength(2);
+    const ids = chronic.map((c) => c.item.id).toSorted();
+    expect(ids).toEqual(["A", "B"]);
+  });
+
+  it("tracks firstSeenAt from streak start, resets on break", () => {
+    const leaf = makeItem({ id: "A" });
+    const t1 = new Date("2025-01-15T10:00:00.000Z");
+    const t2 = new Date("2025-01-15T10:05:00.000Z");
+    let history = new Map<string, BlockerHistoryEntry>();
+
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now: t1 }));
+    expect(history.get("A")?.firstSeenAt).toBe(t1.toISOString());
+
+    // Break streak
+    ({ updatedHistory: history } = detectChronicBlockers([], history, { now: t1 }));
+
+    // New streak with different timestamp
+    ({ updatedHistory: history } = detectChronicBlockers([leaf], history, { now: t2 }));
+    expect(history.get("A")?.firstSeenAt).toBe(t2.toISOString());
+  });
+});
+
+// =============================================================================
+// detectStaleItems unit tests
+// =============================================================================
+
+describe("detectStaleItems", () => {
+  const now = new Date("2025-01-15T12:00:00.000Z");
+
+  it("does not flag items with fresh heartbeat", () => {
+    const freshTime = new Date(now.getTime() - 60_000).toISOString(); // 1m ago
+    const items = [makeItem({ id: "A", status: "in_progress", lastHeartbeatAt: freshTime })];
+    expect(detectStaleItems(items, { now })).toEqual([]);
+  });
+
+  it("flags items with stale heartbeat", () => {
+    const staleTime = new Date(now.getTime() - 10 * 60_000).toISOString(); // 10m ago
+    const items = [makeItem({ id: "A", status: "in_progress", lastHeartbeatAt: staleTime })];
+    const result = detectStaleItems(items, { now });
+    expect(result).toHaveLength(1);
+    expect(result[0].item.id).toBe("A");
+    expect(result[0].reason).toBe("stale_heartbeat");
+    expect(result[0].staleSinceMs).toBeCloseTo(10 * 60_000, -2);
+  });
+
+  it("falls back to startedAt when heartbeat is missing", () => {
+    const oldStart = new Date(now.getTime() - 10 * 60_000).toISOString();
+    const items = [makeItem({ id: "A", status: "in_progress", startedAt: oldStart })];
+    const result = detectStaleItems(items, { now });
+    expect(result).toHaveLength(1);
+    expect(result[0].reason).toBe("missing_heartbeat");
+    expect(result[0].staleSinceMs).toBeCloseTo(10 * 60_000, -2);
+  });
+
+  it("flags items with no heartbeat and no startedAt", () => {
+    const items = [makeItem({ id: "A", status: "in_progress" })];
+    const result = detectStaleItems(items, { now });
+    expect(result).toHaveLength(1);
+    expect(result[0].reason).toBe("missing_heartbeat");
+    expect(result[0].staleSinceMs).toBe(-1);
+  });
+
+  it("ignores non-in_progress items", () => {
+    const staleTime = new Date(now.getTime() - 10 * 60_000).toISOString();
+    const items = [
+      makeItem({ id: "A", status: "pending", lastHeartbeatAt: staleTime }),
+      makeItem({ id: "B", status: "completed", lastHeartbeatAt: staleTime }),
+      makeItem({ id: "C", status: "failed", lastHeartbeatAt: staleTime }),
+    ];
+    expect(detectStaleItems(items, { now })).toEqual([]);
+  });
+
+  it("treats unparseable heartbeat as missing_heartbeat", () => {
+    const items = [makeItem({ id: "A", status: "in_progress", lastHeartbeatAt: "not-a-date" })];
+    const result = detectStaleItems(items, { now });
+    expect(result).toHaveLength(1);
+    expect(result[0].reason).toBe("missing_heartbeat");
+  });
+
+  it("uses custom TTL", () => {
+    // 2m ago — stale with 1m TTL, fresh with default 5m TTL
+    const time = new Date(now.getTime() - 2 * 60_000).toISOString();
+    const items = [makeItem({ id: "A", status: "in_progress", lastHeartbeatAt: time })];
+    expect(detectStaleItems(items, { now, heartbeatTtlMs: 60_000 })).toHaveLength(1);
+    expect(detectStaleItems(items, { now })).toHaveLength(0);
+  });
+
+  it("returns all stale items", () => {
+    const staleTime = new Date(now.getTime() - 10 * 60_000).toISOString();
+    const items = [
+      makeItem({ id: "A", status: "in_progress", lastHeartbeatAt: staleTime }),
+      makeItem({ id: "B", status: "in_progress" }),
+      makeItem({ id: "C", status: "pending" }),
+    ];
+    const result = detectStaleItems(items, { now });
+    expect(result).toHaveLength(2);
+    const ids = result.map((r) => r.item.id).toSorted();
+    expect(ids).toEqual(["A", "B"]);
   });
 });

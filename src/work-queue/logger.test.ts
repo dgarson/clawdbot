@@ -142,10 +142,11 @@ describe("createWorkQueueLogger", () => {
 
   // ── type compatibility ────────────────────────────────────────────
 
-  it("is assignable to WorkerDeps.log shape (accepts optional meta param)", () => {
+  it("is assignable to WorkerDeps.log shape minus trace (accepts optional meta param)", () => {
     // WorkerDeps.log has signature (msg: string, meta?: Record<string, unknown>) => void.
     // Our logger only accepts (msg: string) but TS allows assigning a function with fewer
-    // params to a type expecting more. This test ensures the type stays compatible.
+    // params to a type expecting more. WorkQueueLogger does not include trace (the worker
+    // system uses SubsystemLogger which provides trace natively).
     const log: WorkQueueLogger = createWorkQueueLogger(() => makeConfig());
     const workerLog: {
       info: (msg: string, meta?: Record<string, unknown>) => void;

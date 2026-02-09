@@ -110,6 +110,11 @@ export type LoggingConfig = {
   file?: string;
   consoleLevel?: "silent" | "fatal" | "error" | "warn" | "info" | "debug" | "trace";
   consoleStyle?: "pretty" | "compact" | "json";
+  /**
+   * Timezone for rendered log timestamps ("local"/"host" default, "utc", or an IANA timezone).
+   * Applies to human-readable console timestamps and other display-only log time fields.
+   */
+  timezone?: string;
   /** Redact sensitive values in logs/tool summaries. Default: "tools". */
   redactSensitive?: "off" | "tools";
   /** Regex patterns used to redact sensitive tokens (defaults apply when unset). */

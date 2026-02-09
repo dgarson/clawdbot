@@ -64,6 +64,39 @@ const createMockCliRuntime = (overrides?: Partial<EmbeddedPiRunResult>): RunCliA
 };
 
 /**
+ * Create a Pi runtime mock that emits streaming callbacks before returning.
+ */
+const createStreamingCallbackPiRuntime = (
+  overrides?: Partial<EmbeddedPiRunResult>,
+): RunEmbeddedPiAgentFn => {
+  return vi.fn(async (params) => {
+    await params.onAssistantMessageStart?.();
+    await params.onReasoningStream?.({ text: "Reasoning:\n_step_" });
+    await params.onToolResult?.({ text: "tool output" });
+    await params.onAgentEvent?.({ stream: "tool", data: { phase: "start", toolCallId: "t1" } });
+    await params.onBlockReplyFlush?.();
+    const reply = `Mock response for: ${params.prompt.slice(0, 30)}`;
+    return {
+      payloads: [{ text: reply }],
+      meta: {
+        durationMs: 120,
+        agentMeta: {
+          sessionId: params.sessionId,
+          provider: "mock-provider",
+          model: "mock-model",
+          usage: {
+            input: params.prompt.length,
+            output: reply.length,
+          },
+        },
+      },
+      didSendViaMessagingTool: false,
+      ...overrides,
+    } satisfies EmbeddedPiRunResult;
+  });
+};
+
+/**
  * Create a mock Claude SDK runtime factory for testing.
  * Returns a factory that produces a mock AgentRuntime with a mock run() method.
  */
@@ -252,6 +285,69 @@ describe("TurnExecutor", () => {
 
       // With the mock adapter, no partials are emitted
       // This would be different with a real adapter that streams
+    });
+
+    it("should route reasoning/tool/agent/flush callbacks through the executor bridge", async () => {
+      const runtime = createStreamingCallbackPiRuntime();
+      const callbackExecutor = createTurnExecutor({
+        piRuntimeFn: runtime,
+      });
+
+      const onAssistantMessageStart = vi.fn();
+      const onReasoningStream = vi.fn();
+      const onToolResult = vi.fn();
+      const onAgentEvent = vi.fn();
+      const onBlockReplyFlush = vi.fn();
+
+      const request = createMockRequest({
+        onAssistantMessageStart,
+        onReasoningStream,
+        onToolResult,
+        onAgentEvent,
+        onBlockReplyFlush,
+      });
+      const context = createMockContext();
+
+      await callbackExecutor.execute(context, request, emitter);
+
+      expect(onAssistantMessageStart).toHaveBeenCalledTimes(1);
+      expect(onReasoningStream).toHaveBeenCalledWith({ text: "Reasoning:\n_step_" });
+      expect(onToolResult).toHaveBeenCalledWith({ text: "tool output" });
+      expect(onAgentEvent).toHaveBeenCalledWith({
+        stream: "tool",
+        data: { phase: "start", toolCallId: "t1" },
+      });
+      expect(onBlockReplyFlush).toHaveBeenCalledTimes(1);
+    });
+
+    it("should isolate callback failures and still return an outcome", async () => {
+      const runtime = createStreamingCallbackPiRuntime();
+      const errorLogger = {
+        debug: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+      };
+      const callbackExecutor = createTurnExecutor({
+        piRuntimeFn: runtime,
+        logger: errorLogger,
+      });
+
+      const request = createMockRequest({
+        onReasoningStream: vi.fn(() => {
+          throw new Error("reasoning failed");
+        }),
+        onToolResult: vi.fn(async () => {
+          throw new Error("tool result failed");
+        }),
+        onAgentEvent: vi.fn(() => {
+          throw new Error("agent event failed");
+        }),
+      });
+      const context = createMockContext();
+
+      const outcome = await callbackExecutor.execute(context, request, emitter);
+      expect(outcome.reply).toContain("Mock response for:");
+      expect(errorLogger.error).toHaveBeenCalled();
     });
   });
 

@@ -43,11 +43,6 @@ export async function handleToolExecutionStart(
 ) {
   // Flush pending block replies to preserve message boundaries before tool execution.
   ctx.flushBlockReplyBuffer();
-  if (ctx.params.onBlockReplyFlush) {
-    // Push to middleware (dual-path) — flushBlockReplyBuffer already pushes block_reply_flush
-    // when mw is present, so only push here for the onBlockReplyFlush callback path
-    void ctx.params.onBlockReplyFlush();
-  }
 
   const rawToolName = String(evt.toolName);
   const toolName = normalizeToolName(rawToolName);
@@ -84,37 +79,19 @@ export async function handleToolExecutionStart(
       args: args as Record<string, unknown>,
     },
   });
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "tool_start",
     name: toolName,
     id: toolCallId,
     args: args as Record<string, unknown> | undefined,
   });
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "agent_event",
     stream: "tool",
     data: { phase: "start", name: toolName, toolCallId },
   });
-  // Best-effort typing signal; do not block tool summaries on slow emitters.
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "tool",
-        data: { phase: "start", name: toolName, toolCallId },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (tool/start): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (tool/start): ${String(err)}`);
-  }
 
-  if (
-    ctx.params.onToolResult &&
-    shouldEmitToolEvents &&
-    !ctx.state.toolSummaryById.has(toolCallId)
-  ) {
+  if (ctx.hasToolResultSink && shouldEmitToolEvents && !ctx.state.toolSummaryById.has(toolCallId)) {
     ctx.state.toolSummaryById.add(toolCallId);
     ctx.emitToolSummary(toolName, meta);
   }
@@ -134,8 +111,7 @@ export async function handleToolExecutionStart(
         ctx.state.pendingMessagingTexts.set(toolCallId, text);
         ctx.log.debug(`Tracking pending messaging text: tool=${toolName} len=${text.length}`);
       }
-      // Push to middleware (dual-path)
-      ctx.streamMiddleware?.push({
+      ctx.emitRawStreamEvent({
         kind: "messaging_tool_start",
         toolName,
         toolCallId,
@@ -168,28 +144,11 @@ export function handleToolExecutionUpdate(
       partialResult: sanitized,
     },
   });
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "agent_event",
     stream: "tool",
     data: { phase: "update", name: toolName, toolCallId },
   });
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "tool",
-        data: {
-          phase: "update",
-          name: toolName,
-          toolCallId,
-        },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (tool/update): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (tool/update): ${String(err)}`);
-  }
 }
 
 export function handleToolExecutionEnd(
@@ -242,9 +201,8 @@ export function handleToolExecutionEnd(
       ctx.trimMessagingToolSent();
     }
   }
-  // Push messaging_tool_end to middleware if this was a tracked messaging tool
-  if (ctx.streamMiddleware && (pendingText || pendingTarget)) {
-    ctx.streamMiddleware.push({
+  if (pendingText || pendingTarget) {
+    ctx.emitRawStreamEvent({
       kind: "messaging_tool_end",
       toolName,
       toolCallId,
@@ -264,37 +222,18 @@ export function handleToolExecutionEnd(
       result: sanitizedResult,
     },
   });
-  // Push tool_end and agent_event to middleware (dual-path)
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "tool_end",
     name: toolName,
     id: toolCallId,
     isError: isToolError,
     text: typeof sanitizedResult === "string" ? sanitizedResult : undefined,
   });
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "agent_event",
     stream: "tool",
     data: { phase: "result", name: toolName, toolCallId, meta, isError: isToolError },
   });
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "tool",
-        data: {
-          phase: "result",
-          name: toolName,
-          toolCallId,
-          meta,
-          isError: isToolError,
-        },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (tool/result): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (tool/result): ${String(err)}`);
-  }
 
   ctx.log.debug(
     `embedded run tool end: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId}`,
@@ -319,7 +258,7 @@ export function handleToolExecutionEnd(
     });
   }
 
-  if (ctx.params.onToolResult && ctx.shouldEmitToolOutput()) {
+  if (ctx.hasToolResultSink && ctx.shouldEmitToolOutput()) {
     const outputText = extractToolResultText(sanitizedResult);
     if (outputText) {
       ctx.emitToolOutput(toolName, meta, outputText);

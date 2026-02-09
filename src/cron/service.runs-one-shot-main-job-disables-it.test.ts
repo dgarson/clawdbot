@@ -225,6 +225,7 @@ describe("CronService", () => {
     const job = await cron.add({
       name: "wakeMode now fallback",
       enabled: true,
+      deleteAfterRun: false,
       // Keep timer execution out of this test; this is a manual force-run path.
       schedule: { kind: "at", at: new Date("2030-01-01T00:00:00.000Z").toISOString() },
       sessionTarget: "main",
@@ -239,9 +240,11 @@ describe("CronService", () => {
     expect(runResult).toEqual({ ok: true, ran: true });
     expect(runHeartbeatOnce).toHaveBeenCalled();
     expect(requestHeartbeatNow).toHaveBeenCalled();
-
-    const jobs = await cron.list({ includeDisabled: true });
-    expect(jobs.find((item) => item.id === job.id)).toBeUndefined();
+    const refreshed = (await cron.list({ includeDisabled: true })).find(
+      (item) => item.id === job.id,
+    );
+    expect(refreshed?.state.lastStatus).toBe("ok");
+    expect(refreshed?.state.lastError).toBeUndefined();
     cron.stop();
     await store.cleanup();
   });

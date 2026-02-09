@@ -140,6 +140,7 @@ const FIELD_LABELS: Record<string, string> = {
   "logging.enhanced.gatewayHealthSuppressCliConnectDisconnect":
     "Gateway Health Suppress CLI Connect/Disconnect",
   "logging.enhanced.gatewayHealthSuppressMethods": "Gateway Health Suppressed Methods",
+  "logging.timezone": "Logging Timezone",
   "tools.media.image.enabled": "Enable Image Understanding",
   "tools.media.image.maxBytes": "Image Understanding Max Bytes",
   "tools.media.image.maxChars": "Image Understanding Max Chars",
@@ -861,6 +862,8 @@ const FIELD_HELP: Record<string, string> = {
     'Direct message access control ("pairing" recommended). "open" requires channels.slack.dm.allowFrom=["*"].',
   "logging.journal":
     "Tool journal for forensic tool call logging (full args/results, never on console).",
+  "logging.timezone":
+    'Timezone for display/log-rendered timestamps ("local"/"host" default, "utc", or an IANA timezone ID).',
   "logging.journal.enabled": "Enable the tool journal (default: true).",
   "logging.journal.file":
     "Override the journal file path (default: /tmp/openclaw/journal-YYYY-MM-DD.log).",

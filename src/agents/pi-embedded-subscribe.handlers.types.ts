@@ -8,7 +8,7 @@ import type {
   BlockReplyChunking,
   SubscribeEmbeddedPiSessionParams,
 } from "./pi-embedded-subscribe.types.js";
-import type { StreamingMiddleware } from "./stream/index.js";
+import type { RawStreamEvent, StreamingMiddleware } from "./stream/index.js";
 import type { NormalizedUsage } from "./usage.js";
 
 export type EmbeddedSubscribeLogger = {
@@ -76,8 +76,16 @@ export type EmbeddedPiSubscribeContext = {
   params: SubscribeEmbeddedPiSessionParams;
   state: EmbeddedPiSubscribeState;
   log: EmbeddedSubscribeLogger;
+  /** True when block reply events have at least one sink (middleware or legacy callback). */
+  hasBlockReplySink: boolean;
+  /** True when reasoning stream events have at least one sink (middleware or legacy callback). */
+  hasReasoningStreamSink: boolean;
+  /** True when tool result events have at least one sink (middleware or legacy callback). */
+  hasToolResultSink: boolean;
   /** When present, raw stream events are pushed to the middleware alongside legacy callbacks. */
   streamMiddleware?: StreamingMiddleware;
+  /** Unified raw stream emitter (middleware first, callback bridge second). */
+  emitRawStreamEvent: (event: RawStreamEvent) => void;
   blockChunking?: BlockReplyChunking;
   blockChunker: EmbeddedBlockChunker | null;
 
