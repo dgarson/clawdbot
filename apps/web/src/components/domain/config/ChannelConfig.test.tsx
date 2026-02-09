@@ -114,12 +114,12 @@ describe("ChannelConfig", () => {
       isFetching: false,
       error: null,
       refetch: vi.fn(),
-    });
+    } as unknown as ReturnType<typeof useChannelsStatus>);
     mockUseConfig.mockReturnValue({
       data: { config: { channels: {} }, hash: "hash", exists: true, valid: true },
       isLoading: false,
       error: null,
-    });
+    } as unknown as ReturnType<typeof useConfig>);
     mockUsePatchConfig.mockReturnValue({ mutateAsync: vi.fn() } as never);
     mockUseLogoutChannel.mockReturnValue({ mutateAsync: vi.fn() } as never);
   });

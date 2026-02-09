@@ -80,7 +80,7 @@ describe("useConnectionManager", () => {
 
     const { result } = renderHook(() => useConnectionManager("http://localhost:18789"));
 
-    let statusMap: ReturnType<typeof result.current.fetchAllStatuses> | undefined;
+    let statusMap: Awaited<ReturnType<typeof result.current.fetchAllStatuses>> | undefined;
     await act(async () => {
       statusMap = await result.current.fetchAllStatuses(["github", "slack"]);
     });

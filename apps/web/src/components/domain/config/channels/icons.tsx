@@ -167,3 +167,17 @@ export const channelColorMap = {
   notion: "#000000",
   obsidian: "#7C3AED",
 } as const;
+
+export function getChannelIcon(channelId: string) {
+  if (Object.prototype.hasOwnProperty.call(channelIconMap, channelId)) {
+    return channelIconMap[channelId as keyof typeof channelIconMap];
+  }
+  return undefined;
+}
+
+export function getChannelColor(channelId: string) {
+  if (Object.prototype.hasOwnProperty.call(channelColorMap, channelId)) {
+    return channelColorMap[channelId as keyof typeof channelColorMap];
+  }
+  return undefined;
+}

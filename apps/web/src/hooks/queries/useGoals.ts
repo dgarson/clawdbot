@@ -48,13 +48,6 @@ export const goalKeys = {
   detail: (id: string, mode?: "live" | "mock") => [...goalKeys.details(), id, mode] as const,
 };
 
-const allowedGoalStatuses: GoalStatus[] = [
-  "not_started",
-  "in_progress",
-  "completed",
-  "paused",
-];
-
 const allowedGoalPriorities: GoalPriority[] = ["low", "medium", "high", "critical"];
 
 function toGoalStatus(status: OverseerGoal["status"]): GoalStatus {
@@ -93,12 +86,15 @@ function normalizeMilestones(value: unknown): Milestone[] {
       if (typeof record.title !== "string") {
         return null;
       }
-      return {
+      const milestone: Milestone = {
         id: typeof record.id === "string" ? record.id : crypto.randomUUID(),
         title: record.title,
         completed: Boolean(record.completed),
-        dueDate: typeof record.dueDate === "string" ? record.dueDate : undefined,
-      } satisfies Milestone;
+      };
+      if (typeof record.dueDate === "string") {
+        milestone.dueDate = record.dueDate;
+      }
+      return milestone;
     })
     .filter((entry): entry is Milestone => entry !== null);
 }

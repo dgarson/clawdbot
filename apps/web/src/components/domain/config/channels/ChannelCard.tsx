@@ -30,7 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { channelIconMap, channelColorMap } from "./icons";
+import { getChannelIcon, getChannelColor } from "./icons";
 import type { ChannelConfig, ChannelStatus, PlatformType, ChannelActivityItem } from "./types";
 
 interface ChannelCardProps {
@@ -90,8 +90,8 @@ export function ChannelCard({
   onUninstall,
   className,
 }: ChannelCardProps) {
-  const IconComponent = channelIconMap[channel.id] ?? HelpCircle;
-  const channelColor = channelColorMap[channel.id] ?? "hsl(var(--muted-foreground))";
+  const IconComponent = getChannelIcon(channel.id) ?? HelpCircle;
+  const channelColor = getChannelColor(channel.id) ?? "hsl(var(--muted-foreground))";
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
 

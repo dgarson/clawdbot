@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { WizardSteps } from "@/components/composed/WizardSteps";
-import { channelIconMap, channelColorMap } from "./icons";
+import { getChannelIcon, getChannelColor } from "./icons";
 import type { ChannelConfig, RelayProvider } from "./types";
 
 // Stable empty array for fallback (avoids new reference each render)
@@ -91,8 +91,8 @@ export function GenericChannelConfigDialog({
   const [selectedAuthMode, setSelectedAuthMode] = React.useState<string>("");
   const [oauthAuthorized, setOauthAuthorized] = React.useState(false);
 
-  const IconComponent = channelIconMap[channel.id] ?? HelpCircle;
-  const channelColor = channelColorMap[channel.id] ?? "hsl(var(--muted-foreground))";
+  const IconComponent = getChannelIcon(channel.id) ?? HelpCircle;
+  const channelColor = getChannelColor(channel.id) ?? "hsl(var(--muted-foreground))";
 
   React.useEffect(() => {
     if (open) {

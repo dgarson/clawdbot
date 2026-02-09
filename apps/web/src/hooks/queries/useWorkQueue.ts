@@ -90,7 +90,7 @@ async function fetchWorkQueueItems(queueId?: string): Promise<WorkQueueItem[]> {
   return [];
 }
 
-async function fetchWorkQueueStatusByAgent(agentId: string): Promise<WorkQueueStatusSnapshot> {
+async function fetchWorkQueueStatusByAgent(_agentId: string): Promise<WorkQueueStatusSnapshot> {
   return {
     queue: null,
     stats: emptyStats,
