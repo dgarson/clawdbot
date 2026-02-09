@@ -89,11 +89,11 @@ export class SmartSyncForkExecutor {
       tmpdir(),
       `clawdbrain-automation-${this.runId}-${crypto.randomUUID().slice(0, 8)}`,
     );
-    this.git = simpleGitInstance ? simpleGitInstance.default() : null;
-
-    if (!this.git) {
+    const gitInstance = simpleGitInstance ? simpleGitInstance.default() : null;
+    if (!gitInstance) {
       throw new Error("simple-git is not available. Please ensure it is installed.");
     }
+    this.git = gitInstance;
 
     // Initialize Octokit if auth token is provided
     const config = this.automation.config as SmartSyncForkConfig;
@@ -253,7 +253,7 @@ export class SmartSyncForkExecutor {
     ]);
 
     // Change to the cloned directory
-    this.git = simpleGitInstance.default(this.tempDir);
+    this.git = simpleGitInstance!.default(this.tempDir);
   }
 
   /**

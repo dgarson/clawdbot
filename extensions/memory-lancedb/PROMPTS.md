@@ -18,13 +18,11 @@ Analyze the following conversation and extract any:
 - Factual statements about the user or their environment
 - Important decisions made during the conversation
 - Recurrent entities or topics (people, places, organizations)
-- Scheduled events or milestones
-- Resources or links shared
 
 Return ONLY a JSON array of objects with this schema:
 {
   "text": "The concise factual statement or preference",
-  "category": "preference" | "fact" | "decision" | "event" | "resource" | "entity" | "other",
+  "category": "preference" | "fact" | "decision" | "entity" | "other",
   "importance": 0.0 to 1.0,
   "confidence": 0.0 to 1.0,
   "tags": ["tag1", "tag2"]

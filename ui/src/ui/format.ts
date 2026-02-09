@@ -3,6 +3,7 @@ import { formatRelativeTimestamp } from "../../../src/infra/format-time/format-r
 import { stripReasoningTagsFromText } from "../../../src/shared/text/reasoning-tags.js";
 
 export { formatRelativeTimestamp, formatDurationHuman };
+export { formatRelativeTimestamp as formatAgo, formatDurationHuman as formatDurationMs };
 
 export function formatMs(ms?: number | null): string {
   if (!ms && ms !== 0) {

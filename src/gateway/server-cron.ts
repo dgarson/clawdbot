@@ -7,9 +7,9 @@ import {
 } from "../config/sessions.js";
 import { runCronIsolatedAgentTurn } from "../cron/isolated-agent.js";
 import { appendCronRunLog, resolveCronRunLogPath } from "../cron/run-log.js";
-import { CronService, type CronEvent } from "../cron/service.js";
+import { CronService, type CronJobEvent } from "../cron/service.js";
 import { loadCronStore, resolveCronStorePath } from "../cron/store.js";
-import { formatDurationMs } from "../infra/format-time/format-duration.js";
+import { formatDurationHuman } from "../infra/format-time/format-duration.js";
 import { runHeartbeatOnce } from "../infra/heartbeat-runner.js";
 import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
@@ -48,9 +48,10 @@ export function buildGatewayCronService(params: {
     return { agentId, cfg: runtimeConfig };
   };
 
-  const formatCronLifecycleMessage = (evt: CronEvent, jobName?: string) => {
+  const formatCronLifecycleMessage = (evt: CronJobEvent, jobName?: string) => {
     const status = evt.status ?? (evt.action === "started" ? "started" : "unknown");
-    const duration = typeof evt.durationMs === "number" ? formatDurationMs(evt.durationMs) : "n/a";
+    const duration =
+      typeof evt.durationMs === "number" ? formatDurationHuman(evt.durationMs) : "n/a";
     const summary = evt.summary?.trim() || "—";
     const error = evt.error?.trim();
     const jobLabel = jobName?.trim() ? ` ${jobName.trim()}` : "";
@@ -127,7 +128,7 @@ export function buildGatewayCronService(params: {
       if (evt.action === "finished") {
         void (async () => {
           const store = await loadCronStore(storePath);
-          const job = store.jobs.find((entry) => entry.id === evt.jobId);
+          const job = store.store.jobs.find((entry) => entry.id === evt.jobId);
           const { agentId, cfg: _runtimeConfig } = resolveCronAgent(job?.agentId);
           const sessionKey = buildAgentMainSessionKey({
             agentId,

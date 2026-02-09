@@ -6,7 +6,7 @@
  * Dispatches "demo-submit" event with form data on successful submission.
  */
 
-import { html, css, TemplateResult, type CSSResultGroup } from "lit";
+import { html, css, nothing, TemplateResult, type CSSResultGroup } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { CtaModalBase } from "./cta-modal-base.js";
 import { validateEmail } from "./waitlist-modal.js";

@@ -18,7 +18,7 @@ import {
   memoryConfigSchema,
   vectorDimsForModel,
 } from "./config.js";
-import { OpenAiExtractor } from "./src/services/openai-extractor.js";
+import { SdkExtractor } from "./src/services/extractor.js";
 
 // ============================================================================
 // Types
@@ -357,9 +357,8 @@ const memoryPlugin = {
     const vectorDim = vectorDimsForModel(cfg.embedding.model ?? "text-embedding-3-small");
     const db = new MemoryDB(resolvedDbPath, vectorDim);
     const embeddings = new Embeddings(cfg.embedding.apiKey, cfg.embedding.model!);
-    const extractionModel =
-      (cfg as { extraction?: { model?: string } }).extraction?.model ?? "gpt-4o-mini";
-    const extractor = new OpenAiExtractor(cfg.embedding.apiKey, extractionModel);
+    const extractionModelRef = cfg.extraction?.modelRef ?? "openai/gpt-4o-mini";
+    const extractor = new SdkExtractor(api.config, extractionModelRef);
 
     api.logger.info(`memory-lancedb: plugin registered (db: ${resolvedDbPath}, lazy init)`);
 

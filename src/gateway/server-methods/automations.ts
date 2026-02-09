@@ -235,6 +235,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
       return;
     }
 
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
+      );
+      return;
+    }
+
     const p = params as { includeDisabled?: boolean };
     const automations = await context.automations.list({
       includeDisabled: p.includeDisabled,
@@ -262,6 +271,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
       return;
     }
 
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
+      );
+      return;
+    }
+
     try {
       const input = toInternalAutomationCreate(params);
       const automation = await context.automations.create(input);
@@ -280,6 +298,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
           ErrorCodes.INVALID_REQUEST,
           `invalid automations.update params: ${formatValidationErrors(validateAutomationsUpdateParams.errors)}`,
         ),
+      );
+      return;
+    }
+
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
       );
       return;
     }
@@ -305,6 +332,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
       return;
     }
 
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
+      );
+      return;
+    }
+
     const p = params as { id: string };
     const result = await context.automations.delete(p.id);
     respond(true, result, undefined);
@@ -319,6 +355,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
           ErrorCodes.INVALID_REQUEST,
           `invalid automations.run params: ${formatValidationErrors(validateAutomationsRunParams.errors)}`,
         ),
+      );
+      return;
+    }
+
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
       );
       return;
     }
@@ -352,6 +397,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
       return;
     }
 
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
+      );
+      return;
+    }
+
     const p = params as { id: string };
     const result = await context.automations.cancel(p.id);
     respond(true, result, undefined);
@@ -366,6 +420,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
           ErrorCodes.INVALID_REQUEST,
           `invalid automations.history params: ${formatValidationErrors(validateAutomationsHistoryParams.errors)}`,
         ),
+      );
+      return;
+    }
+
+    if (!context.automations) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "automations service not available"),
       );
       return;
     }
@@ -393,6 +456,15 @@ export const automationsHandlers: GatewayRequestHandlers = {
           ErrorCodes.INVALID_REQUEST,
           `invalid automations.artifact.download params: ${formatValidationErrors(validateAutomationsArtifactDownloadParams.errors)}`,
         ),
+      );
+      return;
+    }
+
+    if (!context.artifactStorage) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, "artifact storage not available"),
       );
       return;
     }

@@ -163,6 +163,7 @@ export function buildAuthChoiceOptions(params: {
   options.push({ value: "chutes", label: "Chutes (OAuth)" });
   options.push({ value: "openai-api-key", label: "OpenAI API key" });
   options.push({ value: "xai-api-key", label: "xAI (Grok) API key" });
+  options.push({ value: "openrouter-api-key", label: "OpenRouter API key" });
   options.push({
     value: "qianfan-api-key",
     label: "Qianfan API key",

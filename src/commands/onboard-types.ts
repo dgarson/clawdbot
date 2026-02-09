@@ -38,7 +38,7 @@ export type AuthChoice =
   | "xai-api-key"
   | "qianfan-api-key"
   | "skip";
-export type GatewayAuthChoice = "token" | "password";
+export type GatewayAuthChoice = "token" | "password" | "none";
 export type ResetScope = "config" | "config+creds+sessions" | "full";
 export type GatewayBind = "loopback" | "lan" | "auto" | "custom" | "tailnet";
 export type TailscaleMode = "off" | "serve" | "funnel";

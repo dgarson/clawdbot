@@ -8,6 +8,10 @@ export type MemoryConfig = {
     model?: string;
     apiKey: string;
   };
+  extraction?: {
+    /** Provider-agnostic model ref, e.g. "openai/gpt-4o-mini", "ollama/llama3" */
+    modelRef?: string;
+  };
   dbPath?: string;
   autoCapture?: boolean;
   autoRecall?: boolean;
@@ -89,7 +93,11 @@ export const memoryConfigSchema = {
       throw new Error("memory config required");
     }
     const cfg = value as Record<string, unknown>;
-    assertAllowedKeys(cfg, ["embedding", "dbPath", "autoCapture", "autoRecall"], "memory config");
+    assertAllowedKeys(
+      cfg,
+      ["embedding", "extraction", "dbPath", "autoCapture", "autoRecall"],
+      "memory config",
+    );
 
     const embedding = cfg.embedding as Record<string, unknown> | undefined;
     if (!embedding || typeof embedding.apiKey !== "string") {
@@ -99,11 +107,20 @@ export const memoryConfigSchema = {
 
     const model = resolveEmbeddingModel(embedding);
 
+    const extraction = cfg.extraction as Record<string, unknown> | undefined;
+    if (extraction) {
+      assertAllowedKeys(extraction, ["modelRef"], "extraction config");
+    }
+
     return {
       embedding: {
         provider: "openai",
         model,
         apiKey: resolveEnvVars(embedding.apiKey),
+      },
+      extraction: {
+        modelRef:
+          typeof extraction?.modelRef === "string" ? extraction.modelRef : "openai/gpt-4o-mini",
       },
       dbPath: typeof cfg.dbPath === "string" ? cfg.dbPath : DEFAULT_DB_PATH,
       autoCapture: cfg.autoCapture !== false,
@@ -121,6 +138,11 @@ export const memoryConfigSchema = {
       label: "Embedding Model",
       placeholder: DEFAULT_MODEL,
       help: "OpenAI embedding model to use",
+    },
+    "extraction.modelRef": {
+      label: "Extraction Model",
+      placeholder: "openai/gpt-4o-mini",
+      help: "Provider/model ref for extraction, expansion, and synthesis (e.g. openai/gpt-4o-mini, ollama/llama3)",
     },
     dbPath: {
       label: "Database Path",

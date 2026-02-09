@@ -309,4 +309,88 @@ describe("CronService interval/cron jobs fire on time", () => {
     cron.stop();
     await store.cleanup();
   });
+
+  it("keeps legacy every jobs due while minute cron jobs recompute schedules", async () => {
+    const store = await makeStorePath();
+    const enqueueSystemEvent = vi.fn();
+    const requestHeartbeatNow = vi.fn();
+    const nowMs = Date.parse("2025-12-13T00:00:00.000Z");
+
+    await fs.mkdir(path.dirname(store.storePath), { recursive: true });
+    await fs.writeFile(
+      store.storePath,
+      JSON.stringify(
+        {
+          version: 1,
+          jobs: [
+            {
+              id: "legacy-every",
+              name: "legacy every",
+              enabled: true,
+              createdAtMs: nowMs,
+              updatedAtMs: nowMs,
+              schedule: { kind: "every", everyMs: 120_000 },
+              sessionTarget: "main",
+              wakeMode: "now",
+              payload: { kind: "systemEvent", text: "sf-tick" },
+              state: { nextRunAtMs: nowMs + 120_000 },
+            },
+            {
+              id: "minute-cron",
+              name: "minute cron",
+              enabled: true,
+              createdAtMs: nowMs,
+              updatedAtMs: nowMs,
+              schedule: { kind: "cron", expr: "* * * * *", tz: "UTC" },
+              sessionTarget: "main",
+              wakeMode: "now",
+              payload: { kind: "systemEvent", text: "minute-tick" },
+              state: { nextRunAtMs: nowMs + 60_000 },
+            },
+          ],
+        },
+        null,
+        2,
+      ),
+      "utf-8",
+    );
+
+    const cron = new CronService({
+      storePath: store.storePath,
+      cronEnabled: true,
+      log: noopLogger,
+      enqueueSystemEvent,
+      requestHeartbeatNow,
+      runIsolatedAgentJob: vi.fn(async () => ({ status: "ok" })),
+    });
+
+    await cron.start();
+    for (let minute = 1; minute <= 6; minute++) {
+      vi.setSystemTime(new Date(nowMs + minute * 60_000));
+      const minuteRun = await cron.run("minute-cron", "force");
+      expect(minuteRun).toEqual({ ok: true, ran: true });
+    }
+
+    vi.setSystemTime(new Date(nowMs + 6 * 60_000));
+    const sfRun = await cron.run("legacy-every", "due");
+    expect(sfRun).toEqual({ ok: true, ran: true });
+
+    const sfRuns = enqueueSystemEvent.mock.calls.filter((args) => args[0] === "sf-tick").length;
+    const minuteRuns = enqueueSystemEvent.mock.calls.filter(
+      (args) => args[0] === "minute-tick",
+    ).length;
+    expect(minuteRuns).toBeGreaterThan(0);
+    expect(sfRuns).toBeGreaterThan(0);
+
+    const jobs = await cron.list({ includeDisabled: true });
+    const sfJob = jobs.find((job) => job.id === "legacy-every");
+    expect(sfJob?.state.lastStatus).toBe("ok");
+    expect(sfJob?.schedule.kind).toBe("every");
+    if (sfJob?.schedule.kind === "every") {
+      expect(sfJob.schedule.anchorMs).toBe(nowMs);
+    }
+
+    cron.stop();
+    await store.cleanup();
+  });
 });

@@ -38,7 +38,10 @@ describe("DigestService", () => {
 
   test("runDailyMaintenance performs merge and archive", async () => {
     const service = new DigestService(mockStore, mockSynthesizer, mockEmbedder, mockNotifier);
-    const summary = await service.runDailyMaintenance(mockApi as unknown as ClawdbrainPluginApi, false);
+    const summary = await service.runDailyMaintenance(
+      mockApi as unknown as ClawdbrainPluginApi,
+      false,
+    );
 
     expect(summary).toBe("Merged 2 items.");
 
