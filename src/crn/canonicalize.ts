@@ -3,7 +3,7 @@
  * automatically enrich EntityRef objects with resolved URIs and CRNs.
  */
 
-import type { CrnService, EntityRef, ParsedCrn, RefKind } from "./types.js";
+import type { EntityRef, ParsedCrn } from "./types.js";
 import { parseCrn } from "./parse.js";
 import {
   buildCrn,
@@ -73,7 +73,9 @@ export function urlToParsedCrn(url: string): ParsedCrn | null {
  */
 export function crnToUrl(crn: string): string | undefined {
   const parsed = parseCrn(crn);
-  if (!parsed) return undefined;
+  if (!parsed) {
+    return undefined;
+  }
   return resolveUrl(parsed);
 }
 
@@ -155,7 +157,9 @@ export function urlToRef(url: string): EntityRef | null {
     const parsed = pattern.parseUrl(url);
     if (parsed) {
       const kind = pattern.refKindMap?.[parsed.resourceType];
-      if (!kind) continue;
+      if (!kind) {
+        continue;
+      }
 
       const crn = buildCrn(parsed.service, parsed.scope, parsed.resourceType, parsed.resourceId);
       return {

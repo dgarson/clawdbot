@@ -105,6 +105,8 @@ export function ConnectionWizardWithScopes({
 
   const method = connection.authMethods.find((m) => m.id === selectedMethodId);
   const syncOptions = connection.syncOptions ?? EMPTY_SYNC_OPTIONS;
+  const showObsidianRestGuide =
+    connection.id === "obsidian" && method?.id === "obsidian-rest-api";
 
   // Check if this provider has scope configuration
   const providerScopes = getProviderScopes(connection.id);
@@ -629,6 +631,46 @@ export function ConnectionWizardWithScopes({
                         </a>
                       ))}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {!isNotionConnection && showObsidianRestGuide && (
+                <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm">
+                  <p className="font-medium">Local REST API setup</p>
+                  <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
+                    <li>Install the Local REST API community plugin.</li>
+                    <li>Enable the plugin in your Obsidian vault.</li>
+                    <li>Copy the API key into the field above.</li>
+                  </ol>
+                  <div className="mt-3 space-y-1">
+                    <a
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      href="https://help.obsidian.md/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Obsidian Help
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <a
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      href="https://github.com/coddingtonbear/obsidian-local-rest-api"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Local REST API Plugin
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <a
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      href="https://obsidian.md/plugins"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Community Plugins
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
                 </div>
               )}

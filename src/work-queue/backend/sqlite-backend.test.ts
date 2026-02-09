@@ -95,7 +95,7 @@ describeSqlite("SqliteWorkQueueBackend", () => {
     expect(claimedLocal?.id).toBe(localItem.id);
 
     // Now a local item IS in_progress, so next claim should be denied
-    const nextLocal = await backend.createItem({
+    await backend.createItem({
       queueId: queue.id,
       title: "Another local task",
       status: "pending",
