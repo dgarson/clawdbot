@@ -13,7 +13,6 @@ import type {
   OAuthFlowCompleteResult,
   ConnectionUserInfo,
 } from "./types.js";
-import { toPrimitiveString, toPrimitiveStringOr } from "../../shared/text/coerce.js";
 import { storeConnectionCredential } from "./credentials.js";
 import { getConnectionProvider, buildScopeString, expandScopes } from "./registry.js";
 
@@ -197,7 +196,12 @@ export async function exchangeCodeForTokens(params: {
 
     // Check for errors in the response
     if (data.error) {
-      const errorDesc = toPrimitiveString(data.error_description ?? data.error) ?? "unknown error";
+      const errorDesc =
+        typeof data.error_description === "string"
+          ? data.error_description
+          : typeof data.error === "string"
+            ? data.error
+            : "Unknown error";
       return { error: `Token exchange failed: ${errorDesc}` };
     }
 
@@ -205,14 +209,15 @@ export async function exchangeCodeForTokens(params: {
       return { error: `Token exchange failed: ${response.statusText}` };
     }
 
-    const accessToken = toPrimitiveStringOr(data.access_token, "").trim();
+    const accessToken = typeof data.access_token === "string" ? data.access_token.trim() : "";
     if (!accessToken) {
       return { error: "Token exchange returned no access_token" };
     }
 
-    const refreshToken = toPrimitiveString(data.refresh_token)?.trim();
+    const refreshToken =
+      typeof data.refresh_token === "string" ? data.refresh_token.trim() : undefined;
     const expiresIn = typeof data.expires_in === "number" ? data.expires_in : undefined;
-    const scope = toPrimitiveString(data.scope);
+    const scope = typeof data.scope === "string" ? data.scope : undefined;
 
     const expires = expiresIn ? now + expiresIn * 1000 - DEFAULT_EXPIRES_BUFFER_MS : undefined;
 

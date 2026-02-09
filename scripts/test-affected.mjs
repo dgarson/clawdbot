@@ -163,12 +163,12 @@ async function main() {
   if (verbose) {
     console.log(`Changed files (${changedFiles.length}):`);
     for (const f of changedFiles) {
-      console.log("  " + f);
+      console.log(`  ${String(f)}`);
     }
     if (extraFiles.length) {
       console.log(`Extra files (${extraFiles.length}):`);
       for (const f of extraFiles) {
-        console.log("  " + f);
+        console.log(`  ${String(f)}`);
       }
     }
     console.log();

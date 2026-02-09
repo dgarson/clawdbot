@@ -276,17 +276,9 @@ describe("agentCommand", () => {
 
       const callArgs = executeKernelMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
       expect(callArgs?.sessionKey).toBe("agent:ops:main");
-      let agentDir = "";
-      if (typeof callArgs?.agentDir === "string") {
-        agentDir = callArgs.agentDir;
-      } else if (
-        typeof callArgs?.agentDir === "number" ||
-        typeof callArgs?.agentDir === "boolean" ||
-        typeof callArgs?.agentDir === "bigint"
-      ) {
-        agentDir = callArgs.agentDir.toString();
-      }
-      expect(agentDir).toContain(`${path.sep}agents${path.sep}ops`);
+      expect(typeof callArgs?.agentDir === "string" ? callArgs.agentDir : "").toContain(
+        `${path.sep}agents${path.sep}ops`,
+      );
     });
   });
 

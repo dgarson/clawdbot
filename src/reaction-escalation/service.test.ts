@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import type { OpenClawConfig } from "../config/config.js";
 import type {
   EscalationOutcome,
   ReactionEscalationAdapter,
@@ -68,7 +69,7 @@ function buildService(adapter: ReactionEscalationAdapter) {
         enabled: true,
         channels: ["general"],
       },
-    } as unknown,
+    } as OpenClawConfig,
     channelId: "general",
     adapter,
   });
