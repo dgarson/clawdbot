@@ -44,4 +44,32 @@ export function logGatewayStartup(params: {
   if (params.isNixMode) {
     params.log.info("gateway: running in Nix mode (config managed externally)");
   }
+
+  // Log external service URLs for debugging connectivity issues.
+  logExternalServiceUrls(params.cfg, params.log);
+}
+
+/** Log configured external service endpoints at startup (info level). */
+function logExternalServiceUrls(
+  cfg: ReturnType<typeof loadConfig>,
+  log: { info: (msg: string, meta?: Record<string, unknown>) => void },
+) {
+  const graphitiCfg = cfg.memory?.graphiti;
+  if (graphitiCfg?.enabled) {
+    const host = graphitiCfg.serverHost ?? "localhost";
+    const servicePort = graphitiCfg.servicePort ?? 8001;
+    const mcpPort = graphitiCfg.mcpPort ?? 8000;
+    log.info(`graphiti: http://${host}:${servicePort} (MCP port ${mcpPort})`);
+  }
+
+  const obsidianCfg = cfg.obsidian;
+  if (obsidianCfg?.enabled) {
+    const restUrl = obsidianCfg.restApi?.url ?? "http://localhost:27123";
+    log.info(`obsidian: ${restUrl} (vault: ${obsidianCfg.vaultPath ?? "default"})`);
+  }
+
+  const qmdCfg = cfg.memory?.qmd;
+  if (qmdCfg?.command) {
+    log.info(`qmd: command="${qmdCfg.command}"`);
+  }
 }

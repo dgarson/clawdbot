@@ -14,6 +14,7 @@ import type { GraphDragState, GraphViewport } from "../ui-types.js";
 import { skeleton } from "../components/design-utils.js";
 import { clampText, formatAgo, formatDurationMs, formatList } from "../format.js";
 import { icon, type IconName } from "../icons.js";
+import { renderGoalProgress } from "./overseer-progress.js";
 import { renderSimulator, type SimulatorProps } from "./overseer-simulator.js";
 import {
   buildOverseerGraphLayout,
@@ -118,6 +119,10 @@ export type OverseerProps = {
   onAbortSession?: (sessionKey: string) => void;
   onAbortAllForAgent?: (agentId: string) => void;
   onEmergencyStopAll?: () => void;
+  // Goal progress panel state
+  expandedPhaseIds: Set<string>;
+  onTogglePhase: (phaseId: string) => void;
+  onSelectWorkNode?: (workNodeId: string) => void;
 };
 
 export function setupOverseerKeyboardShortcuts(props: {
@@ -188,6 +193,18 @@ export function renderOverseer(props: OverseerProps) {
           : nothing
       }
       ${stalledAssignments.length > 0 ? renderStalledPanel(stalledAssignments, props) : nothing}
+      ${
+        props.goal?.goal?.plan?.phases?.length
+          ? renderGoalProgress({
+              goal: props.goal.goal,
+              assignments: props.goal.assignments ?? [],
+              crystallizations: props.goal.crystallizations ?? [],
+              expandedPhaseIds: props.expandedPhaseIds,
+              onTogglePhase: props.onTogglePhase,
+              onSelectWorkNode: props.onSelectWorkNode,
+            })
+          : nothing
+      }
       <div class="overseer-main-grid" style="display: grid; grid-template-columns: 1fr 380px; gap: 20px;">
         <div class="overseer-main-content">
           ${!props.loading && statusGoals.length === 0 ? renderOverseerEmptyState(props) : nothing}

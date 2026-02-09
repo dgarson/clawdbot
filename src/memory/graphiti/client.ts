@@ -162,7 +162,10 @@ export class GraphitiClient {
     });
 
     if (!response.ok) {
-      memLog.debug("graphiti ingestEpisodes failed", { status: response.status });
+      memLog.debug("graphiti ingestEpisodes failed", {
+        status: response.status,
+        url: `${this.baseUrl}/ingestEpisodes`,
+      });
       this.opsLog?.log({
         action: "graphiti.ingest",
         traceId: request.traceId,
@@ -228,7 +231,10 @@ export class GraphitiClient {
     });
 
     if (!response.ok) {
-      memLog.debug("graphiti search failed", { status: response.status });
+      memLog.debug("graphiti search failed", {
+        status: response.status,
+        url: `${this.baseUrl}/search`,
+      });
       this.opsLog?.log({
         action: "graphiti.query",
         backend: "graphiti",

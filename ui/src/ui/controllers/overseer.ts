@@ -49,6 +49,8 @@ export type OverseerState = {
   simulator: SimulatorState;
   // Audit log state
   auditLog: AuditLogState;
+  // Goal progress panel state
+  overseerExpandedPhaseIds: Set<string>;
 };
 
 export async function loadOverseerStatus(state: OverseerState, opts?: { quiet?: boolean }) {
@@ -270,6 +272,7 @@ export function initOverseerState(): Pick<
   | "overseerCreateGoalForm"
   | "simulator"
   | "auditLog"
+  | "overseerExpandedPhaseIds"
 > {
   return {
     overseerGoalActionPending: false,
@@ -293,7 +296,19 @@ export function initOverseerState(): Pick<
       filter: { timeRange: "all" },
       expandedEventIndex: null,
     },
+    overseerExpandedPhaseIds: new Set(),
   };
+}
+
+/** Toggle a phase expansion in the goal progress panel. */
+export function toggleProgressPhase(state: OverseerState, phaseId: string): void {
+  const next = new Set(state.overseerExpandedPhaseIds);
+  if (next.has(phaseId)) {
+    next.delete(phaseId);
+  } else {
+    next.add(phaseId);
+  }
+  state.overseerExpandedPhaseIds = next;
 }
 
 // ============================================================================

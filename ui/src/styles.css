@@ -15,6 +15,7 @@
 @import "./styles/logs.css";
 @import "./styles/channel-wizard.css";
 @import "./styles/onboarding-wizard.css";
+@import "./styles/overseer.css";
 @import "./styles/overseer-simulator.css";
 @import "./styles/agent-dashboard.css";
 @import "./styles/chat/task-sidebar.css";

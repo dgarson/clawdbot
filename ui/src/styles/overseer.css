@@ -1,0 +1,1170 @@
+/* =============================================================================
+   OVERSEER VIEW — Migrated from components.css.bak + new Goal Progress Panel
+   ============================================================================= */
+
+/* --- Main Layout --- */
+
+.overseer-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.overseer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.overseer-header__info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.overseer-header__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.overseer-header__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.overseer-header__desc {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.overseer-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.overseer-header__stats {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.overseer-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.overseer-controls .field select {
+  min-width: 260px;
+}
+
+.overseer-notice {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.overseer-notice--error {
+  border-color: var(--danger-muted);
+  color: var(--danger);
+}
+
+/* --- Stats Cards --- */
+
+.overseer-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.overseer-stat-card {
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(var(--panel-rgb), 0.7), rgba(var(--panel-rgb), 0.5));
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 200ms ease;
+}
+
+.overseer-stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.overseer-stat-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.overseer-stat-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.overseer-stat-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+}
+
+.overseer-stat-card__icon--accent {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.overseer-stat-card__icon--success {
+  background: rgba(43, 217, 127, 0.1);
+  color: var(--accent-2);
+}
+
+.overseer-stat-card__icon--warn {
+  background: rgba(255, 193, 7, 0.1);
+  color: var(--warn);
+}
+
+.overseer-stat-card__value {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.overseer-stat-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overseer-stat-card__trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.overseer-stat-card__trend--up {
+  color: var(--accent-2);
+}
+
+.overseer-stat-card__trend--down {
+  color: var(--danger);
+}
+
+/* --- Graph Panel --- */
+
+.graph-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.graph-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.graph-panel__header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.graph-panel__header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.graph-panel__controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.graph-panel__body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: 16px;
+}
+
+.graph-canvas {
+  position: relative;
+  min-height: 320px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.graph-canvas--dragging {
+  cursor: grabbing;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.graph-edge {
+  stroke: var(--border);
+  stroke-width: 2;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.graph-node rect {
+  fill: rgba(15, 23, 42, 0.7);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.graph-node text {
+  fill: var(--text);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.graph-node--selected rect {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.graph-node--status-done rect {
+  stroke: var(--accent-2);
+}
+.graph-node--status-in_progress rect {
+  stroke: var(--accent);
+}
+.graph-node--status-blocked rect {
+  stroke: var(--danger);
+}
+.graph-node--status-stalled rect {
+  stroke: var(--warn);
+}
+.graph-node--status-online rect {
+  stroke: var(--accent-2);
+}
+.graph-node--status-offline rect {
+  stroke: var(--danger);
+}
+.graph-node--status-enabled rect {
+  stroke: var(--accent-2);
+}
+.graph-node--status-disabled rect {
+  stroke: var(--muted);
+}
+.graph-node--status-eligible rect {
+  stroke: var(--accent-2);
+}
+
+.graph-loading,
+.graph-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.graph-details {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  padding: 12px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.graph-details__title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.graph-details__row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 12px;
+}
+
+.graph-details__label {
+  color: var(--muted);
+}
+
+.graph-details__value {
+  word-break: break-word;
+}
+
+.graph-details__empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.graph-details__section {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.graph-details__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* --- Drawer --- */
+
+.overseer-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  animation: fadeIn var(--duration-fast) var(--ease-out);
+}
+
+.overseer-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(420px, 92vw);
+  background: var(--panel-strong);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-elevated-lg);
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight var(--duration-normal) var(--ease-out);
+}
+
+.overseer-drawer__header {
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.overseer-drawer__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.overseer-drawer__subtitle {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.overseer-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overseer-drawer__section {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.overseer-drawer__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.overseer-drawer__section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.overseer-run-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.overseer-run-list__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1.5fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  font-size: 12px;
+}
+
+.overseer-run-list__row span:last-child {
+  word-break: break-word;
+}
+
+/* --- Stalled Panel --- */
+
+.stalled-panel {
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.06), transparent);
+  padding: 14px 16px;
+}
+
+.stalled-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.stalled-panel__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 193, 7, 0.12);
+  color: var(--warn);
+}
+
+.stalled-panel__title {
+  flex: 1;
+}
+
+.stalled-panel__title-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stalled-panel__count {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.stalled-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stalled-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+}
+
+.stalled-item__task {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stalled-item__reason {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* =============================================================================
+   PHASE CARDS — Collapsible Task Groups
+   ============================================================================= */
+
+.phase-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  overflow: hidden;
+  transition: all 200ms ease;
+}
+
+.phase-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.phase-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.phase-card__header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.phase-card__expand {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  transition: all 150ms ease;
+  flex-shrink: 0;
+}
+
+.phase-card__expand--rotated {
+  transform: rotate(90deg);
+}
+
+.phase-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.phase-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.phase-card__meta {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phase-card__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 120px;
+}
+
+.phase-card__progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.phase-card__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 400ms ease;
+}
+
+.phase-card__progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 40px;
+  text-align: right;
+}
+
+.phase-card__body {
+  padding: 0 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phase-card__body--collapsed {
+  display: none;
+}
+
+/* --- Task Items --- */
+
+.task-item {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  transition: all 150ms ease;
+}
+
+.task-item:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.task-item__status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.task-item__status--done {
+  background: var(--accent-2);
+}
+.task-item__status--in_progress {
+  background: var(--accent);
+  animation: pulse-status 2s ease-in-out infinite;
+}
+.task-item__status--blocked {
+  background: var(--danger);
+}
+
+.task-item__info {
+  min-width: 0;
+}
+
+.task-item__name {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-item__meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.task-item__actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.task-item:hover .task-item__actions {
+  opacity: 1;
+}
+
+@keyframes pulse-status {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* =============================================================================
+   GOAL PROGRESS PANEL — Per-phase progress with dependency awareness
+   ============================================================================= */
+
+.goal-progress {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.goal-progress__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.goal-progress__header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-progress__header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.goal-progress__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.goal-progress__subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Overall progress bar */
+.goal-progress__overall {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goal-progress__overall-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+
+.goal-progress__overall-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.goal-progress__overall-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.goal-progress__overall-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.goal-progress__overall-pct {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Status distribution mini bar */
+.goal-progress__status-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.goal-progress__status-segment {
+  height: 100%;
+  transition: width 400ms ease;
+}
+
+.goal-progress__status-segment--done {
+  background: var(--accent-2);
+}
+
+.goal-progress__status-segment--in_progress {
+  background: var(--accent);
+}
+
+.goal-progress__status-segment--blocked {
+  background: var(--danger);
+}
+
+.goal-progress__status-segment--pending {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Status legend */
+.goal-progress__legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.goal-progress__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.goal-progress__legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.goal-progress__legend-dot--done {
+  background: var(--accent-2);
+}
+.goal-progress__legend-dot--in_progress {
+  background: var(--accent);
+}
+.goal-progress__legend-dot--blocked {
+  background: var(--danger);
+}
+.goal-progress__legend-dot--pending {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Phase progress list */
+.goal-progress__phases {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-progress__phase {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-strong);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 200ms ease;
+}
+
+.goal-progress__phase:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.goal-progress__phase--done {
+  border-color: rgba(43, 217, 127, 0.2);
+}
+
+.goal-progress__phase--in_progress {
+  border-color: rgba(245, 159, 74, 0.2);
+}
+
+.goal-progress__phase--blocked {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.goal-progress__phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.goal-progress__phase-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.goal-progress__phase-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goal-progress__phase-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goal-progress__phase-counts {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.goal-progress__phase-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  display: flex;
+}
+
+.goal-progress__phase-fill {
+  height: 100%;
+  transition: width 400ms ease;
+}
+
+.goal-progress__phase-fill--done {
+  background: var(--accent-2);
+}
+
+.goal-progress__phase-fill--in_progress {
+  background: var(--accent);
+}
+
+.goal-progress__phase-fill--blocked {
+  background: var(--danger);
+}
+
+/* Phase tasks breakdown (collapsible) */
+.goal-progress__phase-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.goal-progress__task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: background 150ms ease;
+}
+
+.goal-progress__task:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.goal-progress__task-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goal-progress__task-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.goal-progress__task-deps {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.goal-progress__task-status {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.goal-progress__task-status--done {
+  color: var(--accent-2);
+  background: rgba(43, 217, 127, 0.1);
+}
+
+.goal-progress__task-status--in_progress {
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.goal-progress__task-status--blocked {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.goal-progress__task-status--pending {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Velocity / ETA section */
+.goal-progress__velocity {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.goal-progress__velocity-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+}
+
+.goal-progress__velocity-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.goal-progress__velocity-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Empty state */
+.goal-progress__empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.goal-progress__empty-icon {
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 900px) {
+  .graph-panel__body {
+    grid-template-columns: 1fr;
+  }
+  .goal-progress__velocity {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .overseer-drawer {
+    width: 100%;
+    border-left: none;
+  }
+}
+
+/* --- Light theme adjustments --- */
+
+:root[data-theme="light"] .overseer-stat-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+}
+
+:root[data-theme="light"] .phase-card {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="light"] .task-item {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="light"] .stalled-panel {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), transparent);
+}
+
+:root[data-theme="light"] .goal-progress {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="light"] .goal-progress__phase {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="light"] .goal-progress__overall-bar {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .goal-progress__status-bar {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .goal-progress__phase-bar {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .goal-progress__velocity-item {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+:root[data-theme="light"] .goal-progress__legend-dot--pending {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .goal-progress__status-segment--pending {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .graph-node rect {
+  fill: rgba(255, 255, 255, 0.9);
+}
