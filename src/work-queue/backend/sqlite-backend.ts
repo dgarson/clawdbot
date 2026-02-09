@@ -614,7 +614,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
             deleted = existing.count;
           } else {
             const result = deleteStmt.run(row.id);
-            deleted = result.changes;
+            deleted = Number(result.changes);
           }
           stats.deleted += deleted;
 
@@ -630,7 +630,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
                   ref.label ?? null,
                   ref.uri ?? formatRef(ref),
                 );
-                stats.inserted += result.changes;
+                stats.inserted += Number(result.changes);
               }
             }
           }
@@ -653,7 +653,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
                 ref.label ?? null,
                 ref.uri ?? formatRef(ref),
               );
-              stats.inserted += result.changes;
+              stats.inserted += Number(result.changes);
             }
           }
           stats.updated += 1;
