@@ -361,7 +361,7 @@ export async function agentsListCommand(
       const stats = gatewayStatsByAgent.get(summary.id);
       if (stats) {
         summary.verbose = {
-          ...(summary.verbose ?? {}),
+          ...summary.verbose,
           gateway: stats,
         };
       }

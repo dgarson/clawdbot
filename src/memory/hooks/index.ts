@@ -23,7 +23,7 @@ export function registerMemoryPipelineHooks(options?: {
   const source = options?.source ?? "hook";
 
   const sessionStartHandler = (event: InternalHookEvent) => {
-    const context = event.context as Record<string, unknown>;
+    const context = event.context;
     const sessionKeyCrn = buildSessionKeyCrn({ sessionKey: event.sessionKey });
     const sessionId = typeof context.sessionId === "string" ? context.sessionId : undefined;
     const payload: SessionStartEventPayload = {
@@ -49,7 +49,7 @@ export function registerMemoryPipelineHooks(options?: {
   };
 
   const messageReceivedHandler = (event: InternalHookEvent) => {
-    const context = event.context as Record<string, unknown>;
+    const context = event.context;
     const sessionKeyCrn = buildSessionKeyCrn({ sessionKey: event.sessionKey });
     const sessionId = typeof context.sessionId === "string" ? context.sessionId : undefined;
     const payload: MessageReceivedEventPayload = {
@@ -81,7 +81,7 @@ export function registerMemoryPipelineHooks(options?: {
   };
 
   const compactionSummaryHandler = (event: InternalHookEvent) => {
-    const context = event.context as Record<string, unknown>;
+    const context = event.context;
     const sessionKeyCrn = buildSessionKeyCrn({ sessionKey: event.sessionKey });
     const sessionId = typeof context.sessionId === "string" ? context.sessionId : undefined;
     const payload: CompactionSummaryEventPayload = {

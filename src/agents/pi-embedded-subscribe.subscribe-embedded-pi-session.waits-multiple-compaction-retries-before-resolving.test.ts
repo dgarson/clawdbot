@@ -152,7 +152,7 @@ describe("subscribeEmbeddedPiSession", () => {
     expect(toolEvents).toHaveLength(1);
     const payload = toolEvents[0];
     if (payload.kind === "agent_event") {
-      const data = payload.data as Record<string, unknown>;
+      const data = payload.data;
       expect(data.text as string).toContain("/tmp/a.txt");
     }
 
@@ -209,7 +209,7 @@ describe("subscribeEmbeddedPiSession", () => {
     expect(toolEvents).toHaveLength(1);
     const payload = toolEvents[0];
     if (payload.kind === "agent_event") {
-      const data = payload.data as Record<string, unknown>;
+      const data = payload.data;
       const text = data.text as string;
       expect(text).toContain("Browser");
       expect(text).toContain("snapshot");
@@ -254,7 +254,7 @@ describe("subscribeEmbeddedPiSession", () => {
     );
     expect(summaryEvents).toHaveLength(1);
     if (summaryEvents[0].kind === "agent_event") {
-      const data = summaryEvents[0].data as Record<string, unknown>;
+      const data = summaryEvents[0].data;
       const text = data.text as string;
       expect(text).toContain("Exec");
       expect(text).toContain("pty");
@@ -275,7 +275,7 @@ describe("subscribeEmbeddedPiSession", () => {
     );
     expect(outputEvents).toHaveLength(1);
     if (outputEvents[0].kind === "agent_event") {
-      const data = outputEvents[0].data as Record<string, unknown>;
+      const data = outputEvents[0].data;
       const text = data.text as string;
       expect(text).toContain("hello");
       expect(text).toContain("```txt");
@@ -296,7 +296,7 @@ describe("subscribeEmbeddedPiSession", () => {
     );
     expect(outputEventsAfter).toHaveLength(2);
     if (outputEventsAfter[1].kind === "agent_event") {
-      const data = outputEventsAfter[1].data as Record<string, unknown>;
+      const data = outputEventsAfter[1].data;
       const text = data.text as string;
       expect(text).toContain("file data");
     }

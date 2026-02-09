@@ -46,9 +46,13 @@ export function createMemoryAuditTool(options: {
   agentSessionKey?: string;
 }): AnyAgentTool | null {
   const cfg = options.config;
-  if (!cfg) return null;
+  if (!cfg) {
+    return null;
+  }
 
-  if (!isProgressiveMemoryEnabled(cfg)) return null;
+  if (!isProgressiveMemoryEnabled(cfg)) {
+    return null;
+  }
 
   return {
     label: "Memory Audit",
@@ -106,7 +110,9 @@ export function createMemoryAuditTool(options: {
           try {
             const files = await fs.readdir(memoryDir);
             for (const file of files) {
-              if (!file.endsWith(".md")) continue;
+              if (!file.endsWith(".md")) {
+                continue;
+              }
               const filePath = path.join(memoryDir, file);
               try {
                 const content = await fs.readFile(filePath, "utf-8");

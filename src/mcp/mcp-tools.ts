@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import type { OpenClawConfig } from "../config/config.js";
 import type { McpReadinessConfig, McpServerConfig, McpServersConfig } from "../config/types.mcp.js";
 import { normalizeToolName } from "../agents/tool-policy.js";
-import { logDebug, logInfo, logWarn } from "../logger.js";
+import { logDebug, logWarn } from "../logger.js";
 import { resolveEffectiveMcpServers, isMcpServerEnabled } from "./resolve.js";
 
 // Default readiness check configuration for HTTP/SSE servers.
@@ -166,8 +166,12 @@ function detectAuthRequired(server: McpServerConfig): boolean {
  */
 function getTransportHint(server: McpServerConfig): string {
   const transport = typeof server.transport === "string" ? server.transport : "stdio";
-  if (transport === "http") return "[HTTP]";
-  if (transport === "sse") return "[SSE]";
+  if (transport === "http") {
+    return "[HTTP]";
+  }
+  if (transport === "sse") {
+    return "[SSE]";
+  }
   return "[Local]"; // stdio
 }
 

@@ -25,9 +25,13 @@ export function createMemoryIndexStatusTool(options: {
   agentSessionKey?: string;
 }): AnyAgentTool | null {
   const cfg = options.config;
-  if (!cfg) return null;
+  if (!cfg) {
+    return null;
+  }
 
-  if (!isProgressiveMemoryEnabled(cfg)) return null;
+  if (!isProgressiveMemoryEnabled(cfg)) {
+    return null;
+  }
 
   return {
     label: "Memory Index Status",

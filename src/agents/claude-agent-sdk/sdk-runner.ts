@@ -60,7 +60,9 @@ const DEFAULT_MAX_TURNS = 50;
 
 /** Evaluate a shouldEmit flag that may be boolean or function. */
 function evalShouldEmit(flag: boolean | (() => boolean) | undefined): boolean {
-  if (typeof flag === "function") return flag();
+  if (typeof flag === "function") {
+    return flag();
+  }
   return flag !== false;
 }
 
@@ -1005,7 +1007,13 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         if (phase === "result") {
           runState.toolMetas.push({ toolName: normalizedName.name, meta: toolMeta });
           if (isError) {
-            const errorMsg = toolText ?? (record?.error ? String(record.error) : undefined);
+            const errorMsg =
+              toolText ??
+              (record?.error
+                ? record.error instanceof Error
+                  ? record.error.message
+                  : JSON.stringify(record.error)
+                : undefined);
             runState.lastToolError = {
               toolName: normalizedName.name,
               meta: toolMeta,

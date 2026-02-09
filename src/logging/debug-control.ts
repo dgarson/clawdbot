@@ -39,7 +39,9 @@ export type DebugContext = {
  * Looks for standard fields: channel, feature, runId.
  */
 export function getDebugContext(meta?: Record<string, unknown>): DebugContext {
-  if (!meta) return {};
+  if (!meta) {
+    return {};
+  }
 
   return {
     channel: typeof meta.channel === "string" ? meta.channel : undefined,
@@ -214,7 +216,7 @@ function checkDebuggingProps(props: DebuggingProps, level: "debug" | "trace"): b
 
   // Backward compatibility: check for custom properties
   // Examples: sendTracing, sendDebug, etc.
-  const customDebugKey = `${level}`;
+  const customDebugKey = level;
   const customTracingKey = level === "trace" ? "tracing" : undefined;
   const customSendDebugKey = level === "debug" ? "sendDebug" : undefined;
   const customSendTracingKey = level === "trace" ? "sendTracing" : undefined;
@@ -248,11 +250,17 @@ export function summarizeLoggingConfig(config: OpenClawConfig): string | undefin
   if (channels && Object.keys(channels).length > 0) {
     const entries = Object.entries(channels).map(([id, props]) => {
       const flags: string[] = [];
-      if (props.suppressLogging === true) flags.push("suppressed");
-      else if (props.verbose === true) flags.push("verbose");
-      else {
-        if (props.debug === true) flags.push("debug");
-        if (props.trace === true) flags.push("trace");
+      if (props.suppressLogging === true) {
+        flags.push("suppressed");
+      } else if (props.verbose === true) {
+        flags.push("verbose");
+      } else {
+        if (props.debug === true) {
+          flags.push("debug");
+        }
+        if (props.trace === true) {
+          flags.push("trace");
+        }
       }
       return flags.length > 0 ? `${id}(${flags.join(",")})` : id;
     });
@@ -264,11 +272,17 @@ export function summarizeLoggingConfig(config: OpenClawConfig): string | undefin
   if (features && Object.keys(features).length > 0) {
     const entries = Object.entries(features).map(([id, props]) => {
       const flags: string[] = [];
-      if (props.suppressLogging === true) flags.push("suppressed");
-      else if (props.verbose === true) flags.push("verbose");
-      else {
-        if (props.debug === true) flags.push("debug");
-        if (props.trace === true) flags.push("trace");
+      if (props.suppressLogging === true) {
+        flags.push("suppressed");
+      } else if (props.verbose === true) {
+        flags.push("verbose");
+      } else {
+        if (props.debug === true) {
+          flags.push("debug");
+        }
+        if (props.trace === true) {
+          flags.push("trace");
+        }
       }
       return flags.length > 0 ? `${id}(${flags.join(",")})` : id;
     });
@@ -281,7 +295,9 @@ export function summarizeLoggingConfig(config: OpenClawConfig): string | undefin
     parts.push(`suppressed=[${suppressed.join(", ")}]`);
   }
 
-  if (parts.length === 0) return undefined;
+  if (parts.length === 0) {
+    return undefined;
+  }
   return parts.join(" ");
 }
 

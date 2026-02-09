@@ -228,7 +228,9 @@ function extractEntitiesFromText(
   // Technology extraction
   const techMatches = text.matchAll(TECHNOLOGY_PATTERN);
   for (const match of techMatches) {
-    if (entities.length >= maxEntities) break;
+    if (entities.length >= maxEntities) {
+      break;
+    }
     entities.push({
       name: match[1],
       type: "Technology",
@@ -241,7 +243,9 @@ function extractEntitiesFromText(
   for (const pattern of PERSON_PATTERNS) {
     const matches = text.matchAll(pattern.pattern);
     for (const match of matches) {
-      if (entities.length >= maxEntities) break;
+      if (entities.length >= maxEntities) {
+        break;
+      }
       const name = match[pattern.nameGroup ?? 0]?.trim();
       if (name && name.length > 1) {
         entities.push({
@@ -258,7 +262,9 @@ function extractEntitiesFromText(
   for (const pattern of ORG_PATTERNS) {
     const matches = text.matchAll(pattern.pattern);
     for (const match of matches) {
-      if (entities.length >= maxEntities) break;
+      if (entities.length >= maxEntities) {
+        break;
+      }
       const name = match[pattern.nameGroup ?? 0]?.trim();
       if (name && name.length > 2) {
         entities.push({
@@ -275,7 +281,9 @@ function extractEntitiesFromText(
   for (const pattern of PROJECT_PATTERNS) {
     const matches = text.matchAll(pattern.pattern);
     for (const match of matches) {
-      if (entities.length >= maxEntities) break;
+      if (entities.length >= maxEntities) {
+        break;
+      }
       const name = match[pattern.nameGroup ?? 0]?.trim();
       if (name && name.length > 1) {
         entities.push({
@@ -292,7 +300,9 @@ function extractEntitiesFromText(
   {
     const matches = text.matchAll(URL_PATTERN.pattern);
     for (const match of matches) {
-      if (entities.length >= maxEntities) break;
+      if (entities.length >= maxEntities) {
+        break;
+      }
       const name = match[URL_PATTERN.nameGroup ?? 0]?.trim();
       if (name) {
         entities.push({
@@ -311,7 +321,9 @@ function extractEntitiesFromText(
     for (const pattern of config.customPatterns) {
       const matches = text.matchAll(pattern.pattern);
       for (const match of matches) {
-        if (entities.length >= maxEntities) break;
+        if (entities.length >= maxEntities) {
+          break;
+        }
         const name = match[pattern.nameGroup ?? 0]?.trim();
         if (name && name.length > 1) {
           entities.push({
@@ -409,7 +421,9 @@ export function extractEntitiesFromEpisodes(
 
   for (const episode of episodes) {
     const text = episode.text ?? "";
-    if (text.length < minTextLength) continue;
+    if (text.length < minTextLength) {
+      continue;
+    }
 
     const { entities, warnings: extractWarnings } = extractEntitiesFromText(
       text,

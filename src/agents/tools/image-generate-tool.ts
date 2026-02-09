@@ -18,7 +18,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { AnyAgentTool } from "./common.js";
 import { resolveConfigDir } from "../../utils.js";
-import { readStringParam, readNumberParam } from "./common.js";
+import { readStringParam } from "./common.js";
 
 // ── Schema ──────────────────────────────────────────────────────────
 

@@ -16,7 +16,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /** Evaluate a shouldEmit flag that may be boolean or function. */
 function evalShouldEmit(flag: boolean | (() => boolean) | undefined): boolean {
-  if (typeof flag === "function") return flag();
+  if (typeof flag === "function") {
+    return flag();
+  }
   return flag !== false;
 }
 

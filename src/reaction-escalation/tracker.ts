@@ -7,8 +7,17 @@ import { deliverOutcome } from "./outcome-delivery.js";
 
 const DEFAULT_WAIT_TIMEOUT_MS = 20 * 60_000;
 
+const PROCESSING_REACTION = "eyes";
+const SUCCESS_REACTION = "white_check_mark";
+const FAILURE_REACTION = "x";
+
+type TrackedSession = {
+  outcome: EscalationOutcome;
+  reactionTarget?: { channelId: string; messageTs: string };
+};
+
 export class ReactionEscalationTracker {
-  private pending = new Map<string, EscalationOutcome>();
+  private pending = new Map<string, TrackedSession>();
 
   constructor(
     private deps: {
@@ -18,8 +27,16 @@ export class ReactionEscalationTracker {
     },
   ) {}
 
-  trackSession(params: { outcome: EscalationOutcome; sessionKey: string; runId: string }) {
-    this.pending.set(params.runId, params.outcome);
+  trackSession(params: {
+    outcome: EscalationOutcome;
+    sessionKey: string;
+    runId: string;
+    reactionTarget?: { channelId: string; messageTs: string };
+  }) {
+    this.pending.set(params.runId, {
+      outcome: params.outcome,
+      reactionTarget: params.reactionTarget,
+    });
     void this.waitForCompletion(params.runId, params.sessionKey).catch((err) => {
       this.deps.runtime?.error?.(`reaction escalation wait failed: ${String(err)}`);
     });
@@ -32,12 +49,13 @@ export class ReactionEscalationTracker {
       params: { runId, timeoutMs },
       timeoutMs: timeoutMs + 10_000,
     });
-    const outcome = this.pending.get(runId);
-    if (!outcome) {
+    const tracked = this.pending.get(runId);
+    if (!tracked) {
       return;
     }
     this.pending.delete(runId);
 
+    const { outcome, reactionTarget } = tracked;
     const status = wait?.status === "ok" ? "ok" : wait?.status === "error" ? "error" : "partial";
     const summary = await fetchOutcomeSummaryFromSession({
       sessionKey,
@@ -72,6 +90,30 @@ export class ReactionEscalationTracker {
     }
     if (outcomeUrl) {
       outcome.outcomePermalink = outcomeUrl;
+    }
+
+    // Update reactions now that the session has completed
+    if (reactionTarget) {
+      const { channelId, messageTs } = reactionTarget;
+      if (this.deps.adapter.removeReaction) {
+        try {
+          await this.deps.adapter.removeReaction({
+            channelId,
+            messageTs,
+            reaction: PROCESSING_REACTION,
+          });
+        } catch {
+          // ignore
+        }
+      }
+      if (this.deps.adapter.addReaction) {
+        try {
+          const reaction = outcome.status === "completed" ? SUCCESS_REACTION : FAILURE_REACTION;
+          await this.deps.adapter.addReaction({ channelId, messageTs, reaction });
+        } catch {
+          // ignore
+        }
+      }
     }
   }
 }

@@ -51,8 +51,12 @@ export function stopMemoryFeedbackSubscriber(): void {
 }
 
 function ensureInitialized(): boolean {
-  if (evaluator && store) return true;
-  if (!configured || !llmCallFn) return false;
+  if (evaluator && store) {
+    return true;
+  }
+  if (!configured || !llmCallFn) {
+    return false;
+  }
 
   try {
     const stateDir = resolveStateDir();
@@ -101,7 +105,7 @@ function getContentBlocks(msg: MessageLike): ContentBlock[] {
     return [{ type: "text", text: msg.content }];
   }
   if (Array.isArray(msg.content)) {
-    return msg.content as ContentBlock[];
+    return msg.content;
   }
   return [];
 }
@@ -122,14 +126,20 @@ export function extractMemorySearches(messages: MessageLike[]): ExtractedMemoryS
 
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    if (msg.role !== "assistant") continue;
+    if (msg.role !== "assistant") {
+      continue;
+    }
 
     const blocks = getContentBlocks(msg);
     for (const block of blocks) {
-      if (block.type !== "tool_use" || block.name !== "memory_search") continue;
+      if (block.type !== "tool_use" || block.name !== "memory_search") {
+        continue;
+      }
 
-      const query = String(block.input?.query ?? "");
-      if (!query) continue;
+      const query = typeof block.input?.query === "string" ? block.input.query : "";
+      if (!query) {
+        continue;
+      }
 
       const toolUseId = block.id;
 
@@ -138,7 +148,9 @@ export function extractMemorySearches(messages: MessageLike[]): ExtractedMemoryS
       // Tool results come in the next user message as tool_result blocks
       for (let j = i + 1; j < messages.length; j++) {
         const resultMsg = messages[j];
-        if (resultMsg.role !== "user") continue;
+        if (resultMsg.role !== "user") {
+          continue;
+        }
         const resultBlocks = getContentBlocks(resultMsg);
         const resultBlock = resultBlocks.find(
           (b) => b.type === "tool_result" && b.tool_use_id === toolUseId,
@@ -150,7 +162,9 @@ export function extractMemorySearches(messages: MessageLike[]): ExtractedMemoryS
         break; // only check the immediately following user message
       }
 
-      if (results.length === 0) continue;
+      if (results.length === 0) {
+        continue;
+      }
 
       // Find the user message that preceded this assistant message (= landingPrompt)
       let userPrompt = "";
@@ -194,7 +208,9 @@ export function extractMemorySearches(messages: MessageLike[]): ExtractedMemoryS
 }
 
 function parseToolResultContent(content: unknown): MemorySearchResult[] {
-  if (!content) return [];
+  if (!content) {
+    return [];
+  }
 
   // The tool result content may be a string (JSON), an array of text blocks, etc.
   let text = "";
@@ -211,7 +227,9 @@ function parseToolResultContent(content: unknown): MemorySearchResult[] {
     }
   }
 
-  if (!text) return [];
+  if (!text) {
+    return [];
+  }
 
   try {
     const parsed = JSON.parse(text);
@@ -246,12 +264,20 @@ export function handleAgentEnd(
   context: { agentId?: string; sessionKey?: string },
 ): void {
   try {
-    if (!event.success) return;
-    if (!isMessageArray(event.messages)) return;
-    if (!ensureInitialized()) return;
+    if (!event.success) {
+      return;
+    }
+    if (!isMessageArray(event.messages)) {
+      return;
+    }
+    if (!ensureInitialized()) {
+      return;
+    }
 
     const searches = extractMemorySearches(event.messages);
-    if (searches.length === 0) return;
+    if (searches.length === 0) {
+      return;
+    }
 
     for (const search of searches) {
       if (

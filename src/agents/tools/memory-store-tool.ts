@@ -19,8 +19,7 @@ import {
   getProgressiveStore,
   type ProgressiveStoreAccess,
 } from "../../memory/progressive-manager.js";
-import { ProgressiveMemoryStore, type EmbedFn } from "../../memory/progressive-store.js";
-import { VALID_CATEGORIES, VALID_PRIORITIES } from "../../memory/progressive-types.js";
+import { type EmbedFn } from "../../memory/progressive-store.js";
 import { jsonResult, readStringParam, readStringArrayParam } from "./common.js";
 
 const MemoryStoreSchema = Type.Object({
@@ -61,10 +60,14 @@ export function createMemoryStoreTool(options: {
   agentSessionKey?: string;
 }): AnyAgentTool | null {
   const cfg = options.config;
-  if (!cfg) return null;
+  if (!cfg) {
+    return null;
+  }
 
   // Check if progressive memory is enabled
-  if (!isProgressiveMemoryEnabled(cfg)) return null;
+  if (!isProgressiveMemoryEnabled(cfg)) {
+    return null;
+  }
 
   return {
     label: "Memory Store",
@@ -116,7 +119,9 @@ export function createMemoryStoreTool(options: {
 function isProgressiveMemoryEnabled(cfg: OpenClawConfig): boolean {
   // Check config for progressive memory flag
   const memory = cfg.memory as Record<string, unknown> | undefined;
-  if (!memory) return false;
+  if (!memory) {
+    return false;
+  }
   const progressive = memory.progressive as Record<string, unknown> | undefined;
   return progressive?.enabled === true;
 }

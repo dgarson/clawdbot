@@ -38,9 +38,13 @@ describe("restoreChatRunState", () => {
       },
       remove: (sessionId, clientRunId) => {
         const queue = registryData.get(sessionId);
-        if (!queue) return undefined;
+        if (!queue) {
+          return undefined;
+        }
         const idx = queue.findIndex((e) => e.clientRunId === clientRunId);
-        if (idx < 0) return undefined;
+        if (idx < 0) {
+          return undefined;
+        }
         const [entry] = queue.splice(idx, 1);
         return entry;
       },

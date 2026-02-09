@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { ProgressiveMemoryStore } from "./progressive-store.js";
 
 function tmpDbPath(): string {
@@ -24,7 +24,9 @@ describe("ProgressiveMemoryStore", () => {
 
   afterEach(() => {
     store?.close();
-    if (dbPath) cleanupDb(dbPath);
+    if (dbPath) {
+      cleanupDb(dbPath);
+    }
   });
 
   function createStore(opts?: { dedupThreshold?: number }) {

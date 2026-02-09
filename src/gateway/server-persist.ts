@@ -264,7 +264,7 @@ export function createChatRunStatePersistTimer(params: {
         await persistChatRunState(runs);
         const runIds = runs
           .map((r) => r.clientRunId)
-          .sort()
+          .toSorted()
           .join(",");
         if (runIds !== prevRunIds) {
           const runSummary = runs

@@ -143,13 +143,13 @@ export function renderPattern(
 // ─── Multiple Choice ─────────────────────────────────────────────────────────
 
 function renderMultipleChoice(params: Record<string, unknown>): TelegramPatternResult {
-  const question = String(params.question ?? "");
+  const question = typeof params.question === "string" ? params.question : "";
   const options = (params.options ?? []) as Array<{
     text: string;
     value: string;
     description?: string;
   }>;
-  const actionIdPrefix = String(params.actionIdPrefix ?? "mc");
+  const actionIdPrefix = typeof params.actionIdPrefix === "string" ? params.actionIdPrefix : "mc";
   const allowMultiple = params.allowMultiple === true;
 
   const html = bold(question);
@@ -190,12 +190,12 @@ function renderMultipleChoice(params: Record<string, unknown>): TelegramPatternR
 // ─── Confirmation ────────────────────────────────────────────────────────────
 
 function renderConfirmation(params: Record<string, unknown>): TelegramPatternResult {
-  const title = String(params.title ?? "Confirm");
-  const message = String(params.message ?? "");
-  const actionIdPrefix = String(params.actionIdPrefix ?? "cfm");
-  const confirmLabel = String(params.confirmLabel ?? "Confirm");
-  const cancelLabel = String(params.cancelLabel ?? "Cancel");
-  const style = String(params.style ?? "primary");
+  const title = typeof params.title === "string" ? params.title : "Confirm";
+  const message = typeof params.message === "string" ? params.message : "";
+  const actionIdPrefix = typeof params.actionIdPrefix === "string" ? params.actionIdPrefix : "cfm";
+  const confirmLabel = typeof params.confirmLabel === "string" ? params.confirmLabel : "Confirm";
+  const cancelLabel = typeof params.cancelLabel === "string" ? params.cancelLabel : "Cancel";
+  const style = typeof params.style === "string" ? params.style : "primary";
 
   const confirmEmoji = style === "danger" ? "🔴" : "✅";
   const html = `${bold(title)}\n\n${escapeHtml(message)}`;
@@ -220,13 +220,13 @@ function renderConfirmation(params: Record<string, unknown>): TelegramPatternRes
 // ─── Task Proposal ───────────────────────────────────────────────────────────
 
 function renderTaskProposal(params: Record<string, unknown>): TelegramPatternResult {
-  const title = String(params.title ?? "");
-  const description = String(params.description ?? "");
+  const title = typeof params.title === "string" ? params.title : "";
+  const description = typeof params.description === "string" ? params.description : "";
   const details = (params.details ?? []) as Array<{ label: string; value: string }>;
-  const actionIdPrefix = String(params.actionIdPrefix ?? "task");
-  const acceptLabel = String(params.acceptLabel ?? "Accept");
-  const rejectLabel = String(params.rejectLabel ?? "Reject");
-  const modifyLabel = params.modifyLabel ? String(params.modifyLabel) : undefined;
+  const actionIdPrefix = typeof params.actionIdPrefix === "string" ? params.actionIdPrefix : "task";
+  const acceptLabel = typeof params.acceptLabel === "string" ? params.acceptLabel : "Accept";
+  const rejectLabel = typeof params.rejectLabel === "string" ? params.rejectLabel : "Reject";
+  const modifyLabel = typeof params.modifyLabel === "string" ? params.modifyLabel : undefined;
 
   let html = `📋 ${bold(title)}\n\n${escapeHtml(description)}`;
   let plainText = `📋 **${title}**\n\n${description}`;
@@ -262,14 +262,14 @@ function renderTaskProposal(params: Record<string, unknown>): TelegramPatternRes
 // ─── Action Items ────────────────────────────────────────────────────────────
 
 function renderActionItems(params: Record<string, unknown>): TelegramPatternResult {
-  const title = String(params.title ?? "Action Items");
+  const title = typeof params.title === "string" ? params.title : "Action Items";
   const items = (params.items ?? []) as Array<{
     id: string;
     text: string;
     completed?: boolean;
     details?: string;
   }>;
-  const actionIdPrefix = String(params.actionIdPrefix ?? "ai");
+  const actionIdPrefix = typeof params.actionIdPrefix === "string" ? params.actionIdPrefix : "ai";
   const showCheckboxes = params.showCheckboxes !== false;
 
   const lines = items.map((item) => {
@@ -305,11 +305,18 @@ function renderActionItems(params: Record<string, unknown>): TelegramPatternResu
 // ─── Status ──────────────────────────────────────────────────────────────────
 
 function renderStatus(params: Record<string, unknown>): TelegramPatternResult {
-  const title = String(params.title ?? "Status");
-  const message = String(params.message ?? "");
-  const status = String(params.status ?? "info") as "success" | "warning" | "error" | "info";
+  const title = typeof params.title === "string" ? params.title : "Status";
+  const message = typeof params.message === "string" ? params.message : "";
+  const status = (typeof params.status === "string" ? params.status : "info") as
+    | "success"
+    | "warning"
+    | "error"
+    | "info";
   const details = (params.details ?? []) as string[];
-  const timestamp = params.timestamp ? String(params.timestamp) : undefined;
+  const timestamp =
+    typeof params.timestamp === "string" || typeof params.timestamp === "number"
+      ? String(params.timestamp)
+      : undefined;
 
   const emoji = STATUS_EMOJI[status] ?? "ℹ️";
   let html = `${emoji} ${bold(title)}\n\n${escapeHtml(message)}`;
@@ -344,10 +351,10 @@ function buildProgressBar(current: number, total: number, width: number = 20): s
 }
 
 function renderProgress(params: Record<string, unknown>): TelegramPatternResult {
-  const title = String(params.title ?? "Progress");
+  const title = typeof params.title === "string" ? params.title : "Progress";
   const current = Number(params.current ?? 0);
   const total = Number(params.total ?? 100);
-  const description = params.description ? String(params.description) : undefined;
+  const description = typeof params.description === "string" ? params.description : undefined;
   const showPercentage = params.showPercentage !== false;
 
   const bar = buildProgressBar(current, total);
@@ -369,7 +376,7 @@ function renderProgress(params: Record<string, unknown>): TelegramPatternResult 
 // ─── Info Grid ───────────────────────────────────────────────────────────────
 
 function renderInfoGrid(params: Record<string, unknown>): TelegramPatternResult {
-  const title = String(params.title ?? "");
+  const title = typeof params.title === "string" ? params.title : "";
   const items = (params.items ?? []) as Array<{ label: string; value: string }>;
 
   const lines = items.map((item) => `${bold(item.label)}: ${escapeHtml(item.value)}`);

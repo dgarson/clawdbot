@@ -695,28 +695,72 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
       Object.hasOwn(patch, key) && patch[key] !== undefined;
     // Required fields are only updated when a concrete value is provided.
     // This avoids binding `undefined` into SQLite parameters.
-    if (hasDefined("queueId")) apply("queue_id", patch.queueId);
-    if (hasDefined("title")) apply("title", patch.title);
-    if (has("description")) apply("description", patch.description ?? null);
-    if (has("payload")) apply("payload_json", encodeJson(patch.payload));
-    if (hasDefined("status")) apply("status", patch.status);
-    if (has("statusReason")) apply("status_reason", patch.statusReason ?? null);
-    if (has("parentItemId")) apply("parent_item_id", patch.parentItemId ?? null);
-    if (has("dependsOn")) apply("depends_on_json", encodeJson(patch.dependsOn));
-    if (has("blockedBy")) apply("blocked_by_json", encodeJson(patch.blockedBy));
-    if (has("assignedTo")) apply("assigned_to_json", encodeJson(patch.assignedTo));
-    if (hasDefined("priority")) apply("priority", patch.priority);
-    if (has("workstream")) apply("workstream", patch.workstream ?? null);
-    if (has("tags")) apply("tags_json", encodeJson(patch.tags));
-    if (has("result")) apply("result_json", encodeJson(patch.result));
-    if (has("error")) apply("error_json", encodeJson(patch.error));
-    if (has("retryCount")) apply("retry_count", patch.retryCount ?? 0);
-    if (has("maxRetries")) apply("max_retries", patch.maxRetries ?? null);
-    if (has("deadline")) apply("deadline", patch.deadline ?? null);
-    if (has("lastOutcome")) apply("last_outcome", patch.lastOutcome ?? null);
-    if (has("startedAt")) apply("started_at", patch.startedAt ?? null);
-    if (has("lastHeartbeatAt")) apply("last_heartbeat_at", patch.lastHeartbeatAt ?? null);
-    if (has("completedAt")) apply("completed_at", patch.completedAt ?? null);
+    if (hasDefined("queueId")) {
+      apply("queue_id", patch.queueId);
+    }
+    if (hasDefined("title")) {
+      apply("title", patch.title);
+    }
+    if (has("description")) {
+      apply("description", patch.description ?? null);
+    }
+    if (has("payload")) {
+      apply("payload_json", encodeJson(patch.payload));
+    }
+    if (hasDefined("status")) {
+      apply("status", patch.status);
+    }
+    if (has("statusReason")) {
+      apply("status_reason", patch.statusReason ?? null);
+    }
+    if (has("parentItemId")) {
+      apply("parent_item_id", patch.parentItemId ?? null);
+    }
+    if (has("dependsOn")) {
+      apply("depends_on_json", encodeJson(patch.dependsOn));
+    }
+    if (has("blockedBy")) {
+      apply("blocked_by_json", encodeJson(patch.blockedBy));
+    }
+    if (has("assignedTo")) {
+      apply("assigned_to_json", encodeJson(patch.assignedTo));
+    }
+    if (hasDefined("priority")) {
+      apply("priority", patch.priority);
+    }
+    if (has("workstream")) {
+      apply("workstream", patch.workstream ?? null);
+    }
+    if (has("tags")) {
+      apply("tags_json", encodeJson(patch.tags));
+    }
+    if (has("result")) {
+      apply("result_json", encodeJson(patch.result));
+    }
+    if (has("error")) {
+      apply("error_json", encodeJson(patch.error));
+    }
+    if (has("retryCount")) {
+      apply("retry_count", patch.retryCount ?? 0);
+    }
+    if (has("maxRetries")) {
+      apply("max_retries", patch.maxRetries ?? null);
+    }
+    if (has("deadline")) {
+      apply("deadline", patch.deadline ?? null);
+    }
+    if (has("lastOutcome")) {
+      apply("last_outcome", patch.lastOutcome ?? null);
+    }
+    if (has("startedAt")) {
+      apply("started_at", patch.startedAt ?? null);
+    }
+    if (has("lastHeartbeatAt")) {
+      apply("last_heartbeat_at", patch.lastHeartbeatAt ?? null);
+    }
+    if (has("completedAt")) {
+      apply("completed_at", patch.completedAt ?? null);
+    }
 
     apply("updated_at", now);
 
@@ -727,7 +771,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     const sql = `UPDATE work_items SET ${updates.join(", ")} WHERE id = ?`;
     db.prepare(sql).run(...params, itemId);
     if (has("payload")) {
-      this.syncRefs(itemId, patch.payload as Record<string, unknown> | undefined);
+      this.syncRefs(itemId, patch.payload);
     }
 
     const updated = await this.getItem(itemId);
@@ -965,7 +1009,9 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     const row = db.prepare("SELECT * FROM work_item_transcripts WHERE id = ?").get(transcriptId) as
       | Record<string, unknown>
       | undefined;
-    if (!row) return null;
+    if (!row) {
+      return null;
+    }
     return {
       id: row.id as string,
       transcript: JSON.parse(row.transcript_json as string) as unknown[],

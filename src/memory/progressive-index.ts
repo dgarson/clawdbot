@@ -10,13 +10,8 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import type {
-  MemoryCategory,
-  MemoryPriority,
-  ProgressiveMemoryEntry,
-} from "./progressive-types.js";
+import type { MemoryCategory, ProgressiveMemoryEntry } from "./progressive-types.js";
 import { ProgressiveMemoryStore } from "./progressive-store.js";
-import { PRIORITY_ORDER } from "./progressive-types.js";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -82,7 +77,9 @@ export function generateMemoryIndex(
     for (const entry of critical) {
       const prefix = categoryPrefix(entry.category);
       const content = compressContent(entry.content, 200);
-      if (!addLine(`- [${prefix}] ${content}`)) break;
+      if (!addLine(`- [${prefix}] ${content}`)) {
+        break;
+      }
     }
     addLine("");
   }
@@ -96,14 +93,20 @@ export function generateMemoryIndex(
     // Group by category
     const grouped = groupByCategory(highEntries);
 
-    for (const { category, label, icon } of CATEGORY_ORDER) {
+    for (const { category, label } of CATEGORY_ORDER) {
       const entries = grouped.get(category);
-      if (!entries || entries.length === 0) continue;
+      if (!entries || entries.length === 0) {
+        continue;
+      }
 
-      if (!addLine(`## ${label}`)) break;
+      if (!addLine(`## ${label}`)) {
+        break;
+      }
       for (const entry of entries) {
         const summary = compressContent(entry.content, 120);
-        if (!addLine(`- ${summary}`)) break;
+        if (!addLine(`- ${summary}`)) {
+          break;
+        }
       }
       addLine("");
     }
@@ -121,13 +124,16 @@ export function generateMemoryIndex(
       addLine("## Domains (use memory_recall to load)");
       for (const { category, label } of CATEGORY_ORDER) {
         const count = categories.get(category);
-        if (!count) continue;
+        if (!count) {
+          continue;
+        }
         if (
           !addLine(
             `- [${category}] ${label}: ${count} entries → \`memory_recall(categories:["${category}"])\``,
           )
-        )
+        ) {
           break;
+        }
       }
       addLine("");
     }

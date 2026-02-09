@@ -82,7 +82,9 @@ export class WorkQueueStore {
         path.push(currentId);
         return true;
       }
-      if (visited.has(currentId)) return false;
+      if (visited.has(currentId)) {
+        return false;
+      }
       visited.add(currentId);
       path.push(currentId);
 
@@ -92,7 +94,9 @@ export class WorkQueueStore {
           : ((await this.backend.getItem(currentId))?.dependsOn ?? []);
 
       for (const depId of deps) {
-        if (await dfs(depId)) return true;
+        if (await dfs(depId)) {
+          return true;
+        }
       }
       path.pop();
       return false;

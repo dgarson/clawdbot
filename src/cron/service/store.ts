@@ -500,7 +500,7 @@ export async function ensureLoaded(
           { attempt: attempt + 1, maxAttempts: MAX_ATTEMPTS, err: String(err) },
           "cron: transient FS error loading store; retrying",
         );
-        await new Promise<void>((r) => setTimeout(r, RETRY_DELAYS[attempt]!));
+        await new Promise<void>((r) => setTimeout(r, RETRY_DELAYS[attempt]));
         continue;
       }
       // Non-transient or all retries exhausted

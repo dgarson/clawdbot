@@ -2220,7 +2220,7 @@ describe("Enhanced parameter descriptions (Phase #2)", () => {
     });
 
     // Parameters should be enhanced with descriptions
-    const params = tool.parameters as any;
+    const params = tool.parameters;
     expect(params.properties.owner.description).toContain("Owner");
     expect(params.properties.repo.description).toContain("Repo");
   });
@@ -2246,7 +2246,7 @@ describe("Enhanced parameter descriptions (Phase #2)", () => {
       serverConfig: server,
     });
 
-    const params = tool.parameters as any;
+    const params = tool.parameters;
     expect(params.properties.query.description).toBe("Search query string");
   });
 
@@ -2269,7 +2269,7 @@ describe("Enhanced parameter descriptions (Phase #2)", () => {
       serverConfig: server,
     });
 
-    const params = tool.parameters as any;
+    const params = tool.parameters;
     expect(params.properties.count.description).toContain("number");
     expect(params.properties.enabled.description).toContain("boolean");
   });

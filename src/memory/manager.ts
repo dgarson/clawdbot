@@ -50,7 +50,6 @@ import {
   parseDatedFilename,
   type MemoryChunk,
   type MemoryFileEntry,
-  parseEmbedding,
   runWithConcurrency,
 } from "./internal.js";
 import { searchKeyword, searchVector } from "./manager-search.js";

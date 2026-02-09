@@ -107,8 +107,12 @@ describe("WorkQueueWorker", () => {
 
   it("marks items as failed when session errors", async () => {
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "fail-run" };
-      if (opts.method === "agent.wait") return { status: "error", error: "session crashed" };
+      if (opts.method === "agent") {
+        return { runId: "fail-run" };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "error", error: "session crashed" };
+      }
       return {};
     });
 
@@ -398,9 +402,15 @@ describe("WorkQueueWorker retry lifecycle", () => {
   it("retries a failed item back to pending when maxRetries > 0", async () => {
     // Item with maxRetries=2 should go back to pending on first failure.
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "retry-run" };
-      if (opts.method === "agent.wait") return { status: "error", error: "transient failure" };
-      if (opts.method === "chat.history") return { messages: [] };
+      if (opts.method === "agent") {
+        return { runId: "retry-run" };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "error", error: "transient failure" };
+      }
+      if (opts.method === "chat.history") {
+        return { messages: [] };
+      }
       return {};
     });
 
@@ -442,9 +452,15 @@ describe("WorkQueueWorker retry lifecycle", () => {
     // Always fails — should eventually reach maxRetries and go to failed.
     let callCount = 0;
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: `retry-${callCount++}` };
-      if (opts.method === "agent.wait") return { status: "error", error: "persistent failure" };
-      if (opts.method === "chat.history") return { messages: [] };
+      if (opts.method === "agent") {
+        return { runId: `retry-${callCount++}` };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "error", error: "persistent failure" };
+      }
+      if (opts.method === "chat.history") {
+        return { messages: [] };
+      }
       return {};
     });
 
@@ -483,9 +499,15 @@ describe("WorkQueueWorker retry lifecycle", () => {
 
   it("does not retry when maxRetries is 1", async () => {
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "no-retry" };
-      if (opts.method === "agent.wait") return { status: "error", error: "one-shot failure" };
-      if (opts.method === "chat.history") return { messages: [] };
+      if (opts.method === "agent") {
+        return { runId: "no-retry" };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "error", error: "one-shot failure" };
+      }
+      if (opts.method === "chat.history") {
+        return { messages: [] };
+      }
       return {};
     });
 
@@ -522,9 +544,15 @@ describe("WorkQueueWorker retry lifecycle", () => {
 describe("WorkQueueWorker deadline enforcement", () => {
   it("fails an item that has exceeded its deadline", async () => {
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "deadline-run" };
-      if (opts.method === "agent.wait") return { status: "ok" };
-      if (opts.method === "chat.history") return { messages: [] };
+      if (opts.method === "agent") {
+        return { runId: "deadline-run" };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "ok" };
+      }
+      if (opts.method === "chat.history") {
+        return { messages: [] };
+      }
       return {};
     });
 
@@ -582,11 +610,15 @@ describe("WorkQueueWorker deadline enforcement", () => {
 describe("WorkQueueWorker approval timeout detection", () => {
   it("detects approval-related errors and sets approval_timeout outcome", async () => {
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "approval-run" };
+      if (opts.method === "agent") {
+        return { runId: "approval-run" };
+      }
       if (opts.method === "agent.wait") {
         return { status: "error", error: "session stalled waiting for exec approval" };
       }
-      if (opts.method === "chat.history") return { messages: [] };
+      if (opts.method === "chat.history") {
+        return { messages: [] };
+      }
       return {};
     });
 
@@ -641,7 +673,7 @@ describe("WorkQueueWorker execution recording", () => {
     const executions = await store.listExecutions(item.id);
     expect(executions.length).toBeGreaterThanOrEqual(1);
 
-    const exec = executions[0]!;
+    const exec = executions[0];
     expect(exec.itemId).toBe(item.id);
     expect(exec.attemptNumber).toBe(1);
     expect(exec.outcome).toBe("success");
@@ -657,9 +689,15 @@ describe("WorkQueueWorker transcript archival", () => {
       { role: "assistant", content: "done" },
     ];
     const gateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "transcript-run" };
-      if (opts.method === "agent.wait") return { status: "ok" };
-      if (opts.method === "chat.history") return { messages: transcriptData };
+      if (opts.method === "agent") {
+        return { runId: "transcript-run" };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "ok" };
+      }
+      if (opts.method === "chat.history") {
+        return { messages: transcriptData };
+      }
       return {};
     });
 
@@ -690,7 +728,7 @@ describe("WorkQueueWorker transcript archival", () => {
     expect(transcripts.length).toBeGreaterThanOrEqual(1);
 
     // Verify we can retrieve the full transcript.
-    const full = await store.getTranscript(transcripts[0]!.id);
+    const full = await store.getTranscript(transcripts[0].id);
     expect(full).toBeDefined();
     expect(full!.transcript).toEqual(transcriptData);
 
@@ -710,8 +748,12 @@ describe("WorkQueueWorker workstream notes injection", () => {
         capturedSystemPrompt = opts.params?.extraSystemPrompt ?? "";
         return { runId: "notes-run" };
       }
-      if (opts.method === "agent.wait") return { status: "ok" };
-      if (opts.method === "chat.history") return { messages: [] };
+      if (opts.method === "agent.wait") {
+        return { status: "ok" };
+      }
+      if (opts.method === "chat.history") {
+        return { messages: [] };
+      }
       return {};
     });
 

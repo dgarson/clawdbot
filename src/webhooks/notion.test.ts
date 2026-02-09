@@ -141,7 +141,7 @@ describe("createNotionWebhookHandler", () => {
     expect(rawRes(res).statusCode).toBe(200);
 
     // Verify the event is fully parsed
-    const event = onEvent.mock.calls[0]![0]!;
+    const event = onEvent.mock.calls[0][0]!;
     expect(event.type).toBe("page.created");
     expect(event.entity?.id).toBe("page-1");
     expect(event.entity?.type).toBe("page");
@@ -189,7 +189,7 @@ describe("createNotionWebhookHandler", () => {
     const res = makeRes();
     await handler(makeReq("POST", {}, raw), res);
 
-    const event = onEvent.mock.calls[0]![0]!;
+    const event = onEvent.mock.calls[0][0]!;
     expect(event.id).toBe("evt-1");
     expect(event.workspaceId).toBe("ws-1");
     expect(event.subscriptionId).toBe("sub-1");
@@ -247,8 +247,8 @@ describe("createNotionEventRouter", () => {
       entity: { id: "page-1", type: "page" },
     });
     expect(ingestMemory).toHaveBeenCalledTimes(1);
-    expect(ingestMemory.mock.calls[0]![0]!.source).toBe("notion-webhook");
-    expect(ingestMemory.mock.calls[0]![0]!.metadata?.notionEventType).toBe("page.content_updated");
+    expect(ingestMemory.mock.calls[0][0]!.source).toBe("notion-webhook");
+    expect(ingestMemory.mock.calls[0][0]!.metadata?.notionEventType).toBe("page.content_updated");
   });
 
   it("routes wake events to wakeSession", async () => {
@@ -262,7 +262,7 @@ describe("createNotionEventRouter", () => {
       entity: { id: "db-1", type: "database" },
     });
     expect(wakeSession).toHaveBeenCalledTimes(1);
-    expect(wakeSession.mock.calls[0]![0]!.mode).toBe("next-heartbeat");
+    expect(wakeSession.mock.calls[0][0]!.mode).toBe("next-heartbeat");
     expect(logSystem).toHaveBeenCalledTimes(1);
   });
 
@@ -289,7 +289,7 @@ describe("createNotionEventRouter", () => {
       entity: { id: "page-1", type: "page" },
     });
     expect(fetchPageContent).toHaveBeenCalledWith("page-1");
-    expect(ingestMemory.mock.calls[0]![0]!.text).toContain("# Page Title");
+    expect(ingestMemory.mock.calls[0][0]!.text).toContain("# Page Title");
   });
 });
 
@@ -300,14 +300,14 @@ describe("registerNotionWebhookRoute", () => {
     const registerHttpRoute = vi.fn(() => () => {});
     registerNotionWebhookRoute({ registerHttpRoute });
     expect(registerHttpRoute).toHaveBeenCalledTimes(1);
-    expect(registerHttpRoute.mock.calls[0]![0]!.path).toBe(NOTION_WEBHOOK_PATH);
-    expect(registerHttpRoute.mock.calls[0]![0]!.pluginId).toBe("notion-webhook");
+    expect(registerHttpRoute.mock.calls[0][0]!.path).toBe(NOTION_WEBHOOK_PATH);
+    expect(registerHttpRoute.mock.calls[0][0]!.pluginId).toBe("notion-webhook");
   });
 
   it("supports custom path", () => {
     const registerHttpRoute = vi.fn(() => () => {});
     registerNotionWebhookRoute({ registerHttpRoute, path: "/custom/notion" });
-    expect(registerHttpRoute.mock.calls[0]![0]!.path).toBe("/custom/notion");
+    expect(registerHttpRoute.mock.calls[0][0]!.path).toBe("/custom/notion");
   });
 
   it("returns unregister function", () => {

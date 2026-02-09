@@ -46,7 +46,9 @@ export type GraphitiEpisodeWarning = {
 };
 
 function isIsoDate(value?: string): boolean {
-  if (!value) return false;
+  if (!value) {
+    return false;
+  }
   const parsed = Date.parse(value);
   return Number.isFinite(parsed);
 }
@@ -117,9 +119,7 @@ export class GraphitiClient {
     try {
       const response = await this.fetchFn(`${this.baseUrl}/healthcheck`, {
         method: "GET",
-        headers: {
-          ...(this.apiKey ? { authorization: `Bearer ${this.apiKey}` } : {}),
-        },
+        headers: this.apiKey ? { authorization: `Bearer ${this.apiKey}` } : {},
         signal: AbortSignal.timeout(this.timeoutMs),
       });
       if (!response.ok) {
@@ -131,7 +131,10 @@ export class GraphitiClient {
       memLog.debug("graphiti health ok", { body });
       return { ok: body.status === "healthy", message: body.status };
     } catch (err) {
-      const cause = err instanceof Error && err.cause ? ` (cause: ${String(err.cause)})` : "";
+      const cause =
+        err instanceof Error && err.cause
+          ? ` (cause: ${err.cause instanceof Error ? err.cause.message : JSON.stringify(err.cause)})`
+          : "";
       const detail = `${String(err)}${cause}`;
       memLog.debug("graphiti health error", { error: detail });
       return { ok: false, message: `Graphiti health check error: ${detail}` };

@@ -262,7 +262,9 @@ export type NotionEventCategory = "memory" | "wake" | "system" | "ignore";
 export function categoriseNotionEvent(
   type: NotionWebhookEventType | undefined,
 ): NotionEventCategory {
-  if (!type) return "ignore";
+  if (!type) {
+    return "ignore";
+  }
 
   // Content changes → memory ingest
   if (

@@ -71,7 +71,9 @@ function defaultCoreference(episodes: MemoryContentObject[]): {
 
     let text = episode.text ?? "";
     for (const [alias, canonical] of Object.entries(aliasMap)) {
-      if (typeof canonical !== "string" || canonical.length === 0) continue;
+      if (typeof canonical !== "string" || canonical.length === 0) {
+        continue;
+      }
       const pattern = new RegExp(`\\b${alias}\\b`, "gi");
       text = text.replace(pattern, canonical);
     }

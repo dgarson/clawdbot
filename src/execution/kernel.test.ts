@@ -15,7 +15,7 @@ import type { EventRouter } from "./events.js";
 import type { TurnExecutor } from "./executor.js";
 import type { RuntimeResolver } from "./resolver.js";
 import type { StateService } from "./state.js";
-import type { ExecutionRequest, RuntimeContext, TurnOutcome, ExecutionEvent } from "./types.js";
+import type { ExecutionRequest, RuntimeContext, TurnOutcome } from "./types.js";
 import { createExecutionKernel, createDefaultExecutionKernel } from "./kernel.js";
 
 // ---------------------------------------------------------------------------

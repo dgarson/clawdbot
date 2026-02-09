@@ -22,7 +22,7 @@ describe("WorkstreamNotesStore", () => {
 
     const notes = store.list("feature-dev");
     expect(notes).toHaveLength(1);
-    expect(notes[0]!.content).toBe("Auth uses JWT tokens");
+    expect(notes[0].content).toBe("Auth uses JWT tokens");
   });
 
   it("lists notes filtered by kind", () => {
@@ -57,8 +57,8 @@ describe("WorkstreamNotesStore", () => {
     store.append({ workstream: "ws", kind: "finding", content: "Second" });
 
     const notes = store.list("ws");
-    expect(notes[0]!.content).toBe("Second");
-    expect(notes[1]!.content).toBe("First");
+    expect(notes[0].content).toBe("Second");
+    expect(notes[1].content).toBe("First");
   });
 
   it("prunes old notes beyond cap", () => {

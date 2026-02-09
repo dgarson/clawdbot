@@ -41,7 +41,9 @@ export async function embedEpisodes(params: {
 
   for (const episode of episodes) {
     const text = episode.text ?? "";
-    if (text.trim().length === 0) continue;
+    if (text.trim().length === 0) {
+      continue;
+    }
     const vector = await embedder.embed({ id: episode.id, text, metadata: episode.metadata });
     embeddings.set(episode.id, vector);
   }

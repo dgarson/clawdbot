@@ -56,7 +56,7 @@ describe("gateway.reload handler", () => {
     const respond = vi.fn();
     const context = createMockContext({ omitTriggerConfigReload: true });
 
-    await gatewayReloadHandlers["gateway.reload"]!({
+    await gatewayReloadHandlers["gateway.reload"]({
       req: { type: "req" as const, id: "1", method: "gateway.reload", params: {} },
       params: {},
       client: null,
@@ -83,7 +83,7 @@ describe("gateway.reload handler", () => {
     });
     const context = createMockContext({ triggerConfigReload });
 
-    await gatewayReloadHandlers["gateway.reload"]!({
+    await gatewayReloadHandlers["gateway.reload"]({
       req: { type: "req" as const, id: "1", method: "gateway.reload", params: {} },
       params: { forceRestart: true, graceful: true, gracefulTimeoutMs: 5000 },
       client: null,
@@ -107,7 +107,7 @@ describe("gateway.reload handler", () => {
     });
     const context = createMockContext({ triggerConfigReload });
 
-    await gatewayReloadHandlers["gateway.reload"]!({
+    await gatewayReloadHandlers["gateway.reload"]({
       req: { type: "req" as const, id: "1", method: "gateway.reload", params: {} },
       params: {},
       client: null,
@@ -142,7 +142,7 @@ describe("gateway.reload handler", () => {
     });
     const context = createMockContext({ triggerConfigReload });
 
-    await gatewayReloadHandlers["gateway.reload"]!({
+    await gatewayReloadHandlers["gateway.reload"]({
       req: { type: "req" as const, id: "1", method: "gateway.reload", params: {} },
       params: { forceRestart: true },
       client: null,
@@ -168,7 +168,7 @@ describe("gateway.reload handler", () => {
     const respond = vi.fn();
     const context = createMockContext();
 
-    await gatewayReloadHandlers["gateway.reload"]!({
+    await gatewayReloadHandlers["gateway.reload"]({
       req: { type: "req" as const, id: "1", method: "gateway.reload", params: {} },
       params: { gracefulTimeoutMs: "not-a-number" },
       client: null,

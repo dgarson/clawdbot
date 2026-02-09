@@ -47,28 +47,72 @@ function applyPatch(item: WorkItem, patch: WorkItemPatch): WorkItem {
     updatedAt: new Date().toISOString(),
   };
 
-  if (patch.queueId !== undefined) updated.queueId = patch.queueId;
-  if (patch.title !== undefined) updated.title = patch.title;
-  if (Object.hasOwn(patch, "description")) updated.description = patch.description;
-  if (Object.hasOwn(patch, "payload")) updated.payload = patch.payload;
-  if (patch.status !== undefined) updated.status = patch.status;
-  if (Object.hasOwn(patch, "statusReason")) updated.statusReason = patch.statusReason;
-  if (Object.hasOwn(patch, "parentItemId")) updated.parentItemId = patch.parentItemId;
-  if (Object.hasOwn(patch, "dependsOn")) updated.dependsOn = patch.dependsOn;
-  if (Object.hasOwn(patch, "blockedBy")) updated.blockedBy = patch.blockedBy;
-  if (Object.hasOwn(patch, "assignedTo")) updated.assignedTo = patch.assignedTo;
-  if (patch.priority !== undefined) updated.priority = patch.priority;
-  if (Object.hasOwn(patch, "workstream")) updated.workstream = patch.workstream;
-  if (Object.hasOwn(patch, "tags")) updated.tags = patch.tags;
-  if (Object.hasOwn(patch, "retryCount")) updated.retryCount = patch.retryCount ?? 0;
-  if (Object.hasOwn(patch, "maxRetries")) updated.maxRetries = patch.maxRetries;
-  if (Object.hasOwn(patch, "deadline")) updated.deadline = patch.deadline;
-  if (Object.hasOwn(patch, "lastOutcome")) updated.lastOutcome = patch.lastOutcome;
-  if (Object.hasOwn(patch, "startedAt")) updated.startedAt = patch.startedAt;
-  if (Object.hasOwn(patch, "lastHeartbeatAt")) updated.lastHeartbeatAt = patch.lastHeartbeatAt;
-  if (Object.hasOwn(patch, "completedAt")) updated.completedAt = patch.completedAt;
-  if (Object.hasOwn(patch, "result")) updated.result = patch.result;
-  if (Object.hasOwn(patch, "error")) updated.error = patch.error;
+  if (patch.queueId !== undefined) {
+    updated.queueId = patch.queueId;
+  }
+  if (patch.title !== undefined) {
+    updated.title = patch.title;
+  }
+  if (Object.hasOwn(patch, "description")) {
+    updated.description = patch.description;
+  }
+  if (Object.hasOwn(patch, "payload")) {
+    updated.payload = patch.payload;
+  }
+  if (patch.status !== undefined) {
+    updated.status = patch.status;
+  }
+  if (Object.hasOwn(patch, "statusReason")) {
+    updated.statusReason = patch.statusReason;
+  }
+  if (Object.hasOwn(patch, "parentItemId")) {
+    updated.parentItemId = patch.parentItemId;
+  }
+  if (Object.hasOwn(patch, "dependsOn")) {
+    updated.dependsOn = patch.dependsOn;
+  }
+  if (Object.hasOwn(patch, "blockedBy")) {
+    updated.blockedBy = patch.blockedBy;
+  }
+  if (Object.hasOwn(patch, "assignedTo")) {
+    updated.assignedTo = patch.assignedTo;
+  }
+  if (patch.priority !== undefined) {
+    updated.priority = patch.priority;
+  }
+  if (Object.hasOwn(patch, "workstream")) {
+    updated.workstream = patch.workstream;
+  }
+  if (Object.hasOwn(patch, "tags")) {
+    updated.tags = patch.tags;
+  }
+  if (Object.hasOwn(patch, "retryCount")) {
+    updated.retryCount = patch.retryCount ?? 0;
+  }
+  if (Object.hasOwn(patch, "maxRetries")) {
+    updated.maxRetries = patch.maxRetries;
+  }
+  if (Object.hasOwn(patch, "deadline")) {
+    updated.deadline = patch.deadline;
+  }
+  if (Object.hasOwn(patch, "lastOutcome")) {
+    updated.lastOutcome = patch.lastOutcome;
+  }
+  if (Object.hasOwn(patch, "startedAt")) {
+    updated.startedAt = patch.startedAt;
+  }
+  if (Object.hasOwn(patch, "lastHeartbeatAt")) {
+    updated.lastHeartbeatAt = patch.lastHeartbeatAt;
+  }
+  if (Object.hasOwn(patch, "completedAt")) {
+    updated.completedAt = patch.completedAt;
+  }
+  if (Object.hasOwn(patch, "result")) {
+    updated.result = patch.result;
+  }
+  if (Object.hasOwn(patch, "error")) {
+    updated.error = patch.error;
+  }
 
   return updated;
 }
@@ -190,7 +234,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
       .filter((item) => (opts.workstream ? item.workstream === opts.workstream : true))
       .filter((item) => matchesTags(item.tags, opts.tags));
 
-    const sorted = filtered.sort((a, b) => {
+    const sorted = filtered.toSorted((a, b) => {
       if (orderBy === "priority") {
         return priorityRank[a.priority] - priorityRank[b.priority];
       }
@@ -248,7 +292,9 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
 
     // DAG check: returns true when all dependsOn items are completed.
     const depsReady = (item: WorkItem): boolean => {
-      if (!item.dependsOn || item.dependsOn.length === 0) return true;
+      if (!item.dependsOn || item.dependsOn.length === 0) {
+        return true;
+      }
       return item.dependsOn.every((depId) => {
         const dep = this.items.get(depId);
         return dep?.status === "completed";
@@ -262,11 +308,15 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
       .filter((item) => item.queueId === queueId && item.status === "pending")
       .filter(depsReady)
       .filter((item) => {
-        if (item.maxRetries != null && (item.retryCount ?? 0) >= item.maxRetries) return false;
+        if (item.maxRetries != null && (item.retryCount ?? 0) >= item.maxRetries) {
+          return false;
+        }
         return true;
       })
       .filter((item) => {
-        if (item.deadline && item.deadline <= currentTime) return false;
+        if (item.deadline && item.deadline <= currentTime) {
+          return false;
+        }
         return true;
       })
       .filter((item) =>
@@ -275,7 +325,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
       .filter((item) => (wsFilter ? item.workstream === wsFilter : true))
       .filter((item) => (opts?.unassignedOnly ? !item.assignedTo?.agentId : true))
       .filter((item) => (explicitAgentId ? item.assignedTo?.agentId === explicitAgentId : true))
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const rank = priorityRank[a.priority] - priorityRank[b.priority];
         if (rank !== 0) {
           return rank;
@@ -339,7 +389,7 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
   async listExecutions(itemId: string, opts?: { limit?: number }): Promise<WorkItemExecution[]> {
     const filtered = this.executions
       .filter((e) => e.itemId === itemId)
-      .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+      .toSorted((a, b) => b.startedAt.localeCompare(a.startedAt));
     return opts?.limit ? filtered.slice(0, opts.limit) : filtered;
   }
 
@@ -365,7 +415,9 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
     transcriptId: string,
   ): Promise<{ id: string; transcript: unknown[]; sessionKey: string; createdAt: string } | null> {
     const t = this.transcripts.find((t) => t.id === transcriptId);
-    if (!t) return null;
+    if (!t) {
+      return null;
+    }
     return { id: t.id, transcript: t.transcript, sessionKey: t.sessionKey, createdAt: t.createdAt };
   }
 
@@ -380,6 +432,6 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
         sessionKey: t.sessionKey,
         createdAt: t.createdAt,
       }))
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 }

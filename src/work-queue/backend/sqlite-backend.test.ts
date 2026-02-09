@@ -193,7 +193,9 @@ describeSqlite("SqliteWorkQueueBackend", () => {
       // Verify Umzug tracking table exists
       const db = backend.getDb();
       expect(db).not.toBeNull();
-      if (!db) return;
+      if (!db) {
+        return;
+      }
 
       const migrations = db
         .prepare("SELECT name FROM umzug_migrations ORDER BY name")
@@ -244,7 +246,9 @@ describeSqlite("SqliteWorkQueueBackend", () => {
       // Verify schema is still correct and no errors occurred
       const db = backend2.getDb();
       expect(db).not.toBeNull();
-      if (!db) return;
+      if (!db) {
+        return;
+      }
 
       const tables = db
         .prepare("SELECT name FROM sqlite_master WHERE type='table'")
@@ -376,7 +380,9 @@ describeSqlite("SqliteWorkQueueBackend", () => {
 
       const db = backend.getDb();
       expect(db).not.toBeNull();
-      if (!db) return;
+      if (!db) {
+        return;
+      }
 
       db.prepare("UPDATE work_items SET payload_json = ? WHERE id = ?").run(
         JSON.stringify({ refs: [{ kind: "work:queue", id: "new-ref", label: "New ref" }] }),

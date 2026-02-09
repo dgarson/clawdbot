@@ -29,7 +29,9 @@ function buildProvenance(params: NormalizeInput): MemoryProvenance {
 }
 
 function extractTemporal(metadata?: Record<string, unknown>): MemoryTemporalMetadata | undefined {
-  if (!metadata) return undefined;
+  if (!metadata) {
+    return undefined;
+  }
   const temporal = metadata.temporal;
   if (temporal && typeof temporal === "object") {
     return temporal as MemoryTemporalMetadata;
@@ -38,7 +40,9 @@ function extractTemporal(metadata?: Record<string, unknown>): MemoryTemporalMeta
 }
 
 function extractArtifacts(metadata?: Record<string, unknown>): MemoryArtifact[] | undefined {
-  if (!metadata) return undefined;
+  if (!metadata) {
+    return undefined;
+  }
   const artifacts = metadata.artifacts;
   if (Array.isArray(artifacts)) {
     return artifacts.filter(

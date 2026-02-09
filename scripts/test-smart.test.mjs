@@ -14,10 +14,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function findTestFilesRecursive(dir, maxDepth, currentDepth = 0) {
   const tests = [];
 
-  if (currentDepth > maxDepth) return tests;
+  if (currentDepth > maxDepth) {
+    return tests;
+  }
 
   try {
-    if (!fs.existsSync(dir)) return tests;
+    if (!fs.existsSync(dir)) {
+      return tests;
+    }
 
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -87,8 +91,12 @@ try {
 } finally {
   // Cleanup
   try {
-    if (fs.existsSync(tmpTestFile)) fs.unlinkSync(tmpTestFile);
-    if (fs.existsSync(tmpDir)) fs.rmdirSync(tmpDir);
+    if (fs.existsSync(tmpTestFile)) {
+      fs.unlinkSync(tmpTestFile);
+    }
+    if (fs.existsSync(tmpDir)) {
+      fs.rmdirSync(tmpDir);
+    }
   } catch {
     // Ignore cleanup errors
   }

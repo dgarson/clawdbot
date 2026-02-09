@@ -307,7 +307,7 @@ describe("loadCronStore error handling", () => {
 
     const result = await loadCronStore(store.storePath, { log: noopLogger });
     expect(result.store.jobs).toHaveLength(1);
-    expect(result.store.jobs[0]!.id).toBe("bak-job");
+    expect(result.store.jobs[0].id).toBe("bak-job");
     expect(result.fromBackup).toBe(true);
     expect(result.loadError).toBeUndefined();
 
@@ -489,7 +489,7 @@ describe("cron health probe", () => {
 
     const unhealthyEvents = events.filter((e) => e.action === "unhealthy");
     expect(unhealthyEvents).toHaveLength(1);
-    expect(unhealthyEvents[0]!.consecutiveFailures).toBe(3);
+    expect(unhealthyEvents[0].consecutiveFailures).toBe(3);
 
     await store.cleanup();
   });

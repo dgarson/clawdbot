@@ -101,7 +101,7 @@ describe("subscribeEmbeddedPiSession", () => {
 
     const agentEvents = events.filter((e) => e.kind === "agent_event");
     const payloads = agentEvents
-      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
+      .map((e) => (e.kind === "agent_event" ? e.data : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("Hello world");

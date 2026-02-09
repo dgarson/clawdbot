@@ -55,9 +55,13 @@ export function createMemoryRecallTool(options: {
   agentSessionKey?: string;
 }): AnyAgentTool | null {
   const cfg = options.config;
-  if (!cfg) return null;
+  if (!cfg) {
+    return null;
+  }
 
-  if (!isProgressiveMemoryEnabled(cfg)) return null;
+  if (!isProgressiveMemoryEnabled(cfg)) {
+    return null;
+  }
 
   return {
     label: "Memory Recall",
@@ -174,13 +178,17 @@ function estimateEntryTokens(
 }
 
 function truncateContent(content: string, maxChars: number): string {
-  if (content.length <= maxChars) return content;
+  if (content.length <= maxChars) {
+    return content;
+  }
   return content.slice(0, maxChars) + "…";
 }
 
 function isProgressiveMemoryEnabled(cfg: OpenClawConfig): boolean {
   const memory = cfg.memory as Record<string, unknown> | undefined;
-  if (!memory) return false;
+  if (!memory) {
+    return false;
+  }
   const progressive = memory.progressive as Record<string, unknown> | undefined;
   return progressive?.enabled === true;
 }

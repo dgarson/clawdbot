@@ -150,7 +150,9 @@ export class LlmContextExtractor implements WorkContextExtractor {
       });
 
       const runId = spawnResult?.runId;
-      if (!runId) throw new Error("no runId from extraction session");
+      if (!runId) {
+        throw new Error("no runId from extraction session");
+      }
 
       // Wait for extraction to complete.
       await this.callGateway({
@@ -222,7 +224,9 @@ ${transcriptStr}`;
       // Extract JSON from code blocks or raw JSON.
       const jsonMatch =
         content.match(/```(?:json)?\s*([\s\S]*?)```/) ?? content.match(/(\{[\s\S]*\})/);
-      if (!jsonMatch?.[1]) return null;
+      if (!jsonMatch?.[1]) {
+        return null;
+      }
 
       const parsed = JSON.parse(jsonMatch[1]) as {
         summary?: string;
@@ -245,7 +249,7 @@ ${transcriptStr}`;
   private fallbackExtract(transcript: unknown[], now: string): WorkItemCarryoverContext {
     // Find the last assistant message for a summary.
     const messages = transcript as Array<{ role?: string; content?: string }>;
-    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    const lastAssistant = [...messages].toReversed().find((m) => m.role === "assistant");
     const summary = lastAssistant?.content
       ? truncate(lastAssistant.content, 2000)
       : "Session completed (no reply captured)";

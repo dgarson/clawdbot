@@ -107,7 +107,9 @@ export class WorkQueueWorker {
   }
 
   async start(): Promise<void> {
-    if (this.running) return;
+    if (this.running) {
+      return;
+    }
     this.running = true;
     this.abortController = new AbortController();
     const workstreams = this.targetWorkstreams.join(", ") || "(all)";
@@ -118,7 +120,9 @@ export class WorkQueueWorker {
   }
 
   async stop(): Promise<void> {
-    if (!this.running) return;
+    if (!this.running) {
+      return;
+    }
     this.deps.log.info(`worker[${this.agentId}]: stopping`);
     this.running = false;
     this.abortController.abort();
@@ -221,7 +225,7 @@ export class WorkQueueWorker {
         // Append workstream notes if available.
         if (result.context?.keyFindings && item.workstream && this.deps.notesStore) {
           for (const finding of result.context.keyFindings) {
-            await this.deps.notesStore.append({
+            this.deps.notesStore.append({
               workstream: item.workstream,
               itemId: item.id,
               kind: "finding",
@@ -251,9 +255,15 @@ export class WorkQueueWorker {
   }
 
   private classifyOutcome(result: ProcessItemResult): WorkItemOutcome {
-    if (result.status === "ok") return "success";
-    if (result.error && APPROVAL_PATTERN.test(result.error)) return "approval_timeout";
-    if (result.deadlineExceeded) return "timeout";
+    if (result.status === "ok") {
+      return "success";
+    }
+    if (result.error && APPROVAL_PATTERN.test(result.error)) {
+      return "approval_timeout";
+    }
+    if (result.deadlineExceeded) {
+      return "timeout";
+    }
     return "error";
   }
 
@@ -399,10 +409,18 @@ export class WorkQueueWorker {
       const pending = items.filter((it) => it.status === "pending");
       for (const it of pending) {
         const parts: string[] = [`id=${it.id}`, `"${it.title}"`];
-        if (it.workstream) parts.push(`workstream=${it.workstream}`);
-        if (it.assignedTo?.agentId) parts.push(`assignedTo=${it.assignedTo.agentId}`);
-        if (it.dependsOn?.length) parts.push(`dependsOn=[${it.dependsOn.join(",")}]`);
-        if (it.blockedBy?.length) parts.push(`blockedBy=[${it.blockedBy.join(",")}]`);
+        if (it.workstream) {
+          parts.push(`workstream=${it.workstream}`);
+        }
+        if (it.assignedTo?.agentId) {
+          parts.push(`assignedTo=${it.assignedTo.agentId}`);
+        }
+        if (it.dependsOn?.length) {
+          parts.push(`dependsOn=[${it.dependsOn.join(",")}]`);
+        }
+        if (it.blockedBy?.length) {
+          parts.push(`blockedBy=[${it.blockedBy.join(",")}]`);
+        }
 
         // Identify why this item likely didn't match.
         const reasons: string[] = [];
@@ -542,7 +560,7 @@ export class WorkQueueWorker {
         context = {
           ...(context ?? { extractedAt: new Date().toISOString() }),
           outputs: {
-            ...(context?.outputs ?? {}),
+            ...context?.outputs,
             codexTaskLink: linkResult.note,
           },
         };

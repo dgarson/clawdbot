@@ -125,7 +125,9 @@ function parseGitignore(content: string): GitignoreRules {
   for (let line of content.split("\n")) {
     line = line.trim();
     // Skip empty lines and comments
-    if (!line || line.startsWith("#")) continue;
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
 
     let negated = false;
     if (line.startsWith("!")) {
@@ -164,7 +166,9 @@ function isIgnoredByRules(
   for (const rules of allRules) {
     for (const rule of rules.patterns) {
       // Directory-only patterns only match directories
-      if (rule.isDir && !isDirectory) continue;
+      if (rule.isDir && !isDirectory) {
+        continue;
+      }
 
       if (rule.regex.test(relativePath)) {
         ignored = !rule.negated;
@@ -209,7 +213,9 @@ function splitGlobPatterns(input: string): string[] {
       current += ch;
     } else if (ch === "," && braceDepth === 0) {
       const trimmed = current.trim();
-      if (trimmed) results.push(trimmed);
+      if (trimmed) {
+        results.push(trimmed);
+      }
       current = "";
     } else {
       current += ch;
@@ -217,7 +223,9 @@ function splitGlobPatterns(input: string): string[] {
   }
 
   const trimmed = current.trim();
-  if (trimmed) results.push(trimmed);
+  if (trimmed) {
+    results.push(trimmed);
+  }
 
   return results;
 }
@@ -322,7 +330,9 @@ async function walkDirectory(
   entries.sort((a, b) => {
     const aIsDir = a.isDirectory() || a.isSymbolicLink();
     const bIsDir = b.isDirectory() || b.isSymbolicLink();
-    if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
+    if (aIsDir !== bIsDir) {
+      return aIsDir ? -1 : 1;
+    }
     return a.name.localeCompare(b.name);
   });
 
@@ -362,8 +372,12 @@ async function walkDirectory(
         // Broken symlink — still include it
       }
 
-      if (options.directoriesOnly && !resolvedIsDir) continue;
-      if (options.filesOnly && resolvedIsDir) continue;
+      if (options.directoriesOnly && !resolvedIsDir) {
+        continue;
+      }
+      if (options.filesOnly && resolvedIsDir) {
+        continue;
+      }
 
       const treeEntry: TreeEntry = {
         name: entry.name,
@@ -448,12 +462,16 @@ async function walkDirectory(
       result.push(treeEntry);
     } else {
       // Regular file
-      if (options.directoriesOnly) continue;
+      if (options.directoriesOnly) {
+        continue;
+      }
 
       // Apply glob filter (to files only)
       if (options.globs.length > 0) {
         const matchesAny = options.globs.some((g) => matchGlob(entry.name, g));
-        if (!matchesAny) continue;
+        if (!matchesAny) {
+          continue;
+        }
       }
 
       stats.files++;
@@ -523,9 +541,15 @@ function renderTree(entries: TreeEntry[], prefix: string = ""): string {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  if (bytes < 1024) {
+    return `${bytes}B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)}KB`;
+  }
+  if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  }
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}GB`;
 }
 

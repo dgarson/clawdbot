@@ -131,8 +131,10 @@ function estimateTokens(text: string): number {
 
 // ─── Cosine similarity ──────────────────────────────────────────────────────
 
-function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length || a.length === 0) return 0;
+export function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length || a.length === 0) {
+    return 0;
+  }
   let dot = 0;
   let magA = 0;
   let magB = 0;
@@ -236,7 +238,7 @@ export class ProgressiveMemoryStore {
       try {
         embedding = await embedFn(params.content);
       } catch (err) {
-        log.warn?.(`Embedding failed during store, skipping dedup: ${err}`);
+        log.warn?.(`Embedding failed during store, skipping dedup: String(err)`);
       }
     }
 
@@ -248,11 +250,8 @@ export class ProgressiveMemoryStore {
           content: params.content,
           context: params.context,
           priority: this.higherPriority(duplicate.priority as MemoryPriority, priority),
-          tags: this.mergeTags(JSON.parse(duplicate.tags as string) as string[], tags),
-          relatedTo: this.mergeRelated(
-            JSON.parse(duplicate.related_to as string) as string[],
-            relatedTo,
-          ),
+          tags: this.mergeTags(JSON.parse(duplicate.tags) as string[], tags),
+          relatedTo: this.mergeRelated(JSON.parse(duplicate.related_to) as string[], relatedTo),
           tokenEstimate,
           updatedAt: now,
         });
@@ -326,7 +325,7 @@ export class ProgressiveMemoryStore {
             priority,
           );
       } catch (err) {
-        log.warn?.(`FTS insert failed: ${err}`);
+        log.warn?.(`FTS insert failed: String(err)`);
       }
     }
 
@@ -426,10 +425,14 @@ export class ProgressiveMemoryStore {
     opts?: { categories?: MemoryCategory[]; limit?: number },
   ): Array<ProgressiveMemoryEntry & { score: number }> {
     this.assertOpen();
-    if (!this.ftsAvailable) return [];
+    if (!this.ftsAvailable) {
+      return [];
+    }
 
     const ftsQuery = buildProgressiveFtsQuery(query);
-    if (!ftsQuery) return [];
+    if (!ftsQuery) {
+      return [];
+    }
 
     const limit = opts?.limit ?? 20;
 
@@ -457,7 +460,7 @@ export class ProgressiveMemoryStore {
         score: (row.score as number) ?? 0,
       }));
     } catch (err) {
-      log.warn?.(`FTS search failed: ${err}`);
+      log.warn?.(`FTS search failed: String(err)`);
       return [];
     }
   }
@@ -470,7 +473,9 @@ export class ProgressiveMemoryStore {
     opts?: { categories?: MemoryCategory[]; limit?: number },
   ): Array<ProgressiveMemoryEntry & { score: number }> {
     this.assertOpen();
-    if (!this.vecAvailable) return [];
+    if (!this.vecAvailable) {
+      return [];
+    }
 
     const limit = opts?.limit ?? 20;
 
@@ -490,7 +495,9 @@ export class ProgressiveMemoryStore {
       const results: Array<ProgressiveMemoryEntry & { score: number }> = [];
       for (const row of rows) {
         const entry = this.getById(row.id);
-        if (!entry || entry.archived) continue;
+        if (!entry || entry.archived) {
+          continue;
+        }
         if (opts?.categories?.length && !opts.categories.includes(entry.category)) {
           continue;
         }
@@ -498,12 +505,14 @@ export class ProgressiveMemoryStore {
           ...entry,
           score: 1 - row.distance, // Convert distance to similarity
         });
-        if (results.length >= limit) break;
+        if (results.length >= limit) {
+          break;
+        }
       }
 
       return results;
     } catch (err) {
-      log.warn?.(`Vector search failed: ${err}`);
+      log.warn?.(`Vector search failed: String(err)`);
       return [];
     }
   }
@@ -552,7 +561,7 @@ export class ProgressiveMemoryStore {
         ...entry,
         score: vectorWeight * entry.vecScore + textWeight * entry.ftsScore,
       }))
-      .sort((a, b) => b.score - a.score);
+      .toSorted((a, b) => b.score - a.score);
 
     // Filter by priority if specified
     if (opts?.priorityMin) {
@@ -742,7 +751,9 @@ export class ProgressiveMemoryStore {
     embedding: number[],
     category: MemoryCategory,
   ): { id: string; priority: string; tags: string; related_to: string } | null {
-    if (!this.vecAvailable) return null;
+    if (!this.vecAvailable) {
+      return null;
+    }
 
     try {
       const vecBlob = new Float32Array(embedding);
@@ -772,7 +783,7 @@ export class ProgressiveMemoryStore {
         }
       }
     } catch (err) {
-      log.warn?.(`Dedup check failed: ${err}`);
+      log.warn?.(`Dedup check failed: String(err)`);
     }
 
     return null;
@@ -850,20 +861,22 @@ export class ProgressiveMemoryStore {
             );
         }
       } catch (err) {
-        log.warn?.(`FTS update failed: ${err}`);
+        log.warn?.(`FTS update failed: String(err)`);
       }
     }
   }
 
   private upsertVector(id: string, embedding: number[]): void {
-    if (!this.vecAvailable) return;
+    if (!this.vecAvailable) {
+      return;
+    }
     try {
       // Delete then insert (upsert pattern for vec0)
       this.db.prepare(`DELETE FROM ${VEC_TABLE} WHERE id = ?`).run(id);
       const vecBlob = new Float32Array(embedding);
       this.db.prepare(`INSERT INTO ${VEC_TABLE} (id, embedding) VALUES (?, ?)`).run(id, vecBlob);
     } catch (err) {
-      log.warn?.(`Vector upsert failed: ${err}`);
+      log.warn?.(`Vector upsert failed: String(err)`);
     }
   }
 
@@ -922,7 +935,9 @@ export class ProgressiveMemoryStore {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function safeParseJsonArray(value: string | null | undefined): string[] {
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed : [];
@@ -937,7 +952,9 @@ function buildProgressiveFtsQuery(raw: string): string | null {
       .match(/[A-Za-z0-9_]+/g)
       ?.map((t) => t.trim())
       .filter(Boolean) ?? [];
-  if (tokens.length === 0) return null;
+  if (tokens.length === 0) {
+    return null;
+  }
   const quoted = tokens.map((t) => `"${t.replaceAll('"', "")}"`);
   return quoted.join(" AND ");
 }

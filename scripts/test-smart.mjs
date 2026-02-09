@@ -96,7 +96,9 @@ function findColocatedTests(changedFiles) {
   const tests = new Set();
   for (const f of changedFiles) {
     // Skip if the file is already a test
-    if (f.includes(".test.")) continue;
+    if (f.includes(".test.")) {
+      continue;
+    }
 
     const ext = path.extname(f);
     const base = f.slice(0, -ext.length);
@@ -117,10 +119,14 @@ function findColocatedTests(changedFiles) {
 function findTestFilesRecursive(dir, maxDepth, currentDepth = 0) {
   const tests = [];
 
-  if (currentDepth > maxDepth) return tests;
+  if (currentDepth > maxDepth) {
+    return tests;
+  }
 
   try {
-    if (!fs.existsSync(dir)) return tests;
+    if (!fs.existsSync(dir)) {
+      return tests;
+    }
 
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -201,7 +207,9 @@ const localWorkers = Math.max(4, Math.min(16, os.cpus().length));
 function runVitestRelated(configName, configPath, sourceFiles) {
   return new Promise((resolve) => {
     if (sourceFiles.length === 0) {
-      if (verbose) console.log(`  [${configName}] No related files — skipping`);
+      if (verbose) {
+        console.log(`  [${configName}] No related files — skipping`);
+      }
       resolve(0);
       return;
     }
@@ -281,11 +289,17 @@ async function main() {
 
     if (allDiscoveredTests.size > 0) {
       console.log("\n  Discovered test files:");
-      for (const t of [...allDiscoveredTests].sort()) {
+      for (const t of [...allDiscoveredTests].toSorted((a, b) => a.localeCompare(b))) {
         const sources = [];
-        if (colocated.has(t)) sources.push("colocated");
-        if (directoryTests.has(t)) sources.push("directory");
-        if (indexTests.has(t)) sources.push("index");
+        if (colocated.has(t)) {
+          sources.push("colocated");
+        }
+        if (directoryTests.has(t)) {
+          sources.push("directory");
+        }
+        if (indexTests.has(t)) {
+          sources.push("index");
+        }
         console.log(`    ${t} (${sources.join(", ")})`);
       }
     }
@@ -325,12 +339,16 @@ async function main() {
     const results = await Promise.all(
       parallelConfigs.map((c) => runVitestRelated(c.name, c.path, filesToPass)),
     );
-    if (results.some((r) => r !== 0)) hadFailure = true;
+    if (results.some((r) => r !== 0)) {
+      hadFailure = true;
+    }
   }
 
   for (const c of serialConfigs) {
     const result = await runVitestRelated(c.name, c.path, filesToPass);
-    if (result !== 0) hadFailure = true;
+    if (result !== 0) {
+      hadFailure = true;
+    }
   }
 
   if (hadFailure) {

@@ -88,13 +88,15 @@ describe("work-queue graph CLI command", () => {
     const children = new Map<string, string[]>();
     for (const item of items) {
       for (const depId of item.dependsOn ?? []) {
-        if (!children.has(depId)) children.set(depId, []);
+        if (!children.has(depId)) {
+          children.set(depId, []);
+        }
         children.get(depId)!.push(item.id);
       }
     }
 
     // Verify children relationships
-    expect(children.get(item1.id)?.sort()).toEqual([item2.id, item3.id].sort());
+    expect(children.get(item1.id)?.toSorted()).toEqual([item2.id, item3.id].toSorted());
     expect(children.get(item2.id)).toContain(item4.id);
     expect(children.get(item3.id)).toContain(item4.id);
   });

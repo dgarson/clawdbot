@@ -50,7 +50,7 @@ describe("subscribeEmbeddedPiSession", () => {
     expect(toolEvents).toHaveLength(1);
     const payload = toolEvents[0];
     if (payload.kind === "agent_event") {
-      const data = payload.data as Record<string, unknown>;
+      const data = payload.data;
       const text = data.text as string;
       expect(text).toContain("Canvas");
       expect(text).toContain("A2UI push");

@@ -185,16 +185,36 @@ function buildArgs(
   // Instead, we'll limit output in post-processing.
 
   // Boolean flags
-  if (ignoreCase) args.push("--ignore-case");
-  if (fixedStrings) args.push("--fixed-strings");
-  if (wordRegexp) args.push("--word-regexp");
-  if (includeHidden) args.push("--hidden");
-  if (noIgnore) args.push("--no-ignore");
-  if (multiline) args.push("--multiline");
-  if (invertMatch) args.push("--invert-match");
-  if (countOnly) args.push("--count");
-  if (filesWithMatches) args.push("--files-with-matches");
-  if (pcre2) args.push("--pcre2");
+  if (ignoreCase) {
+    args.push("--ignore-case");
+  }
+  if (fixedStrings) {
+    args.push("--fixed-strings");
+  }
+  if (wordRegexp) {
+    args.push("--word-regexp");
+  }
+  if (includeHidden) {
+    args.push("--hidden");
+  }
+  if (noIgnore) {
+    args.push("--no-ignore");
+  }
+  if (multiline) {
+    args.push("--multiline");
+  }
+  if (invertMatch) {
+    args.push("--invert-match");
+  }
+  if (countOnly) {
+    args.push("--count");
+  }
+  if (filesWithMatches) {
+    args.push("--files-with-matches");
+  }
+  if (pcre2) {
+    args.push("--pcre2");
+  }
 
   // Context lines
   if (contextLines !== undefined && contextLines > 0) {

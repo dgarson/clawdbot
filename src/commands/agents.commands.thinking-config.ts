@@ -110,7 +110,7 @@ async function buildAgentThinkingConfig(
     thinking: {
       effective: effectiveThinking,
       source: thinkingSource,
-      budget: budgets[effectiveThinking as keyof typeof budgets],
+      budget: budgets[effectiveThinking],
       budgets,
     },
     verbose: {

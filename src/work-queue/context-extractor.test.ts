@@ -11,8 +11,12 @@ describe("LlmContextExtractor", () => {
     };
 
     const callGateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") return { runId: "extract-run" };
-      if (opts.method === "agent.wait") return { status: "ok" };
+      if (opts.method === "agent") {
+        return { runId: "extract-run" };
+      }
+      if (opts.method === "agent.wait") {
+        return { status: "ok" };
+      }
       if (opts.method === "chat.history") {
         return {
           messages: [
@@ -23,7 +27,9 @@ describe("LlmContextExtractor", () => {
           ],
         };
       }
-      if (opts.method === "sessions.delete") return {};
+      if (opts.method === "sessions.delete") {
+        return {};
+      }
       return {};
     });
 
@@ -59,7 +65,9 @@ describe("LlmContextExtractor", () => {
 
   it("falls back to transcript summary on LLM failure", async () => {
     const callGateway = vi.fn().mockImplementation(async (opts: { method: string }) => {
-      if (opts.method === "agent") throw new Error("gateway unavailable");
+      if (opts.method === "agent") {
+        throw new Error("gateway unavailable");
+      }
       return {};
     });
 

@@ -3,10 +3,8 @@ import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import { performance } from "node:perf_hooks";
 import type { MemclawdConfig } from "../config/schema.js";
-import type { MemoryEntity } from "../contracts/entities.js";
-import type { MemClawdIngestEvent } from "../contracts/events.js";
 import type { MemClawdIngestResponse, MemClawdIngestRun } from "../contracts/ingest.js";
-import type { MemClawdQueryRequest, MemClawdQueryResult } from "../contracts/query.js";
+import type { MemClawdQueryResult } from "../contracts/query.js";
 
 export type ServerDependencies = {
   logger: Logger;
@@ -38,7 +36,7 @@ export const createServer = ({ logger, config }: ServerDependencies): Hono => {
   });
 
   app.post("/v1/ingest", async (c) => {
-    const body = (await c.req.json()) as { event: MemClawdIngestEvent };
+    const body = await c.req.json();
     const runId = nanoid();
     const response: MemClawdIngestResponse = {
       runId,
@@ -50,7 +48,7 @@ export const createServer = ({ logger, config }: ServerDependencies): Hono => {
   });
 
   app.post("/v1/ingest/sync", async (c) => {
-    const body = (await c.req.json()) as { event: MemClawdIngestEvent };
+    const body = await c.req.json();
     const run: MemClawdIngestRun = {
       runId: nanoid(),
       eventId: body.event?.id ?? "unknown",
@@ -95,7 +93,7 @@ export const createServer = ({ logger, config }: ServerDependencies): Hono => {
   });
 
   app.post("/v1/query", async (c) => {
-    const body = (await c.req.json()) as MemClawdQueryRequest;
+    const body = await c.req.json();
     const result: MemClawdQueryResult = {
       queryId: nanoid(),
       results: [],
@@ -108,7 +106,7 @@ export const createServer = ({ logger, config }: ServerDependencies): Hono => {
   });
 
   app.post("/v1/context-pack", async (c) => {
-    const body = (await c.req.json()) as MemClawdQueryRequest;
+    const body = await c.req.json();
     return c.json({
       packId: nanoid(),
       text: "",
@@ -123,7 +121,7 @@ export const createServer = ({ logger, config }: ServerDependencies): Hono => {
   });
 
   app.post("/v1/entities/search", async (c) => {
-    const body = (await c.req.json()) as { query: string };
+    const body = await c.req.json();
     return c.json({ query: body.query, matches: [] });
   });
 

@@ -316,7 +316,7 @@ describeSqlite("SqliteWorkQueueBackend DAG enforcement", () => {
 
     const execs = await backend.listExecutions(item.id);
     expect(execs).toHaveLength(1);
-    expect(execs[0]!.sessionKey).toBe("session:test:1");
+    expect(execs[0].sessionKey).toBe("session:test:1");
 
     await backend.close();
     fs.rmSync(dbPath, { force: true });
@@ -363,7 +363,7 @@ describeSqlite("SqliteWorkQueueBackend DAG enforcement", () => {
     // List transcripts for item.
     const list = await backend.listTranscripts(item.id);
     expect(list).toHaveLength(1);
-    expect(list[0]!.id).toBe(transcriptId);
+    expect(list[0].id).toBe(transcriptId);
 
     await backend.close();
     fs.rmSync(dbPath, { force: true });

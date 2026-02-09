@@ -373,7 +373,7 @@ export const automationsHandlers: GatewayRequestHandlers = {
 
     if (result.ok && "runId" in result) {
       respond(true, { runId: result.runId }, undefined);
-    } else if (result.ok && "ran" in result && result.ran === false) {
+    } else if (result.ok && "ran" in result && !result.ran) {
       respond(
         false,
         undefined,

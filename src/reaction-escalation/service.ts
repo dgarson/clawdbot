@@ -148,41 +148,49 @@ export class ReactionEscalationService {
           outcome: dispatch.outcome,
           sessionKey: dispatch.sessionKey,
           runId: dispatch.runId,
-        });
-      } else if (dispatch.summary) {
-        await deliverOutcome({
-          adapter: this.opts.adapter,
-          config: this.config,
-          intent: dispatch.outcome.intent,
-          channelId: messageContext.channelId,
-          messageTs: messageContext.messageTs,
-          threadTs: messageContext.threadTs,
-          summary: dispatch.summary,
-          outcomeUrl,
-          status: dispatch.outcome.status === "completed" ? "ok" : "error",
-        });
-      }
-
-      if (this.opts.adapter.removeReaction) {
-        try {
-          await this.opts.adapter.removeReaction({
+          reactionTarget: {
             channelId: params.channelId,
             messageTs: params.messageTs,
-            reaction: PROCESSING_REACTION,
+          },
+        });
+        // Keep the processing emoji — tracker will update reactions on completion
+      } else {
+        if (dispatch.summary) {
+          await deliverOutcome({
+            adapter: this.opts.adapter,
+            config: this.config,
+            intent: dispatch.outcome.intent,
+            channelId: messageContext.channelId,
+            messageTs: messageContext.messageTs,
+            threadTs: messageContext.threadTs,
+            summary: dispatch.summary,
+            outcomeUrl,
+            status: dispatch.outcome.status === "completed" ? "ok" : "error",
           });
-        } catch {
-          // ignore
         }
-      }
-      if (this.opts.adapter.addReaction) {
-        try {
-          await this.opts.adapter.addReaction({
-            channelId: params.channelId,
-            messageTs: params.messageTs,
-            reaction: dispatch.outcome.status === "completed" ? SUCCESS_REACTION : FAILURE_REACTION,
-          });
-        } catch {
-          // ignore
+
+        if (this.opts.adapter.removeReaction) {
+          try {
+            await this.opts.adapter.removeReaction({
+              channelId: params.channelId,
+              messageTs: params.messageTs,
+              reaction: PROCESSING_REACTION,
+            });
+          } catch {
+            // ignore
+          }
+        }
+        if (this.opts.adapter.addReaction) {
+          try {
+            await this.opts.adapter.addReaction({
+              channelId: params.channelId,
+              messageTs: params.messageTs,
+              reaction:
+                dispatch.outcome.status === "completed" ? SUCCESS_REACTION : FAILURE_REACTION,
+            });
+          } catch {
+            // ignore
+          }
         }
       }
 

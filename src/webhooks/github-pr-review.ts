@@ -108,7 +108,9 @@ export async function pollPRReviewComments(opts: PRReviewMonitorOptions): Promis
       ? parsedLastPollAtMs
       : undefined;
   const isBootstrap = typeof lastPollAtMs !== "number";
-  const botAccounts = (opts.botAccounts ?? DEFAULT_AI_BOT_ACCOUNTS).map((s) => s.toLowerCase());
+  const botAccounts = new Set(
+    (opts.botAccounts ?? DEFAULT_AI_BOT_ACCOUNTS).map((s) => s.toLowerCase()),
+  );
 
   const pageSize = resolvePageSize(opts.pageSize);
   const prs: GitHubPullRequest[] = opts.prNumber
@@ -123,9 +125,13 @@ export async function pollPRReviewComments(opts: PRReviewMonitorOptions): Promis
 
     for (const comment of comments) {
       const login = (comment.user?.login ?? "").toLowerCase();
-      if (!login || !botAccounts.includes(login)) continue;
+      if (!login || !botAccounts.has(login)) {
+        continue;
+      }
 
-      if (isProcessed(state, prNumber, comment.id)) continue;
+      if (isProcessed(state, prNumber, comment.id)) {
+        continue;
+      }
 
       if (isBootstrap) {
         markProcessed(state, prNumber, comment.id);

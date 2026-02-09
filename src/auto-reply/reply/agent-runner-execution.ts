@@ -458,7 +458,9 @@ async function runAgentTurnWithKernel(
                 const task = (async () => {
                   const { text, skip } = normalizeStreamText(payload);
                   const hasMedia = (payload.mediaUrls?.length ?? 0) > 0;
-                  if (skip && !hasMedia) return;
+                  if (skip && !hasMedia) {
+                    return;
+                  }
                   await params.typingSignals.signalTextDelta(text);
                   await onToolResult({
                     text,

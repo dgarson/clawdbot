@@ -124,7 +124,9 @@ const localWorkers = Math.max(4, Math.min(16, os.cpus().length));
 function runVitestRelated(configName, configPath, sourceFiles) {
   return new Promise((resolve) => {
     if (sourceFiles.length === 0) {
-      if (verbose) console.log(`  [${configName}] No changed files — skipping`);
+      if (verbose) {
+        console.log(`  [${configName}] No changed files — skipping`);
+      }
       resolve(0);
       return;
     }
@@ -182,10 +184,14 @@ async function main() {
 
   if (verbose) {
     console.log(`Changed files (${changedFiles.length}):`);
-    for (const f of changedFiles) console.log(`  ${f}`);
+    for (const f of changedFiles) {
+      console.log(`  ${String(f)}`);
+    }
     if (extraFiles.length) {
       console.log(`Extra files (${extraFiles.length}):`);
-      for (const f of extraFiles) console.log(`  ${f}`);
+      for (const f of extraFiles) {
+        console.log(`  ${String(f)}`);
+      }
     }
     console.log();
   }
@@ -212,13 +218,17 @@ async function main() {
     const results = await Promise.all(
       parallelConfigs.map((c) => runVitestRelated(c.name, c.path, allSourceFiles)),
     );
-    if (results.some((r) => r !== 0)) hadFailure = true;
+    if (results.some((r) => r !== 0)) {
+      hadFailure = true;
+    }
   }
 
   // Serial phase (gateway)
   for (const c of serialConfigs) {
     const result = await runVitestRelated(c.name, c.path, allSourceFiles);
-    if (result !== 0) hadFailure = true;
+    if (result !== 0) {
+      hadFailure = true;
+    }
   }
 
   if (hadFailure) {

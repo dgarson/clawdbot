@@ -5,7 +5,6 @@ import {
   renderPattern,
   simpleHash,
   type TelegramPatternResult,
-  type TelegramPatternType,
 } from "./rich-patterns.js";
 
 // ─── Callback Data Encoding ─────────────────────────────────────────────────

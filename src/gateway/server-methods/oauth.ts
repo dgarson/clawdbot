@@ -27,7 +27,7 @@ import {
   getClientCredentials,
 } from "../../providers/connections/oauth-flow.js";
 import { authorizeGatewayConnect } from "../auth.js";
-import { sendJson, sendText, sendMethodNotAllowed, sendUnauthorized } from "../http-common.js";
+import { sendJson, sendMethodNotAllowed, sendUnauthorized } from "../http-common.js";
 import { getBearerToken } from "../http-utils.js";
 
 const OAUTH_PATH_PREFIX = "/oauth";

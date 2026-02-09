@@ -36,7 +36,7 @@ function normalizeList(items?: string[]): string[] {
   return items
     .map((item) => item.trim())
     .filter(Boolean)
-    .sort();
+    .toSorted();
 }
 
 /**

@@ -196,7 +196,7 @@ describe("subscribeEmbeddedPiSession", () => {
 
     const agentEvents = events.filter((e) => e.kind === "agent_event");
     const payloads = agentEvents
-      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
+      .map((e) => (e.kind === "agent_event" ? e.data : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads[0]?.text).toBe("Hello");
     expect(payloads[0]?.delta).toBe("Hello");
@@ -236,7 +236,7 @@ describe("subscribeEmbeddedPiSession", () => {
 
     const agentEvents = events.filter((e) => e.kind === "agent_event");
     const payloads = agentEvents
-      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
+      .map((e) => (e.kind === "agent_event" ? e.data : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("Hello world");
@@ -278,7 +278,7 @@ describe("subscribeEmbeddedPiSession", () => {
       (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "assistant",
     );
     const payloads = agentEvents
-      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
+      .map((e) => (e.kind === "agent_event" ? e.data : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
 
@@ -321,7 +321,7 @@ describe("subscribeEmbeddedPiSession", () => {
       (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "assistant",
     );
     const payloads = agentEvents
-      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
+      .map((e) => (e.kind === "agent_event" ? e.data : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("MEDIA:");
@@ -360,7 +360,7 @@ describe("subscribeEmbeddedPiSession", () => {
       (e) => e.kind === "agent_event" && (e as { stream: string }).stream === "assistant",
     );
     const payloads = agentEvents
-      .map((e) => (e.kind === "agent_event" ? (e.data as Record<string, unknown>) : undefined))
+      .map((e) => (e.kind === "agent_event" ? e.data : undefined))
       .filter((value): value is Record<string, unknown> => Boolean(value));
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.text).toBe("");

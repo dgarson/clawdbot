@@ -230,7 +230,7 @@ export class ComposableMemoryManager implements MemorySearchManager {
     return {
       ...baseStatus,
       custom: {
-        ...(baseStatus.custom ?? {}),
+        ...baseStatus.custom,
         composable: true,
         backends: backendIds,
         primary: this.primaryId ?? backendIds[0],

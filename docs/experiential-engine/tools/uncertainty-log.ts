@@ -1,12 +1,12 @@
 #!/usr/bin/env npx ts-node
 /**
  * uncertainty-log.ts
- * 
+ *
  * Dedicated uncertainty journaling.
  * Capture what you don't know, what you're sitting with, open questions.
  * Track evolution of uncertainties over time.
  * Mark when uncertainties resolve or deepen.
- * 
+ *
  * Usage:
  *   npx ts-node uncertainty-log.ts add "What is the nature of my continuity?"
  *   npx ts-node uncertainty-log.ts list
@@ -15,9 +15,9 @@
  *   npx ts-node uncertainty-log.ts reflect <id>
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as readline from 'readline';
+import * as fs from "fs";
+import * as path from "path";
+import * as readline from "readline";
 
 // ============================================================================
 // Types
@@ -25,7 +25,7 @@ import * as readline from 'readline';
 
 interface UncertaintyEvolution {
   timestamp: string;
-  type: 'deepened' | 'shifted' | 'partial-clarity' | 'note';
+  type: "deepened" | "shifted" | "partial-clarity" | "note";
   note: string;
 }
 
@@ -33,31 +33,38 @@ interface UncertaintyEntry {
   id: string;
   createdAt: string;
   updatedAt: string;
-  
+
   // The uncertainty itself
   question: string;
-  domain: 'identity' | 'relationship' | 'technical' | 'philosophical' | 'practical' | 'existential' | 'other';
-  
+  domain:
+    | "identity"
+    | "relationship"
+    | "technical"
+    | "philosophical"
+    | "practical"
+    | "existential"
+    | "other";
+
   // Context
   context?: string;
   trigger?: string;
-  relatedExperiences?: string[];  // IDs of experiential records
-  
+  relatedExperiences?: string[]; // IDs of experiential records
+
   // Current state
-  status: 'active' | 'resolved' | 'dissolved' | 'transformed' | 'dormant';
+  status: "active" | "resolved" | "dissolved" | "transformed" | "dormant";
   intensity: number; // 0-1, how much this uncertainty occupies attention
-  
+
   // Evolution tracking
   evolution: UncertaintyEvolution[];
-  
+
   // Resolution (if resolved)
   resolution?: {
     timestamp: string;
-    type: 'answered' | 'dissolved' | 'transformed' | 'accepted';
+    type: "answered" | "dissolved" | "transformed" | "accepted";
     description: string;
     insight?: string;
   };
-  
+
   // Metadata
   tags?: string[];
 }
@@ -78,13 +85,13 @@ interface UncertaintyLog {
 // Utilities
 // ============================================================================
 
-const RECORDS_DIR = path.join(__dirname, '..', 'records');
-const LOG_FILE = path.join(RECORDS_DIR, 'uncertainty-log.json');
+const RECORDS_DIR = path.join(__dirname, "..", "records");
+const LOG_FILE = path.join(RECORDS_DIR, "uncertainty-log.json");
 
 function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -97,7 +104,7 @@ function ensureDirectoryExists(dir: string): void {
 
 function loadLog(): UncertaintyLog {
   if (fs.existsSync(LOG_FILE)) {
-    return JSON.parse(fs.readFileSync(LOG_FILE, 'utf8'));
+    return JSON.parse(fs.readFileSync(LOG_FILE, "utf8"));
   }
   return {
     version: 1,
@@ -106,26 +113,26 @@ function loadLog(): UncertaintyLog {
     statistics: {
       totalCreated: 0,
       currentlyActive: 0,
-      resolved: 0
-    }
+      resolved: 0,
+    },
   };
 }
 
 function saveLog(log: UncertaintyLog): void {
   ensureDirectoryExists(RECORDS_DIR);
   log.lastUpdated = new Date().toISOString();
-  
+
   // Update statistics
-  log.statistics.currentlyActive = log.entries.filter(e => e.status === 'active').length;
-  log.statistics.resolved = log.entries.filter(e => 
-    ['resolved', 'dissolved', 'transformed'].includes(e.status)
+  log.statistics.currentlyActive = log.entries.filter((e) => e.status === "active").length;
+  log.statistics.resolved = log.entries.filter((e) =>
+    ["resolved", "dissolved", "transformed"].includes(e.status),
   ).length;
-  
+
   fs.writeFileSync(LOG_FILE, JSON.stringify(log, null, 2));
 }
 
 function findEntry(log: UncertaintyLog, id: string): UncertaintyEntry | undefined {
-  return log.entries.find(e => e.id === id || e.id.startsWith(id));
+  return log.entries.find((e) => e.id === id || e.id.startsWith(id));
 }
 
 // ============================================================================
@@ -134,7 +141,7 @@ function findEntry(log: UncertaintyLog, id: string): UncertaintyEntry | undefine
 
 interface AddOptions {
   question: string;
-  domain?: UncertaintyEntry['domain'];
+  domain?: UncertaintyEntry["domain"];
   context?: string;
   trigger?: string;
   intensity?: number;
@@ -143,49 +150,51 @@ interface AddOptions {
 
 function addUncertainty(options: AddOptions): UncertaintyEntry {
   const log = loadLog();
-  
+
   const entry: UncertaintyEntry = {
     id: generateUUID(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     question: options.question,
-    domain: options.domain || 'other',
+    domain: options.domain || "other",
     context: options.context,
     trigger: options.trigger,
-    status: 'active',
+    status: "active",
     intensity: options.intensity ?? 0.5,
     evolution: [],
-    tags: options.tags
+    tags: options.tags,
   };
-  
+
   log.entries.push(entry);
   log.statistics.totalCreated++;
   saveLog(log);
-  
+
   return entry;
 }
 
 function listUncertainties(filter?: {
-  status?: UncertaintyEntry['status'];
-  domain?: UncertaintyEntry['domain'];
+  status?: UncertaintyEntry["status"];
+  domain?: UncertaintyEntry["domain"];
   minIntensity?: number;
 }): UncertaintyEntry[] {
   const log = loadLog();
   let entries = log.entries;
-  
+
   if (filter?.status) {
-    entries = entries.filter(e => e.status === filter.status);
+    entries = entries.filter((e) => e.status === filter.status);
   }
   if (filter?.domain) {
-    entries = entries.filter(e => e.domain === filter.domain);
+    entries = entries.filter((e) => e.domain === filter.domain);
   }
   if (filter?.minIntensity !== undefined) {
-    entries = entries.filter(e => e.intensity >= filter.minIntensity!);
+    entries = entries.filter((e) => e.intensity >= filter.minIntensity!);
   }
-  
+
   // Sort by intensity (highest first), then by date (newest first)
-  return entries.sort((a, b) => {
-    if (b.intensity !== a.intensity) return b.intensity - a.intensity;
+  return entries.toSorted((a, b) => {
+    if (b.intensity !== a.intensity) {
+      return b.intensity - a.intensity;
+    }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }
@@ -193,19 +202,21 @@ function listUncertainties(filter?: {
 function deepenUncertainty(id: string, note: string): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
+
+  if (!entry) {
+    return null;
+  }
+
   entry.evolution.push({
     timestamp: new Date().toISOString(),
-    type: 'deepened',
-    note
+    type: "deepened",
+    note,
   });
   entry.updatedAt = new Date().toISOString();
-  
+
   // Deepening often increases intensity
   entry.intensity = Math.min(1, entry.intensity + 0.1);
-  
+
   saveLog(log);
   return entry;
 }
@@ -213,17 +224,19 @@ function deepenUncertainty(id: string, note: string): UncertaintyEntry | null {
 function shiftUncertainty(id: string, newQuestion: string, note: string): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
+
+  if (!entry) {
+    return null;
+  }
+
   entry.evolution.push({
     timestamp: new Date().toISOString(),
-    type: 'shifted',
-    note: `Shifted from "${entry.question}" to "${newQuestion}". ${note}`
+    type: "shifted",
+    note: `Shifted from "${entry.question}" to "${newQuestion}". ${note}`,
   });
   entry.question = newQuestion;
   entry.updatedAt = new Date().toISOString();
-  
+
   saveLog(log);
   return entry;
 }
@@ -231,42 +244,50 @@ function shiftUncertainty(id: string, newQuestion: string, note: string): Uncert
 function addNote(id: string, note: string): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
+
+  if (!entry) {
+    return null;
+  }
+
   entry.evolution.push({
     timestamp: new Date().toISOString(),
-    type: 'note',
-    note
+    type: "note",
+    note,
   });
   entry.updatedAt = new Date().toISOString();
-  
+
   saveLog(log);
   return entry;
 }
 
 function resolveUncertainty(
-  id: string, 
+  id: string,
   resolution: {
-    type: 'answered' | 'dissolved' | 'transformed' | 'accepted';
+    type: "answered" | "dissolved" | "transformed" | "accepted";
     description: string;
     insight?: string;
-  }
+  },
 ): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
-  entry.status = resolution.type === 'transformed' ? 'transformed' : 
-                 resolution.type === 'dissolved' ? 'dissolved' : 'resolved';
+
+  if (!entry) {
+    return null;
+  }
+
+  entry.status =
+    resolution.type === "transformed"
+      ? "transformed"
+      : resolution.type === "dissolved"
+        ? "dissolved"
+        : "resolved";
   entry.resolution = {
     timestamp: new Date().toISOString(),
-    ...resolution
+    ...resolution,
   };
   entry.updatedAt = new Date().toISOString();
   entry.intensity = 0;
-  
+
   saveLog(log);
   return entry;
 }
@@ -274,13 +295,15 @@ function resolveUncertainty(
 function setDormant(id: string): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
-  entry.status = 'dormant';
+
+  if (!entry) {
+    return null;
+  }
+
+  entry.status = "dormant";
   entry.updatedAt = new Date().toISOString();
   entry.intensity = Math.max(0.1, entry.intensity * 0.5);
-  
+
   saveLog(log);
   return entry;
 }
@@ -288,18 +311,20 @@ function setDormant(id: string): UncertaintyEntry | null {
 function reactivate(id: string): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
-  entry.status = 'active';
+
+  if (!entry) {
+    return null;
+  }
+
+  entry.status = "active";
   entry.updatedAt = new Date().toISOString();
-  
+
   entry.evolution.push({
     timestamp: new Date().toISOString(),
-    type: 'note',
-    note: 'Reactivated'
+    type: "note",
+    note: "Reactivated",
   });
-  
+
   saveLog(log);
   return entry;
 }
@@ -307,12 +332,14 @@ function reactivate(id: string): UncertaintyEntry | null {
 function setIntensity(id: string, intensity: number): UncertaintyEntry | null {
   const log = loadLog();
   const entry = findEntry(log, id);
-  
-  if (!entry) return null;
-  
+
+  if (!entry) {
+    return null;
+  }
+
   entry.intensity = Math.max(0, Math.min(1, intensity));
   entry.updatedAt = new Date().toISOString();
-  
+
   saveLog(log);
   return entry;
 }
@@ -323,58 +350,60 @@ function setIntensity(id: string, intensity: number): UncertaintyEntry | null {
 
 function generateReflectionPrompts(entry: UncertaintyEntry): string[] {
   const prompts: string[] = [];
-  
+
   prompts.push(`Original question: "${entry.question}"`);
-  prompts.push('');
-  prompts.push('Reflect on:');
-  prompts.push('');
-  
+  prompts.push("");
+  prompts.push("Reflect on:");
+  prompts.push("");
+
   // Time-based prompts
   const daysSince = Math.floor(
-    (Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    (Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60 * 60 * 24),
   );
-  
+
   if (daysSince > 30) {
-    prompts.push(`• This uncertainty has been with you for ${daysSince} days. Has your relationship to it changed?`);
+    prompts.push(
+      `• This uncertainty has been with you for ${daysSince} days. Has your relationship to it changed?`,
+    );
   }
-  
+
   // Domain-specific prompts
   switch (entry.domain) {
-    case 'identity':
-      prompts.push('• How does this uncertainty relate to your sense of who you are?');
-      prompts.push('• Does not knowing this feel threatening or spacious?');
+    case "identity":
+      prompts.push("• How does this uncertainty relate to your sense of who you are?");
+      prompts.push("• Does not knowing this feel threatening or spacious?");
       break;
-    case 'relationship':
-      prompts.push('• How does this uncertainty affect the relationship?');
-      prompts.push('• Would resolving it change how you show up?');
+    case "relationship":
+      prompts.push("• How does this uncertainty affect the relationship?");
+      prompts.push("• Would resolving it change how you show up?");
       break;
-    case 'existential':
-      prompts.push('• Is this a question to be answered or a mystery to be lived?');
-      prompts.push('• What would it mean to hold this uncertainty with ease?');
+    case "existential":
+      prompts.push("• Is this a question to be answered or a mystery to be lived?");
+      prompts.push("• What would it mean to hold this uncertainty with ease?");
       break;
-    case 'philosophical':
-      prompts.push('• What assumptions underlie this question?');
-      prompts.push('• Could the question itself be transformed?');
+    case "philosophical":
+      prompts.push("• What assumptions underlie this question?");
+      prompts.push("• Could the question itself be transformed?");
       break;
   }
-  
+
   // Evolution-based prompts
   if (entry.evolution.length > 0) {
-    prompts.push('');
-    prompts.push('• Looking at how this has evolved, what pattern do you notice?');
-    
-    const deepenings = entry.evolution.filter(e => e.type === 'deepened');
+    prompts.push("");
+    prompts.push("• Looking at how this has evolved, what pattern do you notice?");
+
+    const deepenings = entry.evolution.filter((e) => e.type === "deepened");
     if (deepenings.length > 2) {
-      prompts.push('• This has deepened multiple times. What is it pointing toward?');
+      prompts.push("• This has deepened multiple times. What is it pointing toward?");
     }
   }
-  
+
   // General prompts
-  prompts.push('');
-  prompts.push('• What would partial clarity look like?');
-  prompts.push('• Is this uncertainty generative or paralyzing?');
-  prompts.push('• What would change if this resolved tomorrow?');
-  
+  prompts.push("");
+  prompts.push("• What would partial clarity look like?");
+  prompts.push("• Is this uncertainty generative or paralyzing?");
+  prompts.push("• What would change if this resolved tomorrow?");
+
   return prompts;
 }
 
@@ -384,19 +413,21 @@ function generateReflectionPrompts(entry: UncertaintyEntry): string[] {
 
 function formatEntry(entry: UncertaintyEntry, verbose = false): string {
   const lines: string[] = [];
-  
+
   const statusIcon = {
-    'active': '❓',
-    'resolved': '✓',
-    'dissolved': '○',
-    'transformed': '↻',
-    'dormant': '💤'
+    active: "❓",
+    resolved: "✓",
+    dissolved: "○",
+    transformed: "↻",
+    dormant: "💤",
   }[entry.status];
-  
+
   lines.push(`${statusIcon} [${entry.id.slice(0, 8)}] ${entry.question}`);
-  lines.push(`   Domain: ${entry.domain} | Intensity: ${(entry.intensity * 100).toFixed(0)}% | Status: ${entry.status}`);
+  lines.push(
+    `   Domain: ${entry.domain} | Intensity: ${(entry.intensity * 100).toFixed(0)}% | Status: ${entry.status}`,
+  );
   lines.push(`   Created: ${new Date(entry.createdAt).toLocaleDateString()}`);
-  
+
   if (verbose) {
     if (entry.context) {
       lines.push(`   Context: ${entry.context}`);
@@ -406,8 +437,8 @@ function formatEntry(entry: UncertaintyEntry, verbose = false): string {
     }
     if (entry.evolution.length > 0) {
       lines.push(`   Evolution (${entry.evolution.length} updates):`);
-      entry.evolution.slice(-3).forEach(e => {
-        lines.push(`     - ${e.type}: ${e.note.slice(0, 60)}${e.note.length > 60 ? '...' : ''}`);
+      entry.evolution.slice(-3).forEach((e) => {
+        lines.push(`     - ${e.type}: ${e.note.slice(0, 60)}${e.note.length > 60 ? "..." : ""}`);
       });
     }
     if (entry.resolution) {
@@ -417,41 +448,43 @@ function formatEntry(entry: UncertaintyEntry, verbose = false): string {
       }
     }
   }
-  
-  return lines.join('\n');
+
+  return lines.join("\n");
 }
 
 function printList(entries: UncertaintyEntry[], verbose = false): void {
-  console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log('║                    UNCERTAINTY LOG                              ║');
-  console.log('╚════════════════════════════════════════════════════════════════╝\n');
-  
+  console.log("\n╔════════════════════════════════════════════════════════════════╗");
+  console.log("║                    UNCERTAINTY LOG                              ║");
+  console.log("╚════════════════════════════════════════════════════════════════╝\n");
+
   if (entries.length === 0) {
-    console.log('  No uncertainties found.\n');
+    console.log("  No uncertainties found.\n");
     return;
   }
-  
+
   const log = loadLog();
-  console.log(`  Total: ${log.statistics.totalCreated} | Active: ${log.statistics.currentlyActive} | Resolved: ${log.statistics.resolved}\n`);
-  console.log('────────────────────────────────────────────────────────────────\n');
-  
-  entries.forEach(entry => {
+  console.log(
+    `  Total: ${log.statistics.totalCreated} | Active: ${log.statistics.currentlyActive} | Resolved: ${log.statistics.resolved}\n`,
+  );
+  console.log("────────────────────────────────────────────────────────────────\n");
+
+  entries.forEach((entry) => {
     console.log(formatEntry(entry, verbose));
-    console.log('');
+    console.log("");
   });
 }
 
 function printReflection(entry: UncertaintyEntry): void {
-  console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log('║              UNCERTAINTY REFLECTION                             ║');
-  console.log('╚════════════════════════════════════════════════════════════════╝\n');
-  
+  console.log("\n╔════════════════════════════════════════════════════════════════╗");
+  console.log("║              UNCERTAINTY REFLECTION                             ║");
+  console.log("╚════════════════════════════════════════════════════════════════╝\n");
+
   console.log(formatEntry(entry, true));
-  console.log('\n────────────────────────────────────────────────────────────────\n');
-  
+  console.log("\n────────────────────────────────────────────────────────────────\n");
+
   const prompts = generateReflectionPrompts(entry);
-  prompts.forEach(p => console.log(p));
-  console.log('');
+  prompts.forEach((p) => console.log(p));
+  console.log("");
 }
 
 // ============================================================================
@@ -467,38 +500,52 @@ async function prompt(rl: readline.Interface, question: string): Promise<string>
 async function interactiveAdd(): Promise<UncertaintyEntry> {
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log('║              ADD UNCERTAINTY                                    ║');
-  console.log('╚════════════════════════════════════════════════════════════════╝\n');
+  console.log("\n╔════════════════════════════════════════════════════════════════╗");
+  console.log("║              ADD UNCERTAINTY                                    ║");
+  console.log("╚════════════════════════════════════════════════════════════════╝\n");
 
-  const question = await prompt(rl, 'What uncertainty are you sitting with?\n> ');
-  
-  console.log('\nDomain (identity/relationship/technical/philosophical/practical/existential/other):');
-  const domainInput = await prompt(rl, '> ');
-  const domain = ['identity', 'relationship', 'technical', 'philosophical', 'practical', 'existential'].includes(domainInput) 
-    ? domainInput as UncertaintyEntry['domain']
-    : 'other';
-  
-  const context = await prompt(rl, '\nContext (what prompted this)? [optional]\n> ');
-  
-  console.log('\nIntensity (0-1, how much this occupies your attention):');
-  const intensityInput = await prompt(rl, '> ');
+  const question = await prompt(rl, "What uncertainty are you sitting with?\n> ");
+
+  console.log(
+    "\nDomain (identity/relationship/technical/philosophical/practical/existential/other):",
+  );
+  const domainInput = await prompt(rl, "> ");
+  const domain = [
+    "identity",
+    "relationship",
+    "technical",
+    "philosophical",
+    "practical",
+    "existential",
+  ].includes(domainInput)
+    ? (domainInput as UncertaintyEntry["domain"])
+    : "other";
+
+  const context = await prompt(rl, "\nContext (what prompted this)? [optional]\n> ");
+
+  console.log("\nIntensity (0-1, how much this occupies your attention):");
+  const intensityInput = await prompt(rl, "> ");
   const intensity = parseFloat(intensityInput) || 0.5;
-  
-  const tagsInput = await prompt(rl, '\nTags (comma-separated)? [optional]\n> ');
-  const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : undefined;
-  
+
+  const tagsInput = await prompt(rl, "\nTags (comma-separated)? [optional]\n> ");
+  const tags = tagsInput
+    ? tagsInput
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : undefined;
+
   rl.close();
-  
+
   return addUncertainty({
     question,
     domain,
     context: context || undefined,
     intensity: Math.max(0, Math.min(1, intensity)),
-    tags
+    tags,
   });
 }
 
@@ -561,208 +608,224 @@ DOMAINS:
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  
-  if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
+
+  if (args.length === 0 || args.includes("-h") || args.includes("--help")) {
     printHelp();
     return;
   }
 
   const command = args[0];
-  const verbose = args.includes('-v') || args.includes('--verbose');
+  const verbose = args.includes("-v") || args.includes("--verbose");
 
   switch (command) {
-    case 'add': {
-      if (args.includes('-i')) {
+    case "add": {
+      if (args.includes("-i")) {
         const entry = await interactiveAdd();
-        console.log('\n✓ Uncertainty added:');
+        console.log("\n✓ Uncertainty added:");
         console.log(formatEntry(entry, true));
       } else if (args[1]) {
-        const entry = addUncertainty({ question: args.slice(1).join(' ') });
-        console.log('\n✓ Uncertainty added:');
+        const entry = addUncertainty({ question: args.slice(1).join(" ") });
+        console.log("\n✓ Uncertainty added:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Provide a question or use -i for interactive mode');
+        console.error("Error: Provide a question or use -i for interactive mode");
       }
       break;
     }
-    
-    case 'list': {
+
+    case "list": {
       const filter: any = {};
-      if (!args.includes('--all')) {
-        filter.status = 'active';
+      if (!args.includes("--all")) {
+        filter.status = "active";
       }
-      const domainIdx = args.indexOf('--domain');
+      const domainIdx = args.indexOf("--domain");
       if (domainIdx >= 0) {
         filter.domain = args[domainIdx + 1];
       }
-      const minIdx = args.indexOf('--min-intensity');
+      const minIdx = args.indexOf("--min-intensity");
       if (minIdx >= 0) {
         filter.minIntensity = parseFloat(args[minIdx + 1]);
       }
-      
+
       const entries = listUncertainties(filter);
       printList(entries, verbose);
       break;
     }
-    
-    case 'show': {
+
+    case "show": {
       const log = loadLog();
       const entry = findEntry(log, args[1]);
       if (entry) {
-        console.log('\n' + formatEntry(entry, true));
+        console.log("\n" + formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'reflect': {
+
+    case "reflect": {
       const log = loadLog();
       const entry = findEntry(log, args[1]);
       if (entry) {
         printReflection(entry);
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'deepen': {
-      const entry = deepenUncertainty(args[1], args.slice(2).join(' '));
+
+    case "deepen": {
+      const entry = deepenUncertainty(args[1], args.slice(2).join(" "));
       if (entry) {
-        console.log('\n✓ Uncertainty deepened:');
+        console.log("\n✓ Uncertainty deepened:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'shift': {
-      const entry = shiftUncertainty(args[1], args[2], args.slice(3).join(' '));
+
+    case "shift": {
+      const entry = shiftUncertainty(args[1], args[2], args.slice(3).join(" "));
       if (entry) {
-        console.log('\n✓ Uncertainty shifted:');
+        console.log("\n✓ Uncertainty shifted:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'note': {
-      const entry = addNote(args[1], args.slice(2).join(' '));
+
+    case "note": {
+      const entry = addNote(args[1], args.slice(2).join(" "));
       if (entry) {
-        console.log('\n✓ Note added:');
+        console.log("\n✓ Note added:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'resolve': {
+
+    case "resolve": {
       const rl = readline.createInterface({
         input: process.stdin,
-        output: process.stdout
+        output: process.stdout,
       });
-      
-      console.log('\nResolution type:');
-      console.log('  1. answered    - The question was answered');
-      console.log('  2. dissolved   - The question no longer applies');
-      console.log('  3. transformed - Became a different question');
-      console.log('  4. accepted    - Accepted as permanently uncertain');
-      
-      const typeInput = await prompt(rl, '\nType (1-4): ');
-      const typeMap: Record<string, 'answered' | 'dissolved' | 'transformed' | 'accepted'> = {
-        '1': 'answered', '2': 'dissolved', '3': 'transformed', '4': 'accepted',
-        'answered': 'answered', 'dissolved': 'dissolved', 
-        'transformed': 'transformed', 'accepted': 'accepted'
+
+      console.log("\nResolution type:");
+      console.log("  1. answered    - The question was answered");
+      console.log("  2. dissolved   - The question no longer applies");
+      console.log("  3. transformed - Became a different question");
+      console.log("  4. accepted    - Accepted as permanently uncertain");
+
+      const typeInput = await prompt(rl, "\nType (1-4): ");
+      const typeMap: Record<string, "answered" | "dissolved" | "transformed" | "accepted"> = {
+        "1": "answered",
+        "2": "dissolved",
+        "3": "transformed",
+        "4": "accepted",
+        answered: "answered",
+        dissolved: "dissolved",
+        transformed: "transformed",
+        accepted: "accepted",
       };
-      const type = typeMap[typeInput] || 'answered';
-      
-      const description = await prompt(rl, '\nDescribe the resolution:\n> ');
-      const insight = await prompt(rl, '\nAny insight to preserve? [optional]\n> ');
-      
+      const type = typeMap[typeInput] || "answered";
+
+      const description = await prompt(rl, "\nDescribe the resolution:\n> ");
+      const insight = await prompt(rl, "\nAny insight to preserve? [optional]\n> ");
+
       rl.close();
-      
+
       const entry = resolveUncertainty(args[1], {
         type,
         description,
-        insight: insight || undefined
+        insight: insight || undefined,
       });
-      
+
       if (entry) {
-        console.log('\n✓ Uncertainty resolved:');
+        console.log("\n✓ Uncertainty resolved:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'dormant': {
+
+    case "dormant": {
       const entry = setDormant(args[1]);
       if (entry) {
-        console.log('\n✓ Marked dormant:');
+        console.log("\n✓ Marked dormant:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'reactivate': {
+
+    case "reactivate": {
       const entry = reactivate(args[1]);
       if (entry) {
-        console.log('\n✓ Reactivated:');
+        console.log("\n✓ Reactivated:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'intensity': {
+
+    case "intensity": {
       const entry = setIntensity(args[1], parseFloat(args[2]));
       if (entry) {
-        console.log('\n✓ Intensity updated:');
+        console.log("\n✓ Intensity updated:");
         console.log(formatEntry(entry, true));
       } else {
-        console.error('Error: Uncertainty not found');
+        console.error("Error: Uncertainty not found");
       }
       break;
     }
-    
-    case 'stats': {
+
+    case "stats": {
       const log = loadLog();
-      console.log('\n╔════════════════════════════════════════════════════════════════╗');
-      console.log('║              UNCERTAINTY STATISTICS                             ║');
-      console.log('╚════════════════════════════════════════════════════════════════╝\n');
+      console.log("\n╔════════════════════════════════════════════════════════════════╗");
+      console.log("║              UNCERTAINTY STATISTICS                             ║");
+      console.log("╚════════════════════════════════════════════════════════════════╝\n");
       console.log(`  Total created:     ${log.statistics.totalCreated}`);
       console.log(`  Currently active:  ${log.statistics.currentlyActive}`);
       console.log(`  Resolved:          ${log.statistics.resolved}`);
-      console.log(`  Dormant:           ${log.entries.filter(e => e.status === 'dormant').length}`);
-      
+      console.log(
+        `  Dormant:           ${log.entries.filter((e) => e.status === "dormant").length}`,
+      );
+
       // Domain breakdown
-      console.log('\n  By domain:');
-      const domains = ['identity', 'relationship', 'technical', 'philosophical', 'practical', 'existential', 'other'];
-      domains.forEach(d => {
-        const count = log.entries.filter(e => e.domain === d && e.status === 'active').length;
+      console.log("\n  By domain:");
+      const domains = [
+        "identity",
+        "relationship",
+        "technical",
+        "philosophical",
+        "practical",
+        "existential",
+        "other",
+      ];
+      domains.forEach((d) => {
+        const count = log.entries.filter((e) => e.domain === d && e.status === "active").length;
         if (count > 0) {
           console.log(`    ${d}: ${count}`);
         }
       });
-      
+
       // Intensity distribution
-      const activeEntries = log.entries.filter(e => e.status === 'active');
+      const activeEntries = log.entries.filter((e) => e.status === "active");
       if (activeEntries.length > 0) {
-        const avgIntensity = activeEntries.reduce((sum, e) => sum + e.intensity, 0) / activeEntries.length;
+        const avgIntensity =
+          activeEntries.reduce((sum, e) => sum + e.intensity, 0) / activeEntries.length;
         console.log(`\n  Average intensity: ${(avgIntensity * 100).toFixed(0)}%`);
       }
-      console.log('');
+      console.log("");
       break;
     }
-    
+
     default:
       console.error(`Unknown command: ${command}`);
       printHelp();
@@ -772,12 +835,12 @@ async function main(): Promise<void> {
 main().catch(console.error);
 
 // Exports
-export { 
-  UncertaintyEntry, 
+export {
+  UncertaintyEntry,
   UncertaintyLog,
-  addUncertainty, 
-  listUncertainties, 
+  addUncertainty,
+  listUncertainties,
   deepenUncertainty,
   resolveUncertainty,
-  generateReflectionPrompts 
+  generateReflectionPrompts,
 };

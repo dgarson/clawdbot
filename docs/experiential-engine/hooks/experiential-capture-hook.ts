@@ -181,9 +181,22 @@ function isObservationTool(toolName: string): boolean {
 }
 
 function extractContextSummary(toolInput: unknown, toolResult: unknown): string {
-  const inputStr = typeof toolInput === "object" ? JSON.stringify(toolInput) : String(toolInput);
+  const inputStr =
+    typeof toolInput === "object" && toolInput !== null
+      ? JSON.stringify(toolInput)
+      : typeof toolInput === "string" ||
+          typeof toolInput === "number" ||
+          typeof toolInput === "boolean"
+        ? String(toolInput)
+        : "";
   const resultStr =
-    typeof toolResult === "object" ? JSON.stringify(toolResult) : String(toolResult);
+    typeof toolResult === "object" && toolResult !== null
+      ? JSON.stringify(toolResult)
+      : typeof toolResult === "string" ||
+          typeof toolResult === "number" ||
+          typeof toolResult === "boolean"
+        ? String(toolResult)
+        : "";
 
   // Truncate for context
   const inputSummary = inputStr.length > 500 ? inputStr.slice(0, 500) + "..." : inputStr;
@@ -427,7 +440,7 @@ const experientialCaptureHook: HookHandler = async (event: InternalHookEvent) =>
   }
 
   const context = event.context || {};
-  const cfg = context.cfg as OpenClawConfig | undefined;
+  const cfg = context.cfg;
   const config = await loadConfig(cfg);
 
   if (!config.enabled) {

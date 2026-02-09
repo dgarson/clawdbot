@@ -1,4 +1,4 @@
-import { type Api, completeSimple, type Model } from "@mariozechner/pi-ai";
+import { completeSimple } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
 import { getApiKeyForModel, resolveApiKeyForProvider } from "../agents/model-auth.js";
@@ -66,7 +66,7 @@ export async function completeText(params: {
 
   try {
     const res = await completeSimple(
-      model as Model<Api>,
+      model,
       {
         messages: [
           {
@@ -193,7 +193,7 @@ export async function probeModelRefAuth(params: {
         error: error ?? `Failed to resolve model: ${provider}/${resolved.ref.model}`,
       };
     }
-    const auth = await getApiKeyForModel({ model: model as Model<Api>, cfg: params.cfg, agentDir });
+    const auth = await getApiKeyForModel({ model: model, cfg: params.cfg, agentDir });
     const key = auth.apiKey?.trim() ?? "";
     return {
       ok: true,

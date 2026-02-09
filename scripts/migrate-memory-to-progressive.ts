@@ -202,8 +202,8 @@ function parseMemoryMd(content: string): ParsedSection[] {
     const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
     if (headingMatch) {
       flush();
-      const level = headingMatch[1]!.length;
-      const heading = headingMatch[2]!.trim();
+      const level = headingMatch[1].length;
+      const heading = headingMatch[2].trim();
       const normalizedHeading = heading.toLowerCase().replace(/\*\*/g, "");
 
       // Try exact match first, then partial match
@@ -231,7 +231,9 @@ function parseMemoryMd(content: string): ParsedSection[] {
     }
 
     // Skip horizontal rules
-    if (line.match(/^---+$/)) continue;
+    if (line.match(/^---+$/)) {
+      continue;
+    }
 
     currentContent.push(line);
   }
@@ -311,10 +313,14 @@ function assignPriority(content: string, defaultPriority: MemoryPriority): Memor
   const lower = content.toLowerCase();
 
   // Channel IDs are critical
-  if (/c0[a-z0-9]{8,}/i.test(content)) return "critical";
+  if (/c0[a-z0-9]{8,}/i.test(content)) {
+    return "critical";
+  }
 
   // Slack IDs are critical
-  if (/u0[a-z0-9]{8,}/i.test(content)) return "critical";
+  if (/u0[a-z0-9]{8,}/i.test(content)) {
+    return "critical";
+  }
 
   // "Never" / "Always" / "REQUIRED" instructions are critical
   if (/\b(never|always|required|mandatory|important)\b/i.test(lower)) {
@@ -421,7 +427,9 @@ async function main() {
     console.log(`\n✅ Migration complete:`);
     console.log(`   Stored: ${stored}`);
     console.log(`   Deduplicated: ${deduplicated}`);
-    if (errors > 0) console.log(`   Errors: ${errors}`);
+    if (errors > 0) {
+      console.log(`   Errors: ${errors}`);
+    }
 
     // Show store stats
     const stats = store.status();
@@ -437,7 +445,7 @@ async function main() {
       for (const q of queries) {
         const results = store.searchFts(q, { limit: 3 });
         console.log(
-          `   "${q}" → ${results.length} results${results.length > 0 ? ` (top: ${results[0]!.content.slice(0, 50).replace(/\n/g, " ")}...)` : ""}`,
+          `   "${q}" → ${results.length} results${results.length > 0 ? ` (top: ${results[0].content.slice(0, 50).replace(/\n/g, " ")}...)` : ""}`,
         );
       }
     }
@@ -448,7 +456,9 @@ async function main() {
 
 function findMemoryMd(candidates: string[]): string | undefined {
   for (const p of candidates) {
-    if (fs.existsSync(p)) return p;
+    if (fs.existsSync(p)) {
+      return p;
+    }
   }
   return undefined;
 }

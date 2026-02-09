@@ -343,7 +343,7 @@ describe("compaction event tracking parity", () => {
   });
 
   it("documents: compaction count NOT incremented when no payloads", () => {
-    const autoCompactionCompleted = true;
+    const _autoCompactionCompleted = true;
     const finalPayloadsLength = 0;
     // Followup runner returns early when payloads are empty, before
     // the compaction increment check

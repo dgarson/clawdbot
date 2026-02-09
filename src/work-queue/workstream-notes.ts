@@ -56,19 +56,23 @@ export class WorkstreamNotesStore {
    * Format recent notes into a compact string for system prompt injection.
    */
   summarize(notes: WorkstreamNote[], opts?: { maxChars?: number }): string {
-    if (notes.length === 0) return "";
+    if (notes.length === 0) {
+      return "";
+    }
 
     const maxChars = opts?.maxChars ?? DEFAULT_SUMMARY_MAX_CHARS;
     const ws = notes[0]?.workstream ?? "unknown";
     const lines: string[] = [`## Workstream Notes (${ws})`];
-    let totalLen = lines[0]!.length;
+    let totalLen = lines[0].length;
 
     for (const note of notes) {
       const datePart = note.createdAt.slice(0, 10);
       const itemPart = note.itemId ? ` (item: ${note.itemId.slice(0, 8)})` : "";
       const line = `[${datePart} ${note.kind}] ${note.content}${itemPart}`;
 
-      if (totalLen + line.length + 1 > maxChars) break;
+      if (totalLen + line.length + 1 > maxChars) {
+        break;
+      }
       lines.push(line);
       totalLen += line.length + 1;
     }
@@ -189,15 +193,17 @@ export class MemoryWorkstreamNotesBackend implements WorkstreamNotesBackend {
   listNotesByItem(itemId: string): WorkstreamNote[] {
     return this.notes
       .filter((n) => n.itemId === itemId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
   pruneNotes(workstream: string, keepCount: number): number {
     const wsNotes = this.notes
       .filter((n) => n.workstream === workstream)
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const kindOrder = (a.kind === "summary" ? 0 : 1) - (b.kind === "summary" ? 0 : 1);
-        if (kindOrder !== 0) return kindOrder;
+        if (kindOrder !== 0) {
+          return kindOrder;
+        }
         return b.createdAt.localeCompare(a.createdAt);
       });
 

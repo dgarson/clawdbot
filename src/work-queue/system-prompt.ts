@@ -1,6 +1,6 @@
 import type { WorkerConfig } from "../config/types.agents.js";
 import type { WorkItemCarryoverContext } from "./context-extractor.js";
-import type { WorkItem, WorkItemPayload, WorkItemPhase } from "./types.js";
+import type { WorkItem, WorkItemPayload } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
 
 // ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ export function buildWorkerSystemPrompt(opts: BuildSystemPromptOptions): string 
       "This is a multi-phase task. Complete each phase in order, committing and pushing at the end of each phase.",
     );
     for (let i = 0; i < payload.phases.length; i++) {
-      const phase = payload.phases[i] as WorkItemPhase;
+      const phase = payload.phases[i];
       parts.push("");
       parts.push(`### Phase ${i + 1}: ${phase.name}`);
       parts.push(phase.description);

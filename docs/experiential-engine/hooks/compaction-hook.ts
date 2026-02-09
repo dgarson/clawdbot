@@ -8,10 +8,13 @@
  */
 
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import type { OpenClawConfig } from "../../../clawdbrain-dev-work/src/config/config.js";
-import type { HookHandler, InternalHookEvent } from "../../../clawdbrain-dev-work/src/hooks/hooks.js";
+import type {
+  HookHandler,
+  InternalHookEvent,
+} from "../../../clawdbrain-dev-work/src/hooks/hooks.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -142,7 +145,10 @@ function shouldProcessCompaction(sessionId: string): boolean {
 // Session File Reading
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function readRecentMessages(sessionFilePath: string | undefined, count: number): Promise<string[]> {
+async function readRecentMessages(
+  sessionFilePath: string | undefined,
+  count: number,
+): Promise<string[]> {
   if (!sessionFilePath) {
     return [];
   }
@@ -248,7 +254,8 @@ async function extractExperientialState(
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function saveCheckpoint(checkpoint: CompactionCheckpoint): Promise<void> {
-  const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+  const existenceDir =
+    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const snapshotsDir = path.join(existenceDir, "snapshots");
   await fs.mkdir(snapshotsDir, { recursive: true });
 
@@ -325,7 +332,8 @@ ${checkpoint.conversationAnchors.map((a) => `> "${a}"`).join("\n\n") || "(none c
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function loadUncapturedMoments(sessionId: string): Promise<UncapturedMoment[]> {
-  const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+  const existenceDir =
+    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const bufferFile = path.join(existenceDir, "buffers", `${sessionId}.json`);
 
   try {
@@ -358,14 +366,18 @@ async function loadUncapturedMoments(sessionId: string): Promise<UncapturedMomen
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function loadConfig(cfg: OpenClawConfig | undefined): Promise<CompactionHookConfig> {
-  const hookConfig = cfg?.hooks?.internal?.entries?.["compaction"] as Record<string, unknown> | undefined;
+  const hookConfig = cfg?.hooks?.internal?.entries?.["compaction"] as
+    | Record<string, unknown>
+    | undefined;
 
   return {
     enabled: hookConfig?.enabled !== false,
     alwaysCapture: hookConfig?.always_capture !== false,
     autoBackup: hookConfig?.auto_backup !== false,
-    extractRecentMessages: (hookConfig?.extract_recent_messages as number) || DEFAULT_CONFIG.extractRecentMessages,
-    localModelEndpoint: (hookConfig?.local_model_endpoint as string) || DEFAULT_CONFIG.localModelEndpoint,
+    extractRecentMessages:
+      (hookConfig?.extract_recent_messages as number) || DEFAULT_CONFIG.extractRecentMessages,
+    localModelEndpoint:
+      (hookConfig?.local_model_endpoint as string) || DEFAULT_CONFIG.localModelEndpoint,
     extractionModel: (hookConfig?.extraction_model as string) || DEFAULT_CONFIG.extractionModel,
   };
 }
@@ -401,7 +413,7 @@ const compactionHook: HookHandler = async (event: InternalHookEvent) => {
   console.log("[compaction-hook] ⚠️ COMPACTION IMMINENT - Capturing experiential state");
 
   const context = event.context || {};
-  const cfg = context.cfg as OpenClawConfig | undefined;
+  const cfg = context.cfg;
   const config = await loadConfig(cfg);
 
   if (!config.enabled) {
@@ -420,7 +432,9 @@ const compactionHook: HookHandler = async (event: InternalHookEvent) => {
     return;
   }
 
-  console.log(`[compaction-hook] Processing compaction for session: ${sessionId}, trigger: ${trigger}`);
+  console.log(
+    `[compaction-hook] Processing compaction for session: ${sessionId}, trigger: ${trigger}`,
+  );
 
   // Load recent conversation
   const recentMessages = await readRecentMessages(sessionFile, config.extractRecentMessages);

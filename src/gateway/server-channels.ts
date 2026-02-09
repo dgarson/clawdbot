@@ -40,7 +40,17 @@ function stableStringify(value: unknown): string {
     return JSON.stringify(value);
   }
   if (t !== "object") {
-    return JSON.stringify(String(value));
+    // Handle special cases: symbols, functions
+    if (t === "symbol") {
+      return JSON.stringify((value as symbol).toString());
+    }
+    if (t === "function") {
+      return JSON.stringify("[Function]");
+    }
+    if (t === "undefined") {
+      return JSON.stringify("undefined");
+    }
+    return JSON.stringify("[Unknown]");
   }
   if (Array.isArray(value)) {
     return `[${value.map(stableStringify).join(",")}]`;

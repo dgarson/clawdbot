@@ -148,7 +148,9 @@ export async function createEmbeddingProvider(
   /** Determine the default modality for a given provider. */
   const defaultModality = (id: "openai" | "local" | "gemini" | "voyage"): EmbeddingModality => {
     // Gemini embedding models support multimodal (text+image) natively.
-    if (id === "gemini") return "text+image";
+    if (id === "gemini") {
+      return "text+image";
+    }
     return "text";
   };
 

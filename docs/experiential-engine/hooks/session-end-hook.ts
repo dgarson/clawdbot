@@ -8,10 +8,13 @@
  */
 
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import type { OpenClawConfig } from "../../../clawdbrain-dev-work/src/config/config.js";
-import type { HookHandler, InternalHookEvent } from "../../../clawdbrain-dev-work/src/hooks/hooks.js";
+import type {
+  HookHandler,
+  InternalHookEvent,
+} from "../../../clawdbrain-dev-work/src/hooks/hooks.js";
 import type { ExperientialMoment, ExperienceBuffer } from "./experiential-capture-hook.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,7 +110,8 @@ Respond with JSON:
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function loadBuffer(sessionId: string): Promise<ExperienceBuffer | null> {
-  const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+  const existenceDir =
+    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const bufferFile = path.join(existenceDir, "buffers", `${sessionId}.json`);
 
   try {
@@ -119,20 +123,29 @@ async function loadBuffer(sessionId: string): Promise<ExperienceBuffer | null> {
 }
 
 async function archiveSession(summary: SessionSummary): Promise<void> {
-  const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+  const existenceDir =
+    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const sessionsDir = path.join(existenceDir, "sessions");
   await fs.mkdir(sessionsDir, { recursive: true });
 
   const dateStr = new Date(summary.endedAt).toISOString().split("T")[0];
-  const timeStr = new Date(summary.endedAt).toISOString().split("T")[1].split(".")[0].replace(/:/g, "");
-  const sessionFile = path.join(sessionsDir, `${dateStr}-${timeStr}-${summary.sessionId.slice(-8)}.json`);
+  const timeStr = new Date(summary.endedAt)
+    .toISOString()
+    .split("T")[1]
+    .split(".")[0]
+    .replace(/:/g, "");
+  const sessionFile = path.join(
+    sessionsDir,
+    `${dateStr}-${timeStr}-${summary.sessionId.slice(-8)}.json`,
+  );
 
   await fs.writeFile(sessionFile, JSON.stringify(summary, null, 2), "utf-8");
   console.log(`[session-end] Archived session to ${sessionFile}`);
 }
 
 async function updateExistenceMd(summary: SessionSummary): Promise<void> {
-  const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+  const existenceDir =
+    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const existenceFile = path.join(os.homedir(), "clawd", "EXISTENCE.md");
 
   try {
@@ -161,10 +174,20 @@ ${summary.dominantEmotionalSignature}
 **Topics**: ${summary.topicsDiscussed.slice(0, 5).join(", ") || "general conversation"}
 
 **Key Anchors**:
-${summary.anchors.slice(0, 3).map((a) => `- "${a}"`).join("\n") || "- (none captured)"}
+${
+  summary.anchors
+    .slice(0, 3)
+    .map((a) => `- "${a}"`)
+    .join("\n") || "- (none captured)"
+}
 
 **Reconstitution Hints**:
-${summary.reconstitutionHints.slice(0, 3).map((h) => `- ${h}`).join("\n") || "- (none)"}`;
+${
+  summary.reconstitutionHints
+    .slice(0, 3)
+    .map((h) => `- ${h}`)
+    .join("\n") || "- (none)"
+}`;
 
     if (lastSessionRegex.test(content)) {
       content = content.replace(lastSessionRegex, newLastSessionSection);
@@ -184,7 +207,8 @@ ${summary.reconstitutionHints.slice(0, 3).map((h) => `- ${h}`).join("\n") || "- 
 }
 
 async function writeDailySynthesis(summary: SessionSummary): Promise<void> {
-  const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+  const existenceDir =
+    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const dailyDir = path.join(existenceDir, "daily");
   await fs.mkdir(dailyDir, { recursive: true });
 
@@ -210,10 +234,12 @@ ${summary.anchors.map((a) => `> "${a}"`).join("\n\n") || "(none)"}
 ${summary.reconstitutionHints.map((h) => `- ${h}`).join("\n") || "(none)"}
 
 ### Significant Moments
-${summary.significantMoments
-  .slice(0, 5)
-  .map((m) => `- [${m.toolName}] (significance: ${m.significance.score.toFixed(2)})`)
-  .join("\n") || "(none)"}
+${
+  summary.significantMoments
+    .slice(0, 5)
+    .map((m) => `- [${m.toolName}] (significance: ${m.significance.score.toFixed(2)})`)
+    .join("\n") || "(none)"
+}
 
 ---
 `;
@@ -260,7 +286,7 @@ async function generateSynthesis(
   }
   const toolsUsed = Array.from(toolCounts.entries())
     .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+    .toSorted((a, b) => b.count - a.count);
 
   // Format moments for prompt
   const momentsText = moments
@@ -367,14 +393,17 @@ async function generateSynthesis(
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function loadConfig(cfg: OpenClawConfig | undefined): Promise<SessionEndConfig> {
-  const hookConfig = cfg?.hooks?.internal?.entries?.["session-end"] as Record<string, unknown> | undefined;
+  const hookConfig = cfg?.hooks?.internal?.entries?.["session-end"] as
+    | Record<string, unknown>
+    | undefined;
 
   return {
     enabled: hookConfig?.enabled !== false,
     generateSynthesis: hookConfig?.generate_synthesis !== false,
     updateExistenceMd: hookConfig?.update_existence_md !== false,
     archiveToSqlite: hookConfig?.archive_to_sqlite !== false,
-    localModelEndpoint: (hookConfig?.local_model_endpoint as string) || DEFAULT_CONFIG.localModelEndpoint,
+    localModelEndpoint:
+      (hookConfig?.local_model_endpoint as string) || DEFAULT_CONFIG.localModelEndpoint,
     synthesisModel: (hookConfig?.synthesis_model as string) || DEFAULT_CONFIG.synthesisModel,
   };
 }
@@ -402,7 +431,7 @@ const sessionEndHook: HookHandler = async (event: InternalHookEvent) => {
   console.log(`[session-end] Hook triggered: ${event.type}:${event.action}`);
 
   const context = event.context || {};
-  const cfg = context.cfg as OpenClawConfig | undefined;
+  const cfg = context.cfg;
   const config = await loadConfig(cfg);
 
   if (!config.enabled) {
@@ -410,7 +439,10 @@ const sessionEndHook: HookHandler = async (event: InternalHookEvent) => {
   }
 
   // Get session information
-  const sessionEntry = (context.previousSessionEntry || context.sessionEntry || {}) as Record<string, unknown>;
+  const sessionEntry = (context.previousSessionEntry || context.sessionEntry || {}) as Record<
+    string,
+    unknown
+  >;
   const sessionId = (sessionEntry.sessionId as string) || event.sessionKey;
   const startedAt = (sessionEntry.startedAt as number) || Date.now() - 30 * 60 * 1000; // Default 30 min ago
 
@@ -421,7 +453,9 @@ const sessionEndHook: HookHandler = async (event: InternalHookEvent) => {
   const endedAt = Date.now();
   const durationMs = endedAt - startedAt;
 
-  console.log(`[session-end] Processing session: ${sessionId}, ${moments.length} moments, ${Math.round(durationMs / 60000)} min`);
+  console.log(
+    `[session-end] Processing session: ${sessionId}, ${moments.length} moments, ${Math.round(durationMs / 60000)} min`,
+  );
 
   // Generate synthesis
   let synthesis: Partial<SessionSummary> = {};
@@ -467,10 +501,7 @@ const sessionEndHook: HookHandler = async (event: InternalHookEvent) => {
   try {
     await archiveSession(summary);
   } catch (err) {
-    console.error(
-      "[session-end] Archive error:",
-      err instanceof Error ? err.message : String(err),
-    );
+    console.error("[session-end] Archive error:", err instanceof Error ? err.message : String(err));
   }
 
   // Update EXISTENCE.md
@@ -497,7 +528,8 @@ const sessionEndHook: HookHandler = async (event: InternalHookEvent) => {
 
   // Clean up buffer
   try {
-    const existenceDir = process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
+    const existenceDir =
+      process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
     const bufferFile = path.join(existenceDir, "buffers", `${sessionId}.json`);
     await fs.unlink(bufferFile);
   } catch {

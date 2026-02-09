@@ -193,10 +193,15 @@ export function evaluateSessionFreshness(params: {
 
   let staleReason: SessionResetReason | undefined;
   if (stale) {
-    if (staleDaily) staleReason = "daily";
-    else if (staleIdle) staleReason = "idle";
-    else if (staleContext) staleReason = "context-usage";
-    else if (staleCompactions) staleReason = "compactions";
+    if (staleDaily) {
+      staleReason = "daily";
+    } else if (staleIdle) {
+      staleReason = "idle";
+    } else if (staleContext) {
+      staleReason = "context-usage";
+    } else if (staleCompactions) {
+      staleReason = "compactions";
+    }
   }
 
   return {

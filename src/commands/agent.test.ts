@@ -277,7 +277,9 @@ describe("agentCommand", () => {
 
       const callArgs = executeKernelMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
       expect(callArgs?.sessionKey).toBe("agent:ops:main");
-      expect(String(callArgs?.agentDir ?? "")).toContain(`${path.sep}agents${path.sep}ops`);
+      expect(typeof callArgs?.agentDir === "string" ? callArgs.agentDir : "").toContain(
+        `${path.sep}agents${path.sep}ops`,
+      );
     });
   });
 

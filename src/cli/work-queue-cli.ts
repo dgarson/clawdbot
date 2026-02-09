@@ -48,9 +48,13 @@ function statusColor(status: WorkItemStatus): string {
 
 function refsSummary(payload?: WorkItem["payload"]): string {
   const refs = readRefs(payload);
-  if (refs.length === 0) return "";
+  if (refs.length === 0) {
+    return "";
+  }
   const first = formatRef(refs[0]);
-  if (refs.length === 1) return first;
+  if (refs.length === 1) {
+    return first;
+  }
   return `${first} (+${refs.length - 1})`;
 }
 
@@ -89,7 +93,9 @@ function renderTree(items: WorkItem[], workstream: string): void {
   for (const item of items) {
     parents.set(item.id, item.dependsOn ?? []);
     for (const depId of item.dependsOn ?? []) {
-      if (!children.has(depId)) children.set(depId, []);
+      if (!children.has(depId)) {
+        children.set(depId, []);
+      }
       children.get(depId)!.push(item.id);
     }
   }
@@ -112,7 +118,9 @@ function renderTree(items: WorkItem[], workstream: string): void {
     visited.add(itemId);
 
     const item = itemMap.get(itemId);
-    if (!item) return;
+    if (!item) {
+      return;
+    }
 
     const connector = isLast ? "└─" : "├─";
     const statusStr = statusColor(item.status);
@@ -340,9 +348,15 @@ export function registerWorkQueueCli(program: Command) {
       defaultRuntime.log(`  Status:      ${statusColor(item.status)}`);
       defaultRuntime.log(`  Priority:    ${item.priority}`);
       defaultRuntime.log(`  Queue:       ${item.queueId}`);
-      if (item.workstream) defaultRuntime.log(`  Workstream:  ${item.workstream}`);
-      if (item.description) defaultRuntime.log(`  Description: ${item.description}`);
-      if (item.statusReason) defaultRuntime.log(`  Reason:      ${item.statusReason}`);
+      if (item.workstream) {
+        defaultRuntime.log(`  Workstream:  ${item.workstream}`);
+      }
+      if (item.description) {
+        defaultRuntime.log(`  Description: ${item.description}`);
+      }
+      if (item.statusReason) {
+        defaultRuntime.log(`  Reason:      ${item.statusReason}`);
+      }
       if (item.assignedTo) {
         defaultRuntime.log(
           `  Assigned To: ${item.assignedTo.agentId ?? ""} ${item.assignedTo.sessionKey ? `(${item.assignedTo.sessionKey})` : ""}`,
@@ -354,7 +368,9 @@ export function registerWorkQueueCli(program: Command) {
       if (item.blockedBy?.length) {
         defaultRuntime.log(`  Blocked By:  ${item.blockedBy.join(", ")}`);
       }
-      if (item.tags?.length) defaultRuntime.log(`  Tags:        ${item.tags.join(", ")}`);
+      if (item.tags?.length) {
+        defaultRuntime.log(`  Tags:        ${item.tags.join(", ")}`);
+      }
       const refs = refsList(item.payload);
       if (refs.length > 0) {
         defaultRuntime.log("  Refs:");
@@ -364,11 +380,17 @@ export function registerWorkQueueCli(program: Command) {
       }
       defaultRuntime.log(`  Created:     ${item.createdAt}`);
       defaultRuntime.log(`  Updated:     ${item.updatedAt}`);
-      if (item.startedAt) defaultRuntime.log(`  Started:     ${item.startedAt}`);
-      if (item.completedAt) defaultRuntime.log(`  Completed:   ${item.completedAt}`);
+      if (item.startedAt) {
+        defaultRuntime.log(`  Started:     ${item.startedAt}`);
+      }
+      if (item.completedAt) {
+        defaultRuntime.log(`  Completed:   ${item.completedAt}`);
+      }
       if (item.result) {
         defaultRuntime.log(`  Result:`);
-        if (item.result.summary) defaultRuntime.log(`    Summary: ${item.result.summary}`);
+        if (item.result.summary) {
+          defaultRuntime.log(`    Summary: ${item.result.summary}`);
+        }
         if (item.result.outputs) {
           defaultRuntime.log(`    Outputs: ${JSON.stringify(item.result.outputs, null, 2)}`);
         }
@@ -376,7 +398,9 @@ export function registerWorkQueueCli(program: Command) {
       if (item.error) {
         defaultRuntime.log(`  Error:`);
         defaultRuntime.log(`    Message: ${item.error.message}`);
-        if (item.error.code) defaultRuntime.log(`    Code: ${item.error.code}`);
+        if (item.error.code) {
+          defaultRuntime.log(`    Code: ${item.error.code}`);
+        }
         if (item.error.recoverable !== undefined) {
           defaultRuntime.log(`    Recoverable: ${item.error.recoverable}`);
         }
@@ -560,7 +584,7 @@ export function registerWorkQueueCli(program: Command) {
             limit: 1,
           });
           if (items.length > 0) {
-            const item = items[0]!;
+            const item = items[0];
             activeItems.set(a.id, {
               id: item.id,
               title: item.title,
@@ -595,14 +619,18 @@ export function registerWorkQueueCli(program: Command) {
             2,
           ),
         );
-        if (store) await store.close();
+        if (store) {
+          await store.close();
+        }
         return;
       }
 
       if (workerAgents.length === 0) {
         defaultRuntime.log(theme.muted("No worker agents configured."));
         defaultRuntime.log(theme.muted("Enable with: agents.list[].worker.enabled = true"));
-        if (store) await store.close();
+        if (store) {
+          await store.close();
+        }
         return;
       }
 
@@ -637,7 +665,9 @@ export function registerWorkQueueCli(program: Command) {
           }),
         }).trimEnd(),
       );
-      if (store) await store.close();
+      if (store) {
+        await store.close();
+      }
     });
 
   // --- retry <itemId> ---

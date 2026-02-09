@@ -70,7 +70,7 @@ export function readRefs(payload?: WorkItemPayload | Record<string, unknown>): W
   if (!Array.isArray(refs)) {
     return [];
   }
-  return refs.filter((ref) => validateRef(ref as WorkItemRef));
+  return refs.filter((ref) => validateRef(ref));
 }
 
 export async function resolveRef(

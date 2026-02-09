@@ -284,7 +284,7 @@ const dedupeByAppearance = <T>(values: Array<Indexed<T>>, keyFn: (value: T) => s
   const seen = new Set<string>();
   return values
     .slice()
-    .sort((a, b) => a.index - b.index)
+    .toSorted((a, b) => a.index - b.index)
     .filter((entry) => {
       const key = keyFn(entry.value);
       if (seen.has(key)) {

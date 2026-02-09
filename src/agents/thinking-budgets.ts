@@ -267,11 +267,17 @@ export function checkThinkingBudgetConflict(params: {
   let recommendation: ThinkLevel | undefined;
   if (hasConflict && available > 0) {
     // Find the highest thinking level that fits
-    if (available >= 20_000) recommendation = "high";
-    else if (available >= 8_000) recommendation = "medium";
-    else if (available >= 2_000) recommendation = "low";
-    else if (available >= 500) recommendation = "minimal";
-    else recommendation = "off";
+    if (available >= 20_000) {
+      recommendation = "high";
+    } else if (available >= 8_000) {
+      recommendation = "medium";
+    } else if (available >= 2_000) {
+      recommendation = "low";
+    } else if (available >= 500) {
+      recommendation = "minimal";
+    } else {
+      recommendation = "off";
+    }
   }
 
   return {

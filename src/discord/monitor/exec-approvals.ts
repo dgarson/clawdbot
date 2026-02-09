@@ -908,9 +908,7 @@ export class DiscordExecApprovalHandler {
       return true;
     }
 
-    const response = (await this.gatewayClient.request("tool.approvals.get", {})) as {
-      approvals?: Array<{ id: string; requestHash: string }>;
-    };
+    const response = await this.gatewayClient.request("tool.approvals.get", {});
     const match = response.approvals?.find((approval) => approval.id === approvalId);
     if (!match) {
       return false;
