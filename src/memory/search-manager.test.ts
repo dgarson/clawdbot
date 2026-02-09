@@ -159,6 +159,11 @@ describe("getMemorySearchManager caching", () => {
     // The underlying QMD manager should still be reused from the second call (cache not evicted).
     // Note: the outer ComposableMemoryManager wrapper is always a new instance, so we verify
     // via the create call count instead of reference equality.
+    if (!third.manager) {
+      throw new Error("manager missing");
+    }
+    await third.manager.search("hello again");
+    expect(fallbackSearch).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(QmdMemoryManager.create).toHaveBeenCalledTimes(2);
   });

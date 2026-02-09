@@ -163,7 +163,14 @@ async function resolveQmdBackend(
       resolved,
     });
     if (primary) {
-      const wrapper = new FallbackMemoryManager(
+      let wrapper: FallbackMemoryManager | null = null;
+      const evictIfCurrent = () => {
+        const cached = QMD_MANAGER_CACHE.get(cacheKey);
+        if (!cached || cached === wrapper) {
+          QMD_MANAGER_CACHE.delete(cacheKey);
+        }
+      };
+      wrapper = new FallbackMemoryManager(
         {
           primary,
           fallbackFactory: async () => {
@@ -171,7 +178,7 @@ async function resolveQmdBackend(
             return await MemoryIndexManager.get(params);
           },
         },
-        () => QMD_MANAGER_CACHE.delete(cacheKey),
+        evictIfCurrent,
       );
       QMD_MANAGER_CACHE.set(cacheKey, wrapper);
       return wrapper;

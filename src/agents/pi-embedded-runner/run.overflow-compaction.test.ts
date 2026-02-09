@@ -72,6 +72,7 @@ vi.mock("../agent-paths.js", () => ({
 
 vi.mock("../agent-scope.js", () => ({
   resolveDefaultAgentDir: vi.fn(() => "/tmp/agent-dir"),
+  resolveDefaultAgentId: vi.fn(() => "main"),
 }));
 
 vi.mock("../model-selection.js", () => ({

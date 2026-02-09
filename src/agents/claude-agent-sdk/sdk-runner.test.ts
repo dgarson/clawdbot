@@ -248,6 +248,37 @@ describe("runSdkAgent", () => {
       );
     });
 
+    it("still emits middleware block_reply when onBlockReply callback throws", async () => {
+      const queryFn = vi
+        .fn()
+        .mockReturnValue(eventsFrom([{ type: "result", result: "Final text" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      const onBlockReply = vi.fn(async () => {
+        throw new Error("callback failed");
+      });
+      await runSdkAgent(baseParams({ streamMiddleware: mw, onBlockReply }));
+
+      const blocks = events.filter((e) => e.kind === "block_reply");
+      expect(blocks.length).toBeGreaterThanOrEqual(1);
+      expect(blocks.some((b) => b.kind === "block_reply" && b.text.includes("Final text"))).toBe(
+        true,
+      );
+      expect(onBlockReply).toHaveBeenCalled();
+    });
+
+    it("emits text_end block replies via middleware when callback is absent", async () => {
+      const queryFn = vi.fn().mockReturnValue(eventsFrom([{ text: "chunk1" }, { text: "chunk2" }]));
+      mockLoadSdk.mockResolvedValue({ query: queryFn });
+
+      await runSdkAgent(baseParams({ streamMiddleware: mw, blockReplyBreak: "text_end" }));
+
+      const blocks = events.filter((e) => e.kind === "block_reply");
+      expect(blocks.length).toBeGreaterThanOrEqual(2);
+      expect(blocks.some((b) => b.kind === "block_reply" && b.text.includes("chunk1"))).toBe(true);
+      expect(blocks.some((b) => b.kind === "block_reply" && b.text.includes("chunk2"))).toBe(true);
+    });
+
     it("emits tool_end/tool_result for tool events", async () => {
       const queryFn = vi.fn().mockReturnValue(
         eventsFrom([

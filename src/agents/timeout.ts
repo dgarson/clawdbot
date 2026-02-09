@@ -25,7 +25,7 @@ export function resolveAgentTimeoutMs(opts: {
   const overrideMs = normalizeNumber(opts.overrideMs);
   if (overrideMs !== undefined) {
     if (overrideMs === 0) {
-      return 0;
+      return MAX_SAFE_TIMEOUT_MS;
     }
     if (overrideMs < 0) {
       return defaultMs;
@@ -35,7 +35,7 @@ export function resolveAgentTimeoutMs(opts: {
   const overrideSeconds = normalizeNumber(opts.overrideSeconds);
   if (overrideSeconds !== undefined) {
     if (overrideSeconds === 0) {
-      return 0;
+      return MAX_SAFE_TIMEOUT_MS;
     }
     if (overrideSeconds < 0) {
       return defaultMs;

@@ -10,11 +10,15 @@ const diagnosticMocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../logging/diagnostic.js", () => ({
-  logLaneEnqueue: diagnosticMocks.logLaneEnqueue,
-  logLaneDequeue: diagnosticMocks.logLaneDequeue,
-  diagnosticLogger: diagnosticMocks.diag,
-}));
+vi.mock("../logging/diagnostic.js", async (importActual) => {
+  const actual = await importActual<typeof import("../logging/diagnostic.js")>();
+  return {
+    ...actual,
+    logLaneEnqueue: diagnosticMocks.logLaneEnqueue,
+    logLaneDequeue: diagnosticMocks.logLaneDequeue,
+    diagnosticLogger: diagnosticMocks.diag,
+  };
+});
 
 import { enqueueCommand, getQueueSize } from "./command-queue.js";
 
