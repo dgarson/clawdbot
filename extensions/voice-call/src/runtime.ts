@@ -146,7 +146,7 @@ export async function createVoiceCallRuntime(params: {
 
   const provider = resolveProvider(config);
   const manager = new CallManager(config);
-  const webhookServer = new VoiceCallWebhookServer(config, manager, provider, coreConfig);
+  const webhookServer = new VoiceCallWebhookServer(config, manager, provider, coreConfig, log);
 
   const localUrl = await webhookServer.start();
 

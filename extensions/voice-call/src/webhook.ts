@@ -7,11 +7,20 @@ import type { CallManager } from "./manager.js";
 import type { MediaStreamConfig } from "./media-stream.js";
 import type { VoiceCallProvider } from "./providers/base.js";
 import type { TwilioProvider } from "./providers/twilio.js";
-import type { NormalizedEvent, WebhookContext } from "./types.js";
+import type { CallRecord, NormalizedEvent, WebhookContext } from "./types.js";
+import { resolveAutoResponseDecision, type AutoResponseSource } from "./auto-response.js";
+import { isVoiceDiagnosticsVerbose } from "./diagnostics.js";
 import { MediaStreamHandler } from "./media-stream.js";
 import { OpenAIRealtimeSTTProvider } from "./providers/stt-openai-realtime.js";
 
 const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
+
+type Logger = {
+  info: (message: string) => void;
+  warn: (message: string) => void;
+  error: (message: string) => void;
+  debug?: (message: string) => void;
+};
 
 /**
  * HTTP server for receiving voice call webhooks from providers.
@@ -23,6 +32,7 @@ export class VoiceCallWebhookServer {
   private manager: CallManager;
   private provider: VoiceCallProvider;
   private coreConfig: CoreConfig | null;
+  private logger: Logger;
 
   /** Media stream handler for bidirectional audio (when streaming enabled) */
   private mediaStreamHandler: MediaStreamHandler | null = null;
@@ -32,11 +42,18 @@ export class VoiceCallWebhookServer {
     manager: CallManager,
     provider: VoiceCallProvider,
     coreConfig?: CoreConfig,
+    logger?: Logger,
   ) {
     this.config = config;
     this.manager = manager;
     this.provider = provider;
     this.coreConfig = coreConfig ?? null;
+    this.logger = logger ?? {
+      info: console.log,
+      warn: console.warn,
+      error: console.error,
+      debug: console.debug,
+    };
 
     // Initialize media stream handler if streaming is enabled
     if (config.streaming?.enabled) {
@@ -97,8 +114,12 @@ export class VoiceCallWebhookServer {
         const call = this.manager.getCallByProviderCallId(providerCallId);
         if (!call) {
           console.warn(`[voice-call] No active call found for provider ID: ${providerCallId}`);
+          this.diag(
+            `stream transcript dropped: providerCallId=${providerCallId} reason=no-active-call`,
+          );
           return;
         }
+        const hadPendingTranscriptWaiter = this.manager.hasPendingTranscriptWaiter(call.callId);
 
         // Create a speech event and process it through the manager
         const event: NormalizedEvent = {
@@ -112,14 +133,12 @@ export class VoiceCallWebhookServer {
         };
         this.manager.processEvent(event);
 
-        // Auto-respond in conversation mode (inbound always, outbound if mode is conversation)
-        const callMode = call.metadata?.mode as string | undefined;
-        const shouldRespond = call.direction === "inbound" || callMode === "conversation";
-        if (shouldRespond) {
-          this.handleInboundResponse(call.callId, transcript).catch((err) => {
-            console.warn(`[voice-call] Failed to auto-respond:`, err);
-          });
-        }
+        this.maybeAutoRespondToTranscript({
+          source: "stream",
+          call,
+          transcript,
+          hadPendingTranscriptWaiter,
+        });
       },
       onSpeechStart: (providerCallId) => {
         if (this.provider.name === "twilio") {
@@ -276,10 +295,43 @@ export class VoiceCallWebhookServer {
 
     // Process each event
     for (const event of result.events) {
+      const preEventCall = this.resolveCallForEvent(event);
+      const hadPendingTranscriptWaiter =
+        event.type === "call.speech" && event.isFinal && preEventCall
+          ? this.manager.hasPendingTranscriptWaiter(preEventCall.callId)
+          : false;
       try {
         this.manager.processEvent(event);
       } catch (err) {
         console.error(`[voice-call] Error processing event ${event.type}:`, err);
+        continue;
+      }
+
+      if (event.type === "call.speech" && event.isFinal) {
+        const call = this.resolveCallForEvent(event) ?? preEventCall;
+        if (!call) {
+          this.diag(
+            `webhook speech event could not resolve call: eventCallId=${event.callId} providerCallId=${
+              event.providerCallId ?? "unset"
+            }`,
+          );
+          continue;
+        }
+
+        this.diag(
+          `webhook speech event received: provider=${this.provider.name} callId=${call.callId} ` +
+            `providerCallId=${event.providerCallId ?? "unset"} direction=${call.direction} ` +
+            `mode=${String(call.metadata?.mode ?? "unset")} pendingWaiter=${hadPendingTranscriptWaiter}`,
+        );
+
+        // This path is especially important when Twilio TTS falls back to <Say>/<Gather>,
+        // where transcripts arrive via webhook SpeechResult instead of the media stream path.
+        this.maybeAutoRespondToTranscript({
+          source: "webhook",
+          call,
+          transcript: event.transcript,
+          hadPendingTranscriptWaiter,
+        });
       }
     }
 
@@ -342,11 +394,17 @@ export class VoiceCallWebhookServer {
   }
 
   /**
-   * Handle auto-response for inbound calls using the agent system.
+   * Handle auto-response using the agent system.
    * Supports tool calling for richer voice interactions.
    */
-  private async handleInboundResponse(callId: string, userMessage: string): Promise<void> {
-    console.log(`[voice-call] Auto-responding to inbound call ${callId}: "${userMessage}"`);
+  private async handleAutoResponse(
+    callId: string,
+    userMessage: string,
+    source: AutoResponseSource,
+  ): Promise<void> {
+    console.log(
+      `[voice-call] Auto-responding to call ${callId} via ${source} transcript: "${userMessage}"`,
+    );
 
     // Get call context for conversation history
     const call = this.manager.getCall(callId);
@@ -374,16 +432,99 @@ export class VoiceCallWebhookServer {
 
       if (result.error) {
         console.error(`[voice-call] Response generation error: ${result.error}`);
+        this.diag(
+          `auto-response generation failed: callId=${callId} source=${source} error=${result.error}`,
+        );
         return;
       }
 
       if (result.text) {
         console.log(`[voice-call] AI response: "${result.text}"`);
-        await this.manager.speak(callId, result.text);
+        const speakResult = await this.manager.speak(callId, result.text);
+        if (!speakResult.success) {
+          console.warn(
+            `[voice-call] Auto-response speech failed for ${callId}: ${
+              speakResult.error ?? "unknown error"
+            }`,
+          );
+          this.diag(
+            `auto-response speak failed: callId=${callId} source=${source} error=${
+              speakResult.error ?? "unknown"
+            }`,
+          );
+        }
+      } else {
+        this.diag(`auto-response generated no text: callId=${callId} source=${source}`);
       }
     } catch (err) {
       console.error(`[voice-call] Auto-response error:`, err);
+      this.diag(
+        `auto-response exception: callId=${callId} source=${source} error=${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
     }
+  }
+
+  private maybeAutoRespondToTranscript(params: {
+    source: AutoResponseSource;
+    call: CallRecord;
+    transcript: string;
+    hadPendingTranscriptWaiter?: boolean;
+  }): void {
+    const mode =
+      typeof params.call.metadata?.mode === "string" ? params.call.metadata.mode : undefined;
+    const decision = resolveAutoResponseDecision({
+      direction: params.call.direction,
+      mode,
+      transcript: params.transcript,
+      hasPendingTranscriptWaiter:
+        params.hadPendingTranscriptWaiter ??
+        this.manager.hasPendingTranscriptWaiter(params.call.callId),
+    });
+
+    if (!decision.shouldRespond) {
+      this.diag(
+        `auto-response skipped: source=${params.source} callId=${params.call.callId} reason=${decision.reason}`,
+      );
+      return;
+    }
+
+    this.diag(
+      `auto-response scheduled: source=${params.source} callId=${params.call.callId} reason=${decision.reason}`,
+    );
+    this.handleAutoResponse(params.call.callId, params.transcript, params.source).catch((err) => {
+      console.warn(`[voice-call] Failed to auto-respond:`, err);
+      this.diag(
+        `auto-response scheduling failed: source=${params.source} callId=${params.call.callId} error=${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    });
+  }
+
+  private resolveCallForEvent(event: NormalizedEvent): CallRecord | undefined {
+    return (
+      this.manager.getCall(event.callId) ||
+      (event.providerCallId
+        ? this.manager.getCallByProviderCallId(event.providerCallId)
+        : undefined)
+    );
+  }
+
+  private isVoiceVerboseDiagnosticsEnabled(): boolean {
+    return isVoiceDiagnosticsVerbose(this.coreConfig);
+  }
+
+  private diag(message: string): void {
+    if (!this.isVoiceVerboseDiagnosticsEnabled()) {
+      return;
+    }
+    if (this.logger.debug) {
+      this.logger.debug(`[voice-call][diag] ${message}`);
+      return;
+    }
+    this.logger.info(`[voice-call][diag] ${message}`);
   }
 }
 

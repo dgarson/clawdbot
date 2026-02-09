@@ -365,6 +365,14 @@ export class CallManager {
   }
 
   /**
+   * Returns whether a call currently has a pending transcript waiter.
+   * Used to avoid auto-response collisions with explicit continueCall flows.
+   */
+  hasPendingTranscriptWaiter(callId: CallId): boolean {
+    return this.transcriptWaiters.has(callId);
+  }
+
+  /**
    * Continue call: speak prompt, then wait for user's final transcript.
    */
   async continueCall(

@@ -221,4 +221,42 @@ describe("CallManager", () => {
 
     expect(manager.getCallByProviderCallId("provider-exact")).toBeDefined();
   });
+
+  it("tracks pending transcript waiters during continueCall", async () => {
+    const config = VoiceCallConfigSchema.parse({
+      enabled: true,
+      provider: "plivo",
+      fromNumber: "+15550000000",
+      transcriptTimeoutMs: 5_000,
+    });
+
+    const storePath = path.join(os.tmpdir(), `openclaw-voice-call-test-${Date.now()}`);
+    const manager = new CallManager(config, storePath);
+    manager.initialize(new FakeProvider(), "https://example.com/voice/webhook");
+
+    const { callId, success } = await manager.initiateCall("+15550000003", undefined, {
+      message: "Hello",
+      mode: "conversation",
+    });
+    expect(success).toBe(true);
+
+    const continuePromise = manager.continueCall(callId, "How can I help?");
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(manager.hasPendingTranscriptWaiter(callId)).toBe(true);
+
+    manager.processEvent({
+      id: "evt-waiter-final",
+      type: "call.speech",
+      callId,
+      timestamp: Date.now(),
+      transcript: "I need help with billing",
+      isFinal: true,
+    });
+
+    const result = await continuePromise;
+    expect(result.success).toBe(true);
+    expect(result.transcript).toBe("I need help with billing");
+    expect(manager.hasPendingTranscriptWaiter(callId)).toBe(false);
+  });
 });
