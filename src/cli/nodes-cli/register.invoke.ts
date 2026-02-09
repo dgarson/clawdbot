@@ -282,13 +282,7 @@ export function registerNodesInvokeCommands(nodes: Command) {
               toolName: "exec",
               paramsSummary: commandSummary,
               requestHash,
-              command: commandSummary,
-              cwd: opts.cwd,
-              host: "node",
-              security: hostSecurity,
-              ask: hostAsk,
               agentId,
-              resolvedPath: undefined,
               sessionKey: undefined,
               timeoutMs: 120_000,
             })) as { decision?: string } | null;

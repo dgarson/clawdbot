@@ -133,7 +133,6 @@ describe("nodes-cli coverage", () => {
     expect(typeof approvalCall?.params?.requestHash).toBe("string");
     expect(approvalCall?.params?.requestHash.length).toBeGreaterThan(0);
     expect(approvalCall?.params?.paramsSummary).toBe("echo hi");
-    expect(approvalCall?.params?.command).toBe("echo hi");
 
     const invoke = callGateway.mock.calls.find((call) => call[0]?.method === "node.invoke")?.[0];
 
