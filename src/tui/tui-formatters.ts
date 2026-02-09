@@ -1,4 +1,5 @@
 import { formatRawAssistantErrorForUi } from "../agents/pi-embedded-helpers.js";
+import { toPrimitiveStringOr } from "../shared/text/coerce.js";
 import { formatTokenCount } from "../utils/usage-format.js";
 
 export function resolveFinalAssistantText(params: {
@@ -209,11 +210,5 @@ export function formatContextUsageLine(params: {
 }
 
 export function asString(value: unknown, fallback = ""): string {
-  if (typeof value === "string") {
-    return value;
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return fallback;
+  return toPrimitiveStringOr(value, fallback);
 }

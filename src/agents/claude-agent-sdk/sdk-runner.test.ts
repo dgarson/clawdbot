@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import type { AgentStreamEvent } from "../stream/index.js";
 import type { SdkRunnerParams } from "./sdk-runner.types.js";

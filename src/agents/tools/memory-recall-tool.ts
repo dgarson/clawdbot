@@ -20,7 +20,6 @@ import type { AnyAgentTool } from "./common.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getMemorySearchManager } from "../../memory/index.js";
 import { getProgressiveStore } from "../../memory/progressive-manager.js";
-import { PRIORITY_ORDER } from "../../memory/progressive-types.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
 import { jsonResult, readStringParam, readStringArrayParam, readNumberParam } from "./common.js";
 

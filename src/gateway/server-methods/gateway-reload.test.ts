@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from "vitest";
 import { buildGatewayReloadPlan } from "../config-reload.js";
 import { gatewayReloadHandlers } from "./gateway-reload.js";

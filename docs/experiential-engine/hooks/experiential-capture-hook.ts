@@ -181,22 +181,24 @@ function isObservationTool(toolName: string): boolean {
 }
 
 function extractContextSummary(toolInput: unknown, toolResult: unknown): string {
-  const inputStr =
-    typeof toolInput === "object" && toolInput !== null
-      ? JSON.stringify(toolInput)
-      : typeof toolInput === "string" ||
-          typeof toolInput === "number" ||
-          typeof toolInput === "boolean"
-        ? String(toolInput)
-        : "";
-  const resultStr =
-    typeof toolResult === "object" && toolResult !== null
-      ? JSON.stringify(toolResult)
-      : typeof toolResult === "string" ||
-          typeof toolResult === "number" ||
-          typeof toolResult === "boolean"
-        ? String(toolResult)
-        : "";
+  const coerce = (value: unknown): string => {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+      return value.toString();
+    }
+    if (value && typeof value === "object") {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return "[unserializable object]";
+      }
+    }
+    return "";
+  };
+  const inputStr = coerce(toolInput);
+  const resultStr = coerce(toolResult);
 
   // Truncate for context
   const inputSummary = inputStr.length > 500 ? inputStr.slice(0, 500) + "..." : inputStr;

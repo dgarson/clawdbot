@@ -1,5 +1,6 @@
 import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { spawn } from "node:child_process";
+import { formatUnknownError, toPrimitiveString } from "../shared/text/coerce.js";
 
 export type SpawnFallback = {
   label: string;
@@ -33,7 +34,7 @@ export function resolveCommandStdio(params: {
 
 export function formatSpawnError(err: unknown): string {
   if (!(err instanceof Error)) {
-    return String(err);
+    return formatUnknownError(err);
   }
   const details = err as NodeJS.ErrnoException;
   const parts: string[] = [];
@@ -55,7 +56,9 @@ export function formatSpawnError(err: unknown): string {
 
 function shouldRetry(err: unknown, codes: string[]): boolean {
   const code =
-    err && typeof err === "object" && "code" in err ? String((err as { code?: unknown }).code) : "";
+    err && typeof err === "object" && "code" in err
+      ? (toPrimitiveString((err as { code?: unknown }).code) ?? "")
+      : "";
   return code.length > 0 && codes.includes(code);
 }
 

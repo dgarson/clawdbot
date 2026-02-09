@@ -60,8 +60,12 @@ export function createNotionUpdatePageTool(opts: NotionToolOptions): AnyAgentToo
       if (typeof archived === "boolean") {
         updateParams.archived = archived;
       }
-      if (icon) updateParams.icon = icon;
-      if (cover) updateParams.cover = cover;
+      if (icon) {
+        updateParams.icon = icon;
+      }
+      if (cover) {
+        updateParams.cover = cover;
+      }
 
       if (Object.keys(updateParams).length === 0) {
         return jsonResult({

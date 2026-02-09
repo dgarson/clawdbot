@@ -26,7 +26,11 @@ export function registerAutomationsListCommand(automations: Command) {
             defaultRuntime.log(JSON.stringify(res, null, 2));
           } else if (res && typeof res === "object" && "automations" in res) {
             const automations = res.automations as Array<Record<string, unknown>>;
-            defaultRuntime.log(await formatAutomationsList(automations as any));
+            defaultRuntime.log(
+              await formatAutomationsList(
+                automations as Parameters<typeof formatAutomationsList>[0],
+              ),
+            );
           } else {
             defaultRuntime.log(JSON.stringify(res, null, 2));
           }
@@ -59,7 +63,11 @@ export function registerAutomationsHistoryCommand(automations: Command) {
             defaultRuntime.log(JSON.stringify(res, null, 2));
           } else if (res && typeof res === "object" && "records" in res) {
             const records = res.records as Array<Record<string, unknown>>;
-            defaultRuntime.log(await formatAutomationsHistory(records as any));
+            defaultRuntime.log(
+              await formatAutomationsHistory(
+                records as Parameters<typeof formatAutomationsHistory>[0],
+              ),
+            );
           } else {
             defaultRuntime.log(JSON.stringify(res, null, 2));
           }

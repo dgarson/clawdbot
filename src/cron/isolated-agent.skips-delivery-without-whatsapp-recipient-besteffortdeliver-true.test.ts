@@ -27,7 +27,6 @@ vi.mock("../agents/subagent-announce.js", () => ({
 }));
 
 import { loadModelCatalog } from "../agents/model-catalog.js";
-import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { runSubagentAnnounceFlow } from "../agents/subagent-announce.js";
 import { runCronIsolatedAgentTurn } from "./isolated-agent.js";
 
@@ -164,7 +163,8 @@ describe("runCronIsolatedAgentTurn", () => {
       });
 
       expect(res.status).toBe("ok");
-      expect(deps.sendMessageTelegram).toHaveBeenCalled();
+      expect(runSubagentAnnounceFlow).toHaveBeenCalledTimes(1);
+      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
     });
   });
 
@@ -178,13 +178,11 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "Working on it..." }, { text: "Final weather summary" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(
+        createExecutionResult({
+          payloads: [{ text: "Working on it..." }, { text: "Final weather summary" }],
+        }),
+      );
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
@@ -220,13 +218,11 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "Working on it..." }, { text: "Final weather summary" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(
+        createExecutionResult({
+          payloads: [{ text: "Working on it..." }, { text: "Final weather summary" }],
+        }),
+      );
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
@@ -279,13 +275,11 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "Final weather summary" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
+      executeKernelMock.mockResolvedValue(
+        createExecutionResult({
+          payloads: [{ text: "Final weather summary" }],
+        }),
+      );
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {

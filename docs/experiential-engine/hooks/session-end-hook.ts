@@ -144,8 +144,6 @@ async function archiveSession(summary: SessionSummary): Promise<void> {
 }
 
 async function updateExistenceMd(summary: SessionSummary): Promise<void> {
-  const existenceDir =
-    process.env.OPENCLAW_EXISTENCE_DIR || path.join(os.homedir(), ".openclaw", "existence");
   const existenceFile = path.join(os.homedir(), "clawd", "EXISTENCE.md");
 
   try {

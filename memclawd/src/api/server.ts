@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import { performance } from "node:perf_hooks";
 import type { MemclawdConfig } from "../config/schema.js";
+import type { MemoryEntity } from "../contracts/entities.js";
 import type { MemClawdIngestResponse, MemClawdIngestRun } from "../contracts/ingest.js";
 import type { MemClawdQueryResult } from "../contracts/query.js";
 

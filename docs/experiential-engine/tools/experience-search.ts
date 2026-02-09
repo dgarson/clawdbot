@@ -1,4 +1,5 @@
 #!/usr/bin/env npx ts-node
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * experience-search.ts
  *

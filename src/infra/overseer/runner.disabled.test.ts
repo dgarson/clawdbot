@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import * as commandQueue from "../../process/command-queue.js";
 import { runOverseerTick, startOverseerRunner } from "./runner.js";

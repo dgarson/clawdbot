@@ -28,6 +28,7 @@ import type {
   MemoryStoreResult,
 } from "./progressive-types.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { formatUnknownError } from "../shared/text/coerce.js";
 import { PRIORITY_ORDER, VALID_CATEGORIES, VALID_PRIORITIES } from "./progressive-types.js";
 import { loadSqliteVecExtension } from "./sqlite-vec.js";
 import { requireNodeSqlite } from "./sqlite.js";
@@ -129,24 +130,6 @@ function estimateTokens(text: string): number {
   return Math.ceil(text.length / CHARS_PER_TOKEN);
 }
 
-// ─── Cosine similarity ──────────────────────────────────────────────────────
-
-export function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length || a.length === 0) {
-    return 0;
-  }
-  let dot = 0;
-  let magA = 0;
-  let magB = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    magA += a[i] * a[i];
-    magB += b[i] * b[i];
-  }
-  const denom = Math.sqrt(magA) * Math.sqrt(magB);
-  return denom < 1e-10 ? 0 : dot / denom;
-}
-
 // ─── Store class ─────────────────────────────────────────────────────────────
 
 export type ProgressiveStoreOptions = {
@@ -238,7 +221,7 @@ export class ProgressiveMemoryStore {
       try {
         embedding = await embedFn(params.content);
       } catch (err) {
-        log.warn?.(`Embedding failed during store, skipping dedup: String(err)`);
+        log.warn?.(`Embedding failed during store, skipping dedup: ${formatUnknownError(err)}`);
       }
     }
 
@@ -325,7 +308,7 @@ export class ProgressiveMemoryStore {
             priority,
           );
       } catch (err) {
-        log.warn?.(`FTS insert failed: String(err)`);
+        log.warn?.(`FTS insert failed: ${formatUnknownError(err)}`);
       }
     }
 
@@ -460,7 +443,7 @@ export class ProgressiveMemoryStore {
         score: (row.score as number) ?? 0,
       }));
     } catch (err) {
-      log.warn?.(`FTS search failed: String(err)`);
+      log.warn?.(`FTS search failed: ${formatUnknownError(err)}`);
       return [];
     }
   }
@@ -512,7 +495,7 @@ export class ProgressiveMemoryStore {
 
       return results;
     } catch (err) {
-      log.warn?.(`Vector search failed: String(err)`);
+      log.warn?.(`Vector search failed: ${formatUnknownError(err)}`);
       return [];
     }
   }
@@ -783,7 +766,7 @@ export class ProgressiveMemoryStore {
         }
       }
     } catch (err) {
-      log.warn?.(`Dedup check failed: String(err)`);
+      log.warn?.(`Dedup check failed: ${formatUnknownError(err)}`);
     }
 
     return null;
@@ -861,7 +844,7 @@ export class ProgressiveMemoryStore {
             );
         }
       } catch (err) {
-        log.warn?.(`FTS update failed: String(err)`);
+        log.warn?.(`FTS update failed: ${formatUnknownError(err)}`);
       }
     }
   }
@@ -876,7 +859,7 @@ export class ProgressiveMemoryStore {
       const vecBlob = new Float32Array(embedding);
       this.db.prepare(`INSERT INTO ${VEC_TABLE} (id, embedding) VALUES (?, ?)`).run(id, vecBlob);
     } catch (err) {
-      log.warn?.(`Vector upsert failed: String(err)`);
+      log.warn?.(`Vector upsert failed: ${formatUnknownError(err)}`);
     }
   }
 

@@ -1,5 +1,6 @@
 import type { MemoryContentObject } from "../types.js";
 import type { GraphitiIngestResponse, GraphitiQueryResponse } from "./adapter.js";
+import { toErrorMessage } from "../../shared/text/coerce.js";
 import { memLog } from "../memory-log.js";
 
 export type GraphitiEpisode = {
@@ -131,11 +132,9 @@ export class GraphitiClient {
       memLog.debug("graphiti health ok", { body });
       return { ok: body.status === "healthy", message: body.status };
     } catch (err) {
-      const cause =
-        err instanceof Error && err.cause
-          ? ` (cause: ${err.cause instanceof Error ? err.cause.message : JSON.stringify(err.cause)})`
-          : "";
-      const detail = `${String(err)}${cause}`;
+      const base = toErrorMessage(err) ?? "unknown error";
+      const cause = err instanceof Error ? toErrorMessage(err.cause) : undefined;
+      const detail = cause ? `${base} (cause: ${cause})` : base;
       memLog.debug("graphiti health error", { error: detail });
       return { ok: false, message: `Graphiti health check error: ${detail}` };
     }

@@ -1,6 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { FailoverReason } from "./types.js";
+import { stableStringify } from "../../shared/text/stable-stringify.js";
 import { formatSandboxToolPolicyBlockedMessage } from "../sandbox.js";
 
 export const BILLING_ERROR_USER_MESSAGE =
@@ -205,19 +206,6 @@ function parseApiErrorPayload(raw: string): ErrorPayload | null {
     }
   }
   return null;
-}
-
-function stableStringify(value: unknown): string {
-  if (!value || typeof value !== "object") {
-    return JSON.stringify(value) ?? "null";
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((entry) => stableStringify(entry)).join(",")}]`;
-  }
-  const record = value as Record<string, unknown>;
-  const keys = Object.keys(record).toSorted();
-  const entries = keys.map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`);
-  return `{${entries.join(",")}}`;
 }
 
 export function getApiErrorPayloadFingerprint(raw?: string): string | null {

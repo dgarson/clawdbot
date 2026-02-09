@@ -13,6 +13,6 @@ export async function up({ context: db }: { context: DatabaseSync }): Promise<vo
   }
 }
 
-export async function down({ context: db }: { context: DatabaseSync }): Promise<void> {
+export async function down(_params: { context: DatabaseSync }): Promise<void> {
   // SQLite can't drop columns, so leave it in place.
 }

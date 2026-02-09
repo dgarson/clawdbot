@@ -130,8 +130,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   it("signals typing for normal runs", async () => {
     const onPartialReply = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      // Push a text_delta raw event — middleware normalizes to partial_reply
-      req.streamMiddleware?.push({ kind: "text_delta", text: "hi" });
+      await req.onPartialReply?.({ text: "hi" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
@@ -146,7 +145,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   });
   it("signals typing even without consumer partial handler", async () => {
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "text_delta", text: "hi" });
+      await req.onPartialReply?.({ text: "hi" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
@@ -161,7 +160,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   it("never signals typing for heartbeat runs", async () => {
     const onPartialReply = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "text_delta", text: "hi" });
+      await req.onPartialReply?.({ text: "hi" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
@@ -178,7 +177,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   it("suppresses partial streaming for NO_REPLY", async () => {
     const onPartialReply = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "text_delta", text: "NO_REPLY" });
+      await req.onPartialReply?.({ text: "NO_REPLY" });
       return makeExecutionResult({ payloads: [{ text: "NO_REPLY" }] });
     });
 
@@ -194,7 +193,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   });
   it("does not start typing on assistant message start without prior text in message mode", async () => {
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "message_start" });
+      await req.onAssistantMessageStart?.();
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
@@ -209,8 +208,8 @@ describe("runReplyAgent typing (heartbeat)", () => {
   });
   it("starts typing from reasoning stream in thinking mode", async () => {
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "thinking_delta", text: "Reasoning:\n_step_" });
-      req.streamMiddleware?.push({ kind: "text_delta", text: "hi" });
+      await req.onReasoningStream?.({ text: "Reasoning:\n_step_" });
+      await req.onPartialReply?.({ text: "hi" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
@@ -224,7 +223,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   });
   it("suppresses typing in never mode", async () => {
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "text_delta", text: "hi" });
+      await req.onPartialReply?.({ text: "hi" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 

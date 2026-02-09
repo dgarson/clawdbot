@@ -557,12 +557,10 @@ export class WorkQueueWorker {
         log: this.deps.log.debug,
       });
       if (linkResult?.note) {
+        const prevOutputs = context?.outputs ?? {};
         context = {
           ...(context ?? { extractedAt: new Date().toISOString() }),
-          outputs: {
-            ...context?.outputs,
-            codexTaskLink: linkResult.note,
-          },
+          outputs: { ...prevOutputs, codexTaskLink: linkResult.note },
         };
       }
     }

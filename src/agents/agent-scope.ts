@@ -1,6 +1,5 @@
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
-import type { ClaudeSdkOptions } from "../config/types.agent-defaults.js";
 import { resolveStateDir } from "../config/paths.js";
 import {
   DEFAULT_AGENT_ID,

@@ -42,10 +42,9 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { telegramPlugin } from "../../extensions/telegram/src/channel.js";
 import { setTelegramRuntime } from "../../extensions/telegram/src/runtime.js";
-import { createSdkMainAgentRuntime } from "../agents/main-agent-runtime-factory.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import * as configModule from "../config/config.js";
-import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
+import { onAgentEvent } from "../infra/agent-events.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import { createPluginRuntime } from "../plugins/runtime/index.js";
 import { createTestRegistry } from "../test-utils/channel-plugins.js";
@@ -277,9 +276,17 @@ describe("agentCommand", () => {
 
       const callArgs = executeKernelMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
       expect(callArgs?.sessionKey).toBe("agent:ops:main");
-      expect(typeof callArgs?.agentDir === "string" ? callArgs.agentDir : "").toContain(
-        `${path.sep}agents${path.sep}ops`,
-      );
+      let agentDir = "";
+      if (typeof callArgs?.agentDir === "string") {
+        agentDir = callArgs.agentDir;
+      } else if (
+        typeof callArgs?.agentDir === "number" ||
+        typeof callArgs?.agentDir === "boolean" ||
+        typeof callArgs?.agentDir === "bigint"
+      ) {
+        agentDir = callArgs.agentDir.toString();
+      }
+      expect(agentDir).toContain(`${path.sep}agents${path.sep}ops`);
     });
   });
 

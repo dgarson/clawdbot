@@ -91,8 +91,8 @@ describe("block streaming", () => {
       const onBlockReply = vi.fn().mockResolvedValue(undefined);
 
       kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-        // Push block_reply event through the stream middleware
-        req.streamMiddleware?.push({ kind: "block_reply", text: "hello" });
+        // In kernel mocks, invoke request callbacks directly.
+        await req.onBlockReply?.({ text: "hello" });
         return makeExecutionResult({ payloads: [{ text: "hello" }] });
       });
 
@@ -143,9 +143,8 @@ describe("block streaming", () => {
       });
 
       kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-        // Push two block_reply events through the stream middleware
-        req.streamMiddleware?.push({ kind: "block_reply", text: "first" });
-        req.streamMiddleware?.push({ kind: "block_reply", text: "second" });
+        await req.onBlockReply?.({ text: "first" });
+        await req.onBlockReply?.({ text: "second" });
         return makeExecutionResult({
           payloads: [{ text: "first" }, { text: "second" }],
         });
@@ -190,7 +189,7 @@ describe("block streaming", () => {
       const onBlockReply = vi.fn().mockResolvedValue(undefined);
 
       kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-        req.streamMiddleware?.push({ kind: "block_reply", text: "chunk-1" });
+        await req.onBlockReply?.({ text: "chunk-1" });
         return makeExecutionResult({
           payloads: [{ text: "chunk-1\nchunk-2" }],
         });
@@ -242,7 +241,7 @@ describe("block streaming", () => {
       });
 
       kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-        req.streamMiddleware?.push({ kind: "block_reply", text: "streamed" });
+        await req.onBlockReply?.({ text: "streamed" });
         return makeExecutionResult({ payloads: [{ text: "final" }] });
       });
 

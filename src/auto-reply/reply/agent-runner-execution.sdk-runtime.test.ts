@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StreamingMiddleware } from "../../agents/stream/index.js";
 import type { TemplateContext } from "../templating.js";

@@ -4,7 +4,7 @@ import type { SessionEntry } from "../../config/sessions.js";
 import type { MsgContext } from "../templating.js";
 import type { ReplyPayload } from "../types.js";
 import type { InlineDirectives } from "./directive-handling.parse.js";
-import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "./directives.js";
+import type { ElevatedLevel, ReasoningLevel, ThinkLevel } from "./directives.js";
 import {
   resolveForkThinkingLevel,
   resolveForkVerboseLevel,

@@ -49,7 +49,7 @@ function normalizeWorkStatus(value?: string) {
   }
 }
 
-function normalizeAssignmentStatus(value?: string) {
+function normalizeAssignmentStatus(value?: string): OverseerAssignmentRecord["status"] | undefined {
   if (!value) {
     return undefined;
   }
@@ -624,7 +624,7 @@ export const overseerHandlers: GatewayRequestHandlers = {
           continue;
         }
         if (assignmentStatus) {
-          assignment.status = assignmentStatus as any;
+          assignment.status = assignmentStatus;
         }
         if (request.blockedReason) {
           assignment.blockedReason = request.blockedReason;

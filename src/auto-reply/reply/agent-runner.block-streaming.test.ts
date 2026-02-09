@@ -51,9 +51,8 @@ describe("runReplyAgent block streaming", () => {
   it("coalesces duplicate text_end block replies", async () => {
     const onBlockReply = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      // Push two identical block replies through middleware to test coalescing
-      req.streamMiddleware?.push({ kind: "block_reply", text: "Hello" });
-      req.streamMiddleware?.push({ kind: "block_reply", text: "Hello" });
+      await req.onBlockReply?.({ text: "Hello" });
+      await req.onBlockReply?.({ text: "Hello" });
       return makeExecutionResult({ payloads: [{ text: "Final message" }] });
     });
 

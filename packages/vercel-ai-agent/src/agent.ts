@@ -157,7 +157,7 @@ function mergeCallbacks(
 export class ConversationalAgent {
   private config: AgentConfig;
   private conversationHistory: ConversationMessage[] = [];
-  private tools: Record<string, any>;
+  private tools: Record<string, unknown>;
 
   constructor(config: AgentConfig) {
     this.config = config;
@@ -188,7 +188,7 @@ export class ConversationalAgent {
   /**
    * Register a new tool
    */
-  registerTool(name: string, tool: any): this {
+  registerTool(name: string, tool: unknown): this {
     this.tools[name] = tool;
     return this;
   }
@@ -196,7 +196,7 @@ export class ConversationalAgent {
   /**
    * Register multiple tools
    */
-  registerTools(tools: Record<string, any>): this {
+  registerTools(tools: Record<string, unknown>): this {
     this.tools = { ...this.tools, ...tools };
     return this;
   }
@@ -255,7 +255,7 @@ export class ConversationalAgent {
 
         // Generate with v5 API
         const result = await generateText({
-          model: model as any,
+          model,
           messages: convertToModelMessages(currentMessages),
           system: this.config.systemPrompt,
           tools: Object.keys(this.tools).length > 0 ? this.tools : undefined,
@@ -447,7 +447,7 @@ export class ConversationalAgent {
 
             // Stream with v5 API
             const result = streamText({
-              model: model as any,
+              model,
               messages: convertToModelMessages(currentMessages),
               system: self.config.systemPrompt,
               tools: Object.keys(self.tools).length > 0 ? self.tools : undefined,
@@ -458,8 +458,13 @@ export class ConversationalAgent {
 
             // Stream chunks
             let stepText = "";
-            const stepToolCalls: any[] = [];
-            const stepToolResults: any[] = [];
+            const stepToolCalls: Array<{ toolCallId: string; toolName: string; input: unknown }> =
+              [];
+            const stepToolResults: Array<{
+              toolCallId: string;
+              toolName: string;
+              output: unknown;
+            }> = [];
 
             for await (const chunk of result.fullStream) {
               if (chunk.type === "text-delta") {

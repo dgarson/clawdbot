@@ -28,6 +28,7 @@ import {
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { formatMcpToolNamesForLog } from "../../mcp/tool-name-format.js";
 import { splitMediaFromOutput } from "../../media/parse.js";
+import { toErrorMessage } from "../../shared/text/coerce.js";
 import { scrubAnthropicRefusalMagic } from "../../shared/text/prompt-sanitize.js";
 import {
   extractFinalTagContent,
@@ -1007,13 +1008,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         if (phase === "result") {
           runState.toolMetas.push({ toolName: normalizedName.name, meta: toolMeta });
           if (isError) {
-            const errorMsg =
-              toolText ??
-              (record?.error
-                ? record.error instanceof Error
-                  ? record.error.message
-                  : JSON.stringify(record.error)
-                : undefined);
+            const errorMsg = toolText ?? toErrorMessage(record?.error);
             runState.lastToolError = {
               toolName: normalizedName.name,
               meta: toolMeta,

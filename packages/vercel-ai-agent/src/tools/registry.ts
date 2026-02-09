@@ -7,13 +7,13 @@
  * This registry provides organizational utilities for managing collections of tools.
  */
 export class ToolRegistry {
-  private tools: Map<string, any> = new Map();
+  private tools: Map<string, unknown> = new Map();
   private toolGroups: Map<string, Set<string>> = new Map();
 
   /**
    * Register a single tool (v5 tool created with tool() helper)
    */
-  register(name: string, tool: any): this {
+  register(name: string, tool: unknown): this {
     if (this.tools.has(name)) {
       throw new Error(`Tool "${name}" is already registered`);
     }
@@ -24,7 +24,7 @@ export class ToolRegistry {
   /**
    * Register multiple tools at once
    */
-  registerMany(tools: Record<string, any>): this {
+  registerMany(tools: Record<string, unknown>): this {
     for (const [name, tool] of Object.entries(tools)) {
       this.register(name, tool);
     }
@@ -45,7 +45,7 @@ export class ToolRegistry {
   /**
    * Get a tool by name
    */
-  get(name: string): any | undefined {
+  get(name: string): unknown | undefined {
     return this.tools.get(name);
   }
 
@@ -59,7 +59,7 @@ export class ToolRegistry {
   /**
    * Get all registered tools as a Record
    */
-  getAll(): Record<string, any> {
+  getAll(): Record<string, unknown> {
     return Object.fromEntries(this.tools);
   }
 
@@ -104,12 +104,12 @@ export class ToolRegistry {
   /**
    * Get tools in a group as a Record
    */
-  getGroup(groupName: string): Record<string, any> {
+  getGroup(groupName: string): Record<string, unknown> {
     const group = this.toolGroups.get(groupName);
     if (!group) {
       return {};
     }
-    const result: Record<string, any> = {};
+    const result: Record<string, unknown> = {};
     for (const name of group) {
       const tool = this.tools.get(name);
       if (tool) {
@@ -122,8 +122,8 @@ export class ToolRegistry {
   /**
    * Get tools by names as a Record
    */
-  getByNames(names: string[]): Record<string, any> {
-    const result: Record<string, any> = {};
+  getByNames(names: string[]): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
     for (const name of names) {
       const tool = this.tools.get(name);
       if (tool) {

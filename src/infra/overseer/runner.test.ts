@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import type { OverseerTelemetrySnapshot } from "./monitor.js";
 import type { OverseerStore } from "./store.types.js";

@@ -4,12 +4,11 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { TypingMode } from "../../config/types.js";
-import type { ExecutionRequest } from "../../execution/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { GetReplyOptions } from "../types.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 import * as sessions from "../../config/sessions.js";
-import { createMockTypingController, makeExecutionResult } from "./test-helpers.js";
+import { createMockTypingController } from "./test-helpers.js";
 
 const kernelExecuteMock = vi.fn();
 

@@ -20,8 +20,12 @@ export function toApiOpts(opts: NotionToolOptions): NotionApiOptions {
 
 /** Safely parse a JSON string parameter that the LLM may provide as string or object. */
 export function parseJsonParam(value: unknown): unknown {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value === "object") return value;
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value === "object") {
+    return value;
+  }
   if (typeof value === "string") {
     try {
       return JSON.parse(value);

@@ -15,11 +15,7 @@ import type {
   MemorySource,
 } from "../../memory/progressive-types.js";
 import type { AnyAgentTool } from "./common.js";
-import {
-  getProgressiveStore,
-  type ProgressiveStoreAccess,
-} from "../../memory/progressive-manager.js";
-import { type EmbedFn } from "../../memory/progressive-store.js";
+import { getProgressiveStore } from "../../memory/progressive-manager.js";
 import { jsonResult, readStringParam, readStringArrayParam } from "./common.js";
 
 const MemoryStoreSchema = Type.Object({

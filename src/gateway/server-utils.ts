@@ -1,4 +1,5 @@
 import { defaultVoiceWakeTriggers } from "../infra/voicewake.js";
+import { formatUnknownError, toPrimitiveStringOr } from "../shared/text/coerce.js";
 
 export function normalizeVoiceWakeTriggers(input: unknown): string[] {
   const raw = Array.isArray(input) ? input : [];
@@ -22,19 +23,13 @@ export function formatError(err: unknown): string {
   const hasStatus = statusValue !== undefined;
   const hasCode = codeValue !== undefined;
   if (hasStatus || hasCode) {
-    const statusText =
-      typeof statusValue === "string" || typeof statusValue === "number"
-        ? String(statusValue)
-        : "unknown";
-    const codeText =
-      typeof codeValue === "string" || typeof codeValue === "number"
-        ? String(codeValue)
-        : "unknown";
+    const statusText = toPrimitiveStringOr(statusValue, "unknown");
+    const codeText = toPrimitiveStringOr(codeValue, "unknown");
     return `status=${statusText} code=${codeText}`;
   }
   try {
     return JSON.stringify(err, null, 2);
   } catch {
-    return String(err);
+    return formatUnknownError(err);
   }
 }

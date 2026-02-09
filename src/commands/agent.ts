@@ -1,5 +1,4 @@
 import type { EmbeddedPiRunResult } from "../agents/pi-embedded-runner/types.js";
-import type { OpenClawConfig } from "../config/config.js";
 import type { ExecutionRequest, ExecutionResult, MessageContext } from "../execution/index.js";
 import type { AgentCommandOpts } from "./agent/types.js";
 import { listAgentIds, resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";

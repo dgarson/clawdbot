@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpServerConfig, McpServersConfig } from "../config/types.mcp.js";
 import { resolveMcpToolsForAgent, shutdownAllMcpServers, __testing } from "./mcp-tools.js";

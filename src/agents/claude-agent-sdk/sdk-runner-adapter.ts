@@ -470,7 +470,6 @@ export async function runSdkAgentAdapted(
 ): Promise<EmbeddedPiRunResult> {
   const promptTrimmed = params.prompt.trim();
   if (!promptTrimmed) {
-    const startedAt = Date.now();
     log.debug(
       `Skipping SDK agent run: empty prompt (runId=${params.runId} sessionId=${params.sessionId} sessionKey=${params.sessionKey ?? "n/a"})`,
     );

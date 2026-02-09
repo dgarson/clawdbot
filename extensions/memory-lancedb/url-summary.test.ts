@@ -32,6 +32,10 @@ const embeddingsCreateMock = vi.fn(async () => ({
 const chatCompletionsCreateMock = vi.fn(async () => ({
   choices: [{ message: { content: "Summary: key points" } }],
 }));
+const completeTextWithModelRefMock = vi.fn(async () => ({
+  text: "Summary: key points",
+}));
+const dnsLookupMock = vi.fn(async () => [{ address: "93.184.216.34", family: 4 }]);
 
 vi.mock("openai", () => ({
   default: class {
@@ -45,15 +49,40 @@ vi.mock("openai", () => ({
     };
   },
 }));
+vi.mock("openclaw/plugin-sdk", async () => {
+  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk")>("openclaw/plugin-sdk");
+  return {
+    ...actual,
+    completeTextWithModelRef: completeTextWithModelRefMock,
+  };
+});
+vi.mock("node:dns/promises", () => ({
+  lookup: dnsLookupMock,
+}));
 
 describe("memory-lancedb agent_end auto-capture", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    const contentBytes = new TextEncoder().encode("Example content");
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({
         ok: true,
-        text: async () => "Example content",
+        body: {
+          getReader: () => {
+            let done = false;
+            return {
+              read: async () => {
+                if (done) {
+                  return { done: true, value: undefined };
+                }
+                done = true;
+                return { done: false, value: contentBytes };
+              },
+              cancel: async () => undefined,
+            };
+          },
+        },
       })),
     );
   });
@@ -156,7 +185,7 @@ describe("memory-lancedb agent_end auto-capture", () => {
       { messageProvider: "slack" },
     );
 
-    expect(chatCompletionsCreateMock).toHaveBeenCalled();
+    expect(completeTextWithModelRefMock).toHaveBeenCalled();
     expect(tableAddMock).toHaveBeenCalledTimes(1);
     expect(tableAddMock.mock.calls[0]?.[0]?.[0]).toMatchObject({
       text: "Summary: key points",
@@ -182,7 +211,7 @@ describe("memory-lancedb agent_end auto-capture", () => {
       { messageProvider: "slack" },
     );
 
-    expect(chatCompletionsCreateMock).not.toHaveBeenCalled();
+    expect(completeTextWithModelRefMock).not.toHaveBeenCalled();
     expect(tableAddMock).not.toHaveBeenCalled();
   });
 
@@ -200,7 +229,7 @@ describe("memory-lancedb agent_end auto-capture", () => {
       messages: [{ role: "user", content: "Check this https://example.com" }],
     });
 
-    expect(chatCompletionsCreateMock).not.toHaveBeenCalled();
+    expect(completeTextWithModelRefMock).not.toHaveBeenCalled();
     expect(tableAddMock).not.toHaveBeenCalled();
   });
 
@@ -218,7 +247,7 @@ describe("memory-lancedb agent_end auto-capture", () => {
       messages: [{ role: "user", content: "Check this https://example.com" }],
     });
 
-    expect(chatCompletionsCreateMock).toHaveBeenCalled();
+    expect(completeTextWithModelRefMock).toHaveBeenCalled();
     expect(tableAddMock).toHaveBeenCalledTimes(1);
   });
 });

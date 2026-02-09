@@ -304,7 +304,7 @@ export interface AgentConfig {
    * In v5, pass tools created with tool() helper from 'ai' package.
    * Example: { weatherTool, calculatorTool }
    */
-  tools?: Record<string, any>;
+  tools?: Record<string, unknown>;
   /** Default execution configuration */
   defaultExecutionConfig?: AgentExecutionConfig;
   /** Default callbacks */

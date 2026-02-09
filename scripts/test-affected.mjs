@@ -89,28 +89,6 @@ function filterSourceFiles(files) {
   });
 }
 
-// ── Classify files by config ────────────────────────────────────────────────
-
-function classifyFiles(files) {
-  const unit = [];
-  const extensions = [];
-  const gateway = [];
-
-  for (const f of files) {
-    if (f.startsWith("extensions/")) {
-      extensions.push(f);
-    } else if (f.startsWith("src/gateway/")) {
-      gateway.push(f);
-    } else if (f.startsWith("src/") || f.startsWith("test/")) {
-      unit.push(f);
-    }
-    // Files outside src/extensions/test are still useful for vitest related
-    // since they may be imported by tests
-  }
-
-  return { unit, extensions, gateway };
-}
-
 // ── Run vitest related for a config ─────────────────────────────────────────
 
 const WARNING_SUPPRESSION_FLAGS = [
@@ -185,12 +163,12 @@ async function main() {
   if (verbose) {
     console.log(`Changed files (${changedFiles.length}):`);
     for (const f of changedFiles) {
-      console.log(`  ${String(f)}`);
+      console.log("  " + f);
     }
     if (extraFiles.length) {
       console.log(`Extra files (${extraFiles.length}):`);
       for (const f of extraFiles) {
-        console.log(`  ${String(f)}`);
+        console.log("  " + f);
       }
     }
     console.log();

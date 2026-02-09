@@ -34,7 +34,9 @@ export function shouldProcessNotionEvent(
   if (recentEvents.size > CLEANUP_THRESHOLD) {
     const cutoff = now - windowMs;
     for (const [k, v] of recentEvents) {
-      if (v < cutoff) recentEvents.delete(k);
+      if (v < cutoff) {
+        recentEvents.delete(k);
+      }
     }
   }
 

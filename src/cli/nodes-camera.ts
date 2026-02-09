@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { toStringIfString } from "../shared/text/coerce.js";
 import { resolveCliName } from "./cli-name.js";
 
 export type CameraFacing = "front" | "back";
@@ -24,10 +25,6 @@ function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
 
-function asString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
-
 function asNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
@@ -38,8 +35,8 @@ function asBoolean(value: unknown): boolean | undefined {
 
 export function parseCameraSnapPayload(value: unknown): CameraSnapPayload {
   const obj = asRecord(value);
-  const format = asString(obj.format);
-  const base64 = asString(obj.base64);
+  const format = toStringIfString(obj.format);
+  const base64 = toStringIfString(obj.base64);
   const width = asNumber(obj.width);
   const height = asNumber(obj.height);
   if (!format || !base64 || width === undefined || height === undefined) {
@@ -50,8 +47,8 @@ export function parseCameraSnapPayload(value: unknown): CameraSnapPayload {
 
 export function parseCameraClipPayload(value: unknown): CameraClipPayload {
   const obj = asRecord(value);
-  const format = asString(obj.format);
-  const base64 = asString(obj.base64);
+  const format = toStringIfString(obj.format);
+  const base64 = toStringIfString(obj.base64);
   const durationMs = asNumber(obj.durationMs);
   const hasAudio = asBoolean(obj.hasAudio);
   if (!format || !base64 || durationMs === undefined || hasAudio === undefined) {

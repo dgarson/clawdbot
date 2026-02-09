@@ -1,6 +1,7 @@
 import type { Llama, LlamaEmbeddingContext, LlamaModel } from "node-llama-cpp";
 import fsSync from "node:fs";
 import type { OpenClawConfig } from "../config/config.js";
+import { formatUnknownError } from "../shared/text/coerce.js";
 import { resolveUserPath } from "../utils.js";
 import { createGeminiEmbeddingProvider, type GeminiEmbeddingClient } from "./embeddings-gemini.js";
 import { createOpenAiEmbeddingProvider, type OpenAiEmbeddingClient } from "./embeddings-openai.js";
@@ -242,10 +243,7 @@ export async function createEmbeddingProvider(
 }
 
 function formatError(err: unknown): string {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
+  return formatUnknownError(err);
 }
 
 function isNodeLlamaCppMissing(err: unknown): boolean {

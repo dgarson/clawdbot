@@ -89,8 +89,12 @@ export async function notionGetBlocks(
   params?: { start_cursor?: string; page_size?: number },
 ): Promise<unknown> {
   const qs = new URLSearchParams();
-  if (params?.start_cursor) qs.set("start_cursor", params.start_cursor);
-  if (params?.page_size) qs.set("page_size", String(params.page_size));
+  if (params?.start_cursor) {
+    qs.set("start_cursor", params.start_cursor);
+  }
+  if (params?.page_size) {
+    qs.set("page_size", String(params.page_size));
+  }
   const query = qs.toString();
   return notionRequest(opts, "GET", `/blocks/${blockId}/children${query ? `?${query}` : ""}`);
 }
@@ -256,7 +260,9 @@ async function fetchBlocksRecursive(
 
 /** Extract the title from page properties. */
 function extractPageTitle(properties: Record<string, unknown> | undefined): string | null {
-  if (!properties) return null;
+  if (!properties) {
+    return null;
+  }
   for (const value of Object.values(properties)) {
     const prop = value as { type?: string; title?: Array<{ plain_text?: string }> };
     if (prop.type === "title" && Array.isArray(prop.title)) {
@@ -269,7 +275,9 @@ function extractPageTitle(properties: Record<string, unknown> | undefined): stri
 /** Extract text content from a block. */
 function extractBlockText(block: Record<string, unknown>): string | null {
   const type = block.type as string | undefined;
-  if (!type) return null;
+  if (!type) {
+    return null;
+  }
 
   // Handle block types that don't use rich_text first
   switch (type) {
@@ -315,7 +323,9 @@ function extractBlockText(block: Record<string, unknown>): string | null {
 
   // Handle block types that use rich_text
   const content = block[type] as { rich_text?: Array<{ plain_text?: string }> } | undefined;
-  if (!content?.rich_text) return null;
+  if (!content?.rich_text) {
+    return null;
+  }
 
   const text = content.rich_text.map((t) => t.plain_text ?? "").join("");
 

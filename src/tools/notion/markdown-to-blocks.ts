@@ -197,7 +197,7 @@ export function parseInlineMarkdown(text: string): NotionRichText[] {
   //   ~~text~~        — strikethrough
   //   `text`          — inline code
   const inlineRegex =
-    /\[([^\]]+)\]\(([^)]+)\)|\*\*(.+?)\*\*|(?<!\*)\*([^*]+)\*(?!\*)|\~\~(.+?)\~\~|`([^`]+)`/g;
+    /\[([^\]]+)\]\(([^)]+)\)|\*\*(.+?)\*\*|(?<!\*)\*([^*]+)\*(?!\*)|~~(.+?)~~|`([^`]+)`/g;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;

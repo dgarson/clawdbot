@@ -5,6 +5,7 @@ import type {
   MemoryEmbeddingProbeResult,
 } from "../types.js";
 import type { GraphitiClient } from "./client.js";
+import { toErrorMessage } from "../../shared/text/coerce.js";
 import { memLog } from "../memory-log.js";
 
 export class GraphitiSearchAdapter implements MemorySearchManager {
@@ -54,11 +55,10 @@ export class GraphitiSearchAdapter implements MemorySearchManager {
       }
       return results.slice(0, opts?.maxResults ?? 6);
     } catch (err) {
-      const cause =
-        err instanceof Error && err.cause
-          ? ` (cause: ${err.cause instanceof Error ? err.cause.message : JSON.stringify(err.cause)})`
-          : "";
-      memLog.warn("graphiti search failed", { error: `${String(err)}${cause}` });
+      const base = toErrorMessage(err) ?? "unknown error";
+      const cause = err instanceof Error ? toErrorMessage(err.cause) : undefined;
+      const detail = cause ? `${base} (cause: ${cause})` : base;
+      memLog.warn("graphiti search failed", { error: detail });
       return [];
     }
   }

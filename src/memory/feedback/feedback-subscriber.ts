@@ -11,6 +11,7 @@ import type { MemorySearchResult } from "../types.js";
 import type { LlmCallParams, LlmCallResult } from "./llm-evaluator.js";
 import type { RelevancyEvaluationContext } from "./types.js";
 import { resolveStateDir } from "../../config/paths.js";
+import { toPrimitiveString } from "../../shared/text/coerce.js";
 import { memLog } from "../memory-log.js";
 import { createMemoryOpsLogger } from "../ops-log/index.js";
 import { FeedbackStore } from "./feedback-store.js";
@@ -136,7 +137,7 @@ export function extractMemorySearches(messages: MessageLike[]): ExtractedMemoryS
         continue;
       }
 
-      const query = typeof block.input?.query === "string" ? block.input.query : "";
+      const query = toPrimitiveString(block.input?.query) ?? "";
       if (!query) {
         continue;
       }

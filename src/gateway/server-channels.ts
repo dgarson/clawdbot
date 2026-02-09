@@ -7,6 +7,7 @@ import { type ChannelId, getChannelPlugin, listChannelPlugins } from "../channel
 import { formatErrorMessage } from "../infra/errors.js";
 import { resetDirectoryCache } from "../infra/outbound/target-resolver.js";
 import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
+import { stableStringify } from "../shared/text/stable-stringify.js";
 
 export type ChannelRuntimeSnapshot = {
   channels: Partial<Record<ChannelId, ChannelAccountSnapshot>>;
@@ -29,35 +30,6 @@ function createRuntimeStore(): ChannelRuntimeStore {
     runtimes: new Map(),
     unconfiguredWarnings: new Map(),
   };
-}
-
-function stableStringify(value: unknown): string {
-  if (value === null || value === undefined) {
-    return String(value);
-  }
-  const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean") {
-    return JSON.stringify(value);
-  }
-  if (t !== "object") {
-    // Handle special cases: symbols, functions
-    if (t === "symbol") {
-      return JSON.stringify((value as symbol).toString());
-    }
-    if (t === "function") {
-      return JSON.stringify("[Function]");
-    }
-    if (t === "undefined") {
-      return JSON.stringify("undefined");
-    }
-    return JSON.stringify("[Unknown]");
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).join(",")}]`;
-  }
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).toSorted();
-  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(",")}}`;
 }
 
 function isAccountEnabled(account: unknown): boolean {

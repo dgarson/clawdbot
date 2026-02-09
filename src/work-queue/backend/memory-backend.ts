@@ -6,7 +6,6 @@ import type {
   WorkItemPatch,
   WorkItemPriority,
   WorkItemRefKind,
-  WorkItemStatus,
   WorkQueue,
   WorkQueueStats,
 } from "../types.js";

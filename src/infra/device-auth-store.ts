@@ -142,6 +142,7 @@ export function clearDeviceAuthToken(params: {
   try {
     writeStore(filePath, next);
   } catch (err) {
-    logError(`failed to clear device auth token: String(err)`);
+    const message = err instanceof Error ? err.message : "unknown error";
+    logError(`failed to clear device auth token: ${message}`);
   }
 }

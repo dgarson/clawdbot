@@ -133,8 +133,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   it("signals typing on block replies", async () => {
     const onBlockReply = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      // Push a block_reply raw event through middleware
-      req.streamMiddleware?.push({ kind: "block_reply", text: "chunk", mediaUrls: [] });
+      await req.onBlockReply?.({ text: "chunk", mediaUrls: [] });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
@@ -157,12 +156,11 @@ describe("runReplyAgent typing (heartbeat)", () => {
   it("signals typing on tool results", async () => {
     const onToolResult = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      // Push a tool_end raw event with result text through middleware
-      req.streamMiddleware?.push({ kind: "tool_end", name: "bash", id: "t1", text: "tooling" });
+      await req.onToolResult?.({ text: "tooling" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
-    const { run, typing } = createMinimalRun({
+    const { run } = createMinimalRun({
       typingMode: "message",
       opts: { onToolResult },
     });
@@ -174,22 +172,20 @@ describe("runReplyAgent typing (heartbeat)", () => {
     });
   });
   it("forwards tool results through the middleware pipeline", async () => {
-    // In the kernel architecture, tool_end events with text always emit tool_result
-    // events through the middleware. NO_REPLY filtering happens at a higher level.
+    // NO_REPLY is filtered before tool-result callbacks are emitted.
     const onToolResult = vi.fn();
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      req.streamMiddleware?.push({ kind: "tool_end", name: "bash", id: "t1", text: "NO_REPLY" });
+      await req.onToolResult?.({ text: "NO_REPLY" });
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
-    const { run, typing } = createMinimalRun({
+    const { run } = createMinimalRun({
       typingMode: "message",
       opts: { onToolResult },
     });
     await run();
 
-    // The middleware forwards all tool results (including NO_REPLY) through the pipeline
-    expect(onToolResult).toHaveBeenCalledWith({ text: "NO_REPLY" });
+    expect(onToolResult).not.toHaveBeenCalled();
   });
   it("tracks compaction count without user-facing notice", async () => {
     const storePath = path.join(
@@ -200,8 +196,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
     const sessionStore = { main: sessionEntry };
 
     kernelExecuteMock.mockImplementationOnce(async (req: ExecutionRequest) => {
-      // Push compaction end event through middleware
-      req.streamMiddleware?.push({
+      await req.onAgentEvent?.({
         kind: "agent_event",
         stream: "compaction",
         data: { phase: "end", willRetry: false },

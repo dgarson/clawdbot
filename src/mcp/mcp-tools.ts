@@ -8,9 +8,17 @@ import {
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import crypto from "node:crypto";
 import type { OpenClawConfig } from "../config/config.js";
-import type { McpReadinessConfig, McpServerConfig, McpServersConfig } from "../config/types.mcp.js";
+import type {
+  McpHttpServerConfig,
+  McpReadinessConfig,
+  McpServerConfig,
+  McpServersConfig,
+  McpSseServerConfig,
+  McpStdioServerConfig,
+} from "../config/types.mcp.js";
 import { normalizeToolName } from "../agents/tool-policy.js";
 import { logDebug, logWarn } from "../logger.js";
+import { stableStringify } from "../shared/text/stable-stringify.js";
 import { resolveEffectiveMcpServers, isMcpServerEnabled } from "./resolve.js";
 
 // Default readiness check configuration for HTTP/SSE servers.
@@ -27,14 +35,14 @@ const DEFAULT_READINESS: Required<McpReadinessConfig> = {
  * STDIO servers never get readiness checking (they manage their own lifecycle).
  */
 function resolveReadinessConfig(server: McpServerConfig): Required<McpReadinessConfig> | null {
-  const transport = (server as any).transport ?? "stdio";
+  const transport = resolveTransport(server);
 
   // STDIO servers don't need readiness checks — they manage their own process lifecycle.
   if (transport === "stdio") {
     return null;
   }
 
-  const readiness = (server as any).readiness;
+  const readiness = "readiness" in server ? server.readiness : undefined;
 
   // Explicitly disabled.
   if (readiness === false) {
@@ -61,7 +69,23 @@ function resolveReadinessConfig(server: McpServerConfig): Required<McpReadinessC
 // NOTE: We keep these tool objects compatible with Pi Agent runtime and
 // Claude Agent SDK tool bridging (via the existing MCP server bridge).
 
-export type AnyAgentTool = AgentTool<any, unknown>;
+export type AnyAgentTool = AgentTool<unknown, unknown>;
+
+function resolveTransport(server: McpServerConfig): "stdio" | "sse" | "http" {
+  return server.transport ?? "stdio";
+}
+
+function isSseServer(server: McpServerConfig): server is McpSseServerConfig {
+  return resolveTransport(server) === "sse";
+}
+
+function isHttpServer(server: McpServerConfig): server is McpHttpServerConfig {
+  return resolveTransport(server) === "http";
+}
+
+function asStdioServer(server: McpServerConfig): McpStdioServerConfig {
+  return server as McpStdioServerConfig;
+}
 
 export type McpRemoteToolDef = {
   name: string;
@@ -75,35 +99,6 @@ type McpCallResult = {
   content: Array<Record<string, unknown>>;
   isError?: boolean;
 };
-
-function stableStringify(value: unknown): string {
-  if (value === null || value === undefined) {
-    return String(value);
-  }
-  const t = typeof value;
-  if (t === "string") {
-    return JSON.stringify(value);
-  }
-  if (t === "number" || t === "boolean") {
-    return JSON.stringify(value);
-  }
-  if (t !== "object") {
-    // Handles bigint, symbol, function
-    return JSON.stringify(
-      typeof value === "bigint"
-        ? value.toString()
-        : String(value as string | symbol | ((...args: unknown[]) => unknown)),
-    );
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).join(",")}]`;
-  }
-
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).toSorted();
-  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(",")}}`;
-}
 
 function stableHash(value: unknown): string {
   return crypto.createHash("sha256").update(stableStringify(value)).digest("hex");
@@ -364,38 +359,45 @@ class McpConnection {
    * For stdio this is the only path; for HTTP/SSE it's called from connectWithReadiness.
    */
   private async connectOnce(): Promise<void> {
-    const transportType = (this.server as any).transport ?? "stdio";
+    const transportType = resolveTransport(this.server);
 
     const client = new Client({
       name: `openclaw-mcp-${this.serverId}`,
       version: "1.0.0",
     });
 
-    if (transportType === "sse") {
-      const url = new URL((this.server as any).url);
-      const headers = coerceHeaders((this.server as any).headers);
+    if (transportType === "sse" && isSseServer(this.server)) {
+      const url = new URL(this.server.url);
+      const headers = coerceHeaders(this.server.headers);
       const requestInit = headers ? ({ headers } as RequestInit) : undefined;
       // SSE transport uses EventSource for receive + POST for send.
       this.transport = new SSEClientTransport(url, {
         requestInit,
-        eventSourceInit: headers ? ({ headers } as any) : undefined,
+        eventSourceInit: headers
+          ? ({
+              headers,
+            } as unknown as NonNullable<
+              ConstructorParameters<typeof SSEClientTransport>[1]
+            >["eventSourceInit"])
+          : undefined,
       });
-    } else if (transportType === "http") {
-      const url = new URL((this.server as any).url);
-      const headers = coerceHeaders((this.server as any).headers);
+    } else if (transportType === "http" && isHttpServer(this.server)) {
+      const url = new URL(this.server.url);
+      const headers = coerceHeaders(this.server.headers);
       const requestInit = headers ? ({ headers } as RequestInit) : undefined;
       this.transport = new StreamableHTTPClientTransport(url, {
         requestInit,
       });
     } else {
-      const env = (this.server as any).env as Record<string, string> | undefined;
+      const stdioServer = asStdioServer(this.server);
+      const env = stdioServer.env;
       const mergedEnv = env ? { ...getDefaultEnvironment(), ...env } : undefined;
-      const requestedStderr = (this.server as any).stderr;
+      const requestedStderr = stdioServer.stderr;
       const stderr = requestedStderr === "inherit" ? "pipe" : (requestedStderr ?? "pipe");
       this.transport = new StdioClientTransport({
-        command: (this.server as any).command,
-        args: (this.server as any).args,
-        cwd: (this.server as any).cwd,
+        command: stdioServer.command,
+        args: stdioServer.args,
+        cwd: stdioServer.cwd,
         env: mergedEnv,
         stderr,
       });
@@ -527,12 +529,13 @@ function buildMcpPiTool(params: {
   // The Pi Agent runtime expects TypeBox-style JSON schema objects.
   // MCP servers return JSON Schema; this is compatible enough for our tool
   // validation + provider schema normalization pipeline.
-  let parameters = (params.tool.inputSchema ?? { type: "object" }) as any;
+  let parameters: Record<string, unknown> = params.tool.inputSchema ?? { type: "object" };
 
   // Phase #2: Enhance parameter descriptions
-  if (parameters.properties && typeof parameters.properties === "object") {
+  const properties = parameters.properties;
+  if (properties && typeof properties === "object" && !Array.isArray(properties)) {
     const enhanced: Record<string, unknown> = {};
-    for (const [paramName, paramDef] of Object.entries(parameters.properties)) {
+    for (const [paramName, paramDef] of Object.entries(properties as Record<string, unknown>)) {
       if (paramDef && typeof paramDef === "object") {
         enhanced[paramName] = enhanceParameterDescription(
           paramDef as Record<string, unknown>,
@@ -634,7 +637,7 @@ export async function resolveMcpToolsForAgent(params: {
         const remoteTools = await conn.listTools(params.abortSignal);
 
         logDebug(
-          `[mcp] Loaded ${remoteTools.length} tools from MCP server "${serverId}" (${(server as any).transport ?? "stdio"})`,
+          `[mcp] Loaded ${remoteTools.length} tools from MCP server "${serverId}" (${resolveTransport(server)})`,
         );
 
         const serverTools: AnyAgentTool[] = [];
@@ -646,7 +649,7 @@ export async function resolveMcpToolsForAgent(params: {
             buildMcpPiTool({
               agentId: params.agentId,
               serverId,
-              serverLabel: (server as any).label,
+              serverLabel: server.label,
               tool,
               connection: conn,
               serverConfig: server,
