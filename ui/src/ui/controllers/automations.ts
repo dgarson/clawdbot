@@ -1,6 +1,7 @@
 import type { GatewayBrowserClient } from "../gateway.js";
 import { showDangerConfirmDialog } from "../components/confirm-dialog.js";
 import { toast } from "../components/toast.js";
+import { optimistic, snapshot } from "../utils/optimistic.js";
 
 export type AutomationStatus = "active" | "suspended" | "error";
 export type AutomationType = "smart-sync-fork" | "custom-script" | "webhook";
@@ -140,16 +141,26 @@ export async function toggleSuspendAutomation(state: AutomationsState, id: strin
   const newStatus = automation.status === "suspended" ? "active" : "suspended";
   const enabled = newStatus === "active";
 
-  try {
-    await state.client.request("automations.update", { id, enabled });
-    state.automations = state.automations.map((a) =>
-      a.id === id ? { ...a, enabled, status: newStatus } : a,
-    );
-    toast.success(`Automation ${newStatus === "active" ? "resumed" : "suspended"}`);
-  } catch (err) {
-    state.error = String(err);
-    toast.error("Failed to update automation");
-  }
+  // Snapshot for rollback
+  const prevAutomations = snapshot(state.automations);
+
+  await optimistic({
+    apply() {
+      // Optimistically toggle the automation status
+      state.automations = state.automations.map((a) =>
+        a.id === id ? { ...a, enabled, status: newStatus } : a,
+      );
+      state.error = null;
+    },
+    rollback() {
+      state.automations = prevAutomations;
+    },
+    mutate: () => state.client!.request("automations.update", { id, enabled }),
+    async refresh() {
+      toast.success(`Automation ${newStatus === "active" ? "resumed" : "suspended"}`);
+    },
+    errorTitle: "Failed to update automation",
+  });
 }
 
 export async function deleteAutomation(state: AutomationsState, id: string) {
@@ -166,14 +177,24 @@ export async function deleteAutomation(state: AutomationsState, id: string) {
 
   if (!state.client || !state.connected) return;
 
-  try {
-    await state.client.request("automations.delete", { id });
-    state.automations = state.automations.filter((a) => a.id !== id);
-    toast.success("Automation deleted");
-  } catch (err) {
-    state.error = String(err);
-    toast.error("Failed to delete automation");
-  }
+  // Snapshot for rollback
+  const prevAutomations = snapshot(state.automations);
+
+  await optimistic({
+    apply() {
+      // Optimistically remove the automation from the list
+      state.automations = state.automations.filter((a) => a.id !== id);
+      state.error = null;
+    },
+    rollback() {
+      state.automations = prevAutomations;
+    },
+    mutate: () => state.client!.request("automations.delete", { id }),
+    async refresh() {
+      toast.success("Automation deleted");
+    },
+    errorTitle: "Failed to delete automation",
+  });
 }
 
 export function setSearchQuery(state: AutomationsState, query: string) {

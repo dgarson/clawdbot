@@ -1,6 +1,7 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { SkillStatusReport } from "../types.ts";
 import { toast } from "../components/toast.ts";
+import { optimistic, snapshot } from "../utils/optimistic.ts";
 
 export type SkillsState = {
   client: GatewayBrowserClient | null;
@@ -76,25 +77,53 @@ export async function updateSkillEnabled(state: SkillsState, skillKey: string, e
   if (!state.client || !state.connected) {
     return;
   }
-  state.skillsBusyKey = skillKey;
-  state.skillsError = null;
-  try {
-    await state.client.request("skills.update", { skillKey, enabled });
-    await loadSkills(state);
-    setSkillMessage(state, skillKey, {
-      kind: "success",
-      message: enabled ? "Skill enabled" : "Skill disabled",
-    });
-  } catch (err) {
-    const message = getErrorMessage(err);
-    state.skillsError = message;
-    setSkillMessage(state, skillKey, {
-      kind: "error",
-      message,
-    });
-  } finally {
-    state.skillsBusyKey = null;
-  }
+
+  // Snapshot for rollback
+  const prevReport = state.skillsReport ? snapshot(state.skillsReport) : null;
+  const prevMessages = snapshot(state.skillMessages);
+
+  await optimistic({
+    apply() {
+      // Optimistically toggle the skill's disabled state in the report
+      if (state.skillsReport?.skills) {
+        state.skillsReport = {
+          ...state.skillsReport,
+          skills: state.skillsReport.skills.map((s) =>
+            s.skillKey === skillKey ? { ...s, disabled: !enabled } : s,
+          ),
+        };
+      }
+      state.skillsBusyKey = skillKey;
+      state.skillsError = null;
+      setSkillMessage(state, skillKey);
+    },
+    rollback() {
+      state.skillsReport = prevReport;
+      state.skillMessages = prevMessages;
+      state.skillsBusyKey = null;
+    },
+    mutate: () => state.client!.request("skills.update", { skillKey, enabled }),
+    async refresh() {
+      await loadSkills(state);
+      setSkillMessage(state, skillKey, {
+        kind: "success",
+        message: enabled ? "Skill enabled" : "Skill disabled",
+      });
+      state.skillsBusyKey = null;
+    },
+    onError(err) {
+      const message = getErrorMessage(err);
+      state.skillsError = message;
+      setSkillMessage(state, skillKey, {
+        kind: "error",
+        message,
+      });
+    },
+    toastError: false,
+    errorTitle: `${enabled ? "Enable" : "Disable"} skill failed`,
+  });
+
+  state.skillsBusyKey = null;
 }
 
 export async function saveSkillApiKey(state: SkillsState, skillKey: string) {
