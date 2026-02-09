@@ -127,8 +127,10 @@ async function fetchAgents(liveMode: boolean): Promise<Agent[]> {
     return agentsResult.agents.map((ga) =>
       mapGatewayAgentToAgent(ga, statusMap?.get(ga.id))
     );
-  } catch {
-    return fetchMockAgents();
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error("Failed to load agents from the gateway.");
   }
 }
 

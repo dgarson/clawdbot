@@ -11,6 +11,7 @@ import {
 import type { Agent, AgentStatus } from "../queries/useAgents";
 import { agentKeys } from "../queries/useAgents";
 import { configKeys } from "../queries/useConfig";
+import { useGateway } from "@/providers";
 import { useGatewayEnabled, useGatewayModeKey } from "../useGatewayEnabled";
 
 type MutationSource = "gateway" | "mock";
@@ -272,13 +273,21 @@ export function useDeleteAgent() {
 
 export function useUpdateAgentStatus() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
   const modeKey = useGatewayModeKey();
   const listKey = agentKeys.list({ mode: modeKey });
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: AgentStatus }) =>
-      updateAgentStatusMock(id, status),
+    mutationFn: async ({ id, status }: { id: string; status: AgentStatus }) => {
+      if (liveMode) {
+        throw new Error("Agent status is runtime-derived in live mode.");
+      }
+      return updateAgentStatusMock(id, status);
+    },
     onMutate: async ({ id, status }) => {
+      if (liveMode) {
+        return { previousAgent: undefined };
+      }
       await queryClient.cancelQueries({
         queryKey: agentKeys.detail(id, modeKey),
       });
@@ -319,4 +328,11 @@ export function useUpdateAgentStatus() {
       toast.error("Failed to update agent status");
     },
   });
+}
+
+export function useAgentStatusToggleEnabled(): boolean {
+  const { isConnected } = useGateway();
+  const gatewayEnabled = useGatewayEnabled();
+  const liveMode = gatewayEnabled || isConnected;
+  return !liveMode;
 }

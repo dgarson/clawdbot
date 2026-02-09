@@ -15,8 +15,9 @@ import { CreateAgentWizard } from "@/components/domain/agents/CreateAgentWizard"
 import { NewSessionDialog } from "@/components/domain/agents/NewSessionDialog";
 import { CardSkeleton , RouteErrorFallback } from "@/components/composed";
 import { useAgents } from "@/hooks/queries/useAgents";
-import { useUpdateAgentStatus } from "@/hooks/mutations/useAgentMutations";
+import { useAgentStatusToggleEnabled, useUpdateAgentStatus } from "@/hooks/mutations/useAgentMutations";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
 import type { Agent, AgentStatus } from "@/hooks/queries/useAgents";
 import {
   Search,
@@ -56,6 +57,9 @@ function AgentsPage() {
 
   const { data: agents, isLoading, error } = useAgents();
   const updateStatus = useUpdateAgentStatus();
+  const liveMode = useGatewayEnabled();
+  const statusToggleEnabled = useAgentStatusToggleEnabled();
+  const statusSourceLabel = liveMode ? "Runtime status" : undefined;
 
   // Sync status filter with URL
   React.useEffect(() => {
@@ -152,6 +156,7 @@ function AgentsPage() {
   }, [agents, debouncedSearch, statusFilter, sortBy]);
 
   const handleToggleAgent = (agent: Agent) => {
+    if (!statusToggleEnabled) {return;}
     const newStatus: AgentStatus =
       agent.status === "paused" ? "online" : "paused";
     updateStatus.mutate({ id: agent.id, status: newStatus });
@@ -343,20 +348,22 @@ function AgentsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                  <AgentCard
-                    agent={agent}
-                    variant="expanded"
-                    onChat={() => handleChat(agent)}
-                    onSettings={() => {
-                      navigate({ to: "/agents/$agentId", params: { agentId: agent.id }, search: { tab: "overview" } });
-                    }}
-                    onToggle={() => handleToggleAgent(agent)}
-                    onViewSession={() => handleViewSession(agent)}
-                    onNewSession={() => handleNewSession(agent)}
-                    onCardClick={() => {
-                      navigate({ to: "/agents/$agentId", params: { agentId: agent.id } });
-                    }}
-                  />
+                <AgentCard
+                  agent={agent}
+                  variant="expanded"
+                  onChat={() => handleChat(agent)}
+                  onSettings={() => {
+                    navigate({ to: "/agents/$agentId", params: { agentId: agent.id }, search: { tab: "overview" } });
+                  }}
+                  onToggle={statusToggleEnabled ? () => handleToggleAgent(agent) : undefined}
+                  onViewSession={() => handleViewSession(agent)}
+                  onNewSession={() => handleNewSession(agent)}
+                  toggleDisabled={!statusToggleEnabled}
+                  statusSourceLabel={statusSourceLabel}
+                  onCardClick={() => {
+                    navigate({ to: "/agents/$agentId", params: { agentId: agent.id } });
+                  }}
+                />
               </motion.div>
             ))}
           </motion.div>

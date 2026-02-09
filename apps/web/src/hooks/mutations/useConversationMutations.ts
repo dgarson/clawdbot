@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { uuidv7 } from "@/lib/ids";
 import {
+  buildAgentSessionKey,
   sendChatMessage,
   deleteSession,
   patchSession,
@@ -61,6 +62,27 @@ async function deleteMessageMock(
 
 // ── Live API functions ─────────────────────────────────────────────
 
+async function createConversationLive(
+  data: Omit<Conversation, "id" | "createdAt" | "updatedAt">
+): Promise<Conversation> {
+  const now = new Date().toISOString();
+  const key = data.agentId
+    ? buildAgentSessionKey(data.agentId, `session-${Date.now()}`)
+    : `session:${uuidv7()}`;
+
+  await patchSession({
+    key,
+    label: data.title ?? null,
+  });
+
+  return {
+    ...data,
+    id: key,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 async function updateConversationLive(
   data: Partial<Conversation> & { id: string }
 ): Promise<Conversation> {
@@ -113,9 +135,10 @@ function useLiveMode(): boolean {
 
 export function useCreateConversation() {
   const queryClient = useQueryClient();
+  const liveMode = useLiveMode();
 
   return useMutation({
-    mutationFn: createConversationMock,
+    mutationFn: liveMode ? createConversationLive : createConversationMock,
     onSuccess: (newConversation) => {
       queryClient.setQueryData<Conversation[]>(
         conversationKeys.lists(),

@@ -22,11 +22,13 @@ import { ErrorState, errorMessages } from "@/components/composed/ErrorState";
 import { AgentConfigSkeleton } from "@/components/composed/skeletons";
 import { useAgents } from "@/hooks/queries/useAgents";
 import {
+  useAgentStatusToggleEnabled,
   useCreateAgent,
   useUpdateAgent,
   useDeleteAgent,
   useUpdateAgentStatus,
 } from "@/hooks/mutations/useAgentMutations";
+import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useUIStore } from "@/stores/useUIStore";
 import type { Agent, AgentStatus } from "@/stores/useAgentStore";
@@ -42,10 +44,13 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
   const { data: agents = [], isLoading, error, refetch, isFetching } = useAgents();
   const [isRetrying, setIsRetrying] = React.useState(false);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
+  const liveMode = useGatewayEnabled();
   const useLiveGateway = useUIStore((state) => state.useLiveGateway);
+  const statusToggleEnabled = useAgentStatusToggleEnabled();
   const showModeBadge = (import.meta.env?.DEV ?? false);
   const modeLabel = useLiveGateway ? "Live gateway" : "Mock data";
   const modeVariant = useLiveGateway ? "success" : "secondary";
+  const statusSourceLabel = liveMode ? "Runtime status" : undefined;
 
   const createAgent = useCreateAgent();
   const updateAgent = useUpdateAgent();
@@ -123,6 +128,7 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
   };
 
   const handleToggleStatus = (agent: Agent) => {
+    if (!statusToggleEnabled) {return;}
     const newStatus: AgentStatus =
       agent.status === "online" || agent.status === "busy"
         ? "offline"
@@ -244,14 +250,16 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {filteredAgents.map((agent) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                onEdit={handleEditAgent}
-                onDuplicate={handleDuplicateAgent}
-                onDelete={handleDeleteAgent}
-                onToggleStatus={handleToggleStatus}
-              />
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  onEdit={handleEditAgent}
+                  onDuplicate={handleDuplicateAgent}
+                  onDelete={handleDeleteAgent}
+                  onToggle={statusToggleEnabled ? () => handleToggleStatus(agent) : undefined}
+                  toggleDisabled={!statusToggleEnabled}
+                  statusSourceLabel={statusSourceLabel}
+                />
             ))}
           </AnimatePresence>
         </div>

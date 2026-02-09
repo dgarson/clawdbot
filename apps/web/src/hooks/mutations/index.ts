@@ -5,6 +5,7 @@ export {
   useCreateAgent,
   useUpdateAgent,
   useDeleteAgent,
+  useAgentStatusToggleEnabled,
   useUpdateAgentStatus,
 } from "./useAgentMutations";
 

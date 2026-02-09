@@ -30,6 +30,8 @@ interface AgentCardProps {
   onViewSession?: () => void;
   onNewSession?: () => void;
   onCardClick?: () => void;
+  toggleDisabled?: boolean;
+  statusSourceLabel?: string;
   className?: string;
 }
 
@@ -49,9 +51,12 @@ export function AgentCard({
   onViewSession,
   onNewSession,
   onCardClick,
+  toggleDisabled = false,
+  statusSourceLabel,
   className,
 }: AgentCardProps) {
   const status = statusConfig[agent.status];
+  const isToggleDisabled = toggleDisabled || !onToggle;
 
   if (variant === "compact") {
     return (
@@ -160,6 +165,11 @@ export function AgentCard({
                 )}
               </div>
               <span className="text-sm font-medium text-foreground">{status.label}</span>
+              {statusSourceLabel && (
+                <Badge variant="secondary" className="text-[10px] font-medium">
+                  {statusSourceLabel}
+                </Badge>
+              )}
             </div>
             {agent.taskCount !== undefined && agent.taskCount > 0 && (
               <Badge variant="secondary" className="text-xs">
@@ -273,7 +283,8 @@ export function AgentCard({
               }}
               variant="ghost"
               size="icon"
-              className="h-11 w-11 rounded-xl bg-secondary/50 hover:bg-secondary transition-all"
+              className="h-11 w-11 rounded-xl bg-secondary/50 hover:bg-secondary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isToggleDisabled}
             >
               {agent.status === "paused" ? (
                 <Play className="h-4 w-4" />

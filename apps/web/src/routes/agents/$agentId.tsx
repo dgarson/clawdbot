@@ -24,7 +24,8 @@ import {
 import { useAgent } from "@/hooks/queries/useAgents";
 import { useWorkstreamsByOwner } from "@/hooks/queries/useWorkstreams";
 import { useRitualsByAgent } from "@/hooks/queries/useRituals";
-import { useUpdateAgentStatus } from "@/hooks/mutations/useAgentMutations";
+import { useAgentStatusToggleEnabled, useUpdateAgentStatus } from "@/hooks/mutations/useAgentMutations";
+import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
 import { useUIStore } from "@/stores/useUIStore";
 import type { AgentStatus } from "@/hooks/queries/useAgents";
 import {
@@ -102,6 +103,8 @@ function AgentDetailPage() {
   const { data: workstreams } = useWorkstreamsByOwner(agentId);
   const { data: rituals } = useRitualsByAgent(agentId);
   const updateStatus = useUpdateAgentStatus();
+  const statusToggleEnabled = useAgentStatusToggleEnabled();
+  const liveMode = useGatewayEnabled();
   const useLiveGateway = useUIStore((state) => state.useLiveGateway);
 
   const handleChatClick = () => {
@@ -157,6 +160,7 @@ function AgentDetailPage() {
 
   const handleToggleStatus = () => {
     if (!agent) {return;}
+    if (!statusToggleEnabled) {return;}
     const newStatus: AgentStatus =
       agent.status === "paused" ? "online" : "paused";
     updateStatus.mutate({ id: agent.id, status: newStatus });
@@ -305,8 +309,13 @@ function AgentDetailPage() {
                         )}
                       </div>
                       <p className="text-muted-foreground">{agent.role}</p>
-                      <div className="mt-2">
+                      <div className="mt-2 flex items-center gap-2">
                         <StatusBadge status={agent.status} size="md" />
+                        {liveMode && (
+                          <span className="text-xs text-muted-foreground">
+                            Runtime status
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -327,7 +336,10 @@ function AgentDetailPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={handleToggleStatus}>
+                          <DropdownMenuItem
+                            disabled={!statusToggleEnabled}
+                            onClick={statusToggleEnabled ? handleToggleStatus : undefined}
+                          >
                             {agent.status === "paused" ? (
                               <>
                                 <Play className="mr-2 h-4 w-4" />
