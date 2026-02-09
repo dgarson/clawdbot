@@ -7,6 +7,7 @@ import {
   Trash2,
   Info,
   RotateCcw,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,10 +35,13 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { useConfig } from "@/hooks/queries/useConfig";
 import { usePatchConfig } from "@/hooks/mutations/useConfigMutations";
+import { useChannelsStatusFast } from "@/hooks/queries/useChannels";
 import { useUIStore } from "@/stores/useUIStore";
 
 // ---------------------------------------------------------------------------
-// Types
+// Types — mirrors the full LoggingConfig + DebuggingConfig shape from
+// src/config/types.base.ts and src/config/types.debugging.ts so we
+// preserve every field on save (no accidental deletion).
 // ---------------------------------------------------------------------------
 
 type LogLevel = "silent" | "fatal" | "error" | "warn" | "info" | "debug" | "trace";
@@ -63,6 +67,7 @@ interface EnhancedLogging {
   tokenWarnings?: boolean;
   gatewayHealth?: boolean;
   gatewayHealthSuppressCliConnectDisconnect?: boolean;
+  gatewayHealthSuppressMethods?: string[];
 }
 
 interface PerformanceThresholds {
@@ -82,19 +87,24 @@ interface JournalConfig {
   file?: string;
   maxResultChars?: number;
   redactSensitive?: boolean;
+  toolFilter?: string[];
   retentionHours?: number;
 }
 
 interface LoggingConfig {
   level?: LogLevel;
+  file?: string;
   consoleLevel?: LogLevel;
   consoleStyle?: ConsoleStyle;
   redactSensitive?: RedactSensitive;
+  redactPatterns?: string[];
   suppressSubsystemDebugLogs?: string[];
   enhanced?: EnhancedLogging;
   performanceThresholds?: PerformanceThresholds;
   tokenWarningThresholds?: TokenWarningThresholds;
   journal?: JournalConfig;
+  // Preserve unknown keys so we never clobber them on save
+  [key: string]: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -129,20 +139,21 @@ const PERF_THRESHOLD_FIELDS: {
   { key: "databaseOp", label: "Database Op", defaultValue: 2000, max: 15000 },
 ];
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+/** Known feature IDs used across the codebase. */
+const KNOWN_FEATURE_IDS = [
+  "compaction-hooks",
+  "memory-recall",
+  "memory-recall-fallback",
+  "skills",
+];
 
-function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
-  const result = { ...target };
-  for (const key of Object.keys(source) as (keyof T)[]) {
-    const val = source[key];
-    if (val !== undefined) {
-      (result as Record<string, unknown>)[key as string] = val;
-    }
-  }
-  return result;
-}
+const ENHANCED_DEFAULTS: Record<string, boolean> = {
+  toolErrors: true,
+  performanceOutliers: true,
+  tokenWarnings: true,
+  gatewayHealth: true,
+  gatewayHealthSuppressCliConnectDisconnect: true,
+};
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -220,20 +231,22 @@ function DebugEntryRow({
   );
 }
 
-/** Inline form to add a new debug entry */
+/** Add entry form with optional suggestions dropdown */
 function AddEntryForm({
   placeholder,
   existingKeys,
+  suggestions,
   onAdd,
 }: {
   placeholder: string;
   existingKeys: string[];
+  suggestions?: { id: string; label?: string }[];
   onAdd: (name: string) => void;
 }) {
   const [value, setValue] = React.useState("");
 
-  const handleAdd = () => {
-    const trimmed = value.trim().toLowerCase();
+  const handleAdd = (name?: string) => {
+    const trimmed = (name ?? value).trim().toLowerCase();
     if (!trimmed) return;
     if (existingKeys.includes(trimmed)) {
       toast.error(`"${trimmed}" already exists`);
@@ -243,30 +256,127 @@ function AddEntryForm({
     setValue("");
   };
 
+  // Filter suggestions to exclude already-added entries
+  const availableSuggestions = suggestions?.filter(
+    (s) => !existingKeys.includes(s.id)
+  );
+
   return (
-    <div className="flex gap-2">
-      <Input
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleAdd();
-          }
-        }}
-        className="h-8 text-sm"
-      />
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleAdd}
-        disabled={!value.trim()}
-        className="shrink-0"
-      >
-        <Plus className="h-3.5 w-3.5 mr-1" />
-        Add
-      </Button>
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAdd();
+            }
+          }}
+          className="h-8 text-sm"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleAdd()}
+          disabled={!value.trim()}
+          className="shrink-0"
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add
+        </Button>
+      </div>
+      {availableSuggestions && availableSuggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          <span className="text-xs text-muted-foreground pt-0.5">Quick add:</span>
+          {availableSuggestions.map((s) => (
+            <Badge
+              key={s.id}
+              variant="outline"
+              className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
+              onClick={() => handleAdd(s.id)}
+            >
+              <Plus className="h-2.5 w-2.5 mr-0.5" />
+              {s.label ?? s.id}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Reusable tag list (for arrays of strings like redactPatterns, toolFilter, etc.) */
+function TagListEditor({
+  items,
+  onChange,
+  placeholder,
+  label,
+}: {
+  items: string[];
+  onChange: (items: string[]) => void;
+  placeholder: string;
+  label: string;
+}) {
+  const [newEntry, setNewEntry] = React.useState("");
+
+  const handleAdd = () => {
+    const trimmed = newEntry.trim();
+    if (!trimmed) return;
+    if (items.includes(trimmed)) {
+      toast.error(`"${trimmed}" already in ${label}`);
+      return;
+    }
+    onChange([...items, trimmed]);
+    setNewEntry("");
+  };
+
+  const handleRemove = (entry: string) => {
+    onChange(items.filter((e) => e !== entry));
+  };
+
+  return (
+    <div className="space-y-2">
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {items.map((entry) => (
+            <Badge
+              key={entry}
+              variant="secondary"
+              className="gap-1 cursor-pointer hover:bg-destructive/20 transition-colors"
+              onClick={() => handleRemove(entry)}
+            >
+              <code className="text-xs">{entry}</code>
+              <Trash2 className="h-3 w-3" />
+            </Badge>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          placeholder={placeholder}
+          value={newEntry}
+          onChange={(e) => setNewEntry(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAdd();
+            }
+          }}
+          className="h-8 text-sm font-mono"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleAdd}
+          disabled={!newEntry.trim()}
+          className="shrink-0"
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add
+        </Button>
+      </div>
     </div>
   );
 }
@@ -281,25 +391,64 @@ interface DebugLoggingSectionProps {
 
 export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
   const { powerUserMode } = useUIStore();
-  const { data: configSnapshot, isLoading } = useConfig();
+  const { data: configSnapshot, isLoading, error } = useConfig();
   const patchConfig = usePatchConfig();
+  const { data: channelsStatus } = useChannelsStatusFast();
 
   // ---------------------------------------------------------------------------
-  // Local state (mirrors config, submitted on save)
+  // Local state — mirrors the FULL logging/debugging objects from the config
+  // so we never clobber fields we don't have UI controls for.
   // ---------------------------------------------------------------------------
 
   const [logging, setLogging] = React.useState<LoggingConfig>({});
   const [debugging, setDebugging] = React.useState<DebuggingConfig>({});
   const [dirty, setDirty] = React.useState(false);
 
+  // Snapshot of the last saved config for diff indicators
+  const savedRef = React.useRef<{ logging: LoggingConfig; debugging: DebuggingConfig }>({
+    logging: {},
+    debugging: {},
+  });
+
   // Sync from server config on load
   React.useEffect(() => {
     if (!configSnapshot?.config) return;
     const cfg = configSnapshot.config as Record<string, unknown>;
-    setLogging((cfg.logging as LoggingConfig) ?? {});
-    setDebugging((cfg.debugging as DebuggingConfig) ?? {});
+    const newLogging = (cfg.logging as LoggingConfig) ?? {};
+    const newDebugging = (cfg.debugging as DebuggingConfig) ?? {};
+    setLogging(newLogging);
+    setDebugging(newDebugging);
+    savedRef.current = { logging: newLogging, debugging: newDebugging };
     setDirty(false);
   }, [configSnapshot]);
+
+  // Unsaved changes guard — warn on browser navigation/close
+  React.useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+
+  // ---------------------------------------------------------------------------
+  // Channel suggestions from gateway
+  // ---------------------------------------------------------------------------
+
+  const channelSuggestions = React.useMemo(() => {
+    if (!channelsStatus) return [];
+    const order = channelsStatus.channelOrder ?? Object.keys(channelsStatus.channels ?? {});
+    return order.map((id) => ({
+      id,
+      label: channelsStatus.channelLabels?.[id] ?? id,
+    }));
+  }, [channelsStatus]);
+
+  const featureSuggestions = React.useMemo(
+    () => KNOWN_FEATURE_IDS.map((id) => ({ id })),
+    []
+  );
 
   // ---------------------------------------------------------------------------
   // Mutation helpers
@@ -308,7 +457,7 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
   const markDirty = () => setDirty(true);
 
   const updateLogging = (patch: Partial<LoggingConfig>) => {
-    setLogging((prev) => deepMerge(prev, patch));
+    setLogging((prev) => ({ ...prev, ...patch }));
     markDirty();
   };
 
@@ -388,32 +537,8 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
     setFeatureProps(featureId, { debug: true });
   };
 
-  // --- Suppress subsystem list ---
-
-  const [newSuppressEntry, setNewSuppressEntry] = React.useState("");
-
-  const addSuppressEntry = () => {
-    const trimmed = newSuppressEntry.trim();
-    if (!trimmed) return;
-    const current = logging.suppressSubsystemDebugLogs ?? [];
-    if (current.includes(trimmed)) {
-      toast.error(`"${trimmed}" is already suppressed`);
-      return;
-    }
-    updateLogging({ suppressSubsystemDebugLogs: [...current, trimmed] });
-    setNewSuppressEntry("");
-  };
-
-  const removeSuppressEntry = (entry: string) => {
-    updateLogging({
-      suppressSubsystemDebugLogs: (logging.suppressSubsystemDebugLogs ?? []).filter(
-        (e) => e !== entry
-      ),
-    });
-  };
-
   // ---------------------------------------------------------------------------
-  // Save
+  // Save / Reset
   // ---------------------------------------------------------------------------
 
   const handleSave = async () => {
@@ -422,7 +547,15 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
       return;
     }
 
-    // Build the patch with only logging + debugging
+    // Validate: warning must be less than critical
+    const warnPct = logging.tokenWarningThresholds?.warning ?? 75;
+    const critPct = logging.tokenWarningThresholds?.critical ?? 90;
+    if (warnPct >= critPct) {
+      toast.error("Token warning threshold must be lower than the critical threshold");
+      return;
+    }
+
+    // Build the patch — we send the full objects so all tracked fields are preserved.
     const patch: Record<string, unknown> = {
       logging,
       debugging,
@@ -441,10 +574,8 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
   };
 
   const handleReset = () => {
-    if (!configSnapshot?.config) return;
-    const cfg = configSnapshot.config as Record<string, unknown>;
-    setLogging((cfg.logging as LoggingConfig) ?? {});
-    setDebugging((cfg.debugging as DebuggingConfig) ?? {});
+    setLogging(savedRef.current.logging);
+    setDebugging(savedRef.current.debugging);
     setDirty(false);
     toast.info("Reset to saved configuration");
   };
@@ -485,8 +616,30 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
     );
   }
 
+  if (error) {
+    return (
+      <Card className={cn("border-destructive/50 bg-destructive/10", className)}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <Bug className="h-5 w-5" />
+            Debug & Logging
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-destructive">
+            Failed to load configuration: {error instanceof Error ? error.message : "Unknown error"}.
+            Make sure the gateway is running.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const channelEntries = Object.entries(debugging.channels ?? {});
   const featureEntries = Object.entries(debugging.features ?? {});
+  const warnPct = logging.tokenWarningThresholds?.warning ?? 75;
+  const critPct = logging.tokenWarningThresholds?.critical ?? 90;
+  const thresholdInvalid = warnPct >= critPct;
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -510,13 +663,13 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
       </Card>
 
       {/* ================================================================= */}
-      {/* LOGGING — Log Levels & Style                                      */}
+      {/* LOGGING — Log Levels, Style & File Path                           */}
       {/* ================================================================= */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Log Levels & Output</CardTitle>
           <CardDescription>
-            Control the global log level, console output level, and display style.
+            Control the global log level, console output level, display style, and log file path.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -591,6 +744,21 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
             </div>
           </div>
 
+          {/* Log file path */}
+          <div className="space-y-2">
+            <Label htmlFor="log-file">Log File Path</Label>
+            <Input
+              id="log-file"
+              placeholder="~/.openclaw/logs/gateway.log"
+              value={logging.file ?? ""}
+              onChange={(e) => updateLogging({ file: e.target.value || undefined })}
+              className="h-8 text-sm font-mono"
+            />
+            <p className="text-xs text-muted-foreground">
+              File path for log output. Leave empty for the default location.
+            </p>
+          </div>
+
           <Separator />
 
           {/* Redact sensitive */}
@@ -614,6 +782,20 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Redact patterns */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Custom Redaction Patterns</Label>
+            <p className="text-xs text-muted-foreground">
+              Regex patterns used to redact sensitive tokens in logs. Defaults apply when unset.
+            </p>
+            <TagListEditor
+              items={logging.redactPatterns ?? []}
+              onChange={(patterns) => updateLogging({ redactPatterns: patterns.length ? patterns : undefined })}
+              placeholder="e.g. sk-[a-zA-Z0-9]{32}"
+              label="redact patterns"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -628,7 +810,7 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {[
+          {([
             {
               key: "toolErrors" as const,
               label: "Tool Error Details",
@@ -654,18 +836,36 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
               label: "Suppress CLI Connect/Disconnect",
               description: "Suppress CLI client connect/disconnect health logs",
             },
-          ].map(({ key, label, description }) => (
+          ] as const).map(({ key, label, description }) => (
             <div key={key} className="flex items-start justify-between gap-4">
               <div className="space-y-0.5">
                 <Label className="text-sm font-medium">{label}</Label>
                 <p className="text-xs text-muted-foreground">{description}</p>
               </div>
               <Switch
-                checked={logging.enhanced?.[key] ?? (key === "gatewayHealthSuppressCliConnectDisconnect" ? true : true)}
+                checked={logging.enhanced?.[key] ?? ENHANCED_DEFAULTS[key] ?? true}
                 onCheckedChange={(v) => updateEnhanced({ [key]: v })}
               />
             </div>
           ))}
+
+          <Separator />
+
+          {/* Gateway health suppress methods */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Suppress Health Logs for RPC Methods</Label>
+            <p className="text-xs text-muted-foreground">
+              Gateway RPC methods that should not emit connect/disconnect health logs.
+            </p>
+            <TagListEditor
+              items={logging.enhanced?.gatewayHealthSuppressMethods ?? []}
+              onChange={(methods) =>
+                updateEnhanced({ gatewayHealthSuppressMethods: methods.length ? methods : undefined })
+              }
+              placeholder="e.g. config.get, health"
+              label="suppress methods"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -712,7 +912,7 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
       {/* ================================================================= */}
       {/* LOGGING — Token Warning Thresholds                                */}
       {/* ================================================================= */}
-      <Card>
+      <Card className={thresholdInvalid ? "border-destructive/50" : undefined}>
         <CardHeader>
           <CardTitle className="text-base">Token Warning Thresholds</CardTitle>
           <CardDescription>
@@ -723,12 +923,10 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm">Warning Level</Label>
-              <span className="text-xs font-mono text-muted-foreground">
-                {logging.tokenWarningThresholds?.warning ?? 75}%
-              </span>
+              <span className="text-xs font-mono text-muted-foreground">{warnPct}%</span>
             </div>
             <Slider
-              value={[logging.tokenWarningThresholds?.warning ?? 75]}
+              value={[warnPct]}
               min={50}
               max={95}
               step={5}
@@ -739,18 +937,23 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm">Critical Level</Label>
-              <span className="text-xs font-mono text-muted-foreground">
-                {logging.tokenWarningThresholds?.critical ?? 90}%
-              </span>
+              <span className="text-xs font-mono text-muted-foreground">{critPct}%</span>
             </div>
             <Slider
-              value={[logging.tokenWarningThresholds?.critical ?? 90]}
+              value={[critPct]}
               min={60}
               max={99}
               step={1}
               onValueChange={([v]) => updateTokenThresholds({ critical: v })}
             />
           </div>
+
+          {thresholdInvalid && (
+            <div className="flex items-center gap-2 text-destructive text-xs">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              Warning threshold must be lower than the critical threshold.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -773,12 +976,12 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
               </p>
             </div>
             <Switch
-              checked={logging.journal?.enabled ?? false}
+              checked={logging.journal?.enabled ?? true}
               onCheckedChange={(v) => updateJournal({ enabled: v })}
             />
           </div>
 
-          {logging.journal?.enabled && (
+          {(logging.journal?.enabled ?? true) && (
             <>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -837,6 +1040,23 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
                   </Label>
                 </div>
               </div>
+
+              {/* Journal tool filter */}
+              <Separator />
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Tool Filter</Label>
+                <p className="text-xs text-muted-foreground">
+                  Only log journal entries for these tool names. Leave empty to use the default set (exec, process, edit, write, apply_patch).
+                </p>
+                <TagListEditor
+                  items={logging.journal?.toolFilter ?? []}
+                  onChange={(filter) =>
+                    updateJournal({ toolFilter: filter.length ? filter : undefined })
+                  }
+                  placeholder="e.g. web_search, read_file"
+                  label="tool filter"
+                />
+              </div>
             </>
           )}
         </CardContent>
@@ -849,51 +1069,20 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
         <CardHeader>
           <CardTitle className="text-base">Suppress Subsystem Logs</CardTitle>
           <CardDescription>
-            Subsystem patterns to suppress debug/trace console output for. Supports glob-style
-            patterns (e.g. <code className="text-xs">slack/*</code>,{" "}
-            <code className="text-xs">diagnostic/lanes</code>). File logs are unaffected.
+            Subsystem patterns to suppress debug/trace console output for. Supports hierarchical
+            matching (e.g. <code className="text-xs">slack</code> matches{" "}
+            <code className="text-xs">slack/send</code>). File logs are unaffected.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {(logging.suppressSubsystemDebugLogs ?? []).length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {(logging.suppressSubsystemDebugLogs ?? []).map((entry) => (
-                <Badge
-                  key={entry}
-                  variant="secondary"
-                  className="gap-1 cursor-pointer hover:bg-destructive/20 transition-colors"
-                  onClick={() => removeSuppressEntry(entry)}
-                >
-                  <code className="text-xs">{entry}</code>
-                  <Trash2 className="h-3 w-3" />
-                </Badge>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Input
-              placeholder="e.g. slack/* or diagnostic/lanes"
-              value={newSuppressEntry}
-              onChange={(e) => setNewSuppressEntry(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addSuppressEntry();
-                }
-              }}
-              className="h-8 text-sm font-mono"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addSuppressEntry}
-              disabled={!newSuppressEntry.trim()}
-              className="shrink-0"
-            >
-              <Plus className="h-3.5 w-3.5 mr-1" />
-              Add
-            </Button>
-          </div>
+        <CardContent>
+          <TagListEditor
+            items={logging.suppressSubsystemDebugLogs ?? []}
+            onChange={(entries) =>
+              updateLogging({ suppressSubsystemDebugLogs: entries.length ? entries : undefined })
+            }
+            placeholder="e.g. slack, diagnostic/lanes"
+            label="suppress entries"
+          />
         </CardContent>
       </Card>
 
@@ -905,7 +1094,7 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
           <CardTitle className="text-base">Channel Debug Overrides</CardTitle>
           <CardDescription>
             Enable targeted debugging for specific messaging channels. Each channel can have its
-            own verbosity level.
+            own verbosity level. Supports hierarchical subsystem matching.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -924,8 +1113,9 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
             />
           ))}
           <AddEntryForm
-            placeholder="e.g. slack, telegram, discord"
+            placeholder="Channel name..."
             existingKeys={channelEntries.map(([k]) => k)}
+            suggestions={channelSuggestions}
             onAdd={addChannel}
           />
         </CardContent>
@@ -939,7 +1129,7 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
           <CardTitle className="text-base">Feature Debug Overrides</CardTitle>
           <CardDescription>
             Enable targeted debugging for specific features. Use this for short-term debugging and
-            testing of individual subsystems.
+            testing of individual subsystems. Supports hierarchical matching.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -958,8 +1148,9 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
             />
           ))}
           <AddEntryForm
-            placeholder="e.g. compaction-hooks, memory-recall"
+            placeholder="Feature name..."
             existingKeys={featureEntries.map(([k]) => k)}
+            suggestions={featureSuggestions}
             onAdd={addFeature}
           />
         </CardContent>
@@ -983,7 +1174,7 @@ export function DebugLoggingSection({ className }: DebugLoggingSectionProps) {
                 <Button
                   size="sm"
                   onClick={handleSave}
-                  disabled={patchConfig.isPending}
+                  disabled={patchConfig.isPending || thresholdInvalid}
                 >
                   {patchConfig.isPending ? "Saving..." : "Save Changes"}
                 </Button>

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/useUIStore";
 import type { ConfigSection } from "./SettingsConfigNav";
 
 interface NavItem {
@@ -24,6 +25,8 @@ interface NavItem {
   label: string;
   shortLabel: string;
   icon: LucideIcon;
+  /** Only show this item when power user mode is enabled */
+  requiresPowerUser?: boolean;
 }
 
 interface SettingsConfigMobileNavProps {
@@ -40,7 +43,7 @@ const navItems: NavItem[] = [
   { id: "agents", label: "Agents", shortLabel: "Agents", icon: Bot },
   { id: "guidance", label: "Guidance Packs", shortLabel: "Guidance", icon: BookOpen },
   { id: "toolsets", label: "Toolsets", shortLabel: "Toolsets", icon: Wrench },
-  { id: "debug-logging", label: "Debug & Logging", shortLabel: "Debug", icon: Bug },
+  { id: "debug-logging", label: "Debug & Logging", shortLabel: "Debug", icon: Bug, requiresPowerUser: true },
   { id: "advanced", label: "Advanced", shortLabel: "Advanced", icon: Zap },
   { id: "connections", label: "Connections", shortLabel: "Connect", icon: Plug },
   { id: "usage", label: "Usage & Billing", shortLabel: "Usage", icon: CreditCard },
@@ -51,6 +54,11 @@ export function SettingsConfigMobileNav({
   onSectionChange,
   className,
 }: SettingsConfigMobileNavProps) {
+  const powerUserMode = useUIStore((state) => state.powerUserMode);
+  const visibleItems = React.useMemo(
+    () => navItems.filter((item) => !item.requiresPowerUser || powerUserMode),
+    [powerUserMode]
+  );
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const activeButtonRef = React.useRef<HTMLButtonElement>(null);
   const [showLeftFade, setShowLeftFade] = React.useState(false);
@@ -156,7 +164,7 @@ export function SettingsConfigMobileNav({
         role="tablist"
         aria-orientation="horizontal"
       >
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
 

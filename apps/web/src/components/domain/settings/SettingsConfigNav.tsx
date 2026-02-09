@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/useUIStore";
 
 export type ConfigSection =
   | "health"
@@ -34,6 +35,8 @@ interface NavItem {
   label: string;
   icon: typeof Activity;
   group: "system" | "power";
+  /** Only show this item when power user mode is enabled */
+  requiresPowerUser?: boolean;
 }
 
 interface SettingsConfigNavProps {
@@ -52,7 +55,7 @@ const navItems: NavItem[] = [
   { id: "guidance", label: "Guidance Packs", icon: BookOpen, group: "system" },
   { id: "toolsets", label: "Toolsets", icon: Wrench, group: "system" },
   // Power user
-  { id: "debug-logging", label: "Debug & Logging", icon: Bug, group: "power" },
+  { id: "debug-logging", label: "Debug & Logging", icon: Bug, group: "power", requiresPowerUser: true },
   { id: "advanced", label: "Advanced", icon: Zap, group: "power" },
   { id: "connections", label: "Connections", icon: Plug, group: "power" },
   { id: "usage", label: "Usage & Billing", icon: CreditCard, group: "power" },
@@ -68,16 +71,20 @@ export function SettingsConfigNav({
   onSectionChange,
   className,
 }: SettingsConfigNavProps) {
-  // Group items by their group
-  const groups = navItems.reduce(
-    (acc, item) => {
-      const group = item.group;
-      if (!acc[group]) {acc[group] = [];}
-      acc[group].push(item);
-      return acc;
-    },
-    {} as Record<string, NavItem[]>
-  );
+  const powerUserMode = useUIStore((state) => state.powerUserMode);
+
+  // Group items by their group, filtering out power-user-only items when disabled
+  const groups = navItems
+    .filter((item) => !item.requiresPowerUser || powerUserMode)
+    .reduce(
+      (acc, item) => {
+        const group = item.group;
+        if (!acc[group]) {acc[group] = [];}
+        acc[group].push(item);
+        return acc;
+      },
+      {} as Record<string, NavItem[]>
+    );
 
   const groupOrder = ["system", "power"] as const;
 

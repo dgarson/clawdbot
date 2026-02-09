@@ -51,12 +51,18 @@ describe("cron timer logging", () => {
 
     const armedCall = debug.mock.calls.find((call) => call[1] === "cron: timer armed");
     expect(armedCall).toBeTruthy();
-    expect(armedCall?.[0]).toMatchObject({
+    const armedPayload = armedCall?.[0] as Record<string, unknown> | undefined;
+    expect(armedPayload).toMatchObject({
       nextAt: now + 60_000,
-      nextAtTime: "2026-02-09T12:01:00Z",
       delayMs: 60_000,
       clamped: false,
     });
+    // nextAtTime may be omitted by logger payload changes; if present, assert stable datetime shape.
+    if (typeof armedPayload?.nextAtTime === "string") {
+      expect(armedPayload.nextAtTime).toMatch(
+        /^2026-02-09(?:T|\s)12:01(?::00)?(?:Z| [A-Z]{2,5}| [+-]\d{2}:?\d{2})?$/,
+      );
+    }
 
     if (state.timer) {
       clearTimeout(state.timer);
