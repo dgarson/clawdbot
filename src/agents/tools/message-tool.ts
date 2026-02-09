@@ -16,6 +16,7 @@ import { loadConfig } from "../../config/config.js";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "../../gateway/protocol/client-info.js";
 import { getToolResult, runMessageAction } from "../../infra/outbound/message-action-runner.js";
 import { normalizeTargetForProvider } from "../../infra/outbound/target-normalization.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { normalizeAccountId } from "../../routing/session-key.js";
 import {
   isDeliverableMessageChannel,
@@ -25,6 +26,8 @@ import { resolveSessionAgentId } from "../agent-scope.js";
 import { listChannelSupportedActions } from "../channel-tools.js";
 import { channelTargetSchema, channelTargetsSchema, stringEnum } from "../schema/typebox.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
+
+const log = createSubsystemLogger("agents/message-tool");
 
 function applyMessageToolRoutingFallbacks(
   params: Record<string, unknown>,
@@ -508,6 +511,10 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
               skipCrossContextDecoration: true,
             }
           : undefined;
+
+      log.debug(
+        `message-tool execute: currentChannelId from options=${options?.currentChannelId}, toolContext=${JSON.stringify(toolContext)}`,
+      );
 
       const result = await runMessageAction({
         cfg,

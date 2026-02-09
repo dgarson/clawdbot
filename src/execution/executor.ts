@@ -28,6 +28,7 @@ import type {
   UsageMetrics,
 } from "./types.js";
 import { logVerbose } from "../globals.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { createToolStartEvent, createToolEndEvent, createAssistantPartialEvent } from "./events.js";
 import {
   normalizeText,
@@ -35,6 +36,8 @@ import {
   type NormalizationOptions,
 } from "./normalization.js";
 import { createExecutionRuntimeCallbackBridge } from "./runtime-callback-bridge.js";
+
+const log = createSubsystemLogger("execution/executor");
 
 // ---------------------------------------------------------------------------
 // Types
@@ -567,6 +570,10 @@ export class DefaultTurnExecutor implements TurnExecutor {
           // Session resume
           claudeSessionId: hints?.claudeSdkSessionId,
         };
+
+        log.debug(
+          `executor creating SDK runtime: currentChannelId from hints=${hints?.currentChannelId}, from messageContext=${request.messageContext?.threadId}`,
+        );
 
         // Create the AgentRuntime instance
         const agentRuntime = await createRuntime(runtimeParams);
