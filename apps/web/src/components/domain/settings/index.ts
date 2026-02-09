@@ -10,6 +10,7 @@ export { AgentsSection } from "./AgentsSection";
 export { ToolsetsSection } from "./ToolsetsSection";
 export { ToolsetEditor } from "./ToolsetEditor";
 export { AdvancedSection } from "./AdvancedSection";
+export { DebugLoggingSection } from "./DebugLoggingSection";
 export { ConnectionsSection } from "./ConnectionsSection";
 export { ConnectionsSectionWithOAuth } from "./ConnectionsSectionWithOAuth";
 export { ConnectionWizardWithScopes } from "./ConnectionWizardWithScopes";

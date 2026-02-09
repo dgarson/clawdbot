@@ -12,6 +12,7 @@ import {
   Activity,
   Wrench,
   BookOpen,
+  Bug,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,6 +40,7 @@ const navItems: NavItem[] = [
   { id: "agents", label: "Agents", shortLabel: "Agents", icon: Bot },
   { id: "guidance", label: "Guidance Packs", shortLabel: "Guidance", icon: BookOpen },
   { id: "toolsets", label: "Toolsets", shortLabel: "Toolsets", icon: Wrench },
+  { id: "debug-logging", label: "Debug & Logging", shortLabel: "Debug", icon: Bug },
   { id: "advanced", label: "Advanced", shortLabel: "Advanced", icon: Zap },
   { id: "connections", label: "Connections", shortLabel: "Connect", icon: Plug },
   { id: "usage", label: "Usage & Billing", shortLabel: "Usage", icon: CreditCard },

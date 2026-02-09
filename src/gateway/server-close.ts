@@ -8,8 +8,10 @@ import type { PluginServicesHandle } from "../plugins/services.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import { stopCompactionScheduler } from "../hooks/compaction-scheduler.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
+import { stopDependencyHealthProbes } from "../infra/health/registry.js";
 import { stopJournalSubscriber } from "../infra/journal/index.js";
 import { stopMemoryFeedbackSubscriber } from "../memory/feedback/feedback-subscriber.js";
+import { stopGraphitiHealthProbe } from "../memory/graphiti/health-probe.js";
 import { closeAllProgressiveStores } from "../memory/progressive-manager.js";
 import { stopObsidianIntegration } from "../obsidian/startup.js";
 
@@ -108,12 +110,14 @@ export function createGatewayCloseHandler(params: {
         }
       }
     }
+    stopDependencyHealthProbes();
     await stopGmailWatcher();
     stopObsidianIntegration();
     stopMemoryFeedbackSubscriber();
     stopJournalSubscriber();
     closeAllProgressiveStores();
     stopCompactionScheduler();
+    stopGraphitiHealthProbe();
     params.cron.stop();
     params.heartbeatRunner.stop();
     params.toolApprovalForwarder?.stop();

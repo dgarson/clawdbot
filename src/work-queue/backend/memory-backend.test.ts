@@ -82,6 +82,93 @@ describe("MemoryWorkQueueBackend", () => {
     expect(updated.assignedTo).toBeUndefined();
   });
 
+  it("does not count external-ref items against concurrency limit", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "ext",
+      agentId: "ext",
+      name: "External",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    // Create an external task item (Codex) and mark it in_progress
+    await backend.createItem({
+      queueId: queue.id,
+      title: "Codex task",
+      status: "in_progress",
+      priority: "medium",
+      payload: {
+        refs: [
+          {
+            kind: "external:codex-task",
+            id: "crn:v1:codex-web:global:task:task_abc123",
+            uri: "https://chatgpt.com/codex/tasks/task_abc123",
+          },
+        ],
+      },
+    });
+
+    // Even though there's an in_progress item, a local item should still be claimable
+    // because the external task doesn't count against the concurrency limit.
+    const localItem = await backend.createItem({
+      queueId: queue.id,
+      title: "Local task",
+      status: "pending",
+      priority: "medium",
+    });
+
+    const claimed = await backend.claimNextItem(queue.id, { agentId: "ext" });
+    expect(claimed?.id).toBe(localItem.id);
+
+    // Now that a LOCAL item is in_progress, the next claim should be denied
+    const denied = await backend.claimNextItem(queue.id, { agentId: "ext" });
+    expect(denied).toBeNull();
+  });
+
+  it("does not count claude-web external-ref items against concurrency", async () => {
+    const backend = new MemoryWorkQueueBackend();
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "claude-ext",
+      agentId: "claude-ext",
+      name: "Claude External",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    // Claude.ai/Code task in_progress
+    await backend.createItem({
+      queueId: queue.id,
+      title: "Claude task",
+      status: "in_progress",
+      priority: "medium",
+      payload: {
+        refs: [
+          {
+            kind: "external:claude-task",
+            id: "crn:v1:claude-web:global:task:conv_456",
+            uri: "https://claude.ai/chat/conv_456",
+          },
+        ],
+      },
+    });
+
+    // Should still be able to claim because the Claude task is external
+    const localItem = await backend.createItem({
+      queueId: queue.id,
+      title: "Local task",
+      status: "pending",
+      priority: "medium",
+    });
+
+    const claimed = await backend.claimNextItem(queue.id, { agentId: "claude-ext" });
+    expect(claimed?.id).toBe(localItem.id);
+  });
+
   it("lists items by refs", async () => {
     const backend = new MemoryWorkQueueBackend();
     await backend.initialize();

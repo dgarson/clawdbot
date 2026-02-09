@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CronJob } from "./types.js";
 import { CronService } from "./service.js";
 import { createCronServiceState, type CronEvent } from "./service/state.js";
-import { onTimer } from "./service/timer.js";
+import { executeJobPayload, onTimer } from "./service/timer.js";
 
 const noopLogger = {
   info: vi.fn(),
@@ -297,6 +297,53 @@ describe("Cron issue regressions", () => {
     await store.cleanup();
   });
 
+  it("degrades wakeMode now to queued heartbeat when runHeartbeatOnce stays busy", async () => {
+    const store = await makeStorePath();
+    const requestHeartbeatNow = vi.fn();
+    const enqueueSystemEvent = vi.fn();
+    const runHeartbeatOnce = vi.fn(async () => ({
+      status: "skipped" as const,
+      reason: "requests-in-flight",
+    }));
+
+    let nowCall = 0;
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => {
+        nowCall += 1;
+        // 1st call: wait start, 2nd call: timeout check.
+        return nowCall === 1 ? 0 : 120_001;
+      },
+      enqueueSystemEvent,
+      requestHeartbeatNow,
+      runHeartbeatOnce,
+      runIsolatedAgentJob: vi.fn().mockResolvedValue({ status: "ok", summary: "ok" }),
+    });
+
+    const result = await executeJobPayload(state, {
+      id: "busy-now",
+      name: "busy-now",
+      enabled: true,
+      createdAtMs: 0,
+      updatedAtMs: 0,
+      schedule: { kind: "every", everyMs: 60_000, anchorMs: 0 },
+      sessionTarget: "main",
+      wakeMode: "now",
+      payload: { kind: "systemEvent", text: "hello" },
+      delivery: { mode: "none" },
+      state: {},
+    });
+
+    expect(result).toEqual({ status: "ok", summary: "hello" });
+    expect(runHeartbeatOnce).toHaveBeenCalledWith({ reason: "cron:busy-now" });
+    expect(requestHeartbeatNow).toHaveBeenCalledWith({ reason: "cron:busy-now" });
+    expect(enqueueSystemEvent).toHaveBeenCalledWith("hello", { agentId: undefined });
+
+    await store.cleanup();
+  });
+
   it("records per-job start time and duration for batched due jobs", async () => {
     const store = await makeStorePath();
     const dueAt = Date.parse("2026-02-06T10:05:01.000Z");
@@ -340,6 +387,47 @@ describe("Cron issue regressions", () => {
     expect(secondDone?.state.lastRunAtMs).toBe(dueAt + 50);
     expect(secondDone?.state.lastDurationMs).toBe(20);
     expect(startedAtEvents).toEqual([dueAt, dueAt + 50]);
+
+    await store.cleanup();
+  });
+
+  it("does not clear claimed running markers mid-batch after a long job", async () => {
+    const store = await makeStorePath();
+    const dueAt = Date.parse("2026-02-06T10:05:01.000Z");
+    const first = createDueIsolatedJob({ id: "long-first", nowMs: dueAt, nextRunAtMs: dueAt });
+    const second = createDueIsolatedJob({ id: "still-claimed", nowMs: dueAt, nextRunAtMs: dueAt });
+    await fs.writeFile(
+      store.storePath,
+      JSON.stringify({ version: 1, jobs: [first, second] }, null, 2),
+      "utf-8",
+    );
+
+    const longRunMs = 2 * 60 * 60 * 1000 + 1;
+    let now = dueAt;
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => now,
+      enqueueSystemEvent: vi.fn(),
+      requestHeartbeatNow: vi.fn(),
+      runIsolatedAgentJob: vi.fn(async (params: { job: { id: string } }) => {
+        now += params.job.id === first.id ? longRunMs : 10;
+        return { status: "ok" as const, summary: "ok" };
+      }),
+    });
+
+    await onTimer(state);
+
+    const stuckClears = noopLogger.warn.mock.calls.filter(
+      ([meta, message]) =>
+        message === "cron: clearing stuck running marker" &&
+        typeof meta === "object" &&
+        meta !== null &&
+        "jobId" in meta &&
+        (meta as { jobId: string }).jobId === second.id,
+    );
+    expect(stuckClears).toHaveLength(0);
 
     await store.cleanup();
   });

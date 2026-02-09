@@ -6,4 +6,13 @@ export { normalizeCrnPartsInput } from "./normalize.js";
 export { parseCrn } from "./parse.js";
 export { matchCrnPattern } from "./pattern.js";
 export { buildCronJobCrn } from "./builders/cron.js";
+export {
+  buildClaudeTaskCrn,
+  buildCodexTaskCrn,
+  buildExternalTaskCrn,
+  claudeTaskUrl,
+  codexTaskUrl,
+  externalTaskUrlFromRefKind,
+} from "./builders/external.js";
+export { externalTaskUrl } from "./canonicalizers/external.js";
 export { buildSessionIdCrn, buildSessionKeyCrn } from "./builders/session.js";

@@ -1,6 +1,7 @@
 "use client";
 
-import { AlertTriangle, Info, Shield } from "lucide-react";
+import * as React from "react";
+import { AlertTriangle, Info, Shield, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,17 @@ function RiskIcon({ risk }: { risk: ScopeRiskLevel }) {
   }
 }
 
+function getRiskBadgeClasses(risk: ScopeRiskLevel): string {
+  switch (risk) {
+    case "high":
+      return "border-red-500/30 bg-red-500/10 text-red-700";
+    case "medium":
+      return "border-yellow-500/30 bg-yellow-500/10 text-yellow-700";
+    default:
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700";
+  }
+}
+
 export function ScopeCheckbox({
   scope,
   checked,
@@ -50,6 +62,7 @@ export function ScopeCheckbox({
   onCheckedChange,
 }: ScopeCheckboxProps) {
   const isDisabled = disabled || scope.required;
+  const [showExamples, setShowExamples] = React.useState(false);
 
   return (
     <div
@@ -90,7 +103,8 @@ export function ScopeCheckbox({
             </Tooltip>
           </TooltipProvider>
           {scope.required && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex items-center gap-1">
+              <Lock className="h-3 w-3" />
               Required
             </Badge>
           )}
@@ -99,19 +113,54 @@ export function ScopeCheckbox({
               Recommended
             </Badge>
           )}
+          <Badge
+            variant="outline"
+            className={cn("text-[10px] px-1.5 py-0 capitalize", getRiskBadgeClasses(scope.risk))}
+          >
+            {scope.risk} risk
+          </Badge>
         </div>
         <p className="text-xs text-muted-foreground">{scope.description}</p>
-        {scope.examples && scope.examples.length > 0 && checked && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {scope.examples.slice(0, 3).map((example) => (
-              <Badge
-                key={example}
-                variant="outline"
-                className="text-[10px] font-normal"
+        {scope.examples && scope.examples.length > 0 && (
+          <div className="mt-2 space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => setShowExamples((prev) => !prev)}
+                className="hover:text-foreground"
               >
-                {example}
-              </Badge>
-            ))}
+                {showExamples ? "Hide examples" : "Show examples"}
+              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="hover:text-foreground underline-offset-2">
+                      Hover for examples
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      {scope.examples.map((example) => (
+                        <p key={example}>{example}</p>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {showExamples && (
+              <div className="flex flex-wrap gap-1">
+                {scope.examples.slice(0, 4).map((example) => (
+                  <Badge
+                    key={example}
+                    variant="outline"
+                    className="text-[10px] font-normal"
+                  >
+                    {example}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

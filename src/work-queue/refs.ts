@@ -33,6 +33,28 @@ export function parseRef(uri: string): WorkItemRef {
   return { kind: kindRaw, id, uri: trimmed };
 }
 
+/**
+ * Ref kinds whose `uri` field holds an external URL instead of an `oc://` URI.
+ * These represent tasks running on external platforms (Codex Web, Claude.ai/Code)
+ * and are NOT counted against the host machine's concurrency limit.
+ */
+export const EXTERNAL_REF_KINDS = new Set<string>(["external:codex-task", "external:claude-task"]);
+
+/** Returns true if the given ref kind is an external task kind. */
+export function isExternalTaskRefKind(kind: string): boolean {
+  return EXTERNAL_REF_KINDS.has(kind);
+}
+
+/**
+ * Returns true if a work item has at least one external task ref in its payload.
+ * Items with external task refs run on external platforms (e.g. Codex Web,
+ * Claude.ai/Code) and should NOT count against the local concurrency limit.
+ */
+export function hasExternalTaskRef(payload?: Record<string, unknown>): boolean {
+  const refs = readRefs(payload);
+  return refs.some((ref) => EXTERNAL_REF_KINDS.has(ref.kind));
+}
+
 export function validateRef(ref: WorkItemRef): boolean {
   if (!ref || typeof ref !== "object") {
     return false;
@@ -50,13 +72,21 @@ export function validateRef(ref: WorkItemRef): boolean {
     if (typeof ref.uri !== "string") {
       return false;
     }
-    try {
-      const parsed = parseRef(ref.uri);
-      if (parsed.kind !== ref.kind || parsed.id !== ref.id) {
+    // External refs carry an https:// URL rather than an oc:// URI
+    if (EXTERNAL_REF_KINDS.has(ref.kind)) {
+      // Accept any non-empty string (typically https://…)
+      if (!ref.uri.trim()) {
         return false;
       }
-    } catch {
-      return false;
+    } else {
+      try {
+        const parsed = parseRef(ref.uri);
+        if (parsed.kind !== ref.kind || parsed.id !== ref.id) {
+          return false;
+        }
+      } catch {
+        return false;
+      }
     }
   }
   return true;

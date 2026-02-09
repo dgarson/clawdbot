@@ -93,6 +93,7 @@ export function ScopeSelector({
 
   // Group scopes by category (or show flat list if no categories)
   const hasCategories = categories && categories.length > 0;
+  const featuredPresets = new Set(["read-only", "full-access"]);
 
   // For flat view, separate required/recommended from others
   const requiredScopes = scopes.filter((s) => s.required);
@@ -104,7 +105,7 @@ export function ScopeSelector({
       {/* View mode toggle and presets */}
       {presets && presets.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -157,14 +158,22 @@ export function ScopeSelector({
                     "flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors",
                     selectedPreset === preset.id
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/30"
+                      : "border-border hover:border-primary/30",
+                    featuredPresets.has(preset.id) && "shadow-sm"
                   )}
                 >
                   <div className="flex w-full items-center justify-between">
                     <span className="text-sm font-medium">{preset.label}</span>
-                    <Badge variant="outline" className="text-[10px]">
-                      {preset.scopes.length} scopes
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {featuredPresets.has(preset.id) && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          Popular
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-[10px]">
+                        {preset.scopes.length} scopes
+                      </Badge>
+                    </div>
                   </div>
                   {preset.description && (
                     <span className="text-xs text-muted-foreground">

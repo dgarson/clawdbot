@@ -226,7 +226,8 @@ describe("CronService", () => {
       name: "wakeMode now fallback",
       enabled: true,
       deleteAfterRun: false,
-      schedule: { kind: "at", at: new Date(1).toISOString() },
+      // Keep timer execution out of this test; this is a manual force-run path.
+      schedule: { kind: "at", at: new Date("2030-01-01T00:00:00.000Z").toISOString() },
       sessionTarget: "main",
       wakeMode: "now",
       payload: { kind: "systemEvent", text: "hello" },
@@ -234,8 +235,9 @@ describe("CronService", () => {
 
     const runPromise = cron.run(job.id, "force");
     await vi.advanceTimersByTimeAsync(125_000);
-    await expect(runPromise).resolves.toEqual({ ok: true, ran: true });
+    const runResult = await runPromise;
 
+    expect(runResult).toEqual({ ok: true, ran: true });
     expect(runHeartbeatOnce).toHaveBeenCalled();
     expect(requestHeartbeatNow).toHaveBeenCalled();
     const refreshed = (await cron.list({ includeDisabled: true })).find(
@@ -243,7 +245,6 @@ describe("CronService", () => {
     );
     expect(refreshed?.state.lastStatus).toBe("ok");
     expect(refreshed?.state.lastError).toBeUndefined();
-
     cron.stop();
     await store.cleanup();
   });

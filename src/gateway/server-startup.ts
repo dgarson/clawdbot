@@ -17,7 +17,9 @@ import {
 } from "../hooks/internal-hooks.js";
 import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { initDependencyHealthProbes } from "../infra/health/init.js";
 import { createManagedProcessManager } from "../infra/managed-processes.js";
+import { startGraphitiHealthProbe } from "../memory/graphiti/health-probe.js";
 import { registerMemoryPipelineHooks } from "../memory/hooks/index.js";
 import { startObsidianIntegration } from "../obsidian/startup.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
@@ -129,6 +131,7 @@ export async function startGatewaySidecars(params: {
     const loadedCount = await loadInternalHooks(params.cfg, params.defaultWorkspaceDir);
     registerMemoryPipelineHooks();
     startCompactionScheduler(params.cfg);
+    startGraphitiHealthProbe(params.cfg.memory?.graphiti);
     if (loadedCount > 0) {
       params.logHooks.info(
         `loaded ${loadedCount} internal hook handler${loadedCount > 1 ? "s" : ""}`,
@@ -148,6 +151,9 @@ export async function startGatewaySidecars(params: {
   } catch (err) {
     params.log.warn(`obsidian integration failed to start: ${String(err)}`);
   }
+
+  // Initialize unified dependency health probes (Graphiti, Obsidian, Gmail, channels).
+  initDependencyHealthProbes(params.cfg);
 
   // Recover orphaned work queue items from previous session (unless disabled).
   // Runs before channels start so new agents can't claim items that recovery would reset.

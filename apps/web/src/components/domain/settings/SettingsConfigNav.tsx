@@ -11,6 +11,7 @@ import {
   Activity,
   Wrench,
   BookOpen,
+  Bug,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ export type ConfigSection =
   | "agents"
   | "guidance"
   | "toolsets"
+  | "debug-logging"
   | "advanced"
   | "connections"
   | "usage";
@@ -50,6 +52,7 @@ const navItems: NavItem[] = [
   { id: "guidance", label: "Guidance Packs", icon: BookOpen, group: "system" },
   { id: "toolsets", label: "Toolsets", icon: Wrench, group: "system" },
   // Power user
+  { id: "debug-logging", label: "Debug & Logging", icon: Bug, group: "power" },
   { id: "advanced", label: "Advanced", icon: Zap, group: "power" },
   { id: "connections", label: "Connections", icon: Plug, group: "power" },
   { id: "usage", label: "Usage & Billing", icon: CreditCard, group: "power" },

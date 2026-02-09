@@ -87,7 +87,10 @@ export function computeJobNextRunAtMs(job: CronJob, nowMs: number): number | und
   return computeNextRunAtMs(job.schedule, nowMs);
 }
 
-export function recomputeNextRuns(state: CronServiceState): boolean {
+export function recomputeNextRuns(
+  state: CronServiceState,
+  opts?: { preserveRunningForJobIds?: ReadonlySet<string> },
+): boolean {
   if (!state.store) {
     return false;
   }
@@ -110,7 +113,8 @@ export function recomputeNextRuns(state: CronServiceState): boolean {
       continue;
     }
     const runningAt = job.state.runningAtMs;
-    if (typeof runningAt === "number" && now - runningAt > STUCK_RUN_MS) {
+    const preserveRunning = opts?.preserveRunningForJobIds?.has(job.id) === true;
+    if (!preserveRunning && typeof runningAt === "number" && now - runningAt > STUCK_RUN_MS) {
       state.deps.log.warn(
         { jobId: job.id, runningAtMs: runningAt },
         "cron: clearing stuck running marker",

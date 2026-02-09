@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from "vitest";
-import { formatRef, parseRef, readRefs, resolveRef, validateRef } from "./refs.js";
+import {
+  formatRef,
+  hasExternalTaskRef,
+  isExternalTaskRefKind,
+  parseRef,
+  readRefs,
+  resolveRef,
+  validateRef,
+} from "./refs.js";
 
 const sampleRef = { kind: "work:item", id: "item-123" } as const;
 
@@ -11,6 +19,68 @@ describe("work queue refs", () => {
 
     const parsed = parseRef(uri);
     expect(parsed).toEqual({ ...sampleRef, uri });
+  });
+
+  it("identifies external task ref kinds", () => {
+    expect(isExternalTaskRefKind("external:codex-task")).toBe(true);
+    expect(isExternalTaskRefKind("external:claude-task")).toBe(true);
+    expect(isExternalTaskRefKind("work:item")).toBe(false);
+    expect(isExternalTaskRefKind("codex-web:task")).toBe(false);
+  });
+
+  it("detects external task refs in payload", () => {
+    expect(
+      hasExternalTaskRef({
+        refs: [
+          {
+            kind: "external:codex-task",
+            id: "crn:v1:codex-web:global:task:task_abc",
+            uri: "https://chatgpt.com/codex/tasks/task_abc",
+          },
+        ],
+      }),
+    ).toBe(true);
+
+    expect(
+      hasExternalTaskRef({
+        refs: [
+          {
+            kind: "external:claude-task",
+            id: "crn:v1:claude-web:global:task:conv_123",
+            uri: "https://claude.ai/chat/conv_123",
+          },
+        ],
+      }),
+    ).toBe(true);
+
+    // Non-external refs should not be detected
+    expect(
+      hasExternalTaskRef({
+        refs: [{ kind: "work:item", id: "item-1" }],
+      }),
+    ).toBe(false);
+
+    // No refs at all
+    expect(hasExternalTaskRef({})).toBe(false);
+    expect(hasExternalTaskRef(undefined)).toBe(false);
+  });
+
+  it("validates external refs with external URLs", () => {
+    expect(
+      validateRef({
+        kind: "external:codex-task",
+        id: "crn:v1:codex-web:global:task:task_abc",
+        uri: "https://chatgpt.com/codex/tasks/task_abc",
+      }),
+    ).toBe(true);
+
+    expect(
+      validateRef({
+        kind: "external:claude-task",
+        id: "crn:v1:claude-web:global:task:conv_123",
+        uri: "https://claude.ai/chat/conv_123",
+      }),
+    ).toBe(true);
   });
 
   it("validates refs and rejects bad input", () => {
