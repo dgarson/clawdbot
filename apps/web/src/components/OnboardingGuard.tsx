@@ -4,6 +4,7 @@ import * as React from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useOnboardingCheck } from "@/hooks/useOnboardingCheck";
 import { Loader2 } from "lucide-react";
+import { isPlaywrightTestMode } from "@/lib/test-mode";
 
 /** Paths that should bypass the onboarding check */
 const SKIP_PATHS = [
@@ -30,6 +31,16 @@ interface OnboardingGuardProps {
  * - /debug (debugging)
  */
 export function OnboardingGuard({ children }: OnboardingGuardProps) {
+  // Playwright test mode: bypass onboarding check entirely
+  if (isPlaywrightTestMode()) {
+    return <>{children}</>;
+  }
+
+  return <OnboardingGuardInner>{children}</OnboardingGuardInner>;
+}
+
+/** Inner component with hooks — only rendered outside test mode */
+function OnboardingGuardInner({ children }: OnboardingGuardProps) {
   const { isOnboarded, isLoading } = useOnboardingCheck();
   const location = useLocation();
   const navigate = useNavigate();

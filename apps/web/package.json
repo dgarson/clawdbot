@@ -16,7 +16,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist node_modules/.vite"
+    "clean": "rm -rf dist node_modules/.vite",
+    "dev:test": "VITE_PLAYWRIGHT_TEST_MODE=true vite",
+    "dev:playwright": "VITE_PLAYWRIGHT_TEST_MODE=true vite"
   },
   "dependencies": {
     "@clawdbrain/vercel-ai-agent": "workspace:*",

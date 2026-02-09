@@ -8,6 +8,7 @@
 import { GatewayAuthModal } from "./GatewayAuthModal";
 import { useGatewayConnection, useGatewayUrl } from "@/hooks/useGatewayConnection";
 import { Loader2 } from "lucide-react";
+import { isPlaywrightTestMode } from "@/lib/test-mode";
 
 export interface GatewayAuthGuardProps {
   /** Whether to require gateway connection (if false, children render immediately) */
@@ -25,6 +26,11 @@ export function GatewayAuthGuard({ enabled = true, children }: GatewayAuthGuardP
   const { state, needsAuth, isConnecting, authError, authenticate } = useGatewayConnection({
     autoConnect: enabled,
   });
+
+  // Playwright test mode: bypass all auth checks
+  if (isPlaywrightTestMode()) {
+    return <>{children}</>;
+  }
 
   // If guard is disabled, render children immediately
   if (!enabled) {

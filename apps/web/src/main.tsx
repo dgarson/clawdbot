@@ -14,6 +14,7 @@ import { SecurityProvider } from "./features/security";
 import { GatewayProvider } from "./providers/GatewayProvider";
 import { persistGatewayConnectionFromUrl } from "./lib/api";
 import { useGatewayEnabled } from "./hooks/useGatewayEnabled";
+import { isPlaywrightTestMode } from "./lib/test-mode";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({
@@ -46,7 +47,9 @@ const persistedGatewayConnection = persistGatewayConnectionFromUrl();
 function AppGatewayProviders({ children }: { children: React.ReactNode }) {
   const gatewayEnabled = useGatewayEnabled();
   const { gatewayUrl, token, password } = persistedGatewayConnection;
-  const autoConnect = gatewayEnabled || Boolean(token || password);
+  // In Playwright test mode, never auto-connect to gateway
+  const testMode = isPlaywrightTestMode();
+  const autoConnect = !testMode && (gatewayEnabled || Boolean(token || password));
   return (
     <GatewayProvider url={gatewayUrl} autoConnect={autoConnect} token={token} password={password}>
       {children}

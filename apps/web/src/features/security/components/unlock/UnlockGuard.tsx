@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useSecurity, useNeedsUnlock } from "../../SecurityProvider";
 import { shouldSkipUnlock } from "../../lib/security-config";
+import { isPlaywrightTestMode } from "@/lib/test-mode";
 
 interface UnlockGuardProps {
   children: React.ReactNode;
@@ -24,6 +25,16 @@ interface UnlockGuardProps {
  * - /debug (debugging)
  */
 export function UnlockGuard({ children }: UnlockGuardProps) {
+  // Playwright test mode: bypass unlock check entirely
+  if (isPlaywrightTestMode()) {
+    return <>{children}</>;
+  }
+
+  return <UnlockGuardInner>{children}</UnlockGuardInner>;
+}
+
+/** Inner component with hooks — only rendered outside test mode */
+function UnlockGuardInner({ children }: UnlockGuardProps) {
   const { isLoading } = useSecurity();
   const needsUnlock = useNeedsUnlock();
   const location = useLocation();

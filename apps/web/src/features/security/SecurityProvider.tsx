@@ -12,6 +12,7 @@ import {
   SECURITY_STATE_STALE_TIME,
 } from "./lib/security-config";
 import type { SecurityState, UnlockSession } from "./types";
+import { isPlaywrightTestMode } from "@/lib/test-mode";
 
 // =============================================================================
 // Context Types
@@ -63,6 +64,7 @@ interface SecurityProviderProps {
  */
 export function SecurityProvider({ children }: SecurityProviderProps) {
   const queryClient = useQueryClient();
+  const testMode = isPlaywrightTestMode();
 
   // Local state for immediate UI updates
   const [localUnlocked, setLocalUnlocked] = React.useState<boolean | null>(null);
@@ -70,7 +72,7 @@ export function SecurityProvider({ children }: SecurityProviderProps) {
 
   // Check localStorage on mount for persisted session
   React.useEffect(() => {
-    if (isStoredSessionValid()) {
+    if (!testMode && isStoredSessionValid()) {
       const stored = getStoredSession();
       if (stored) {
         setLocalUnlocked(true);
@@ -82,9 +84,9 @@ export function SecurityProvider({ children }: SecurityProviderProps) {
         });
       }
     }
-  }, []);
+  }, [testMode]);
 
-  // Query security state from gateway
+  // Query security state from gateway (disabled in test mode)
   const {
     data: serverState,
     isLoading,
@@ -94,9 +96,10 @@ export function SecurityProvider({ children }: SecurityProviderProps) {
     queryKey: securityKeys.state(),
     queryFn: getSecurityState,
     staleTime: SECURITY_STATE_STALE_TIME,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: !testMode,
     // Don't refetch on mount if we have localStorage session
-    refetchOnMount: !isStoredSessionValid(),
+    refetchOnMount: !testMode && !isStoredSessionValid(),
+    enabled: !testMode,
   });
 
   // Sync server state with local state
@@ -138,6 +141,17 @@ export function SecurityProvider({ children }: SecurityProviderProps) {
 
   // Compute final state
   const state: SecurityState = React.useMemo(() => {
+    // Playwright test mode: always report as unlocked with no security
+    if (testMode) {
+      return {
+        lockEnabled: false,
+        isUnlocked: true,
+        session: null,
+        twoFactorEnabled: false,
+        twoFactorSetupPending: false,
+      };
+    }
+
     // If lock is not enabled, always unlocked
     if (serverState && !serverState.lockEnabled) {
       return {
@@ -160,7 +174,7 @@ export function SecurityProvider({ children }: SecurityProviderProps) {
       twoFactorEnabled: serverState?.twoFactorEnabled ?? false,
       twoFactorSetupPending: false,
     };
-  }, [serverState, localUnlocked, localSession]);
+  }, [testMode, serverState, localUnlocked, localSession]);
 
   const value: SecurityContextValue = React.useMemo(
     () => ({
