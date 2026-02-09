@@ -29,6 +29,8 @@ export const WORK_ITEM_REF_KINDS = [
   "embedding:chunk",
   "node",
   "experience",
+  "external:codex-task",
+  "external:claude-task",
 ] as const;
 
 export type WorkItemRefKind = (typeof WORK_ITEM_REF_KINDS)[number];

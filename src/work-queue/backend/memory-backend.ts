@@ -14,7 +14,7 @@ import type {
   WorkQueueBackendTransaction,
   WorkQueueClaimOptions,
 } from "./types.js";
-import { readRefs } from "../refs.js";
+import { readRefs, hasExternalTaskRef } from "../refs.js";
 
 const priorityRank: Record<WorkItemPriority, number> = {
   critical: 0,
@@ -282,10 +282,16 @@ export class MemoryWorkQueueBackend implements WorkQueueBackend {
     if (!queue) {
       return null;
     }
-    const inProgress = Array.from(this.items.values()).filter(
-      (item) => item.queueId === queueId && item.status === "in_progress",
+    // Count only LOCAL in-progress items for concurrency gating.
+    // Items with external task refs (e.g. Codex Web, Claude.ai/Code) run on
+    // external platforms and do NOT count against the host concurrency limit.
+    const localInProgress = Array.from(this.items.values()).filter(
+      (item) =>
+        item.queueId === queueId &&
+        item.status === "in_progress" &&
+        !hasExternalTaskRef(item.payload),
     );
-    if (inProgress.length >= queue.concurrencyLimit) {
+    if (localInProgress.length >= queue.concurrencyLimit) {
       return null;
     }
 

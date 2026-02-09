@@ -798,9 +798,18 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         db.exec("ROLLBACK");
         return null;
       }
+      // Count only LOCAL in-progress items for concurrency gating.
+      // Items with external task refs (e.g. Codex Web, Claude.ai/Code) run on
+      // external platforms and do NOT count against the host concurrency limit.
       const inProgressRow = db
         .prepare(
-          "SELECT COUNT(*) as cnt FROM work_items WHERE queue_id = ? AND status = 'in_progress'",
+          `SELECT COUNT(*) as cnt FROM work_items wi
+           WHERE wi.queue_id = ? AND wi.status = 'in_progress'
+           AND NOT EXISTS (
+             SELECT 1 FROM work_item_refs r
+             WHERE r.item_id = wi.id
+             AND r.kind IN ('external:codex-task', 'external:claude-task')
+           )`,
         )
         .get(queueId) as { cnt: number } | undefined;
       if ((inProgressRow?.cnt ?? 0) >= queue.concurrencyLimit) {

@@ -49,6 +49,115 @@ describeSqlite("SqliteWorkQueueBackend", () => {
     fs.rmSync(dbPath, { force: true });
   });
 
+  it("does not count external-ref items against concurrency limit", async () => {
+    const dbPath = path.join(os.tmpdir(), `work-queue-ext-concurrency-${Date.now()}.sqlite`);
+    const backend = new SqliteWorkQueueBackend(dbPath);
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "ext-queue",
+      agentId: "ext-queue",
+      name: "External Queue",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    // Create an external Codex task item with refs, and make it in_progress
+    const codexItem = await backend.createItem({
+      queueId: queue.id,
+      title: "Codex task",
+      status: "pending",
+      priority: "medium",
+      payload: {
+        refs: [
+          {
+            kind: "external:codex-task",
+            id: "crn:v1:codex-web:global:task:task_abc123",
+            uri: "https://chatgpt.com/codex/tasks/task_abc123",
+          },
+        ],
+      },
+    });
+    // Claim it so it goes to in_progress
+    const claimedCodex = await backend.claimNextItem(queue.id, { agentId: "ext-queue" });
+    expect(claimedCodex?.id).toBe(codexItem.id);
+
+    // Now create a local task — should still be claimable since the codex task
+    // is external and doesn't count against concurrency
+    const localItem = await backend.createItem({
+      queueId: queue.id,
+      title: "Local task",
+      status: "pending",
+      priority: "medium",
+    });
+
+    const claimedLocal = await backend.claimNextItem(queue.id, { agentId: "ext-queue" });
+    expect(claimedLocal?.id).toBe(localItem.id);
+
+    // Now a local item IS in_progress, so next claim should be denied
+    const nextLocal = await backend.createItem({
+      queueId: queue.id,
+      title: "Another local task",
+      status: "pending",
+      priority: "medium",
+    });
+
+    const denied = await backend.claimNextItem(queue.id, { agentId: "ext-queue" });
+    expect(denied).toBeNull();
+
+    await backend.close();
+    fs.rmSync(dbPath, { force: true });
+  });
+
+  it("does not count claude external-ref items against concurrency", async () => {
+    const dbPath = path.join(os.tmpdir(), `work-queue-claude-ext-${Date.now()}.sqlite`);
+    const backend = new SqliteWorkQueueBackend(dbPath);
+    await backend.initialize();
+
+    const queue = await backend.createQueue({
+      id: "claude-ext",
+      agentId: "claude-ext",
+      name: "Claude External Queue",
+      concurrencyLimit: 1,
+      defaultPriority: "medium",
+    });
+
+    // Create a Claude.ai/Code task with external ref
+    const claudeItem = await backend.createItem({
+      queueId: queue.id,
+      title: "Claude task",
+      status: "pending",
+      priority: "medium",
+      payload: {
+        refs: [
+          {
+            kind: "external:claude-task",
+            id: "crn:v1:claude-web:global:task:conv_456",
+            uri: "https://claude.ai/chat/conv_456",
+          },
+        ],
+      },
+    });
+
+    // Claim the Claude task
+    const claimedClaude = await backend.claimNextItem(queue.id, { agentId: "claude-ext" });
+    expect(claimedClaude?.id).toBe(claudeItem.id);
+
+    // Local task should still be claimable
+    const localItem = await backend.createItem({
+      queueId: queue.id,
+      title: "Local task",
+      status: "pending",
+      priority: "medium",
+    });
+
+    const claimedLocal = await backend.claimNextItem(queue.id, { agentId: "claude-ext" });
+    expect(claimedLocal?.id).toBe(localItem.id);
+
+    await backend.close();
+    fs.rmSync(dbPath, { force: true });
+  });
+
   it("clears fields when patch sets them to undefined", async () => {
     const dbPath = path.join(os.tmpdir(), `work-queue-clear-${Date.now()}.sqlite`);
     const backend = new SqliteWorkQueueBackend(dbPath);

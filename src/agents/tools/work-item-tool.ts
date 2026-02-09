@@ -159,6 +159,7 @@ export function createWorkItemTool(options: WorkItemToolOptions = {}): AnyAgentT
 Items support DAG dependencies (dependsOn) — claim skips items with unsatisfied deps.
 Use workstream to group related items across queues (workstream is shared context, not a queue id).
 To attach cross-entity references, pass refs: [{kind, id, label?, uri?}] so the system can index and link them.
+External task refs (external:codex-task, external:claude-task) do NOT count against the queue concurrency limit — they run on external platforms.
 
 Actions:
 - add: Create a new work item (supports dependsOn, workstream, optional assignedTo, refs)
