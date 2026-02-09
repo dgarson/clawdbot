@@ -11,13 +11,14 @@ import {
   ToolsetsSection,
   HealthSection,
   AdvancedSection,
-  ConnectionsSection,
+  ConnectionsSectionWithOAuth,
   UsageSection,
   GuidancePacksSection,
   KeyboardShortcutsModal,
 } from "@/components/domain/settings";
 import { SettingsConfigNav, type ConfigSection } from "@/components/domain/settings/SettingsConfigNav";
 import { SettingsConfigMobileNav } from "@/components/domain/settings/SettingsConfigMobileNav";
+import { loadStoredGatewayUrl, toGatewayHttpBaseUrl } from "@/lib/api/device-auth-storage";
 
 import { RouteErrorFallback } from "@/components/composed";
 export const Route = createFileRoute("/settings/")({
@@ -48,6 +49,10 @@ export const Route = createFileRoute("/settings/")({
 function SettingsPage() {
   const navigate = Route.useNavigate();
   const { section: searchSection, agentId } = Route.useSearch();
+  const gatewayHttpBaseUrl = React.useMemo(
+    () => toGatewayHttpBaseUrl(loadStoredGatewayUrl()),
+    [],
+  );
 
   const [activeSection, setActiveSection] = React.useState<ConfigSection>(
     searchSection || "health"
@@ -97,7 +102,7 @@ function SettingsPage() {
       case "advanced":
         return <AdvancedSection onOpenShortcuts={() => setShortcutsOpen(true)} />;
       case "connections":
-        return <ConnectionsSection />;
+        return <ConnectionsSectionWithOAuth gatewayBaseUrl={gatewayHttpBaseUrl} />;
       case "usage":
         return <UsageSection />;
       default:

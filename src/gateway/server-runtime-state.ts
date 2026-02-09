@@ -22,6 +22,7 @@ import {
 } from "./server-chat.js";
 import { MAX_PAYLOAD_BYTES } from "./server-constants.js";
 import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-http.js";
+import { createOAuthHttpHandler } from "./server-methods/oauth.js";
 import { createGatewayHooksRequestHandler } from "./server/hooks.js";
 import { listenGatewayHttpServer } from "./server/http-listen.js";
 import { createGatewayPluginRequestHandler } from "./server/plugins-http.js";
@@ -123,6 +124,13 @@ export async function createGatewayRuntimeState(params: {
     log: params.logPlugins,
   });
 
+  const handleOAuthRequest = createOAuthHttpHandler({
+    auth: params.resolvedAuth,
+    trustedProxies: params.cfg.gateway?.trustedProxies ?? [],
+    bindHost: params.bindHost,
+    port: params.port,
+  });
+
   const bindHosts = await resolveGatewayListenHosts(params.bindHost);
   const httpServers: HttpServer[] = [];
   const httpBindHosts: string[] = [];
@@ -137,6 +145,7 @@ export async function createGatewayRuntimeState(params: {
       openResponsesEnabled: params.openResponsesEnabled,
       openResponsesConfig: params.openResponsesConfig,
       handleHooksRequest,
+      handleOAuthRequest,
       handlePluginRequest,
       resolvedAuth: params.resolvedAuth,
       tlsOptions: params.gatewayTls?.enabled ? params.gatewayTls.tlsOptions : undefined,

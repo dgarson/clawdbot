@@ -283,6 +283,7 @@ export function createGatewayHttpServer(opts: {
   openResponsesEnabled: boolean;
   openResponsesConfig?: import("../config/types.gateway.js").GatewayHttpResponsesConfig;
   handleHooksRequest: HooksRequestHandler;
+  handleOAuthRequest?: HooksRequestHandler;
   handlePluginRequest?: HooksRequestHandler;
   resolvedAuth: ResolvedGatewayAuth;
   tlsOptions?: TlsOptions;
@@ -297,6 +298,7 @@ export function createGatewayHttpServer(opts: {
     openResponsesEnabled,
     openResponsesConfig,
     handleHooksRequest,
+    handleOAuthRequest,
     handlePluginRequest,
     resolvedAuth,
   } = opts;
@@ -318,6 +320,9 @@ export function createGatewayHttpServer(opts: {
       const configSnapshot = loadConfig();
       const trustedProxies = configSnapshot.gateway?.trustedProxies ?? [];
       if (await handleHooksRequest(req, res)) {
+        return;
+      }
+      if (handleOAuthRequest && (await handleOAuthRequest(req, res))) {
         return;
       }
       if (

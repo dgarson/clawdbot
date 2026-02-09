@@ -481,7 +481,7 @@ export function createOAuthHttpHandler(opts: {
     const token = getBearerToken(req);
     const authResult = await authorizeGatewayConnect({
       auth: opts.auth,
-      connectAuth: { token },
+      connectAuth: token ? { token, password: token } : {},
       req,
       trustedProxies: opts.trustedProxies,
     });

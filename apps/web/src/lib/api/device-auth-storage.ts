@@ -214,6 +214,29 @@ export function loadStoredGatewayUrl(): string {
 }
 
 /**
+ * Convert a stored gateway URL (ws/wss) into an HTTP base URL for REST endpoints.
+ */
+export function toGatewayHttpBaseUrl(gatewayUrl: string): string {
+  if (!gatewayUrl) {
+    return "";
+  }
+  try {
+    const parsed = new URL(gatewayUrl);
+    if (parsed.protocol === "wss:") {
+      parsed.protocol = "https:";
+    } else if (parsed.protocol === "ws:") {
+      parsed.protocol = "http:";
+    }
+    parsed.pathname = "";
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return gatewayUrl.replace(/\/$/, "");
+  }
+}
+
+/**
  * Stores the configured gateway URL.
  */
 export function storeGatewayUrl(url: string): void {

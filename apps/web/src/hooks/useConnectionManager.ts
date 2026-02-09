@@ -1,6 +1,10 @@
 "use client";
 
 import * as React from "react";
+import {
+  loadSharedGatewayPassword,
+  loadSharedGatewayToken,
+} from "@/lib/api/device-auth-storage";
 
 /**
  * Connection status returned from the gateway
@@ -36,16 +40,44 @@ export function useConnectionManager(gatewayBaseUrl = "") {
   const [loading, setLoading] = React.useState<Record<string, boolean>>({});
   const [error, setError] = React.useState<string | null>(null);
 
+  const getGatewayAuthHeader = React.useCallback((): { Authorization: string } | null => {
+    const token = loadSharedGatewayToken() ?? loadSharedGatewayPassword();
+    if (!token) {
+      return null;
+    }
+    return { Authorization: `Bearer ${token}` };
+  }, []);
+
+  const requireGatewayAuth = React.useCallback(
+    (): { Authorization: string } | null => {
+      const header = getGatewayAuthHeader();
+      if (!header) {
+        setError(
+          "Gateway credentials are missing. Add a gateway token or password in the Gateway settings.",
+        );
+      }
+      return header;
+    },
+    [getGatewayAuthHeader],
+  );
+
   /**
    * Fetch the status of a specific provider
    */
   const fetchStatus = React.useCallback(
     async (providerId: string): Promise<ConnectionStatus> => {
+      const authHeader = requireGatewayAuth();
+      if (!authHeader) {
+        const status: ConnectionStatus = { connected: false };
+        setStatuses((prev) => ({ ...prev, [providerId]: status }));
+        return status;
+      }
       try {
         setLoading((prev) => ({ ...prev, [providerId]: true }));
         const response = await fetch(
           `${gatewayBaseUrl}/oauth/status/${providerId}`,
           {
+            headers: authHeader,
             credentials: "include",
           }
         );
@@ -105,6 +137,7 @@ export function useConnectionManager(gatewayBaseUrl = "") {
   const connect = React.useCallback(
     async (options: OAuthConnectOptions): Promise<void> => {
       const { providerId, scopes, redirectUri } = options;
+      let completed = false;
 
       try {
         setLoading((prev) => ({ ...prev, [providerId]: true }));
@@ -136,6 +169,7 @@ export function useConnectionManager(gatewayBaseUrl = "") {
 
         if (!popup) {
           // Popup blocked, fall back to redirect
+          setError("Popup blocked. Redirecting to complete authorization.");
           window.location.href = authUrl;
           return;
         }
@@ -145,7 +179,11 @@ export function useConnectionManager(gatewayBaseUrl = "") {
           if (popup.closed) {
             clearInterval(pollInterval);
             // Refresh status after popup closes
-            await fetchStatus(providerId);
+            const status = await fetchStatus(providerId);
+            completed = true;
+            if (!status.connected) {
+              setError("Authorization was canceled or denied by the provider.");
+            }
             setLoading((prev) => ({ ...prev, [providerId]: false }));
           }
         }, 500);
@@ -156,7 +194,11 @@ export function useConnectionManager(gatewayBaseUrl = "") {
             clearInterval(pollInterval);
             window.removeEventListener("message", handleMessage);
             popup.close();
-            await fetchStatus(providerId);
+            const status = await fetchStatus(providerId);
+            completed = true;
+            if (!status.connected) {
+              setError("Authorization was canceled or denied by the provider.");
+            }
             setLoading((prev) => ({ ...prev, [providerId]: false }));
           }
         };
@@ -166,6 +208,9 @@ export function useConnectionManager(gatewayBaseUrl = "") {
         setTimeout(() => {
           clearInterval(pollInterval);
           window.removeEventListener("message", handleMessage);
+          if (!completed) {
+            setError("Authorization timed out before completion.");
+          }
           setLoading((prev) => ({ ...prev, [providerId]: false }));
         }, 5 * 60 * 1000);
       } catch (err) {
@@ -185,8 +230,14 @@ export function useConnectionManager(gatewayBaseUrl = "") {
         setLoading((prev) => ({ ...prev, [providerId]: true }));
         setError(null);
 
+        const authHeader = requireGatewayAuth();
+        if (!authHeader) {
+          return;
+        }
+
         const response = await fetch(`${gatewayBaseUrl}/oauth/${providerId}`, {
           method: "DELETE",
+          headers: authHeader,
           credentials: "include",
         });
 
@@ -219,12 +270,18 @@ export function useConnectionManager(gatewayBaseUrl = "") {
         setLoading((prev) => ({ ...prev, [providerId]: true }));
         setError(null);
 
+        const authHeader = requireGatewayAuth();
+        if (!authHeader) {
+          return false;
+        }
+
         const response = await fetch(
           `${gatewayBaseUrl}/oauth/store/${providerId}`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              ...authHeader,
             },
             credentials: "include",
             body: JSON.stringify(credentials),
