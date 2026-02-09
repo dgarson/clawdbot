@@ -26,6 +26,9 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
       ) {
         return;
       }
+      if (!item.ts) {
+        return;
+      }
 
       const channelLabel = resolveSlackChannelLabel({
         channelId: item.channel,
@@ -42,6 +45,24 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
         channelId: item.channel,
         channelType,
       });
+      if (action === "added" && ctx.reactionEscalation) {
+        const escalation = await ctx.reactionEscalation.dispatch({
+          reaction: emojiLabel,
+          reactorUserId: event.user,
+          reactorName: actorLabel,
+          channelId: item.channel,
+          channelName: channelInfo?.name,
+          messageTs: item.ts,
+          botUserId: ctx.botUserId,
+        });
+        if (escalation.handled) {
+          enqueueSystemEvent(`${text} [escalated: ${escalation.intent}]`, {
+            sessionKey,
+            contextKey: `slack:reaction:escalated:${item.channel}:${item.ts}:${event.user}:${emojiLabel}`,
+          });
+          return;
+        }
+      }
       enqueueSystemEvent(text, {
         sessionKey,
         contextKey: `slack:reaction:${action}:${item.channel}:${item.ts}:${event.user}:${emojiLabel}`,

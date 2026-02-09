@@ -278,6 +278,7 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
     capabilities: {
       chatTypes: ["direct", "channel", "thread"],
       reactions: true,
+      reactionEscalation: true,
       media: true,
       nativeCommands: true,
       threads: true,

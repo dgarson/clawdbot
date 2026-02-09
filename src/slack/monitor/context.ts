@@ -2,6 +2,7 @@ import type { App } from "@slack/bolt";
 import type { HistoryEntry } from "../../auto-reply/reply/history.js";
 import type { OpenClawConfig, SlackReactionNotificationMode } from "../../config/config.js";
 import type { DmPolicy, GroupPolicy } from "../../config/types.js";
+import type { ReactionEscalationService } from "../../reaction-escalation/service.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import type { SlackMessageEvent } from "../types.js";
 import { formatAllowlistMatchMeta } from "../../channels/allowlist-match.js";
@@ -94,6 +95,7 @@ export type SlackMonitorContext = {
   ackReactionScope: string;
   mediaMaxBytes: number;
   removeAckAfterReply: boolean;
+  reactionEscalation?: ReactionEscalationService;
 
   logger: ReturnType<typeof getChildLogger>;
   markMessageSeen: (channelId: string | undefined, ts?: string) => boolean;

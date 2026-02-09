@@ -27,6 +27,7 @@ import type { NodeHostConfig } from "./types.node-host.js";
 import type { OverseerConfig } from "./types.overseer.js";
 import type { PluginsConfig } from "./types.plugins.js";
 import type { PrReviewMonitorConfig } from "./types.pr-review-monitor.js";
+import type { ReactionEscalationConfig } from "./types.reaction-escalation.js";
 import type { SkillsConfig } from "./types.skills.js";
 import type { ToolsConfig } from "./types.tools.js";
 
@@ -93,6 +94,7 @@ export type OpenClawConfig = {
   broadcast?: BroadcastConfig;
   audio?: AudioConfig;
   messages?: MessagesConfig;
+  reactionEscalation?: ReactionEscalationConfig;
   commands?: CommandsConfig;
   approvals?: ApprovalsConfig;
   session?: SessionConfig;

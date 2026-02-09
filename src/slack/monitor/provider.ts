@@ -8,6 +8,10 @@ import { DEFAULT_GROUP_HISTORY_LIMIT } from "../../auto-reply/reply/history.js";
 import { mergeAllowlist, summarizeMapping } from "../../channels/allowlists/resolve-utils.js";
 import { loadConfig } from "../../config/config.js";
 import { warn } from "../../globals.js";
+import {
+  ReactionEscalationService,
+  createSlackReactionEscalationAdapter,
+} from "../../reaction-escalation/index.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { resolveSlackAccount } from "../accounts.js";
 import { globalHandlerRegistry } from "../blocks/interactive.js";
@@ -202,6 +206,16 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
     ackReactionScope,
     mediaMaxBytes,
     removeAckAfterReply,
+  });
+
+  ctx.reactionEscalation = new ReactionEscalationService({
+    cfg,
+    runtime,
+    channelId: "slack",
+    adapter: createSlackReactionEscalationAdapter({
+      ctx,
+      accountId: account.accountId,
+    }),
   });
 
   const handleSlackMessage = createSlackMessageHandler({ ctx, account });

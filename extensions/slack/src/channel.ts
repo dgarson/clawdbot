@@ -88,6 +88,7 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount> = {
   capabilities: {
     chatTypes: ["direct", "channel", "thread"],
     reactions: true,
+    reactionEscalation: true,
     threads: true,
     media: true,
     nativeCommands: true,

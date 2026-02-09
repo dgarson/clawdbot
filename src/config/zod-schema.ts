@@ -142,6 +142,56 @@ const MemorySchema = z
   .strict()
   .optional();
 
+const ReactionEscalationSignalSchema = z
+  .object({
+    emoji: z.string(),
+    intent: z.enum([
+      "prioritize",
+      "deep-dive",
+      "ingest",
+      "bookmark",
+      "summarize",
+      "urgent",
+      "evaluate",
+    ]),
+    aliases: z.array(z.string()).optional(),
+    description: z.string().optional(),
+    spawnsSession: z.boolean().optional(),
+    defaultPriority: z.enum(["critical", "high", "medium", "low"]).optional(),
+    agentPrompt: z.string().optional(),
+  })
+  .strict();
+
+const ReactionEscalationOutcomeSchema = z
+  .object({
+    postReply: z.boolean().optional(),
+    digestChannel: z.string().optional(),
+    includePermalink: z.boolean().optional(),
+  })
+  .strict()
+  .optional();
+
+const ReactionEscalationRateLimitSchema = z
+  .object({
+    maxPerMinute: z.number().int().positive().optional(),
+    maxPerHour: z.number().int().positive().optional(),
+    cooldownPerMessageMs: z.number().int().nonnegative().optional(),
+  })
+  .strict()
+  .optional();
+
+const ReactionEscalationSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    channels: z.array(z.string()).optional(),
+    allowedUsers: z.array(z.union([z.string(), z.number()])).optional(),
+    signals: z.array(ReactionEscalationSignalSchema).optional(),
+    outcome: ReactionEscalationOutcomeSchema,
+    rateLimit: ReactionEscalationRateLimitSchema,
+  })
+  .strict()
+  .optional();
+
 export const OpenClawSchema = z
   .object({
     meta: z
@@ -374,6 +424,7 @@ export const OpenClawSchema = z
       .strict()
       .optional(),
     messages: MessagesSchema,
+    reactionEscalation: ReactionEscalationSchema,
     commands: CommandsSchema,
     approvals: ApprovalsSchema,
     session: SessionSchema,

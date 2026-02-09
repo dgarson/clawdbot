@@ -165,6 +165,7 @@ export type ChannelCapabilities = {
   chatTypes: Array<NormalizedChatType | "thread">;
   polls?: boolean;
   reactions?: boolean;
+  reactionEscalation?: boolean;
   edit?: boolean;
   unsend?: boolean;
   reply?: boolean;
@@ -225,6 +226,54 @@ export type ChannelThreadingAdapter = {
     context: ChannelThreadingContext;
     hasRepliedRef?: { value: boolean };
   }) => ChannelThreadingToolContext | undefined;
+};
+
+export type ReactionMessageContext = {
+  text: string;
+  authorId?: string;
+  authorName?: string;
+  channelId: string;
+  channelName?: string;
+  messageTs: string;
+  threadTs?: string;
+  permalink?: string;
+  attachments?: Array<{ type: string; url?: string; text?: string }>;
+};
+
+export type ChannelReactionEscalationAdapter = {
+  fetchReactedMessage?: (params: {
+    channelId: string;
+    messageTs: string;
+    threadTs?: string;
+  }) => Promise<ReactionMessageContext | null>;
+  postDigest?: (params: {
+    channelId: string;
+    summary: string;
+    outcomeUrl?: string;
+  }) => Promise<{ messageId: string } | null>;
+  postOutcome?: (params: {
+    channelId: string;
+    messageTs: string;
+    threadTs?: string;
+    summary: string;
+    outcomeUrl?: string;
+  }) => Promise<{ messageId: string } | null>;
+  buildPermalink?: (params: {
+    channelId: string;
+    messageTs: string;
+    threadTs?: string;
+  }) => Promise<string | null>;
+  normalizeReaction?: (platformReaction: string) => string;
+  addReaction?: (params: {
+    channelId: string;
+    messageTs: string;
+    reaction: string;
+  }) => Promise<void>;
+  removeReaction?: (params: {
+    channelId: string;
+    messageTs: string;
+    reaction: string;
+  }) => Promise<void>;
 };
 
 export type ChannelThreadingContext = {

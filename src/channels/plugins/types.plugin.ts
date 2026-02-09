@@ -25,6 +25,7 @@ import type {
   ChannelMessageActionAdapter,
   ChannelMessagingAdapter,
   ChannelMeta,
+  ChannelReactionEscalationAdapter,
   ChannelStreamingAdapter,
   ChannelThreadingAdapter,
 } from "./types.core.js";
@@ -73,6 +74,7 @@ export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknow
   commands?: ChannelCommandAdapter;
   streaming?: ChannelStreamingAdapter;
   threading?: ChannelThreadingAdapter;
+  reactionEscalation?: ChannelReactionEscalationAdapter;
   messaging?: ChannelMessagingAdapter;
   agentPrompt?: ChannelAgentPromptAdapter;
   directory?: ChannelDirectoryAdapter;

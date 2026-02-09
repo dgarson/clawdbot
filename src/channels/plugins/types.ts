@@ -54,6 +54,8 @@ export type {
   ChannelSetupInput,
   ChannelStatusIssue,
   ChannelStreamingAdapter,
+  ChannelReactionEscalationAdapter,
+  ReactionMessageContext,
   ChannelThreadingAdapter,
   ChannelThreadingContext,
   ChannelThreadingToolContext,
