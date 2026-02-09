@@ -258,6 +258,8 @@ export type GatewayWorkQueueConfig = {
   recoverOnStartup?: boolean;
   /** Heartbeat TTL in ms before recovery considers a work item stale (default: 300000). */
   heartbeatTtlMs?: number;
+  /** How often to scan for orphaned in_progress items (default: 60000). */
+  recoveryIntervalMs?: number;
 };
 
 export type GatewayConfig = {

@@ -671,6 +671,7 @@ export const OpenClawSchema = z
           .object({
             recoverOnStartup: z.boolean().optional(),
             heartbeatTtlMs: z.number().int().positive().optional(),
+            recoveryIntervalMs: z.number().int().positive().optional(),
           })
           .strict()
           .optional(),

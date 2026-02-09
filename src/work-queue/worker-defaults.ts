@@ -9,6 +9,9 @@ export const DEFAULT_HEARTBEAT_INTERVAL_MS = 30_000;
 /** Work item heartbeat TTL before recovery considers it stale (ms). */
 export const DEFAULT_HEARTBEAT_TTL_MS = 5 * 60_000;
 
+/** How often the gateway should attempt stale work recovery (ms). */
+export const DEFAULT_RECOVERY_INTERVAL_MS = 60_000;
+
 /** Per-item agent session timeout (seconds). */
 export const DEFAULT_SESSION_TIMEOUT_S = 1200;
 

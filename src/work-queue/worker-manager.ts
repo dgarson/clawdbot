@@ -6,7 +6,9 @@ import { readLatestAssistantReply } from "../agents/tools/agent-step.js";
 import { callGateway } from "../gateway/call.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { LlmContextExtractor, TranscriptContextExtractor } from "./context-extractor.js";
-import { getDefaultWorkQueueStore } from "./store.js";
+import { recoverOrphanedWorkItems } from "./recovery.js";
+import { getDefaultWorkQueueStore, type WorkQueueStore } from "./store.js";
+import { DEFAULT_HEARTBEAT_TTL_MS, DEFAULT_RECOVERY_INTERVAL_MS } from "./worker-defaults.js";
 import { WorkQueueWorker, type WorkerDeps } from "./worker.js";
 import { WorkflowWorkerAdapter } from "./workflow/adapter.js";
 import { WorkstreamNotesStore, SqliteWorkstreamNotesBackend } from "./workstream-notes.js";
@@ -38,6 +40,9 @@ export class WorkQueueWorkerManager {
   private config: OpenClawConfig;
   private log: WorkerManagerOptions["log"];
   private notesStore: WorkstreamNotesStore | undefined;
+  private recoveryTimer: NodeJS.Timeout | null = null;
+  private recoveryInFlight = false;
+  private recoveryIntervalMs: number | null = null;
 
   constructor(opts: WorkerManagerOptions) {
     this.config = opts.config;
@@ -62,10 +67,13 @@ export class WorkQueueWorkerManager {
       await this.startWorker(agent, store);
     }
 
+    this.startRecoveryLoop(store);
+
     this.log!.info(`started ${this.workers.size} worker(s)`);
   }
 
   async stop(): Promise<void> {
+    this.stopRecoveryLoop();
     const stopPromises = Array.from(this.workers.values()).map((w) => w.stop());
     await Promise.allSettled(stopPromises);
     this.workers.clear();
@@ -117,6 +125,8 @@ export class WorkQueueWorkerManager {
         this.log!.info(`reconcile: restarted worker ${agent.id}`);
       }
     }
+
+    this.startRecoveryLoop(store);
   }
 
   private configChanged(
@@ -212,5 +222,75 @@ export class WorkQueueWorkerManager {
       this.log!.debug("workstream notes store not available (non-sqlite backend)");
     }
     return undefined;
+  }
+
+  private startRecoveryLoop(store: WorkQueueStore): void {
+    const intervalMs = this.resolveRecoveryIntervalMs();
+    if (!intervalMs || intervalMs <= 0) {
+      this.stopRecoveryLoop();
+      return;
+    }
+
+    if (this.recoveryTimer && this.recoveryIntervalMs === intervalMs) {
+      return;
+    }
+
+    this.stopRecoveryLoop();
+    this.recoveryIntervalMs = intervalMs;
+    this.recoveryTimer = setInterval(() => {
+      void this.runRecovery(store);
+    }, intervalMs);
+    this.log!.info(`recovery loop enabled (interval=${intervalMs}ms)`);
+  }
+
+  private stopRecoveryLoop(): void {
+    if (this.recoveryTimer) {
+      clearInterval(this.recoveryTimer);
+      this.recoveryTimer = null;
+      this.recoveryIntervalMs = null;
+    }
+  }
+
+  private resolveRecoveryIntervalMs(): number {
+    const configured = this.config.gateway?.workQueue?.recoveryIntervalMs;
+    if (typeof configured === "number" && Number.isFinite(configured)) {
+      return Math.max(1_000, Math.floor(configured));
+    }
+    return DEFAULT_RECOVERY_INTERVAL_MS;
+  }
+
+  private resolveRecoveryHeartbeatTtlMs(): number {
+    const configured = this.config.gateway?.workQueue?.heartbeatTtlMs;
+    if (typeof configured === "number" && Number.isFinite(configured)) {
+      return Math.max(1_000, Math.floor(configured));
+    }
+    const workerTtls = (this.config.agents?.list ?? [])
+      .map((agent) => agent.worker?.heartbeatTtlMs)
+      .filter((ttl): ttl is number => typeof ttl === "number" && Number.isFinite(ttl));
+    if (workerTtls.length > 0) {
+      return Math.min(...workerTtls);
+    }
+    return DEFAULT_HEARTBEAT_TTL_MS;
+  }
+
+  private async runRecovery(store: WorkQueueStore): Promise<void> {
+    if (this.recoveryInFlight) {
+      return;
+    }
+    this.recoveryInFlight = true;
+    try {
+      const heartbeatTtlMs = this.resolveRecoveryHeartbeatTtlMs();
+      const result = await recoverOrphanedWorkItems(store, { heartbeatTtlMs });
+      if (result.recovered.length > 0) {
+        this.log!.warn(`recovered ${result.recovered.length} orphaned item(s)`);
+      }
+      if (result.failed.length > 0) {
+        this.log!.warn(`failed to recover ${result.failed.length} orphaned item(s)`);
+      }
+    } catch (err) {
+      this.log!.warn(`recovery loop failed: ${String(err)}`);
+    } finally {
+      this.recoveryInFlight = false;
+    }
   }
 }

@@ -725,6 +725,17 @@ export class WorkQueueWorker {
     // Build task message (title + description + instructions).
     const taskMessage = buildWorkerTaskMessage(item);
 
+    // Record the session key on the work item for better recovery diagnostics.
+    this.deps.store
+      .updateItem(item.id, {
+        assignedTo: { agentId: this.agentId, sessionKey },
+      })
+      .catch((err: unknown) => {
+        this.deps.log.debug(
+          `worker[${this.agentId}]: failed to persist session key for ${item.id}: ${String(err)}`,
+        );
+      });
+
     // Spawn the agent session.
     const spawnResult = await this.deps.callGateway<{ runId: string }>({
       method: "agent",
