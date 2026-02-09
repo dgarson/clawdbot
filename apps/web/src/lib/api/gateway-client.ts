@@ -578,7 +578,17 @@ class GatewayClient {
       if (res.ok) {
         pending.resolve(res.payload);
       } else {
-        pending.reject(new Error(res.error?.message ?? "Request failed"));
+        const error = new Error(res.error?.message ?? "Request failed") as Error & {
+          code?: string;
+          details?: unknown;
+        };
+        if (res.error?.code) {
+          error.code = res.error.code;
+        }
+        if (res.error?.details) {
+          error.details = res.error.details;
+        }
+        pending.reject(error);
       }
       return;
     }

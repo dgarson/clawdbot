@@ -17,9 +17,10 @@ interface FilePreviewPanelProps {
   content: string;
   loading: boolean;
   error: string | null;
+  onRetry?: () => void;
 }
 
-export function FilePreviewPanel({ file, content, loading, error }: FilePreviewPanelProps) {
+export function FilePreviewPanel({ file, content, loading, error, onRetry }: FilePreviewPanelProps) {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = React.useCallback(() => {
@@ -48,32 +49,20 @@ export function FilePreviewPanel({ file, content, loading, error }: FilePreviewP
   }
 
   if (error) {
-    const isApiNotImplemented = error.includes("not yet implemented") || error.includes("API endpoints");
-
+    const [title, ...rest] = error.split(":");
+    const message = rest.join(":").trim() || error;
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="flex flex-col items-center gap-3 max-w-md text-center">
-          <AlertCircle className={cn(
-            "h-10 w-10",
-            isApiNotImplemented ? "text-yellow-500" : "text-destructive"
-          )} />
+          <AlertCircle className="h-10 w-10 text-destructive" />
           <div className="space-y-2">
-            <p className={cn(
-              "text-sm font-medium",
-              isApiNotImplemented ? "text-yellow-600 dark:text-yellow-400" : "text-destructive"
-            )}>
-              {isApiNotImplemented ? "Preview Not Available" : "Error Loading File"}
-            </p>
-            <p className="text-xs text-muted-foreground">{error}</p>
+            <p className="text-sm font-medium text-destructive">{title || "Error Loading File"}</p>
+            <p className="text-xs text-muted-foreground">{message}</p>
           </div>
-          {isApiNotImplemented && (
-            <div className="mt-2 rounded-md bg-muted/50 border border-border p-3 text-left">
-              <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">Next steps:</strong> The backend needs to implement
-                worktree RPC methods in the gateway (e.g., <code className="text-xs bg-muted px-1 py-0.5 rounded">worktree.read</code>,{" "}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">worktree.list</code>).
-              </p>
-            </div>
+          {onRetry && (
+            <Button size="sm" variant="outline" onClick={onRetry}>
+              Retry
+            </Button>
           )}
         </div>
       </div>

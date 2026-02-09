@@ -27,6 +27,8 @@ export interface WorktreeEntry {
 export interface WorktreeListParams {
   agentId: string;
   path?: string; // directory path to list (default: "/")
+  recursive?: boolean;
+  includeHidden?: boolean;
 }
 
 export interface WorktreeListResult {
@@ -82,6 +84,8 @@ export async function listWorktreeFiles(params: WorktreeListParams): Promise<Wor
   return client.request<WorktreeListResult>("worktree.list", {
     agentId: params.agentId,
     path: params.path || "/",
+    recursive: params.recursive,
+    includeHidden: params.includeHidden,
   });
 }
 

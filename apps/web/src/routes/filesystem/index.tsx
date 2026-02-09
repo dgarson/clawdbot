@@ -10,6 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -40,168 +47,34 @@ import {
   Save,
   X,
   HardDrive,
+  Loader2,
 } from "lucide-react";
+import { createWorktreeGatewayAdapter } from "@/integrations/worktree/gateway";
+import { useAgents } from "@/hooks/queries/useAgents";
+import { buildWorktreeTree, mapWorktreeError, type WorktreeTreeNode } from "@/lib/worktree-utils";
 
 export const Route = createFileRoute("/filesystem/")({
   component: FilesystemPage,
   errorComponent: RouteErrorFallback,
 });
 
-// Mock filesystem structure representing ~/.openclaw/
-interface FileNode {
-  id: string;
-  name: string;
-  type: "file" | "folder";
-  path: string;
-  children?: FileNode[];
-  size?: number;
-  content?: string;
-  lastModified?: Date;
-}
-
-const mockFileSystem: FileNode = {
-  id: "root",
-  name: ".openclaw",
-  type: "folder",
-  path: "~/.openclaw",
-  children: [
-    {
-      id: "config",
-      name: "config",
-      type: "folder",
-      path: "~/.openclaw/config",
-      children: [
-        {
-          id: "config-json",
-          name: "config.json",
-          type: "file",
-          path: "~/.openclaw/config/config.json",
-          size: 2048,
-          lastModified: new Date(Date.now() - 86400000),
-          content: JSON.stringify(
-            {
-              version: "1.0.0",
-              theme: "dark",
-              language: "en",
-              notifications: true,
-              autoSync: true,
-              apiEndpoint: "https://api.secondbrain.dev",
-            },
-            null,
-            2
-          ),
-        },
-        {
-          id: "agents-json",
-          name: "agents.json",
-          type: "file",
-          path: "~/.openclaw/config/agents.json",
-          size: 4096,
-          lastModified: new Date(Date.now() - 3600000),
-          content: JSON.stringify(
-            {
-              agents: [
-                { id: "1", name: "Research Assistant", active: true },
-                { id: "2", name: "Code Companion", active: true },
-              ],
-            },
-            null,
-            2
-          ),
-        },
-      ],
-    },
-    {
-      id: "sessions",
-      name: "sessions",
-      type: "folder",
-      path: "~/.openclaw/sessions",
-      children: [
-        {
-          id: "session-1",
-          name: "session-2024-01-15.jsonl",
-          type: "file",
-          path: "~/.openclaw/sessions/session-2024-01-15.jsonl",
-          size: 15360,
-          lastModified: new Date(Date.now() - 172800000),
-          content:
-            '{"type":"message","role":"user","content":"Hello"}\n{"type":"message","role":"assistant","content":"Hi there!"}\n{"type":"message","role":"user","content":"How are you?"}',
-        },
-        {
-          id: "session-2",
-          name: "session-2024-01-20.jsonl",
-          type: "file",
-          path: "~/.openclaw/sessions/session-2024-01-20.jsonl",
-          size: 8192,
-          lastModified: new Date(Date.now() - 43200000),
-          content:
-            '{"type":"message","role":"user","content":"Start a new task"}\n{"type":"message","role":"assistant","content":"Sure, what would you like to do?"}',
-        },
-      ],
-    },
-    {
-      id: "logs",
-      name: "logs",
-      type: "folder",
-      path: "~/.openclaw/logs",
-      children: [
-        {
-          id: "app-log",
-          name: "app.log",
-          type: "file",
-          path: "~/.openclaw/logs/app.log",
-          size: 51200,
-          lastModified: new Date(),
-          content:
-            "[2024-01-20 10:00:00] INFO: Application started\n[2024-01-20 10:00:01] DEBUG: Loading configuration\n[2024-01-20 10:00:02] INFO: Connected to database\n[2024-01-20 10:00:03] WARN: Cache miss for key 'user-prefs'\n[2024-01-20 10:00:04] INFO: User authenticated successfully",
-        },
-        {
-          id: "error-log",
-          name: "error.log",
-          type: "file",
-          path: "~/.openclaw/logs/error.log",
-          size: 2048,
-          lastModified: new Date(Date.now() - 7200000),
-          content:
-            "[2024-01-20 08:15:00] ERROR: Failed to connect to remote server\n[2024-01-20 09:30:00] ERROR: Timeout waiting for response",
-        },
-      ],
-    },
-    {
-      id: "credentials",
-      name: "credentials",
-      type: "folder",
-      path: "~/.openclaw/credentials",
-      children: [
-        {
-          id: "api-keys",
-          name: "api-keys.enc",
-          type: "file",
-          path: "~/.openclaw/credentials/api-keys.enc",
-          size: 512,
-          lastModified: new Date(Date.now() - 604800000),
-          content: "[encrypted content]",
-        },
-      ],
-    },
-    {
-      id: "readme",
-      name: "README.md",
-      type: "file",
-      path: "~/.openclaw/README.md",
-      size: 1024,
-      lastModified: new Date(Date.now() - 2592000000),
-      content:
-        "# Second Brain Configuration\n\nThis directory contains your Second Brain configuration and data.\n\n## Structure\n\n- `config/` - Configuration files\n- `sessions/` - Session logs\n- `logs/` - Application logs\n- `credentials/` - Encrypted credentials\n\n## Important\n\nDo not manually edit files in the `credentials/` directory.",
-    },
-  ],
-};
+type FileNode = WorktreeTreeNode;
 
 function FilesystemPage() {
   const powerUserMode = useUIStore((s) => s.powerUserMode);
+  const worktreeAdapter = React.useMemo(() => createWorktreeGatewayAdapter(), []);
+  const { data: agents = [] } = useAgents();
+  const [selectedAgentId, setSelectedAgentId] = React.useState<string>("");
   const [selectedFile, setSelectedFile] = React.useState<FileNode | null>(null);
-  const [expandedFolders, setExpandedFolders] = React.useState<Set<string>>(
-    new Set(["root"])
+  const [expandedFolders, setExpandedFolders] = React.useState<Set<string>>(new Set());
+  const [treeEntries, setTreeEntries] = React.useState<FileNode[]>([]);
+  const [treeLoading, setTreeLoading] = React.useState(false);
+  const [treeError, setTreeError] = React.useState<string | null>(null);
+  const [fileContent, setFileContent] = React.useState("");
+  const [fileError, setFileError] = React.useState<string | null>(null);
+  const [fileLoading, setFileLoading] = React.useState(false);
+  const activeFileRequest = React.useRef<{ path: string; controller: AbortController } | null>(
+    null
   );
   const [isEditing, setIsEditing] = React.useState(false);
   const [editContent, setEditContent] = React.useState("");
@@ -211,6 +84,59 @@ function FilesystemPage() {
   if (!powerUserMode) {
     return <Navigate to="/" />;
   }
+
+  React.useEffect(() => {
+    if (!selectedAgentId && agents.length > 0) {
+      setSelectedAgentId(agents[0]?.id ?? "");
+    }
+  }, [agents, selectedAgentId]);
+
+  React.useEffect(() => {
+    setSelectedFile(null);
+    setFileContent("");
+    setFileError(null);
+    setIsEditing(false);
+    setExpandedFolders(new Set());
+    if (activeFileRequest.current) {
+      activeFileRequest.current.controller.abort();
+      activeFileRequest.current = null;
+    }
+  }, [selectedAgentId]);
+
+  const loadTree = React.useCallback(
+    async (signal: AbortSignal) => {
+      if (!selectedAgentId) {
+        setTreeEntries([]);
+        setTreeError("Select an agent to browse workspace files.");
+        return;
+      }
+
+      setTreeLoading(true);
+      setTreeError(null);
+      try {
+        const result = await worktreeAdapter.list(
+          selectedAgentId,
+          "/",
+          { signal },
+          { recursive: true, includeHidden: true }
+        );
+        setTreeEntries(buildWorktreeTree(result.entries));
+      } catch (err) {
+        const info = mapWorktreeError(err);
+        setTreeError(`${info.title}: ${info.message}`);
+        setTreeEntries([]);
+      } finally {
+        setTreeLoading(false);
+      }
+    },
+    [selectedAgentId, worktreeAdapter]
+  );
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    void loadTree(controller.signal);
+    return () => controller.abort();
+  }, [loadTree]);
 
   const toggleFolder = (id: string) => {
     setExpandedFolders((prev) => {
@@ -226,30 +152,69 @@ function FilesystemPage() {
 
   const handleFileClick = (file: FileNode) => {
     if (file.type === "folder") {
-      toggleFolder(file.id);
+      toggleFolder(file.path);
     } else {
       setSelectedFile(file);
       setIsEditing(false);
-      setEditContent(file.content || "");
+      setEditContent("");
+      setFileError(null);
+      setFileLoading(true);
+      if (activeFileRequest.current) {
+        activeFileRequest.current.controller.abort();
+      }
+      const controller = new AbortController();
+      activeFileRequest.current = { path: file.path, controller };
+      worktreeAdapter.readFile?.(selectedAgentId, file.path, { signal: controller.signal })
+        .then((result) => {
+          if (activeFileRequest.current?.path !== file.path) {return;}
+          setFileContent(result?.content ?? "");
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) {return;}
+          const info = mapWorktreeError(err);
+          setFileError(`${info.title}: ${info.message}`);
+          setFileContent("");
+        })
+        .finally(() => {
+          if (activeFileRequest.current?.path === file.path) {
+            setFileLoading(false);
+            activeFileRequest.current = null;
+          }
+        });
     }
   };
 
   const handleEdit = () => {
     if (selectedFile) {
-      setEditContent(selectedFile.content || "");
+      setEditContent(fileContent);
       setIsEditing(true);
     }
   };
 
-  const handleSave = () => {
-    // In a real app, this would save to the filesystem
-    console.log("Saving file:", selectedFile?.path, editContent);
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!selectedFile || selectedFile.type !== "file") {return;}
+    setFileLoading(true);
+    setFileError(null);
+    const controller = new AbortController();
+    try {
+      await worktreeAdapter.writeFile?.(
+        selectedAgentId,
+        { path: selectedFile.path, content: editContent },
+        { signal: controller.signal }
+      );
+      setFileContent(editContent);
+      setIsEditing(false);
+    } catch (err) {
+      const info = mapWorktreeError(err);
+      setFileError(`${info.title}: ${info.message}`);
+    } finally {
+      setFileLoading(false);
+    }
   };
 
   const handleDownload = () => {
     if (!selectedFile) {return;}
-    const blob = new Blob([selectedFile.content || ""], { type: "text/plain" });
+    const blob = new Blob([fileContent || ""], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -258,14 +223,26 @@ function FilesystemPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDelete = () => {
-    if (fileToDelete) {
-      console.log("Deleting file:", fileToDelete.path);
+  const handleDelete = async () => {
+    if (!fileToDelete) {return;}
+    const controller = new AbortController();
+    try {
+      await worktreeAdapter.delete?.(
+        selectedAgentId,
+        { path: fileToDelete.path },
+        { signal: controller.signal }
+      );
       setDeleteDialogOpen(false);
       setFileToDelete(null);
-      if (selectedFile?.id === fileToDelete.id) {
+      if (selectedFile?.path === fileToDelete.path) {
         setSelectedFile(null);
+        setFileContent("");
       }
+      void loadTree(controller.signal);
+    } catch (err) {
+      const info = mapWorktreeError(err);
+      setTreeError(`${info.title}: ${info.message}`);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -276,7 +253,7 @@ function FilesystemPage() {
 
   const getFileIcon = (file: FileNode) => {
     if (file.type === "folder") {
-      return expandedFolders.has(file.id) ? (
+      return expandedFolders.has(file.path) ? (
         <FolderOpen className="h-4 w-4 text-yellow-500" />
       ) : (
         <Folder className="h-4 w-4 text-yellow-500" />
@@ -306,11 +283,11 @@ function FilesystemPage() {
   };
 
   const renderTree = (node: FileNode, depth = 0) => {
-    const isExpanded = expandedFolders.has(node.id);
-    const isSelected = selectedFile?.id === node.id;
+    const isExpanded = expandedFolders.has(node.path);
+    const isSelected = selectedFile?.path === node.path;
 
     return (
-      <div key={node.id}>
+      <div key={node.path}>
         <button
           type="button"
           onClick={() => handleFileClick(node)}
@@ -333,9 +310,9 @@ function FilesystemPage() {
           {node.type === "file" && <span className="w-4" />}
           {getFileIcon(node)}
           <span className="flex-1 truncate">{node.name}</span>
-          {node.type === "file" && node.size && (
+          {node.type === "file" && node.sizeBytes !== undefined && (
             <span className="text-xs text-muted-foreground">
-              {formatSize(node.size)}
+              {formatSize(node.sizeBytes)}
             </span>
           )}
         </button>
@@ -356,6 +333,22 @@ function FilesystemPage() {
   };
 
   const renderFileContent = () => {
+    if (fileLoading) {
+      return (
+        <div className="flex h-full items-center justify-center text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      );
+    }
+
+    if (fileError) {
+      return (
+        <div className="flex h-full items-center justify-center text-center text-xs text-destructive">
+          {fileError}
+        </div>
+      );
+    }
+
     if (!selectedFile) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -366,7 +359,7 @@ function FilesystemPage() {
     }
 
     const ext = selectedFile.name.split(".").pop()?.toLowerCase();
-    const content = isEditing ? editContent : selectedFile.content || "";
+    const content = isEditing ? editContent : fileContent || "";
 
     // Render markdown
     if (ext === "md" && !isEditing) {
@@ -451,7 +444,7 @@ function FilesystemPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -468,7 +461,7 @@ function FilesystemPage() {
                 Filesystem
               </h1>
               <p className="text-muted-foreground">
-                Browse and manage configuration files
+                Browse agent worktree files
               </p>
             </div>
           </div>
@@ -480,11 +473,60 @@ function FilesystemPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Files</CardTitle>
-              <CardDescription>~/.openclaw</CardDescription>
+              <CardDescription>Select an agent workspace</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-3 space-y-2">
+                <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name || agent.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const controller = new AbortController();
+                    void loadTree(controller.signal);
+                  }}
+                  disabled={treeLoading || !selectedAgentId}
+                  className="w-full"
+                >
+                  {treeLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Refreshing...
+                    </span>
+                  ) : (
+                    "Refresh"
+                  )}
+                </Button>
+              </div>
               <ScrollArea className="h-[500px]">
-                {renderTree(mockFileSystem)}
+                {treeLoading && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Loading workspace...
+                  </div>
+                )}
+                {!treeLoading && treeError && (
+                  <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">
+                    {treeError}
+                  </div>
+                )}
+                {!treeLoading && !treeError && treeEntries.length === 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    No files found.
+                  </div>
+                )}
+                {!treeLoading && !treeError && treeEntries.map((node) => renderTree(node))}
               </ScrollArea>
             </CardContent>
           </Card>
@@ -497,9 +539,7 @@ function FilesystemPage() {
                   <CardTitle className="text-lg">
                     {selectedFile ? selectedFile.name : "Preview"}
                   </CardTitle>
-                  {selectedFile && (
-                    <CardDescription>{selectedFile.path}</CardDescription>
-                  )}
+                  {selectedFile && <CardDescription>{selectedFile.path}</CardDescription>}
                 </div>
                 {selectedFile && (
                   <div className="flex items-center gap-2">
@@ -526,6 +566,7 @@ function FilesystemPage() {
                           size="sm"
                           onClick={handleEdit}
                           className="gap-1"
+                          disabled={selectedFile.type !== "file"}
                         >
                           <Edit2 className="h-3 w-3" />
                           Edit
@@ -535,6 +576,7 @@ function FilesystemPage() {
                           size="sm"
                           onClick={handleDownload}
                           className="gap-1"
+                          disabled={selectedFile.type !== "file"}
                         >
                           <Download className="h-3 w-3" />
                           Download
@@ -544,6 +586,7 @@ function FilesystemPage() {
                           size="sm"
                           onClick={() => confirmDelete(selectedFile)}
                           className="gap-1 text-destructive hover:text-destructive"
+                          disabled={selectedFile.type !== "file"}
                         >
                           <Trash2 className="h-3 w-3" />
                           Delete
@@ -556,12 +599,12 @@ function FilesystemPage() {
               {selectedFile && (
                 <div className="flex items-center gap-3 mt-2">
                   <Badge variant="secondary">
-                    {formatSize(selectedFile.size || 0)}
+                    {formatSize(selectedFile.sizeBytes || 0)}
                   </Badge>
-                  {selectedFile.lastModified && (
+                  {selectedFile.modifiedAt && (
                     <span className="text-xs text-muted-foreground">
                       Modified{" "}
-                      {selectedFile.lastModified.toLocaleDateString()}
+                      {new Date(selectedFile.modifiedAt).toLocaleDateString()}
                     </span>
                   )}
                 </div>

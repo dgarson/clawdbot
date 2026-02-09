@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { FilePreviewPanel } from "./FilePreviewPanel";
 import { createWorktreeGatewayAdapter } from "@/integrations/worktree/gateway";
+import { buildWorktreeTree, mapWorktreeError, type WorktreeTreeNode } from "@/lib/worktree-utils";
 
 // Lazy-load WebTerminal and all xterm dependencies
 const LazyWebTerminal = React.lazy(
@@ -40,39 +41,7 @@ export interface SessionWorkspacePaneProps {
   className?: string;
 }
 
-// Mock file tree for development
-interface FileNode {
-  name: string;
-  type: "file" | "folder";
-  children?: FileNode[];
-}
-
-const mockFileTree: FileNode[] = [
-  {
-    name: "workspace",
-    type: "folder",
-    children: [
-      { name: "README.md", type: "file" },
-      { name: "notes.txt", type: "file" },
-      {
-        name: "research",
-        type: "folder",
-        children: [
-          { name: "findings.md", type: "file" },
-          { name: "data.json", type: "file" },
-        ],
-      },
-      {
-        name: "scripts",
-        type: "folder",
-        children: [
-          { name: "analyze.py", type: "file" },
-          { name: "export.sh", type: "file" },
-        ],
-      },
-    ],
-  },
-];
+type FileNode = WorktreeTreeNode;
 
 export function SessionWorkspacePane({
   isMaximized = false,
@@ -89,6 +58,9 @@ export function SessionWorkspacePane({
   const [portalTarget, setPortalTarget] = React.useState<HTMLElement | null>(null);
   const [overlayTop, setOverlayTop] = React.useState(112);
   const [overlayBottom, setOverlayBottom] = React.useState(12);
+  const [filesLoading, setFilesLoading] = React.useState(false);
+  const [filesError, setFilesError] = React.useState<string | null>(null);
+  const [fileTree, setFileTree] = React.useState<FileNode[]>([]);
 
   // Auto-maximize when switching to terminal
   React.useEffect(() => {
@@ -98,13 +70,43 @@ export function SessionWorkspacePane({
   }, [activeTab, isMaximized, onToggleMaximize]);
 
   // File preview state
-  const [selectedFile, setSelectedFile] = React.useState<FileNode & { path: string } | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<FileNode | null>(null);
   const [fileContent, setFileContent] = React.useState<string>("");
   const [fileLoading, setFileLoading] = React.useState(false);
   const [fileError, setFileError] = React.useState<string | null>(null);
 
   // Worktree adapter for file operations (uses gateway WebSocket client)
   const worktreeAdapter = React.useMemo(() => createWorktreeGatewayAdapter(), []);
+  const activeFileRequest = React.useRef<{ path: string; controller: AbortController } | null>(
+    null
+  );
+
+  const loadFileTree = React.useCallback(async (signal: AbortSignal) => {
+    if (!agentId) {
+      setFilesError("Agent ID not available");
+      setFileTree([]);
+      return;
+    }
+
+    setFilesLoading(true);
+    setFilesError(null);
+
+    try {
+      const result = await worktreeAdapter.list(
+        agentId,
+        "/",
+        { signal },
+        { recursive: true, includeHidden: true }
+      );
+      setFileTree(buildWorktreeTree(result.entries));
+    } catch (err) {
+      const info = mapWorktreeError(err);
+      setFilesError(`${info.title}: ${info.message}`);
+      setFileTree([]);
+    } finally {
+      setFilesLoading(false);
+    }
+  }, [agentId, worktreeAdapter]);
 
   // Handle terminal resize when maximized state changes
   React.useEffect(() => {
@@ -155,36 +157,42 @@ export function SessionWorkspacePane({
       return;
     }
 
+    if (activeFileRequest.current) {
+      activeFileRequest.current.controller.abort();
+    }
+    const controller = new AbortController();
+    activeFileRequest.current = { path, controller };
     try {
-      const result = await worktreeAdapter.readFile?.(
-        agentId,
-        path,
-        { signal: new AbortController().signal }
-      );
+      const result = await worktreeAdapter.readFile?.(agentId, path, { signal: controller.signal });
+      if (activeFileRequest.current?.path !== path) {return;}
       setFileContent(result?.content || "");
     } catch (err) {
+      if (controller.signal.aborted) {return;}
       console.error("Failed to load file:", err);
-
-      const errorMessage = err instanceof Error ? err.message : String(err);
-
-      // Provide specific error messages for common cases
-      if (errorMessage.includes("Not connected to gateway")) {
-        setFileError("Not connected to gateway. Please ensure the gateway is running and connected.");
-      } else if (errorMessage.includes("Request failed") || errorMessage.includes("timeout")) {
-        setFileError("File preview API not yet implemented. The gateway backend needs to implement the 'worktree.read' RPC method.");
-      } else if (errorMessage.includes("<!doctype") || errorMessage.includes("is not valid JSON")) {
-        setFileError("File preview API not yet implemented. The worktree API endpoints need to be added to the gateway backend.");
-      } else {
-        setFileError(errorMessage || "Failed to load file");
-      }
+      const info = mapWorktreeError(err);
+      setFileError(`${info.title}: ${info.message}`);
+      setFileContent("");
     } finally {
-      setFileLoading(false);
+      if (activeFileRequest.current?.path === path) {
+        setFileLoading(false);
+        activeFileRequest.current = null;
+      }
     }
   }, [agentId, worktreeAdapter]);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    void loadFileTree(controller.signal);
+    return () => controller.abort();
+  }, [filesRevision, loadFileTree]);
 
   // Clear selection when panel is minimized
   React.useEffect(() => {
     if (!isMaximized) {
+      if (activeFileRequest.current) {
+        activeFileRequest.current.controller.abort();
+        activeFileRequest.current = null;
+      }
       setSelectedFile(null);
       setFileContent("");
       setFileError(null);
@@ -282,7 +290,9 @@ export function SessionWorkspacePane({
             )}>
               <FileExplorer
                 key={filesRevision}
-                files={mockFileTree}
+                files={fileTree}
+                loading={filesLoading}
+                error={filesError}
                 workspaceDir={workspaceDir}
                 onFileClick={handleFileClick}
                 selectedPath={selectedFile?.path}
@@ -295,6 +305,7 @@ export function SessionWorkspacePane({
                 content={fileContent}
                 loading={fileLoading}
                 error={fileError}
+                onRetry={() => handleFileClick(selectedFile, selectedFile.path)}
               />
             )}
           </div>
@@ -320,12 +331,21 @@ export function SessionWorkspacePane({
 
 interface FileExplorerProps {
   files: FileNode[];
+  loading?: boolean;
+  error?: string | null;
   workspaceDir: string;
   onFileClick?: (node: FileNode, path: string) => void;
   selectedPath?: string;
 }
 
-function FileExplorer({ files, workspaceDir, onFileClick, selectedPath }: FileExplorerProps) {
+function FileExplorer({
+  files,
+  loading = false,
+  error,
+  workspaceDir,
+  onFileClick,
+  selectedPath,
+}: FileExplorerProps) {
   return (
     <div className="h-full overflow-auto p-3 scrollbar-thin">
       {/* Workspace path */}
@@ -336,12 +356,25 @@ function FileExplorer({ files, workspaceDir, onFileClick, selectedPath }: FileEx
 
       {/* File tree */}
       <div className="space-y-1">
+        {loading && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Loading workspace files...
+          </div>
+        )}
+        {!loading && error && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">
+            {error}
+          </div>
+        )}
+        {!loading && !error && files.length === 0 && (
+          <div className="text-xs text-muted-foreground">No files found.</div>
+        )}
         {files.map((node) => (
           <FileTreeNode
-            key={node.name}
+            key={node.path}
             node={node}
             depth={0}
-            parentPath=""
             onFileClick={onFileClick}
             selectedPath={selectedPath}
           />
@@ -354,15 +387,14 @@ function FileExplorer({ files, workspaceDir, onFileClick, selectedPath }: FileEx
 interface FileTreeNodeProps {
   node: FileNode;
   depth: number;
-  parentPath: string;
   onFileClick?: (node: FileNode, path: string) => void;
   selectedPath?: string;
 }
 
-function FileTreeNode({ node, depth, parentPath, onFileClick, selectedPath }: FileTreeNodeProps) {
+function FileTreeNode({ node, depth, onFileClick, selectedPath }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = React.useState(true);
   const isFolder = node.type === "folder";
-  const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+  const currentPath = node.path;
   const isSelected = selectedPath === currentPath;
 
   const handleClick = () => {
@@ -409,10 +441,9 @@ function FileTreeNode({ node, depth, parentPath, onFileClick, selectedPath }: Fi
         <div>
           {node.children.map((child) => (
             <FileTreeNode
-              key={child.name}
+              key={child.path}
               node={child}
               depth={depth + 1}
-              parentPath={currentPath}
               onFileClick={onFileClick}
               selectedPath={selectedPath}
             />

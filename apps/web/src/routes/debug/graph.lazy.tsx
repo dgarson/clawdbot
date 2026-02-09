@@ -5,6 +5,7 @@ import { Navigate, createLazyFileRoute } from "@tanstack/react-router";
 import { GraphExplorer } from "@/components/integrations";
 import type { GraphData, GraphExplorerAdapter } from "@/integrations/graph";
 import { useUIStore } from "@/stores/useUIStore";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createLazyFileRoute("/debug/graph")({
   component: DebugGraphPage,
@@ -137,6 +138,15 @@ function DebugGraphPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-8">
+      <div className="mb-6 flex items-center justify-between rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3">
+        <div>
+          <div className="text-sm font-medium">Graph Explorer (prototype)</div>
+          <div className="text-xs text-muted-foreground">
+            This visualization is powered by synthetic demo data.
+          </div>
+        </div>
+        <Badge variant="secondary">Prototype</Badge>
+      </div>
       <GraphExplorer
         adapter={adapter}
         params={{ seed: "debug" }}

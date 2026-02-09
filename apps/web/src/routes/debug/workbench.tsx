@@ -6,6 +6,7 @@ import { useUIStore } from "@/stores/useUIStore";
 import type { Message } from "@/stores/useConversationStore";
 import { AgentWorkbench } from "@/components/composed/AgentWorkbench";
 import { createMockWorktreeAdapter } from "@/integrations/worktree";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/debug/workbench")({
   component: DebugWorkbenchPage,
@@ -39,6 +40,15 @@ function DebugWorkbenchPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mb-6 flex items-center justify-between rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3">
+          <div>
+            <div className="text-sm font-medium">Workbench (prototype)</div>
+            <div className="text-xs text-muted-foreground">
+              This view uses mock data and is intended for UX exploration only.
+            </div>
+          </div>
+          <Badge variant="secondary">Prototype</Badge>
+        </div>
         <AgentWorkbench
           height={820}
           agentId="agent-1"
@@ -76,4 +86,3 @@ function DebugWorkbenchPage() {
     </div>
   );
 }
-

@@ -1,6 +1,12 @@
 "use client";
 
-import type { WorktreeAdapter, WorktreeAdapterContext, WorktreeEntry, WorktreeListResult } from "./types";
+import type {
+  WorktreeAdapter,
+  WorktreeAdapterContext,
+  WorktreeEntry,
+  WorktreeListOptions,
+  WorktreeListResult,
+} from "./types";
 
 type TreeNode =
   | { kind: "dir"; path: string; children: TreeNode[] }
@@ -86,7 +92,12 @@ const demoTree: TreeNode = {
 
 export function createMockWorktreeAdapter(tree: TreeNode = demoTree): WorktreeAdapter {
   return {
-    list: async (_agentId: string, path: string, ctx: WorktreeAdapterContext): Promise<WorktreeListResult> => {
+    list: async (
+      _agentId: string,
+      path: string,
+      ctx: WorktreeAdapterContext,
+      _options?: WorktreeListOptions
+    ): Promise<WorktreeListResult> => {
       await sleep(120, ctx);
       const dir = getDir(tree, path);
       if (!dir) {
@@ -116,4 +127,3 @@ export function createMockWorktreeAdapter(tree: TreeNode = demoTree): WorktreeAd
     },
   };
 }
-

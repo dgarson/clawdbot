@@ -5,6 +5,7 @@ import type {
   WorktreeAdapterContext,
   WorktreeDeleteInput,
   WorktreeListResult,
+  WorktreeListOptions,
   WorktreeMkdirInput,
   WorktreeMoveInput,
   WorktreeReadResult,
@@ -42,8 +43,20 @@ async function fetchJson<T>(url: string, init: RequestInit, ctx: WorktreeAdapter
 
 export function createWorktreeHttpAdapter(endpoints = createDefaultWorktreeEndpoints()): WorktreeAdapter {
   return {
-    list: async (agentId: string, path: string, ctx: WorktreeAdapterContext): Promise<WorktreeListResult> => {
-      return fetchJson<WorktreeListResult>(endpoints.list(agentId, path), { method: "GET" }, ctx);
+    list: async (
+      agentId: string,
+      path: string,
+      ctx: WorktreeAdapterContext,
+      options?: WorktreeListOptions
+    ): Promise<WorktreeListResult> => {
+      const url = new URL(endpoints.list(agentId, path), window.location.origin);
+      if (options?.recursive) {
+        url.searchParams.set("recursive", "true");
+      }
+      if (options?.includeHidden) {
+        url.searchParams.set("includeHidden", "true");
+      }
+      return fetchJson<WorktreeListResult>(url.toString(), { method: "GET" }, ctx);
     },
 
     readFile: async (agentId: string, path: string, ctx: WorktreeAdapterContext): Promise<WorktreeReadResult> => {
@@ -103,4 +116,3 @@ export function createWorktreeHttpAdapter(endpoints = createDefaultWorktreeEndpo
     },
   };
 }
-

@@ -13,6 +13,11 @@ export type WorktreeListResult = {
   entries: WorktreeEntry[];
 };
 
+export type WorktreeListOptions = {
+  recursive?: boolean;
+  includeHidden?: boolean;
+};
+
 export type WorktreeReadResult = {
   path: string;
   content: string;
@@ -46,7 +51,12 @@ export type WorktreeAdapterContext = {
 };
 
 export type WorktreeAdapter = {
-  list: (agentId: string, path: string, ctx: WorktreeAdapterContext) => Promise<WorktreeListResult>;
+  list: (
+    agentId: string,
+    path: string,
+    ctx: WorktreeAdapterContext,
+    options?: WorktreeListOptions
+  ) => Promise<WorktreeListResult>;
 
   readFile?: (agentId: string, path: string, ctx: WorktreeAdapterContext) => Promise<WorktreeReadResult>;
   writeFile?: (agentId: string, input: WorktreeWriteInput, ctx: WorktreeAdapterContext) => Promise<WorktreeWriteResult>;
@@ -54,4 +64,3 @@ export type WorktreeAdapter = {
   delete?: (agentId: string, input: WorktreeDeleteInput, ctx: WorktreeAdapterContext) => Promise<void>;
   mkdir?: (agentId: string, input: WorktreeMkdirInput, ctx: WorktreeAdapterContext) => Promise<void>;
 };
-
