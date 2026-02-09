@@ -31,7 +31,7 @@ export type GraphitiQueryHybridResponse = GraphitiQueryResponse & {
 };
 
 export type GraphitiClientOptions = {
-  serverHost?: string; // default: localhost
+  host?: string; // default: localhost
   servicePort?: number; // default: 8001
   apiKey?: string;
   fetchFn?: typeof fetch;
@@ -104,7 +104,7 @@ export class GraphitiClient {
   private readonly opsLog?: import("../ops-log/index.js").MemoryOpsLogger;
 
   constructor(options: GraphitiClientOptions) {
-    const host = options.serverHost ?? "localhost";
+    const host = options.host ?? "localhost";
     const port = options.servicePort ?? 8001;
     this.baseUrl = `http://${host}:${port}`;
     this.apiKey = options.apiKey;

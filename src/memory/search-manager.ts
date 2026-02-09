@@ -86,7 +86,7 @@ export async function getMemorySearchManager(params: {
       const { GraphitiSearchAdapter } = await import("./graphiti/graphiti-search-adapter.js");
       const graphitiOpsLog = createMemoryOpsLogger(resolveStateDir());
       const client = new GraphitiClient({
-        serverHost: graphitiCfg.serverHost,
+        host: graphitiCfg.host,
         servicePort: graphitiCfg.servicePort,
         apiKey: graphitiCfg.apiKey,
         timeoutMs: graphitiCfg.timeoutMs,

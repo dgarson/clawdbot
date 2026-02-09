@@ -30,7 +30,7 @@ export function createGraphitiProbe(graphitiCfg: MemoryGraphitiConfig): Dependen
     try {
       const { GraphitiClient } = await import("../../../memory/graphiti/client.js");
       const client = new GraphitiClient({
-        serverHost: graphitiCfg.serverHost,
+        host: graphitiCfg.host,
         servicePort: graphitiCfg.servicePort,
         apiKey: graphitiCfg.apiKey,
         timeoutMs: graphitiCfg.timeoutMs ?? 10_000,

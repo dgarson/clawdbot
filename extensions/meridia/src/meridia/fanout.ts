@@ -58,7 +58,7 @@ function buildGraphitiClient(cfg: OpenClawConfig): GraphitiClient | null {
     return null;
   }
   return new GraphitiClient({
-    serverHost: cfg.memory.graphiti.serverHost,
+    host: cfg.memory.graphiti.host,
     servicePort: cfg.memory.graphiti.servicePort,
     apiKey: cfg.memory.graphiti.apiKey,
     timeoutMs: cfg.memory.graphiti.timeoutMs ?? 30_000,

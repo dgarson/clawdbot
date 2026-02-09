@@ -134,7 +134,7 @@ Graph-based memory using the Graphiti service for entity-relationship storage.
 
 ```typescript
 const client = new GraphitiClient({
-  serverHost: "localhost",
+  host: "localhost",
   servicePort: 8001,
   apiKey: "optional-key",
   timeoutMs: 10_000,
@@ -308,7 +308,7 @@ memory:
   citations: auto # "auto" | "always" | "never"
   graphiti:
     enabled: true
-    serverHost: localhost
+    host: localhost
     servicePort: 8001
     apiKey: optional-api-key
 ```

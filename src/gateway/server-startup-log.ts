@@ -56,7 +56,7 @@ function logExternalServiceUrls(
 ) {
   const graphitiCfg = cfg.memory?.graphiti;
   if (graphitiCfg?.enabled) {
-    const host = graphitiCfg.serverHost ?? "localhost";
+    const host = graphitiCfg.host ?? "localhost";
     const servicePort = graphitiCfg.servicePort ?? 8001;
     const mcpPort = graphitiCfg.mcpPort ?? 8000;
     log.info(`graphiti: http://${host}:${servicePort} (MCP port ${mcpPort})`);

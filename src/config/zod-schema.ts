@@ -118,7 +118,9 @@ const MemoryProgressiveSchema = z
 const MemoryGraphitiSchema = z
   .object({
     enabled: z.boolean().optional(),
-    baseUrl: z.string().optional(),
+    host: z.string().optional(),
+    servicePort: z.number().int().positive().optional(),
+    mcpPort: z.number().int().positive().optional(),
     apiKey: z.string().optional(),
     timeoutMs: z.number().int().nonnegative().optional(),
     healthProbeIntervalMinutes: z.number().positive().optional(),

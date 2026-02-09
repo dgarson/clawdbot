@@ -68,7 +68,7 @@ function buildPipelineDeps(config?: OpenClawConfig): MemoryIngestDependencies {
   const graphitiCfg = config?.memory?.graphiti;
   if (graphitiCfg?.enabled) {
     deps.graphiti = new GraphitiClient({
-      serverHost: graphitiCfg.serverHost,
+      host: graphitiCfg.host,
       servicePort: graphitiCfg.servicePort,
       apiKey: graphitiCfg.apiKey,
       timeoutMs: graphitiCfg.timeoutMs,

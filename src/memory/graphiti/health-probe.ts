@@ -92,7 +92,7 @@ export function startGraphitiHealthProbe(cfg?: MemoryGraphitiConfig): void {
   }
 
   probeClient = new GraphitiClient({
-    serverHost: cfg.serverHost,
+    host: cfg.host,
     servicePort: cfg.servicePort,
     apiKey: cfg.apiKey,
     timeoutMs: HEALTH_TIMEOUT_MS,

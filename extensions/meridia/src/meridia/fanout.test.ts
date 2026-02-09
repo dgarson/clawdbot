@@ -39,7 +39,7 @@ describe("fanoutToGraph", () => {
   it("returns error when record has no text content", async () => {
     const cfg = {
       memory: {
-        graphiti: { enabled: true, serverHost: "localhost", servicePort: 8000 },
+        graphiti: { enabled: true, host: "localhost", servicePort: 8000 },
       },
     } as unknown as OpenClawConfig;
     const record = makeRecord({ content: undefined });

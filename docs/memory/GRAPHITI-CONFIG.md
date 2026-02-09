@@ -14,9 +14,9 @@ Configure Graphiti in your OpenClaw config:
   "memory": {
     "graphiti": {
       "enabled": true,
-      "serverHost": "localhost",
-      "mcpPort": 8000,
+      "host": "localhost",
       "servicePort": 8001,
+      "mcpPort": 8000,
       "apiKey": "optional-api-key",
       "timeoutMs": 10000
     }
@@ -29,9 +29,9 @@ Configure Graphiti in your OpenClaw config:
 | Field         | Type    | Default       | Description                         |
 | ------------- | ------- | ------------- | ----------------------------------- |
 | `enabled`     | boolean | `false`       | Enable Graphiti memory backend      |
-| `serverHost`  | string  | `"localhost"` | Hostname for Graphiti services      |
-| `mcpPort`     | number  | `8000`        | Port for MCP service                |
+| `host`        | string  | `"localhost"` | Hostname for Graphiti services      |
 | `servicePort` | number  | `8001`        | Port for REST API service           |
+| `mcpPort`     | number  | `8000`        | Port for MCP service                |
 | `apiKey`      | string  | -             | Optional API key for authentication |
 | `timeoutMs`   | number  | `10000`       | Request timeout in milliseconds     |
 
@@ -111,11 +111,11 @@ Both services connect to the same Neo4j database:
   "memory": {
     "graphiti": {
       "enabled": true,
-      "serverHost": "localhost",
+      "host": "localhost",
       "servicePort": 8001
     }
   }
 }
 ```
 
-The `baseUrl` field has been removed in favor of separate `serverHost` and `servicePort` fields for better flexibility.
+The `baseUrl` field has been removed in favor of separate `host`, `servicePort`, and `mcpPort` fields for better flexibility.
