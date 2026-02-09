@@ -30,7 +30,22 @@ async function fetchSlackMessage(
   client: WebClient,
   channelId: string,
   messageTs: string,
+  threadTs?: string,
 ): Promise<SlackMessageEvent | null> {
+  // Use conversations.replies for thread messages, conversations.history for channel messages.
+  // This mirrors the pattern in readSlackMessages (src/slack/actions.ts).
+  if (threadTs) {
+    const result = await client.conversations.replies({
+      channel: channelId,
+      ts: threadTs,
+      latest: messageTs,
+      inclusive: true,
+      limit: 1,
+    });
+    const message = (result.messages ?? [])[0] as SlackMessageEvent | undefined;
+    return message ?? null;
+  }
+
   const result = await client.conversations.history({
     channel: channelId,
     latest: messageTs,
@@ -74,10 +89,7 @@ export function createSlackReactionEscalationAdapter(
       messageTs,
       threadTs,
     }): Promise<ReactionMessageContext | null> => {
-      const message =
-        threadTs && threadTs !== messageTs
-          ? await fetchSlackThreadMessage(client, channelId, threadTs, messageTs)
-          : await fetchSlackMessage(client, channelId, messageTs);
+      const message = await fetchSlackMessage(client, channelId, messageTs, threadTs);
       if (!message) {
         return null;
       }
