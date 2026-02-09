@@ -7,6 +7,7 @@ import {
   deleteGoal as deleteOverseerGoal,
   pauseGoal,
   resumeGoal,
+  updateGoal as updateOverseerGoal,
 } from "@/lib/api/overseer";
 import type { Goal, GoalStatus } from "../queries/useGoals";
 import { goalKeys, mapOverseerGoalToGoal } from "../queries/useGoals";
@@ -16,7 +17,7 @@ type CreateGoalInput = Omit<Goal, "id" | "createdAt" | "updatedAt" | "progress">
   progress?: number;
 };
 
-interface UpdateGoalInput {
+export interface UpdateGoalInput {
   id: string;
   data: Partial<Omit<Goal, "id" | "createdAt" | "updatedAt">>;
 }
@@ -125,12 +126,60 @@ export function useCreateGoal() {
 }
 
 export function useUpdateGoal() {
-  return useMutation<Goal, Error, UpdateGoalInput>({
-    mutationFn: (_input: UpdateGoalInput) =>
-      readonlyGoalMutation<Goal>(
-        "Editing goal details is not yet supported via the gateway."
-      ),
-    onError: (error) => {
+  const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
+
+  return useMutation<Goal, Error, UpdateGoalInput, { previousGoals?: Goal[] }>({
+    mutationFn: async (input: UpdateGoalInput) => {
+      if (!liveMode) {
+        throw new Error("Editing goals requires a live gateway connection.");
+      }
+      // Call the real overseer.goal.update RPC
+      await updateOverseerGoal({
+        goalId: input.id,
+        title: input.data.title,
+        problemStatement: input.data.description,
+        successCriteria: input.data.successCriteria,
+        constraints: input.data.constraints,
+      });
+      // Return a merged Goal object with the updated fields applied
+      const existingGoals = queryClient.getQueryData<Goal[]>(
+        goalKeys.list({ mode: modeKey })
+      );
+      const existing = existingGoals?.find((g) => g.id === input.id);
+      return {
+        ...(existing ?? ({} as Goal)),
+        ...input.data,
+        id: input.id,
+        updatedAt: new Date().toISOString(),
+      } as Goal;
+    },
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: goalKeys.list({ mode: modeKey }) });
+      const previousGoals = queryClient.getQueryData<Goal[]>(
+        goalKeys.list({ mode: modeKey })
+      );
+      // Optimistic update
+      queryClient.setQueryData<Goal[]>(goalKeys.list({ mode: modeKey }), (old) =>
+        old
+          ? old.map((goal) =>
+              goal.id === input.id
+                ? { ...goal, ...input.data, updatedAt: new Date().toISOString() }
+                : goal
+            )
+          : []
+      );
+      return { previousGoals };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: goalKeys.all });
+      toast.success("Goal updated successfully");
+    },
+    onError: (error, _input, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(goalKeys.list({ mode: modeKey }), context.previousGoals);
+      }
       toast.error(
         `Failed to update goal: ${error instanceof Error ? error.message : "Unknown error"}`
       );

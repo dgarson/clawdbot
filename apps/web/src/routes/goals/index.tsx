@@ -16,7 +16,7 @@ import {
 import { GoalCard, GoalDetailPanel, CreateGoalModal } from "@/components/domain/goals";
 import { CardSkeleton } from "@/components/composed/LoadingSkeleton";
 import { useGoals } from "@/hooks/queries/useGoals";
-import { useCreateGoal } from "@/hooks/mutations/useGoalMutations";
+import { useCreateGoal, useUpdateGoal } from "@/hooks/mutations/useGoalMutations";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
 import { uuidv7 } from "@/lib/ids";
@@ -75,6 +75,7 @@ function GoalsPage() {
 
   const { data: goals, isLoading, error } = useGoals();
   const createGoal = useCreateGoal();
+  const updateGoal = useUpdateGoal();
 
   // Filter goals based on search and status
   const filteredGoals = React.useMemo(() => {
@@ -105,11 +106,8 @@ function GoalsPage() {
     setIsDetailOpen(true);
   };
 
-  const handleEdit = (goal: Goal) => {
-    // Close detail panel and open edit modal
-    setIsDetailOpen(false);
-    // For now, just log - in a real app, open edit modal
-    console.log("Edit goal:", goal);
+  const handleGoalUpdate = (goalId: string, data: Partial<Goal>) => {
+    updateGoal.mutate({ id: goalId, data });
   };
 
   const handleCreateGoal = (data: {
@@ -300,7 +298,7 @@ function GoalsPage() {
                   <GoalCard
                     goal={convertToCardGoal(goal)}
                     onViewDetails={() => handleViewDetails(goal)}
-                    onEdit={() => handleEdit(goal)}
+                    onEdit={() => handleViewDetails(goal)}
                   />
                 </motion.div>
               ))}
@@ -308,12 +306,13 @@ function GoalsPage() {
           </motion.div>
         )}
 
-        {/* Goal Detail Panel */}
+        {/* Goal Detail Panel with inline editing */}
         <GoalDetailPanel
           goal={selectedGoal}
           open={isDetailOpen}
           onClose={() => setIsDetailOpen(false)}
-          onEdit={handleEdit}
+          onUpdate={liveMode ? handleGoalUpdate : undefined}
+          isUpdating={updateGoal.isPending}
         />
 
       {/* Create Goal Modal */}

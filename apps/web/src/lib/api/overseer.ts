@@ -40,12 +40,23 @@ export interface OverseerGoal {
   completedAt?: string;
   error?: string;
   metadata?: Record<string, unknown>;
+  /** Fields available from goal detail (overseer.goal.status) */
+  successCriteria?: string[];
+  constraints?: string[];
 }
 
 export interface OverseerGoalCreateParams {
   title: string;
   description?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface OverseerGoalUpdateParams {
+  goalId: string;
+  title?: string;
+  problemStatement?: string;
+  successCriteria?: string[];
+  constraints?: string[];
 }
 
 export interface OverseerGoalCreateResult {
@@ -144,6 +155,7 @@ function normalizeGatewayStatusFilter(status?: OverseerGoal["status"]): string |
 }
 
 function mapGatewayGoalToOverseerGoal(goal: GatewayOverseerGoalListEntry): OverseerGoal {
+  const detail = goal as Partial<GatewayOverseerGoalDetail>;
   return {
     id: goal.goalId,
     title: goal.title,
@@ -157,6 +169,8 @@ function mapGatewayGoalToOverseerGoal(goal: GatewayOverseerGoalListEntry): Overs
       tags: goal.tags,
       priority: goal.priority,
     },
+    successCriteria: detail.successCriteria,
+    constraints: detail.constraints,
   };
 }
 
@@ -212,6 +226,14 @@ export async function getGoalStatus(goalId: string): Promise<OverseerGoalStatusR
   return {
     goal: result.goal ? mapGatewayGoalToOverseerGoal(result.goal) : undefined,
   };
+}
+
+/**
+ * Update a goal's editable fields (title, problem statement, success criteria, constraints)
+ */
+export async function updateGoal(params: OverseerGoalUpdateParams): Promise<{ ok: boolean }> {
+  const client = getGatewayClient();
+  return client.request<{ ok: boolean }>("overseer.goal.update", params);
 }
 
 /**

@@ -7,14 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { DetailPanel } from "@/components/composed/DetailPanel";
 import { MilestoneTracker } from "./MilestoneTracker";
+import { InlineTextField, InlineListField } from "./GoalInlineEditor";
 import {
   Target,
   Calendar,
-  Edit,
   GitBranch,
   CheckCircle2,
   Clock,
   TrendingUp,
+  ListChecks,
+  ShieldAlert,
 } from "lucide-react";
 import type { GoalStatus } from "./GoalCard";
 
@@ -26,6 +28,8 @@ interface GoalDetailPanelProps {
   open: boolean;
   onClose: () => void;
   onEdit?: (goal: Goal) => void;
+  onUpdate?: (goalId: string, data: Partial<Goal>) => void;
+  isUpdating?: boolean;
   className?: string;
 }
 
@@ -81,12 +85,15 @@ export function GoalDetailPanel({
   open,
   onClose,
   onEdit,
+  onUpdate,
+  isUpdating,
   className,
 }: GoalDetailPanelProps) {
   if (!goal) {return null;}
 
   const status = statusConfig[goal.status] || statusConfig.active;
   const completedMilestones = goal.milestones.filter((m) => m.completed).length;
+  const canEdit = goal.status !== "completed" && !!onUpdate;
 
   return (
     <DetailPanel
@@ -108,6 +115,9 @@ export function GoalDetailPanel({
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-2 ring-border/50">
               <Target className={cn("h-8 w-8", status.color)} />
             </div>
+            {isUpdating && (
+              <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary animate-pulse" />
+            )}
           </motion.div>
 
           <div className="flex-1 min-w-0">
@@ -129,14 +139,25 @@ export function GoalDetailPanel({
                 </div>
               )}
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-1">
-              {goal.title}
-            </h3>
-            {goal.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {goal.description}
-              </p>
-            )}
+
+            {/* Inline editable title */}
+            <InlineTextField
+              value={goal.title}
+              onSave={(title) => onUpdate?.(goal.id, { title })}
+              placeholder="Goal title"
+              disabled={!canEdit}
+              className="mb-1"
+            />
+
+            {/* Inline editable description / problem statement */}
+            <InlineTextField
+              value={goal.description ?? ""}
+              onSave={(description) => onUpdate?.(goal.id, { description })}
+              label="Problem Statement"
+              placeholder="Describe what this goal aims to solve..."
+              multiline
+              disabled={!canEdit}
+            />
           </div>
         </div>
 
@@ -160,11 +181,53 @@ export function GoalDetailPanel({
           </p>
         </motion.div>
 
+        {/* Success Criteria — Inline Editable */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="rounded-xl bg-secondary/30 p-4 border border-border/50"
+        >
+          <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+            <ListChecks className="h-4 w-4 text-primary" />
+            Success Criteria
+          </h4>
+          <InlineListField
+            items={goal.successCriteria ?? []}
+            onSave={(successCriteria) => onUpdate?.(goal.id, { successCriteria })}
+            label=""
+            placeholder="Add success criterion..."
+            emptyMessage="No success criteria defined yet. Click to add."
+            disabled={!canEdit}
+          />
+        </motion.div>
+
+        {/* Constraints — Inline Editable */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+          className="rounded-xl bg-secondary/30 p-4 border border-border/50"
+        >
+          <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+            <ShieldAlert className="h-4 w-4 text-orange-500" />
+            Constraints
+          </h4>
+          <InlineListField
+            items={goal.constraints ?? []}
+            onSave={(constraints) => onUpdate?.(goal.id, { constraints })}
+            label=""
+            placeholder="Add constraint..."
+            emptyMessage="No constraints defined. Click to add."
+            disabled={!canEdit}
+          />
+        </motion.div>
+
         {/* Key Dates */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.16 }}
           className="grid grid-cols-2 gap-3"
         >
           {goal.dueDate && (
@@ -232,16 +295,6 @@ export function GoalDetailPanel({
           transition={{ delay: 0.3 }}
           className="flex gap-3 pt-2"
         >
-          {onEdit && goal.status !== "completed" && (
-            <Button
-              onClick={() => onEdit(goal)}
-              className="flex-1 h-11 rounded-xl"
-              variant="outline"
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Goal
-            </Button>
-          )}
           <Button
             onClick={onClose}
             className="flex-1 h-11 rounded-xl"

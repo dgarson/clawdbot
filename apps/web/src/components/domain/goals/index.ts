@@ -5,6 +5,7 @@ export { MilestoneTracker } from "./MilestoneTracker";
 export { GoalDetailPanel } from "./GoalDetailPanel";
 export { CreateGoalModal } from "./CreateGoalModal";
 export { GoalTemplatePicker } from "./GoalTemplatePicker";
+export { InlineTextField, InlineListField } from "./GoalInlineEditor";
 export {
   GOAL_TEMPLATES,
   GOAL_TEMPLATE_CATEGORIES,

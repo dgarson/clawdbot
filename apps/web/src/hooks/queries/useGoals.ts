@@ -25,6 +25,10 @@ export interface Goal {
   createdAt: string;
   updatedAt: string;
   tags?: string[];
+  /** Success criteria from overseer goal detail */
+  successCriteria?: string[];
+  /** Constraints from overseer goal detail */
+  constraints?: string[];
 }
 
 export interface GoalDetail extends Goal {
@@ -118,6 +122,8 @@ export function mapOverseerGoalToGoal(goal: OverseerGoal): Goal {
     createdAt: goal.createdAt,
     updatedAt: goal.updatedAt,
     tags: normalizeTags(metadata.tags),
+    successCriteria: goal.successCriteria,
+    constraints: goal.constraints,
   };
 }
 
