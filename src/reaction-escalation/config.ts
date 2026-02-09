@@ -3,7 +3,11 @@ import type { ReactionEscalationConfig } from "../config/types.reaction-escalati
 
 export type ResolvedReactionEscalationConfig = ReactionEscalationConfig & {
   enabled: boolean;
-  outcome: Required<NonNullable<ReactionEscalationConfig["outcome"]>>;
+  outcome: {
+    postReply: boolean;
+    digestChannel?: string;
+    includePermalink: boolean;
+  };
   rateLimit: Required<NonNullable<ReactionEscalationConfig["rateLimit"]>>;
 };
 

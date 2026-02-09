@@ -11,11 +11,11 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
   const handleReactionEvent = async (event: SlackReactionEvent, action: string) => {
     try {
       const item = event.item;
-      if (!item || item.type !== "message") {
+      if (!item || item.type !== "message" || !item.channel) {
         return;
       }
 
-      const channelInfo = item.channel ? await ctx.resolveChannelName(item.channel) : {};
+      const channelInfo = await ctx.resolveChannelName(item.channel);
       const channelType = channelInfo?.type;
       if (
         !ctx.isChannelAllowed({
