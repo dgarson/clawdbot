@@ -21,6 +21,14 @@ export type CronDelivery = {
 
 export type CronDeliveryPatch = Partial<CronDelivery>;
 
+export type CronDeliveryDefaults = {
+  /** Gate for applying global cron delivery defaults. */
+  enabled?: boolean;
+  mode?: CronDeliveryMode;
+  channel?: CronMessageChannel;
+  to?: string;
+};
+
 export type CronPayload =
   | { kind: "systemEvent"; text: string }
   | {

@@ -1,4 +1,9 @@
-import type { CronDeliveryMode, CronJob, CronMessageChannel } from "./types.js";
+import type {
+  CronDeliveryDefaults,
+  CronDeliveryMode,
+  CronJob,
+  CronMessageChannel,
+} from "./types.js";
 
 export type CronDeliveryPlan = {
   mode: CronDeliveryMode;
@@ -27,20 +32,46 @@ function normalizeTo(value: unknown): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-export function resolveCronDeliveryPlan(job: CronJob): CronDeliveryPlan {
+function normalizeMode(value: unknown): CronDeliveryMode | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "announce" || normalized === "deliver") {
+    return "announce";
+  }
+  if (normalized === "none") {
+    return "none";
+  }
+  return undefined;
+}
+
+function normalizeDefaultDelivery(defaults: CronDeliveryDefaults | undefined): {
+  enabled: boolean;
+  mode?: CronDeliveryMode;
+  channel?: CronMessageChannel;
+  to?: string;
+} {
+  if (!defaults || defaults.enabled !== true) {
+    return { enabled: false };
+  }
+  return {
+    enabled: true,
+    mode: normalizeMode(defaults.mode),
+    channel: normalizeChannel(defaults.channel),
+    to: normalizeTo(defaults.to),
+  };
+}
+
+export function resolveCronDeliveryPlan(
+  job: CronJob,
+  defaults?: CronDeliveryDefaults,
+): CronDeliveryPlan {
   const payload = job.payload.kind === "agentTurn" ? job.payload : null;
+  const defaultDelivery = normalizeDefaultDelivery(defaults);
   const delivery = job.delivery;
   const hasDelivery = delivery && typeof delivery === "object";
-  const rawMode = hasDelivery ? (delivery as { mode?: unknown }).mode : undefined;
-  const normalizedMode = typeof rawMode === "string" ? rawMode.trim().toLowerCase() : rawMode;
-  const mode =
-    normalizedMode === "announce"
-      ? "announce"
-      : normalizedMode === "none"
-        ? "none"
-        : normalizedMode === "deliver"
-          ? "announce"
-          : undefined;
+  const mode = hasDelivery ? normalizeMode((delivery as { mode?: unknown }).mode) : undefined;
 
   const payloadChannel = normalizeChannel(payload?.channel);
   const payloadTo = normalizeTo(payload?.to);
@@ -49,10 +80,13 @@ export function resolveCronDeliveryPlan(job: CronJob): CronDeliveryPlan {
   );
   const deliveryTo = normalizeTo((delivery as { to?: unknown } | undefined)?.to);
 
-  const channel = deliveryChannel ?? payloadChannel ?? "last";
-  const to = deliveryTo ?? payloadTo;
+  const channelFallback = payloadChannel ?? defaultDelivery.channel ?? "last";
+  const toFallback = payloadTo ?? defaultDelivery.to;
+  const channel = deliveryChannel ?? channelFallback;
+  const to = deliveryTo ?? toFallback;
+
   if (hasDelivery) {
-    const resolvedMode = mode ?? "announce";
+    const resolvedMode = mode ?? defaultDelivery.mode ?? "announce";
     return {
       mode: resolvedMode,
       channel,
@@ -64,8 +98,40 @@ export function resolveCronDeliveryPlan(job: CronJob): CronDeliveryPlan {
 
   const legacyMode =
     payload?.deliver === true ? "explicit" : payload?.deliver === false ? "off" : "auto";
+
+  if (legacyMode === "off") {
+    return {
+      mode: "none",
+      channel,
+      to,
+      source: "payload",
+      requested: false,
+    };
+  }
+
+  if (legacyMode === "explicit") {
+    return {
+      mode: "announce",
+      channel,
+      to,
+      source: "payload",
+      requested: true,
+    };
+  }
+
+  if (defaultDelivery.enabled) {
+    const resolvedMode = defaultDelivery.mode ?? "announce";
+    return {
+      mode: resolvedMode,
+      channel,
+      to,
+      source: "payload",
+      requested: resolvedMode === "announce",
+    };
+  }
+
   const hasExplicitTarget = Boolean(to);
-  const requested = legacyMode === "explicit" || (legacyMode === "auto" && hasExplicitTarget);
+  const requested = hasExplicitTarget;
 
   return {
     mode: requested ? "announce" : "none",

@@ -89,4 +89,41 @@ describe("CronService delivery plan consistency", () => {
     cron.stop();
     await store.cleanup();
   });
+
+  it("applies configured default delivery when enabled", async () => {
+    const store = await makeStorePath();
+    const enqueueSystemEvent = vi.fn();
+    const cron = new CronService({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      defaultDelivery: {
+        enabled: true,
+        mode: "announce",
+        channel: "slack",
+        to: "C123",
+      },
+      enqueueSystemEvent,
+      requestHeartbeatNow: vi.fn(),
+      runIsolatedAgentJob: vi.fn(async () => ({ status: "ok", summary: "done" })),
+    });
+    await cron.start();
+    const job = await cron.add({
+      name: "config-default-delivery",
+      schedule: { kind: "every", everyMs: 60_000, anchorMs: Date.now() },
+      sessionTarget: "isolated",
+      wakeMode: "next-heartbeat",
+      payload: {
+        kind: "agentTurn",
+        message: "hello",
+      },
+    });
+
+    const result = await cron.run(job.id, "force");
+    expect(result).toEqual({ ok: true, ran: true });
+    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron: done", { agentId: undefined });
+
+    cron.stop();
+    await store.cleanup();
+  });
 });

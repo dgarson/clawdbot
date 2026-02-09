@@ -70,6 +70,7 @@ export function buildGatewayCronService(params: {
   const cron = new CronService({
     storePath,
     cronEnabled,
+    defaultDelivery: params.cfg.cron?.defaultDelivery,
     logTimezone: params.cfg.logging?.timezone,
     enqueueSystemEvent: (text, opts) => {
       const { agentId, cfg: runtimeConfig } = resolveCronAgent(opts?.agentId);

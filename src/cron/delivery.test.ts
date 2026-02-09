@@ -38,8 +38,35 @@ describe("resolveCronDeliveryPlan", () => {
         delivery: undefined,
         payload: { kind: "agentTurn", message: "hello", deliver: false },
       }),
+      { enabled: true, mode: "announce", channel: "slack", to: "C123" },
     );
     expect(plan.mode).toBe("none");
     expect(plan.requested).toBe(false);
+  });
+
+  it("applies enabled config defaults when job delivery is absent", () => {
+    const plan = resolveCronDeliveryPlan(makeJob({}), {
+      enabled: true,
+      mode: "announce",
+      channel: "slack",
+      to: "C123",
+    });
+    expect(plan.mode).toBe("announce");
+    expect(plan.requested).toBe(true);
+    expect(plan.channel).toBe("slack");
+    expect(plan.to).toBe("C123");
+  });
+
+  it("ignores config defaults when disabled", () => {
+    const plan = resolveCronDeliveryPlan(makeJob({}), {
+      enabled: false,
+      mode: "announce",
+      channel: "slack",
+      to: "C123",
+    });
+    expect(plan.mode).toBe("none");
+    expect(plan.requested).toBe(false);
+    expect(plan.channel).toBe("last");
+    expect(plan.to).toBeUndefined();
   });
 });

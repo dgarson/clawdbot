@@ -359,7 +359,7 @@ export async function runCronIsolatedAgentTurn(params: {
   });
 
   const agentPayload = params.job.payload.kind === "agentTurn" ? params.job.payload : null;
-  const deliveryPlan = resolveCronDeliveryPlan(params.job);
+  const deliveryPlan = resolveCronDeliveryPlan(params.job, params.cfg.cron?.defaultDelivery);
   const deliveryRequested = deliveryPlan.requested;
 
   const resolvedDelivery = await resolveDeliveryTarget(cfgWithAgentDefaults, agentId, {

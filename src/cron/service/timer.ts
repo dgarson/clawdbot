@@ -362,7 +362,7 @@ export async function executeJobPayload(
   // Post a short summary back to the main session so the user sees
   // the cron result without opening the isolated session.
   const summaryText = res.summary?.trim();
-  const deliveryPlan = resolveCronDeliveryPlan(job);
+  const deliveryPlan = resolveCronDeliveryPlan(job, state.deps.defaultDelivery);
   if (summaryText && deliveryPlan.requested) {
     const prefix = "Cron";
     const label =

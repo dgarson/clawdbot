@@ -448,6 +448,15 @@ export const OpenClawSchema = z
         enabled: z.boolean().optional(),
         store: z.string().optional(),
         maxConcurrentRuns: z.number().int().positive().optional(),
+        defaultDelivery: z
+          .object({
+            enabled: z.boolean().optional(),
+            mode: z.union([z.literal("none"), z.literal("announce")]).optional(),
+            channel: z.string().optional(),
+            to: z.string().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
