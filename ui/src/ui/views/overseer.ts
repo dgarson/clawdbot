@@ -14,6 +14,7 @@ import type { GraphDragState, GraphViewport } from "../ui-types.js";
 import { skeleton } from "../components/design-utils.js";
 import { clampText, formatAgo, formatDurationMs, formatList } from "../format.js";
 import { icon, type IconName } from "../icons.js";
+import { renderAuditLog, type AuditLogProps } from "./overseer-audit-log.js";
 import { renderSimulator, type SimulatorProps } from "./overseer-simulator.js";
 import {
   buildOverseerGraphLayout,
@@ -72,6 +73,10 @@ export type OverseerProps = {
   // Simulator state
   simulatorState: SimulatorState;
   simulatorProps: Omit<SimulatorProps, "state" | "overseerStatus" | "connected">;
+  // Audit log state
+  auditLogProps?: AuditLogProps;
+  showAuditLog?: boolean;
+  onToggleAuditLog?: (show: boolean) => void;
   // Event handlers
   onRefresh: () => void;
   onTick: () => void;
@@ -231,7 +236,17 @@ export function renderOverseer(props: OverseerProps) {
       ${props.drawerOpen ? renderDrawer(props) : nothing}
       ${props.createGoalOpen ? renderCreateGoalModal(props) : nothing}
       ${renderSimulator(simulatorFullProps)}
+      ${props.showAuditLog && props.auditLogProps ? renderAuditLogSection(props) : nothing}
       ${props.createGoalOpen ? renderCreateGoalModal(props) : nothing}
+    </div>
+  `;
+}
+
+function renderAuditLogSection(props: OverseerProps) {
+  if (!props.auditLogProps) return nothing;
+  return html`
+    <div class="overseer-audit-section">
+      ${renderAuditLog(props.auditLogProps)}
     </div>
   `;
 }
