@@ -4,7 +4,7 @@ import { MessageSquare } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChannelConfigConnected } from "@/components/domain/config";
+import { ChannelConfig } from "@/components/domain/config";
 
 interface ChannelsSectionProps {
   className?: string;
@@ -28,7 +28,7 @@ export function ChannelsSection({ className }: ChannelsSectionProps) {
       </Card>
 
       {/* Channel Config Grid */}
-      <ChannelConfigConnected />
+      <ChannelConfig />
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState, errorMessages } from "@/components/composed/ErrorState";
 import { startWebLogin, waitWebLogin } from "@/lib/api";
 import {
   ChannelCard,
@@ -187,6 +189,10 @@ const defaultChannels: ChannelConfigType[] = [
     },
   },
 ];
+
+const defaultChannelMap = new Map<string, ChannelConfigType>(
+  defaultChannels.map((channel) => [channel.id, channel]),
+);
 
 // Channel-specific field configs
 const channelFieldConfigs: Record<string, {
@@ -395,9 +401,16 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
   const [installOverrides, setInstallOverrides] = React.useState<Record<ChannelId, boolean>>({} as Record<ChannelId, boolean>);
   const [whatsappQrCode, setWhatsappQrCode] = React.useState<string | undefined>();
   const [isWhatsAppBusy, setIsWhatsAppBusy] = React.useState(false);
+  const [isRetrying, setIsRetrying] = React.useState(false);
 
   const queryClient = useQueryClient();
-  const { data: channelsData } = useChannelsStatus({ probe: false });
+  const {
+    data: channelsData,
+    isLoading: isChannelsLoading,
+    error: channelsError,
+    refetch: refetchChannels,
+    isFetching: isChannelsFetching,
+  } = useChannelsStatus({ probe: false });
   const { data: configSnapshot } = useConfig();
   const patchConfig = usePatchConfig();
   const logoutChannel = useLogoutChannel();
@@ -405,6 +418,18 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
   const refreshChannels = React.useCallback(() => {
     queryClient.invalidateQueries({ queryKey: channelKeys.all });
   }, [queryClient]);
+
+  const handleRetry = React.useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await refetchChannels();
+      toast.success("Channel status loaded successfully");
+    } catch {
+      // Error will be shown by ErrorState
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [refetchChannels]);
 
   /**
    * Map API channel status to UI channel status
@@ -432,26 +457,49 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
     const labels = channelsData.channelLabels ?? {};
     const defaultAccountIds = channelsData.channelDefaultAccountId ?? {};
 
-    return defaultChannels.map((channel) => {
-      const channelAccounts = accounts[channel.id] ?? [];
-      const defaultAccountId = defaultAccountIds[channel.id];
+    const orderedChannelIds = (() => {
+      const order = channelsData.channelOrder?.length
+        ? channelsData.channelOrder
+        : defaultChannels.map((channel) => channel.id);
+      const combined = [...order, ...defaultChannels.map((channel) => channel.id)];
+      const seen = new Set<string>();
+      return combined.filter((channelId) => {
+        if (seen.has(channelId)) {return false;}
+        seen.add(channelId);
+        return true;
+      });
+    })();
+
+    return orderedChannelIds.map((channelId) => {
+      const baseChannel = defaultChannelMap.get(channelId);
+      const channelMeta = meta[channelId];
+      const channelAccounts = accounts[channelId] ?? [];
+      const defaultAccountId = defaultAccountIds[channelId];
       const defaultAccount = channelAccounts.find((a) => a.accountId === defaultAccountId) ?? channelAccounts[0];
-      const channelMeta = meta[channel.id];
+      const localOnly = channelMeta?.localOnly ?? channelMeta?.requiresNativeHost ?? baseChannel?.localOnly;
+
+      const fallbackChannel: ChannelConfigType = baseChannel ?? {
+        id: channelId,
+        name: labels[channelId] ?? channelMeta?.label ?? channelId,
+        description: channelMeta?.blurb ?? "",
+        status: "not_configured",
+        category: "messaging",
+      };
 
       return {
-        ...channel,
-        name: labels[channel.id] ?? channelMeta?.label ?? channel.name,
-        description: channelMeta?.blurb ?? channel.description,
+        ...fallbackChannel,
+        name: labels[channelId] ?? channelMeta?.label ?? fallbackChannel.name,
+        description: channelMeta?.blurb ?? fallbackChannel.description,
         status: mapChannelStatus(defaultAccount),
         statusMessage: defaultAccount?.statusMessage ?? defaultAccount?.error,
         lastConnected: defaultAccount?.lastInboundAt
           ? new Date(defaultAccount.lastInboundAt).toLocaleString()
           : undefined,
-        isAdvanced: channelMeta?.advanced ?? channel.isAdvanced,
-        localOnly: channelMeta?.localOnly ?? channel.localOnly,
-        platform: channel.platform
-          ? { ...channel.platform, installed: installOverrides[channel.id] ?? channel.platform.installed }
-          : channel.platform,
+        isAdvanced: channelMeta?.advanced ?? fallbackChannel.isAdvanced,
+        localOnly,
+        platform: fallbackChannel.platform
+          ? { ...fallbackChannel.platform, installed: installOverrides[channelId] ?? fallbackChannel.platform.installed }
+          : fallbackChannel.platform,
       };
     });
   }, [channelsData, installOverrides]);
@@ -808,13 +856,20 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
 
   // Render generic dialogs for new channels
   const renderGenericDialogs = () => {
-    const genericChannelIds: ChannelId[] = ["msteams", "googlechat", "line", "matrix", "bluebubbles", "mattermost", "notion", "obsidian"];
+    const specializedChannelIds = new Set<string>([
+      "telegram",
+      "whatsapp",
+      "discord",
+      "signal",
+      "slack",
+      "imessage",
+    ]);
+    const genericChannels = channels.filter((channel) => !specializedChannelIds.has(channel.id));
 
-    return genericChannelIds.map((channelId) => {
-      const channel = getChannel(channelId);
-      if (!channel) {return null;}
-
+    return genericChannels.map((channel) => {
+      const channelId = channel.id;
       const config = channelFieldConfigs[channelId];
+      const docsUrl = config?.docsUrl ?? channelsData?.channelMeta?.[channelId]?.docsUrl;
       const isSupported = isChannelSupported(channel);
 
       return (
@@ -827,7 +882,7 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
           authModes={config?.authModes}
           behaviorFields={config?.behaviorFields}
           helpSteps={config?.helpSteps}
-          docsUrl={config?.docsUrl}
+          docsUrl={docsUrl}
           isConnected={getChannelStatus(channelId) === "connected"}
           isUnsupported={!isSupported}
           relayProviders={channel.platform?.relayProviders}
@@ -837,6 +892,32 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
       );
     });
   };
+
+  if (isChannelsLoading) {
+    return (
+      <div className={cn("space-y-4", className)}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-32 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (channelsError) {
+    return (
+      <div className={cn("space-y-4", className)}>
+        <ErrorState
+          variant="card"
+          title={errorMessages.channels.title}
+          description={errorMessages.channels.description}
+          onRetry={handleRetry}
+          isRetrying={isRetrying || isChannelsFetching}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-8", className)}>

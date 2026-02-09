@@ -4,7 +4,7 @@
 
 export type ChannelStatus = "connected" | "not_configured" | "error" | "connecting" | "unsupported";
 
-export type ChannelId =
+export type KnownChannelId =
   | "telegram"
   | "whatsapp"
   | "discord"
@@ -19,6 +19,8 @@ export type ChannelId =
   | "mattermost"
   | "notion"
   | "obsidian";
+
+export type ChannelId = KnownChannelId | (string & {});
 
 export type PlatformType = "macos" | "windows" | "linux" | "any";
 
