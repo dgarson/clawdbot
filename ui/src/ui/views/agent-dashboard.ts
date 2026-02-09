@@ -405,7 +405,7 @@ function renderAgentCard(
                           ${session.updatedAt ? html`<span>${formatAgo(session.updatedAt)}</span>` : nothing}
                         </div>
                       </div>
-                      <div class="mono" style="flex-shrink: 0; font-size: 12px; color: var(--color-muted, #888);">
+                      <div class="mono" style="flex-shrink: 0; font-size: 12px; color: var(--muted);">
                         ${formatTokenCount(session.totalTokens ?? 0)}
                       </div>
                       ${

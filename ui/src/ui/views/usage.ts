@@ -178,14 +178,16 @@ const usageStylesString = `
     color: #fff !important;
   }
   .usage-primary-btn:hover {
-    filter: brightness(0.9);
+    background: var(--danger-hover, #d44848);
+    border-color: var(--danger-hover, #d44848);
   }
   .btn.usage-primary-btn:hover {
-    filter: brightness(0.9);
+    background: var(--danger-hover, #d44848) !important;
+    border-color: var(--danger-hover, #d44848) !important;
   }
   .usage-primary-btn:disabled {
     background: var(--danger-muted);
-    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+    border-color: var(--danger);
     color: var(--danger);
     box-shadow: none;
     cursor: default;
@@ -193,7 +195,7 @@ const usageStylesString = `
   }
   .usage-primary-btn[disabled] {
     background: var(--danger-muted) !important;
-    border-color: color-mix(in srgb, var(--danger) 30%, transparent) !important;
+    border-color: var(--danger) !important;
     color: var(--danger) !important;
     opacity: 1 !important;
   }
@@ -558,7 +560,7 @@ const usageStylesString = `
   .usage-hour-cell {
     height: 28px;
     border-radius: 6px;
-    background: rgba(255, 77, 77, 0.1);
+    background: var(--danger-muted);
     border: 1px solid rgba(255, 77, 77, 0.2);
     cursor: pointer;
     transition: border-color 0.15s, box-shadow 0.15s;
@@ -867,7 +869,7 @@ const usageStylesString = `
     overflow: hidden;
   }
   .daily-bar-wrapper:hover .daily-bar {
-    filter: brightness(0.85);
+    background: var(--danger-hover, #d44848);
   }
   .daily-bar-label {
     position: absolute;
@@ -936,16 +938,16 @@ const usageStylesString = `
     position: relative;
   }
   .cost-segment.output {
-    background: var(--chart-red);
+    background: var(--danger);
   }
   .cost-segment.input {
-    background: var(--chart-amber);
+    background: var(--warn);
   }
   .cost-segment.cache-write {
-    background: var(--chart-green);
+    background: var(--ok);
   }
   .cost-segment.cache-read {
-    background: var(--chart-cyan);
+    background: var(--info);
   }
   .cost-breakdown-legend {
     display: flex;
@@ -973,16 +975,16 @@ const usageStylesString = `
     flex-shrink: 0;
   }
   .legend-dot.output {
-    background: var(--chart-red);
+    background: var(--danger);
   }
   .legend-dot.input {
-    background: var(--chart-amber);
+    background: var(--warn);
   }
   .legend-dot.cache-write {
-    background: var(--chart-green);
+    background: var(--ok);
   }
   .legend-dot.cache-read {
-    background: var(--chart-cyan);
+    background: var(--info);
   }
   .legend-dot.system {
     background: var(--danger);
@@ -994,7 +996,7 @@ const usageStylesString = `
     background: var(--chart-pink);
   }
   .legend-dot.files {
-    background: var(--chart-amber);
+    background: var(--warn);
   }
   .cost-breakdown-note {
     margin-top: 10px;
@@ -1154,12 +1156,12 @@ const usageStylesString = `
     transition: fill 0.15s;
   }
   .timeseries-svg .ts-bar:hover {
-    opacity: 0.8;
+    fill: var(--danger-hover, #d44848);
   }
-  .timeseries-svg .ts-bar.output { fill: var(--chart-red); }
-  .timeseries-svg .ts-bar.input { fill: var(--chart-amber); }
-  .timeseries-svg .ts-bar.cache-write { fill: var(--chart-green); }
-  .timeseries-svg .ts-bar.cache-read { fill: var(--chart-cyan); }
+  .timeseries-svg .ts-bar.output { fill: var(--danger); }
+  .timeseries-svg .ts-bar.input { fill: var(--warn); }
+  .timeseries-svg .ts-bar.cache-write { fill: var(--ok); }
+  .timeseries-svg .ts-bar.cache-read { fill: var(--info); }
   .timeseries-summary {
     margin-top: 12px;
     font-size: 13px;
@@ -1294,7 +1296,7 @@ const usageStylesString = `
     background: var(--chart-pink);
   }
   .context-segment.files {
-    background: var(--chart-amber);
+    background: var(--warn);
   }
   .context-legend {
     display: flex;
@@ -4630,15 +4632,15 @@ export function renderUsage(props: UsageProps) {
                 align-items: center;
                 gap: 6px;
                 padding: 4px 10px;
-                background: rgba(255, 77, 77, 0.1);
+                background: var(--danger-muted);
                 border-radius: 4px;
                 font-size: 12px;
-                color: #ff4d4d;
+                color: var(--danger);
               ">
                 <span style="
                   width: 10px;
                   height: 10px;
-                  border: 2px solid #ff4d4d;
+                  border: 2px solid var(--danger);
                   border-top-color: transparent;
                   border-radius: 50%;
                   animation: initial-spin 0.6s linear infinite;

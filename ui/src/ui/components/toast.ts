@@ -94,7 +94,7 @@ export class ToastContainer extends LitElement {
       gap: 0.5rem;
       pointer-events: none;
     }
-    
+
     .toast {
       display: flex;
       align-items: flex-start;
@@ -109,11 +109,11 @@ export class ToastContainer extends LitElement {
       pointer-events: auto;
       animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    
+
     .toast.exiting {
       animation: slideOutRight 0.2s ease-out forwards;
     }
-    
+
     @keyframes slideInRight {
       from {
         opacity: 0;
@@ -124,7 +124,7 @@ export class ToastContainer extends LitElement {
         transform: translateX(0);
       }
     }
-    
+
     @keyframes slideOutRight {
       from {
         opacity: 1;
@@ -135,13 +135,13 @@ export class ToastContainer extends LitElement {
         transform: translateX(20px);
       }
     }
-    
+
     .toast-icon {
       flex-shrink: 0;
       width: 20px;
       height: 20px;
     }
-    
+
     .toast-success .toast-icon {
       color: var(--ok);
     }
@@ -152,28 +152,28 @@ export class ToastContainer extends LitElement {
       color: var(--danger);
     }
     .toast-info .toast-icon {
-      color: var(--info, #60a5fa);
+      color: var(--info);
     }
-    
+
     .toast-content {
       flex: 1;
       min-width: 0;
     }
-    
+
     .toast-title {
       font-size: 0.875rem;
       font-weight: 600;
       color: var(--text);
       margin: 0;
     }
-    
+
     .toast-message {
       font-size: 0.8125rem;
       color: var(--text-secondary, var(--muted));
       margin-top: 0.25rem;
       line-height: 1.4;
     }
-    
+
     .toast-close {
       flex-shrink: 0;
       padding: 0.25rem;
@@ -187,17 +187,17 @@ export class ToastContainer extends LitElement {
       align-items: center;
       justify-content: center;
     }
-    
+
     .toast-close:hover {
       color: var(--text);
       background: var(--bg-overlay);
     }
-    
+
     .toast-close svg {
       width: 16px;
       height: 16px;
     }
-    
+
     /* Progress bar for auto-dismiss */
     .toast-progress {
       position: absolute;
@@ -209,13 +209,13 @@ export class ToastContainer extends LitElement {
       border-radius: 0 0 var(--radius-lg, 0.75rem) var(--radius-lg, 0.75rem);
       overflow: hidden;
     }
-    
+
     .toast-progress-bar {
       height: 100%;
       background: var(--accent);
       animation: progress linear forwards;
     }
-    
+
     @keyframes progress {
       from {
         width: 100%;
@@ -224,7 +224,7 @@ export class ToastContainer extends LitElement {
         width: 0%;
       }
     }
-    
+
     .toast-success .toast-progress-bar {
       background: var(--ok);
     }
@@ -235,9 +235,9 @@ export class ToastContainer extends LitElement {
       background: var(--danger);
     }
     .toast-info .toast-progress-bar {
-      background: var(--info, #60a5fa);
+      background: var(--info);
     }
-    
+
     /* Stacking animation */
     .toast:nth-last-child(2) {
       opacity: 0.9;

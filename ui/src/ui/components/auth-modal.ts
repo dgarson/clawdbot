@@ -147,9 +147,9 @@ export function renderAuthModal(opts: AuthModalOptions): TemplateResult | typeof
                       padding: 10px 12px;
                       margin-bottom: 16px;
                       background: var(--danger-bg, rgba(239, 68, 68, 0.1));
-                      border: 1px solid var(--danger, #ef4444);
+                      border: 1px solid var(--danger);
                       border-radius: 6px;
-                      color: var(--danger, #ef4444);
+                      color: var(--danger);
                       font-size: 13px;
                     "
                   >

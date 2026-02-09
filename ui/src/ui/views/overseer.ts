@@ -264,12 +264,12 @@ function renderOverseerEmptyState(props: OverseerProps) {
       <h3 style="
         font-size: 1.25rem;
         font-weight: 600;
-        color: var(--text-primary, #e2e8f0);
+        color: var(--text);
         margin: 0 0 0.5rem;
       ">No goals yet</h3>
       <p style="
         font-size: 0.875rem;
-        color: var(--text-muted, #94a3b8);
+        color: var(--text-tertiary);
         max-width: 420px;
         line-height: 1.6;
         margin: 0 0 1.5rem;
@@ -291,9 +291,7 @@ function renderOverseerEmptyState(props: OverseerProps) {
             </button>
           `
           : html`
-              <p style="font-size: 0.8125rem; color: var(--text-muted, #64748b)">
-                Connect to the gateway to create goals.
-              </p>
+              <p style="font-size: 0.8125rem; color: var(--muted)">Connect to the gateway to create goals.</p>
             `
       }
     </div>
