@@ -1,6 +1,7 @@
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob } from "../types.js";
 import type { CronServiceState } from "./state.js";
+import { resolveCronDeliveryPlan } from "../delivery.js";
 import { emit } from "./emit.js";
 import {
   computeJobNextRunAtMs,
@@ -11,7 +12,31 @@ import {
 import { locked } from "./locked.js";
 import { ensureLoaded, persist } from "./store.js";
 
-const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+const MAX_TIMER_DELAY_MS = 60_000;
+
+/**
+ * Maximum wall-clock time for a single job execution. Acts as a safety net
+ * on top of the per-provider / per-agent timeouts to prevent one stuck job
+ * from wedging the entire cron lane.
+ */
+const _DEFAULT_JOB_TIMEOUT_MS = 10 * 60_000; // 10 minutes
+
+/**
+ * Exponential backoff delays (in ms) indexed by consecutive error count.
+ * After the last entry the delay stays constant.
+ */
+const ERROR_BACKOFF_SCHEDULE_MS = [
+  30_000, // 1st error  →  30 s
+  60_000, // 2nd error  →   1 min
+  5 * 60_000, // 3rd error  →   5 min
+  15 * 60_000, // 4th error  →  15 min
+  60 * 60_000, // 5th+ error →  60 min
+];
+
+function errorBackoffMs(consecutiveErrors: number): number {
+  const idx = Math.min(consecutiveErrors - 1, ERROR_BACKOFF_SCHEDULE_MS.length - 1);
+  return ERROR_BACKOFF_SCHEDULE_MS[Math.max(0, idx)];
+}
 
 /** Default job timeout when payload.timeoutSeconds is not set (10 min). */
 const DEFAULT_JOB_TIMEOUT_S = 10 * 60;
@@ -34,15 +59,26 @@ export function armTimer(state: CronServiceState) {
   }
   state.timer = null;
   if (!state.deps.cronEnabled) {
+    state.deps.log.debug({}, "cron: armTimer skipped - scheduler disabled");
     return;
   }
   const nextAt = nextWakeAtMs(state);
   if (!nextAt && !state.storeLoadError) {
+    const jobCount = state.store?.jobs.length ?? 0;
+    const enabledCount = state.store?.jobs.filter((j) => j.enabled).length ?? 0;
+    const withNextRun =
+      state.store?.jobs.filter((j) => j.enabled && typeof j.state.nextRunAtMs === "number")
+        .length ?? 0;
+    state.deps.log.debug(
+      { jobCount, enabledCount, withNextRun },
+      "cron: armTimer skipped - no jobs with nextRunAtMs",
+    );
     return;
   }
   const delay = nextAt ? Math.max(nextAt - state.deps.nowMs(), 0) : LOAD_ERROR_RETRY_DELAY_MS;
-  // Avoid TimeoutOverflowWarning when a job is far in the future.
-  let clampedDelay = Math.min(delay, MAX_TIMEOUT_MS);
+  // Wake at least once a minute to avoid schedule drift and recover quickly
+  // when the process was paused or wall-clock time jumps.
+  let clampedDelay = Math.min(delay, MAX_TIMER_DELAY_MS);
   // Retry sooner when the store failed to load so we recover faster.
   if (state.storeLoadError) {
     clampedDelay = Math.min(clampedDelay, LOAD_ERROR_RETRY_DELAY_MS);
@@ -56,7 +92,12 @@ export function armTimer(state: CronServiceState) {
   }, clampedDelay);
   state.timer.unref?.();
 
-  // Fix 2: Ensure the watchdog is running whenever the timer is armed.
+  state.deps.log.debug(
+    { nextAt, delayMs: clampedDelay, clamped: delay > MAX_TIMER_DELAY_MS },
+    "cron: timer armed",
+  );
+
+  // Ensure the watchdog is running whenever the timer is armed.
   if (!state.watchdogTimer) {
     startWatchdog(state);
   }
@@ -136,6 +177,9 @@ export function claimDueJobs(state: CronServiceState): CronJob[] {
   }
   const now = state.deps.nowMs();
   const due = state.store.jobs.filter((j) => {
+    if (!j.state) {
+      j.state = {};
+    }
     if (!j.enabled) {
       return false;
     }
@@ -152,6 +196,50 @@ export function claimDueJobs(state: CronServiceState): CronJob[] {
     }
   }
   return claimed;
+}
+
+export async function runMissedJobs(state: CronServiceState) {
+  if (!state.store) {
+    return;
+  }
+  const now = state.deps.nowMs();
+  const missed = state.store.jobs.filter((j) => {
+    if (!j.state) {
+      j.state = {};
+    }
+    if (!j.enabled) {
+      return false;
+    }
+    if (typeof j.state.runningAtMs === "number") {
+      return false;
+    }
+    const next = j.state.nextRunAtMs;
+    if (j.schedule.kind === "at" && j.state.lastStatus === "ok") {
+      return false;
+    }
+    return typeof next === "number" && now >= next;
+  });
+
+  if (missed.length > 0) {
+    state.deps.log.info(
+      { count: missed.length, jobIds: missed.map((j) => j.id) },
+      "cron: running missed jobs after restart",
+    );
+    for (const job of missed) {
+      const startedAt = state.deps.nowMs();
+      job.state.runningAtMs = startedAt;
+      job.state.lastError = undefined;
+      emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
+
+      let result: JobExecResult;
+      try {
+        result = await executeJobPayload(state, job);
+      } catch (err) {
+        result = { status: "error", error: String(err) };
+      }
+      finalizeJobRun(state, job, result, { forced: false, nowMs: state.deps.nowMs() });
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -258,9 +346,9 @@ export async function executeJobPayload(
   // Post a short summary back to the main session so the user sees
   // the cron result without opening the isolated session.
   const summaryText = res.summary?.trim();
-  const deliveryMode = job.delivery?.mode ?? "announce";
-  if (summaryText && deliveryMode !== "none") {
-    const prefix = "\u{1f4cb} Cron";
+  const deliveryPlan = resolveCronDeliveryPlan(job);
+  if (summaryText && deliveryPlan.requested) {
+    const prefix = "Cron";
     const label =
       res.status === "error" ? `${prefix} (error): ${summaryText}` : `${prefix}: ${summaryText}`;
     state.deps.enqueueSystemEvent(label, { agentId: job.agentId });
@@ -310,16 +398,54 @@ export function finalizeJobRun(
   liveJob.state.lastStatus = result.status;
   liveJob.state.lastDurationMs = Math.max(0, endedAt - startedAt);
   liveJob.state.lastError = result.error;
+  liveJob.updatedAtMs = endedAt;
+
+  // Track consecutive errors for backoff / auto-disable.
+  if (result.status === "error") {
+    liveJob.state.consecutiveErrors = (liveJob.state.consecutiveErrors ?? 0) + 1;
+  } else {
+    liveJob.state.consecutiveErrors = 0;
+  }
 
   let deleted = false;
   const shouldDelete =
     liveJob.schedule.kind === "at" && result.status === "ok" && liveJob.deleteAfterRun === true;
 
   if (!shouldDelete) {
-    if (liveJob.schedule.kind === "at" && result.status === "ok") {
-      // One-shot job completed successfully; disable it.
+    if (liveJob.schedule.kind === "at") {
+      // One-shot jobs are always disabled after ANY terminal status
+      // (ok, error, or skipped). This prevents tight-loop rescheduling
+      // when computeJobNextRunAtMs returns the past atMs value.
       liveJob.enabled = false;
       liveJob.state.nextRunAtMs = undefined;
+      if (result.status === "error") {
+        state.deps.log.warn(
+          {
+            jobId: liveJob.id,
+            jobName: liveJob.name,
+            consecutiveErrors: liveJob.state.consecutiveErrors,
+            error: result.error,
+          },
+          "cron: disabling one-shot job after error",
+        );
+      }
+    } else if (result.status === "error" && liveJob.enabled) {
+      // Apply exponential backoff for errored jobs to prevent retry storms.
+      const backoff = errorBackoffMs(liveJob.state.consecutiveErrors ?? 1);
+      const normalNext = computeJobNextRunAtMs(liveJob, endedAt);
+      const backoffNext = endedAt + backoff;
+      // Use whichever is later: the natural next run or the backoff delay.
+      liveJob.state.nextRunAtMs =
+        normalNext !== undefined ? Math.max(normalNext, backoffNext) : backoffNext;
+      state.deps.log.info(
+        {
+          jobId: liveJob.id,
+          consecutiveErrors: liveJob.state.consecutiveErrors,
+          backoffMs: backoff,
+          nextRunAtMs: liveJob.state.nextRunAtMs,
+        },
+        "cron: applying error backoff",
+      );
     } else if (liveJob.enabled) {
       liveJob.state.nextRunAtMs = computeJobNextRunAtMs(liveJob, endedAt);
     } else {
@@ -344,7 +470,6 @@ export function finalizeJobRun(
     emit(state, { jobId: liveJob.id, action: "removed" });
   }
 
-  liveJob.updatedAtMs = opts.nowMs;
   if (!opts.forced && liveJob.enabled && !deleted) {
     // Keep nextRunAtMs in sync in case the schedule advanced during a long run.
     liveJob.state.nextRunAtMs = computeJobNextRunAtMs(liveJob, endedAt);
@@ -377,7 +502,7 @@ export function stopTimer(state: CronServiceState) {
 }
 
 // ---------------------------------------------------------------------------
-// Fix 1 helper: Promise.race with a timeout
+// Promise.race with a timeout
 // ---------------------------------------------------------------------------
 
 class CronHardTimeoutError extends Error {
@@ -398,23 +523,27 @@ function promiseWithTimeout<T>(
     timer.unref?.();
   });
   return Promise.race([promise, timeout]).finally(() => {
-    if (timer) clearTimeout(timer);
+    if (timer) {
+      clearTimeout(timer);
+    }
   });
 }
 
 // ---------------------------------------------------------------------------
-// Fix 2: Watchdog — detects permanently stuck `state.running`
+// Watchdog — detects permanently stuck `state.running`
 // ---------------------------------------------------------------------------
 
 /**
- * Compute the watchdog threshold: 2× the longest job timeout among all enabled
- * jobs, clamped to a minimum of 2× DEFAULT_JOB_TIMEOUT_S and a maximum of
+ * Compute the watchdog threshold: 2x the longest job timeout among all enabled
+ * jobs, clamped to a minimum of 2x DEFAULT_JOB_TIMEOUT_S and a maximum of
  * WATCHDOG_MAX_STUCK_MS.
  */
 function computeWatchdogThresholdMs(state: CronServiceState): number {
   let maxTimeoutS = DEFAULT_JOB_TIMEOUT_S;
   for (const job of state.store?.jobs ?? []) {
-    if (!job.enabled) continue;
+    if (!job.enabled) {
+      continue;
+    }
     if (job.payload.kind === "agentTurn" && typeof job.payload.timeoutSeconds === "number") {
       maxTimeoutS = Math.max(maxTimeoutS, job.payload.timeoutSeconds);
     }

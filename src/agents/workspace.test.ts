@@ -1,3 +1,4 @@
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { makeTempWorkspace, writeWorkspaceFile } from "../test-helpers/workspace.js";
 import {
@@ -9,7 +10,19 @@ import {
   GLOBAL_MERGE_SEPARATOR,
   loadGlobalBootstrapFiles,
   loadWorkspaceBootstrapFiles,
+  resolveDefaultAgentWorkspaceDir,
 } from "./workspace.js";
+
+describe("resolveDefaultAgentWorkspaceDir", () => {
+  it("uses OPENCLAW_HOME for default workspace resolution", () => {
+    const dir = resolveDefaultAgentWorkspaceDir({
+      OPENCLAW_HOME: "/srv/openclaw-home",
+      HOME: "/home/other",
+    } as NodeJS.ProcessEnv);
+
+    expect(dir).toBe(path.join("/srv/openclaw-home", ".openclaw", "workspace"));
+  });
+});
 
 describe("loadWorkspaceBootstrapFiles", () => {
   it("includes MEMORY.md when present", async () => {
@@ -117,7 +130,7 @@ describe("global bootstrap file loading", () => {
     await writeWorkspaceFile({ dir: globalDir, name: "MEMORY.md", content: "global memory" });
 
     const globalFiles = await loadGlobalBootstrapFiles(globalDir);
-    expect(globalFiles.has("MEMORY.md" as any)).toBe(false);
+    expect(globalFiles.has("MEMORY.md" as unknown)).toBe(false);
   });
 
   it("merges multiple global files correctly", async () => {
@@ -167,8 +180,8 @@ describe("loadGlobalBootstrapFiles", () => {
 
     const result = await loadGlobalBootstrapFiles(globalDir);
 
-    expect(result.has("AGENTS.md" as any)).toBe(true);
-    expect(result.get("AGENTS.md" as any)).toBe("global agents");
-    expect(result.has("MEMORY.md" as any)).toBe(false);
+    expect(result.has("AGENTS.md" as unknown)).toBe(true);
+    expect(result.get("AGENTS.md" as unknown)).toBe("global agents");
+    expect(result.has("MEMORY.md" as unknown)).toBe(false);
   });
 });

@@ -25,7 +25,12 @@ export function guardSessionManager(
   }
 
   const hookRunner = getGlobalHookRunner();
-  const transform = hookRunner?.hasHooks("tool_result_persist")
+  const transform:
+    | ((
+        message: AgentMessage,
+        meta: { toolCallId?: string; toolName?: string; isSynthetic?: boolean },
+      ) => AgentMessage)
+    | undefined = hookRunner?.hasHooks("tool_result_persist")
     ? (
         message: AgentMessage,
         meta: { toolCallId?: string; toolName?: string; isSynthetic?: boolean },

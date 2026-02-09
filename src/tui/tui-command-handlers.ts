@@ -14,8 +14,8 @@ import {
   normalizeUsageDisplay,
   resolveResponseUsageMode,
 } from "../auto-reply/thinking.js";
+import { formatRelativeTimestamp } from "../infra/format-time/format-relative.ts";
 import { normalizeAgentId } from "../routing/session-key.js";
-import { formatRelativeTime } from "../utils/time-format.js";
 import { helpText, parseCommand } from "./commands.js";
 import {
   createFilterableSelectList,
@@ -166,7 +166,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         // Avoid redundant "title (key)" when title matches key
         const label = title && title !== formattedKey ? `${title} (${formattedKey})` : formattedKey;
         // Build description: time + message preview
-        const timePart = session.updatedAt ? formatRelativeTime(session.updatedAt) : "";
+        const timePart = session.updatedAt
+          ? formatRelativeTimestamp(session.updatedAt, { dateFallback: true, fallback: "" })
+          : "";
         const preview = (sessionExt.description ?? session.lastMessagePreview)
           ?.replace(/\s+/g, " ")
           .trim();

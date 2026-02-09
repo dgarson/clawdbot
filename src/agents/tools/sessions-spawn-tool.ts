@@ -160,7 +160,6 @@ export function createSessionsSpawnTool(opts?: {
         return legacy ?? 0;
       })();
       let modelWarning: string | undefined;
-      let thinkingWarning: string | undefined;
       let modelApplied = false;
 
       const cfg = loadConfig();
@@ -261,26 +260,24 @@ export function createSessionsSpawnTool(opts?: {
           modelWarning = messageText;
         }
       }
-      if (thinkingOverride) {
+      if (thinkingOverride !== undefined) {
         try {
           await callGateway({
             method: "sessions.patch",
-            params: { key: childSessionKey, thinkingLevel: thinkingOverride },
+            params: {
+              key: childSessionKey,
+              thinkingLevel: thinkingOverride === "off" ? null : thinkingOverride,
+            },
             timeoutMs: 10_000,
           });
         } catch (err) {
           const messageText =
             err instanceof Error ? err.message : typeof err === "string" ? err : "error";
-          const recoverable =
-            messageText.includes("invalid thinkingLevel") || messageText.includes("thinkingLevel");
-          if (!recoverable) {
-            return jsonResult({
-              status: "error",
-              error: messageText,
-              childSessionKey,
-            });
-          }
-          thinkingWarning = messageText;
+          return jsonResult({
+            status: "error",
+            error: messageText,
+            childSessionKey,
+          });
         }
       }
       const instructionsText =
@@ -373,7 +370,7 @@ export function createSessionsSpawnTool(opts?: {
         childSessionKey,
         runId: childRunId,
         modelApplied: resolvedModel ? modelApplied : undefined,
-        warning: [modelWarning, thinkingWarning].filter(Boolean).join(" | ") || undefined,
+        warning: modelWarning,
       });
     },
   };

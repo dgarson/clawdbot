@@ -10,6 +10,7 @@ import type { BlockReplyChunking, ToolResultFormat } from "../../pi-embedded-sub
 import type { AuthStorage, ModelRegistry } from "../../pi-model-discovery.js";
 import type { SkillSnapshot } from "../../skills.js";
 import type { StreamingMiddleware } from "../../stream/index.js";
+import type { NormalizedUsage } from "../../usage.js";
 import type { HistoryOptions } from "../history.js";
 import type { ClientToolDefinition, ExtensionToolDefinition } from "./params.js";
 
@@ -100,6 +101,8 @@ export type EmbeddedRunAttemptResult = {
   messagingToolSentTexts: string[];
   messagingToolSentTargets: MessagingToolSend[];
   cloudCodeAssistFormatError: boolean;
+  attemptUsage?: NormalizedUsage;
+  compactionCount?: number;
   /** Client tool call detected (OpenResponses hosted tools). */
   clientToolCall?: { name: string; params: Record<string, unknown> };
 };

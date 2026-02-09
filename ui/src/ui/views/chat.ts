@@ -86,7 +86,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
   // Show "compacting..." while active
   if (status.active) {
     return html`
-      <div class="callout info compaction-indicator compaction-indicator--active">
+      <div class="compaction-indicator compaction-indicator--active" role="status" aria-live="polite">
         ${icons.loader} Compacting context...
       </div>
     `;
@@ -97,7 +97,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
     const elapsed = Date.now() - status.completedAt;
     if (elapsed < COMPACTION_TOAST_DURATION_MS) {
       return html`
-        <div class="callout success compaction-indicator compaction-indicator--complete">
+        <div class="compaction-indicator compaction-indicator--complete" role="status" aria-live="polite">
           ${icons.check} Context compacted
         </div>
       `;
@@ -269,8 +269,6 @@ export function renderChat(props: ChatProps) {
 
       ${renderErrorIf(props.error)}
 
-      ${renderCompactionIndicator(props.compactionStatus)}
-
       ${
         props.focusMode
           ? html`
@@ -353,6 +351,8 @@ export function renderChat(props: ChatProps) {
           `
           : nothing
       }
+
+      ${renderCompactionIndicator(props.compactionStatus)}
 
       ${
         props.showNewMessages

@@ -259,6 +259,7 @@ export function handleMessageEnd(
   }
 
   const assistantMessage = msg;
+  ctx.recordAssistantUsage((assistantMessage as { usage?: unknown }).usage);
   promoteThinkingTagsToBlocks(assistantMessage);
 
   const rawText = extractAssistantText(assistantMessage);

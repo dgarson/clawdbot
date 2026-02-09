@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { loadCronStore } from "./store.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { loadCronStore, resolveCronStorePath } from "./store.js";
 
 async function makeStorePath() {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-cron-store-"));
@@ -15,18 +15,35 @@ async function makeStorePath() {
   };
 }
 
+describe("resolveCronStorePath", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("uses OPENCLAW_HOME for tilde expansion", () => {
+    vi.stubEnv("OPENCLAW_HOME", "/srv/openclaw-home");
+    vi.stubEnv("HOME", "/home/other");
+
+    const result = resolveCronStorePath("~/cron/jobs.json");
+    expect(result).toBe(path.resolve("/srv/openclaw-home", "cron", "jobs.json"));
+  });
+});
+
 describe("cron store", () => {
   it("returns empty store when file does not exist", async () => {
     const store = await makeStorePath();
     const loaded = await loadCronStore(store.storePath);
-    expect(loaded).toEqual({ version: 1, jobs: [] });
+    expect(loaded.store).toEqual({ version: 1, jobs: [] });
+    expect(loaded.loadError).toBeUndefined();
     await store.cleanup();
   });
 
-  it("throws when store contains invalid JSON", async () => {
+  it("returns loadError when store contains invalid JSON and no backup", async () => {
     const store = await makeStorePath();
     await fs.writeFile(store.storePath, "{ not json", "utf-8");
-    await expect(loadCronStore(store.storePath)).rejects.toThrow(/Failed to parse cron store/i);
+    const loaded = await loadCronStore(store.storePath);
+    expect(loaded.store).toEqual({ version: 1, jobs: [] });
+    expect(loaded.loadError).toBeDefined();
     await store.cleanup();
   });
 });

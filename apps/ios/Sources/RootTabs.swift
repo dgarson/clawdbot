@@ -8,6 +8,7 @@ struct RootTabs: View {
     @State private var voiceWakeToastText: String?
     @State private var toastDismissTask: Task<Void, Never>?
     @State private var showApprovalSheet: Bool = false
+    @State private var showGatewayActions: Bool = false
 
     var body: some View {
         TabView(selection: self.$selectedTab) {
@@ -32,7 +33,13 @@ struct RootTabs: View {
                 gateway: self.gatewayStatus,
                 voiceWakeEnabled: self.voiceWakeEnabled,
                 activity: self.statusActivity,
-                onTap: { self.selectedTab = 3 })
+                onTap: {
+                    if self.gatewayStatus == .connected {
+                        self.showGatewayActions = true
+                    } else {
+                        self.selectedTab = 2
+                    }
+                })
                 .padding(.leading, 10)
                 .safeAreaPadding(.top, 10)
         }
@@ -89,6 +96,21 @@ struct RootTabs: View {
         .onDisappear {
             self.toastDismissTask?.cancel()
             self.toastDismissTask = nil
+        }
+        .confirmationDialog(
+            "Gateway",
+            isPresented: self.$showGatewayActions,
+            titleVisibility: .visible)
+        {
+            Button("Disconnect", role: .destructive) {
+                self.appModel.disconnectGateway()
+            }
+            Button("Open Settings") {
+                self.selectedTab = 2
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Disconnect from the gateway?")
         }
     }
 
@@ -161,6 +183,10 @@ struct RootTabs: View {
                 return StatusPill.Activity(title: "Mic permission", systemImage: "mic.slash", tint: .orange)
             }
             if voiceStatus == "Paused" {
+                // Talk mode intentionally pauses voice wake to release the mic. Don't spam the HUD for that case.
+                if self.appModel.talkMode.isEnabled {
+                    return nil
+                }
                 let suffix = self.appModel.isBackgrounded ? " (background)" : ""
                 return StatusPill.Activity(title: "Voice Wake paused\(suffix)", systemImage: "pause.circle.fill")
             }

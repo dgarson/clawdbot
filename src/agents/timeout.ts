@@ -1,6 +1,7 @@
 import type { OpenClawConfig } from "../config/config.js";
 
 const DEFAULT_AGENT_TIMEOUT_SECONDS = 600;
+const MAX_SAFE_TIMEOUT_MS = 2_147_000_000;
 
 const normalizeNumber = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : undefined;
@@ -18,7 +19,9 @@ export function resolveAgentTimeoutMs(opts: {
   minMs?: number;
 }): number {
   const minMs = Math.max(normalizeNumber(opts.minMs) ?? 1, 1);
-  const defaultMs = resolveAgentTimeoutSeconds(opts.cfg) * 1000;
+  const clampTimeoutMs = (valueMs: number) =>
+    Math.min(Math.max(valueMs, minMs), MAX_SAFE_TIMEOUT_MS);
+  const defaultMs = clampTimeoutMs(resolveAgentTimeoutSeconds(opts.cfg) * 1000);
   const overrideMs = normalizeNumber(opts.overrideMs);
   if (overrideMs !== undefined) {
     if (overrideMs === 0) {
@@ -27,7 +30,7 @@ export function resolveAgentTimeoutMs(opts: {
     if (overrideMs < 0) {
       return defaultMs;
     }
-    return Math.max(overrideMs, minMs);
+    return clampTimeoutMs(overrideMs);
   }
   const overrideSeconds = normalizeNumber(opts.overrideSeconds);
   if (overrideSeconds !== undefined) {
@@ -37,7 +40,7 @@ export function resolveAgentTimeoutMs(opts: {
     if (overrideSeconds < 0) {
       return defaultMs;
     }
-    return Math.max(overrideSeconds * 1000, minMs);
+    return clampTimeoutMs(overrideSeconds * 1000);
   }
-  return Math.max(defaultMs, minMs);
+  return defaultMs;
 }

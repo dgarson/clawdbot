@@ -151,7 +151,7 @@ export function applySessionDefaults(
     }
   }
 
-  const resetByChannel = { ...(nextSession.resetByChannel ?? {}) };
+  const resetByChannel = { ...nextSession.resetByChannel };
   if (!("slack" in resetByChannel)) {
     resetByChannel.slack = { mode: "idle", idleMinutes: 120 };
     nextSession = { ...nextSession, resetByChannel };
@@ -232,7 +232,8 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
         }
 
         const defaultMaxTokens = Math.min(DEFAULT_MODEL_MAX_TOKENS, contextWindow);
-        const maxTokens = isPositiveNumber(raw.maxTokens) ? raw.maxTokens : defaultMaxTokens;
+        const rawMaxTokens = isPositiveNumber(raw.maxTokens) ? raw.maxTokens : defaultMaxTokens;
+        const maxTokens = Math.min(rawMaxTokens, contextWindow);
         if (raw.maxTokens !== maxTokens) {
           modelMutated = true;
         }

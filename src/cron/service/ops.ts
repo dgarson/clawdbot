@@ -17,6 +17,7 @@ import {
   emit,
   executeJobPayload,
   finalizeJobRun,
+  runMissedJobs,
   stopTimer,
   wake,
 } from "./timer.js";
@@ -27,7 +28,18 @@ export async function start(state: CronServiceState) {
       state.deps.log.info({ enabled: false }, "cron: disabled");
       return;
     }
-    await ensureLoaded(state);
+    await ensureLoaded(state, { skipRecompute: true });
+    const jobs = state.store?.jobs ?? [];
+    for (const job of jobs) {
+      if (typeof job.state.runningAtMs === "number") {
+        state.deps.log.warn(
+          { jobId: job.id, runningAtMs: job.state.runningAtMs },
+          "cron: clearing stale running marker on startup",
+        );
+        job.state.runningAtMs = undefined;
+      }
+    }
+    await runMissedJobs(state);
     recomputeNextRuns(state);
     await persist(state);
     armTimer(state);
@@ -49,6 +61,12 @@ export function stop(state: CronServiceState) {
 export async function status(state: CronServiceState) {
   return await locked(state, async () => {
     await ensureLoaded(state, { skipRecompute: true });
+    if (state.store) {
+      const changed = recomputeNextRuns(state);
+      if (changed) {
+        await persist(state);
+      }
+    }
     return {
       enabled: state.deps.cronEnabled,
       storePath: state.deps.storePath,
@@ -61,11 +79,18 @@ export async function status(state: CronServiceState) {
 }
 
 export async function list(state: CronServiceState, opts?: { includeDisabled?: boolean }) {
-  // Lock-free read: same rationale as status() — avoids blocking behind jobs.
-  await ensureLoaded(state);
-  const includeDisabled = opts?.includeDisabled === true;
-  const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
-  return jobs.toSorted((a, b) => (a.state.nextRunAtMs ?? 0) - (b.state.nextRunAtMs ?? 0));
+  return await locked(state, async () => {
+    await ensureLoaded(state, { skipRecompute: true });
+    if (state.store) {
+      const changed = recomputeNextRuns(state);
+      if (changed) {
+        await persist(state);
+      }
+    }
+    const includeDisabled = opts?.includeDisabled === true;
+    const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
+    return jobs.toSorted((a, b) => (a.state.nextRunAtMs ?? 0) - (b.state.nextRunAtMs ?? 0));
+  });
 }
 
 export async function add(state: CronServiceState, input: CronJobCreate) {
@@ -74,8 +99,25 @@ export async function add(state: CronServiceState, input: CronJobCreate) {
     await ensureLoaded(state);
     const job = createJob(state, input);
     state.store?.jobs.push(job);
+
+    // Defensive: recompute all next-run times to ensure consistency
+    recomputeNextRuns(state);
+
     await persist(state);
     armTimer(state);
+
+    state.deps.log.info(
+      {
+        jobId: job.id,
+        jobName: job.name,
+        nextRunAtMs: job.state.nextRunAtMs,
+        schedulerNextWakeAtMs: nextWakeAtMs(state) ?? null,
+        timerArmed: state.timer !== null,
+        cronEnabled: state.deps.cronEnabled,
+      },
+      "cron: job added",
+    );
+
     emit(state, {
       jobId: job.id,
       action: "added",
@@ -108,6 +150,9 @@ export async function update(state: CronServiceState, id: string, patch: CronJob
         };
       }
     }
+    const scheduleChanged = patch.schedule !== undefined;
+    const enabledChanged = patch.enabled !== undefined;
+
     job.updatedAtMs = now;
 
     // If the job had a migration error, try re-migrating after the patch
@@ -121,11 +166,13 @@ export async function update(state: CronServiceState, id: string, patch: CronJob
       }
     }
 
-    if (job.enabled) {
-      job.state.nextRunAtMs = computeJobNextRunAtMs(job, now);
-    } else {
-      job.state.nextRunAtMs = undefined;
-      job.state.runningAtMs = undefined;
+    if (scheduleChanged || enabledChanged) {
+      if (job.enabled) {
+        job.state.nextRunAtMs = computeJobNextRunAtMs(job, now);
+      } else {
+        job.state.nextRunAtMs = undefined;
+        job.state.runningAtMs = undefined;
+      }
     }
 
     await persist(state);

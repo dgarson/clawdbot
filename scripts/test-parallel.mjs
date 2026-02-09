@@ -2,7 +2,6 @@ import { spawn } from "node:child_process";
 import os from "node:os";
 
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-const cliArgs = process.argv.slice(2);
 
 const runs = [
   {
@@ -30,14 +29,15 @@ const shardCount = isWindowsCi
     ? shardOverride
     : 2
   : 1;
-const windowsCiArgs = isWindowsCi
-  ? ["--no-file-parallelism", "--dangerouslyIgnoreUnhandledErrors"]
-  : [];
+const windowsCiArgs = isWindowsCi ? ["--dangerouslyIgnoreUnhandledErrors"] : [];
+const rawPassthroughArgs = process.argv.slice(2);
+const passthroughArgs =
+  rawPassthroughArgs[0] === "--" ? rawPassthroughArgs.slice(1) : rawPassthroughArgs;
 const overrideWorkers = Number.parseInt(process.env.OPENCLAW_TEST_WORKERS ?? "", 10);
 const resolvedOverride =
   Number.isFinite(overrideWorkers) && overrideWorkers > 0 ? overrideWorkers : null;
-const parallelRuns = isWindowsCi ? [] : runs.filter((entry) => entry.name !== "gateway");
-const serialRuns = isWindowsCi ? runs : runs.filter((entry) => entry.name === "gateway");
+const parallelRuns = runs.filter((entry) => entry.name !== "gateway");
+const serialRuns = runs.filter((entry) => entry.name === "gateway");
 const localWorkers = Math.max(4, Math.min(16, os.cpus().length));
 const parallelCount = Math.max(1, parallelRuns.length);
 const perRunWorkers = Math.max(1, Math.floor(localWorkers / parallelCount));
@@ -74,13 +74,13 @@ const runOnce = (entry, extraArgs = []) =>
     });
   });
 
-const run = async (entry, extraArgs = []) => {
+const run = async (entry) => {
   if (shardCount <= 1) {
-    return runOnce(entry, extraArgs);
+    return runOnce(entry);
   }
   for (let shardIndex = 1; shardIndex <= shardCount; shardIndex += 1) {
     // eslint-disable-next-line no-await-in-loop
-    const code = await runOnce(entry, [...extraArgs, "--shard", `${shardIndex}/${shardCount}`]);
+    const code = await runOnce(entry, ["--shard", `${shardIndex}/${shardCount}`]);
     if (code !== 0) {
       return code;
     }
@@ -97,102 +97,31 @@ const shutdown = (signal) => {
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-const normalizePathHint = (value) => value.replaceAll("\\", "/");
-const inferTargetRuns = () => {
-  if (cliArgs.length === 0) {
-    return null;
-  }
-
-  const normalizedArgs = cliArgs.map(normalizePathHint);
-  const hasHelpFlag =
-    normalizedArgs.includes("--help") ||
-    normalizedArgs.includes("-h") ||
-    normalizedArgs.includes("--version") ||
-    normalizedArgs.includes("-V");
-  const hasConfigOverride = normalizedArgs.includes("--config") || normalizedArgs.includes("-c");
-  if (hasConfigOverride || hasHelpFlag) {
-    return [{ name: "custom", args: ["vitest", "run"] }];
-  }
-
-  const positionalArgs = normalizedArgs.filter((arg) => !arg.startsWith("-"));
-  const matchesExtensions = positionalArgs.some(
-    (arg) =>
-      arg === "extensions" ||
-      arg.includes("extensions/") ||
-      arg.includes("/extensions/") ||
-      arg.endsWith("/extensions"),
+if (passthroughArgs.length > 0) {
+  const args = maxWorkers
+    ? ["vitest", "run", "--maxWorkers", String(maxWorkers), ...windowsCiArgs, ...passthroughArgs]
+    : ["vitest", "run", ...windowsCiArgs, ...passthroughArgs];
+  const nodeOptions = process.env.NODE_OPTIONS ?? "";
+  const nextNodeOptions = WARNING_SUPPRESSION_FLAGS.reduce(
+    (acc, flag) => (acc.includes(flag) ? acc : `${acc} ${flag}`.trim()),
+    nodeOptions,
   );
-  const matchesGateway = positionalArgs.some(
-    (arg) =>
-      arg === "src/gateway" ||
-      arg.includes("src/gateway/") ||
-      arg.includes("/src/gateway/") ||
-      arg.endsWith("/src/gateway"),
-  );
-  const matchesUnit = positionalArgs.some((arg) => {
-    if (
-      arg === "extensions" ||
-      arg.includes("extensions/") ||
-      arg.includes("/extensions/") ||
-      arg.endsWith("/extensions")
-    ) {
-      return false;
-    }
-    if (
-      arg === "src/gateway" ||
-      arg.includes("src/gateway/") ||
-      arg.includes("/src/gateway/") ||
-      arg.endsWith("/src/gateway")
-    ) {
-      return false;
-    }
-    return (
-      arg === "src" ||
-      arg.includes("src/") ||
-      arg.includes("/src/") ||
-      arg === "test" ||
-      arg.includes("test/") ||
-      arg.includes("/test/") ||
-      arg.endsWith(".test.ts")
-    );
+  const code = await new Promise((resolve) => {
+    const child = spawn(pnpm, args, {
+      stdio: "inherit",
+      env: { ...process.env, NODE_OPTIONS: nextNodeOptions },
+      shell: process.platform === "win32",
+    });
+    children.add(child);
+    child.on("exit", (exitCode, signal) => {
+      children.delete(child);
+      resolve(exitCode ?? (signal ? 1 : 0));
+    });
   });
-
-  const selected = [];
-  if (matchesUnit) {
-    selected.push(runs.find((entry) => entry.name === "unit"));
-  }
-  if (matchesExtensions) {
-    selected.push(runs.find((entry) => entry.name === "extensions"));
-  }
-  if (matchesGateway) {
-    selected.push(runs.find((entry) => entry.name === "gateway"));
-  }
-
-  if (selected.length > 0) {
-    return selected.filter(Boolean);
-  }
-
-  if (positionalArgs.length > 0) {
-    return [runs.find((entry) => entry.name === "unit")].filter(Boolean);
-  }
-
-  // Flag-only runs like `pnpm test -- -t foo` should still cover everything.
-  return runs;
-};
-
-const targetRuns = inferTargetRuns();
-if (targetRuns) {
-  for (const entry of targetRuns) {
-    // eslint-disable-next-line no-await-in-loop
-    const code = await run(entry, cliArgs);
-    if (code !== 0) {
-      process.exit(code);
-    }
-  }
-  process.exit(0);
+  process.exit(Number(code) || 0);
 }
 
-const parallelCodes = await Promise.all(parallelRuns.map((entry) => run(entry)));
+const parallelCodes = await Promise.all(parallelRuns.map(run));
 const failedParallel = parallelCodes.find((code) => code !== 0);
 if (failedParallel !== undefined) {
   process.exit(failedParallel);

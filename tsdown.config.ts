@@ -24,6 +24,12 @@ export default defineConfig([
     outputOptions: { codeSplitting: false },
   },
   {
+    entry: "src/infra/warning-filter.ts",
+    env,
+    fixedExtension: false,
+    platform: "node",
+  },
+  {
     entry: "src/plugin-sdk/index.ts",
     outDir: "dist/plugin-sdk",
     env,
