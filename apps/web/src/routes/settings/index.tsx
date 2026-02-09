@@ -11,6 +11,7 @@ import {
   ToolsetsSection,
   HealthSection,
   AdvancedSection,
+  DebugLoggingSection,
   ConnectionsSectionWithOAuth,
   UsageSection,
   GuidancePacksSection,
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/settings/")({
       "agents",
       "guidance",
       "toolsets",
+      "debug-logging",
       "advanced",
       "connections",
       "usage",
@@ -119,6 +121,8 @@ function SettingsPage() {
         return <GuidancePacksSection />;
       case "toolsets":
         return <ToolsetsSection />;
+      case "debug-logging":
+        return <DebugLoggingSection />;
       case "advanced":
         return <AdvancedSection onOpenShortcuts={() => setShortcutsOpen(true)} />;
       case "connections":
