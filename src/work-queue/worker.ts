@@ -595,7 +595,7 @@ export class WorkQueueWorker {
           parts.push(`blockedBy=[${it.blockedBy.join(",")}]`);
         }
         parts.push(`skip-reason: ${reason}`);
-        this.deps.log.trace(`worker[${this.agentId}]: pending item: ${parts.join(", ")}`);
+        // this.deps.log.trace(`worker[${this.agentId}]: pending item: ${parts.join(", ")}`);
       }
 
       // Detect leaf dependencies (actionable bottlenecks).
