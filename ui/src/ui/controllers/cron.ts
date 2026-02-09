@@ -2,6 +2,7 @@ import type { GatewayBrowserClient } from "../gateway.ts";
 import type { CronJob, CronRunLogEntry, CronStatus } from "../types.ts";
 import type { CronFormState } from "../ui-types.ts";
 import { toNumber } from "../format.ts";
+import { optimistic, snapshot } from "../utils/optimistic.ts";
 
 export type CronState = {
   client: GatewayBrowserClient | null;
@@ -151,17 +152,39 @@ export async function toggleCronJob(state: CronState, job: CronJob, enabled: boo
   if (!state.client || !state.connected || state.cronBusy) {
     return;
   }
-  state.cronBusy = true;
-  state.cronError = null;
-  try {
-    await state.client.request("cron.update", { id: job.id, patch: { enabled } });
-    await loadCronJobs(state);
-    await loadCronStatus(state);
-  } catch (err) {
-    state.cronError = String(err);
-  } finally {
-    state.cronBusy = false;
-  }
+
+  // Snapshot for rollback
+  const prevJobs = snapshot(state.cronJobs);
+  const prevStatus = state.cronStatus ? snapshot(state.cronStatus) : null;
+
+  await optimistic({
+    apply() {
+      // Optimistically toggle the job's enabled state
+      state.cronJobs = state.cronJobs.map((j) => (j.id === job.id ? { ...j, enabled } : j));
+      // Optimistically update the status job count if disabling/enabling
+      if (state.cronStatus) {
+        const enabledDelta = enabled ? 1 : -1;
+        const currentEnabled = state.cronJobs.filter((j) => j.enabled).length;
+        state.cronStatus = { ...state.cronStatus, jobs: currentEnabled + enabledDelta };
+      }
+      state.cronBusy = true;
+      state.cronError = null;
+    },
+    rollback() {
+      state.cronJobs = prevJobs;
+      state.cronStatus = prevStatus;
+      state.cronBusy = false;
+    },
+    mutate: () => state.client!.request("cron.update", { id: job.id, patch: { enabled } }),
+    async refresh() {
+      await loadCronJobs(state);
+      await loadCronStatus(state);
+      state.cronBusy = false;
+    },
+    errorTitle: `Toggle ${enabled ? "enable" : "disable"} failed`,
+  });
+
+  state.cronBusy = false;
 }
 
 export async function runCronJob(state: CronState, job: CronJob) {
@@ -184,21 +207,41 @@ export async function removeCronJob(state: CronState, job: CronJob) {
   if (!state.client || !state.connected || state.cronBusy) {
     return;
   }
-  state.cronBusy = true;
-  state.cronError = null;
-  try {
-    await state.client.request("cron.remove", { id: job.id });
-    if (state.cronRunsJobId === job.id) {
-      state.cronRunsJobId = null;
-      state.cronRuns = [];
-    }
-    await loadCronJobs(state);
-    await loadCronStatus(state);
-  } catch (err) {
-    state.cronError = String(err);
-  } finally {
-    state.cronBusy = false;
-  }
+
+  // Snapshot for rollback
+  const prevJobs = snapshot(state.cronJobs);
+  const prevStatus = state.cronStatus ? snapshot(state.cronStatus) : null;
+  const prevRunsJobId = state.cronRunsJobId;
+  const prevRuns = snapshot(state.cronRuns);
+
+  await optimistic({
+    apply() {
+      // Optimistically remove the job from the list
+      state.cronJobs = state.cronJobs.filter((j) => j.id !== job.id);
+      if (state.cronRunsJobId === job.id) {
+        state.cronRunsJobId = null;
+        state.cronRuns = [];
+      }
+      state.cronBusy = true;
+      state.cronError = null;
+    },
+    rollback() {
+      state.cronJobs = prevJobs;
+      state.cronStatus = prevStatus;
+      state.cronRunsJobId = prevRunsJobId;
+      state.cronRuns = prevRuns;
+      state.cronBusy = false;
+    },
+    mutate: () => state.client!.request("cron.remove", { id: job.id }),
+    async refresh() {
+      await loadCronJobs(state);
+      await loadCronStatus(state);
+      state.cronBusy = false;
+    },
+    errorTitle: "Remove job failed",
+  });
+
+  state.cronBusy = false;
 }
 
 export async function loadCronRuns(state: CronState, jobId: string) {

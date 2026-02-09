@@ -2,6 +2,7 @@ import type { GatewayBrowserClient } from "../gateway.ts";
 import type { SessionsListResult, GatewaySessionRow } from "../types.ts";
 import { showDangerConfirmDialog } from "../components/confirm-dialog.ts";
 import { toNumber } from "../format.ts";
+import { optimistic, snapshot } from "../utils/optimistic.ts";
 
 export type SessionsState = {
   client: GatewayBrowserClient | null;
@@ -104,16 +105,42 @@ export async function abortSession(state: SessionsState, key: string) {
   if (!confirmed) {
     return;
   }
-  state.sessionsLoading = true;
-  state.sessionsError = null;
-  try {
-    await state.client.request("chat.abort", { sessionKey: key });
-    await loadSessions(state);
-  } catch (err) {
-    state.sessionsError = String(err);
-  } finally {
-    state.sessionsLoading = false;
-  }
+
+  // Snapshot for rollback
+  const prevResult = state.sessionsResult ? snapshot(state.sessionsResult) : null;
+  const prevSessions = state.sessionsResult?.sessions
+    ? snapshot(state.sessionsResult.sessions)
+    : null;
+
+  await optimistic({
+    apply() {
+      // Optimistically mark the session as aborting
+      if (state.sessionsResult?.sessions) {
+        state.sessionsResult = {
+          ...state.sessionsResult,
+          sessions: state.sessionsResult.sessions.map((s) =>
+            s.key === key ? { ...s, abortedLastRun: true } : s,
+          ),
+        };
+      }
+      state.sessionsLoading = true;
+      state.sessionsError = null;
+    },
+    rollback() {
+      if (prevResult && prevSessions) {
+        state.sessionsResult = { ...prevResult, sessions: prevSessions };
+      }
+      state.sessionsLoading = false;
+    },
+    mutate: () => state.client!.request("chat.abort", { sessionKey: key }),
+    async refresh() {
+      state.sessionsLoading = false;
+      await loadSessions(state);
+    },
+    errorTitle: "Abort failed",
+  });
+
+  state.sessionsLoading = false;
 }
 
 /** Get active sessions (updated within the last 5 minutes, excluding global). */
@@ -143,20 +170,54 @@ export async function abortAllSessions(state: SessionsState) {
   if (!confirmed) {
     return;
   }
-  state.sessionsLoading = true;
-  state.sessionsError = null;
-  const errors: string[] = [];
-  for (const session of activeSessions) {
-    try {
-      await state.client.request("chat.abort", { sessionKey: session.key });
-    } catch (err) {
-      errors.push(`${session.key}: ${String(err)}`);
-    }
-  }
-  if (errors.length > 0) {
-    state.sessionsError = `Some aborts failed:\n${errors.join("\n")}`;
-  }
-  await loadSessions(state);
+
+  // Snapshot for rollback
+  const prevResult = state.sessionsResult ? snapshot(state.sessionsResult) : null;
+  const prevSessions = state.sessionsResult?.sessions
+    ? snapshot(state.sessionsResult.sessions)
+    : null;
+  const activeKeys = new Set(activeSessions.map((s) => s.key));
+
+  await optimistic({
+    apply() {
+      // Optimistically mark all active sessions as aborting
+      if (state.sessionsResult?.sessions) {
+        state.sessionsResult = {
+          ...state.sessionsResult,
+          sessions: state.sessionsResult.sessions.map((s) =>
+            activeKeys.has(s.key) ? { ...s, abortedLastRun: true } : s,
+          ),
+        };
+      }
+      state.sessionsLoading = true;
+      state.sessionsError = null;
+    },
+    rollback() {
+      if (prevResult && prevSessions) {
+        state.sessionsResult = { ...prevResult, sessions: prevSessions };
+      }
+      state.sessionsLoading = false;
+    },
+    async mutate() {
+      const errors: string[] = [];
+      for (const session of activeSessions) {
+        try {
+          await state.client!.request("chat.abort", { sessionKey: session.key });
+        } catch (err) {
+          errors.push(`${session.key}: ${String(err)}`);
+        }
+      }
+      if (errors.length > 0) {
+        throw new Error(`Some aborts failed:\n${errors.join("\n")}`);
+      }
+    },
+    async refresh() {
+      await loadSessions(state);
+      state.sessionsLoading = false;
+    },
+    errorTitle: "Abort all failed",
+  });
+
   state.sessionsLoading = false;
 }
 
@@ -185,20 +246,54 @@ export async function abortSessionsForAgent(state: SessionsState, agentId: strin
   if (!confirmed) {
     return;
   }
-  state.sessionsLoading = true;
-  state.sessionsError = null;
-  const errors: string[] = [];
-  for (const session of agentSessions) {
-    try {
-      await state.client.request("chat.abort", { sessionKey: session.key });
-    } catch (err) {
-      errors.push(`${session.key}: ${String(err)}`);
-    }
-  }
-  if (errors.length > 0) {
-    state.sessionsError = `Some aborts failed:\n${errors.join("\n")}`;
-  }
-  await loadSessions(state);
+
+  // Snapshot for rollback
+  const prevResult = state.sessionsResult ? snapshot(state.sessionsResult) : null;
+  const prevSessions = state.sessionsResult?.sessions
+    ? snapshot(state.sessionsResult.sessions)
+    : null;
+  const agentKeys = new Set(agentSessions.map((s) => s.key));
+
+  await optimistic({
+    apply() {
+      // Optimistically mark agent sessions as aborting
+      if (state.sessionsResult?.sessions) {
+        state.sessionsResult = {
+          ...state.sessionsResult,
+          sessions: state.sessionsResult.sessions.map((s) =>
+            agentKeys.has(s.key) ? { ...s, abortedLastRun: true } : s,
+          ),
+        };
+      }
+      state.sessionsLoading = true;
+      state.sessionsError = null;
+    },
+    rollback() {
+      if (prevResult && prevSessions) {
+        state.sessionsResult = { ...prevResult, sessions: prevSessions };
+      }
+      state.sessionsLoading = false;
+    },
+    async mutate() {
+      const errors: string[] = [];
+      for (const session of agentSessions) {
+        try {
+          await state.client!.request("chat.abort", { sessionKey: session.key });
+        } catch (err) {
+          errors.push(`${session.key}: ${String(err)}`);
+        }
+      }
+      if (errors.length > 0) {
+        throw new Error(`Some aborts failed:\n${errors.join("\n")}`);
+      }
+    },
+    async refresh() {
+      await loadSessions(state);
+      state.sessionsLoading = false;
+    },
+    errorTitle: `Agent abort failed`,
+  });
+
   state.sessionsLoading = false;
 }
 
@@ -217,14 +312,40 @@ export async function deleteSession(state: SessionsState, key: string) {
   if (!confirmed) {
     return;
   }
-  state.sessionsLoading = true;
-  state.sessionsError = null;
-  try {
-    await state.client.request("sessions.delete", { key, deleteTranscript: true });
-    await loadSessions(state);
-  } catch (err) {
-    state.sessionsError = String(err);
-  } finally {
-    state.sessionsLoading = false;
-  }
+
+  // Snapshot for rollback
+  const prevResult = state.sessionsResult ? snapshot(state.sessionsResult) : null;
+  const prevSessions = state.sessionsResult?.sessions
+    ? snapshot(state.sessionsResult.sessions)
+    : null;
+
+  await optimistic({
+    apply() {
+      // Optimistically remove the session from the list
+      if (state.sessionsResult?.sessions) {
+        const filtered = state.sessionsResult.sessions.filter((s) => s.key !== key);
+        state.sessionsResult = {
+          ...state.sessionsResult,
+          sessions: filtered,
+          count: filtered.length,
+        };
+      }
+      state.sessionsLoading = true;
+      state.sessionsError = null;
+    },
+    rollback() {
+      if (prevResult && prevSessions) {
+        state.sessionsResult = { ...prevResult, sessions: prevSessions };
+      }
+      state.sessionsLoading = false;
+    },
+    mutate: () => state.client!.request("sessions.delete", { key, deleteTranscript: true }),
+    async refresh() {
+      state.sessionsLoading = false;
+      await loadSessions(state);
+    },
+    errorTitle: "Delete failed",
+  });
+
+  state.sessionsLoading = false;
 }

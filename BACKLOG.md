@@ -98,7 +98,7 @@ Reference: `dgarson/IMPROVEMENT-IDEAS.md` (198 incomplete items across 14 catego
 
 - [~] Add skeleton screens for views that load data (sessions, agents, nodes, skills, logs, chat already done; overseer + cron added in `autodev-skeleton-screens`)
 - [x] Add progress indicators for long-running operations — PR #212
-- [ ] Implement optimistic UI updates
+- [x] Implement optimistic UI updates — `autodev-optimistic-ui-updates`
 
 ### Empty States
 
