@@ -31,16 +31,16 @@ export function createNotionGetPageContentTool(opts: NotionToolOptions): AnyAgen
       "(paragraphs, headings, lists, code blocks, etc.). Use notion_get_page to get properties/metadata.",
     parameters: GetPageContentSchema,
     execute: async (_toolCallId, args) => {
-      const params = args as Record<string, unknown>;
-      const pageId = readStringParam(params, "page_id", { required: true });
-      const startCursor = readStringParam(params, "start_cursor");
-      const pageSize = readNumberParam(params, "page_size", { integer: true });
-
-      if (!pageId) {
-        return jsonResult({ error: "page_id is required" });
-      }
-
       try {
+        const params = args as Record<string, unknown>;
+        const pageId = readStringParam(params, "page_id", { required: true });
+        const startCursor = readStringParam(params, "start_cursor");
+        const pageSize = readNumberParam(params, "page_size", { integer: true });
+
+        if (!pageId) {
+          return jsonResult({ error: "page_id is required" });
+        }
+
         const result = await notionGetBlocks(toApiOpts(opts), pageId, {
           start_cursor: startCursor || undefined,
           page_size: Math.min(Math.max(pageSize ?? 100, 1), 100),

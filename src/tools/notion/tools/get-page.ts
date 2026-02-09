@@ -21,14 +21,14 @@ export function createNotionGetPageTool(opts: NotionToolOptions): AnyAgentTool {
       "Use notion_get_page_content to get the actual block content of the page.",
     parameters: GetPageSchema,
     execute: async (_toolCallId, args) => {
-      const params = args as Record<string, unknown>;
-      const pageId = readStringParam(params, "page_id", { required: true });
-
-      if (!pageId) {
-        return jsonResult({ error: "page_id is required" });
-      }
-
       try {
+        const params = args as Record<string, unknown>;
+        const pageId = readStringParam(params, "page_id", { required: true });
+
+        if (!pageId) {
+          return jsonResult({ error: "page_id is required" });
+        }
+
         const result = await notionGetPage(toApiOpts(opts), pageId);
         return jsonResult(result);
       } catch (error) {

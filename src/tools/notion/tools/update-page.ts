@@ -74,6 +74,33 @@ export function createNotionUpdatePageTool(opts: NotionToolOptions): AnyAgentToo
       }
 
       try {
+        const params = args as Record<string, unknown>;
+        const pageId = readStringParam(params, "page_id", { required: true });
+        const properties = parseJsonParam(params.properties);
+        const archived = params.archived;
+        const icon = parseJsonParam(params.icon);
+        const cover = parseJsonParam(params.cover);
+
+        if (!pageId) {
+          return jsonResult({ error: "page_id is required" });
+        }
+
+        const updateParams: Record<string, unknown> = {};
+        if (properties && typeof properties === "object") {
+          updateParams.properties = properties;
+        }
+        if (typeof archived === "boolean") {
+          updateParams.archived = archived;
+        }
+        if (icon) updateParams.icon = icon;
+        if (cover) updateParams.cover = cover;
+
+        if (Object.keys(updateParams).length === 0) {
+          return jsonResult({
+            error: "At least one field to update is required (properties, archived, icon, cover)",
+          });
+        }
+
         const result = await notionUpdatePage(toApiOpts(opts), pageId, updateParams);
         return jsonResult(result);
       } catch (error) {

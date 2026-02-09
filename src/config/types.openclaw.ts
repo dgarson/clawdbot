@@ -114,6 +114,8 @@ export type OpenClawConfig = {
   execution?: ExecutionConfig;
   /** Debugging configuration (short-term testing flags and channel overrides). */
   debugging?: DebuggingConfig;
+  /** Notion bidirectional integration (webhook inbound + API tools outbound). */
+  notion?: NotionConfig;
   /** Experiential capture system configuration. */
   experiential?: {
     enabled?: boolean;

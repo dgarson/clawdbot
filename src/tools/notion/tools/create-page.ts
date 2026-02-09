@@ -94,6 +94,25 @@ export function createNotionCreatePageTool(opts: NotionToolOptions): AnyAgentToo
       }
 
       try {
+        const params = args as Record<string, unknown>;
+        const parentType = readStringParam(params, "parent_type", { required: true });
+        const parentId = readStringParam(params, "parent_id", { required: true });
+        const properties = parseJsonParam(params.properties);
+        const children = parseJsonParam(params.children);
+        const icon = parseJsonParam(params.icon);
+        const cover = parseJsonParam(params.cover);
+
+        if (!parentType || !parentId) {
+          return jsonResult({ error: "parent_type and parent_id are required" });
+        }
+
+        if (!properties || typeof properties !== "object") {
+          return jsonResult({ error: "properties must be a valid JSON object" });
+        }
+
+        const parent =
+          parentType === "database" ? { database_id: parentId } : { page_id: parentId };
+
         const result = await notionCreatePage(toApiOpts(opts), {
           parent,
           properties: properties as Record<string, unknown>,

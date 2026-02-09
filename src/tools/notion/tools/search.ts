@@ -43,14 +43,14 @@ export function createNotionSearchTool(opts: NotionToolOptions): AnyAgentTool {
       "Use filter_type to narrow to 'page' or 'database' only.",
     parameters: SearchSchema,
     execute: async (_toolCallId, args) => {
-      const params = args as Record<string, unknown>;
-      const query = readStringParam(params, "query");
-      const filterType = readStringParam(params, "filter_type");
-      const sortDirection = readStringParam(params, "sort_direction");
-      const pageSize = readNumberParam(params, "page_size", { integer: true });
-      const startCursor = readStringParam(params, "start_cursor");
-
       try {
+        const params = args as Record<string, unknown>;
+        const query = readStringParam(params, "query");
+        const filterType = readStringParam(params, "filter_type");
+        const sortDirection = readStringParam(params, "sort_direction");
+        const pageSize = readNumberParam(params, "page_size", { integer: true });
+        const startCursor = readStringParam(params, "start_cursor");
+
         const result = await notionSearch(toApiOpts(opts), {
           query: query || undefined,
           filter: filterType ? { value: filterType, property: "object" } : undefined,
