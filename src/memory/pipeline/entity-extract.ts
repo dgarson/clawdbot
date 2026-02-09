@@ -1,6 +1,7 @@
 import type { GraphitiNodeDTO, GraphitiEdgeDTO } from "../graphiti/adapter.js";
 import type { GraphitiClient } from "../graphiti/client.js";
 import type { MemoryContentObject } from "../types.js";
+import { isGraphitiAvailable } from "../graphiti/health-probe.js";
 
 // ───────────────────── Types ─────────────────────
 
@@ -465,6 +466,14 @@ export async function writeEntitiesToGraph(params: {
         message: `Extracted ${entities.length} entities but Graphiti client is not configured; skipping graph write.`,
       });
     }
+    return { warnings };
+  }
+
+  if (!isGraphitiAvailable()) {
+    warnings.push({
+      code: "entity_extract.service_unavailable",
+      message: "Graphiti marked unavailable by health probe; skipping entity graph write.",
+    });
     return { warnings };
   }
 

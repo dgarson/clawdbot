@@ -18,6 +18,7 @@ import {
 import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { createManagedProcessManager } from "../infra/managed-processes.js";
+import { startGraphitiHealthProbe } from "../memory/graphiti/health-probe.js";
 import { registerMemoryPipelineHooks } from "../memory/hooks/index.js";
 import { startObsidianIntegration } from "../obsidian/startup.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
@@ -129,6 +130,7 @@ export async function startGatewaySidecars(params: {
     const loadedCount = await loadInternalHooks(params.cfg, params.defaultWorkspaceDir);
     registerMemoryPipelineHooks();
     startCompactionScheduler(params.cfg);
+    startGraphitiHealthProbe(params.cfg.memory?.graphiti);
     if (loadedCount > 0) {
       params.logHooks.info(
         `loaded ${loadedCount} internal hook handler${loadedCount > 1 ? "s" : ""}`,

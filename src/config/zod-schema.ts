@@ -121,6 +121,7 @@ const MemoryGraphitiSchema = z
     baseUrl: z.string().optional(),
     apiKey: z.string().optional(),
     timeoutMs: z.number().int().nonnegative().optional(),
+    healthProbeIntervalMinutes: z.number().positive().optional(),
   })
   .strict();
 

@@ -14,6 +14,7 @@ export type MemoryGraphitiConfig = {
   servicePort?: number; // default: 8001
   apiKey?: string;
   timeoutMs?: number; // default: 10000
+  healthProbeIntervalMinutes?: number; // default: 5
 };
 
 export type MemoryModelConfig = {
