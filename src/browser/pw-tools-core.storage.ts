@@ -173,7 +173,7 @@ export async function restoreStorageStateViaPlaywright(opts: {
   // Restore cookies
   const cookies = state.cookies ?? [];
   if (cookies.length > 0) {
-    await context.addCookies(cookies as Parameters<typeof context.addCookies>[0]);
+    await context.addCookies(cookies as unknown as Parameters<typeof context.addCookies>[0]);
   }
 
   // Restore localStorage per origin

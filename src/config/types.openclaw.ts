@@ -24,6 +24,7 @@ import type {
 } from "./types.messages.js";
 import type { ModelsConfig } from "./types.models.js";
 import type { NodeHostConfig } from "./types.node-host.js";
+import type { NotionConfig } from "./types.notion.js";
 import type { ObsidianConfig } from "./types.obsidian.js";
 import type { OverseerConfig } from "./types.overseer.js";
 import type { PluginsConfig } from "./types.plugins.js";
