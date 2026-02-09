@@ -91,8 +91,8 @@ export function GenericChannelConfigDialog({
   const [selectedAuthMode, setSelectedAuthMode] = React.useState<string>("");
   const [oauthAuthorized, setOauthAuthorized] = React.useState(false);
 
-  const IconComponent = channelIconMap[channel.id];
-  const channelColor = channelColorMap[channel.id];
+  const IconComponent = channelIconMap[channel.id] ?? HelpCircle;
+  const channelColor = channelColorMap[channel.id] ?? "hsl(var(--muted-foreground))";
 
   React.useEffect(() => {
     if (open) {
