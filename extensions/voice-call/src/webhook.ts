@@ -22,6 +22,38 @@ type Logger = {
   debug?: (message: string) => void;
 };
 
+function asNonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function resolveOpenAIKeyFromCoreConfig(coreConfig: CoreConfig | null): string | undefined {
+  if (!coreConfig) {
+    return undefined;
+  }
+
+  const envConfig = coreConfig.env;
+  const keyFromEnvVars = asNonEmptyString(envConfig?.vars?.OPENAI_API_KEY);
+  if (keyFromEnvVars) {
+    return keyFromEnvVars;
+  }
+
+  const keyFromEnvSugar = asNonEmptyString(envConfig?.OPENAI_API_KEY);
+  if (keyFromEnvSugar) {
+    return keyFromEnvSugar;
+  }
+
+  const keyFromModelsProvider = asNonEmptyString(coreConfig.models?.providers?.openai?.apiKey);
+  if (keyFromModelsProvider) {
+    return keyFromModelsProvider;
+  }
+
+  return undefined;
+}
+
 /**
  * HTTP server for receiving voice call webhooks from providers.
  * Supports WebSocket upgrades for media streams when streaming is enabled.
@@ -72,7 +104,10 @@ export class VoiceCallWebhookServer {
    * Initialize media streaming with OpenAI Realtime STT.
    */
   private initializeMediaStreaming(): void {
-    const apiKey = this.config.streaming?.openaiApiKey || process.env.OPENAI_API_KEY;
+    const apiKey =
+      asNonEmptyString(this.config.streaming?.openaiApiKey) ??
+      resolveOpenAIKeyFromCoreConfig(this.coreConfig) ??
+      asNonEmptyString(process.env.OPENAI_API_KEY);
 
     if (!apiKey) {
       console.warn("[voice-call] Streaming enabled but no OpenAI API key found");

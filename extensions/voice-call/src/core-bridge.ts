@@ -4,6 +4,19 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import type { VoiceCallTtsConfig } from "./config.js";
 
 export type CoreConfig = {
+  env?: {
+    vars?: Record<string, string>;
+    [key: string]: unknown;
+  };
+  models?: {
+    providers?: Record<
+      string,
+      {
+        apiKey?: string;
+        [key: string]: unknown;
+      }
+    >;
+  };
   session?: {
     store?: string;
   };

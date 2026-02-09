@@ -3,6 +3,7 @@ import { Type } from "@sinclair/typebox";
 import crypto from "node:crypto";
 import { jsonResult, readNumberParam, readStringParam } from "openclaw/plugin-sdk";
 import type { MeridiaExperienceRecord } from "../meridia/types.js";
+import { getDefaultBridge } from "../graphiti-bridge.js";
 import { createBackend } from "../meridia/db/index.js";
 import {
   resolveHookConfig,
@@ -142,17 +143,26 @@ export function createExperienceCaptureTool(opts?: {
         );
         const graphGroupId = readString(graphitiCfg, "groupId");
         if (graphEnabled && significance >= graphMinSignificance) {
-          const queueResult = enqueueGraphFanout({
-            record: sanitizedRecord,
-            cfg: opts?.config,
-            options: {
-              source: "meridia.manual-capture",
-              groupId: graphGroupId,
-            },
-          });
-          if (!queueResult.enqueued && queueResult.reason === "queue_full") {
-            // eslint-disable-next-line no-console
-            console.warn(`[fanout] Graph queue full, dropped manual record ${sanitizedRecord.id}`);
+          // Try the unified bridge first (supports batching + MCP path)
+          const bridge = getDefaultBridge(opts?.config);
+          if (bridge) {
+            bridge.addRecord(sanitizedRecord);
+          } else {
+            // Fall back to direct retry queue fanout
+            const queueResult = enqueueGraphFanout({
+              record: sanitizedRecord,
+              cfg: opts?.config,
+              options: {
+                source: "meridia.manual-capture",
+                groupId: graphGroupId,
+              },
+            });
+            if (!queueResult.enqueued && queueResult.reason === "queue_full") {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[fanout] Graph queue full, dropped manual record ${sanitizedRecord.id}`,
+              );
+            }
           }
         }
 
