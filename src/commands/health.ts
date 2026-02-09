@@ -1,5 +1,6 @@
 import type { ChannelAccountSnapshot } from "../channels/plugins/types.js";
 import type { OpenClawConfig } from "../config/config.js";
+import type { DependencyHealthStatus } from "../infra/health/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { resolveChannelDefaultAccountId } from "../channels/plugins/helpers.js";
@@ -11,6 +12,10 @@ import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { info } from "../globals.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { formatErrorMessage } from "../infra/errors.js";
+import {
+  getDependencyHealthSnapshot,
+  refreshAllDependencyHealth,
+} from "../infra/health/registry.js";
 import {
   type HeartbeatSummary,
   resolveHeartbeatSummaryForAgent,
@@ -71,6 +76,7 @@ export type HealthSummary = {
     }>;
   };
   obsidian?: import("../obsidian/health.js").ObsidianHealthSnapshot | null;
+  dependencies?: DependencyHealthStatus[];
 };
 
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -566,6 +572,7 @@ export async function getHealthSnapshot(params?: {
         healthState: runtime?.health ?? { watcherActive: false, lastChangeAt: null },
       });
     })(),
+    dependencies: doProbe ? await refreshAllDependencyHealth() : getDependencyHealthSnapshot(),
   };
 
   return summary;
