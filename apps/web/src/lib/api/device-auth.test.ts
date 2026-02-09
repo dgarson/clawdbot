@@ -2,20 +2,28 @@
  * Unit tests for device-auth module
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import {
   loadDeviceAuthToken,
   storeDeviceAuthToken,
   clearDeviceAuthToken,
   buildDeviceAuthPayload,
 } from "./device-auth";
+import { installMockLocalStorage, type MockLocalStorageController } from "@/test/mock-local-storage";
 
 const STORAGE_KEY = "clawdbrain.device.auth.v1";
 
 describe("device-auth", () => {
+  let localStorageMock: MockLocalStorageController | null = null;
+
   beforeEach(() => {
+    localStorageMock = installMockLocalStorage();
     // Clear localStorage before each test
-    localStorage.clear();
+    localStorageMock.reset([STORAGE_KEY]);
+  });
+
+  afterAll(() => {
+    localStorageMock?.restore();
   });
 
   describe("buildDeviceAuthPayload", () => {

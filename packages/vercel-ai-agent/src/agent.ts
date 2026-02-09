@@ -1,7 +1,7 @@
 import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
 import { google, createGoogleGenerativeAI } from "@ai-sdk/google";
 import { openai, createOpenAI } from "@ai-sdk/openai";
-import { streamText, generateText, convertToModelMessages, type UIMessage } from "ai";
+import { streamText, generateText, convertToModelMessages, type UIMessage, type ToolSet } from "ai";
 import type {
   AgentConfig,
   AgentRunInput,
@@ -157,11 +157,11 @@ function mergeCallbacks(
 export class ConversationalAgent {
   private config: AgentConfig;
   private conversationHistory: ConversationMessage[] = [];
-  private tools: Record<string, unknown>;
+  private tools: ToolSet;
 
   constructor(config: AgentConfig) {
     this.config = config;
-    this.tools = config.tools || {};
+    this.tools = (config.tools || {}) as ToolSet;
   }
 
   /**
@@ -188,7 +188,7 @@ export class ConversationalAgent {
   /**
    * Register a new tool
    */
-  registerTool(name: string, tool: unknown): this {
+  registerTool(name: string, tool: ToolSet[string]): this {
     this.tools[name] = tool;
     return this;
   }
@@ -196,7 +196,7 @@ export class ConversationalAgent {
   /**
    * Register multiple tools
    */
-  registerTools(tools: Record<string, unknown>): this {
+  registerTools(tools: ToolSet): this {
     this.tools = { ...this.tools, ...tools };
     return this;
   }
@@ -253,10 +253,10 @@ export class ConversationalAgent {
       while (shouldContinue && stepNumber < (executionConfig.maxSteps || 10)) {
         await callbacks.onStepStart?.(stepNumber);
 
-        // Generate with v5 API
+        // Generate with AI SDK
         const result = await generateText({
           model,
-          messages: convertToModelMessages(currentMessages),
+          messages: await convertToModelMessages(currentMessages),
           system: this.config.systemPrompt,
           tools: Object.keys(this.tools).length > 0 ? this.tools : undefined,
           maxOutputTokens: executionConfig.maxTokens,
@@ -445,10 +445,10 @@ export class ConversationalAgent {
           while (shouldContinue && stepNumber < (executionConfig.maxSteps || 10)) {
             await callbacks.onStepStart?.(stepNumber);
 
-            // Stream with v5 API
+            // Stream with AI SDK
             const result = streamText({
               model,
-              messages: convertToModelMessages(currentMessages),
+              messages: await convertToModelMessages(currentMessages),
               system: self.config.systemPrompt,
               tools: Object.keys(self.tools).length > 0 ? self.tools : undefined,
               maxOutputTokens: executionConfig.maxTokens,

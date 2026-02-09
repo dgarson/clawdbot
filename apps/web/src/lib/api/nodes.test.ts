@@ -168,7 +168,7 @@ describe("nodes API", () => {
       const res = await setExecApprovals(testFile, "h1");
       expect(hoisted.request).toHaveBeenCalledWith("exec.approvals.set", {
         file: testFile,
-        hash: "h1",
+        baseHash: "h1",
       });
       expect(res).toEqual({ ok: true, hash: "h2" });
     });
@@ -179,7 +179,7 @@ describe("nodes API", () => {
       await setExecApprovals(testFile, "h1", "node", "node-2");
       expect(hoisted.request).toHaveBeenCalledWith(
         "exec.approvals.node.set",
-        { nodeId: "node-2", file: testFile, hash: "h1" },
+        { nodeId: "node-2", file: testFile, baseHash: "h1" },
       );
     });
 
@@ -189,7 +189,7 @@ describe("nodes API", () => {
       await setExecApprovals(testFile, "h1", "node");
       expect(hoisted.request).toHaveBeenCalledWith("exec.approvals.set", {
         file: testFile,
-        hash: "h1",
+        baseHash: "h1",
       });
     });
   });

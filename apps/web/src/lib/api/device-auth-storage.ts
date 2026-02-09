@@ -23,6 +23,7 @@ const SHARED_TOKEN_KEY = "clawdbrain-gateway-token";
 const SHARED_PASSWORD_KEY = "clawdbrain-gateway-password";
 const GATEWAY_URL_KEY = "clawdbrain-gateway-url";
 const DEFAULT_GATEWAY_URL = "ws://127.0.0.1:18789";
+export const GATEWAY_URL_CHANGED_EVENT = "clawdbrain:gateway-url-changed";
 
 function normalizeRole(role: string): string {
   return role.trim();
@@ -247,6 +248,11 @@ export function storeGatewayUrl(url: string): void {
   }
   try {
     window.localStorage.setItem(GATEWAY_URL_KEY, normalized);
+    window.dispatchEvent(
+      new CustomEvent<{ gatewayUrl: string }>(GATEWAY_URL_CHANGED_EVENT, {
+        detail: { gatewayUrl: normalized },
+      })
+    );
   } catch {
     // best-effort
   }
@@ -258,6 +264,11 @@ export function storeGatewayUrl(url: string): void {
 export function clearStoredGatewayUrl(): void {
   try {
     window.localStorage.removeItem(GATEWAY_URL_KEY);
+    window.dispatchEvent(
+      new CustomEvent<{ gatewayUrl: string }>(GATEWAY_URL_CHANGED_EVENT, {
+        detail: { gatewayUrl: DEFAULT_GATEWAY_URL },
+      })
+    );
   } catch {
     // best-effort
   }

@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  GATEWAY_URL_CHANGED_EVENT,
   clearSharedGatewayPassword,
   clearSharedGatewayToken,
   clearStoredGatewayUrl,
@@ -8,29 +9,21 @@ import {
   loadStoredGatewayConnectionSettings,
   loadStoredGatewayUrl,
   persistGatewayConnectionFromUrl,
+  storeGatewayUrl,
 } from "./device-auth-storage";
+import { installMockLocalStorage, type MockLocalStorageController } from "@/test/mock-local-storage";
 
 describe("device-auth-storage", () => {
-  const backingStore = new Map<string, string>();
+  let localStorageMock: MockLocalStorageController | null = null;
 
   beforeEach(() => {
-    backingStore.clear();
-    Object.defineProperty(window, "localStorage", {
-      configurable: true,
-      value: {
-        getItem: (key: string) => backingStore.get(key) ?? null,
-        setItem: (key: string, value: string) => {
-          backingStore.set(key, value);
-        },
-        removeItem: (key: string) => {
-          backingStore.delete(key);
-        },
-        clear: () => {
-          backingStore.clear();
-        },
-      },
-    });
+    localStorageMock = installMockLocalStorage();
+    localStorageMock.reset();
     window.history.replaceState({}, "", "/");
+  });
+
+  afterAll(() => {
+    localStorageMock?.restore();
   });
 
   it("falls back to localhost gateway URL when none is stored", () => {
@@ -86,5 +79,29 @@ describe("device-auth-storage", () => {
     expect(loadSharedGatewayToken()).toBeNull();
     expect(loadSharedGatewayPassword()).toBeNull();
     expect(loadStoredGatewayUrl()).toBe("ws://127.0.0.1:18789");
+  });
+
+  it("dispatches gateway-url change event when storing a gateway URL", () => {
+    const handler = vi.fn();
+    window.addEventListener(GATEWAY_URL_CHANGED_EVENT, handler);
+
+    storeGatewayUrl("ws://gateway.local:18789");
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    const event = handler.mock.calls[0][0] as CustomEvent<{ gatewayUrl: string }>;
+    expect(event.detail.gatewayUrl).toBe("ws://gateway.local:18789");
+    window.removeEventListener(GATEWAY_URL_CHANGED_EVENT, handler);
+  });
+
+  it("dispatches gateway-url change event when clearing a gateway URL", () => {
+    const handler = vi.fn();
+    window.addEventListener(GATEWAY_URL_CHANGED_EVENT, handler);
+
+    clearStoredGatewayUrl();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    const event = handler.mock.calls[0][0] as CustomEvent<{ gatewayUrl: string }>;
+    expect(event.detail.gatewayUrl).toBe("ws://127.0.0.1:18789");
+    window.removeEventListener(GATEWAY_URL_CHANGED_EVENT, handler);
   });
 });

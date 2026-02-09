@@ -183,9 +183,10 @@ describe("withRetry (standalone)", () => {
     const op = vi.fn().mockRejectedValue(new Error("persistent"));
 
     const promise = withRetry(op, { maxRetries: 1, baseDelay: 50, jitter: false });
+    const rejection = expect(promise).rejects.toThrow("persistent");
     await vi.advanceTimersByTimeAsync(200);
 
-    await expect(promise).rejects.toThrow("persistent");
+    await rejection;
     expect(op).toHaveBeenCalledTimes(2); // initial + 1 retry
   });
 

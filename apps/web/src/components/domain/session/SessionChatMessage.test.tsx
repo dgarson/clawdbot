@@ -131,8 +131,9 @@ drwxr-xr-x@ 3 dgarson staff 96 Feb 1 20:13 .agent`,
     // Should show tool call
     expect(screen.getByText("web_search")).toBeInTheDocument();
 
-    // Should show status badge
-    expect(screen.getByText("Done")).toBeInTheDocument();
+    // Should show task timeline controls
+    expect(screen.getByText("Task")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show tool outputs" })).toBeInTheDocument();
 
     // Message bubble header should still render (with timestamp)
     expect(screen.getByText("Assistant")).toBeInTheDocument();

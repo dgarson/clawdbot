@@ -124,13 +124,12 @@ describe("ChannelConfig", () => {
     mockUseLogoutChannel.mockReturnValue({ mutateAsync: vi.fn() } as never);
   });
 
-  it("renders channel cards based on channelOrder", () => {
+  it("renders channel cards for channels shown in current UI", () => {
     renderWithClient(<ChannelConfig />);
 
-    expect(screen.getByText("Telegram")).toBeTruthy();
-    expect(screen.getByText("WhatsApp")).toBeTruthy();
-    expect(screen.getByText("Matrix")).toBeTruthy();
-    expect(screen.getByText("Custom Plug")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Configure telegram" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Configure whatsapp" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Configure customplug" })).toBeInTheDocument();
   });
 
   it("uses the WhatsApp backend pairing flow", async () => {

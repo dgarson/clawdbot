@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import {
   clearSharedGatewayPassword,
@@ -6,10 +6,19 @@ import {
   storeSharedGatewayToken,
 } from "@/lib/api/device-auth-storage";
 import { useConnectionManager } from "./useConnectionManager";
+import { installMockLocalStorage, type MockLocalStorageController } from "@/test/mock-local-storage";
+
+const CONNECTION_STORAGE_KEYS = [
+  "clawdbrain-gateway-token",
+  "clawdbrain-gateway-password",
+];
 
 describe("useConnectionManager", () => {
+  let localStorageMock: MockLocalStorageController | null = null;
+
   beforeEach(() => {
-    window.localStorage.clear();
+    localStorageMock = installMockLocalStorage();
+    localStorageMock.reset(CONNECTION_STORAGE_KEYS);
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -17,6 +26,10 @@ describe("useConnectionManager", () => {
     clearSharedGatewayToken();
     clearSharedGatewayPassword();
     vi.unstubAllGlobals();
+  });
+
+  afterAll(() => {
+    localStorageMock?.restore();
   });
 
   it("includes bearer auth headers when fetching status", async () => {
