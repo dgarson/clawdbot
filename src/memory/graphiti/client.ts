@@ -116,7 +116,6 @@ export class GraphitiClient {
 
   /** GET /healthcheck — lightweight liveness check. */
   async health(): Promise<{ ok: boolean; message?: string }> {
-    memLog.debug("graphiti health check", { baseUrl: this.baseUrl });
     try {
       const response = await this.fetchFn(`${this.baseUrl}/healthcheck`, {
         method: "GET",
@@ -129,7 +128,6 @@ export class GraphitiClient {
         return { ok: false, message: msg };
       }
       const body = (await response.json()) as { status?: string };
-      memLog.debug("graphiti health ok", { body });
       return { ok: body.status === "healthy", message: body.status };
     } catch (err) {
       const base = toErrorMessage(err) ?? "unknown error";
