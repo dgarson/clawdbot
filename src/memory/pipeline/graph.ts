@@ -1,5 +1,6 @@
 import type { GraphitiClient } from "../graphiti/client.js";
 import type { MemoryContentObject } from "../types.js";
+import { isGraphitiAvailable } from "../graphiti/health-probe.js";
 
 export type GraphWarning = {
   code: string;
@@ -18,6 +19,14 @@ export async function writeEpisodesToGraph(params: {
     warnings.push({
       code: "graph.missing_adapter",
       message: "Graphiti adapter is not configured; skipping graph write stage.",
+    });
+    return { warnings };
+  }
+
+  if (!isGraphitiAvailable()) {
+    warnings.push({
+      code: "graph.service_unavailable",
+      message: "Graphiti marked unavailable by health probe; skipping graph write.",
     });
     return { warnings };
   }

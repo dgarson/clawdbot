@@ -155,7 +155,10 @@ describe("getMemorySearchManager caching", () => {
     await first.manager.close?.();
 
     const third = await getMemorySearchManager({ cfg, agentId: retryAgentId });
-    expect(third.manager).toBe(second.manager);
+    expect(third.manager).toBeTruthy();
+    // The underlying QMD manager should still be reused from the second call (cache not evicted).
+    // Note: the outer ComposableMemoryManager wrapper is always a new instance, so we verify
+    // via the create call count instead of reference equality.
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(QmdMemoryManager.create).toHaveBeenCalledTimes(2);
   });
