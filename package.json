@@ -208,6 +208,7 @@
     "oxlint-tsgolint": "^0.11.4",
     "quicktype-core": "^23.2.6",
     "rolldown": "1.0.0-rc.3",
+    "tinyrainbow": "3.0.3",
     "tsdown": "^0.20.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

@@ -25,6 +25,7 @@ Before starting, familiarize yourself with these files:
 ### Task 1: Fix Pre-Existing Decision Store Test Failure
 
 **Files:**
+
 - Modify: `src/infra/decisions/store.test.ts:beforeEach/afterEach`
 
 **Context:**
@@ -39,6 +40,7 @@ Expected: See lines with `CLAWDBRAIN_STATE_DIR` that need changing to `OPENCLAW_
 **Step 2: Fix environment variable names in beforeEach/afterEach**
 
 In `src/infra/decisions/store.test.ts`, change all 3 occurrences:
+
 - Line ~10: `CLAWDBRAIN_STATE_DIR` → `OPENCLAW_STATE_DIR`
 - Line ~15: `clawdbrain-state-` → `openclaw-state-` (temp directory prefix)
 
@@ -62,11 +64,13 @@ git commit -m "fix: correct environment variable names in decision store tests"
 ### Task 2: Add Helper Function - `detectAuthRequired()`
 
 **Files:**
+
 - Modify: `src/mcp/mcp-tools.ts` (add function near top, after imports)
 - Test: `src/mcp/mcp-tools.test.ts` (add 3 tests)
 
 **Context:**
 This helper detects whether a server config requires authentication based on:
+
 - HTTP/SSE transports: presence of `headers` object with at least one header
 - STDIO transport: presence of `env` object with at least one environment variable
 
@@ -117,16 +121,14 @@ function detectAuthRequired(server: McpServerConfig): boolean {
   // HTTP or SSE transports use headers
   if ("headers" in server && server.headers) {
     const headerEntries = Object.entries(server.headers).filter(
-      (e): e is [string, string] =>
-        typeof e[0] === "string" && typeof e[1] === "string",
+      (e): e is [string, string] => typeof e[0] === "string" && typeof e[1] === "string",
     );
     if (headerEntries.length > 0) return true;
   }
   // STDIO transport uses environment variables
   if ("env" in server && server.env) {
     const envEntries = Object.entries(server.env).filter(
-      (e): e is [string, string] =>
-        typeof e[0] === "string" && typeof e[1] === "string",
+      (e): e is [string, string] => typeof e[0] === "string" && typeof e[1] === "string",
     );
     if (envEntries.length > 0) return true;
   }
@@ -166,6 +168,7 @@ git push -u origin feature/mcp-tool-description-enhancements
 ### Task 3: Add Helper Function - `getTransportHint()`
 
 **Files:**
+
 - Modify: `src/mcp/mcp-tools.ts` (add function)
 - Test: `src/mcp/mcp-tools.test.ts` (add 3 tests)
 
@@ -252,6 +255,7 @@ git push origin feature/mcp-tool-description-enhancements
 ### Task 4: Add Helper Function - `buildEnhancedDescription()`
 
 **Files:**
+
 - Modify: `src/mcp/mcp-tools.ts` (add function)
 - Test: `src/mcp/mcp-tools.test.ts` (add 4 tests)
 
@@ -272,11 +276,7 @@ describe("buildEnhancedDescription", () => {
       url: "http://github.com",
       headers: { Authorization: "token" },
     };
-    const result = __testing.buildEnhancedDescription(
-      "Create an issue",
-      config,
-      "GitHub API",
-    );
+    const result = __testing.buildEnhancedDescription("Create an issue", config, "GitHub API");
     expect(result).toContain("[HTTP]");
     expect(result).toContain("Requires Auth");
     expect(result).toContain("Create an issue");
@@ -285,11 +285,7 @@ describe("buildEnhancedDescription", () => {
 
   it("preserves original description when already present", () => {
     const config = { transport: "sse" as const, url: "http://example.com" };
-    const result = __testing.buildEnhancedDescription(
-      "Fetch data",
-      config,
-      "Server",
-    );
+    const result = __testing.buildEnhancedDescription("Fetch data", config, "Server");
     expect(result).toContain("Fetch data");
   });
 
@@ -302,11 +298,7 @@ describe("buildEnhancedDescription", () => {
 
   it("omits auth hint when no auth required", () => {
     const config = { transport: "http" as const, url: "http://example.com" };
-    const result = __testing.buildEnhancedDescription(
-      "Open API",
-      config,
-      "OpenWeather",
-    );
+    const result = __testing.buildEnhancedDescription("Open API", config, "OpenWeather");
     expect(result).not.toContain("Requires Auth");
     expect(result).toContain("[HTTP]");
   });
@@ -376,11 +368,13 @@ git push origin feature/mcp-tool-description-enhancements
 ### Task 5: Add Helper Function - `enhanceParameterDescription()`
 
 **Files:**
+
 - Modify: `src/mcp/mcp-tools.ts` (add function)
 - Test: `src/mcp/mcp-tools.test.ts` (add 3 tests)
 
 **Context:**
 This function enhances individual parameter descriptions by:
+
 1. Preserving existing descriptions
 2. Adding type information when description is missing
 3. Following format: `{type}: description` or just `{type}` if no description
@@ -427,9 +421,7 @@ Expected: All 3 tests FAIL
 Add after `buildEnhancedDescription()`:
 
 ```typescript
-function enhanceParameterDescription(
-  schema: Record<string, unknown>,
-): string {
+function enhanceParameterDescription(schema: Record<string, unknown>): string {
   // Preserve existing description
   if (typeof schema.description === "string" && schema.description.trim()) {
     return schema.description;
@@ -443,9 +435,7 @@ function enhanceParameterDescription(
   }
 
   if (Array.isArray(schema.enum) && schema.enum.length > 0) {
-    const enumValues = schema.enum
-      .map((v) => JSON.stringify(v))
-      .join(", ");
+    const enumValues = schema.enum.map((v) => JSON.stringify(v)).join(", ");
     parts.push(`values: ${enumValues}`);
   }
 
@@ -488,11 +478,13 @@ git push origin feature/mcp-tool-description-enhancements
 ### Task 6: Integrate Enhancements into `buildMcpPiTool()`
 
 **Files:**
+
 - Modify: `src/mcp/mcp-tools.ts` (update `buildMcpPiTool()` function ~line 250)
 - Test: `src/mcp/mcp-tools.test.ts` (add 3 integration tests)
 
 **Context:**
 The `buildMcpPiTool()` function currently builds the tool object for Pi Agent. We need to:
+
 1. Add `serverConfig` parameter to the function
 2. Call `buildEnhancedDescription()` to enhance the tool description
 3. Optionally enhance parameter descriptions (Phase #2 feature)
@@ -580,16 +572,18 @@ Expected: Tests FAIL (function signature doesn't match yet)
 Find the `buildMcpPiTool()` function (around line 250) and modify it:
 
 Old signature:
+
 ```typescript
 function buildMcpPiTool(params: {
   agentId: string;
   serverId: string;
   serverLabel?: string;
   toolDef: McpRemoteToolDef;
-})
+});
 ```
 
 New signature:
+
 ```typescript
 function buildMcpPiTool(params: {
   agentId: string;
@@ -597,17 +591,19 @@ function buildMcpPiTool(params: {
   serverLabel?: string;
   toolDef: McpRemoteToolDef;
   serverConfig?: McpServerConfig;
-})
+});
 ```
 
 Update the function body to use the new helpers. Find the line that sets `description`:
 
 Old:
+
 ```typescript
 const description = toolDef.description || `${serverId} tool: ${toolDef.name}`;
 ```
 
 New:
+
 ```typescript
 const description = params.serverConfig
   ? buildEnhancedDescription(
@@ -653,6 +649,7 @@ git push origin feature/mcp-tool-description-enhancements
 ### Task 7: Update Reverse MCP Bridge Fallback Descriptions
 
 **Files:**
+
 - Modify: `src/agents/claude-agent-sdk/tool-bridge.ts` (update fallback descriptions)
 - Test: `src/agents/claude-agent-sdk/tool-bridge.test.ts` (if exists, add 1 test)
 
@@ -670,13 +667,15 @@ Expected: See lines with fallback descriptions
 Find the line(s) that create fallback descriptions and change:
 
 From:
+
 ```typescript
-description: `Clawdbrain tool: ${toolName}`
+description: `Clawdbrain tool: ${toolName}`;
 ```
 
 To:
+
 ```typescript
-description: `${toolName} (Clawdbrain native tool)`
+description: `${toolName} (Clawdbrain native tool)`;
 ```
 
 **Step 3: Check for tests**
@@ -704,6 +703,7 @@ git push origin feature/mcp-tool-description-enhancements
 ### Task 8: Full Test Suite Verification
 
 **Files:**
+
 - Test: `src/mcp/mcp-tools.test.ts`, `src/mcp/resolve.test.ts`, `src/infra/decisions/store.test.ts`
 
 **Context:**

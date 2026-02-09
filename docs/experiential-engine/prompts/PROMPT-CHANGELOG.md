@@ -5,6 +5,7 @@
 ### Initial Release
 
 #### Added
+
 - **Experience Evaluation Prompts** (4 options)
   - 1A: Minimalist Threshold Evaluator
   - 1B: Nuanced Multi-Factor Evaluator
@@ -47,6 +48,7 @@
   - 8C: Anchor-Weighted Embedding
 
 ### Notes
+
 - All prompts designed for Qwen 2.5-32B on RTX 5090s with ~128k context
 - System/User prompt split optimized for AI-as-user paradigm
 - Latency targets specified per category
@@ -56,12 +58,14 @@
 ## Future Considerations
 
 ### Planned Additions
+
 - [ ] Cross-experience linking prompts
 - [ ] Periodic reflection generation prompts
 - [ ] Growth narrative construction prompts
 - [ ] Uncertainty resolution tracking prompts
 
 ### Evaluation Metrics to Track
+
 - Capture precision (meaningful experiences captured vs. noise)
 - Reconstitution success rate (subjective quality of state approach)
 - Classification accuracy (verified against manual review)
@@ -69,6 +73,7 @@
 - Compaction preservation (what survives vs. what's lost)
 
 ### Model-Specific Tuning
+
 - Document any Qwen-specific adjustments
 - Note if prompts need modification for different local models
 - Track performance differences between model sizes

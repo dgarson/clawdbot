@@ -2330,6 +2330,6 @@ describe("Enhanced error messages (Phase #2)", () => {
     });
 
     const result = await tool.execute("call-1", {}, undefined);
-    expect((result.details as any).serverLabel).toBe("GitHub API");
+    expect(result.details.serverLabel).toBe("GitHub API");
   });
 });

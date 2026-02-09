@@ -24,7 +24,7 @@ export { createNotionQueryDatabaseTool } from "./tools/query-database.js";
 
 export type { NotionToolOptions } from "./tools/shared.js";
 
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "../../agents/tools/common.js";
 import type { NotionToolOptions } from "./tools/shared.js";
 import { createNotionAppendBlocksTool } from "./tools/append-blocks.js";
 import { createNotionCreatePageTool } from "./tools/create-page.js";

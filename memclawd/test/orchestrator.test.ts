@@ -60,8 +60,12 @@ describe("ingestion pipeline orchestrator", () => {
 
     expect(result.status).toBe("completed");
     expect(result.stageResults).toHaveLength(1);
-    expect(result.stageResults![0]!.ok).toBe(true);
-    expect((result.stageResults![0]!.output as any)[0].enriched).toBe(true);
+    expect(result.stageResults![0].ok).toBe(true);
+    const output = result.stageResults![0].output;
+    const first = Array.isArray(output)
+      ? (output[0] as { enriched?: boolean } | undefined)
+      : undefined;
+    expect(first?.enriched).toBe(true);
   });
 
   it("stops on handler error and returns failed status", async () => {
@@ -76,12 +80,12 @@ describe("ingestion pipeline orchestrator", () => {
 
     expect(result.status).toBe("failed");
     expect(result.errors).toHaveLength(1);
-    expect(result.errors![0]!.message).toBe("stage failed");
-    expect(result.errors![0]!.retryable).toBe(true);
+    expect(result.errors![0].message).toBe("stage failed");
+    expect(result.errors![0].retryable).toBe(true);
     // Should have 2 stage results (normalize + failed extract)
     expect(result.stageResults).toHaveLength(2);
-    expect(result.stageResults![0]!.ok).toBe(true);
-    expect(result.stageResults![1]!.ok).toBe(false);
+    expect(result.stageResults![0].ok).toBe(true);
+    expect(result.stageResults![1].ok).toBe(false);
   });
 
   it("handles events with no records gracefully", async () => {
@@ -103,7 +107,7 @@ describe("ingestion pipeline orchestrator", () => {
 
     expect(result.status).toBe("completed");
     expect(result.stageResults).toHaveLength(1);
-    expect(result.stageResults![0]!.durationMs).toBeGreaterThanOrEqual(5);
+    expect(result.stageResults![0].durationMs).toBeGreaterThanOrEqual(5);
   });
 
   it("skips stages without handlers (passthrough)", async () => {
@@ -114,7 +118,7 @@ describe("ingestion pipeline orchestrator", () => {
 
     expect(result.status).toBe("completed");
     expect(result.stageResults).toHaveLength(2);
-    expect(result.stageResults![0]!.ok).toBe(true);
-    expect(result.stageResults![1]!.ok).toBe(true);
+    expect(result.stageResults![0].ok).toBe(true);
+    expect(result.stageResults![1].ok).toBe(true);
   });
 });

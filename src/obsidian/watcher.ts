@@ -135,7 +135,7 @@ export function createVaultWatcher(options: VaultWatcherOptions): {
 
     stop() {
       if (watcher) {
-        watcher.close();
+        void watcher.close();
         watcher = null;
         debounceMap.clear();
         log?.("vault watcher: stopped");

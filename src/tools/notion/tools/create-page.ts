@@ -1,7 +1,7 @@
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
-import { jsonResult, readStringParam } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "../../../agents/tools/common.js";
 import type { NotionToolOptions } from "./shared.js";
+import { jsonResult, readStringParam } from "../../../agents/tools/common.js";
 import { notionCreatePage } from "../api.js";
 import { markdownToNotionBlocks } from "../markdown-to-blocks.js";
 import { toApiOpts, parseJsonParam } from "./shared.js";
@@ -76,7 +76,7 @@ export function createNotionCreatePageTool(opts: NotionToolOptions): AnyAgentToo
         return jsonResult({ error: "properties must be a valid JSON object" });
       }
 
-      let parent: Record<string, string>;
+      let parent: { data_source_id: string } | { database_id: string } | { page_id: string };
       if (parentType === "data_source") {
         parent = { data_source_id: parentId };
       } else if (parentType === "database") {

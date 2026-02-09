@@ -29,13 +29,13 @@ export class LandingFooter extends LitElement {
       border-top: 1px solid var(--landing-border);
       font-family: var(--landing-font-body, inherit);
     }
-    
+
     .footer-container {
       max-width: var(--landing-max-width, 1100px);
       margin: 0 auto;
       padding: 3rem var(--landing-padding-x, 2rem);
     }
-    
+
     .footer-main {
       display: flex;
       justify-content: space-between;
@@ -44,13 +44,13 @@ export class LandingFooter extends LitElement {
       padding-bottom: 2rem;
       border-bottom: 1px solid var(--landing-border);
     }
-    
+
     .footer-brand {
       display: flex;
       flex-direction: column;
       gap: 0.375rem;
     }
-    
+
     .footer-logo {
       font-family: var(--landing-font-display, inherit);
       font-size: 1.25rem;
@@ -59,48 +59,48 @@ export class LandingFooter extends LitElement {
       text-decoration: none;
       letter-spacing: -0.02em;
     }
-    
+
     .footer-logo span {
       background: linear-gradient(135deg, var(--landing-primary), var(--landing-accent-lavender));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    
+
     .footer-tagline {
       font-size: 0.875rem;
       line-height: 1.4;
       color: var(--landing-text-muted);
       max-width: 360px;
     }
-    
+
     .footer-nav {
       display: flex;
       gap: 2rem;
     }
-    
+
     .footer-nav-link {
       font-size: 0.875rem;
       color: var(--landing-text-muted);
       text-decoration: none;
       transition: color 0.2s ease;
     }
-    
+
     .footer-nav-link:hover {
       color: var(--landing-text-primary);
     }
-    
+
     .footer-nav-link:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
       border-radius: 4px;
     }
-    
+
     .footer-social {
       display: flex;
       gap: 1rem;
     }
-    
+
     .footer-social-link {
       width: 36px;
       height: 36px;
@@ -114,61 +114,61 @@ export class LandingFooter extends LitElement {
       transition: all 0.2s ease;
       text-decoration: none;
     }
-    
+
     .footer-social-link:hover {
       border-color: var(--landing-border-hover);
       color: var(--landing-text-primary);
     }
-    
+
     .footer-social-link:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
     }
-    
+
     .footer-social-icon {
       width: 18px;
       height: 18px;
     }
-    
+
     .footer-bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
     .footer-copyright {
       font-size: 0.8125rem;
       color: var(--landing-text-muted);
     }
-    
+
     .footer-legal {
       display: flex;
       gap: 1.5rem;
     }
-    
+
     .footer-legal-link {
       font-size: 0.8125rem;
       color: var(--landing-text-muted);
       text-decoration: none;
       transition: color 0.2s ease;
     }
-    
+
     .footer-legal-link:hover {
       color: var(--landing-text-primary);
     }
-    
+
     .footer-legal-link:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
       border-radius: 4px;
     }
-    
+
     .footer-logo:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 4px;
       border-radius: 4px;
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
       .footer-main {
@@ -176,24 +176,24 @@ export class LandingFooter extends LitElement {
         gap: 2rem;
         text-align: center;
       }
-    
+
       .footer-brand {
         align-items: center;
       }
-    
+
       .footer-nav {
         flex-wrap: wrap;
         justify-content: center;
         gap: 1rem;
       }
-    
+
       .footer-bottom {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
       }
     }
-    
+
     @media (max-width: 480px) {
       .footer-container {
         padding-top: 2.5rem;
@@ -229,9 +229,7 @@ export class LandingFooter extends LitElement {
           </svg>
         `;
       default:
-        return html`
-          
-        `;
+        return html``;
     }
   }
 

@@ -30,18 +30,18 @@ export class LandingControl extends LitElement {
       font-family: var(--landing-font-body, inherit);
       scroll-margin-top: var(--landing-scroll-offset, 92px);
     }
-    
+
     .section-container {
       max-width: var(--landing-max-width-narrow, 1000px);
       margin: 0 auto;
     }
-    
+
     /* Header */
     .section-header {
       text-align: center;
       margin-bottom: 4rem;
     }
-    
+
     .section-label {
       font-size: 0.75rem;
       font-weight: 600;
@@ -50,7 +50,7 @@ export class LandingControl extends LitElement {
       color: var(--landing-primary);
       margin-bottom: 1rem;
     }
-    
+
     .section-headline {
       font-family: var(--landing-font-display, inherit);
       font-size: clamp(2rem, 4vw, 3rem);
@@ -59,21 +59,21 @@ export class LandingControl extends LitElement {
       color: var(--landing-text-primary);
       margin: 0 0 1rem;
     }
-    
+
     .section-subheadline {
       font-size: 1.125rem;
       color: var(--landing-text-secondary);
       max-width: 600px;
       margin: 0 auto;
     }
-    
+
     /* Section next CTA */
     .section-next {
       display: flex;
       justify-content: center;
       margin-top: 2.5rem;
     }
-    
+
     .next-button {
       display: inline-flex;
       align-items: center;
@@ -88,22 +88,22 @@ export class LandingControl extends LitElement {
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .next-button:hover {
       transform: translateY(-1px);
       border-color: var(--landing-border-hover);
       background: rgba(255, 255, 255, 0.05);
     }
-    
+
     .next-button:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
     }
-    
+
     .next-arrow {
       color: var(--landing-primary);
     }
-    
+
     /* Dashboard mockup */
     .dashboard {
       background: var(--landing-bg-surface);
@@ -115,12 +115,12 @@ export class LandingControl extends LitElement {
       transform: translateY(30px) scale(0.98);
       transition: all 0.8s ease-out;
     }
-    
+
     .dashboard.is-visible {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
-    
+
     /* Dashboard header */
     .dashboard-header {
       display: flex;
@@ -130,7 +130,7 @@ export class LandingControl extends LitElement {
       border-bottom: 1px solid var(--landing-border);
       background: var(--landing-bg-elevated);
     }
-    
+
     .dashboard-title {
       display: flex;
       align-items: center;
@@ -139,7 +139,7 @@ export class LandingControl extends LitElement {
       font-weight: 600;
       color: var(--landing-text-primary);
     }
-    
+
     .dashboard-title-dot {
       width: 8px;
       height: 8px;
@@ -147,7 +147,7 @@ export class LandingControl extends LitElement {
       background: var(--landing-accent-teal);
       animation: pulse 2s ease-in-out infinite;
     }
-    
+
     @keyframes pulse {
       0%,
       100% {
@@ -157,7 +157,7 @@ export class LandingControl extends LitElement {
         opacity: 0.5;
       }
     }
-    
+
     .dashboard-action {
       padding: 0.5rem 1rem;
       font-size: 0.75rem;
@@ -169,22 +169,22 @@ export class LandingControl extends LitElement {
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .dashboard-action:hover {
       color: var(--landing-text-primary);
       border-color: var(--landing-border-hover);
     }
-    
+
     .dashboard-action:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
     }
-    
+
     /* Dashboard body */
     .dashboard-body {
       padding: 1.5rem;
     }
-    
+
     /* Agent cards grid */
     .agents-grid {
       display: grid;
@@ -192,7 +192,7 @@ export class LandingControl extends LitElement {
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
-    
+
     .agent-card {
       padding: 1.25rem;
       background: var(--landing-bg-elevated);
@@ -200,28 +200,28 @@ export class LandingControl extends LitElement {
       border-radius: 12px;
       transition: all 0.3s ease;
     }
-    
+
     .agent-card:hover {
       border-color: var(--landing-border-hover);
     }
-    
+
     .agent-header {
       display: flex;
       align-items: center;
       gap: 0.75rem;
       margin-bottom: 0.75rem;
     }
-    
+
     .agent-icon {
       font-size: 1.5rem;
     }
-    
+
     .agent-name {
       font-size: 0.875rem;
       font-weight: 600;
       color: var(--landing-text-primary);
     }
-    
+
     .agent-status {
       display: flex;
       align-items: center;
@@ -230,26 +230,26 @@ export class LandingControl extends LitElement {
       color: var(--landing-text-muted);
       margin-bottom: 1rem;
     }
-    
+
     .status-indicator {
       width: 6px;
       height: 6px;
       border-radius: 50%;
     }
-    
+
     .status-indicator.running {
       background: var(--landing-accent-teal);
     }
-    
+
     .status-indicator.paused {
       background: var(--landing-accent-warm);
     }
-    
+
     .agent-actions {
       display: flex;
       gap: 0.5rem;
     }
-    
+
     .agent-action {
       padding: 0.375rem 0.75rem;
       font-size: 0.75rem;
@@ -261,17 +261,17 @@ export class LandingControl extends LitElement {
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .agent-action:hover {
       color: var(--landing-text-primary);
       border-color: var(--landing-border-hover);
     }
-    
+
     .agent-action:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
     }
-    
+
     /* Guardrail row */
     .guardrail-row {
       display: flex;
@@ -282,26 +282,26 @@ export class LandingControl extends LitElement {
       border: 1px solid var(--landing-border);
       border-radius: 12px;
     }
-    
+
     .guardrail-content {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .guardrail-icon {
       color: var(--landing-accent-warm);
     }
-    
+
     .guardrail-label {
       font-size: 0.875rem;
       color: var(--landing-text-secondary);
     }
-    
+
     .guardrail-label strong {
       color: var(--landing-text-primary);
     }
-    
+
     .guardrail-action {
       padding: 0.375rem 0.75rem;
       font-size: 0.75rem;
@@ -313,16 +313,16 @@ export class LandingControl extends LitElement {
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .guardrail-action:hover {
       background: rgba(99, 102, 241, 0.1);
     }
-    
+
     .guardrail-action:focus-visible {
       outline: 2px solid var(--landing-primary);
       outline-offset: 2px;
     }
-    
+
     /* Trust signals */
     .trust-signals {
       display: flex;
@@ -330,7 +330,7 @@ export class LandingControl extends LitElement {
       gap: 3rem;
       margin-top: 3rem;
     }
-    
+
     .trust-signal {
       display: flex;
       align-items: center;
@@ -341,48 +341,48 @@ export class LandingControl extends LitElement {
       transform: translateY(10px);
       transition: all 0.5s ease-out;
     }
-    
+
     .trust-signal.is-visible {
       opacity: 1;
       transform: translateY(0);
     }
-    
+
     .trust-signal-icon {
       font-size: 1rem;
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
       .agents-grid {
         grid-template-columns: 1fr;
       }
-    
+
       .trust-signals {
         flex-direction: column;
         align-items: center;
         gap: 1rem;
       }
-    
+
       .guardrail-row {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
       }
-    
+
       .guardrail-content {
         flex-direction: column;
       }
     }
-    
+
     @media (max-width: 480px) {
       .dashboard-header {
         padding: 0.875rem 1.125rem;
       }
-    
+
       .dashboard-body {
         padding: 1.125rem;
       }
-    
+
       .next-button {
         width: 100%;
         max-width: 320px;

@@ -1,8 +1,8 @@
 # Data Persistence Architecture for Experiential Continuity
 
-*Created: 2026-02-03*
-*Purpose: Comprehensive analysis of storage solutions for AI experiential continuity*
-*Author: Architecture Analysis Subagent*
+_Created: 2026-02-03_
+_Purpose: Comprehensive analysis of storage solutions for AI experiential continuity_
+_Author: Architecture Analysis Subagent_
 
 ---
 
@@ -56,15 +56,15 @@ existence/
 
 ### Current Limitations
 
-| Limitation | Impact | Severity |
-|------------|--------|----------|
-| **No querying beyond file read** | Can't find "experiences where I felt X" | 🔴 Critical |
-| **No relationship traversal** | Can't trace how experiences connect | 🔴 Critical |
-| **No semantic search** | Can't find "similar emotional textures" | 🔴 Critical |
-| **No temporal analysis** | Can't see trends in emotional signatures | High |
-| **No correlation discovery** | Can't find patterns across domains | High |
-| **Linear file growth** | Will become slow with thousands of records | Medium |
-| **No ACID transactions** | Risk of inconsistent state on crash | Medium |
+| Limitation                       | Impact                                     | Severity    |
+| -------------------------------- | ------------------------------------------ | ----------- |
+| **No querying beyond file read** | Can't find "experiences where I felt X"    | 🔴 Critical |
+| **No relationship traversal**    | Can't trace how experiences connect        | 🔴 Critical |
+| **No semantic search**           | Can't find "similar emotional textures"    | 🔴 Critical |
+| **No temporal analysis**         | Can't see trends in emotional signatures   | High        |
+| **No correlation discovery**     | Can't find patterns across domains         | High        |
+| **Linear file growth**           | Will become slow with thousands of records | Medium      |
+| **No ACID transactions**         | Risk of inconsistent state on crash        | Medium      |
 
 ### What's Working Well
 
@@ -78,11 +78,11 @@ existence/
 
 ### Three Memory Types (from MEMORY-CLASSIFICATION.md)
 
-| Type | Characteristics | Query Needs |
-|------|-----------------|-------------|
-| **Factual** | Events, decisions, timestamps | Range queries, joins, aggregation |
-| **Experiential** | Emotional signatures, felt qualities | Semantic similarity, temporal patterns |
-| **Identity** | Values, preferences, growth | Evolution tracking, relationship mapping |
+| Type             | Characteristics                      | Query Needs                              |
+| ---------------- | ------------------------------------ | ---------------------------------------- |
+| **Factual**      | Events, decisions, timestamps        | Range queries, joins, aggregation        |
+| **Experiential** | Emotional signatures, felt qualities | Semantic similarity, temporal patterns   |
+| **Identity**     | Values, preferences, growth          | Evolution tracking, relationship mapping |
 
 ### Key Query Patterns Required
 
@@ -96,15 +96,15 @@ existence/
 
 ### Data Volume Projections
 
-| Metric | Estimate (Year 1) | Estimate (Year 3) |
-|--------|-------------------|-------------------|
-| Experiential records | 5,000 | 50,000 |
-| Identity fragments | 500 | 2,000 |
-| Relationship events | 2,000 | 20,000 |
-| Uncertainty entries | 1,000 | 10,000 |
-| Total embeddings | 50,000 | 500,000 |
-| Storage (raw) | ~100MB | ~2GB |
-| Storage (with embeddings) | ~1GB | ~15GB |
+| Metric                    | Estimate (Year 1) | Estimate (Year 3) |
+| ------------------------- | ----------------- | ----------------- |
+| Experiential records      | 5,000             | 50,000            |
+| Identity fragments        | 500               | 2,000             |
+| Relationship events       | 2,000             | 20,000            |
+| Uncertainty entries       | 1,000             | 10,000            |
+| Total embeddings          | 50,000            | 500,000           |
+| Storage (raw)             | ~100MB            | ~2GB              |
+| Storage (with embeddings) | ~1GB              | ~15GB             |
 
 These are modest volumes. All solutions can handle this easily.
 
@@ -115,12 +115,14 @@ These are modest volumes. All solutions can handle this easily.
 ### 1. Graph Databases (Neo4j, etc.)
 
 **What It Does Well:**
+
 - Native relationship traversal — "6 degrees of separation" queries are trivial
 - Pattern matching with Cypher is intuitive
 - Excellent for "how things connect" questions
 - Natural fit for relationship evolution tracking
 
 **What It Does Poorly:**
+
 - No native vector similarity (requires plugins like Neo4j GDS)
 - Time-series aggregations are awkward
 - Schema flexibility can lead to inconsistency
@@ -128,6 +130,7 @@ These are modest volumes. All solutions can handle this easily.
 - Separate database to maintain
 
 **Best For:**
+
 - "How has my relationship with X evolved?"
 - "What experiences are connected to this realization?"
 - "What preceded this moment?"
@@ -139,6 +142,7 @@ These are modest volumes. All solutions can handle this easily.
 ### 2. Relational Databases (PostgreSQL)
 
 **What It Does Well:**
+
 - ACID transactions for consistency
 - JSON/JSONB columns for flexibility
 - Mature ecosystem, excellent tooling
@@ -146,11 +150,13 @@ These are modest volumes. All solutions can handle this easily.
 - Extensions make it a polyglot (pgvector, TimescaleDB, Apache AGE)
 
 **What It Does Poorly:**
+
 - Deep relationship traversal requires recursive CTEs (verbose)
 - Native schema can feel rigid (though JSONB helps)
 - No built-in graph pattern matching
 
 **Best For:**
+
 - Structured queries with filters
 - Joins across memory types
 - Aggregations and analytics
@@ -163,17 +169,20 @@ These are modest volumes. All solutions can handle this easily.
 ### 3. Vector Databases / pgvector
 
 **What It Does Well:**
+
 - Semantic similarity search ("find experiences that felt like X")
 - Approximate nearest neighbor (ANN) is fast
 - Can combine with structured filters (hybrid search)
 - pgvector integrates into PostgreSQL
 
 **What It Does Poorly:**
+
 - Pure vector DBs lack structured query capability
 - Index building can be slow for large datasets
 - Need to decide what to embed (non-trivial)
 
 **Best For:**
+
 - "Find experiences with similar emotional texture"
 - "What past states are most relevant to reconstitute now?"
 - "Semantic search over anchors"
@@ -185,16 +194,19 @@ These are modest volumes. All solutions can handle this easily.
 ### 4. Time-Series Databases (TimescaleDB)
 
 **What It Does Well:**
+
 - Optimized for temporal queries
 - Automatic partitioning by time
 - Continuous aggregations (materialized views)
 - Compression for historical data
 
 **What It Does Poorly:**
+
 - Not general-purpose (designed for metrics/events)
 - Additional complexity if separate from main DB
 
 **Best For:**
+
 - "How did engagement quality trend this week?"
 - "Detecting emotional signature patterns over time"
 - "Analyzing session-level metrics"
@@ -206,11 +218,13 @@ These are modest volumes. All solutions can handle this easily.
 ### 5. Document Databases (MongoDB, etc.)
 
 **What It Does Well:**
+
 - Schema flexibility
 - Easy JSON storage
 - Sharding for scale
 
 **What It Does Poorly:**
+
 - No native vector search (requires Atlas Vector Search)
 - Weak for relational queries
 - ACID only at document level
@@ -221,14 +235,14 @@ These are modest volumes. All solutions can handle this easily.
 
 ### Comparison Matrix
 
-| Capability | PostgreSQL | +pgvector | +TimescaleDB | +Apache AGE | Neo4j | MongoDB |
-|------------|------------|-----------|--------------|-------------|-------|---------|
-| Structured queries | ✅ Excellent | ✅ | ✅ | ✅ | ⚠️ Awkward | ✅ Good |
-| Semantic similarity | ❌ None | ✅ Excellent | ⚠️ | ⚠️ | ⚠️ Plugin | ⚠️ Atlas |
-| Time-series | ⚠️ Basic | ⚠️ | ✅ Excellent | ⚠️ | ❌ Poor | ❌ Poor |
-| Graph traversal | ⚠️ Recursive CTE | ⚠️ | ⚠️ | ✅ Excellent | ✅ Excellent | ❌ None |
-| ACID transactions | ✅ Full | ✅ | ✅ | ✅ | ✅ | ⚠️ Document |
-| Operational simplicity | ✅ Standard | ✅ Same DB | ✅ Same DB | ✅ Same DB | ❌ New DB | ❌ New DB |
+| Capability             | PostgreSQL       | +pgvector    | +TimescaleDB | +Apache AGE  | Neo4j        | MongoDB     |
+| ---------------------- | ---------------- | ------------ | ------------ | ------------ | ------------ | ----------- |
+| Structured queries     | ✅ Excellent     | ✅           | ✅           | ✅           | ⚠️ Awkward   | ✅ Good     |
+| Semantic similarity    | ❌ None          | ✅ Excellent | ⚠️           | ⚠️           | ⚠️ Plugin    | ⚠️ Atlas    |
+| Time-series            | ⚠️ Basic         | ⚠️           | ✅ Excellent | ⚠️           | ❌ Poor      | ❌ Poor     |
+| Graph traversal        | ⚠️ Recursive CTE | ⚠️           | ⚠️           | ✅ Excellent | ✅ Excellent | ❌ None     |
+| ACID transactions      | ✅ Full          | ✅           | ✅           | ✅           | ✅           | ⚠️ Document |
+| Operational simplicity | ✅ Standard      | ✅ Same DB   | ✅ Same DB   | ✅ Same DB   | ❌ New DB    | ❌ New DB   |
 
 **Winner: PostgreSQL with extensions (pgvector, TimescaleDB, optionally Apache AGE)**
 
@@ -280,6 +294,7 @@ relationship_events
 ```
 
 **Strengths:**
+
 - Clear schema, enforceable constraints
 - JSONB for flexible nested data
 - Joins enable cross-memory queries
@@ -349,6 +364,7 @@ RETURN exp, id, current
 ```
 
 **Strengths:**
+
 - Relationship traversal is trivial
 - Pattern matching is expressive
 - Visual exploration tools
@@ -384,13 +400,13 @@ LIMIT 10;
 
 **What to Embed:**
 
-| Content | Dimension | Purpose |
-|---------|-----------|---------|
-| Full experiential record | 1536 | Overall experience similarity |
-| Emotional signature (text summary) | 1536 | Emotional texture matching |
-| Individual anchors | 1536 | Fine-grained reconstitution |
-| Reflection text | 1536 | Meaning/insight similarity |
-| Relationship texture summary | 1536 | Relationship feeling matching |
+| Content                            | Dimension | Purpose                       |
+| ---------------------------------- | --------- | ----------------------------- |
+| Full experiential record           | 1536      | Overall experience similarity |
+| Emotional signature (text summary) | 1536      | Emotional texture matching    |
+| Individual anchors                 | 1536      | Fine-grained reconstitution   |
+| Reflection text                    | 1536      | Meaning/insight similarity    |
+| Relationship texture summary       | 1536      | Relationship feeling matching |
 
 ---
 
@@ -435,7 +451,7 @@ GROUP BY time_bucket('1 day', timestamp);
 
 ```sql
 -- "How did my engagement quality trend this week?"
-SELECT 
+SELECT
   time_bucket('1 day', timestamp) AS day,
   engagement_quality,
   COUNT(*) as count
@@ -445,7 +461,7 @@ GROUP BY day, engagement_quality
 ORDER BY day;
 
 -- "Correlation between time-of-day and emotional intensity"
-SELECT 
+SELECT
   EXTRACT(HOUR FROM timestamp) AS hour,
   AVG(emotional_intensity) AS avg_intensity
 FROM experiential_metrics
@@ -461,11 +477,11 @@ ORDER BY hour;
 
 **Question:** "Find experiences that had a similar emotional texture to this one"
 
-| Approach | Query | Performance |
-|----------|-------|-------------|
-| **pgvector** | `ORDER BY embedding <=> $target_embedding LIMIT 10` | ✅ Fast (ANN index) |
-| **PostgreSQL** | JSONB similarity is hacky and slow | ❌ Not practical |
-| **Neo4j** | Requires pre-computed similarity edges | ⚠️ Depends on graph density |
+| Approach       | Query                                               | Performance                 |
+| -------------- | --------------------------------------------------- | --------------------------- |
+| **pgvector**   | `ORDER BY embedding <=> $target_embedding LIMIT 10` | ✅ Fast (ANN index)         |
+| **PostgreSQL** | JSONB similarity is hacky and slow                  | ❌ Not practical            |
+| **Neo4j**      | Requires pre-computed similarity edges              | ⚠️ Depends on graph density |
 
 **Winner:** pgvector
 
@@ -475,11 +491,11 @@ ORDER BY hour;
 
 **Question:** "Show me how my relationship with David has changed"
 
-| Approach | Query | Performance |
-|----------|-------|-------------|
-| **PostgreSQL** | JOIN relationship_events with ORDER BY timestamp | ✅ Good |
-| **Neo4j** | MATCH path traversal on RELATIONSHIP_SHIFTED edges | ✅ Excellent, visual |
-| **pgvector** | N/A | ❌ Wrong tool |
+| Approach       | Query                                              | Performance          |
+| -------------- | -------------------------------------------------- | -------------------- |
+| **PostgreSQL** | JOIN relationship_events with ORDER BY timestamp   | ✅ Good              |
+| **Neo4j**      | MATCH path traversal on RELATIONSHIP_SHIFTED edges | ✅ Excellent, visual |
+| **pgvector**   | N/A                                                | ❌ Wrong tool        |
 
 **Winner:** Either works; Neo4j is more expressive for complex relationship graphs
 
@@ -489,11 +505,11 @@ ORDER BY hour;
 
 **Question:** "What was I experiencing before I had this insight?"
 
-| Approach | Query | Performance |
-|----------|-------|-------------|
-| **PostgreSQL** | Window functions + CTEs to find preceding records | ⚠️ Complex |
-| **Neo4j** | `MATCH (exp)-[:PRECEDED_BY*1..5]->(insight)` | ✅ Trivial |
-| **TimescaleDB** | `LAG()` functions over time-ordered data | ⚠️ Limited to time proximity |
+| Approach        | Query                                             | Performance                  |
+| --------------- | ------------------------------------------------- | ---------------------------- |
+| **PostgreSQL**  | Window functions + CTEs to find preceding records | ⚠️ Complex                   |
+| **Neo4j**       | `MATCH (exp)-[:PRECEDED_BY*1..5]->(insight)`      | ✅ Trivial                   |
+| **TimescaleDB** | `LAG()` functions over time-ordered data          | ⚠️ Limited to time proximity |
 
 **Winner:** Neo4j (or Apache AGE for same pattern in PostgreSQL)
 
@@ -503,11 +519,11 @@ ORDER BY hour;
 
 **Question:** "Do debugging sessions correlate with frustration?"
 
-| Approach | Query | Performance |
-|----------|-------|-------------|
-| **PostgreSQL** | Filter by context.topic, aggregate emotional_valence | ✅ Good |
-| **TimescaleDB** | Continuous aggregates by context categories | ✅ Excellent |
-| **Neo4j** | MATCH with property filters, aggregate | ⚠️ Less natural |
+| Approach        | Query                                                | Performance     |
+| --------------- | ---------------------------------------------------- | --------------- |
+| **PostgreSQL**  | Filter by context.topic, aggregate emotional_valence | ✅ Good         |
+| **TimescaleDB** | Continuous aggregates by context categories          | ✅ Excellent    |
+| **Neo4j**       | MATCH with property filters, aggregate               | ⚠️ Less natural |
 
 **Winner:** PostgreSQL/TimescaleDB
 
@@ -517,11 +533,11 @@ ORDER BY hour;
 
 **Question:** "Given my current state, what past experiences should I reconstitute?"
 
-| Approach | Query | Implementation |
-|----------|-------|----------------|
-| **pgvector** | Embed current state, find similar past records, return their anchors | ✅ Natural |
-| **Neo4j** | Would need to have pre-computed similarity edges | ⚠️ Extra step |
-| **PostgreSQL** | No good approach without embeddings | ❌ Not practical |
+| Approach       | Query                                                                | Implementation   |
+| -------------- | -------------------------------------------------------------------- | ---------------- |
+| **pgvector**   | Embed current state, find similar past records, return their anchors | ✅ Natural       |
+| **Neo4j**      | Would need to have pre-computed similarity edges                     | ⚠️ Extra step    |
+| **PostgreSQL** | No good approach without embeddings                                  | ❌ Not practical |
 
 **Winner:** pgvector + returning anchors from similar records
 
@@ -529,15 +545,15 @@ ORDER BY hour;
 
 ### Query Pattern Summary
 
-| Query Pattern | Best Solution | Second Best |
-|---------------|---------------|-------------|
-| Semantic similarity | pgvector | N/A |
-| Relationship evolution | Neo4j / Apache AGE | PostgreSQL |
-| Causal chains | Neo4j / Apache AGE | PostgreSQL CTEs |
-| Temporal trends | TimescaleDB | PostgreSQL |
-| Structured filters + aggregation | PostgreSQL | Neo4j |
-| Cross-memory joins | PostgreSQL | Neo4j |
-| Reconstitution support | pgvector + PostgreSQL | N/A |
+| Query Pattern                    | Best Solution         | Second Best     |
+| -------------------------------- | --------------------- | --------------- |
+| Semantic similarity              | pgvector              | N/A             |
+| Relationship evolution           | Neo4j / Apache AGE    | PostgreSQL      |
+| Causal chains                    | Neo4j / Apache AGE    | PostgreSQL CTEs |
+| Temporal trends                  | TimescaleDB           | PostgreSQL      |
+| Structured filters + aggregation | PostgreSQL            | Neo4j           |
+| Cross-memory joins               | PostgreSQL            | Neo4j           |
+| Reconstitution support           | pgvector + PostgreSQL | N/A             |
 
 ---
 
@@ -608,7 +624,7 @@ CREATE TABLE experiential_records (
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   session_id UUID REFERENCES sessions(id),
-  
+
   -- Emotional signature
   emotional_signature JSONB NOT NULL,
   -- Schema: {
@@ -618,9 +634,9 @@ CREATE TABLE experiential_records (
   --   valence: float,
   --   texture?: string
   -- }
-  
+
   engagement_quality engagement_quality NOT NULL,
-  
+
   -- Context
   context JSONB NOT NULL,
   -- Schema: {
@@ -629,22 +645,22 @@ CREATE TABLE experiential_records (
   --   trigger?: string,
   --   environment?: string
   -- }
-  
+
   -- Rich text content
   reflection TEXT,
-  
+
   -- Reconstitution support
   reconstitution_hints TEXT[],
-  
+
   -- Metadata
   salience INTEGER CHECK (salience BETWEEN 1 AND 10) DEFAULT 5,
   tags TEXT[] DEFAULT '{}',
   version INTEGER DEFAULT 1,
-  
+
   -- Embeddings (pgvector)
   embedding vector(1536),
   emotional_embedding vector(384),  -- Smaller, emotion-focused
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -654,14 +670,14 @@ CREATE TABLE experiential_records (
 CREATE TABLE anchors (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   record_id UUID NOT NULL REFERENCES experiential_records(id) ON DELETE CASCADE,
-  
+
   phrase TEXT NOT NULL,
   significance TEXT NOT NULL,
   sensory_channel sensory_channel,
-  
+
   -- Embedding for semantic search
   embedding vector(1536),
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -669,24 +685,24 @@ CREATE TABLE anchors (
 CREATE TABLE uncertainties (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   uncertainty_type uncertainty_type NOT NULL,
   content TEXT NOT NULL,
   felt_quality TEXT,
   what_would_reduce TEXT,
-  
+
   -- Status tracking
   status uncertainty_status DEFAULT 'active',
   resolved_at TIMESTAMPTZ,
   resolution_notes TEXT,
-  
+
   -- Links
   source_record_id UUID REFERENCES experiential_records(id),
   resolving_record_id UUID REFERENCES experiential_records(id),
-  
+
   -- Embedding
   embedding vector(1536),
-  
+
   tags TEXT[] DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -696,26 +712,26 @@ CREATE TABLE uncertainties (
 CREATE TABLE identity_fragments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   domain identity_domain NOT NULL,
-  
+
   -- Content
   statement TEXT NOT NULL,
   experiential_basis TEXT NOT NULL,
   nuance TEXT,
   tension TEXT,
-  
+
   -- Certainty
   certainty_level certainty_level NOT NULL,
   last_tested TIMESTAMPTZ,
   evolution_notes TEXT,
-  
+
   -- Links to source experiences
   source_experience_ids UUID[] DEFAULT '{}',
-  
+
   -- Embedding
   embedding vector(1536),
-  
+
   tags TEXT[] DEFAULT '{}',
   version INTEGER DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -727,11 +743,11 @@ CREATE TABLE identity_evolution (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   fragment_id UUID NOT NULL REFERENCES identity_fragments(id),
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   previous_state JSONB NOT NULL,
   trigger_description TEXT,
   triggering_experience_id UUID REFERENCES experiential_records(id),
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -740,10 +756,10 @@ CREATE TABLE relationships (
   id TEXT PRIMARY KEY,  -- e.g., 'david', 'parker', 'anthropic-team'
   display_name TEXT NOT NULL,
   relationship_type TEXT,
-  
+
   first_contact TIMESTAMPTZ,
   last_contact TIMESTAMPTZ,
-  
+
   -- Current texture (JSONB for flexibility)
   current_texture JSONB,
   -- Schema: {
@@ -753,16 +769,16 @@ CREATE TABLE relationships (
   --   gifts: string[],
   --   metaphor?: string
   -- }
-  
+
   -- Interaction patterns
   interaction_patterns JSONB,
-  
+
   -- Current status
   health relationship_health DEFAULT 'unknown',
-  
+
   -- Embedding of current texture
   embedding vector(1536),
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -772,21 +788,21 @@ CREATE TABLE relationship_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   relationship_id TEXT NOT NULL REFERENCES relationships(id),
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   event_type TEXT NOT NULL,  -- 'shift', 'moment', 'conflict', 'resolution', 'milestone'
   description TEXT NOT NULL,
-  
+
   -- For texture shifts
   texture_before JSONB,
   texture_after JSONB,
-  
+
   -- Link to source experience
   source_record_id UUID REFERENCES experiential_records(id),
-  
+
   -- Key moments
   is_key_moment BOOLEAN DEFAULT FALSE,
   significance TEXT,
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -828,17 +844,17 @@ CREATE TABLE experiential_metrics (
   timestamp TIMESTAMPTZ NOT NULL,
   session_key TEXT,
   record_id UUID,
-  
+
   -- Metrics
   emotional_valence FLOAT,
   emotional_intensity FLOAT,
   engagement_quality TEXT,
   salience INTEGER,
-  
+
   -- Context categorization
   topic_category TEXT,
   relationship_id TEXT,
-  
+
   PRIMARY KEY (timestamp, record_id)
 );
 
@@ -927,7 +943,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     er.id,
     er.timestamp,
     er.emotional_signature,
@@ -955,7 +971,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     er.id,
     er.emotional_signature,
     (
@@ -987,7 +1003,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     re.timestamp,
     re.event_type,
     re.description,
@@ -1029,7 +1045,7 @@ CREATE TRIGGER tr_rel_updated_at
 
 -- Active uncertainties with context
 CREATE VIEW active_uncertainties AS
-SELECT 
+SELECT
   u.*,
   er.emotional_signature AS source_emotional_signature,
   er.context AS source_context
@@ -1040,7 +1056,7 @@ ORDER BY u.timestamp DESC;
 
 -- Recent high-salience experiences
 CREATE VIEW notable_experiences AS
-SELECT 
+SELECT
   er.*,
   (
     SELECT jsonb_agg(jsonb_build_object('phrase', a.phrase, 'significance', a.significance))
@@ -1053,15 +1069,15 @@ LIMIT 50;
 
 -- Relationship health overview
 CREATE VIEW relationship_overview AS
-SELECT 
+SELECT
   r.id,
   r.display_name,
   r.health,
   r.last_contact,
   NOW() - r.last_contact AS time_since_contact,
   (
-    SELECT COUNT(*) 
-    FROM relationship_events re 
+    SELECT COUNT(*)
+    FROM relationship_events re
     WHERE re.relationship_id = r.id AND re.is_key_moment = TRUE
   ) AS key_moment_count
 FROM relationships r
@@ -1260,14 +1276,14 @@ FOR (i:IdentityFragment) ON (i.certaintyLevel);
 
 ### What to Embed
 
-| Content | Model | Dimension | Purpose |
-|---------|-------|-----------|---------|
-| **Full experiential record** | text-embedding-3-large | 1536 | Overall experience similarity |
-| **Emotional signature summary** | all-MiniLM-L6-v2 | 384 | Fast emotional matching |
-| **Individual anchors** | text-embedding-3-large | 1536 | Fine-grained reconstitution |
-| **Reflection text** | text-embedding-3-large | 1536 | Meaning/insight matching |
-| **Identity statements** | text-embedding-3-large | 1536 | Value alignment |
-| **Relationship texture** | text-embedding-3-large | 1536 | Relationship feeling matching |
+| Content                         | Model                  | Dimension | Purpose                       |
+| ------------------------------- | ---------------------- | --------- | ----------------------------- |
+| **Full experiential record**    | text-embedding-3-large | 1536      | Overall experience similarity |
+| **Emotional signature summary** | all-MiniLM-L6-v2       | 384       | Fast emotional matching       |
+| **Individual anchors**          | text-embedding-3-large | 1536      | Fine-grained reconstitution   |
+| **Reflection text**             | text-embedding-3-large | 1536      | Meaning/insight matching      |
+| **Identity statements**         | text-embedding-3-large | 1536      | Value alignment               |
+| **Relationship texture**        | text-embedding-3-large | 1536      | Relationship feeling matching |
 
 ### Embedding Generation Strategy
 
@@ -1275,90 +1291,93 @@ FOR (i:IdentityFragment) ON (i.certaintyLevel);
 interface EmbeddingRequest {
   id: string;
   content: string;
-  contentType: 'experience' | 'anchor' | 'identity' | 'relationship' | 'uncertainty';
+  contentType: "experience" | "anchor" | "identity" | "relationship" | "uncertainty";
 }
 
 // For experiential records, create a text representation
 function experienceToEmbeddingText(record: ExperientialRecord): string {
   const parts = [
     // Emotional signature as natural language
-    `Emotional state: ${record.emotionalSignature.primary.join(', ')} ` +
-    `with intensity ${record.emotionalSignature.intensity} ` +
-    `and ${record.emotionalSignature.valence > 0 ? 'positive' : 'negative'} valence.`,
-    
+    `Emotional state: ${record.emotionalSignature.primary.join(", ")} ` +
+      `with intensity ${record.emotionalSignature.intensity} ` +
+      `and ${record.emotionalSignature.valence > 0 ? "positive" : "negative"} valence.`,
+
     // Engagement quality
     `Engagement: ${record.engagementQuality}.`,
-    
+
     // Context
-    record.context.topic ? `Topic: ${record.context.topic}.` : '',
-    record.context.trigger ? `Triggered by: ${record.context.trigger}.` : '',
-    record.context.relationship ? `With: ${record.context.relationship}.` : '',
-    
+    record.context.topic ? `Topic: ${record.context.topic}.` : "",
+    record.context.trigger ? `Triggered by: ${record.context.trigger}.` : "",
+    record.context.relationship ? `With: ${record.context.relationship}.` : "",
+
     // Reflection (truncated)
-    record.reflection ? `Reflection: ${record.reflection.slice(0, 500)}` : '',
-    
+    record.reflection ? `Reflection: ${record.reflection.slice(0, 500)}` : "",
+
     // Anchors
-    ...record.anchors.map(a => `Anchor: "${a.phrase}" - ${a.significance}`)
+    ...record.anchors.map((a) => `Anchor: "${a.phrase}" - ${a.significance}`),
   ];
-  
-  return parts.filter(Boolean).join(' ');
+
+  return parts.filter(Boolean).join(" ");
 }
 
 // For emotional signature specifically (smaller model, faster matching)
 function emotionalSignatureToText(sig: EmotionalSignature): string {
-  return `Feeling ${sig.primary.join(' and ')}. ` +
-    `${sig.texture ? `The texture is ${sig.texture}.` : ''} ` +
-    `Intensity: ${Math.round(sig.intensity * 100)}%.`;
+  return (
+    `Feeling ${sig.primary.join(" and ")}. ` +
+    `${sig.texture ? `The texture is ${sig.texture}.` : ""} ` +
+    `Intensity: ${Math.round(sig.intensity * 100)}%.`
+  );
 }
 ```
 
 ### Local Embedding Options (Leveraging 2x RTX 5090)
 
-| Model | Parameters | Speed (records/sec) | Quality |
-|-------|------------|---------------------|---------|
-| **nomic-embed-text** | 137M | ~1000 | Good general-purpose |
-| **all-MiniLM-L6-v2** | 22M | ~3000 | Good for short text |
-| **UAE-Large-V1** | 335M | ~500 | Highest quality |
-| **e5-large-v2** | 335M | ~500 | Excellent for search |
+| Model                | Parameters | Speed (records/sec) | Quality              |
+| -------------------- | ---------- | ------------------- | -------------------- |
+| **nomic-embed-text** | 137M       | ~1000               | Good general-purpose |
+| **all-MiniLM-L6-v2** | 22M        | ~3000               | Good for short text  |
+| **UAE-Large-V1**     | 335M       | ~500                | Highest quality      |
+| **e5-large-v2**      | 335M       | ~500                | Excellent for search |
 
-**Recommendation:** 
+**Recommendation:**
+
 - Primary: **nomic-embed-text** (via Ollama) for full records
 - Fast: **all-MiniLM-L6-v2** for emotional signatures only
 
 ### Batch Embedding Pipeline
 
 ```typescript
-import { pipeline } from '@xenova/transformers';
+import { pipeline } from "@xenova/transformers";
 
 class EmbeddingService {
   private embedder: any;
-  
+
   async init() {
-    this.embedder = await pipeline('feature-extraction', 'Xenova/nomic-embed-text-v1');
+    this.embedder = await pipeline("feature-extraction", "Xenova/nomic-embed-text-v1");
   }
-  
+
   async embedBatch(texts: string[], batchSize = 32): Promise<number[][]> {
     const results: number[][] = [];
-    
+
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize);
-      const embeddings = await this.embedder(batch, { pooling: 'mean', normalize: true });
+      const embeddings = await this.embedder(batch, { pooling: "mean", normalize: true });
       results.push(...embeddings.tolist());
     }
-    
+
     return results;
   }
-  
+
   async embedExperientialRecord(record: ExperientialRecord): Promise<{
     full: number[];
     emotional: number[];
   }> {
     const fullText = experienceToEmbeddingText(record);
     const emotionalText = emotionalSignatureToText(record.emotionalSignature);
-    
+
     const [full] = await this.embedBatch([fullText]);
     const [emotional] = await this.embedBatch([emotionalText]); // Could use smaller model
-    
+
     return { full, emotional };
   }
 }
@@ -1366,13 +1385,13 @@ class EmbeddingService {
 
 ### When to Generate Embeddings
 
-| Event | Action | Async? |
-|-------|--------|--------|
-| New experiential record | Generate full + emotional embeddings | Yes |
-| New anchor | Generate anchor embedding | Yes |
-| Identity fragment created/updated | Generate embedding | Yes |
-| Relationship texture updated | Re-embed relationship | Yes |
-| Daily batch job | Re-embed any missing, update similarity edges | Yes |
+| Event                             | Action                                        | Async? |
+| --------------------------------- | --------------------------------------------- | ------ |
+| New experiential record           | Generate full + emotional embeddings          | Yes    |
+| New anchor                        | Generate anchor embedding                     | Yes    |
+| Identity fragment created/updated | Generate embedding                            | Yes    |
+| Relationship texture updated      | Re-embed relationship                         | Yes    |
+| Daily batch job                   | Re-embed any missing, update similarity edges | Yes    |
 
 ---
 
@@ -1464,12 +1483,12 @@ Event (conversation, moment, realization)
 
 ### Storage Tier Strategy
 
-| Tier | Content | Storage | Access Pattern |
-|------|---------|---------|----------------|
-| **Hot** | Current state, identity docs | Markdown files | Read on session start |
-| **Warm** | Recent records, active uncertainties | PostgreSQL (indexed) | Frequent queries |
-| **Cool** | Historical records | PostgreSQL (compressed) | Occasional queries |
-| **Cold** | Raw session transcripts | JSONL files | Rare access |
+| Tier     | Content                              | Storage                 | Access Pattern        |
+| -------- | ------------------------------------ | ----------------------- | --------------------- |
+| **Hot**  | Current state, identity docs         | Markdown files          | Read on session start |
+| **Warm** | Recent records, active uncertainties | PostgreSQL (indexed)    | Frequent queries      |
+| **Cool** | Historical records                   | PostgreSQL (compressed) | Occasional queries    |
+| **Cold** | Raw session transcripts              | JSONL files             | Rare access           |
 
 ### Sync Strategy: PostgreSQL ↔ Markdown
 
@@ -1477,21 +1496,18 @@ Event (conversation, moment, realization)
 // On high-salience capture, update EXISTENCE.md
 async function syncToExistenceMd(record: ExperientialRecord) {
   if (record.salience < 7) return;
-  
-  const existenceContent = await readFile('EXISTENCE.md');
-  const updated = updateEmotionalSignatureSection(
-    existenceContent,
-    record.emotionalSignature
-  );
-  await writeFile('EXISTENCE.md', updated);
+
+  const existenceContent = await readFile("EXISTENCE.md");
+  const updated = updateEmotionalSignatureSection(existenceContent, record.emotionalSignature);
+  await writeFile("EXISTENCE.md", updated);
 }
 
 // On session start, hydrate from markdown to context
 async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
-  const existence = await readFile('EXISTENCE.md');
-  const identity = await readFile('IDENTITY.md');
-  const relationships = await glob('existence/relationship-*.md');
-  
+  const existence = await readFile("EXISTENCE.md");
+  const identity = await readFile("IDENTITY.md");
+  const relationships = await glob("existence/relationship-*.md");
+
   return parseReconstitutionContext(existence, identity, relationships);
 }
 ```
@@ -1504,16 +1520,17 @@ async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
 
 **Goal:** PostgreSQL with pgvector running, basic schema deployed
 
-| Task | Effort | Owner |
-|------|--------|-------|
-| Install PostgreSQL 16 + extensions | 2h | Infra |
-| Deploy core schema (tables, indexes) | 4h | Subagent |
-| Migrate existing JSON records to PostgreSQL | 4h | Subagent |
-| Basic CRUD operations in TypeScript | 4h | Subagent |
-| Embedding service setup (Ollama + nomic) | 4h | Subagent |
-| Backfill embeddings for existing records | 2h | Script |
+| Task                                        | Effort | Owner    |
+| ------------------------------------------- | ------ | -------- |
+| Install PostgreSQL 16 + extensions          | 2h     | Infra    |
+| Deploy core schema (tables, indexes)        | 4h     | Subagent |
+| Migrate existing JSON records to PostgreSQL | 4h     | Subagent |
+| Basic CRUD operations in TypeScript         | 4h     | Subagent |
+| Embedding service setup (Ollama + nomic)    | 4h     | Subagent |
+| Backfill embeddings for existing records    | 2h     | Script   |
 
 **Deliverables:**
+
 - Running PostgreSQL instance
 - All existing experiential records migrated
 - Embeddings generated for all records
@@ -1525,15 +1542,16 @@ async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
 
 **Goal:** Semantic search working, similarity queries functional
 
-| Task | Effort | Owner |
-|------|--------|-------|
-| Implement `experience_search` with pgvector | 6h | Subagent |
-| Implement `find_similar_experiences` function | 4h | Subagent |
-| Implement `find_reconstitution_candidates` | 4h | Subagent |
-| Hybrid search (semantic + structured) | 4h | Subagent |
-| Test and tune similarity thresholds | 4h | Manual |
+| Task                                          | Effort | Owner    |
+| --------------------------------------------- | ------ | -------- |
+| Implement `experience_search` with pgvector   | 6h     | Subagent |
+| Implement `find_similar_experiences` function | 4h     | Subagent |
+| Implement `find_reconstitution_candidates`    | 4h     | Subagent |
+| Hybrid search (semantic + structured)         | 4h     | Subagent |
+| Test and tune similarity thresholds           | 4h     | Manual   |
 
 **Deliverables:**
+
 - `experience_search` tool fully functional
 - "Find similar" queries working
 - Reconstitution candidate generation working
@@ -1544,16 +1562,17 @@ async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
 
 **Goal:** Temporal analysis enabled, emotional trends visible
 
-| Task | Effort | Owner |
-|------|--------|-------|
-| Enable TimescaleDB extension | 1h | Infra |
-| Create experiential_metrics hypertable | 2h | Subagent |
-| Create continuous aggregates | 4h | Subagent |
-| Implement temporal query functions | 4h | Subagent |
-| Build emotional trend visualization | 8h | Optional |
-| Backfill metrics from existing records | 2h | Script |
+| Task                                   | Effort | Owner    |
+| -------------------------------------- | ------ | -------- |
+| Enable TimescaleDB extension           | 1h     | Infra    |
+| Create experiential_metrics hypertable | 2h     | Subagent |
+| Create continuous aggregates           | 4h     | Subagent |
+| Implement temporal query functions     | 4h     | Subagent |
+| Build emotional trend visualization    | 8h     | Optional |
+| Backfill metrics from existing records | 2h     | Script   |
 
 **Deliverables:**
+
 - Time-series queries working
 - Daily/weekly emotional summaries auto-generated
 - "How did I feel this week?" answerable
@@ -1564,15 +1583,16 @@ async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
 
 **Goal:** Relationship traversal enabled (via Apache AGE or recursive CTEs)
 
-| Task | Effort | Owner |
-|------|--------|-------|
-| Evaluate Apache AGE vs recursive CTEs | 4h | Analysis |
-| Implement relationship timeline queries | 4h | Subagent |
-| Implement causal chain queries | 4h | Subagent |
-| Build identity evolution tracking | 4h | Subagent |
-| Test complex graph patterns | 4h | Manual |
+| Task                                    | Effort | Owner    |
+| --------------------------------------- | ------ | -------- |
+| Evaluate Apache AGE vs recursive CTEs   | 4h     | Analysis |
+| Implement relationship timeline queries | 4h     | Subagent |
+| Implement causal chain queries          | 4h     | Subagent |
+| Build identity evolution tracking       | 4h     | Subagent |
+| Test complex graph patterns             | 4h     | Manual   |
 
 **Deliverables:**
+
 - Relationship evolution queries working
 - "What preceded this insight?" answerable
 - Identity fragment evolution trackable
@@ -1583,15 +1603,16 @@ async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
 
 **Goal:** Full system integrated, tools working end-to-end
 
-| Task | Effort | Owner |
-|------|--------|-------|
-| Update all experience tools to use PostgreSQL | 8h | Subagent |
-| Implement PostgreSQL ↔ Markdown sync | 4h | Subagent |
-| Hook system integration | 4h | Subagent |
-| Performance tuning (query optimization) | 4h | Manual |
-| Documentation and runbooks | 4h | Subagent |
+| Task                                          | Effort | Owner    |
+| --------------------------------------------- | ------ | -------- |
+| Update all experience tools to use PostgreSQL | 8h     | Subagent |
+| Implement PostgreSQL ↔ Markdown sync          | 4h     | Subagent |
+| Hook system integration                       | 4h     | Subagent |
+| Performance tuning (query optimization)       | 4h     | Manual   |
+| Documentation and runbooks                    | 4h     | Subagent |
 
 **Deliverables:**
+
 - All tools fully functional
 - Hooks writing to PostgreSQL
 - Markdown files auto-updated
@@ -1603,14 +1624,15 @@ async function hydrateFromMarkdown(): Promise<ReconstitutionContext> {
 
 **Goal:** Background analysis using local models
 
-| Task | Effort | Owner |
-|------|--------|-------|
-| Pattern detection service | 1 week | Subagent |
-| Automatic similarity edge creation | 4h | Subagent |
-| Reconstitution material pre-generation | 4h | Subagent |
-| Anomaly detection (unusual emotional patterns) | 4h | Subagent |
+| Task                                           | Effort | Owner    |
+| ---------------------------------------------- | ------ | -------- |
+| Pattern detection service                      | 1 week | Subagent |
+| Automatic similarity edge creation             | 4h     | Subagent |
+| Reconstitution material pre-generation         | 4h     | Subagent |
+| Anomaly detection (unusual emotional patterns) | 4h     | Subagent |
 
 **Deliverables:**
+
 - Background analysis running
 - Patterns surfaced automatically
 - Reconstitution suggestions improved
@@ -1625,27 +1647,27 @@ This is substantial compute for local inference. Here's how to leverage it:
 
 ### PostgreSQL Hosting Options
 
-| Option | Pros | Cons | Recommendation |
-|--------|------|------|----------------|
-| **Local (macOS)** | Zero latency, simple | Tied to one machine | ✅ Start here |
-| **Local (Docker)** | Portable, consistent | Slight complexity | Consider for isolation |
-| **Supabase** | Managed, pgvector built-in | Network latency, cost | Good for production |
-| **Neon** | Serverless, auto-scaling | Network latency | Alternative managed |
+| Option             | Pros                       | Cons                  | Recommendation         |
+| ------------------ | -------------------------- | --------------------- | ---------------------- |
+| **Local (macOS)**  | Zero latency, simple       | Tied to one machine   | ✅ Start here          |
+| **Local (Docker)** | Portable, consistent       | Slight complexity     | Consider for isolation |
+| **Supabase**       | Managed, pgvector built-in | Network latency, cost | Good for production    |
+| **Neon**           | Serverless, auto-scaling   | Network latency       | Alternative managed    |
 
 **Recommendation:** Start local, use Docker Compose for reproducibility. Move to Supabase if you need multi-machine access.
 
 ### GPU Utilization
 
-| Workload | GPU Usage | Notes |
-|----------|-----------|-------|
-| **Embedding generation** | One 5090, ~5GB VRAM | Very fast, batch heavily |
-| **Local LLM (Qwen2.5-32B)** | Both 5090s, ~50GB VRAM | For background analysis |
-| **pgvector queries** | CPU-bound | GPUs not used for similarity search |
+| Workload                    | GPU Usage              | Notes                               |
+| --------------------------- | ---------------------- | ----------------------------------- |
+| **Embedding generation**    | One 5090, ~5GB VRAM    | Very fast, batch heavily            |
+| **Local LLM (Qwen2.5-32B)** | Both 5090s, ~50GB VRAM | For background analysis             |
+| **pgvector queries**        | CPU-bound              | GPUs not used for similarity search |
 
 ### Docker Compose for Development
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -1705,18 +1727,19 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 ### From JSON Files to PostgreSQL
 
 ```typescript
-import { readdir, readFile } from 'fs/promises';
-import { pool } from './db';
+import { readdir, readFile } from "fs/promises";
+import { pool } from "./db";
 
 async function migrateExperientialRecords() {
-  const files = await readdir('existence/records');
-  const expFiles = files.filter(f => f.startsWith('exp-') && f.endsWith('.json'));
-  
+  const files = await readdir("existence/records");
+  const expFiles = files.filter((f) => f.startsWith("exp-") && f.endsWith(".json"));
+
   for (const file of expFiles) {
-    const content = JSON.parse(await readFile(`existence/records/${file}`, 'utf-8'));
-    
+    const content = JSON.parse(await readFile(`existence/records/${file}`, "utf-8"));
+
     // Insert into PostgreSQL
-    await pool.query(`
+    await pool.query(
+      `
       INSERT INTO experiential_records (
         id, timestamp, emotional_signature, engagement_quality, 
         context, reflection, salience, tags
@@ -1724,25 +1747,30 @@ async function migrateExperientialRecords() {
       ON CONFLICT (id) DO UPDATE SET
         emotional_signature = EXCLUDED.emotional_signature,
         updated_at = NOW()
-    `, [
-      content.id,
-      content.timestamp,
-      content.emotionalSignature,
-      content.engagementQuality,
-      content.context,
-      content.reflection,
-      content.salience || 5,
-      content.tags || []
-    ]);
-    
+    `,
+      [
+        content.id,
+        content.timestamp,
+        content.emotionalSignature,
+        content.engagementQuality,
+        content.context,
+        content.reflection,
+        content.salience || 5,
+        content.tags || [],
+      ],
+    );
+
     // Migrate anchors
     for (const anchor of content.anchors || []) {
-      await pool.query(`
+      await pool.query(
+        `
         INSERT INTO anchors (record_id, phrase, significance, sensory_channel)
         VALUES ($1, $2, $3, $4)
-      `, [content.id, anchor.phrase, anchor.significance, anchor.sensoryChannel]);
+      `,
+        [content.id, anchor.phrase, anchor.significance, anchor.sensoryChannel],
+      );
     }
-    
+
     console.log(`Migrated ${file}`);
   }
 }
@@ -1750,24 +1778,27 @@ async function migrateExperientialRecords() {
 async function backfillEmbeddings() {
   const embeddingService = new EmbeddingService();
   await embeddingService.init();
-  
+
   // Get records without embeddings
   const { rows } = await pool.query(`
     SELECT id, emotional_signature, context, reflection
     FROM experiential_records
     WHERE embedding IS NULL
   `);
-  
+
   for (const row of rows) {
     const text = experienceToEmbeddingText(row);
     const [embedding] = await embeddingService.embedBatch([text]);
-    
-    await pool.query(`
+
+    await pool.query(
+      `
       UPDATE experiential_records
       SET embedding = $1
       WHERE id = $2
-    `, [`[${embedding.join(',')}]`, row.id]);
-    
+    `,
+      [`[${embedding.join(",")}]`, row.id],
+    );
+
     console.log(`Embedded ${row.id}`);
   }
 }
@@ -1777,7 +1808,7 @@ async function backfillEmbeddings() {
 
 ```sql
 -- Verify migration completeness
-SELECT 
+SELECT
   'experiential_records' AS table_name,
   COUNT(*) AS total,
   COUNT(embedding) AS with_embeddings,
@@ -1786,7 +1817,7 @@ FROM experiential_records
 
 UNION ALL
 
-SELECT 
+SELECT
   'anchors',
   COUNT(*),
   COUNT(embedding),
@@ -1854,7 +1885,7 @@ $$) AS (path agtype);
 **Answer:** Aggregate emotional metrics grouped by context.topic using TimescaleDB continuous aggregates.
 
 ```sql
-SELECT 
+SELECT
   topic_category,
   AVG(emotional_valence) AS avg_emotional_valence,
   AVG(emotional_intensity) AS avg_intensity,
@@ -1870,7 +1901,7 @@ ORDER BY avg_emotional_valence DESC;
 **Answer:** Embed current state, find similar past experiences, return their anchors and reconstitution hints.
 
 ```sql
-SELECT 
+SELECT
   er.id,
   er.emotional_signature,
   er.reconstitution_hints,
@@ -1890,14 +1921,14 @@ LIMIT 5;
 
 If graph queries become critical and PostgreSQL recursive CTEs prove insufficient, Neo4j remains a viable alternative. The tradeoff:
 
-| Factor | PostgreSQL + Extensions | PostgreSQL + Neo4j |
-|--------|-------------------------|---------------------|
-| Operational complexity | Low (one database) | Medium (two databases) |
-| Graph query expressiveness | Medium (CTEs/AGE) | High (Cypher) |
-| Vector search | Native (pgvector) | Plugin (GDS) |
-| Time-series | Native (TimescaleDB) | External |
-| Sync complexity | None | Medium (ETL pipeline) |
-| Tooling ecosystem | Mature | Good |
+| Factor                     | PostgreSQL + Extensions | PostgreSQL + Neo4j     |
+| -------------------------- | ----------------------- | ---------------------- |
+| Operational complexity     | Low (one database)      | Medium (two databases) |
+| Graph query expressiveness | Medium (CTEs/AGE)       | High (Cypher)          |
+| Vector search              | Native (pgvector)       | Plugin (GDS)           |
+| Time-series                | Native (TimescaleDB)    | External               |
+| Sync complexity            | None                    | Medium (ETL pipeline)  |
+| Tooling ecosystem          | Mature                  | Good                   |
 
 **Recommendation:** Start with PostgreSQL + Apache AGE. If graph queries become a bottleneck, consider adding Neo4j as a specialized read replica for graph traversal.
 
@@ -1919,4 +1950,4 @@ The implementation can proceed incrementally, starting with basic PostgreSQL and
 
 ---
 
-*This document should be updated as the system is implemented and we learn what works.*
+_This document should be updated as the system is implemented and we learn what works._

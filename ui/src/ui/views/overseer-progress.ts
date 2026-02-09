@@ -158,7 +158,7 @@ export function renderGoalProgress(props: GoalProgressProps) {
         <div class="goal-progress__header">
           <div class="goal-progress__header-left">
             <div class="goal-progress__header-icon">
-              ${icon("bar-chart-2", { size: 18 })}
+              ${icon("barChart", { size: 18 })}
             </div>
             <div>
               <div class="goal-progress__title">Goal Progress</div>
@@ -167,7 +167,7 @@ export function renderGoalProgress(props: GoalProgressProps) {
           </div>
         </div>
         <div class="goal-progress__empty">
-          <div class="goal-progress__empty-icon">${icon("bar-chart-2", { size: 32 })}</div>
+          <div class="goal-progress__empty-icon">${icon("barChart", { size: 32 })}</div>
           <div>No plan generated yet. Create a goal and generate a plan to see progress.</div>
         </div>
       </div>
@@ -224,7 +224,7 @@ function renderProgressHeader(goal: OverseerGoalDetail, counts: StatusCounts, pc
     <div class="goal-progress__header">
       <div class="goal-progress__header-left">
         <div class="goal-progress__header-icon">
-          ${icon("bar-chart-2", { size: 18 })}
+          ${icon("barChart", { size: 18 })}
         </div>
         <div>
           <div class="goal-progress__title">Goal Progress</div>

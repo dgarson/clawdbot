@@ -39,16 +39,14 @@
         }
       },
       "load": {
-        "extraDirs": [
-          "~/.openclaw/existence/hooks"
-        ]
+        "extraDirs": ["~/.openclaw/existence/hooks"]
       }
     }
   },
 
   "experiential": {
     "enabled": true,
-    
+
     "local_model": {
       "endpoint": "http://localhost:8000/v1",
       "evaluation_model": "Qwen/Qwen2.5-7B-Instruct",

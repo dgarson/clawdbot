@@ -44,15 +44,15 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
   let i = 0;
 
   while (i < lines.length) {
-    const line = lines[i]!;
+    const line = lines[i];
 
     // Code fence
     if (line.startsWith("```")) {
       const lang = line.slice(3).trim();
       const codeLines: string[] = [];
       i++;
-      while (i < lines.length && !lines[i]!.startsWith("```")) {
-        codeLines.push(lines[i]!);
+      while (i < lines.length && !lines[i].startsWith("```")) {
+        codeLines.push(lines[i]);
         i++;
       }
       i++; // skip closing ```
@@ -70,9 +70,9 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
     // Headings
     const headingMatch = line.match(/^(#{1,3})\s+(.+)/);
     if (headingMatch) {
-      const level = headingMatch[1]!.length as 1 | 2 | 3;
-      const text = headingMatch[2]!;
-      const type = `heading_${level}` as "heading_1" | "heading_2" | "heading_3";
+      const level = headingMatch[1].length as 1 | 2 | 3;
+      const text = headingMatch[2];
+      const type = `heading_${level}`;
       blocks.push({
         object: "block",
         type,
@@ -85,8 +85,8 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
     // To-do items
     const todoMatch = line.match(/^[-*]\s+\[([ xX])\]\s+(.*)/);
     if (todoMatch) {
-      const checked = todoMatch[1]!.toLowerCase() === "x";
-      const text = todoMatch[2]!;
+      const checked = todoMatch[1].toLowerCase() === "x";
+      const text = todoMatch[2];
       blocks.push({
         object: "block",
         type: "to_do",
@@ -102,7 +102,7 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
       blocks.push({
         object: "block",
         type: "bulleted_list_item",
-        bulleted_list_item: { rich_text: parseInlineMarkdown(bulletMatch[1]!) },
+        bulleted_list_item: { rich_text: parseInlineMarkdown(bulletMatch[1]) },
       });
       i++;
       continue;
@@ -114,7 +114,7 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
       blocks.push({
         object: "block",
         type: "numbered_list_item",
-        numbered_list_item: { rich_text: parseInlineMarkdown(numberedMatch[1]!) },
+        numbered_list_item: { rich_text: parseInlineMarkdown(numberedMatch[1]) },
       });
       i++;
       continue;
@@ -124,10 +124,10 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
     const quoteMatch = line.match(/^>\s?(.*)/);
     if (quoteMatch) {
       // Collect consecutive quote lines
-      const quoteLines: string[] = [quoteMatch[1]!];
+      const quoteLines: string[] = [quoteMatch[1]];
       i++;
-      while (i < lines.length && lines[i]!.startsWith(">")) {
-        quoteLines.push(lines[i]!.replace(/^>\s?/, ""));
+      while (i < lines.length && lines[i].startsWith(">")) {
+        quoteLines.push(lines[i].replace(/^>\s?/, ""));
         i++;
       }
       blocks.push({
@@ -149,15 +149,15 @@ export function markdownToNotionBlocks(markdown: string): NotionBlock[] {
     i++;
     while (
       i < lines.length &&
-      lines[i]!.trim() !== "" &&
-      !lines[i]!.startsWith("#") &&
-      !lines[i]!.startsWith("```") &&
-      !lines[i]!.startsWith(">") &&
-      !lines[i]!.match(/^[-*]\s/) &&
-      !lines[i]!.match(/^\d+[.)]\s/) &&
-      !lines[i]!.match(/^---+\s*$/)
+      lines[i].trim() !== "" &&
+      !lines[i].startsWith("#") &&
+      !lines[i].startsWith("```") &&
+      !lines[i].startsWith(">") &&
+      !lines[i].match(/^[-*]\s/) &&
+      !lines[i].match(/^\d+[.)]\s/) &&
+      !lines[i].match(/^---+\s*$/)
     ) {
-      paraLines.push(lines[i]!);
+      paraLines.push(lines[i]);
       i++;
     }
     blocks.push({

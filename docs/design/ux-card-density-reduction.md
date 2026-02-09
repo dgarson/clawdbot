@@ -29,6 +29,7 @@ The current card-based views (Workstreams, Goals, Agents, Providers/Channels) su
 ### 1. Workstream Cards
 
 #### BEFORE
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Badge: Active ▶]                      Due: Mar 15 │
@@ -49,6 +50,7 @@ The current card-based views (Workstreams, Goals, Agents, Providers/Channels) su
 ```
 
 #### AFTER
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Icon 40x40]  Title Text Here                      │
@@ -68,6 +70,7 @@ CLICK/ARROW: Opens detail view
 ```
 
 **Changes:**
+
 - Remove status badge from default view (implied by icon color)
 - Hide description, show on hover
 - Collapse tags to hover state
@@ -79,6 +82,7 @@ CLICK/ARROW: Opens detail view
 ### 2. Goal Cards
 
 #### BEFORE
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Badge: Active]                    Due: Mar 15     │
@@ -98,6 +102,7 @@ CLICK/ARROW: Opens detail view
 ```
 
 #### AFTER
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Icon 36x36]  Title Text Here                      │
@@ -120,6 +125,7 @@ Long-press or right-click: Edit option
 ```
 
 **Changes:**
+
 - Smaller icon (36px vs 56px)
 - Hide description by default
 - Remove milestone visualization from default view
@@ -131,6 +137,7 @@ Long-press or right-click: Edit option
 ### 3. Channel Cards
 
 #### BEFORE
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Icon] Telegram                    [Download icon] │
@@ -149,6 +156,7 @@ Long-press or right-click: Edit option
 ```
 
 #### AFTER
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Icon 32x32]  Telegram          [● Connected]      │
@@ -170,6 +178,7 @@ HOVER REVEALS:
 ```
 
 **Changes:**
+
 - Remove description text by default
 - Single action button (context-aware: Connect vs Configure)
 - Status shown as small dot + text, not large badge
@@ -181,6 +190,7 @@ HOVER REVEALS:
 ### 4. AI Provider Section
 
 #### BEFORE
+
 ```
 Connected:
 ┌─────────────────────────────────────────────────────┐
@@ -194,6 +204,7 @@ Available Providers:
 ```
 
 #### AFTER
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Providers                              [+ Add]      │
@@ -207,6 +218,7 @@ Legend: ● Connected  ○ Not configured
 ```
 
 **Changes:**
+
 - List view instead of cards
 - Inline status indicators (dots)
 - Single action per row
@@ -220,7 +232,7 @@ Legend: ● Connected  ○ Not configured
 ### Phase 1: Create Compact Variants (This PR)
 
 1. Add `variant="compact"` prop to existing cards or create new compact components
-2. WorkstreamCard: Create `WorkstreamCardCompact` 
+2. WorkstreamCard: Create `WorkstreamCardCompact`
 3. GoalCard: Already has `compact` variant - enhance it
 4. ChannelCard: Create `ChannelCardCompact`
 5. AIProviderSection: Refactor to list view
@@ -241,6 +253,7 @@ Legend: ● Connected  ○ Not configured
 ## File Changes
 
 ### Modified Files:
+
 1. `apps/web/src/components/domain/workstreams/WorkstreamCard.tsx`
 2. `apps/web/src/components/domain/goals/GoalCard.tsx`
 3. `apps/web/src/components/domain/config/channels/ChannelCard.tsx`
@@ -248,6 +261,7 @@ Legend: ● Connected  ○ Not configured
 5. `apps/web/src/components/domain/home/ActiveWorkstreamsSection.tsx`
 
 ### New Files:
+
 - None (using existing component patterns with variants)
 
 ---

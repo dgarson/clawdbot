@@ -9,14 +9,18 @@ When merging from upstream (clawdbrain), only minimal changes are needed in upst
 ## Files
 
 ### `agent-config-overrides.ts`
+
 Per-agent configuration override logic:
+
 - `resolveOpenClawThinkingLevel()` - Thinking level resolution with per-agent defaults
 - `resolveOpenClawVerboseLevel()` - Verbose level resolution with per-agent defaults
 
 **Upstream integration:** Imported by `src/auto-reply/reply/*.ts` files
 
 ### `thinking-budget-integration.ts`
+
 Thinking budget conflict detection and warnings:
+
 - `warnIfThinkingBudgetConflict()` - Emits warnings when budget conflicts with context
 
 **Upstream integration:** Imported by `src/agents/pi-embedded-runner/run/attempt.ts`
@@ -24,6 +28,7 @@ Thinking budget conflict detection and warnings:
 ## Merge Strategy
 
 When merging from upstream:
+
 1. Accept upstream changes to core files
 2. Re-add minimal import statements (1 line per file)
 3. Replace their resolution logic with OpenClaw function calls (1-2 lines)
@@ -32,12 +37,14 @@ When merging from upstream:
 ## Related Files
 
 ### OpenClaw-Owned (No Conflicts)
+
 - `src/agents/thinking-budgets.ts` - Token budget constants
 - `src/agents/thinking-budgets.test.ts` - Budget tests
 - `src/agents/agent-scope.test.ts` - Agent resolution tests
 - `src/commands/agents.commands.thinking-config.ts` - CLI command
 
 ### Minimal Upstream Changes
+
 - `src/config/types.agents.ts` - Added `thinkingDefault`, `verboseDefault` fields
 - `src/config/zod-schema.agent-runtime.ts` - Added validation
 - `src/agents/agent-scope.ts` - Added helper functions (append-only)

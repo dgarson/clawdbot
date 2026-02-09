@@ -8,23 +8,23 @@
 
 ## Status of Original Report Items
 
-| # | Original Item | Status |
-|---|--------------|--------|
-| 1 | Shared EmptyState component | **Still needed** — no shared component exists |
-| 2 | Shared ErrorState component | **Implemented** — `components/composed/ErrorState.tsx` exists with inline/card variants and pre-configured `errorMessages` |
-| 3 | Consolidate date formatters | **Partially done** — `lib/format.ts` exists but only 6 files use it; 16+ files still define local formatters and 40+ use inline `toLocaleDateString()`/`Intl` calls |
-| 4 | Adopt PageHeader across routes | **Not adopted** — `components/layout/PageHeader.tsx` exists with breadcrumb support but zero routes import it |
-| 5 | Home panel visual hierarchy | **Implemented** — QuickChatBox spans full width, ApprovalsInbox uses `border-warning/40 bg-warning/5` accent, dashboard panels are visually recessive |
-| 6 | Extract shared animation variants | **Still needed** — no `lib/animations.ts`; 16+ files define identical `containerVariants`/`itemVariants` |
-| 7 | Reduce AgentCard density | **Still heavy** — 310 LOC, ~90 Tailwind classes, 5 motion animations, gradient + glow + ping |
-| 8 | Deduplicate agent detail formatters | **Still duplicated** — `$agentId.tsx` defines local `formatDate()` and `formatRelativeTime()` |
-| 9 | Fix mobile conversation layout | **Still broken** — flex row with `max-w-md` sidebar + `flex-1` main; no responsive stacking |
-| 10 | Replace raw `<button>` elements | **Still present** — 2 files use raw `<button>` instead of `<Button>` component |
-| 11 | Deduplicate workstream utils | **Still duplicated** — `WorkstreamCard.tsx` and `$workstreamId.tsx` both define `formatDueDate()`, `getOwnerInitials()`, `statusConfig` |
-| 12 | Reduce WorkstreamCard weight | **Still heavy** — 457 LOC, ~127 Tailwind classes, 8 motion animations, 3 variants |
-| 13 | Mobile navigation | **Still missing** — sidebar is `hidden md:flex`; no bottom tab bar, hamburger, or drawer below `md` |
-| 14 | Breadcrumbs on nested routes | **Partially done** — `/agents/$agentId` and `/workstreams/$workstreamId` have back buttons; session routes and agentic view have no breadcrumbs |
-| 15 | Shared status color tokens | **Still needed** — 10+ files define their own `statusConfig` objects with inconsistent color mappings |
+| #   | Original Item                       | Status                                                                                                                                                              |
+| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Shared EmptyState component         | **Still needed** — no shared component exists                                                                                                                       |
+| 2   | Shared ErrorState component         | **Implemented** — `components/composed/ErrorState.tsx` exists with inline/card variants and pre-configured `errorMessages`                                          |
+| 3   | Consolidate date formatters         | **Partially done** — `lib/format.ts` exists but only 6 files use it; 16+ files still define local formatters and 40+ use inline `toLocaleDateString()`/`Intl` calls |
+| 4   | Adopt PageHeader across routes      | **Not adopted** — `components/layout/PageHeader.tsx` exists with breadcrumb support but zero routes import it                                                       |
+| 5   | Home panel visual hierarchy         | **Implemented** — QuickChatBox spans full width, ApprovalsInbox uses `border-warning/40 bg-warning/5` accent, dashboard panels are visually recessive               |
+| 6   | Extract shared animation variants   | **Still needed** — no `lib/animations.ts`; 16+ files define identical `containerVariants`/`itemVariants`                                                            |
+| 7   | Reduce AgentCard density            | **Still heavy** — 310 LOC, ~90 Tailwind classes, 5 motion animations, gradient + glow + ping                                                                        |
+| 8   | Deduplicate agent detail formatters | **Still duplicated** — `$agentId.tsx` defines local `formatDate()` and `formatRelativeTime()`                                                                       |
+| 9   | Fix mobile conversation layout      | **Still broken** — flex row with `max-w-md` sidebar + `flex-1` main; no responsive stacking                                                                         |
+| 10  | Replace raw `<button>` elements     | **Still present** — 2 files use raw `<button>` instead of `<Button>` component                                                                                      |
+| 11  | Deduplicate workstream utils        | **Still duplicated** — `WorkstreamCard.tsx` and `$workstreamId.tsx` both define `formatDueDate()`, `getOwnerInitials()`, `statusConfig`                             |
+| 12  | Reduce WorkstreamCard weight        | **Still heavy** — 457 LOC, ~127 Tailwind classes, 8 motion animations, 3 variants                                                                                   |
+| 13  | Mobile navigation                   | **Still missing** — sidebar is `hidden md:flex`; no bottom tab bar, hamburger, or drawer below `md`                                                                 |
+| 14  | Breadcrumbs on nested routes        | **Partially done** — `/agents/$agentId` and `/workstreams/$workstreamId` have back buttons; session routes and agentic view have no breadcrumbs                     |
+| 15  | Shared status color tokens          | **Still needed** — 10+ files define their own `statusConfig` objects with inconsistent color mappings                                                               |
 
 **Items fully resolved and removed from this revision:** #2 (ErrorState) and #5 (home hierarchy).
 
@@ -44,7 +44,8 @@ setTimeout(async () => {
   await sendMessage.mutateAsync({
     conversationId: id,
     role: "assistant",
-    content: "I received your message and I'm processing it. This is a simulated response for the demo.",
+    content:
+      "I received your message and I'm processing it. This is a simulated response for the demo.",
   });
 }, 1000);
 ```
@@ -82,12 +83,12 @@ Multiple hardcoded `setTimeout` delays (`500ms`, `700ms`, `800ms`, `1000ms`) app
 
 **Severity:** Medium
 
-| Route | Loading Pattern |
-|-------|----------------|
-| `routes/index.tsx` (Home) | No skeleton — blank until data arrives |
-| `routes/conversations/index.tsx` | No page-level skeleton |
-| `routes/jobs/index.tsx` | Plain text "Loading..." |
-| Most other routes | Proper skeleton grids |
+| Route                            | Loading Pattern                        |
+| -------------------------------- | -------------------------------------- |
+| `routes/index.tsx` (Home)        | No skeleton — blank until data arrives |
+| `routes/conversations/index.tsx` | No page-level skeleton                 |
+| `routes/jobs/index.tsx`          | Plain text "Loading..."                |
+| Most other routes                | Proper skeleton grids                  |
 
 Three routes break the skeleton pattern that 10 other routes follow, creating a jarring experience when navigating between pages.
 
@@ -102,6 +103,7 @@ Items already implemented (#2 ErrorState, #5 home hierarchy) are removed. Remain
 #### 1. Shared EmptyState Component (from original #1)
 
 **Status:** Not implemented. Every view reinvents empty states:
+
 - `AgentConfig.tsx`: motion.div with Bot icon
 - `MemoryList.tsx`: motion.div with Brain icon, custom `emptyMessage` prop
 - `GoalList.tsx`: motion.div with emoji (🎯), status-aware messages
@@ -118,6 +120,7 @@ Create `<EmptyState icon={...} title="..." description="..." action={...} />` in
 **Status:** `lib/format.ts` exists and exports `formatRelativeTime`, `formatRelativeTimeFromISO`, `formatDuration`, `formatCost`, `formatCostPrecise`, `formatTokenCount`, `shortenSessionKey`. Only 6 files import from it.
 
 **Still duplicating locally (16 files):**
+
 - `ConversationItem.tsx` — local `formatRelativeTime()` (line 18)
 - `RecentWork.tsx` — local `formatRelativeTime()` (line 22)
 - `RecentMemoriesPanel.tsx` — local `formatDate()` (line 38)
@@ -148,6 +151,7 @@ Issues observed: capitalization inconsistency ("Just now" vs "just now"), differ
 **Status:** `components/layout/PageHeader.tsx` exists with breadcrumb support (`Breadcrumb[]` prop with `label` + `href`), title, description, and right-side actions slot. Zero routes use it.
 
 Current header implementations per route:
+
 - `agents/index.tsx`: `text-3xl font-bold` in a flex row
 - `workstreams/index.tsx`: `text-2xl font-bold` with icon
 - `goals/index.tsx`: `text-2xl font-bold` with Target icon
@@ -167,6 +171,7 @@ Title sizing is mostly consistent (`text-2xl`) except agents (`text-3xl`) and ho
 **Status:** No `lib/animations.ts` exists. 16+ files define identical animation variant objects.
 
 Files with duplicated `containerVariants`/`itemVariants`:
+
 - `TeamAgentGrid.tsx` (staggerChildren: 0.1)
 - `UpcomingRitualsPanel.tsx` (0.08)
 - `GoalProgressPanel.tsx` (0.08)
@@ -188,18 +193,18 @@ Files with duplicated `containerVariants`/`itemVariants`:
 
 **Status:** 10+ files define independent `statusConfig` objects:
 
-| File | Status Types |
-|------|-------------|
-| `StatusBadge.tsx` | online, offline, busy, paused, error, success, warning, pending |
+| File                      | Status Types                                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `StatusBadge.tsx`         | online, offline, busy, paused, error, success, warning, pending                     |
 | `WorkflowStatusBadge.tsx` | idle, thinking, executing, waiting_approval, waiting_input, paused, complete, error |
-| `AgentStatusRow.tsx` | active, stalled, idle, errored |
-| `AgentCard.tsx` | online, offline, busy, paused |
-| `GoalCard.tsx` | active, completed, archived |
-| `GoalDetailPanel.tsx` | active, in_progress, not_started, completed, paused, archived |
-| `RitualDetailPanel.tsx` | active, paused, completed, failed |
-| `WorkstreamCard.tsx` | active, paused, completed, archived |
-| `TaskNode.tsx` | todo, in_progress, review, done, blocked |
-| `ChannelCard.tsx` | connected, not_configured, error, connecting, unsupported |
+| `AgentStatusRow.tsx`      | active, stalled, idle, errored                                                      |
+| `AgentCard.tsx`           | online, offline, busy, paused                                                       |
+| `GoalCard.tsx`            | active, completed, archived                                                         |
+| `GoalDetailPanel.tsx`     | active, in_progress, not_started, completed, paused, archived                       |
+| `RitualDetailPanel.tsx`   | active, paused, completed, failed                                                   |
+| `WorkstreamCard.tsx`      | active, paused, completed, archived                                                 |
+| `TaskNode.tsx`            | todo, in_progress, review, done, blocked                                            |
+| `ChannelCard.tsx`         | connected, not_configured, error, connecting, unsupported                           |
 
 Inconsistencies: "active" maps to `green-500` in some files, `bg-green-500` in others, and `text-green-600` in yet others. Some configs include `bgColor`, others use `color` only.
 
@@ -264,6 +269,7 @@ Both miss the design system's focus rings, size tokens, and variant styles from 
 #### 10. Deduplicate WorkstreamCard and Detail Shared Code (from original #11)
 
 **Status:** `WorkstreamCard.tsx` (lines 42-99) and `$workstreamId.tsx` (lines 96-113) both define:
+
 - `statusConfig` — identical status-to-color/icon mapping
 - `formatDueDate()` — identical date logic
 - `getOwnerInitials()` / `getAgentInitials()` — identical initials extraction
@@ -297,6 +303,7 @@ The codebase already has mobile-friendly patterns in settings (`SettingsMobileNa
 #### 13. Add Breadcrumbs to Remaining Nested Routes (from original #14)
 
 **Status:** Partially done.
+
 - `/agents/$agentId`: Has back button (ArrowLeft), no true breadcrumbs
 - `/agents/$agentId/session/$sessionKey`: No breadcrumbs, no explicit back button (SessionHeader handles it)
 - `/workstreams/$workstreamId`: Has back button, no true breadcrumbs
@@ -314,6 +321,7 @@ The codebase already has mobile-friendly patterns in settings (`SettingsMobileNa
 **Status:** `ErrorState.tsx` exists with inline/card variants and pre-configured `errorMessages`, but only 4 files use it. 30+ files implement custom error handling with bare text, ad-hoc icons, or no retry button.
 
 Files not using ErrorState that should:
+
 - `TeamAgentGrid.tsx` — text-only "Failed to load agents"
 - `RecentMemoriesPanel.tsx` — text-only "Failed to load memories"
 - `UpcomingRitualsPanel.tsx` — text-only error
@@ -330,11 +338,11 @@ Files not using ErrorState that should:
 
 **Status:** 10 of 13 routes use skeleton loading properly. Three routes break the pattern:
 
-| Route | Current | Expected |
-|-------|---------|----------|
-| `routes/index.tsx` (Home) | Blank until data → motion animations | Skeleton grid matching panel layout |
-| `routes/conversations/index.tsx` | No page-level skeleton | List skeleton for conversation sidebar |
-| `routes/jobs/index.tsx` | Plain text "Loading..." | `CardSkeleton` or `ListItemSkeleton` |
+| Route                            | Current                              | Expected                               |
+| -------------------------------- | ------------------------------------ | -------------------------------------- |
+| `routes/index.tsx` (Home)        | Blank until data → motion animations | Skeleton grid matching panel layout    |
+| `routes/conversations/index.tsx` | No page-level skeleton               | List skeleton for conversation sidebar |
+| `routes/jobs/index.tsx`          | Plain text "Loading..."              | `CardSkeleton` or `ListItemSkeleton`   |
 
 **Action:** Add skeleton states matching each route's final layout shape.
 
@@ -343,6 +351,7 @@ Files not using ErrorState that should:
 #### 16. Consistent Breadcrumb-style Back Navigation
 
 **Status:** Three different back-navigation patterns coexist:
+
 1. Explicit `ArrowLeft` buttons — agents detail, workstreams detail
 2. Component-encapsulated callbacks — conversations (via ChatHeader), session (via SessionHeader)
 3. No back navigation — agentic workflow view
@@ -355,34 +364,34 @@ Files not using ErrorState that should:
 
 ## Revised Impact Summary
 
-| # | Improvement | Scope | Primary UX Benefit | Effort |
-|---|------------|-------|---------------------|--------|
-| 1 | Shared EmptyState component | All views | Pattern recognition, consistency | Med |
-| 2 | Consolidate date formatters (16+ files) | All views | Timestamp consistency | Low |
-| 3 | Adopt PageHeader everywhere | All views | Navigation, visual consistency | Low-Med |
-| 4 | Shared animation variants | 16+ files | DRY, timing consistency | Low |
-| 5 | Shared status color tokens | 10+ files | Semantic color consistency | Low |
-| 6 | Reduce AgentCard density | Agents list | Scanability, performance | Med |
-| 7 | Deduplicate agent detail formatters | Agent detail | Consistency | Low |
-| 8 | Fix mobile conversation layout | Conversations | Mobile usability | Med |
-| 9 | Replace raw `<button>` elements | Conversations | Interaction consistency | Low |
-| 10 | Deduplicate workstream utils | Workstreams | Code/visual consistency | Low |
-| 11 | Reduce WorkstreamCard weight | Workstreams list | Visual fatigue reduction | Med |
-| 12 | Mobile navigation | All views | **Critical — broken on mobile** | High |
-| 13 | Breadcrumbs on nested routes | Detail views | Orientation, navigation | Low-Med |
-| 14 | Increase ErrorState adoption | 30+ files | Trust, recoverability | Med |
-| 15 | Skeleton loading on 3 routes | Home, conversations, jobs | Perceived performance | Low |
-| 16 | Consistent back navigation | Detail views | Navigation predictability | Low-Med |
+| #   | Improvement                             | Scope                     | Primary UX Benefit               | Effort  |
+| --- | --------------------------------------- | ------------------------- | -------------------------------- | ------- |
+| 1   | Shared EmptyState component             | All views                 | Pattern recognition, consistency | Med     |
+| 2   | Consolidate date formatters (16+ files) | All views                 | Timestamp consistency            | Low     |
+| 3   | Adopt PageHeader everywhere             | All views                 | Navigation, visual consistency   | Low-Med |
+| 4   | Shared animation variants               | 16+ files                 | DRY, timing consistency          | Low     |
+| 5   | Shared status color tokens              | 10+ files                 | Semantic color consistency       | Low     |
+| 6   | Reduce AgentCard density                | Agents list               | Scanability, performance         | Med     |
+| 7   | Deduplicate agent detail formatters     | Agent detail              | Consistency                      | Low     |
+| 8   | Fix mobile conversation layout          | Conversations             | Mobile usability                 | Med     |
+| 9   | Replace raw `<button>` elements         | Conversations             | Interaction consistency          | Low     |
+| 10  | Deduplicate workstream utils            | Workstreams               | Code/visual consistency          | Low     |
+| 11  | Reduce WorkstreamCard weight            | Workstreams list          | Visual fatigue reduction         | Med     |
+| 12  | Mobile navigation                       | All views                 | **Critical — broken on mobile**  | High    |
+| 13  | Breadcrumbs on nested routes            | Detail views              | Orientation, navigation          | Low-Med |
+| 14  | Increase ErrorState adoption            | 30+ files                 | Trust, recoverability            | Med     |
+| 15  | Skeleton loading on 3 routes            | Home, conversations, jobs | Perceived performance            | Low     |
+| 16  | Consistent back navigation              | Detail views              | Navigation predictability        | Low-Med |
 
 ## Bug Fix Summary
 
-| # | Bug | File | Severity | Fix |
-|---|-----|------|----------|-----|
-| B1 | Hardcoded fake AI response in production | `conversations/$id.tsx` | High | Remove simulated response block |
-| B2 | Missing error boundary | `conversations/$id/agentic.tsx` | Medium | Add `errorComponent: RouteErrorFallback` |
-| B3 | Null safety on conversation creation | `conversations/index.tsx` | Medium | Guard `newConversation?.id` |
-| B4 | Demo delay constants | `conversations/$id/agentic.tsx` | Low | Remove or flag as demo code |
-| B5 | Loading state inconsistency | 3 routes | Medium | Add skeleton loading |
+| #   | Bug                                      | File                            | Severity | Fix                                      |
+| --- | ---------------------------------------- | ------------------------------- | -------- | ---------------------------------------- |
+| B1  | Hardcoded fake AI response in production | `conversations/$id.tsx`         | High     | Remove simulated response block          |
+| B2  | Missing error boundary                   | `conversations/$id/agentic.tsx` | Medium   | Add `errorComponent: RouteErrorFallback` |
+| B3  | Null safety on conversation creation     | `conversations/index.tsx`       | Medium   | Guard `newConversation?.id`              |
+| B4  | Demo delay constants                     | `conversations/$id/agentic.tsx` | Low      | Remove or flag as demo code              |
+| B5  | Loading state inconsistency              | 3 routes                        | Medium   | Add skeleton loading                     |
 
 ## Top Priorities
 

@@ -70,7 +70,7 @@ function resolveReadinessConfig(server: McpServerConfig): Required<McpReadinessC
 // Claude Agent SDK tool bridging (via the existing MCP server bridge).
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyAgentTool = AgentTool<any, any>;
+export type AnyAgentTool = AgentTool<any>;
 
 function resolveTransport(server: McpServerConfig): "stdio" | "sse" | "http" {
   return server.transport ?? "stdio";

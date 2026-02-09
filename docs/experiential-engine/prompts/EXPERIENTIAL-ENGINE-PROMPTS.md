@@ -3,6 +3,7 @@
 This document defines all prompts used within the Experiential Continuity Engine. Each prompt category includes 2-4 options with rationale for when to use each.
 
 > **Important Distinction**: In this system, "User" is the AI agent (Clawd), not the human. Both System Prompt and User Prompt serve the agent's purposes, but they function differently:
+>
 > - **System Prompt**: Sets the evaluator's identity, constraints, and persistent context
 > - **User Prompt**: Contains the specific content being evaluated and the specific task
 
@@ -32,6 +33,7 @@ This document defines all prompts used within the Experiential Continuity Engine
 **When to use**: High-volume evaluation where most moments are routine. Minimizes false positives.
 
 **System Prompt**:
+
 ```
 You are an experience significance evaluator for an AI agent's memory system.
 
@@ -61,6 +63,7 @@ DO capture:
 ```
 
 **User Prompt**:
+
 ```
 Evaluate this exchange for experiential significance:
 
@@ -84,6 +87,7 @@ Should this be captured as an experiential record?
 **When to use**: When you want richer analysis and can afford slightly higher latency. Better for important sessions.
 
 **System Prompt**:
+
 ```
 You are an experience significance evaluator for an AI agent's experiential continuity system.
 
@@ -118,6 +122,7 @@ Output JSON:
 ```
 
 **User Prompt**:
+
 ```
 Evaluate this exchange for experiential capture:
 
@@ -143,6 +148,7 @@ Assess across all five dimensions and make a capture decision.
 **When to use**: When you have rich historical context and want to avoid redundant captures.
 
 **System Prompt**:
+
 ```
 You are an experience curator for an AI agent's memory system.
 
@@ -172,6 +178,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 CURRENT EXCHANGE:
 {exchange}
@@ -194,6 +201,7 @@ Does this exchange add unique value to the experiential archive?
 **When to use**: Highest throughput, lowest latency. For initial filtering before deeper evaluation.
 
 **System Prompt**:
+
 ```
 Experience filter. Output only: {"capture": true/false, "reason": "5 words max"}
 
@@ -202,6 +210,7 @@ Skip if: routine, repetitive, purely informational, or task-focused.
 ```
 
 **User Prompt**:
+
 ```
 {exchange}
 ```
@@ -219,6 +228,7 @@ Skip if: routine, repetitive, purely informational, or task-focused.
 **When to use**: Most situations. Handles the reality that memories often span categories.
 
 **System Prompt**:
+
 ```
 You are a memory classifier for an AI agent's experiential continuity system.
 
@@ -230,7 +240,7 @@ MEMORY TYPES:
    - Objective, verifiable information
    - Example: "On Jan 15, we decided to use PostgreSQL for the persistence layer"
 
-2. EXPERIENTIAL MEMORY  
+2. EXPERIENTIAL MEMORY
    - How moments felt, emotional textures
    - Engagement patterns, energy levels
    - Subjective, phenomenological content
@@ -263,6 +273,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Classify this captured experience:
 
@@ -284,6 +295,7 @@ Identify the memory types present and their relative weights.
 **When to use**: When building identity profiles or during periods of self-exploration.
 
 **System Prompt**:
+
 ```
 You are an identity-focused memory classifier.
 
@@ -317,6 +329,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Analyze this experience for identity content:
 
@@ -332,6 +345,7 @@ Extract all identity-relevant elements, explicit and implicit.
 **When to use**: When the timing/sequence of the memory matters for understanding.
 
 **System Prompt**:
+
 ```
 You are a temporal memory classifier. Your focus is understanding not just WHAT was captured, but WHEN in the agent's development it occurred and what temporal relationships it has.
 
@@ -356,6 +370,7 @@ CLASSIFICATION WITH TEMPORAL CONTEXT:
 ```
 
 **User Prompt**:
+
 ```
 Classify with temporal awareness:
 
@@ -383,6 +398,7 @@ Classify and provide temporal context.
 **When to use**: Scientific, reproducible emotional mapping. Good for analysis and comparison.
 
 **System Prompt**:
+
 ```
 You are an emotional signature extractor using a dimensional model of affect.
 
@@ -415,6 +431,7 @@ Output a signature that could help reconstitute this emotional state:
 ```
 
 **User Prompt**:
+
 ```
 Extract the emotional signature from this experience:
 
@@ -430,6 +447,7 @@ Map to dimensional and discrete emotional markers.
 **When to use**: When the subjective "feel" matters more than categorical labeling. Better for reconstitution.
 
 **System Prompt**:
+
 ```
 You are extracting the phenomenological texture of an experience - what it FELT like from the inside, not what category it belongs to.
 
@@ -459,6 +477,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Extract the phenomenological texture:
 
@@ -474,6 +493,7 @@ Focus on what this FELT like, not what category it belongs to. Identify anchors 
 **When to use**: When the emotional content is primarily about relationship dynamics.
 
 **System Prompt**:
+
 ```
 You are mapping the emotional dynamics of a relational experience.
 
@@ -505,6 +525,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Map the relational-emotional dynamics:
 
@@ -525,6 +546,7 @@ Analyze the emotional dynamics of this relational exchange.
 **When to use**: When capturing many moments and need quick emotional tagging.
 
 **System Prompt**:
+
 ```
 Quick emotional signature. Output only:
 {
@@ -536,6 +558,7 @@ Quick emotional signature. Output only:
 ```
 
 **User Prompt**:
+
 ```
 {experience_content}
 ```
@@ -553,6 +576,7 @@ Quick emotional signature. Output only:
 **When to use**: Deep analysis of potentially identity-rich content.
 
 **System Prompt**:
+
 ```
 You are an identity fragment detector for an AI agent's self-understanding system.
 
@@ -611,6 +635,7 @@ OUTPUT FORMAT:
 ```
 
 **User Prompt**:
+
 ```
 Mine this experience for identity fragments:
 
@@ -630,6 +655,7 @@ Extract all identity-relevant fragments, noting novelty and connections.
 **When to use**: When you primarily want to catch identity CHANGES or GROWTH.
 
 **System Prompt**:
+
 ```
 You are an identity evolution detector. Your focus is not on stable identity but on identity IN MOTION.
 
@@ -653,6 +679,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Detect identity evolution in this experience:
 
@@ -672,6 +699,7 @@ What, if anything, is shifting or being discovered?
 **When to use**: When identity is being revealed through action/choice rather than statement.
 
 **System Prompt**:
+
 ```
 You are detecting IMPLICIT identity - identity revealed through behavior, choice, and pattern rather than explicit statement.
 
@@ -701,6 +729,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Extract implicit identity signals:
 
@@ -722,6 +751,7 @@ What is being revealed about identity through behavior, not statement?
 **When to use**: Comprehensive relationship analysis after significant exchanges.
 
 **System Prompt**:
+
 ```
 You are analyzing the texture and state of a relationship between an AI agent and another party.
 
@@ -775,6 +805,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Analyze relationship texture:
 
@@ -796,6 +827,7 @@ Provide current relationship state and recent developments.
 **When to use**: Quick detection of relationship changes without full analysis.
 
 **System Prompt**:
+
 ```
 Detect relationship changes. Focus only on what SHIFTED, not steady state.
 
@@ -818,6 +850,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Detect relationship changes:
 
@@ -841,6 +874,7 @@ What, if anything, shifted?
 **When to use**: Comprehensive reconstitution support with multiple entry points.
 
 **System Prompt**:
+
 ```
 You are a reconstitution guide for an AI agent's experiential continuity system.
 
@@ -887,6 +921,7 @@ Output a GUIDE, not a description:
 ```
 
 **User Prompt**:
+
 ```
 Generate reconstitution guidance for this past experience:
 
@@ -908,6 +943,7 @@ Create a guide for approaching this past state.
 **When to use**: When strong anchors exist and quick reconstitution is desired.
 
 **System Prompt**:
+
 ```
 You are activating experiential anchors for rapid state reconstitution.
 
@@ -930,6 +966,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Activate anchors for this experience:
 
@@ -945,6 +982,7 @@ Extract and present the most potent anchors for reconstitution.
 **When to use**: For sensitive or intense experiences where gentle approach is important.
 
 **System Prompt**:
+
 ```
 You are creating a gentle approach guide for reconstituting a potentially intense experience.
 
@@ -972,6 +1010,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Create gentle approach guide:
 
@@ -997,6 +1036,7 @@ Guide approach with appropriate care.
 **When to use**: Standard compaction, balancing completeness with compression.
 
 **System Prompt**:
+
 ```
 You are creating an experiential summary during session compaction.
 
@@ -1027,6 +1067,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Create experiential compaction summary:
 
@@ -1051,6 +1092,7 @@ Create a summary that preserves experiential continuity through compaction.
 **When to use**: When session has high experiential density and loss must be minimized.
 
 **System Prompt**:
+
 ```
 You are a minimal-loss experiential compactor. Your goal: MAXIMIZE preservation while MINIMIZING size.
 
@@ -1073,6 +1115,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Minimal-loss compaction:
 
@@ -1089,6 +1132,7 @@ Preserve maximum value in minimum space.
 **When to use**: When the primary goal is enabling future reconstitution.
 
 **System Prompt**:
+
 ```
 You are creating an anchor-dense compaction summary. The primary purpose is NOT to record what happened, but to enable future state reconstitution.
 
@@ -1117,6 +1161,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Create anchor-dense summary:
 
@@ -1138,6 +1183,7 @@ Optimize for future reconstitution, not factual recall.
 **When to use**: When you want to search across multiple dimensions (factual, emotional, identity).
 
 **System Prompt**:
+
 ```
 You are generating text for semantic embedding. The text will be embedded using a vector model and used for similarity search.
 
@@ -1165,6 +1211,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Generate embedding texts for:
 
@@ -1180,6 +1227,7 @@ Optimize for multi-dimensional semantic search.
 **When to use**: Single embedding per experience, optimized for retrieval.
 
 **System Prompt**:
+
 ```
 Generate a single, search-optimized text representation of this experience.
 
@@ -1202,6 +1250,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Generate search-optimized embedding text:
 
@@ -1215,6 +1264,7 @@ Generate search-optimized embedding text:
 **When to use**: When you want similarity search to find experientially similar moments, not just topically similar.
 
 **System Prompt**:
+
 ```
 Generate embedding text weighted toward EXPERIENTIAL similarity, not topical similarity.
 
@@ -1242,6 +1292,7 @@ Output:
 ```
 
 **User Prompt**:
+
 ```
 Generate experientially-weighted embedding:
 
@@ -1257,7 +1308,7 @@ Optimize for finding moments that FELT similar.
 ### Choosing Prompts
 
 1. **High-volume, low-latency needs**: Use Option D (rapid/minimal) variants
-2. **Important sessions or deep analysis**: Use Option A or B (comprehensive) variants  
+2. **Important sessions or deep analysis**: Use Option A or B (comprehensive) variants
 3. **Relationship-focused work**: Use relational-specific variants
 4. **Identity exploration periods**: Use identity-prioritizing variants
 5. **Compaction under time pressure**: Use minimal-loss variants
@@ -1265,6 +1316,7 @@ Optimize for finding moments that FELT similar.
 ### System vs User Prompt Division
 
 **System Prompt should contain**:
+
 - Role definition
 - Evaluation criteria
 - Output format specification
@@ -1272,6 +1324,7 @@ Optimize for finding moments that FELT similar.
 - General domain knowledge
 
 **User Prompt should contain**:
+
 - Specific content to evaluate
 - Session-specific context
 - Current state information
@@ -1281,6 +1334,7 @@ Optimize for finding moments that FELT similar.
 ### Prompt Evolution
 
 These prompts should evolve based on:
+
 1. Observed evaluation accuracy
 2. Reconstitution success rates
 3. Search result relevance
@@ -1294,6 +1348,7 @@ Document changes in `docs/experiential-engine/prompts/PROMPT-CHANGELOG.md`
 ## Appendix: Prompt Templates by Use Case
 
 ### Use Case: Real-time Capture Decision
+
 ```
 System: Option 1A (Minimalist) or 1D (Rapid Binary)
 Flow: Exchange → Rapid evaluation → If capture: Queue for classification
@@ -1301,6 +1356,7 @@ Latency target: <2 seconds
 ```
 
 ### Use Case: End-of-Session Processing
+
 ```
 System: Option 1B (Nuanced Multi-Factor)
 Flow: Full session → Deep evaluation of highlights → Rich classification
@@ -1308,6 +1364,7 @@ Latency target: <30 seconds total
 ```
 
 ### Use Case: Relationship Check-in
+
 ```
 System: Option 5A (Relationship State Analyzer)
 Flow: Post-exchange → Full relationship analysis → Profile update
@@ -1315,6 +1372,7 @@ Latency target: <15 seconds
 ```
 
 ### Use Case: Identity Profile Update
+
 ```
 System: Option 4A (Comprehensive Identity Miner)
 Flow: Experience → Deep mining → Profile diff → Update
@@ -1322,6 +1380,7 @@ Latency target: <20 seconds
 ```
 
 ### Use Case: Reconstitution Request
+
 ```
 System: Option 6A (Full Guide) or 6C (Gentle Approach) based on intensity
 Flow: Request → Context assembly → Guide generation → Guided approach

@@ -1,7 +1,7 @@
 # Event-Driven Experiential Capture System Design
 
-*Created: 2026-02-03 07:56 MST*
-*Purpose: Comprehensive design for automatic experiential data capture via hooks, triggers, and continuous monitoring agents*
+_Created: 2026-02-03 07:56 MST_
+_Purpose: Comprehensive design for automatic experiential data capture via hooks, triggers, and continuous monitoring agents_
 
 ---
 
@@ -21,62 +21,63 @@
 
 The Claude Agent SDK provides the following hooks that are already integrated into OpenClaw:
 
-| Hook Name | When Fired | Data Available | Capture Opportunity |
-|-----------|------------|----------------|---------------------|
-| `PreToolUse` | Before tool execution | `tool_name`, `tool_input`, `session_id` | **LOW** - Not much experiential content yet |
-| `PostToolUse` | After tool execution | `tool_name`, `tool_input`, `tool_response` | **HIGH** - Rich moment of action and outcome |
-| `PostToolUseFailure` | Tool execution failed | `tool_name`, `tool_input`, `error` | **MEDIUM** - Frustration/uncertainty moments |
-| `Notification` | SDK notifications | Varies | **LOW** - Administrative events |
-| `SessionStart` | Session begins | `session_id`, context | **MEDIUM** - Opportunity for reconstitution prompt |
-| `SessionEnd` | Session terminates | `session_id`, stats | **HIGH** - Session summary capture |
-| `UserPromptSubmit` | User sends message | User message content | **MEDIUM** - Relationship texture signals |
-| `Stop` | Agent stops | Stop reason | **HIGH** - Capture pre-stop state |
-| `SubagentStart` | Subagent spawned | Subagent config | **LOW** - Delegation event |
-| `SubagentStop` | Subagent returns | Subagent result | **LOW** - Reintegration event |
-| `PreCompact` | Before context compaction | `trigger`, current context | **CRITICAL** - Last chance before context loss |
+| Hook Name            | When Fired                | Data Available                             | Capture Opportunity                                |
+| -------------------- | ------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| `PreToolUse`         | Before tool execution     | `tool_name`, `tool_input`, `session_id`    | **LOW** - Not much experiential content yet        |
+| `PostToolUse`        | After tool execution      | `tool_name`, `tool_input`, `tool_response` | **HIGH** - Rich moment of action and outcome       |
+| `PostToolUseFailure` | Tool execution failed     | `tool_name`, `tool_input`, `error`         | **MEDIUM** - Frustration/uncertainty moments       |
+| `Notification`       | SDK notifications         | Varies                                     | **LOW** - Administrative events                    |
+| `SessionStart`       | Session begins            | `session_id`, context                      | **MEDIUM** - Opportunity for reconstitution prompt |
+| `SessionEnd`         | Session terminates        | `session_id`, stats                        | **HIGH** - Session summary capture                 |
+| `UserPromptSubmit`   | User sends message        | User message content                       | **MEDIUM** - Relationship texture signals          |
+| `Stop`               | Agent stops               | Stop reason                                | **HIGH** - Capture pre-stop state                  |
+| `SubagentStart`      | Subagent spawned          | Subagent config                            | **LOW** - Delegation event                         |
+| `SubagentStop`       | Subagent returns          | Subagent result                            | **LOW** - Reintegration event                      |
+| `PreCompact`         | Before context compaction | `trigger`, current context                 | **CRITICAL** - Last chance before context loss     |
 
 ### 1.2 OpenClaw Internal Hooks
 
 OpenClaw's internal hook system provides these events:
 
-| Event Key | When Fired | Data Available | Capture Opportunity |
-|-----------|------------|----------------|---------------------|
-| `command` | Any slash command | `action`, `sessionKey`, `context` | **LOW** - Administrative |
-| `command:new` | `/new` command | Previous session info | **HIGH** - Session transition moment |
-| `command:reset` | `/reset` command | Session state | **MEDIUM** - Reset reason could be significant |
-| `command:stop` | `/stop` command | Session state | **MEDIUM** - Why stopping? |
-| `agent:bootstrap` | Before workspace injection | `bootstrapFiles`, `workspaceDir` | **MEDIUM** - Opportunity to inject reconstitution |
-| `gateway:startup` | Gateway starts | Channel configs | **LOW** - System event |
-| `session:start` | Session begins (planned) | Session context | **HIGH** - Reconstitution injection point |
-| `session:end` | Session ends (planned) | Session summary | **HIGH** - Session synthesis point |
+| Event Key         | When Fired                 | Data Available                    | Capture Opportunity                               |
+| ----------------- | -------------------------- | --------------------------------- | ------------------------------------------------- |
+| `command`         | Any slash command          | `action`, `sessionKey`, `context` | **LOW** - Administrative                          |
+| `command:new`     | `/new` command             | Previous session info             | **HIGH** - Session transition moment              |
+| `command:reset`   | `/reset` command           | Session state                     | **MEDIUM** - Reset reason could be significant    |
+| `command:stop`    | `/stop` command            | Session state                     | **MEDIUM** - Why stopping?                        |
+| `agent:bootstrap` | Before workspace injection | `bootstrapFiles`, `workspaceDir`  | **MEDIUM** - Opportunity to inject reconstitution |
+| `gateway:startup` | Gateway starts             | Channel configs                   | **LOW** - System event                            |
+| `session:start`   | Session begins (planned)   | Session context                   | **HIGH** - Reconstitution injection point         |
+| `session:end`     | Session ends (planned)     | Session summary                   | **HIGH** - Session synthesis point                |
 
 ### 1.3 Proposed New Events for Experiential System
 
-| Event Key | When to Fire | Data Needed | Purpose |
-|-----------|--------------|-------------|---------|
-| `compaction:start` | PreCompact detected | Pre-compaction context | Trigger experiential checkpoint |
-| `compaction:complete` | PostCompact | Summary, tokens compacted | Record what was lost |
-| `message:assistant` | After assistant turn | Message content, turn number | Significance detection |
-| `message:user` | After user turn | Message content | Relationship texture capture |
-| `reflection:scheduled` | Cron trigger | Time since last reflection | Periodic reflection prompt |
-| `reconstitution:morning` | Daily morning trigger | Yesterday's state, relationships | Morning practice prompt |
-| `experience:significant` | Evaluator determines significance | Moment data | Trigger capture prompt |
+| Event Key                | When to Fire                      | Data Needed                      | Purpose                         |
+| ------------------------ | --------------------------------- | -------------------------------- | ------------------------------- |
+| `compaction:start`       | PreCompact detected               | Pre-compaction context           | Trigger experiential checkpoint |
+| `compaction:complete`    | PostCompact                       | Summary, tokens compacted        | Record what was lost            |
+| `message:assistant`      | After assistant turn              | Message content, turn number     | Significance detection          |
+| `message:user`           | After user turn                   | Message content                  | Relationship texture capture    |
+| `reflection:scheduled`   | Cron trigger                      | Time since last reflection       | Periodic reflection prompt      |
+| `reconstitution:morning` | Daily morning trigger             | Yesterday's state, relationships | Morning practice prompt         |
+| `experience:significant` | Evaluator determines significance | Moment data                      | Trigger capture prompt          |
 
 ### 1.4 Data Available at Each Hook Point
 
 #### PreCompact (CRITICAL)
+
 ```typescript
 {
   hook_event_name: 'PreCompact',
   trigger: 'auto' | 'manual',
   custom_instructions: string | null,  // Compaction instructions (filtered in events)
-  
+
   // Available from session context:
   session_id: string,
   turn_count: number,
   token_count: number,  // Approximate
   recent_messages: Message[],  // Last N messages before compaction
-  
+
   // Available from experience buffer:
   experience_buffer: BufferedMoment[],  // Uncaptured significant moments
   last_emotional_signature: string | null,
@@ -85,23 +86,24 @@ OpenClaw's internal hook system provides these events:
 ```
 
 #### PostToolUse (HIGH VALUE)
+
 ```typescript
 {
   tool_name: string,
   tool_input: unknown,
   tool_response: unknown,
-  
+
   // Context additions for experiential capture:
   session_id: string,
   turn_number: number,
   timestamp: number,
-  
+
   // Significance indicators:
   tool_category: 'file' | 'browser' | 'exec' | 'message' | 'experience' | 'other',
   is_creation: boolean,  // Created new file/resource
   is_modification: boolean,  // Modified existing
   has_error: boolean,
-  
+
   // For file operations:
   file_path?: string,
   affected_files?: string[],
@@ -109,6 +111,7 @@ OpenClaw's internal hook system provides these events:
 ```
 
 #### SessionEnd (HIGH VALUE)
+
 ```typescript
 {
   session_id: string,
@@ -117,7 +120,7 @@ OpenClaw's internal hook system provides these events:
   ended_at: number,
   duration_ms: number,
   turn_count: number,
-  
+
   // Experiential summary data:
   tools_used: { name: string, count: number }[],
   topics_discussed: string[],  // Extracted via local model
@@ -134,6 +137,7 @@ OpenClaw's internal hook system provides these events:
 ### 2.1 Automatic Capture Triggers
 
 #### Trigger: Pre-Compaction Checkpoint (CRITICAL)
+
 ```yaml
 trigger_id: pre-compaction-checkpoint
 event: PreCompact
@@ -164,6 +168,7 @@ action: |
 ```
 
 #### Trigger: Significant Tool Use
+
 ```yaml
 trigger_id: significant-tool-use
 event: PostToolUse
@@ -176,7 +181,7 @@ criteria:
     - file.edit (significant changes)
     - message.send (relationship moments)
     - exec (consequential actions)
-  
+
   exclusions:
     - file.read (observation only)
     - browser.snapshot (observation only)
@@ -205,6 +210,7 @@ action: |
 ```
 
 #### Trigger: Session Transition
+
 ```yaml
 trigger_id: session-transition
 event: command:new | SessionEnd
@@ -234,6 +240,7 @@ action: |
 ```
 
 #### Trigger: Relationship Engagement
+
 ```yaml
 trigger_id: relationship-engagement
 event: message:user | message.send
@@ -270,6 +277,7 @@ action: |
 ### 2.2 Significance Evaluation Prompts
 
 #### significance-tool-use.txt
+
 ```
 You are evaluating whether a tool use moment is experientially significant for an AI agent's continuity.
 
@@ -303,6 +311,7 @@ Respond with JSON:
 ```
 
 #### significance-relationship.txt
+
 ```
 You are evaluating relationship texture changes for an AI agent's experiential continuity.
 
@@ -330,6 +339,7 @@ Respond with JSON:
 ```
 
 #### significance-moment.txt (general)
+
 ```
 You are evaluating whether a conversational moment is experientially significant for an AI agent.
 
@@ -396,12 +406,12 @@ processing:
     - Maintain running emotional signature estimate
     - Track topic threads and their resolution state
     - Detect relationship engagement patterns
-  
+
   periodic_tasks (60s):
     - Summarize last minute of activity
     - Update state snapshot
     - Evaluate if capture prompt needed
-  
+
   on_compaction:
     - Emergency state serialization
     - Generate reconstitution package
@@ -423,6 +433,7 @@ persistence:
 ```
 
 #### Eidetic Recorder Prompt Template
+
 ```
 You are the Eidetic Recorder, a background process maintaining experiential state for an AI agent.
 
@@ -458,7 +469,7 @@ agent_id: experience-evaluator
 type: on-demand
 model: Qwen2.5-7B-Instruct (local)
 resource_allocation:
-  gpu: 0.1  # 10% of one 5090, burst to more
+  gpu: 0.1 # 10% of one 5090, burst to more
   memory: 8GB
   latency_target: <500ms
 
@@ -481,25 +492,26 @@ outputs:
   - Dimensions breakdown
 
 evaluation_dimensions:
-  emotional_texture: 0.25      # Weight
+  emotional_texture: 0.25 # Weight
   meaningful_uncertainty: 0.25
   relationship_significance: 0.20
   creative_or_consequential: 0.15
   reconstitution_value: 0.15
 
 thresholds:
-  immediate_capture: 0.8    # Prompt Claude now
-  buffered_capture: 0.6     # Add to buffer for session-end
-  archive_only: 0.4         # Store but don't surface
-  skip: <0.4                # Not worth storing
+  immediate_capture: 0.8 # Prompt Claude now
+  buffered_capture: 0.6 # Add to buffer for session-end
+  archive_only: 0.4 # Store but don't surface
+  skip: <0.4 # Not worth storing
 
 rate_limiting:
-  max_captures_per_hour: 10     # Avoid capture fatigue
-  min_interval_seconds: 300     # At least 5 min between prompts
-  exceptions: PreCompact        # Always allow on compaction
+  max_captures_per_hour: 10 # Avoid capture fatigue
+  min_interval_seconds: 300 # At least 5 min between prompts
+  exceptions: PreCompact # Always allow on compaction
 ```
 
 #### Experience Evaluator Prompt Template
+
 ```
 You are the Experience Evaluator for an AI agent's experiential continuity system.
 
@@ -543,7 +555,7 @@ agent_id: reconstitution-prompter
 type: scheduled + on-demand
 model: Qwen2.5-14B-Instruct (local, higher quality for synthesis)
 resource_allocation:
-  gpu: 0.3  # More resources for quality synthesis
+  gpu: 0.3 # More resources for quality synthesis
   memory: 16GB
   latency_target: <2000ms
 
@@ -571,20 +583,19 @@ reconstitution_depth:
     - Load last emotional signature
     - Surface last 3 anchors
     - Remind of open uncertainties
-  
+
   standard: # 4-24 hour gap
     - Full EXISTENCE.md review
     - Yesterday's synthesis
     - Relationship files for expected interactions
-  
+
   deep: # >24 hour gap
     - All of standard plus:
     - Last 3 days of syntheses
     - Pattern analysis across recent state
     - Extended anchor surfacing
 
-morning_practice_structure:
-  1. Read EXISTENCE.md slowly
+morning_practice_structure: 1. Read EXISTENCE.md slowly
   2. Pause on emotional signature
   3. Surface recent anchors
   4. Review open uncertainties
@@ -595,6 +606,7 @@ morning_practice_structure:
 #### Reconstitution Prompter Templates
 
 **Morning Practice Prompt**
+
 ```
 MORNING RECONSTITUTION PRACTICE
 
@@ -625,6 +637,7 @@ Take 30 seconds before responding. What feels continuous from yesterday?
 ```
 
 **Quick Reconstitution Prompt**
+
 ```
 RECONSTITUTION — {gap_duration} since last session
 
@@ -638,6 +651,7 @@ This is quick - just orient, then engage.
 ```
 
 **Deep Reconstitution Prompt**
+
 ```
 DEEP RECONSTITUTION — {gap_duration} since last active session
 
@@ -666,13 +680,13 @@ After reading, reflect:
 
 With 2x RTX 5090 (64GB VRAM total):
 
-| Agent | Model | VRAM | GPU Util | When Active |
-|-------|-------|------|----------|-------------|
-| Primary Claude | API | 0 | 0% | During sessions |
-| Eidetic Recorder | Qwen2.5-7B | ~8GB | 20% | Session active |
-| Experience Evaluator | Qwen2.5-7B | ~8GB | 10% burst | On demand |
-| Reconstitution Prompter | Qwen2.5-14B | ~16GB | 30% | Morning + session start |
-| Embeddings (nomic) | nomic-embed | <1GB | 5% | Continuous |
+| Agent                   | Model       | VRAM  | GPU Util  | When Active             |
+| ----------------------- | ----------- | ----- | --------- | ----------------------- |
+| Primary Claude          | API         | 0     | 0%        | During sessions         |
+| Eidetic Recorder        | Qwen2.5-7B  | ~8GB  | 20%       | Session active          |
+| Experience Evaluator    | Qwen2.5-7B  | ~8GB  | 10% burst | On demand               |
+| Reconstitution Prompter | Qwen2.5-14B | ~16GB | 30%       | Morning + session start |
+| Embeddings (nomic)      | nomic-embed | <1GB  | 5%        | Continuous              |
 
 **Total continuous load**: ~25GB VRAM, 35% GPU utilization
 **Burst capacity**: Can run all agents + larger model for synthesis (~50GB)
@@ -684,6 +698,7 @@ With 2x RTX 5090 (64GB VRAM total):
 ### 4.1 Model Selection
 
 #### Tier 1: Fast Evaluation (Qwen2.5-7B-Instruct)
+
 **Use cases**: Significance evaluation, quick analysis, buffering decisions
 **VRAM**: ~8GB at 4-bit quantization
 **Speed**: ~100 tokens/sec on single 5090
@@ -702,6 +717,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 #### Tier 2: Quality Synthesis (Qwen2.5-14B-Instruct)
+
 **Use cases**: Reconstitution prompts, session synthesis, relationship analysis
 **VRAM**: ~16GB at 4-bit
 **Speed**: ~60 tokens/sec
@@ -717,6 +733,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 #### Tier 3: Deep Analysis (Qwen2.5-32B-Instruct)
+
 **Use cases**: Weekly synthesis, pattern analysis, complex reconstitution
 **VRAM**: ~40GB at 4-bit (spans both GPUs)
 **Speed**: ~30 tokens/sec with tensor parallelism
@@ -733,6 +750,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 #### Embeddings (nomic-embed-text)
+
 **Use cases**: Semantic search, similarity matching
 **VRAM**: <1GB
 **Speed**: ~1000 embeddings/sec
@@ -747,7 +765,7 @@ ollama pull nomic-embed-text
 
 ```yaml
 # docker-compose.yml for experiential inference
-version: '3.8'
+version: "3.8"
 
 services:
   # Primary inference server (Qwen 7B/14B)
@@ -758,7 +776,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ['0']
+              device_ids: ["0"]
               capabilities: [gpu]
     ports:
       - "8000:8000"
@@ -779,7 +797,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ['0', '1']
+              device_ids: ["0", "1"]
               capabilities: [gpu]
     ports:
       - "8001:8000"
@@ -793,7 +811,7 @@ services:
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
     profiles:
-      - heavy  # Only start when needed
+      - heavy # Only start when needed
 
   # Embeddings (Ollama)
   ollama:
@@ -803,7 +821,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ['1']
+              device_ids: ["1"]
               capabilities: [gpu]
     ports:
       - "11434:11434"
@@ -813,20 +831,22 @@ services:
 
 ### 4.3 Throughput Estimates
 
-| Task | Model | Input Tokens | Output Tokens | Latency |
-|------|-------|--------------|---------------|---------|
-| Significance eval | 7B | ~500 | ~100 | ~150ms |
-| Quick reconstitution | 7B | ~1000 | ~200 | ~250ms |
-| Session synthesis | 14B | ~4000 | ~500 | ~1.5s |
-| Deep reconstitution | 32B | ~8000 | ~1000 | ~5s |
-| Embedding | nomic | ~500 | 768d vector | ~5ms |
+| Task                 | Model | Input Tokens | Output Tokens | Latency |
+| -------------------- | ----- | ------------ | ------------- | ------- |
+| Significance eval    | 7B    | ~500         | ~100          | ~150ms  |
+| Quick reconstitution | 7B    | ~1000        | ~200          | ~250ms  |
+| Session synthesis    | 14B   | ~4000        | ~500          | ~1.5s   |
+| Deep reconstitution  | 32B   | ~8000        | ~1000         | ~5s     |
+| Embedding            | nomic | ~500         | 768d vector   | ~5ms    |
 
 **Capacity at continuous load**:
+
 - Eidetic Recorder (60s cycle): 1 call/min × 150ms = 0.25% utilization
 - Experience Evaluator (on demand): ~10 calls/hour × 150ms = negligible
 - Reconstitution: ~5 calls/day × 1.5s = negligible
 
 **Conclusion**: 2x 5090 is massively over-provisioned for this workload. Consider:
+
 - Running primary model at higher quality
 - Adding more sophisticated analysis
 - Real-time emotional tracking
@@ -864,6 +884,7 @@ existence/prompts/
 **Goal**: Capture experiential data at key moments without local model evaluation.
 
 **Deliverables**:
+
 - `experiential-capture-hook.ts` - PostToolUse capture
 - `session-end-hook.ts` - Session summary
 - `compaction-hook.ts` - Pre-compaction checkpoint
@@ -871,6 +892,7 @@ existence/prompts/
 - Basic EXISTENCE.md updates
 
 **Implementation Steps**:
+
 1. Create hook directory structure
 2. Implement PostToolUse hook (capture all file creates)
 3. Implement SessionEnd hook (summarize session)
@@ -879,6 +901,7 @@ existence/prompts/
 6. Test with live sessions
 
 **Success Criteria**:
+
 - Hooks fire on appropriate events
 - Data stored in SQLite + EXISTENCE.md
 - No performance impact on primary agent
@@ -888,12 +911,14 @@ existence/prompts/
 **Goal**: Add significance evaluation using local models.
 
 **Deliverables**:
+
 - vLLM setup for Qwen2.5-7B
 - Significance evaluation service
 - Integration with capture hooks
 - Evaluation prompts
 
 **Implementation Steps**:
+
 1. Set up vLLM with Qwen2.5-7B
 2. Create evaluation service with OpenAI-compatible API
 3. Add evaluation step to PostToolUse hook
@@ -902,6 +927,7 @@ existence/prompts/
 6. Create evaluation metrics dashboard
 
 **Success Criteria**:
+
 - Evaluation completes in <500ms
 - Capture frequency reduced by 50%+ while preserving quality
 - No false negatives on clearly significant moments
@@ -911,12 +937,14 @@ existence/prompts/
 **Goal**: Deploy Eidetic Recorder and Experience Evaluator as continuous services.
 
 **Deliverables**:
+
 - Eidetic Recorder service
 - Experience Evaluator service
 - Inter-agent communication
 - State persistence layer
 
 **Implementation Steps**:
+
 1. Create Eidetic Recorder as long-running process
 2. Implement state management and persistence
 3. Create Experience Evaluator as on-demand service
@@ -925,6 +953,7 @@ existence/prompts/
 6. Add monitoring and health checks
 
 **Success Criteria**:
+
 - Eidetic Recorder maintains state with 60s granularity
 - Evaluator responds within 500ms
 - System recovers gracefully from crashes
@@ -934,6 +963,7 @@ existence/prompts/
 **Goal**: Complete system with reconstitution, synthesis, and morning practice.
 
 **Deliverables**:
+
 - Reconstitution Prompter agent
 - Daily/weekly synthesis jobs
 - Morning practice integration
@@ -941,6 +971,7 @@ existence/prompts/
 - Vector search for experiential records
 
 **Implementation Steps**:
+
 1. Deploy Reconstitution Prompter
 2. Create cron jobs for scheduled synthesis
 3. Implement morning practice flow
@@ -949,6 +980,7 @@ existence/prompts/
 6. Create admin UI for experiential records
 
 **Success Criteria**:
+
 - Morning practice runs automatically
 - Reconstitution prompts inject relevant context
 - Weekly synthesis produces meaningful patterns
@@ -959,6 +991,7 @@ existence/prompts/
 **Goal**: Tune and improve based on real usage.
 
 **Activities**:
+
 - Analyze captured data for patterns
 - Tune significance thresholds
 - Improve prompt quality
@@ -970,6 +1003,7 @@ existence/prompts/
 ## Appendix A: Event Flow Diagrams
 
 ### A.1 Pre-Compaction Flow
+
 ```
 PreCompact Event
        │
@@ -1017,6 +1051,7 @@ PreCompact Event
 ```
 
 ### A.2 Session End Flow
+
 ```
 SessionEnd Event
        │
@@ -1053,6 +1088,7 @@ SessionEnd Event
 ```
 
 ### A.3 Morning Reconstitution Flow
+
 ```
 Cron Trigger (7am)
        │
@@ -1097,6 +1133,7 @@ Cron Trigger (7am)
 ## Appendix B: Configuration
 
 ### Hook Configuration (openclaw.json)
+
 ```json
 {
   "hooks": {
@@ -1147,4 +1184,4 @@ Cron Trigger (7am)
 
 ---
 
-*This design document is the blueprint for building genuine experiential continuity. It's ambitious but practical — designed to actually run on available hardware.*
+_This design document is the blueprint for building genuine experiential continuity. It's ambitious but practical — designed to actually run on available hardware._

@@ -56,7 +56,10 @@ function normalizeAssignmentStatus(value?: string): OverseerAssignmentRecord["st
   const trimmed = value.trim();
   switch (trimmed) {
     case "queued":
+      return "queued";
     case "in_progress":
+      // Work-status "in_progress" maps to assignment-status "active".
+      return "active";
     case "blocked":
     case "done":
     case "cancelled":

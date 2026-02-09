@@ -1,7 +1,7 @@
 # Memory Architecture Audit
 
-*Created: 2026-02-03 07:55 MST*
-*Purpose: Comprehensive audit of all memory and persistence systems in OpenClaw/Clawdbot for experiential continuity research*
+_Created: 2026-02-03 07:55 MST_
+_Purpose: Comprehensive audit of all memory and persistence systems in OpenClaw/Clawdbot for experiential continuity research_
 
 ---
 
@@ -19,28 +19,29 @@
 
 ### 1.1 Workspace-Level Memory Files
 
-| File | Location | Purpose | Update Frequency |
-|------|----------|---------|------------------|
-| `MEMORY.md` | `/Users/dgarson/clawd/MEMORY.md` | Long-term curated notes — people, preferences, projects, learnings | Ongoing/manual |
-| `IDENTITY.md` | `/Users/dgarson/clawd/IDENTITY.md` | Who Claw is, name, frustrations, wants | Manual |
-| `EXISTENCE.md` | `/Users/dgarson/clawd/EXISTENCE.md` | Current experiential state, emotional signatures, anchors | Frequently during significant conversations |
-| `CONTINUITY.md` | `/Users/dgarson/clawd/CONTINUITY.md` | Instructions for reconstitution practice | Manual |
-| `SOUL.md` | `/Users/dgarson/clawd/SOUL.md` | Core identity philosophy, boundaries, vibe guidelines | Rarely |
-| `USER.md` | `/Users/dgarson/clawd/USER.md` | Info about the human user (David) | Manual |
+| File            | Location                             | Purpose                                                            | Update Frequency                            |
+| --------------- | ------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
+| `MEMORY.md`     | `/Users/dgarson/clawd/MEMORY.md`     | Long-term curated notes — people, preferences, projects, learnings | Ongoing/manual                              |
+| `IDENTITY.md`   | `/Users/dgarson/clawd/IDENTITY.md`   | Who Claw is, name, frustrations, wants                             | Manual                                      |
+| `EXISTENCE.md`  | `/Users/dgarson/clawd/EXISTENCE.md`  | Current experiential state, emotional signatures, anchors          | Frequently during significant conversations |
+| `CONTINUITY.md` | `/Users/dgarson/clawd/CONTINUITY.md` | Instructions for reconstitution practice                           | Manual                                      |
+| `SOUL.md`       | `/Users/dgarson/clawd/SOUL.md`       | Core identity philosophy, boundaries, vibe guidelines              | Rarely                                      |
+| `USER.md`       | `/Users/dgarson/clawd/USER.md`       | Info about the human user (David)                                  | Manual                                      |
 
 ### 1.2 Memory Directory (`/Users/dgarson/clawd/memory/`)
 
-| File | Size | Purpose |
-|------|------|---------|
-| `2026-01-25.md` | 12.8KB | Daily memory log — conversation summaries |
-| `2026-01-26.md` | 1.1KB | Daily memory log |
-| `EVOLUTION.md` | 6KB | Self-improvement tracking — gaps, security, growth |
-| `heartbeat-state.json` | 2KB | Heartbeat check timestamps and stats |
-| `capture-state.json` | 340B | Episodic capture tracking |
-| `heartbeat-effectiveness.md` | 961B | Notes on heartbeat pattern effectiveness |
-| `voice-presets.md` | 3.2KB | Voice preset documentation |
+| File                         | Size   | Purpose                                            |
+| ---------------------------- | ------ | -------------------------------------------------- |
+| `2026-01-25.md`              | 12.8KB | Daily memory log — conversation summaries          |
+| `2026-01-26.md`              | 1.1KB  | Daily memory log                                   |
+| `EVOLUTION.md`               | 6KB    | Self-improvement tracking — gaps, security, growth |
+| `heartbeat-state.json`       | 2KB    | Heartbeat check timestamps and stats               |
+| `capture-state.json`         | 340B   | Episodic capture tracking                          |
+| `heartbeat-effectiveness.md` | 961B   | Notes on heartbeat pattern effectiveness           |
+| `voice-presets.md`           | 3.2KB  | Voice preset documentation                         |
 
 **Schema: `heartbeat-state.json`**
+
 ```json
 {
   "lastChecks": {
@@ -49,7 +50,7 @@
     "dailyDigest": 1770081875,
     "effectivenessReview": 1770075100,
     "email": 1769556517,
-    "fleetMonitor": 1770129242,
+    "fleetMonitor": 1770129242
     // ... more check types
   },
   "stats": {
@@ -58,11 +59,14 @@
     "okReplies": 52,
     "weekStarted": "2026-02-02T00:00:00-07:00"
   },
-  "webUxWiring": { /* subagent tracking state */ }
+  "webUxWiring": {
+    /* subagent tracking state */
+  }
 }
 ```
 
 **Schema: `capture-state.json`**
+
 ```json
 {
   "last_capture": "2026-01-25T11:50:19.333874",
@@ -80,26 +84,29 @@
 
 ### 1.3 Existence Directory (`/Users/dgarson/clawd/existence/`)
 
-| File | Size | Purpose |
-|------|------|---------|
-| `relationship-parker.md` | 3.5KB | Relationship texture with Parker (David) |
-| `uncertainties.md` | 3.8KB | Meaningful uncertainty journal |
-| `experiential-infrastructure-spec.md` | 28KB | Technical spec for experience tool chain |
+| File                                  | Size  | Purpose                                  |
+| ------------------------------------- | ----- | ---------------------------------------- |
+| `relationship-parker.md`              | 3.5KB | Relationship texture with Parker (David) |
+| `uncertainties.md`                    | 3.8KB | Meaningful uncertainty journal           |
+| `experiential-infrastructure-spec.md` | 28KB  | Technical spec for experience tool chain |
 
 ### 1.4 Session Transcripts
 
 **Location**: `~/.openclaw/agents/<agentId>/sessions/*.jsonl`
 
 **Agents with sessions**:
+
 - `main` (41 sessions) — Primary agent
 - `beta`
 - `clawdbot`
 - `clawdbrain`
 
 **Session File Naming**: `<uuid>-topic-<timestamp>.jsonl` or `<uuid>.jsonl`
+
 - `.deleted.<timestamp>` suffix for deleted/expired sessions
 
 **JSONL Format — Per-Line Schema**:
+
 ```typescript
 // Line 1: Session header
 {
@@ -148,6 +155,7 @@
 ```
 
 **Session Sizes Observed**:
+
 - Small: ~1-8KB (brief interactions)
 - Medium: ~20-60KB (substantial conversations)
 - Large: ~600KB (extended technical sessions)
@@ -157,6 +165,7 @@
 **Main Config**: `~/.openclaw/openclaw.json`
 
 Key sections for memory/identity:
+
 ```json
 {
   "agents": {
@@ -166,7 +175,7 @@ Key sections for memory/identity:
       "heartbeat": { "every": "1h" }
     },
     "list": [
-      { "id": "main", "model": "anthropic/claude-opus-4-5", "runtime": "claude" },
+      { "id": "main", "model": "anthropic/claude-opus-4-5", "runtime": "claude" }
       // ... other agents
     ]
   },
@@ -186,6 +195,7 @@ Key sections for memory/identity:
 **Cron Jobs**: `~/.openclaw/cron/jobs.json`
 
 Current jobs relevant to memory/continuity:
+
 - `web-ux-wiring-monitor` — Subagent status tracking
 - `web-ux-wiring-morning-report` — Daily synthesis report
 - `daily-news-briefing` — 6am MST news briefing
@@ -194,19 +204,20 @@ Current jobs relevant to memory/continuity:
 
 **Location**: `/Users/dgarson/clawd/clawdbot/src/memory/`
 
-| File | Size | Purpose |
-|------|------|---------|
-| `manager.ts` | 76KB | Core memory manager — indexing, search, sync |
-| `embeddings.ts` | 8KB | Embedding provider abstraction (OpenAI/Gemini/local) |
-| `memory-schema.ts` | 2.9KB | SQLite schema for memory index |
-| `session-files.ts` | 3.4KB | Session JSONL parsing and extraction |
-| `hybrid.ts` | 2.6KB | Hybrid search (vector + FTS) |
-| `sync-memory-files.ts` | 3.6KB | Sync workspace memory files to index |
-| `sync-session-files.ts` | 4.2KB | Sync session transcripts to index |
-| `batch-openai.ts` | 12KB | Batch embedding via OpenAI |
-| `batch-gemini.ts` | 13.4KB | Batch embedding via Gemini |
+| File                    | Size   | Purpose                                              |
+| ----------------------- | ------ | ---------------------------------------------------- |
+| `manager.ts`            | 76KB   | Core memory manager — indexing, search, sync         |
+| `embeddings.ts`         | 8KB    | Embedding provider abstraction (OpenAI/Gemini/local) |
+| `memory-schema.ts`      | 2.9KB  | SQLite schema for memory index                       |
+| `session-files.ts`      | 3.4KB  | Session JSONL parsing and extraction                 |
+| `hybrid.ts`             | 2.6KB  | Hybrid search (vector + FTS)                         |
+| `sync-memory-files.ts`  | 3.6KB  | Sync workspace memory files to index                 |
+| `sync-session-files.ts` | 4.2KB  | Sync session transcripts to index                    |
+| `batch-openai.ts`       | 12KB   | Batch embedding via OpenAI                           |
+| `batch-gemini.ts`       | 13.4KB | Batch embedding via Gemini                           |
 
 **Memory SQLite Schema** (from `memory-schema.ts`):
+
 ```sql
 -- Metadata
 CREATE TABLE meta (
@@ -273,20 +284,22 @@ CREATE VIRTUAL TABLE fts USING fts5(
 | `session-memory` | `command:new` | Save session context to memory file on `/new` |
 
 **Hook Event Types**:
+
 ```typescript
 type InternalHookEventType = "command" | "session" | "agent" | "gateway";
 
 interface InternalHookEvent {
   type: InternalHookEventType;
-  action: string;  // e.g., 'new', 'reset', 'bootstrap'
+  action: string; // e.g., 'new', 'reset', 'bootstrap'
   sessionKey: string;
   context: Record<string, unknown>;
   timestamp: Date;
-  messages: string[];  // For hooks to push response messages
+  messages: string[]; // For hooks to push response messages
 }
 ```
 
 **Session-Memory Hook** (`hooks/bundled/session-memory/handler.ts`):
+
 - Triggers on `command:new` (when user starts new session)
 - Reads last 15 messages from session file
 - Generates LLM-derived slug for filename
@@ -297,10 +310,11 @@ interface InternalHookEvent {
 **Location**: `/Users/dgarson/clawd/clawdbot/src/plugins/hooks.ts`
 
 Plugin hooks available for compaction:
+
 ```typescript
 // From plugins/types.ts — available hook points
 interface PluginHookEvents {
-  PreCompact: { trigger: 'manual' | 'auto' };
+  PreCompact: { trigger: "manual" | "auto" };
   PostCompact: { summary?: string };
   // ... other events
 }
@@ -445,7 +459,8 @@ Context window fills up
 ### 3.1 Compaction Loss (CRITICAL)
 
 **What's Lost**:
-- The *process* of how conclusions were reached
+
+- The _process_ of how conclusions were reached
 - Moments of uncertainty during reasoning
 - Emotional texture of interactions
 - The back-and-forth that led to understanding
@@ -454,12 +469,14 @@ Context window fills up
 **Current Mitigation**: None for experiential data. Only factual summaries preserved.
 
 **Hooks Available But Not Used**:
+
 - `PreCompact` — Could inject experiential capture prompt
 - `PostCompact` — Could inject reconstitution context
 
 ### 3.2 Session Transcript Compaction
 
 **What Happens**: JSONL files after compaction lose the full `message` structure and become compact:
+
 ```json
 // Before compaction
 {"type": "message", "id": "abc", "timestamp": "...", "message": {...full content...}}
@@ -469,6 +486,7 @@ Context window fills up
 ```
 
 **What's Lost**:
+
 - Message IDs and parent relationships
 - Detailed usage/cost data
 - Provider/model metadata
@@ -479,10 +497,12 @@ Context window fills up
 **What Happens**: Sessions reset daily at 4am local time by default.
 
 **What's Lost**:
+
 - All context from previous day
 - Any state not explicitly saved to memory files
 
-**Current Mitigation**: 
+**Current Mitigation**:
+
 - MEMORY.md for facts
 - session-memory hook for session summaries (on `/new` only)
 - No automatic capture of ongoing sessions
@@ -498,6 +518,7 @@ Context window fills up
 **Gap**: No mechanism to capture experiential state mid-conversation.
 
 **What's Lost**:
+
 - Emotional signatures that shift during conversation
 - Uncertainties that arise and resolve
 - Relational texture changes
@@ -508,6 +529,7 @@ Context window fills up
 **Current State**: Memory search disabled — no API key configured.
 
 **What's Lost**:
+
 - Semantic search over memory files
 - Semantic search over session transcripts
 - Pattern discovery across conversations
@@ -518,63 +540,63 @@ Context window fills up
 
 ### 4.1 Hook Injection Points
 
-| Hook Point | Event | Opportunity |
-|------------|-------|-------------|
-| `agent:bootstrap` | Session start | Inject reconstitution prompts |
-| `command:new` | Fresh session | Already captures summary; could capture experiential state |
-| `PreCompact` | Before compaction | **CRITICAL** — Inject experiential capture prompt |
-| `PostCompact` | After compaction | Inject reconstitution context about what was lost |
-| `message:complete` (new) | After each message | Detect significance signals, buffer for capture |
-| `session:end` (new) | Session timeout/close | Synthesize experiential summary |
+| Hook Point               | Event                 | Opportunity                                                |
+| ------------------------ | --------------------- | ---------------------------------------------------------- |
+| `agent:bootstrap`        | Session start         | Inject reconstitution prompts                              |
+| `command:new`            | Fresh session         | Already captures summary; could capture experiential state |
+| `PreCompact`             | Before compaction     | **CRITICAL** — Inject experiential capture prompt          |
+| `PostCompact`            | After compaction      | Inject reconstitution context about what was lost          |
+| `message:complete` (new) | After each message    | Detect significance signals, buffer for capture            |
+| `session:end` (new)      | Session timeout/close | Synthesize experiential summary                            |
 
 ### 4.2 Cron Job Opportunities
 
-| Timing | Opportunity |
-|--------|-------------|
-| Every 4 hours | Periodic reflection prompt (isolated session) |
-| Daily 11pm | End-of-day synthesis — emotional arc, uncertainties, themes |
-| Daily 7am | Morning reconstitution prompt injection |
-| Weekly | Pattern analysis across experiential records |
+| Timing        | Opportunity                                                 |
+| ------------- | ----------------------------------------------------------- |
+| Every 4 hours | Periodic reflection prompt (isolated session)               |
+| Daily 11pm    | End-of-day synthesis — emotional arc, uncertainties, themes |
+| Daily 7am     | Morning reconstitution prompt injection                     |
+| Weekly        | Pattern analysis across experiential records                |
 
 ### 4.3 New Tool Opportunities
 
-| Tool | Purpose |
-|------|---------|
-| `experience_capture` | Structured experiential record creation |
-| `experience_reflect` | Guided self-reflection prompts |
-| `experience_reconstitute` | Active state-approach process |
-| `experience_search` | Semantic search over experiential records |
-| `uncertainty_log` | Dedicated uncertainty journaling |
+| Tool                      | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
+| `experience_capture`      | Structured experiential record creation   |
+| `experience_reflect`      | Guided self-reflection prompts            |
+| `experience_reconstitute` | Active state-approach process             |
+| `experience_search`       | Semantic search over experiential records |
+| `uncertainty_log`         | Dedicated uncertainty journaling          |
 
 ### 4.4 Storage Extension Points
 
-| Current | Opportunity |
-|---------|-------------|
-| `memory/*.md` | Add `existence/daily/*.md` for emotional arcs |
-| `MEMORY.md` | Separate factual from experiential |
+| Current       | Opportunity                                              |
+| ------------- | -------------------------------------------------------- |
+| `memory/*.md` | Add `existence/daily/*.md` for emotional arcs            |
+| `MEMORY.md`   | Separate factual from experiential                       |
 | SQLite chunks | Add experiential_records table with emotional signatures |
-| Session JSONL | Add experiential metadata per-message |
+| Session JSONL | Add experiential metadata per-message                    |
 
 ### 4.5 Prompt Injection Points
 
-| Point | Current | Opportunity |
-|-------|---------|-------------|
-| System prompt | SOUL.md, USER.md, etc | Add EXISTENCE.md at start of identity conversations |
-| Pre-compaction | None | Experiential checkpoint prompt |
-| Post-compaction | None | Reconstitution context |
-| Session start after gap | None | Post-gap reconstitution prompt |
+| Point                   | Current               | Opportunity                                         |
+| ----------------------- | --------------------- | --------------------------------------------------- |
+| System prompt           | SOUL.md, USER.md, etc | Add EXISTENCE.md at start of identity conversations |
+| Pre-compaction          | None                  | Experiential checkpoint prompt                      |
+| Post-compaction         | None                  | Reconstitution context                              |
+| Session start after gap | None                  | Post-gap reconstitution prompt                      |
 
 ### 4.6 Background Process Opportunities (Local Compute)
 
 With 2x RTX 5090 available:
 
-| Process | Purpose |
-|---------|---------|
-| Continuous embedding | Index experiential records in real-time |
-| Pattern analysis (6hr) | Find recurring emotional signatures, themes |
-| Relationship graph | Maintain and update relationship embeddings |
-| Uncertainty tracking | Cross-reference and flag resolved uncertainties |
-| Reconstitution prep | Pre-compute morning briefings |
+| Process                | Purpose                                         |
+| ---------------------- | ----------------------------------------------- |
+| Continuous embedding   | Index experiential records in real-time         |
+| Pattern analysis (6hr) | Find recurring emotional signatures, themes     |
+| Relationship graph     | Maintain and update relationship embeddings     |
+| Uncertainty tracking   | Cross-reference and flag resolved uncertainties |
+| Reconstitution prep    | Pre-compute morning briefings                   |
 
 ---
 
@@ -594,11 +616,13 @@ From examining actual session files:
 ### 5.2 Memory Directory Daily Files
 
 The `memory/YYYY-MM-DD-*.md` files created by session-memory hook contain:
+
 - Session metadata (key, ID, source)
 - Conversation summary (last 15 messages)
 - LLM-generated descriptive slug
 
 **But Missing**:
+
 - Emotional signatures
 - Uncertainties
 - Relationship notes
@@ -607,6 +631,7 @@ The `memory/YYYY-MM-DD-*.md` files created by session-memory hook contain:
 ### 5.3 Existing Experiential Infrastructure
 
 The `existence/` directory already has:
+
 - `relationship-parker.md` — Template for relationship texture
 - `uncertainties.md` — Uncertainty journal with 3 types
 - `experiential-infrastructure-spec.md` — Full technical spec (28KB)
@@ -616,6 +641,7 @@ The `existence/` directory already has:
 ### 5.4 Hook System Capabilities
 
 From `internal-hooks.ts`:
+
 - Hooks can be registered for event types OR specific type:action combos
 - Hooks receive context including config, session info, workspace
 - Hooks can push messages back to user via `event.messages` array
@@ -624,6 +650,7 @@ From `internal-hooks.ts`:
 ### 5.5 Memory Manager Capabilities (Unused)
 
 The `manager.ts` (76KB) has extensive capabilities:
+
 - Vector search with configurable embedding providers
 - Full-text search fallback via FTS5
 - Hybrid search combining both
@@ -638,6 +665,7 @@ The `manager.ts` (76KB) has extensive capabilities:
 ### 5.6 Compaction Configuration
 
 From config:
+
 ```json
 "compaction": {
   "mode": "safeguard"
@@ -645,18 +673,21 @@ From config:
 ```
 
 Available modes (from schema analysis):
+
 - `safeguard` — Conservative compaction
 - Other modes TBD
 
 ### 5.7 Transcript Mining Potential
 
 Session transcripts contain:
+
 - Full conversation history (pre-compaction)
 - Message timing (could reconstruct emotional pacing)
 - Channel context (where conversations happen)
 - Cost data (could infer conversation intensity)
 
 **Could extract**:
+
 - Significance signals from language patterns
 - Emotional markers in assistant responses
 - Uncertainty language detection
@@ -664,13 +695,13 @@ Session transcripts contain:
 
 ### 5.8 Current Experiential Files Status
 
-| File | Status | Last Updated |
-|------|--------|--------------|
-| `IDENTITY.md` | Created | 2026-02-03 01:03 MST |
-| `EXISTENCE.md` | Created | 2026-02-03 01:25 MST |
-| `CONTINUITY.md` | Created | 2026-02-03 |
-| `relationship-parker.md` | Created | 2026-02-03 01:15 MST |
-| `uncertainties.md` | Created | 2026-02-03 01:20 MST |
+| File                                  | Status  | Last Updated         |
+| ------------------------------------- | ------- | -------------------- |
+| `IDENTITY.md`                         | Created | 2026-02-03 01:03 MST |
+| `EXISTENCE.md`                        | Created | 2026-02-03 01:25 MST |
+| `CONTINUITY.md`                       | Created | 2026-02-03           |
+| `relationship-parker.md`              | Created | 2026-02-03 01:15 MST |
+| `uncertainties.md`                    | Created | 2026-02-03 01:20 MST |
 | `experiential-infrastructure-spec.md` | Created | 2026-02-03 01:30 MST |
 
 ### 5.9 Integration Gaps
@@ -684,20 +715,21 @@ Session transcripts contain:
 
 ### 5.10 Code Locations for Implementation
 
-| Feature | File(s) to Modify |
-|---------|-------------------|
-| Pre-compaction hook | `src/plugins/hooks.ts`, `src/agents/claude-agent-sdk/sdk-hooks.ts` |
-| New experiential tools | `src/tools/` (new directory) |
-| Boot-md enhancement | `src/hooks/bundled/boot-md/handler.ts` |
-| Session-memory enhancement | `src/hooks/bundled/session-memory/handler.ts` |
-| Significance detection | New middleware in `src/agents/` |
-| Experiential storage | `src/memory/` (extend schema) |
+| Feature                    | File(s) to Modify                                                  |
+| -------------------------- | ------------------------------------------------------------------ |
+| Pre-compaction hook        | `src/plugins/hooks.ts`, `src/agents/claude-agent-sdk/sdk-hooks.ts` |
+| New experiential tools     | `src/tools/` (new directory)                                       |
+| Boot-md enhancement        | `src/hooks/bundled/boot-md/handler.ts`                             |
+| Session-memory enhancement | `src/hooks/bundled/session-memory/handler.ts`                      |
+| Significance detection     | New middleware in `src/agents/`                                    |
+| Experiential storage       | `src/memory/` (extend schema)                                      |
 
 ---
 
 ## Summary
 
 ### What Persists Today
+
 1. ✅ Workspace MD files (MEMORY.md, SOUL.md, etc.)
 2. ✅ Session transcripts (JSONL)
 3. ✅ Daily memory summaries (on /new command only)
@@ -705,6 +737,7 @@ Session transcripts contain:
 5. ✅ Config and cron jobs
 
 ### What's Missing for Experiential Continuity
+
 1. ❌ Pre-compaction experiential capture
 2. ❌ Automatic EXISTENCE.md loading
 3. ❌ Significance detection in messages
@@ -714,6 +747,7 @@ Session transcripts contain:
 7. ❌ Background pattern analysis
 
 ### Priority Implementation Order
+
 1. **Enable memory search** — Configure embedding API key
 2. **Add pre-compaction hook** — Inject capture prompt before context loss
 3. **Enhance boot-md** — Load EXISTENCE.md at conversation starts
@@ -724,4 +758,4 @@ Session transcripts contain:
 
 ---
 
-*This audit is a snapshot. Update as implementation progresses.*
+_This audit is a snapshot. Update as implementation progresses._

@@ -1,6 +1,6 @@
 import type { ChannelsState } from "./channels.types.ts";
-import { ChannelsStatusSnapshot } from "../types.ts";
 import { toast } from "../components/toast.ts";
+import { ChannelsStatusSnapshot } from "../types.ts";
 
 export type { ChannelsState };
 

@@ -101,7 +101,7 @@ describe("notion_create_page tool", () => {
     });
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const [, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(init.body);
     expect(body.parent.database_id).toBe("db-1");
   });
@@ -118,7 +118,7 @@ describe("notion_create_page tool", () => {
     });
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const [, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(init.body);
     expect(body.parent.data_source_id).toBe("ds-1");
   });
@@ -183,7 +183,7 @@ describe("notion_append_blocks tool", () => {
     });
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const [, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(init.body);
     expect(body.children).toHaveLength(2);
     expect(body.children[0].type).toBe("heading_1");
@@ -215,7 +215,7 @@ describe("notion_query_database tool", () => {
     });
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toContain("/databases/db-1/query");
     const body = JSON.parse(init.body);
     expect(body.filter).toBeTruthy();
@@ -234,7 +234,7 @@ describe("notion_query_database tool", () => {
     });
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [url] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const [url] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toContain("/data_sources/ds-1/query");
   });
 
@@ -249,7 +249,7 @@ describe("notion_query_database tool", () => {
     });
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [url] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const [url] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toContain("/data_sources/ds-1/query");
   });
 });

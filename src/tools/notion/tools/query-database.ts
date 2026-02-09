@@ -1,7 +1,7 @@
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
-import { jsonResult, readStringParam, readNumberParam } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "../../../agents/tools/common.js";
 import type { NotionToolOptions } from "./shared.js";
+import { jsonResult, readStringParam, readNumberParam } from "../../../agents/tools/common.js";
 import { notionQueryDatabase } from "../api.js";
 import { toApiOpts, parseJsonParam } from "./shared.js";
 

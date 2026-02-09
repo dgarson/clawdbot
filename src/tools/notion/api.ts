@@ -103,7 +103,7 @@ export async function notionGetBlocks(
 export async function notionCreatePage(
   opts: NotionApiOptions,
   params: {
-    parent: { database_id: string } | { page_id: string };
+    parent: { database_id: string } | { data_source_id: string } | { page_id: string };
     properties: Record<string, unknown>;
     children?: unknown[];
     icon?: unknown;

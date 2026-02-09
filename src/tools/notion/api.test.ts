@@ -31,7 +31,7 @@ describe("Notion API client", () => {
       await notionSearch({ apiKey: API_KEY, fetchFn }, { query: "hello" });
 
       expect(fetchFn).toHaveBeenCalledTimes(1);
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/search`);
       expect(init.method).toBe("POST");
       expect(init.headers.Authorization).toBe(`Bearer ${API_KEY}`);
@@ -46,7 +46,7 @@ describe("Notion API client", () => {
       const result = await notionGetPage({ apiKey: API_KEY, fetchFn }, "page-1");
 
       expect(result).toEqual({ id: "page-1" });
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/pages/page-1`);
       expect(init.method).toBe("GET");
     });
@@ -60,7 +60,7 @@ describe("Notion API client", () => {
         start_cursor: "cursor-1",
       });
 
-      const [url] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain("/blocks/block-1/children?");
       expect(url).toContain("page_size=50");
       expect(url).toContain("start_cursor=cursor-1");
@@ -78,7 +78,7 @@ describe("Notion API client", () => {
         },
       );
 
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/pages`);
       expect(init.method).toBe("POST");
       const body = JSON.parse(init.body);
@@ -93,7 +93,7 @@ describe("Notion API client", () => {
         properties: { Status: { select: { name: "Done" } } },
       });
 
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/pages/page-1`);
       expect(init.method).toBe("PATCH");
     });
@@ -106,7 +106,7 @@ describe("Notion API client", () => {
         { type: "paragraph", paragraph: { rich_text: [{ text: { content: "Hi" } }] } },
       ]);
 
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/blocks/page-1/children`);
       expect(init.method).toBe("PATCH");
     });
@@ -121,7 +121,7 @@ describe("Notion API client", () => {
         page_size: 10,
       });
 
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/databases/db-1/query`);
       expect(init.method).toBe("POST");
     });
@@ -130,7 +130,7 @@ describe("Notion API client", () => {
       const fetchFn = mockFetch(200, { results: [] });
       await notionQueryDatabase({ apiKey: API_KEY, fetchFn }, "ds-1", { page_size: 10 }, true);
 
-      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const [url, init] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe(`${NOTION_BASE_URL}/data_sources/ds-1/query`);
       expect(init.method).toBe("POST");
     });

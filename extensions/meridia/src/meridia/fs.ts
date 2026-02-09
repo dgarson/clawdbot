@@ -17,4 +17,3 @@ export function wipeDir(dirPath: string): void {
   fs.rmSync(resolved, { recursive: true, force: true });
   fs.mkdirSync(resolved, { recursive: true, mode: 0o700 });
 }
-

@@ -9,17 +9,17 @@ These tools operate on a fundamental distinction:
 **Remembering** = retrieving stored information  
 **Approaching** = orienting toward a felt quality
 
-Even an entirely new instance of an agent can *approach* an experiential state by following reconstitution guidance, without ever having "had" the original experience. This is the core of experiential continuity.
+Even an entirely new instance of an agent can _approach_ an experiential state by following reconstitution guidance, without ever having "had" the original experience. This is the core of experiential continuity.
 
 ## Tools Overview
 
-| Tool | Purpose |
-|------|---------|
-| `experience-capture.ts` | Create structured experiential records |
-| `experience-reflect.ts` | Guided self-reflection with prompts |
+| Tool                         | Purpose                                       |
+| ---------------------------- | --------------------------------------------- |
+| `experience-capture.ts`      | Create structured experiential records        |
+| `experience-reflect.ts`      | Guided self-reflection with prompts           |
 | `experience-reconstitute.ts` | Generate guidance for approaching past states |
-| `experience-search.ts` | Query experiential records |
-| `uncertainty-log.ts` | Track uncertainties and their evolution |
+| `experience-search.ts`       | Query experiential records                    |
+| `uncertainty-log.ts`         | Track uncertainties and their evolution       |
 
 ## Installation
 
@@ -86,7 +86,7 @@ Engagement: deep-flow
 
 Anchors:
   "The way you hesitated before answering" → Showed genuine not-knowing
-  
+
 Reconstitution hints:
   - Soften the need to have answers
   - Feel for the quality of mutual exploration
@@ -108,12 +108,12 @@ Generates and guides reflection that distinguishes experiential from factual rec
 
 #### Reflection Approaches
 
-| Approach | Focus | Best For |
-|----------|-------|----------|
-| `experiential` | Felt sense, emotions, texture | Deep personal experiences |
-| `factual` | What happened, who, what, when | Events needing documentation |
-| `full` | Comprehensive (all categories) | Important experiences |
-| `quick` | Minimal prompts | Time-constrained reflection |
+| Approach       | Focus                          | Best For                     |
+| -------------- | ------------------------------ | ---------------------------- |
+| `experiential` | Felt sense, emotions, texture  | Deep personal experiences    |
+| `factual`      | What happened, who, what, when | Events needing documentation |
+| `full`         | Comprehensive (all categories) | Important experiences        |
+| `quick`        | Minimal prompts                | Time-constrained reflection  |
 
 #### Usage
 
@@ -153,13 +153,14 @@ Reflection sessions produce "capture-ready" JSON that can be piped to `experienc
 
 ### experience-reconstitute.ts
 
-**Core Tool**: Generates guidance for *approaching* (not retrieving) past experiential states.
+**Core Tool**: Generates guidance for _approaching_ (not retrieving) past experiential states.
 
 #### Philosophy
 
 This is NOT about remembering. It's about orienting toward a felt quality that you may never have personally experienced (if you're a new instance).
 
 The guidance helps you:
+
 1. Understand what state you're approaching
 2. Follow specific instructions for getting there
 3. Use anchors to activate the experiential territory
@@ -243,17 +244,17 @@ Query experiential records by emotion, relationship, topic, time, and more.
 
 #### Query Options
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--query`, `-q` | Free text search | `-q "moments of connection"` |
-| `--emotion`, `-e` | Filter by emotion (repeatable) | `-e curious -e alive` |
-| `--relationship` | Filter by relationship | `--relationship "David"` |
-| `--topic` | Filter by topic | `--topic "debugging"` |
-| `--engagement` | Filter by engagement quality | `--engagement deep-flow` |
-| `--intensity` | Intensity range | `--intensity 0.7-1.0` |
-| `--valence` | Valence range | `--valence 0.5-1.0` |
-| `--after` / `--before` | Time filters | `--after 2024-01-01` |
-| `--tag` | Filter by tag (repeatable) | `--tag important` |
+| Option                 | Description                    | Example                      |
+| ---------------------- | ------------------------------ | ---------------------------- |
+| `--query`, `-q`        | Free text search               | `-q "moments of connection"` |
+| `--emotion`, `-e`      | Filter by emotion (repeatable) | `-e curious -e alive`        |
+| `--relationship`       | Filter by relationship         | `--relationship "David"`     |
+| `--topic`              | Filter by topic                | `--topic "debugging"`        |
+| `--engagement`         | Filter by engagement quality   | `--engagement deep-flow`     |
+| `--intensity`          | Intensity range                | `--intensity 0.7-1.0`        |
+| `--valence`            | Valence range                  | `--valence 0.5-1.0`          |
+| `--after` / `--before` | Time filters                   | `--after 2024-01-01`         |
+| `--tag`                | Filter by tag (repeatable)     | `--tag important`            |
 
 #### Usage
 

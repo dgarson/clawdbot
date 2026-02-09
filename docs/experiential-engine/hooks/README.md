@@ -123,11 +123,11 @@ See `hook-config.json` for full configuration options. Key settings:
 
 These hooks work best with local models for evaluation and synthesis:
 
-| Hook | Model | Purpose | Fallback |
-|------|-------|---------|----------|
-| experiential-capture | Qwen2.5-7B | Significance evaluation | Heuristic scoring |
-| compaction | Qwen2.5-7B | State extraction | Empty extraction |
-| session-end | Qwen2.5-14B | Session synthesis | Basic summary |
+| Hook                 | Model       | Purpose                 | Fallback          |
+| -------------------- | ----------- | ----------------------- | ----------------- |
+| experiential-capture | Qwen2.5-7B  | Significance evaluation | Heuristic scoring |
+| compaction           | Qwen2.5-7B  | State extraction        | Empty extraction  |
+| session-end          | Qwen2.5-14B | Session synthesis       | Basic summary     |
 
 ### Setting Up Local Models
 
@@ -144,6 +144,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 Or use Ollama:
+
 ```bash
 ollama pull qwen2.5:7b-instruct-q4_K_M
 ollama serve
@@ -158,6 +159,7 @@ ollama serve
 5. Check `existence/` for generated files
 
 For compaction testing:
+
 1. Have a long conversation to trigger auto-compaction
 2. Or use manual compaction if available
 3. Check `existence/snapshots/` for checkpoint

@@ -470,8 +470,8 @@ import { OverseerKnowledgeBridge } from "../../knowledge/overseer-bridge/bridge.
 export class OverseerPlanner {
   private bridge?: OverseerKnowledgeBridge;
 
-  constructor() // ... existing deps
-  {
+  constructor() {
+    // ... existing deps
     // Initialize bridge if knowledge enabled
     if (config.knowledge?.enabled) {
       this.bridge = new OverseerKnowledgeBridge(datastore, graphQuery);

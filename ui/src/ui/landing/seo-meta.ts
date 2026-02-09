@@ -158,11 +158,7 @@ function setCanonicalUrl(url: string): void {
 /**
  * Set or create a meta tag by attribute type and name.
  */
-function setMetaTag(
-  attr: "name" | "property",
-  name: string,
-  content: string,
-): void {
+function setMetaTag(attr: "name" | "property", name: string, content: string): void {
   const selector = `meta[${attr}="${name}"]`;
   let el = document.querySelector(selector) as HTMLMetaElement | null;
   if (!el) {

@@ -28,9 +28,15 @@ export class RestApiVaultAccess implements VaultAccessLayer {
     if (this.apiKey) {
       headers.Authorization = `Bearer ${this.apiKey}`;
     }
+    const mergedHeaders = new Headers(headers);
+    if (options?.headers) {
+      for (const [key, value] of new Headers(options.headers).entries()) {
+        mergedHeaders.set(key, value);
+      }
+    }
     return fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
-      headers: { ...headers, ...options?.headers },
+      headers: mergedHeaders,
     });
   }
 
