@@ -76,6 +76,14 @@ export function formatDurationCompact(
 }
 
 /**
+ * Format a millisecond duration into a compact human-readable string.
+ * Alias for `formatDurationCompact` with a guaranteed string return (uses "n/a" fallback).
+ */
+export function formatDurationMs(ms?: number | null, fallback = "n/a"): string {
+  return formatDurationCompact(ms) ?? fallback;
+}
+
+/**
  * Rounded single-unit duration for display: "500ms", "5s", "3m", "2h", "5d".
  * Returns fallback string for null/undefined/non-finite input.
  */

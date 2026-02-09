@@ -315,7 +315,10 @@ function resolveConversationType(params: {
     }
   }
 
-  // CONFLICT, removed:  if (threadTs && provider && provider !== "slack") {
+  if (threadTs && provider && provider !== "slack") {
+    return "group";
+  }
+
   // Fallback: infer from channelId patterns without provider context
   if (channelId?.startsWith("D")) {
     return "dm";
