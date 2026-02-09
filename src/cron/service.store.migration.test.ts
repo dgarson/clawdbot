@@ -143,7 +143,7 @@ describe("cron store migration", () => {
     await cron.start();
     cron.stop();
 
-    const loaded = await loadCronStore(store.storePath);
+    const { store: loaded } = await loadCronStore(store.storePath);
     const migrated = loaded.jobs[0] as Record<string, unknown>;
     const schedule = migrated.schedule as Record<string, unknown>;
     expect(schedule.kind).toBe("every");

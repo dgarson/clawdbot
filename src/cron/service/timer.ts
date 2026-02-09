@@ -1,4 +1,3 @@
-import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob } from "../types.js";
 import type { CronServiceState } from "./state.js";
 import { resolveCronDeliveryPlan } from "../delivery.js";
@@ -127,30 +126,50 @@ export async function onTimer(state: CronServiceState) {
       return jobs;
     });
 
-    // Phase 2 (unlocked): execute each claimed job.
-    const results: Array<{ job: CronJob; result: JobExecResult; nowMs: number }> = [];
-    for (const job of claimed) {
-      const nowMs = state.deps.nowMs();
-      let result: JobExecResult;
-      try {
-        result = await executeJobPayload(state, job);
-      } catch (err) {
-        result = { status: "error", error: String(err) };
-      }
-      results.push({ job, result, nowMs });
-    }
-
-    // Phase 3 (locked): finalize all results, recompute next runs, persist.
-    if (results.length > 0) {
-      await locked(state, async () => {
-        // Re-read store to see latest state (other ops may have mutated it).
-        await ensureLoaded(state, { forceReload: true, skipRecompute: true });
-        for (const { job, result, nowMs } of results) {
-          finalizeJobRun(state, job, result, { forced: false, nowMs });
+    // Phase 2+3 (mixed lock/unlocked): execute and finalize each claimed job
+    // individually so runAt/duration reflect actual execution windows.
+    if (claimed.length > 0) {
+      const claimedJobIds = new Set(claimed.map((job) => job.id));
+      for (const job of claimed) {
+        const startedAtMs = await locked(state, async () => {
+          // Re-read store to avoid clobbering concurrent mutations.
+          await ensureLoaded(state, { forceReload: true, skipRecompute: true });
+          const liveJob = state.store?.jobs.find((j) => j.id === job.id);
+          if (!liveJob) {
+            return null;
+          }
+          const startedAt = state.deps.nowMs();
+          liveJob.state.runningAtMs = startedAt;
+          liveJob.state.lastError = undefined;
+          emit(state, { jobId: liveJob.id, action: "started", runAtMs: startedAt });
+          await persist(state);
+          return startedAt;
+        });
+        if (startedAtMs === null) {
+          continue;
         }
-        recomputeNextRuns(state);
-        await persist(state);
-      });
+
+        let result: JobExecResult;
+        try {
+          result = await executeJobPayload(state, job);
+        } catch (err) {
+          result = { status: "error", error: String(err) };
+        }
+        const endedAtMs = state.deps.nowMs();
+
+        await locked(state, async () => {
+          // Re-read store to see latest state (other ops may have mutated it).
+          await ensureLoaded(state, { forceReload: true, skipRecompute: true });
+          finalizeJobRun(state, job, result, {
+            forced: false,
+            nowMs: startedAtMs,
+            startedAtMs,
+            endedAtMs,
+          });
+          recomputeNextRuns(state, { preserveRunningForJobIds: claimedJobIds });
+          await persist(state);
+        });
+      }
     } else {
       // No jobs were due, but still recompute + persist under lock in case
       // the store was stale or nextRunAtMs needs updating.
@@ -168,7 +187,7 @@ export async function onTimer(state: CronServiceState) {
 }
 
 /**
- * Find due jobs and claim them (set runningAtMs + emit started).
+ * Find due jobs and claim them (set runningAtMs for lock ownership).
  * Must be called under lock. Returns the claimed jobs for unlocked execution.
  */
 export function claimDueJobs(state: CronServiceState): CronJob[] {
@@ -191,7 +210,7 @@ export function claimDueJobs(state: CronServiceState): CronJob[] {
   });
   const claimed: CronJob[] = [];
   for (const job of due) {
-    if (claimJobRun(state, job)) {
+    if (claimJobRun(state, job, { emitStarted: false })) {
       claimed.push(job);
     }
   }
@@ -257,14 +276,20 @@ export type JobExecResult = {
  * Phase 1 (locked): mark the job as running, emit "started", persist.
  * Returns false if the job is already running (caller should skip).
  */
-export function claimJobRun(state: CronServiceState, job: CronJob): boolean {
+export function claimJobRun(
+  state: CronServiceState,
+  job: CronJob,
+  opts?: { emitStarted?: boolean; startedAtMs?: number },
+): boolean {
   if (typeof job.state.runningAtMs === "number") {
     return false;
   }
-  const startedAt = state.deps.nowMs();
+  const startedAt = opts?.startedAtMs ?? state.deps.nowMs();
   job.state.runningAtMs = startedAt;
   job.state.lastError = undefined;
-  emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
+  if (opts?.emitStarted !== false) {
+    emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
+  }
   return true;
 }
 
@@ -295,31 +320,22 @@ export async function executeJobPayload(
       const maxWaitMs = 2 * 60_000;
       const waitStartedAt = state.deps.nowMs();
 
-      let heartbeatResult: HeartbeatRunResult;
       for (;;) {
-        heartbeatResult = await state.deps.runHeartbeatOnce({ reason });
-        if (
-          heartbeatResult.status !== "skipped" ||
-          heartbeatResult.reason !== "requests-in-flight"
-        ) {
-          break;
+        const heartbeatResult = await state.deps.runHeartbeatOnce({ reason });
+        if (heartbeatResult.status === "ran") {
+          return { status: "ok", summary: text };
+        }
+        if (heartbeatResult.status === "failed") {
+          return { status: "error", error: heartbeatResult.reason, summary: text };
+        }
+        if (heartbeatResult.reason !== "requests-in-flight") {
+          return { status: "skipped", error: heartbeatResult.reason, summary: text };
         }
         if (state.deps.nowMs() - waitStartedAt > maxWaitMs) {
-          heartbeatResult = {
-            status: "skipped",
-            reason: "timeout waiting for main lane to become idle",
-          };
-          break;
+          state.deps.requestHeartbeatNow({ reason });
+          return { status: "ok", summary: text };
         }
         await delay(250);
-      }
-
-      if (heartbeatResult.status === "ran") {
-        return { status: "ok", summary: text };
-      } else if (heartbeatResult.status === "skipped") {
-        return { status: "skipped", error: heartbeatResult.reason, summary: text };
-      } else {
-        return { status: "error", error: heartbeatResult.reason, summary: text };
       }
     }
     // wakeMode is "next-heartbeat" or runHeartbeatOnce not available
@@ -374,8 +390,9 @@ export function finalizeJobRun(
   state: CronServiceState,
   job: CronJob,
   result: JobExecResult,
-  opts: { forced: boolean; nowMs: number },
+  opts: { forced: boolean; nowMs: number; startedAtMs?: number; endedAtMs?: number },
 ): { deleted: boolean } {
+  const startedAtFallback = opts.startedAtMs ?? opts.nowMs;
   // Stale finalize: job was removed while we were executing.
   const liveJob = state.store?.jobs.find((j) => j.id === job.id);
   if (!liveJob) {
@@ -385,14 +402,14 @@ export function finalizeJobRun(
       status: result.status,
       error: result.error,
       summary: result.summary,
-      runAtMs: job.state.runningAtMs ?? opts.nowMs,
+      runAtMs: job.state.runningAtMs ?? startedAtFallback,
       durationMs: 0,
     });
     return { deleted: false };
   }
 
-  const startedAt = liveJob.state.runningAtMs ?? opts.nowMs;
-  const endedAt = state.deps.nowMs();
+  const startedAt = opts.startedAtMs ?? liveJob.state.runningAtMs ?? opts.nowMs;
+  const endedAt = opts.endedAtMs ?? state.deps.nowMs();
   liveJob.state.runningAtMs = undefined;
   liveJob.state.lastRunAtMs = startedAt;
   liveJob.state.lastStatus = result.status;
