@@ -1,5 +1,7 @@
+import path from "node:path";
 import type { BrowserRouteContext } from "../server-context.js";
 import type { BrowserRouteRegistrar } from "./types.js";
+import { resolveOpenClawUserDataDir } from "../chrome.js";
 import { handleRouteError, readBody, requirePwAi, resolveProfileContext } from "./agent.shared.js";
 import { jsonError, toBoolean, toNumber, toStringOrEmpty } from "./utils.js";
 
@@ -428,6 +430,113 @@ export function registerBrowserAgentStorageRoutes(
         name,
       });
       res.json({ ok: true, targetId: tab.targetId });
+    } catch (err) {
+      handleRouteError(ctx, res, err);
+    }
+  });
+
+  // ── Storage state persistence (save / restore) ────────────────────
+
+  const resolveStorageStatePath = (profileName: string): string => {
+    const userDataDir = resolveOpenClawUserDataDir(profileName);
+    return path.join(userDataDir, "pw-storage-state.json");
+  };
+
+  app.post("/storage-state/save", async (req, res) => {
+    const profileCtx = resolveProfileContext(req, res, ctx);
+    if (!profileCtx) {
+      return;
+    }
+    const body = readBody(req);
+    const targetId = toStringOrEmpty(body.targetId) || undefined;
+    try {
+      const tab = await profileCtx.ensureTabAvailable(targetId);
+      const pw = await requirePwAi(res, "storage state save");
+      if (!pw) {
+        return;
+      }
+      const filePath = resolveStorageStatePath(profileCtx.profile.name);
+      const result = await pw.saveStorageStateViaPlaywright({
+        cdpUrl: profileCtx.profile.cdpUrl,
+        targetId: tab.targetId,
+        filePath,
+      });
+      res.json({ ok: true, targetId: tab.targetId, path: result.path });
+    } catch (err) {
+      handleRouteError(ctx, res, err);
+    }
+  });
+
+  app.post("/storage-state/restore", async (req, res) => {
+    const profileCtx = resolveProfileContext(req, res, ctx);
+    if (!profileCtx) {
+      return;
+    }
+    const body = readBody(req);
+    const targetId = toStringOrEmpty(body.targetId) || undefined;
+    try {
+      const tab = await profileCtx.ensureTabAvailable(targetId);
+      const pw = await requirePwAi(res, "storage state restore");
+      if (!pw) {
+        return;
+      }
+      const filePath = resolveStorageStatePath(profileCtx.profile.name);
+      const result = await pw.restoreStorageStateViaPlaywright({
+        cdpUrl: profileCtx.profile.cdpUrl,
+        targetId: tab.targetId,
+        filePath,
+      });
+      res.json({ ok: true, targetId: tab.targetId, ...result });
+    } catch (err) {
+      handleRouteError(ctx, res, err);
+    }
+  });
+
+  // ── Chrome cookie import ──────────────────────────────────────────
+
+  app.get("/chrome-profiles", async (_req, res) => {
+    try {
+      const { findChromeUserDataDirs, listChromeProfiles } =
+        await import("../chrome-cookie-import.js");
+      const dirs = findChromeUserDataDirs();
+      const result = dirs.map((dir) => ({
+        userDataDir: dir,
+        profiles: listChromeProfiles(dir),
+      }));
+      res.json({ ok: true, browsers: result });
+    } catch (err) {
+      handleRouteError(ctx, res, err);
+    }
+  });
+
+  app.post("/import-chrome-cookies", async (req, res) => {
+    const profileCtx = resolveProfileContext(req, res, ctx);
+    if (!profileCtx) {
+      return;
+    }
+    const body = readBody(req);
+    const targetId = toStringOrEmpty(body.targetId) || undefined;
+    const chromeUserDataDir = toStringOrEmpty(body.chromeUserDataDir) || undefined;
+    const profileSubdir = toStringOrEmpty(body.profileSubdir) || undefined;
+    const rawDomains = body.domains;
+    const domains = Array.isArray(rawDomains)
+      ? (rawDomains.filter((d) => typeof d === "string" && d.trim()) as string[])
+      : undefined;
+
+    try {
+      const tab = await profileCtx.ensureTabAvailable(targetId);
+      const pw = await requirePwAi(res, "import chrome cookies");
+      if (!pw) {
+        return;
+      }
+      const result = await pw.importChromeProfileCookiesViaPlaywright({
+        cdpUrl: profileCtx.profile.cdpUrl,
+        targetId: tab.targetId,
+        chromeUserDataDir,
+        profileSubdir,
+        domains,
+      });
+      res.json({ ok: true, targetId: tab.targetId, ...result });
     } catch (err) {
       handleRouteError(ctx, res, err);
     }

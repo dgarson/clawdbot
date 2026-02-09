@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import type { ResolvedBrowserProfile } from "./config.js";
 import type { PwAiModule } from "./pw-ai-module.js";
 import type {
@@ -272,7 +273,28 @@ function createProfileContext(
     });
   };
 
+  // Register the storageState persistence path so that Playwright can
+  // auto-save / restore cookies+localStorage across reconnections.
+  let storageStateRegistered = false;
+  const ensureStorageStateRegistered = async () => {
+    if (storageStateRegistered) {
+      return;
+    }
+    storageStateRegistered = true;
+    try {
+      const mod = await getPwAiModule({ mode: "soft" });
+      const register = (mod as Partial<PwAiModule> | null)?.registerStorageStatePath;
+      if (typeof register === "function") {
+        const userDataDir = resolveOpenClawUserDataDir(profile.name);
+        register(profile.cdpUrl, path.join(userDataDir, "pw-storage-state.json"));
+      }
+    } catch {
+      // best-effort — Playwright may not be available
+    }
+  };
+
   const ensureBrowserAvailable = async (): Promise<void> => {
+    await ensureStorageStateRegistered();
     const current = state();
     const remoteCdp = !profile.cdpIsLoopback;
     const isExtension = profile.driver === "extension";

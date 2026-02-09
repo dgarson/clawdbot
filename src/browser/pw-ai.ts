@@ -6,8 +6,10 @@ export {
   ensurePageState,
   focusPageByTargetIdViaPlaywright,
   getPageForTargetId,
+  getStorageStatePath,
   listPagesViaPlaywright,
   refLocator,
+  registerStorageStatePath,
   type WithSnapshotForAI,
 } from "./pw-session.js";
 
@@ -29,6 +31,7 @@ export {
   getPageErrorsViaPlaywright,
   highlightViaPlaywright,
   hoverViaPlaywright,
+  importChromeProfileCookiesViaPlaywright,
   navigateViaPlaywright,
   pdfViaPlaywright,
   pressKeyViaPlaywright,
@@ -48,6 +51,8 @@ export {
   snapshotAriaViaPlaywright,
   snapshotRoleViaPlaywright,
   screenshotWithLabelsViaPlaywright,
+  restoreStorageStateViaPlaywright,
+  saveStorageStateViaPlaywright,
   storageClearViaPlaywright,
   storageGetViaPlaywright,
   storageSetViaPlaywright,

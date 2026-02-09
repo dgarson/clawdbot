@@ -6,6 +6,7 @@ import type {
   Request,
   Response,
 } from "playwright-core";
+import fs from "node:fs";
 import { chromium } from "playwright-core";
 import { formatErrorMessage } from "../infra/errors.js";
 import { getHeadersWithAuth } from "./cdp.helpers.js";
@@ -100,6 +101,28 @@ const MAX_NETWORK_REQUESTS = 500;
 
 let cached: ConnectedBrowser | null = null;
 let connecting: Promise<ConnectedBrowser> | null = null;
+
+/**
+ * Map from normalized CDP URL → file path for storageState persistence.
+ * When registered, the context's storage state is auto-saved on disconnect.
+ */
+const storageStatePaths = new Map<string, string>();
+
+/**
+ * Register a file path where storageState should be auto-saved for a CDP URL.
+ * Typically called once per profile with the path to pw-storage-state.json
+ * inside the profile's user-data directory.
+ */
+export function registerStorageStatePath(cdpUrl: string, filePath: string): void {
+  storageStatePaths.set(normalizeCdpUrl(cdpUrl), filePath);
+}
+
+/**
+ * Get the registered storageState path for a CDP URL, if any.
+ */
+export function getStorageStatePath(cdpUrl: string): string | undefined {
+  return storageStatePaths.get(normalizeCdpUrl(cdpUrl));
+}
 
 function normalizeCdpUrl(raw: string) {
   return raw.replace(/\/$/, "");
@@ -340,6 +363,18 @@ async function connectBrowser(cdpUrl: string): Promise<ConnectedBrowser> {
           if (cached?.browser === browser) {
             cached = null;
           }
+          // Best-effort auto-save of storage state on disconnect
+          const ssPath = storageStatePaths.get(normalized);
+          if (ssPath) {
+            try {
+              const ctx = browser.contexts()[0];
+              if (ctx) {
+                ctx.storageState({ path: ssPath }).catch(() => {});
+              }
+            } catch {
+              // browser already closed — nothing to save
+            }
+          }
         });
         return connected;
       } catch (err) {
@@ -548,15 +583,33 @@ export async function listPagesViaPlaywright(opts: { cdpUrl: string }): Promise<
  * Create a new page/tab using the persistent Playwright connection.
  * Used for remote profiles where HTTP-based /json/new is ephemeral.
  * Returns the new page's targetId and metadata.
+ *
+ * When no existing context is available and a storageStatePath is registered
+ * (or provided), the saved cookies and localStorage will be loaded into the
+ * newly created context so that auth sessions survive reconnections.
  */
-export async function createPageViaPlaywright(opts: { cdpUrl: string; url: string }): Promise<{
+export async function createPageViaPlaywright(opts: {
+  cdpUrl: string;
+  url: string;
+  storageStatePath?: string;
+}): Promise<{
   targetId: string;
   title: string;
   url: string;
   type: string;
 }> {
   const { browser } = await connectBrowser(opts.cdpUrl);
-  const context = browser.contexts()[0] ?? (await browser.newContext());
+  const existingContext = browser.contexts()[0];
+  let context: BrowserContext;
+
+  if (existingContext) {
+    context = existingContext;
+  } else {
+    // Resolve a storageState file: explicit param > registered path
+    const ssPath = opts.storageStatePath ?? storageStatePaths.get(normalizeCdpUrl(opts.cdpUrl));
+    const hasState = ssPath && fs.existsSync(ssPath);
+    context = await browser.newContext(hasState ? { storageState: ssPath } : undefined);
+  }
   ensureContextState(context);
 
   const page = await context.newPage();
