@@ -69,7 +69,8 @@ function resolveReadinessConfig(server: McpServerConfig): Required<McpReadinessC
 // NOTE: We keep these tool objects compatible with Pi Agent runtime and
 // Claude Agent SDK tool bridging (via the existing MCP server bridge).
 
-export type AnyAgentTool = AgentTool<unknown, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyAgentTool = AgentTool<any, any>;
 
 function resolveTransport(server: McpServerConfig): "stdio" | "sse" | "http" {
   return server.transport ?? "stdio";

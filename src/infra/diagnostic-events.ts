@@ -127,6 +127,19 @@ export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   queued: number;
 };
 
+export type DiagnosticVaultWatcherEvent = DiagnosticBaseEvent & {
+  type: "vault.watcher.event";
+  eventType: string;
+  processed: boolean;
+  reason?: string;
+};
+
+export type DiagnosticVaultToolCallEvent = DiagnosticBaseEvent & {
+  type: "vault.tool.call";
+  toolName: string;
+  durationMs: number;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticWebhookReceivedEvent
@@ -139,7 +152,9 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneEnqueueEvent
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
-  | DiagnosticHeartbeatEvent;
+  | DiagnosticHeartbeatEvent
+  | DiagnosticVaultWatcherEvent
+  | DiagnosticVaultToolCallEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

@@ -25,6 +25,11 @@ import * as migration003 from "../migrations/003_work_item_heartbeat.js";
 import * as migration004 from "../migrations/004_work_item_refs.js";
 import { formatRef, readRefs } from "../refs.js";
 
+/** SQLite row shape for work_queues table */
+type QueueRow = Parameters<SqliteWorkQueueBackend["mapQueue"]>[0];
+/** SQLite row shape for work_items table */
+type ItemRow = Parameters<SqliteWorkQueueBackend["mapItem"]>[0];
+
 const WORK_QUEUE_MIGRATIONS = [
   {
     name: "001_baseline.ts",
@@ -287,8 +292,8 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         WHERE id = ?
       `,
       )
-      .get(queueId) as ReturnType<SqliteWorkQueueBackend["mapQueue"]> | undefined;
-    return row ? this.mapQueue(row as Parameters<SqliteWorkQueueBackend["mapQueue"]>[0]) : null;
+      .get(queueId) as QueueRow | undefined;
+    return row ? this.mapQueue(row) : null;
   }
 
   async getQueueByAgentId(agentId: string): Promise<WorkQueue | null> {
@@ -301,8 +306,8 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         WHERE agent_id = ?
       `,
       )
-      .get(agentId) as ReturnType<SqliteWorkQueueBackend["mapQueue"]> | undefined;
-    return row ? this.mapQueue(row as Parameters<SqliteWorkQueueBackend["mapQueue"]>[0]) : null;
+      .get(agentId) as QueueRow | undefined;
+    return row ? this.mapQueue(row) : null;
   }
 
   async listQueues(opts?: { agentId?: string }): Promise<WorkQueue[]> {
@@ -328,9 +333,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
           `,
           )
           .all();
-    return (rows as Array<Parameters<SqliteWorkQueueBackend["mapQueue"]>[0]>).map((row) =>
-      this.mapQueue(row),
-    );
+    return (rows as QueueRow[]).map((row) => this.mapQueue(row));
   }
 
   async updateQueue(queueId: string, patch: Partial<WorkQueue>): Promise<WorkQueue> {
@@ -422,8 +425,8 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
         WHERE id = ?
       `,
       )
-      .get(itemId) as ReturnType<SqliteWorkQueueBackend["mapItem"]> | undefined;
-    return row ? this.mapItem(row as Parameters<SqliteWorkQueueBackend["mapItem"]>[0]) : null;
+      .get(itemId) as ItemRow | undefined;
+    return row ? this.mapItem(row) : null;
   }
 
   async listItems(opts: WorkItemListOptions): Promise<WorkItem[]> {
@@ -498,9 +501,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
     }
 
     const rows = db.prepare(query).all(...queryParams);
-    const items = (rows as Array<Parameters<SqliteWorkQueueBackend["mapItem"]>[0]>).map((row) =>
-      this.mapItem(row),
-    );
+    const items = (rows as ItemRow[]).map((row) => this.mapItem(row));
 
     return items
       .filter((item) => (opts.assignedTo ? item.assignedTo?.agentId === opts.assignedTo : true))
@@ -521,9 +522,7 @@ export class SqliteWorkQueueBackend implements WorkQueueBackend {
       `,
       )
       .all(ref.kind, ref.id);
-    return (rows as Array<Parameters<SqliteWorkQueueBackend["mapItem"]>[0]>).map((row) =>
-      this.mapItem(row),
-    );
+    return (rows as ItemRow[]).map((row) => this.mapItem(row));
   }
 
   async rebuildRefs(opts?: {

@@ -133,7 +133,7 @@ export function createVaultQueryTool(deps: VaultToolsDeps): AnyAgentTool {
         ? results.map((result) => ({
             path: result.path,
             frontmatter: Object.fromEntries(
-              fields.map((field) => [field, result.frontmatter?.[field]]),
+              fields.map((field: string) => [field, result.frontmatter?.[field]]),
             ),
           }))
         : results;

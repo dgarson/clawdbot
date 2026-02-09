@@ -1,4 +1,4 @@
-import chokidar from "chokidar";
+import chokidar, { type FSWatcher } from "chokidar";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter } from "./frontmatter.js";
@@ -38,7 +38,7 @@ export function createVaultWatcher(options: VaultWatcherOptions): {
   } = options;
 
   const ignored = excludePaths.map((exclude) => path.join(vaultPath, exclude));
-  let watcher: chokidar.FSWatcher | null = null;
+  let watcher: FSWatcher | null = null;
   const debounceMap = new Map<string, NodeJS.Timeout>();
 
   function debounced(filePath: string, callback: () => void): void {
