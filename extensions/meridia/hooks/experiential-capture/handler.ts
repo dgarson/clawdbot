@@ -6,6 +6,7 @@ import type {
   MeridiaTraceEvent,
   CaptureDecision,
 } from "../../src/meridia/types.js";
+import { createGraphitiBridge } from "../../src/graphiti-bridge.js";
 import { collectArtifacts } from "../../src/meridia/artifacts/collector.js";
 import { classifyMemoryType } from "../../src/meridia/classifier.js";
 import { resolveMeridiaPluginConfig } from "../../src/meridia/config.js";
@@ -30,7 +31,6 @@ import {
 } from "../../src/meridia/event.js";
 // V2 components
 import { normalizeToolResult } from "../../src/meridia/event/normalizer.js";
-import { enqueueGraphFanout } from "../../src/meridia/fanout.js";
 import {
   checkGates,
   ensureBuffer,
@@ -162,6 +162,13 @@ const handler = async (event: HookEvent): Promise<void> => {
   const graphEnabled = readBoolean(graphitiCfg, "enabled", cfg?.memory?.graphiti?.enabled === true);
   const graphMinSignificance = readPositiveNumber(graphitiCfg, "minSignificanceForGraph", 0.7);
   const graphGroupId = readString(graphitiCfg, "groupId");
+
+  const graphitiBridge = createGraphitiBridge({
+    cfg,
+    source: "meridia.experiential-capture",
+    groupId: graphGroupId,
+    sourceDescription: "Meridia experiential capture",
+  });
 
   const gatesConfig: GatesConfig = { maxCapturesPerHour: maxPerHour, minIntervalMs };
 
@@ -317,20 +324,9 @@ const handler = async (event: HookEvent): Promise<void> => {
     // Update buffer with capture info
     buffer = recordCapture(buffer, { toolName, score: finalScore, recordId });
 
-    // ── Optional: queue async graph linking (per-capture) ────────────────
+    // ── Optional: Graphiti ingestion (batched) ───────────────────────────
     if (shouldPersistToGraph) {
-      const queueResult = enqueueGraphFanout({
-        record: sanitizedRecord,
-        cfg,
-        options: {
-          source: "meridia.experiential-capture",
-          groupId: graphGroupId,
-        },
-      });
-      if (!queueResult.enqueued && queueResult.reason === "queue_full") {
-        // eslint-disable-next-line no-console
-        console.warn(`[fanout] Graph queue full, dropped record ${sanitizedRecord.id}`);
-      }
+      graphitiBridge.addRecord(sanitizedRecord);
     }
   }
 

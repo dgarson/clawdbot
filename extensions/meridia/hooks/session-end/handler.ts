@@ -2,6 +2,7 @@ import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import crypto from "node:crypto";
 import path from "node:path";
 import type { MeridiaExperienceRecord, MeridiaTraceEvent } from "../../src/meridia/types.js";
+import { addToGraphMemory } from "../../src/graphiti-bridge.js";
 import { resolveMeridiaPluginConfig } from "../../src/meridia/config.js";
 import { createBackend } from "../../src/meridia/db/index.js";
 import {
@@ -13,7 +14,6 @@ import {
   resolveSessionIdFromEntry,
   readPositiveNumber,
 } from "../../src/meridia/event.js";
-import { fanoutBatchToGraph } from "../../src/meridia/fanout.js";
 import { resolveMeridiaDir, dateKeyUtc } from "../../src/meridia/paths.js";
 import {
   appendJsonl,
@@ -217,34 +217,18 @@ const handler = async (event: HookEvent): Promise<void> => {
 
   // ── Graphiti integration (best-effort) ───────────────────────────────
   if (cfg && sessionId && sessionScore >= minSessionThreshold) {
-    await fanoutBatchToGraph(
-      [
-        {
-          id: `session:${sessionId}:summary`,
-          text: summaryText,
-          tags: ["meridia", "session", "summary"],
-          ts,
-          metadata: {
-            kind: "meridia-session-summary",
-            sessionId,
-            sessionKey,
-            runId,
-            action: event.action,
-            score: sessionScore,
-            toolCount,
-            capturedCount,
-            toolsUsed,
-            lastError,
-          },
-          timeRange:
-            buffer?.createdAt && buffer?.updatedAt
-              ? { from: buffer.createdAt, to: buffer.updatedAt }
-              : undefined,
-        },
-      ],
+    const result = await addToGraphMemory({
+      records: [record],
       cfg,
-      "meridia-sessions",
-    );
+      source: "meridia.session-end",
+      groupId: "meridia-sessions",
+      sourceDescription: "Meridia session end summary",
+    });
+
+    if (!result.ok) {
+      // eslint-disable-next-line no-console
+      console.warn(`[session-end] Graphiti ingest failed (${result.mode}): ${result.error}`);
+    }
   }
 };
 
