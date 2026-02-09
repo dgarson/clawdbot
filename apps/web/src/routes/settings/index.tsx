@@ -49,15 +49,18 @@ export const Route = createFileRoute("/settings/")({
 function SettingsPage() {
   const navigate = Route.useNavigate();
   const { section: searchSection, agentId } = Route.useSearch();
-  const gatewayHttpBaseUrl = React.useMemo(
-    () => toGatewayHttpBaseUrl(loadStoredGatewayUrl()),
-    [],
-  );
-
   const [activeSection, setActiveSection] = React.useState<ConfigSection>(
     searchSection || "health"
   );
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
+
+  const gatewayHttpBaseUrl = React.useMemo(
+    () => toGatewayHttpBaseUrl(loadStoredGatewayUrl()),
+    // Re-read from localStorage when the active section changes so that
+    // a gateway URL update in the Gateway tab is picked up by Connections.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeSection],
+  );
 
   // Sync URL with active section
   const handleSectionChange = (section: ConfigSection) => {
