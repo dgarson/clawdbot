@@ -10,6 +10,7 @@ import {
   getTokenWarningThresholds as getTokenWarningThresholdsInternal,
 } from "./enhanced-logging-config.js";
 import { createSubsystemLogger } from "./subsystem.js";
+import { truncateForLog } from "./truncate.js";
 
 // Re-export for external use
 export { getPerformanceThresholds, getTokenWarningThresholds } from "./enhanced-logging-config.js";
@@ -46,7 +47,8 @@ export function logToolError(ctx: ToolErrorContext): void {
   }
 
   const error = ctx.error;
-  const errorMessage = error instanceof Error ? error.message : String(error);
+  const rawErrorMessage = error instanceof Error ? error.message : String(error);
+  const errorMessage = truncateForLog(rawErrorMessage, { maxChars: 4_000 });
   const errorType = error instanceof Error ? error.constructor.name : typeof error;
   const stack = error instanceof Error ? error.stack : undefined;
 
