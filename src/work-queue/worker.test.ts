@@ -4,7 +4,6 @@ import type { WorkItem } from "./types.js";
 import { MemoryWorkQueueBackend } from "./backend/memory-backend.js";
 import { TranscriptContextExtractor } from "./context-extractor.js";
 import { WorkQueueStore } from "./store.js";
-import { DEFAULT_HEARTBEAT_TTL_MS } from "./worker-defaults.js";
 import {
   CHRONIC_BLOCKER_THRESHOLD,
   WorkQueueWorker,

@@ -97,7 +97,6 @@ export function detectChronicBlockers(
 ): { updatedHistory: Map<string, BlockerHistoryEntry>; chronic: ChronicBlocker[] } {
   const threshold = opts?.threshold ?? CHRONIC_BLOCKER_THRESHOLD;
   const now = opts?.now ?? new Date();
-  const currentIds = new Set(leaves.map((l) => l.id));
   const updatedHistory = new Map<string, BlockerHistoryEntry>();
 
   for (const leaf of leaves) {
