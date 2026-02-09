@@ -14,6 +14,12 @@ import type { GraphDragState, GraphViewport } from "../ui-types.js";
 import { skeleton } from "../components/design-utils.js";
 import { clampText, formatAgo, formatDurationMs, formatList } from "../format.js";
 import { icon, type IconName } from "../icons.js";
+import {
+  renderAuditLog,
+  type AuditLogFilter,
+  type AuditLogState,
+  type AuditLogProps,
+} from "./overseer-audit-log.js";
 import { renderGoalProgress } from "./overseer-progress.js";
 import { renderSimulator, type SimulatorProps } from "./overseer-simulator.js";
 import {
@@ -123,6 +129,14 @@ export type OverseerProps = {
   expandedPhaseIds: Set<string>;
   onTogglePhase: (phaseId: string) => void;
   onSelectWorkNode?: (workNodeId: string) => void;
+  // Audit log
+  auditLogState?: AuditLogState;
+  showAuditLog?: boolean;
+  onToggleAuditLog?: () => void;
+  onAuditLogFilterChange?: (filter: Partial<AuditLogFilter>) => void;
+  onAuditLogLoadMore?: () => void;
+  onAuditLogRefresh?: () => void;
+  onAuditLogToggleExpand?: (index: number) => void;
 };
 
 export function setupOverseerKeyboardShortcuts(props: {
@@ -245,6 +259,7 @@ export function renderOverseer(props: OverseerProps) {
         </div>
         ${renderActivityFeed(activityEvents, props)}
       </div>
+      ${props.showAuditLog && props.auditLogState ? renderOverseerAuditLog(props) : nothing}
       ${props.drawerOpen ? renderDrawer(props) : nothing}
       ${props.createGoalOpen ? renderCreateGoalModal(props) : nothing}
       ${renderSimulator(simulatorFullProps)}
@@ -458,6 +473,20 @@ function renderHeader(props: OverseerProps, goalsCount: number, stalledCount: nu
           ${icon("zap", { size: 16 })}
           <span>Tick</span>
         </button>
+        ${
+          props.onToggleAuditLog
+            ? html`
+              <button
+                class="btn ${props.showAuditLog ? "btn--accent" : "btn--secondary"}"
+                @click=${props.onToggleAuditLog}
+                title="Toggle decision audit log"
+              >
+                ${icon("file-text", { size: 16 })}
+                <span>Audit Log</span>
+              </button>
+            `
+            : nothing
+        }
         ${
           props.onEmergencyStopAll
             ? html`
@@ -2107,6 +2136,34 @@ function renderActivityFeed(events: ActivityEvent[], props: OverseerProps) {
           }
         </div>
       </div>
+    </div>
+  `;
+}
+
+// ============================================================================
+// Audit Log Section — Wired into Overseer View
+// ============================================================================
+
+function renderOverseerAuditLog(props: OverseerProps) {
+  if (!props.auditLogState) return nothing;
+
+  const goals = (props.status?.goals ?? []).map((g) => ({
+    goalId: g.goalId,
+    title: g.title,
+  }));
+
+  const auditLogProps: AuditLogProps = {
+    state: props.auditLogState,
+    goals,
+    onFilterChange: (filter) => props.onAuditLogFilterChange?.(filter),
+    onLoadMore: () => props.onAuditLogLoadMore?.(),
+    onRefresh: () => props.onAuditLogRefresh?.(),
+    onToggleExpand: (index) => props.onAuditLogToggleExpand?.(index),
+  };
+
+  return html`
+    <div class="overseer-audit-log-section">
+      ${renderAuditLog(auditLogProps)}
     </div>
   `;
 }
