@@ -28,7 +28,7 @@ import {
   useDeleteAgent,
   useUpdateAgentStatus,
 } from "@/hooks/mutations/useAgentMutations";
-import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
+
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useUIStore } from "@/stores/useUIStore";
 import type { Agent, AgentStatus } from "@/stores/useAgentStore";
@@ -44,13 +44,13 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
   const { data: agents = [], isLoading, error, refetch, isFetching } = useAgents();
   const [isRetrying, setIsRetrying] = React.useState(false);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
-  const liveMode = useGatewayEnabled();
+
   const useLiveGateway = useUIStore((state) => state.useLiveGateway);
   const statusToggleEnabled = useAgentStatusToggleEnabled();
   const showModeBadge = (import.meta.env?.DEV ?? false);
   const modeLabel = useLiveGateway ? "Live gateway" : "Mock data";
   const modeVariant = useLiveGateway ? "success" : "secondary";
-  const statusSourceLabel = liveMode ? "Runtime status" : undefined;
+
 
   const createAgent = useCreateAgent();
   const updateAgent = useUpdateAgent();
@@ -256,9 +256,7 @@ export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps)
                   onEdit={handleEditAgent}
                   onDuplicate={handleDuplicateAgent}
                   onDelete={handleDeleteAgent}
-                  onToggle={statusToggleEnabled ? () => handleToggleStatus(agent) : undefined}
-                  toggleDisabled={!statusToggleEnabled}
-                  statusSourceLabel={statusSourceLabel}
+                  onToggleStatus={statusToggleEnabled ? () => handleToggleStatus(agent) : undefined}
                 />
             ))}
           </AnimatePresence>
