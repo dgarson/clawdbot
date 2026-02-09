@@ -160,7 +160,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
       return makeExecutionResult({ payloads: [{ text: "final" }] });
     });
 
-    const { run } = createMinimalRun({
+    const { run, typing } = createMinimalRun({
       typingMode: "message",
       opts: { onToolResult },
     });

@@ -729,28 +729,45 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // during the run so the final onBlockReply can be skipped (the downstream
   // pipeline handles dedup via shouldDropFinalPayloads).
   let didStreamBlockReply = false;
+  const hasBlockReplySink = Boolean(mw || params.onBlockReply);
 
   /**
-   * Emit a block reply for the given text if onBlockReply is configured and
-   * blockReplyBreak is set. Returns true if the block was emitted.
+   * Emit a block reply for the given text when any sink is configured
+   * (middleware and/or callback). Returns true if delivered to at least one sink.
    */
   const emitBlockReply = async (text: string, mediaUrls?: string[]): Promise<boolean> => {
-    if (!params.onBlockReply || !text.trim()) {
+    const trimmed = text.trim();
+    if (!hasBlockReplySink || !trimmed) {
       return false;
     }
-    // Push to middleware (dual-path)
-    mw?.push({ kind: "block_reply", text: text.trim() });
-    try {
-      await params.onBlockReply({
-        text: text.trim(),
+    let delivered = false;
+    if (mw) {
+      mw.push({
+        kind: "block_reply",
+        text: trimmed,
         ...(mediaUrls?.length ? { mediaUrls } : {}),
       });
-      didStreamBlockReply = true;
-      return true;
+      delivered = true;
+    }
+    if (!params.onBlockReply) {
+      if (delivered) {
+        didStreamBlockReply = true;
+      }
+      return delivered;
+    }
+    try {
+      await params.onBlockReply({
+        text: trimmed,
+        ...(mediaUrls?.length ? { mediaUrls } : {}),
+      });
+      delivered = true;
     } catch (err) {
       log.trace(`onBlockReply streaming callback error: ${String(err)}`);
-      return false;
     }
+    if (delivered) {
+      didStreamBlockReply = true;
+    }
+    return delivered;
   };
 
   /**
@@ -758,7 +775,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
    * Used in "message_end" mode.
    */
   const flushBlockReplyAtBoundary = async () => {
-    if (!params.onBlockReply || !params.blockReplyBreak) {
+    if (!hasBlockReplySink || !params.blockReplyBreak) {
       return;
     }
     if (params.blockReplyBreak !== "message_end") {
@@ -1212,7 +1229,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
         }
 
         // Emit block reply in "text_end" mode (per text extraction).
-        if (params.blockReplyBreak === "text_end" && params.onBlockReply) {
+        if (params.blockReplyBreak === "text_end" && hasBlockReplySink) {
           const blockSplit = splitMediaFromOutput(trimmed);
           await emitBlockReply(blockSplit.text, blockSplit.mediaUrls);
         }
@@ -1459,25 +1476,12 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // Check both local state and middleware delivery state for block reply dedup
   const effectiveDidStreamBlockReply =
     didStreamBlockReply || (mw ? mw.getDeliveryState().didStreamBlockReply : false);
-  if (params.onBlockReply && !effectiveDidStreamBlockReply) {
-    // Push final block reply to middleware (dual-path)
-    mw?.push({ kind: "block_reply", text: finalText });
-    try {
-      await params.onBlockReply({
-        text: finalText,
-        ...(parsed.mediaUrls?.length ? { mediaUrls: parsed.mediaUrls } : {}),
-      });
-    } catch {
-      // Don't fail the run on callback errors.
-    }
-  } else if (params.onBlockReply && effectiveDidStreamBlockReply && suffix) {
+  if (hasBlockReplySink && !effectiveDidStreamBlockReply) {
+    await emitBlockReply(finalText, parsed.mediaUrls);
+  } else if (hasBlockReplySink && effectiveDidStreamBlockReply && suffix) {
     // Only emit the truncation suffix (if any) — the main content was
     // already delivered via streaming block replies.
-    try {
-      await params.onBlockReply({ text: suffix.trim() });
-    } catch {
-      // Don't fail the run on callback errors.
-    }
+    await emitBlockReply(suffix.trim());
   }
 
   emitEvent("sdk", {

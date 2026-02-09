@@ -17,9 +17,9 @@ describe("directory (config-backed)", () => {
         slack: {
           botToken: "xoxb-test",
           appToken: "xapp-test",
-          dm: { allowFrom: ["U123", "user:U999"] },
+          dm: { allowFrom: ["u123", "user:U999", "*", " "] },
           dms: { U234: {} },
-          channels: { C111: { users: ["U777"] } },
+          channels: { C111: { users: ["<@u777>", ""] } },
         },
       },
       // oxlint-disable-next-line typescript/no-explicit-any
@@ -32,10 +32,10 @@ describe("directory (config-backed)", () => {
       limit: null,
     });
     expect(peers?.map((e) => e.id).toSorted()).toEqual([
-      "user:u123",
-      "user:u234",
-      "user:u777",
-      "user:u999",
+      "user:U123",
+      "user:U234",
+      "user:U777",
+      "user:U999",
     ]);
 
     const groups = await listSlackDirectoryGroupsFromConfig({
@@ -44,7 +44,7 @@ describe("directory (config-backed)", () => {
       query: null,
       limit: null,
     });
-    expect(groups?.map((e) => e.id)).toEqual(["channel:c111"]);
+    expect(groups?.map((e) => e.id)).toEqual(["channel:C111"]);
   });
 
   it("lists Discord peers/groups from config (numeric ids only)", async () => {

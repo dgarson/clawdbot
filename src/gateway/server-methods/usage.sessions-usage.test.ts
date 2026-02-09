@@ -3,8 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../../config/config.js", () => {
+vi.mock("../../config/config.js", async () => {
+  const actual =
+    await vi.importActual<typeof import("../../config/config.js")>("../../config/config.js");
   return {
+    ...actual,
     loadConfig: vi.fn(() => ({
       agents: {
         list: [{ id: "main" }, { id: "opus" }],
