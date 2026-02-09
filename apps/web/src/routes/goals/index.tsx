@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import { CardSkeleton } from "@/components/composed/LoadingSkeleton";
 import { useGoals } from "@/hooks/queries/useGoals";
 import { useCreateGoal } from "@/hooks/mutations/useGoalMutations";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
 import { uuidv7 } from "@/lib/ids";
 import { Target, Plus, Search, SlidersHorizontal } from "lucide-react";
 import type { Goal, GoalStatus } from "@/hooks/queries/useGoals";
@@ -67,6 +69,7 @@ function GoalsPage() {
   const [selectedGoal, setSelectedGoal] = React.useState<Goal | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
+  const liveMode = useGatewayEnabled();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -173,12 +176,21 @@ function GoalsPage() {
             <Button
               onClick={() => setIsCreateOpen(true)}
               className="h-11 rounded-xl gap-2"
+              disabled={!liveMode}
             >
               <Plus className="h-4 w-4" />
               New Goal
             </Button>
           </div>
         </motion.div>
+
+        {!liveMode && (
+          <Alert className="mb-6">
+            <AlertDescription>
+              Goals require a live gateway connection. Enable Live Gateway to view and create goals.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Filters */}
         <motion.div

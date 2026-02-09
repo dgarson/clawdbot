@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import { RitualCard, RitualDetailPanel, CreateRitualModal } from "@/components/d
 import { ListItemSkeleton } from "@/components/composed/LoadingSkeleton";
 import { useRituals, useRitualExecutions } from "@/hooks/queries/useRituals";
 import { useAgents } from "@/hooks/queries/useAgents";
+import { useGatewayEnabled } from "@/hooks/useGatewayEnabled";
 import {
   useCreateRitual,
   useUpdateRitual,
@@ -102,6 +104,7 @@ function RitualsPage() {
   const [selectedRitual, setSelectedRitual] = React.useState<Ritual | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
+  const liveMode = useGatewayEnabled();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -194,7 +197,7 @@ function RitualsPage() {
   };
 
   const handleSkipNext = (id: string) => {
-    toast.success("Next run skipped (mock)");
+    toast.info("Skipping the next run is not yet supported.");
     console.log("Skip next ritual:", id);
   };
 
@@ -285,19 +288,26 @@ function RitualsPage() {
                   Rituals
                 </h1>
                 <p className="text-muted-foreground">
-                  Automated recurring tasks and schedules
+                  Automated recurring tasks backed by Cron jobs
                 </p>
               </div>
             </div>
             <Button
               onClick={() => setIsCreateOpen(true)}
               className="h-11 rounded-xl gap-2"
+              disabled={!liveMode}
             >
               <Plus className="h-4 w-4" />
               New Ritual
             </Button>
           </div>
         </motion.div>
+
+        <Alert className="mb-6">
+          <AlertDescription>
+            Rituals are backed by Cron Jobs. Use the Jobs page for advanced scheduling and logs.
+          </AlertDescription>
+        </Alert>
 
         {/* Filters */}
         <motion.div

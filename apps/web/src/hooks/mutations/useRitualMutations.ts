@@ -1,71 +1,98 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { uuidv7 } from "@/lib/ids";
+import {
+  addCronJob,
+  disableCronJob,
+  enableCronJob,
+  removeCronJob,
+  runCronJob,
+  updateCronJob,
+  type CronJob,
+  type CronJobCreateParams,
+  type CronJobPatch,
+} from "@/lib/api/cron";
 import type { Ritual, RitualStatus } from "../queries/useRituals";
 import { ritualKeys } from "../queries/useRituals";
+import { useGatewayEnabled, useGatewayModeKey } from "../useGatewayEnabled";
 
-// Mock API functions
-async function createRitual(
-  data: Omit<Ritual, "id" | "createdAt" | "updatedAt" | "executionCount" | "successRate">
-): Promise<Ritual> {
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  const now = new Date().toISOString();
+function buildRitualPayload(data: { name: string; description?: string }) {
   return {
-    ...data,
-    id: uuidv7(),
-    createdAt: now,
-    updatedAt: now,
-    executionCount: 0,
-    successRate: 100,
+    kind: "agentTurn" as const,
+    message: data.description?.trim() || `Ritual: ${data.name}`,
   };
 }
 
-async function updateRitual(
-  data: Partial<Ritual> & { id: string }
-): Promise<Ritual> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
+function buildCronCreateParams(
+  data: Omit<Ritual, "id" | "createdAt" | "updatedAt" | "executionCount" | "successRate">
+): CronJobCreateParams {
   return {
-    ...data,
-    updatedAt: new Date().toISOString(),
-  } as Ritual;
+    name: data.name,
+    description: data.description,
+    enabled: data.status === "active",
+    schedule: {
+      kind: "cron",
+      expr: data.schedule,
+    },
+    agentId: data.agentId ?? null,
+    sessionTarget: "main",
+    wakeMode: "next-heartbeat",
+    payload: buildRitualPayload({ name: data.name, description: data.description }),
+  };
 }
 
-async function deleteRitual(id: string): Promise<string> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return id;
+function buildCronPatch(update: Partial<Ritual>): CronJobPatch {
+  const patch: CronJobPatch = {};
+  if (update.name) {
+    patch.name = update.name;
+  }
+  if (update.description !== undefined) {
+    patch.description = update.description;
+  }
+  if (update.schedule) {
+    patch.schedule = { kind: "cron", expr: update.schedule };
+  }
+  if (update.agentId !== undefined) {
+    patch.agentId = update.agentId ?? null;
+  }
+  if (update.status) {
+    patch.enabled = update.status === "active";
+  }
+  if (update.name || update.description) {
+    patch.payload = buildRitualPayload({
+      name: update.name ?? "Ritual",
+      description: update.description,
+    });
+  }
+  return patch;
 }
 
-async function updateRitualStatus(
-  id: string,
-  status: RitualStatus
-): Promise<{ id: string; status: RitualStatus }> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return { id, status };
-}
-
-async function triggerRitual(id: string): Promise<{ id: string; triggered: boolean }> {
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return { id, triggered: true };
-}
-
-async function pauseRitual(id: string): Promise<{ id: string; status: RitualStatus }> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return { id, status: "paused" };
-}
-
-async function resumeRitual(id: string): Promise<{ id: string; status: RitualStatus }> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return { id, status: "active" };
+function mapCronToRitual(job: CronJob): Ritual {
+  return {
+    id: job.id,
+    name: job.name,
+    description: job.description,
+    schedule: job.schedule.kind === "cron" ? job.schedule.expr : job.name,
+    frequency: "custom",
+    status: job.enabled ? "active" : "paused",
+    createdAt: new Date(job.createdAtMs).toISOString(),
+    updatedAt: new Date(job.updatedAtMs).toISOString(),
+  };
 }
 
 // Mutation hooks
 export function useCreateRitual() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
 
   return useMutation({
-    mutationFn: createRitual,
-    onSuccess: (newRitual) => {
-      queryClient.setQueryData<Ritual[]>(ritualKeys.lists(), (old) =>
+    mutationFn: (data: Omit<Ritual, "id" | "createdAt" | "updatedAt" | "executionCount" | "successRate">) =>
+      liveMode
+        ? addCronJob(buildCronCreateParams(data))
+        : Promise.reject(new Error("Rituals require a live gateway connection.")),
+    onSuccess: (newJob) => {
+      const newRitual = mapCronToRitual(newJob);
+      queryClient.setQueryData<Ritual[]>(ritualKeys.list({ mode: modeKey }), (old) =>
         old ? [newRitual, ...old] : [newRitual]
       );
       queryClient.invalidateQueries({ queryKey: ritualKeys.all });
@@ -81,194 +108,138 @@ export function useCreateRitual() {
 
 export function useUpdateRitual() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
 
   return useMutation({
-    mutationFn: updateRitual,
-    onMutate: async (updatedRitual) => {
-      await queryClient.cancelQueries({
-        queryKey: ritualKeys.detail(updatedRitual.id),
-      });
-
-      const previousRitual = queryClient.getQueryData<Ritual>(
-        ritualKeys.detail(updatedRitual.id)
-      );
-
-      queryClient.setQueryData<Ritual>(
-        ritualKeys.detail(updatedRitual.id),
-        (old) => (old ? { ...old, ...updatedRitual } : undefined)
-      );
-
-      return { previousRitual };
-    },
+    mutationFn: (data: Partial<Ritual> & { id: string }) =>
+      liveMode
+        ? updateCronJob({ id: data.id, patch: buildCronPatch(data) })
+        : Promise.reject(new Error("Rituals require a live gateway connection.")),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ritualKeys.detail(variables.id),
-      });
+      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: ritualKeys.lists() });
       toast.success("Ritual updated successfully");
     },
-    onError: (_error, variables, context) => {
-      if (context?.previousRitual) {
-        queryClient.setQueryData(
-          ritualKeys.detail(variables.id),
-          context.previousRitual
-        );
-      }
-      toast.error("Failed to update ritual");
+    onError: (error) => {
+      toast.error(
+        `Failed to update ritual: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     },
   });
 }
 
 export function useDeleteRitual() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
 
   return useMutation({
-    mutationFn: deleteRitual,
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ritualKeys.lists() });
-
-      const previousRituals = queryClient.getQueryData<Ritual[]>(
-        ritualKeys.lists()
-      );
-
-      queryClient.setQueryData<Ritual[]>(ritualKeys.lists(), (old) =>
-        old ? old.filter((ritual) => ritual.id !== id) : []
-      );
-
-      return { previousRituals };
-    },
+    mutationFn: (id: string) =>
+      liveMode
+        ? removeCronJob(id)
+        : Promise.reject(new Error("Rituals require a live gateway connection.")),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ritualKeys.all });
       toast.success("Ritual deleted successfully");
     },
-    onError: (_error, _, context) => {
-      if (context?.previousRituals) {
-        queryClient.setQueryData(ritualKeys.lists(), context.previousRituals);
-      }
-      toast.error("Failed to delete ritual");
+    onError: (error) => {
+      toast.error(
+        `Failed to delete ritual: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     },
   });
 }
 
 export function useUpdateRitualStatus() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: RitualStatus }) =>
-      updateRitualStatus(id, status),
-    onMutate: async ({ id, status }) => {
-      await queryClient.cancelQueries({ queryKey: ritualKeys.detail(id) });
-
-      const previousRitual = queryClient.getQueryData<Ritual>(
-        ritualKeys.detail(id)
-      );
-
-      queryClient.setQueryData<Ritual>(ritualKeys.detail(id), (old) =>
-        old ? { ...old, status } : undefined
-      );
-
-      queryClient.setQueryData<Ritual[]>(ritualKeys.lists(), (old) =>
-        old
-          ? old.map((ritual) =>
-              ritual.id === id ? { ...ritual, status } : ritual
-            )
-          : []
-      );
-
-      return { previousRitual };
+    mutationFn: ({ id, status }: { id: string; status: RitualStatus }) => {
+      if (!liveMode) {
+        return Promise.reject(new Error("Rituals require a live gateway connection."));
+      }
+      if (status === "active") {
+        return enableCronJob(id);
+      }
+      if (status === "paused") {
+        return disableCronJob(id);
+      }
+      return Promise.reject(new Error("Only active/paused ritual status updates are supported."));
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ritualKeys.detail(variables.id),
-      });
+      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: ritualKeys.lists() });
       toast.success(`Ritual ${variables.status}`);
     },
-    onError: (_error, variables, context) => {
-      if (context?.previousRitual) {
-        queryClient.setQueryData(
-          ritualKeys.detail(variables.id),
-          context.previousRitual
-        );
-      }
-      toast.error("Failed to update ritual status");
+    onError: (error) => {
+      toast.error(
+        `Failed to update ritual status: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     },
   });
 }
 
 export function useTriggerRitual() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
 
   return useMutation({
-    mutationFn: triggerRitual,
-    onSuccess: ({ id }) => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: ritualKeys.executions(id) });
+    mutationFn: (id: string) =>
+      liveMode
+        ? runCronJob(id, "force")
+        : Promise.reject(new Error("Rituals require a live gateway connection.")),
+    onSuccess: (_, ritualId) => {
+      queryClient.invalidateQueries({ queryKey: ritualKeys.executions(ritualId) });
       toast.success("Ritual triggered successfully");
     },
-    onError: () => {
-      toast.error("Failed to trigger ritual");
+    onError: (error) => {
+      toast.error(
+        `Failed to trigger ritual: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     },
   });
 }
 
 export function usePauseRitual() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
 
   return useMutation({
-    mutationFn: pauseRitual,
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ritualKeys.detail(id) });
-
-      const previousRitual = queryClient.getQueryData<Ritual>(
-        ritualKeys.detail(id)
-      );
-
-      queryClient.setQueryData<Ritual>(ritualKeys.detail(id), (old) =>
-        old ? { ...old, status: "paused" } : undefined
-      );
-
-      return { previousRitual };
-    },
-    onSuccess: ({ id }) => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
+    mutationFn: (id: string) =>
+      liveMode
+        ? disableCronJob(id)
+        : Promise.reject(new Error("Rituals require a live gateway connection.")),
+    onSuccess: (_, ritualId) => {
+      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(ritualId) });
+      queryClient.invalidateQueries({ queryKey: ritualKeys.lists() });
       toast.success("Ritual paused");
     },
-    onError: (_error, id, context) => {
-      if (context?.previousRitual) {
-        queryClient.setQueryData(ritualKeys.detail(id), context.previousRitual);
-      }
-      toast.error("Failed to pause ritual");
+    onError: (error) => {
+      toast.error(
+        `Failed to pause ritual: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     },
   });
 }
 
 export function useResumeRitual() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
 
   return useMutation({
-    mutationFn: resumeRitual,
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ritualKeys.detail(id) });
-
-      const previousRitual = queryClient.getQueryData<Ritual>(
-        ritualKeys.detail(id)
-      );
-
-      queryClient.setQueryData<Ritual>(ritualKeys.detail(id), (old) =>
-        old ? { ...old, status: "active" } : undefined
-      );
-
-      return { previousRitual };
-    },
-    onSuccess: ({ id }) => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
+    mutationFn: (id: string) =>
+      liveMode
+        ? enableCronJob(id)
+        : Promise.reject(new Error("Rituals require a live gateway connection.")),
+    onSuccess: (_, ritualId) => {
+      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(ritualId) });
+      queryClient.invalidateQueries({ queryKey: ritualKeys.lists() });
       toast.success("Ritual resumed");
     },
-    onError: (_error, id, context) => {
-      if (context?.previousRitual) {
-        queryClient.setQueryData(ritualKeys.detail(id), context.previousRitual);
-      }
-      toast.error("Failed to resume ritual");
+    onError: (error) => {
+      toast.error(
+        `Failed to resume ritual: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     },
   });
 }

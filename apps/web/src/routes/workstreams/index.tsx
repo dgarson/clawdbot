@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   GitBranch,
@@ -51,6 +52,7 @@ function WorkstreamsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<string | null>(null);
+  const workstreamsReadOnly = true;
 
   const { data: workstreams = [], isLoading, error } = useWorkstreams();
   const { data: queueItems } = useWorkQueueItems();
@@ -179,7 +181,11 @@ function WorkstreamsPage() {
               </div>
 
               {/* Create button */}
-              <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="gap-2"
+                disabled={workstreamsReadOnly}
+              >
                 <Plus className="h-4 w-4" />
                 <span className="hidden md:inline">Create</span>
               </Button>
@@ -222,6 +228,11 @@ function WorkstreamsPage() {
 
       {/* Content */}
       <div className="mx-auto max-w-7xl px-6 py-6">
+        <Alert className="mb-6">
+          <AlertDescription>
+            Workstreams are currently read-only while gateway support is being finalized.
+          </AlertDescription>
+        </Alert>
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -237,14 +248,18 @@ function WorkstreamsPage() {
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <GitBranch className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h2 className="mb-2 text-xl font-semibold">No workstreams found</h2>
+            <h2 className="mb-2 text-xl font-semibold">Workstreams not yet available</h2>
             <p className="mb-6 max-w-md text-muted-foreground">
               {searchQuery || statusFilter !== "all"
                 ? "Try adjusting your filters or search query"
-                : "Create your first workstream to start organizing tasks"}
+                : "This view will populate once workstreams are wired to the gateway."}
             </p>
             {!searchQuery && statusFilter === "all" && (
-              <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="gap-2"
+                disabled={workstreamsReadOnly}
+              >
                 <Plus className="h-4 w-4" />
                 Create Workstream
               </Button>

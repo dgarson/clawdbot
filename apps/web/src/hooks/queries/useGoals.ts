@@ -1,4 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getGoalStatus, listOverseerGoals, type OverseerGoal } from "@/lib/api/overseer";
+import { useGatewayEnabled, useGatewayModeKey } from "../useGatewayEnabled";
 
 // Types
 export type GoalStatus = "not_started" | "in_progress" | "completed" | "paused";
@@ -43,114 +45,134 @@ export const goalKeys = {
   list: (filters: Record<string, unknown>) =>
     [...goalKeys.lists(), filters] as const,
   details: () => [...goalKeys.all, "detail"] as const,
-  detail: (id: string) => [...goalKeys.details(), id] as const,
+  detail: (id: string, mode?: "live" | "mock") => [...goalKeys.details(), id, mode] as const,
 };
 
-// Mock API functions
-async function fetchGoals(): Promise<Goal[]> {
-  await new Promise((resolve) => setTimeout(resolve, 450));
+const allowedGoalStatuses: GoalStatus[] = [
+  "not_started",
+  "in_progress",
+  "completed",
+  "paused",
+];
 
-  return [
-    {
-      id: "goal-1",
-      title: "Launch MVP",
-      description: "Complete and launch the minimum viable product",
-      progress: 75,
-      milestones: [
-        { id: "m1", title: "Core features complete", completed: true },
-        { id: "m2", title: "Beta testing", completed: true },
-        { id: "m3", title: "Bug fixes", completed: true },
-        { id: "m4", title: "Production deployment", completed: false },
-      ],
-      status: "in_progress",
-      dueDate: new Date(Date.now() + 604800000).toISOString(),
-      createdAt: new Date(Date.now() - 2592000000).toISOString(),
-      updatedAt: new Date().toISOString(),
-      tags: ["product", "launch", "priority"],
-    },
-    {
-      id: "goal-2",
-      title: "Improve documentation",
-      description: "Update and expand all project documentation",
-      progress: 40,
-      milestones: [
-        { id: "m5", title: "API docs", completed: true },
-        { id: "m6", title: "User guides", completed: true },
-        { id: "m7", title: "Developer tutorials", completed: false },
-        { id: "m8", title: "FAQ section", completed: false },
-        { id: "m9", title: "Video tutorials", completed: false },
-      ],
-      status: "in_progress",
-      dueDate: new Date(Date.now() + 1209600000).toISOString(),
-      createdAt: new Date(Date.now() - 1296000000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString(),
-      tags: ["docs", "content"],
-    },
-    {
-      id: "goal-3",
-      title: "Team expansion",
-      description: "Hire two new developers for the team",
-      progress: 0,
-      milestones: [
-        { id: "m10", title: "Job postings", completed: false },
-        { id: "m11", title: "Interview candidates", completed: false },
-        { id: "m12", title: "Make offers", completed: false },
-      ],
-      status: "not_started",
-      dueDate: new Date(Date.now() + 2592000000).toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      tags: ["hiring", "team"],
-    },
-    {
-      id: "goal-4",
-      title: "Q1 revenue target",
-      description: "Achieve $50k MRR by end of Q1",
-      progress: 100,
-      milestones: [
-        { id: "m13", title: "Reach $25k MRR", completed: true },
-        { id: "m14", title: "Reach $40k MRR", completed: true },
-        { id: "m15", title: "Reach $50k MRR", completed: true },
-      ],
-      status: "completed",
-      createdAt: new Date(Date.now() - 7776000000).toISOString(),
-      updatedAt: new Date(Date.now() - 259200000).toISOString(),
-      tags: ["revenue", "business"],
-    },
-  ];
+const allowedGoalPriorities: GoalPriority[] = ["low", "medium", "high", "critical"];
+
+function toGoalStatus(status: OverseerGoal["status"]): GoalStatus {
+  switch (status) {
+    case "pending":
+      return "not_started";
+    case "running":
+      return "in_progress";
+    case "completed":
+      return "completed";
+    case "paused":
+      return "paused";
+    case "failed":
+      return "paused";
+    default:
+      return "not_started";
+  }
 }
 
-async function fetchGoal(id: string): Promise<Goal | null> {
-  const goals = await fetchGoals();
-  return goals.find((g) => g.id === id) ?? null;
+function normalizeTags(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const tags = value.filter((tag) => typeof tag === "string");
+  return tags.length > 0 ? tags : undefined;
 }
 
-async function fetchGoalsByStatus(status: GoalStatus): Promise<Goal[]> {
-  const goals = await fetchGoals();
+function normalizeMilestones(value: unknown): Milestone[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => {
+      const record = entry as Record<string, unknown>;
+      if (typeof record.title !== "string") {
+        return null;
+      }
+      return {
+        id: typeof record.id === "string" ? record.id : crypto.randomUUID(),
+        title: record.title,
+        completed: Boolean(record.completed),
+        dueDate: typeof record.dueDate === "string" ? record.dueDate : undefined,
+      } satisfies Milestone;
+    })
+    .filter((entry): entry is Milestone => entry !== null);
+}
+
+export function mapOverseerGoalToGoal(goal: OverseerGoal): Goal {
+  const metadata = goal.metadata ?? {};
+  const milestoneOverrides = normalizeMilestones(metadata.milestones);
+  const priority = allowedGoalPriorities.includes(metadata.priority as GoalPriority)
+    ? (metadata.priority as GoalPriority)
+    : undefined;
+
+  return {
+    id: goal.id,
+    title: goal.title,
+    description: goal.description,
+    progress: Math.round(goal.progress ?? 0),
+    milestones: milestoneOverrides,
+    status: toGoalStatus(goal.status),
+    priority,
+    dueDate: typeof metadata.dueDate === "string" ? metadata.dueDate : undefined,
+    createdAt: goal.createdAt,
+    updatedAt: goal.updatedAt,
+    tags: normalizeTags(metadata.tags),
+  };
+}
+
+async function fetchGoalsLive(): Promise<Goal[]> {
+  const result = await listOverseerGoals({ limit: 100 });
+  return result.goals.map(mapOverseerGoalToGoal);
+}
+
+async function fetchGoalLive(id: string): Promise<Goal | null> {
+  const result = await getGoalStatus(id);
+  return result.goal ? mapOverseerGoalToGoal(result.goal) : null;
+}
+
+async function fetchGoalsByStatus(
+  status: GoalStatus,
+  liveMode: boolean
+): Promise<Goal[]> {
+  if (!liveMode) {
+    return [];
+  }
+  const goals = await fetchGoalsLive();
   return goals.filter((g) => g.status === status);
 }
 
 // Query hooks
 export function useGoals() {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: goalKeys.lists(),
-    queryFn: fetchGoals,
+    queryKey: goalKeys.list({ mode: modeKey }),
+    queryFn: () => (liveMode ? fetchGoalsLive() : []),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
 export function useGoal(id: string) {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: goalKeys.detail(id),
-    queryFn: () => fetchGoal(id),
+    queryKey: goalKeys.detail(id, modeKey),
+    queryFn: () => (liveMode ? fetchGoalLive(id) : Promise.resolve(null)),
     enabled: !!id,
   });
 }
 
 export function useGoalsByStatus(status: GoalStatus) {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: goalKeys.list({ status }),
-    queryFn: () => fetchGoalsByStatus(status),
+    queryKey: goalKeys.list({ status, mode: modeKey }),
+    queryFn: () => fetchGoalsByStatus(status, liveMode),
     enabled: !!status,
   });
 }

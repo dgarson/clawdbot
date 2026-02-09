@@ -1,84 +1,94 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { uuidv7 } from "@/lib/ids";
-import type { Goal, Milestone, GoalStatus } from "../queries/useGoals";
-import { goalKeys } from "../queries/useGoals";
+import {
+  cancelGoal,
+  createGoal as createOverseerGoal,
+  deleteGoal as deleteOverseerGoal,
+  pauseGoal,
+  resumeGoal,
+} from "@/lib/api/overseer";
+import type { Goal, GoalStatus } from "../queries/useGoals";
+import { goalKeys, mapOverseerGoalToGoal } from "../queries/useGoals";
+import { useGatewayEnabled, useGatewayModeKey } from "../useGatewayEnabled";
 
-// Mock API functions
-async function createGoal(
+function toGoalMetadata(data: {
+  milestones: { id?: string; title: string; completed: boolean }[];
+  dueDate?: string;
+  priority?: Goal["priority"];
+  tags?: string[];
+}) {
+  return {
+    milestones: data.milestones.map((milestone) => ({
+      id: milestone.id ?? uuidv7(),
+      title: milestone.title,
+      completed: milestone.completed,
+    })),
+    dueDate: data.dueDate,
+    priority: data.priority,
+    tags: data.tags,
+  };
+}
+
+async function createGoalLive(
   data: Omit<Goal, "id" | "createdAt" | "updatedAt" | "progress"> & {
     progress?: number;
   }
 ): Promise<Goal> {
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  const now = new Date().toISOString();
-  return {
-    ...data,
-    id: uuidv7(),
-    progress: data.progress ?? 0,
-    createdAt: now,
-    updatedAt: now,
-  };
+  const result = await createOverseerGoal({
+    title: data.title,
+    description: data.description,
+    metadata: toGoalMetadata({
+      milestones: data.milestones,
+      dueDate: data.dueDate,
+      priority: data.priority,
+      tags: data.tags,
+    }),
+  });
+  return mapOverseerGoalToGoal(result.goal);
 }
 
-async function updateGoal(
-  data: Partial<Goal> & { id: string }
-): Promise<Goal> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return {
-    ...data,
-    updatedAt: new Date().toISOString(),
-  } as Goal;
-}
-
-async function deleteGoal(id: string): Promise<string> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return id;
-}
-
-async function updateGoalStatus(
+async function updateGoalStatusLive(
   id: string,
   status: GoalStatus
 ): Promise<{ id: string; status: GoalStatus }> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return { id, status };
+  if (status === "paused") {
+    await pauseGoal(id);
+    return { id, status };
+  }
+  if (status === "in_progress") {
+    await resumeGoal(id);
+    return { id, status };
+  }
+  if (status === "completed") {
+    await cancelGoal(id);
+    return { id, status };
+  }
+  throw new Error("Goal status updates are limited to pause/resume right now.");
 }
 
-async function addMilestone(
-  _goalId: string,
-  milestone: Omit<Milestone, "id">
-): Promise<Milestone> {
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  return {
-    ...milestone,
-    id: uuidv7(),
-  };
+async function deleteGoalLive(id: string): Promise<string> {
+  await deleteOverseerGoal(id);
+  return id;
 }
 
-async function updateMilestone(
-  _goalId: string,
-  milestone: Milestone
-): Promise<Milestone> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return milestone;
-}
-
-async function deleteMilestone(
-  goalId: string,
-  milestoneId: string
-): Promise<{ goalId: string; milestoneId: string }> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return { goalId, milestoneId };
+async function readonlyGoalMutation(message: string): Promise<never> {
+  throw new Error(message);
 }
 
 // Mutation hooks
 export function useCreateGoal() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
 
   return useMutation({
-    mutationFn: createGoal,
+    mutationFn: (data) =>
+      liveMode
+        ? createGoalLive(data)
+        : readonlyGoalMutation("Goals are read-only when the gateway is offline."),
     onSuccess: (newGoal) => {
-      queryClient.setQueryData<Goal[]>(goalKeys.lists(), (old) =>
+      queryClient.setQueryData<Goal[]>(goalKeys.list({ mode: modeKey }), (old) =>
         old ? [newGoal, ...old] : [newGoal]
       );
       queryClient.invalidateQueries({ queryKey: goalKeys.all });
@@ -93,53 +103,35 @@ export function useCreateGoal() {
 }
 
 export function useUpdateGoal() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: updateGoal,
-    onMutate: async (updatedGoal) => {
-      await queryClient.cancelQueries({
-        queryKey: goalKeys.detail(updatedGoal.id),
-      });
-
-      const previousGoal = queryClient.getQueryData<Goal>(
-        goalKeys.detail(updatedGoal.id)
+    mutationFn: () =>
+      readonlyGoalMutation("Editing goal details is not yet supported via the gateway."),
+    onError: (error) => {
+      toast.error(
+        `Failed to update goal: ${error instanceof Error ? error.message : "Unknown error"}`
       );
-
-      queryClient.setQueryData<Goal>(goalKeys.detail(updatedGoal.id), (old) =>
-        old ? { ...old, ...updatedGoal } : undefined
-      );
-
-      return { previousGoal };
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: goalKeys.lists() });
-      toast.success("Goal updated successfully");
-    },
-    onError: (_error, variables, context) => {
-      if (context?.previousGoal) {
-        queryClient.setQueryData(
-          goalKeys.detail(variables.id),
-          context.previousGoal
-        );
-      }
-      toast.error("Failed to update goal");
     },
   });
 }
 
 export function useDeleteGoal() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
 
   return useMutation({
-    mutationFn: deleteGoal,
+    mutationFn: (id) =>
+      liveMode
+        ? deleteGoalLive(id)
+        : readonlyGoalMutation("Deleting goals requires a live gateway connection."),
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: goalKeys.lists() });
+      await queryClient.cancelQueries({ queryKey: goalKeys.list({ mode: modeKey }) });
 
-      const previousGoals = queryClient.getQueryData<Goal[]>(goalKeys.lists());
+      const previousGoals = queryClient.getQueryData<Goal[]>(
+        goalKeys.list({ mode: modeKey })
+      );
 
-      queryClient.setQueryData<Goal[]>(goalKeys.lists(), (old) =>
+      queryClient.setQueryData<Goal[]>(goalKeys.list({ mode: modeKey }), (old) =>
         old ? old.filter((goal) => goal.id !== id) : []
       );
 
@@ -151,7 +143,7 @@ export function useDeleteGoal() {
     },
     onError: (_error, _, context) => {
       if (context?.previousGoals) {
-        queryClient.setQueryData(goalKeys.lists(), context.previousGoals);
+        queryClient.setQueryData(goalKeys.list({ mode: modeKey }), context.previousGoals);
       }
       toast.error("Failed to delete goal");
     },
@@ -160,20 +152,24 @@ export function useDeleteGoal() {
 
 export function useUpdateGoalStatus() {
   const queryClient = useQueryClient();
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
 
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: GoalStatus }) =>
-      updateGoalStatus(id, status),
+      liveMode
+        ? updateGoalStatusLive(id, status)
+        : readonlyGoalMutation("Updating goal status requires a live gateway connection."),
     onMutate: async ({ id, status }) => {
-      await queryClient.cancelQueries({ queryKey: goalKeys.detail(id) });
+      await queryClient.cancelQueries({ queryKey: goalKeys.detail(id, modeKey) });
 
-      const previousGoal = queryClient.getQueryData<Goal>(goalKeys.detail(id));
+      const previousGoal = queryClient.getQueryData<Goal>(goalKeys.detail(id, modeKey));
 
-      queryClient.setQueryData<Goal>(goalKeys.detail(id), (old) =>
+      queryClient.setQueryData<Goal>(goalKeys.detail(id, modeKey), (old) =>
         old ? { ...old, status } : undefined
       );
 
-      queryClient.setQueryData<Goal[]>(goalKeys.lists(), (old) =>
+      queryClient.setQueryData<Goal[]>(goalKeys.list({ mode: modeKey }), (old) =>
         old
           ? old.map((goal) => (goal.id === id ? { ...goal, status } : goal))
           : []
@@ -182,13 +178,15 @@ export function useUpdateGoalStatus() {
       return { previousGoal };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: goalKeys.detail(variables.id, modeKey),
+      });
       toast.success(`Goal marked as ${variables.status.replace("_", " ")}`);
     },
     onError: (_error, variables, context) => {
       if (context?.previousGoal) {
         queryClient.setQueryData(
-          goalKeys.detail(variables.id),
+          goalKeys.detail(variables.id, modeKey),
           context.previousGoal
         );
       }
@@ -198,112 +196,37 @@ export function useUpdateGoalStatus() {
 }
 
 export function useAddMilestone() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      goalId,
-      milestone,
-    }: {
-      goalId: string;
-      milestone: Omit<Milestone, "id">;
-    }) => addMilestone(goalId, milestone),
-    onSuccess: (newMilestone, { goalId }) => {
-      queryClient.setQueryData<Goal>(goalKeys.detail(goalId), (old) =>
-        old
-          ? { ...old, milestones: [...old.milestones, newMilestone] }
-          : undefined
+    mutationFn: () =>
+      readonlyGoalMutation("Milestone updates are not available via the gateway yet."),
+    onError: (error) => {
+      toast.error(
+        `Failed to add milestone: ${error instanceof Error ? error.message : "Unknown error"}`
       );
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) });
-      toast.success("Milestone added");
-    },
-    onError: () => {
-      toast.error("Failed to add milestone");
     },
   });
 }
 
 export function useUpdateMilestone() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      goalId,
-      milestone,
-    }: {
-      goalId: string;
-      milestone: Milestone;
-    }) => updateMilestone(goalId, milestone),
-    onMutate: async ({ goalId, milestone }) => {
-      await queryClient.cancelQueries({ queryKey: goalKeys.detail(goalId) });
-
-      const previousGoal = queryClient.getQueryData<Goal>(
-        goalKeys.detail(goalId)
+    mutationFn: () =>
+      readonlyGoalMutation("Milestone updates are not available via the gateway yet."),
+    onError: (error) => {
+      toast.error(
+        `Failed to update milestone: ${error instanceof Error ? error.message : "Unknown error"}`
       );
-
-      queryClient.setQueryData<Goal>(goalKeys.detail(goalId), (old) =>
-        old
-          ? {
-              ...old,
-              milestones: old.milestones.map((m) =>
-                m.id === milestone.id ? milestone : m
-              ),
-            }
-          : undefined
-      );
-
-      return { previousGoal };
-    },
-    onSuccess: (_, { goalId }) => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) });
-      toast.success("Milestone updated");
-    },
-    onError: (_error, { goalId }, context) => {
-      if (context?.previousGoal) {
-        queryClient.setQueryData(goalKeys.detail(goalId), context.previousGoal);
-      }
-      toast.error("Failed to update milestone");
     },
   });
 }
 
 export function useDeleteMilestone() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      goalId,
-      milestoneId,
-    }: {
-      goalId: string;
-      milestoneId: string;
-    }) => deleteMilestone(goalId, milestoneId),
-    onMutate: async ({ goalId, milestoneId }) => {
-      await queryClient.cancelQueries({ queryKey: goalKeys.detail(goalId) });
-
-      const previousGoal = queryClient.getQueryData<Goal>(
-        goalKeys.detail(goalId)
+    mutationFn: () =>
+      readonlyGoalMutation("Milestone updates are not available via the gateway yet."),
+    onError: (error) => {
+      toast.error(
+        `Failed to delete milestone: ${error instanceof Error ? error.message : "Unknown error"}`
       );
-
-      queryClient.setQueryData<Goal>(goalKeys.detail(goalId), (old) =>
-        old
-          ? {
-              ...old,
-              milestones: old.milestones.filter((m) => m.id !== milestoneId),
-            }
-          : undefined
-      );
-
-      return { previousGoal };
-    },
-    onSuccess: () => {
-      toast.success("Milestone deleted");
-    },
-    onError: (_error, { goalId }, context) => {
-      if (context?.previousGoal) {
-        queryClient.setQueryData(goalKeys.detail(goalId), context.previousGoal);
-      }
-      toast.error("Failed to delete milestone");
     },
   });
 }

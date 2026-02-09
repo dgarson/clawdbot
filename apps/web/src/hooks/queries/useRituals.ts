@@ -1,4 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+  formatCronSchedule,
+  getCronJob,
+  getCronRuns,
+  listCronJobs,
+  type CronJob,
+  type CronRunEntry,
+  type CronSchedule,
+} from "@/lib/api/cron";
+import { useGatewayEnabled, useGatewayModeKey } from "../useGatewayEnabled";
 
 // Types
 export type RitualStatus = "active" | "paused" | "completed" | "failed";
@@ -53,214 +63,178 @@ export const ritualKeys = {
   list: (filters: Record<string, unknown>) =>
     [...ritualKeys.lists(), filters] as const,
   details: () => [...ritualKeys.all, "detail"] as const,
-  detail: (id: string) => [...ritualKeys.details(), id] as const,
-  executions: (ritualId: string) =>
-    [...ritualKeys.detail(ritualId), "executions"] as const,
+  detail: (id: string, mode?: "live" | "mock") => [...ritualKeys.details(), id, mode] as const,
+  executions: (ritualId: string, mode?: "live" | "mock") =>
+    [...ritualKeys.detail(ritualId, mode), "executions"] as const,
 };
 
-// Mock API functions
-async function fetchRituals(): Promise<Ritual[]> {
-  await new Promise((resolve) => setTimeout(resolve, 350));
-
-  return [
-    {
-      id: "ritual-1",
-      name: "Daily Standup Summary",
-      description: "Compile and send daily standup notes to the team",
-      schedule: "0 9 * * 1-5",
-      frequency: "daily",
-      nextRun: getNextWeekday(9).toISOString(),
-      lastRun: new Date(Date.now() - 86400000).toISOString(),
-      agentId: "4",
-      status: "active",
-      createdAt: new Date(Date.now() - 2592000000).toISOString(),
-      updatedAt: new Date().toISOString(),
-      executionCount: 22,
-      successRate: 95,
-      actions: ["collect-updates", "summarize", "send-email"],
-    },
-    {
-      id: "ritual-2",
-      name: "Weekly Report Generation",
-      description: "Generate comprehensive weekly progress report",
-      schedule: "0 17 * * 5",
-      frequency: "weekly",
-      nextRun: getNextFriday(17).toISOString(),
-      lastRun: new Date(Date.now() - 604800000).toISOString(),
-      agentId: "1",
-      guidancePackIds: ["pack-weekly-clarity"],
-      status: "active",
-      createdAt: new Date(Date.now() - 5184000000).toISOString(),
-      updatedAt: new Date(Date.now() - 604800000).toISOString(),
-      executionCount: 8,
-      successRate: 100,
-      actions: ["gather-metrics", "analyze-progress", "generate-pdf"],
-    },
-    {
-      id: "ritual-3",
-      name: "Code Quality Check",
-      description: "Run automated code quality analysis",
-      schedule: "0 */4 * * *",
-      frequency: "hourly",
-      nextRun: new Date(Date.now() + 14400000).toISOString(),
-      lastRun: new Date(Date.now() - 14400000).toISOString(),
-      agentId: "2",
-      status: "active",
-      createdAt: new Date(Date.now() - 1296000000).toISOString(),
-      updatedAt: new Date(Date.now() - 14400000).toISOString(),
-      executionCount: 180,
-      successRate: 88,
-      actions: ["run-linter", "check-types", "analyze-complexity"],
-    },
-    {
-      id: "ritual-4",
-      name: "Monthly Newsletter",
-      description: "Compile and draft monthly newsletter content",
-      schedule: "0 10 1 * *",
-      frequency: "monthly",
-      nextRun: getFirstOfNextMonth(10).toISOString(),
-      lastRun: new Date(Date.now() - 2592000000).toISOString(),
-      agentId: "3",
-      status: "paused",
-      createdAt: new Date(Date.now() - 7776000000).toISOString(),
-      updatedAt: new Date(Date.now() - 604800000).toISOString(),
-      executionCount: 3,
-      successRate: 100,
-      actions: ["gather-highlights", "draft-content", "create-draft"],
-    },
-  ];
-}
-
-// Helper functions for mock dates
-function getNextWeekday(hour: number): Date {
-  const date = new Date();
-  date.setHours(hour, 0, 0, 0);
-  if (date <= new Date()) {
-    date.setDate(date.getDate() + 1);
+function inferFrequency(schedule: CronSchedule): RitualFrequency {
+  if (schedule.kind === "every") {
+    if (schedule.everyMs === 60 * 60 * 1000) {
+      return "hourly";
+    }
+    if (schedule.everyMs === 24 * 60 * 60 * 1000) {
+      return "daily";
+    }
+    if (schedule.everyMs === 7 * 24 * 60 * 60 * 1000) {
+      return "weekly";
+    }
+    if (schedule.everyMs === 30 * 24 * 60 * 60 * 1000) {
+      return "monthly";
+    }
+    return "custom";
   }
-  while (date.getDay() === 0 || date.getDay() === 6) {
-    date.setDate(date.getDate() + 1);
+  if (schedule.kind !== "cron") {
+    return "custom";
   }
-  return date;
+  const parts = schedule.expr.trim().split(/\s+/);
+  if (parts.length < 5) {
+    return "custom";
+  }
+  const [, hour, dayOfMonth, month, dayOfWeek] = parts;
+  if (hour === "*" || hour.includes("/")) {
+    return "hourly";
+  }
+  if (dayOfMonth === "*" && month === "*" && dayOfWeek === "*") {
+    return "daily";
+  }
+  if (dayOfMonth === "*" && month === "*" && dayOfWeek !== "*") {
+    return "weekly";
+  }
+  if (dayOfMonth !== "*" && month === "*" && dayOfWeek === "*") {
+    return "monthly";
+  }
+  return "custom";
 }
 
-function getNextFriday(hour: number): Date {
-  const date = new Date();
-  date.setHours(hour, 0, 0, 0);
-  const daysUntilFriday = (5 - date.getDay() + 7) % 7 || 7;
-  date.setDate(date.getDate() + daysUntilFriday);
-  return date;
+function mapCronJobToRitual(job: CronJob): Ritual {
+  const status: RitualStatus = !job.enabled
+    ? "paused"
+    : job.state.lastStatus === "error"
+      ? "failed"
+      : "active";
+
+  return {
+    id: job.id,
+    name: job.name,
+    description: job.description,
+    schedule: formatCronSchedule(job.schedule),
+    frequency: inferFrequency(job.schedule),
+    nextRun: job.state.nextRunAtMs ? new Date(job.state.nextRunAtMs).toISOString() : undefined,
+    lastRun: job.state.lastRunAtMs ? new Date(job.state.lastRunAtMs).toISOString() : undefined,
+    agentId: job.agentId ?? undefined,
+    status,
+    createdAt: new Date(job.createdAtMs).toISOString(),
+    updatedAt: new Date(job.updatedAtMs).toISOString(),
+  };
 }
 
-function getFirstOfNextMonth(hour: number): Date {
-  const date = new Date();
-  date.setMonth(date.getMonth() + 1, 1);
-  date.setHours(hour, 0, 0, 0);
-  return date;
+function mapCronRunEntry(entry: CronRunEntry): RitualExecution {
+  const statusMap: Record<string, RitualExecution["status"]> = {
+    ok: "success",
+    error: "failed",
+    skipped: "skipped",
+  };
+  return {
+    id: `${entry.jobId}-${entry.ts}`,
+    ritualId: entry.jobId,
+    status: statusMap[entry.status ?? "ok"] ?? "success",
+    startedAt: new Date(entry.runAtMs ?? entry.ts).toISOString(),
+    completedAt: entry.durationMs
+      ? new Date((entry.runAtMs ?? entry.ts) + entry.durationMs).toISOString()
+      : undefined,
+    result: entry.summary,
+    error: entry.error,
+  };
 }
 
-async function fetchRitual(id: string): Promise<Ritual | null> {
-  const rituals = await fetchRituals();
-  return rituals.find((r) => r.id === id) ?? null;
+async function fetchRituals(liveMode: boolean): Promise<Ritual[]> {
+  if (!liveMode) {
+    return [];
+  }
+  const result = await listCronJobs();
+  return result.jobs.map(mapCronJobToRitual);
 }
 
-async function fetchRitualsByStatus(status: RitualStatus): Promise<Ritual[]> {
-  const rituals = await fetchRituals();
+async function fetchRitual(id: string, liveMode: boolean): Promise<Ritual | null> {
+  if (!liveMode) {
+    return null;
+  }
+  const job = await getCronJob(id);
+  return mapCronJobToRitual(job);
+}
+
+async function fetchRitualsByStatus(
+  status: RitualStatus,
+  liveMode: boolean
+): Promise<Ritual[]> {
+  const rituals = await fetchRituals(liveMode);
   return rituals.filter((r) => r.status === status);
 }
 
-async function fetchRitualsByAgent(agentId: string): Promise<Ritual[]> {
-  const rituals = await fetchRituals();
+async function fetchRitualsByAgent(agentId: string, liveMode: boolean): Promise<Ritual[]> {
+  const rituals = await fetchRituals(liveMode);
   return rituals.filter((r) => r.agentId === agentId);
 }
 
 async function fetchRitualExecutions(
-  ritualId: string
+  ritualId: string,
+  liveMode: boolean
 ): Promise<RitualExecution[]> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  // Mock execution history
-  const isLive = ritualId === "ritual-1";
-  return [
-    {
-      id: "exec-1",
-      ritualId,
-      status: isLive ? "running" : "success",
-      startedAt: new Date(Date.now() - 86400000).toISOString(),
-      completedAt: isLive ? undefined : new Date(Date.now() - 86300000).toISOString(),
-      result: isLive ? "Running now" : "Completed successfully",
-      sessionKey: `${ritualId}-session-1`,
-      toolCalls: 6,
-      tokens: isLive ? 380 : 1420,
-      costUsd: isLive ? 0.06 : 0.22,
-      tools: ["calendar.read", "docs.search", "email.send"],
-    },
-    {
-      id: "exec-2",
-      ritualId,
-      status: "success",
-      startedAt: new Date(Date.now() - 172800000).toISOString(),
-      completedAt: new Date(Date.now() - 172700000).toISOString(),
-      result: "Completed successfully",
-      sessionKey: `${ritualId}-session-2`,
-      toolCalls: 5,
-      tokens: 1210,
-      costUsd: 0.18,
-      tools: ["metrics.fetch", "report.generate"],
-    },
-    {
-      id: "exec-3",
-      ritualId,
-      status: "failed",
-      startedAt: new Date(Date.now() - 259200000).toISOString(),
-      completedAt: new Date(Date.now() - 259150000).toISOString(),
-      error: "Network timeout during execution",
-      sessionKey: `${ritualId}-session-3`,
-      toolCalls: 2,
-      tokens: 320,
-      costUsd: 0.05,
-      tools: ["http.request"],
-    },
-  ];
+  if (!liveMode) {
+    return [];
+  }
+  const result = await getCronRuns({ id: ritualId, limit: 20 });
+  return result.entries.map(mapCronRunEntry);
 }
 
 // Query hooks
 export function useRituals() {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: ritualKeys.lists(),
-    queryFn: fetchRituals,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    queryKey: ritualKeys.list({ mode: modeKey }),
+    queryFn: () => fetchRituals(liveMode),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
 export function useRitual(id: string) {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: ritualKeys.detail(id),
-    queryFn: () => fetchRitual(id),
+    queryKey: ritualKeys.detail(id, modeKey),
+    queryFn: () => fetchRitual(id, liveMode),
     enabled: !!id,
   });
 }
 
 export function useRitualsByStatus(status: RitualStatus) {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: ritualKeys.list({ status }),
-    queryFn: () => fetchRitualsByStatus(status),
+    queryKey: ritualKeys.list({ status, mode: modeKey }),
+    queryFn: () => fetchRitualsByStatus(status, liveMode),
     enabled: !!status,
   });
 }
 
 export function useRitualsByAgent(agentId: string) {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: ritualKeys.list({ agentId }),
-    queryFn: () => fetchRitualsByAgent(agentId),
+    queryKey: ritualKeys.list({ agentId, mode: modeKey }),
+    queryFn: () => fetchRitualsByAgent(agentId, liveMode),
     enabled: !!agentId,
   });
 }
 
 export function useRitualExecutions(ritualId: string) {
+  const liveMode = useGatewayEnabled();
+  const modeKey = useGatewayModeKey();
   return useQuery({
-    queryKey: ritualKeys.executions(ritualId),
-    queryFn: () => fetchRitualExecutions(ritualId),
+    queryKey: ritualKeys.executions(ritualId, modeKey),
+    queryFn: () => fetchRitualExecutions(ritualId, liveMode),
     enabled: !!ritualId,
   });
 }

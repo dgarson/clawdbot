@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -111,6 +112,7 @@ function MemoriesPage() {
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
   const [deleteConfirmTitle, setDeleteConfirmTitle] = React.useState("");
+  const memoriesReadOnly = true;
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -194,6 +196,7 @@ function MemoriesPage() {
     type: MemoryType;
     tags: string[];
   }) => {
+    if (memoriesReadOnly) {return;}
     createMemory.mutate(data, {
       onSuccess: () => {
         setIsCreateOpen(false);
@@ -202,6 +205,7 @@ function MemoriesPage() {
   };
 
   const handleSaveMemory = (memory: Memory) => {
+    if (memoriesReadOnly) {return;}
     updateMemory.mutate({
       id: memory.id,
       content: memory.content,
@@ -211,6 +215,7 @@ function MemoriesPage() {
 
   // Direct delete - called from detail panel after its own confirmation
   const executeDeleteMemory = (id: string) => {
+    if (memoriesReadOnly) {return;}
     deleteMemory.mutate(id);
     setIsDetailOpen(false);
   };
@@ -223,16 +228,19 @@ function MemoriesPage() {
 
   const confirmDeleteMemory = () => {
     if (deleteConfirmId) {
+      if (memoriesReadOnly) {return;}
       deleteMemory.mutate(deleteConfirmId);
       setDeleteConfirmId(null);
     }
   };
 
   const handleAddTags = (id: string, tags: string[]) => {
+    if (memoriesReadOnly) {return;}
     addTags.mutate({ id, tags });
   };
 
   const handleRemoveTags = (id: string, tags: string[]) => {
+    if (memoriesReadOnly) {return;}
     removeTags.mutate({ id, tags });
   };
 
@@ -277,12 +285,19 @@ function MemoriesPage() {
             <Button
               onClick={() => setIsCreateOpen(true)}
               className="h-11 rounded-xl gap-2"
+              disabled={memoriesReadOnly}
             >
               <Plus className="h-4 w-4" />
               New Memory
             </Button>
           </div>
         </motion.div>
+
+        <Alert className="mb-6">
+          <AlertDescription>
+            Memories are currently read-only while gateway support is being finalized.
+          </AlertDescription>
+        </Alert>
 
         {/* Filters */}
         <motion.div
@@ -472,7 +487,11 @@ function MemoriesPage() {
                     memory={convertToCardMemory(memory)}
                     onClick={() => handleViewDetails(memory)}
                     onEdit={() => handleViewDetails(memory)}
-                    onDelete={() => handleDeleteMemory(memory.id, memory.title)}
+                    onDelete={
+                      memoriesReadOnly
+                        ? undefined
+                        : () => handleDeleteMemory(memory.id, memory.title)
+                    }
                   />
                 </motion.div>
               ))}
@@ -485,10 +504,10 @@ function MemoriesPage() {
           memory={selectedMemory}
           open={isDetailOpen}
           onClose={() => setIsDetailOpen(false)}
-          onSave={handleSaveMemory}
-          onDelete={executeDeleteMemory}
-          onAddTags={handleAddTags}
-          onRemoveTags={handleRemoveTags}
+          onSave={memoriesReadOnly ? undefined : handleSaveMemory}
+          onDelete={memoriesReadOnly ? undefined : executeDeleteMemory}
+          onAddTags={memoriesReadOnly ? undefined : handleAddTags}
+          onRemoveTags={memoriesReadOnly ? undefined : handleRemoveTags}
         />
 
       {/* Create Memory Modal */}
