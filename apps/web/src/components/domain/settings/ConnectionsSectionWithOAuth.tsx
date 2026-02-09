@@ -273,12 +273,14 @@ const CONNECTION_DEFINITIONS: Connection[] = [
             label: "Integration Token",
             placeholder: "secret_xxxxxxxxxxxxxx",
             type: "password",
+            helpText: "Paste the internal integration token from Notion.",
           },
           {
             id: "workspaceId",
             label: "Workspace ID (optional)",
             placeholder: "workspace-id",
             required: false,
+            helpText: "Found in your workspace URL: notion.so/{workspace_id}/...",
           },
         ],
       },
@@ -394,6 +396,7 @@ export function ConnectionsSectionWithOAuth({
   const [activeConnectionId, setActiveConnectionId] = React.useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [connectionMethods, setConnectionMethods] = React.useState<Record<string, string>>({});
 
   const activeConnection = CONNECTION_DEFINITIONS.find(
     (connection) => connection.id === activeConnectionId
@@ -403,6 +406,28 @@ export function ConnectionsSectionWithOAuth({
   React.useEffect(() => {
     fetchAllStatuses(OAUTH_ENABLED_PROVIDERS);
   }, [fetchAllStatuses]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("connectionMethods");
+    if (stored) {
+      try {
+        setConnectionMethods(JSON.parse(stored) as Record<string, string>);
+      } catch {
+        setConnectionMethods({});
+      }
+    }
+  }, []);
+
+  const updateConnectionMethod = React.useCallback((providerId: string, methodType: string) => {
+    setConnectionMethods((prev) => {
+      const next = { ...prev, [providerId]: methodType };
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("connectionMethods", JSON.stringify(next));
+      }
+      return next;
+    });
+  }, []);
 
   const handleRefreshStatuses = async () => {
     setRefreshing(true);
@@ -472,6 +497,14 @@ export function ConnectionsSectionWithOAuth({
             const status = getConnectionStatus(connection.id);
             const isConnected = status.connected;
             const connectionLoading = isLoading(connection.id);
+            const connectionMethod = connectionMethods[connection.id];
+            const notionUserInfo =
+              connection.id === "notion" ? (status.userInfo as Record<string, string> | undefined) : undefined;
+            const workspaceName = notionUserInfo?.name;
+            const connectedUser =
+              notionUserInfo?.email || notionUserInfo?.username || status.email;
+            const notionMethodLabel =
+              connectionMethod === "oauth" ? "OAuth" : connectionMethod ? "Token" : undefined;
 
             return (
               <Card key={connection.id} className="p-4">
@@ -497,12 +530,71 @@ export function ConnectionsSectionWithOAuth({
                     <p className="text-sm text-muted-foreground">
                       {connection.description}
                     </p>
-                    {isConnected && status.email && (
+                    {isConnected && connection.id === "notion" && (
+                      <div className="mt-2 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {notionMethodLabel && (
+                            <Badge variant="secondary" className="text-[10px] uppercase">
+                              {notionMethodLabel}
+                            </Badge>
+                          )}
+                          {workspaceName && (
+                            <Badge variant="outline" className="text-[10px]">
+                              Workspace: {workspaceName}
+                            </Badge>
+                          )}
+                        </div>
+                        {connectedUser && (
+                          <p className="text-xs text-muted-foreground">
+                            Connected user: {connectedUser}
+                          </p>
+                        )}
+                        {status.scopes && status.scopes.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {status.scopes.slice(0, 4).map((scope) => (
+                              <Badge
+                                key={scope}
+                                variant="outline"
+                                className="text-[10px] font-normal"
+                              >
+                                {scope}
+                              </Badge>
+                            ))}
+                            {status.scopes.length > 4 && (
+                              <Badge variant="outline" className="text-[10px] font-normal">
+                                +{status.scopes.length - 4} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href="https://www.notion.so/my-integrations"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Manage Pages
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <a
+                            href="https://developers.notion.com/"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            View Docs
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    {isConnected && connection.id !== "notion" && status.email && (
                       <p className="text-xs text-muted-foreground">
                         Connected as: {status.email}
                       </p>
                     )}
-                    {isConnected && status.scopes && status.scopes.length > 0 && (
+                    {isConnected && connection.id !== "notion" && status.scopes && status.scopes.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {status.scopes.slice(0, 3).map((scope) => (
                           <Badge
@@ -565,13 +657,27 @@ export function ConnectionsSectionWithOAuth({
             if (method.type === "oauth") {
               // Get scopes from wizard payload
               const scopes = payload.scopes || getDefaultScopes(activeConnection.id);
+              updateConnectionMethod(activeConnection.id, "oauth");
               await connect({
                 providerId: activeConnection.id,
                 scopes,
               });
             } else {
               // Store API key/token credentials
-              await storeCredentials(activeConnection.id, payload.values);
+              if (activeConnection.id === "notion" && method.id === "notion-token") {
+                updateConnectionMethod(activeConnection.id, "token");
+                const notionPayload: Record<string, unknown> = {
+                  access: payload.values.integrationToken?.trim(),
+                  workspaceId: payload.values.workspaceId?.trim() || undefined,
+                };
+                if (payload.meta?.notionUserInfo) {
+                  notionPayload.userInfo = payload.meta.notionUserInfo;
+                }
+                await storeCredentials(activeConnection.id, notionPayload);
+              } else {
+                updateConnectionMethod(activeConnection.id, method.type);
+                await storeCredentials(activeConnection.id, payload.values);
+              }
             }
           }}
           onDisconnect={

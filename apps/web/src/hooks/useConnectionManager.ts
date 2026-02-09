@@ -15,6 +15,7 @@ export interface ConnectionStatus {
   expiresAt?: string;
   scopes?: string[];
   lastSync?: string;
+  userInfo?: Record<string, unknown>;
 }
 
 /**
@@ -97,8 +98,9 @@ export function useConnectionManager(gatewayBaseUrl = "") {
           connected: data.connected ?? false,
           email: data.email,
           expiresAt: data.expiresAt,
-          scopes: data.scopes,
+          scopes: data.grantedScopes ?? data.scopes,
           lastSync: data.lastSync,
+          userInfo: data.userInfo,
         };
         setStatuses((prev) => ({ ...prev, [providerId]: status }));
         return status;
@@ -264,7 +266,7 @@ export function useConnectionManager(gatewayBaseUrl = "") {
   const storeCredentials = React.useCallback(
     async (
       providerId: string,
-      credentials: Record<string, string>
+      credentials: Record<string, unknown>
     ): Promise<boolean> => {
       try {
         setLoading((prev) => ({ ...prev, [providerId]: true }));

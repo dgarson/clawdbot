@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { ExternalLink, CheckCircle2, Loader2, ShieldCheck, Zap, KeyRound } from "lucide-react";
+import {
+  ExternalLink,
+  CheckCircle2,
+  Loader2,
+  ShieldCheck,
+  Zap,
+  KeyRound,
+  Info,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { showSuccess } from "@/lib/toast";
@@ -49,6 +57,7 @@ interface ConnectionWizardWithScopesProps {
     values: Record<string, string>;
     options: Record<string, boolean>;
     scopes?: string[];
+    meta?: Record<string, unknown>;
   }) => Promise<void>;
   onDisconnect?: () => Promise<void>;
   /** Enable granular scope selection for OAuth methods */
@@ -86,6 +95,13 @@ export function ConnectionWizardWithScopes({
   const [oauthAuthorized, setOauthAuthorized] = React.useState(false);
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
+  const [tokenTestStatus, setTokenTestStatus] = React.useState<
+    "idle" | "testing" | "success" | "error"
+  >("idle");
+  const [tokenTestMessage, setTokenTestMessage] = React.useState<string | null>(null);
+  const [notionUserInfo, setNotionUserInfo] = React.useState<Record<string, string> | null>(null);
+  const tokenTestRequestId = React.useRef(0);
+  const latestTokenRef = React.useRef("");
 
   const method = connection.authMethods.find((m) => m.id === selectedMethodId);
   const syncOptions = connection.syncOptions ?? EMPTY_SYNC_OPTIONS;
@@ -95,6 +111,12 @@ export function ConnectionWizardWithScopes({
   const hasScopeConfig = enableScopeSelection && providerScopes && providerScopes.scopes.length > 3;
   const isOAuthMethod = method?.type === "oauth";
   const showScopesStep = isOAuthMethod && hasScopeConfig;
+  const isNotionConnection = connection.id === "notion";
+  const isNotionTokenMethod = isNotionConnection && method?.id === "notion-token";
+  const isNotionOAuthMethod = isNotionConnection && method?.id === "notion-oauth";
+  const integrationTokenValue = values.integrationToken?.trim() ?? "";
+  const notionTokenFormatInvalid =
+    isNotionTokenMethod && integrationTokenValue.length > 0 && !integrationTokenValue.startsWith("secret_");
 
   // Reset state when dialog opens
   React.useEffect(() => {
@@ -105,6 +127,9 @@ export function ConnectionWizardWithScopes({
     setOauthAuthorized(false);
     setIsConnecting(false);
     setIsDisconnecting(false);
+    setTokenTestStatus("idle");
+    setTokenTestMessage(null);
+    setNotionUserInfo(null);
     setOptions(
       syncOptions.reduce<Record<string, boolean>>((acc, option) => {
         acc[option.id] = option.defaultEnabled ?? true;
@@ -115,6 +140,23 @@ export function ConnectionWizardWithScopes({
     const defaults = getDefaultScopes(connection.id);
     setSelectedScopes(defaults);
   }, [open, connection.authMethods, connection.id, syncOptions]);
+
+  React.useEffect(() => {
+    setTokenTestStatus("idle");
+    setTokenTestMessage(null);
+    setNotionUserInfo(null);
+  }, [selectedMethodId]);
+
+  React.useEffect(() => {
+    if (!isNotionTokenMethod) return;
+    setTokenTestStatus("idle");
+    setTokenTestMessage(null);
+    setNotionUserInfo(null);
+  }, [integrationTokenValue, isNotionTokenMethod]);
+
+  React.useEffect(() => {
+    latestTokenRef.current = integrationTokenValue;
+  }, [integrationTokenValue]);
 
   // Build steps list based on method type
   const steps = React.useMemo(() => {
@@ -137,8 +179,12 @@ export function ConnectionWizardWithScopes({
     if (!method) return false;
     if (method.type === "oauth") return oauthAuthorized;
     const requiredFields = authFields.filter((field) => field.required !== false);
-    return requiredFields.every((field) => values[field.id]?.trim());
-  }, [authFields, method, oauthAuthorized, values]);
+    const hasRequiredValues = requiredFields.every((field) => values[field.id]?.trim());
+    if (isNotionTokenMethod) {
+      return hasRequiredValues && !notionTokenFormatInvalid && tokenTestStatus === "success";
+    }
+    return hasRequiredValues;
+  }, [authFields, method, notionTokenFormatInvalid, oauthAuthorized, tokenTestStatus, values, isNotionTokenMethod]);
 
   const canProceed = React.useMemo(() => {
     if (stepId === "Method") return !!method;
@@ -167,6 +213,7 @@ export function ConnectionWizardWithScopes({
         values,
         options,
         scopes: isOAuthMethod ? selectedScopes : undefined,
+        meta: isNotionTokenMethod && notionUserInfo ? { notionUserInfo } : undefined,
       });
       showSuccess(`${connection.name} connected successfully`);
       onOpenChange(false);
@@ -187,9 +234,80 @@ export function ConnectionWizardWithScopes({
     }
   };
 
+  const handleTestNotionToken = async () => {
+    if (!integrationTokenValue || notionTokenFormatInvalid) return;
+    const requestToken = integrationTokenValue;
+    const requestId = tokenTestRequestId.current + 1;
+    tokenTestRequestId.current = requestId;
+    setTokenTestStatus("testing");
+    setTokenTestMessage(null);
+    setNotionUserInfo(null);
+
+    try {
+      const response = await fetch("https://api.notion.com/v1/users/me", {
+        headers: {
+          Authorization: `Bearer ${integrationTokenValue}`,
+          "Notion-Version": "2022-06-28",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Notion rejected the token. Double-check capabilities and shared pages.");
+      }
+
+      const data = (await response.json()) as {
+        id?: string;
+        name?: string;
+        bot?: {
+          workspace_name?: string;
+          owner?: {
+            user?: {
+              name?: string;
+              person?: { email?: string };
+            };
+          };
+        };
+      };
+
+      const workspaceName = data.bot?.workspace_name ?? data.name ?? "Notion workspace";
+      const ownerUser = data.bot?.owner?.user;
+      const ownerName = ownerUser?.name ?? data.name ?? "Notion user";
+      const ownerEmail = ownerUser?.person?.email;
+
+      if (tokenTestRequestId.current !== requestId || latestTokenRef.current !== requestToken) {
+        return;
+      }
+
+      const userInfo: Record<string, string> = {
+        name: workspaceName,
+        username: ownerName,
+      };
+      if (ownerEmail) {
+        userInfo.email = ownerEmail;
+      }
+      setNotionUserInfo(userInfo);
+      setTokenTestStatus("success");
+      setTokenTestMessage(
+        ownerEmail
+          ? `Connected to ${workspaceName} as ${ownerName} (${ownerEmail}).`
+          : `Connected to ${workspaceName} as ${ownerName}.`
+      );
+    } catch (error) {
+      if (tokenTestRequestId.current !== requestId || latestTokenRef.current !== requestToken) {
+        return;
+      }
+      setTokenTestStatus("error");
+      setTokenTestMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to verify the token. Please try again."
+      );
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
@@ -269,80 +387,249 @@ export function ConnectionWizardWithScopes({
 
           {/* Access step */}
           {stepId === "Access" && method && (
-            <div className="space-y-4">
-              {method.type === "oauth" ? (
-                <div className="space-y-4">
-                  <div className="rounded-lg border border-border bg-muted/50 p-4">
-                    <p className="text-sm font-medium">Authorize with {connection.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      You will be redirected to {connection.name} to approve access.
-                    </p>
-                    {selectedScopes.length > 0 && (
-                      <div className="mt-3">
-                        <p className="text-xs text-muted-foreground mb-1">Requested permissions:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedScopes.slice(0, 5).map((scopeId) => {
-                            const scope = providerScopes?.scopes.find((s) => s.id === scopeId);
-                            return (
-                              <Badge key={scopeId} variant="outline" className="text-[10px]">
-                                {scope?.label ?? scopeId}
+            <div
+              className={cn(
+                "space-y-4",
+                isNotionConnection && "lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-4 lg:space-y-0"
+              )}
+            >
+              <div className="space-y-4">
+                {method.type === "oauth" ? (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-3">
+                      <div>
+                        <p className="text-sm font-medium">Authorize with {connection.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          You will be redirected to {connection.name} to approve access.
+                          {isNotionOAuthMethod && " Notion will ask you to select the pages to share."}
+                        </p>
+                      </div>
+                      {selectedScopes.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Requested permissions:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedScopes.slice(0, 6).map((scopeId) => {
+                              const scope = providerScopes?.scopes.find((s) => s.id === scopeId);
+                              return (
+                                <Badge key={scopeId} variant="outline" className="text-[10px]">
+                                  {scope?.label ?? scopeId}
+                                </Badge>
+                              );
+                            })}
+                            {selectedScopes.length > 6 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                +{selectedScopes.length - 6} more
                               </Badge>
-                            );
-                          })}
-                          {selectedScopes.length > 5 && (
-                            <Badge variant="outline" className="text-[10px]">
-                              +{selectedScopes.length - 5} more
-                            </Badge>
-                          )}
+                            )}
+                          </div>
                         </div>
+                      )}
+                      {isNotionOAuthMethod && (
+                        <div className="flex items-start gap-2 rounded-md border border-blue-500/30 bg-blue-500/10 p-2 text-xs text-muted-foreground">
+                          <Info className="mt-0.5 h-3.5 w-3.5 text-blue-600" />
+                          Notion will prompt you to choose which pages to share with this integration.
+                        </div>
+                      )}
+                    </div>
+                    <Button onClick={() => setOauthAuthorized(true)} className="w-full">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      {method.ctaLabel ?? `Continue with ${connection.name}`}
+                    </Button>
+                    {isNotionOAuthMethod && (
+                      <a
+                        href="https://developers.notion.com/docs/authorization"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        View Notion OAuth docs
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    {method.ctaHint && (
+                      <p className="text-xs text-muted-foreground text-center">{method.ctaHint}</p>
+                    )}
+                    {oauthAuthorized && (
+                      <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        Authorization received. Continue to finish setup.
                       </div>
                     )}
                   </div>
-                  <Button onClick={() => setOauthAuthorized(true)} className="w-full">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    {method.ctaLabel ?? `Continue with ${connection.name}`}
-                  </Button>
-                  {method.ctaHint && (
-                    <p className="text-xs text-muted-foreground text-center">{method.ctaHint}</p>
-                  )}
-                  {oauthAuthorized && (
-                    <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Authorization received. Continue to finish setup.
+                ) : (
+                  <div className="space-y-4">
+                    {isNotionTokenMethod ? (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button asChild size="sm" variant="outline">
+                            <a
+                              href="https://www.notion.so/my-integrations"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              Create Integration
+                            </a>
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            Create an internal integration and copy the secret.
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`${connection.id}-integrationToken`}>
+                            Integration Token
+                          </Label>
+                          <Input
+                            id={`${connection.id}-integrationToken`}
+                            type="password"
+                            placeholder="secret_xxxxxxxxxxxxxx"
+                            value={values.integrationToken ?? ""}
+                            onChange={(event) =>
+                              setValues((prev) => ({
+                                ...prev,
+                                integrationToken: event.target.value,
+                              }))
+                            }
+                            aria-invalid={notionTokenFormatInvalid}
+                            className={cn(notionTokenFormatInvalid && "border-red-500/60")}
+                          />
+                          {notionTokenFormatInvalid && (
+                            <p className="text-xs text-red-600">
+                              Tokens must start with <span className="font-mono">secret_</span>.
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`${connection.id}-workspaceId`}>
+                            Workspace ID (optional)
+                          </Label>
+                          <Input
+                            id={`${connection.id}-workspaceId`}
+                            placeholder="workspace-id"
+                            value={values.workspaceId ?? ""}
+                            onChange={(event) =>
+                              setValues((prev) => ({ ...prev, workspaceId: event.target.value }))
+                            }
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Found in your workspace URL: notion.so/{"{workspace_id}"}/...
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={handleTestNotionToken}
+                            disabled={tokenTestStatus === "testing" || !integrationTokenValue || notionTokenFormatInvalid}
+                          >
+                            {tokenTestStatus === "testing" && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Test Connection
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            Verify the token before saving.
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          If the test is blocked by your network, you can still save and check the
+                          connection status later.
+                        </p>
+                        {tokenTestMessage && (
+                          <div
+                            className={cn(
+                              "flex items-start gap-2 rounded-lg border p-3 text-xs",
+                              tokenTestStatus === "success"
+                                ? "border-green-500/30 bg-green-500/10 text-green-700"
+                                : "border-red-500/30 bg-red-500/10 text-red-700"
+                            )}
+                          >
+                            <Info className="mt-0.5 h-3.5 w-3.5" />
+                            <span>{tokenTestMessage}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      authFields.map((field) => (
+                        <div key={field.id} className="space-y-2">
+                          <Label htmlFor={`${connection.id}-${field.id}`}>{field.label}</Label>
+                          {field.multiline ? (
+                            <Textarea
+                              id={`${connection.id}-${field.id}`}
+                              rows={field.rows ?? 4}
+                              placeholder={field.placeholder}
+                              value={values[field.id] ?? ""}
+                              onChange={(event) =>
+                                setValues((prev) => ({ ...prev, [field.id]: event.target.value }))
+                              }
+                            />
+                          ) : (
+                            <Input
+                              id={`${connection.id}-${field.id}`}
+                              type={field.type ?? "text"}
+                              placeholder={field.placeholder}
+                              value={values[field.id] ?? ""}
+                              onChange={(event) =>
+                                setValues((prev) => ({ ...prev, [field.id]: event.target.value }))
+                              }
+                            />
+                          )}
+                          {field.helpText && (
+                            <p className="text-xs text-muted-foreground">{field.helpText}</p>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {isNotionConnection && (
+                <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-foreground">Notion setup checklist</p>
+                    {isNotionOAuthMethod ? (
+                      <ol className="space-y-1 list-decimal list-inside">
+                        <li>Click “Continue with Notion”.</li>
+                        <li>Select the pages to share with this integration.</li>
+                        <li>Return here after Notion redirects you back.</li>
+                      </ol>
+                    ) : (
+                      <ol className="space-y-1 list-decimal list-inside">
+                        <li>Create an integration at notion.so/my-integrations.</li>
+                        <li>Enable the capabilities you need.</li>
+                        <li>Copy the internal integration secret.</li>
+                        <li>Share the relevant pages with the integration.</li>
+                      </ol>
+                    )}
+                  </div>
+                  <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-700">
+                    Internal integrations can only access pages explicitly shared with them.
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Docs
+                    </p>
+                    <div className="space-y-2">
+                      {[
+                        { label: "Notion Developer Docs", href: "https://developers.notion.com/" },
+                        { label: "My Integrations", href: "https://www.notion.so/my-integrations" },
+                        { label: "Authorization Guide", href: "https://developers.notion.com/docs/authorization" },
+                        { label: "Getting Started", href: "https://developers.notion.com/docs/getting-started" },
+                      ].map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 text-xs text-foreground hover:text-primary"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {link.label}
+                        </a>
+                      ))}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {authFields.map((field) => (
-                    <div key={field.id} className="space-y-2">
-                      <Label htmlFor={`${connection.id}-${field.id}`}>{field.label}</Label>
-                      {field.multiline ? (
-                        <Textarea
-                          id={`${connection.id}-${field.id}`}
-                          rows={field.rows ?? 4}
-                          placeholder={field.placeholder}
-                          value={values[field.id] ?? ""}
-                          onChange={(event) =>
-                            setValues((prev) => ({ ...prev, [field.id]: event.target.value }))
-                          }
-                        />
-                      ) : (
-                        <Input
-                          id={`${connection.id}-${field.id}`}
-                          type={field.type ?? "text"}
-                          placeholder={field.placeholder}
-                          value={values[field.id] ?? ""}
-                          onChange={(event) =>
-                            setValues((prev) => ({ ...prev, [field.id]: event.target.value }))
-                          }
-                        />
-                      )}
-                      {field.helpText && (
-                        <p className="text-xs text-muted-foreground">{field.helpText}</p>
-                      )}
-                    </div>
-                  ))}
+                  </div>
                 </div>
               )}
             </div>
