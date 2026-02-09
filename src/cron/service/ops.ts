@@ -243,11 +243,11 @@ export async function run(state: CronServiceState, id: string, mode?: "due" | "f
 
   // Phase 3 (locked): finalize, persist, and re-arm.
   await locked(state, async () => {
-    const runAtMs = claimed.state.runningAtMs;
+    const startedAtMs = claimed.state.runningAtMs;
     finalizeJobRun(state, claimed, result, {
       forced,
-      nowMs: runAtMs ?? endedAtMs,
-      runAtMs,
+      nowMs: startedAtMs ?? endedAtMs,
+      startedAtMs,
       endedAtMs,
     });
     await persist(state);
