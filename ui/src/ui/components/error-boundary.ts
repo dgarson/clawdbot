@@ -244,19 +244,19 @@ export class ErrorBoundary extends LitElement {
     .error-boundary--danger {
       border-color: rgba(239, 68, 68, 0.25);
       background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.04) 100%);
-      color: var(--color-danger, #ef4444);
+      color: var(--danger);
     }
 
     .error-boundary--warning {
       border-color: rgba(245, 158, 11, 0.25);
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
-      color: var(--color-warning, #f59e0b);
+      color: var(--warn);
     }
 
     .error-boundary--info {
       border-color: rgba(59, 130, 246, 0.25);
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
-      color: var(--color-info, #3b82f6);
+      color: var(--info);
     }
 
     .error-boundary--compact {
@@ -353,7 +353,7 @@ export class ErrorBoundary extends LitElement {
       padding: 6px 12px;
       font-size: 0.8125rem;
       font-weight: 500;
-      color: var(--text-primary, #fff);
+      color: var(--text);
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: var(--radius-sm, 6px);

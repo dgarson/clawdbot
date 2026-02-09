@@ -214,9 +214,7 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
             ? html`<div
               class="muted"
               style="margin-top: 8px; color: ${
-                message.kind === "error"
-                  ? "var(--danger-color, #d14343)"
-                  : "var(--success-color, #0a7f5a)"
+                message.kind === "error" ? "var(--danger)" : "var(--ok)"
               };"
             >
               ${message.message}

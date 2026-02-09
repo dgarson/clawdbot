@@ -237,6 +237,19 @@
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
   --grid-line: rgba(255, 255, 255, 0.04);
 
+  /* Chart / data-viz palette */
+  --chart-violet: #8b5cf6;
+  --chart-pink: #ec4899;
+  --chart-cyan: #06b6d4;
+  --chart-emerald: #10b981;
+  --chart-amber: #f59e0b;
+  --chart-red: #ef4444;
+
+  /* macOS window-chrome dots (used in demo components) */
+  --window-dot-close: #ff5f56;
+  --window-dot-minimize: #ffbd2e;
+  --window-dot-maximize: #27c93f;
+
   /* Fonts (referenced by Tailwind) */
   --font-body: "Work Sans", system-ui, sans-serif;
   --font-display: "Unbounded", "Times New Roman", serif;
