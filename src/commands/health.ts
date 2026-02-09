@@ -15,6 +15,8 @@ import {
   type HeartbeatSummary,
   resolveHeartbeatSummaryForAgent,
 } from "../infra/heartbeat-runner.js";
+import { getObsidianHealthSnapshot } from "../obsidian/health.js";
+import { getObsidianRuntime } from "../obsidian/startup.js";
 import { buildChannelAccountBindings, resolvePreferredAccountId } from "../routing/bindings.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { theme } from "../terminal/theme.js";
@@ -68,6 +70,7 @@ export type HealthSummary = {
       age: number | null;
     }>;
   };
+  obsidian?: import("../obsidian/health.js").ObsidianHealthSnapshot | null;
 };
 
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -554,6 +557,15 @@ export async function getHealthSnapshot(params?: {
       count: sessions.count,
       recent: sessions.recent,
     },
+    obsidian: (() => {
+      const runtime = getObsidianRuntime();
+      return getObsidianHealthSnapshot({
+        config: cfg.obsidian,
+        vault: runtime?.vault,
+        linkIndex: runtime?.linkIndex,
+        healthState: runtime?.health ?? { watcherActive: false, lastChangeAt: null },
+      });
+    })(),
   };
 
   return summary;

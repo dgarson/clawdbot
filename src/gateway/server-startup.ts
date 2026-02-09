@@ -19,6 +19,7 @@ import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { createManagedProcessManager } from "../infra/managed-processes.js";
 import { registerMemoryPipelineHooks } from "../memory/hooks/index.js";
+import { startObsidianIntegration } from "../obsidian/startup.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
 import { recoverOrphanedWorkItems } from "../work-queue/recovery.js";
 import { startBrowserControlServerIfEnabled } from "./server-browser.js";
@@ -135,6 +136,17 @@ export async function startGatewaySidecars(params: {
     }
   } catch (err) {
     params.logHooks.error(`failed to load hooks: ${String(err)}`);
+  }
+
+  // Start Obsidian vault integration if configured.
+  try {
+    await startObsidianIntegration({
+      config: params.cfg,
+      log: (msg) => params.log.info(`obsidian: ${msg}`),
+      logSystem: (msg) => params.log.info(msg),
+    });
+  } catch (err) {
+    params.log.warn(`obsidian integration failed to start: ${String(err)}`);
   }
 
   // Recover orphaned work queue items from previous session (unless disabled).

@@ -112,6 +112,54 @@ register("work_queue", {
   description: "View work queue items",
 });
 
+register("vault_search", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "Search Obsidian vault content",
+});
+
+register("vault_read_note", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "Read an Obsidian note",
+});
+
+register("vault_list_notes", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "List Obsidian vault notes",
+});
+
+register("vault_get_frontmatter", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "Read Obsidian note frontmatter",
+});
+
+register("vault_get_links", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "Extract outgoing wiki-links from a note",
+});
+
+register("vault_get_backlinks", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "Find notes linking to a target note",
+});
+
+register("vault_get_tags", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "List tags used in the vault",
+});
+
+register("vault_query", {
+  riskClass: "R0",
+  sideEffects: ["filesystem_read"],
+  description: "Query Obsidian vault by metadata",
+});
+
 // ---------------------------------------------------------------------------
 // R1 — Low-risk side effects
 // ---------------------------------------------------------------------------
@@ -210,6 +258,42 @@ register("coding_task", {
   description: "Delegate a coding sub-task",
 });
 
+register("vault_create_note", {
+  riskClass: "R2",
+  sideEffects: ["filesystem_write"],
+  description: "Create a note in the Obsidian vault",
+});
+
+register("vault_update_note", {
+  riskClass: "R2",
+  sideEffects: ["filesystem_write"],
+  description: "Replace an Obsidian note's content",
+});
+
+register("vault_append_to_note", {
+  riskClass: "R2",
+  sideEffects: ["filesystem_write"],
+  description: "Append content to an Obsidian note",
+});
+
+register("vault_set_frontmatter", {
+  riskClass: "R2",
+  sideEffects: ["filesystem_write"],
+  description: "Update Obsidian note frontmatter",
+});
+
+register("vault_move_note", {
+  riskClass: "R2",
+  sideEffects: ["filesystem_write"],
+  description: "Move or rename an Obsidian note",
+});
+
+register("vault_daily_note", {
+  riskClass: "R2",
+  sideEffects: ["filesystem_write"],
+  description: "Create or read the daily note",
+});
+
 // ---------------------------------------------------------------------------
 // R3 — High-risk, approval recommended
 // ---------------------------------------------------------------------------
@@ -232,6 +316,12 @@ register("exec", {
     }
     return null;
   },
+});
+
+register("vault_delete_note", {
+  riskClass: "R3",
+  sideEffects: ["filesystem_write"],
+  description: "Delete or trash an Obsidian note",
 });
 
 register("process", {

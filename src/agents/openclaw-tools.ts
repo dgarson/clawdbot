@@ -1,6 +1,8 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 import type { AnyAgentTool } from "./tools/common.js";
+import { getObsidianRuntime } from "../obsidian/startup.js";
+import { createVaultTools } from "../obsidian/tools/index.js";
 import { resolvePluginTools } from "../plugins/tools.js";
 import { createSlackInteractiveConfirmationTool } from "../slack/tools/interactive-confirmation-tool.js";
 import { createSlackInteractiveFormTool } from "../slack/tools/interactive-form-tool.js";
@@ -226,6 +228,18 @@ export function createOpenClawTools(options?: {
     }),
     createImageGenerateTool(),
   ];
+
+  const obsidianRuntime = getObsidianRuntime();
+  if (obsidianRuntime && options?.config?.obsidian?.enabled) {
+    tools.push(
+      ...createVaultTools({
+        vault: obsidianRuntime.vault,
+        config: options.config.obsidian,
+        linkIndex: obsidianRuntime.linkIndex,
+        selfAuthoredFilter: obsidianRuntime.selfAuthoredFilter,
+      }),
+    );
+  }
 
   // Progressive memory tools — only registered when memory.progressive.enabled = true.
   // Each factory returns null if the feature is disabled, so we filter nulls.

@@ -24,6 +24,7 @@ import type {
 } from "./types.messages.js";
 import type { ModelsConfig } from "./types.models.js";
 import type { NodeHostConfig } from "./types.node-host.js";
+import type { ObsidianConfig } from "./types.obsidian.js";
 import type { OverseerConfig } from "./types.overseer.js";
 import type { PluginsConfig } from "./types.plugins.js";
 import type { PrReviewMonitorConfig } from "./types.pr-review-monitor.js";
@@ -107,6 +108,7 @@ export type OpenClawConfig = {
   talk?: TalkConfig;
   gateway?: GatewayConfig;
   memory?: MemoryConfig;
+  obsidian?: ObsidianConfig;
   prReviewMonitor?: PrReviewMonitorConfig;
   /** Execution layer configuration (feature flags for gradual migration). */
   execution?: ExecutionConfig;

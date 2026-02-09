@@ -11,6 +11,7 @@ import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import { stopJournalSubscriber } from "../infra/journal/index.js";
 import { stopMemoryFeedbackSubscriber } from "../memory/feedback/feedback-subscriber.js";
 import { closeAllProgressiveStores } from "../memory/progressive-manager.js";
+import { stopObsidianIntegration } from "../obsidian/startup.js";
 
 export function createGatewayCloseHandler(params: {
   bonjourStop: (() => Promise<void>) | null;
@@ -108,6 +109,7 @@ export function createGatewayCloseHandler(params: {
       }
     }
     await stopGmailWatcher();
+    stopObsidianIntegration();
     stopMemoryFeedbackSubscriber();
     stopJournalSubscriber();
     closeAllProgressiveStores();
