@@ -208,6 +208,9 @@ export async function createSdkMainAgentRuntime(
     });
 
   log.debug(
+    `createSdkMainAgentRuntime: currentChannelId=${params.currentChannelId}, currentThreadTs=${params.currentThreadTs}, isToolBridgeContext=true ${logContext}`,
+  );
+  log.debug(
     `SDK runtime initialized: tools=${tools.length} (mcp=${mcpTools.length}, override=${params.tools ? params.tools.length : "none"}) ${logContext}`,
   );
 
