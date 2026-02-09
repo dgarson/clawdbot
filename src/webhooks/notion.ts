@@ -13,6 +13,7 @@
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 import crypto from "node:crypto";
+import { shouldProcessNotionEvent } from "./notion-dedup.js";
 
 // ────────────────────────────── Types ──────────────────────────────
 
@@ -53,7 +54,7 @@ export interface NotionWebhookAuthor {
 
 export interface NotionWebhookEntity {
   id: string;
-  type: "page" | "block" | "database";
+  type: "page" | "block" | "database" | "data_source" | "comment";
 }
 
 /** Normalized event envelope from a parsed Notion webhook payload. */
@@ -326,11 +327,22 @@ export function createNotionEventRouter(deps: {
   logSystem?: (msg: string) => void;
   /** Fetch page content from Notion API for memory ingest. */
   fetchPageContent?: (pageId: string) => Promise<string | null>;
+  /** Deduplication window in ms. Set to 0 to disable. Default: 30000. */
+  deduplicationWindowMs?: number;
   log?: (msg: string) => void;
 }): (event: NotionWebhookEvent) => Promise<void> {
   return async (event: NotionWebhookEvent) => {
     const category = categoriseNotionEvent(event.type);
     const entityDesc = `${event.entity?.type ?? "unknown"}:${event.entity?.id ?? "?"}`;
+
+    // Deduplication: skip if we recently processed the same entity+type
+    const windowMs = deps.deduplicationWindowMs ?? 30_000;
+    if (windowMs > 0 && event.entity?.id && event.type) {
+      if (!shouldProcessNotionEvent(event.entity.id, event.type, windowMs)) {
+        deps.log?.(`notion webhook: dedup — skipping duplicate ${event.type} for ${entityDesc}`);
+        return;
+      }
+    }
 
     switch (category) {
       case "memory": {
@@ -444,10 +456,23 @@ function safeJsonParse(text: string): unknown {
   }
 }
 
+/** Max webhook body size: 1 MB. Notion payloads are typically small, so this is generous. */
+const MAX_BODY_BYTES = 1024 * 1024;
+
 async function readRequestBody(req: IncomingMessage): Promise<string> {
   return await new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    let totalBytes = 0;
+    req.on("data", (chunk) => {
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      totalBytes += buf.length;
+      if (totalBytes > MAX_BODY_BYTES) {
+        req.destroy();
+        reject(new Error("Request body too large"));
+        return;
+      }
+      chunks.push(buf);
+    });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
     req.on("error", reject);
   });

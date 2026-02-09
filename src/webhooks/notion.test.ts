@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import crypto from "node:crypto";
 import { EventEmitter } from "node:events";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { resetNotionDedup } from "./notion-dedup.js";
 import {
   categoriseNotionEvent,
   createNotionEventRouter,
@@ -237,6 +238,10 @@ describe("categoriseNotionEvent", () => {
 // ────────────────────── Event Router ──────────────────────
 
 describe("createNotionEventRouter", () => {
+  beforeEach(() => {
+    resetNotionDedup();
+  });
+
   it("routes memory events to ingestMemory", async () => {
     const ingestMemory = vi.fn(async () => {});
     const router = createNotionEventRouter({ ingestMemory });
