@@ -74,7 +74,7 @@ describe("notion_get_page tool", () => {
     const tools = createNotionTools({ apiKey: "test", fetchFn });
     const tool = tools.find((t) => t.name === "notion_get_page")!;
 
-    const result = await tool.execute("call-1", { page_id: "page-123" });
+    await tool.execute("call-1", { page_id: "page-123" });
     expect(fetchFn).toHaveBeenCalledTimes(1);
   });
 });

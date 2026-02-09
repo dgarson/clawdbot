@@ -3,7 +3,6 @@ import type {
   EscalationOutcome,
   ReactionEscalationAdapter,
   ReactionMessageContext,
-  SignalReaction,
 } from "./types.js";
 
 // ---------- mocks ----------
@@ -69,7 +68,7 @@ function buildService(adapter: ReactionEscalationAdapter) {
         enabled: true,
         channels: ["general"],
       },
-    } as any,
+    } as unknown,
     channelId: "general",
     adapter,
   });

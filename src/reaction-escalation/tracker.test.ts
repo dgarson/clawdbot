@@ -160,7 +160,7 @@ describe("ReactionEscalationTracker", () => {
 
     // Wait for deliverOutcome to be called — signals completion
     const trackPromise = new Promise<void>((resolve) => {
-      mockDeliverOutcome.mockImplementation(async (...args: unknown[]) => {
+      mockDeliverOutcome.mockImplementation(async (..._args: unknown[]) => {
         resolve();
         return { messageId: "m1" };
       });

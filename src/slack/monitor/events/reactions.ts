@@ -15,23 +15,24 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
         return;
       }
 
-      const channelInfo = await ctx.resolveChannelName(item.channel);
+      const channelId = item.channel;
+      if (!channelId || !item.ts) {
+        return;
+      }
+      const channelInfo = await ctx.resolveChannelName(channelId);
       const channelType = channelInfo?.type;
       if (
         !ctx.isChannelAllowed({
-          channelId: item.channel,
+          channelId,
           channelName: channelInfo?.name,
           channelType,
         })
       ) {
         return;
       }
-      if (!item.ts) {
-        return;
-      }
 
       const channelLabel = resolveSlackChannelLabel({
-        channelId: item.channel,
+        channelId,
         channelName: channelInfo?.name,
       });
       const actorInfo = event.user ? await ctx.resolveUserName(event.user) : undefined;
@@ -42,7 +43,7 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
       const baseText = `Slack reaction ${action}: :${emojiLabel}: by ${actorLabel} in ${channelLabel} msg ${item.ts}`;
       const text = authorLabel ? `${baseText} from ${authorLabel}` : baseText;
       const sessionKey = ctx.resolveSlackSystemEventSessionKey({
-        channelId: item.channel,
+        channelId,
         channelType,
       });
       if (action === "added" && ctx.reactionEscalation) {
@@ -50,7 +51,7 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
           reaction: emojiLabel,
           reactorUserId: event.user,
           reactorName: actorLabel,
-          channelId: item.channel,
+          channelId,
           channelName: channelInfo?.name,
           messageTs: item.ts,
           botUserId: ctx.botUserId,
@@ -58,14 +59,14 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
         if (escalation.handled) {
           enqueueSystemEvent(`${text} [escalated: ${escalation.intent}]`, {
             sessionKey,
-            contextKey: `slack:reaction:escalated:${item.channel}:${item.ts}:${event.user}:${emojiLabel}`,
+            contextKey: `slack:reaction:escalated:${channelId}:${item.ts}:${event.user}:${emojiLabel}`,
           });
           return;
         }
       }
       enqueueSystemEvent(text, {
         sessionKey,
-        contextKey: `slack:reaction:${action}:${item.channel}:${item.ts}:${event.user}:${emojiLabel}`,
+        contextKey: `slack:reaction:${action}:${channelId}:${item.ts}:${event.user}:${emojiLabel}`,
       });
     } catch (err) {
       ctx.runtime.error?.(danger(`slack reaction handler failed: ${String(err)}`));

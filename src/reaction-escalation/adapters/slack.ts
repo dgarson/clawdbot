@@ -56,23 +56,6 @@ async function fetchSlackMessage(
   return message ?? null;
 }
 
-async function fetchSlackThreadMessage(
-  client: WebClient,
-  channelId: string,
-  threadTs: string,
-  messageTs: string,
-): Promise<SlackMessageEvent | null> {
-  const result = await client.conversations.replies({
-    channel: channelId,
-    ts: threadTs,
-    latest: messageTs,
-    inclusive: true,
-    limit: 1,
-  });
-  const message = (result.messages ?? [])[0] as SlackMessageEvent | undefined;
-  return message ?? null;
-}
-
 async function buildPermalink(client: WebClient, channelId: string, messageTs: string) {
   const response = await client.chat.getPermalink({ channel: channelId, message_ts: messageTs });
   return response.permalink ?? null;

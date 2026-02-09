@@ -1,13 +1,12 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { ReactionEscalationConfig } from "../config/types.reaction-escalation.js";
 
+type OutcomeBase = NonNullable<ReactionEscalationConfig["outcome"]>;
+
 export type ResolvedReactionEscalationConfig = ReactionEscalationConfig & {
   enabled: boolean;
-  outcome: {
-    postReply: boolean;
-    digestChannel?: string;
-    includePermalink: boolean;
-  };
+  outcome: Required<Pick<OutcomeBase, "postReply" | "includePermalink">> &
+    Pick<OutcomeBase, "digestChannel">;
   rateLimit: Required<NonNullable<ReactionEscalationConfig["rateLimit"]>>;
 };
 
