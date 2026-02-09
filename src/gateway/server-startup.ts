@@ -202,6 +202,7 @@ export async function startGatewaySidecars(params: {
           warn: (msg) => params.log.warn(`work-queue: ${msg}`),
           error: (msg) => params.log.error(`work-queue: ${msg}`),
           debug: (msg) => params.log.debug(`work-queue: ${msg}`),
+          trace: (msg) => params.log.debug(`work-queue: ${msg}`),
         },
       });
       await mgr.start();

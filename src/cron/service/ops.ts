@@ -233,17 +233,22 @@ export async function run(state: CronServiceState, id: string, mode?: "due" | "f
 
   // Phase 2 (unlocked): execute the job payload.
   let result;
+  let endedAtMs = state.deps.nowMs();
   try {
     result = await executeJobPayload(state, claimed);
   } catch (err) {
     result = { status: "error" as const, error: String(err) };
   }
+  endedAtMs = state.deps.nowMs();
 
   // Phase 3 (locked): finalize, persist, and re-arm.
   await locked(state, async () => {
+    const runAtMs = claimed.state.runningAtMs;
     finalizeJobRun(state, claimed, result, {
       forced,
-      nowMs: state.deps.nowMs(),
+      nowMs: runAtMs ?? endedAtMs,
+      runAtMs,
+      endedAtMs,
     });
     await persist(state);
     armTimer(state);

@@ -4,6 +4,7 @@ import type {
   EmbeddedPiSubscribeState,
 } from "./pi-embedded-subscribe.handlers.types.js";
 import type { SubscribeEmbeddedPiSessionParams } from "./pi-embedded-subscribe.types.js";
+import type { RawStreamEvent } from "./stream/index.js";
 import { parseReplyDirectives } from "../auto-reply/reply/reply-directives.js";
 import { createStreamingDirectiveAccumulator } from "../auto-reply/reply/streaming-directives.js";
 import { formatToolAggregate } from "../auto-reply/tool-meta.js";
@@ -14,6 +15,7 @@ import {
   isMessagingToolDuplicateNormalized,
   normalizeTextForComparison,
 } from "./pi-embedded-helpers.js";
+import { createEmbeddedPiLegacyCallbackBridge } from "./pi-embedded-subscribe.callback-bridge.js";
 import { createEmbeddedPiSessionEventHandler } from "./pi-embedded-subscribe.handlers.js";
 import { formatReasoningMessage, stripCompactionHandoffText } from "./pi-embedded-utils.js";
 import { hasNonzeroUsage, normalizeUsage, type UsageLike } from "./usage.js";
@@ -32,6 +34,9 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   const reasoningMode = params.reasoningMode ?? "off";
   const toolResultFormat = params.toolResultFormat ?? "markdown";
   const useMarkdown = toolResultFormat === "markdown";
+  const hasBlockReplySink = Boolean(params.streamMiddleware || params.onBlockReply);
+  const hasReasoningStreamSink = Boolean(params.streamMiddleware || params.onReasoningStream);
+  const hasToolResultSink = Boolean(params.streamMiddleware || params.onToolResult);
 
   log.debug("subscribeEmbeddedPiSession: initializing", {
     feature: "streaming",
@@ -39,6 +44,9 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     blockReplyBreak: params.blockReplyBreak ?? "text_end",
     hasOnBlockReply: Boolean(params.onBlockReply),
     hasOnReasoningStream: Boolean(params.onReasoningStream),
+    hasBlockReplySink,
+    hasReasoningStreamSink,
+    hasToolResultSink,
     hasBlockChunking: Boolean(params.blockReplyChunking),
     emitReasoningInBlockReply: params.emitReasoningInBlockReply === true,
     verboseLevel: params.verboseLevel,
@@ -59,8 +67,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     blockReplyBreak: params.blockReplyBreak ?? "text_end",
     reasoningMode,
     includeReasoning: reasoningMode === "on",
-    shouldEmitPartialReplies: !(reasoningMode === "on" && !params.onBlockReply),
-    streamReasoning: reasoningMode === "stream" && typeof params.onReasoningStream === "function",
+    shouldEmitPartialReplies: !(reasoningMode === "on" && !hasBlockReplySink),
+    streamReasoning: reasoningMode === "stream" && hasReasoningStreamSink,
     emitReasoningInBlockReply,
     deltaBuffer: "",
     blockBuffer: "",
@@ -178,7 +186,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
 
     // If we're not streaming block replies, ensure the final payload includes
     // the final text even when interim streaming was enabled.
-    if (state.includeReasoning && text && !params.onBlockReply) {
+    if (state.includeReasoning && text && !hasBlockReplySink) {
       log.trace("embedded_finalize_assistant_texts", {
         mode: "includeReasoning_noBlockReply",
         textLen: text.length,
@@ -317,6 +325,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     typeof params.shouldEmitToolOutput === "function"
       ? params.shouldEmitToolOutput()
       : params.verboseLevel === "full";
+  const { emitRawStreamEvent } = createEmbeddedPiLegacyCallbackBridge(params, log);
+  const emitRaw = (event: RawStreamEvent) => {
+    emitRawStreamEvent(event);
+  };
   const formatToolOutputBlock = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) {
@@ -327,10 +339,9 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     }
     return `\`\`\`txt\n${trimmed}\n\`\`\``;
   };
-  const mw = params.streamMiddleware;
 
   const emitToolSummary = (toolName?: string, meta?: string) => {
-    if (!params.onToolResult) {
+    if (!hasToolResultSink) {
       return;
     }
     const agg = formatToolAggregate(toolName, meta ? [meta] : undefined, {
@@ -340,25 +351,14 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0)) {
       return;
     }
-    // Push to middleware (dual-path: both middleware and legacy callback fire)
-    if (mw) {
-      mw.push({
-        kind: "agent_event",
-        stream: "tool_summary",
-        data: { text: cleanedText, mediaUrls },
-      });
-    }
-    try {
-      void params.onToolResult({
-        text: cleanedText,
-        mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
-      });
-    } catch {
-      // ignore tool result delivery failures
-    }
+    emitRaw({
+      kind: "agent_event",
+      stream: "tool_summary",
+      data: { text: cleanedText, mediaUrls: mediaUrls?.length ? mediaUrls : undefined },
+    });
   };
   const emitToolOutput = (toolName?: string, meta?: string, output?: string) => {
-    if (!params.onToolResult || !output) {
+    if (!hasToolResultSink || !output) {
       return;
     }
     const agg = formatToolAggregate(toolName, meta ? [meta] : undefined, {
@@ -369,22 +369,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0)) {
       return;
     }
-    // Push to middleware (dual-path)
-    if (mw) {
-      mw.push({
-        kind: "agent_event",
-        stream: "tool_output",
-        data: { text: cleanedText, mediaUrls },
-      });
-    }
-    try {
-      void params.onToolResult({
-        text: cleanedText,
-        mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
-      });
-    } catch {
-      // ignore tool result delivery failures
-    }
+    emitRaw({
+      kind: "agent_event",
+      stream: "tool_output",
+      data: { text: cleanedText, mediaUrls: mediaUrls?.length ? mediaUrls : undefined },
+    });
   };
 
   const stripBlockTags = (
@@ -537,7 +526,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     state.lastBlockReplyText = chunk;
     assistantTexts.push(chunk);
     rememberAssistantText(chunk);
-    if (!params.onBlockReply) {
+    if (!hasBlockReplySink) {
       return;
     }
     const splitResult = replyDirectiveAccumulator.consume(chunk);
@@ -556,20 +545,9 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!cleanedText && (!mediaUrls || mediaUrls.length === 0) && !audioAsVoice) {
       return;
     }
-    // Push to middleware (dual-path)
-    if (mw) {
-      mw.push({
-        kind: "block_reply",
-        text: cleanedText,
-        mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
-        audioAsVoice,
-        replyToId,
-        replyToTag,
-        replyToCurrent,
-      });
-    }
-    void params.onBlockReply({
-      text: cleanedText,
+    emitRaw({
+      kind: "block_reply",
+      text: cleanedText ?? "",
       mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
       audioAsVoice,
       replyToId,
@@ -584,7 +562,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     partialReplyDirectiveAccumulator.consume(text, options);
 
   const flushBlockReplyBuffer = () => {
-    if (!params.onBlockReply) {
+    if (!hasBlockReplySink) {
       return;
     }
     const chunkerBuffered = blockChunker?.hasBuffered() ?? false;
@@ -600,14 +578,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       emitBlockChunk(state.blockBuffer);
       state.blockBuffer = "";
     }
-    // Push flush event to middleware after draining
-    if (mw) {
-      mw.push({ kind: "block_reply_flush" });
-    }
+    emitRaw({ kind: "block_reply_flush" });
   };
 
   const emitReasoningStream = (text: string) => {
-    if (!state.streamReasoning || !params.onReasoningStream) {
+    if (!state.streamReasoning || !hasReasoningStreamSink) {
       return;
     }
     const formatted = formatReasoningMessage(text);
@@ -624,13 +599,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       formattedPreview: formatted.slice(0, 60),
     });
     state.lastStreamedReasoning = formatted;
-    // Push to middleware (dual-path)
-    if (mw) {
-      mw.push({ kind: "thinking_delta", text: formatted });
-    }
-    void params.onReasoningStream({
-      text: formatted,
-    });
+    emitRaw({ kind: "thinking_delta", text: formatted });
   };
 
   const resetForCompactionRetry = () => {
@@ -651,7 +620,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     params,
     state,
     log,
-    streamMiddleware: mw,
+    hasBlockReplySink,
+    hasReasoningStreamSink,
+    hasToolResultSink,
+    streamMiddleware: params.streamMiddleware,
+    emitRawStreamEvent: emitRaw,
     blockChunking,
     blockChunker,
     shouldEmitToolResult,

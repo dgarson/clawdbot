@@ -29,6 +29,7 @@ export type LoggerSettings = {
   file?: string;
   consoleLevel?: LogLevel;
   consoleStyle?: ConsoleStyle;
+  timezone?: string;
 };
 
 type LogObj = { date?: Date } & Record<string, unknown>;

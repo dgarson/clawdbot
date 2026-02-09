@@ -34,6 +34,7 @@ import {
   normalizeStreamingText,
   type NormalizationOptions,
 } from "./normalization.js";
+import { createExecutionRuntimeCallbackBridge } from "./runtime-callback-bridge.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -180,6 +181,10 @@ export interface RuntimeAdapterParams {
   images?: Array<{ type: string; data: string | Uint8Array; mediaType?: string }>;
   onPartialReply?: (payload: ReplyPayload) => void | Promise<void>;
   onBlockReply?: (payload: ReplyPayload) => void | Promise<void>;
+  onBlockReplyFlush?: () => void | Promise<void>;
+  onReasoningStream?: (payload: ReplyPayload) => void | Promise<void>;
+  onToolResult?: (payload: ReplyPayload) => void | Promise<void>;
+  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
   onToolStart?: (
     name: string,
     id: string,
@@ -268,6 +273,10 @@ export class DefaultTurnExecutor implements TurnExecutor {
   ): Promise<TurnOutcome> {
     const runId = request.runId ?? crypto.randomUUID();
     const state = this.createInitialState(runId);
+    const callbackBridge = createExecutionRuntimeCallbackBridge({
+      request,
+      logger: this.logger,
+    });
 
     // Note: lifecycle events (start/end/error) are managed by the kernel layer.
     // The executor only handles adapter-level events (partial, tool, block).
@@ -285,10 +294,14 @@ export class DefaultTurnExecutor implements TurnExecutor {
         images: request.images,
         onPartialReply: (payload) => this.handlePartialReply(state, payload, request, emitter),
         onBlockReply: (payload) => this.handleBlockReply(state, payload, request, emitter),
+        onBlockReplyFlush: () => callbackBridge.onBlockReplyFlush(),
+        onReasoningStream: (payload) => callbackBridge.onReasoningStream(payload),
+        onToolResult: (payload) => callbackBridge.onToolResult(payload),
+        onAgentEvent: (evt) => callbackBridge.onAgentEvent(evt),
         onToolStart: (name, id, params) => this.handleToolStart(state, name, id, params, emitter),
         onToolEnd: (name, id, success, result, error) =>
           this.handleToolEnd(state, name, id, success, result, error, emitter),
-        onAssistantMessageStart: () => this.handleAssistantMessageStart(state, request, emitter),
+        onAssistantMessageStart: () => callbackBridge.onAssistantMessageStart(),
         streamMiddleware: request.streamMiddleware,
       });
 
@@ -402,27 +415,30 @@ export class DefaultTurnExecutor implements TurnExecutor {
                 })
             : undefined,
           // Block streaming config
-          onBlockReplyFlush: request.onBlockReplyFlush,
+          onBlockReplyFlush: params.onBlockReplyFlush,
           blockReplyBreak: request.blockReplyBreak,
           blockReplyChunking: request.blockReplyChunking,
           shouldEmitToolResult: request.shouldEmitToolResult,
           shouldEmitToolOutput: request.shouldEmitToolOutput,
           // Reasoning and tool result callbacks
-          onReasoningStream: request.onReasoningStream
+          onReasoningStream: params.onReasoningStream
             ? (payload) =>
-                request.onReasoningStream?.({
+                params.onReasoningStream?.({
                   text: payload.text,
                   mediaUrls: payload.mediaUrls,
                 })
             : undefined,
-          onToolResult: request.onToolResult
+          onToolResult: params.onToolResult
             ? (payload) =>
-                request.onToolResult?.({
+                params.onToolResult?.({
                   text: payload.text,
                   mediaUrls: payload.mediaUrls,
                 })
             : undefined,
-          onAgentEvent: request.onAgentEvent ? (evt) => request.onAgentEvent?.(evt) : undefined,
+          onAgentEvent: params.onAgentEvent
+            ? (evt: unknown) =>
+                params.onAgentEvent?.(evt as { stream: string; data: Record<string, unknown> })
+            : undefined,
           // Message context from request
           messageChannel: request.messageContext?.channel,
           messageProvider: hints?.messageProvider ?? request.messageContext?.provider,
@@ -598,21 +614,24 @@ export class DefaultTurnExecutor implements TurnExecutor {
           blockReplyChunking: request.blockReplyChunking,
           shouldEmitToolResult: request.shouldEmitToolResult,
           shouldEmitToolOutput: request.shouldEmitToolOutput,
-          onToolResult: request.onToolResult
+          onToolResult: params.onToolResult
             ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
-                request.onToolResult?.({
+                params.onToolResult?.({
                   text: payload.text,
                   mediaUrls: payload.mediaUrls,
                 })
             : undefined,
-          onReasoningStream: request.onReasoningStream
+          onReasoningStream: params.onReasoningStream
             ? (payload: import("../agents/agent-runtime.js").AgentRuntimePayload) =>
-                request.onReasoningStream?.({
+                params.onReasoningStream?.({
                   text: payload.text,
                   mediaUrls: payload.mediaUrls,
                 })
             : undefined,
-          onAgentEvent: request.onAgentEvent ? (evt) => request.onAgentEvent?.(evt) : undefined,
+          onAgentEvent: params.onAgentEvent
+            ? (evt: unknown) =>
+                params.onAgentEvent?.(evt as { stream: string; data: Record<string, unknown> })
+            : undefined,
         });
 
         // Map EmbeddedPiRunResult to RuntimeAdapterResult (same shape as Pi)
@@ -840,23 +859,6 @@ export class DefaultTurnExecutor implements TurnExecutor {
         durationMs,
       }),
     );
-  }
-
-  private async handleAssistantMessageStart(
-    _state: TurnExecutionState,
-    request: ExecutionRequest,
-    _emitter: EventRouter,
-  ): Promise<void> {
-    // Forward to request callback if provided (typing indicators)
-    if (request.onAssistantMessageStart) {
-      try {
-        await request.onAssistantMessageStart();
-      } catch (err) {
-        this.logger?.error?.(
-          `[TurnExecutor] onAssistantMessageStart callback failed: ${err instanceof Error ? err.message : String(err)}`,
-        );
-      }
-    }
   }
 
   // ---------------------------------------------------------------------------

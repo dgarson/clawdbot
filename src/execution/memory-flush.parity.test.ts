@@ -433,23 +433,17 @@ describe("Memory Flush ExecutionKernel Parity", () => {
 
   describe("lifecycle events fire for embeddedOnly runs", () => {
     it("emits lifecycle.start and lifecycle.end events", async () => {
-      const events: Array<{ kind: string }> = [];
-
       const kernel = createExecutionKernel({
         resolver: mockResolver,
         executor: mockExecutor,
         stateService: mockStateService,
       });
 
-      const request = createMemoryFlushRequest({
-        onEvent: (evt) => {
-          events.push({ kind: evt.kind });
-        },
-      });
+      const request = createMemoryFlushRequest();
 
-      await kernel.execute(request);
+      const result = await kernel.execute(request);
 
-      const kinds = events.map((e) => e.kind);
+      const kinds = result.events.map((e) => e.kind);
       expect(kinds).toContain("lifecycle.start");
       expect(kinds).toContain("lifecycle.end");
     });

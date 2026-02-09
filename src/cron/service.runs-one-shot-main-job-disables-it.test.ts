@@ -225,6 +225,7 @@ describe("CronService", () => {
     const job = await cron.add({
       name: "wakeMode now fallback",
       enabled: true,
+      deleteAfterRun: false,
       schedule: { kind: "at", at: new Date(1).toISOString() },
       sessionTarget: "main",
       wakeMode: "now",
@@ -233,14 +234,16 @@ describe("CronService", () => {
 
     const runPromise = cron.run(job.id, "force");
     await vi.advanceTimersByTimeAsync(125_000);
-    await runPromise;
+    await expect(runPromise).resolves.toEqual({ ok: true, ran: true });
 
     expect(runHeartbeatOnce).toHaveBeenCalled();
     expect(requestHeartbeatNow).toHaveBeenCalled();
-    expect(job.state.lastStatus).toBe("ok");
-    expect(job.state.lastError).toBeUndefined();
+    const refreshed = (await cron.list({ includeDisabled: true })).find(
+      (item) => item.id === job.id,
+    );
+    expect(refreshed?.state.lastStatus).toBe("ok");
+    expect(refreshed?.state.lastError).toBeUndefined();
 
-    await cron.list({ includeDisabled: true });
     cron.stop();
     await store.cleanup();
   });
@@ -281,7 +284,7 @@ describe("CronService", () => {
 
     await waitForJobs(cron, (items) => items.some((item) => item.state.lastStatus === "ok"));
     expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("\u{1f4cb} Cron: done", {
+    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron: done", {
       agentId: undefined,
     });
     expect(requestHeartbeatNow).toHaveBeenCalled();
@@ -429,7 +432,7 @@ describe("CronService", () => {
     await vi.runOnlyPendingTimersAsync();
     await waitForJobs(cron, (items) => items.some((item) => item.state.lastStatus === "error"));
 
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("\u{1f4cb} Cron (error): last output", {
+    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron (error): last output", {
       agentId: undefined,
     });
     expect(requestHeartbeatNow).toHaveBeenCalled();

@@ -4,6 +4,7 @@ import type { WorkContextExtractor, WorkItemCarryoverContext } from "./context-e
 import type { WorkQueueStore } from "./store.js";
 import type { WorkItem, WorkItemOutcome } from "./types.js";
 import type { WorkstreamNotesStore } from "./workstream-notes.js";
+import { formatDurationCompact } from "../infra/format-time/format-duration.js";
 import { truncateSessionLabel } from "../sessions/session-label.js";
 import { linkCodexTaskForWorkItem } from "./codex-task-linker.js";
 import {
@@ -15,6 +16,7 @@ import {
 import {
   BACKOFF_BASE_MS,
   DEFAULT_HEARTBEAT_INTERVAL_MS,
+  DEFAULT_HEARTBEAT_TTL_MS,
   DEFAULT_POLL_INTERVAL_MS,
   MAX_CONSECUTIVE_ERRORS,
 } from "./worker-defaults.js";
@@ -22,6 +24,169 @@ import { WorkerMetrics, type WorkerMetricsSnapshot } from "./worker-metrics.js";
 
 const APPROVAL_PATTERN = /approval|exec.*approv/i;
 const WORKER_LABEL_PREFIX = "W: ";
+
+/**
+ * Find "leaf" dependencies: items that block other work but have no
+ * uncompleted dependencies of their own (i.e. the actionable bottlenecks).
+ */
+export function findLeafDependencies(items: WorkItem[]): WorkItem[] {
+  const byId = new Map<string, WorkItem>();
+  for (const it of items) {
+    byId.set(it.id, it);
+  }
+
+  // Collect all IDs referenced as dependencies.
+  const depIds = new Set<string>();
+  for (const it of items) {
+    if (it.dependsOn) {
+      for (const d of it.dependsOn) {
+        depIds.add(d);
+      }
+    }
+  }
+
+  // A leaf is a referenced dependency that:
+  // (a) exists in the queue, (b) is not completed, and
+  // (c) has no uncompleted dependsOn of its own.
+  const leaves: WorkItem[] = [];
+  for (const id of depIds) {
+    const dep = byId.get(id);
+    if (!dep || dep.status === "completed") {
+      continue;
+    }
+
+    const hasUncompletedDep = dep.dependsOn?.some((d) => {
+      const upstream = byId.get(d);
+      return upstream && upstream.status !== "completed";
+    });
+    if (!hasUncompletedDep) {
+      leaves.push(dep);
+    }
+  }
+
+  return leaves;
+}
+
+// ---------------------------------------------------------------------------
+// Chronic Blocker Detection
+// ---------------------------------------------------------------------------
+
+export const CHRONIC_BLOCKER_THRESHOLD = 3;
+
+export type BlockerHistoryEntry = {
+  consecutiveCount: number;
+  firstSeenAt: string;
+};
+
+export type ChronicBlocker = {
+  item: WorkItem;
+  consecutiveCount: number;
+  firstSeenAt: string;
+};
+
+/**
+ * Track leaf dependencies across consecutive polls and surface items that
+ * remain as blockers for `threshold` or more polls in a row.
+ *
+ * Pure function — caller owns the history map and passes it each cycle.
+ */
+export function detectChronicBlockers(
+  leaves: WorkItem[],
+  history: Map<string, BlockerHistoryEntry>,
+  opts?: { threshold?: number; now?: Date },
+): { updatedHistory: Map<string, BlockerHistoryEntry>; chronic: ChronicBlocker[] } {
+  const threshold = opts?.threshold ?? CHRONIC_BLOCKER_THRESHOLD;
+  const now = opts?.now ?? new Date();
+  const currentIds = new Set(leaves.map((l) => l.id));
+  const updatedHistory = new Map<string, BlockerHistoryEntry>();
+
+  for (const leaf of leaves) {
+    const prev = history.get(leaf.id);
+    if (prev) {
+      updatedHistory.set(leaf.id, {
+        consecutiveCount: prev.consecutiveCount + 1,
+        firstSeenAt: prev.firstSeenAt,
+      });
+    } else {
+      updatedHistory.set(leaf.id, {
+        consecutiveCount: 1,
+        firstSeenAt: now.toISOString(),
+      });
+    }
+  }
+
+  // Items no longer in the leaf set are pruned (streak broken).
+
+  const chronic: ChronicBlocker[] = [];
+  for (const leaf of leaves) {
+    const entry = updatedHistory.get(leaf.id)!;
+    if (entry.consecutiveCount >= threshold) {
+      chronic.push({
+        item: leaf,
+        consecutiveCount: entry.consecutiveCount,
+        firstSeenAt: entry.firstSeenAt,
+      });
+    }
+  }
+
+  return { updatedHistory, chronic };
+}
+
+// ---------------------------------------------------------------------------
+// Stale Task Detection
+// ---------------------------------------------------------------------------
+
+export type StaleItemInfo = {
+  item: WorkItem;
+  /** Milliseconds since last heartbeat (or startedAt), or -1 if unknown. */
+  staleSinceMs: number;
+  reason: "missing_heartbeat" | "stale_heartbeat";
+};
+
+/**
+ * Detect in_progress items whose heartbeat has expired.
+ * Read-only — does NOT reset or recover items (that's recovery.ts's job).
+ */
+export function detectStaleItems(
+  items: WorkItem[],
+  opts?: { heartbeatTtlMs?: number; now?: Date },
+): StaleItemInfo[] {
+  const ttlMs = opts?.heartbeatTtlMs ?? DEFAULT_HEARTBEAT_TTL_MS;
+  const now = opts?.now ?? new Date();
+  const nowMs = now.getTime();
+  const stale: StaleItemInfo[] = [];
+
+  for (const item of items) {
+    if (item.status !== "in_progress") {
+      continue;
+    }
+
+    const heartbeat = item.lastHeartbeatAt;
+    const parsed = heartbeat ? Date.parse(heartbeat) : NaN;
+
+    if (!Number.isNaN(parsed)) {
+      // Valid heartbeat — check if stale.
+      const elapsed = nowMs - parsed;
+      if (elapsed > ttlMs) {
+        stale.push({ item, staleSinceMs: elapsed, reason: "stale_heartbeat" });
+      }
+    } else {
+      // Missing or unparseable heartbeat — fall back to startedAt.
+      const startParsed = item.startedAt ? Date.parse(item.startedAt) : NaN;
+      if (!Number.isNaN(startParsed)) {
+        const elapsed = nowMs - startParsed;
+        if (elapsed > ttlMs) {
+          stale.push({ item, staleSinceMs: elapsed, reason: "missing_heartbeat" });
+        }
+      } else {
+        // No heartbeat, no startedAt — always stale.
+        stale.push({ item, staleSinceMs: -1, reason: "missing_heartbeat" });
+      }
+    }
+  }
+
+  return stale;
+}
 
 export type WorkerDeps = {
   store: WorkQueueStore;
@@ -37,6 +202,7 @@ export type WorkerDeps = {
     warn: (msg: string, meta?: Record<string, unknown>) => void;
     error: (msg: string, meta?: Record<string, unknown>) => void;
     debug: (msg: string, meta?: Record<string, unknown>) => void;
+    trace: (msg: string, meta?: Record<string, unknown>) => void;
   };
 };
 
@@ -66,6 +232,7 @@ export class WorkQueueWorker {
   private loopPromise: Promise<void> | null = null;
   private metrics = new WorkerMetrics();
   private lastPollTime: Date | null = null;
+  private blockerHistory = new Map<string, BlockerHistoryEntry>();
 
   readonly agentId: string;
   private readonly config: WorkerConfig;
@@ -384,6 +551,9 @@ export class WorkQueueWorker {
   /**
    * Log a summary of all queue items when a claim attempt fails,
    * so operators can see why nothing matched.
+   *
+   * - debug level: single summary line with status counts + aggregated skip reasons
+   * - trace level: per-item detail (ID, title, workstream, skip reason)
    */
   private async logQueueDiagnostics(queueId: string, workerWorkstreams: string[]): Promise<void> {
     try {
@@ -401,13 +571,17 @@ export class WorkQueueWorker {
       const statDesc = Object.entries(byStat)
         .map(([s, n]) => `${s}=${n}`)
         .join(", ");
-      this.deps.log.debug(
-        `worker[${this.agentId}]: queue "${queueId}" has ${items.length} items (${statDesc})`,
-      );
 
-      // Show detail for pending items that didn't match.
+      // Classify pending items by skip reason.
       const pending = items.filter((it) => it.status === "pending");
+      const skipCounts: Record<string, number> = {};
+
       for (const it of pending) {
+        const reason = this.classifySkipReason(it, workerWorkstreams);
+
+        skipCounts[reason] = (skipCounts[reason] ?? 0) + 1;
+
+        // Trace: per-item detail (preserves full diagnostic info).
         const parts: string[] = [`id=${it.id}`, `"${it.title}"`];
         if (it.workstream) {
           parts.push(`workstream=${it.workstream}`);
@@ -421,36 +595,90 @@ export class WorkQueueWorker {
         if (it.blockedBy?.length) {
           parts.push(`blockedBy=[${it.blockedBy.join(",")}]`);
         }
+        parts.push(`skip-reason: ${reason}`);
+        this.deps.log.trace(`worker[${this.agentId}]: pending item: ${parts.join(", ")}`);
+      }
 
-        // Identify why this item likely didn't match.
-        const reasons: string[] = [];
-        if (
-          workerWorkstreams.length > 0 &&
-          it.workstream &&
-          !workerWorkstreams.includes(it.workstream)
-        ) {
-          reasons.push(
-            `workstream "${it.workstream}" not in worker scopes [${workerWorkstreams.join(",")}]`,
+      // Detect leaf dependencies (actionable bottlenecks).
+      const leaves = findLeafDependencies(items);
+
+      // Debug: single summary line with status counts + skip-reason breakdown + leaves.
+      const skipDesc = Object.entries(skipCounts)
+        .map(([r, n]) => `${r}=${n}`)
+        .join(", ");
+      const skipSuffix = skipDesc ? ` — skipped: ${skipDesc}` : "";
+      const leafSuffix = leaves.length > 0 ? ` — leaves: ${leaves.length} blocking` : "";
+      this.deps.log.debug(
+        `worker[${this.agentId}]: queue "${queueId}" has ${items.length} items (${statDesc})${skipSuffix}${leafSuffix}`,
+      );
+
+      // Debug: per-leaf lines so operators can see what's stuck.
+      for (const leaf of leaves) {
+        const shortId = leaf.id.slice(0, 8);
+        const assigned = leaf.assignedTo?.agentId ?? "none";
+        this.deps.log.debug(
+          `worker[${this.agentId}]: leaf dep: ${shortId} "${leaf.title}" status=${leaf.status} assignedTo=${assigned}`,
+        );
+      }
+
+      // Chronic blocker detection.
+      const { updatedHistory, chronic } = detectChronicBlockers(leaves, this.blockerHistory);
+      this.blockerHistory = updatedHistory;
+
+      if (chronic.length > 0) {
+        this.deps.log.debug(
+          `worker[${this.agentId}]: ${chronic.length} chronic blocker(s) (${CHRONIC_BLOCKER_THRESHOLD}+ consecutive polls)`,
+        );
+        for (const cb of chronic) {
+          const shortId = cb.item.id.slice(0, 8);
+          const assigned = cb.item.assignedTo?.agentId ?? "none";
+          this.deps.log.debug(
+            `worker[${this.agentId}]: chronic blocker: ${shortId} "${cb.item.title}" status=${cb.item.status} assignedTo=${assigned} polls=${cb.consecutiveCount} since=${cb.firstSeenAt}`,
           );
         }
-        if (workerWorkstreams.length > 0 && !it.workstream) {
-          reasons.push("item has no workstream (worker is workstream-scoped)");
-        }
-        if (it.assignedTo?.agentId && it.assignedTo.agentId !== this.agentId) {
-          reasons.push(`assigned to different agent "${it.assignedTo.agentId}"`);
-        }
-        if (it.dependsOn?.length || it.blockedBy?.length) {
-          reasons.push("has unresolved dependencies");
-        }
-        if (reasons.length > 0) {
-          parts.push(`skip-reason: ${reasons.join("; ")}`);
-        }
+      }
 
-        this.deps.log.debug(`worker[${this.agentId}]: pending item: ${parts.join(", ")}`);
+      // Stale in_progress item detection.
+      const staleItems = detectStaleItems(items);
+      if (staleItems.length > 0) {
+        this.deps.log.debug(
+          `worker[${this.agentId}]: ${staleItems.length} stale in_progress item(s) (heartbeat TTL exceeded)`,
+        );
+        for (const si of staleItems) {
+          const shortId = si.item.id.slice(0, 8);
+          const assigned = si.item.assignedTo?.agentId ?? "none";
+          const duration = formatDurationCompact(si.staleSinceMs, { spaced: true }) ?? "unknown";
+          this.deps.log.debug(
+            `worker[${this.agentId}]: stale item: ${shortId} "${si.item.title}" assignedTo=${assigned} ${si.reason} staleFor=${duration}`,
+          );
+        }
       }
     } catch {
       // Diagnostics are best-effort; don't disrupt the poll loop.
     }
+  }
+
+  /**
+   * Classify why a pending item was not claimed by this worker.
+   */
+  private classifySkipReason(item: WorkItem, workerWorkstreams: string[]): string {
+    if (
+      workerWorkstreams.length > 0 &&
+      item.workstream &&
+      !workerWorkstreams.includes(item.workstream)
+    ) {
+      return "workstream-mismatch";
+    }
+    if (workerWorkstreams.length > 0 && !item.workstream) {
+      return "no-workstream";
+    }
+    if (item.assignedTo?.agentId && item.assignedTo.agentId !== this.agentId) {
+      return "assigned-other";
+    }
+    if (item.dependsOn?.length || item.blockedBy?.length) {
+      return "blocked";
+    }
+    return "unknown";
   }
 
   private get targetQueueId(): string {

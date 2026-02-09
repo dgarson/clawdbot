@@ -55,10 +55,8 @@ export function handleMessageStart(
   // may deliver late text_end updates after message_end, which would otherwise
   // re-trigger block replies.
   ctx.resetAssistantMessageState(ctx.state.assistantTexts.length);
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({ kind: "message_start" });
   // Use assistant message_start as the earliest "writing" signal for typing.
-  void ctx.params.onAssistantMessageStart?.();
+  ctx.emitRawStreamEvent({ kind: "message_start" });
 }
 
 export function handleMessageUpdate(
@@ -193,17 +191,8 @@ export function handleMessageUpdate(
           mediaUrls: hasMedia ? mediaUrls : undefined,
         },
       });
-      // Push to middleware (dual-path)
-      ctx.streamMiddleware?.push({
+      ctx.emitRawStreamEvent({
         kind: "agent_event",
-        stream: "assistant",
-        data: {
-          text: cleanedText,
-          delta: deltaText,
-          mediaUrls: hasMedia ? mediaUrls : undefined,
-        },
-      });
-      void ctx.params.onAgentEvent?.({
         stream: "assistant",
         data: {
           text: cleanedText,
@@ -213,21 +202,12 @@ export function handleMessageUpdate(
       });
       ctx.state.emittedAssistantUpdate = true;
       if (ctx.state.shouldEmitPartialReplies) {
-        // Push text_delta to middleware (dual-path)
-        if (ctx.streamMiddleware) {
-          ctx.streamMiddleware.push({ kind: "text_delta", text: cleanedText });
-        }
-        if (ctx.params.onPartialReply) {
-          void ctx.params.onPartialReply({
-            text: cleanedText,
-            mediaUrls: hasMedia ? mediaUrls : undefined,
-          });
-        }
+        ctx.emitRawStreamEvent({ kind: "text_delta", text: cleanedText });
       }
     }
   }
 
-  if (ctx.params.onBlockReply && ctx.blockChunking && ctx.state.blockReplyBreak === "text_end") {
+  if (ctx.hasBlockReplySink && ctx.blockChunking && ctx.state.blockReplyBreak === "text_end") {
     ctx.blockChunker?.drain({ force: false, emit: ctx.emitBlockChunk });
   }
 
@@ -324,8 +304,7 @@ export function handleMessageEnd(
         mediaUrls: hasMedia ? mediaUrls : undefined,
       },
     });
-    // Push to middleware (dual-path)
-    ctx.streamMiddleware?.push({
+    ctx.emitRawStreamEvent({
       kind: "agent_event",
       stream: "assistant",
       data: {
@@ -334,17 +313,7 @@ export function handleMessageEnd(
         mediaUrls: hasMedia ? mediaUrls : undefined,
       },
     });
-    if (ctx.streamMiddleware) {
-      ctx.streamMiddleware.push({ kind: "text_delta", text: cleanedText });
-    }
-    void ctx.params.onAgentEvent?.({
-      stream: "assistant",
-      data: {
-        text: cleanedText,
-        delta: cleanedText,
-        mediaUrls: hasMedia ? mediaUrls : undefined,
-      },
-    });
+    ctx.emitRawStreamEvent({ kind: "text_delta", text: cleanedText });
     ctx.state.emittedAssistantUpdate = true;
   }
 
@@ -352,8 +321,25 @@ export function handleMessageEnd(
   const chunkerHasBuffered = ctx.blockChunker?.hasBuffered() ?? false;
   ctx.finalizeAssistantTexts({ text, addedDuringMessage, chunkerHasBuffered });
 
-  const onBlockReply = ctx.params.onBlockReply;
   const hasReasoningStreamCallback = typeof ctx.params.onReasoningStream === "function";
+  const emitBlockReplyPayload = (payload: {
+    text?: string;
+    mediaUrls?: string[];
+    audioAsVoice?: boolean;
+    replyToId?: string;
+    replyToTag?: boolean;
+    replyToCurrent?: boolean;
+  }) => {
+    ctx.emitRawStreamEvent({
+      kind: "block_reply",
+      text: payload.text ?? "",
+      mediaUrls: payload.mediaUrls,
+      audioAsVoice: payload.audioAsVoice,
+      replyToId: payload.replyToId,
+      replyToTag: payload.replyToTag,
+      replyToCurrent: payload.replyToCurrent,
+    });
+  };
 
   // Reasoning emission priority:
   // 1. If onReasoningStream callback is provided -> emit via that (handled at end of function)
@@ -366,7 +352,7 @@ export function handleMessageEnd(
   const shouldEmitReasoningViaBlockReply = Boolean(
     ctx.state.includeReasoning &&
     formattedReasoning &&
-    onBlockReply &&
+    ctx.hasBlockReplySink &&
     ctx.state.emitReasoningInBlockReply && // Must explicitly opt-in to emit reasoning via block reply
     !hasReasoningStreamCallback && // Don't use block reply if onReasoningStream is available
     formattedReasoning !== ctx.state.lastReasoningSent,
@@ -390,7 +376,7 @@ export function handleMessageEnd(
       return;
     }
     ctx.state.lastReasoningSent = formattedReasoning;
-    void onBlockReply?.({ text: formattedReasoning });
+    emitBlockReplyPayload({ text: formattedReasoning });
   };
 
   if (shouldEmitReasoningBeforeAnswer) {
@@ -401,7 +387,7 @@ export function handleMessageEnd(
     (ctx.state.blockReplyBreak === "message_end" ||
       (ctx.blockChunker ? ctx.blockChunker.hasBuffered() : ctx.state.blockBuffer.length > 0)) &&
     Boolean(text) &&
-    Boolean(onBlockReply);
+    ctx.hasBlockReplySink;
 
   ctx.log.debug("handleMessageEnd: block reply emission decision", {
     feature: "streaming",
@@ -410,11 +396,11 @@ export function handleMessageEnd(
     chunkerBuffered: ctx.blockChunker?.hasBuffered() ?? false,
     blockBufferLen: ctx.state.blockBuffer.length,
     textLen: text.length,
-    hasOnBlockReply: Boolean(onBlockReply),
+    hasOnBlockReply: Boolean(ctx.params.onBlockReply),
     lastBlockReplyTextLen: ctx.state.lastBlockReplyText?.length ?? 0,
   });
 
-  if (shouldEmitBlockReplyAtEnd && onBlockReply) {
+  if (shouldEmitBlockReplyAtEnd) {
     if (ctx.blockChunker?.hasBuffered()) {
       ctx.blockChunker.drain({ force: true, emit: ctx.emitBlockChunk });
       ctx.blockChunker.reset();
@@ -444,7 +430,7 @@ export function handleMessageEnd(
           } = splitResult;
           // Emit if there's content OR audioAsVoice flag (to propagate the flag).
           if (cleanedText || (mediaUrls && mediaUrls.length > 0) || audioAsVoice) {
-            void onBlockReply({
+            emitBlockReplyPayload({
               text: cleanedText,
               mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
               audioAsVoice,
@@ -466,7 +452,7 @@ export function handleMessageEnd(
   // This works for both "on" and "stream" modes - the frontend/TUI decides what to display.
   // For "stream" mode, real-time deltas are also emitted during handleMessageUpdate.
   const shouldEmitReasoningViaStream =
-    hasReasoningStreamCallback &&
+    ctx.hasReasoningStreamSink &&
     rawThinking &&
     (ctx.state.includeReasoning || ctx.state.streamReasoning);
   ctx.log.trace("handleMessageEnd: reasoning stream emission", {
@@ -478,7 +464,7 @@ export function handleMessageEnd(
     ctx.emitReasoningStream(rawThinking);
   }
 
-  if (ctx.state.blockReplyBreak === "text_end" && onBlockReply) {
+  if (ctx.state.blockReplyBreak === "text_end" && ctx.hasBlockReplySink) {
     const tailResult = ctx.consumeReplyDirectives("", { final: true });
     if (tailResult) {
       const {
@@ -490,7 +476,7 @@ export function handleMessageEnd(
         replyToCurrent,
       } = tailResult;
       if (cleanedText || (mediaUrls && mediaUrls.length > 0) || audioAsVoice) {
-        void onBlockReply({
+        emitBlockReplyPayload({
           text: cleanedText,
           mediaUrls: mediaUrls?.length ? mediaUrls : undefined,
           audioAsVoice,
@@ -502,8 +488,7 @@ export function handleMessageEnd(
     }
   }
 
-  // Push message_end to middleware (dual-path)
-  ctx.streamMiddleware?.push({ kind: "message_end" });
+  ctx.emitRawStreamEvent({ kind: "message_end" });
 
   ctx.log.debug("handleMessageEnd: resetting state", {
     feature: "streaming",

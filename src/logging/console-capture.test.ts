@@ -75,7 +75,12 @@ describe("enableConsoleCapture", () => {
   });
 
   it("prefixes console output with timestamps when enabled", () => {
-    setLoggerOverride({ level: "info", file: tempLogPath() });
+    setLoggerOverride({
+      level: "info",
+      file: tempLogPath(),
+      consoleStyle: "compact",
+      timezone: "utc",
+    });
     const now = new Date("2026-01-17T18:01:02.000Z");
     vi.useFakeTimers();
     vi.setSystemTime(now);
@@ -86,7 +91,7 @@ describe("enableConsoleCapture", () => {
     console.warn("[EventQueue] Slow listener detected");
     expect(warn).toHaveBeenCalledTimes(1);
     const firstArg = String(warn.mock.calls[0]?.[0] ?? "");
-    expect(firstArg.startsWith("2026-01-17T18:01:02.000Z [EventQueue]")).toBe(true);
+    expect(firstArg.startsWith("2026-01-17T18:01:02Z [EventQueue]")).toBe(true);
     vi.useRealTimers();
   });
 

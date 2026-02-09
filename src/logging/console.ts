@@ -1,7 +1,13 @@
 import { createRequire } from "node:module";
 import util from "node:util";
 import type { OpenClawConfig } from "../config/types.js";
+import type { DisplayTimezone } from "../infra/format-time/display-timezone.js";
 import { isVerbose } from "../globals.js";
+import {
+  formatDisplayClockTime,
+  formatDisplayTimestamp,
+  resolveDisplayTimezone,
+} from "../infra/format-time/display-timezone.js";
 import { stripAnsi } from "../terminal/ansi.js";
 import { readLoggingConfig } from "./config.js";
 import { type LogLevel, normalizeLogLevel } from "./levels.js";
@@ -12,6 +18,7 @@ export type ConsoleStyle = "pretty" | "compact" | "json";
 type ConsoleSettings = {
   level: LogLevel;
   style: ConsoleStyle;
+  timezone: DisplayTimezone;
 };
 export type ConsoleLoggerSettings = ConsoleSettings;
 
@@ -64,14 +71,22 @@ function resolveConsoleSettings(): ConsoleSettings {
   }
   const level = normalizeConsoleLevel(cfg?.consoleLevel);
   const style = normalizeConsoleStyle(cfg?.consoleStyle);
-  return { level, style };
+  const timezone = resolveDisplayTimezone(cfg?.timezone, "local");
+  return { level, style, timezone };
 }
 
 function consoleSettingsChanged(a: ConsoleSettings | null, b: ConsoleSettings) {
   if (!a) {
     return true;
   }
-  return a.level !== b.level || a.style !== b.style;
+  return (
+    a.level !== b.level ||
+    a.style !== b.style ||
+    a.timezone.mode !== b.timezone.mode ||
+    (a.timezone.mode === "iana" &&
+      b.timezone.mode === "iana" &&
+      a.timezone.timeZone !== b.timezone.timeZone)
+  );
 }
 
 export function getConsoleSettings(): ConsoleLoggerSettings {
@@ -160,16 +175,23 @@ function isEpipeError(err: unknown): boolean {
   return code === "EPIPE" || code === "EIO";
 }
 
-function formatConsoleTimestamp(style: ConsoleStyle): string {
-  const now = new Date().toISOString();
-  if (style === "pretty") {
-    return now.slice(11, 19);
+function formatConsoleTimestamp(settings: ConsoleSettings): string {
+  const now = new Date();
+  if (settings.style === "pretty") {
+    return (
+      formatDisplayClockTime(now, settings.timezone, { displaySeconds: true }) ??
+      now.toISOString().slice(11, 19)
+    );
   }
-  return now;
+  return (
+    formatDisplayTimestamp(now, settings.timezone, { displaySeconds: true }) ?? now.toISOString()
+  );
 }
 
 function hasTimestampPrefix(value: string): boolean {
-  return /^(?:\d{2}:\d{2}:\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)/.test(value);
+  return /^(?:\d{2}:\d{2}:\d{2}|\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z| [^ ]+)?)/.test(
+    value,
+  );
 }
 
 function isJsonPayload(value: string): boolean {
@@ -231,9 +253,7 @@ export function enableConsoleCapture(): void {
         trimmed.length > 0 &&
         !hasTimestampPrefix(trimmed) &&
         !isJsonPayload(trimmed);
-      const timestamp = shouldPrefixTimestamp
-        ? formatConsoleTimestamp(getConsoleSettings().style)
-        : "";
+      const timestamp = shouldPrefixTimestamp ? formatConsoleTimestamp(getConsoleSettings()) : "";
       try {
         const resolvedLogger = getLoggerLazy();
         // Map console levels to file logger

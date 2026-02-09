@@ -14,12 +14,7 @@ export function handleAgentStart(ctx: EmbeddedPiSubscribeContext) {
       startedAt: Date.now(),
     },
   });
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({ kind: "lifecycle", phase: "start", data: { phase: "start" } });
-  void ctx.params.onAgentEvent?.({
-    stream: "lifecycle",
-    data: { phase: "start" },
-  });
+  ctx.emitRawStreamEvent({ kind: "lifecycle", phase: "start", data: { phase: "start" } });
 }
 
 export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
@@ -32,13 +27,8 @@ export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
     stream: "compaction",
     data: { phase: "start" },
   });
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "agent_event",
-    stream: "compaction",
-    data: { phase: "start" },
-  });
-  void ctx.params.onAgentEvent?.({
     stream: "compaction",
     data: { phase: "start" },
   });
@@ -80,13 +70,8 @@ export function handleAutoCompactionEnd(
     stream: "compaction",
     data: { phase: "end", willRetry },
   });
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({
+  ctx.emitRawStreamEvent({
     kind: "agent_event",
-    stream: "compaction",
-    data: { phase: "end", willRetry },
-  });
-  void ctx.params.onAgentEvent?.({
     stream: "compaction",
     data: { phase: "end", willRetry },
   });
@@ -116,14 +101,9 @@ export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
       endedAt: Date.now(),
     },
   });
-  // Push to middleware (dual-path)
-  ctx.streamMiddleware?.push({ kind: "lifecycle", phase: "end", data: { phase: "end" } });
-  void ctx.params.onAgentEvent?.({
-    stream: "lifecycle",
-    data: { phase: "end" },
-  });
+  ctx.emitRawStreamEvent({ kind: "lifecycle", phase: "end", data: { phase: "end" } });
 
-  if (ctx.params.onBlockReply) {
+  if (ctx.hasBlockReplySink) {
     if (ctx.blockChunker?.hasBuffered()) {
       ctx.blockChunker.drain({ force: true, emit: ctx.emitBlockChunk });
       ctx.blockChunker.reset();

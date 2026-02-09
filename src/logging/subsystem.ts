@@ -1,7 +1,12 @@
 import type { Logger as TsLogger } from "tslog";
 import { Chalk } from "chalk";
+import type { DisplayTimezone } from "../infra/format-time/display-timezone.js";
 import { CHAT_CHANNEL_ORDER } from "../channels/registry.js";
 import { isVerbose } from "../globals.js";
+import {
+  formatDisplayClockTime,
+  formatDisplayTimestamp,
+} from "../infra/format-time/display-timezone.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
 import { clearActiveProgressLine } from "../terminal/progress-line.js";
 import {
@@ -173,6 +178,7 @@ function formatConsoleLine(opts: {
   subsystem: string;
   message: string;
   style: "pretty" | "compact" | "json";
+  timezone: DisplayTimezone;
   meta?: Record<string, unknown>;
 }): string {
   const displaySubsystem =
@@ -202,11 +208,17 @@ function formatConsoleLine(opts: {
           : color.cyan;
   const displayMessage = stripRedundantSubsystemPrefixForConsole(opts.message, displaySubsystem);
   const time = (() => {
+    const now = new Date();
     if (opts.style === "pretty") {
-      return color.gray(new Date().toISOString().slice(11, 19));
+      return color.gray(
+        formatDisplayClockTime(now, opts.timezone, { displaySeconds: true }) ??
+          now.toISOString().slice(11, 19),
+      );
     }
     if (loggingState.consoleTimestampPrefix) {
-      return color.gray(new Date().toISOString());
+      return color.gray(
+        formatDisplayTimestamp(now, opts.timezone, { displaySeconds: true }) ?? now.toISOString(),
+      );
     }
     return "";
   })();
@@ -315,6 +327,7 @@ export function createSubsystemLogger(subsystem: string): SubsystemLogger {
       subsystem,
       message: consoleSettings.style === "json" ? message : consoleMessage,
       style: consoleSettings.style,
+      timezone: consoleSettings.timezone,
       meta: fileMeta,
     });
     writeConsoleLine(level, line);

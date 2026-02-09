@@ -35,6 +35,8 @@ export type Logger = {
 export type CronServiceDeps = {
   nowMs?: () => number;
   log: Logger;
+  /** Timezone for display-only cron log timestamps. Defaults to host local timezone. */
+  logTimezone?: string;
   storePath: string;
   cronEnabled: boolean;
   enqueueSystemEvent: (text: string, opts?: { agentId?: string }) => void;

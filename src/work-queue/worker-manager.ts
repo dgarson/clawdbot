@@ -18,6 +18,7 @@ export type WorkerManagerOptions = {
     warn: (msg: string) => void;
     error: (msg: string) => void;
     debug: (msg: string) => void;
+    trace: (msg: string) => void;
   };
 };
 

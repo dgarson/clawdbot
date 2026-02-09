@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import {
+  formatDisplayClockTime,
+  formatDisplayTimestamp,
+  resolveDisplayTimezone,
+} from "./display-timezone.js";
 import { formatUtcTimestamp, formatZonedTimestamp, resolveTimezone } from "./format-datetime.js";
 import {
   formatDurationCompact,
@@ -156,6 +161,54 @@ describe("format-datetime", () => {
       const date = new Date("2024-01-15T14:30:45.000Z");
       const result = formatZonedTimestamp(date, { timeZone: "UTC", displaySeconds: true });
       expect(result).toMatch(/2024-01-15 14:30:45/);
+    });
+  });
+});
+
+describe("display-timezone", () => {
+  describe("resolveDisplayTimezone", () => {
+    it("defaults to local when unset", () => {
+      expect(resolveDisplayTimezone(undefined).mode).toBe("local");
+    });
+
+    it("supports utc aliases", () => {
+      expect(resolveDisplayTimezone("utc")).toEqual({ mode: "utc" });
+      expect(resolveDisplayTimezone("GMT")).toEqual({ mode: "utc" });
+    });
+
+    it("supports explicit iana timezone IDs", () => {
+      expect(resolveDisplayTimezone("America/New_York")).toEqual({
+        mode: "iana",
+        timeZone: "America/New_York",
+      });
+    });
+
+    it("falls back to local for invalid timezone values", () => {
+      expect(resolveDisplayTimezone("garbage")).toEqual({ mode: "local" });
+    });
+  });
+
+  describe("formatDisplayTimestamp", () => {
+    it("formats in utc mode", () => {
+      const date = new Date("2024-01-15T14:30:45.000Z");
+      expect(formatDisplayTimestamp(date, { mode: "utc" }, { displaySeconds: true })).toBe(
+        "2024-01-15T14:30:45Z",
+      );
+    });
+
+    it("formats in local mode", () => {
+      const date = new Date("2024-01-15T14:30:45.000Z");
+      const result = formatDisplayTimestamp(date, { mode: "local" }, { displaySeconds: true });
+      expect(result).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+    });
+  });
+
+  describe("formatDisplayClockTime", () => {
+    it("formats HH:mm:ss in utc mode", () => {
+      const date = new Date("2024-01-15T14:30:45.000Z");
+      expect(formatDisplayClockTime(date, { mode: "utc" }, { displaySeconds: true })).toBe(
+        "14:30:45",
+      );
     });
   });
 });

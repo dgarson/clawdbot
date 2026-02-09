@@ -40,6 +40,7 @@ import { inferToolMetaFromArgs, stripCompactionHandoffText } from "../pi-embedde
 import { normalizeToolName } from "../tool-policy.js";
 
 const log = createSubsystemLogger("sdk-runner");
+import { logDebug } from "../../logger.ts";
 import { normalizeUsage, type NormalizedUsage, type UsageLike } from "../usage.js";
 import { extractTextFromClaudeAgentSdkEvent, extractThinkingFromSdkEvent } from "./extract.js";
 import { isSdkTerminalToolEventType } from "./sdk-event-checks.js";
@@ -414,7 +415,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   if (!promptTrimmed) {
     // Avoid creating "empty" SDK sessions when upstream accidentally triggers a run with
     // no user content (e.g., heartbeat-only flows or misrouted followups).
-    log.debug(
+    logDebug(
       `sdk runner skipped: empty prompt (runId=${params.runId} sessionId=${params.sessionId} claudeSessionId=${params.claudeSessionId ?? "new"})`,
     );
     emitEvent("sdk", {
@@ -542,7 +543,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     };
   }
 
-  log.debug(
+  logDebug(
     `Bridged ${bridgeResult.toolCount} tools to MCP server "${mcpServerName}"` +
       (bridgeResult.skippedTools.length > 0
         ? ` (skipped: ${bridgeResult.skippedTools.join(", ")})`
@@ -597,13 +598,13 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // Model selection (e.g., "sonnet", "opus", "haiku", or full model ID).
   if (params.model) {
     sdkOptions.model = params.model;
-    log.trace(`Using model: ${params.model}`);
+    logDebug(`Using model: ${params.model}`);
   }
 
   // Extended thinking budget (token allocation for reasoning).
   if (params.thinkingBudget && params.thinkingBudget > 0) {
     sdkOptions.thinkingBudget = params.thinkingBudget;
-    log.debug(`Extended thinking enabled with budget: ${params.thinkingBudget} tokens`);
+    logDebug(`Extended thinking enabled with budget: ${params.thinkingBudget} tokens`);
   }
 
   // System prompt (no history suffix - we use SDK's native session resume instead).
@@ -614,7 +615,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // Resume from previous Claude Code session if available (avoids re-serializing history).
   if (params.claudeSessionId) {
     sdkOptions.resume = params.claudeSessionId;
-    log.debug(`Resuming Claude Code session: ${params.claudeSessionId}`);
+    logDebug(`Resuming Claude Code session: ${params.claudeSessionId}`);
   }
 
   // Provider env overrides (z.AI, custom endpoints, etc.).
@@ -1230,7 +1231,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
 
     const finalUserMessageCount = userMessageCount === 0 ? 1 : userMessageCount;
     const finalAssistantMessageCount = assistantMessageCount;
-    log.debug(
+    logDebug(
       `Event stream completed: events=${eventCount} extractedChars=${extractedChars} truncated=${truncated} aborted=${aborted} assistantMsgs=${finalAssistantMessageCount} userMsgs=${finalUserMessageCount}`,
     );
   } catch (err) {
@@ -1329,7 +1330,7 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // Step 6: Build result
   // -------------------------------------------------------------------------
 
-  log.trace(
+  logDebug(
     `Building result: resultText=${resultText?.length ?? 0} chars, chunks=${chunks.length}, aborted=${aborted}`,
   );
 
