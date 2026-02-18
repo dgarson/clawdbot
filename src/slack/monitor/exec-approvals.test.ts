@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { ExecApprovalRequest } from "../../infra/exec-approvals.js";
 import {
   extractSlackChannelId,
   buildExecApprovalBlocks,
   buildExecApprovalActionId,
+  SlackExecApprovalHandler,
 } from "./exec-approvals.js";
 
 const baseRequest: ExecApprovalRequest = {
@@ -86,5 +88,72 @@ describe("extractSlackChannelId", () => {
 
   it("returns null for undefined input", () => {
     expect(extractSlackChannelId(undefined)).toBeNull();
+  });
+});
+
+const minimalCfg = {} as OpenClawConfig;
+
+function makeHandler(
+  config: Partial<import("../../config/types.slack.js").SlackExecApprovalConfig>,
+) {
+  return new SlackExecApprovalHandler({
+    accountId: "default",
+    botToken: "xoxb-test",
+    config: { enabled: true, approvers: ["U123"], ...config },
+    cfg: minimalCfg,
+  });
+}
+
+const basicRequest: ExecApprovalRequest = {
+  id: "req-2",
+  request: { command: "ls", sessionKey: null },
+  createdAtMs: Date.now(),
+  expiresAtMs: Date.now() + 60_000,
+};
+
+describe("SlackExecApprovalHandler.shouldHandle", () => {
+  it("returns false when disabled", () => {
+    const handler = makeHandler({ enabled: false });
+    expect(handler.shouldHandle(basicRequest)).toBe(false);
+  });
+
+  it("returns false when no approvers configured", () => {
+    const handler = makeHandler({ approvers: [] });
+    expect(handler.shouldHandle(basicRequest)).toBe(false);
+  });
+
+  it("returns true for a basic request with enabled=true and approvers set", () => {
+    const handler = makeHandler({});
+    expect(handler.shouldHandle(basicRequest)).toBe(true);
+  });
+
+  it("returns false when agentFilter set and agent does not match", () => {
+    const handler = makeHandler({ agentFilter: ["other-agent"] });
+    const request = { ...basicRequest, request: { ...basicRequest.request, agentId: "main" } };
+    expect(handler.shouldHandle(request)).toBe(false);
+  });
+
+  it("returns true when agentFilter set and agent matches", () => {
+    const handler = makeHandler({ agentFilter: ["main"] });
+    const request = { ...basicRequest, request: { ...basicRequest.request, agentId: "main" } };
+    expect(handler.shouldHandle(request)).toBe(true);
+  });
+
+  it("returns false when sessionFilter set and session does not match", () => {
+    const handler = makeHandler({ sessionFilter: ["production"] });
+    const request = {
+      ...basicRequest,
+      request: { ...basicRequest.request, sessionKey: "agent:main:slack:channel:C123" },
+    };
+    expect(handler.shouldHandle(request)).toBe(false);
+  });
+
+  it("returns true when sessionFilter set and session matches", () => {
+    const handler = makeHandler({ sessionFilter: ["slack:channel"] });
+    const request = {
+      ...basicRequest,
+      request: { ...basicRequest.request, sessionKey: "agent:main:slack:channel:C123" },
+    };
+    expect(handler.shouldHandle(request)).toBe(true);
   });
 });
