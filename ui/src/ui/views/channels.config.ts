@@ -156,13 +156,14 @@ export function renderChannelConfigSection(params: { channelId: string; props: C
             })
       }
       <div class="row" style="margin-top: 12px;">
-        <button
-          class="btn primary"
+        <oc-button
+          variant="primary"
+          .loading=${props.configSaving}
           ?disabled=${disabled || !props.configFormDirty}
           @click=${() => props.onConfigSave()}
         >
-          ${props.configSaving ? "Saving…" : "Save"}
-        </button>
+          Save
+        </oc-button>
         <oc-button
           ?disabled=${disabled}
           @click=${() => props.onConfigReload()}

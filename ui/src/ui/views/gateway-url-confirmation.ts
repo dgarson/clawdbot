@@ -21,12 +21,12 @@ export function renderGatewayUrlConfirmation(state: AppViewState) {
           Only confirm if you trust this URL. Malicious URLs can compromise your system.
         </oc-callout>
         <div class="exec-approval-actions">
-          <button
-            class="btn primary"
+          <oc-button
+            variant="primary"
             @click=${() => state.handleGatewayUrlConfirm()}
           >
             Confirm
-          </button>
+          </oc-button>
           <oc-button
             @click=${() => state.handleGatewayUrlCancel()}
           >

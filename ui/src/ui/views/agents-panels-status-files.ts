@@ -391,20 +391,22 @@ export function renderAgentFiles(params: {
                               <div class="agent-file-sub mono">${activeEntry.path}</div>
                             </div>
                             <div class="agent-file-actions">
-                              <button
-                                class="btn btn--sm"
+                              <oc-button
+                                size="sm"
                                 ?disabled=${!isDirty}
                                 @click=${() => params.onFileReset(activeEntry.name)}
                               >
                                 Reset
-                              </button>
-                              <button
-                                class="btn btn--sm primary"
-                                ?disabled=${params.agentFileSaving || !isDirty}
+                              </oc-button>
+                              <oc-button
+                                size="sm"
+                                variant="primary"
+                                .loading=${params.agentFileSaving}
+                                ?disabled=${!isDirty}
                                 @click=${() => params.onFileSave(activeEntry.name)}
                               >
-                                ${params.agentFileSaving ? "Saving…" : "Save"}
-                              </button>
+                                Save
+                              </oc-button>
                             </div>
                           </div>
                           ${

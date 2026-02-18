@@ -461,13 +461,13 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
           ></oc-toggle>
           ${
             !isDefaults && !autoIsDefault
-              ? html`<button
-                class="btn btn--sm"
+              ? html`<oc-button
+                size="sm"
                 ?disabled=${state.disabled}
                 @click=${() => state.onRemove([...basePath, "autoAllowSkills"])}
               >
                 Use default
-              </button>`
+              </oc-button>`
               : nothing
           }
         </div>
@@ -485,8 +485,8 @@ function renderExecApprovalsAllowlist(state: ExecApprovalsState) {
         <div class="list-title">Allowlist</div>
         <div class="list-sub">Case-insensitive glob patterns.</div>
       </div>
-      <button
-        class="btn btn--sm"
+      <oc-button
+        size="sm"
         ?disabled=${state.disabled}
         @click=${() => {
           const next = [...entries, { pattern: "" }];
@@ -494,7 +494,7 @@ function renderExecApprovalsAllowlist(state: ExecApprovalsState) {
         }}
       >
         Add pattern
-      </button>
+      </oc-button>
     </div>
     <div class="list" style="margin-top: 12px;">
       ${
@@ -539,8 +539,9 @@ function renderAllowlistEntry(
             }}
           />
         </oc-field>
-        <button
-          class="btn btn--sm danger"
+        <oc-button
+          size="sm"
+          variant="danger"
           ?disabled=${state.disabled}
           @click=${() => {
             if (state.allowlist.length <= 1) {
@@ -551,7 +552,7 @@ function renderAllowlistEntry(
           }}
         >
           Remove
-        </button>
+        </oc-button>
       </div>
     </div>
   `;

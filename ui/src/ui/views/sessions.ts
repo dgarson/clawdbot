@@ -294,9 +294,9 @@ function renderRow(
         </select>
       </div>
       <div>
-        <button class="btn danger" ?disabled=${disabled} @click=${() => onDelete(row.key)}>
+        <oc-button variant="danger" ?disabled=${disabled} @click=${() => onDelete(row.key)}>
           Delete
-        </button>
+        </oc-button>
       </div>
     </div>
   `;

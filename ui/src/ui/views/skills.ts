@@ -163,14 +163,14 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
                     props.onEdit(skill.skillKey, (e.target as HTMLInputElement).value)}
                 />
               </div>
-              <button
-                class="btn primary"
+              <oc-button
+                variant="primary"
                 style="margin-top: 8px;"
                 ?disabled=${busy}
                 @click=${() => props.onSaveKey(skill.skillKey)}
               >
                 Save key
-              </button>
+              </oc-button>
             `
             : nothing
         }

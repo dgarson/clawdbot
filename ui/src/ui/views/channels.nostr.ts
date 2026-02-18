@@ -127,13 +127,12 @@ export function renderNostrCard(params: {
           ${
             summaryConfigured
               ? html`
-                <button
-                  class="btn btn-sm"
+                <oc-button
+                  size="sm"
                   @click=${onEditProfile}
-                  style="font-size: 12px; padding: 4px 8px;"
                 >
                   Edit Profile
-                </button>
+                </oc-button>
               `
               : nothing
           }

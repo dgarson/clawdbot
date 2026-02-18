@@ -552,34 +552,38 @@ export function renderConfig(props: ConfigProps) {
             }
           </div>
           <div class="config-actions__right">
-            <button
-              class="btn btn--sm"
-              ?disabled=${props.loading}
+            <oc-button
+              size="sm"
+              .loading=${props.loading}
               @click=${props.onReload}
             >
-              ${props.loading ? "Loading…" : "Reload"}
-            </button>
-            <button
-              class="btn btn--sm primary"
+              Reload
+            </oc-button>
+            <oc-button
+              size="sm"
+              variant="primary"
+              .loading=${props.saving}
               ?disabled=${!canSave}
               @click=${props.onSave}
             >
-              ${props.saving ? "Saving…" : "Save"}
-            </button>
-            <button
-              class="btn btn--sm"
+              Save
+            </oc-button>
+            <oc-button
+              size="sm"
+              .loading=${props.applying}
               ?disabled=${!canApply}
               @click=${props.onApply}
             >
-              ${props.applying ? "Applying…" : "Apply"}
-            </button>
-            <button
-              class="btn btn--sm"
+              Apply
+            </oc-button>
+            <oc-button
+              size="sm"
+              .loading=${props.updating}
               ?disabled=${!canUpdate}
               @click=${props.onUpdate}
             >
-              ${props.updating ? "Updating…" : "Update"}
-            </button>
+              Update
+            </oc-button>
           </div>
         </div>
 

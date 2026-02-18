@@ -112,22 +112,24 @@ export function renderAgentTools(params: {
   return html`
     <oc-card title="Tool Access" subtitle="Profile + per-tool overrides for this agent.">
       <div class="row" slot="actions" style="gap: 8px;">
-        <button class="btn btn--sm" ?disabled=${!editable} @click=${() => updateAll(true)}>
+        <oc-button size="sm" ?disabled=${!editable} @click=${() => updateAll(true)}>
           Enable All
-        </button>
-        <button class="btn btn--sm" ?disabled=${!editable} @click=${() => updateAll(false)}>
+        </oc-button>
+        <oc-button size="sm" ?disabled=${!editable} @click=${() => updateAll(false)}>
           Disable All
-        </button>
-        <button class="btn btn--sm" ?disabled=${params.configLoading} @click=${params.onConfigReload}>
+        </oc-button>
+        <oc-button size="sm" ?disabled=${params.configLoading} @click=${params.onConfigReload}>
           Reload Config
-        </button>
-        <button
-          class="btn btn--sm primary"
-          ?disabled=${params.configSaving || !params.configDirty}
+        </oc-button>
+        <oc-button
+          size="sm"
+          variant="primary"
+          .loading=${params.configSaving}
+          ?disabled=${!params.configDirty}
           @click=${params.onConfigSave}
         >
-          ${params.configSaving ? "Saving…" : "Save"}
-        </button>
+          Save
+        </oc-button>
       </div>
       <div class="muted" style="margin-bottom: 8px;"><span class="mono">${enabledCount}/${toolIds.length}</span> enabled.</div>
 
@@ -192,13 +194,13 @@ export function renderAgentTools(params: {
               </button>
             `,
           )}
-          <button
-            class="btn btn--sm"
+          <oc-button
+            size="sm"
             ?disabled=${!editable}
             @click=${() => params.onProfileChange(params.agentId, null, false)}
           >
             Inherit
-          </button>
+          </oc-button>
         </div>
       </div>
 
@@ -276,29 +278,31 @@ export function renderAgentSkills(params: {
   return html`
     <oc-card title="Skills" subtitle="Per-agent skill allowlist and workspace skills.">
       <div class="row" slot="actions" style="gap: 8px;">
-        <button class="btn btn--sm" ?disabled=${!editable} @click=${() => params.onClear(params.agentId)}>
+        <oc-button size="sm" ?disabled=${!editable} @click=${() => params.onClear(params.agentId)}>
           Use All
-        </button>
-        <button
-          class="btn btn--sm"
+        </oc-button>
+        <oc-button
+          size="sm"
           ?disabled=${!editable}
           @click=${() => params.onDisableAll(params.agentId)}
         >
           Disable All
-        </button>
-        <button class="btn btn--sm" ?disabled=${params.configLoading} @click=${params.onConfigReload}>
+        </oc-button>
+        <oc-button size="sm" ?disabled=${params.configLoading} @click=${params.onConfigReload}>
           Reload Config
-        </button>
-        <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
-          ${params.loading ? "Loading…" : "Refresh"}
-        </button>
-        <button
-          class="btn btn--sm primary"
-          ?disabled=${params.configSaving || !params.configDirty}
+        </oc-button>
+        <oc-button size="sm" .loading=${params.loading} @click=${params.onRefresh}>
+          Refresh
+        </oc-button>
+        <oc-button
+          size="sm"
+          variant="primary"
+          .loading=${params.configSaving}
+          ?disabled=${!params.configDirty}
           @click=${params.onConfigSave}
         >
-          ${params.configSaving ? "Saving…" : "Save"}
-        </button>
+          Save
+        </oc-button>
       </div>
       ${totalCount > 0 ? html`<div class="muted" style="margin-bottom: 8px;"><span class="mono">${enabledCount}/${totalCount}</span> enabled.</div>` : nothing}
 

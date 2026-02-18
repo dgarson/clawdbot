@@ -464,16 +464,18 @@ function renderAgentOverview(params: {
           </oc-field>
         </div>
         <div class="row" style="justify-content: flex-end; gap: 8px;">
-          <button class="btn btn--sm" ?disabled=${configLoading} @click=${onConfigReload}>
+          <oc-button size="sm" ?disabled=${configLoading} @click=${onConfigReload}>
             Reload Config
-          </button>
-          <button
-            class="btn btn--sm primary"
-            ?disabled=${configSaving || !configDirty}
+          </oc-button>
+          <oc-button
+            size="sm"
+            variant="primary"
+            .loading=${configSaving}
+            ?disabled=${!configDirty}
             @click=${onConfigSave}
           >
-            ${configSaving ? "Saving…" : "Save"}
-          </button>
+            Save
+          </oc-button>
         </div>
       </div>
     </oc-card>

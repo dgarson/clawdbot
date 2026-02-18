@@ -272,9 +272,9 @@ export function renderCron(props: CronProps) {
           }
         </div>
         <div class="row" style="margin-top: 14px;">
-          <button class="btn primary" ?disabled=${props.busy} @click=${props.onAdd}>
-            ${props.busy ? "Saving…" : "Add job"}
-          </button>
+          <oc-button variant="primary" .loading=${props.busy} @click=${props.onAdd}>
+            Add job
+          </oc-button>
         </div>
       </oc-card>
     </section>
@@ -428,8 +428,8 @@ function renderJob(job: CronJob, props: CronProps) {
           >
             History
           </oc-button>
-          <button
-            class="btn danger"
+          <oc-button
+            variant="danger"
             ?disabled=${props.busy}
             @click=${(event: Event) => {
               event.stopPropagation();
@@ -437,7 +437,7 @@ function renderJob(job: CronJob, props: CronProps) {
             }}
           >
             Remove
-          </button>
+          </oc-button>
         </div>
       </div>
     </div>

@@ -75,13 +75,13 @@ export function renderWhatsAppCard(params: {
       }
 
       <div class="row" style="margin-top: 14px; flex-wrap: wrap;">
-        <button
-          class="btn primary"
-          ?disabled=${props.whatsappBusy}
+        <oc-button
+          variant="primary"
+          .loading=${props.whatsappBusy}
           @click=${() => props.onWhatsAppStart(false)}
         >
-          ${props.whatsappBusy ? "Working…" : "Show QR"}
-        </button>
+          Show QR
+        </oc-button>
         <oc-button
           ?disabled=${props.whatsappBusy}
           @click=${() => props.onWhatsAppStart(true)}
@@ -94,13 +94,13 @@ export function renderWhatsAppCard(params: {
         >
           Wait for scan
         </oc-button>
-        <button
-          class="btn danger"
+        <oc-button
+          variant="danger"
           ?disabled=${props.whatsappBusy}
           @click=${() => props.onWhatsAppLogout()}
         >
           Logout
-        </button>
+        </oc-button>
         <oc-button @click=${() => props.onRefresh(true)}>
           Refresh
         </oc-button>

@@ -234,13 +234,14 @@ export function renderNostrProfileForm(params: {
       }
 
       <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
-        <button
-          class="btn primary"
+        <oc-button
+          variant="primary"
+          .loading=${state.saving}
+          ?disabled=${!isDirty}
           @click=${callbacks.onSave}
-          ?disabled=${state.saving || !isDirty}
         >
-          ${state.saving ? "Saving..." : "Save & Publish"}
-        </button>
+          Save & Publish
+        </oc-button>
 
         <oc-button
           @click=${callbacks.onImport}

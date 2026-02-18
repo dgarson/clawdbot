@@ -79,7 +79,7 @@ export function renderDebug(props: DebugProps) {
           </oc-field>
         </div>
         <div class="row" style="margin-top: 12px;">
-          <button class="btn primary" @click=${props.onCall}>Call</button>
+          <oc-button variant="primary" @click=${props.onCall}>Call</oc-button>
         </div>
         ${
           props.callError

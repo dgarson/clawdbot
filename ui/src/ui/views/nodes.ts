@@ -125,12 +125,12 @@ function renderPendingDevice(req: PendingDevice, props: NodesProps) {
       </div>
       <div class="list-meta">
         <div class="row" style="justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn--sm primary" @click=${() => props.onDeviceApprove(req.requestId)}>
+          <oc-button size="sm" variant="primary" @click=${() => props.onDeviceApprove(req.requestId)}>
             Approve
-          </button>
-          <button class="btn btn--sm" @click=${() => props.onDeviceReject(req.requestId)}>
+          </oc-button>
+          <oc-button size="sm" @click=${() => props.onDeviceReject(req.requestId)}>
             Reject
-          </button>
+          </oc-button>
         </div>
       </div>
     </div>
@@ -176,22 +176,23 @@ function renderTokenRow(deviceId: string, token: DeviceTokenSummary, props: Node
     <div class="row" style="justify-content: space-between; gap: 8px;">
       <div class="list-sub">${token.role} · ${status} · ${scopes} · ${when}</div>
       <div class="row" style="justify-content: flex-end; gap: 6px; flex-wrap: wrap;">
-        <button
-          class="btn btn--sm"
+        <oc-button
+          size="sm"
           @click=${() => props.onDeviceRotate(deviceId, token.role, token.scopes)}
         >
           Rotate
-        </button>
+        </oc-button>
         ${
           token.revokedAtMs
             ? nothing
             : html`
-              <button
-                class="btn btn--sm danger"
+              <oc-button
+                size="sm"
+                variant="danger"
                 @click=${() => props.onDeviceRevoke(deviceId, token.role)}
               >
                 Revoke
-              </button>
+              </oc-button>
             `
         }
       </div>
