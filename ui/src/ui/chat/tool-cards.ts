@@ -1,7 +1,6 @@
 import { html, nothing } from "lit";
-import { icons } from "../icons.ts";
-import { formatToolDetail, resolveToolDisplay } from "../tool-display.ts";
 import type { ToolCard } from "../types/chat-types.ts";
+import { formatToolDetail, resolveToolDisplay } from "../tool-display.ts";
 import { TOOL_INLINE_THRESHOLD } from "./constants.ts";
 import { extractTextCached } from "./message-extract.ts";
 import { isToolResultMessage } from "./message-normalizer.ts";
@@ -92,15 +91,21 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
     >
       <div class="chat-tool-card__header">
         <div class="chat-tool-card__title">
-          <span class="chat-tool-card__icon">${icons[display.icon]}</span>
+          <span class="chat-tool-card__icon"><oc-icon .name=${display.icon}></oc-icon></span>
           <span>${display.label}</span>
         </div>
         ${
           canClick
-            ? html`<span class="chat-tool-card__action">${hasText ? "View" : ""} ${icons.check}</span>`
+            ? html`<span class="chat-tool-card__action">${hasText ? "View" : ""} <oc-icon name="check"></oc-icon></span>`
             : nothing
         }
-        ${isEmpty && !canClick ? html`<span class="chat-tool-card__status">${icons.check}</span>` : nothing}
+        ${
+          isEmpty && !canClick
+            ? html`
+                <span class="chat-tool-card__status"><oc-icon name="check"></oc-icon></span>
+              `
+            : nothing
+        }
       </div>
       ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
       ${

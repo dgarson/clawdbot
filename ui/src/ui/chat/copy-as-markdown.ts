@@ -1,5 +1,4 @@
 import { html, type TemplateResult } from "lit";
-import { icons } from "../icons.ts";
 
 const COPIED_FOR_MS = 1500;
 const ERROR_FOR_MS = 2000;
@@ -85,8 +84,8 @@ function createCopyButton(options: CopyButtonOptions): TemplateResult {
       }}
     >
       <span class="chat-copy-btn__icon" aria-hidden="true">
-        <span class="chat-copy-btn__icon-copy">${icons.copy}</span>
-        <span class="chat-copy-btn__icon-check">${icons.check}</span>
+        <span class="chat-copy-btn__icon-copy"><oc-icon name="copy"></oc-icon></span>
+        <span class="chat-copy-btn__icon-check"><oc-icon name="check"></oc-icon></span>
       </span>
     </button>
   `;

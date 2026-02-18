@@ -1,6 +1,5 @@
 import { html } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
-import { icons } from "../icons.ts";
 import { toSanitizedMarkdownHtml } from "../markdown.ts";
 
 export type MarkdownSidebarProps = {
@@ -16,7 +15,7 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
       <div class="sidebar-header">
         <div class="sidebar-title">Tool Output</div>
         <oc-button @click=${props.onClose} title="Close sidebar">
-          ${icons.x}
+          <oc-icon name="x"></oc-icon>
         </oc-button>
       </div>
       <div class="sidebar-content">

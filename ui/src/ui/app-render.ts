@@ -52,7 +52,6 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
-import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
@@ -121,7 +120,7 @@ export function renderApp(state: AppViewState) {
             title="${state.settings.navCollapsed ? t("nav.expand") : t("nav.collapse")}"
             aria-label="${state.settings.navCollapsed ? t("nav.expand") : t("nav.collapse")}"
           >
-            <span class="nav-collapse-toggle__icon">${icons.menu}</span>
+            <span class="nav-collapse-toggle__icon"><oc-icon name="menu"></oc-icon></span>
           </button>
           <div class="brand">
             <div class="brand-logo">
@@ -181,7 +180,7 @@ export function renderApp(state: AppViewState) {
               rel="noreferrer"
               title="${t("common.docs")} (opens in new tab)"
             >
-              <span class="nav-item__icon" aria-hidden="true">${icons.book}</span>
+              <span class="nav-item__icon" aria-hidden="true"><oc-icon name="book"></oc-icon></span>
               <span class="nav-item__text">${t("common.docs")}</span>
             </a>
           </div>

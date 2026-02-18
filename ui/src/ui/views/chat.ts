@@ -10,7 +10,6 @@ import {
   renderStreamingGroup,
 } from "../chat/grouped-render.ts";
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
-import { icons } from "../icons.ts";
 import { detectTextDirection } from "../text-direction.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
@@ -87,7 +86,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
   if (status.active) {
     return html`
       <div class="compaction-indicator compaction-indicator--active" role="status" aria-live="polite">
-        ${icons.loader} Compacting context...
+        <oc-icon name="loader"></oc-icon> Compacting context...
       </div>
     `;
   }
@@ -98,7 +97,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
     if (elapsed < COMPACTION_TOAST_DURATION_MS) {
       return html`
         <div class="compaction-indicator compaction-indicator--complete" role="status" aria-live="polite">
-          ${icons.check} Context compacted
+          <oc-icon name="check"></oc-icon> Context compacted
         </div>
       `;
     }
@@ -177,7 +176,7 @@ function renderAttachmentPreview(props: ChatProps) {
                 props.onAttachmentsChange?.(next);
               }}
             >
-              ${icons.x}
+              <oc-icon name="x"></oc-icon>
             </button>
           </div>
         `,
@@ -280,7 +279,7 @@ export function renderChat(props: ChatProps) {
               aria-label="Exit focus mode"
               title="Exit focus mode"
             >
-              ${icons.x}
+              <oc-icon name="x"></oc-icon>
             </button>
           `
           : nothing
@@ -344,7 +343,7 @@ export function renderChat(props: ChatProps) {
                         aria-label="Remove queued message"
                         @click=${() => props.onQueueRemove(item.id)}
                       >
-                        ${icons.x}
+                        <oc-icon name="x"></oc-icon>
                       </button>
                     </div>
                   `,
@@ -367,7 +366,7 @@ export function renderChat(props: ChatProps) {
               type="button"
               @click=${props.onScrollToBottom}
             >
-              New messages ${icons.arrowDown}
+              New messages <oc-icon name="arrowDown"></oc-icon>
             </button>
           `
           : nothing
