@@ -36,16 +36,10 @@ export function renderSkills(props: SkillsProps) {
   const groups = groupSkills(filtered);
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Skills</div>
-          <div class="card-sub">Bundled, managed, and workspace skills.</div>
-        </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
+    <oc-card title="Skills" subtitle="Bundled, managed, and workspace skills.">
+      <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>
+        Refresh
+      </oc-button>
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field" style="flex: 1;">
@@ -85,7 +79,7 @@ export function renderSkills(props: SkillsProps) {
             </div>
           `
       }
-    </section>
+    </oc-card>
   `;
 }
 

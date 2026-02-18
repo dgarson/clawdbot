@@ -1820,6 +1820,20 @@
   color: var(--muted);
 }
 
+.agent-header-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.agent-header-theme {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
 .agent-tabs {
   display: flex;
   gap: 8px;

@@ -54,29 +54,21 @@ export function renderLogs(props: LogsProps) {
   const exportLabel = needle || levelFiltered ? "filtered" : "visible";
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Logs</div>
-          <div class="card-sub">Gateway file logs (JSONL).</div>
-        </div>
-        <div class="row" style="gap: 8px;">
-          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Loading…" : "Refresh"}
-          </button>
-          <button
-            class="btn"
-            ?disabled=${filtered.length === 0}
-            @click=${() =>
-              props.onExport(
-                filtered.map((entry) => entry.raw),
-                exportLabel,
-              )}
-          >
-            Export ${exportLabel}
-          </button>
-        </div>
-      </div>
+    <oc-card title="Logs" subtitle="Gateway file logs (JSONL).">
+      <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>
+        Refresh
+      </oc-button>
+      <oc-button
+        slot="actions"
+        ?disabled=${filtered.length === 0}
+        @click=${() =>
+          props.onExport(
+            filtered.map((entry) => entry.raw),
+            exportLabel,
+          )}
+      >
+        Export ${exportLabel}
+      </oc-button>
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field" style="min-width: 220px;">
@@ -146,6 +138,6 @@ export function renderLogs(props: LogsProps) {
               )
         }
       </div>
-    </section>
+    </oc-card>
   `;
 }

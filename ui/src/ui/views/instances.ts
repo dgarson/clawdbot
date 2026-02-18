@@ -12,16 +12,10 @@ export type InstancesProps = {
 
 export function renderInstances(props: InstancesProps) {
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Connected Instances</div>
-          <div class="card-sub">Presence beacons from the gateway and clients.</div>
-        </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
+    <oc-card title="Connected Instances" subtitle="Presence beacons from the gateway and clients.">
+      <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>
+        Refresh
+      </oc-button>
       ${
         props.lastError
           ? html`<oc-callout variant="danger">
@@ -45,7 +39,7 @@ export function renderInstances(props: InstancesProps) {
             : props.entries.map((entry) => renderEntry(entry))
         }
       </div>
-    </section>
+    </oc-card>
   `;
 }
 

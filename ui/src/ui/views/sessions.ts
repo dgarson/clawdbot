@@ -110,16 +110,10 @@ function resolveThinkLevelPatchValue(value: string, isBinary: boolean): string |
 export function renderSessions(props: SessionsProps) {
   const rows = props.result?.sessions ?? [];
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Sessions</div>
-          <div class="card-sub">Active session keys and per-session overrides.</div>
-        </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
+    <oc-card title="Sessions" subtitle="Active session keys and per-session overrides.">
+      <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>
+        Refresh
+      </oc-button>
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field">
@@ -206,7 +200,7 @@ export function renderSessions(props: SessionsProps) {
               )
         }
       </div>
-    </section>
+    </oc-card>
   `;
 }
 

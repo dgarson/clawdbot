@@ -105,16 +105,10 @@ export function renderAgents(props: AgentsProps) {
 
   return html`
     <div class="agents-layout">
-      <section class="card agents-sidebar">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div class="card-title">Agents</div>
-            <div class="card-sub">${agents.length} configured.</div>
-          </div>
-          <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Loading…" : "Refresh"}
-          </button>
-        </div>
+      <oc-card class="agents-sidebar" title="Agents" subtitle="${agents.length} configured.">
+        <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>
+          Refresh
+        </oc-button>
         ${props.error ? html`<oc-callout variant="danger">${props.error}</oc-callout>` : nothing}
         <div class="agent-list" style="margin-top: 12px;">
           ${
@@ -142,15 +136,15 @@ export function renderAgents(props: AgentsProps) {
                 })
           }
         </div>
-      </section>
+      </oc-card>
       <section class="agents-main">
         ${
           !selectedAgent
             ? html`
-                <div class="card">
-                  <div class="card-title">Select an agent</div>
-                  <div class="card-sub">Pick an agent to inspect its workspace and tools.</div>
-                </div>
+                <oc-card
+                  title="Select an agent"
+                  subtitle="Pick an agent to inspect its workspace and tools."
+                ></oc-card>
               `
             : html`
                 ${renderAgentHeader(
@@ -291,19 +285,21 @@ function renderAgentHeader(
   const subtitle = agent.identity?.theme?.trim() || "Agent workspace and routing.";
   const emoji = resolveAgentEmoji(agent, agentIdentity);
   return html`
-    <section class="card agent-header">
-      <div class="agent-header-main">
-        <div class="agent-avatar agent-avatar--lg">${emoji || displayName.slice(0, 1)}</div>
-        <div>
-          <div class="card-title">${displayName}</div>
-          <div class="card-sub">${subtitle}</div>
+    <oc-card>
+      <div class="agent-header">
+        <div class="agent-header-main">
+          <div class="agent-avatar agent-avatar--lg">${emoji || displayName.slice(0, 1)}</div>
+          <div>
+            <div class="agent-header-name">${displayName}</div>
+            <div class="agent-header-theme">${subtitle}</div>
+          </div>
+        </div>
+        <div class="agent-header-meta">
+          <div class="mono">${agent.id}</div>
+          ${badge ? html`<span class="agent-pill">${badge}</span>` : nothing}
         </div>
       </div>
-      <div class="agent-header-meta">
-        <div class="mono">${agent.id}</div>
-        ${badge ? html`<span class="agent-pill">${badge}</span>` : nothing}
-      </div>
-    </section>
+    </oc-card>
   `;
 }
 
@@ -399,9 +395,7 @@ function renderAgentOverview(params: {
   const isDefault = Boolean(params.defaultId && agent.id === params.defaultId);
 
   return html`
-    <section class="card">
-      <div class="card-title">Overview</div>
-      <div class="card-sub">Workspace paths and identity metadata.</div>
+    <oc-card title="Overview" subtitle="Workspace paths and identity metadata.">
       <div class="agents-overview-grid" style="margin-top: 16px;">
         <div class="agent-kv">
           <div class="label">Workspace</div>
@@ -480,6 +474,6 @@ function renderAgentOverview(params: {
           </button>
         </div>
       </div>
-    </section>
+    </oc-card>
   `;
 }
