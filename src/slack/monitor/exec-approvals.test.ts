@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { ExecApprovalRequest } from "../../infra/exec-approvals.js";
+import { enqueueSystemEvent, resetSystemEventsForTest } from "../../infra/system-events.js";
 import {
   extractSlackChannelId,
   buildExecApprovalBlocks,
@@ -155,5 +156,86 @@ describe("SlackExecApprovalHandler.shouldHandle", () => {
       request: { ...basicRequest.request, sessionKey: "agent:main:slack:channel:C123" },
     };
     expect(handler.shouldHandle(request)).toBe(true);
+  });
+});
+
+describe("SlackExecApprovalHandler.handleApprovalRequested polling", () => {
+  beforeEach(() => {
+    resetSystemEventsForTest();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    resetSystemEventsForTest();
+  });
+
+  it("resolves approval when a matching system event arrives", async () => {
+    const mockResolve = vi.fn().mockResolvedValue(undefined);
+    const handler = makeHandler({}) as unknown as {
+      gatewayClient: { request: typeof mockResolve } | null;
+      handleApprovalRequested: (req: ExecApprovalRequest) => Promise<void>;
+    };
+    handler.gatewayClient = { request: mockResolve };
+
+    const request: ExecApprovalRequest = {
+      id: "poll-test-1",
+      request: { command: "echo hi", sessionKey: "agent:main:slack:channel:C_POLL" },
+      createdAtMs: Date.now(),
+      expiresAtMs: Date.now() + 5_000,
+    };
+
+    const sessionKey = "agent:main:slack:channel:C_POLL";
+    const actionId = `openclaw:question:poll-test-1:allow-once`;
+    enqueueSystemEvent(`Slack interaction: ${JSON.stringify({ actionId, userId: "U123" })}`, {
+      sessionKey,
+    });
+
+    const sendModule = await import("../send.js");
+    const sendSpy = vi
+      .spyOn(sendModule, "sendMessageSlack")
+      .mockResolvedValue({ messageId: "T123", channelId: "C_POLL" });
+
+    await handler.handleApprovalRequested(request);
+
+    expect(mockResolve).toHaveBeenCalledWith("exec.approval.resolve", {
+      id: "poll-test-1",
+      decision: "allow-once",
+    });
+
+    sendSpy.mockRestore();
+  });
+
+  it("does not resolve if userId is not in approvers", async () => {
+    const mockResolve = vi.fn().mockResolvedValue(undefined);
+    const handler = makeHandler({}) as unknown as {
+      gatewayClient: { request: typeof mockResolve } | null;
+      handleApprovalRequested: (req: ExecApprovalRequest) => Promise<void>;
+    };
+    handler.gatewayClient = { request: mockResolve };
+
+    const request: ExecApprovalRequest = {
+      id: "poll-test-2",
+      request: { command: "ls", sessionKey: "agent:main:slack:channel:C_POLL2" },
+      createdAtMs: Date.now(),
+      expiresAtMs: Date.now() + 100,
+    };
+
+    enqueueSystemEvent(
+      `Slack interaction: ${JSON.stringify({ actionId: "openclaw:question:poll-test-2:deny", userId: "U_NOT_APPROVER" })}`,
+      { sessionKey: "agent:main:slack:channel:C_POLL2" },
+    );
+
+    const sendModule = await import("../send.js");
+    const sendSpy = vi
+      .spyOn(sendModule, "sendMessageSlack")
+      .mockResolvedValue({ messageId: "T999", channelId: "C_POLL2" });
+
+    const pendingPromise = handler.handleApprovalRequested(request);
+    vi.advanceTimersByTime(200);
+    await pendingPromise;
+
+    expect(mockResolve).not.toHaveBeenCalled();
+    sendSpy.mockRestore();
   });
 });
