@@ -8,32 +8,26 @@ export function renderGatewayUrlConfirmation(state: AppViewState) {
   }
 
   return html`
-    <div class="exec-approval-overlay" role="dialog" aria-modal="true" aria-live="polite">
-      <div class="exec-approval-card">
-        <div class="exec-approval-header">
-          <div>
-            <div class="exec-approval-title">Change Gateway URL</div>
-            <div class="exec-approval-sub">This will reconnect to a different gateway server</div>
-          </div>
-        </div>
-        <div class="exec-approval-command mono">${pendingGatewayUrl}</div>
-        <oc-callout variant="danger">
-          Only confirm if you trust this URL. Malicious URLs can compromise your system.
-        </oc-callout>
-        <div class="exec-approval-actions">
-          <oc-button
-            variant="primary"
-            @click=${() => state.handleGatewayUrlConfirm()}
-          >
-            Confirm
-          </oc-button>
-          <oc-button
-            @click=${() => state.handleGatewayUrlCancel()}
-          >
-            Cancel
-          </oc-button>
-        </div>
-      </div>
-    </div>
+    <oc-modal heading="Change Gateway URL" open .dismissible=${false}>
+      <div class="exec-approval-sub">This will reconnect to a different gateway server</div>
+      <div class="exec-approval-command mono">${pendingGatewayUrl}</div>
+      <oc-callout variant="danger">
+        Only confirm if you trust this URL. Malicious URLs can compromise your system.
+      </oc-callout>
+
+      <oc-button
+        slot="footer"
+        variant="primary"
+        @click=${() => state.handleGatewayUrlConfirm()}
+      >
+        Confirm
+      </oc-button>
+      <oc-button
+        slot="footer"
+        @click=${() => state.handleGatewayUrlCancel()}
+      >
+        Cancel
+      </oc-button>
+    </oc-modal>
   `;
 }

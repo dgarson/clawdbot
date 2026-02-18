@@ -32,57 +32,52 @@ export function renderExecApprovalPrompt(state: AppViewState) {
   const remaining = remainingMs > 0 ? `expires in ${formatRemaining(remainingMs)}` : "expired";
   const queueCount = state.execApprovalQueue.length;
   return html`
-    <div class="exec-approval-overlay" role="dialog" aria-live="polite">
-      <div class="exec-approval-card">
-        <div class="exec-approval-header">
-          <div>
-            <div class="exec-approval-title">Exec approval needed</div>
-            <div class="exec-approval-sub">${remaining}</div>
-          </div>
-          ${
-            queueCount > 1
-              ? html`<div class="exec-approval-queue">${queueCount} pending</div>`
-              : nothing
-          }
-        </div>
-        <div class="exec-approval-command mono">${request.command}</div>
-        <div class="exec-approval-meta">
-          ${renderMetaRow("Host", request.host)}
-          ${renderMetaRow("Agent", request.agentId)}
-          ${renderMetaRow("Session", request.sessionKey)}
-          ${renderMetaRow("CWD", request.cwd)}
-          ${renderMetaRow("Resolved", request.resolvedPath)}
-          ${renderMetaRow("Security", request.security)}
-          ${renderMetaRow("Ask", request.ask)}
-        </div>
-        ${
-          state.execApprovalError
-            ? html`<div class="exec-approval-error">${state.execApprovalError}</div>`
-            : nothing
-        }
-        <div class="exec-approval-actions">
-          <oc-button
-            variant="primary"
-            ?disabled=${state.execApprovalBusy}
-            @click=${() => state.handleExecApprovalDecision("allow-once")}
-          >
-            Allow once
-          </oc-button>
-          <oc-button
-            ?disabled=${state.execApprovalBusy}
-            @click=${() => state.handleExecApprovalDecision("allow-always")}
-          >
-            Always allow
-          </oc-button>
-          <oc-button
-            variant="danger"
-            ?disabled=${state.execApprovalBusy}
-            @click=${() => state.handleExecApprovalDecision("deny")}
-          >
-            Deny
-          </oc-button>
-        </div>
+    <oc-modal heading="Exec approval needed" open .dismissible=${false}>
+      <div class="exec-approval-sub">${remaining}</div>
+      ${
+        queueCount > 1
+          ? html`<div class="exec-approval-queue">${queueCount} pending</div>`
+          : nothing
+      }
+      <div class="exec-approval-command mono">${request.command}</div>
+      <div class="exec-approval-meta">
+        ${renderMetaRow("Host", request.host)}
+        ${renderMetaRow("Agent", request.agentId)}
+        ${renderMetaRow("Session", request.sessionKey)}
+        ${renderMetaRow("CWD", request.cwd)}
+        ${renderMetaRow("Resolved", request.resolvedPath)}
+        ${renderMetaRow("Security", request.security)}
+        ${renderMetaRow("Ask", request.ask)}
       </div>
-    </div>
+      ${
+        state.execApprovalError
+          ? html`<div class="exec-approval-error">${state.execApprovalError}</div>`
+          : nothing
+      }
+
+      <oc-button
+        slot="footer"
+        variant="primary"
+        ?disabled=${state.execApprovalBusy}
+        @click=${() => state.handleExecApprovalDecision("allow-once")}
+      >
+        Allow once
+      </oc-button>
+      <oc-button
+        slot="footer"
+        ?disabled=${state.execApprovalBusy}
+        @click=${() => state.handleExecApprovalDecision("allow-always")}
+      >
+        Always allow
+      </oc-button>
+      <oc-button
+        slot="footer"
+        variant="danger"
+        ?disabled=${state.execApprovalBusy}
+        @click=${() => state.handleExecApprovalDecision("deny")}
+      >
+        Deny
+      </oc-button>
+    </oc-modal>
   `;
 }
