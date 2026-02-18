@@ -93,102 +93,92 @@ export function renderCron(props: CronProps) {
 
       <oc-card title="New Job" subtitle="Create a scheduled wakeup or agent run.">
         <div class="form-grid" style="margin-top: 16px;">
-          <label class="field">
-            <span>Name</span>
+          <oc-field label="Name">
             <input
               .value=${props.form.name}
               @input=${(e: Event) =>
                 props.onFormChange({ name: (e.target as HTMLInputElement).value })}
             />
-          </label>
-          <label class="field">
-            <span>Description</span>
+          </oc-field>
+          <oc-field label="Description">
             <input
               .value=${props.form.description}
               @input=${(e: Event) =>
                 props.onFormChange({ description: (e.target as HTMLInputElement).value })}
             />
-          </label>
-          <label class="field">
-            <span>Agent ID</span>
+          </oc-field>
+          <oc-field label="Agent ID">
             <input
               .value=${props.form.agentId}
               @input=${(e: Event) =>
                 props.onFormChange({ agentId: (e.target as HTMLInputElement).value })}
               placeholder="default"
             />
-          </label>
-          <label class="field checkbox">
-            <span>Enabled</span>
-            <input
-              type="checkbox"
-              .checked=${props.form.enabled}
-              @change=${(e: Event) =>
-                props.onFormChange({ enabled: (e.target as HTMLInputElement).checked })}
-            />
-          </label>
-          <label class="field">
-            <span>Schedule</span>
-            <select
+          </oc-field>
+          <oc-toggle
+            label="Enabled"
+            .checked=${props.form.enabled}
+            @oc-change=${(e: CustomEvent<{ checked: boolean }>) =>
+              props.onFormChange({ enabled: e.detail.checked })}
+          ></oc-toggle>
+          <oc-field label="Schedule">
+            <oc-select
               .value=${props.form.scheduleKind}
-              @change=${(e: Event) =>
+              .options=${[
+                { value: "every", label: "Every" },
+                { value: "at", label: "At" },
+                { value: "cron", label: "Cron" },
+              ]}
+              @oc-change=${(e: CustomEvent<{ value: string }>) =>
                 props.onFormChange({
-                  scheduleKind: (e.target as HTMLSelectElement)
-                    .value as CronFormState["scheduleKind"],
+                  scheduleKind: e.detail.value as CronFormState["scheduleKind"],
                 })}
-            >
-              <option value="every">Every</option>
-              <option value="at">At</option>
-              <option value="cron">Cron</option>
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
         </div>
         ${renderScheduleFields(props)}
         <div class="form-grid" style="margin-top: 12px;">
-          <label class="field">
-            <span>Session</span>
-            <select
+          <oc-field label="Session">
+            <oc-select
               .value=${props.form.sessionTarget}
-              @change=${(e: Event) =>
+              .options=${[
+                { value: "main", label: "Main" },
+                { value: "isolated", label: "Isolated" },
+              ]}
+              @oc-change=${(e: CustomEvent<{ value: string }>) =>
                 props.onFormChange({
-                  sessionTarget: (e.target as HTMLSelectElement)
-                    .value as CronFormState["sessionTarget"],
+                  sessionTarget: e.detail.value as CronFormState["sessionTarget"],
                 })}
-            >
-              <option value="main">Main</option>
-              <option value="isolated">Isolated</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Wake mode</span>
-            <select
+            ></oc-select>
+          </oc-field>
+          <oc-field label="Wake mode">
+            <oc-select
               .value=${props.form.wakeMode}
-              @change=${(e: Event) =>
+              .options=${[
+                { value: "now", label: "Now" },
+                { value: "next-heartbeat", label: "Next heartbeat" },
+              ]}
+              @oc-change=${(e: CustomEvent<{ value: string }>) =>
                 props.onFormChange({
-                  wakeMode: (e.target as HTMLSelectElement).value as CronFormState["wakeMode"],
+                  wakeMode: e.detail.value as CronFormState["wakeMode"],
                 })}
-            >
-              <option value="now">Now</option>
-              <option value="next-heartbeat">Next heartbeat</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Payload</span>
-            <select
+            ></oc-select>
+          </oc-field>
+          <oc-field label="Payload">
+            <oc-select
               .value=${props.form.payloadKind}
-              @change=${(e: Event) =>
+              .options=${[
+                { value: "systemEvent", label: "System event" },
+                { value: "agentTurn", label: "Agent turn" },
+              ]}
+              @oc-change=${(e: CustomEvent<{ value: string }>) =>
                 props.onFormChange({
-                  payloadKind: (e.target as HTMLSelectElement)
-                    .value as CronFormState["payloadKind"],
+                  payloadKind: e.detail.value as CronFormState["payloadKind"],
                 })}
-            >
-              <option value="systemEvent">System event</option>
-              <option value="agentTurn">Agent turn</option>
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
         </div>
-        <label class="field" style="margin-top: 12px;">
-          <span>${props.form.payloadKind === "systemEvent" ? "System text" : "Agent message"}</span>
+        <oc-field label=${props.form.payloadKind === "systemEvent" ? "System text" : "Agent message"} style="margin-top: 12px;">
           <textarea
             .value=${props.form.payloadText}
             @input=${(e: Event) =>
@@ -197,34 +187,28 @@ export function renderCron(props: CronProps) {
               })}
             rows="4"
           ></textarea>
-        </label>
+        </oc-field>
         <div class="form-grid" style="margin-top: 12px;">
-          <label class="field">
-            <span>Delivery</span>
-            <select
+          <oc-field label="Delivery">
+            <oc-select
               .value=${selectedDeliveryMode}
-              @change=${(e: Event) =>
+              .options=${[
+                ...(supportsAnnounce
+                  ? [{ value: "announce", label: "Announce summary (default)" }]
+                  : []),
+                { value: "webhook", label: "Webhook POST" },
+                { value: "none", label: "None (internal)" },
+              ]}
+              @oc-change=${(e: CustomEvent<{ value: string }>) =>
                 props.onFormChange({
-                  deliveryMode: (e.target as HTMLSelectElement)
-                    .value as CronFormState["deliveryMode"],
+                  deliveryMode: e.detail.value as CronFormState["deliveryMode"],
                 })}
-            >
-              ${
-                supportsAnnounce
-                  ? html`
-                      <option value="announce">Announce summary (default)</option>
-                    `
-                  : nothing
-              }
-              <option value="webhook">Webhook POST</option>
-              <option value="none">None (internal)</option>
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
           ${
             props.form.payloadKind === "agentTurn"
               ? html`
-                  <label class="field">
-                    <span>Timeout (seconds)</span>
+                  <oc-field label="Timeout (seconds)">
                     <input
                       .value=${props.form.timeoutSeconds}
                       @input=${(e: Event) =>
@@ -232,15 +216,14 @@ export function renderCron(props: CronProps) {
                           timeoutSeconds: (e.target as HTMLInputElement).value,
                         })}
                     />
-                  </label>
+                  </oc-field>
                 `
               : nothing
           }
           ${
             selectedDeliveryMode !== "none"
               ? html`
-                  <label class="field">
-                    <span>${selectedDeliveryMode === "webhook" ? "Webhook URL" : "Channel"}</span>
+                  <oc-field label=${selectedDeliveryMode === "webhook" ? "Webhook URL" : "Channel"}>
                     ${
                       selectedDeliveryMode === "webhook"
                         ? html`
@@ -254,28 +237,24 @@ export function renderCron(props: CronProps) {
                             />
                           `
                         : html`
-                            <select
+                            <oc-select
                               .value=${props.form.deliveryChannel || "last"}
-                              @change=${(e: Event) =>
+                              .options=${channelOptions.map((channel) => ({
+                                value: channel,
+                                label: resolveChannelLabel(props, channel),
+                              }))}
+                              @oc-change=${(e: CustomEvent<{ value: string }>) =>
                                 props.onFormChange({
-                                  deliveryChannel: (e.target as HTMLSelectElement).value,
+                                  deliveryChannel: e.detail.value,
                                 })}
-                            >
-                              ${channelOptions.map(
-                                (channel) =>
-                                  html`<option value=${channel}>
-                                    ${resolveChannelLabel(props, channel)}
-                                  </option>`,
-                              )}
-                            </select>
+                            ></oc-select>
                           `
                     }
-                  </label>
+                  </oc-field>
                   ${
                     selectedDeliveryMode === "announce"
                       ? html`
-                          <label class="field">
-                            <span>To</span>
+                          <oc-field label="To">
                             <input
                               .value=${props.form.deliveryTo}
                               @input=${(e: Event) =>
@@ -284,7 +263,7 @@ export function renderCron(props: CronProps) {
                                 })}
                               placeholder="+1555… or chat id"
                             />
-                          </label>
+                          </oc-field>
                         `
                       : nothing
                   }
@@ -338,8 +317,7 @@ function renderScheduleFields(props: CronProps) {
   const form = props.form;
   if (form.scheduleKind === "at") {
     return html`
-      <label class="field" style="margin-top: 12px;">
-        <span>Run at</span>
+      <oc-field label="Run at" style="margin-top: 12px;">
         <input
           type="datetime-local"
           .value=${form.scheduleAt}
@@ -348,14 +326,13 @@ function renderScheduleFields(props: CronProps) {
               scheduleAt: (e.target as HTMLInputElement).value,
             })}
         />
-      </label>
+      </oc-field>
     `;
   }
   if (form.scheduleKind === "every") {
     return html`
       <div class="form-grid" style="margin-top: 12px;">
-        <label class="field">
-          <span>Every</span>
+        <oc-field label="Every">
           <input
             .value=${form.everyAmount}
             @input=${(e: Event) =>
@@ -363,42 +340,40 @@ function renderScheduleFields(props: CronProps) {
                 everyAmount: (e.target as HTMLInputElement).value,
               })}
           />
-        </label>
-        <label class="field">
-          <span>Unit</span>
-          <select
+        </oc-field>
+        <oc-field label="Unit">
+          <oc-select
             .value=${form.everyUnit}
-            @change=${(e: Event) =>
+            .options=${[
+              { value: "minutes", label: "Minutes" },
+              { value: "hours", label: "Hours" },
+              { value: "days", label: "Days" },
+            ]}
+            @oc-change=${(e: CustomEvent<{ value: string }>) =>
               props.onFormChange({
-                everyUnit: (e.target as HTMLSelectElement).value as CronFormState["everyUnit"],
+                everyUnit: e.detail.value as CronFormState["everyUnit"],
               })}
-          >
-            <option value="minutes">Minutes</option>
-            <option value="hours">Hours</option>
-            <option value="days">Days</option>
-          </select>
-        </label>
+          ></oc-select>
+        </oc-field>
       </div>
     `;
   }
   return html`
     <div class="form-grid" style="margin-top: 12px;">
-      <label class="field">
-        <span>Expression</span>
+      <oc-field label="Expression">
         <input
           .value=${form.cronExpr}
           @input=${(e: Event) =>
             props.onFormChange({ cronExpr: (e.target as HTMLInputElement).value })}
         />
-      </label>
-      <label class="field">
-        <span>Timezone (optional)</span>
+      </oc-field>
+      <oc-field label="Timezone (optional)">
         <input
           .value=${form.cronTz}
           @input=${(e: Event) =>
             props.onFormChange({ cronTz: (e.target as HTMLInputElement).value })}
         />
-      </label>
+      </oc-field>
     </div>
   `;
 }
