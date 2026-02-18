@@ -5,3 +5,9 @@ export { OcStatusDot } from "./oc-status-dot.ts";
 export { OcCallout } from "./oc-callout.ts";
 export { OcPill } from "./oc-pill.ts";
 export { ResizableDivider } from "./resizable-divider.ts";
+
+// Foundation UI Components — Phase 2: Form & Layout
+export { OcCard } from "./oc-card.ts";
+export { OcField } from "./oc-field.ts";
+export { OcEmptyState } from "./oc-empty-state.ts";
+export { OcCollapsible } from "./oc-collapsible.ts";
