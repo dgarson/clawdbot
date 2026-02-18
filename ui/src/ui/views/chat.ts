@@ -336,6 +336,8 @@ export function renderChat(props: ChatProps) {
                           (item.attachments?.length ? `Image (${item.attachments.length})` : "")
                         }
                       </div>
+                      <!-- TODO: retain raw <button class="btn chat-queue__remove"> — layout CSS targets
+                           .btn.chat-queue__remove compound selector; verify before migrating to oc-button -->
                       <button
                         class="btn chat-queue__remove"
                         type="button"
@@ -358,6 +360,8 @@ export function renderChat(props: ChatProps) {
       ${
         props.showNewMessages
           ? html`
+            <!-- TODO: retain raw <button class="btn chat-new-messages"> — layout CSS targets
+                 .btn.chat-new-messages compound selector; verify before migrating to oc-button -->
             <button
               class="btn chat-new-messages"
               type="button"

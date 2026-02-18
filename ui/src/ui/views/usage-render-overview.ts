@@ -120,9 +120,9 @@ function renderFilterChips(
       ${
         (selectedDays.length > 0 || selectedHours.length > 0) && selectedSessions.length > 0
           ? html`
-            <button class="btn btn-sm filter-clear-btn" @click=${onClearFilters}>
+            <oc-button size="sm" class="filter-clear-btn" @click=${onClearFilters}>
               Clear All
-            </button>
+            </oc-button>
           `
           : nothing
       }
@@ -739,9 +739,9 @@ function renderSessionsCard(
         ${
           selectedCount > 0
             ? html`
-                <button class="btn btn-sm sessions-action-btn sessions-clear-btn" @click=${onClearSessions}>
+                <oc-button size="sm" class="sessions-action-btn sessions-clear-btn" @click=${onClearSessions}>
                   Clear Selection
-                </button>
+                </oc-button>
               `
             : nothing
         }

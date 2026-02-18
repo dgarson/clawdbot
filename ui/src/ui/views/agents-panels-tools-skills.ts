@@ -183,6 +183,8 @@ export function renderAgentTools(params: {
       <div class="agent-tools-presets" style="margin-top: 16px;">
         <div class="label">Quick Presets</div>
         <div class="agent-tools-buttons">
+          <!-- TODO: retain raw <button class="btn btn--sm active"> — oc-button has no active prop;
+               class="active" on the host does not reach Shadow DOM internal button styles -->
           ${PROFILE_OPTIONS.map(
             (option) => html`
               <button

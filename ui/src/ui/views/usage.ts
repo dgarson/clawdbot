@@ -391,8 +391,8 @@ export function renderUsage(props: UsageProps) {
         </span>
         <div class="usage-filter-popover">
           <div class="usage-filter-actions">
-            <button
-              class="btn btn-sm"
+            <oc-button
+              size="sm"
               @click=${(e: Event) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -401,9 +401,9 @@ export function renderUsage(props: UsageProps) {
               ?disabled=${allSelected}
             >
               Select All
-            </button>
-            <button
-              class="btn btn-sm"
+            </oc-button>
+            <oc-button
+              size="sm"
               @click=${(e: Event) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -412,7 +412,7 @@ export function renderUsage(props: UsageProps) {
               ?disabled=${selectedCount === 0}
             >
               Clear
-            </button>
+            </oc-button>
           </div>
           <div class="usage-filter-options">
             ${options.map((value) => {
@@ -580,9 +580,9 @@ export function renderUsage(props: UsageProps) {
           <div class="usage-presets">
             ${datePresets.map(
               (preset) => html`
-                <button class="btn btn-sm" @click=${() => applyPreset(preset.days)}>
+                <oc-button size="sm" @click=${() => applyPreset(preset.days)}>
                   ${preset.label}
-                </button>
+                </oc-button>
               `,
             )}
           </div>
