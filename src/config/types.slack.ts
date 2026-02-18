@@ -24,6 +24,17 @@ export type SlackDmConfig = {
   replyToMode?: ReplyToMode;
 };
 
+export type SlackExecApprovalConfig = {
+  /** Enable interactive Block Kit exec approvals for this Slack account. Default: false. */
+  enabled?: boolean;
+  /** Slack user IDs authorized to click approval buttons. Required if enabled. */
+  approvers?: string[];
+  /** Only forward approvals for these agent IDs. Omit = all agents. */
+  agentFilter?: string[];
+  /** Only forward approvals matching these session key patterns (substring or regex). */
+  sessionFilter?: string[];
+};
+
 export type SlackChannelConfig = {
   /** If false, disable the bot in this channel. (Alias for allow: false.) */
   enabled?: boolean;
@@ -161,6 +172,8 @@ export type SlackAccountConfig = {
    */
   allowFrom?: Array<string | number>;
   dm?: SlackDmConfig;
+  /** Interactive exec approval forwarding configuration. */
+  execApprovals?: SlackExecApprovalConfig;
   channels?: Record<string, SlackChannelConfig>;
   /** Heartbeat visibility settings for this channel. */
   heartbeat?: ChannelHeartbeatVisibilityConfig;
