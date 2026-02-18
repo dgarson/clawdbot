@@ -53,9 +53,7 @@ export function renderTelegramCard(params: {
   };
 
   return html`
-    <div class="card">
-      <div class="card-title">Telegram</div>
-      <div class="card-sub">Bot status and channel configuration.</div>
+    <oc-card title="Telegram" subtitle="Bot status and channel configuration.">
       ${accountCountLabel}
 
       ${
@@ -113,6 +111,6 @@ export function renderTelegramCard(params: {
           Probe
         </button>
       </div>
-    </div>
+    </oc-card>
   `;
 }

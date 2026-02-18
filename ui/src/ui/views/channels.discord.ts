@@ -12,9 +12,7 @@ export function renderDiscordCard(params: {
   const { props, discord, accountCountLabel } = params;
 
   return html`
-    <div class="card">
-      <div class="card-title">Discord</div>
-      <div class="card-sub">Bot status and channel configuration.</div>
+    <oc-card title="Discord" subtitle="Bot status and channel configuration.">
       ${accountCountLabel}
 
       <div class="status-list" style="margin-top: 16px;">
@@ -58,6 +56,6 @@ export function renderDiscordCard(params: {
           Probe
         </button>
       </div>
-    </div>
+    </oc-card>
   `;
 }

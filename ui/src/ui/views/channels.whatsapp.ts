@@ -12,9 +12,7 @@ export function renderWhatsAppCard(params: {
   const { props, whatsapp, accountCountLabel } = params;
 
   return html`
-    <div class="card">
-      <div class="card-title">WhatsApp</div>
-      <div class="card-sub">Link WhatsApp Web and monitor connection health.</div>
+    <oc-card title="WhatsApp" subtitle="Link WhatsApp Web and monitor connection health.">
       ${accountCountLabel}
 
       <div class="status-list" style="margin-top: 16px;">
@@ -111,6 +109,6 @@ export function renderWhatsAppCard(params: {
       </div>
 
       ${renderChannelConfigSection({ channelId: "whatsapp", props })}
-    </div>
+    </oc-card>
   `;
 }

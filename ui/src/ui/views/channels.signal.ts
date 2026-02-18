@@ -12,9 +12,7 @@ export function renderSignalCard(params: {
   const { props, signal, accountCountLabel } = params;
 
   return html`
-    <div class="card">
-      <div class="card-title">Signal</div>
-      <div class="card-sub">signal-cli status and channel configuration.</div>
+    <oc-card title="Signal" subtitle="signal-cli status and channel configuration.">
       ${accountCountLabel}
 
       <div class="status-list" style="margin-top: 16px;">
@@ -62,6 +60,6 @@ export function renderSignalCard(params: {
           Probe
         </button>
       </div>
-    </div>
+    </oc-card>
   `;
 }

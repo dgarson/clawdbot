@@ -12,9 +12,7 @@ export function renderIMessageCard(params: {
   const { props, imessage, accountCountLabel } = params;
 
   return html`
-    <div class="card">
-      <div class="card-title">iMessage</div>
-      <div class="card-sub">macOS bridge status and channel configuration.</div>
+    <oc-card title="iMessage" subtitle="macOS bridge status and channel configuration.">
       ${accountCountLabel}
 
       <div class="status-list" style="margin-top: 16px;">
@@ -58,6 +56,6 @@ export function renderIMessageCard(params: {
           Probe
         </button>
       </div>
-    </div>
+    </oc-card>
   `;
 }

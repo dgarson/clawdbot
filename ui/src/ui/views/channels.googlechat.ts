@@ -12,9 +12,7 @@ export function renderGoogleChatCard(params: {
   const { props, googleChat, accountCountLabel } = params;
 
   return html`
-    <div class="card">
-      <div class="card-title">Google Chat</div>
-      <div class="card-sub">Chat API webhook status and channel configuration.</div>
+    <oc-card title="Google Chat" subtitle="Chat API webhook status and channel configuration.">
       ${accountCountLabel}
 
       <div class="status-list" style="margin-top: 16px;">
@@ -72,6 +70,6 @@ export function renderGoogleChatCard(params: {
           Probe
         </button>
       </div>
-    </div>
+    </oc-card>
   `;
 }
