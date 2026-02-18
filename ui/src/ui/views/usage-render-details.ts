@@ -1042,8 +1042,7 @@ function renderSessionLogsCompact(
             ${
               toolInfo.tools.length > 0
                 ? html`
-                    <details class="session-log-tools" ?open=${expandedAll}>
-                      <summary>${toolInfo.summary}</summary>
+                    <oc-collapsible class="session-log-tools" label=${toolInfo.summary} ?open=${expandedAll}>
                       <div class="session-log-tools-list">
                         ${toolInfo.tools.map(
                           ([name, count]) => html`
@@ -1051,7 +1050,7 @@ function renderSessionLogsCompact(
                           `,
                         )}
                       </div>
-                    </details>
+                    </oc-collapsible>
                   `
                 : nothing
             }

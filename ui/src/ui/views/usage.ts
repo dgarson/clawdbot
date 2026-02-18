@@ -362,10 +362,10 @@ export function renderUsage(props: UsageProps) {
       options.length > 0 && options.every((value) => selectedSet.has(normalizeQueryText(value)));
     const selectedCount = selected.length;
     return html`
-      <details
+      <oc-collapsible
         class="usage-filter-select"
-        @toggle=${(e: Event) => {
-          const el = e.currentTarget as HTMLDetailsElement;
+        @oc-toggle=${(e: CustomEvent) => {
+          const el = e.currentTarget as HTMLElement & { open: boolean };
           if (!el.open) {
             return;
           }
@@ -379,7 +379,7 @@ export function renderUsage(props: UsageProps) {
           window.addEventListener("click", onClick, true);
         }}
       >
-        <summary>
+        <span slot="header">
           <span>${label}</span>
           ${
             selectedCount > 0
@@ -388,7 +388,7 @@ export function renderUsage(props: UsageProps) {
                   <span class="usage-filter-badge">All</span>
                 `
           }
-        </summary>
+        </span>
         <div class="usage-filter-popover">
           <div class="usage-filter-actions">
             <button
@@ -438,7 +438,7 @@ export function renderUsage(props: UsageProps) {
             })}
           </div>
         </div>
-      </details>
+      </oc-collapsible>
     `;
   };
   const exportStamp = formatIsoDate(new Date());
@@ -494,10 +494,10 @@ export function renderUsage(props: UsageProps) {
           >
             ${props.headerPinned ? "Pinned" : "Pin"}
           </button>
-          <details
+          <oc-collapsible
             class="usage-export-menu"
-            @toggle=${(e: Event) => {
-              const el = e.currentTarget as HTMLDetailsElement;
+            @oc-toggle=${(e: CustomEvent) => {
+              const el = e.currentTarget as HTMLElement & { open: boolean };
               if (!el.open) {
                 return;
               }
@@ -511,7 +511,7 @@ export function renderUsage(props: UsageProps) {
               window.addEventListener("click", onClick, true);
             }}
           >
-            <summary class="usage-export-button">Export ▾</summary>
+            <span slot="header" class="usage-export-button">Export ▾</span>
             <div class="usage-export-popover">
               <div class="usage-export-list">
                 <button
@@ -561,7 +561,7 @@ export function renderUsage(props: UsageProps) {
                 </button>
               </div>
             </div>
-          </details>
+          </oc-collapsible>
         </div>
       </div>
       <div class="usage-header-row">

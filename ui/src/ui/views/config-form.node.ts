@@ -539,16 +539,15 @@ function renderObject(params: {
 
   // Nested objects get collapsible treatment
   return html`
-    <details class="cfg-object" open>
-      <summary class="cfg-object__header">
+    <oc-collapsible class="cfg-object" open>
+      <span slot="header" class="cfg-object__header">
         <span class="cfg-object__title">${label}</span>
-        <span class="cfg-object__chevron">${icons.chevronDown}</span>
-      </summary>
+      </span>
       ${help ? html`<div class="cfg-object__help">${help}</div>` : nothing}
       <div class="cfg-object__content">
         ${fields}
       </div>
-    </details>
+    </oc-collapsible>
   `;
 }
 

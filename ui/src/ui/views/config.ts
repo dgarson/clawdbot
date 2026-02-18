@@ -587,22 +587,13 @@ export function renderConfig(props: ConfigProps) {
         ${
           hasChanges && props.formMode === "form"
             ? html`
-              <details class="config-diff">
-                <summary class="config-diff__summary">
+              <oc-collapsible class="config-diff">
+                <span slot="header" class="config-diff__summary">
                   <span
                     >View ${diff.length} pending
                     change${diff.length !== 1 ? "s" : ""}</span
                   >
-                  <svg
-                    class="config-diff__chevron"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </summary>
+                </span>
                 <div class="config-diff__content">
                   ${diff.map(
                     (change) => html`
@@ -621,7 +612,7 @@ export function renderConfig(props: ConfigProps) {
                     `,
                   )}
                 </div>
-              </details>
+              </oc-collapsible>
             `
             : nothing
         }
