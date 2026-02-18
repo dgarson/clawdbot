@@ -427,6 +427,10 @@ function renderAgentOverview(params: {
       <div class="agent-model-select" style="margin-top: 20px;">
         <div class="label">Model Selection</div>
         <div class="row" style="gap: 12px; flex-wrap: wrap;">
+          ${
+            /* TODO: migrate to oc-select once buildModelOptions() is refactored to return { value, label }[]
+               Currently blocked by buildModelOptions() returning TemplateResult <option> elements */ ""
+          }
           <oc-field label=${`Primary model${isDefault ? " (default)" : ""}`} style="min-width: 260px; flex: 1;">
             <select
               .value=${effectivePrimary ?? ""}

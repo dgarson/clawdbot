@@ -1,5 +1,4 @@
 import { html } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import type { AppViewState } from "./app-view-state.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
 import type { ThemeMode } from "./theme.ts";
@@ -130,11 +129,15 @@ export function renderChatControls(state: AppViewState) {
   return html`
     <div class="chat-controls">
       <oc-field class="chat-controls__session">
-        <select
+        <oc-select
           .value=${state.sessionKey}
           ?disabled=${!state.connected}
-          @change=${(e: Event) => {
-            const next = (e.target as HTMLSelectElement).value;
+          .options=${sessionOptions.map((s) => ({
+            value: s.key,
+            label: s.displayName ?? s.key,
+          }))}
+          @oc-change=${(e: CustomEvent<{ value: string }>) => {
+            const next = e.detail.value;
             state.sessionKey = next;
             state.chatMessage = "";
             state.chatStream = null;
@@ -155,16 +158,7 @@ export function renderChatControls(state: AppViewState) {
             );
             void loadChatHistory(state as unknown as ChatState);
           }}
-        >
-          ${repeat(
-            sessionOptions,
-            (entry) => entry.key,
-            (entry) =>
-              html`<option value=${entry.key} title=${entry.key}>
-                ${entry.displayName ?? entry.key}
-              </option>`,
-          )}
-        </select>
+        ></oc-select>
       </oc-field>
       <button
         class="btn btn--sm btn--icon"
