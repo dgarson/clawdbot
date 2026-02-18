@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
+import { buildSlackBlocksFallbackText } from "./fallback.js";
 
 describe("buildSlackBlocksFallbackText", () => {
   it("prefers header text", () => {
