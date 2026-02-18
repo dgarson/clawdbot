@@ -59,7 +59,7 @@ function renderSessionSummary(
   const usage = filteredUsage || session.usage;
   if (!usage) {
     return html`
-      <div class="muted">No usage data for this session.</div>
+      <oc-empty-state title="No usage data for this session."></oc-empty-state>
     `;
   }
 
@@ -339,14 +339,14 @@ function renderTimeSeriesCompact(
   if (loading) {
     return html`
       <div class="session-timeseries-compact">
-        <div class="muted" style="padding: 20px; text-align: center">Loading...</div>
+        <oc-empty-state variant="loading" title="Loading..."></oc-empty-state>
       </div>
     `;
   }
   if (!timeSeries || timeSeries.points.length < 2) {
     return html`
       <div class="session-timeseries-compact">
-        <div class="muted" style="padding: 20px; text-align: center">No timeline data</div>
+        <oc-empty-state title="No timeline data"></oc-empty-state>
       </div>
     `;
   }
@@ -371,7 +371,7 @@ function renderTimeSeriesCompact(
   if (points.length < 2) {
     return html`
       <div class="session-timeseries-compact">
-        <div class="muted" style="padding: 20px; text-align: center">No data in range</div>
+        <oc-empty-state title="No data in range"></oc-empty-state>
       </div>
     `;
   }
@@ -724,7 +724,7 @@ function renderContextPanel(
   if (!contextWeight) {
     return html`
       <div class="context-details-panel">
-        <div class="muted" style="padding: 20px; text-align: center">No context data</div>
+        <oc-empty-state title="No context data"></oc-empty-state>
       </div>
     `;
   }
@@ -901,7 +901,7 @@ function renderSessionLogsCompact(
     return html`
       <div class="session-logs-compact">
         <div class="session-logs-header">Conversation</div>
-        <div class="muted" style="padding: 20px; text-align: center">Loading...</div>
+        <oc-empty-state variant="loading" title="Loading..."></oc-empty-state>
       </div>
     `;
   }
@@ -909,7 +909,7 @@ function renderSessionLogsCompact(
     return html`
       <div class="session-logs-compact">
         <div class="session-logs-header">Conversation</div>
-        <div class="muted" style="padding: 20px; text-align: center">No messages</div>
+        <oc-empty-state title="No messages"></oc-empty-state>
       </div>
     `;
   }
@@ -1057,7 +1057,7 @@ function renderSessionLogsCompact(
         ${
           filteredEntries.length === 0
             ? html`
-                <div class="muted" style="padding: 12px">No messages match the filters.</div>
+                <oc-empty-state title="No messages match the filters."></oc-empty-state>
               `
             : nothing
         }

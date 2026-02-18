@@ -58,7 +58,7 @@ export function renderNodes(props: NodesProps) {
         ${
           props.nodes.length === 0
             ? html`
-                <div class="muted">No nodes found.</div>
+                <oc-empty-state title="No nodes found."></oc-empty-state>
               `
             : props.nodes.map((n) => renderNode(n))
         }
@@ -99,7 +99,7 @@ function renderDevices(props: NodesProps) {
         ${
           pending.length === 0 && paired.length === 0
             ? html`
-                <div class="muted">No paired devices.</div>
+                <oc-empty-state title="No paired devices."></oc-empty-state>
               `
             : nothing
         }
@@ -301,7 +301,7 @@ function renderBindings(state: BindingState) {
                   ${
                     !supportsBinding
                       ? html`
-                          <div class="muted">No nodes with system.run available.</div>
+                          <oc-empty-state title="No nodes with system.run available."></oc-empty-state>
                         `
                       : nothing
                   }
@@ -311,7 +311,7 @@ function renderBindings(state: BindingState) {
               ${
                 state.agents.length === 0
                   ? html`
-                      <div class="muted">No agents found.</div>
+                      <oc-empty-state title="No agents found."></oc-empty-state>
                     `
                   : state.agents.map((agent) => renderAgentBinding(agent, state))
               }

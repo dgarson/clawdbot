@@ -217,7 +217,7 @@ export function renderChat(props: ChatProps) {
       ${
         props.loading
           ? html`
-              <div class="muted">Loading chat…</div>
+              <oc-empty-state variant="loading" title="Loading chat…"></oc-empty-state>
             `
           : nothing
       }

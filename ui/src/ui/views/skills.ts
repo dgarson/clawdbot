@@ -58,7 +58,7 @@ export function renderSkills(props: SkillsProps) {
       ${
         filtered.length === 0
           ? html`
-              <div class="muted" style="margin-top: 16px">No skills found.</div>
+              <oc-empty-state title="No skills found."></oc-empty-state>
             `
           : html`
             <div class="agent-skills-groups" style="margin-top: 16px;">

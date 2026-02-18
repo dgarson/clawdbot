@@ -114,7 +114,7 @@ export function renderAgents(props: AgentsProps) {
           ${
             agents.length === 0
               ? html`
-                  <div class="muted">No agents found.</div>
+                  <oc-empty-state title="No agents found."></oc-empty-state>
                 `
               : agents.map((agent) => {
                   const badge = agentBadgeText(agent.id, defaultId);

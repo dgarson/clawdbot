@@ -675,10 +675,7 @@ export function renderConfig(props: ConfigProps) {
                 ${
                   props.schemaLoading
                     ? html`
-                        <div class="config-loading">
-                          <div class="config-loading__spinner"></div>
-                          <span>Loading schema…</span>
-                        </div>
+                        <oc-empty-state variant="loading" title="Loading schema…"></oc-empty-state>
                       `
                     : renderConfigForm({
                         schema: analysis.schema,

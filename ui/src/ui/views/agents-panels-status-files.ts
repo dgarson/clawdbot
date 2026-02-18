@@ -207,7 +207,7 @@ export function renderAgentChannels(params: {
         ${
           entries.length === 0
             ? html`
-                <div class="muted" style="margin-top: 16px">No channels found.</div>
+                <oc-empty-state title="No channels found."></oc-empty-state>
               `
             : html`
                 <div class="list" style="margin-top: 16px;">
@@ -288,7 +288,7 @@ export function renderAgentCron(params: {
       ${
         jobs.length === 0
           ? html`
-              <div class="muted" style="margin-top: 16px">No jobs assigned.</div>
+              <oc-empty-state title="No jobs assigned."></oc-empty-state>
             `
           : html`
               <div class="list" style="margin-top: 16px;">
@@ -371,7 +371,7 @@ export function renderAgentFiles(params: {
                   ${
                     files.length === 0
                       ? html`
-                          <div class="muted">No files found.</div>
+                          <oc-empty-state title="No files found."></oc-empty-state>
                         `
                       : files.map((file) =>
                           renderAgentFileRow(file, active, () => params.onSelectFile(file.name)),
@@ -382,7 +382,7 @@ export function renderAgentFiles(params: {
                   ${
                     !activeEntry
                       ? html`
-                          <div class="muted">Select a file to edit.</div>
+                          <oc-empty-state title="Select a file to edit."></oc-empty-state>
                         `
                       : html`
                           <div class="agent-file-header">

@@ -144,7 +144,7 @@ export function renderChannelConfigSection(params: { channelId: string; props: C
       ${
         props.configSchemaLoading
           ? html`
-              <div class="muted">Loading config schema…</div>
+              <oc-empty-state variant="loading" title="Loading config schema…"></oc-empty-state>
             `
           : renderChannelConfigForm({
               channelId,

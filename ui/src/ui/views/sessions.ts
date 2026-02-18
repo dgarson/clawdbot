@@ -185,7 +185,7 @@ export function renderSessions(props: SessionsProps) {
         ${
           rows.length === 0
             ? html`
-                <div class="muted">No sessions found.</div>
+                <oc-empty-state title="No sessions found."></oc-empty-state>
               `
             : rows.map((row) =>
                 renderRow(row, props.basePath, props.onPatch, props.onDelete, props.loading),
