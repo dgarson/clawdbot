@@ -116,8 +116,7 @@ export function renderSessions(props: SessionsProps) {
       </oc-button>
 
       <div class="filters" style="margin-top: 14px;">
-        <label class="field">
-          <span>Active within (minutes)</span>
+        <oc-field label="Active within (minutes)">
           <input
             .value=${props.activeMinutes}
             @input=${(e: Event) =>
@@ -128,9 +127,8 @@ export function renderSessions(props: SessionsProps) {
                 includeUnknown: props.includeUnknown,
               })}
           />
-        </label>
-        <label class="field">
-          <span>Limit</span>
+        </oc-field>
+        <oc-field label="Limit">
           <input
             .value=${props.limit}
             @input=${(e: Event) =>
@@ -141,35 +139,29 @@ export function renderSessions(props: SessionsProps) {
                 includeUnknown: props.includeUnknown,
               })}
           />
-        </label>
-        <label class="field checkbox">
-          <span>Include global</span>
-          <input
-            type="checkbox"
-            .checked=${props.includeGlobal}
-            @change=${(e: Event) =>
-              props.onFiltersChange({
-                activeMinutes: props.activeMinutes,
-                limit: props.limit,
-                includeGlobal: (e.target as HTMLInputElement).checked,
-                includeUnknown: props.includeUnknown,
-              })}
-          />
-        </label>
-        <label class="field checkbox">
-          <span>Include unknown</span>
-          <input
-            type="checkbox"
-            .checked=${props.includeUnknown}
-            @change=${(e: Event) =>
-              props.onFiltersChange({
-                activeMinutes: props.activeMinutes,
-                limit: props.limit,
-                includeGlobal: props.includeGlobal,
-                includeUnknown: (e.target as HTMLInputElement).checked,
-              })}
-          />
-        </label>
+        </oc-field>
+        <oc-toggle
+          label="Include global"
+          .checked=${props.includeGlobal}
+          @oc-change=${(e: CustomEvent<{ checked: boolean }>) =>
+            props.onFiltersChange({
+              activeMinutes: props.activeMinutes,
+              limit: props.limit,
+              includeGlobal: e.detail.checked,
+              includeUnknown: props.includeUnknown,
+            })}
+        ></oc-toggle>
+        <oc-toggle
+          label="Include unknown"
+          .checked=${props.includeUnknown}
+          @oc-change=${(e: CustomEvent<{ checked: boolean }>) =>
+            props.onFiltersChange({
+              activeMinutes: props.activeMinutes,
+              limit: props.limit,
+              includeGlobal: props.includeGlobal,
+              includeUnknown: e.detail.checked,
+            })}
+        ></oc-toggle>
       </div>
 
       ${props.error ? html`<oc-callout variant="danger">${props.error}</oc-callout>` : nothing}

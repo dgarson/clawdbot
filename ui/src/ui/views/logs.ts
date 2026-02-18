@@ -71,23 +71,19 @@ export function renderLogs(props: LogsProps) {
       </oc-button>
 
       <div class="filters" style="margin-top: 14px;">
-        <label class="field" style="min-width: 220px;">
-          <span>Filter</span>
+        <oc-field label="Filter" style="min-width: 220px;">
           <input
             .value=${props.filterText}
             @input=${(e: Event) => props.onFilterTextChange((e.target as HTMLInputElement).value)}
             placeholder="Search logs"
           />
-        </label>
-        <label class="field checkbox">
-          <span>Auto-follow</span>
-          <input
-            type="checkbox"
-            .checked=${props.autoFollow}
-            @change=${(e: Event) =>
-              props.onToggleAutoFollow((e.target as HTMLInputElement).checked)}
-          />
-        </label>
+        </oc-field>
+        <oc-toggle
+          label="Auto-follow"
+          .checked=${props.autoFollow}
+          @oc-change=${(e: CustomEvent<{ checked: boolean }>) =>
+            props.onToggleAutoFollow(e.detail.checked)}
+        ></oc-toggle>
       </div>
 
       <div class="chip-row" style="margin-top: 12px;">
