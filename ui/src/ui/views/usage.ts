@@ -727,26 +727,22 @@ export function renderUsage(props: UsageProps) {
         ${
           queryWarnings.length > 0
             ? html`
-                <div class="callout warning" style="margin-top: 8px;">
+                <oc-callout variant="warn">
                   ${queryWarnings.join(" · ")}
-                </div>
+                </oc-callout>
               `
             : nothing
         }
       </div>
 
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-          : nothing
-      }
+      ${props.error ? html`<oc-callout variant="danger">${props.error}</oc-callout>` : nothing}
 
       ${
         props.sessionsLimitReached
           ? html`
-              <div class="callout warning" style="margin-top: 12px">
+              <oc-callout variant="warn">
                 Showing first 1,000 sessions. Narrow date range for complete results.
-              </div>
+              </oc-callout>
             `
           : nothing
       }

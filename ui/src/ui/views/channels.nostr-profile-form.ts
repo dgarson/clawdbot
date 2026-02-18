@@ -170,17 +170,9 @@ export function renderNostrProfileForm(params: {
         <div style="font-size: 12px; color: var(--text-muted);">Account: ${accountId}</div>
       </div>
 
-      ${
-        state.error
-          ? html`<div class="callout danger" style="margin-bottom: 12px;">${state.error}</div>`
-          : nothing
-      }
+      ${state.error ? html`<oc-callout variant="danger">${state.error}</oc-callout>` : nothing}
 
-      ${
-        state.success
-          ? html`<div class="callout success" style="margin-bottom: 12px;">${state.success}</div>`
-          : nothing
-      }
+      ${state.success ? html`<oc-callout variant="success">${state.success}</oc-callout>` : nothing}
 
       ${renderPicturePreview()}
 

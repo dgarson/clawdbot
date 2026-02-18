@@ -709,9 +709,9 @@ export function renderConfig(props: ConfigProps) {
                 ${
                   formUnsafe
                     ? html`
-                        <div class="callout danger" style="margin-top: 12px">
+                        <oc-callout variant="danger">
                           Form view can't safely edit some fields. Use Raw to avoid losing config entries.
-                        </div>
+                        </oc-callout>
                       `
                     : nothing
                 }
@@ -731,11 +731,11 @@ export function renderConfig(props: ConfigProps) {
 
         ${
           props.issues.length > 0
-            ? html`<div class="callout danger" style="margin-top: 12px;">
+            ? html`<oc-callout variant="danger">
               <pre class="code-block">
 ${JSON.stringify(props.issues, null, 2)}</pre
               >
-            </div>`
+            </oc-callout>`
             : nothing
         }
       </main>

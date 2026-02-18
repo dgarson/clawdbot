@@ -1,9 +1,9 @@
 import { html } from "lit";
+import type { GatewayHelloOk } from "../gateway.ts";
+import type { UiSettings } from "../storage.ts";
 import { t, i18n, type Locale } from "../../i18n/index.ts";
 import { formatRelativeTimestamp, formatDurationHuman } from "../format.ts";
-import type { GatewayHelloOk } from "../gateway.ts";
 import { formatNextRun } from "../presenter.ts";
-import type { UiSettings } from "../storage.ts";
 
 export type OverviewProps = {
   connected: boolean;
@@ -239,15 +239,15 @@ export function renderOverview(props: OverviewProps) {
         </div>
         ${
           props.lastError
-            ? html`<div class="callout danger" style="margin-top: 14px;">
+            ? html`<oc-callout variant="danger">
               <div>${props.lastError}</div>
               ${authHint ?? ""}
               ${insecureContextHint ?? ""}
-            </div>`
+            </oc-callout>`
             : html`
-                <div class="callout" style="margin-top: 14px">
+                <oc-callout>
                   ${t("overview.snapshot.channelsHint")}
-                </div>
+                </oc-callout>
               `
         }
       </div>

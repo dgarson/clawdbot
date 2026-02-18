@@ -1,6 +1,6 @@
 import { html, nothing } from "lit";
-import { icons } from "../icons.ts";
 import type { ConfigUiHints } from "../types.ts";
+import { icons } from "../icons.ts";
 import { renderNode } from "./config-form.node.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 
@@ -362,7 +362,7 @@ export function renderConfigForm(props: ConfigFormProps) {
   const value = props.value ?? {};
   if (schemaType(schema) !== "object" || !schema.properties) {
     return html`
-      <div class="callout danger">Unsupported schema. Use Raw.</div>
+      <oc-callout variant="danger">Unsupported schema. Use Raw.</oc-callout>
     `;
   }
   const unsupported = new Set(props.unsupportedPaths ?? []);

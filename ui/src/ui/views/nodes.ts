@@ -92,7 +92,7 @@ function renderDevices(props: NodesProps) {
       </div>
       ${
         props.devicesError
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.devicesError}</div>`
+          ? html`<oc-callout variant="danger">${props.devicesError}</oc-callout>`
           : nothing
       }
       <div class="list" style="margin-top: 16px;">
@@ -291,9 +291,9 @@ function renderBindings(state: BindingState) {
       ${
         state.formMode === "raw"
           ? html`
-              <div class="callout warn" style="margin-top: 12px">
+              <oc-callout variant="warn">
                 Switch the Config tab to <strong>Form</strong> mode to edit bindings here.
-              </div>
+              </oc-callout>
             `
           : nothing
       }

@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
-import { normalizeToolName } from "../../../../src/agents/tool-policy.js";
 import type { SkillStatusEntry, SkillStatusReport } from "../types.ts";
+import type { SkillGroup } from "./skills-grouping.ts";
+import { normalizeToolName } from "../../../../src/agents/tool-policy.js";
 import {
   isAllowedByPolicy,
   matchesList,
@@ -9,7 +10,6 @@ import {
   resolveToolProfile,
   TOOL_SECTIONS,
 } from "./agents-utils.ts";
-import type { SkillGroup } from "./skills-grouping.ts";
 import { groupSkills } from "./skills-grouping.ts";
 import {
   computeSkillMissing,
@@ -142,27 +142,25 @@ export function renderAgentTools(params: {
       ${
         !params.configForm
           ? html`
-              <div class="callout info" style="margin-top: 12px">
-                Load the gateway config to adjust tool profiles.
-              </div>
+              <oc-callout variant="info"> Load the gateway config to adjust tool profiles. </oc-callout>
             `
           : nothing
       }
       ${
         hasAgentAllow
           ? html`
-              <div class="callout info" style="margin-top: 12px">
+              <oc-callout variant="info">
                 This agent is using an explicit allowlist in config. Tool overrides are managed in the Config tab.
-              </div>
+              </oc-callout>
             `
           : nothing
       }
       ${
         hasGlobalAllow
           ? html`
-              <div class="callout info" style="margin-top: 12px">
+              <oc-callout variant="info">
                 Global tools.allow is set. Agent overrides cannot enable tools that are globally blocked.
-              </div>
+              </oc-callout>
             `
           : nothing
       }
@@ -331,37 +329,31 @@ export function renderAgentSkills(params: {
       ${
         !params.configForm
           ? html`
-              <div class="callout info" style="margin-top: 12px">
-                Load the gateway config to set per-agent skills.
-              </div>
+              <oc-callout variant="info"> Load the gateway config to set per-agent skills. </oc-callout>
             `
           : nothing
       }
       ${
         usingAllowlist
           ? html`
-              <div class="callout info" style="margin-top: 12px">This agent uses a custom skill allowlist.</div>
+              <oc-callout variant="info">This agent uses a custom skill allowlist.</oc-callout>
             `
           : html`
-              <div class="callout info" style="margin-top: 12px">
+              <oc-callout variant="info">
                 All skills are enabled. Disabling any skill will create a per-agent allowlist.
-              </div>
+              </oc-callout>
             `
       }
       ${
         !reportReady && !params.loading
           ? html`
-              <div class="callout info" style="margin-top: 12px">
+              <oc-callout variant="info">
                 Load skills for this agent to view workspace-specific entries.
-              </div>
+              </oc-callout>
             `
           : nothing
       }
-      ${
-        params.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-          : nothing
-      }
+      ${params.error ? html`<oc-callout variant="danger">${params.error}</oc-callout>` : nothing}
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field" style="flex: 1;">

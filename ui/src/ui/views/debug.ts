@@ -49,10 +49,10 @@ export function renderDebug(props: DebugProps) {
             <div class="muted">Status</div>
             ${
               securitySummary
-                ? html`<div class="callout ${securityTone}" style="margin-top: 8px;">
+                ? html`<oc-callout variant=${securityTone}>
                   Security audit: ${securityLabel}${info > 0 ? ` · ${info} info` : ""}. Run
                   <span class="mono">openclaw security audit --deep</span> for details.
-                </div>`
+                </oc-callout>`
                 : nothing
             }
             <pre class="code-block">${JSON.stringify(props.status ?? {}, null, 2)}</pre>
@@ -95,9 +95,9 @@ export function renderDebug(props: DebugProps) {
         </div>
         ${
           props.callError
-            ? html`<div class="callout danger" style="margin-top: 12px;">
+            ? html`<oc-callout variant="danger">
               ${props.callError}
-            </div>`
+            </oc-callout>`
             : nothing
         }
         ${

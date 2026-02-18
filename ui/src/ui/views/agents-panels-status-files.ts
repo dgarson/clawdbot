@@ -1,11 +1,4 @@
 import { html, nothing } from "lit";
-import { formatRelativeTimestamp } from "../format.ts";
-import {
-  formatCronPayload,
-  formatCronSchedule,
-  formatCronState,
-  formatNextRun,
-} from "../presenter.ts";
 import type {
   AgentFileEntry,
   AgentsFilesListResult,
@@ -14,6 +7,13 @@ import type {
   CronJob,
   CronStatus,
 } from "../types.ts";
+import { formatRelativeTimestamp } from "../format.ts";
+import {
+  formatCronPayload,
+  formatCronSchedule,
+  formatCronState,
+  formatNextRun,
+} from "../presenter.ts";
 import { formatBytes, type AgentContext } from "./agents-utils.ts";
 
 function renderAgentContextCard(context: AgentContext, subtitle: string) {
@@ -206,15 +206,11 @@ export function renderAgentChannels(params: {
         <div class="muted" style="margin-top: 8px;">
           Last refresh: ${lastSuccessLabel}
         </div>
-        ${
-          params.error
-            ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-            : nothing
-        }
+        ${params.error ? html`<oc-callout variant="danger">${params.error}</oc-callout>` : nothing}
         ${
           !params.snapshot
             ? html`
-                <div class="callout info" style="margin-top: 12px">Load channels to see live status.</div>
+                <oc-callout variant="info">Load channels to see live status.</oc-callout>
               `
             : nothing
         }
@@ -303,11 +299,7 @@ export function renderAgentCron(params: {
             <div class="stat-value">${formatNextRun(params.status?.nextWakeAtMs ?? null)}</div>
           </div>
         </div>
-        ${
-          params.error
-            ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-            : nothing
-        }
+        ${params.error ? html`<oc-callout variant="danger">${params.error}</oc-callout>` : nothing}
       </section>
     </section>
     <section class="card">
@@ -397,15 +389,13 @@ export function renderAgentFiles(params: {
       }
       ${
         params.agentFilesError
-          ? html`<div class="callout danger" style="margin-top: 12px;">${params.agentFilesError}</div>`
+          ? html`<oc-callout variant="danger">${params.agentFilesError}</oc-callout>`
           : nothing
       }
       ${
         !list
           ? html`
-              <div class="callout info" style="margin-top: 12px">
-                Load the agent workspace files to edit core instructions.
-              </div>
+              <oc-callout variant="info"> Load the agent workspace files to edit core instructions. </oc-callout>
             `
           : html`
               <div class="agent-files-grid" style="margin-top: 16px;">
@@ -452,9 +442,9 @@ export function renderAgentFiles(params: {
                           ${
                             activeEntry.missing
                               ? html`
-                                  <div class="callout info" style="margin-top: 10px">
+                                  <oc-callout variant="info">
                                     This file is missing. Saving will create it in the agent workspace.
-                                  </div>
+                                  </oc-callout>
                                 `
                               : nothing
                           }

@@ -122,15 +122,11 @@ export function renderLogs(props: LogsProps) {
       ${
         props.truncated
           ? html`
-              <div class="callout" style="margin-top: 10px">Log output truncated; showing latest chunk.</div>
+              <oc-callout>Log output truncated; showing latest chunk.</oc-callout>
             `
           : nothing
       }
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 10px;">${props.error}</div>`
-          : nothing
-      }
+      ${props.error ? html`<oc-callout variant="danger">${props.error}</oc-callout>` : nothing}
 
       <div class="log-stream" style="margin-top: 12px;" @scroll=${props.onScroll}>
         ${

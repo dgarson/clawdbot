@@ -108,13 +108,13 @@ export function renderChannelConfigForm(props: ChannelConfigFormProps) {
   const normalized = analysis.schema;
   if (!normalized) {
     return html`
-      <div class="callout danger">Schema unavailable. Use Raw.</div>
+      <oc-callout variant="danger">Schema unavailable. Use Raw.</oc-callout>
     `;
   }
   const node = resolveSchemaNode(normalized, ["channels", props.channelId]);
   if (!node) {
     return html`
-      <div class="callout danger">Channel config schema unavailable.</div>
+      <oc-callout variant="danger">Channel config schema unavailable.</oc-callout>
     `;
   }
   const configValue = props.configValue ?? {};
