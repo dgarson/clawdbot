@@ -729,6 +729,7 @@ function renderSessionsCard(
             @oc-change=${(e: CustomEvent<{ value: string }>) => onSessionSortChange(e.detail.value as typeof sessionSort)}
           ></oc-select>
         </label>
+        <!-- TODO: retain raw <button class="btn..."> — usage-action-btn / toggle-btn CSS targets host element directly; oc-button shadow DOM styling would break the usage analytics layout -->
         <button
           class="btn btn-sm sessions-action-btn icon"
           @click=${() => onSessionSortDirChange(sessionSortDir === "desc" ? "asc" : "desc")}

@@ -42,14 +42,13 @@ export function renderSkills(props: SkillsProps) {
       </oc-button>
 
       <div class="filters" style="margin-top: 14px;">
-        <label class="field" style="flex: 1;">
-          <span>Filter</span>
+        <oc-field label="Filter" style="flex: 1;">
           <input
             .value=${props.filter}
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
             placeholder="Search skills"
           />
-        </label>
+        </oc-field>
         <div class="muted">${filtered.length} shown</div>
       </div>
 
@@ -154,15 +153,14 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
         ${
           skill.primaryEnv
             ? html`
-              <div class="field" style="margin-top: 10px;">
-                <span>API key</span>
+              <oc-field label="API key" style="margin-top: 10px;">
                 <input
                   type="password"
                   .value=${apiKey}
                   @input=${(e: Event) =>
                     props.onEdit(skill.skillKey, (e.target as HTMLInputElement).value)}
                 />
-              </div>
+              </oc-field>
               <oc-button
                 variant="primary"
                 style="margin-top: 8px;"

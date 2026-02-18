@@ -971,6 +971,7 @@ function renderSessionLogsCompact(
     <div class="session-logs-compact">
       <div class="session-logs-header">
         <span>Conversation <span style="font-weight: normal; color: var(--muted);">(${displayedCount} messages)</span></span>
+        <!-- TODO: retain raw <button class="btn..."> — usage-action-btn / toggle-btn CSS targets host element directly; oc-button shadow DOM styling would break the usage analytics layout -->
         <button class="btn btn-sm usage-action-btn usage-secondary-btn" @click=${onToggleExpandedAll}>
           ${expandedAll ? "Collapse All" : "Expand All"}
         </button>
@@ -1018,6 +1019,7 @@ function renderSessionLogsCompact(
           .value=${filters.query}
           @input=${(event: Event) => onFilterQueryChange((event.target as HTMLInputElement).value)}
         />
+        <!-- TODO: retain raw <button class="btn..."> — usage-action-btn / toggle-btn CSS targets host element directly; oc-button shadow DOM styling would break the usage analytics layout -->
         <button class="btn btn-sm usage-action-btn usage-secondary-btn" @click=${onFilterClear}>
           Clear
         </button>

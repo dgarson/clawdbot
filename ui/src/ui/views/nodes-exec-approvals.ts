@@ -300,8 +300,9 @@ function renderExecApprovalsTabs(state: ExecApprovalsState) {
     <div class="row" style="margin-top: 12px; gap: 8px; flex-wrap: wrap;">
       <span class="label">Scope</span>
       <div class="row" style="gap: 8px; flex-wrap: wrap;">
-        <!-- TODO: retain raw <button class="btn btn--sm active"> — oc-button has no active prop;
-             class="active" on the host does not reach Shadow DOM internal button styles -->
+        <!-- TODO: retain raw <button class="btn btn--sm active"> — oc-button does have an 'active' property
+             but these buttons use host-level CSS (btn btn--sm) that targets the light DOM element;
+             verify that the ?active binding on oc-button achieves the same visual result before migrating -->
         <button
           class="btn btn--sm ${state.selectedScope === EXEC_APPROVALS_DEFAULT_SCOPE ? "active" : ""}"
           @click=${() => state.onSelectScope(EXEC_APPROVALS_DEFAULT_SCOPE)}

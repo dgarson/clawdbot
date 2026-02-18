@@ -142,9 +142,6 @@ export class OcTabs extends LitElement {
       gap: 0;
       overflow-x: auto;
     }
-
-    .panels {
-    }
   `;
 
   connectedCallback() {
@@ -190,7 +187,6 @@ export class OcTabs extends LitElement {
       <div class="tablist" role="tablist">
         <slot @slotchange=${this._handleSlotChange}></slot>
       </div>
-      <div class="panels"></div>
     `;
   }
 }

@@ -183,8 +183,9 @@ export function renderAgentTools(params: {
       <div class="agent-tools-presets" style="margin-top: 16px;">
         <div class="label">Quick Presets</div>
         <div class="agent-tools-buttons">
-          <!-- TODO: retain raw <button class="btn btn--sm active"> — oc-button has no active prop;
-               class="active" on the host does not reach Shadow DOM internal button styles -->
+          <!-- TODO: retain raw <button class="btn btn--sm active"> — oc-button does have an 'active' property
+               but these buttons use host-level CSS (btn btn--sm) that targets the light DOM element;
+               verify that the ?active binding on oc-button achieves the same visual result before migrating -->
           ${PROFILE_OPTIONS.map(
             (option) => html`
               <button

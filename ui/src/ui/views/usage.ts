@@ -622,6 +622,7 @@ export function renderUsage(props: UsageProps) {
               Cost
             </button>
           </div>
+          <!-- TODO: retain raw <button class="btn..."> — usage-action-btn / toggle-btn CSS targets host element directly; oc-button shadow DOM styling would break the usage analytics layout -->
           <button
             class="btn btn-sm usage-action-btn usage-primary-btn"
             @click=${props.onRefresh}
@@ -649,6 +650,7 @@ export function renderUsage(props: UsageProps) {
             }}
           />
           <div class="usage-query-actions">
+            <!-- TODO: retain raw <button class="btn..."> — usage-action-btn / toggle-btn CSS targets host element directly; oc-button shadow DOM styling would break the usage analytics layout -->
             <button
               class="btn btn-sm usage-action-btn usage-secondary-btn"
               @click=${props.onApplyQuery}
@@ -656,6 +658,7 @@ export function renderUsage(props: UsageProps) {
             >
               Filter (client-side)
             </button>
+            <!-- TODO: retain raw <button class="btn..."> — usage-action-btn / toggle-btn CSS targets host element directly; oc-button shadow DOM styling would break the usage analytics layout -->
             ${
               hasDraftQuery || hasQuery
                 ? html`<button class="btn btn-sm usage-action-btn usage-secondary-btn" @click=${props.onClearQuery}>Clear</button>`
