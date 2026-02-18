@@ -381,11 +381,11 @@ function renderAgentSkillGroup(
 ) {
   const collapsedByDefault = group.id === "workspace" || group.id === "built-in";
   return html`
-    <details class="agent-skills-group" ?open=${!collapsedByDefault}>
-      <summary class="agent-skills-header">
+    <oc-collapsible ?open=${!collapsedByDefault}>
+      <span slot="header" class="agent-skills-header">
         <span>${group.label}</span>
         <span class="muted">${group.skills.length}</span>
-      </summary>
+      </span>
       <div class="list skills-grid">
         ${group.skills.map((skill) =>
           renderAgentSkillRow(skill, {
@@ -397,7 +397,7 @@ function renderAgentSkillGroup(
           }),
         )}
       </div>
-    </details>
+    </oc-collapsible>
   `;
 }
 
