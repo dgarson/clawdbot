@@ -284,28 +284,20 @@ function renderBindings(state: BindingState) {
                   <div class="list-sub">Used when agents do not override a node binding.</div>
                 </div>
                 <div class="list-meta">
-                  <label class="field">
-                    <span>Node</span>
-                    <select
+                  <oc-field label="Node">
+                    <oc-select
                       ?disabled=${state.disabled || !supportsBinding}
-                      @change=${(event: Event) => {
-                        const target = event.target as HTMLSelectElement;
-                        const value = target.value.trim();
+                      .value=${defaultValue}
+                      .options=${[
+                        { value: "", label: "Any node" },
+                        ...state.nodes.map((node) => ({ value: node.id, label: node.label })),
+                      ]}
+                      @oc-change=${(event: CustomEvent<{ value: string }>) => {
+                        const value = event.detail.value.trim();
                         state.onBindDefault(value ? value : null);
                       }}
-                    >
-                      <option value="" ?selected=${defaultValue === ""}>Any node</option>
-                      ${state.nodes.map(
-                        (node) =>
-                          html`<option
-                            value=${node.id}
-                            ?selected=${defaultValue === node.id}
-                          >
-                            ${node.label}
-                          </option>`,
-                      )}
-                    </select>
-                  </label>
+                    ></oc-select>
+                  </oc-field>
                   ${
                     !supportsBinding
                       ? html`
@@ -348,30 +340,20 @@ function renderAgentBinding(agent: BindingAgent, state: BindingState) {
         </div>
       </div>
       <div class="list-meta">
-        <label class="field">
-          <span>Binding</span>
-          <select
+        <oc-field label="Binding">
+          <oc-select
             ?disabled=${state.disabled || !supportsBinding}
-            @change=${(event: Event) => {
-              const target = event.target as HTMLSelectElement;
-              const value = target.value.trim();
+            .value=${bindingValue}
+            .options=${[
+              { value: "__default__", label: "Use default" },
+              ...state.nodes.map((node) => ({ value: node.id, label: node.label })),
+            ]}
+            @oc-change=${(event: CustomEvent<{ value: string }>) => {
+              const value = event.detail.value.trim();
               state.onBindAgent(agent.index, value === "__default__" ? null : value);
             }}
-          >
-            <option value="__default__" ?selected=${bindingValue === "__default__"}>
-              Use default
-            </option>
-            ${state.nodes.map(
-              (node) =>
-                html`<option
-                  value=${node.id}
-                  ?selected=${bindingValue === node.id}
-                >
-                  ${node.label}
-                </option>`,
-            )}
-          </select>
-        </label>
+          ></oc-select>
+        </oc-field>
       </div>
     </div>
   `;

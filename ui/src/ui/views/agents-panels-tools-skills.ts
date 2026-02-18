@@ -336,14 +336,13 @@ export function renderAgentSkills(params: {
       ${params.error ? html`<oc-callout variant="danger">${params.error}</oc-callout>` : nothing}
 
       <div class="filters" style="margin-top: 14px;">
-        <label class="field" style="flex: 1;">
-          <span>Filter</span>
+        <oc-field label="Filter" style="flex: 1;">
           <input
             .value=${params.filter}
             @input=${(e: Event) => params.onFilterChange((e.target as HTMLInputElement).value)}
             placeholder="Search skills"
           />
-        </label>
+        </oc-field>
         <div class="muted">${filtered.length} shown</div>
       </div>
 

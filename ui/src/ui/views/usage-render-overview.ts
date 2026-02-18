@@ -717,15 +717,17 @@ function renderSessionsCard(
         </div>
         <label class="sessions-sort">
           <span>Sort</span>
-          <select
-            @change=${(e: Event) => onSessionSortChange((e.target as HTMLSelectElement).value as typeof sessionSort)}
-          >
-            <option value="cost" ?selected=${sessionSort === "cost"}>Cost</option>
-            <option value="errors" ?selected=${sessionSort === "errors"}>Errors</option>
-            <option value="messages" ?selected=${sessionSort === "messages"}>Messages</option>
-            <option value="recent" ?selected=${sessionSort === "recent"}>Recent</option>
-            <option value="tokens" ?selected=${sessionSort === "tokens"}>Tokens</option>
-          </select>
+          <oc-select
+            .value=${sessionSort}
+            .options=${[
+              { value: "cost", label: "Cost" },
+              { value: "errors", label: "Errors" },
+              { value: "messages", label: "Messages" },
+              { value: "recent", label: "Recent" },
+              { value: "tokens", label: "Tokens" },
+            ]}
+            @oc-change=${(e: CustomEvent<{ value: string }>) => onSessionSortChange(e.detail.value as typeof sessionSort)}
+          ></oc-select>
         </label>
         <button
           class="btn btn-sm sessions-action-btn icon"

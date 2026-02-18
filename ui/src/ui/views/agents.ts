@@ -427,8 +427,7 @@ function renderAgentOverview(params: {
       <div class="agent-model-select" style="margin-top: 20px;">
         <div class="label">Model Selection</div>
         <div class="row" style="gap: 12px; flex-wrap: wrap;">
-          <label class="field" style="min-width: 260px; flex: 1;">
-            <span>Primary model${isDefault ? " (default)" : ""}</span>
+          <oc-field label=${`Primary model${isDefault ? " (default)" : ""}`} style="min-width: 260px; flex: 1;">
             <select
               .value=${effectivePrimary ?? ""}
               ?disabled=${!configForm || configLoading || configSaving}
@@ -446,9 +445,8 @@ function renderAgentOverview(params: {
               }
               ${buildModelOptions(configForm, effectivePrimary ?? undefined)}
             </select>
-          </label>
-          <label class="field" style="min-width: 260px; flex: 1;">
-            <span>Fallbacks (comma-separated)</span>
+          </oc-field>
+          <oc-field label="Fallbacks (comma-separated)" style="min-width: 260px; flex: 1;">
             <input
               .value=${fallbackText}
               ?disabled=${!configForm || configLoading || configSaving}
@@ -459,7 +457,7 @@ function renderAgentOverview(params: {
                   parseFallbackList((e.target as HTMLInputElement).value),
                 )}
             />
-          </label>
+          </oc-field>
         </div>
         <div class="row" style="justify-content: flex-end; gap: 8px;">
           <button class="btn btn--sm" ?disabled=${configLoading} @click=${onConfigReload}>

@@ -62,23 +62,21 @@ export function renderDebug(props: DebugProps) {
 
       <oc-card title="Manual RPC" subtitle="Send a raw gateway method with JSON params.">
         <div class="form-grid" style="margin-top: 16px;">
-          <label class="field">
-            <span>Method</span>
+          <oc-field label="Method">
             <input
               .value=${props.callMethod}
               @input=${(e: Event) => props.onCallMethodChange((e.target as HTMLInputElement).value)}
               placeholder="system-presence"
             />
-          </label>
-          <label class="field">
-            <span>Params (JSON)</span>
+          </oc-field>
+          <oc-field label="Params (JSON)">
             <textarea
               .value=${props.callParams}
               @input=${(e: Event) =>
                 props.onCallParamsChange((e.target as HTMLTextAreaElement).value)}
               rows="6"
             ></textarea>
-          </label>
+          </oc-field>
         </div>
         <div class="row" style="margin-top: 12px;">
           <button class="btn primary" @click=${props.onCall}>Call</button>

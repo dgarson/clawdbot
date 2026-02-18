@@ -243,13 +243,16 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
           </div>
         </div>
         <div class="list-meta">
-          <label class="field">
-            <span>Host</span>
-            <select
+          <oc-field label="Host">
+            <oc-select
               ?disabled=${state.disabled}
-              @change=${(event: Event) => {
-                const target = event.target as HTMLSelectElement;
-                const value = target.value;
+              .value=${state.target}
+              .options=${[
+                { value: "gateway", label: "Gateway" },
+                { value: "node", label: "Node" },
+              ]}
+              @oc-change=${(event: CustomEvent<{ value: string }>) => {
+                const value = event.detail.value;
                 if (value === "node") {
                   const first = state.targetNodes[0]?.id ?? null;
                   state.onSelectTarget("node", nodeValue || first);
@@ -257,36 +260,25 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
                   state.onSelectTarget("gateway", null);
                 }
               }}
-            >
-              <option value="gateway" ?selected=${state.target === "gateway"}>Gateway</option>
-              <option value="node" ?selected=${state.target === "node"}>Node</option>
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
           ${
             state.target === "node"
               ? html`
-                <label class="field">
-                  <span>Node</span>
-                  <select
+                <oc-field label="Node">
+                  <oc-select
                     ?disabled=${state.disabled || !hasNodes}
-                    @change=${(event: Event) => {
-                      const target = event.target as HTMLSelectElement;
-                      const value = target.value.trim();
+                    .value=${nodeValue ?? ""}
+                    .options=${[
+                      { value: "", label: "Select node" },
+                      ...state.targetNodes.map((node) => ({ value: node.id, label: node.label })),
+                    ]}
+                    @oc-change=${(event: CustomEvent<{ value: string }>) => {
+                      const value = event.detail.value.trim();
                       state.onSelectTarget("node", value ? value : null);
                     }}
-                  >
-                    <option value="" ?selected=${nodeValue === ""}>Select node</option>
-                    ${state.targetNodes.map(
-                      (node) =>
-                        html`<option
-                          value=${node.id}
-                          ?selected=${nodeValue === node.id}
-                        >
-                          ${node.label}
-                        </option>`,
-                    )}
-                  </select>
-                </label>
+                  ></oc-select>
+                </oc-field>
               `
               : nothing
           }
@@ -356,38 +348,26 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
           </div>
         </div>
         <div class="list-meta">
-          <label class="field">
-            <span>Mode</span>
-            <select
+          <oc-field label="Mode">
+            <oc-select
               ?disabled=${state.disabled}
-              @change=${(event: Event) => {
-                const target = event.target as HTMLSelectElement;
-                const value = target.value;
+              .value=${securityValue}
+              .options=${[
+                ...(!isDefaults
+                  ? [{ value: "__default__", label: `Use default (${defaults.security})` }]
+                  : []),
+                ...SECURITY_OPTIONS,
+              ]}
+              @oc-change=${(event: CustomEvent<{ value: string }>) => {
+                const value = event.detail.value;
                 if (!isDefaults && value === "__default__") {
                   state.onRemove([...basePath, "security"]);
                 } else {
                   state.onPatch([...basePath, "security"], value);
                 }
               }}
-            >
-              ${
-                !isDefaults
-                  ? html`<option value="__default__" ?selected=${securityValue === "__default__"}>
-                    Use default (${defaults.security})
-                  </option>`
-                  : nothing
-              }
-              ${SECURITY_OPTIONS.map(
-                (option) =>
-                  html`<option
-                    value=${option.value}
-                    ?selected=${securityValue === option.value}
-                  >
-                    ${option.label}
-                  </option>`,
-              )}
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
         </div>
       </div>
 
@@ -399,38 +379,26 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
           </div>
         </div>
         <div class="list-meta">
-          <label class="field">
-            <span>Mode</span>
-            <select
+          <oc-field label="Mode">
+            <oc-select
               ?disabled=${state.disabled}
-              @change=${(event: Event) => {
-                const target = event.target as HTMLSelectElement;
-                const value = target.value;
+              .value=${askValue}
+              .options=${[
+                ...(!isDefaults
+                  ? [{ value: "__default__", label: `Use default (${defaults.ask})` }]
+                  : []),
+                ...ASK_OPTIONS,
+              ]}
+              @oc-change=${(event: CustomEvent<{ value: string }>) => {
+                const value = event.detail.value;
                 if (!isDefaults && value === "__default__") {
                   state.onRemove([...basePath, "ask"]);
                 } else {
                   state.onPatch([...basePath, "ask"], value);
                 }
               }}
-            >
-              ${
-                !isDefaults
-                  ? html`<option value="__default__" ?selected=${askValue === "__default__"}>
-                    Use default (${defaults.ask})
-                  </option>`
-                  : nothing
-              }
-              ${ASK_OPTIONS.map(
-                (option) =>
-                  html`<option
-                    value=${option.value}
-                    ?selected=${askValue === option.value}
-                  >
-                    ${option.label}
-                  </option>`,
-              )}
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
         </div>
       </div>
 
@@ -446,38 +414,26 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
           </div>
         </div>
         <div class="list-meta">
-          <label class="field">
-            <span>Fallback</span>
-            <select
+          <oc-field label="Fallback">
+            <oc-select
               ?disabled=${state.disabled}
-              @change=${(event: Event) => {
-                const target = event.target as HTMLSelectElement;
-                const value = target.value;
+              .value=${askFallbackValue}
+              .options=${[
+                ...(!isDefaults
+                  ? [{ value: "__default__", label: `Use default (${defaults.askFallback})` }]
+                  : []),
+                ...SECURITY_OPTIONS,
+              ]}
+              @oc-change=${(event: CustomEvent<{ value: string }>) => {
+                const value = event.detail.value;
                 if (!isDefaults && value === "__default__") {
                   state.onRemove([...basePath, "askFallback"]);
                 } else {
                   state.onPatch([...basePath, "askFallback"], value);
                 }
               }}
-            >
-              ${
-                !isDefaults
-                  ? html`<option value="__default__" ?selected=${askFallbackValue === "__default__"}>
-                    Use default (${defaults.askFallback})
-                  </option>`
-                  : nothing
-              }
-              ${SECURITY_OPTIONS.map(
-                (option) =>
-                  html`<option
-                    value=${option.value}
-                    ?selected=${askFallbackValue === option.value}
-                  >
-                    ${option.label}
-                  </option>`,
-              )}
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
         </div>
       </div>
 
@@ -495,18 +451,14 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
           </div>
         </div>
         <div class="list-meta">
-          <label class="field">
-            <span>Enabled</span>
-            <input
-              type="checkbox"
-              ?disabled=${state.disabled}
-              .checked=${autoEffective}
-              @change=${(event: Event) => {
-                const target = event.target as HTMLInputElement;
-                state.onPatch([...basePath, "autoAllowSkills"], target.checked);
-              }}
-            />
-          </label>
+          <oc-toggle
+            label="Enabled"
+            ?disabled=${state.disabled}
+            .checked=${autoEffective}
+            @oc-change=${(event: CustomEvent<{ checked: boolean }>) => {
+              state.onPatch([...basePath, "autoAllowSkills"], event.detail.checked);
+            }}
+          ></oc-toggle>
           ${
             !isDefaults && !autoIsDefault
               ? html`<button
@@ -573,8 +525,7 @@ function renderAllowlistEntry(
         ${lastPath ? html`<div class="list-sub mono">${lastPath}</div>` : nothing}
       </div>
       <div class="list-meta">
-        <label class="field">
-          <span>Pattern</span>
+        <oc-field label="Pattern">
           <input
             type="text"
             .value=${entry.pattern ?? ""}
@@ -587,7 +538,7 @@ function renderAllowlistEntry(
               );
             }}
           />
-        </label>
+        </oc-field>
         <button
           class="btn btn--sm danger"
           ?disabled=${state.disabled}

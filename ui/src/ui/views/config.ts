@@ -712,14 +712,13 @@ export function renderConfig(props: ConfigProps) {
                 }
               `
               : html`
-                <label class="field config-raw-field">
-                  <span>Raw JSON5</span>
+                <oc-field label="Raw JSON5" class="config-raw-field">
                   <textarea
                     .value=${props.raw}
                     @input=${(e: Event) =>
                       props.onRawChange((e.target as HTMLTextAreaElement).value)}
                   ></textarea>
-                </label>
+                </oc-field>
               `
           }
         </div>

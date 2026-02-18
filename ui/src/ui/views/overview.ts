@@ -134,8 +134,7 @@ export function renderOverview(props: OverviewProps) {
     <section class="grid grid-cols-2">
       <oc-card title=${t("overview.access.title")} subtitle=${t("overview.access.subtitle")}>
         <div class="form-grid" style="margin-top: 16px;">
-          <label class="field">
-            <span>${t("overview.access.wsUrl")}</span>
+          <oc-field label=${t("overview.access.wsUrl")}>
             <input
               .value=${props.settings.gatewayUrl}
               @input=${(e: Event) => {
@@ -144,13 +143,12 @@ export function renderOverview(props: OverviewProps) {
               }}
               placeholder="ws://100.x.y.z:18789"
             />
-          </label>
+          </oc-field>
           ${
             isTrustedProxy
               ? ""
               : html`
-                <label class="field">
-                  <span>${t("overview.access.token")}</span>
+                <oc-field label=${t("overview.access.token")}>
                   <input
                     .value=${props.settings.token}
                     @input=${(e: Event) => {
@@ -159,9 +157,8 @@ export function renderOverview(props: OverviewProps) {
                     }}
                     placeholder="OPENCLAW_GATEWAY_TOKEN"
                   />
-                </label>
-                <label class="field">
-                  <span>${t("overview.access.password")}</span>
+                </oc-field>
+                <oc-field label=${t("overview.access.password")}>
                   <input
                     type="password"
                     .value=${props.password}
@@ -171,11 +168,10 @@ export function renderOverview(props: OverviewProps) {
                     }}
                     placeholder="system or shared password"
                   />
-                </label>
+                </oc-field>
               `
           }
-          <label class="field">
-            <span>${t("overview.access.sessionKey")}</span>
+          <oc-field label=${t("overview.access.sessionKey")}>
             <input
               .value=${props.settings.sessionKey}
               @input=${(e: Event) => {
@@ -183,23 +179,23 @@ export function renderOverview(props: OverviewProps) {
                 props.onSessionKeyChange(v);
               }}
             />
-          </label>
-          <label class="field">
-            <span>${t("overview.access.language")}</span>
-            <select
+          </oc-field>
+          <oc-field label=${t("overview.access.language")}>
+            <oc-select
               .value=${currentLocale}
-              @change=${(e: Event) => {
-                const v = (e.target as HTMLSelectElement).value as Locale;
+              .options=${[
+                { value: "en", label: t("languages.en") },
+                { value: "zh-CN", label: t("languages.zhCN") },
+                { value: "zh-TW", label: t("languages.zhTW") },
+                { value: "pt-BR", label: t("languages.ptBR") },
+              ]}
+              @oc-change=${(e: CustomEvent<{ value: string }>) => {
+                const v = e.detail.value as Locale;
                 void i18n.setLocale(v);
                 props.onSettingsChange({ ...props.settings, locale: v });
               }}
-            >
-              <option value="en">${t("languages.en")}</option>
-              <option value="zh-CN">${t("languages.zhCN")}</option>
-              <option value="zh-TW">${t("languages.zhTW")}</option>
-              <option value="pt-BR">${t("languages.ptBR")}</option>
-            </select>
-          </label>
+            ></oc-select>
+          </oc-field>
         </div>
         <div class="row" style="margin-top: 14px;">
           <button class="btn" @click=${() => props.onConnect()}>${t("common.connect")}</button>

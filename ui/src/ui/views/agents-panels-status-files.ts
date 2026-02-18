@@ -416,8 +416,7 @@ export function renderAgentFiles(params: {
                                 `
                               : nothing
                           }
-                          <label class="field" style="margin-top: 12px;">
-                            <span>Content</span>
+                          <oc-field label="Content" style="margin-top: 12px;">
                             <textarea
                               .value=${draft}
                               @input=${(e: Event) =>
@@ -426,7 +425,7 @@ export function renderAgentFiles(params: {
                                   (e.target as HTMLTextAreaElement).value,
                                 )}
                             ></textarea>
-                          </label>
+                          </oc-field>
                         `
                   }
                 </div>

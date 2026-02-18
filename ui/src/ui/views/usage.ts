@@ -598,15 +598,15 @@ export function renderUsage(props: UsageProps) {
             title="End Date"
             @change=${(e: Event) => props.onEndDateChange((e.target as HTMLInputElement).value)}
           />
-          <select
-            title="Time zone"
+          <oc-select
             .value=${props.timeZone}
-            @change=${(e: Event) =>
-              props.onTimeZoneChange((e.target as HTMLSelectElement).value as "local" | "utc")}
-          >
-            <option value="local">Local</option>
-            <option value="utc">UTC</option>
-          </select>
+            .options=${[
+              { value: "local", label: "Local" },
+              { value: "utc", label: "UTC" },
+            ]}
+            @oc-change=${(e: CustomEvent<{ value: string }>) =>
+              props.onTimeZoneChange(e.detail.value as "local" | "utc")}
+          ></oc-select>
           <div class="chart-toggle">
             <button
               class="toggle-btn ${isTokenMode ? "active" : ""}"
