@@ -256,7 +256,7 @@ function renderSessionDetailPanel(
   const cursorIndicator = filteredUsage ? " (filtered)" : "";
 
   return html`
-    <div class="card session-detail-panel">
+    <oc-card class="session-detail-panel">
       <div class="session-detail-header">
         <div class="session-detail-header-left">
           <div class="session-detail-title">
@@ -318,7 +318,7 @@ function renderSessionDetailPanel(
           ${renderContextPanel(session.contextWeight, usage, contextExpanded, onToggleContextExpanded)}
         </div>
       </div>
-    </div>
+    </oc-card>
   `;
 }
 

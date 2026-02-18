@@ -170,7 +170,7 @@ function renderUsageMosaic(
   const stats = buildUsageMosaicStats(sessions, timeZone);
   if (!stats.hasData) {
     return html`
-      <div class="card usage-mosaic">
+      <oc-card class="usage-mosaic">
         <div class="usage-mosaic-header">
           <div>
             <div class="usage-mosaic-title">Activity by Time</div>
@@ -179,7 +179,7 @@ function renderUsageMosaic(
           <div class="usage-mosaic-total">${formatTokens(0)} tokens</div>
         </div>
         <div class="muted" style="padding: 12px; text-align: center;">No timeline data yet.</div>
-      </div>
+      </oc-card>
     `;
   }
 
@@ -187,7 +187,7 @@ function renderUsageMosaic(
   const maxWeekday = Math.max(...stats.weekdayTotals.map((d) => d.tokens), 1);
 
   return html`
-    <div class="card usage-mosaic">
+    <oc-card class="usage-mosaic">
       <div class="usage-mosaic-header">
         <div>
           <div class="usage-mosaic-title">Activity by Time</div>
@@ -250,7 +250,7 @@ function renderUsageMosaic(
           </div>
         </div>
       </div>
-    </div>
+    </oc-card>
   `;
 }
 

@@ -67,14 +67,8 @@ export function renderChannels(props: ChannelsProps) {
       )}
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Channel health</div>
-          <div class="card-sub">Channel status snapshots from the gateway.</div>
-        </div>
-        <div class="muted">${props.lastSuccessAt ? formatRelativeTimestamp(props.lastSuccessAt) : "n/a"}</div>
-      </div>
+    <oc-card title="Channel health" subtitle="Channel status snapshots from the gateway." style="margin-top: 18px;">
+      <div class="muted" style="margin-bottom: 8px;">${props.lastSuccessAt ? formatRelativeTimestamp(props.lastSuccessAt) : "n/a"}</div>
       ${
         props.lastError
           ? html`<oc-callout variant="danger">
@@ -85,7 +79,7 @@ export function renderChannels(props: ChannelsProps) {
       <pre class="code-block" style="margin-top: 12px;">
 ${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : "No snapshot yet."}
       </pre>
-    </section>
+    </oc-card>
   `;
 }
 
@@ -192,9 +186,7 @@ function renderGenericChannelCard(
   const accountCountLabel = renderChannelAccountCount(key, channelAccounts);
 
   return html`
-    <div class="card">
-      <div class="card-title">${label}</div>
-      <div class="card-sub">Channel status and configuration.</div>
+    <oc-card title=${label} subtitle="Channel status and configuration.">
       ${accountCountLabel}
 
       ${
@@ -231,7 +223,7 @@ function renderGenericChannelCard(
       }
 
       ${renderChannelConfigSection({ channelId: key, props })}
-    </div>
+    </oc-card>
   `;
 }
 

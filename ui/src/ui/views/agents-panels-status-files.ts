@@ -18,9 +18,7 @@ import { formatBytes, type AgentContext } from "./agents-utils.ts";
 
 function renderAgentContextCard(context: AgentContext, subtitle: string) {
   return html`
-    <section class="card">
-      <div class="card-title">Agent Context</div>
-      <div class="card-sub">${subtitle}</div>
+    <oc-card title="Agent Context" subtitle=${subtitle}>
       <div class="agents-overview-grid" style="margin-top: 16px;">
         <div class="agent-kv">
           <div class="label">Workspace</div>
@@ -47,7 +45,7 @@ function renderAgentContextCard(context: AgentContext, subtitle: string) {
           <div>${context.isDefault ? "yes" : "no"}</div>
         </div>
       </div>
-    </section>
+    </oc-card>
   `;
 }
 
@@ -193,16 +191,8 @@ export function renderAgentChannels(params: {
   return html`
     <section class="grid grid-cols-2">
       ${renderAgentContextCard(params.context, "Workspace, identity, and model configuration.")}
-      <section class="card">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div class="card-title">Channels</div>
-            <div class="card-sub">Gateway-wide channel status snapshot.</div>
-          </div>
-          <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
-            ${params.loading ? "Refreshing…" : "Refresh"}
-          </button>
-        </div>
+      <oc-card title="Channels" subtitle="Gateway-wide channel status snapshot.">
+        <oc-button slot="actions" .loading=${params.loading} @click=${params.onRefresh}>Refresh</oc-button>
         <div class="muted" style="margin-top: 8px;">
           Last refresh: ${lastSuccessLabel}
         </div>
@@ -255,7 +245,7 @@ export function renderAgentChannels(params: {
                 </div>
               `
         }
-      </section>
+      </oc-card>
     </section>
   `;
 }
@@ -273,16 +263,8 @@ export function renderAgentCron(params: {
   return html`
     <section class="grid grid-cols-2">
       ${renderAgentContextCard(params.context, "Workspace and scheduling targets.")}
-      <section class="card">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div class="card-title">Scheduler</div>
-            <div class="card-sub">Gateway cron status.</div>
-          </div>
-          <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
-            ${params.loading ? "Refreshing…" : "Refresh"}
-          </button>
-        </div>
+      <oc-card title="Scheduler" subtitle="Gateway cron status.">
+        <oc-button slot="actions" .loading=${params.loading} @click=${params.onRefresh}>Refresh</oc-button>
         <div class="stat-grid" style="margin-top: 16px;">
           <div class="stat">
             <div class="stat-label">Enabled</div>
@@ -300,11 +282,9 @@ export function renderAgentCron(params: {
           </div>
         </div>
         ${params.error ? html`<oc-callout variant="danger">${params.error}</oc-callout>` : nothing}
-      </section>
+      </oc-card>
     </section>
-    <section class="card">
-      <div class="card-title">Agent Cron Jobs</div>
-      <div class="card-sub">Scheduled jobs targeting this agent.</div>
+    <oc-card title="Agent Cron Jobs" subtitle="Scheduled jobs targeting this agent.">
       ${
         jobs.length === 0
           ? html`
@@ -340,7 +320,7 @@ export function renderAgentCron(params: {
               </div>
             `
       }
-    </section>
+    </oc-card>
   `;
 }
 
@@ -368,20 +348,8 @@ export function renderAgentFiles(params: {
   const isDirty = active ? draft !== baseContent : false;
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Core Files</div>
-          <div class="card-sub">Bootstrap persona, identity, and tool guidance.</div>
-        </div>
-        <button
-          class="btn btn--sm"
-          ?disabled=${params.agentFilesLoading}
-          @click=${() => params.onLoadFiles(params.agentId)}
-        >
-          ${params.agentFilesLoading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
+    <oc-card title="Core Files" subtitle="Bootstrap persona, identity, and tool guidance.">
+      <oc-button slot="actions" .loading=${params.agentFilesLoading} @click=${() => params.onLoadFiles(params.agentId)}>Refresh</oc-button>
       ${
         list
           ? html`<div class="muted mono" style="margin-top: 8px;">Workspace: ${list.workspace}</div>`
@@ -465,7 +433,7 @@ export function renderAgentFiles(params: {
               </div>
             `
       }
-    </section>
+    </oc-card>
   `;
 }
 

@@ -447,8 +447,7 @@ function renderUsageInsights(
   }));
 
   return html`
-    <section class="card" style="margin-top: 16px;">
-      <div class="card-title">Usage Overview</div>
+    <oc-card title="Usage Overview" style="margin-top: 16px;">
       <div class="usage-summary-grid">
         <div class="usage-summary-card">
           <div class="usage-summary-title">
@@ -538,7 +537,7 @@ function renderUsageInsights(
         ${renderPeakErrorList("Peak Error Days", errorDays, "No error data")}
         ${renderPeakErrorList("Peak Error Hours", errorHours, "No error data")}
       </div>
-    </section>
+    </oc-card>
   `;
 }
 
@@ -690,9 +689,9 @@ function renderSessionsCard(
     .filter((entry): entry is UsageSessionEntry => Boolean(entry));
 
   return html`
-    <div class="card sessions-card">
+    <oc-card class="sessions-card">
       <div class="sessions-card-header">
-        <div class="card-title">Sessions</div>
+        <div class="sessions-card-title">Sessions</div>
         <div class="sessions-card-count">
           ${sessions.length} shown${totalSessions !== sessions.length ? ` · ${totalSessions} total` : ""}
         </div>
@@ -781,7 +780,7 @@ function renderSessionsCard(
             `
           : nothing
       }
-    </div>
+    </oc-card>
   `;
 }
 

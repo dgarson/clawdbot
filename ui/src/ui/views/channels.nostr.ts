@@ -183,9 +183,7 @@ export function renderNostrCard(params: {
   };
 
   return html`
-    <div class="card">
-      <div class="card-title">Nostr</div>
-      <div class="card-sub">Decentralized DMs via Nostr relays (NIP-04).</div>
+    <oc-card title="Nostr" subtitle="Decentralized DMs via Nostr relays (NIP-04).">
       ${accountCountLabel}
 
       ${
@@ -232,6 +230,6 @@ export function renderNostrCard(params: {
       <div class="row" style="margin-top: 12px;">
         <button class="btn" @click=${() => props.onRefresh(false)}>Refresh</button>
       </div>
-    </div>
+    </oc-card>
   `;
 }

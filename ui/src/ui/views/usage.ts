@@ -56,11 +56,10 @@ export function renderUsage(props: UsageProps) {
           50% { opacity: 0.7; }
         }
       </style>
-      <section class="card">
+      <oc-card title="Token Usage">
         <div class="row" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div style="flex: 1; min-width: 250px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 2px;">
-              <div class="card-title" style="margin: 0;">Token Usage</div>
               <span style="
                 display: inline-flex;
                 align-items: center;
@@ -91,7 +90,7 @@ export function renderUsage(props: UsageProps) {
             </div>
           </div>
         </div>
-      </section>
+      </oc-card>
     `;
   }
 
@@ -452,10 +451,10 @@ export function renderUsage(props: UsageProps) {
       <div class="usage-page-subtitle">See where tokens go, when sessions spike, and what drives cost.</div>
     </section>
 
-    <section class="card usage-header ${props.headerPinned ? "pinned" : ""}">
+    <section class="usage-header ${props.headerPinned ? "pinned" : ""}">
+    <oc-card title="Filters">
       <div class="usage-header-row">
         <div class="usage-header-title">
-          <div class="card-title" style="margin: 0;">Filters</div>
           ${
             props.loading
               ? html`
@@ -746,6 +745,7 @@ export function renderUsage(props: UsageProps) {
             `
           : nothing
       }
+    </oc-card>
     </section>
 
     ${renderUsageInsights(
@@ -763,7 +763,7 @@ export function renderUsage(props: UsageProps) {
     <!-- Two-column layout: Daily+Breakdown on left, Sessions on right -->
     <div class="usage-grid">
       <div class="usage-grid-left">
-        <div class="card usage-left-card">
+        <oc-card class="usage-left-card">
           ${renderDailyChartCompact(
             filteredDaily,
             props.selectedDays,
@@ -773,7 +773,7 @@ export function renderUsage(props: UsageProps) {
             props.onSelectDay,
           )}
           ${displayTotals ? renderCostBreakdownCompact(displayTotals, props.chartMode) : nothing}
-        </div>
+        </oc-card>
       </div>
       <div class="usage-grid-right">
         ${renderSessionsCard(
