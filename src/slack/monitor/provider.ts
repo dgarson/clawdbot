@@ -230,15 +230,6 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
   registerSlackMonitorEvents({ ctx, account, handleSlackMessage });
   const execApprovalsConfig = slackCfg.execApprovals;
   let execApprovalHandler: SlackExecApprovalHandler | null = null;
-  if (execApprovalsConfig?.enabled) {
-    execApprovalHandler = new SlackExecApprovalHandler({
-      accountId: account.accountId,
-      botToken,
-      config: execApprovalsConfig,
-      cfg,
-    });
-    await execApprovalHandler.start();
-  }
   await registerSlackMonitorSlashCommands({ ctx, account });
   if (slackMode === "http" && slackHttpHandler) {
     unregisterHttpHandler = registerSlackHttpHandler({
@@ -355,6 +346,15 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
   opts.abortSignal?.addEventListener("abort", stopOnAbort, { once: true });
 
   try {
+    if (execApprovalsConfig?.enabled) {
+      execApprovalHandler = new SlackExecApprovalHandler({
+        accountId: account.accountId,
+        botToken,
+        config: execApprovalsConfig,
+        cfg,
+      });
+      await execApprovalHandler.start();
+    }
     if (slackMode === "socket") {
       await app.start();
       runtime.log?.("slack socket mode connected");
