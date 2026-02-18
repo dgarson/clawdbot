@@ -217,16 +217,12 @@ export function renderAgentTools(params: {
                           <div class="agent-tool-title mono">${tool.label}</div>
                           <div class="agent-tool-sub">${tool.description}</div>
                         </div>
-                        <label class="cfg-toggle">
-                          <input
-                            type="checkbox"
-                            .checked=${allowed}
-                            ?disabled=${!editable}
-                            @change=${(e: Event) =>
-                              updateTool(tool.id, (e.target as HTMLInputElement).checked)}
-                          />
-                          <span class="cfg-toggle__track"></span>
-                        </label>
+                        <oc-toggle
+                          .checked=${allowed}
+                          ?disabled=${!editable}
+                          @oc-change=${(e: CustomEvent<{ checked: boolean }>) =>
+                            updateTool(tool.id, e.detail.checked)}
+                        ></oc-toggle>
                       </div>
                     `;
                   })}
@@ -432,16 +428,12 @@ function renderAgentSkillRow(
         }
       </div>
       <div class="list-meta">
-        <label class="cfg-toggle">
-          <input
-            type="checkbox"
-            .checked=${enabled}
-            ?disabled=${!params.editable}
-            @change=${(e: Event) =>
-              params.onToggle(params.agentId, skill.name, (e.target as HTMLInputElement).checked)}
-          />
-          <span class="cfg-toggle__track"></span>
-        </label>
+        <oc-toggle
+          .checked=${enabled}
+          ?disabled=${!params.editable}
+          @oc-change=${(e: CustomEvent<{ checked: boolean }>) =>
+            params.onToggle(params.agentId, skill.name, e.detail.checked)}
+        ></oc-toggle>
       </div>
     </div>
   `;

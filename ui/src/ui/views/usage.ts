@@ -418,6 +418,7 @@ export function renderUsage(props: UsageProps) {
             ${options.map((value) => {
               const checked = selectedSet.has(normalizeQueryText(value));
               return html`
+                <!-- TODO: multi-select filter checkbox — not a simple on/off toggle; skip oc-toggle migration -->
                 <label class="usage-filter-option">
                   <input
                     type="checkbox"

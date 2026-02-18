@@ -254,21 +254,17 @@ export function renderNode(params: {
           ? schema.default
           : false;
     return html`
-      <label class="cfg-toggle-row ${disabled ? "disabled" : ""}">
+      <div class="cfg-toggle-row ${disabled ? "disabled" : ""}">
         <div class="cfg-toggle-row__content">
           <span class="cfg-toggle-row__label">${label}</span>
           ${help ? html`<span class="cfg-toggle-row__help">${help}</span>` : nothing}
         </div>
-        <div class="cfg-toggle">
-          <input
-            type="checkbox"
-            .checked=${displayValue}
-            ?disabled=${disabled}
-            @change=${(e: Event) => onPatch(path, (e.target as HTMLInputElement).checked)}
-          />
-          <span class="cfg-toggle__track"></span>
-        </div>
-      </label>
+        <oc-toggle
+          .checked=${displayValue}
+          ?disabled=${disabled}
+          @oc-change=${(e: CustomEvent<{ checked: boolean }>) => onPatch(path, e.detail.checked)}
+        ></oc-toggle>
+      </div>
     `;
   }
 

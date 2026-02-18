@@ -1006,15 +1006,12 @@ function renderSessionLogsCompact(
               html`<option value=${tool} ?selected=${toolSelected.has(tool)}>${tool}</option>`,
           )}
         </select>
-        <label class="usage-filters-inline" style="gap: 6px;">
-          <input
-            type="checkbox"
-            .checked=${filters.hasTools}
-            @change=${(event: Event) =>
-              onFilterHasToolsChange((event.target as HTMLInputElement).checked)}
-          />
-          Has tools
-        </label>
+        <oc-toggle
+          label="Has tools"
+          .checked=${filters.hasTools}
+          @oc-change=${(event: CustomEvent<{ checked: boolean }>) =>
+            onFilterHasToolsChange(event.detail.checked)}
+        ></oc-toggle>
         <input
           type="text"
           placeholder="Search conversation"
