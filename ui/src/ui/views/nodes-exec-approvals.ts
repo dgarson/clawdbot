@@ -212,9 +212,9 @@ export function renderExecApprovals(state: ExecApprovalsState) {
         !ready
           ? html`<div class="row" style="margin-top: 12px; gap: 12px;">
             <div class="muted">Load exec approvals to edit allowlists.</div>
-            <button class="btn" ?disabled=${state.loading || !targetReady} @click=${state.onLoad}>
-              ${state.loading ? "Loading…" : "Load approvals"}
-            </button>
+            <oc-button .loading=${state.loading} ?disabled=${!targetReady} @click=${state.onLoad}>
+              Load approvals
+            </oc-button>
           </div>`
           : html`
             ${renderExecApprovalsTabs(state)}

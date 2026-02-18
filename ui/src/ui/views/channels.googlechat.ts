@@ -66,9 +66,9 @@ export function renderGoogleChatCard(params: {
       ${renderChannelConfigSection({ channelId: "googlechat", props })}
 
       <div class="row" style="margin-top: 12px;">
-        <button class="btn" @click=${() => props.onRefresh(true)}>
+        <oc-button @click=${() => props.onRefresh(true)}>
           Probe
-        </button>
+        </oc-button>
       </div>
     </oc-card>
   `;

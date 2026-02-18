@@ -242,28 +242,25 @@ export function renderNostrProfileForm(params: {
           ${state.saving ? "Saving..." : "Save & Publish"}
         </button>
 
-        <button
-          class="btn"
+        <oc-button
           @click=${callbacks.onImport}
           ?disabled=${state.importing || state.saving}
         >
           ${state.importing ? "Importing..." : "Import from Relays"}
-        </button>
+        </oc-button>
 
-        <button
-          class="btn"
+        <oc-button
           @click=${callbacks.onToggleAdvanced}
         >
           ${state.showAdvanced ? "Hide Advanced" : "Show Advanced"}
-        </button>
+        </oc-button>
 
-        <button
-          class="btn"
+        <oc-button
           @click=${callbacks.onCancel}
           ?disabled=${state.saving}
         >
           Cancel
-        </button>
+        </oc-button>
       </div>
 
       ${

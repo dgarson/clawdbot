@@ -272,9 +272,9 @@ function renderBindings(state: BindingState) {
         !state.ready
           ? html`<div class="row" style="margin-top: 12px; gap: 12px;">
             <div class="muted">Load config to edit bindings.</div>
-            <button class="btn" ?disabled=${state.configLoading} @click=${state.onLoadConfig}>
-              ${state.configLoading ? "Loading…" : "Load config"}
-            </button>
+            <oc-button .loading=${state.configLoading} @click=${state.onLoadConfig}>
+              Load config
+            </oc-button>
           </div>`
           : html`
             <div class="list" style="margin-top: 16px;">

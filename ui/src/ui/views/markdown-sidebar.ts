@@ -15,18 +15,18 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
     <div class="sidebar-panel">
       <div class="sidebar-header">
         <div class="sidebar-title">Tool Output</div>
-        <button @click=${props.onClose} class="btn" title="Close sidebar">
+        <oc-button @click=${props.onClose} title="Close sidebar">
           ${icons.x}
-        </button>
+        </oc-button>
       </div>
       <div class="sidebar-content">
         ${
           props.error
             ? html`
               <oc-callout variant="danger">${props.error}</oc-callout>
-              <button @click=${props.onViewRawText} class="btn" style="margin-top: 12px;">
+              <oc-button @click=${props.onViewRawText} style="margin-top: 12px;">
                 View Raw Text
-              </button>
+              </oc-button>
             `
             : props.content
               ? html`<div class="sidebar-markdown">${unsafeHTML(toSanitizedMarkdownHtml(props.content))}</div>`

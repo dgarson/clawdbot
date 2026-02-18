@@ -407,13 +407,13 @@ export function renderChat(props: ChatProps) {
             ></textarea>
           </label>
           <div class="chat-compose__actions">
-            <button
-              class="btn"
+            <oc-button
               ?disabled=${!props.connected || (!canAbort && props.sending)}
               @click=${canAbort ? props.onAbort : props.onNewSession}
             >
               ${canAbort ? "Stop" : "New session"}
-            </button>
+            </oc-button>
+            <!-- TODO: chat send button retains raw <button> — <kbd> child incompatible with oc-button slot -->
             <button
               class="btn primary"
               ?disabled=${!props.connected}

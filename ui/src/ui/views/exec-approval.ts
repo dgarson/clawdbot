@@ -68,13 +68,12 @@ export function renderExecApprovalPrompt(state: AppViewState) {
           >
             Allow once
           </button>
-          <button
-            class="btn"
+          <oc-button
             ?disabled=${state.execApprovalBusy}
             @click=${() => state.handleExecApprovalDecision("allow-always")}
           >
             Always allow
-          </button>
+          </oc-button>
           <button
             class="btn danger"
             ?disabled=${state.execApprovalBusy}

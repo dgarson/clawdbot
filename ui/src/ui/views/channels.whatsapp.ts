@@ -82,20 +82,18 @@ export function renderWhatsAppCard(params: {
         >
           ${props.whatsappBusy ? "Working…" : "Show QR"}
         </button>
-        <button
-          class="btn"
+        <oc-button
           ?disabled=${props.whatsappBusy}
           @click=${() => props.onWhatsAppStart(true)}
         >
           Relink
-        </button>
-        <button
-          class="btn"
+        </oc-button>
+        <oc-button
           ?disabled=${props.whatsappBusy}
           @click=${() => props.onWhatsAppWait()}
         >
           Wait for scan
-        </button>
+        </oc-button>
         <button
           class="btn danger"
           ?disabled=${props.whatsappBusy}
@@ -103,9 +101,9 @@ export function renderWhatsAppCard(params: {
         >
           Logout
         </button>
-        <button class="btn" @click=${() => props.onRefresh(true)}>
+        <oc-button @click=${() => props.onRefresh(true)}>
           Refresh
-        </button>
+        </oc-button>
       </div>
 
       ${renderChannelConfigSection({ channelId: "whatsapp", props })}

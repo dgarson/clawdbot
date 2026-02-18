@@ -27,12 +27,11 @@ export function renderGatewayUrlConfirmation(state: AppViewState) {
           >
             Confirm
           </button>
-          <button
-            class="btn"
+          <oc-button
             @click=${() => state.handleGatewayUrlCancel()}
           >
             Cancel
-          </button>
+          </oc-button>
         </div>
       </div>
     </div>

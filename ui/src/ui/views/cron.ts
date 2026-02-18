@@ -84,9 +84,9 @@ export function renderCron(props: CronProps) {
           </div>
         </div>
         <div class="row" style="margin-top: 12px;">
-          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Refreshing…" : "Refresh"}
-          </button>
+          <oc-button .loading=${props.loading} @click=${props.onRefresh}>
+            Refresh
+          </oc-button>
           ${props.error ? html`<span class="muted">${props.error}</span>` : nothing}
         </div>
       </oc-card>
@@ -401,8 +401,7 @@ function renderJob(job: CronJob, props: CronProps) {
           <span class="chip">${job.wakeMode}</span>
         </div>
         <div class="row cron-job-actions">
-          <button
-            class="btn"
+          <oc-button
             ?disabled=${props.busy}
             @click=${(event: Event) => {
               event.stopPropagation();
@@ -410,9 +409,8 @@ function renderJob(job: CronJob, props: CronProps) {
             }}
           >
             ${job.enabled ? "Disable" : "Enable"}
-          </button>
-          <button
-            class="btn"
+          </oc-button>
+          <oc-button
             ?disabled=${props.busy}
             @click=${(event: Event) => {
               event.stopPropagation();
@@ -420,9 +418,8 @@ function renderJob(job: CronJob, props: CronProps) {
             }}
           >
             Run
-          </button>
-          <button
-            class="btn"
+          </oc-button>
+          <oc-button
             ?disabled=${props.busy}
             @click=${(event: Event) => {
               event.stopPropagation();
@@ -430,7 +427,7 @@ function renderJob(job: CronJob, props: CronProps) {
             }}
           >
             History
-          </button>
+          </oc-button>
           <button
             class="btn danger"
             ?disabled=${props.busy}

@@ -120,22 +120,20 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
       </div>
       <div class="list-meta">
         <div class="row" style="justify-content: flex-end; flex-wrap: wrap;">
-          <button
-            class="btn"
+          <oc-button
             ?disabled=${busy}
             @click=${() => props.onToggle(skill.skillKey, skill.disabled)}
           >
             ${skill.disabled ? "Enable" : "Disable"}
-          </button>
+          </oc-button>
           ${
             canInstall
-              ? html`<button
-                class="btn"
+              ? html`<oc-button
                 ?disabled=${busy}
                 @click=${() => props.onInstall(skill.skillKey, skill.name, skill.install[0].id)}
               >
                 ${busy ? "Installing…" : skill.install[0].label}
-              </button>`
+              </oc-button>`
               : nothing
           }
         </div>
