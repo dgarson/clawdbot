@@ -115,11 +115,7 @@ export function renderAgents(props: AgentsProps) {
             ${props.loading ? "Loading…" : "Refresh"}
           </button>
         </div>
-        ${
-          props.error
-            ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-            : nothing
-        }
+        ${props.error ? html`<oc-callout variant="danger">${props.error}</oc-callout>` : nothing}
         <div class="agent-list" style="margin-top: 12px;">
           ${
             agents.length === 0
