@@ -60,6 +60,21 @@ import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import type { ResolvedTheme, ThemeMode } from "./theme.ts";
+import {
+  assignToolPolicyPresetToAgent,
+  assignToolPolicyPresetToProvider,
+  bulkAssignToolPolicyPresetToAgents,
+  bulkAssignToolPolicyPresetToProviders,
+  createToolPolicyPreset,
+  deleteToolPolicyPreset,
+  duplicateToolPolicyPreset,
+  loadToolPolicyPresetAssignments,
+  loadToolPolicyPresets,
+  updateToolPolicyPreset,
+  type ToolPolicyPresetAssignments,
+  type ToolPolicyPreset,
+  type ToolPolicyPresetInput,
+} from "./tool-policy-presets.ts";
 import type {
   AgentsListResult,
   AgentsFilesListResult,
@@ -80,6 +95,7 @@ import type {
   NostrProfile,
 } from "./types.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
+import type { AgentsPanel } from "./views/agents.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 
 declare global {
@@ -211,8 +227,20 @@ export class OpenClawApp extends LitElement {
   @state() agentsList: AgentsListResult | null = null;
   @state() agentsError: string | null = null;
   @state() agentsSelectedId: string | null = null;
-  @state() agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron" =
-    "overview";
+  @state() agentsPanel: AgentsPanel = "dashboard";
+  @state() agentsFilterQuery = "";
+  @state() agentsOnboarding = false;
+  @state() agentsOnboardingStep = 1;
+  @state() agentsOnboardingData = {
+    name: "",
+    emoji: "🦞",
+    theme: "",
+    model: "",
+    workspace: "",
+    channels: [] as string[],
+  };
+  @state() agentsDeleteConfirm: string | null = null;
+  @state() agentsIdentityEditId: string | null = null;
   @state() agentFilesLoading = false;
   @state() agentFilesError: string | null = null;
   @state() agentFilesList: AgentsFilesListResult | null = null;
@@ -227,6 +255,9 @@ export class OpenClawApp extends LitElement {
   @state() agentSkillsError: string | null = null;
   @state() agentSkillsReport: SkillStatusReport | null = null;
   @state() agentSkillsAgentId: string | null = null;
+  @state() toolPolicyPresets: ToolPolicyPreset[] = loadToolPolicyPresets();
+  @state() toolPolicyPresetAssignments: ToolPolicyPresetAssignments =
+    loadToolPolicyPresetAssignments();
 
   @state() sessionsLoading = false;
   @state() sessionsResult: SessionsListResult | null = null;
@@ -573,6 +604,275 @@ export class OpenClawApp extends LitElement {
     const newRatio = Math.max(0.4, Math.min(0.7, ratio));
     this.splitRatio = newRatio;
     this.applySettings({ ...this.settings, splitRatio: newRatio });
+  }
+
+  handleAgentsFilterChange(query: string) {
+    this.agentsFilterQuery = query;
+  }
+
+  handleAgentsOnboardingStart() {
+    this.agentsOnboarding = true;
+    this.agentsOnboardingStep = 1;
+    this.agentsOnboardingData = {
+      name: "",
+      emoji: "🦞",
+      theme: "",
+      model: "",
+      workspace: "",
+      channels: [],
+    };
+  }
+
+  handleAgentsOnboardingCancel() {
+    this.agentsOnboarding = false;
+  }
+
+  handleAgentsOnboardingUpdate(data: Partial<AppViewState["agentsOnboardingData"]>) {
+    this.agentsOnboardingData = { ...this.agentsOnboardingData, ...data };
+  }
+
+  handleAgentsOnboardingNext() {
+    this.agentsOnboardingStep += 1;
+  }
+
+  handleAgentsOnboardingBack() {
+    this.agentsOnboardingStep = Math.max(1, this.agentsOnboardingStep - 1);
+  }
+
+  async handleAgentsOnboardingSubmit() {
+    if (!this.client) {
+      return;
+    }
+    const { name, emoji, model, workspace, channels } = this.agentsOnboardingData;
+    try {
+      this.agentsLoading = true;
+      const res = await this.client.request("agents.create", {
+        name,
+        emoji,
+        avatar: "", // could add avatar support later
+        workspace,
+      });
+
+      if (res && typeof res === "object" && "agentId" in res) {
+        const agentId = String(res.agentId);
+
+        // If model is selected, update it
+        if (model) {
+          await this.client.request("agents.update", {
+            agentId,
+            model,
+          });
+        }
+
+        // If channels are selected, update config
+        if (channels.length > 0 && this.configSnapshot?.config) {
+          // Deep clone config to avoid mutating state directly
+          const newConfig = JSON.parse(JSON.stringify(this.configSnapshot.config));
+
+          if (!newConfig.channels) {
+            newConfig.channels = {};
+          }
+
+          for (const channelId of channels) {
+            if (!newConfig.channels[channelId]) {
+              newConfig.channels[channelId] = {};
+            }
+            // If it's a string (legacy/simple), convert to object
+            if (typeof newConfig.channels[channelId] === "string") {
+              newConfig.channels[channelId] = {};
+            }
+
+            // Ensure it's an object before assigning
+            if (
+              typeof newConfig.channels[channelId] === "object" &&
+              newConfig.channels[channelId] !== null
+            ) {
+              newConfig.channels[channelId].agent = agentId;
+            }
+          }
+
+          // Use config.set to update bindings
+          // Note: In a real multi-user scenario, we should handle baseHash/conflicts more robustly
+          await this.client.request("config.set", {
+            raw: JSON.stringify(newConfig, null, 2),
+            baseHash: this.configSnapshot.hash ?? undefined,
+          });
+        }
+
+        // Finish onboarding
+        this.agentsOnboarding = false;
+
+        // Refresh agents list and config
+        await Promise.all([
+          this.client.request("agents.list", {}).then((list) => {
+            if (list) {
+              this.agentsList = list as AgentsListResult;
+            }
+          }),
+          this.handleConfigLoad(),
+        ]);
+
+        this.agentsSelectedId = agentId;
+      }
+    } catch (err) {
+      this.lastError = `Failed to create agent: ${String(err)}`;
+    } finally {
+      this.agentsLoading = false;
+    }
+  }
+
+  handleAgentsDeleteRequest(agentId: string) {
+    this.agentsDeleteConfirm = agentId;
+  }
+
+  handleAgentsDeleteCancel() {
+    this.agentsDeleteConfirm = null;
+  }
+
+  handleAgentsIdentityEditStart(agentId: string) {
+    this.agentsIdentityEditId = agentId;
+  }
+
+  handleAgentsIdentityEditCancel() {
+    this.agentsIdentityEditId = null;
+  }
+
+  async handleAgentsIdentityEditSave(data: { name: string; emoji: string; theme: string }) {
+    if (!this.client || !this.agentsIdentityEditId) {
+      return;
+    }
+    const agentId = this.agentsIdentityEditId;
+    this.agentsLoading = true;
+    try {
+      // 1. Update Name via Config (agents.update)
+      await this.client.request("agents.update", {
+        agentId,
+        name: data.name,
+      });
+
+      // 2. Update IDENTITY.md for Emoji/Theme (and sync Name)
+      // Fetch current content
+      const fileRes = await this.client.request("agents.files.get", {
+        agentId,
+        name: "IDENTITY.md",
+      });
+
+      if (fileRes && typeof fileRes === "object" && "file" in fileRes) {
+        const file = (fileRes as { file: { content?: string } }).file;
+        let content = file.content || "";
+
+        // Regex replacements
+        // Name
+        if (content.match(/- Name:/)) {
+          content = content.replace(/- Name:.*$/, `- Name: ${data.name}`);
+        } else {
+          content += `\n- Name: ${data.name}`;
+        }
+
+        // Emoji
+        if (content.match(/- Emoji:/)) {
+          content = content.replace(/- Emoji:.*$/, `- Emoji: ${data.emoji}`);
+        } else if (data.emoji) {
+          content += `\n- Emoji: ${data.emoji}`;
+        }
+
+        // Theme / Vibe (Handle both keys)
+        if (content.match(/- Vibe:/)) {
+          content = content.replace(/- Vibe:.*$/, `- Vibe: ${data.theme}`);
+        } else if (content.match(/- Theme:/)) {
+          content = content.replace(/- Theme:.*$/, `- Theme: ${data.theme}`);
+        } else if (data.theme) {
+          content += `\n- Vibe: ${data.theme}`;
+        }
+
+        // Write back
+        await this.client.request("agents.files.set", {
+          agentId,
+          name: "IDENTITY.md",
+          content,
+        });
+      }
+
+      this.agentsIdentityEditId = null;
+
+      // Refresh
+      await Promise.all([
+        this.client.request("agents.list", {}).then((list) => {
+          if (list) {
+            this.agentsList = list as AgentsListResult;
+          }
+        }),
+        this.loadAssistantIdentity(), // Refresh identity cache if needed
+      ]);
+    } catch (err) {
+      this.lastError = `Failed to update identity: ${String(err)}`;
+    } finally {
+      this.agentsLoading = false;
+    }
+  }
+
+  async handleAgentsDeleteConfirm() {
+    if (!this.client || !this.agentsDeleteConfirm) {
+      return;
+    }
+    const agentId = this.agentsDeleteConfirm;
+    try {
+      this.agentsLoading = true;
+      await this.client.request("agents.delete", {
+        agentId,
+        deleteFiles: true, // Default to cleaning up workspace
+      });
+      this.agentsDeleteConfirm = null;
+
+      // Refresh list and select default if deleted was selected
+      const list = await this.client.request("agents.list", {});
+      if (list) {
+        this.agentsList = list as AgentsListResult;
+      }
+      if (this.agentsSelectedId === agentId) {
+        this.agentsSelectedId = null;
+      }
+    } catch (err) {
+      this.lastError = `Failed to delete agent: ${String(err)}`;
+    } finally {
+      this.agentsLoading = false;
+    }
+  }
+
+  handleToolPolicyPresetCreate(input: ToolPolicyPresetInput) {
+    this.toolPolicyPresets = createToolPolicyPreset(input);
+  }
+
+  handleToolPolicyPresetUpdate(id: string, input: ToolPolicyPresetInput) {
+    this.toolPolicyPresets = updateToolPolicyPreset(id, input);
+  }
+
+  handleToolPolicyPresetDuplicate(id: string) {
+    this.toolPolicyPresets = duplicateToolPolicyPreset(id);
+  }
+
+  handleToolPolicyPresetDelete(id: string) {
+    this.toolPolicyPresets = deleteToolPolicyPreset(id);
+    this.toolPolicyPresetAssignments = loadToolPolicyPresetAssignments();
+  }
+
+  handleToolPolicyPresetAssignAgent(agentId: string, presetId: string | null) {
+    this.toolPolicyPresetAssignments = assignToolPolicyPresetToAgent(agentId, presetId);
+  }
+
+  handleToolPolicyPresetAssignProvider(providerKey: string, presetId: string | null) {
+    this.toolPolicyPresetAssignments = assignToolPolicyPresetToProvider(providerKey, presetId);
+  }
+
+  handleToolPolicyPresetBulkAssignAgents(agentIds: string[], presetId: string | null) {
+    this.toolPolicyPresetAssignments = bulkAssignToolPolicyPresetToAgents(agentIds, presetId);
+  }
+
+  handleToolPolicyPresetBulkAssignProviders(providerKeys: string[], presetId: string | null) {
+    this.toolPolicyPresetAssignments = bulkAssignToolPolicyPresetToProviders(
+      providerKeys,
+      presetId,
+    );
   }
 
   render() {

@@ -10,6 +10,11 @@ import type { UiSettings } from "./storage.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
 import type { ThemeMode } from "./theme.ts";
 import type {
+  ToolPolicyPreset,
+  ToolPolicyPresetAssignments,
+  ToolPolicyPresetInput,
+} from "./tool-policy-presets.ts";
+import type {
   AgentsListResult,
   AgentsFilesListResult,
   AgentIdentityResult,
@@ -32,6 +37,7 @@ import type {
   StatusSummary,
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
+import type { AgentsPanel } from "./views/agents.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
@@ -127,7 +133,20 @@ export type AppViewState = {
   agentsList: AgentsListResult | null;
   agentsError: string | null;
   agentsSelectedId: string | null;
-  agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
+  agentsPanel: AgentsPanel;
+  agentsFilterQuery: string;
+  agentsOnboarding: boolean;
+  agentsOnboardingStep: number;
+  agentsOnboardingData: {
+    name: string;
+    emoji: string;
+    theme: string;
+    model: string;
+    workspace: string;
+    channels: string[];
+  };
+  agentsDeleteConfirm: string | null;
+  agentsIdentityEditId: string | null;
   agentFilesLoading: boolean;
   agentFilesError: string | null;
   agentFilesList: AgentsFilesListResult | null;
@@ -142,6 +161,8 @@ export type AppViewState = {
   agentSkillsError: string | null;
   agentSkillsReport: SkillStatusReport | null;
   agentSkillsAgentId: string | null;
+  toolPolicyPresets: ToolPolicyPreset[];
+  toolPolicyPresetAssignments: ToolPolicyPresetAssignments;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;
@@ -284,4 +305,32 @@ export type AppViewState = {
   handleOpenSidebar: (content: string) => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
+  handleAgentsFilterChange: (query: string) => void;
+  handleAgentsOnboardingStart: () => void;
+  handleAgentsOnboardingCancel: () => void;
+  handleAgentsOnboardingUpdate: (data: Partial<AppViewState["agentsOnboardingData"]>) => void;
+  handleAgentsOnboardingNext: () => void;
+  handleAgentsOnboardingBack: () => void;
+  handleAgentsOnboardingSubmit: () => Promise<void>;
+  handleAgentsDeleteRequest: (agentId: string) => void;
+  handleAgentsDeleteConfirm: () => Promise<void>;
+  handleAgentsDeleteCancel: () => void;
+  handleAgentsIdentityEditStart: (agentId: string) => void;
+  handleAgentsIdentityEditCancel: () => void;
+  handleAgentsIdentityEditSave: (data: {
+    name: string;
+    emoji: string;
+    theme: string;
+  }) => Promise<void>;
+  handleToolPolicyPresetCreate: (input: ToolPolicyPresetInput) => void;
+  handleToolPolicyPresetUpdate: (id: string, input: ToolPolicyPresetInput) => void;
+  handleToolPolicyPresetDuplicate: (id: string) => void;
+  handleToolPolicyPresetDelete: (id: string) => void;
+  handleToolPolicyPresetAssignAgent: (agentId: string, presetId: string | null) => void;
+  handleToolPolicyPresetAssignProvider: (providerKey: string, presetId: string | null) => void;
+  handleToolPolicyPresetBulkAssignAgents: (agentIds: string[], presetId: string | null) => void;
+  handleToolPolicyPresetBulkAssignProviders: (
+    providerKeys: string[],
+    presetId: string | null,
+  ) => void;
 };

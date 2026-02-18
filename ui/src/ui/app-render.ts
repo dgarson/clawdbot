@@ -54,6 +54,9 @@ import {
 } from "./controllers/skills.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import { renderAgentsDeleteModal } from "./views/agents-delete-modal.ts";
+import { renderAgentsIdentityModal } from "./views/agents-identity-modal.ts";
+import { renderAgentsOnboarding } from "./views/agents-onboarding.ts";
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
@@ -345,6 +348,7 @@ export function renderApp(state: AppViewState) {
                 agentsList: state.agentsList,
                 selectedAgentId: resolvedAgentId,
                 activePanel: state.agentsPanel,
+                filterQuery: state.agentsFilterQuery,
                 configForm: configValue,
                 configLoading: state.configLoading,
                 configSaving: state.configSaving,
@@ -506,6 +510,176 @@ export function renderApp(state: AppViewState) {
                     removeConfigFormValue(state, [...basePath, "deny"]);
                   }
                 },
+                onToolsPolicyReplace: (agentId, profile, alsoAllow, deny) => {
+                  if (!configValue) {
+                    return;
+                  }
+                  const list = (configValue as { agents?: { list?: unknown[] } }).agents?.list;
+                  if (!Array.isArray(list)) {
+                    return;
+                  }
+                  const index = list.findIndex(
+                    (entry) =>
+                      entry &&
+                      typeof entry === "object" &&
+                      "id" in entry &&
+                      (entry as { id?: string }).id === agentId,
+                  );
+                  if (index < 0) {
+                    return;
+                  }
+                  const basePath = ["agents", "list", index, "tools"];
+                  if (profile) {
+                    updateConfigFormValue(state, [...basePath, "profile"], profile);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "profile"]);
+                  }
+                  removeConfigFormValue(state, [...basePath, "allow"]);
+                  if (alsoAllow.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "alsoAllow"], alsoAllow);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "alsoAllow"]);
+                  }
+                  if (deny.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "deny"], deny);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "deny"]);
+                  }
+                },
+                toolPolicyPresets: state.toolPolicyPresets,
+                toolPolicyPresetAssignments: state.toolPolicyPresetAssignments,
+                onToolPolicyPresetCreate: (input) => state.handleToolPolicyPresetCreate(input),
+                onToolPolicyPresetUpdate: (id, input) =>
+                  state.handleToolPolicyPresetUpdate(id, input),
+                onToolPolicyPresetDuplicate: (id) => state.handleToolPolicyPresetDuplicate(id),
+                onToolPolicyPresetDelete: (id) => state.handleToolPolicyPresetDelete(id),
+                onToolPolicyPresetAssignAgent: (agentId, presetId) =>
+                  state.handleToolPolicyPresetAssignAgent(agentId, presetId),
+                onToolPolicyPresetAssignProvider: (providerKey, presetId) =>
+                  state.handleToolPolicyPresetAssignProvider(providerKey, presetId),
+                onToolPolicyPresetBulkAssignAgents: (agentIds, presetId) =>
+                  state.handleToolPolicyPresetBulkAssignAgents(agentIds, presetId),
+                onToolPolicyPresetBulkAssignProviders: (providerKeys, presetId) =>
+                  state.handleToolPolicyPresetBulkAssignProviders(providerKeys, presetId),
+                onGlobalProviderPolicyChange: (providerKey, profile, alsoAllow, deny) => {
+                  if (!configValue) {
+                    return;
+                  }
+                  const normalizedProviderKey = providerKey.trim();
+                  if (!normalizedProviderKey) {
+                    return;
+                  }
+                  const basePath = ["tools", "byProvider", normalizedProviderKey];
+                  const hasAny = Boolean(profile) || alsoAllow.length > 0 || deny.length > 0;
+                  if (!hasAny) {
+                    removeConfigFormValue(state, basePath);
+                    return;
+                  }
+                  if (profile) {
+                    updateConfigFormValue(state, [...basePath, "profile"], profile);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "profile"]);
+                  }
+                  removeConfigFormValue(state, [...basePath, "allow"]);
+                  if (alsoAllow.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "alsoAllow"], alsoAllow);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "alsoAllow"]);
+                  }
+                  if (deny.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "deny"], deny);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "deny"]);
+                  }
+                },
+                onAgentProviderPolicyChange: (agentId, providerKey, profile, alsoAllow, deny) => {
+                  if (!configValue) {
+                    return;
+                  }
+                  const list = (configValue as { agents?: { list?: unknown[] } }).agents?.list;
+                  if (!Array.isArray(list)) {
+                    return;
+                  }
+                  const index = list.findIndex(
+                    (entry) =>
+                      entry &&
+                      typeof entry === "object" &&
+                      "id" in entry &&
+                      (entry as { id?: string }).id === agentId,
+                  );
+                  if (index < 0) {
+                    return;
+                  }
+                  const normalizedProviderKey = providerKey.trim();
+                  if (!normalizedProviderKey) {
+                    return;
+                  }
+                  const basePath = [
+                    "agents",
+                    "list",
+                    index,
+                    "tools",
+                    "byProvider",
+                    normalizedProviderKey,
+                  ];
+                  const hasAny = Boolean(profile) || alsoAllow.length > 0 || deny.length > 0;
+                  if (!hasAny) {
+                    removeConfigFormValue(state, basePath);
+                    return;
+                  }
+                  if (profile) {
+                    updateConfigFormValue(state, [...basePath, "profile"], profile);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "profile"]);
+                  }
+                  removeConfigFormValue(state, [...basePath, "allow"]);
+                  if (alsoAllow.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "alsoAllow"], alsoAllow);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "alsoAllow"]);
+                  }
+                  if (deny.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "deny"], deny);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "deny"]);
+                  }
+                },
+                onAgentToAgentPolicyChange: (enabled, allow) => {
+                  const basePath = ["tools", "agentToAgent"];
+                  const hasAny = enabled || allow.length > 0;
+                  if (!hasAny) {
+                    removeConfigFormValue(state, basePath);
+                    return;
+                  }
+                  if (enabled) {
+                    updateConfigFormValue(state, [...basePath, "enabled"], true);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "enabled"]);
+                  }
+                  if (allow.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "allow"], allow);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "allow"]);
+                  }
+                },
+                onSubagentPolicyChange: (allow, deny) => {
+                  const basePath = ["tools", "subagents"];
+                  const hasAny = allow.length > 0 || deny.length > 0;
+                  if (!hasAny) {
+                    removeConfigFormValue(state, basePath);
+                    return;
+                  }
+                  if (allow.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "tools", "allow"], allow);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "tools", "allow"]);
+                  }
+                  if (deny.length > 0) {
+                    updateConfigFormValue(state, [...basePath, "tools", "deny"], deny);
+                  } else {
+                    removeConfigFormValue(state, [...basePath, "tools", "deny"]);
+                  }
+                },
                 onConfigReload: () => loadConfig(state),
                 onConfigSave: () => saveConfig(state),
                 onChannelsRefresh: () => loadChannels(state, false),
@@ -594,6 +768,9 @@ export function renderApp(state: AppViewState) {
                   }
                   updateConfigFormValue(state, ["agents", "list", index, "skills"], []);
                 },
+                onAgentsOnboardingStart: () => state.handleAgentsOnboardingStart(),
+                onDeleteAgent: (agentId) => state.handleAgentsDeleteRequest(agentId),
+                onFilterChange: (query) => state.handleAgentsFilterChange(query),
                 onModelChange: (agentId, modelId) => {
                   if (!configValue) {
                     return;
@@ -948,6 +1125,9 @@ export function renderApp(state: AppViewState) {
       </main>
       ${renderExecApprovalPrompt(state)}
       ${renderGatewayUrlConfirmation(state)}
+      ${renderAgentsOnboarding(state)}
+      ${renderAgentsDeleteModal(state)}
+      ${renderAgentsIdentityModal(state)}
     </div>
   `;
 }
