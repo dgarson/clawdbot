@@ -4,7 +4,7 @@ import type { SlackExecApprovalConfig } from "../../config/types.slack.js";
 import { buildGatewayConnectionDetails } from "../../gateway/call.js";
 import { GatewayClient } from "../../gateway/client.js";
 import type { EventFrame } from "../../gateway/protocol/index.js";
-import type { ExecApprovalRequest } from "../../infra/exec-approvals.js";
+import type { ExecApprovalDecision, ExecApprovalRequest } from "../../infra/exec-approvals.js";
 import { logDebug, logError } from "../../logger.js";
 import { normalizeAccountId, resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
 import type { RuntimeEnv } from "../../runtime.js";
@@ -13,8 +13,71 @@ import {
   GATEWAY_CLIENT_NAMES,
   normalizeMessageChannel,
 } from "../../utils/message-channel.js";
+import { actions, button, divider, header, mrkdwn, section } from "../blocks/builders.js";
+import type { SlackBlock } from "../blocks/types.js";
 
 export type { ExecApprovalRequest };
+
+const APPROVAL_ACTION_PREFIX = "openclaw:question:";
+
+export function buildExecApprovalActionId(
+  requestId: string,
+  decision: ExecApprovalDecision,
+): string {
+  return `${APPROVAL_ACTION_PREFIX}${requestId}:${decision}`;
+}
+
+export function buildExecApprovalBlocks(request: ExecApprovalRequest): SlackBlock[] {
+  const cmd = request.request.command;
+  const preview = cmd.length > 800 ? `${cmd.slice(0, 800)}...` : cmd;
+
+  const metaLines: string[] = [];
+  if (request.request.cwd) {
+    metaLines.push(`*CWD:* ${request.request.cwd}`);
+  }
+  if (request.request.host) {
+    metaLines.push(`*Host:* ${request.request.host}`);
+  }
+  if (request.request.agentId) {
+    metaLines.push(`*Agent:* ${request.request.agentId}`);
+  }
+
+  const blocks: SlackBlock[] = [
+    header("Exec Approval Required"),
+    section({ text: mrkdwn(`*Command:*\n\`\`\`\n${preview}\n\`\`\``) }),
+  ];
+
+  if (metaLines.length > 0) {
+    blocks.push(section({ text: mrkdwn(metaLines.join("\n")) }));
+  }
+
+  blocks.push(divider());
+  blocks.push(
+    actions({
+      elements: [
+        button({
+          text: "Allow once",
+          actionId: buildExecApprovalActionId(request.id, "allow-once"),
+          value: "allow-once",
+          style: "primary",
+        }),
+        button({
+          text: "Always allow",
+          actionId: buildExecApprovalActionId(request.id, "allow-always"),
+          value: "allow-always",
+        }),
+        button({
+          text: "Deny",
+          actionId: buildExecApprovalActionId(request.id, "deny"),
+          value: "deny",
+          style: "danger",
+        }),
+      ],
+    }),
+  );
+
+  return blocks;
+}
 
 /** Extract Slack channel ID from a session key like "agent:main:slack:channel:C1234567890" */
 export function extractSlackChannelId(sessionKey?: string | null): string | null {
