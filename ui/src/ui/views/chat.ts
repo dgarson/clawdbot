@@ -264,6 +264,7 @@ export function renderChat(props: ChatProps) {
   `;
 
   return html`
+    <!-- TODO: migrate class="card chat" to oc-card once layout constraints are resolved -->
     <section class="card chat">
       ${props.disabledReason ? html`<oc-callout>${props.disabledReason}</oc-callout>` : nothing}
 
