@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSlackEditTestClient, installSlackBlockTestMocks } from "./blocks.test-helpers.js";
+import { createSlackEditTestClient, installSlackBlockTestMocks } from "./blocks/test-helpers.js";
 
 installSlackBlockTestMocks();
 const { editSlackMessage } = await import("./actions.js");

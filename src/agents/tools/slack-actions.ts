@@ -16,7 +16,7 @@ import {
   sendSlackMessage,
   unpinSlackMessage,
 } from "../../slack/actions.js";
-import { parseSlackBlocksInput } from "../../slack/blocks-input.js";
+import { parseSlackBlocksInput } from "../../slack/blocks/input.js";
 import { parseSlackTarget, resolveSlackChannelId } from "../../slack/targets.js";
 import { withNormalizedTimestamp } from "../date-time.js";
 import {

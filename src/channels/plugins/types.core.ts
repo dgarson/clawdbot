@@ -179,6 +179,7 @@ export type ChannelCapabilities = {
   media?: boolean;
   nativeCommands?: boolean;
   blockStreaming?: boolean;
+  interactivePrompts?: boolean;
 };
 
 export type ChannelSecurityDmPolicy = {

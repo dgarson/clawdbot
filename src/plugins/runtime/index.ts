@@ -71,7 +71,7 @@ import { monitorIMessageProvider } from "../../imessage/monitor.js";
 import { probeIMessage } from "../../imessage/probe.js";
 import { sendMessageIMessage } from "../../imessage/send.js";
 import { getChannelActivity, recordChannelActivity } from "../../infra/channel-activity.js";
-import { enqueueSystemEvent } from "../../infra/system-events.js";
+import { enqueueSystemEvent, peekSystemEventEntries } from "../../infra/system-events.js";
 import {
   listLineAccountIds,
   normalizeAccountId as normalizeLineAccountId,
@@ -245,6 +245,7 @@ export function createPluginRuntime(): PluginRuntime {
     },
     system: {
       enqueueSystemEvent,
+      peekSystemEventEntries,
       runCommandWithTimeout,
       formatNativeDependencyHint,
     },

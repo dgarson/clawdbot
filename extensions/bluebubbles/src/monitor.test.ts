@@ -101,6 +101,9 @@ function createMockRuntime(): PluginRuntime {
       formatNativeDependencyHint: vi.fn(
         () => "",
       ) as unknown as PluginRuntime["system"]["formatNativeDependencyHint"],
+      peekSystemEventEntries: vi.fn(
+        () => [],
+      ) as unknown as PluginRuntime["system"]["peekSystemEventEntries"],
     },
     media: {
       loadWebMedia: vi.fn() as unknown as PluginRuntime["media"]["loadWebMedia"],

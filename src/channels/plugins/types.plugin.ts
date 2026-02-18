@@ -28,6 +28,7 @@ import type {
   ChannelStreamingAdapter,
   ChannelThreadingAdapter,
 } from "./types.core.js";
+import type { ChannelInteractiveAdapter } from "./types.interactive.js";
 
 // Channel docking: implement this contract in src/channels/plugins/<id>.ts.
 export type ChannelConfigUiHint = {
@@ -79,6 +80,7 @@ export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknow
   resolver?: ChannelResolverAdapter;
   actions?: ChannelMessageActionAdapter;
   heartbeat?: ChannelHeartbeatAdapter;
+  interactive?: ChannelInteractiveAdapter;
   // Channel-owned agent tools (login flows, etc.).
   agentTools?: ChannelAgentToolFactory | ChannelAgentTool[];
 };

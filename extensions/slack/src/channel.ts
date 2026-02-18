@@ -22,6 +22,7 @@ import {
   resolveSlackGroupRequireMention,
   resolveSlackGroupToolPolicy,
   buildSlackThreadingToolContext,
+  createSlackInteractiveAdapter,
   setAccountEnabledInConfigSection,
   slackOnboardingAdapter,
   SlackConfigSchema,
@@ -89,6 +90,7 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount> = {
     threads: true,
     media: true,
     nativeCommands: true,
+    interactivePrompts: true,
   },
   streaming: {
     blockStreamingCoalesceDefaults: { minChars: 1500, idleMs: 1000 },
@@ -241,6 +243,24 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount> = {
           await getSlackRuntime().channel.slack.handleSlackAction(action, cfg, toolContext),
       }),
   },
+  interactive: (() => {
+    let adapter: ReturnType<typeof createSlackInteractiveAdapter> | null = null;
+    const getAdapter = () => {
+      if (!adapter) {
+        const rt = getSlackRuntime();
+        adapter = createSlackInteractiveAdapter({
+          sendMessageSlack: (to, message, opts) =>
+            rt.channel.slack.sendMessageSlack(to, message, opts),
+          pollSystemEvents: (sessionKey) => rt.system.peekSystemEventEntries(sessionKey),
+        });
+      }
+      return adapter;
+    };
+    return {
+      askQuestion: (params) => getAdapter().askQuestion(params),
+      askConfirmation: (params) => getAdapter().askConfirmation(params),
+    };
+  })(),
   setup: {
     resolveAccountId: ({ accountId }) => normalizeAccountId(accountId),
     applyAccountName: ({ cfg, accountId, name }) =>

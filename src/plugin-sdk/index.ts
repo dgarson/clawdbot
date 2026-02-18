@@ -372,6 +372,7 @@ export {
   normalizeSlackMessagingTarget,
 } from "../channels/plugins/normalize/slack.js";
 export { buildSlackThreadingToolContext } from "../slack/threading-tool-context.js";
+export { createSlackInteractiveAdapter } from "../slack/interactive-adapter.js";
 
 // Channel: Telegram
 export {
