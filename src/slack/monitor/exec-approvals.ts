@@ -26,7 +26,7 @@ export function extractSlackChannelId(sessionKey?: string | null): string | null
 }
 
 export type SlackExecApprovalHandlerOpts = {
-  token: string;
+  botToken: string;
   accountId: string;
   config: SlackExecApprovalConfig;
   gatewayUrl?: string;
