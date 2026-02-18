@@ -152,122 +152,139 @@ export function renderAgents(props: AgentsProps) {
                   defaultId,
                   props.agentIdentityById[selectedAgent.id] ?? null,
                 )}
-                ${renderAgentTabs(props.activePanel, (panel) => props.onSelectPanel(panel))}
-                ${
-                  props.activePanel === "overview"
-                    ? renderAgentOverview({
-                        agent: selectedAgent,
-                        defaultId,
-                        configForm: props.configForm,
-                        agentFilesList: props.agentFilesList,
-                        agentIdentity: props.agentIdentityById[selectedAgent.id] ?? null,
-                        agentIdentityError: props.agentIdentityError,
-                        agentIdentityLoading: props.agentIdentityLoading,
-                        configLoading: props.configLoading,
-                        configSaving: props.configSaving,
-                        configDirty: props.configDirty,
-                        onConfigReload: props.onConfigReload,
-                        onConfigSave: props.onConfigSave,
-                        onModelChange: props.onModelChange,
-                        onModelFallbacksChange: props.onModelFallbacksChange,
-                      })
-                    : nothing
-                }
-                ${
-                  props.activePanel === "files"
-                    ? renderAgentFiles({
-                        agentId: selectedAgent.id,
-                        agentFilesList: props.agentFilesList,
-                        agentFilesLoading: props.agentFilesLoading,
-                        agentFilesError: props.agentFilesError,
-                        agentFileActive: props.agentFileActive,
-                        agentFileContents: props.agentFileContents,
-                        agentFileDrafts: props.agentFileDrafts,
-                        agentFileSaving: props.agentFileSaving,
-                        onLoadFiles: props.onLoadFiles,
-                        onSelectFile: props.onSelectFile,
-                        onFileDraftChange: props.onFileDraftChange,
-                        onFileReset: props.onFileReset,
-                        onFileSave: props.onFileSave,
-                      })
-                    : nothing
-                }
-                ${
-                  props.activePanel === "tools"
-                    ? renderAgentTools({
-                        agentId: selectedAgent.id,
-                        configForm: props.configForm,
-                        configLoading: props.configLoading,
-                        configSaving: props.configSaving,
-                        configDirty: props.configDirty,
-                        onProfileChange: props.onToolsProfileChange,
-                        onOverridesChange: props.onToolsOverridesChange,
-                        onConfigReload: props.onConfigReload,
-                        onConfigSave: props.onConfigSave,
-                      })
-                    : nothing
-                }
-                ${
-                  props.activePanel === "skills"
-                    ? renderAgentSkills({
-                        agentId: selectedAgent.id,
-                        report: props.agentSkillsReport,
-                        loading: props.agentSkillsLoading,
-                        error: props.agentSkillsError,
-                        activeAgentId: props.agentSkillsAgentId,
-                        configForm: props.configForm,
-                        configLoading: props.configLoading,
-                        configSaving: props.configSaving,
-                        configDirty: props.configDirty,
-                        filter: props.skillsFilter,
-                        onFilterChange: props.onSkillsFilterChange,
-                        onRefresh: props.onSkillsRefresh,
-                        onToggle: props.onAgentSkillToggle,
-                        onClear: props.onAgentSkillsClear,
-                        onDisableAll: props.onAgentSkillsDisableAll,
-                        onConfigReload: props.onConfigReload,
-                        onConfigSave: props.onConfigSave,
-                      })
-                    : nothing
-                }
-                ${
-                  props.activePanel === "channels"
-                    ? renderAgentChannels({
-                        context: buildAgentContext(
-                          selectedAgent,
-                          props.configForm,
-                          props.agentFilesList,
-                          defaultId,
-                          props.agentIdentityById[selectedAgent.id] ?? null,
-                        ),
-                        configForm: props.configForm,
-                        snapshot: props.channelsSnapshot,
-                        loading: props.channelsLoading,
-                        error: props.channelsError,
-                        lastSuccess: props.channelsLastSuccess,
-                        onRefresh: props.onChannelsRefresh,
-                      })
-                    : nothing
-                }
-                ${
-                  props.activePanel === "cron"
-                    ? renderAgentCron({
-                        context: buildAgentContext(
-                          selectedAgent,
-                          props.configForm,
-                          props.agentFilesList,
-                          defaultId,
-                          props.agentIdentityById[selectedAgent.id] ?? null,
-                        ),
-                        agentId: selectedAgent.id,
-                        jobs: props.cronJobs,
-                        status: props.cronStatus,
-                        loading: props.cronLoading,
-                        error: props.cronError,
-                        onRefresh: props.onCronRefresh,
-                      })
-                    : nothing
-                }
+                <oc-tabs
+                  .active=${props.activePanel}
+                  @oc-tab-change=${(e: CustomEvent<{ value: string }>) =>
+                    props.onSelectPanel(e.detail.value as AgentsPanel)}
+                >
+                  <oc-tab value="overview" label="Overview">
+                    ${
+                      props.activePanel === "overview"
+                        ? renderAgentOverview({
+                            agent: selectedAgent,
+                            defaultId,
+                            configForm: props.configForm,
+                            agentFilesList: props.agentFilesList,
+                            agentIdentity: props.agentIdentityById[selectedAgent.id] ?? null,
+                            agentIdentityError: props.agentIdentityError,
+                            agentIdentityLoading: props.agentIdentityLoading,
+                            configLoading: props.configLoading,
+                            configSaving: props.configSaving,
+                            configDirty: props.configDirty,
+                            onConfigReload: props.onConfigReload,
+                            onConfigSave: props.onConfigSave,
+                            onModelChange: props.onModelChange,
+                            onModelFallbacksChange: props.onModelFallbacksChange,
+                          })
+                        : nothing
+                    }
+                  </oc-tab>
+                  <oc-tab value="files" label="Files">
+                    ${
+                      props.activePanel === "files"
+                        ? renderAgentFiles({
+                            agentId: selectedAgent.id,
+                            agentFilesList: props.agentFilesList,
+                            agentFilesLoading: props.agentFilesLoading,
+                            agentFilesError: props.agentFilesError,
+                            agentFileActive: props.agentFileActive,
+                            agentFileContents: props.agentFileContents,
+                            agentFileDrafts: props.agentFileDrafts,
+                            agentFileSaving: props.agentFileSaving,
+                            onLoadFiles: props.onLoadFiles,
+                            onSelectFile: props.onSelectFile,
+                            onFileDraftChange: props.onFileDraftChange,
+                            onFileReset: props.onFileReset,
+                            onFileSave: props.onFileSave,
+                          })
+                        : nothing
+                    }
+                  </oc-tab>
+                  <oc-tab value="tools" label="Tools">
+                    ${
+                      props.activePanel === "tools"
+                        ? renderAgentTools({
+                            agentId: selectedAgent.id,
+                            configForm: props.configForm,
+                            configLoading: props.configLoading,
+                            configSaving: props.configSaving,
+                            configDirty: props.configDirty,
+                            onProfileChange: props.onToolsProfileChange,
+                            onOverridesChange: props.onToolsOverridesChange,
+                            onConfigReload: props.onConfigReload,
+                            onConfigSave: props.onConfigSave,
+                          })
+                        : nothing
+                    }
+                  </oc-tab>
+                  <oc-tab value="skills" label="Skills">
+                    ${
+                      props.activePanel === "skills"
+                        ? renderAgentSkills({
+                            agentId: selectedAgent.id,
+                            report: props.agentSkillsReport,
+                            loading: props.agentSkillsLoading,
+                            error: props.agentSkillsError,
+                            activeAgentId: props.agentSkillsAgentId,
+                            configForm: props.configForm,
+                            configLoading: props.configLoading,
+                            configSaving: props.configSaving,
+                            configDirty: props.configDirty,
+                            filter: props.skillsFilter,
+                            onFilterChange: props.onSkillsFilterChange,
+                            onRefresh: props.onSkillsRefresh,
+                            onToggle: props.onAgentSkillToggle,
+                            onClear: props.onAgentSkillsClear,
+                            onDisableAll: props.onAgentSkillsDisableAll,
+                            onConfigReload: props.onConfigReload,
+                            onConfigSave: props.onConfigSave,
+                          })
+                        : nothing
+                    }
+                  </oc-tab>
+                  <oc-tab value="channels" label="Channels">
+                    ${
+                      props.activePanel === "channels"
+                        ? renderAgentChannels({
+                            context: buildAgentContext(
+                              selectedAgent,
+                              props.configForm,
+                              props.agentFilesList,
+                              defaultId,
+                              props.agentIdentityById[selectedAgent.id] ?? null,
+                            ),
+                            configForm: props.configForm,
+                            snapshot: props.channelsSnapshot,
+                            loading: props.channelsLoading,
+                            error: props.channelsError,
+                            lastSuccess: props.channelsLastSuccess,
+                            onRefresh: props.onChannelsRefresh,
+                          })
+                        : nothing
+                    }
+                  </oc-tab>
+                  <oc-tab value="cron" label="Cron Jobs">
+                    ${
+                      props.activePanel === "cron"
+                        ? renderAgentCron({
+                            context: buildAgentContext(
+                              selectedAgent,
+                              props.configForm,
+                              props.agentFilesList,
+                              defaultId,
+                              props.agentIdentityById[selectedAgent.id] ?? null,
+                            ),
+                            agentId: selectedAgent.id,
+                            jobs: props.cronJobs,
+                            status: props.cronStatus,
+                            loading: props.cronLoading,
+                            error: props.cronError,
+                            onRefresh: props.onCronRefresh,
+                          })
+                        : nothing
+                    }
+                  </oc-tab>
+                </oc-tabs>
               `
         }
       </section>
@@ -300,32 +317,6 @@ function renderAgentHeader(
         </div>
       </div>
     </oc-card>
-  `;
-}
-
-function renderAgentTabs(active: AgentsPanel, onSelect: (panel: AgentsPanel) => void) {
-  const tabs: Array<{ id: AgentsPanel; label: string }> = [
-    { id: "overview", label: "Overview" },
-    { id: "files", label: "Files" },
-    { id: "tools", label: "Tools" },
-    { id: "skills", label: "Skills" },
-    { id: "channels", label: "Channels" },
-    { id: "cron", label: "Cron Jobs" },
-  ];
-  return html`
-    <div class="agent-tabs">
-      ${tabs.map(
-        (tab) => html`
-          <button
-            class="agent-tab ${active === tab.id ? "active" : ""}"
-            type="button"
-            @click=${() => onSelect(tab.id)}
-          >
-            ${tab.label}
-          </button>
-        `,
-      )}
-    </div>
   `;
 }
 
