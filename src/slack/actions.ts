@@ -1,9 +1,10 @@
 import type { Block, KnownBlock, WebClient } from "@slack/web-api";
+import type { SlackBlock } from "./blocks/types.js";
 import { loadConfig } from "../config/config.js";
 import { logVerbose } from "../globals.js";
 import { resolveSlackAccount } from "./accounts.js";
-import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
-import { validateSlackBlocksArray } from "./blocks-input.js";
+import { blocksToPlainText } from "./blocks/fallback.js";
+import { validateBlocks } from "./blocks/validation.js";
 import { createSlackWebClient } from "./client.js";
 import { sendMessageSlack } from "./send.js";
 import { resolveSlackBotToken } from "./token.js";
@@ -152,7 +153,7 @@ export async function sendSlackMessage(
   opts: SlackActionClientOpts & {
     mediaUrl?: string;
     threadTs?: string;
-    blocks?: (Block | KnownBlock)[];
+    blocks?: (SlackBlock | Block | KnownBlock)[];
   } = {},
 ) {
   return await sendMessageSlack(to, content, {
@@ -169,16 +170,26 @@ export async function editSlackMessage(
   channelId: string,
   messageId: string,
   content: string,
-  opts: SlackActionClientOpts & { blocks?: (Block | KnownBlock)[] } = {},
+  opts: SlackActionClientOpts & { blocks?: (SlackBlock | Block | KnownBlock)[] } = {},
 ) {
   const client = await getClient(opts);
-  const blocks = opts.blocks == null ? undefined : validateSlackBlocksArray(opts.blocks);
+
+  if (opts.blocks) {
+    const result = validateBlocks(opts.blocks as SlackBlock[]);
+    if (!result.valid && result.errors.length > 0) {
+      throw new Error(`Invalid Slack blocks: ${result.errors.join(", ")}`);
+    }
+  }
+
   const trimmedContent = content.trim();
+  const fallbackText =
+    trimmedContent || (opts.blocks ? blocksToPlainText(opts.blocks as SlackBlock[]) : " ");
+
   await client.chat.update({
     channel: channelId,
     ts: messageId,
-    text: trimmedContent || (blocks ? buildSlackBlocksFallbackText(blocks) : " "),
-    ...(blocks ? { blocks } : {}),
+    text: fallbackText,
+    ...(opts.blocks ? { blocks: opts.blocks as (Block | KnownBlock)[] } : {}),
   });
 }
 

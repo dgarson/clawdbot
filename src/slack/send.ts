@@ -4,6 +4,8 @@ import {
   type KnownBlock,
   type WebClient,
 } from "@slack/web-api";
+import type { SlackTokenSource } from "./accounts.js";
+import type { SlackBlock } from "./blocks/types.js";
 import {
   chunkMarkdownTextWithMode,
   resolveChunkMode,
@@ -13,10 +15,9 @@ import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
 import { logVerbose } from "../globals.js";
 import { loadWebMedia } from "../web/media.js";
-import type { SlackTokenSource } from "./accounts.js";
 import { resolveSlackAccount } from "./accounts.js";
-import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
-import { validateSlackBlocksArray } from "./blocks-input.js";
+import { blocksToPlainText } from "./blocks/fallback.js";
+import { validateBlocks } from "./blocks/validation.js";
 import { createSlackWebClient } from "./client.js";
 import { markdownToSlackMrkdwnChunks } from "./format.js";
 import { lookupSlackChannelByName } from "./resolve-channels.js";
@@ -49,7 +50,7 @@ type SlackSendOpts = {
   client?: WebClient;
   threadTs?: string;
   identity?: SlackSendIdentity;
-  blocks?: (Block | KnownBlock)[];
+  blocks?: (SlackBlock | Block | KnownBlock)[];
 };
 
 function hasCustomIdentity(identity?: SlackSendIdentity): boolean {
@@ -88,13 +89,13 @@ async function postSlackMessageBestEffort(params: {
   text: string;
   threadTs?: string;
   identity?: SlackSendIdentity;
-  blocks?: (Block | KnownBlock)[];
+  blocks?: (SlackBlock | Block | KnownBlock)[];
 }) {
   const basePayload = {
     channel: params.channelId,
     text: params.text,
     thread_ts: params.threadTs,
-    ...(params.blocks?.length ? { blocks: params.blocks } : {}),
+    ...(params.blocks?.length ? { blocks: params.blocks as (Block | KnownBlock)[] } : {}),
   };
   try {
     // Slack Web API types model icon_url and icon_emoji as mutually exclusive.
@@ -129,6 +130,7 @@ async function postSlackMessageBestEffort(params: {
 export type SlackSendResult = {
   messageId: string;
   channelId: string;
+  channelName?: string;
 };
 
 function resolveToken(params: {
@@ -166,7 +168,7 @@ function parseRecipient(raw: string): SlackRecipient {
 async function resolveChannelId(
   client: WebClient,
   recipient: SlackRecipient,
-): Promise<{ channelId: string; isDm?: boolean }> {
+): Promise<{ channelId: string; isDm?: boolean; channelName?: string }> {
   if (recipient.kind === "channel") {
     const id = recipient.id;
     if (/^U[A-Z0-9]+$/i.test(id)) {
@@ -244,8 +246,22 @@ export async function sendMessageSlack(
   opts: SlackSendOpts = {},
 ): Promise<SlackSendResult> {
   const trimmedMessage = message?.trim() ?? "";
-  const blocks = opts.blocks == null ? undefined : validateSlackBlocksArray(opts.blocks);
-  if (!trimmedMessage && !opts.mediaUrl && !blocks) {
+
+  // Validate blocks if provided
+  if (opts.blocks) {
+    const result = validateBlocks(opts.blocks as SlackBlock[]);
+    if (!result.valid) {
+      // Log warnings/errors but try to proceed if not critical?
+      // For now, let's throw if invalid to be safe, or just warn?
+      // The original code threw on validation error.
+      // dgarson validation returns object.
+      if (result.errors.length > 0) {
+        throw new Error(`Invalid Slack blocks: ${result.errors.join(", ")}`);
+      }
+    }
+  }
+
+  if (!trimmedMessage && !opts.mediaUrl && !opts.blocks) {
     throw new Error("Slack send requires text, blocks, or media");
   }
   const cfg = loadConfig();
@@ -261,25 +277,31 @@ export async function sendMessageSlack(
   });
   const client = opts.client ?? createSlackWebClient(token);
   const recipient = parseRecipient(to);
-  const { channelId } = await resolveChannelId(client, recipient);
-  if (blocks) {
+  const { channelId, channelName } = await resolveChannelId(client, recipient);
+
+  if (opts.blocks) {
     if (opts.mediaUrl) {
       throw new Error("Slack send does not support blocks with mediaUrl");
     }
-    const fallbackText = trimmedMessage || buildSlackBlocksFallbackText(blocks);
+    // Convert blocks to plain text for fallback
+    const fallbackText =
+      trimmedMessage || blocksToPlainText(opts.blocks as SlackBlock[]) || "New interactive message";
+
     const response = await postSlackMessageBestEffort({
       client,
       channelId,
       text: fallbackText,
       threadTs: opts.threadTs,
       identity: opts.identity,
-      blocks,
+      blocks: opts.blocks,
     });
     return {
       messageId: response.ts ?? "unknown",
       channelId,
+      channelName,
     };
   }
+
   const textLimit = resolveTextChunkLimit(cfg, "slack", account.accountId);
   const chunkLimit = Math.min(textLimit, SLACK_TEXT_LIMIT);
   const tableMode = resolveMarkdownTableMode({
@@ -341,5 +363,6 @@ export async function sendMessageSlack(
   return {
     messageId: lastMessageId || "unknown",
     channelId,
+    channelName,
   };
 }
