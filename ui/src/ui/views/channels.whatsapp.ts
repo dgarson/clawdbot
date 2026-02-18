@@ -1,8 +1,8 @@
 import { html, nothing } from "lit";
-import { formatRelativeTimestamp, formatDurationHuman } from "../format.ts";
 import type { WhatsAppStatus } from "../types.ts";
-import { renderChannelConfigSection } from "./channels.config.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { formatRelativeTimestamp, formatDurationHuman } from "../format.ts";
+import { renderChannelConfigSection } from "./channels.config.ts";
 
 export function renderWhatsAppCard(params: {
   props: ChannelsProps;
@@ -56,17 +56,15 @@ export function renderWhatsAppCard(params: {
 
       ${
         whatsapp?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${whatsapp.lastError}
-          </div>`
+          ? html`<oc-callout variant="danger">${whatsapp.lastError}</oc-callout>`
           : nothing
       }
 
       ${
         props.whatsappMessage
-          ? html`<div class="callout" style="margin-top: 12px;">
+          ? html`<oc-callout>
             ${props.whatsappMessage}
-          </div>`
+          </oc-callout>`
           : nothing
       }
 

@@ -1,8 +1,8 @@
 import { html, nothing } from "lit";
-import { formatRelativeTimestamp } from "../format.ts";
 import type { SignalStatus } from "../types.ts";
-import { renderChannelConfigSection } from "./channels.config.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { formatRelativeTimestamp } from "../format.ts";
+import { renderChannelConfigSection } from "./channels.config.ts";
 
 export function renderSignalCard(params: {
   props: ChannelsProps;
@@ -42,18 +42,16 @@ export function renderSignalCard(params: {
 
       ${
         signal?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${signal.lastError}
-          </div>`
+          ? html`<oc-callout variant="danger">${signal.lastError}</oc-callout>`
           : nothing
       }
 
       ${
         signal?.probe
-          ? html`<div class="callout" style="margin-top: 12px;">
+          ? html`<oc-callout>
             Probe ${signal.probe.ok ? "ok" : "failed"} ·
             ${signal.probe.status ?? ""} ${signal.probe.error ?? ""}
-          </div>`
+          </oc-callout>`
           : nothing
       }
 

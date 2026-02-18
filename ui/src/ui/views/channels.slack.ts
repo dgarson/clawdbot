@@ -1,8 +1,8 @@
 import { html, nothing } from "lit";
-import { formatRelativeTimestamp } from "../format.ts";
 import type { SlackStatus } from "../types.ts";
-import { renderChannelConfigSection } from "./channels.config.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { formatRelativeTimestamp } from "../format.ts";
+import { renderChannelConfigSection } from "./channels.config.ts";
 
 export function renderSlackCard(params: {
   props: ChannelsProps;
@@ -38,18 +38,16 @@ export function renderSlackCard(params: {
 
       ${
         slack?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${slack.lastError}
-          </div>`
+          ? html`<oc-callout variant="danger">${slack.lastError}</oc-callout>`
           : nothing
       }
 
       ${
         slack?.probe
-          ? html`<div class="callout" style="margin-top: 12px;">
+          ? html`<oc-callout>
             Probe ${slack.probe.ok ? "ok" : "failed"} ·
             ${slack.probe.status ?? ""} ${slack.probe.error ?? ""}
-          </div>`
+          </oc-callout>`
           : nothing
       }
 

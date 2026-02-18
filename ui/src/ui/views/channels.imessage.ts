@@ -1,8 +1,8 @@
 import { html, nothing } from "lit";
-import { formatRelativeTimestamp } from "../format.ts";
 import type { IMessageStatus } from "../types.ts";
-import { renderChannelConfigSection } from "./channels.config.ts";
 import type { ChannelsProps } from "./channels.types.ts";
+import { formatRelativeTimestamp } from "../format.ts";
+import { renderChannelConfigSection } from "./channels.config.ts";
 
 export function renderIMessageCard(params: {
   props: ChannelsProps;
@@ -38,18 +38,16 @@ export function renderIMessageCard(params: {
 
       ${
         imessage?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${imessage.lastError}
-          </div>`
+          ? html`<oc-callout variant="danger">${imessage.lastError}</oc-callout>`
           : nothing
       }
 
       ${
         imessage?.probe
-          ? html`<div class="callout" style="margin-top: 12px;">
+          ? html`<oc-callout>
             Probe ${imessage.probe.ok ? "ok" : "failed"} ·
             ${imessage.probe.error ?? ""}
-          </div>`
+          </oc-callout>`
           : nothing
       }
 
