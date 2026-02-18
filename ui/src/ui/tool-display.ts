@@ -1,3 +1,4 @@
+import type { OcIconName } from "./components/oc-icon.js";
 import {
   defaultTitle,
   normalizeToolName,
@@ -11,7 +12,6 @@ import {
   resolveWriteDetail,
   type ToolDisplaySpec as ToolDisplaySpecBase,
 } from "../../../src/agents/tool-display-common.js";
-import type { IconName } from "./icons.ts";
 import rawConfig from "./tool-display.json" with { type: "json" };
 
 type ToolDisplaySpec = ToolDisplaySpecBase & {
@@ -26,7 +26,7 @@ type ToolDisplayConfig = {
 
 export type ToolDisplay = {
   name: string;
-  icon: IconName;
+  icon: OcIconName;
   title: string;
   label: string;
   verb?: string;
@@ -66,7 +66,7 @@ export function resolveToolDisplay(params: {
   const name = normalizeToolName(params.name);
   const key = name.toLowerCase();
   const spec = TOOL_MAP[key];
-  const icon = (spec?.icon ?? FALLBACK.icon ?? "puzzle") as IconName;
+  const icon = spec?.icon ?? FALLBACK.icon ?? "puzzle";
   const title = spec?.title ?? defaultTitle(name);
   const label = spec?.label ?? title;
   const actionRaw =

@@ -1,6 +1,5 @@
 import { html, nothing } from "lit";
 import type { ConfigUiHints } from "../types.ts";
-import { icons } from "../icons.ts";
 import { renderNode } from "./config-form.node.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 
@@ -187,7 +186,7 @@ export function renderConfigForm(props: ConfigFormProps) {
   if (filteredEntries.length === 0) {
     return html`
       <div class="config-empty">
-        <div class="config-empty__icon">${icons.search}</div>
+        <div class="config-empty__icon"><oc-icon name="search"></oc-icon></div>
         <div class="config-empty__text">
           ${searchQuery ? `No settings match "${searchQuery}"` : "No settings in this section"}
         </div>
