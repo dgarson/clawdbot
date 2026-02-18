@@ -132,9 +132,7 @@ export function renderOverview(props: OverviewProps) {
 
   return html`
     <section class="grid grid-cols-2">
-      <div class="card">
-        <div class="card-title">${t("overview.access.title")}</div>
-        <div class="card-sub">${t("overview.access.subtitle")}</div>
+      <oc-card title=${t("overview.access.title")} subtitle=${t("overview.access.subtitle")}>
         <div class="form-grid" style="margin-top: 16px;">
           <label class="field">
             <span>${t("overview.access.wsUrl")}</span>
@@ -210,11 +208,9 @@ export function renderOverview(props: OverviewProps) {
             isTrustedProxy ? t("overview.access.trustedProxy") : t("overview.access.connectHint")
           }</span>
         </div>
-      </div>
+      </oc-card>
 
-      <div class="card">
-        <div class="card-title">${t("overview.snapshot.title")}</div>
-        <div class="card-sub">${t("overview.snapshot.subtitle")}</div>
+      <oc-card title=${t("overview.snapshot.title")} subtitle=${t("overview.snapshot.subtitle")}>
         <div class="stat-grid" style="margin-top: 16px;">
           <div class="stat">
             <div class="stat-label">${t("overview.snapshot.status")}</div>
@@ -250,32 +246,30 @@ export function renderOverview(props: OverviewProps) {
                 </oc-callout>
               `
         }
-      </div>
+      </oc-card>
     </section>
 
     <section class="grid grid-cols-3" style="margin-top: 18px;">
-      <div class="card stat-card">
+      <oc-card class="stat-card">
         <div class="stat-label">${t("overview.stats.instances")}</div>
         <div class="stat-value">${props.presenceCount}</div>
         <div class="muted">${t("overview.stats.instancesHint")}</div>
-      </div>
-      <div class="card stat-card">
+      </oc-card>
+      <oc-card class="stat-card">
         <div class="stat-label">${t("overview.stats.sessions")}</div>
         <div class="stat-value">${props.sessionsCount ?? t("common.na")}</div>
         <div class="muted">${t("overview.stats.sessionsHint")}</div>
-      </div>
-      <div class="card stat-card">
+      </oc-card>
+      <oc-card class="stat-card">
         <div class="stat-label">${t("overview.stats.cron")}</div>
         <div class="stat-value">
           ${props.cronEnabled == null ? t("common.na") : props.cronEnabled ? t("common.enabled") : t("common.disabled")}
         </div>
         <div class="muted">${t("overview.stats.cronNext", { time: formatNextRun(props.cronNext) })}</div>
-      </div>
+      </oc-card>
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">${t("overview.notes.title")}</div>
-      <div class="card-sub">${t("overview.notes.subtitle")}</div>
+    <oc-card title=${t("overview.notes.title")} subtitle=${t("overview.notes.subtitle")} style="margin-top: 18px;">
       <div class="note-grid" style="margin-top: 14px;">
         <div>
           <div class="note-title">${t("overview.notes.tailscaleTitle")}</div>
@@ -292,6 +286,6 @@ export function renderOverview(props: OverviewProps) {
           <div class="muted">${t("overview.notes.cronText")}</div>
         </div>
       </div>
-    </section>
+    </oc-card>
   `;
 }

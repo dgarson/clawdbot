@@ -52,16 +52,8 @@ export function renderNodes(props: NodesProps) {
     ${renderExecApprovals(approvalsState)}
     ${renderBindings(bindingState)}
     ${renderDevices(props)}
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Nodes</div>
-          <div class="card-sub">Paired devices and live links.</div>
-        </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
+    <oc-card title="Nodes" subtitle="Paired devices and live links.">
+      <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>Refresh</oc-button>
       <div class="list" style="margin-top: 16px;">
         ${
           props.nodes.length === 0
@@ -71,7 +63,7 @@ export function renderNodes(props: NodesProps) {
             : props.nodes.map((n) => renderNode(n))
         }
       </div>
-    </section>
+    </oc-card>
   `;
 }
 
@@ -80,16 +72,8 @@ function renderDevices(props: NodesProps) {
   const pending = Array.isArray(list.pending) ? list.pending : [];
   const paired = Array.isArray(list.paired) ? list.paired : [];
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Devices</div>
-          <div class="card-sub">Pairing requests + role tokens.</div>
-        </div>
-        <button class="btn" ?disabled=${props.devicesLoading} @click=${props.onDevicesRefresh}>
-          ${props.devicesLoading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
+    <oc-card title="Devices" subtitle="Pairing requests + role tokens.">
+      <oc-button slot="actions" .loading=${props.devicesLoading} @click=${props.onDevicesRefresh}>Refresh</oc-button>
       ${
         props.devicesError
           ? html`<oc-callout variant="danger">${props.devicesError}</oc-callout>`
@@ -120,7 +104,7 @@ function renderDevices(props: NodesProps) {
             : nothing
         }
       </div>
-    </section>
+    </oc-card>
   `;
 }
 
@@ -271,22 +255,8 @@ function renderBindings(state: BindingState) {
   const supportsBinding = state.nodes.length > 0;
   const defaultValue = state.defaultBinding ?? "";
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between; align-items: center;">
-        <div>
-          <div class="card-title">Exec node binding</div>
-          <div class="card-sub">
-            Pin agents to a specific node when using <span class="mono">exec host=node</span>.
-          </div>
-        </div>
-        <button
-          class="btn"
-          ?disabled=${state.disabled || !state.configDirty}
-          @click=${state.onSave}
-        >
-          ${state.configSaving ? "Saving…" : "Save"}
-        </button>
-      </div>
+    <oc-card title="Exec node binding" subtitle="Pin agents to a specific node when using exec host=node.">
+      <oc-button slot="actions" .loading=${state.configSaving} ?disabled=${state.disabled || !state.configDirty} @click=${state.onSave}>Save</oc-button>
 
       ${
         state.formMode === "raw"
@@ -356,7 +326,7 @@ function renderBindings(state: BindingState) {
             </div>
           `
       }
-    </section>
+    </oc-card>
   `;
 }
 

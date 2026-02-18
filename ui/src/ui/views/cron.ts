@@ -1,9 +1,9 @@
 import { html, nothing } from "lit";
+import type { ChannelUiMetaEntry, CronJob, CronRunLogEntry, CronStatus } from "../types.ts";
+import type { CronFormState } from "../ui-types.ts";
 import { formatRelativeTimestamp, formatMs } from "../format.ts";
 import { pathForTab } from "../navigation.ts";
 import { formatCronSchedule, formatNextRun } from "../presenter.ts";
-import type { ChannelUiMetaEntry, CronJob, CronRunLogEntry, CronStatus } from "../types.ts";
-import type { CronFormState } from "../ui-types.ts";
 
 export type CronProps = {
   basePath: string;
@@ -66,9 +66,7 @@ export function renderCron(props: CronProps) {
     props.form.deliveryMode === "announce" && !supportsAnnounce ? "none" : props.form.deliveryMode;
   return html`
     <section class="grid grid-cols-2">
-      <div class="card">
-        <div class="card-title">Scheduler</div>
-        <div class="card-sub">Gateway-owned cron scheduler status.</div>
+      <oc-card title="Scheduler" subtitle="Gateway-owned cron scheduler status.">
         <div class="stat-grid" style="margin-top: 16px;">
           <div class="stat">
             <div class="stat-label">Enabled</div>
@@ -91,11 +89,9 @@ export function renderCron(props: CronProps) {
           </button>
           ${props.error ? html`<span class="muted">${props.error}</span>` : nothing}
         </div>
-      </div>
+      </oc-card>
 
-      <div class="card">
-        <div class="card-title">New Job</div>
-        <div class="card-sub">Create a scheduled wakeup or agent run.</div>
+      <oc-card title="New Job" subtitle="Create a scheduled wakeup or agent run.">
         <div class="form-grid" style="margin-top: 16px;">
           <label class="field">
             <span>Name</span>
@@ -301,12 +297,10 @@ export function renderCron(props: CronProps) {
             ${props.busy ? "Saving…" : "Add job"}
           </button>
         </div>
-      </div>
+      </oc-card>
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Jobs</div>
-      <div class="card-sub">All scheduled jobs stored in the gateway.</div>
+    <oc-card title="Jobs" subtitle="All scheduled jobs stored in the gateway." style="margin-top: 18px;">
       ${
         props.jobs.length === 0
           ? html`
@@ -318,11 +312,9 @@ export function renderCron(props: CronProps) {
             </div>
           `
       }
-    </section>
+    </oc-card>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Run history</div>
-      <div class="card-sub">Latest runs for ${selectedRunTitle}.</div>
+    <oc-card title="Run history" subtitle=${"Latest runs for " + selectedRunTitle + "."} style="margin-top: 18px;">
       ${
         props.runsJobId == null
           ? html`
@@ -338,7 +330,7 @@ export function renderCron(props: CronProps) {
               </div>
             `
       }
-    </section>
+    </oc-card>
   `;
 }
 

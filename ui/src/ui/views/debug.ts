@@ -34,16 +34,8 @@ export function renderDebug(props: DebugProps) {
 
   return html`
     <section class="grid grid-cols-2">
-      <div class="card">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div class="card-title">Snapshots</div>
-            <div class="card-sub">Status, health, and heartbeat data.</div>
-          </div>
-          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Refreshing…" : "Refresh"}
-          </button>
-        </div>
+      <oc-card title="Snapshots" subtitle="Status, health, and heartbeat data.">
+        <oc-button slot="actions" .loading=${props.loading} @click=${props.onRefresh}>Refresh</oc-button>
         <div class="stack" style="margin-top: 12px;">
           <div>
             <div class="muted">Status</div>
@@ -66,11 +58,9 @@ export function renderDebug(props: DebugProps) {
             <pre class="code-block">${JSON.stringify(props.heartbeat ?? {}, null, 2)}</pre>
           </div>
         </div>
-      </div>
+      </oc-card>
 
-      <div class="card">
-        <div class="card-title">Manual RPC</div>
-        <div class="card-sub">Send a raw gateway method with JSON params.</div>
+      <oc-card title="Manual RPC" subtitle="Send a raw gateway method with JSON params.">
         <div class="form-grid" style="margin-top: 16px;">
           <label class="field">
             <span>Method</span>
@@ -105,22 +95,18 @@ export function renderDebug(props: DebugProps) {
             ? html`<pre class="code-block" style="margin-top: 12px;">${props.callResult}</pre>`
             : nothing
         }
-      </div>
+      </oc-card>
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Models</div>
-      <div class="card-sub">Catalog from models.list.</div>
+    <oc-card title="Models" subtitle="Catalog from models.list." style="margin-top: 18px;">
       <pre class="code-block" style="margin-top: 12px;">${JSON.stringify(
         props.models ?? [],
         null,
         2,
       )}</pre>
-    </section>
+    </oc-card>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Event Log</div>
-      <div class="card-sub">Latest gateway events.</div>
+    <oc-card title="Event Log" subtitle="Latest gateway events." style="margin-top: 18px;">
       ${
         props.eventLog.length === 0
           ? html`
@@ -144,6 +130,6 @@ export function renderDebug(props: DebugProps) {
             </div>
           `
       }
-    </section>
+    </oc-card>
   `;
 }

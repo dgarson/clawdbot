@@ -3,8 +3,8 @@ import type {
   ExecApprovalsAllowlistEntry,
   ExecApprovalsFile,
 } from "../controllers/exec-approvals.ts";
-import { clampText, formatRelativeTimestamp } from "../format.ts";
 import type { NodesProps } from "./nodes.ts";
+import { clampText, formatRelativeTimestamp } from "../format.ts";
 
 type ExecSecurity = "deny" | "allowlist" | "full";
 type ExecAsk = "off" | "on-miss" | "always";
@@ -203,22 +203,8 @@ export function renderExecApprovals(state: ExecApprovalsState) {
   const ready = state.ready;
   const targetReady = state.target !== "node" || Boolean(state.targetNodeId);
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between; align-items: center;">
-        <div>
-          <div class="card-title">Exec approvals</div>
-          <div class="card-sub">
-            Allowlist and approval policy for <span class="mono">exec host=gateway/node</span>.
-          </div>
-        </div>
-        <button
-          class="btn"
-          ?disabled=${state.disabled || !state.dirty || !targetReady}
-          @click=${state.onSave}
-        >
-          ${state.saving ? "Saving…" : "Save"}
-        </button>
-      </div>
+    <oc-card title="Exec approvals" subtitle="Allowlist and approval policy for exec host=gateway/node.">
+      <oc-button slot="actions" .loading=${state.saving} ?disabled=${state.disabled || !state.dirty || !targetReady} @click=${state.onSave}>Save</oc-button>
 
       ${renderExecApprovalsTarget(state)}
 
@@ -240,7 +226,7 @@ export function renderExecApprovals(state: ExecApprovalsState) {
             }
           `
       }
-    </section>
+    </oc-card>
   `;
 }
 
@@ -544,8 +530,8 @@ function renderExecApprovalsAllowlist(state: ExecApprovalsState) {
   return html`
     <div class="row" style="margin-top: 18px; justify-content: space-between;">
       <div>
-        <div class="card-title">Allowlist</div>
-        <div class="card-sub">Case-insensitive glob patterns.</div>
+        <div class="list-title">Allowlist</div>
+        <div class="list-sub">Case-insensitive glob patterns.</div>
       </div>
       <button
         class="btn btn--sm"
