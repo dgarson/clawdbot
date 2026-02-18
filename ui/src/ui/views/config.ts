@@ -450,12 +450,7 @@ export function renderConfig(props: ConfigProps) {
       <aside class="config-sidebar">
         <div class="config-sidebar__header">
           <div class="config-sidebar__title">Settings</div>
-          <span
-            class="pill pill--sm ${
-              validity === "valid" ? "pill--ok" : validity === "invalid" ? "pill--danger" : ""
-            }"
-            >${validity}</span
-          >
+          <oc-pill size="sm" variant=${validity === "valid" ? "ok" : validity === "invalid" ? "danger" : ""}>${validity}</oc-pill>
         </div>
 
         <!-- Search -->
