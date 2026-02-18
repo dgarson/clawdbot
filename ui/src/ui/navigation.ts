@@ -1,5 +1,5 @@
+import type { OcIconName } from "./components/oc-icon.js";
 import { t } from "../i18n/index.ts";
-import type { IconName } from "./icons.js";
 
 export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
@@ -123,7 +123,7 @@ export function inferBasePathFromPathname(pathname: string): string {
   return `/${segments.join("/")}`;
 }
 
-export function iconForTab(tab: Tab): IconName {
+export function iconForTab(tab: Tab): OcIconName {
   switch (tab) {
     case "agents":
       return "folder";
