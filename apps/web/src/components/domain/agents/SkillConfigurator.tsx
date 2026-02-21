@@ -173,7 +173,7 @@ export function SkillConfigurator({ agentId: _agentId }: SkillConfiguratorProps)
         <div className="space-y-2">
           {filteredSkills.length === 0 ? (
             <div className="py-8 text-center">
-              <Package className="size-8 mx-auto text-muted-foreground/50 mb-2" />
+              <Package className="size-8 mx-auto text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">No skills found.</p>
             </div>
           ) : (

@@ -94,7 +94,7 @@ export function RitualScheduler({
               )}
             >
               <span className="block text-xs font-medium">{option.label}</span>
-              <span className="block text-[10px] text-muted-foreground/80">{option.time}</span>
+              <span className="block text-[10px] text-muted-foreground">{option.time}</span>
             </button>
           ))}
         </div>
@@ -138,7 +138,7 @@ export function RitualScheduler({
               )}>
                 {option.label}
               </span>
-              <span className="block text-xs text-muted-foreground/80 transition-colors group-hover:text-muted-foreground">
+              <span className="block text-xs text-muted-foreground transition-colors group-hover:text-muted-foreground">
                 {option.description}
               </span>
             </motion.button>

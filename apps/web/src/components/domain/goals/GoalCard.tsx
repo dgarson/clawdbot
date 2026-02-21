@@ -375,7 +375,7 @@ export function GoalCard({
 
           {/* Completed date */}
           {goal.completedAt && goal.status === "completed" && (
-            <p className="mt-3 text-center text-xs text-muted-foreground/70">
+            <p className="mt-3 text-center text-xs text-muted-foreground">
               Completed on {new Date(goal.completedAt).toLocaleDateString()}
             </p>
           )}

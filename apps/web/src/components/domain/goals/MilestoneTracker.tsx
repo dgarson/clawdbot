@@ -94,7 +94,7 @@ export function MilestoneTracker({
                       {milestone.title}
                     </p>
                     {milestone.completedAt && (
-                      <p className="mt-0.5 text-xs text-muted-foreground/70">
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         Completed {new Date(milestone.completedAt).toLocaleDateString()}
                       </p>
                     )}

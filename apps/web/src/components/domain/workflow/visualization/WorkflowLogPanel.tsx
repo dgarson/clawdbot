@@ -77,7 +77,7 @@ export function WorkflowLogPanel({
             <div className="space-y-1">
               {filtered.map((l) => (
                 <div key={l.id} className="flex items-start gap-3">
-                  <span className="shrink-0 text-muted-foreground/70">{l.timestamp}</span>
+                  <span className="shrink-0 text-muted-foreground">{l.timestamp}</span>
                   <span className={cn("shrink-0 font-semibold uppercase text-[10px]", levelStyles[l.level])}>
                     {l.level}
                   </span>

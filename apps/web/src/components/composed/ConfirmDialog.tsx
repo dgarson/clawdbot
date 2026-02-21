@@ -84,7 +84,7 @@ export function ConfirmDialog({
                     <div className="text-xs text-muted-foreground truncate">{resource.subtitle}</div>
                   )}
                   {resource.meta && (
-                    <div className="text-xs text-muted-foreground/80">{resource.meta}</div>
+                    <div className="text-xs text-muted-foreground">{resource.meta}</div>
                   )}
                 </div>
               </div>

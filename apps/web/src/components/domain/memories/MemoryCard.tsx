@@ -181,7 +181,7 @@ export function MemoryCard({
               <span>{memory.timestamp}</span>
             </div>
             {memory.workspace && (
-              <span className="text-muted-foreground/70">
+              <span className="text-muted-foreground">
                 {memory.workspace}
               </span>
             )}

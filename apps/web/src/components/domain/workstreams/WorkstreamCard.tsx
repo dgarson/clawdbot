@@ -62,7 +62,7 @@ const statusConfig: Record<
     icon: <CheckCircle2 className="h-3 w-3" />,
   },
   archived: {
-    color: "text-gray-500",
+    color: "text-gray-500 dark:text-gray-400",
     bgColor: "bg-gray-500/20",
     label: "Archived",
     icon: <Archive className="h-3 w-3" />,

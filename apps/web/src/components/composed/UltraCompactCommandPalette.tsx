@@ -282,7 +282,7 @@ export function UltraCompactCommandPalette({
                 <div className="sticky top-0 flex items-center gap-1 bg-card/90 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur">
                   {group.icon ? <group.icon className="size-3" /> : null}
                   {group.name}
-                  <span className="ml-auto text-muted-foreground/70">{group.commands.length}</span>
+                  <span className="ml-auto text-muted-foreground">{group.commands.length}</span>
                 </div>
                 {group.commands.map((cmd) => {
                   const globalIndex = flatCommands.indexOf(cmd);
@@ -353,7 +353,7 @@ export function UltraCompactCommandPalette({
               filter
             </span>
           </div>
-          <div className="text-[10px] text-muted-foreground/70">
+          <div className="text-[10px] text-muted-foreground">
             {flatCommands.length}
           </div>
         </div>

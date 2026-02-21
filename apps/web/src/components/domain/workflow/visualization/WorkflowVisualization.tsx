@@ -424,19 +424,19 @@ function WorkflowVisualizationInner({ className }: { className?: string }) {
             <span>
               <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Ctrl+Z</kbd> undo
             </span>
-            <span className="text-muted-foreground/50">|</span>
+            <span className="text-muted-foreground">|</span>
             <span>
               <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Ctrl+Y</kbd> redo
             </span>
-            <span className="text-muted-foreground/50">|</span>
+            <span className="text-muted-foreground">|</span>
             <span>
               <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">L</kbd> log
             </span>
-            <span className="text-muted-foreground/50">|</span>
+            <span className="text-muted-foreground">|</span>
             <span>
               <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Esc</kbd> clear
             </span>
-            <span className="text-muted-foreground/50">|</span>
+            <span className="text-muted-foreground">|</span>
             <span className="text-muted-foreground">Drag nodes to reposition</span>
           </div>
           <div className="flex items-center gap-2">

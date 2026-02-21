@@ -86,10 +86,10 @@ function formatRelativeTime(dateString: string): string {
   const diff = Date.now() - new Date(dateString).getTime();
   const mins = Math.floor(diff / 60_000);
 
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m`;
+  if (mins < 1) {return "now";}
+  if (mins < 60) {return `${mins}m`;}
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) {return `${hours}h`;}
   return `${Math.floor(hours / 24)}d`;
 }
 
@@ -146,11 +146,11 @@ export function AgentActivityFeed({
           </div>
         ) : !activities || activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Activity className="mb-2 h-8 w-8 text-muted-foreground/40" />
+            <Activity className="mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               No recent activity
             </p>
-            <p className="text-xs text-muted-foreground/60 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Agent activity will appear here as they work
             </p>
           </div>
@@ -210,7 +210,7 @@ export function AgentActivityFeed({
                   {/* Timestamp */}
                   <time
                     dateTime={activity.timestamp}
-                    className="shrink-0 text-[10px] text-muted-foreground/60 pt-0.5"
+                    className="shrink-0 text-[10px] text-muted-foreground pt-0.5"
                   >
                     {formatRelativeTime(activity.timestamp)}
                   </time>

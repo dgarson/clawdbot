@@ -67,7 +67,7 @@ interface RitualCardProps {
 const frequencyConfig: Record<RitualFrequency, { label: string; color: string; hover: string; icon: typeof RefreshCw }> = {
   hourly: {
     label: "Hourly",
-    color: "bg-slate-500/20 text-slate-500",
+    color: "bg-slate-500/20 text-slate-500 dark:text-slate-400",
     hover: "hover:bg-slate-500/20 hover:text-slate-400",
     icon: Clock,
   },
@@ -832,7 +832,7 @@ export function RitualCard({
 
               {/* Last run */}
               {ritual.lastRun && (
-                <p className="text-center text-xs text-muted-foreground/70">
+                <p className="text-center text-xs text-muted-foreground">
                   Last run {ritual.lastRun.toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",

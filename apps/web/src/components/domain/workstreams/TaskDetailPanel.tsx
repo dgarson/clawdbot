@@ -67,14 +67,14 @@ const statusOptions: { value: TaskStatus; label: string; description: string; ic
 ];
 
 const priorityOptions: { value: TaskPriority; label: string; description: string; color: string }[] = [
-  { value: "low", label: "Low Priority", description: "Can wait", color: "text-gray-500" },
+  { value: "low", label: "Low Priority", description: "Can wait", color: "text-gray-500 dark:text-gray-400" },
   { value: "medium", label: "Normal", description: "Standard priority", color: "text-blue-500" },
   { value: "high", label: "Important", description: "Needs attention soon", color: "text-orange-500" },
   { value: "urgent", label: "Urgent", description: "Needs immediate attention", color: "text-red-500" },
 ];
 
 const statusColors: Record<TaskStatus, string> = {
-  todo: "bg-gray-500/20 text-gray-500",
+  todo: "bg-gray-500/20 text-gray-500 dark:text-gray-400",
   in_progress: "bg-yellow-500/20 text-yellow-500",
   review: "bg-purple-500/20 text-purple-500",
   done: "bg-green-500/20 text-green-500",
@@ -120,7 +120,7 @@ function AgentStatusBadge({ status }: { status: TaskStatus }) {
     },
     todo: {
       label: "Idle",
-      color: "text-gray-500",
+      color: "text-gray-500 dark:text-gray-400",
       bgColor: "bg-gray-500/10",
       animate: false,
     },

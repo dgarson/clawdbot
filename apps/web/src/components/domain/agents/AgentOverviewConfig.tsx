@@ -270,7 +270,7 @@ function FileStatus({ file, exists }: { file: AgentFileEntry; exists: boolean })
   return (
     <div className="flex items-center justify-between py-1.5">
       <div className="flex items-center gap-3">
-        <FileText className={`size-4 ${exists ? "text-foreground" : "text-muted-foreground/40"}`} />
+        <FileText className={`size-4 ${exists ? "text-foreground" : "text-muted-foreground"}`} />
         <div>
           <span className={`text-sm ${exists ? "font-medium" : "text-muted-foreground"}`}>
             {file.name}

@@ -56,7 +56,7 @@ const frequencyColors: Record<string, string> = {
   daily: "bg-green-500/20 text-green-600",
   weekly: "bg-purple-500/20 text-purple-600",
   monthly: "bg-orange-500/20 text-orange-600",
-  custom: "bg-gray-500/20 text-gray-600",
+  custom: "bg-gray-500/20 text-gray-600 dark:text-gray-400",
 };
 
 export function UpcomingRitualsPanel({

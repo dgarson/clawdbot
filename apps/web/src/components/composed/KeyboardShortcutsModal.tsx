@@ -119,7 +119,7 @@ export function KeyboardShortcutsModal({
                       {shortcut.keys.map((key, keyIdx) => (
                         <React.Fragment key={key}>
                           {keyIdx > 0 && (
-                            <span className="text-xs text-muted-foreground/50">
+                            <span className="text-xs text-muted-foreground">
                               +
                             </span>
                           )}

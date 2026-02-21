@@ -102,7 +102,7 @@ export function AgentStatusSummary({
         label="Idle"
         value={idle}
         icon={Pause}
-        iconColor="text-gray-500"
+        iconColor="text-gray-500 dark:text-gray-400"
         iconBg="bg-gray-500/10"
         delay={0.1}
       />

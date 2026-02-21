@@ -71,15 +71,15 @@ const LEVEL_SET = new Set<LogLevel>(LOG_LEVELS);
 // ─── Parsing ─────────────────────────────────────────────────────────────────
 
 function normalizeLevel(value: unknown): LogLevel | null {
-  if (typeof value !== "string") return null;
+  if (typeof value !== "string") {return null;}
   const lowered = value.toLowerCase() as LogLevel;
   return LEVEL_SET.has(lowered) ? lowered : null;
 }
 
 function parseMaybeJson(value: unknown): Record<string, unknown> | null {
-  if (typeof value !== "string") return null;
+  if (typeof value !== "string") {return null;}
   const trimmed = value.trim();
-  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {return null;}
   try {
     const parsed = JSON.parse(trimmed);
     return parsed && typeof parsed === "object" ? parsed : null;
@@ -89,7 +89,7 @@ function parseMaybeJson(value: unknown): Record<string, unknown> | null {
 }
 
 function parseLogLine(line: string): LogEntry {
-  if (!line.trim()) return { raw: line, message: line };
+  if (!line.trim()) {return { raw: line, message: line };}
   try {
     const obj = JSON.parse(line) as Record<string, unknown>;
     const meta =
@@ -144,9 +144,9 @@ function parseLogLine(line: string): LogEntry {
 }
 
 function formatTime(value?: string | null) {
-  if (!value) return "";
+  if (!value) {return "";}
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  if (Number.isNaN(date.getTime())) {return value;}
   return date.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
@@ -182,7 +182,7 @@ function LogsPage() {
   // Fetch logs
   const fetchLogs = React.useCallback(
     async (reset = false) => {
-      if (!client) return;
+      if (!client) {return;}
       setLoading(true);
       setError(null);
       try {
@@ -201,8 +201,8 @@ function LogsPage() {
         setEntries((prev) =>
           shouldReset ? parsed : [...prev, ...parsed].slice(-LOG_BUFFER_LIMIT)
         );
-        if (typeof res.cursor === "number") setCursor(res.cursor);
-        if (typeof res.file === "string") setLogFile(res.file);
+        if (typeof res.cursor === "number") {setCursor(res.cursor);}
+        if (typeof res.file === "string") {setLogFile(res.file);}
         setTruncated(Boolean(res.truncated));
       } catch (err) {
         setError(String(err));
@@ -222,7 +222,7 @@ function LogsPage() {
 
   // Polling
   React.useEffect(() => {
-    if (!client || paused) return;
+    if (!client || paused) {return;}
     const interval = setInterval(() => {
       void fetchLogs(false);
     }, POLL_INTERVAL_MS);
@@ -238,10 +238,10 @@ function LogsPage() {
 
   // Handle scroll — disable auto-follow when user scrolls up
   const handleScroll = React.useCallback(() => {
-    if (!streamRef.current) return;
+    if (!streamRef.current) {return;}
     const el = streamRef.current;
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-    if (!atBottom && autoFollow) setAutoFollow(false);
+    if (!atBottom && autoFollow) {setAutoFollow(false);}
   }, [autoFollow]);
 
   const scrollToBottom = React.useCallback(() => {
@@ -254,8 +254,8 @@ function LogsPage() {
   // Filter entries
   const needle = filterText.trim().toLowerCase();
   const filtered = entries.filter((entry) => {
-    if (entry.level && !levelFilters[entry.level]) return false;
-    if (!needle) return true;
+    if (entry.level && !levelFilters[entry.level]) {return false;}
+    if (!needle) {return true;}
     const haystack = [entry.message, entry.subsystem, entry.raw]
       .filter(Boolean)
       .join(" ")
@@ -286,7 +286,7 @@ function LogsPage() {
   const levelCounts = React.useMemo(() => {
     const counts: Record<string, number> = {};
     for (const entry of entries) {
-      if (entry.level) counts[entry.level] = (counts[entry.level] ?? 0) + 1;
+      if (entry.level) {counts[entry.level] = (counts[entry.level] ?? 0) + 1;}
     }
     return counts;
   }, [entries]);
@@ -365,7 +365,7 @@ function LogsPage() {
                 "border border-transparent",
                 levelFilters[level]
                   ? LEVEL_COLORS[level]
-                  : "text-muted-foreground/50 bg-muted/30 line-through"
+                  : "text-muted-foreground bg-muted/30 line-through"
               )}
             >
               <span className="uppercase">{level}</span>
@@ -462,7 +462,7 @@ function LogsPage() {
           )}
         >
           {filtered.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground/60">
+            <div className="flex items-center justify-center h-full text-muted-foreground">
               {entries.length === 0
                 ? loading
                   ? "Loading logs..."

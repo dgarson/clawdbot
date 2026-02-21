@@ -743,11 +743,11 @@ function WorkstreamDAGInner({
           <span>
             <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">F</kbd> focus active
           </span>
-          <span className="text-muted-foreground/50">|</span>
+          <span className="text-muted-foreground">|</span>
           <span>
             <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Esc</kbd> clear
           </span>
-          <span className="text-muted-foreground/50">|</span>
+          <span className="text-muted-foreground">|</span>
           <span className="text-muted-foreground">Right-click node to add task</span>
         </div>
 

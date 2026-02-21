@@ -67,7 +67,7 @@ const providers = [
     name: "Local Models",
     description: "Ollama, LM Studio, etc.",
     icon: "L",
-    color: "text-slate-500",
+    color: "text-slate-500 dark:text-slate-400",
     bgColor: "bg-slate-500/10",
     docsUrl: "",
     keyGuidance: "",

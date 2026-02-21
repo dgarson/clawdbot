@@ -303,7 +303,7 @@ export function SoulEditor({ agentId }: SoulEditorProps) {
                   <MarkdownPreview content={localContent} />
                 ) : (
                   <div className="text-center py-12">
-                    <Sparkles className="size-8 mx-auto text-muted-foreground/50 mb-3" />
+                    <Sparkles className="size-8 mx-auto text-muted-foreground mb-3" />
                     <p className="text-sm text-muted-foreground">
                       Start writing to see a preview here.
                     </p>

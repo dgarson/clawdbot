@@ -75,7 +75,7 @@ const statusConfig: Record<
     icon: <CheckCircle2 className="h-4 w-4" />,
   },
   archived: {
-    color: "text-gray-500",
+    color: "text-gray-500 dark:text-gray-400",
     bgColor: "bg-gray-500/20",
     label: "Archived",
     icon: <Archive className="h-4 w-4" />,
@@ -215,7 +215,7 @@ function AddTaskModal({ open, onClose, workstreamId, existingTasks }: AddTaskMod
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="low">
-                  <div className="flex items-center gap-2 text-gray-500">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                     <Flag className="h-4 w-4" />
                     Low
                   </div>
@@ -505,7 +505,7 @@ function WorkstreamDetailPage() {
                     </div>
                   </SelectItem>
                   <SelectItem value="archived">
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                       <Archive className="h-4 w-4" />
                       Archived
                     </div>

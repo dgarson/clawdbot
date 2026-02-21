@@ -241,7 +241,7 @@ export function CreateRitualModal({
                             )}
                           >
                             <span className="block text-xs font-medium">{option.label}</span>
-                            <span className="block text-[10px] text-muted-foreground/80">{option.time}</span>
+                            <span className="block text-[10px] text-muted-foreground">{option.time}</span>
                           </button>
                         ))}
                       </div>

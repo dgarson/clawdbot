@@ -291,15 +291,15 @@ export function SignalConfigSheet({
                   <p className="text-sm font-medium">Prerequisites</p>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li className="flex items-start gap-2">
-                      <span className="text-muted-foreground/60">-</span>
+                      <span className="text-muted-foreground">-</span>
                       signal-cli installed on gateway host
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-muted-foreground/60">-</span>
+                      <span className="text-muted-foreground">-</span>
                       Dedicated phone number (not used by another Signal account)
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-muted-foreground/60">-</span>
+                      <span className="text-muted-foreground">-</span>
                       Ability to receive SMS or voice calls
                     </li>
                   </ul>
