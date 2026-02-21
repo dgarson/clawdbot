@@ -1,4 +1,3 @@
-"use client";
 
 import { ArrowUpRight, Zap } from "lucide-react";
 

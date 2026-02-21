@@ -1,4 +1,3 @@
-"use client";
 
 import { Construction, type LucideIcon } from "lucide-react";
 

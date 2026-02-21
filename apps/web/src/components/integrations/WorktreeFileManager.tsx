@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -286,4 +285,3 @@ export function WorktreeFileManager({
 }
 
 export default WorktreeFileManager;
-

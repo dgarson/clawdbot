@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
@@ -76,4 +75,3 @@ function DebugWorkbenchPage() {
     </div>
   );
 }
-

@@ -1,4 +1,3 @@
-"use client";
 
 import { Activity, Info } from "lucide-react";
 

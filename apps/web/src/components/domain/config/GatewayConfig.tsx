@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import * as Collapsible from "@radix-ui/react-collapsible";

@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Copy, Check, Download, AlertTriangle } from "lucide-react";

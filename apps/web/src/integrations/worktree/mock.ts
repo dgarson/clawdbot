@@ -1,4 +1,3 @@
-"use client";
 
 import type { WorktreeAdapter, WorktreeAdapterContext, WorktreeEntry, WorktreeListResult } from "./types";
 
@@ -116,4 +115,3 @@ export function createMockWorktreeAdapter(tree: TreeNode = demoTree): WorktreeAd
     },
   };
 }
-

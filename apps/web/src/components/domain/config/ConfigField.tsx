@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { HelpCircle, Eye, EyeOff } from "lucide-react";

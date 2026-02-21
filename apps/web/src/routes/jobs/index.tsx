@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
@@ -288,8 +287,7 @@ function JobsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -495,8 +493,7 @@ function JobsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </div>
+    </>
   );
 }
 

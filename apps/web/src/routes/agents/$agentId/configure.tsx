@@ -1,4 +1,3 @@
-"use client";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { AgentConfigPage } from "@/components/domain/agents/AgentConfigPage";

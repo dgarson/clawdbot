@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as YouIndexRouteImport } from './routes/you/index'
 import { Route as WorkstreamsIndexRouteImport } from './routes/workstreams/index'
 import { Route as UnlockIndexRouteImport } from './routes/unlock/index'
+import { Route as SkillsIndexRouteImport } from './routes/skills/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as RitualsIndexRouteImport } from './routes/rituals/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
@@ -54,6 +55,11 @@ const WorkstreamsIndexRoute = WorkstreamsIndexRouteImport.update({
 const UnlockIndexRoute = UnlockIndexRouteImport.update({
   id: '/unlock/',
   path: '/unlock/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkillsIndexRoute = SkillsIndexRouteImport.update({
+  id: '/skills/',
+  path: '/skills/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/': typeof OnboardingIndexRoute
   '/rituals/': typeof RitualsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/skills/': typeof SkillsIndexRoute
   '/unlock/': typeof UnlockIndexRoute
   '/workstreams/': typeof WorkstreamsIndexRoute
   '/you/': typeof YouIndexRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingIndexRoute
   '/rituals': typeof RitualsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/skills': typeof SkillsIndexRoute
   '/unlock': typeof UnlockIndexRoute
   '/workstreams': typeof WorkstreamsIndexRoute
   '/you': typeof YouIndexRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/onboarding/': typeof OnboardingIndexRoute
   '/rituals/': typeof RitualsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/skills/': typeof SkillsIndexRoute
   '/unlock/': typeof UnlockIndexRoute
   '/workstreams/': typeof WorkstreamsIndexRoute
   '/you/': typeof YouIndexRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/onboarding/'
     | '/rituals/'
     | '/settings/'
+    | '/skills/'
     | '/unlock/'
     | '/workstreams/'
     | '/you/'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/rituals'
     | '/settings'
+    | '/skills'
     | '/unlock'
     | '/workstreams'
     | '/you'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/onboarding/'
     | '/rituals/'
     | '/settings/'
+    | '/skills/'
     | '/unlock/'
     | '/workstreams/'
     | '/you/'
@@ -363,6 +375,7 @@ export interface RootRouteChildren {
   OnboardingIndexRoute: typeof OnboardingIndexRoute
   RitualsIndexRoute: typeof RitualsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
+  SkillsIndexRoute: typeof SkillsIndexRoute
   UnlockIndexRoute: typeof UnlockIndexRoute
   WorkstreamsIndexRoute: typeof WorkstreamsIndexRoute
   YouIndexRoute: typeof YouIndexRoute
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/unlock'
       fullPath: '/unlock/'
       preLoaderRoute: typeof UnlockIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skills/': {
+      id: '/skills/'
+      path: '/skills'
+      fullPath: '/skills/'
+      preLoaderRoute: typeof SkillsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/': {
@@ -603,6 +623,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingIndexRoute: OnboardingIndexRoute,
   RitualsIndexRoute: RitualsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
+  SkillsIndexRoute: SkillsIndexRoute,
   UnlockIndexRoute: UnlockIndexRoute,
   WorkstreamsIndexRoute: WorkstreamsIndexRoute,
   YouIndexRoute: YouIndexRoute,

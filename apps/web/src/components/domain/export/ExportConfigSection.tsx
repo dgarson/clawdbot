@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Download, Loader2, Info } from "lucide-react";

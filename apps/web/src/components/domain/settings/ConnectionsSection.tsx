@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Check, ExternalLink, Settings2 } from "lucide-react";

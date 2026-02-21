@@ -1,4 +1,3 @@
-"use client";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
@@ -94,7 +93,7 @@ function HomePage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  {greeting.text}, User!
+                  {greeting.text}
                 </h1>
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />

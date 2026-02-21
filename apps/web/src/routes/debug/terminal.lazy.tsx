@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { createLazyFileRoute, Navigate } from "@tanstack/react-router";
