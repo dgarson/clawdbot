@@ -1,6 +1,7 @@
 import { createRootRoute, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { ThemeProvider, ShortcutsProvider } from "@/providers";
+import { ReducedMotionProvider } from "@/components/composed/ReducedMotionProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { AppShell } from "@/components/layout/AppShell";
@@ -55,6 +56,7 @@ function RootLayout() {
   useGatewayStreamHandler({ enabled: gatewayEnabled });
 
   return (
+    <ReducedMotionProvider>
     <ThemeProvider>
       <ShortcutsProvider>
         <ErrorBoundary>
@@ -85,5 +87,6 @@ function RootLayout() {
         />
       </ShortcutsProvider>
     </ThemeProvider>
+    </ReducedMotionProvider>
   );
 }

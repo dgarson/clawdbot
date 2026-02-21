@@ -54,8 +54,16 @@ export function MemoryCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
         whileHover={{ scale: 1.01 }}
-        className={cn("group cursor-pointer", className)}
+        role="button"
+        tabIndex={0}
+        className={cn("group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg", className)}
         onClick={onClick}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && onClick) {
+            e.preventDefault();
+            onClick();
+          }
+        }}
       >
         <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
           <CardContent className="flex items-start gap-3 p-4">
@@ -84,8 +92,16 @@ export function MemoryCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={cn("group relative cursor-pointer", className)}
+      role="button"
+      tabIndex={0}
+      className={cn("group relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl", className)}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if ((e.key === "Enter" || e.key === " ") && onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <Card className="relative overflow-hidden rounded-2xl border-border/50 bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm transition-all duration-500 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
         {/* Gradient accent line */}

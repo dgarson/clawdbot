@@ -94,13 +94,23 @@ export function GatewaySetupStep({
               transition={{ delay: 0.3 + index * 0.1 }}
             >
               <Card
+                role="radio"
+                tabIndex={0}
+                aria-checked={isSelected}
                 className={cn(
                   "cursor-pointer transition-all duration-200 hover:border-primary/50",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   isSelected && "border-primary ring-2 ring-primary/20"
                 )}
                 onClick={() =>
                   onConfigChange({ ...config, mode: option.id })
                 }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onConfigChange({ ...config, mode: option.id });
+                  }
+                }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">

@@ -108,6 +108,8 @@ export function Sidebar({ className }: SidebarProps) {
         width: sidebarCollapsed ? 72 : 256,
       }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
+      role="navigation"
+      aria-label="Main navigation"
       className={cn(
         "relative flex h-full flex-col border-r border-border bg-card",
         className

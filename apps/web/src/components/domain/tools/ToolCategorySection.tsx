@@ -40,13 +40,24 @@ export function ToolCategorySection({
       <CardHeader
         className={cn(
           "pb-4 cursor-pointer select-none transition-colors hover:bg-muted/50",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-t-lg",
           !isExpanded && "pb-4"
         )}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        aria-controls={`tools-${category}`}
         onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
       >
         <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center gap-2">
-            <CategoryIcon className="h-4 w-4 text-primary" />
+            <CategoryIcon className="h-4 w-4 text-primary" aria-hidden="true" />
             {config.label}
             <Badge variant="secondary" className="text-xs font-normal">
               {enabled}/{total}
@@ -55,6 +66,7 @@ export function ToolCategorySection({
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
+            aria-hidden="true"
           >
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
@@ -69,7 +81,7 @@ export function ToolCategorySection({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            <CardContent className="space-y-3 pt-3">
+            <CardContent id={`tools-${category}`} className="space-y-3 pt-3">
               {tools.map((tool, index) => (
                 <ToolPermissionRow
                   key={tool.id}

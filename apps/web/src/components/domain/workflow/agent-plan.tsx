@@ -280,8 +280,16 @@ export function AgentPlan({
                       </motion.div>
 
                       <motion.div
-                        className="flex min-w-0 flex-grow cursor-pointer items-center justify-between"
+                        role="button"
+                        tabIndex={0}
+                        className="flex min-w-0 flex-grow cursor-pointer items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                         onClick={() => toggleTaskExpansion(task.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleTaskExpansion(task.id);
+                          }
+                        }}
                       >
                         <div className="mr-2 flex-1 truncate">
                           <span

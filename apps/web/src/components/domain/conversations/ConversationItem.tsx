@@ -45,10 +45,21 @@ export function ConversationItem({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.2 }}
+      role="button"
+      tabIndex={0}
+      aria-selected={isActive}
+      aria-label={`Conversation: ${conversation.title}${hasUnread ? " (unread)" : ""}`}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       className={cn(
         "group flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200",
         "border border-transparent hover:border-border/50",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isActive
           ? "bg-primary/10 border-primary/30"
           : "hover:bg-secondary/50",

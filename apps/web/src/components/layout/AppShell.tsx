@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { cn } from "@/lib/utils";
 import { ApprovalAttentionNudgeConnected } from "@/components/composed/ApprovalAttentionNudge";
+import { SkipNavLink, SkipNavContent } from "@/components/composed/SkipNav";
 
 export interface AppShellProps {
   /** Main content to render */
@@ -25,6 +26,9 @@ export interface AppShellProps {
 export function AppShell({ children, panel, className }: AppShellProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Skip Navigation — keyboard/screen-reader users jump past sidebar */}
+      <SkipNavLink />
+
       {/* Sidebar - Hidden on mobile, shown on tablet+ */}
       <div className="hidden md:flex">
         <Sidebar />
@@ -37,10 +41,12 @@ export function AppShell({ children, panel, className }: AppShellProps) {
           "flex flex-1 flex-col overflow-hidden",
           className
         )}
+        role="main"
       >
         <div className="flex flex-1 overflow-hidden">
           {/* Primary Content */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
+            <SkipNavContent />
             <ApprovalAttentionNudgeConnected
               className={cn(
                 "sticky top-0 z-40",
