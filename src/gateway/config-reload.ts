@@ -1,6 +1,6 @@
 import chokidar from "chokidar";
-import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import type { OpenClawConfig, ConfigFileSnapshot, GatewayReloadMode } from "../config/config.js";
+import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import { getActivePluginRegistry } from "../plugins/runtime.js";
 import { isPlainObject } from "../utils.js";
 
@@ -79,6 +79,7 @@ const BASE_RELOAD_RULES_TAIL: ReloadRule[] = [
   { prefix: "session", kind: "none" },
   { prefix: "talk", kind: "none" },
   { prefix: "skills", kind: "none" },
+  { prefix: "utee", kind: "none" },
   { prefix: "plugins", kind: "restart" },
   { prefix: "ui", kind: "none" },
   { prefix: "gateway", kind: "restart" },

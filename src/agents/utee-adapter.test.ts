@@ -323,4 +323,59 @@ describe("UTEE Phase 1 Adapter", () => {
       expect(avgMs).toBeLessThan(1);
     });
   });
+
+  describe("Runtime Toggle (Fix #1)", () => {
+    it("should wrap tools created while disabled and pick up enable later", async () => {
+      // UTEE is disabled at tool creation time
+      expect(isUteeEnabled()).toBe(false);
+
+      const execute = async () => "ok";
+      // Wrap while disabled - this is the critical path that was broken
+      const wrapped = wrapExecuteWithUtee("late-enable-tool", execute);
+
+      // Call while disabled - should pass through without metrics
+      await wrapped();
+      expect(Object.keys(getUteeMetricsSnapshot().invocationCount)).toHaveLength(0);
+
+      // Enable UTEE at runtime (after tool was already wrapped)
+      enableUtee();
+
+      // Call again - wrapper should now record metrics
+      await wrapped();
+      const metrics = getUteeMetricsSnapshot();
+      expect(metrics.invocationCount["late-enable-tool"]).toBe(1);
+
+      // Disable again and verify it stops recording
+      disableUtee();
+      resetUteeMetrics();
+
+      await wrapped();
+      expect(Object.keys(getUteeMetricsSnapshot().invocationCount)).toHaveLength(0);
+    });
+
+    it("should handle multiple enable/disable cycles", async () => {
+      const execute = async () => "ok";
+      const wrapped = wrapExecuteWithUtee("cycle-tool", execute);
+
+      // Cycle 1: disabled
+      await wrapped();
+      expect(Object.keys(getUteeMetricsSnapshot().invocationCount)).toHaveLength(0);
+
+      // Cycle 1: enable
+      enableUtee();
+      await wrapped();
+      expect(getUteeMetricsSnapshot().invocationCount["cycle-tool"]).toBe(1);
+
+      // Cycle 2: disable
+      disableUtee();
+      resetUteeMetrics();
+      await wrapped();
+      expect(Object.keys(getUteeMetricsSnapshot().invocationCount)).toHaveLength(0);
+
+      // Cycle 2: enable
+      enableUtee();
+      await wrapped();
+      expect(getUteeMetricsSnapshot().invocationCount["cycle-tool"]).toBe(1);
+    });
+  });
 });

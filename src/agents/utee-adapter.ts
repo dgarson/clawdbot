@@ -223,16 +223,26 @@ let asyncLocalStorage: {
   run: (store: Map<string, unknown>, callback: () => unknown) => unknown;
 } | null = null;
 
-// Try to load Node.js AsyncLocalStorage if available
-try {
-  // Dynamic import for Node.js environment
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { AsyncLocalStorage } = require("async_hooks");
-  asyncLocalStorage = new AsyncLocalStorage();
-} catch {
-  // AsyncLocalStorage not available (browser/edge environment)
-  asyncLocalStorage = null;
+// Try to load Node.js AsyncLocalStorage with ESM-compatible approach.
+// Uses createRequire for synchronous loading in ESM, with graceful fallback.
+function initAsyncLocalStorage(): typeof asyncLocalStorage {
+  // Check if we're in a Node.js environment
+  if (typeof process === "undefined" || !process.versions?.node) {
+    return null;
+  }
+  try {
+    // Use createRequire for ESM compatibility (synchronous require in ESM)
+    const { createRequire } = require("node:module");
+    const nodeRequire = createRequire(import.meta.url);
+    const { AsyncLocalStorage } = nodeRequire("async_hooks");
+    return new AsyncLocalStorage();
+  } catch {
+    // AsyncLocalStorage not available (rare edge case, non-Node runtime)
+    return null;
+  }
 }
+
+asyncLocalStorage = initAsyncLocalStorage();
 
 /**
  * Get the current trace context from async local storage.

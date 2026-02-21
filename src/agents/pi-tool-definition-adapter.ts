@@ -17,7 +17,7 @@ import {
 } from "./pi-tools.before-tool-call.js";
 import { normalizeToolName } from "./tool-policy.js";
 import { jsonResult } from "./tools/common.js";
-import { isUteeEnabled, wrapExecuteWithUtee } from "./utee-adapter.js";
+import { wrapExecuteWithUtee } from "./utee-adapter.js";
 
 type AnyAgentTool = AgentTool;
 
@@ -94,11 +94,10 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
     const normalizedName = normalizeToolName(name);
     const beforeHookWrapped = isToolWrappedWithBeforeToolCallHook(tool);
 
-    // Wrap tool.execute with UTEE observability if enabled
+    // Always wrap with UTEE; wrapper checks flag at invocation time.
+    // This ensures tools created while disabled get wrapped when enabled later.
     const originalExecute = tool.execute.bind(tool);
-    const uteeWrappedExecute = isUteeEnabled()
-      ? wrapExecuteWithUtee(name, originalExecute)
-      : originalExecute;
+    const uteeWrappedExecute = wrapExecuteWithUtee(name, originalExecute);
 
     return {
       name,
