@@ -41,7 +41,7 @@ const hoisted = vi.hoisted(() => {
 
   const findSessionKeyByRunId = vi.fn((runId: string) => {
     for (const [sessionKey, id] of Object.entries(state.currentRunIds)) {
-      if (id === runId) return sessionKey;
+      if (id === runId) {return sessionKey;}
     }
     return null;
   });

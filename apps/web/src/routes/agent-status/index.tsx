@@ -97,7 +97,7 @@ function AgentStatusDashboardPage() {
 
   // ── Filter and sort agents ──────────────────────────────────────
   const filteredAgents = React.useMemo(() => {
-    if (!agents) return [];
+    if (!agents) {return [];}
 
     let result = [...agents];
 

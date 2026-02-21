@@ -245,8 +245,8 @@ export function useChatEventSubscription(
   );
 
   useEffect(() => {
-    if (!sessionKey) return;
-    if (!gatewayCtx) return;
+    if (!sessionKey) {return;}
+    if (!gatewayCtx) {return;}
     return gatewayCtx.addEventListener(handleEvent);
   }, [gatewayCtx, handleEvent, sessionKey]);
 }

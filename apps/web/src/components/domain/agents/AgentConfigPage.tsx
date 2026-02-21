@@ -14,8 +14,6 @@ import {
   MessageCircle,
   ChevronLeft,
   CheckCircle2,
-  AlertTriangle,
-  RefreshCw,
   Loader2,
   PanelRightOpen,
   PanelRightClose,
@@ -27,14 +25,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAgent, useAgentIdentity } from "@/hooks/queries/useAgents";
-import { useAgentFiles, useAgentFileSave, AGENT_FILES, getFileLabel, getFileDescription } from "@/hooks/queries/useAgentFiles";
+import { useAgentFiles, useAgentFileSave, getFileLabel, getFileDescription } from "@/hooks/queries/useAgentFiles";
 import { useUIStore } from "@/stores/useUIStore";
 import { SoulEditor } from "./SoulEditor";
 import { AgentFileEditor } from "./AgentFileEditor";
 import { AgentOverviewConfig } from "./AgentOverviewConfig";
+import { ModelBehaviorConfig, type ModelBehaviorSettings, type OverrideFlags } from "./ModelBehaviorConfig";
+import { ToolProfilePicker, type ToolConfig } from "./ToolProfilePicker";
+import { SkillConfigurator } from "./SkillConfigurator";
 import { LLMAssistPanel, type AssistContext } from "@/components/domain/assist/LLMAssistPanel";
 import { AutoReviewPanel } from "@/components/domain/assist/AutoReviewPanel";
-import { ModelBehaviorConfig, type ModelBehaviorSettings, type OverrideFlags } from "./ModelBehaviorConfig";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -349,50 +349,11 @@ export function AgentConfigPage({ agentId }: AgentConfigPageProps) {
                 </TabsContent>
 
                 <TabsContent value="tools" className="mt-0">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Wrench className="size-5" />
-                        Tools & Permissions
-                      </CardTitle>
-                      <CardDescription>
-                        Control which tools this agent can use and set security policies.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
-                        <Wrench className="size-10 mx-auto text-muted-foreground mb-3" />
-                        <p className="text-sm text-muted-foreground">
-                          Tool configuration coming soon.
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Choose tool profiles, toggle individual tools, and set exec permissions.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ToolsConfigTab agentId={agentId} />
                 </TabsContent>
 
                 <TabsContent value="skills" className="mt-0">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Zap className="size-5" />
-                        Skills
-                      </CardTitle>
-                      <CardDescription>
-                        Enable skills to give this agent access to external services and capabilities.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
-                        <Zap className="size-10 mx-auto text-muted-foreground mb-3" />
-                        <p className="text-sm text-muted-foreground">
-                          Skills configuration coming soon.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <SkillConfigurator agentId={agentId} />
                 </TabsContent>
 
                 <TabsContent value="channels" className="mt-0">
@@ -464,7 +425,7 @@ export function AgentConfigPage({ agentId }: AgentConfigPageProps) {
 // Model & Behavior Tab
 // ---------------------------------------------------------------------------
 
-function ModelBehaviorTab({ agentId }: { agentId: string }) {
+function ModelBehaviorTab({ agentId: _agentId }: { agentId: string }) {
   const [settings, setSettings] = React.useState<ModelBehaviorSettings>({});
   const [overrides, setOverrides] = React.useState<Partial<OverrideFlags>>({});
 
@@ -482,6 +443,53 @@ function ModelBehaviorTab({ agentId }: { agentId: string }) {
       overrides={overrides}
       onOverrideChange={handleOverrideChange}
     />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tools Config Tab
+// ---------------------------------------------------------------------------
+
+function ToolsConfigTab({ agentId: _agentId }: { agentId: string }) {
+  const [toolConfig, setToolConfig] = React.useState<ToolConfig>({
+    profile: "minimal",
+    tools: {
+      read: true,
+      write: true,
+      edit: true,
+      exec: false,
+      process: false,
+      web_search: false,
+      web_fetch: false,
+      browser: false,
+      sessions_list: false,
+      sessions_history: false,
+      sessions_spawn: false,
+      message: false,
+      tts: false,
+      nodes: false,
+      image: false,
+      canvas: false,
+    },
+    execSecurity: "deny",
+    execAllowlist: [],
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Wrench className="size-5" />
+          Tools & Permissions
+        </CardTitle>
+        <CardDescription>
+          Control which tools this agent can access and set security policies.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ToolProfilePicker value={toolConfig} onChange={setToolConfig} />
+      </CardContent>
+    </Card>
   );
 }
 

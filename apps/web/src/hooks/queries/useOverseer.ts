@@ -77,7 +77,7 @@ export function useOverseerStalledAssignments() {
       // Filter for goals running longer than 1 hour
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
       return result.goals.filter((goal) => {
-        if (!goal.startedAt) return false;
+        if (!goal.startedAt) {return false;}
         return new Date(goal.startedAt).getTime() < oneHourAgo;
       });
     },

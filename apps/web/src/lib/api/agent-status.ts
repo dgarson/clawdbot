@@ -170,7 +170,7 @@ export async function getAgentStatus(liveMode: boolean): Promise<AgentStatusSnap
 
     for (const session of sessionsResult.sessions) {
       const agentId = extractAgentId(session.key);
-      if (!agentId) continue;
+      if (!agentId) {continue;}
 
       const existing = agentMap.get(agentId);
       if (existing) {
@@ -211,9 +211,9 @@ function extractAgentId(sessionKey: string): string | null {
 }
 
 function inferHealth(session: GatewaySessionRow): AgentHealthStatus {
-  if (!session.lastMessageAt) return "idle";
+  if (!session.lastMessageAt) {return "idle";}
   const age = Date.now() - session.lastMessageAt;
-  if (age < 30_000) return "active";
-  if (age < 300_000) return "stalled";
+  if (age < 30_000) {return "active";}
+  if (age < 300_000) {return "stalled";}
   return "idle";
 }

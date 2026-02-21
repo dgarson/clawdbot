@@ -248,7 +248,7 @@ function detectProfile(tools: Record<string, boolean>): ToolConfig["profile"] {
   for (const profile of PROFILES) {
     const expected = toolsFromProfile(profile.enabledTools);
     const matches = ALL_TOOL_IDS.every((id) => !!tools[id] === !!expected[id]);
-    if (matches) return profile.id;
+    if (matches) {return profile.id;}
   }
   return "custom";
 }
@@ -558,7 +558,7 @@ export function ToolProfilePicker({ value, onChange }: ToolProfilePickerProps) {
   const handleProfileSelect = React.useCallback(
     (profileId: ToolConfig["profile"]) => {
       const profile = PROFILES.find((p) => p.id === profileId);
-      if (!profile) return;
+      if (!profile) {return;}
 
       const newTools = toolsFromProfile(profile.enabledTools);
       onChange({

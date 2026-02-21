@@ -30,8 +30,8 @@ import type { AgentStatusEntry, AgentHealthStatus } from "@/hooks/queries/useAge
 // ── Helpers ────────────────────────────────────────────────────────
 
 function formatDuration(ms: number): string {
-  if (ms < 60_000) return `${Math.floor(ms / 1000)}s`;
-  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m ${Math.floor((ms % 60_000) / 1000)}s`;
+  if (ms < 60_000) {return `${Math.floor(ms / 1000)}s`;}
+  if (ms < 3_600_000) {return `${Math.floor(ms / 60_000)}m ${Math.floor((ms % 60_000) / 1000)}s`;}
   const hours = Math.floor(ms / 3_600_000);
   const mins = Math.floor((ms % 3_600_000) / 60_000);
   return `${hours}h ${mins}m`;
@@ -39,10 +39,10 @@ function formatDuration(ms: number): string {
 
 function formatRelativeTime(timestampMs: number): string {
   const delta = Date.now() - timestampMs;
-  if (delta < 5_000) return "Just now";
-  if (delta < 60_000) return `${Math.floor(delta / 1000)}s ago`;
-  if (delta < 3_600_000) return `${Math.floor(delta / 60_000)}m ago`;
-  if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)}h ago`;
+  if (delta < 5_000) {return "Just now";}
+  if (delta < 60_000) {return `${Math.floor(delta / 1000)}s ago`;}
+  if (delta < 3_600_000) {return `${Math.floor(delta / 60_000)}m ago`;}
+  if (delta < 86_400_000) {return `${Math.floor(delta / 3_600_000)}h ago`;}
   return `${Math.floor(delta / 86_400_000)}d ago`;
 }
 
@@ -65,7 +65,7 @@ export function AgentDetailPanel({ agent, onClose, onNavigateToSession }: AgentD
   // Auto-refresh "last activity" every 5 seconds
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
   React.useEffect(() => {
-    if (!agent) return;
+    if (!agent) {return;}
     const timer = setInterval(forceUpdate, 5_000);
     return () => clearInterval(timer);
   }, [agent]);

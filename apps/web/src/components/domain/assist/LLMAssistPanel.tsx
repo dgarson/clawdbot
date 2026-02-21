@@ -10,13 +10,11 @@ import {
   Check,
   FileText,
   ArrowRight,
-  RefreshCw,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+// ScrollArea and Separator available for future use
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,7 +107,7 @@ const SECTION_PROMPTS: Record<string, string[]> = {
 // ---------------------------------------------------------------------------
 
 export function LLMAssistPanel({
-  agentId,
+  agentId: _agentId,
   context,
   onApplyChanges,
   onApplyConfig,
@@ -140,7 +138,7 @@ export function LLMAssistPanel({
 
   const handleSend = async (text?: string) => {
     const message = text ?? inputValue.trim();
-    if (!message) return;
+    if (!message) {return;}
 
     setInputValue("");
 
@@ -176,11 +174,11 @@ export function LLMAssistPanel({
   const handleApplySuggestion = (msgId: string, suggestionId: string) => {
     setMessages((prev) =>
       prev.map((msg) => {
-        if (msg.id !== msgId || !msg.suggestions) return msg;
+        if (msg.id !== msgId || !msg.suggestions) {return msg;}
         return {
           ...msg,
           suggestions: msg.suggestions.map((s) => {
-            if (s.id !== suggestionId) return s;
+            if (s.id !== suggestionId) {return s;}
             // Apply the change
             if (s.type === "file_change" && s.fileName && s.newContent && onApplyChanges) {
               onApplyChanges(s.fileName, s.newContent);

@@ -50,9 +50,9 @@ type CachedSchema = {
 function loadCachedSchema(): CachedSchema | null {
   try {
     const raw = localStorage.getItem(SCHEMA_CACHE_KEY);
-    if (!raw) return null;
+    if (!raw) {return null;}
     const parsed = JSON.parse(raw) as CachedSchema;
-    if (!parsed.version || !parsed.schema) return null;
+    if (!parsed.version || !parsed.schema) {return null;}
     return parsed;
   } catch {
     return null;

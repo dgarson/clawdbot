@@ -67,7 +67,7 @@ class MockWebSocket {
       const parsed = JSON.parse(msg);
       return parsed.method === "connect";
     });
-    if (!connectMsg) return;
+    if (!connectMsg) {return;}
 
     const { id } = JSON.parse(connectMsg);
     this.simulateMessage({

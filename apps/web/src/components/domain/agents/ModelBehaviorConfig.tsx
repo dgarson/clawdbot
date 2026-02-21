@@ -115,18 +115,18 @@ const DEFAULT_OVERRIDES: OverrideFlags = {
 // ---------------------------------------------------------------------------
 
 function getCreativityLabel(temp: number): string {
-  if (temp <= 0.1) return "Precise";
-  if (temp <= 0.3) return "Focused";
-  if (temp <= 0.5) return "Balanced";
-  if (temp <= 0.7) return "Expressive";
-  if (temp <= 0.9) return "Creative";
+  if (temp <= 0.1) {return "Precise";}
+  if (temp <= 0.3) {return "Focused";}
+  if (temp <= 0.5) {return "Balanced";}
+  if (temp <= 0.7) {return "Expressive";}
+  if (temp <= 0.9) {return "Creative";}
   return "Wild";
 }
 
 function getCreativityColor(temp: number): string {
-  if (temp <= 0.3) return "text-blue-400";
-  if (temp <= 0.6) return "text-indigo-400";
-  if (temp <= 0.8) return "text-orange-400";
+  if (temp <= 0.3) {return "text-blue-400";}
+  if (temp <= 0.6) {return "text-indigo-400";}
+  if (temp <= 0.8) {return "text-orange-400";}
   return "text-red-400";
 }
 
@@ -135,16 +135,16 @@ function getCreativityColor(temp: number): string {
 // ---------------------------------------------------------------------------
 
 function getResponseLengthLabel(tokens: number): string {
-  if (tokens <= 512) return "Brief";
-  if (tokens <= 1024) return "Concise";
-  if (tokens <= 2048) return "Moderate";
-  if (tokens <= 4096) return "Thorough";
-  if (tokens <= 8192) return "Detailed";
+  if (tokens <= 512) {return "Brief";}
+  if (tokens <= 1024) {return "Concise";}
+  if (tokens <= 2048) {return "Moderate";}
+  if (tokens <= 4096) {return "Thorough";}
+  if (tokens <= 8192) {return "Detailed";}
   return "Extensive";
 }
 
 function formatTokenCount(tokens: number): string {
-  if (tokens >= 1000) return `${(tokens / 1000).toFixed(tokens % 1000 === 0 ? 0 : 1)}K`;
+  if (tokens >= 1000) {return `${(tokens / 1000).toFixed(tokens % 1000 === 0 ? 0 : 1)}K`;}
   return `${tokens}`;
 }
 
@@ -403,7 +403,7 @@ function FallbackModelsList({
   const moveModel = (index: number, direction: "up" | "down") => {
     const newModels = [...models];
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newModels.length) return;
+    if (targetIndex < 0 || targetIndex >= newModels.length) {return;}
     [newModels[index], newModels[targetIndex]] = [
       newModels[targetIndex],
       newModels[index],
@@ -490,7 +490,7 @@ export function ModelBehaviorConfig({
   onChange,
   overrides: overridesProp,
   onOverrideChange,
-  isLoading,
+  isLoading: _isLoading,
 }: ModelBehaviorConfigProps) {
   const [advancedOpen, setAdvancedOpen] = React.useState(false);
   const overrides: OverrideFlags = { ...DEFAULT_OVERRIDES, ...overridesProp };

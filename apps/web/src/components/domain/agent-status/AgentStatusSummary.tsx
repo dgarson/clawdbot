@@ -66,8 +66,8 @@ function StatCard({ label, value, icon: Icon, iconColor, iconBg, delay = 0 }: St
 }
 
 function formatTokenCount(tokens: number): string {
-  if (tokens < 1_000) return String(tokens);
-  if (tokens < 1_000_000) return `${(tokens / 1_000).toFixed(1)}k`;
+  if (tokens < 1_000) {return String(tokens);}
+  if (tokens < 1_000_000) {return `${(tokens / 1_000).toFixed(1)}k`;}
   return `${(tokens / 1_000_000).toFixed(2)}M`;
 }
 

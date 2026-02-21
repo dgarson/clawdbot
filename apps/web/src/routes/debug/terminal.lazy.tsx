@@ -40,7 +40,7 @@ function DebugTerminalPage() {
   const connected = status === "connected";
 
   React.useEffect(() => {
-    if (!powerUserMode) return;
+    if (!powerUserMode) {return;}
     terminalRef.current?.writeln("Clawdbrain Debug Terminal (v3 Protocol)");
     terminalRef.current?.writeln("Commands:");
     terminalRef.current?.writeln("  /connect  - connect to gateway");
@@ -114,7 +114,7 @@ function DebugTerminalPage() {
   const runCommand = React.useCallback(
     async (raw: string) => {
       const trimmed = raw.trim();
-      if (!trimmed) return;
+      if (!trimmed) {return;}
 
       if (trimmed === "/clear") {
         terminalRef.current?.clear();
@@ -164,7 +164,7 @@ function DebugTerminalPage() {
   const onTerminalData = React.useCallback(
     (data: string) => {
       // Ignore escape sequences (arrows, etc)
-      if (data.startsWith("\u001b")) return;
+      if (data.startsWith("\u001b")) {return;}
 
       // Enter
       if (data === "\r") {
@@ -177,7 +177,7 @@ function DebugTerminalPage() {
 
       // Backspace
       if (data === "\u007f") {
-        if (inputBufferRef.current.length === 0) return;
+        if (inputBufferRef.current.length === 0) {return;}
         inputBufferRef.current = inputBufferRef.current.slice(0, -1);
         terminalRef.current?.write("\b \b");
         return;

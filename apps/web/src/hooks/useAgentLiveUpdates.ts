@@ -32,7 +32,7 @@ function getAgentIdFromPayload(payload: unknown): string | undefined {
 }
 
 function buildPendingTaskLabel(toolName?: string) {
-  if (!toolName) return "Awaiting approval";
+  if (!toolName) {return "Awaiting approval";}
   return `Approve ${toolName.replace(/_/g, " ")} access`;
 }
 
@@ -42,11 +42,11 @@ export function useAgentLiveUpdates() {
   const updateAgentWith = useAgentStore((s) => s.updateAgentWith);
 
   React.useEffect(() => {
-    if (!gatewayCtx) return;
+    if (!gatewayCtx) {return;}
 
     const ensureAgent = (agentId: string) => {
       const existing = useAgentStore.getState().agents.find((agent) => agent.id === agentId);
-      if (existing) return;
+      if (existing) {return;}
       upsertAgent({
         id: agentId,
         name: agentId,
@@ -59,7 +59,7 @@ export function useAgentLiveUpdates() {
       ensureAgent(agentId);
       updateAgentWith(agentId, (agent) => {
         const pendingIds = new Set(agent.pendingToolCallIds ?? []);
-        if (data?.toolCallId) pendingIds.add(data.toolCallId);
+        if (data?.toolCallId) {pendingIds.add(data.toolCallId);}
         const nextIds = Array.from(pendingIds);
         return {
           ...agent,
@@ -74,7 +74,7 @@ export function useAgentLiveUpdates() {
     const clearPending = (agentId: string, toolCallId?: string) => {
       updateAgentWith(agentId, (agent) => {
         const pendingIds = new Set(agent.pendingToolCallIds ?? []);
-        if (toolCallId) pendingIds.delete(toolCallId);
+        if (toolCallId) {pendingIds.delete(toolCallId);}
         const nextIds = Array.from(pendingIds);
         return {
           ...agent,
@@ -90,25 +90,25 @@ export function useAgentLiveUpdates() {
 
       switch (event.event) {
         case "tool.pending": {
-          if (!agentId) return;
+          if (!agentId) {return;}
           applyPending(agentId, payload as ToolCallEventPayload);
           break;
         }
 
         case "tool.approved": {
-          if (!agentId) return;
+          if (!agentId) {return;}
           clearPending(agentId, (payload as ToolCallEventPayload)?.toolCallId);
           break;
         }
 
         case "tool.rejected": {
-          if (!agentId) return;
+          if (!agentId) {return;}
           clearPending(agentId, (payload as ToolCallEventPayload)?.toolCallId);
           break;
         }
 
         case "workflow.waiting_approval": {
-          if (!agentId) return;
+          if (!agentId) {return;}
           ensureAgent(agentId);
           updateAgentWith(agentId, (agent) => ({
             ...agent,
@@ -119,7 +119,7 @@ export function useAgentLiveUpdates() {
         }
 
         case "agent.thinking": {
-          if (!agentId) return;
+          if (!agentId) {return;}
           ensureAgent(agentId);
           const thinkingPayload = payload as AgentThinkingPayload;
           updateAgentWith(agentId, (agent) => ({

@@ -46,8 +46,8 @@ function asString(value: unknown): string | null {
 }
 
 function toPrettyString(value: unknown): string | undefined {
-  if (value == null) return undefined;
-  if (typeof value === "string") return value;
+  if (value == null) {return undefined;}
+  if (typeof value === "string") {return value;}
   try {
     return JSON.stringify(value, null, 2);
   } catch {
@@ -59,9 +59,9 @@ function toPrettyString(value: unknown): string | undefined {
  * Extracts text content from message structure
  */
 function extractTextContent(message: unknown): string {
-  if (!isRecord(message)) return "";
+  if (!isRecord(message)) {return "";}
   const content = message.content;
-  if (!Array.isArray(content)) return "";
+  if (!Array.isArray(content)) {return "";}
 
   const textBlocks = content
     .filter((block) => isRecord(block) && block.type === "text")
@@ -74,7 +74,7 @@ function extractTextContent(message: unknown): string {
  * Extracts tool calls from message structure
  */
 function extractToolCalls(message: unknown): ToolCall[] {
-  if (!isRecord(message)) return [];
+  if (!isRecord(message)) {return [];}
   const toolUse = message.toolUse;
   if (!Array.isArray(toolUse)) {
     return [];
@@ -170,11 +170,11 @@ export function useGatewayStreamHandler(options: UseGatewayStreamHandlerOptions 
       const data = raw.data ?? {};
       const explicitSessionKey = asString(raw.sessionKey) ?? asString(data.sessionKey);
       const sessionKey = explicitSessionKey ?? findSessionKeyByRunId(raw.runId);
-      if (!sessionKey) return;
+      if (!sessionKey) {return;}
 
       if (raw.stream === "tool") {
         const toolCallId = asString(data.toolCallId) ?? asString(data.id);
-        if (!toolCallId) return;
+        if (!toolCallId) {return;}
 
         const toolName = asString(data.name) ?? asString(data.toolName) ?? "unknown";
         const phase = asString(data.phase) ?? asString(data.status);
@@ -247,8 +247,8 @@ export function useGatewayStreamHandler(options: UseGatewayStreamHandlerOptions 
   );
 
   useEffect(() => {
-    if (!enabled) return;
-    if (!gatewayCtx) return;
+    if (!enabled) {return;}
+    if (!gatewayCtx) {return;}
     return gatewayCtx.addEventListener(handleEvent);
   }, [enabled, gatewayCtx, handleEvent]);
 }

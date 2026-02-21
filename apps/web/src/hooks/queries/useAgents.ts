@@ -96,7 +96,7 @@ async function fetchMockAgents(): Promise<Agent[]> {
 function mapGatewayAgentToAgent(
   row: AgentsListResult["agents"][number],
   identity?: AgentIdentityResult | null,
-  isDefault?: boolean,
+  _isDefault?: boolean,
 ): Agent {
   const name = identity?.name ?? row.identity?.name ?? row.name ?? row.id;
   const emoji = identity?.emoji ?? row.identity?.emoji;
@@ -121,7 +121,7 @@ function mapGatewayAgentToAgent(
 // Legacy config-based fetch (fallback)
 // ---------------------------------------------------------------------------
 
-async function fetchAgentsFromConfig(liveMode: boolean): Promise<Agent[]> {
+async function _fetchAgentsFromConfig(liveMode: boolean): Promise<Agent[]> {
   if (!liveMode) {
     return fetchMockAgents();
   }
@@ -173,7 +173,7 @@ export function useAgents() {
 
   // Map live agents to UI type
   const liveAgents = React.useMemo(() => {
-    if (!liveQuery.data?.agents) return [];
+    if (!liveQuery.data?.agents) {return [];}
     return liveQuery.data.agents.map((row) =>
       mapGatewayAgentToAgent(row, null, row.id === liveQuery.data!.defaultId),
     );
@@ -190,11 +190,11 @@ export function useAgents() {
 
   // Merge with live store data (status updates from events, etc.)
   const mergedAgents = React.useMemo(() => {
-    if (storeAgents.length === 0) return agents;
+    if (storeAgents.length === 0) {return agents;}
     const byId = new Map(storeAgents.map((agent) => [agent.id, agent]));
     return agents.map((agent) => {
       const live = byId.get(agent.id);
-      if (!live) return agent;
+      if (!live) {return agent;}
       return {
         ...agent,
         ...live,

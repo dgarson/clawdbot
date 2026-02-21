@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -17,7 +17,7 @@ import {
   Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -70,17 +70,17 @@ interface ReviewFix {
 function generateReview(
   agentName: string,
   files: AgentFileEntry[],
-  config?: Record<string, unknown>,
+  _config?: Record<string, unknown>,
 ): ReviewResult {
   const items: ReviewItem[] = [];
 
   const existingFiles = files.filter((f) => !f.missing);
-  const missingFiles = files.filter((f) => f.missing);
+  const _missingFiles = files.filter((f) => f.missing);
   const hasSoul = existingFiles.some((f) => f.name === "SOUL.md");
   const hasAgents = existingFiles.some((f) => f.name === "AGENTS.md");
   const hasTools = existingFiles.some((f) => f.name === "TOOLS.md");
   const hasUser = existingFiles.some((f) => f.name === "USER.md");
-  const hasHeartbeat = existingFiles.some((f) => f.name === "HEARTBEAT.md");
+  const _hasHeartbeat = existingFiles.some((f) => f.name === "HEARTBEAT.md");
 
   // Identity checks
   if (agentName && agentName !== "undefined") {
@@ -225,17 +225,17 @@ function generateReview(
   // Calculate score
   const goodCount = items.filter((i) => i.level === "good").length;
   const warningCount = items.filter((i) => i.level === "warning").length;
-  const errorCount = items.filter((i) => i.level === "error").length;
+  const _errorCount = items.filter((i) => i.level === "error").length;
   const totalChecks = items.length;
   const score = Math.round(
     ((goodCount * 1 + warningCount * 0.5) / Math.max(totalChecks - items.filter((i) => i.level === "info").length, 1)) * 100,
   );
 
   let grade: ReviewResult["grade"] = "A";
-  if (score < 30) grade = "F";
-  else if (score < 50) grade = "D";
-  else if (score < 70) grade = "C";
-  else if (score < 85) grade = "B";
+  if (score < 30) {grade = "F";}
+  else if (score < 50) {grade = "D";}
+  else if (score < 70) {grade = "C";}
+  else if (score < 85) {grade = "B";}
 
   return {
     score: Math.min(100, Math.max(0, score)),
@@ -250,7 +250,7 @@ function generateReview(
 // ---------------------------------------------------------------------------
 
 export function AutoReviewPanel({
-  agentId,
+  agentId: _agentId,
   agentName,
   files,
   config,
@@ -283,7 +283,7 @@ export function AutoReviewPanel({
     setAppliedFixes((prev) => new Set(prev).add(fix.id));
   };
 
-  if (!open) return null;
+  if (!open) {return null;}
 
   const gradeColors: Record<string, string> = {
     A: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
@@ -374,7 +374,7 @@ export function AutoReviewPanel({
               {/* Errors first, then warnings, then good */}
               {["error", "warning", "info", "good"].map((level) => {
                 const levelItems = review.items.filter((i) => i.level === level);
-                if (levelItems.length === 0) return null;
+                if (levelItems.length === 0) {return null;}
                 return levelItems.map((item) => (
                   <motion.div
                     key={item.id}

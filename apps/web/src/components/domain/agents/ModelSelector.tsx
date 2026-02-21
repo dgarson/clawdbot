@@ -9,7 +9,6 @@ import {
   Wrench,
   Sparkles,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -108,14 +107,14 @@ function getProviderMeta(provider: string): ProviderMeta {
 // ---------------------------------------------------------------------------
 
 function formatContextWindow(tokens?: number): string {
-  if (!tokens) return "";
-  if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(tokens % 1_000_000 === 0 ? 0 : 1)}M`;
-  if (tokens >= 1_000) return `${(tokens / 1_000).toFixed(0)}K`;
+  if (!tokens) {return "";}
+  if (tokens >= 1_000_000) {return `${(tokens / 1_000_000).toFixed(tokens % 1_000_000 === 0 ? 0 : 1)}M`;}
+  if (tokens >= 1_000) {return `${(tokens / 1_000).toFixed(0)}K`;}
   return `${tokens}`;
 }
 
 function getDisplayName(model: ModelEntry): string {
-  if (model.name) return model.name;
+  if (model.name) {return model.name;}
   // Extract a readable name from the id
   const parts = model.id.split("/");
   const last = parts[parts.length - 1];
@@ -130,7 +129,7 @@ function groupByProvider(
   const groups: Record<string, ModelEntry[]> = {};
   for (const model of models) {
     const key = model.provider || "other";
-    if (!groups[key]) groups[key] = [];
+    if (!groups[key]) {groups[key] = [];}
     groups[key].push(model);
   }
   // Sort within each group by name
@@ -184,7 +183,7 @@ export interface ModelSelectorProps {
 export function ModelSelector({
   value,
   onChange,
-  placeholder = "Select a model…",
+  placeholder: _placeholder = "Select a model…",
   showSystemDefault = true,
   disabled = false,
   className,

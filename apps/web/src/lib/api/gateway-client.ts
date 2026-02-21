@@ -120,11 +120,11 @@ function getPlatform(): string {
   // Prefer modern API, fall back to deprecated navigator.platform
   if (typeof navigator !== "undefined") {
     const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes("mac")) return "macos";
-    if (ua.includes("win")) return "windows";
-    if (ua.includes("linux")) return "linux";
-    if (ua.includes("android")) return "android";
-    if (ua.includes("iphone") || ua.includes("ipad")) return "ios";
+    if (ua.includes("mac")) {return "macos";}
+    if (ua.includes("win")) {return "windows";}
+    if (ua.includes("linux")) {return "linux";}
+    if (ua.includes("android")) {return "android";}
+    if (ua.includes("iphone") || ua.includes("ipad")) {return "ios";}
   }
   return "web";
 }
@@ -139,7 +139,7 @@ function generateUUID(): string {
     crypto.getRandomValues(bytes);
   } else {
     // Weak fallback
-    for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
+    for (let i = 0; i < 16; i++) {bytes[i] = Math.floor(Math.random() * 256);}
   }
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
@@ -382,7 +382,7 @@ class GatewayClient {
     this.connectSent = true;
     this.clearConnectTimer();
 
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {return;}
 
     // crypto.subtle is only available in secure contexts (HTTPS, localhost)
     const isSecureContext = typeof crypto !== "undefined" && !!crypto.subtle;
@@ -572,7 +572,7 @@ class GatewayClient {
     if (frame.type === "res") {
       const res = parsed as GatewayResponseFrame;
       const pending = this.pending.get(res.id);
-      if (!pending) return;
+      if (!pending) {return;}
       clearTimeout(pending.timer);
       this.pending.delete(res.id);
       if (res.ok) {

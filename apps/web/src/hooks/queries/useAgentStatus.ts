@@ -55,13 +55,13 @@ export function useAgentStatusDashboard(options: UseAgentStatusDashboardOptions 
 
   // ── WebSocket streaming updates ─────────────────────────────────
   React.useEffect(() => {
-    if (!enableStreaming || !gatewayCtx) return;
+    if (!enableStreaming || !gatewayCtx) {return;}
 
     const handleEvent = (event: GatewayEvent) => {
       // Handle agent-level events
       if (event.event === "agent" || event.event === "agent.status") {
         const payload = event.payload as Record<string, unknown> | undefined;
-        if (!payload) return;
+        if (!payload) {return;}
 
         const agentId =
           typeof payload.agentId === "string"
@@ -70,15 +70,15 @@ export function useAgentStatusDashboard(options: UseAgentStatusDashboardOptions 
               ? payload.id
               : null;
 
-        if (!agentId) return;
+        if (!agentId) {return;}
 
         // Optimistic update of cached snapshot
         queryClient.setQueryData<AgentStatusSnapshot>(
           agentStatusKeys.snapshot(),
           (prev) => {
-            if (!prev) return prev;
+            if (!prev) {return prev;}
             const agents = prev.agents.map((a) => {
-              if (a.id !== agentId) return a;
+              if (a.id !== agentId) {return a;}
               return {
                 ...a,
                 health: (typeof payload.health === "string"
@@ -112,18 +112,18 @@ export function useAgentStatusDashboard(options: UseAgentStatusDashboardOptions 
       if (event.event === "chat") {
         const payload = event.payload as Record<string, unknown> | undefined;
         const sessionKey = typeof payload?.sessionKey === "string" ? payload.sessionKey : null;
-        if (!sessionKey) return;
+        if (!sessionKey) {return;}
 
         const agentIdMatch = sessionKey.match(/^agent:([^:]+)/);
-        if (!agentIdMatch) return;
+        if (!agentIdMatch) {return;}
         const agentId = agentIdMatch[1];
 
         queryClient.setQueryData<AgentStatusSnapshot>(
           agentStatusKeys.snapshot(),
           (prev) => {
-            if (!prev) return prev;
+            if (!prev) {return prev;}
             const agents = prev.agents.map((a) => {
-              if (a.id !== agentId) return a;
+              if (a.id !== agentId) {return a;}
               return { ...a, health: "active" as const, lastActivityAt: Date.now() };
             });
             return { ...prev, agents, timestamp: Date.now() };
@@ -135,14 +135,14 @@ export function useAgentStatusDashboard(options: UseAgentStatusDashboardOptions 
       if (event.event === "tool.pending") {
         const payload = event.payload as Record<string, unknown> | undefined;
         const agentId = typeof payload?.agentId === "string" ? payload.agentId : null;
-        if (!agentId) return;
+        if (!agentId) {return;}
 
         queryClient.setQueryData<AgentStatusSnapshot>(
           agentStatusKeys.snapshot(),
           (prev) => {
-            if (!prev) return prev;
+            if (!prev) {return prev;}
             const agents = prev.agents.map((a) => {
-              if (a.id !== agentId) return a;
+              if (a.id !== agentId) {return a;}
               return {
                 ...a,
                 health: "stalled" as const,
