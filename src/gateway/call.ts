@@ -116,15 +116,11 @@ export function buildGatewayConnectionDetails(
   const tlsEnabled = config.gateway?.tls?.enabled === true;
   const localPort = resolveGatewayPort(config);
   const bindMode = config.gateway?.bind ?? "loopback";
-  const preferTailnet = bindMode === "tailnet" && !!tailnetIPv4;
   const scheme = tlsEnabled ? "wss" : "ws";
-  // The local CLI always connects via loopback regardless of gateway bind mode.
+  // Self-connections should always target loopback; bind mode only controls listener exposure.
   // bind=lan means the server listens on 0.0.0.0, which includes loopback.
   // Remote connections use gateway.mode=remote with gateway.remote.url.
-  const localUrl =
-    preferTailnet && tailnetIPv4
-      ? `${scheme}://${tailnetIPv4}:${localPort}`
-      : `${scheme}://127.0.0.1:${localPort}`;
+  const localUrl = `${scheme}://127.0.0.1:${localPort}`;
   const urlOverride =
     typeof options.url === "string" && options.url.trim().length > 0
       ? options.url.trim()
@@ -139,9 +135,7 @@ export function buildGatewayConnectionDetails(
       ? "config gateway.remote.url"
       : remoteMisconfigured
         ? "missing gateway.remote.url (fallback local)"
-        : preferTailnet && tailnetIPv4
-          ? `local tailnet ${tailnetIPv4}`
-          : "local loopback";
+        : "local loopback";
   const remoteFallbackNote = remoteMisconfigured
     ? "Warn: gateway.mode=remote but gateway.remote.url is missing; set gateway.remote.url or switch gateway.mode=local."
     : undefined;

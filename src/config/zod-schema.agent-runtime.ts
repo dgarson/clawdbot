@@ -671,6 +671,7 @@ export const ToolsSchema = z
     sessions: z
       .object({
         visibility: z.enum(["self", "tree", "agent", "all"]).optional(),
+        sendTimeoutSeconds: z.number().int().min(0).optional(),
       })
       .strict()
       .optional(),

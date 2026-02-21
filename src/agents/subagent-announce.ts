@@ -124,6 +124,19 @@ function resolveAnnounceOrigin(
   // requesterOrigin, captured at spawn time, reflects the channel the user is
   // actually on and must take priority over the session entry, which may carry
   // stale lastChannel / lastTo values from a previous channel interaction.
+  //
+  // When requesterOrigin specifies a full delivery target (channel + to) but
+  // omits threadId, the caller intentionally wants a standalone channel post
+  // (e.g. cron announce with stripSessionThreadId). Do NOT fall back to the
+  // session entry's threadId, which may be stale from a recent thread interaction.
+  if (normalizedRequester?.channel && normalizedRequester?.to && !normalizedRequester.threadId) {
+    return mergeDeliveryContext(
+      // Spread channel/to/accountId from requester but explicitly omit threadId
+      // so the fallback's stale threadId doesn't leak through.
+      normalizedRequester,
+      normalizedEntry ? { ...normalizedEntry, threadId: undefined } : undefined,
+    );
+  }
   return mergeDeliveryContext(normalizedRequester, normalizedEntry);
 }
 

@@ -128,7 +128,7 @@ describe("createTelegramRetryRunner", () => {
   it("uses default shouldRetry regex when no custom shouldRetry provided", async () => {
     const runner = createTelegramRetryRunner({});
     let callCount = 0;
-    const fn = async () => {
+    const _fn = async () => {
       callCount++;
       if (callCount < 2) {
         const err = new Error("429 Too Many Requests");
@@ -144,7 +144,10 @@ describe("createTelegramRetryRunner", () => {
 
   it("OR-composes custom shouldRetry with default regex behavior", async () => {
     const customShouldRetry = (err: unknown) => {
-      return "custom" in (err as Record<string, unknown>) && (err as Record<string, unknown>).custom === true;
+      return (
+        "custom" in (err as Record<string, unknown>) &&
+        (err as Record<string, unknown>).custom === true
+      );
     };
     const runner = createTelegramRetryRunner({ shouldRetry: customShouldRetry });
 
