@@ -22,6 +22,7 @@ import {
   Monitor,
   Share2,
   Activity,
+  ScrollText,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { NavItem } from "./NavItem";
@@ -238,6 +239,12 @@ export function Sidebar({ className }: SidebarProps) {
                   href="/nodes"
                   icon={Monitor}
                   label="Nodes"
+                  collapsed={sidebarCollapsed}
+                />
+                <NavItem
+                  href="/logs"
+                  icon={ScrollText}
+                  label="Logs"
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>
