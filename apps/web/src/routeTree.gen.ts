@@ -24,6 +24,7 @@ import { Route as GoalsIndexRouteImport } from './routes/goals/index'
 import { Route as FilesystemIndexRouteImport } from './routes/filesystem/index'
 import { Route as DebugIndexRouteImport } from './routes/debug/index'
 import { Route as ConversationsIndexRouteImport } from './routes/conversations/index'
+import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as AgentsIndexRouteImport } from './routes/agents/index'
 import { Route as AgentStatusIndexRouteImport } from './routes/agent-status/index'
 import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstreams/$workstreamId'
@@ -112,6 +113,11 @@ const ConversationsIndexRoute = ConversationsIndexRouteImport.update({
   path: '/conversations/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsIndexRoute = AnalyticsIndexRouteImport.update({
+  id: '/analytics/',
+  path: '/analytics/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/agents/',
   path: '/agents/',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/agent-status/': typeof AgentStatusIndexRoute
   '/agents/': typeof AgentsIndexRoute
+  '/analytics/': typeof AnalyticsIndexRoute
   '/conversations/': typeof ConversationsIndexRoute
   '/debug/': typeof DebugIndexRoute
   '/filesystem/': typeof FilesystemIndexRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/agent-status': typeof AgentStatusIndexRoute
   '/agents': typeof AgentsIndexRoute
+  '/analytics': typeof AnalyticsIndexRoute
   '/conversations': typeof ConversationsIndexRoute
   '/debug': typeof DebugIndexRoute
   '/filesystem': typeof FilesystemIndexRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/agent-status/': typeof AgentStatusIndexRoute
   '/agents/': typeof AgentsIndexRoute
+  '/analytics/': typeof AnalyticsIndexRoute
   '/conversations/': typeof ConversationsIndexRoute
   '/debug/': typeof DebugIndexRoute
   '/filesystem/': typeof FilesystemIndexRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/workstreams/$workstreamId'
     | '/agent-status/'
     | '/agents/'
+    | '/analytics/'
     | '/conversations/'
     | '/debug/'
     | '/filesystem/'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/workstreams/$workstreamId'
     | '/agent-status'
     | '/agents'
+    | '/analytics'
     | '/conversations'
     | '/debug'
     | '/filesystem'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/workstreams/$workstreamId'
     | '/agent-status/'
     | '/agents/'
+    | '/analytics/'
     | '/conversations/'
     | '/debug/'
     | '/filesystem/'
@@ -365,6 +377,7 @@ export interface RootRouteChildren {
   WorkstreamsWorkstreamIdRoute: typeof WorkstreamsWorkstreamIdRoute
   AgentStatusIndexRoute: typeof AgentStatusIndexRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
+  AnalyticsIndexRoute: typeof AnalyticsIndexRoute
   ConversationsIndexRoute: typeof ConversationsIndexRoute
   DebugIndexRoute: typeof DebugIndexRoute
   FilesystemIndexRoute: typeof FilesystemIndexRoute
@@ -486,6 +499,13 @@ declare module '@tanstack/react-router' {
       path: '/conversations'
       fullPath: '/conversations/'
       preLoaderRoute: typeof ConversationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics/': {
+      id: '/analytics/'
+      path: '/analytics'
+      fullPath: '/analytics/'
+      preLoaderRoute: typeof AnalyticsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents/': {
@@ -613,6 +633,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkstreamsWorkstreamIdRoute: WorkstreamsWorkstreamIdRoute,
   AgentStatusIndexRoute: AgentStatusIndexRoute,
   AgentsIndexRoute: AgentsIndexRoute,
+  AnalyticsIndexRoute: AnalyticsIndexRoute,
   ConversationsIndexRoute: ConversationsIndexRoute,
   DebugIndexRoute: DebugIndexRoute,
   FilesystemIndexRoute: FilesystemIndexRoute,

@@ -23,6 +23,7 @@ import {
   Share2,
   Activity,
   ScrollText,
+  BarChart3,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { NavItem } from "./NavItem";
@@ -245,6 +246,12 @@ export function Sidebar({ className }: SidebarProps) {
                   href="/logs"
                   icon={ScrollText}
                   label="Logs"
+                  collapsed={sidebarCollapsed}
+                />
+                <NavItem
+                  href="/analytics"
+                  icon={BarChart3}
+                  label="Analytics"
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>
