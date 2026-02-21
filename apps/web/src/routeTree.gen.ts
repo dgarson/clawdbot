@@ -33,6 +33,7 @@ import { Route as DebugWorkbenchRouteImport } from './routes/debug/workbench'
 import { Route as DebugTerminalRouteImport } from './routes/debug/terminal'
 import { Route as DebugGraphRouteImport } from './routes/debug/graph'
 import { Route as ConversationsIdRouteImport } from './routes/conversations/$id'
+import { Route as AgentsNewRouteImport } from './routes/agents/new'
 import { Route as AgentsGraphRouteImport } from './routes/agents/graph'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as ConversationsIdAgenticRouteImport } from './routes/conversations/$id/agentic'
@@ -162,6 +163,11 @@ const ConversationsIdRoute = ConversationsIdRouteImport.update({
   path: '/conversations/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsNewRoute = AgentsNewRouteImport.update({
+  id: '/agents/new',
+  path: '/agents/new',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/agents/new.lazy').then((d) => d.Route))
 const AgentsGraphRoute = AgentsGraphRouteImport.update({
   id: '/agents/graph',
   path: '/agents/graph',
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
   '/agents/graph': typeof AgentsGraphRoute
+  '/agents/new': typeof AgentsNewRoute
   '/conversations/$id': typeof ConversationsIdRouteWithChildren
   '/debug/graph': typeof DebugGraphRoute
   '/debug/terminal': typeof DebugTerminalRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
   '/agents/graph': typeof AgentsGraphRoute
+  '/agents/new': typeof AgentsNewRoute
   '/conversations/$id': typeof ConversationsIdRouteWithChildren
   '/debug/graph': typeof DebugGraphRoute
   '/debug/terminal': typeof DebugTerminalRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
   '/agents/graph': typeof AgentsGraphRoute
+  '/agents/new': typeof AgentsNewRoute
   '/conversations/$id': typeof ConversationsIdRouteWithChildren
   '/debug/graph': typeof DebugGraphRoute
   '/debug/terminal': typeof DebugTerminalRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agents/$agentId'
     | '/agents/graph'
+    | '/agents/new'
     | '/conversations/$id'
     | '/debug/graph'
     | '/debug/terminal'
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agents/$agentId'
     | '/agents/graph'
+    | '/agents/new'
     | '/conversations/$id'
     | '/debug/graph'
     | '/debug/terminal'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agents/$agentId'
     | '/agents/graph'
+    | '/agents/new'
     | '/conversations/$id'
     | '/debug/graph'
     | '/debug/terminal'
@@ -395,6 +407,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRouteWithChildren
   AgentsGraphRoute: typeof AgentsGraphRoute
+  AgentsNewRoute: typeof AgentsNewRoute
   ConversationsIdRoute: typeof ConversationsIdRouteWithChildren
   DebugGraphRoute: typeof DebugGraphRoute
   DebugTerminalRoute: typeof DebugTerminalRoute
@@ -590,6 +603,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConversationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/new': {
+      id: '/agents/new'
+      path: '/agents/new'
+      fullPath: '/agents/new'
+      preLoaderRoute: typeof AgentsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/graph': {
       id: '/agents/graph'
       path: '/agents/graph'
@@ -667,6 +687,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsAgentIdRoute: AgentsAgentIdRouteWithChildren,
   AgentsGraphRoute: AgentsGraphRoute,
+  AgentsNewRoute: AgentsNewRoute,
   ConversationsIdRoute: ConversationsIdRouteWithChildren,
   DebugGraphRoute: DebugGraphRoute,
   DebugTerminalRoute: DebugTerminalRoute,

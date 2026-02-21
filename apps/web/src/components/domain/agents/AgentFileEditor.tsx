@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAgentFile, useAgentFileSave } from "@/hooks/queries/useAgentFiles";
+import { MonacoFileEditor, detectLanguage } from "./MonacoFileEditor";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -159,12 +160,11 @@ export function AgentFileEditor({
             Failed to load: {String(loadError)}
           </div>
         ) : (
-          <textarea
+          <MonacoFileEditor
             value={localContent}
-            onChange={(e) => handleContentChange(e.target.value)}
-            placeholder={placeholder ?? `Enter ${fileName} content...`}
-            className="w-full min-h-[400px] rounded-lg border border-border bg-muted/30 p-4 font-mono text-sm leading-relaxed text-foreground outline-none resize-y focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-            spellCheck={false}
+            onChange={handleContentChange}
+            language={detectLanguage(fileName)}
+            height="500px"
           />
         )}
 

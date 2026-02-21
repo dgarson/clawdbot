@@ -1,223 +1,61 @@
 "use client";
-
 import * as React from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+// Lazy-load Monaco — it's ~2MB, must not block initial render
+const MonacoEditor = React.lazy(() =>
+  import("@monaco-editor/react").then((m) => ({ default: m.default }))
+);
 
 export interface MonacoFileEditorProps {
   value: string;
-  onChange: (val: string) => void;
-  placeholder?: string;
-  fileName?: string;
-  onSave?: () => void;
+  onChange: (value: string) => void;
+  language?: string;  // auto-detect from filename
+  readOnly?: boolean;
+  height?: string;
 }
 
-// ---------------------------------------------------------------------------
-// Language detection
-// ---------------------------------------------------------------------------
-
-function detectLanguage(fileName?: string): string {
-  if (!fileName) return "plaintext";
-  const ext = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
-  const map: Record<string, string> = {
-    ".md": "markdown",
-    ".json": "json",
-    ".yaml": "yaml",
-    ".yml": "yaml",
-    ".ts": "typescript",
-    ".tsx": "typescript",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".sh": "shell",
-    ".toml": "toml",
-  };
-  return map[ext] ?? "plaintext";
+function detectLanguage(filename: string): string {
+  if (filename.endsWith(".md")) return "markdown";
+  if (filename.endsWith(".json")) return "json";
+  if (filename.endsWith(".ts") || filename.endsWith(".tsx")) return "typescript";
+  if (filename.endsWith(".js") || filename.endsWith(".jsx")) return "javascript";
+  if (filename.endsWith(".yaml") || filename.endsWith(".yml")) return "yaml";
+  if (filename.endsWith(".sh")) return "shell";
+  return "plaintext";
 }
 
-// ---------------------------------------------------------------------------
-// Theme detection
-// ---------------------------------------------------------------------------
-
-function detectTheme(): "vs-dark" | "light" {
-  return document.documentElement.classList.contains("dark") ? "vs-dark" : "light";
-}
-
-// ---------------------------------------------------------------------------
-// Lazy-loaded Monaco inner component
-// ---------------------------------------------------------------------------
-
-const LazyMonacoEditor = React.lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
-);
-
-// ---------------------------------------------------------------------------
-// Fallback textarea (used when Monaco fails to load)
-// ---------------------------------------------------------------------------
-
-function FallbackTextarea({
-  value,
-  onChange,
-  placeholder,
-}: Pick<MonacoFileEditorProps, "value" | "onChange" | "placeholder">) {
+export function MonacoFileEditor({ value, onChange, language = "markdown", readOnly = false, height = "400px" }: MonacoFileEditorProps) {
   return (
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder ?? "Enter content…"}
-      className="w-full min-h-[500px] rounded-lg border border-border bg-muted/30 p-4 font-mono text-sm leading-relaxed text-foreground outline-none resize-y focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-      spellCheck={false}
-    />
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Loading skeleton
-// ---------------------------------------------------------------------------
-
-function EditorSkeleton() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[500px] rounded-lg border border-border bg-muted/30 gap-3">
-      <Loader2 className="size-5 animate-spin text-muted-foreground" />
-      <span className="text-xs text-muted-foreground">Loading editor…</span>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Inner Monaco editor (wraps @monaco-editor/react Editor)
-// ---------------------------------------------------------------------------
-
-interface InnerEditorProps {
-  value: string;
-  onChange: (val: string) => void;
-  language: string;
-  theme: "vs-dark" | "light";
-  onSave?: () => void;
-}
-
-function InnerEditor({ value, onChange, language, theme, onSave }: InnerEditorProps) {
-  // We keep a ref to the monaco instance to register the Cmd+S action
-  const monacoRef = React.useRef<Parameters<import("@monaco-editor/react").OnMount>[1] | null>(null);
-  const editorRef = React.useRef<Parameters<import("@monaco-editor/react").OnMount>[0] | null>(null);
-
-  const handleMount: import("@monaco-editor/react").OnMount = (editor, monaco) => {
-    monacoRef.current = monaco;
-    editorRef.current = editor;
-
-    if (onSave) {
-      editor.addAction({
-        id: "oclaw-save",
-        label: "Save File",
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
-        run: () => {
-          onSave();
-        },
-      });
-    }
-  };
-
-  const handleChange = (val: string | undefined) => {
-    onChange(val ?? "");
-  };
-
-  return (
-    <div className="min-h-[500px] rounded-lg border border-border overflow-hidden">
-      <LazyMonacoEditor
-        height="500px"
+    <React.Suspense fallback={
+      <div style={{ height }} className="rounded-md overflow-hidden">
+        <Skeleton className="w-full h-full" />
+      </div>
+    }>
+      <MonacoEditor
+        height={height}
         language={language}
-        theme={theme}
         value={value}
-        onChange={handleChange}
-        onMount={handleMount}
+        onChange={(v) => onChange(v ?? "")}
+        theme="vs-dark"
         options={{
+          readOnly,
           minimap: { enabled: false },
-          wordWrap: "on",
           lineNumbers: "on",
+          wordWrap: "on",
           scrollBeyondLastLine: false,
           fontSize: 13,
-          fontFamily: "JetBrains Mono, Fira Code, monospace",
+          fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+          padding: { top: 12, bottom: 12 },
+          renderLineHighlight: "gutter",
+          smoothScrolling: true,
+          cursorBlinking: "smooth",
+          formatOnPaste: true,
           automaticLayout: true,
         }}
       />
-    </div>
+    </React.Suspense>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Error boundary for graceful fallback
-// ---------------------------------------------------------------------------
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-}
-
-interface ErrorBoundaryProps {
-  fallback: React.ReactNode;
-  children: React.ReactNode;
-}
-
-class MonacoErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
-  }
-
-  override render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Public component
-// ---------------------------------------------------------------------------
-
-export function MonacoFileEditor({
-  value,
-  onChange,
-  placeholder,
-  fileName,
-  onSave,
-}: MonacoFileEditorProps) {
-  const language = detectLanguage(fileName);
-  const [theme, setTheme] = React.useState<"vs-dark" | "light">(detectTheme);
-
-  // Keep theme in sync with document dark-mode class changes
-  React.useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setTheme(detectTheme());
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  const fallback = (
-    <FallbackTextarea value={value} onChange={onChange} placeholder={placeholder} />
-  );
-
-  return (
-    <MonacoErrorBoundary fallback={fallback}>
-      <React.Suspense fallback={<EditorSkeleton />}>
-        <InnerEditor
-          value={value}
-          onChange={onChange}
-          language={language}
-          theme={theme}
-          onSave={onSave}
-        />
-      </React.Suspense>
-    </MonacoErrorBoundary>
-  );
-}
+export { detectLanguage };

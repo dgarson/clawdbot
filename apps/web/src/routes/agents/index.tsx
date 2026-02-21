@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -181,10 +181,18 @@ function AgentsPage() {
                 Discover and manage your AI agents
               </p>
             </div>
-            <Button onClick={() => setWizardOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Agent
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" className="gap-2">
+                <Link to="/agents/new">
+                  <Sparkles className="h-4 w-4" />
+                  Chat Builder
+                </Link>
+              </Button>
+              <Button onClick={() => setWizardOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Agent
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
