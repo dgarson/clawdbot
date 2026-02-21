@@ -103,23 +103,35 @@ export async function generateVoiceResponse(
   const identity = deps.resolveAgentIdentity(cfg, agentId);
   const agentName = identity?.name?.trim() || "assistant";
 
-  // Build system prompt with conversation history
+  // Build system prompt — envelope instruction is placed LAST so it stays
+  // near the end of the system prompt where LLM attention is strongest.
+  // Conversation history goes into a clearly delimited section in the middle.
   const basePrompt =
     voiceConfig.responseSystemPrompt ??
     `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. You have access to tools - use them when helpful.`;
 
-  const envelopePrompt =
-    "Return JSON only with keys: action ('respond_now'|'delegate'), immediate_text (short spoken response), delegations (array). Use action='delegate' only for long-running/tool-heavy tasks.";
+  const historyBlock =
+    transcript.length > 0
+      ? `\n\n<conversation_history>\n${transcript
+          .map((entry) => `${entry.speaker === "bot" ? "You" : "Caller"}: ${entry.text}`)
+          .join("\n")}\n</conversation_history>`
+      : "";
 
-  let extraSystemPrompt = basePrompt;
-  if (transcript.length > 0) {
-    const history = transcript
-      .map((entry) => `${entry.speaker === "bot" ? "You" : "Caller"}: ${entry.text}`)
-      .join("\n");
-    extraSystemPrompt = `${basePrompt}\n\n${envelopePrompt}\n\nConversation so far:\n${history}`;
-  } else {
-    extraSystemPrompt = `${basePrompt}\n\n${envelopePrompt}`;
-  }
+  const envelopePrompt = [
+    "",
+    "## RESPONSE FORMAT (CRITICAL)",
+    "You MUST return ONLY a JSON object with these keys:",
+    '  action: "respond_now" | "delegate"',
+    "  immediate_text: short spoken response for the caller (1-2 sentences)",
+    '  delegations: array of delegation objects (only when action is "delegate")',
+    "",
+    'Use action="delegate" ONLY for tasks needing deep investigation, web search,',
+    'memory exploration, or tool-heavy work. For simple questions, use "respond_now".',
+    "Each delegation object: { specialist, goal, input?, deadline_ms? }",
+    'specialist: "research" | "scheduler" | "policy"',
+  ].join("\n");
+
+  const extraSystemPrompt = `${basePrompt}${historyBlock}${envelopePrompt}`;
 
   // Resolve timeout
   const timeoutMs = voiceConfig.responseTimeoutMs ?? deps.resolveAgentTimeoutMs({ cfg });
