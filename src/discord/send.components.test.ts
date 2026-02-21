@@ -4,13 +4,15 @@ import { registerDiscordComponentEntries } from "./components-registry.js";
 import { sendDiscordComponentMessage } from "./send.components.js";
 import { makeDiscordRest } from "./send.test-harness.js";
 
-const loadConfigMock = vi.hoisted(() => vi.fn(() => ({ session: { dmScope: "main" } })));
+const loadConfigMock = vi.hoisted(() =>
+  vi.fn<typeof import("../config/config.js").loadConfig>(() => ({ session: { dmScope: "main" } })),
+);
 
 vi.mock("../config/config.js", async () => {
   const actual = await vi.importActual<typeof import("../config/config.js")>("../config/config.js");
   return {
     ...actual,
-    loadConfig: (...args: unknown[]) => loadConfigMock(...args),
+    loadConfig: (...args: Parameters<typeof actual.loadConfig>) => loadConfigMock(...args),
   };
 });
 
