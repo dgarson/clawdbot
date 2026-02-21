@@ -29,6 +29,7 @@ import {
   AgentStatusRow,
   AgentStatusSummary,
   AgentDetailPanel,
+  ActivityHeatMap,
 } from "@/components/domain/agent-status";
 import {
   useAgentStatusDashboard,
@@ -79,6 +80,14 @@ function AgentStatusDashboardPage() {
 
   const agents = snapshot?.agents;
   const summary = useAgentStatusSummary(agents);
+
+  // ── Derive Heatmap Data ─────────────────────────────────────────
+  const activityTimestamps = React.useMemo(() => {
+    if (!snapshot?.agents) return [];
+    return snapshot.agents
+      .map((a) => a.lastActivityAt)
+      .filter((t): t is number => typeof t === "number" && t > 0);
+  }, [snapshot]);
 
   // ── Sync health filter with URL ─────────────────────────────────
   React.useEffect(() => {
@@ -221,9 +230,10 @@ function AgentStatusDashboardPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="mb-6"
+            className="mb-6 space-y-6"
           >
             <AgentStatusSummary {...summary} />
+            <ActivityHeatMap activityTimestamps={activityTimestamps} title="Agent Activity Pattern" />
           </motion.div>
         )}
 
