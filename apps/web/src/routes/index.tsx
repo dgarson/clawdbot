@@ -12,6 +12,7 @@ import {
   GoalProgressPanel,
   RecentMemoriesPanel,
 } from "@/components/domain/home";
+import { AgentActivityFeed } from "@/components/domain/home/AgentActivityFeed";
 import { useUserProfile } from "@/hooks/queries/useUserSettings";
 
 export const Route = createFileRoute("/")({
@@ -143,9 +144,9 @@ function HomePage() {
             <RecentMemoriesPanel maxMemories={5} />
           </motion.div>
 
-          {/* Additional space for future widgets */}
+          {/* Agent Activity Feed — real-time view of what agents are doing */}
           <motion.div variants={itemVariants} className="lg:col-span-1">
-            {/* Placeholder for future widget - could be activity feed, notifications, etc. */}
+            <AgentActivityFeed maxItems={8} />
           </motion.div>
         </div>
     </motion.div>
