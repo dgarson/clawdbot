@@ -237,11 +237,13 @@ export const VoiceCallSubagentConfigSchema = z
     enabled: z.boolean().default(false),
     /** Maximum concurrent sub-agent jobs per process */
     maxConcurrency: z.number().int().positive().max(8).default(2),
+    /** Maximum concurrent sub-agent jobs per individual call */
+    maxPerCall: z.number().int().positive().max(8).default(2),
     /** Default sub-agent deadline in milliseconds */
     defaultDeadlineMs: z.number().int().positive().default(15000),
   })
   .strict()
-  .default({ enabled: false, maxConcurrency: 2, defaultDeadlineMs: 15000 });
+  .default({ enabled: false, maxConcurrency: 2, maxPerCall: 2, defaultDeadlineMs: 15000 });
 export type VoiceCallSubagentConfig = z.infer<typeof VoiceCallSubagentConfigSchema>;
 
 // -----------------------------------------------------------------------------

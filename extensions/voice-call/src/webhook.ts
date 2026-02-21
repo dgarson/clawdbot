@@ -232,6 +232,13 @@ export class VoiceCallWebhookServer {
 
         // Start the stale call reaper if configured
         this.startStaleCallReaper();
+
+        // Sweep orphaned voice-subagent session entries left by crashed jobs.
+        if (this.subagentBroker) {
+          void this.subagentBroker.reapOrphanedSessions().catch((err) => {
+            console.warn("[voice-call] Startup session reap failed:", err);
+          });
+        }
       });
     });
   }
