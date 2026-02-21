@@ -229,6 +229,11 @@ function renderRow(
   const verbose = row.verboseLevel ?? "";
   const verboseLevels = withCurrentLabeledOption(VERBOSE_LEVELS, verbose);
   const reasoning = row.reasoningLevel ?? "";
+  const inheritedThinkingLabel = `⤴ ${row.resolvedThinkingLevel ?? "off"}`;
+  const inheritedVerboseLabel = row.resolvedVerboseLevel
+    ? `⤴ ${row.resolvedVerboseLevel}`
+    : "⤴ inherit";
+  const inheritedReasoningLabel = "⤴ off";
   const reasoningLevels = withCurrentOption(REASONING_LEVELS, reasoning);
   const displayName =
     typeof row.displayName === "string" && row.displayName.trim().length > 0
@@ -274,7 +279,7 @@ function renderRow(
           ${thinkLevels.map(
             (level) =>
               html`<option value=${level} ?selected=${thinking === level}>
-                ${level || "inherit"}
+                ${level || inheritedThinkingLabel}
               </option>`,
           )}
         </select>
@@ -290,7 +295,7 @@ function renderRow(
           ${verboseLevels.map(
             (level) =>
               html`<option value=${level.value} ?selected=${verbose === level.value}>
-                ${level.label}
+                ${level.value === "" ? inheritedVerboseLabel : level.label}
               </option>`,
           )}
         </select>
@@ -306,7 +311,7 @@ function renderRow(
           ${reasoningLevels.map(
             (level) =>
               html`<option value=${level} ?selected=${reasoning === level}>
-                ${level || "inherit"}
+                ${level || inheritedReasoningLabel}
               </option>`,
           )}
         </select>
