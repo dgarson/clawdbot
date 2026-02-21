@@ -1,0 +1,20 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/(main)/agents/[agentId]/page": "app/(main)/agents/[agentId]/page.js",
+  "/(main)/agents/new/page": "app/(main)/agents/new/page.js",
+  "/(main)/agents/page": "app/(main)/agents/page.js",
+  "/(main)/analytics/page": "app/(main)/analytics/page.js",
+  "/(main)/channels/page": "app/(main)/channels/page.js",
+  "/(main)/chat/page": "app/(main)/chat/page.js",
+  "/(main)/cron/page": "app/(main)/cron/page.js",
+  "/(main)/dashboard/page": "app/(main)/dashboard/page.js",
+  "/(main)/logs/page": "app/(main)/logs/page.js",
+  "/(main)/marketplace/page": "app/(main)/marketplace/page.js",
+  "/(main)/nodes/page": "app/(main)/nodes/page.js",
+  "/(main)/sessions/page": "app/(main)/sessions/page.js",
+  "/(main)/settings/page": "app/(main)/settings/page.js",
+  "/(main)/templates/page": "app/(main)/templates/page.js",
+  "/(main)/onboarding/page": "app/(main)/onboarding/page.js",
+  "/(main)/skills/page": "app/(main)/skills/page.js"
+}
