@@ -45,3 +45,4 @@ export {
   ONBOARDING_COMPLETED_AT_KEY,
   type UseOnboardingCheckResult,
 } from "./useOnboardingCheck";
+export { useShortcutsSeen } from "./useShortcutsSeen";

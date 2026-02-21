@@ -293,6 +293,17 @@ export function CommandPalette({
           </>
         )}
       </CommandList>
+
+      {/* Footer hint: discoverability nudge for keyboard shortcuts */}
+      <div className="flex items-center justify-center border-t border-border px-4 py-2">
+        <p className="text-xs text-muted-foreground">
+          Press{" "}
+          <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 text-[10px] font-medium text-muted-foreground shadow-sm">
+            ?
+          </kbd>{" "}
+          to see all keyboard shortcuts
+        </p>
+      </div>
     </CommandDialog>
   );
 }

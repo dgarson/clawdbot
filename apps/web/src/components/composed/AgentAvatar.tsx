@@ -2,9 +2,19 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { AgentStatusDot, type AgentDotStatus } from "@/components/ui/AgentStatusDot";
 
 export type AgentAvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type AgentAvatarStatus = "active" | "ready" | "busy" | "paused" | "offline";
+
+/** Map legacy AgentAvatarStatus values to AgentDotStatus */
+const statusToDot: Record<AgentAvatarStatus, AgentDotStatus> = {
+  active: "online",
+  ready: "online",
+  busy: "busy",
+  paused: "busy",
+  offline: "offline",
+};
 
 export interface AgentAvatarProps {
   /** Agent name (used for initials and color generation) */
@@ -13,8 +23,10 @@ export interface AgentAvatarProps {
   avatarUrl?: string;
   /** Size variant */
   size?: AgentAvatarSize;
-  /** Status indicator */
+  /** Status indicator (legacy enum, mapped to AgentDotStatus) */
   status?: AgentAvatarStatus;
+  /** Direct dot status — takes precedence over `status` */
+  dotStatus?: AgentDotStatus;
   /** Additional CSS classes */
   className?: string;
   /** Whether to show the status dot */
@@ -29,20 +41,12 @@ const sizeClasses: Record<AgentAvatarSize, string> = {
   xl: "h-24 w-24 text-xl",
 };
 
-const statusColors: Record<AgentAvatarStatus, string> = {
-  active: "bg-green-500",
-  ready: "bg-green-500",
-  busy: "bg-yellow-500",
-  paused: "bg-orange-500",
-  offline: "bg-muted-foreground/50",
-};
-
-const statusDotSizes: Record<AgentAvatarSize, string> = {
-  xs: "h-1.5 w-1.5 ring-1",
-  sm: "h-2 w-2 ring-2",
-  md: "h-2.5 w-2.5 ring-2",
-  lg: "h-3 w-3 ring-2",
-  xl: "h-4 w-4 ring-[3px]",
+const dotSizeMap: Record<AgentAvatarSize, "sm" | "md"> = {
+  xs: "sm",
+  sm: "sm",
+  md: "sm",
+  lg: "md",
+  xl: "md",
 };
 
 const borderRadii: Record<AgentAvatarSize, string> = {
@@ -91,11 +95,16 @@ export const AgentAvatar = React.memo(function AgentAvatar({
   avatarUrl,
   size = "md",
   status,
+  dotStatus,
   className,
   showStatus = true,
 }: AgentAvatarProps) {
   const [imageError, setImageError] = React.useState(false);
   const showImage = avatarUrl && !imageError;
+
+  // Resolve which dot status to render (direct dotStatus prop wins)
+  const resolvedDotStatus: AgentDotStatus | undefined =
+    dotStatus ?? (status ? statusToDot[status] : undefined);
 
   return (
     <div className={cn("relative inline-flex shrink-0", className)}>
@@ -118,16 +127,8 @@ export const AgentAvatar = React.memo(function AgentAvatar({
           getInitials(name)
         )}
       </div>
-      {showStatus && status && (
-        <span
-          className={cn(
-            "absolute -bottom-0.5 -right-0.5 rounded-full ring-card",
-            statusDotSizes[size],
-            statusColors[status],
-            status === "active" && "animate-pulse"
-          )}
-          aria-label={`Status: ${status}`}
-        />
+      {showStatus && resolvedDotStatus && (
+        <AgentStatusDot status={resolvedDotStatus} size={dotSizeMap[size]} />
       )}
     </div>
   );

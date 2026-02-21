@@ -2,13 +2,33 @@
 
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useKeyboardShortcuts, type KeyboardShortcut } from "@/hooks";
+import { useKeyboardShortcuts, type KeyboardShortcut, useShortcutsSeen } from "@/hooks";
 import { useUIStore } from "@/stores/useUIStore";
 import { CommandPalette } from "@/components/composed/CommandPalette";
 import { KeyboardShortcutsModal } from "@/components/composed/KeyboardShortcutsModal";
 
 interface ShortcutsProviderProps {
   children: React.ReactNode;
+}
+
+interface ShortcutsContextValue {
+  /** Open the keyboard shortcuts modal (and mark as seen) */
+  openShortcutsModal: () => void;
+  /** Whether the user has already seen the shortcuts modal */
+  shortcutsSeen: boolean;
+  /** Manually mark shortcuts as seen (e.g. on tooltip dismiss) */
+  markShortcutsSeen: () => void;
+}
+
+export const ShortcutsContext = React.createContext<ShortcutsContextValue>({
+  openShortcutsModal: () => {},
+  shortcutsSeen: true,
+  markShortcutsSeen: () => {},
+});
+
+/** Hook to access shortcuts discoverability state and opener from any child */
+export function useShortcutsContext() {
+  return React.useContext(ShortcutsContext);
 }
 
 /**
@@ -22,6 +42,23 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
   const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
   const [shortcutsModalOpen, setShortcutsModalOpen] = React.useState(false);
+
+  const { seen: shortcutsSeen, markSeen: markShortcutsSeen } = useShortcutsSeen();
+
+  const openShortcutsModal = React.useCallback(() => {
+    setShortcutsModalOpen(true);
+    markShortcutsSeen();
+  }, [markShortcutsSeen]);
+
+  const handleShortcutsModalOpenChange = React.useCallback(
+    (open: boolean) => {
+      setShortcutsModalOpen(open);
+      if (open) {
+        markShortcutsSeen();
+      }
+    },
+    [markShortcutsSeen]
+  );
 
   // Track "g" key for go-to sequences
   const [waitingForGoTo, setWaitingForGoTo] = React.useState(false);
@@ -85,7 +122,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
       {
         key: "?",
         shift: true,
-        action: () => setShortcutsModalOpen(true),
+        action: openShortcutsModal,
       },
 
       // Go-to sequence: "g" followed by another key
@@ -161,6 +198,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
       setTheme,
       powerUserMode,
       setPowerUserMode,
+      openShortcutsModal,
       waitingForGoTo,
       clearGoToState,
     ]
@@ -178,8 +216,17 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
     };
   }, []);
 
+  const contextValue = React.useMemo<ShortcutsContextValue>(
+    () => ({
+      openShortcutsModal,
+      shortcutsSeen,
+      markShortcutsSeen,
+    }),
+    [openShortcutsModal, shortcutsSeen, markShortcutsSeen]
+  );
+
   return (
-    <>
+    <ShortcutsContext.Provider value={contextValue}>
       {children}
 
       <CommandPalette
@@ -187,15 +234,15 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         onOpenChange={setCommandPaletteOpen}
         onShowShortcuts={() => {
           setCommandPaletteOpen(false);
-          setShortcutsModalOpen(true);
+          openShortcutsModal();
         }}
       />
 
       <KeyboardShortcutsModal
         open={shortcutsModalOpen}
-        onOpenChange={setShortcutsModalOpen}
+        onOpenChange={handleShortcutsModalOpenChange}
       />
-    </>
+    </ShortcutsContext.Provider>
   );
 }
 

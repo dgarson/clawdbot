@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AgentStatusDot } from "@/components/ui/AgentStatusDot";
+import { useAgentStatus } from "@/hooks/useAgentStatus";
 import { MessageCircle, Settings, Play, Pause, History, PlusCircle } from "lucide-react";
 
 export type AgentStatus = "online" | "offline" | "busy" | "paused";
@@ -52,6 +54,7 @@ export function AgentCard({
   className,
 }: AgentCardProps) {
   const status = statusConfig[agent.status];
+  const dotStatus = useAgentStatus(agent);
 
   if (variant === "compact") {
     return (
@@ -81,21 +84,7 @@ export function AgentCard({
                 )}
               </div>
               {/* Status dot */}
-              <div className="absolute -bottom-0.5 -right-0.5">
-                <div className="relative flex h-4 w-4 items-center justify-center">
-                  <span className={cn(
-                    "h-3 w-3 rounded-full shadow-lg border-2 border-card",
-                    status.color,
-                    status.animate && "shadow-[0_0_8px_1px]",
-                    status.color === "bg-green-500" && status.animate && "shadow-green-500/60",
-                    status.color === "bg-yellow-500" && status.animate && "shadow-yellow-500/60",
-                    status.color === "bg-orange-500" && status.animate && "shadow-orange-500/60"
-                  )} />
-                  {status.animate && (
-                    <span className={cn("absolute h-3 w-3 rounded-full animate-ping opacity-60", status.color)} />
-                  )}
-                </div>
-              </div>
+              <AgentStatusDot status={dotStatus} size="sm" />
             </div>
 
             {/* Info */}
@@ -297,7 +286,7 @@ export function AgentCard({
 
           {/* Last active */}
           {agent.lastActive && (
-            <p className="mt-4 text-center text-xs text-muted-foreground/70">
+            <p className="mt-4 text-center text-xs text-muted-foreground">
               Last active {agent.lastActive}
             </p>
           )}

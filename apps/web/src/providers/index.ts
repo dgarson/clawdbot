@@ -1,6 +1,6 @@
 // Provider components barrel export
 export { ThemeProvider } from "./ThemeProvider";
-export { ShortcutsProvider } from "./ShortcutsProvider";
+export { ShortcutsProvider, ShortcutsContext, useShortcutsContext } from "./ShortcutsProvider";
 export {
   GatewayProvider,
   useGateway,

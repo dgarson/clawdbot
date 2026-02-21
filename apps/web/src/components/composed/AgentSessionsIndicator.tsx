@@ -16,6 +16,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { AgentStatusDot } from "@/components/ui/AgentStatusDot";
+import { deriveAgentDotStatus } from "@/hooks/useAgentStatus";
 import { cn } from "@/lib/utils";
 import { useAgentApprovalActions } from "@/hooks/useAgentApprovalActions";
 
@@ -216,7 +218,7 @@ export function AgentSessionsIndicator({
                             </div>
                           )}
                         </div>
-                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-popover bg-amber-500" />
+                        <AgentStatusDot status={deriveAgentDotStatus(agent)} size="sm" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium text-foreground">

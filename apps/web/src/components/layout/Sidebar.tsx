@@ -24,14 +24,118 @@ import {
   Activity,
   ScrollText,
   BarChart3,
+  Keyboard,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
+import { useShortcutsContext } from "@/providers";
 import { NavItem } from "./NavItem";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { GatewayStatusIndicator } from "@/components/composed/GatewayStatusIndicator";
 import { AgentSessionsIndicator } from "@/components/composed/AgentSessionsIndicator";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+
+/**
+ * Sidebar button that opens the KeyboardShortcutsModal.
+ * Shows a pulsing discoverability dot for first-time users (until they open the modal).
+ */
+function KeyboardShortcutsButton({ collapsed }: { collapsed: boolean }) {
+  const { openShortcutsModal, shortcutsSeen, markShortcutsSeen } = useShortcutsContext();
+
+  const handleClick = React.useCallback(() => {
+    openShortcutsModal();
+  }, [openShortcutsModal]);
+
+  const handleDismiss = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      markShortcutsSeen();
+    },
+    [markShortcutsSeen]
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      title="Keyboard shortcuts (?)"
+      aria-label="View keyboard shortcuts"
+      className={cn(
+        "relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground",
+        "hover:bg-accent hover:text-accent-foreground transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        collapsed && "justify-center px-2"
+      )}
+    >
+      {/* Icon with discoverability dot */}
+      <span className="relative shrink-0">
+        <Keyboard className="size-4" aria-hidden="true" />
+
+        {/* Pulsing dot — only shown until user has seen shortcuts */}
+        <AnimatePresence>
+          {!shortcutsSeen && (
+            <motion.span
+              key="shortcuts-dot"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="absolute -right-1 -top-1 flex size-2.5 items-center justify-center"
+              aria-hidden="true"
+            >
+              {/* Outer ring pulse */}
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
+              {/* Static inner dot */}
+              <span className="relative inline-flex size-2 rounded-full bg-primary" />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </span>
+
+      {/* Label — hidden when sidebar is collapsed */}
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: "auto" }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-1 items-center justify-between overflow-hidden whitespace-nowrap"
+          >
+            <span>Shortcuts</span>
+
+            {/* Dismiss badge — visible only while unseen */}
+            <AnimatePresence>
+              {!shortcutsSeen && (
+                <motion.span
+                  key="shortcuts-badge"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  className="ml-2 shrink-0"
+                >
+                  <button
+                    type="button"
+                    onClick={handleDismiss}
+                    title="Dismiss"
+                    aria-label="Dismiss shortcut hint"
+                    className={cn(
+                      "rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary",
+                      "hover:bg-primary/20 transition-colors"
+                    )}
+                  >
+                    NEW
+                  </button>
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+}
 
 export interface SidebarProps {
   /** Additional className */
@@ -289,6 +393,7 @@ export function Sidebar({ className }: SidebarProps) {
 
         {/* Actions Section */}
         <div className="space-y-0.5">
+          <KeyboardShortcutsButton collapsed={sidebarCollapsed} />
           <NavItem
             href="/settings"
             icon={Settings}
