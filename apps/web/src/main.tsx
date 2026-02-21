@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
 
+// Initialize i18n (must be imported before any component that uses useTranslation)
+import "./i18n";
+
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 

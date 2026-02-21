@@ -1,6 +1,7 @@
 "use client";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Calendar, Sun, Moon, Sunrise, Sunset } from "lucide-react";
 
@@ -19,17 +20,17 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-function getGreeting(): { text: string; icon: typeof Sun } {
+function getGreetingKey(): { key: string; icon: typeof Sun } {
   const hour = new Date().getHours();
 
   if (hour >= 5 && hour < 12) {
-    return { text: "Good morning", icon: Sunrise };
+    return { key: "home.goodMorning", icon: Sunrise };
   } else if (hour >= 12 && hour < 17) {
-    return { text: "Good afternoon", icon: Sun };
+    return { key: "home.goodAfternoon", icon: Sun };
   } else if (hour >= 17 && hour < 21) {
-    return { text: "Good evening", icon: Sunset };
+    return { key: "home.goodEvening", icon: Sunset };
   } else {
-    return { text: "Good night", icon: Moon };
+    return { key: "home.goodNight", icon: Moon };
   }
 }
 
@@ -58,8 +59,9 @@ const itemVariants = {
 };
 
 function HomePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const greeting = getGreeting();
+  const greeting = getGreetingKey();
   const GreetingIcon = greeting.icon;
   const { data: profile } = useUserProfile();
   const displayName = profile?.name || "there";
@@ -98,7 +100,7 @@ function HomePage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  {greeting.text}, {displayName}!
+                  {t(greeting.key)}, {displayName}!
                 </h1>
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />

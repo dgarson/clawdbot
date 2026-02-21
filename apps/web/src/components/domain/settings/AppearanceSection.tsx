@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -8,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/composed/ThemeToggle";
 import { useAppearance, useUpdateAppearance } from "@/hooks/queries/useUserSettings";
+import { supportedLanguages } from "@/i18n";
 
 interface AppearanceSectionProps {
   className?: string;
@@ -25,6 +28,7 @@ const timeFormats = [
 ];
 
 export function AppearanceSection({ className }: AppearanceSectionProps) {
+  const { t, i18n } = useTranslation();
   const { data: appearance } = useAppearance();
   const updateMutation = useUpdateAppearance();
 
@@ -42,27 +46,61 @@ export function AppearanceSection({ className }: AppearanceSectionProps) {
     updateMutation.mutate({ timeFormat: value as "12h" | "24h" });
   };
 
+  const handleLanguageChange = (value: string) => {
+    i18n.changeLanguage(value);
+  };
+
   const isSaving = updateMutation.isPending;
 
   return (
     <Card className={cn("", className)}>
       <CardHeader>
-        <CardTitle>Appearance</CardTitle>
+        <CardTitle>{t("settings.appearance.title")}</CardTitle>
         <CardDescription>
-          Customize how the application looks and displays information.
+          {t("settings.appearance.subtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Language */}
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-sm font-medium mb-1">{t("settings.appearance.language")}</h4>
+            <p className="text-sm text-muted-foreground">
+              {t("settings.appearance.languageDescription")}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("settings.appearance.languageLabel")}</Label>
+            <Select
+              value={i18n.language}
+              onValueChange={handleLanguageChange}
+            >
+              <SelectTrigger className="w-full sm:w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {supportedLanguages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Separator />
+
         {/* Theme */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium mb-1">Theme</h4>
+            <h4 className="text-sm font-medium mb-1">{t("settings.appearance.theme")}</h4>
             <p className="text-sm text-muted-foreground">
-              Choose how the application looks on your device.
+              {t("settings.appearance.themeDescription")}
             </p>
           </div>
           <div className="flex items-center justify-between">
-            <Label>Color Mode</Label>
+            <Label>{t("settings.appearance.colorMode")}</Label>
             <ThemeToggle variant="buttons" />
           </div>
         </div>
@@ -72,18 +110,18 @@ export function AppearanceSection({ className }: AppearanceSectionProps) {
         {/* Layout */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium mb-1">Layout</h4>
+            <h4 className="text-sm font-medium mb-1">{t("settings.appearance.layout")}</h4>
             <p className="text-sm text-muted-foreground">
-              Configure the default layout behavior.
+              {t("settings.appearance.layoutDescription")}
             </p>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-0.5 flex-1">
               <Label htmlFor="sidebar-collapsed" className="cursor-pointer">
-                Start with sidebar collapsed
+                {t("settings.appearance.sidebarCollapsed")}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Sidebar will be collapsed by default when you open the app
+                {t("settings.appearance.sidebarCollapsedDescription")}
               </p>
             </div>
             <Switch
@@ -100,14 +138,14 @@ export function AppearanceSection({ className }: AppearanceSectionProps) {
         {/* Date & Time Format */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium mb-1">Date & Time</h4>
+            <h4 className="text-sm font-medium mb-1">{t("settings.appearance.dateTime")}</h4>
             <p className="text-sm text-muted-foreground">
-              Set your preferred date and time display formats.
+              {t("settings.appearance.dateTimeDescription")}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Date Format</Label>
+              <Label>{t("settings.appearance.dateFormat")}</Label>
               <Select
                 value={appearance?.dateFormat || "MM/DD/YYYY"}
                 onValueChange={handleDateFormatChange}
@@ -126,7 +164,7 @@ export function AppearanceSection({ className }: AppearanceSectionProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Time Format</Label>
+              <Label>{t("settings.appearance.timeFormat")}</Label>
               <Select
                 value={appearance?.timeFormat || "12h"}
                 onValueChange={handleTimeFormatChange}

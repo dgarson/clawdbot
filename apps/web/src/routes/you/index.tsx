@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import {
   ProfileSection,
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/you/")({
 });
 
 function YouPage() {
+  const { t } = useTranslation();
   const navigate = Route.useNavigate();
   const { section: searchSection } = Route.useSearch();
   const powerUserMode = useUIStore((state) => state.powerUserMode);
@@ -101,9 +103,9 @@ function YouPage() {
     <>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">You</h1>
+        <h1 className="text-3xl font-bold">{t("you.title")}</h1>
         <p className="text-muted-foreground mt-1">
-          Personalize your profile and preferences.
+          {t("you.subtitle")}
         </p>
       </div>
 

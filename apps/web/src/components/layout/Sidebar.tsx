@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import * as Collapsible from "@radix-ui/react-collapsible";
@@ -203,6 +204,7 @@ function NavSection({ title, collapsed, children, defaultOpen = true }: NavSecti
 }
 
 export function Sidebar({ className }: SidebarProps) {
+  const { t } = useTranslation();
   const { sidebarCollapsed, toggleSidebar, powerUserMode } = useUIStore();
 
   return (
@@ -245,11 +247,11 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin py-4 space-y-4">
         {/* Primary Navigation */}
         <nav className="space-y-0.5 px-2">
-          <NavItem href="/" icon={Home} label="Home" collapsed={sidebarCollapsed} />
+          <NavItem href="/" icon={Home} label={t("nav.home")} collapsed={sidebarCollapsed} />
           <NavItem
             href="/conversations"
             icon={MessageCircle}
-            label="Conversations"
+            label={t("nav.conversations")}
             collapsed={sidebarCollapsed}
           />
         </nav>
@@ -258,23 +260,23 @@ export function Sidebar({ className }: SidebarProps) {
 
         {/* Your Brain Section */}
         <div className="px-2">
-          <NavSection title="Your Brain" collapsed={sidebarCollapsed}>
+          <NavSection title={t("nav.yourBrain")} collapsed={sidebarCollapsed}>
             <NavItem
               href="/goals"
               icon={Target}
-              label="Goals"
+              label={t("nav.goals")}
               collapsed={sidebarCollapsed}
             />
             <NavItem
               href="/memories"
               icon={Brain}
-              label="Memories"
+              label={t("nav.memories")}
               collapsed={sidebarCollapsed}
             />
             <NavItem
               href="/you"
               icon={User}
-              label="You"
+              label={t("nav.you")}
               collapsed={sidebarCollapsed}
             />
           </NavSection>
@@ -284,29 +286,29 @@ export function Sidebar({ className }: SidebarProps) {
 
         {/* Team Section */}
         <div className="px-2">
-          <NavSection title="Team" collapsed={sidebarCollapsed}>
+          <NavSection title={t("nav.team")} collapsed={sidebarCollapsed}>
             <NavItem
               href="/agents"
               icon={Bot}
-              label="Agents"
+              label={t("nav.agents")}
               collapsed={sidebarCollapsed}
             />
             <NavItem
               href="/agent-status"
               icon={Activity}
-              label="Agent Status"
+              label={t("nav.agentStatus")}
               collapsed={sidebarCollapsed}
             />
             <NavItem
               href="/workstreams"
               icon={ListTodo}
-              label="Workstreams"
+              label={t("nav.workstreams")}
               collapsed={sidebarCollapsed}
             />
             <NavItem
               href="/rituals"
               icon={RefreshCw}
-              label="Rituals"
+              label={t("nav.rituals")}
               collapsed={sidebarCollapsed}
             />
           </NavSection>
@@ -317,47 +319,47 @@ export function Sidebar({ className }: SidebarProps) {
           <>
             <Separator className="mx-2" />
             <div className="px-2">
-              <NavSection title="Power User" collapsed={sidebarCollapsed} defaultOpen={false}>
+              <NavSection title={t("nav.powerUser")} collapsed={sidebarCollapsed} defaultOpen={false}>
                 <NavItem
                   href="/debug"
                   icon={Bug}
-                  label="Debug"
+                  label={t("nav.debug")}
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
                   href="/debug/graph"
                   icon={Share2}
-                  label="Graph"
+                  label={t("nav.graph")}
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
                   href="/filesystem"
                   icon={HardDrive}
-                  label="Filesystem"
+                  label={t("nav.filesystem")}
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
                   href="/jobs"
                   icon={Calendar}
-                  label="Jobs"
+                  label={t("nav.jobs")}
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
                   href="/nodes"
                   icon={Monitor}
-                  label="Nodes"
+                  label={t("nav.nodes")}
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
                   href="/logs"
                   icon={ScrollText}
-                  label="Logs"
+                  label={t("nav.logs")}
                   collapsed={sidebarCollapsed}
                 />
                 <NavItem
                   href="/analytics"
                   icon={BarChart3}
-                  label="Analytics"
+                  label={t("nav.analytics")}
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>
@@ -397,7 +399,7 @@ export function Sidebar({ className }: SidebarProps) {
           <NavItem
             href="/settings"
             icon={Settings}
-            label="Settings"
+            label={t("nav.settings")}
             collapsed={sidebarCollapsed}
             inactiveWhenSearch={{ section: "connections" }}
           />
@@ -405,7 +407,7 @@ export function Sidebar({ className }: SidebarProps) {
             href="/settings"
             search={{ section: "connections" }}
             icon={Plug}
-            label="Connections"
+            label={t("nav.connections")}
             collapsed={sidebarCollapsed}
             exactMatch
           />

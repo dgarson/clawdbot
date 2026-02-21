@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import {
   ModelProviderSection,
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/settings/")({
 });
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const navigate = Route.useNavigate();
   const { section: searchSection, agentId } = Route.useSearch();
 
@@ -107,9 +109,9 @@ function SettingsPage() {
     <>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold">{t("settings.title")}</h1>
         <p className="text-muted-foreground mt-1">
-          Configure your system, channels, and integrations.
+          {t("settings.subtitle")}
         </p>
       </div>
 
