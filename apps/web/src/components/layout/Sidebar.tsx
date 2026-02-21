@@ -27,6 +27,7 @@ import {
   ScrollText,
   BarChart3,
   Keyboard,
+  Network,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useShortcutsContext } from "@/providers";
@@ -301,6 +302,12 @@ export function Sidebar({ className }: SidebarProps) {
               collapsed={sidebarCollapsed}
             />
             <NavItem
+              href="/agents/graph"
+              icon={Network}
+              label="Agent Graph"
+              collapsed={sidebarCollapsed}
+            />
+            <NavItem
               href="/workstreams"
               icon={ListTodo}
               label={t("nav.workstreams")}
@@ -367,12 +374,6 @@ export function Sidebar({ className }: SidebarProps) {
                   href="/analytics"
                   icon={BarChart3}
                   label={t("nav.analytics")}
-                  collapsed={sidebarCollapsed}
-                />
-                <NavItem
-                  href="/logs"
-                  icon={ScrollText}
-                  label="Logs"
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>

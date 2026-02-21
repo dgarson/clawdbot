@@ -33,6 +33,7 @@ import { Route as DebugWorkbenchRouteImport } from './routes/debug/workbench'
 import { Route as DebugTerminalRouteImport } from './routes/debug/terminal'
 import { Route as DebugGraphRouteImport } from './routes/debug/graph'
 import { Route as ConversationsIdRouteImport } from './routes/conversations/$id'
+import { Route as AgentsGraphRouteImport } from './routes/agents/graph'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as ConversationsIdAgenticRouteImport } from './routes/conversations/$id/agentic'
 import { Route as AgentsAgentIdConfigureRouteImport } from './routes/agents/$agentId/configure'
@@ -161,6 +162,11 @@ const ConversationsIdRoute = ConversationsIdRouteImport.update({
   path: '/conversations/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsGraphRoute = AgentsGraphRouteImport.update({
+  id: '/agents/graph',
+  path: '/agents/graph',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/agents/graph.lazy').then((d) => d.Route))
 const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
   id: '/agents/$agentId',
   path: '/agents/$agentId',
@@ -192,6 +198,7 @@ const AgentsAgentIdSessionSessionKeyRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
+  '/agents/graph': typeof AgentsGraphRoute
   '/conversations/$id': typeof ConversationsIdRouteWithChildren
   '/debug/graph': typeof DebugGraphRoute
   '/debug/terminal': typeof DebugTerminalRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
+  '/agents/graph': typeof AgentsGraphRoute
   '/conversations/$id': typeof ConversationsIdRouteWithChildren
   '/debug/graph': typeof DebugGraphRoute
   '/debug/terminal': typeof DebugTerminalRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
+  '/agents/graph': typeof AgentsGraphRoute
   '/conversations/$id': typeof ConversationsIdRouteWithChildren
   '/debug/graph': typeof DebugGraphRoute
   '/debug/terminal': typeof DebugTerminalRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agents/$agentId'
+    | '/agents/graph'
     | '/conversations/$id'
     | '/debug/graph'
     | '/debug/terminal'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agents/$agentId'
+    | '/agents/graph'
     | '/conversations/$id'
     | '/debug/graph'
     | '/debug/terminal'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agents/$agentId'
+    | '/agents/graph'
     | '/conversations/$id'
     | '/debug/graph'
     | '/debug/terminal'
@@ -382,6 +394,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRouteWithChildren
+  AgentsGraphRoute: typeof AgentsGraphRoute
   ConversationsIdRoute: typeof ConversationsIdRouteWithChildren
   DebugGraphRoute: typeof DebugGraphRoute
   DebugTerminalRoute: typeof DebugTerminalRoute
@@ -577,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConversationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/graph': {
+      id: '/agents/graph'
+      path: '/agents/graph'
+      fullPath: '/agents/graph'
+      preLoaderRoute: typeof AgentsGraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/$agentId': {
       id: '/agents/$agentId'
       path: '/agents/$agentId'
@@ -646,6 +666,7 @@ const ConversationsIdRouteWithChildren = ConversationsIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsAgentIdRoute: AgentsAgentIdRouteWithChildren,
+  AgentsGraphRoute: AgentsGraphRoute,
   ConversationsIdRoute: ConversationsIdRouteWithChildren,
   DebugGraphRoute: DebugGraphRoute,
   DebugTerminalRoute: DebugTerminalRoute,
