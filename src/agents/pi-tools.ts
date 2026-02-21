@@ -109,6 +109,7 @@ function resolveExecConfig(params: { cfg?: OpenClawConfig; agentId?: string }) {
       global: globalExec,
       local: agentExec,
     }),
+    ghGuard: agentExec?.ghGuard ?? globalExec?.ghGuard,
     backgroundMs: agentExec?.backgroundMs ?? globalExec?.backgroundMs,
     timeoutSec: agentExec?.timeoutSec ?? globalExec?.timeoutSec,
     approvalRunningNoticeMs:
@@ -367,6 +368,7 @@ export function createOpenClawCodingTools(options?: {
     pathPrepend: options?.exec?.pathPrepend ?? execConfig.pathPrepend,
     safeBins: options?.exec?.safeBins ?? execConfig.safeBins,
     safeBinProfiles: options?.exec?.safeBinProfiles ?? execConfig.safeBinProfiles,
+    ghGuard: options?.exec?.ghGuard ?? execConfig.ghGuard,
     agentId,
     cwd: workspaceRoot,
     allowBackground,
