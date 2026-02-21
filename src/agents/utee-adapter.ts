@@ -16,6 +16,7 @@
  * @see /Users/openclaw/.openclaw/workspace/tim/memory/2026-02-21-utee-notes.md
  */
 
+import { createRequire } from "node:module";
 import { logDebug, logInfo } from "../logger.js";
 
 // ============================================================================
@@ -231,10 +232,9 @@ function initAsyncLocalStorage(): typeof asyncLocalStorage {
     return null;
   }
   try {
-    // Use createRequire for ESM compatibility (synchronous require in ESM)
-    const { createRequire } = require("node:module");
+    // Use createRequire for ESM compatibility (synchronous loading in ESM modules)
     const nodeRequire = createRequire(import.meta.url);
-    const { AsyncLocalStorage } = nodeRequire("async_hooks");
+    const { AsyncLocalStorage } = nodeRequire("node:async_hooks");
     return new AsyncLocalStorage();
   } catch {
     // AsyncLocalStorage not available (rare edge case, non-Node runtime)
