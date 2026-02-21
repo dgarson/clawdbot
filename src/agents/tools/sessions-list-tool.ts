@@ -20,10 +20,30 @@ import {
 } from "./sessions-helpers.js";
 
 const SessionsListToolSchema = Type.Object({
-  kinds: Type.Optional(Type.Array(Type.String())),
-  limit: Type.Optional(Type.Number({ minimum: 1 })),
-  activeMinutes: Type.Optional(Type.Number({ minimum: 1 })),
-  messageLimit: Type.Optional(Type.Number({ minimum: 0 })),
+  kinds: Type.Optional(
+    Type.Array(Type.String(), {
+      description:
+        "Filter to session kinds: 'main', 'group', 'cron', 'hook', 'node', 'other' (combine for OR filter).",
+    }),
+  ),
+  limit: Type.Optional(
+    Type.Number({
+      minimum: 1,
+      description: "Max sessions to return (default: 50).",
+    }),
+  ),
+  activeMinutes: Type.Optional(
+    Type.Number({
+      minimum: 1,
+      description: "Only return sessions active in the last N minutes.",
+    }),
+  ),
+  messageLimit: Type.Optional(
+    Type.Number({
+      minimum: 0,
+      description: "Include last N messages per session (0=none; max 20).",
+    }),
+  ),
 });
 
 export function createSessionsListTool(opts?: {

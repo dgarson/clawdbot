@@ -41,21 +41,56 @@ const GATEWAY_ACTIONS = [
 // because Claude API on Vertex AI rejects nested anyOf schemas as invalid JSON Schema.
 // The discriminator (action) determines which properties are relevant; runtime validates.
 const GatewayToolSchema = Type.Object({
-  action: stringEnum(GATEWAY_ACTIONS),
+  action: stringEnum(GATEWAY_ACTIONS, {
+    description:
+      "'restart', 'config.get', 'config.schema', 'config.apply' (full replace), 'config.patch' (merge), 'update.run'.",
+  }),
   // restart
-  delayMs: Type.Optional(Type.Number()),
-  reason: Type.Optional(Type.String()),
+  delayMs: Type.Optional(
+    Type.Number({
+      description: "Delay before restart in milliseconds (action='restart').",
+    }),
+  ),
+  reason: Type.Optional(
+    Type.String({
+      description: "Human-readable restart reason for logs (action='restart').",
+    }),
+  ),
   // config.get, config.schema, config.apply, update.run
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
+  gatewayUrl: Type.Optional(Type.String({ description: "Custom gateway URL override." })),
+  gatewayToken: Type.Optional(Type.String({ description: "Custom gateway auth token override." })),
+  timeoutMs: Type.Optional(
+    Type.Number({ description: "Request timeout in milliseconds (default: 30000)." }),
+  ),
   // config.apply, config.patch
-  raw: Type.Optional(Type.String()),
-  baseHash: Type.Optional(Type.String()),
+  raw: Type.Optional(
+    Type.String({
+      description:
+        "Full config as YAML string (action='config.apply'/'config.patch'; must be valid OpenClaw config).",
+    }),
+  ),
+  baseHash: Type.Optional(
+    Type.String({
+      description:
+        "SHA256 hash of current config for conflict detection (action='config.apply'/'config.patch').",
+    }),
+  ),
   // config.apply, config.patch, update.run
-  sessionKey: Type.Optional(Type.String()),
-  note: Type.Optional(Type.String()),
-  restartDelayMs: Type.Optional(Type.Number()),
+  sessionKey: Type.Optional(
+    Type.String({
+      description: "Session key for routing completion notification after restart/update.",
+    }),
+  ),
+  note: Type.Optional(
+    Type.String({
+      description: "Message delivered to user after restart/update completes.",
+    }),
+  ),
+  restartDelayMs: Type.Optional(
+    Type.Number({
+      description: "Delay before automatic restart after config apply/update in milliseconds.",
+    }),
+  ),
 });
 // NOTE: We intentionally avoid top-level `allOf`/`anyOf`/`oneOf` conditionals here:
 // - OpenAI rejects tool schemas that include these keywords at the *top-level*.
