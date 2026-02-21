@@ -240,8 +240,8 @@ describe("A2A Audit Logger", () => {
 
       const files = await listLogFiles(testDir);
       expect(files).toHaveLength(3);
-      expect(files[0]).toContain("a2a-2026-02-21.1.jsonl");
-      expect(files[1]).toContain("a2a-2026-02-21.jsonl");
+      expect(files[0]).toContain("a2a-2026-02-21.jsonl");
+      expect(files[1]).toContain("a2a-2026-02-21.1.jsonl");
       expect(files[2]).toContain("a2a-2026-02-22.jsonl");
     });
   });
