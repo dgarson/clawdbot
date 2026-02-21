@@ -52,29 +52,73 @@ async function readJsonlFromPath(jsonlPath: string): Promise<string> {
 
 // Flattened schema: runtime validates per-action requirements.
 const CanvasToolSchema = Type.Object({
-  action: stringEnum(CANVAS_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  node: Type.Optional(Type.String()),
+  action: stringEnum(CANVAS_ACTIONS, {
+    description:
+      "'present' (show canvas), 'hide' (hide), 'navigate' (load URL/HTML), 'eval' (run JS), 'snapshot' (capture), 'a2ui_push' (update A2UI model), 'a2ui_reset' (reset A2UI).",
+  }),
+  gatewayUrl: Type.Optional(Type.String({ description: "Custom gateway URL override." })),
+  gatewayToken: Type.Optional(Type.String({ description: "Custom gateway auth token override." })),
+  timeoutMs: Type.Optional(
+    Type.Number({ description: "Request timeout in milliseconds (default: 30000)." }),
+  ),
+  node: Type.Optional(
+    Type.String({
+      description:
+        "Node ID or name to target (use 'status' or 'describe' to list available nodes).",
+    }),
+  ),
   // present
-  target: Type.Optional(Type.String()),
-  x: Type.Optional(Type.Number()),
-  y: Type.Optional(Type.Number()),
-  width: Type.Optional(Type.Number()),
-  height: Type.Optional(Type.Number()),
+  target: Type.Optional(Type.String({ description: "Target canvas element identifier." })),
+  x: Type.Optional(Type.Number({ description: "Canvas window X position in pixels." })),
+  y: Type.Optional(Type.Number({ description: "Canvas window Y position in pixels." })),
+  width: Type.Optional(Type.Number({ description: "Canvas window width in pixels." })),
+  height: Type.Optional(Type.Number({ description: "Canvas window height in pixels." })),
   // navigate
-  url: Type.Optional(Type.String()),
+  url: Type.Optional(
+    Type.String({
+      description: "URL or HTML string to load in canvas (action='navigate').",
+    }),
+  ),
   // eval
-  javaScript: Type.Optional(Type.String()),
+  javaScript: Type.Optional(
+    Type.String({
+      description: "JavaScript code to execute in canvas window context (action='eval').",
+    }),
+  ),
   // snapshot
-  outputFormat: optionalStringEnum(CANVAS_SNAPSHOT_FORMATS),
-  maxWidth: Type.Optional(Type.Number()),
-  quality: Type.Optional(Type.Number()),
-  delayMs: Type.Optional(Type.Number()),
+  outputFormat: optionalStringEnum(CANVAS_SNAPSHOT_FORMATS, {
+    description: "Image format for snapshot: 'png', 'jpg', 'jpeg' (action='snapshot').",
+  }),
+  maxWidth: Type.Optional(
+    Type.Number({
+      description:
+        "Max snapshot image width in pixels; aspect ratio preserved (action='snapshot').",
+    }),
+  ),
+  quality: Type.Optional(
+    Type.Number({
+      description: "JPEG quality 0-100 (default 80; action='snapshot' with JPEG format).",
+    }),
+  ),
+  delayMs: Type.Optional(
+    Type.Number({
+      description:
+        "Milliseconds to wait before capturing snapshot (allows animations to complete; action='snapshot').",
+    }),
+  ),
   // a2ui_push
-  jsonl: Type.Optional(Type.String()),
-  jsonlPath: Type.Optional(Type.String()),
+  jsonl: Type.Optional(
+    Type.String({
+      description:
+        "JSONL model data to push to A2UI (each line is a JSON object; action='a2ui_push').",
+    }),
+  ),
+  jsonlPath: Type.Optional(
+    Type.String({
+      description:
+        "File path to JSONL model data (alternative to inline 'jsonl'; action='a2ui_push').",
+    }),
+  ),
 });
 
 export function createCanvasTool(options?: { config?: OpenClawConfig }): AnyAgentTool {

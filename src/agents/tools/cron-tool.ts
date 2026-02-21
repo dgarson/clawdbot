@@ -29,20 +29,73 @@ const REMINDER_CONTEXT_MARKER = "\n\nRecent context:\n";
 
 // Flattened schema: runtime validates per-action requirements.
 const CronToolSchema = Type.Object({
-  action: stringEnum(CRON_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  includeDisabled: Type.Optional(Type.Boolean()),
-  job: Type.Optional(Type.Object({}, { additionalProperties: true })),
-  jobId: Type.Optional(Type.String()),
-  id: Type.Optional(Type.String()),
-  patch: Type.Optional(Type.Object({}, { additionalProperties: true })),
-  text: Type.Optional(Type.String()),
-  mode: optionalStringEnum(CRON_WAKE_MODES),
-  runMode: optionalStringEnum(CRON_RUN_MODES),
+  action: stringEnum(CRON_ACTIONS, {
+    description:
+      "'status' (daemon status), 'list' (list jobs), 'add' (create), 'update' (patch), 'remove' (delete), 'run' (run now), 'runs' (run history), 'wake' (wake daemon).",
+  }),
+  gatewayUrl: Type.Optional(
+    Type.String({ description: "Custom gateway URL override for this request." }),
+  ),
+  gatewayToken: Type.Optional(
+    Type.String({ description: "Custom gateway auth token override for this request." }),
+  ),
+  timeoutMs: Type.Optional(
+    Type.Number({ description: "Request timeout in milliseconds (default: 30000)." }),
+  ),
+  includeDisabled: Type.Optional(
+    Type.Boolean({
+      description: "If true, include disabled jobs in list results (default: false).",
+    }),
+  ),
+  job: Type.Optional(
+    Type.Object(
+      {},
+      {
+        additionalProperties: true,
+        description:
+          "Job spec object for 'add' action (fields: name, schedule, delivery, message, etc.).",
+      },
+    ),
+  ),
+  jobId: Type.Optional(
+    Type.String({
+      description: "Job ID (required for 'update', 'remove', 'run' actions).",
+    }),
+  ),
+  id: Type.Optional(
+    Type.String({
+      description: "Job ID alias for backward compatibility (prefer jobId).",
+    }),
+  ),
+  patch: Type.Optional(
+    Type.Object(
+      {},
+      {
+        additionalProperties: true,
+        description:
+          "Partial job update for 'update' action (e.g. {enabled: true, schedule: '0 9 * * *'}).",
+      },
+    ),
+  ),
+  text: Type.Optional(
+    Type.String({
+      description: "Message text or reminder content (used with 'add' action).",
+    }),
+  ),
+  mode: optionalStringEnum(CRON_WAKE_MODES, {
+    description: "Wake mode: 'now' (immediate) or 'next-heartbeat' (action='wake').",
+  }),
+  runMode: optionalStringEnum(CRON_RUN_MODES, {
+    description:
+      "Run mode: 'due' (only if overdue) or 'force' (regardless of schedule; action='run').",
+  }),
   contextMessages: Type.Optional(
-    Type.Number({ minimum: 0, maximum: REMINDER_CONTEXT_MESSAGES_MAX }),
+    Type.Number({
+      minimum: 0,
+      maximum: REMINDER_CONTEXT_MESSAGES_MAX,
+      description:
+        "Number of recent chat messages to include as context when running the job (0-10).",
+    }),
   ),
 });
 
