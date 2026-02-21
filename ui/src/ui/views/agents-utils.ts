@@ -49,6 +49,7 @@ export const TOOL_SECTIONS = [
       { id: "sessions_history", label: "sessions_history", description: "Session history" },
       { id: "sessions_send", label: "sessions_send", description: "Send to session" },
       { id: "sessions_spawn", label: "sessions_spawn", description: "Spawn sub-agent" },
+      { id: "subagents", label: "subagents", description: "Sub-agent coordination" },
       { id: "session_status", label: "session_status", description: "Session status" },
     ],
   },
@@ -114,6 +115,15 @@ type AgentConfigEntry = {
     allow?: string[];
     alsoAllow?: string[];
     deny?: string[];
+    byProvider?: Record<
+      string,
+      {
+        profile?: string;
+        allow?: string[];
+        alsoAllow?: string[];
+        deny?: string[];
+      }
+    >;
   };
 };
 
@@ -127,6 +137,26 @@ type ConfigSnapshot = {
     allow?: string[];
     alsoAllow?: string[];
     deny?: string[];
+    byProvider?: Record<
+      string,
+      {
+        profile?: string;
+        allow?: string[];
+        alsoAllow?: string[];
+        deny?: string[];
+      }
+    >;
+    agentToAgent?: {
+      enabled?: boolean;
+      allow?: string[];
+    };
+    subagents?: {
+      model?: string | { primary?: string; fallbacks?: string[] };
+      tools?: {
+        allow?: string[];
+        deny?: string[];
+      };
+    };
   };
 };
 

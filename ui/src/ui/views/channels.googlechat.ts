@@ -1,4 +1,6 @@
-import { html, nothing } from "lit";
+import { html } from "lit";
+import { renderChannelCard } from "../components/channel-card.ts";
+import { type StatusListItem } from "../components/core-cards.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import type { GoogleChatStatus } from "../types.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
@@ -10,70 +12,43 @@ export function renderGoogleChatCard(params: {
   accountCountLabel: unknown;
 }) {
   const { props, googleChat, accountCountLabel } = params;
+  const statusItems: StatusListItem[] = [
+    {
+      label: "Configured",
+      value: googleChat ? (googleChat.configured ? "Yes" : "No") : "n/a",
+    },
+    {
+      label: "Running",
+      value: googleChat ? (googleChat.running ? "Yes" : "No") : "n/a",
+    },
+    {
+      label: "Credential",
+      value: googleChat?.credentialSource ?? "n/a",
+    },
+    {
+      label: "Audience",
+      value: googleChat?.audienceType
+        ? `${googleChat.audienceType}${googleChat.audience ? ` · ${googleChat.audience}` : ""}`
+        : "n/a",
+    },
+    {
+      label: "Last start",
+      value: googleChat?.lastStartAt ? formatRelativeTimestamp(googleChat.lastStartAt) : "n/a",
+    },
+    {
+      label: "Last probe",
+      value: googleChat?.lastProbeAt ? formatRelativeTimestamp(googleChat.lastProbeAt) : "n/a",
+    },
+  ];
 
-  return html`
-    <div class="card">
-      <div class="card-title">Google Chat</div>
-      <div class="card-sub">Chat API webhook status and channel configuration.</div>
-      ${accountCountLabel}
-
-      <div class="status-list" style="margin-top: 16px;">
-        <div>
-          <span class="label">Configured</span>
-          <span>${googleChat ? (googleChat.configured ? "Yes" : "No") : "n/a"}</span>
-        </div>
-        <div>
-          <span class="label">Running</span>
-          <span>${googleChat ? (googleChat.running ? "Yes" : "No") : "n/a"}</span>
-        </div>
-        <div>
-          <span class="label">Credential</span>
-          <span>${googleChat?.credentialSource ?? "n/a"}</span>
-        </div>
-        <div>
-          <span class="label">Audience</span>
-          <span>
-            ${
-              googleChat?.audienceType
-                ? `${googleChat.audienceType}${googleChat.audience ? ` · ${googleChat.audience}` : ""}`
-                : "n/a"
-            }
-          </span>
-        </div>
-        <div>
-          <span class="label">Last start</span>
-          <span>${googleChat?.lastStartAt ? formatRelativeTimestamp(googleChat.lastStartAt) : "n/a"}</span>
-        </div>
-        <div>
-          <span class="label">Last probe</span>
-          <span>${googleChat?.lastProbeAt ? formatRelativeTimestamp(googleChat.lastProbeAt) : "n/a"}</span>
-        </div>
-      </div>
-
-      ${
-        googleChat?.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${googleChat.lastError}
-          </div>`
-          : nothing
-      }
-
-      ${
-        googleChat?.probe
-          ? html`<div class="callout" style="margin-top: 12px;">
-            Probe ${googleChat.probe.ok ? "ok" : "failed"} ·
-            ${googleChat.probe.status ?? ""} ${googleChat.probe.error ?? ""}
-          </div>`
-          : nothing
-      }
-
-      ${renderChannelConfigSection({ channelId: "googlechat", props })}
-
-      <div class="row" style="margin-top: 12px;">
-        <button class="btn" @click=${() => props.onRefresh(true)}>
-          Probe
-        </button>
-      </div>
-    </div>
-  `;
+  return renderChannelCard({
+    title: "Google Chat",
+    subtitle: "Chat API webhook status and channel configuration.",
+    accountCountLabel,
+    statusItems,
+    error: googleChat?.lastError ?? null,
+    probe: googleChat?.probe ?? null,
+    configSection: renderChannelConfigSection({ channelId: "googlechat", props }),
+    actions: html`<button class="btn" @click=${() => props.onRefresh(true)}>Probe</button>`,
+  });
 }

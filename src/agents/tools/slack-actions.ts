@@ -16,7 +16,7 @@ import {
   sendSlackMessage,
   unpinSlackMessage,
 } from "../../slack/actions.js";
-import { parseSlackBlocksInput } from "../../slack/blocks-input.js";
+import { parseSlackBlocks } from "../../slack/blocks/validation.js";
 import { parseSlackTarget, resolveSlackChannelId } from "../../slack/targets.js";
 import { withNormalizedTimestamp } from "../date-time.js";
 import {
@@ -86,7 +86,7 @@ function resolveThreadTsFromContext(
 }
 
 function readSlackBlocksParam(params: Record<string, unknown>) {
-  return parseSlackBlocksInput(params.blocks);
+  return parseSlackBlocks(params.blocks);
 }
 
 export async function handleSlackAction(
