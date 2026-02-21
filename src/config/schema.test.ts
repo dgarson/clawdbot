@@ -117,4 +117,15 @@ describe("config schema", () => {
     expect(defaultsHint?.help).toContain("last");
     expect(listHint?.help).toContain("bluebubbles");
   });
+
+  it("includes labels for session auto-label settings", () => {
+    const res = buildConfigSchema();
+
+    expect(res.uiHints["agents.defaults.sessionLabels.enabled"]?.label).toBe("Auto-Label Sessions");
+    expect(res.uiHints["agents.defaults.sessionLabels.model"]?.label).toBe("Session Label Model");
+    expect(res.uiHints["agents.defaults.sessionLabels.maxLength"]?.label).toBe(
+      "Session Label Max Length",
+    );
+    expect(res.uiHints["agents.defaults.sessionLabels.prompt"]?.label).toBe("Session Label Prompt");
+  });
 });
