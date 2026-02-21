@@ -288,11 +288,8 @@ else
   PR_NUMBER=""
 fi
 
-PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number // empty' 2>/dev/null || echo "")
-PR_URL=$(echo "$PR_JSON" | jq -r '.url // empty' 2>/dev/null || echo "")
-
 if [[ -z "$PR_NUMBER" ]]; then
-  echo "{\"error\": \"Failed to create PR\", \"details\": $(echo "$PR_JSON" | jq -Rs .)}" >&2
+  echo "{\"error\": \"Failed to create PR\", \"details\": $(echo "$PR_OUTPUT" | jq -Rs .)}" >&2
   exit 1
 fi
 

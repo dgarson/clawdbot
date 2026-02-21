@@ -38,12 +38,11 @@ OVERDUE=$(sqlite3 -json "$DB_PATH" "
     minutes_overdue DESC
 " 2>/dev/null || echo '[]')
 
-OVERDUE_COUNT=$(echo "$OVERDUE" | jq 'length')
-
-if [[ "$OVERDUE_COUNT" == "0" ]]; then
-  echo '{"actions": [], "summary": "All reviews within SLA"}'
-  exit 0
+# sqlite3 -json may emit an empty string when there are no rows; normalize to []
+if [[ -z "${OVERDUE:-}" ]]; then
+  OVERDUE='[]'
 fi
+OVERDUE_COUNT=$(echo "$OVERDUE" | jq 'length')
 
 # --- Find reviews approaching SLA (within 5 min) ---
 APPROACHING=$(sqlite3 -json "$DB_PATH" "
@@ -56,6 +55,9 @@ APPROACHING=$(sqlite3 -json "$DB_PATH" "
     AND sla_deadline < datetime('now', '+5 minutes')
     AND reminder_sent_at IS NULL
 " 2>/dev/null || echo '[]')
+if [[ -z "${APPROACHING:-}" ]]; then
+  APPROACHING='[]'
+fi
 
 # --- Build escalation actions ---
 ACTIONS=$(echo "$OVERDUE" | jq --argjson config "$(cat "$TIER_CONFIG")" '
@@ -109,7 +111,7 @@ if [[ "$DRY_RUN" != "true" ]]; then
     "
   done
 
-  echo "$APPROACHING" | jq -r '.[].handoffId' | while read -r hid; do
+  echo "$APPROACHING" | jq -r '.[].id' | while read -r hid; do
     sqlite3 "$DB_PATH" "
       UPDATE handoffs 
       SET reminder_sent_at = datetime('now'), updated_at = datetime('now')
