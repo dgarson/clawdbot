@@ -4,11 +4,12 @@ import type {
   AgentToolUpdateCallback,
 } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
-import { logDebug, logError } from "../logger.js";
-import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
-import { isPlainObject } from "../utils.js";
 import type { ClientToolDefinition } from "./pi-embedded-runner/run/params.js";
 import type { HookContext } from "./pi-tools.before-tool-call.js";
+import { logDebug, logError } from "../logger.js";
+import { isFileMissingError } from "../memory/fs-utils.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
+import { isPlainObject } from "../utils.js";
 import {
   consumeAdjustedParamsForToolCall,
   isToolWrappedWithBeforeToolCallHook,
@@ -16,6 +17,7 @@ import {
 } from "./pi-tools.before-tool-call.js";
 import { normalizeToolName } from "./tool-policy.js";
 import { jsonResult } from "./tools/common.js";
+import { isUteeEnabled, wrapExecuteWithUtee } from "./utee-adapter.js";
 
 type AnyAgentTool = AgentTool;
 
@@ -91,6 +93,13 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
     const name = tool.name || "tool";
     const normalizedName = normalizeToolName(name);
     const beforeHookWrapped = isToolWrappedWithBeforeToolCallHook(tool);
+
+    // Wrap tool.execute with UTEE observability if enabled
+    const originalExecute = tool.execute.bind(tool);
+    const uteeWrappedExecute = isUteeEnabled()
+      ? wrapExecuteWithUtee(name, originalExecute)
+      : originalExecute;
+
     return {
       name,
       label: tool.label ?? name,
@@ -111,7 +120,8 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
             executeParams = hookOutcome.params;
           }
-          const result = await tool.execute(toolCallId, executeParams, signal, onUpdate);
+          // Use UTEE-wrapped execute (pass-through when disabled)
+          const result = await uteeWrappedExecute(toolCallId, executeParams, signal, onUpdate);
           const afterParams = beforeHookWrapped
             ? (consumeAdjustedParamsForToolCall(toolCallId) ?? executeParams)
             : executeParams;
@@ -154,7 +164,13 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
           if (described.stack && described.stack !== described.message) {
             logDebug(`tools: ${normalizedName} failed stack:\n${described.stack}`);
           }
-          logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          // Suppress ENOENT at error level for read tool — file-not-found is expected when
+          // the agent probes for a file's existence (e.g. memory/YYYY-MM-DD.md) before writing.
+          if (normalizedName === "read" && isFileMissingError(err)) {
+            logDebug(`[tools] ${normalizedName} not found: ${described.message}`);
+          } else {
+            logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          }
 
           const errorResult = jsonResult({
             status: "error",
