@@ -829,6 +829,7 @@ function ChatAgentBuilderPage() {
         description: draft.description,
         model: draft.model,
         tags: draft.tags,
+        status: "offline", // New agents start offline until first session
       });
 
       addMessage({

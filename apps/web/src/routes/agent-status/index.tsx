@@ -6,7 +6,7 @@
  */
 
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   Activity,
   Bot,
+  Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -210,6 +211,12 @@ function AgentStatusDashboardPage() {
                   <RefreshCw className="h-4 w-4 text-muted-foreground" />
                 </motion.div>
               )}
+              <Button asChild variant="ghost" size="sm" className="gap-2">
+                <Link to="/agents/graph">
+                  <Network className="h-4 w-4" />
+                  Graph View
+                </Link>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
