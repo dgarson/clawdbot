@@ -377,13 +377,14 @@ export class AsyncSubagentBroker {
         .filter(Boolean)
         .join("\n\n");
 
-      const timeoutMs = Math.max(1000, Math.min(job.expiresAt - Date.now(), 20_000));
-      if (timeoutMs <= 0) {
+      const remainingMs = job.expiresAt - Date.now();
+      if (remainingMs <= 0) {
         this.store.markExpired(job.jobId, "expired before run call");
         this._metrics.expired += 1;
         await this.speakFallbackIfActive(job.callId);
         return;
       }
+      const timeoutMs = Math.max(1000, Math.min(remainingMs, 20_000));
 
       const result = await deps.runEmbeddedPiAgent({
         sessionId: sessionEntry.sessionId,
@@ -480,7 +481,11 @@ export class AsyncSubagentBroker {
       this.store.markFailed(job.jobId, reason);
       this._metrics.failed += 1;
       this._metrics.totalExecutionMs += Date.now() - jobStartMs;
-      await this.speakFallbackIfActive(job.callId);
+      try {
+        await this.speakFallbackIfActive(job.callId);
+      } catch (fallbackErr) {
+        console.warn("[voice-call] Fallback speech also failed:", fallbackErr);
+      }
     } finally {
       // Clean up temp session files.
       for (const filePath of tempFiles) {

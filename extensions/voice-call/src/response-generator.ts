@@ -108,7 +108,7 @@ export async function generateVoiceResponse(
   // Conversation history goes into a clearly delimited section in the middle.
   const basePrompt =
     voiceConfig.responseSystemPrompt ??
-    `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. You have access to tools - use them when helpful.`;
+    `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. For simple questions, answer directly. For tasks requiring research, scheduling, or policy checks, delegate to a specialist.`;
 
   const historyBlock =
     transcript.length > 0
