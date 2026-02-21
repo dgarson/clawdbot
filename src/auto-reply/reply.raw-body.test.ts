@@ -30,6 +30,8 @@ vi.mock("../web/session.js", () => ({
 }));
 
 import { getReplyFromConfig } from "./reply.js";
+import { HISTORY_CONTEXT_MARKER } from "./reply/history.js";
+import { CURRENT_MESSAGE_MARKER } from "./reply/mentions.js";
 
 const { withTempHome } = createTempHomeHarness({ prefix: "openclaw-rawbody-" });
 
@@ -88,6 +90,62 @@ describe("RawBody directive parsing", () => {
       expect(prompt).toContain('"body": "hello"');
       expect(prompt).toContain("status please");
       expect(prompt).not.toContain("/think:high");
+    });
+  });
+
+  it("does not duplicate history when Body contains embedded envelope history", async () => {
+    await withTempHome(async (home) => {
+      agentMocks.runEmbeddedPiAgent.mockResolvedValue({
+        payloads: [{ text: "ok" }],
+        meta: {
+          durationMs: 1,
+          agentMeta: { sessionId: "s", provider: "p", model: "m" },
+        },
+      });
+
+      // Simulate the composite Body that buildPendingHistoryContextFromMap produces:
+      // history envelope text followed by the current message marker and current message.
+      const embeddedBody = [
+        HISTORY_CONTEXT_MARKER,
+        "Peter: hello",
+        "",
+        CURRENT_MESSAGE_MARKER,
+        "what is 2+2",
+      ].join("\n");
+
+      const groupMessageCtx = {
+        // Body has history embedded (as real providers produce via buildPendingHistoryContextFromMap)
+        Body: embeddedBody,
+        RawBody: "what is 2+2",
+        // InboundHistory is the structured canonical source of the same history
+        InboundHistory: [{ sender: "Peter", body: "hello", timestamp: 1700000000000 }],
+        From: "+1222",
+        To: "+1222",
+        ChatType: "group",
+        GroupSubject: "Ops",
+        SenderName: "Jake McInteer",
+        SenderE164: "+6421807830",
+        CommandAuthorized: true,
+      };
+
+      await getReplyFromConfig(groupMessageCtx, {}, makeReplyConfig(home) as OpenClawConfig);
+
+      const prompt =
+        (agentMocks.runEmbeddedPiAgent.mock.calls[0]?.[0] as { prompt?: string } | undefined)
+          ?.prompt ?? "";
+
+      // Current message should be present
+      expect(prompt).toContain("what is 2+2");
+
+      // History should appear via the structured InboundHistory JSON block
+      expect(prompt).toContain("Chat history since last reply (untrusted, for context):");
+      expect(prompt).toContain('"sender": "Peter"');
+      expect(prompt).toContain('"body": "hello"');
+
+      // The raw envelope history header from Body must NOT appear — Body should
+      // contribute only the current message, not the embedded history prefix.
+      expect(prompt).not.toContain(HISTORY_CONTEXT_MARKER);
+      expect(prompt).not.toContain(CURRENT_MESSAGE_MARKER);
     });
   });
 });

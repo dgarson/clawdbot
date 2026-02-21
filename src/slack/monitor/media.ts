@@ -489,3 +489,84 @@ export async function resolveSlackThreadHistory(params: {
     return [];
   }
 }
+
+export type SlackAdjacentChannelMessage = {
+  text: string;
+  userId?: string;
+  botId?: string;
+  ts?: string;
+  /** Non-zero when this root message has thread replies. */
+  replyCount?: number;
+  /** Timestamp string of the most recent reply, when thread replies exist. */
+  latestReply?: string;
+};
+
+type SlackHistoryPageMessage = {
+  text?: string;
+  user?: string;
+  bot_id?: string;
+  ts?: string;
+  /** thread_ts is set when the message is part of a thread. When thread_ts === ts, it is the root. */
+  thread_ts?: string;
+  reply_count?: number;
+  latest_reply?: string;
+};
+
+type SlackHistoryPage = {
+  messages?: SlackHistoryPageMessage[];
+  response_metadata?: { next_cursor?: string };
+};
+
+/**
+ * Fetches the most recent root-level channel messages before a given thread timestamp.
+ * Used to provide adjacent channel context when a new thread session starts.
+ *
+ * Thread replies (messages where thread_ts differs from ts) are excluded so
+ * only top-level channel conversation is included. Results are returned in
+ * chronological order (oldest first), annotated with reply metadata when present.
+ */
+export async function resolveSlackAdjacentChannelHistory(params: {
+  channelId: string;
+  threadTs: string;
+  client: SlackWebClient;
+  limit?: number;
+}): Promise<SlackAdjacentChannelMessage[]> {
+  const maxMessages = params.limit ?? 5;
+  if (!Number.isFinite(maxMessages) || maxMessages <= 0) {
+    return [];
+  }
+
+  try {
+    const response = (await params.client.conversations.history({
+      channel: params.channelId,
+      latest: params.threadTs,
+      inclusive: false,
+      limit: Math.min(maxMessages * 3, 100), // fetch extra to account for filtered thread replies
+    })) as SlackHistoryPage;
+
+    const rootMessages = (response.messages ?? []).filter((msg) => {
+      if (!msg.text?.trim()) {
+        return false;
+      }
+      // Exclude thread replies: a reply has thread_ts set and thread_ts !== ts
+      if (msg.thread_ts && msg.thread_ts !== msg.ts) {
+        return false;
+      }
+      return true;
+    });
+
+    // conversations.history returns newest-first; take the N most recent then reverse to chronological
+    const retained = rootMessages.slice(0, maxMessages).toReversed();
+
+    return retained.map((msg) => ({
+      text: msg.text!.trim(),
+      userId: msg.user,
+      botId: msg.bot_id,
+      ts: msg.ts,
+      replyCount: msg.reply_count && msg.reply_count > 0 ? msg.reply_count : undefined,
+      latestReply: msg.latest_reply,
+    }));
+  } catch {
+    return [];
+  }
+}
