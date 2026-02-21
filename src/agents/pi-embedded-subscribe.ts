@@ -45,7 +45,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     reasoningMode,
     includeReasoning: reasoningMode === "on",
     shouldEmitPartialReplies: !(reasoningMode === "on" && !params.onBlockReply),
-    streamReasoning: reasoningMode === "stream" && typeof params.onReasoningStream === "function",
+    streamReasoning: reasoningMode === "stream",
     deltaBuffer: "",
     blockBuffer: "",
     // Track if a streamed chunk opened a <think> block (stateful across chunks).
@@ -550,7 +550,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   };
 
   const emitReasoningStream = (text: string) => {
-    if (!state.streamReasoning || !params.onReasoningStream) {
+    if (!state.streamReasoning) {
       return;
     }
     const formatted = formatReasoningMessage(text);
@@ -566,7 +566,10 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     const delta = formatted.startsWith(prior) ? formatted.slice(prior.length) : formatted;
     state.lastStreamedReasoning = formatted;
 
-    // Broadcast thinking event to WebSocket clients in real-time
+    // Broadcast thinking event to WebSocket clients in real-time.
+    // Fires regardless of whether onReasoningStream is set — the gateway
+    // path relies solely on emitAgentEvent; onReasoningStream is only used
+    // by messaging surfaces (Telegram, Discord) that pass a local callback.
     emitAgentEvent({
       runId: params.runId,
       stream: "thinking",
@@ -576,9 +579,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       },
     });
 
-    void params.onReasoningStream({
-      text: formatted,
-    });
+    if (params.onReasoningStream) {
+      void params.onReasoningStream({
+        text: formatted,
+      });
+    }
   };
 
   const resetForCompactionRetry = () => {
@@ -636,7 +641,12 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     getCompactionCount: () => compactionCount,
   };
 
-  const sessionUnsubscribe = params.session.subscribe(createEmbeddedPiSessionEventHandler(ctx));
+  let lastEventTime = Date.now();
+  const baseEventHandler = createEmbeddedPiSessionEventHandler(ctx);
+  const sessionUnsubscribe = params.session.subscribe((evt) => {
+    lastEventTime = Date.now();
+    baseEventHandler(evt);
+  });
 
   const unsubscribe = () => {
     if (state.unsubscribed) {
@@ -688,6 +698,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     getLastToolError: () => (state.lastToolError ? { ...state.lastToolError } : undefined),
     getUsageTotals,
     getCompactionCount: () => compactionCount,
+    getLastEventTime: () => lastEventTime,
     waitForCompactionRetry: () => {
       // Reject after unsubscribe so callers treat it as cancellation, not success
       if (state.unsubscribed) {

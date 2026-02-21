@@ -8,6 +8,7 @@ import type {
   SandboxPruneSettings,
 } from "./types.sandbox.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentModelConfig =
   | string
@@ -63,6 +64,10 @@ export type AgentConfig = {
     prune?: SandboxPruneSettings;
   };
   tools?: AgentToolsConfig;
+  /** Agent runtime: "pi" (default) or "claude-sdk". */
+  runtime?: "pi" | "claude-sdk";
+  /** Claude Agent SDK provider config (used when runtime is "claude-sdk"). */
+  claudeSdk?: ClaudeSdkConfig;
 };
 
 export type AgentsConfig = {

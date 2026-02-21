@@ -518,6 +518,7 @@ export async function runEmbeddedPiAgent(
             model,
             authStorage,
             modelRegistry,
+            resolvedProviderAuth: apiKeyInfo ?? undefined,
             agentId: workspaceResolution.agentId,
             thinkLevel,
             verboseLevel: params.verboseLevel,
@@ -545,6 +546,7 @@ export async function runEmbeddedPiAgent(
             streamParams: params.streamParams,
             ownerNumbers: params.ownerNumbers,
             enforceFinalTag: params.enforceFinalTag,
+            runtime: params.runtime,
           });
 
           const {
