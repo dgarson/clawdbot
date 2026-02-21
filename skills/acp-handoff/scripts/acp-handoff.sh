@@ -243,36 +243,49 @@ PR_BODY="$PR_BODY
 ---
 *Opened automatically by ACP Handoff*"
 
-# Detect fork prefix for cross-fork PRs
-FORK_PREFIX=""
-ORIGIN_URL=$(git remote get-url origin 2>/dev/null || echo "")
-UPSTREAM_URL=$(git remote get-url upstream 2>/dev/null || echo "")
-if [[ -n "$UPSTREAM_URL" && -n "$ORIGIN_URL" && "$ORIGIN_URL" != "$UPSTREAM_URL" ]]; then
-  # Working from a fork — extract fork owner for --head
-  FORK_OWNER=$(echo "$ORIGIN_URL" | sed -E 's|.*[:/]([^/]+)/[^/]+(\.git)?$|\1|')
-  FORK_PREFIX="${FORK_OWNER}:"
-  # PR targets the upstream repo
-  REPO=$(echo "$UPSTREAM_URL" | sed -E 's|.*[:/]([^/]+/[^/.]+)(\.git)?$|\1|')
+# CRITICAL: Always target origin (dgarson/clawdbot), NEVER upstream (openclaw/openclaw)
+# This is a hard rule per WORK_PROTOCOL.md Section 6.
+PR_TARGET_REPO="${ACP_PR_TARGET_REPO:-}"
+if [[ -z "$PR_TARGET_REPO" ]]; then
+  # Auto-detect from origin remote (which is always our target)
+  ORIGIN_URL=$(git remote get-url origin 2>/dev/null || echo "")
+  if [[ -n "$ORIGIN_URL" ]]; then
+    PR_TARGET_REPO=$(echo "$ORIGIN_URL" | sed -E 's|.*[:/]([^/]+/[^/.]+)(\.git)?$|\1|')
+  fi
 fi
+
+# Safety check: NEVER open PRs against openclaw/openclaw
+if [[ "$PR_TARGET_REPO" == "openclaw/openclaw" ]]; then
+  echo '{"error": "BLOCKED: Cannot open PRs against openclaw/openclaw (upstream). PRs must target dgarson/clawdbot (origin). Set ACP_PR_TARGET_REPO or fix your git remotes."}' >&2
+  exit 1
+fi
+
+if [[ -z "$PR_TARGET_REPO" ]]; then
+  echo '{"error": "Could not determine PR target repo. Set ACP_PR_TARGET_REPO or ensure origin remote is configured."}' >&2
+  exit 1
+fi
+
+# Override REPO with the safe target
+REPO="$PR_TARGET_REPO"
 
 # Create the PR
 PR_OUTPUT=$(gh pr create \
   --repo "$REPO" \
-  --head "${FORK_PREFIX}${BRANCH}" \
+  --head "$BRANCH" \
   --base main \
   --title "$PR_TITLE" \
   --body "$PR_BODY" 2>&1) || {
   # If PR already exists, try to get it
-  PR_OUTPUT=$(gh pr view "$BRANCH" --repo "$REPO" --json number,url 2>/dev/null || echo "")
+  PR_OUTPUT=$(gh pr view "$BRANCH" --repo "$REPO" 2>/dev/null || echo "")
 }
 
-# Parse PR URL from output (gh pr create returns just the URL without --json)
+# Parse PR URL from output (gh pr create returns just the URL)
 if echo "$PR_OUTPUT" | grep -q "github.com"; then
   PR_URL=$(echo "$PR_OUTPUT" | grep -oE 'https://github.com/[^ ]+' | head -1)
   PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
-  PR_JSON="{\"number\": $PR_NUMBER, \"url\": \"$PR_URL\"}"
 else
-  PR_JSON="$PR_OUTPUT"
+  PR_URL=""
+  PR_NUMBER=""
 fi
 
 PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number // empty' 2>/dev/null || echo "")
