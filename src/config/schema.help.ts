@@ -87,6 +87,14 @@ export const FIELD_HELP: Record<string, string> = {
   "tools.exec.pathPrepend": "Directories to prepend to PATH for exec runs (gateway/sandbox).",
   "tools.exec.safeBins":
     "Allow stdin-only safe binaries to run without explicit allowlist entries.",
+  "tools.exec.ghGuard.enabled":
+    "Enable deterministic guardrails for git/gh commands (default: false).",
+  "tools.exec.ghGuard.protectedBranches":
+    'Branch names that git push must never target when ghGuard is enabled (default: ["main"]).',
+  "tools.exec.ghGuard.allowedPrRepos":
+    "Allowed owner/repo targets for gh pr create --repo/-R when ghGuard is enabled.",
+  "tools.exec.ghGuard.requireExplicitPrRepo":
+    "Require gh pr create to include explicit --repo/-R when ghGuard is enabled (default: true).",
   "tools.fs.workspaceOnly":
     "Restrict filesystem tools (read/write/edit/apply_patch) to the workspace directory (default: false).",
   "tools.sessions.visibility":
