@@ -1,4 +1,3 @@
-"use client";
 
 import type {
   WorktreeAdapter,
@@ -103,4 +102,3 @@ export function createWorktreeHttpAdapter(endpoints = createDefaultWorktreeEndpo
     },
   };
 }
-

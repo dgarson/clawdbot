@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { ExternalLink, CheckCircle2, Loader2, ShieldCheck, Zap, KeyRound } from "lucide-react";

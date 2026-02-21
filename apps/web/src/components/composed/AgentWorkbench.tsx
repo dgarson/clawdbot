@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -262,4 +261,3 @@ export function AgentWorkbench({
 }
 
 export default AgentWorkbench;
-

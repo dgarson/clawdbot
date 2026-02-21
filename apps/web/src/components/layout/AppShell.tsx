@@ -1,6 +1,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
+import { MobileBottomNav } from "./MobileBottomNav";
 import { cn } from "@/lib/utils";
 import { ApprovalAttentionNudgeConnected } from "@/components/composed/ApprovalAttentionNudge";
 import { SkipNavLink, SkipNavContent } from "@/components/composed/SkipNav";
@@ -34,6 +35,9 @@ export function AppShell({ children, panel, className }: AppShellProps) {
         <Sidebar />
       </div>
 
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav />
+
       {/* Main Content Area */}
       <motion.main
         initial={false}
@@ -54,7 +58,7 @@ export function AppShell({ children, panel, className }: AppShellProps) {
                 "bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
               )}
             />
-            <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-7xl px-4 py-6 pb-20 md:pb-6 sm:px-6 lg:px-8">
               {children}
             </div>
           </div>

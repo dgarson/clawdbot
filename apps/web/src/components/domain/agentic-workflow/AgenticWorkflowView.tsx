@@ -1,4 +1,3 @@
-"use client";
 import { cn } from "@/lib/utils";
 import { Bot, Command as CommandIcon, Shield, Sparkles, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { ChevronDown, Settings2 } from "lucide-react";

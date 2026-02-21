@@ -23,6 +23,7 @@ import {
   Monitor,
   Share2,
   Activity,
+  Puzzle,
   ScrollText,
   BarChart3,
   Keyboard,
@@ -311,6 +312,12 @@ export function Sidebar({ className }: SidebarProps) {
               label={t("nav.rituals")}
               collapsed={sidebarCollapsed}
             />
+            <NavItem
+              href="/skills"
+              icon={Puzzle}
+              label="Skills"
+              collapsed={sidebarCollapsed}
+            />
           </NavSection>
         </div>
 
@@ -360,6 +367,12 @@ export function Sidebar({ className }: SidebarProps) {
                   href="/analytics"
                   icon={BarChart3}
                   label={t("nav.analytics")}
+                  collapsed={sidebarCollapsed}
+                />
+                <NavItem
+                  href="/logs"
+                  icon={ScrollText}
+                  label="Logs"
                   collapsed={sidebarCollapsed}
                 />
               </NavSection>

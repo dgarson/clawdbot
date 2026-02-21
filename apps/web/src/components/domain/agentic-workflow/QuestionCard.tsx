@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
@@ -147,4 +146,3 @@ export function QuestionCard({ question, className, onSubmit }: QuestionCardProp
     </Card>
   );
 }
-

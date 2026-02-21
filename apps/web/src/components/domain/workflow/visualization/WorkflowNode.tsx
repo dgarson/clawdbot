@@ -1,4 +1,3 @@
-"use client";
 
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { cn } from "@/lib/utils";

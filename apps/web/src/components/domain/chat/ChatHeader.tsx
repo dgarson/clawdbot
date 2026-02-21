@@ -1,4 +1,3 @@
-"use client";
 
 import { ArrowLeft, Settings, MoreVertical, FileJson, FileText } from "lucide-react";
 import { toast } from "sonner";

@@ -1,4 +1,3 @@
-"use client";
 
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type Edge, type EdgeProps } from "@xyflow/react";
 import type { WorkflowVizEdgeType } from "./types";

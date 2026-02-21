@@ -1,4 +1,3 @@
-"use client";
 
 import { motion } from "framer-motion";
 import { Server, Check, Wifi, Settings2 } from "lucide-react";

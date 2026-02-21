@@ -1,4 +1,3 @@
-"use client";
 
 import { motion } from "framer-motion";
 import { Sparkles, Brain, Zap, Shield } from "lucide-react";

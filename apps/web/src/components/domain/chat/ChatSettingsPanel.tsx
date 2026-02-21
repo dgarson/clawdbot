@@ -1,4 +1,3 @@
-"use client";
 
 import { Trash2, Info, Clock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";

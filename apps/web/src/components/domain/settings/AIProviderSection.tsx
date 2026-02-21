@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Plus, Sparkles, Check, Trash2, Loader2 } from "lucide-react";

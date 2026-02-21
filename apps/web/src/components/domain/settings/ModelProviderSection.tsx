@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Brain, ChevronDown, FlaskConical, Settings, Sparkles } from "lucide-react";

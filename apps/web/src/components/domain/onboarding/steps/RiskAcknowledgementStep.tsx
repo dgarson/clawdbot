@@ -1,4 +1,3 @@
-"use client";
 
 import { motion } from "framer-motion";
 import { AlertTriangle, ExternalLink, Shield, Zap, UserCheck } from "lucide-react";

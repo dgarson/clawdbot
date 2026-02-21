@@ -1,4 +1,3 @@
-"use client";
 
 import { User, Settings, Zap, Plug, CreditCard, Brain, Server, MessageSquare, Bot, Activity, BookOpen } from "lucide-react";
 

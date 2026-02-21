@@ -1,4 +1,3 @@
-"use client";
 
 import { useState, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
