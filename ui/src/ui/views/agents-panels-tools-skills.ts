@@ -1,5 +1,5 @@
 import { html, nothing } from "lit";
-import { normalizeToolName } from "../../../../src/agents/tool-policy.js";
+import { normalizeToolName } from "../../../../src/agents/tool-policy-shared.js";
 import { renderActionBar, renderCardShell, renderErrorCallout } from "../components/core-cards.ts";
 import { renderPolicyEditor } from "../components/policy-editor.ts";
 import { renderPolicyMatrix, type PolicyMatrixSection } from "../components/policy-matrix.ts";

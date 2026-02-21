@@ -10,6 +10,30 @@ import {
 } from "./zod-schema.core.js";
 import { sensitive } from "./zod-schema.sensitive.js";
 
+// ---------------------------------------------------------------------------
+// Claude SDK runtime config
+// ---------------------------------------------------------------------------
+
+export const ClaudeSdkConfigSchema = z
+  .discriminatedUnion("provider", [
+    z.object({ provider: z.literal("claude-code") }).strict(),
+    z.object({ provider: z.literal("anthropic") }).strict(),
+    z.object({ provider: z.literal("minimax") }).strict(),
+    z.object({ provider: z.literal("minimax-portal") }).strict(),
+    z.object({ provider: z.literal("zai") }).strict(),
+    z.object({ provider: z.literal("openrouter") }).strict(),
+    z
+      .object({
+        provider: z.literal("custom"),
+        baseUrl: z.string().url(),
+        apiKey: z.string().optional().register(sensitive),
+      })
+      .strict(),
+  ])
+  .optional();
+
+export type ClaudeSdkConfig = NonNullable<z.infer<typeof ClaudeSdkConfigSchema>>;
+
 export const HeartbeatSchema = z
   .object({
     every: z.string().optional(),
@@ -612,8 +636,20 @@ export const AgentEntrySchema = z
       })
       .strict()
       .optional(),
+    thinkingDefault: z
+      .union([
+        z.literal("off"),
+        z.literal("minimal"),
+        z.literal("low"),
+        z.literal("medium"),
+        z.literal("high"),
+        z.literal("xhigh"),
+      ])
+      .optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
+    runtime: z.enum(["pi", "claude-sdk"]).optional(),
+    claudeSdk: ClaudeSdkConfigSchema,
   })
   .strict();
 

@@ -137,6 +137,7 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
             sender: historyEntry.sender,
             body: historyEntry.body,
             timestamp: historyEntry.timestamp,
+            ...(historyEntry.messageId ? { messageId: historyEntry.messageId } : {}),
           }))
         : undefined;
     const ctxPayload = finalizeInboundContext({

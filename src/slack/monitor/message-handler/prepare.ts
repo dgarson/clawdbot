@@ -43,6 +43,7 @@ import { resolveSlackChannelConfig } from "../channel-config.js";
 import { stripSlackMentionsForCommandDetection } from "../commands.js";
 import { normalizeSlackChannelType, type SlackMonitorContext } from "../context.js";
 import {
+  resolveSlackAdjacentChannelHistory,
   resolveSlackAttachmentContent,
   resolveSlackMedia,
   resolveSlackThreadHistory,
@@ -569,6 +570,56 @@ export async function prepareSlackMessage(params: {
           `slack: populated thread history with ${threadHistory.length} messages for new session`,
         );
       }
+
+      // Fetch adjacent channel messages before the thread started
+      const adjacentChannelHistoryLimit = account.config?.thread?.adjacentChannelHistoryLimit ?? 5;
+      if (adjacentChannelHistoryLimit > 0) {
+        const adjacentMsgs = await resolveSlackAdjacentChannelHistory({
+          channelId: message.channel,
+          threadTs,
+          client: ctx.app.client,
+          limit: adjacentChannelHistoryLimit,
+        });
+
+        if (adjacentMsgs.length > 0) {
+          const adjacentUserIds = [
+            ...new Set(adjacentMsgs.map((m) => m.userId).filter((id): id is string => Boolean(id))),
+          ];
+          const adjacentUserMap = new Map<string, { name?: string }>();
+          await Promise.all(
+            adjacentUserIds.map(async (id) => {
+              const user = await ctx.resolveUserName(id);
+              if (user) {
+                adjacentUserMap.set(id, user);
+              }
+            }),
+          );
+
+          const adjacentParts = adjacentMsgs.map((msg) => {
+            const msgUser = msg.userId ? adjacentUserMap.get(msg.userId) : null;
+            const msgSenderName = msgUser?.name ?? (msg.botId ? `Bot (${msg.botId})` : "Unknown");
+            const threadAnnotation = msg.replyCount ? ` [thread: ${msg.replyCount} replies]` : "";
+            const bodyWithAnnotation = `${msg.text}${threadAnnotation}`;
+            return formatInboundEnvelope({
+              channel: "Slack",
+              from: msgSenderName,
+              timestamp: msg.ts ? Math.round(Number(msg.ts) * 1000) : undefined,
+              body: bodyWithAnnotation,
+              chatType: "channel",
+              envelope: envelopeOptions,
+            });
+          });
+
+          const adjacentBody = adjacentParts.join("\n\n");
+          // Prepend channel context before the thread history
+          threadHistoryBody = threadHistoryBody
+            ? `[Channel messages before thread]\n${adjacentBody}\n\n[Thread history]\n${threadHistoryBody}`
+            : `[Channel messages before thread]\n${adjacentBody}`;
+          logVerbose(
+            `slack: prepended ${adjacentMsgs.length} adjacent channel messages to thread context`,
+          );
+        }
+      }
     }
   }
 
@@ -582,6 +633,7 @@ export async function prepareSlackMessage(params: {
           sender: entry.sender,
           body: entry.body,
           timestamp: entry.timestamp,
+          ...(entry.messageId ? { messageId: entry.messageId } : {}),
         }))
       : undefined;
 

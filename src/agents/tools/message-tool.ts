@@ -249,7 +249,12 @@ function buildReactionSchema() {
 
 function buildFetchSchema() {
   return {
-    limit: Type.Optional(Type.Number()),
+    limit: Type.Optional(
+      Type.Number({
+        description:
+          "Number of messages to return (default: 20). Use smaller values for a quick scan, larger for deep context.",
+      }),
+    ),
     before: Type.Optional(Type.String()),
     after: Type.Optional(Type.String()),
     around: Type.Optional(Type.String()),
@@ -429,6 +434,7 @@ type MessageToolOptions = {
   hasRepliedRef?: { value: boolean };
   sandboxRoot?: string;
   requireExplicitTarget?: boolean;
+  requesterSenderId?: string;
 };
 
 function resolveMessageToolSchemaActions(params: {
@@ -656,6 +662,7 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
         action,
         params,
         defaultAccountId: accountId ?? undefined,
+        requesterSenderId: options?.requesterSenderId,
         gateway,
         toolContext,
         sessionKey: options?.agentSessionKey,

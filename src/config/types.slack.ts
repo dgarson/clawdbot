@@ -76,6 +76,8 @@ export type SlackThreadConfig = {
   inheritParent?: boolean;
   /** Maximum number of thread messages to fetch as context when starting a new thread session (default: 20). Set to 0 to disable thread history fetching. */
   initialHistoryLimit?: number;
+  /** Maximum number of adjacent channel messages (before thread start) to include as context when starting a new thread session (default: 5). Set to 0 to disable. */
+  adjacentChannelHistoryLimit?: number;
 };
 
 export type SlackAccountConfig = {
@@ -160,6 +162,8 @@ export type SlackAccountConfig = {
    * Legacy key: channels.slack.dm.allowFrom.
    */
   allowFrom?: Array<string | number>;
+  /** Default delivery target for CLI --deliver when no explicit --reply-to is provided. */
+  defaultTo?: string;
   dm?: SlackDmConfig;
   channels?: Record<string, SlackChannelConfig>;
   /** Heartbeat visibility settings for this channel. */

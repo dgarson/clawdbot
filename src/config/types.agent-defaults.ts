@@ -11,6 +11,7 @@ import type {
   SandboxPruneSettings,
 } from "./types.sandbox.js";
 import type { MemorySearchConfig } from "./types.tools.js";
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentModelEntryConfig = {
   alias?: string;
@@ -235,13 +236,17 @@ export type AgentDefaultsConfig = {
      */
     includeReasoning?: boolean;
   };
+  /** Agent runtime: "pi" (default) or "claude-sdk". */
+  runtime?: "pi" | "claude-sdk";
+  /** Claude Agent SDK provider config (used when runtime is "claude-sdk"). */
+  claudeSdk?: ClaudeSdkConfig;
   /** Max concurrent agent runs across all conversations. Default: 1 (sequential). */
   maxConcurrent?: number;
   /** Sub-agent defaults (spawned via sessions_spawn). */
   subagents?: {
     /** Max concurrent sub-agent runs (global lane: "subagent"). Default: 1. */
     maxConcurrent?: number;
-    /** Maximum depth allowed for sessions_spawn chains. Default behavior: 1 (no nested spawns). */
+    /** Maximum depth allowed for sessions_spawn chains. Default behavior: 2 (allows nested spawns). */
     maxSpawnDepth?: number;
     /** Maximum active children a single requester session may spawn. Default behavior: 5. */
     maxChildrenPerAgent?: number;
@@ -289,6 +294,10 @@ export type AgentCompactionMode = "default" | "safeguard";
 export type AgentCompactionConfig = {
   /** Compaction summarization mode. */
   mode?: AgentCompactionMode;
+  /** Pi reserve tokens target before floor enforcement. */
+  reserveTokens?: number;
+  /** Pi keepRecentTokens budget used for cut-point selection. */
+  keepRecentTokens?: number;
   /** Minimum reserve tokens enforced for Pi compaction (0 disables the floor). */
   reserveTokensFloor?: number;
   /** Max share of context window for history during safeguard pruning (0.1–0.9, default 0.5). */
