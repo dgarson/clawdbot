@@ -9,12 +9,10 @@ import {
   X,
   Check,
   CheckCheck,
-  MessageSquare,
   AlertTriangle,
   Info,
   Zap,
   Bot,
-  Clock,
   Trash2,
 } from "lucide-react";
 
@@ -55,9 +53,9 @@ function NotificationIcon({ type }: { type: NotificationType }) {
 // ─── Time Format ─────────────────────────────────────────
 function timeAgo(ms: number): string {
   const diff = Date.now() - ms;
-  if (diff < 60_000) return "now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h`;
+  if (diff < 60_000) {return "now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h`;}
   return `${Math.floor(diff / 86_400_000)}d`;
 }
 
@@ -74,11 +72,11 @@ export function NotificationCenter() {
 
   // Listen for gateway events
   React.useEffect(() => {
-    if (!connected) return;
+    if (!connected) {return;}
 
     const unsub = addEventListener("*", (payload: unknown) => {
       const evt = payload as { event?: string; payload?: Record<string, unknown> };
-      if (!evt.event) return;
+      if (!evt.event) {return;}
 
       const notification = mapEventToNotification(evt);
       if (notification) {
@@ -91,7 +89,7 @@ export function NotificationCenter() {
 
   // Close on outside click
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
 
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -248,7 +246,7 @@ export function NotificationCenter() {
 function mapEventToNotification(
   evt: { event?: string; payload?: Record<string, unknown> }
 ): Notification | null {
-  const payload = (evt.payload ?? {}) as Record<string, unknown>;
+  const payload = (evt.payload ?? {});
   const base = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     timestamp: Date.now(),
@@ -263,7 +261,7 @@ function mapEventToNotification(
         ...base,
         type: "error",
         title: "Chat Error",
-        message: String(payload.errorMessage ?? "An error occurred"),
+        message: (payload.errorMessage as string | undefined) ?? "An error occurred",
       };
 
     case "exec.pending":
@@ -271,7 +269,7 @@ function mapEventToNotification(
         ...base,
         type: "warning",
         title: "Approval Required",
-        message: `Agent requests permission to run: ${String(payload.tool ?? "exec")}`,
+        message: `Agent requests permission to run: ${(payload.tool as string | undefined) ?? "exec"}`,
       };
 
     case "session.start":
@@ -279,7 +277,7 @@ function mapEventToNotification(
         ...base,
         type: "agent",
         title: "Session Started",
-        message: payload.label ? String(payload.label) : undefined,
+        message: payload.label ? (payload.label as string) : undefined,
       };
 
     case "cron.error":
@@ -287,7 +285,7 @@ function mapEventToNotification(
         ...base,
         type: "error",
         title: "Cron Job Failed",
-        message: String(payload.error ?? "Automation error"),
+        message: (payload.error as string | undefined) ?? "Automation error",
       };
 
     case "gateway.update":
@@ -295,7 +293,7 @@ function mapEventToNotification(
         ...base,
         type: "system",
         title: "Update Available",
-        message: `Version ${String(payload.version ?? "")} is available`,
+        message: `Version ${(payload.version as string | undefined) ?? ""} is available`,
       };
 
     default:

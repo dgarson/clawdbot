@@ -32,17 +32,11 @@ import {
   Copy,
   Trash2,
   Activity,
-  BarChart3,
   Clock,
-  Zap,
   Hash,
   ExternalLink,
-  Play,
-  Pause,
-  MoreHorizontal,
   Edit3,
   Plus,
-  Download,
 } from "lucide-react";
 
 // ─── Tabs ────────────────────────────────────────────────
@@ -87,18 +81,18 @@ function StatCard({
 
 // ─── Helpers ─────────────────────────────────────────────
 function relativeTime(ms: number | undefined): string {
-  if (!ms) return "never";
+  if (!ms) {return "never";}
   const diff = Date.now() - ms;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
 function formatBytes(bytes: number | undefined): string {
-  if (!bytes) return "—";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (!bytes) {return "—";}
+  if (bytes < 1024) {return `${bytes} B`;}
+  if (bytes < 1024 * 1024) {return `${(bytes / 1024).toFixed(1)} KB`;}
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -165,7 +159,7 @@ export default function AgentDetailPage() {
 
   // Load agent data
   React.useEffect(() => {
-    if (!connected || !agentId) return;
+    if (!connected || !agentId) {return;}
     void (async () => {
       try {
         const [id, filesList, sessionsList] = await Promise.all([
@@ -208,7 +202,7 @@ export default function AgentDetailPage() {
   }, [connected, request, agentId]);
 
   const handleSave = async (fileName: string) => {
-    if (!connected || saving) return;
+    if (!connected || saving) {return;}
     setSaving(true);
     setError(null);
     setSaveSuccess(false);
@@ -230,7 +224,7 @@ export default function AgentDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!connected || deleting) return;
+    if (!connected || deleting) {return;}
     setDeleting(true);
     try {
       await request("agents.delete", { agentId });
@@ -248,7 +242,7 @@ export default function AgentDetailPage() {
   const existingFiles = files?.files.filter((f) => !f.missing).length ?? 0;
   const totalSize = files?.files.reduce((sum, f) => sum + (f.size ?? 0), 0) ?? 0;
   const recentSessions = sessions
-    .sort((a, b) => (b.lastActiveAtMs ?? 0) - (a.lastActiveAtMs ?? 0))
+    .toSorted((a, b) => (b.lastActiveAtMs ?? 0) - (a.lastActiveAtMs ?? 0))
     .slice(0, 10);
   const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount ?? 0), 0);
 
@@ -714,7 +708,7 @@ export default function AgentDetailPage() {
               {/* Session List */}
               <div className="space-y-2">
                 {sessions
-                  .sort((a, b) => (b.lastActiveAtMs ?? 0) - (a.lastActiveAtMs ?? 0))
+                  .toSorted((a, b) => (b.lastActiveAtMs ?? 0) - (a.lastActiveAtMs ?? 0))
                   .map((session) => (
                     <Card key={session.key} className="hover:bg-accent/50 transition-colors">
                       <CardContent className="p-4 flex items-center gap-4">

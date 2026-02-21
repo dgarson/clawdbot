@@ -2,6 +2,7 @@
 worktrees/
 **/.env
 **/.env.local
+apps/web/.next
 node_modules
 **/node_modules/
 .env

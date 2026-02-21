@@ -36,7 +36,7 @@ export function Breadcrumbs() {
     .filter(Boolean);
 
   // Don't show breadcrumbs for top-level pages
-  if (segments.length <= 1) return null;
+  if (segments.length <= 1) {return null;}
 
   const crumbs = segments.map((segment, idx) => {
     const href = "/" + segments.slice(0, idx + 1).join("/");

@@ -21,7 +21,7 @@ export function ConnectionBanner() {
   }, [connected]);
 
   // Don't show if connected, connecting, or dismissed
-  if (connected || connecting || dismissed) return null;
+  if (connected || connecting || dismissed) {return null;}
 
   const handleRetry = () => {
     setRetrying(true);

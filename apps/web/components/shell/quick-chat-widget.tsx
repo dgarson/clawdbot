@@ -50,7 +50,7 @@ export function QuickChatWidget({
 
   // Listen for streaming responses
   React.useEffect(() => {
-    if (!connected) return;
+    if (!connected) {return;}
 
     const unsubDelta = addEventListener("chat.delta", (payload: unknown) => {
       const data = payload as { content?: string };
@@ -85,7 +85,7 @@ export function QuickChatWidget({
   }, [connected, addEventListener, streaming, maxMessages]);
 
   const handleSend = async () => {
-    if (!input.trim() || !connected || sending) return;
+    if (!input.trim() || !connected || sending) {return;}
 
     const userMessage = input.trim();
     setInput("");
