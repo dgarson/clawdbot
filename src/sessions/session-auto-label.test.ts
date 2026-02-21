@@ -49,7 +49,7 @@ describe("session-auto-label service", () => {
     capturedListener = undefined;
 
     // Capture the listener registered by the service
-    vi.mocked(onAgentEvent).mockImplementation((fn) => {
+    vi.mocked(onAgentEvent).mockImplementation((fn): (() => boolean) => {
       capturedListener = fn as (evt: unknown) => Promise<void>;
       return () => true;
     });
