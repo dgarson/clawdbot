@@ -500,6 +500,8 @@ export type ToolsConfig = {
      * - "all": any session (cross-agent still requires tools.agentToAgent)
      */
     visibility?: SessionsToolsVisibility;
+    /** Default timeout in seconds for sessions_send when the agent does not pass timeoutSeconds explicitly (default: 120). Set to 0 for fire-and-forget. */
+    sendTimeoutSeconds?: number;
   };
   /** Elevated exec permissions for the host machine. */
   elevated?: {
