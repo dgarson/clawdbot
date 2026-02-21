@@ -231,6 +231,19 @@ export const VoiceCallStreamingConfigSchema = z
   });
 export type VoiceCallStreamingConfig = z.infer<typeof VoiceCallStreamingConfigSchema>;
 
+export const VoiceCallSubagentConfigSchema = z
+  .object({
+    /** Enable async sub-agent delegation for inbound responses */
+    enabled: z.boolean().default(false),
+    /** Maximum concurrent sub-agent jobs per process */
+    maxConcurrency: z.number().int().positive().max(8).default(2),
+    /** Default sub-agent deadline in milliseconds */
+    defaultDeadlineMs: z.number().int().positive().default(15000),
+  })
+  .strict()
+  .default({ enabled: false, maxConcurrency: 2, defaultDeadlineMs: 15000 });
+export type VoiceCallSubagentConfig = z.infer<typeof VoiceCallSubagentConfigSchema>;
+
 // -----------------------------------------------------------------------------
 // Main Voice Call Configuration
 // -----------------------------------------------------------------------------
@@ -310,6 +323,9 @@ export const VoiceCallConfigSchema = z
 
     /** Public webhook URL override (if set, bypasses tunnel auto-detection) */
     publicUrl: z.string().url().optional(),
+
+    /** Async sub-agent delegation configuration */
+    subagents: VoiceCallSubagentConfigSchema.optional(),
 
     /** Skip webhook signature verification (development only, NOT for production) */
     skipSignatureVerification: z.boolean().default(false),

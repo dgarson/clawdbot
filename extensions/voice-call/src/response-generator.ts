@@ -6,6 +6,7 @@
 import crypto from "node:crypto";
 import type { VoiceCallConfig } from "./config.js";
 import { loadCoreAgentDeps, type CoreConfig } from "./core-bridge.js";
+import { type DelegationRequest, normalizeForegroundEnvelope } from "./subagent-normalization.js";
 
 export type VoiceResponseParams = {
   /** Voice call config */
@@ -24,6 +25,7 @@ export type VoiceResponseParams = {
 
 export type VoiceResponseResult = {
   text: string | null;
+  delegations?: DelegationRequest[];
   error?: string;
 };
 
@@ -106,12 +108,17 @@ export async function generateVoiceResponse(
     voiceConfig.responseSystemPrompt ??
     `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. You have access to tools - use them when helpful.`;
 
+  const envelopePrompt =
+    "Return JSON only with keys: action ('respond_now'|'delegate'), immediate_text (short spoken response), delegations (array). Use action='delegate' only for long-running/tool-heavy tasks.";
+
   let extraSystemPrompt = basePrompt;
   if (transcript.length > 0) {
     const history = transcript
       .map((entry) => `${entry.speaker === "bot" ? "You" : "Caller"}: ${entry.text}`)
       .join("\n");
-    extraSystemPrompt = `${basePrompt}\n\nConversation so far:\n${history}`;
+    extraSystemPrompt = `${basePrompt}\n\n${envelopePrompt}\n\nConversation so far:\n${history}`;
+  } else {
+    extraSystemPrompt = `${basePrompt}\n\n${envelopePrompt}`;
   }
 
   // Resolve timeout
@@ -144,13 +151,21 @@ export async function generateVoiceResponse(
       .map((p) => p.text?.trim())
       .filter(Boolean);
 
-    const text = texts.join(" ") || null;
+    const rawText = texts.join(" ") || null;
 
-    if (!text && result.meta?.aborted) {
+    if (!rawText && result.meta?.aborted) {
       return { text: null, error: "Response generation was aborted" };
     }
 
-    return { text };
+    if (!rawText) {
+      return { text: null };
+    }
+
+    const envelope = normalizeForegroundEnvelope(rawText);
+    return {
+      text: envelope.immediate_text,
+      delegations: envelope.action === "delegate" ? envelope.delegations : [],
+    };
   } catch (err) {
     console.error(`[voice-call] Response generation failed:`, err);
     return { text: null, error: String(err) };

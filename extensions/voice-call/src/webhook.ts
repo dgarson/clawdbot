@@ -6,6 +6,7 @@ import {
   readRequestBodyWithLimit,
   requestBodyErrorToText,
 } from "openclaw/plugin-sdk";
+import { AsyncSubagentBroker } from "./async-subagent-broker.js";
 import type { VoiceCallConfig } from "./config.js";
 import type { CoreConfig } from "./core-bridge.js";
 import type { CallManager } from "./manager.js";
@@ -29,6 +30,7 @@ export class VoiceCallWebhookServer {
   private provider: VoiceCallProvider;
   private coreConfig: CoreConfig | null;
   private staleCallReaperInterval: ReturnType<typeof setInterval> | null = null;
+  private subagentBroker: AsyncSubagentBroker | null = null;
 
   /** Media stream handler for bidirectional audio (when streaming enabled) */
   private mediaStreamHandler: MediaStreamHandler | null = null;
@@ -43,6 +45,21 @@ export class VoiceCallWebhookServer {
     this.manager = manager;
     this.provider = provider;
     this.coreConfig = coreConfig ?? null;
+
+    if (this.coreConfig && this.config.subagents?.enabled) {
+      this.subagentBroker = new AsyncSubagentBroker({
+        voiceConfig: this.config,
+        coreConfig: this.coreConfig,
+        isCallActive: (callId) => Boolean(this.manager.getCall(callId)),
+        onSummaryReady: async ({ callId, summary }) => {
+          const call = this.manager.getCall(callId);
+          if (!call) {
+            return;
+          }
+          await this.manager.speak(callId, summary);
+        },
+      });
+    }
 
     // Initialize media stream handler if streaming is enabled
     if (config.streaming?.enabled) {
@@ -257,6 +274,7 @@ export class VoiceCallWebhookServer {
       clearInterval(this.staleCallReaperInterval);
       this.staleCallReaperInterval = null;
     }
+    this.subagentBroker?.shutdown();
     return new Promise((resolve) => {
       if (this.server) {
         this.server.close(() => {
@@ -335,8 +353,20 @@ export class VoiceCallWebhookServer {
 
     // Process each event
     for (const event of result.events) {
+      const callForEvent =
+        this.manager.getCall(event.callId) ||
+        (event.providerCallId
+          ? this.manager.getCallByProviderCallId(event.providerCallId)
+          : undefined);
       try {
         this.manager.processEvent(event);
+        if (
+          this.subagentBroker &&
+          (event.type === "call.ended" || (event.type === "call.error" && !event.retryable))
+        ) {
+          const endedCallId = callForEvent?.callId ?? event.callId;
+          this.subagentBroker.cancelCallJobs(endedCallId);
+        }
       } catch (err) {
         console.error(`[voice-call] Error processing event ${event.type}:`, err);
       }
@@ -404,6 +434,21 @@ export class VoiceCallWebhookServer {
       if (result.text) {
         console.log(`[voice-call] AI response: "${result.text}"`);
         await this.manager.speak(callId, result.text);
+      }
+
+      if (this.subagentBroker && result.delegations?.length) {
+        for (const delegation of result.delegations) {
+          this.subagentBroker.enqueue({
+            callId,
+            from: call.from,
+            userMessage,
+            transcript: call.transcript.map((entry) => ({
+              speaker: entry.speaker,
+              text: entry.text,
+            })),
+            delegation,
+          });
+        }
       }
     } catch (err) {
       console.error(`[voice-call] Auto-response error:`, err);
