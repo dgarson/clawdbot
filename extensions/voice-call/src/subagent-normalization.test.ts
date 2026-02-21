@@ -66,6 +66,52 @@ describe("extractFirstJsonObject", () => {
     const result = extractFirstJsonObject('{"summary":"ok","artifacts":["a","b",]}');
     expect(result).toEqual({ summary: "ok", artifacts: ["a", "b"] });
   });
+
+  it("does NOT corrupt commas inside string values", () => {
+    // This was the old bug: a naive regex would turn "values [1, ]" into "values [1]"
+    const result = extractFirstJsonObject('{"summary":"values are [1, ]", "confidence": 0.5,}');
+    expect(result).toEqual({ summary: "values are [1, ]", confidence: 0.5 });
+  });
+
+  it("preserves commas before } inside strings while stripping structural ones", () => {
+    const input = '{"summary":"end with comma,}", "confidence": 0.9,}';
+    const result = extractFirstJsonObject(input);
+    expect(result).toEqual({ summary: "end with comma,}", confidence: 0.9 });
+  });
+
+  it("preserves escaped quotes inside strings during trailing comma repair", () => {
+    const input = '{"summary":"she said \\"hello,\\"", "confidence": 0.8,}';
+    const result = extractFirstJsonObject(input);
+    expect(result).not.toBeNull();
+    expect((result as Record<string, unknown>).summary).toBe('she said "hello,"');
+    expect((result as Record<string, unknown>).confidence).toBe(0.8);
+  });
+
+  it("does NOT strip // inside string values as comments", () => {
+    const input = `{
+      // real comment to strip
+      "summary": "see https://example.com for details",
+      "confidence": 0.7
+    }`;
+    const result = extractFirstJsonObject(input);
+    expect(result).toEqual({
+      summary: "see https://example.com for details",
+      confidence: 0.7,
+    });
+  });
+
+  it("handles string with multiple tricky patterns simultaneously", () => {
+    const input = `{
+      // comment to remove
+      "summary": "items: [a, b, ] and url: https://x.com // not a comment",
+      "confidence": 0.5,
+    }`;
+    const result = extractFirstJsonObject(input);
+    expect(result).not.toBeNull();
+    expect((result as Record<string, unknown>).summary).toBe(
+      "items: [a, b, ] and url: https://x.com // not a comment",
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

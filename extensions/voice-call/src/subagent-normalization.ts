@@ -98,16 +98,115 @@ function stripMarkdownFences(raw: string): string {
 
 /**
  * Remove trailing commas before } or ] which are common LLM JSON errors.
+ *
+ * Unlike a naive regex, this walks character-by-character so commas inside
+ * JSON string literals are never touched.  It handles escaped characters
+ * (e.g. `\"`) inside strings correctly.
  */
 function stripTrailingCommas(raw: string): string {
-  return raw.replace(/,\s*([}\]])/g, "$1");
+  const out: string[] = [];
+  let inString = false;
+  let i = 0;
+
+  while (i < raw.length) {
+    const ch = raw[i];
+
+    // Inside a JSON string literal — emit characters verbatim and respect
+    // backslash escapes so that `\"` does not close the string.
+    if (inString) {
+      out.push(ch);
+      if (ch === "\\") {
+        // Emit the escaped character as-is and skip past it.
+        i += 1;
+        if (i < raw.length) {
+          out.push(raw[i]);
+        }
+      } else if (ch === '"') {
+        inString = false;
+      }
+      i += 1;
+      continue;
+    }
+
+    // Outside strings.
+    if (ch === '"') {
+      inString = true;
+      out.push(ch);
+      i += 1;
+      continue;
+    }
+
+    // When we hit a comma, look ahead past any whitespace.  If the next
+    // non-whitespace character is `}` or `]`, this is a trailing comma —
+    // drop it (but keep the whitespace that follows, if any).
+    if (ch === ",") {
+      let j = i + 1;
+      while (
+        j < raw.length &&
+        (raw[j] === " " || raw[j] === "\t" || raw[j] === "\n" || raw[j] === "\r")
+      ) {
+        j += 1;
+      }
+      if (j < raw.length && (raw[j] === "}" || raw[j] === "]")) {
+        // Skip the trailing comma; don't push it.
+        i += 1;
+        continue;
+      }
+    }
+
+    out.push(ch);
+    i += 1;
+  }
+
+  return out.join("");
 }
 
 /**
  * Remove single-line // comments from JSON-like strings.
+ *
+ * Like `stripTrailingCommas`, this is string-aware: `//` sequences inside
+ * JSON string values are left untouched.
  */
 function stripJsonComments(raw: string): string {
-  return raw.replace(/^\s*\/\/.*$/gm, "");
+  const lines = raw.split("\n");
+  const result: string[] = [];
+
+  for (const line of lines) {
+    let inString = false;
+    let commentStart = -1;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inString) {
+        if (ch === "\\") {
+          i += 1; // skip escaped char
+        } else if (ch === '"') {
+          inString = false;
+        }
+        continue;
+      }
+      if (ch === '"') {
+        inString = true;
+        continue;
+      }
+      if (ch === "/" && i + 1 < line.length && line[i + 1] === "/") {
+        commentStart = i;
+        break;
+      }
+    }
+
+    if (commentStart !== -1) {
+      const before = line.slice(0, commentStart).trimEnd();
+      if (before) {
+        result.push(before);
+      }
+      // Drop comment-only lines entirely.
+    } else {
+      result.push(line);
+    }
+  }
+
+  return result.join("\n");
 }
 
 /**

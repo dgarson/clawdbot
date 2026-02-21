@@ -268,6 +268,59 @@ export class AsyncSubagentBroker {
     this.isShuttingDown = true;
   }
 
+  /**
+   * Sweep orphaned `voice-subagent:*` entries from the session store.
+   *
+   * Should be called once at startup (or periodically) so that entries
+   * left behind by crashed jobs don't accumulate indefinitely. Only
+   * entries whose `updatedAt` is older than `maxAgeMs` are removed.
+   */
+  async reapOrphanedSessions(maxAgeMs = 60_000): Promise<number> {
+    try {
+      const deps = await loadCoreAgentDeps();
+      const agentId = "main";
+      const storePath = deps.resolveStorePath(this.opts.coreConfig.session?.store, { agentId });
+      const sessionStore = deps.loadSessionStore(storePath);
+
+      const now = Date.now();
+      const PREFIX = "voice-subagent:";
+      let reaped = 0;
+
+      for (const key of Object.keys(sessionStore)) {
+        if (!key.startsWith(PREFIX)) continue;
+        const entry = sessionStore[key];
+        if (
+          entry &&
+          typeof entry === "object" &&
+          "updatedAt" in entry &&
+          typeof entry.updatedAt === "number" &&
+          now - entry.updatedAt > maxAgeMs
+        ) {
+          // Clean up the session file on disk if it exists.
+          if ("sessionId" in entry && typeof entry.sessionId === "string") {
+            try {
+              const sessionFile = deps.resolveSessionFilePath(entry.sessionId, entry, { agentId });
+              fs.unlinkSync(sessionFile);
+            } catch {
+              // File may already be gone.
+            }
+          }
+          delete sessionStore[key];
+          reaped += 1;
+        }
+      }
+
+      if (reaped > 0) {
+        await deps.saveSessionStore(storePath, sessionStore);
+        console.log(`[voice-call] Reaped ${reaped} orphaned voice-subagent session(s)`);
+      }
+      return reaped;
+    } catch (err) {
+      console.warn("[voice-call] Failed to reap orphaned sessions:", err);
+      return 0;
+    }
+  }
+
   private pump(): void {
     if (this.isShuttingDown) {
       return;
@@ -316,17 +369,20 @@ export class AsyncSubagentBroker {
 
     // Track files created during this job so we can clean them up.
     const tempFiles: string[] = [];
+    // Hoisted so the finally block can clean up the session store entry
+    // even if the try block fails after writing it.
+    const sessionKey = `voice-subagent:${job.callId}:${job.jobId}`;
+    let storePath: string | undefined;
 
     try {
       const deps = await loadCoreAgentDeps();
       const agentId = "main";
-      const storePath = deps.resolveStorePath(this.opts.coreConfig.session?.store, { agentId });
+      storePath = deps.resolveStorePath(this.opts.coreConfig.session?.store, { agentId });
       const agentDir = deps.resolveAgentDir(this.opts.coreConfig, agentId);
       const workspaceDir = deps.resolveAgentWorkspaceDir(this.opts.coreConfig, agentId);
       await deps.ensureAgentWorkspace({ dir: workspaceDir });
 
       const sessionStore = deps.loadSessionStore(storePath);
-      const sessionKey = `voice-subagent:${job.callId}:${job.jobId}`;
       const sessionEntry = {
         sessionId: crypto.randomUUID(),
         updatedAt: Date.now(),
@@ -466,15 +522,6 @@ export class AsyncSubagentBroker {
       this.store.markDone(job.jobId);
       this._metrics.completed += 1;
       this._metrics.totalExecutionMs += Date.now() - jobStartMs;
-
-      // Clean up the session store entry now that the job is complete.
-      try {
-        const currentStore = deps.loadSessionStore(storePath);
-        delete currentStore[sessionKey];
-        await deps.saveSessionStore(storePath, currentStore);
-      } catch {
-        // Best-effort cleanup; ignore failures.
-      }
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       console.warn("[voice-call] Sub-agent job failed:", err);
@@ -493,6 +540,21 @@ export class AsyncSubagentBroker {
           fs.unlinkSync(filePath);
         } catch {
           // Ignore: file may not exist or already deleted.
+        }
+      }
+
+      // Always clean up the session store entry — this runs on both success
+      // and failure paths, preventing orphaned entries from accumulating.
+      if (sessionKey && storePath) {
+        try {
+          const deps = await loadCoreAgentDeps();
+          const currentStore = deps.loadSessionStore(storePath);
+          if (sessionKey in currentStore) {
+            delete currentStore[sessionKey];
+            await deps.saveSessionStore(storePath, currentStore);
+          }
+        } catch {
+          // Best-effort; the startup reaper will catch anything we miss.
         }
       }
     }
