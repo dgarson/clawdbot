@@ -179,4 +179,36 @@ describe("buildInboundUserContextPrefix", () => {
     const conversationInfo = parseConversationInfoPayload(text);
     expect(conversationInfo["sender"]).toBe("user@example.com");
   });
+
+  it("includes message_id in InboundHistory entries when present", () => {
+    const text = buildInboundUserContextPrefix({
+      ChatType: "group",
+      GroupSubject: "Ops",
+      InboundHistory: [
+        { sender: "Alice", body: "hello", timestamp: 1700000000000, messageId: "1700000000.000" },
+        { sender: "Bob", body: "world", timestamp: 1700000001000, messageId: "1700000001.000" },
+      ],
+    } as TemplateContext);
+
+    const historyMatch = text.match(/```json\n([\s\S]*?)\n```/g);
+    const historyBlock = historyMatch?.find((b) => b.includes('"sender"'));
+    expect(historyBlock).toBeTruthy();
+    const entries = JSON.parse(historyBlock!.replace(/```json\n/, "").replace(/\n```/, ""));
+    expect(entries[0]).toHaveProperty("message_id", "1700000000.000");
+    expect(entries[1]).toHaveProperty("message_id", "1700000001.000");
+  });
+
+  it("omits message_id in InboundHistory entries when not set", () => {
+    const text = buildInboundUserContextPrefix({
+      ChatType: "group",
+      GroupSubject: "Ops",
+      InboundHistory: [{ sender: "Alice", body: "hello", timestamp: 1700000000000 }],
+    } as TemplateContext);
+
+    const historyMatch = text.match(/```json\n([\s\S]*?)\n```/g);
+    const historyBlock = historyMatch?.find((b) => b.includes('"sender"'));
+    expect(historyBlock).toBeTruthy();
+    const entries = JSON.parse(historyBlock!.replace(/```json\n/, "").replace(/\n```/, ""));
+    expect(entries[0]).not.toHaveProperty("message_id");
+  });
 });

@@ -133,7 +133,7 @@ describe("callGateway url resolution", () => {
     expect(lastClientOptions?.url).toBe("ws://127.0.0.1:18800");
   });
 
-  it("uses tailnet IP with TLS when local bind is tailnet", async () => {
+  it("uses loopback with TLS when local bind is tailnet", async () => {
     loadConfig.mockReturnValue({
       gateway: { mode: "local", bind: "tailnet", tls: { enabled: true } },
     });
@@ -142,15 +142,17 @@ describe("callGateway url resolution", () => {
 
     await callGateway({ method: "health" });
 
-    expect(lastClientOptions?.url).toBe("wss://100.64.0.1:18800");
+    expect(lastClientOptions?.url).toBe("wss://127.0.0.1:18800");
   });
 
-  it("blocks ws:// to tailnet IP without TLS (CWE-319)", async () => {
+  it("uses loopback without TLS when local bind is tailnet", async () => {
     loadConfig.mockReturnValue({ gateway: { mode: "local", bind: "tailnet" } });
     resolveGatewayPort.mockReturnValue(18800);
     pickPrimaryTailnetIPv4.mockReturnValue("100.64.0.1");
 
-    await expect(callGateway({ method: "health" })).rejects.toThrow("SECURITY ERROR");
+    await callGateway({ method: "health" });
+
+    expect(lastClientOptions?.url).toBe("ws://127.0.0.1:18800");
   });
 
   it("uses loopback with TLS when bind is lan", async () => {
@@ -272,7 +274,7 @@ describe("buildGatewayConnectionDetails", () => {
     expect(details.message).toContain("Gateway target: ws://127.0.0.1:18789");
   });
 
-  it("uses LAN IP with TLS and reports lan source when bind is lan", () => {
+  it("uses loopback URL and loopback source when bind is lan", () => {
     loadConfig.mockReturnValue({
       gateway: { mode: "local", bind: "lan", tls: { enabled: true } },
     });

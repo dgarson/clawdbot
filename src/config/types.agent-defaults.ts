@@ -11,6 +11,7 @@ import type {
   SandboxPruneSettings,
 } from "./types.sandbox.js";
 import type { MemorySearchConfig } from "./types.tools.js";
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentModelEntryConfig = {
   alias?: string;
@@ -235,13 +236,17 @@ export type AgentDefaultsConfig = {
      */
     includeReasoning?: boolean;
   };
+  /** Agent runtime: "pi" (default) or "claude-sdk". */
+  runtime?: "pi" | "claude-sdk";
+  /** Claude Agent SDK provider config (used when runtime is "claude-sdk"). */
+  claudeSdk?: ClaudeSdkConfig;
   /** Max concurrent agent runs across all conversations. Default: 1 (sequential). */
   maxConcurrent?: number;
   /** Sub-agent defaults (spawned via sessions_spawn). */
   subagents?: {
     /** Max concurrent sub-agent runs (global lane: "subagent"). Default: 1. */
     maxConcurrent?: number;
-    /** Maximum depth allowed for sessions_spawn chains. Default behavior: 1 (no nested spawns). */
+    /** Maximum depth allowed for sessions_spawn chains. Default behavior: 2 (allows nested spawns). */
     maxSpawnDepth?: number;
     /** Maximum active children a single requester session may spawn. Default behavior: 5. */
     maxChildrenPerAgent?: number;
@@ -252,6 +257,8 @@ export type AgentDefaultsConfig = {
     /** Default thinking level for spawned sub-agents (e.g. "off", "low", "medium", "high"). */
     thinking?: string;
   };
+  /** Opt-in: generate a short LLM label for new sessions after the first message. */
+  sessionLabels?: SessionLabelsConfig;
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: {
     /** Enable sandboxing for sessions. */
@@ -310,4 +317,18 @@ export type AgentCompactionMemoryFlushConfig = {
   prompt?: string;
   /** System prompt appended for the memory flush turn. */
   systemPrompt?: string;
+};
+
+export type SessionLabelsConfig = {
+  /** Enable LLM-generated session labels after first message. Default: false. */
+  enabled?: boolean;
+  /**
+   * Model for label generation (provider/model string).
+   * Defaults to the agent's configured primary model.
+   */
+  model?: string;
+  /** Max label length in characters. Default: 79. */
+  maxLength?: number;
+  /** Override the label generation user prompt. */
+  prompt?: string;
 };

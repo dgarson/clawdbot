@@ -641,6 +641,16 @@ export const AgentEntrySchema = z
       })
       .strict()
       .optional(),
+    thinkingDefault: z
+      .union([
+        z.literal("off"),
+        z.literal("minimal"),
+        z.literal("low"),
+        z.literal("medium"),
+        z.literal("high"),
+        z.literal("xhigh"),
+      ])
+      .optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
     runtime: z.enum(["pi", "claude-sdk"]).optional(),

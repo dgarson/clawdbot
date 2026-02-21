@@ -7,7 +7,6 @@ import {
   resolveStateDir,
 } from "../config/config.js";
 import { loadOrCreateDeviceIdentity } from "../infra/device-identity.js";
-import { pickPrimaryTailnetIPv4 } from "../infra/tailnet.js";
 import { loadGatewayTlsRuntime } from "../infra/tls/gateway.js";
 import {
   GATEWAY_CLIENT_MODES,
@@ -116,7 +115,6 @@ export function buildGatewayConnectionDetails(
   const remote = isRemoteMode ? config.gateway?.remote : undefined;
   const tlsEnabled = config.gateway?.tls?.enabled === true;
   const localPort = resolveGatewayPort(config);
-  const tailnetIPv4 = pickPrimaryTailnetIPv4();
   const bindMode = config.gateway?.bind ?? "loopback";
   const preferTailnet = bindMode === "tailnet" && !!tailnetIPv4;
   const scheme = tlsEnabled ? "wss" : "ws";

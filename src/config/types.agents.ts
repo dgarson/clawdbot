@@ -8,6 +8,7 @@ import type {
   SandboxPruneSettings,
 } from "./types.sandbox.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentModelConfig =
   | string
@@ -39,7 +40,11 @@ export type AgentConfig = {
     allowAgents?: string[];
     /** Per-agent default model for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
+    /** Default thinking level for spawned sub-agents. */
+    thinking?: string;
   };
+  /** Default thinking level for this agent (overrides agents.defaults.thinkingDefault). */
+  thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
   sandbox?: {
     mode?: "off" | "non-main" | "all";
     /** Agent workspace access inside the sandbox. */
@@ -63,6 +68,10 @@ export type AgentConfig = {
     prune?: SandboxPruneSettings;
   };
   tools?: AgentToolsConfig;
+  /** Agent runtime: "pi" (default) or "claude-sdk". */
+  runtime?: "pi" | "claude-sdk";
+  /** Claude Agent SDK provider config (used when runtime is "claude-sdk"). */
+  claudeSdk?: ClaudeSdkConfig;
 };
 
 export type AgentsConfig = {
