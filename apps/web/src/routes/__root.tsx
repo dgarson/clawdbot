@@ -1,3 +1,4 @@
+import * as React from "react";
 import { createRootRoute, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { ThemeProvider, ShortcutsProvider } from "@/providers";
@@ -10,6 +11,7 @@ import { UnlockGuard } from "@/features/security/components/unlock/UnlockGuard";
 import { GatewayAuthGuard } from "@/components/composed/GatewayAuthGuard";
 import { useGatewayStreamHandler } from "@/hooks";
 import { useUIStore } from "@/stores/useUIStore";
+import { useAnnounce } from "@/hooks/useAnnounce";
 
 /**
  * Route-level error component for TanStack Router.
@@ -54,6 +56,20 @@ function RootLayout() {
 
   // Enable gateway stream handler to process streaming events
   useGatewayStreamHandler({ enabled: gatewayEnabled });
+
+  // Announce route changes for screen readers (WCAG 4.1.3)
+  const announce = useAnnounce();
+  const prevPathRef = React.useRef(location.pathname);
+  React.useEffect(() => {
+    if (location.pathname !== prevPathRef.current) {
+      prevPathRef.current = location.pathname;
+      // Derive human-readable page name from pathname
+      const segment = location.pathname.split("/").filter(Boolean).pop() || "Home";
+      const title = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+      document.title = `${title} — OpenClaw`;
+      announce(`Navigated to ${title}`);
+    }
+  }, [location.pathname, announce]);
 
   return (
     <ReducedMotionProvider>
