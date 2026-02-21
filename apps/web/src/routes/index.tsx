@@ -12,6 +12,7 @@ import {
   GoalProgressPanel,
   RecentMemoriesPanel,
 } from "@/components/domain/home";
+import { useUserProfile } from "@/hooks/queries/useUserSettings";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -59,6 +60,8 @@ function HomePage() {
   const navigate = useNavigate();
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
+  const { data: profile } = useUserProfile();
+  const displayName = profile?.name || "there";
 
   const handleQuickChatSend = (message: string, agentId: string) => {
     // Navigate to new session with agent, passing the message
@@ -94,7 +97,7 @@ function HomePage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  {greeting.text}, User!
+                  {greeting.text}, {displayName}!
                 </h1>
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />

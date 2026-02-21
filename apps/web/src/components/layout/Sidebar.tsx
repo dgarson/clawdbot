@@ -115,7 +115,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex h-16 items-center gap-3 border-b border-border px-4">
         <Link to="/" className="flex items-center gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-            S
+            OC
           </div>
           <AnimatePresence initial={false}>
             {!sidebarCollapsed && (
@@ -126,7 +126,7 @@ export function Sidebar({ className }: SidebarProps) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden whitespace-nowrap font-semibold text-foreground"
               >
-                Second Brain
+                OpenClaw
               </motion.span>
             )}
           </AnimatePresence>

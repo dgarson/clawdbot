@@ -64,7 +64,7 @@ function App() {
         {/* Header */}
         <header className="space-y-2">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Second Brain Platform
+            OpenClaw
           </h1>
           <p className="text-lg text-muted-foreground">
             Your AI-powered command center
@@ -165,7 +165,7 @@ function App() {
 
         {/* Footer */}
         <footer className="text-center text-muted-foreground py-8 border-t border-border">
-          <p>Second Brain Platform - Built with React 19, Tailwind CSS 4, shadcn/ui</p>
+          <p>OpenClaw — Built with React 19, Tailwind CSS 4, shadcn/ui</p>
         </footer>
       </div>
     </div>

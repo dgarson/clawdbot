@@ -83,7 +83,7 @@ const mockFileSystem: FileNode = {
               language: "en",
               notifications: true,
               autoSync: true,
-              apiEndpoint: "https://api.secondbrain.dev",
+              apiEndpoint: "https://api.openclaw.ai",
             },
             null,
             2
@@ -190,7 +190,7 @@ const mockFileSystem: FileNode = {
       size: 1024,
       lastModified: new Date(Date.now() - 2592000000),
       content:
-        "# Second Brain Configuration\n\nThis directory contains your Second Brain configuration and data.\n\n## Structure\n\n- `config/` - Configuration files\n- `sessions/` - Session logs\n- `logs/` - Application logs\n- `credentials/` - Encrypted credentials\n\n## Important\n\nDo not manually edit files in the `credentials/` directory.",
+        "# OpenClaw Configuration\n\nThis directory contains your OpenClaw configuration and data.\n\n## Structure\n\n- `config/` - Configuration files\n- `sessions/` - Session logs\n- `logs/` - Application logs\n- `credentials/` - Encrypted credentials\n\n## Important\n\nDo not manually edit files in the `credentials/` directory.",
     },
   ],
 };
