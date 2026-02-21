@@ -4,6 +4,50 @@ import { createSlackSendTestClient, installSlackBlockTestMocks } from "./blocks.
 installSlackBlockTestMocks();
 const { sendMessageSlack } = await import("./send.js");
 
+describe("sendMessageSlack channel resolution", () => {
+  it("uppercases lowercase channel IDs", async () => {
+    const client = createSlackSendTestClient();
+    await sendMessageSlack("c1a2b3", "hello", { token: "xoxb-test", client });
+    expect(client.chat.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "C1A2B3" }),
+    );
+  });
+
+  it("uppercases lowercase #-prefixed channel IDs", async () => {
+    const client = createSlackSendTestClient();
+    await sendMessageSlack("#c1", "hello", { token: "xoxb-test", client });
+    expect(client.conversations.list).not.toHaveBeenCalled();
+    expect(client.chat.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "C1" }),
+    );
+  });
+
+  it("looks up #channel-name via conversations.list and sends to resolved ID", async () => {
+    const client = createSlackSendTestClient([{ id: "C456", name: "general" }]);
+    await sendMessageSlack("#general", "hello", { token: "xoxb-test", client });
+    expect(client.conversations.list).toHaveBeenCalled();
+    expect(client.chat.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "C456" }),
+    );
+  });
+
+  it("looks up channel names without # prefix via conversations.list", async () => {
+    const client = createSlackSendTestClient([{ id: "C789", name: "eng-frontend" }]);
+    await sendMessageSlack("eng-frontend", "hello", { token: "xoxb-test", client });
+    expect(client.conversations.list).toHaveBeenCalled();
+    expect(client.chat.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "C789" }),
+    );
+  });
+
+  it("throws a clear error when the channel name is not found", async () => {
+    const client = createSlackSendTestClient([]);
+    await expect(
+      sendMessageSlack("#does-not-exist", "hello", { token: "xoxb-test", client }),
+    ).rejects.toThrow(/channel not found for name: "does-not-exist"/i);
+  });
+});
+
 describe("sendMessageSlack blocks", () => {
   it("posts blocks with fallback text when message is empty", async () => {
     const client = createSlackSendTestClient();

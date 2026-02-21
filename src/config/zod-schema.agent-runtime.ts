@@ -10,6 +10,35 @@ import {
 } from "./zod-schema.core.js";
 import { sensitive } from "./zod-schema.sensitive.js";
 
+// ---------------------------------------------------------------------------
+// Claude SDK runtime config
+// ---------------------------------------------------------------------------
+
+const thinkingLevelField = {
+  thinkingLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+} as const;
+
+export const ClaudeSdkConfigSchema = z
+  .discriminatedUnion("provider", [
+    z.object({ provider: z.literal("claude-code"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("anthropic"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("minimax"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("minimax-portal"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("zai"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("openrouter"), ...thinkingLevelField }).strict(),
+    z
+      .object({
+        provider: z.literal("custom"),
+        baseUrl: z.string().url(),
+        apiKey: z.string().optional().register(sensitive),
+        ...thinkingLevelField,
+      })
+      .strict(),
+  ])
+  .optional();
+
+export type ClaudeSdkConfig = NonNullable<z.infer<typeof ClaudeSdkConfigSchema>>;
+
 export const HeartbeatSchema = z
   .object({
     every: z.string().optional(),
@@ -614,6 +643,8 @@ export const AgentEntrySchema = z
       .optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
+    runtime: z.enum(["pi", "claude-sdk"]).optional(),
+    claudeSdk: ClaudeSdkConfigSchema,
   })
   .strict();
 
