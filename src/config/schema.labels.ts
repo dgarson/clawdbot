@@ -343,4 +343,8 @@ export const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.shasum": "Plugin Resolved Shasum",
   "plugins.installs.*.resolvedAt": "Plugin Resolution Time",
   "plugins.installs.*.installedAt": "Plugin Install Time",
+  "agents.defaults.sessionLabels.enabled": "Auto-Label Sessions",
+  "agents.defaults.sessionLabels.model": "Session Label Model",
+  "agents.defaults.sessionLabels.maxLength": "Session Label Max Length",
+  "agents.defaults.sessionLabels.prompt": "Session Label Prompt",
 };
