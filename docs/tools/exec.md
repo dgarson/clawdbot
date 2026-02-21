@@ -55,6 +55,10 @@ Notes:
 - `tools.exec.node` (default: unset)
 - `tools.exec.pathPrepend`: list of directories to prepend to `PATH` for exec runs (gateway + sandbox only).
 - `tools.exec.safeBins`: stdin-only safe binaries that can run without explicit allowlist entries. For behavior details, see [Safe bins](/tools/exec-approvals#safe-bins-stdin-only).
+- `tools.exec.ghGuard.enabled`: enable deterministic guardrails for `git`/`gh` commands (default: false).
+- `tools.exec.ghGuard.protectedBranches`: branch names that `git push` must never target when guardrails are enabled (default: `["main"]`).
+- `tools.exec.ghGuard.allowedPrRepos`: allowlist of `owner/repo` targets for `gh pr create --repo` / `-R`.
+- `tools.exec.ghGuard.requireExplicitPrRepo`: require explicit `--repo` / `-R` on `gh pr create` when guardrails are enabled (default: true).
 
 Example:
 
@@ -63,6 +67,12 @@ Example:
   tools: {
     exec: {
       pathPrepend: ["~/bin", "/opt/oss/bin"],
+      ghGuard: {
+        enabled: true,
+        protectedBranches: ["main"],
+        allowedPrRepos: ["your-fork/openclaw"],
+        requireExplicitPrRepo: true,
+      },
     },
   },
 }

@@ -190,6 +190,17 @@ export type ExecToolConfig = {
   pathPrepend?: string[];
   /** Safe stdin-only binaries that can run without allowlist entries. */
   safeBins?: string[];
+  /** Deterministic GitHub CLI guardrails for git/gh commands. */
+  ghGuard?: {
+    /** Enable deterministic guardrails for git/gh commands (default: false). */
+    enabled?: boolean;
+    /** Branch names that git push must never target (default: ["main"]). */
+    protectedBranches?: string[];
+    /** Allowed owner/repo targets for gh pr create --repo/-R. */
+    allowedPrRepos?: string[];
+    /** Require gh pr create to include explicit --repo/-R (default: true). */
+    requireExplicitPrRepo?: boolean;
+  };
   /** Default time (ms) before an exec command auto-backgrounds. */
   backgroundMs?: number;
   /** Default timeout (seconds) before auto-killing exec commands. */

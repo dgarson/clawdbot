@@ -1,4 +1,5 @@
 import type { ExecAsk, ExecHost, ExecSecurity } from "../infra/exec-approvals.js";
+import type { ExecGhGuardConfig } from "./bash-tools.gh-guard.js";
 import type { BashSandboxConfig } from "./bash-tools.shared.js";
 
 export type ExecToolDefaults = {
@@ -8,6 +9,7 @@ export type ExecToolDefaults = {
   node?: string;
   pathPrepend?: string[];
   safeBins?: string[];
+  ghGuard?: ExecGhGuardConfig;
   agentId?: string;
   backgroundMs?: number;
   timeoutSec?: number;
