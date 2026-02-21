@@ -196,6 +196,19 @@ function validateEnvelope(input: Record<string, unknown>): ValidationError[] {
     });
   }
 
+  // correlationId (optional: string or null)
+  if (
+    "correlationId" in input &&
+    input.correlationId !== null &&
+    typeof input.correlationId !== "string"
+  ) {
+    errors.push({
+      path: "/correlationId",
+      message: 'Invalid "correlationId" (must be a string or null)',
+      rule: "type",
+    });
+  }
+
   // payload (must exist as object)
   if (!("payload" in input) || typeof input.payload !== "object" || input.payload === null) {
     errors.push({

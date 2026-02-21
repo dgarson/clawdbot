@@ -326,6 +326,18 @@ describe("A2A Message Validator", () => {
       expectValid(validateA2AMessage(msg));
     });
 
+    it("rejects non-string correlationId", () => {
+      const msg = validTaskRequest();
+      msg.correlationId = 123;
+      expectInvalid(validateA2AMessage(msg), "/correlationId");
+    });
+
+    it("accepts null correlationId", () => {
+      const msg = validTaskRequest();
+      msg.correlationId = null;
+      expectValid(validateA2AMessage(msg));
+    });
+
     it("accepts message without correlationId", () => {
       const msg = validTaskRequest();
       delete msg.correlationId;
