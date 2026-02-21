@@ -39,7 +39,11 @@ export type AgentConfig = {
     allowAgents?: string[];
     /** Per-agent default model for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
+    /** Default thinking level for spawned sub-agents. */
+    thinking?: string;
   };
+  /** Default thinking level for this agent (overrides agents.defaults.thinkingDefault). */
+  thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
   sandbox?: {
     mode?: "off" | "non-main" | "all";
     /** Agent workspace access inside the sandbox. */
