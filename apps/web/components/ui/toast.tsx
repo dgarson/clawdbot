@@ -154,7 +154,7 @@ export function ToastViewport() {
   const toasts = useToastStore((s) => s.toasts);
   const dismiss = useToastStore((s) => s.dismiss);
 
-  if (toasts.length === 0) return null;
+  if (toasts.length === 0) {return null;}
 
   return (
     <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 w-80 max-h-[50vh] overflow-hidden pointer-events-none lg:bottom-6 lg:right-6">

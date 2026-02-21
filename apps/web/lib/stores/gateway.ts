@@ -37,7 +37,7 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
 
   connect: (url, opts) => {
     const existing = get().client;
-    if (existing) existing.stop();
+    if (existing) {existing.stop();}
 
     set({ connecting: true, error: null });
 
@@ -51,7 +51,7 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
           connected: true,
           connecting: false,
           hello,
-          snapshot: hello.snapshot as GatewaySnapshot | undefined ?? null,
+          snapshot: hello.snapshot ?? null,
           error: null,
         });
       },
@@ -106,7 +106,7 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
 
   request: async <T = unknown>(method: string, params?: unknown): Promise<T> => {
     const client = get().client;
-    if (!client) throw new Error("Gateway not connected");
+    if (!client) {throw new Error("Gateway not connected");}
     return client.request<T>(method, params);
   },
 

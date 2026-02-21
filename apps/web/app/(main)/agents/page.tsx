@@ -36,7 +36,7 @@ export default function AgentsPage() {
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
 
   React.useEffect(() => {
-    if (!connected) return;
+    if (!connected) {return;}
     (async () => {
       try {
         const result = await request<AgentsListResult>("agents.list", {});
@@ -61,8 +61,8 @@ export default function AgentsPage() {
   }, [connected, request]);
 
   const filteredAgents = React.useMemo(() => {
-    if (!agents?.agents) return [];
-    if (!searchQuery.trim()) return agents.agents;
+    if (!agents?.agents) {return [];}
+    if (!searchQuery.trim()) {return agents.agents;}
     const q = searchQuery.toLowerCase();
     return agents.agents.filter((a) => {
       const name = identities[a.id]?.name ?? a.name ?? a.id;

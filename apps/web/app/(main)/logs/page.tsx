@@ -70,9 +70,9 @@ export default function LogsPage() {
 
   // Subscribe to gateway log events
   React.useEffect(() => {
-    if (!connected) return;
+    if (!connected) {return;}
     const unsub = addEventListener("log", (payload: unknown) => {
-      if (paused) return;
+      if (paused) {return;}
       const entry = payload as Partial<LogEntry>;
       const log: LogEntry = {
         id: `log-${++logId.current}`,
@@ -97,7 +97,7 @@ export default function LogsPage() {
   // Filter logs
   const filteredLogs = React.useMemo(() => {
     return logs.filter((log) => {
-      if (levelFilter !== "all" && log.level !== levelFilter) return false;
+      if (levelFilter !== "all" && log.level !== levelFilter) {return false;}
       if (filter) {
         const q = filter.toLowerCase();
         return (

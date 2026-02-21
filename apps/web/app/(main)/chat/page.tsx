@@ -192,7 +192,7 @@ export default function ChatPage() {
 
   // Load sessions & history
   React.useEffect(() => {
-    if (!connected) return;
+    if (!connected) {return;}
     (async () => {
       try {
         const result = await request<{ sessions: SessionEntry[] }>("sessions.list", {
@@ -207,7 +207,7 @@ export default function ChatPage() {
 
   // Load chat history when session changes
   React.useEffect(() => {
-    if (!connected || !sessionKey) return;
+    if (!connected || !sessionKey) {return;}
     (async () => {
       try {
         const history = await request<{ messages: ChatMessage[] }>("chat.history", {
@@ -238,7 +238,7 @@ export default function ChatPage() {
         errorMessage?: string;
       };
 
-      if (evt.sessionKey !== sessionKey) return;
+      if (evt.sessionKey !== sessionKey) {return;}
 
       if (evt.state === "delta") {
         const delta =
@@ -303,7 +303,7 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     const text = inputValue.trim();
-    if (!text || !connected || sending) return;
+    if (!text || !connected || sending) {return;}
 
     const userMessage: DisplayMessage = {
       id: `user-${Date.now()}`,
@@ -482,8 +482,8 @@ export default function ChatPage() {
 
 function formatTimeAgo(ms: number): string {
   const diff = Date.now() - ms;
-  if (diff < 60_000) return "now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h`;
+  if (diff < 60_000) {return "now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h`;}
   return `${Math.floor(diff / 86_400_000)}d`;
 }

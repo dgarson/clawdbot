@@ -33,9 +33,9 @@ import {
 function friendlySchedule(schedule: CronJob["schedule"]): string {
   if (schedule.kind === "every") {
     const mins = Math.round(schedule.everyMs / 60_000);
-    if (mins < 60) return `Every ${mins} minute${mins === 1 ? "" : "s"}`;
+    if (mins < 60) {return `Every ${mins} minute${mins === 1 ? "" : "s"}`;}
     const hrs = Math.round(mins / 60);
-    if (hrs < 24) return `Every ${hrs} hour${hrs === 1 ? "" : "s"}`;
+    if (hrs < 24) {return `Every ${hrs} hour${hrs === 1 ? "" : "s"}`;}
     const days = Math.round(hrs / 24);
     return `Every ${days} day${days === 1 ? "" : "s"}`;
   }
@@ -56,7 +56,7 @@ function friendlySchedule(schedule: CronJob["schedule"]): string {
 /** Best-effort cron-expression → plain English */
 function cronExprToFriendly(expr: string): string {
   const parts = expr.trim().split(/\s+/);
-  if (parts.length < 5) return expr;
+  if (parts.length < 5) {return expr;}
   const [min, hour, dom, , dow] = parts;
 
   // "0 7 * * *" → "Every morning at 7:00 AM"
@@ -74,7 +74,7 @@ function cronExprToFriendly(expr: string): string {
   // "*/5 * * * *" → "Every 5 minutes"
   if (min.startsWith("*/")) {
     const n = parseInt(min.slice(2), 10);
-    if (!isNaN(n)) return `Every ${n} minute${n === 1 ? "" : "s"}`;
+    if (!isNaN(n)) {return `Every ${n} minute${n === 1 ? "" : "s"}`;}
   }
 
   return `Cron: ${expr}`;
@@ -82,17 +82,17 @@ function cronExprToFriendly(expr: string): string {
 
 /** Technical schedule label */
 function technicalSchedule(schedule: CronJob["schedule"]): string {
-  if (schedule.kind === "cron") return schedule.expr + (schedule.tz ? ` (${schedule.tz})` : "");
-  if (schedule.kind === "every") return `every ${schedule.everyMs}ms`;
-  if (schedule.kind === "at") return `at ${schedule.at}`;
+  if (schedule.kind === "cron") {return schedule.expr + (schedule.tz ? ` (${schedule.tz})` : "");}
+  if (schedule.kind === "every") {return `every ${schedule.everyMs}ms`;}
+  if (schedule.kind === "at") {return `at ${schedule.at}`;}
   return JSON.stringify(schedule);
 }
 
 function relativeTime(ms: number): string {
   const diff = Date.now() - ms;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -112,7 +112,7 @@ export default function CronPage() {
 
   // Load jobs
   const loadJobs = React.useCallback(async () => {
-    if (!connected) return;
+    if (!connected) {return;}
     try {
       const result = await request<{ jobs: CronJob[] }>("cron.list", {});
       setJobs(result.jobs ?? []);

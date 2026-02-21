@@ -7,6 +7,8 @@ import { MobileTabBar } from "@/components/shell/mobile-tab-bar";
 import { MobileSidebarDrawer } from "@/components/shell/mobile-sidebar-drawer";
 import { KeyboardShortcutsDialog } from "@/components/shell/keyboard-shortcuts-dialog";
 import { ApprovalBar } from "@/components/shell/approval-bar";
+import { Breadcrumbs } from "@/components/shell/breadcrumbs";
+import { ConnectionBanner } from "@/components/shell/connection-banner";
 import { useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
 
 export default function MainLayout({
@@ -27,7 +29,9 @@ export default function MainLayout({
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar />
+        <ConnectionBanner />
         <ApprovalBar />
+        <Breadcrumbs />
         <main className="flex-1 overflow-auto pb-16 lg:pb-0">
           {children}
         </main>

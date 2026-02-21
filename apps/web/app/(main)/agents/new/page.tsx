@@ -241,7 +241,7 @@ export default function AgentBuilderPage() {
 
   // Load models
   React.useEffect(() => {
-    if (!connected) return;
+    if (!connected) {return;}
     request<{ models: ModelChoice[] }>("models.list", {})
       .then((r) => setModels(r.models ?? []))
       .catch(() => {});
@@ -264,18 +264,18 @@ export default function AgentBuilderPage() {
 
   const generateSoulFromSliders = (): string => {
     const traits: string[] = [];
-    if (form.formality > 70) traits.push("formal and professional");
-    else if (form.formality < 30) traits.push("casual and relaxed");
-    else traits.push("balanced in formality");
+    if (form.formality > 70) {traits.push("formal and professional");}
+    else if (form.formality < 30) {traits.push("casual and relaxed");}
+    else {traits.push("balanced in formality");}
 
-    if (form.verbosity > 70) traits.push("detailed and thorough");
-    else if (form.verbosity < 30) traits.push("concise and to-the-point");
+    if (form.verbosity > 70) {traits.push("detailed and thorough");}
+    else if (form.verbosity < 30) {traits.push("concise and to-the-point");}
 
-    if (form.proactivity > 70) traits.push("proactive — suggests improvements unprompted");
-    else if (form.proactivity < 30) traits.push("reactive — waits for explicit requests");
+    if (form.proactivity > 70) {traits.push("proactive — suggests improvements unprompted");}
+    else if (form.proactivity < 30) {traits.push("reactive — waits for explicit requests");}
 
-    if (form.humor > 70) traits.push("playful with a sense of humor");
-    else if (form.humor < 30) traits.push("serious and focused");
+    if (form.humor > 70) {traits.push("playful with a sense of humor");}
+    else if (form.humor < 30) {traits.push("serious and focused");}
 
     let soul = form.soulContent || `You are ${form.name || "an AI assistant"}.`;
     if (!soul.includes("Communication Style") && !soul.includes("communication style")) {
@@ -285,7 +285,7 @@ export default function AgentBuilderPage() {
   };
 
   const handleCreate = async () => {
-    if (!connected || creating) return;
+    if (!connected || creating) {return;}
     setCreating(true);
     setError(null);
 
@@ -315,7 +315,7 @@ export default function AgentBuilderPage() {
   };
 
   const handleAutoReview = async () => {
-    if (!connected || reviewing) return;
+    if (!connected || reviewing) {return;}
     setReviewing(true);
     setReviewFeedback(null);
 
@@ -351,12 +351,12 @@ export default function AgentBuilderPage() {
 
   const nextStep = () => {
     const idx = STEPS.findIndex((s) => s.id === step);
-    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1].id);
+    if (idx < STEPS.length - 1) {setStep(STEPS[idx + 1].id);}
   };
 
   const prevStep = () => {
     const idx = STEPS.findIndex((s) => s.id === step);
-    if (idx > 0) setStep(STEPS[idx - 1].id);
+    if (idx > 0) {setStep(STEPS[idx - 1].id);}
   };
 
   return (

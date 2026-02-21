@@ -16,7 +16,7 @@ export function KeyboardShortcutsDialog({
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {return;}
       if (e.key === "?" && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         onOpenChange(true);

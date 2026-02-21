@@ -13,6 +13,6 @@ interface ComplexityGateProps {
 
 export function ComplexityGate({ level, children, fallback = null }: ComplexityGateProps) {
   const { isAtLeast } = useProficiency();
-  if (isAtLeast(level)) return <>{children}</>;
+  if (isAtLeast(level)) {return <>{children}</>;}
   return <>{fallback}</>;
 }

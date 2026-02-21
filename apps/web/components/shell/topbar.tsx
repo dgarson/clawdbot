@@ -6,6 +6,7 @@ import { useProficiencyStore } from "@/lib/stores/proficiency";
 import { useUiStore } from "@/lib/stores/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NotificationCenter } from "@/components/shell/notification-center";
 import {
   Sun,
   Moon,
@@ -117,10 +118,13 @@ export function Topbar() {
           <span className="hidden md:inline">{ProfInfo.label}</span>
         </Button>
 
+        {/* Notifications */}
+        <NotificationCenter />
+
         {/* Theme toggle */}
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="sm"
           onClick={cycleTheme}
           aria-label={`Theme: ${theme}`}
         >

@@ -148,7 +148,7 @@ export class GatewayClient {
   }
 
   private connect() {
-    if (this.closed) return;
+    if (this.closed) {return;}
 
     try {
       this.ws = new WebSocket(this.opts.url);
@@ -175,7 +175,7 @@ export class GatewayClient {
   }
 
   private scheduleReconnect() {
-    if (this.closed) return;
+    if (this.closed) {return;}
     const delay = this.backoffMs;
     this.backoffMs = Math.min(this.backoffMs * 1.7, 15_000);
     this.reconnectTimer = setTimeout(() => this.connect(), delay);
@@ -183,14 +183,14 @@ export class GatewayClient {
 
   private flushPending(err: Error) {
     for (const [, p] of this.pending) {
-      if (p.timeoutId) clearTimeout(p.timeoutId);
+      if (p.timeoutId) {clearTimeout(p.timeoutId);}
       p.reject(err);
     }
     this.pending.clear();
   }
 
   private sendConnect() {
-    if (this.connectSent) return;
+    if (this.connectSent) {return;}
     this.connectSent = true;
     if (this.connectTimer !== null) {
       clearTimeout(this.connectTimer);
@@ -277,9 +277,9 @@ export class GatewayClient {
     if (frame.type === "res") {
       const res = parsed as GatewayResponseFrame;
       const pending = this.pending.get(res.id);
-      if (!pending) return;
+      if (!pending) {return;}
       this.pending.delete(res.id);
-      if (pending.timeoutId) clearTimeout(pending.timeoutId);
+      if (pending.timeoutId) {clearTimeout(pending.timeoutId);}
       if (res.ok) {
         pending.resolve(res.payload);
       } else {

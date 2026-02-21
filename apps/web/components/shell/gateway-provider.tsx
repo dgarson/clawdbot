@@ -3,7 +3,7 @@ import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
 
 function resolveGatewayUrl(): string {
-  if (typeof window === "undefined") return "ws://localhost:18789";
+  if (typeof window === "undefined") {return "ws://localhost:18789";}
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host;
   return `${proto}//${host}`;

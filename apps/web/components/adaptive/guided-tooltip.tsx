@@ -23,7 +23,7 @@ export function GuidedTooltip({
   const maxIdx = levelOrder.indexOf(maxLevel);
   const shouldShow = !isAtLeast(levelOrder[maxIdx + 1] ?? "expert");
 
-  if (!shouldShow) return <>{children}</>;
+  if (!shouldShow) {return <>{children}</>;}
 
   return (
     <Tooltip>

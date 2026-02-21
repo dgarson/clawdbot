@@ -34,8 +34,8 @@ const CHART_COLORS = {
 };
 
 function formatTokensShort(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(0)}k`;}
   return n.toString();
 }
 
@@ -50,7 +50,7 @@ type CustomTooltipProps = {
 };
 
 function ChartTooltip({ active, payload, label }: CustomTooltipProps) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) {return null;}
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
       <p className="text-xs font-medium text-foreground mb-1">{label}</p>

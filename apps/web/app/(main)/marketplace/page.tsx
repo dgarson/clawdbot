@@ -191,7 +191,7 @@ export default function MarketplacePage() {
 
   const filteredSkills = React.useMemo(() => {
     return FEATURED_SKILLS.filter((skill) => {
-      if (category !== "all" && skill.category !== category) return false;
+      if (category !== "all" && skill.category !== category) {return false;}
       if (search) {
         const q = search.toLowerCase();
         return (

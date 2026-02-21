@@ -42,7 +42,7 @@ const CHANNEL_ICONS: Record<string, string> = {
 function channelIcon(pluginKey: string): string {
   const lower = pluginKey.toLowerCase();
   for (const [key, icon] of Object.entries(CHANNEL_ICONS)) {
-    if (lower.includes(key)) return icon;
+    if (lower.includes(key)) {return icon;}
   }
   return "📡";
 }
@@ -63,11 +63,11 @@ function statusBadge(status: ChannelAccount["status"]) {
 }
 
 function relativeTime(ms: number | undefined): string {
-  if (!ms) return "never";
+  if (!ms) {return "never";}
   const diff = Date.now() - ms;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -85,7 +85,7 @@ export default function ChannelsPage() {
   const [refreshing, setRefreshing] = React.useState(false);
 
   const loadChannels = React.useCallback(async () => {
-    if (!connected) return;
+    if (!connected) {return;}
     try {
       const result = await request<ChannelsStatusResult>("channels.status", {});
       setChannelData(result);
@@ -108,22 +108,22 @@ export default function ChannelsPage() {
 
   // Derive ordered channel list
   const channelKeys = React.useMemo(() => {
-    if (!channelData) return [];
+    if (!channelData) {return [];}
     // Use channelOrder if available, fall back to keys of channelAccounts
-    if (channelData.channelOrder?.length) return channelData.channelOrder;
+    if (channelData.channelOrder?.length) {return channelData.channelOrder;}
     return Object.keys(channelData.channelAccounts ?? {});
   }, [channelData]);
 
   // Count total connected
   const connectedCount = React.useMemo(() => {
-    if (!channelData?.channelAccounts) return 0;
+    if (!channelData?.channelAccounts) {return 0;}
     return Object.values(channelData.channelAccounts)
       .flat()
       .filter((a) => a.status === "connected").length;
   }, [channelData]);
 
   const totalAccounts = React.useMemo(() => {
-    if (!channelData?.channelAccounts) return 0;
+    if (!channelData?.channelAccounts) {return 0;}
     return Object.values(channelData.channelAccounts).flat().length;
   }, [channelData]);
 

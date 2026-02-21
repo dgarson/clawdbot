@@ -135,7 +135,7 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
-    if (!connected) return;
+    if (!connected) {return;}
     try {
       const [agentsList, sessionsList] = await Promise.all([
         request<AgentsListResult>("agents.list", {}),
@@ -187,8 +187,8 @@ export default function DashboardPage() {
 
   const greeting = (() => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
+    if (hour < 12) {return "Good morning";}
+    if (hour < 17) {return "Good afternoon";}
     return "Good evening";
   })();
 
@@ -418,8 +418,8 @@ export default function DashboardPage() {
 
 function formatTimeAgo(ms: number): string {
   const diff = Date.now() - ms;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }

@@ -7,6 +7,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
