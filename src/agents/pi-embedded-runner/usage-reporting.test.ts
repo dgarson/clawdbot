@@ -10,6 +10,37 @@ describe("runEmbeddedPiAgent usage reporting", () => {
     vi.clearAllMocks();
   });
 
+  it("forwards runtime='claude-sdk' to runEmbeddedAttempt", async () => {
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce({
+      aborted: false,
+      promptError: null,
+      timedOut: false,
+      sessionIdUsed: "test-session",
+      assistantTexts: ["ok"],
+      lastAssistant: {
+        usage: { input: 10, output: 5, total: 15 },
+        stopReason: "end_turn",
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    await runEmbeddedPiAgent({
+      sessionId: "test-session",
+      sessionKey: "test-key",
+      sessionFile: "/tmp/session.json",
+      workspaceDir: "/tmp/workspace",
+      prompt: "hello",
+      timeoutMs: 30000,
+      runId: "run-runtime-forward",
+      runtime: "claude-sdk",
+    });
+
+    const firstCall = mockedRunEmbeddedAttempt.mock.calls[0]?.[0] as {
+      runtime?: "pi" | "claude-sdk";
+    };
+    expect(firstCall.runtime).toBe("claude-sdk");
+  });
+
   it("reports total usage from the last turn instead of accumulated total", async () => {
     // Simulate a multi-turn run result.
     // Turn 1: Input 100, Output 50. Total 150.

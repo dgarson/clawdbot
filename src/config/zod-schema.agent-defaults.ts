@@ -4,6 +4,7 @@ import {
   AgentSandboxSchema,
   AgentModelSchema,
   MemorySearchSchema,
+  ClaudeSdkConfigSchema,
 } from "./zod-schema.agent-runtime.js";
 import {
   BlockStreamingChunkSchema,
@@ -168,6 +169,8 @@ export const AgentDefaultsSchema = z
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
+    runtime: z.enum(["pi", "claude-sdk"]).optional(),
+    claudeSdk: ClaudeSdkConfigSchema,
   })
   .strict()
   .optional();
