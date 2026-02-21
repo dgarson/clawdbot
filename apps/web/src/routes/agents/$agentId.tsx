@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/composed/StatusBadge";
-import { CardSkeleton } from "@/components/composed";
+import { AgentDetailSkeleton } from "@/components/composed/skeletons";
 import {
   AgentOverviewTab,
   AgentWorkstreamsTab,
@@ -166,10 +166,7 @@ function AgentDetailPage() {
     return (
       <div className="min-h-full bg-background text-foreground">
         <div className="container mx-auto max-w-6xl px-6 py-8">
-          <div className="space-y-6">
-            <CardSkeleton />
-            <CardSkeleton />
-          </div>
+          <AgentDetailSkeleton />
         </div>
       </div>
     );
