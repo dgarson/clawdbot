@@ -26,6 +26,7 @@ type ResolvedAgentConfig = {
   identity?: AgentEntry["identity"];
   groupChat?: AgentEntry["groupChat"];
   subagents?: AgentEntry["subagents"];
+  thinkingDefault?: AgentEntry["thinkingDefault"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
 };
@@ -120,6 +121,7 @@ export function resolveAgentConfig(
     identity: entry.identity,
     groupChat: entry.groupChat,
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
+    thinkingDefault: typeof entry.thinkingDefault === "string" ? entry.thinkingDefault : undefined,
     sandbox: entry.sandbox,
     tools: entry.tools,
   };
@@ -130,6 +132,13 @@ export function resolveAgentSkillsFilter(
   agentId: string,
 ): string[] | undefined {
   return normalizeSkillFilter(resolveAgentConfig(cfg, agentId)?.skills);
+}
+
+export function resolveAgentThinkingDefault(
+  cfg: OpenClawConfig,
+  agentId: string,
+): AgentEntry["thinkingDefault"] {
+  return resolveAgentConfig(cfg, agentId)?.thinkingDefault;
 }
 
 export function resolveAgentModelPrimary(cfg: OpenClawConfig, agentId: string): string | undefined {
