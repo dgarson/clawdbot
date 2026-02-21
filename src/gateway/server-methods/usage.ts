@@ -573,7 +573,13 @@ export const usageHandlers: GatewayRequestHandlers = {
 
         if (usage.toolUsage) {
           for (const tool of usage.toolUsage.tools) {
-            toolAggregateMap.set(tool.name, (toolAggregateMap.get(tool.name) ?? 0) + tool.count);
+            const mcpMatch = tool.name.match(/^mcp__([^_]+)__(.+)$/);
+            const normalizedName = mcpMatch
+              ? mcpMatch[1] === "openclaw-tools"
+                ? mcpMatch[2]
+                : `${mcpMatch[1]}:${mcpMatch[2]}`
+              : tool.name;
+            toolMap.set(normalizedName, (toolMap.get(normalizedName) ?? 0) + tool.count);
           }
         }
 
