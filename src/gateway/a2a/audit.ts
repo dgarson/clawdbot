@@ -148,14 +148,32 @@ export async function readLogFile(filePath: string): Promise<AuditEntry[]> {
 }
 
 /**
- * List all log files in the audit directory, sorted by name (chronological).
+ * List all log files in the audit directory, sorted chronologically.
+ * Handles size-rotated files correctly: base file (a2a-YYYY-MM-DD.jsonl)
+ * comes before its overflow files (a2a-YYYY-MM-DD.1.jsonl, .2.jsonl, etc.).
  */
 export async function listLogFiles(logDir: string = DEFAULT_LOG_DIR): Promise<string[]> {
   try {
     const files = await fs.readdir(logDir);
     return files
       .filter((f) => f.startsWith("a2a-") && f.endsWith(".jsonl"))
-      .toSorted()
+      .toSorted((a, b) => {
+        // Extract date and optional rotation index from filenames
+        const parseFile = (f: string) => {
+          const match = /^a2a-(\d{4}-\d{2}-\d{2})(?:\.(\d+))?\.jsonl$/.exec(f);
+          if (!match) {
+            return { date: f, index: 0 };
+          }
+          return { date: match[1], index: match[2] ? parseInt(match[2], 10) : -1 };
+        };
+        const pa = parseFile(a);
+        const pb = parseFile(b);
+        // Sort by date first, then by rotation index (base file = -1 comes first)
+        if (pa.date !== pb.date) {
+          return pa.date < pb.date ? -1 : 1;
+        }
+        return pa.index - pb.index;
+      })
       .map((f) => path.join(logDir, f));
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
