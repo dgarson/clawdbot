@@ -19,6 +19,7 @@ import { Route as RitualsIndexRouteImport } from './routes/rituals/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as NodesIndexRouteImport } from './routes/nodes/index'
 import { Route as MemoriesIndexRouteImport } from './routes/memories/index'
+import { Route as LogsIndexRouteImport } from './routes/logs/index'
 import { Route as JobsIndexRouteImport } from './routes/jobs/index'
 import { Route as GoalsIndexRouteImport } from './routes/goals/index'
 import { Route as FilesystemIndexRouteImport } from './routes/filesystem/index'
@@ -85,6 +86,11 @@ const NodesIndexRoute = NodesIndexRouteImport.update({
 const MemoriesIndexRoute = MemoriesIndexRouteImport.update({
   id: '/memories/',
   path: '/memories/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsIndexRoute = LogsIndexRouteImport.update({
+  id: '/logs/',
+  path: '/logs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsIndexRoute = JobsIndexRouteImport.update({
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/filesystem/': typeof FilesystemIndexRoute
   '/goals/': typeof GoalsIndexRoute
   '/jobs/': typeof JobsIndexRoute
+  '/logs/': typeof LogsIndexRoute
   '/memories/': typeof MemoriesIndexRoute
   '/nodes/': typeof NodesIndexRoute
   '/onboarding/': typeof OnboardingIndexRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/filesystem': typeof FilesystemIndexRoute
   '/goals': typeof GoalsIndexRoute
   '/jobs': typeof JobsIndexRoute
+  '/logs': typeof LogsIndexRoute
   '/memories': typeof MemoriesIndexRoute
   '/nodes': typeof NodesIndexRoute
   '/onboarding': typeof OnboardingIndexRoute
@@ -251,6 +259,7 @@ export interface FileRoutesById {
   '/filesystem/': typeof FilesystemIndexRoute
   '/goals/': typeof GoalsIndexRoute
   '/jobs/': typeof JobsIndexRoute
+  '/logs/': typeof LogsIndexRoute
   '/memories/': typeof MemoriesIndexRoute
   '/nodes/': typeof NodesIndexRoute
   '/onboarding/': typeof OnboardingIndexRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/filesystem/'
     | '/goals/'
     | '/jobs/'
+    | '/logs/'
     | '/memories/'
     | '/nodes/'
     | '/onboarding/'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/filesystem'
     | '/goals'
     | '/jobs'
+    | '/logs'
     | '/memories'
     | '/nodes'
     | '/onboarding'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/filesystem/'
     | '/goals/'
     | '/jobs/'
+    | '/logs/'
     | '/memories/'
     | '/nodes/'
     | '/onboarding/'
@@ -370,6 +382,7 @@ export interface RootRouteChildren {
   FilesystemIndexRoute: typeof FilesystemIndexRoute
   GoalsIndexRoute: typeof GoalsIndexRoute
   JobsIndexRoute: typeof JobsIndexRoute
+  LogsIndexRoute: typeof LogsIndexRoute
   MemoriesIndexRoute: typeof MemoriesIndexRoute
   NodesIndexRoute: typeof NodesIndexRoute
   OnboardingIndexRoute: typeof OnboardingIndexRoute
@@ -451,6 +464,13 @@ declare module '@tanstack/react-router' {
       path: '/memories'
       fullPath: '/memories/'
       preLoaderRoute: typeof MemoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs/': {
+      id: '/logs/'
+      path: '/logs'
+      fullPath: '/logs/'
+      preLoaderRoute: typeof LogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs/': {
@@ -618,6 +638,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilesystemIndexRoute: FilesystemIndexRoute,
   GoalsIndexRoute: GoalsIndexRoute,
   JobsIndexRoute: JobsIndexRoute,
+  LogsIndexRoute: LogsIndexRoute,
   MemoriesIndexRoute: MemoriesIndexRoute,
   NodesIndexRoute: NodesIndexRoute,
   OnboardingIndexRoute: OnboardingIndexRoute,
