@@ -1,6 +1,7 @@
 
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -132,13 +133,47 @@ const TABS: TabDefinition[] = [
 export interface AgentConfigPageProps {
   agentId: string;
   embedded?: boolean;
+  /** When embedded, parent controls assist panel open state */
+  externalAssistOpen?: boolean;
+  onExternalAssistOpenChange?: (open: boolean) => void;
+  /** When embedded, parent controls review panel open state */
+  externalReviewOpen?: boolean;
+  onExternalReviewOpenChange?: (open: boolean) => void;
+  /** When embedded, notify parent which inner tab is active (for context-aware assist) */
+  onInnerTabChange?: (tab: string) => void;
 }
 
-export function AgentConfigPage({ agentId, embedded = false }: AgentConfigPageProps) {
+export function AgentConfigPage({
+  agentId,
+  embedded = false,
+  externalAssistOpen,
+  onExternalAssistOpenChange,
+  externalReviewOpen,
+  onExternalReviewOpenChange,
+  onInnerTabChange,
+}: AgentConfigPageProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState<ConfigTab>("overview");
-  const [assistOpen, setAssistOpen] = React.useState(false);
-  const [reviewOpen, setReviewOpen] = React.useState(false);
+  const [internalAssistOpen, setInternalAssistOpen] = React.useState(false);
+  const [internalReviewOpen, setInternalReviewOpen] = React.useState(false);
+
+  const assistOpen = embedded && externalAssistOpen !== undefined ? externalAssistOpen : internalAssistOpen;
+  const setAssistOpen = React.useCallback((open: boolean) => {
+    if (embedded && onExternalAssistOpenChange) {
+      onExternalAssistOpenChange(open);
+    } else {
+      setInternalAssistOpen(open);
+    }
+  }, [embedded, onExternalAssistOpenChange]);
+
+  const reviewOpen = embedded && externalReviewOpen !== undefined ? externalReviewOpen : internalReviewOpen;
+  const setReviewOpen = React.useCallback((open: boolean) => {
+    if (embedded && onExternalReviewOpenChange) {
+      onExternalReviewOpenChange(open);
+    } else {
+      setInternalReviewOpen(open);
+    }
+  }, [embedded, onExternalReviewOpenChange]);
   const powerUserMode = useUIStore((s) => s.powerUserMode);
 
   // Data
@@ -185,7 +220,11 @@ export function AgentConfigPage({ agentId, embedded = false }: AgentConfigPagePr
     <div className="flex h-full min-h-0">
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className={cn(
+          "mx-auto max-w-5xl",
+          !embedded && "px-4 py-6 sm:px-6 lg:px-8",
+          embedded && "py-2"
+        )}>
           {/* Header */}
           {!embedded && (
             <motion.div
@@ -276,48 +315,6 @@ export function AgentConfigPage({ agentId, embedded = false }: AgentConfigPagePr
             </motion.div>
           )}
 
-          {embedded && (
-            <div className="flex items-center justify-end gap-2 mb-4">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={reviewOpen ? "default" : "outline"}
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => setReviewOpen(!reviewOpen)}
-                  >
-                    <CheckCircle2 className="size-4" />
-                    Auto Review
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Analyze config and get suggestions for improvement</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={assistOpen ? "default" : "outline"}
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => setAssistOpen(!assistOpen)}
-                  >
-                    {assistOpen ? (
-                      <PanelRightClose className="size-4" />
-                    ) : (
-                      <PanelRightOpen className="size-4" />
-                    )}
-                    AI Assist
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Get AI help configuring this agent</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-
           {!embedded && <Separator className="mb-6" />}
 
           {/* Auto Review Panel (inline, toggled) */}
@@ -342,7 +339,10 @@ export function AgentConfigPage({ agentId, embedded = false }: AgentConfigPagePr
           </AnimatePresence>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ConfigTab)}>
+          <Tabs value={activeTab} onValueChange={(v) => {
+            setActiveTab(v as ConfigTab);
+            onInnerTabChange?.(v);
+          }}>
             <TabsList className="mb-6 flex-wrap h-auto gap-1 bg-transparent p-0">
               {visibleTabs.map((tab) => (
                 <TabsTrigger
@@ -454,13 +454,15 @@ export function AgentConfigPage({ agentId, embedded = false }: AgentConfigPagePr
       </div>
 
       {/* AI Assist Sidebar */}
-      <LLMAssistPanel
-        agentId={agentId}
-        context={assistContext}
-        open={assistOpen}
-        onClose={() => setAssistOpen(false)}
-        onApplyChanges={handleAssistFileChange}
-      />
+      {!embedded && (
+        <LLMAssistPanel
+          agentId={agentId}
+          context={assistContext}
+          open={assistOpen}
+          onClose={() => setAssistOpen(false)}
+          onApplyChanges={handleAssistFileChange}
+        />
+      )}
     </div>
   );
 }
