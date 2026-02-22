@@ -250,6 +250,7 @@ const IncidentCommandCenter          = React.lazy(() => import("./views/Incident
 const EnvironmentConfigManager       = React.lazy(() => import("./views/EnvironmentConfigManager"));
 const UserPermissionManager          = React.lazy(() => import("./views/UserPermissionManager"));
 const InfrastructureCostManager      = React.lazy(() => import("./views/InfrastructureCostManager"));
+const SessionReplayViewer            = React.lazy(() => import("./views/SessionReplayViewer"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
 const MLExperimentTracker            = React.lazy(() => import("./views/MLExperimentTracker"));
@@ -257,8 +258,10 @@ const DisasterRecoveryPlanner        = React.lazy(() => import("./views/Disaster
 const DataRetentionManager           = React.lazy(() => import("./views/DataRetentionManager"));
 const CodeReviewDashboard            = React.lazy(() => import("./views/CodeReviewDashboard"));
 const EndpointMonitor                = React.lazy(() => import("./views/EndpointMonitor"));
-const SessionReplayViewer            = React.lazy(() => import("./views/SessionReplayViewer"));
 const ChaosEngineeringDashboard      = React.lazy(() => import("./views/ChaosEngineeringDashboard"));
+const DependencyAuditDashboard       = React.lazy(() => import("./views/DependencyAuditDashboard"));
+const SearchAnalyticsDashboard       = React.lazy(() => import("./views/SearchAnalyticsDashboard"));
+const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeApprovalBoard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -495,6 +498,9 @@ export const navItems = [
   { id: "endpoint-monitor",     label: "Endpoint Monitor",      emoji: "📡", shortcut: null },
   { id: "session-replay-viewer", label: "Session Replay Viewer", emoji: "🎬", shortcut: null },
   { id: "chaos-engineering",    label: "Chaos Engineering",     emoji: "💥", shortcut: null },
+  { id: "dependency-audit",     label: "Dependency Audit",      emoji: "🔐", shortcut: null },
+  { id: "search-analytics",     label: "Search Analytics",      emoji: "🔎", shortcut: null },
+  { id: "change-approval",      label: "Change Approval",       emoji: "✅", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -732,6 +738,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "endpoint-monitor":       <ContentSkeleton />,
   "session-replay-viewer":  <ContentSkeleton />,
   "chaos-engineering":      <ContentSkeleton />,
+  "dependency-audit":       <ContentSkeleton />,
+  "search-analytics":       <ContentSkeleton />,
+  "change-approval":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1190,6 +1199,9 @@ function AppContent() {
       case "endpoint-monitor":     return <EndpointMonitor />;
       case "session-replay-viewer": return <SessionReplayViewer />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
+      case "dependency-audit":     return <DependencyAuditDashboard />;
+      case "search-analytics":     return <SearchAnalyticsDashboard />;
+      case "change-approval":      return <ChangeApprovalBoard />;
       default:              return <AgentDashboard />;
     }
   };
