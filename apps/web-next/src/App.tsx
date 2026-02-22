@@ -253,6 +253,8 @@ const InfrastructureCostManager      = React.lazy(() => import("./views/Infrastr
 const SessionReplayViewer            = React.lazy(() => import("./views/SessionReplayViewer"));
 const TokenUsageOptimizer            = React.lazy(() => import("./views/TokenUsageOptimizer"));
 const StreamingDebugger              = React.lazy(() => import("./views/StreamingDebugger"));
+const AgentCollaborationGraph        = React.lazy(() => import("./views/AgentCollaborationGraph"));
+const SLAComplianceTracker           = React.lazy(() => import("./views/SLAComplianceTracker"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -508,6 +510,7 @@ export const navItems = [
   { id: "queue-inspector",      label: "Queue Inspector",       emoji: "📬", shortcut: null },
   { id: "token-usage",          label: "Token Usage Optimizer", emoji: "🪙", shortcut: null },
   { id: "streaming-debugger",      label: "Streaming Debugger",     emoji: "📺", shortcut: null },
+  { id: "sla-compliance",          label: "SLA Compliance",         emoji: "📋", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -752,6 +755,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "queue-inspector":        <ContentSkeleton />,
   "token-usage":            <ContentSkeleton />,
   "streaming-debugger":        <ContentSkeleton />,
+  "sla-compliance":            <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1211,7 +1215,9 @@ function AppContent() {
       case "endpoint-monitor":     return <EndpointMonitor />;
       case "session-replay-viewer": return <SessionReplayViewer />;
       case "token-usage-opt":      return <TokenUsageOptimizer />;
-      case "streaming-debugger":   return <StreamingDebugger />; // alias
+      case "streaming-debugger":   return <StreamingDebugger />;
+      case "agent-collab-graph":   return <AgentCollaborationGraph />; // alias
+      case "sla-compliance":       return <SLAComplianceTracker />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
