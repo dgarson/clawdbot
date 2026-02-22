@@ -238,8 +238,9 @@ export default function AgentBuilderWizard() {
                       
                       <div className="flex-1 space-y-6">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-400">Agent Name</label>
-                          <input 
+                          <label htmlFor="wizard-agent-name" className="text-sm font-medium text-gray-400">Agent Name</label>
+                          <input
+                            id="wizard-agent-name"
                             type="text"
                             placeholder="e.g. Jarvis, Friday, Marvin"
                             value={formData.name}
@@ -248,8 +249,9 @@ export default function AgentBuilderWizard() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-400">Role & Responsibilities</label>
-                          <textarea 
+                          <label htmlFor="wizard-agent-role" className="text-sm font-medium text-gray-400">Role & Responsibilities</label>
+                          <textarea
+                            id="wizard-agent-role"
                             rows={4}
                             placeholder="Describe what this agent does..."
                             value={formData.role}

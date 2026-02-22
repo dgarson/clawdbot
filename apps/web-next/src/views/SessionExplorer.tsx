@@ -90,9 +90,10 @@ export default function SessionExplorer() {
 
           {/* Search */}
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
             <input
               type="text"
+              aria-label="Search sessions"
               placeholder="Search sessions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -124,9 +125,14 @@ export default function SessionExplorer() {
                     className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <span className="font-mono text-sm text-violet-400 cursor-pointer hover:underline" onClick={() => setSelectedSession(session)}>
+                      <button
+                        type="button"
+                        className="font-mono text-sm text-violet-400 cursor-pointer hover:underline text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                        onClick={() => setSelectedSession(session)}
+                        aria-label={`View session details for ${session.key}`}
+                      >
                         {truncateKey(session.key)}
-                      </span>
+                      </button>
                       {session.label && (
                         <div className="text-xs text-gray-500 mt-0.5">{session.label}</div>
                       )}

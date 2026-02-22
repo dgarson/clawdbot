@@ -278,8 +278,9 @@ export default function CronScheduleBuilder() {
 
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Job Name</label>
-            <input 
+            <label htmlFor="cron-job-name" className="text-sm font-medium text-gray-400">Job Name</label>
+            <input
+              id="cron-job-name"
               type="text"
               placeholder="e.g. Daily Standup, Code Quality Check"
               value={newJob.name}
@@ -328,9 +329,12 @@ export default function CronScheduleBuilder() {
 
             {newJob.useCustom ? (
               <div className="space-y-4">
-                <input 
+                <label htmlFor="cron-custom-schedule" className="sr-only">Custom cron expression</label>
+                <input
+                  id="cron-custom-schedule"
                   type="text"
                   placeholder="* * * * *"
+                  aria-label="Custom cron expression"
                   value={newJob.customSchedule}
                   onChange={e => setNewJob({...newJob, customSchedule: e.target.value})}
                   className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 font-mono text-violet-400 placeholder:text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-600 transition-all"
