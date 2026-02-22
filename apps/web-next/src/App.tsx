@@ -102,6 +102,8 @@ const AgentInbox           = React.lazy(() => import("./views/AgentInbox"));
 const DependencyGraph      = React.lazy(() => import("./views/DependencyGraph"));
 const GoalTracker          = React.lazy(() => import("./views/GoalTracker"));
 const ResourceMonitor      = React.lazy(() => import("./views/ResourceMonitor"));
+const ServiceMap           = React.lazy(() => import("./views/ServiceMap"));
+const PromptOptimizer      = React.lazy(() => import("./views/PromptOptimizer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -181,6 +183,8 @@ export const navItems = [
   { id: "dep-graph",       label: "Dependency Graph", emoji: "🕸️", shortcut: null },
   { id: "goals",           label: "Goal Tracker",   emoji: "🎯", shortcut: null },
   { id: "resources",       label: "Resources",      emoji: "📊", shortcut: null },
+  { id: "service-map",     label: "Service Map",    emoji: "🗺️", shortcut: null },
+  { id: "prompt-optimizer", label: "Prompt Optimizer", emoji: "✨", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -261,6 +265,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "dep-graph":       <ContentSkeleton />,
   "goals":           <ContentSkeleton />,
   "resources":       <DashboardSkeleton />,
+  "service-map":     <ContentSkeleton />,
+  "prompt-optimizer": <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -562,6 +568,8 @@ function AppContent() {
       case "dep-graph":       return <DependencyGraph />;
       case "goals":           return <GoalTracker />;
       case "resources":       return <ResourceMonitor />;
+      case "service-map":     return <ServiceMap />;
+      case "prompt-optimizer": return <PromptOptimizer />;
       default:              return <AgentDashboard />;
     }
   };
