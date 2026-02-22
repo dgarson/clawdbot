@@ -42,6 +42,7 @@ const UsageDashboard = React.lazy(() => import("./views/UsageDashboard"));
 const WorkspaceFileBrowser = React.lazy(() => import("./views/WorkspaceFileBrowser"));
 const ProviderAuthManager = React.lazy(() => import("./views/ProviderAuthManager"));
 const AgentPulseMonitor = React.lazy(() => import("./views/AgentPulseMonitor"));
+const NotificationCenter = React.lazy(() => import("./views/NotificationCenter"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -61,6 +62,7 @@ export const navItems = [
   { id: "files",         label: "Files",          emoji: "📁", shortcut: null },
   { id: "onboarding",    label: "Onboarding",     emoji: "🚀", shortcut: null },
   { id: "pulse",         label: "Agent Pulse",    emoji: "📡", shortcut: null },
+  { id: "notifications", label: "Notifications",  emoji: "🔔", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -81,6 +83,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "config-review": <ContentSkeleton />,
   onboarding:    <ContentSkeleton />,
   pulse:         <DashboardSkeleton />,
+  notifications: <TableSkeleton rows={8} />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -322,6 +325,7 @@ function AppContent() {
       case "files":         return <WorkspaceFileBrowser />;
       case "onboarding":    return <OnboardingFlow />;
       case "pulse":         return <AgentPulseMonitor />;
+      case "notifications": return <NotificationCenter />;
       default:              return <AgentDashboard />;
     }
   };
