@@ -80,6 +80,7 @@ const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"))
 const AgentMemoryViewer    = React.lazy(() => import("./views/AgentMemoryViewer"));
 const NetworkInspector     = React.lazy(() => import("./views/NetworkInspector"));
 const AnalyticsOverview    = React.lazy(() => import("./views/AnalyticsOverview"));
+const OnboardingChecklist  = React.lazy(() => import("./views/OnboardingChecklist"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -136,6 +137,8 @@ export const navItems = [
   { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
   { id: "memory",          label: "Agent Memory",   emoji: "🧠", shortcut: null },
   { id: "network",         label: "Network",        emoji: "🌐", shortcut: null },
+  { id: "analytics",       label: "Analytics",      emoji: "📉", shortcut: null },
+  { id: "setup",           label: "Setup Guide",    emoji: "✅", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -193,6 +196,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "releases":       <DashboardSkeleton />,
   "memory":         <ContentSkeleton />,
   "network":        <TableSkeleton rows={10} />,
+  "analytics":      <DashboardSkeleton />,
+  "setup":          <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -472,6 +477,7 @@ function AppContent() {
       case "memory":          return <AgentMemoryViewer />;
       case "network":         return <NetworkInspector />;
       case "analytics":       return <AnalyticsOverview />;
+      case "setup":           return <OnboardingChecklist />;
       default:              return <AgentDashboard />;
     }
   };
