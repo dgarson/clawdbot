@@ -1598,6 +1598,61 @@ These are strategic R&D items identified by Amadeus. Items already tracked as se
 - **OTel location:** `src/telemetry/` (core) + `extensions/observability/` (dashboard/CLI)
 - **Docker:** Isolated `docker-compose.observability.yml` connects to app via Prometheus scrape URL
 
+## Quarterly Milestone Intake — 2026-02-21 23:42 MST (Owner: Joey)
+
+> Mandate shift: David owns only QM-level outcomes (2–7 days). Epic/sprint/task decomposition is delegated below QM.
+
+### QM-OBS — Observability Stack Landing (2–3 days)
+
+- **QM owner:** Xavier (eng) + Tim (architecture)
+- **Workboard epic entries:** `OBS-01`..`OBS-06` (already present)
+
+| Epic                                       | Owner                          | Success criteria (definition of done)                                                        | Dependencies                |
+| ------------------------------------------ | ------------------------------ | -------------------------------------------------------------------------------------------- | --------------------------- |
+| OBS-01 OTel core instrumentation           | Tim lead (execution delegated) | spans + metrics wiring merged to `observability/main`; tool/session traces visible in Jaeger | none                        |
+| OBS-02 Prometheus exporter                 | Xavier lead                    | `/metrics` endpoint with required labels exposed + scrape confirmed                          | OBS-01 telemetry primitives |
+| OBS-03 Docker observability stack          | Luis lead (infra handoff)      | compose stack boots locally with Prometheus+Grafana+Loki+Jaeger                              | OBS-01, OBS-02              |
+| OBS-04 Experiment tracking                 | Amadeus lead                   | experiment flags/context/schema merged + dashboard queryability verified                     | OBS-01, OBS-02              |
+| OBS-05 Analytics UI wire-up                | Luis lead                      | dashboards read live telemetry data (not mocks) in UI                                        | OBS-01..OBS-04              |
+| OBS-06 Regression harness + cost optimizer | Tim lead                       | telemetry regression CLI + weekly digest + optimization checks merged and runnable           | OBS-01..OBS-05              |
+
+### QM-OVN — Overnight UI/Backend Delivery (Luis + Tim, 2–4 days)
+
+- **QM owner:** Luis (UI lane) + Tim (backend/review lane)
+- **Workboard epic entries created/linked:** `HRZ2-PR`, `PR-44`, `PR-48`, `PR-53`, `PR-54`
+
+| Epic                                                     | Owner                       | Success criteria (definition of done)                                      | Dependencies                     |
+| -------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------- | -------------------------------- |
+| OVN-01 Horizon v2 mega-branch readiness                  | Luis                        | all HRZ2 tasks closed; branch rebased cleanly                              | HRZ2-01..HRZ2-11 complete        |
+| OVN-02 UI mega-branch merge (`PR-44`)                    | Tim (review) + Luis (fixes) | conflict-free PR, checks green, merged to `dgarson/fork`                   | OVN-01                           |
+| OVN-03 Integration test scaffold lane (`PR-48`)          | Tim                         | protocol-compliant base target + staff review complete                     | OVN-02 for final validation pass |
+| OVN-04 Issue-tracking dependency fixes (`PR-53`/`PR-54`) | Xavier lead                 | both dependency/runtime fixes merged or superseded with one clean merge PR | OVN-03                           |
+| OVN-05 Ops/docs hardening (`PR-52`/`PR-51`)              | Amadeus lead                | docs + dedupe fixes merged; no stale follow-up tasks                       | OVN-04                           |
+
+### QM-A2U — A2A + UTEE Landing (2–5 days)
+
+- **QM owner:** Tim (delivery) + Xavier (approval)
+- **Workboard epic entries created/linked:** `PR-43`, `DISC-02`, `DISC-03`, `PR-TRIAGE`
+
+| Epic                                      | Owner                             | Success criteria (definition of done)                               | Dependencies                        |
+| ----------------------------------------- | --------------------------------- | ------------------------------------------------------------------- | ----------------------------------- |
+| A2U-01 A2A mega-branch landing (`PR-43`)  | Tim                               | staff+architect review complete and merged into `dgarson/fork`      | none                                |
+| A2U-02 UTEE hardening closure (`DISC-02`) | Tim                               | feature-flagged adapter hardened with tests + docs                  | A2U-01 interface assumptions locked |
+| A2U-03 Canary decision gate (`DISC-03`)   | Xavier (approval) + Tim (runbook) | canary executed; GO/NO-GO decision logged in board notes            | A2U-02                              |
+| A2U-04 PR backlog alignment (`PR-TRIAGE`) | Tim + Roman/Claire                | all A2A/UTEE-adjacent PRs mapped to merge authority and next action | A2U-01..A2U-03                      |
+
+### QM Merge Authority Decisions — OVN/A2U lane (2026-02-21 23:48 MST, Tim)
+
+| PR                                                                            | Lane              | Current state                                              | Merge authority decision                                                                                  | Immediate next action                                                                      |
+| ----------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `#43` A2A mega (`a2a-protocol` → `dgarson/fork`)                              | QM-A2U / A2U-01   | Open, checks pending, no final approvals recorded          | **Hold for final megabranch review gate** (Tim+Xavier) after Codex Medium/High sweep artifact is attached | Run/attach Codex sweep results, then schedule senior final pass                            |
+| `#44` UI redesign mega (`luis/ui-redesign` → `dgarson/fork`)                  | QM-OVN / OVN-02   | Open, **DIRTY/conflicts**, checks pending                  | **Route to Luis lane for conflict resolution**; not eligible for senior final review until clean          | Luis rebases/resolves conflicts, reruns checks, re-mark as consolidated-ready              |
+| `#48` integration scaffold (`tim/integration-test-scaffold` → `dgarson/fork`) | QM-OVN / OVN-03   | Open, checks pending, no final approvals recorded          | **Hold** until Codex sweep + consolidated-lane readiness criteria are met                                 | Attach Codex sweep, then include in next senior final review batch                         |
+| `#47` telemetry (`xavier/telemetry-extension-phase1` → `observability/main`)  | QM-OBS / OBS lane | Open, checks pending                                       | **Observability lane authority (Xavier+Tim)**; treat as lane dependency for UTEE audit linkage            | Complete lane review + merge sequence in `observability/main` before A2U audit integration |
+| `#46` UTEE phase-1 (`sandy/utee-phase1-observability` → `observability/main`) | QM-A2U / A2U-02   | Open, checks pending; architecture sign-off comment posted | **Canary lane ready once CI green and observability branch sequencing is clean**                          | Merge in observability lane, then execute DISC-03 canary gate                              |
+
+Decision note: no PR above is approved-but-unmerged yet; current blockers are exactly (1) missing Codex sweep artifact for final gate, (2) unresolved conflicts on #44, and (3) pending checks.
+
 ## Review Queue Policy Update (2026-02-21)
 
 - Final senior review lane (Tim + Xavier) now runs at **consolidated megabranch** level, not incremental PR level.
