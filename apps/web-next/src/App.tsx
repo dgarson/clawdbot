@@ -270,6 +270,8 @@ const EnvironmentDriftDetector       = React.lazy(() => import("./views/Environm
 const WorkflowOrchestrationDashboard = React.lazy(() => import("./views/WorkflowOrchestrationDashboard"));
 const AIGovernanceDashboard          = React.lazy(() => import("./views/AIGovernanceDashboard"));
 const DataRetentionPolicyManager     = React.lazy(() => import("./views/DataRetentionPolicyManager"));
+const IncidentResponsePlaybook       = React.lazy(() => import("./views/IncidentResponsePlaybook"));
+const UserJourneyAnalytics           = React.lazy(() => import("./views/UserJourneyAnalytics"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -541,6 +543,8 @@ export const navItems = [
   { id: "workflow-orchestration",   label: "Workflow Orchestration",  emoji: "⚙️", shortcut: null },
   { id: "ai-governance",            label: "AI Governance",           emoji: "🤖", shortcut: null },
   { id: "retention-policy",         label: "Retention Policy Mgr",   emoji: "🗂️", shortcut: null },
+  { id: "incident-playbook",        label: "Incident Playbooks",     emoji: "📖", shortcut: null },
+  { id: "user-journey-analytics",   label: "User Journey Analytics", emoji: "🗺️", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -801,6 +805,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "workflow-orchestration":    <ContentSkeleton />,
   "ai-governance":             <ContentSkeleton />,
   "retention-policy":          <ContentSkeleton />,
+  "incident-playbook":         <ContentSkeleton />,
+  "user-journey-analytics":    <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1278,6 +1284,8 @@ function AppContent() {
       case "workflow-orchestration": return <WorkflowOrchestrationDashboard />;
       case "ai-governance":          return <AIGovernanceDashboard />;
       case "retention-policy":       return <DataRetentionPolicyManager />;
+      case "incident-playbook":      return <IncidentResponsePlaybook />;
+      case "user-journey-analytics": return <UserJourneyAnalytics />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
