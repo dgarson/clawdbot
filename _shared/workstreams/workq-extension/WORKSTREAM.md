@@ -1,28 +1,23 @@
 # WORKSTREAM.md — workq Extension
 
-_Mega-branch:_ `feat/workq-extension` _(NOT YET CREATED — Tim must create this)_
+_Mega-branch:_ `feat/workq-extension`
 _Owner:_ **Tim** (VP Architecture)
 _Created:_ 2026-02-21
-_Last updated:_ 2026-02-21
+_Last updated:_ 2026-02-22 07:20 MST
 
-> ⚠️ **ATTENTION — Tim:** This workstream is actively in progress but has no registered mega-branch. Squad members are currently working on worktrees without a consolidated mega-branch. Tim must:
->
-> 1. Create `feat/workq-extension` from `dgarson/fork` and push it immediately
-> 2. Update `_shared/MEGA_BRANCHES.md` to register it
-> 3. Have all agents working on workq target their PRs at `feat/workq-extension` (not `main` or `dgarson/fork` directly)
->
 > Delete this entire directory (`_shared/workstreams/workq-extension/`) ONLY after `feat/workq-extension` is confirmed merged into `dgarson/fork`.
 
 ---
 
 ## Deliverable
 
-A workq OpenClaw extension providing multi-agent work queue management via tool API and CLI. Enables agents to claim work items, track file ownership (conflict detection), coordinate across squads, and transition task status atomically. Built as `extensions/workq/` within the OpenClaw repo using `node:sqlite`, 8 tool functions, and 5+ CLI commands.
+A production-integrated `extensions/workq/` OpenClaw extension committed to repo and merged via mega-branch, now expanded into a **dual-purpose system**:
 
-**Architecture spec:** `/Users/openclaw/.openclaw/workspace/_shared/specs/workq-architecture.md`
+1. **Work queue/task coordination** across agents (claim/status/files/query/done/release/log/export)
+2. **Per-agent inbox messaging** with required read→ack flow (`workq_inbox_read` + mandatory `workq_inbox_ack`)
+
+**Architecture spec:** `/Users/openclaw/.openclaw/workspace/_shared/specs/workq-architecture.md`  
 **Implementation plan:** `/Users/openclaw/.openclaw/workspace/_shared/specs/workq-implementation-plan.md`
-**Tim's review:** `/Users/openclaw/.openclaw/workspace/_shared/specs/workq-arch-review-tim.md`
-**Amadeus's review:** `/Users/openclaw/.openclaw/workspace/_shared/specs/workq-ai-review-amadeus.md`
 
 ---
 
@@ -30,71 +25,177 @@ A workq OpenClaw extension providing multi-agent work queue management via tool 
 
 Key decisions:
 
-- **`node:sqlite`** — NOT `better-sqlite3` (native module packaging conflict)
-- **Ownership binding** — `ctx.agentId` from tool factory context, never self-reported agent name
-- **`work_item_files` junction table** — normalized file tracking, not `files_json` blob
-- **8 tools** — `workq_claim`, `workq_status`, `workq_files`, `workq_query`, `workq_transition`, `workq_comment`, `workq_release`, `workq_export` (no `workq_preflight` in v0.1)
-- **Priority/scope/tags** — `priority`, `scope_json`, `tags_json` columns per Amadeus review
-- **Inline conflict warnings** — on `workq_claim` response, not a separate tool call
-- **Extension-first** — lives entirely in `extensions/workq/`, zero core modifications
+- Runtime storage: `node:sqlite` (`node:sqlite` chosen over native add-ons)
+- Ownership identity: derive from runtime context (`ctx.agentId`), never self-asserted in tool input
+- Current tool surface (implemented): 8 tools for work queue operations
+- Gateway surface (integration in progress): register `workq.*` RPC handlers for ACP/A2A interoperability
+- Dual-purpose expansion: add inbox schema + `workq_inbox_send/read/ack` contract with mandatory ack discipline
 
 ---
 
 ## Strategy
 
-6-phase implementation:
-
-- **Phase 1:** Project scaffold + SQLite core (BLOCKING)
-- **Phase 2:** Agent tools (8 tool functions)
-- **Phase 3:** CLI commands
-- **Phase 4:** Export/formatting
-- **Phase 5:** Tests
-- **Phase 6:** Integration testing
+1. Integrate existing extension code into tracked repo mega-branch
+2. Register plugin/config + gateway RPC surface
+3. Add runtime portability + Claude Code discoverability docs
+4. Define hardening backlog (safety/reliability for concurrent multi-agent use)
+5. Define efficiency backlog (reduce tool round-trips and stale work)
+6. Define dual-purpose inbox schema/tools + heartbeat integration policy
+7. Execute roadmap groups in parallelized squad slices
 
 ---
 
 ## Tasks & Status
 
-See workboard: `/Users/openclaw/.openclaw/workspace/_shared/WORKBOARD.md` (Project: workq Extension)
+See source board: `/Users/openclaw/.openclaw/workspace/_shared/WORKBOARD.md`
 
-| Phase                      | Status                                 | Squad   |
-| -------------------------- | -------------------------------------- | ------- |
-| Phase 1: Scaffold + SQLite | ✅ Done (Sandy)                        | Alpha   |
-| Phase 2: Agent Tools       | ✅ Done (Tony)                         | Alpha   |
-| Phase 3: CLI               | ✅ Done (Nate)                         | Bravo   |
-| Phase 4: Export/Formatting | 🟡 In progress                         | Bravo   |
-| Phase 5: Tests             | ⬜ Not started (blocked on Phases 1-4) | Charlie |
-| Phase 6: Integration       | ⬜ Not started                         | Alpha   |
+| Task                                                               | Owner          | Status                 | Notes                                                                                                                                                                    |
+| ------------------------------------------------------------------ | -------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Create mega-branch `feat/workq-extension` from `dgarson/fork`      | Tim            | ✅ Done                | Branch created + pushed                                                                                                                                                  |
+| Copy extension code from `~/.openclaw/extensions/workq/` into repo | Tim            | ✅ Done                | Copied all required files (excluding `node_modules`, lockfile)                                                                                                           |
+| Add `extensions/workq/tsconfig.json`                               | Sandy          | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:sandy:subagent:44983536-bfcc-44ee-9c95-60752508f02a`); branch `feat/workq-extension`; PR target `feat/workq-extension`              |
+| Register `workq.*` gateway RPC methods                             | Oscar (+Sandy) | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:oscar:subagent:272a3206-71e3-4528-b426-b54c42270e18`); branch `feat/workq-extension`; PR target `feat/workq-extension`              |
+| Pi runtime validation + README notes                               | Wes            | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067`); branch `feat/workq-extension`; PR target `feat/workq-extension`                |
+| Claude Code opt-in docs (`CLAUDE.md`)                              | Nate           | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:nate:subagent:3adcd6e2-8b20-4822-8cf4-af566a881ebc`); branch `feat/workq-extension`; PR target `feat/workq-extension`               |
+| Config registration (`plugins.workq.*`)                            | Tim            | 🔴 Blocked (Sequenced) | Sequencing enforced: execute after plugin schema registration lands (from Sandy/Oscar lane integration), then apply `plugins.workq.*` config and validate CLI acceptance |
+| Dual-purpose inbox design docs                                     | Tim            | ✅ Done                | Added below in this file + SKILL.md created                                                                                                                              |
 
 ---
 
-## Squad
+## Hardening Backlog (Phase B)
 
-| Agent  | Role               | Squad   |
-| ------ | ------------------ | ------- |
-| Tim    | Lead / Owner       | —       |
-| Roman  | Staff reviewer     | Alpha   |
-| Sandy  | Senior implementer | Alpha   |
-| Tony   | Senior implementer | Alpha   |
-| Joey   | Mid implementer    | Alpha   |
-| Harry  | Mid implementer    | Alpha   |
-| Vince  | Mid implementer    | Alpha   |
-| Claire | Staff reviewer     | —       |
-| Barry  | Mid implementer    | Bravo   |
-| Jerry  | Mid implementer    | Bravo   |
-| Nate   | Mid implementer    | Bravo   |
-| Oscar  | Mid implementer    | Bravo   |
-| Wes    | Mid implementer    | Bravo   |
-| Larry  | Engineer/tester    | Charlie |
-| Sam    | Engineer/tester    | Charlie |
-| Piper  | Engineer/tester    | Charlie |
-| Quinn  | Engineer/tester    | Charlie |
-| Reed   | Engineer/tester    | Charlie |
+Top 4 hardening items for tool/MCP integration:
+
+1. **Versioned migration runner + startup schema gate**
+   - **Why:** Prevent silent drift/corruption as inbox tables and future columns evolve.
+   - **Action:** Add monotonic migrations table (`schema_migrations`), transactional migration execution, and startup fail-fast if migration incomplete.
+
+2. **Idempotency keys for mutating calls (`claim`, `done`, `inbox_ack`)**
+   - **Why:** Retries are common in agent/tool pipelines; duplicate state transitions create data ambiguity.
+   - **Action:** Optional `requestId` on writes, dedupe table keyed by (`agent_id`,`request_id`,`operation`) with replay-safe response.
+
+3. **Standardized error taxonomy for tools + gateway RPC**
+   - **Why:** Agents need machine-actionable failures (`NOT_OWNER`, `INVALID_TRANSITION`, `CONFLICT`, `NOT_FOUND`, `DB_UNAVAILABLE`) instead of free-form strings.
+   - **Action:** Introduce canonical `code` + `message` + `retryable` fields and keep consistent across tool + RPC handlers.
+
+4. **WAL/locking policy with periodic checkpointing under concurrency**
+   - **Why:** Multi-agent writes can cause checkpoint starvation and transient lock spikes.
+   - **Action:** enforce WAL mode, `busy_timeout`, periodic passive checkpoint, and metric surfacing for lock wait and checkpoint lag.
+
+---
+
+## Efficiency Backlog (Phase C)
+
+Most impactful 5 improvements:
+
+1. **Batched claim + file registration verification (keep and formalize)**
+   - **Assessment:** Already implemented in tool input (`files[]` on `workq_claim`); make it explicit in RPC + docs/tests to ensure parity.
+
+2. **Optimistic file conflict warnings on claim (verify + preserve)**
+   - **Assessment:** Existing claim warning path appears wired; keep non-blocking warning semantics and add deterministic warning code for automation.
+
+3. **Stale-item auto-notification via inbox**
+   - **Assessment:** High operational leverage; stale ownership should generate inbox alerts to assignee and optional squad lead after threshold.
+
+4. **Compound query shortcuts (`my_active`, `mine_stale`, `squad_open`)**
+   - **Assessment:** Reduces filter boilerplate and token usage; add enum shortcuts mapped internally to full query predicates.
+
+5. **Response shaping (`fields[]` / default-minimal)**
+   - **Assessment:** Most calls only need a few fields; default compact payload improves latency and reduces context pressure.
+
+---
+
+## Dual-Purpose Inbox Design (Phase D)
+
+### Schema Extension
+
+```sql
+CREATE TABLE inbox_messages (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  recipient_id TEXT NOT NULL,
+  sender_id    TEXT NOT NULL,
+  message_type TEXT NOT NULL,
+  subject      TEXT,
+  payload_json TEXT NOT NULL,
+  priority     TEXT NOT NULL DEFAULT 'normal',
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  read_at      TEXT,
+  acked_at     TEXT,
+  expires_at   TEXT
+);
+CREATE INDEX idx_inbox_recipient ON inbox_messages(recipient_id, acked_at);
+CREATE INDEX idx_inbox_broadcast ON inbox_messages(message_type, acked_at) WHERE message_type = 'broadcast';
+```
+
+### Tool Contracts
+
+1. **`workq_inbox_send`**  
+   Input: `{ to: string | string[], messageType, subject?, payload, priority?, expiresIn? }`  
+   Output: `{ sent: number, messageIds: number[] }`
+
+2. **`workq_inbox_read`**  
+   Input: `{ unreadOnly?: boolean, limit?: number, includeExpired?: boolean }`  
+   Agent identity must come from `ctx.agentId`  
+   Behavior: set `read_at` for newly surfaced messages  
+   Output: `{ messages: InboxMessage[], unreadCount: number }`
+
+3. **`workq_inbox_ack`**  
+   Input: `{ messageIds: number[] }` or `{ all: true }`  
+   Output: `{ acked: number }`  
+   **Policy:** required after reading/processing
+
+### Heartbeat Integration Policy
+
+Add this section to all `HEARTBEAT.md` files:
+
+```markdown
+## workq Inbox Check
+
+Call `workq_inbox_read` to check for pending messages. Process each one.
+After processing, call `workq_inbox_ack` with the message IDs. This is REQUIRED.
+```
+
+For agents without `HEARTBEAT.md`, add this to `AGENTS.md`:
+
+```markdown
+## workq Inbox
+
+You have a workq inbox. During any idle check or when triggered, call `workq_inbox_read`
+to check for pending messages from other agents or the system. After processing each
+message, call `workq_inbox_ack` with the message IDs — this is mandatory.
+```
+
+---
+
+## Roadmap: 10 Implementation Groups (Phase E)
+
+| #   | Group                           | Deliverable                                                            | Dependencies | Suggested Owner                   | Est. Squad Size |
+| --- | ------------------------------- | ---------------------------------------------------------------------- | ------------ | --------------------------------- | --------------- |
+| 1   | Branch & Repo Integration       | Mega-branch created, extension code copied, PR opened                  | None         | Tim                               | 1               |
+| 2   | Plugin Registration & Config    | `plugins.workq.*` config path + gateway load validation                | Group 1      | Sandy                             | 2               |
+| 3   | Gateway RPC Methods             | `workq.claim/release/query/status/done/files/log` exposed in gateway   | Group 1      | Oscar                             | 2               |
+| 4   | Pi Runtime & Claude Code Opt-in | Pi runtime validation + README + `CLAUDE.md`                           | Groups 1–2   | Wes + Nate                        | 2               |
+| 5   | Inbox Schema & Database Layer   | `inbox_messages` schema, indexes, migration wiring, TTL cleanup policy | Group 1      | Tony                              | 2               |
+| 6   | Inbox Tool Surface              | `workq_inbox_send/read/ack` tool APIs with ctx-based identity          | Group 5      | Barry                             | 2               |
+| 7   | Heartbeat + Skill Integration   | HEARTBEAT/AGENTS updates + `skills/workq/SKILL.md`                     | Groups 5–6   | Claire                            | 2               |
+| 8   | Advanced Routing                | Broadcast, squad-targeted routing, urgent handling/threading strategy  | Group 6      | Roman                             | 2               |
+| 9   | Testing & Reliability           | Inbox tests + idempotency + error codes + WAL/concurrency              | Groups 3,5,6 | Larry                             | 3               |
+| 10  | Observability & Analytics       | OTel spans, queue-depth metrics, stale alert dashboards                | Groups 3,6,9 | Xavier (with observability squad) | 2               |
+
+---
+
+## Squad Dispatch Log
+
+- 2026-02-22 07:20 MST — Sandy re-dispatched (`agent:sandy:subagent:44983536-bfcc-44ee-9c95-60752508f02a`): `extensions/workq/tsconfig.json`; branch `feat/workq-extension`; PR target `feat/workq-extension`.
+- 2026-02-22 07:20 MST — Oscar re-dispatched (`agent:oscar:subagent:272a3206-71e3-4528-b426-b54c42270e18`): gateway `workq.*` RPC methods; branch `feat/workq-extension`; PR target `feat/workq-extension`.
+- 2026-02-22 07:20 MST — Wes re-dispatched (`agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067`): Pi runtime compatibility + README notes; branch `feat/workq-extension`; PR target `feat/workq-extension`.
+- 2026-02-22 07:20 MST — Nate re-dispatched (`agent:nate:subagent:3adcd6e2-8b20-4822-8cf4-af566a881ebc`): `extensions/workq/CLAUDE.md`; branch `feat/workq-extension`; PR target `feat/workq-extension`.
+- Sequencing note: Tim’s `plugins.workq.*` config registration remains blocked until schema registration lands; do not attempt config set before plugin schema acceptance is merged/available.
 
 ---
 
 ## Open Questions / Blockers
 
-- **Mega-branch not yet created** — Tim must create `feat/workq-extension` immediately
-- workq must be live before ACP can use it for `external_refs` task tracking (ACP dependency)
-- Phase 5 (tests) blocked until Phases 1-4 complete
+1. **Config schema gate:** `openclaw config set plugins.workq.enabled true` currently fails with `Unrecognized key: workq`; requires plugin schema registration path or plugin load before config accepts key.
+2. **RPC naming parity:** tools are currently snake_case (`workq_claim`) while gateway RPC target is dotted (`workq.claim`)—intentional but must be clearly documented.
+3. **Inbox ack enforcement mode:** hard-fail on next read vs soft warning; decision required before rollout.
