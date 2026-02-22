@@ -23,5 +23,18 @@ export {
   type SessionMetricAttrs,
 } from "./metrics.js";
 
+// Prometheus
+export {
+  initPrometheusExporter,
+  getPrometheusMeterProvider,
+  getMetricsRequestHandler,
+  isMetricsPath,
+  shutdownPrometheus,
+  isPrometheusEnabled,
+  DEFAULT_METRICS_PORT,
+  DEFAULT_METRICS_ENDPOINT,
+  type PrometheusMetricsConfig,
+} from "./prometheus.js";
+
 // Structured logging
 export { getAgentLogger, getGatewayLogger, flushLoggers } from "./logger.js";

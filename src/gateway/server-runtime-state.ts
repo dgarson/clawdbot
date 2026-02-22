@@ -6,6 +6,11 @@ import type { CliDeps } from "../cli/deps.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginRegistry } from "../plugins/registry.js";
 import type { RuntimeEnv } from "../runtime.js";
+import {
+  initPrometheusExporter,
+  getMetricsRequestHandler,
+  DEFAULT_METRICS_ENDPOINT,
+} from "../telemetry/prometheus.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import type { ChatAbortControllerEntry } from "./chat-abort.js";
@@ -55,6 +60,12 @@ export async function createGatewayRuntimeState(params: {
   log: { info: (msg: string) => void; warn: (msg: string) => void };
   logHooks: ReturnType<typeof createSubsystemLogger>;
   logPlugins: ReturnType<typeof createSubsystemLogger>;
+  /** Whether the Prometheus metrics endpoint is enabled. */
+  metricsEnabled?: boolean;
+  /** Port for standalone metrics server (unused when attaching to gateway). */
+  metricsPort?: number;
+  /** Path for the metrics endpoint. Default: "/metrics". */
+  metricsEndpoint?: string;
 }): Promise<{
   canvasHost: CanvasHostHandler | null;
   httpServer: HttpServer;
@@ -115,6 +126,21 @@ export async function createGatewayRuntimeState(params: {
     log: params.logPlugins,
   });
 
+  // Initialize Prometheus /metrics exporter if enabled.
+  let handleMetricsRequest:
+    | ((req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse) => void)
+    | undefined;
+  const metricsEndpoint = params.metricsEndpoint ?? DEFAULT_METRICS_ENDPOINT;
+  if (params.metricsEnabled) {
+    initPrometheusExporter({
+      port: params.metricsPort,
+      endpoint: metricsEndpoint,
+      startServer: false,
+    });
+    handleMetricsRequest = getMetricsRequestHandler();
+    params.log.info(`prometheus metrics enabled at ${metricsEndpoint}`);
+  }
+
   const bindHosts = await resolveGatewayListenHosts(params.bindHost);
   const httpServers: HttpServer[] = [];
   const httpBindHosts: string[] = [];
@@ -130,6 +156,8 @@ export async function createGatewayRuntimeState(params: {
       openResponsesConfig: params.openResponsesConfig,
       handleHooksRequest,
       handlePluginRequest,
+      handleMetricsRequest,
+      metricsEndpoint,
       resolvedAuth: params.resolvedAuth,
       rateLimiter: params.rateLimiter,
       tlsOptions: params.gatewayTls?.enabled ? params.gatewayTls.tlsOptions : undefined,

@@ -398,6 +398,9 @@ export async function startGatewayServer(
     log,
     logHooks,
     logPlugins,
+    metricsEnabled: diagnosticsEnabled && cfgAtStart.diagnostics?.metrics?.enabled !== false,
+    metricsPort: cfgAtStart.diagnostics?.metrics?.port,
+    metricsEndpoint: cfgAtStart.diagnostics?.metrics?.endpoint,
   });
   let bonjourStop: (() => Promise<void>) | null = null;
   const nodeRegistry = new NodeRegistry();

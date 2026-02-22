@@ -164,6 +164,14 @@ export const OpenClawSchema = z
           })
           .strict()
           .optional(),
+        metrics: z
+          .object({
+            enabled: z.boolean().optional(),
+            port: z.number().int().nonnegative().optional(),
+            endpoint: z.string().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
