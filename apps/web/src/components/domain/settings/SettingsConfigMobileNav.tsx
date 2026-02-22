@@ -11,6 +11,7 @@ import {
   Activity,
   Wrench,
   BookOpen,
+  Layers,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +42,7 @@ const navItems: NavItem[] = [
   { id: "advanced", label: "Advanced", shortLabel: "Advanced", icon: Zap },
   { id: "connections", label: "Connections", shortLabel: "Connect", icon: Plug },
   { id: "usage", label: "Usage & Billing", shortLabel: "Usage", icon: CreditCard },
+  { id: "interface", label: "Interface", shortLabel: "Interface", icon: Layers },
 ];
 
 export function SettingsConfigMobileNav({

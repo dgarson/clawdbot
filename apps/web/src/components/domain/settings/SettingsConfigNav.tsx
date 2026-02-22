@@ -10,6 +10,7 @@ import {
   Activity,
   Wrench,
   BookOpen,
+  Layers,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -24,7 +25,8 @@ export type ConfigSection =
   | "toolsets"
   | "advanced"
   | "connections"
-  | "usage";
+  | "usage"
+  | "interface";
 
 interface NavItem {
   id: ConfigSection;
@@ -52,6 +54,7 @@ const navItems: NavItem[] = [
   { id: "advanced", label: "Advanced", icon: Zap, group: "power" },
   { id: "connections", label: "Connections", icon: Plug, group: "power" },
   { id: "usage", label: "Usage & Billing", icon: CreditCard, group: "power" },
+  { id: "interface", label: "Interface", icon: Layers, group: "power" },
 ];
 
 const groupLabels: Record<string, string> = {

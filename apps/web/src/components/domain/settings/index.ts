@@ -15,6 +15,9 @@ export { UsageSection } from "./UsageSection";
 export { HealthSection } from "./HealthSection";
 export { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 
+// Persona / tier system
+export { PersonaTierSection } from "./PersonaTierSection";
+
 // New "You" page sections
 export { ComingSoonSection } from "./ComingSoonSection";
 export { InteractionStyleSection } from "./InteractionStyleSection";

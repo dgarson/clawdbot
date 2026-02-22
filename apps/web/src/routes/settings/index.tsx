@@ -15,6 +15,7 @@ import {
   UsageSection,
   GuidancePacksSection,
   KeyboardShortcutsModal,
+  PersonaTierSection,
 } from "@/components/domain/settings";
 import { SettingsConfigNav, type ConfigSection } from "@/components/domain/settings/SettingsConfigNav";
 import { SettingsConfigMobileNav } from "@/components/domain/settings/SettingsConfigMobileNav";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/settings/")({
       "advanced",
       "connections",
       "usage",
+      "interface",
     ];
     const section = search.section as ConfigSection | undefined;
     const agentId = typeof search.agentId === "string" ? search.agentId : undefined;
@@ -98,6 +100,8 @@ function SettingsPage() {
         return <ConnectionsSection />;
       case "usage":
         return <UsageSection />;
+      case "interface":
+        return <PersonaTierSection />;
       default:
         return <HealthSection />;
     }
