@@ -1587,10 +1587,9 @@ These are strategic R&D items identified by Amadeus. Items already tracked as se
 
 **OBS-06 — Regression Harness + Cost Optimizer** | `observability/regression-harness`
 
-- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
-- Model: opus
-- PR target: `observability/main`
-- Deliverables: `scripts/regression-check.ts`, `openclaw telemetry cost-optimize` CLI, weekly digest cron
+- Status: `in-review` — PR [#57](https://github.com/dgarson/clawdbot/pull/57) open → `observability/main`
+- Completed: 2026-02-21 23:17 MST (Merlin)
+- Deliverables: `scripts/regression-check.ts`, `scripts/weekly-telemetry-digest.ts`, `openclaw telemetry {cost-optimize,regression,baselines}` CLI, 15 tests, cron docs
 - Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 6
 
 ### Architecture Decisions Locked
