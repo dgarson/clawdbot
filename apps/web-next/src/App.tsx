@@ -218,6 +218,8 @@ const MultiRegionDashboard       = React.lazy(() => import("./views/MultiRegionD
 const RevenueAnalyticsDashboard  = React.lazy(() => import("./views/RevenueAnalyticsDashboard"));
 const VaultSecretsManager        = React.lazy(() => import("./views/VaultSecretsManager"));
 const MLPipelineMonitor          = React.lazy(() => import("./views/MLPipelineMonitor"));
+const IncidentTimeline           = React.lazy(() => import("./views/IncidentTimeline"));
+const TestResultsDashboard       = React.lazy(() => import("./views/TestResultsDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -413,6 +415,8 @@ export const navItems = [
   { id: "revenue",         label: "Revenue Analytics",  emoji: "💰", shortcut: null },
   { id: "vault-secrets",  label: "Vault Secrets",       emoji: "🔐", shortcut: null },
   { id: "ml-pipeline",    label: "ML Pipelines",        emoji: "🤖", shortcut: null },
+  { id: "incident-timeline", label: "Incident Timeline", emoji: "🚨", shortcut: null },
+  { id: "test-results",  label: "Test Results",         emoji: "🧪", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -609,6 +613,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "revenue":            <ContentSkeleton />,
   "vault-secrets":     <ContentSkeleton />,
   "ml-pipeline":       <ContentSkeleton />,
+  "incident-timeline": <ContentSkeleton />,
+  "test-results":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1026,6 +1032,8 @@ function AppContent() {
       case "revenue":           return <RevenueAnalyticsDashboard />;
       case "vault-secrets":    return <VaultSecretsManager />;
       case "ml-pipeline":      return <MLPipelineMonitor />;
+      case "incident-timeline": return <IncidentTimeline />;
+      case "test-results":     return <TestResultsDashboard />;
       default:              return <AgentDashboard />;
     }
   };
