@@ -11,9 +11,7 @@ import { AgentDetailSkeleton } from "@/components/composed/skeletons";
 import {
   AgentOverviewTab,
   AgentWorkstreamsTab,
-  AgentRitualsTab,
-  AgentToolsTab,
-  AgentSoulTab,
+  AgentConfigureTab,
   AgentActivityTab,
   NewSessionDialog,
 } from "@/components/domain/agents";
@@ -42,12 +40,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type AgentDetailTab = "overview" | "workstreams" | "rituals" | "tools" | "soul" | "activity";
+type AgentDetailTab = "overview" | "workstreams" | "configure" | "activity";
 
 export const Route = createFileRoute("/agents/$agentId")({
   component: AgentDetailPage,
   validateSearch: (search: Record<string, unknown>): { tab?: AgentDetailTab; activityId?: string; newSession?: boolean } => {
-    const validTabs: AgentDetailTab[] = ["overview", "workstreams", "rituals", "tools", "soul", "activity"];
+    const validTabs: AgentDetailTab[] = ["overview", "workstreams", "configure", "activity"];
     const tab = typeof search.tab === "string" && validTabs.includes(search.tab as AgentDetailTab)
       ? (search.tab as AgentDetailTab)
       : undefined;
@@ -80,7 +78,7 @@ function AgentDetailPage() {
 
   const handleChatClick = () => {
     // Navigate to the agent's current session (existing session)
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId, sessionKey: "current" },
       search: { newSession: false },
@@ -88,7 +86,7 @@ function AgentDetailPage() {
   };
 
   const handleEditClick = () => {
-    navigate({
+    void navigate({
       to: "/agents/$agentId/configure",
       params: { agentId },
     });
@@ -99,7 +97,7 @@ function AgentDetailPage() {
     if (newSession) {
       setShowNewSessionDialog(true);
       // Clear the newSession param from URL
-      navigate({
+      void navigate({
         search: (prev) => ({ ...prev, newSession: undefined }),
         replace: true,
       });
@@ -114,7 +112,7 @@ function AgentDetailPage() {
     if (!activityId) {return;}
     if (searchTab === "activity") {return;}
     setActiveTab("activity");
-    navigate({
+    void navigate({
       search: (prev) => ({ ...prev, tab: "activity", activityId }),
       replace: true,
     });
@@ -368,7 +366,7 @@ function AgentDetailPage() {
             onValueChange={(v) => {
               const next = v as AgentDetailTab;
               setActiveTab(next);
-              navigate({
+              void navigate({
                 search: (prev) => {
                   // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   const { activityId: _activityId, ...rest } = prev as Record<string, unknown>;
@@ -385,9 +383,7 @@ function AgentDetailPage() {
             <TabsList className="w-full justify-start bg-muted/50 p-1">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="workstreams">Workstreams</TabsTrigger>
-              <TabsTrigger value="rituals">Rituals</TabsTrigger>
-              <TabsTrigger value="tools">Tools</TabsTrigger>
-              <TabsTrigger value="soul">Soul</TabsTrigger>
+              <TabsTrigger value="configure">Configure</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
 
@@ -403,16 +399,8 @@ function AgentDetailPage() {
               <AgentWorkstreamsTab agentId={agentId} />
             </TabsContent>
 
-            <TabsContent value="rituals">
-              <AgentRitualsTab agentId={agentId} />
-            </TabsContent>
-
-            <TabsContent value="tools">
-              <AgentToolsTab agentId={agentId} />
-            </TabsContent>
-
-            <TabsContent value="soul">
-              <AgentSoulTab agentId={agentId} />
+            <TabsContent value="configure">
+              <AgentConfigureTab agentId={agentId} />
             </TabsContent>
 
             <TabsContent value="activity">
@@ -421,7 +409,7 @@ function AgentDetailPage() {
                 selectedActivityId={activityId ?? null}
                 onSelectedActivityIdChange={(nextActivityId) => {
                   setActiveTab("activity");
-                  navigate({
+                  void navigate({
                     search: (prev) => {
                       // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       const { activityId: _activityId, ...rest } = prev as Record<string, unknown>;
