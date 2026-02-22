@@ -3,819 +3,1250 @@ import { cn } from "../lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabId = "sessions" | "detail" | "heatmaps" | "filters";
-type DeviceKind = "desktop" | "mobile" | "tablet";
-type DeviceFilter = "all" | "desktop" | "mobile" | "tablet";
-type EventKind = "click" | "scroll" | "error" | "input" | "navigation";
-type DateRange = "today" | "7d" | "30d";
-
-interface ReplayEvent {
+type Session = {
   id: string;
-  kind: EventKind;
-  ts: number; // seconds from session start
-  label: string;
-  detail: string;
-}
-
-interface NetRequest {
-  url: string;
-  method: string;
-  status: number;
-  duration: number; // ms
-}
-
-interface ReplaySession {
-  id: string;
-  userId: string;
-  name: string;
+  user: string;
   email: string;
-  duration: number; // seconds
-  device: DeviceKind;
-  browser: string;
-  os: string;
+  duration: number;
+  pageCount: number;
+  rageClicks: number;
+  errors: number;
   country: string;
-  startedAt: string;
-  hasErrors: boolean;
-  hasRageClicks: boolean;
-  events: ReplayEvent[];
-  requests: NetRequest[];
-}
-
-interface HeatCell {
-  count: number;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const EVT_ICON: Record<EventKind, string> = {
-  click: "🖱️",
-  scroll: "📜",
-  error: "❌",
-  input: "⌨️",
-  navigation: "🔗",
+  browser: string;
+  device: string;
+  startTime: string;
+  url: string;
 };
 
-const PAGES = ["/dashboard", "/reports", "/settings", "/onboarding", "/analytics"];
+type EventType = "click" | "navigation" | "error" | "rage_click";
 
-const SCROLL_DEPTHS: { label: string; pct: number }[] = [
-  { label: "0–10%", pct: 100 },
-  { label: "10–25%", pct: 91 },
-  { label: "25–50%", pct: 74 },
-  { label: "50–75%", pct: 53 },
-  { label: "75–90%", pct: 31 },
-  { label: "90–100%", pct: 14 },
+type SessionEvent = {
+  time: number;
+  type: EventType;
+  label: string;
+};
+
+type HeatmapZone = {
+  zone: string;
+  clicks: number;
+  intensity: number;
+};
+
+type TopElement = {
+  selector: string;
+  clicks: number;
+  percentage: number;
+};
+
+type FunnelStep = {
+  name: string;
+  users: number;
+  dropoff: number;
+};
+
+type Funnel = {
+  name: string;
+  steps: FunnelStep[];
+};
+
+type TrendDirection = "up" | "down";
+
+type InsightMetric = {
+  label: string;
+  value: string;
+  change: number;
+  trend: TrendDirection;
+  isGoodWhenDown: boolean;
+};
+
+type SatisfactionBucket = {
+  label: string;
+  value: number;
+  color: string;
+};
+
+type ExitPage = {
+  page: string;
+  exits: number;
+  rate: number;
+};
+
+type RageHotspot = {
+  element: string;
+  count: number;
+  sessions: number;
+};
+
+type DeadClick = {
+  element: string;
+  count: number;
+  page: string;
+};
+
+type HeatmapCell = {
+  row: number;
+  col: number;
+  intensity: number;
+};
+
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+
+const SESSIONS: Session[] = [
+  {
+    id: "s001",
+    user: "Alice Johnson",
+    email: "alice@example.com",
+    duration: 342,
+    pageCount: 7,
+    rageClicks: 3,
+    errors: 1,
+    country: "US",
+    browser: "Chrome",
+    device: "Desktop",
+    startTime: "2026-02-22 09:14:23",
+    url: "/dashboard",
+  },
+  {
+    id: "s002",
+    user: "Bob Martinez",
+    email: "bob@example.com",
+    duration: 128,
+    pageCount: 3,
+    rageClicks: 0,
+    errors: 0,
+    country: "UK",
+    browser: "Firefox",
+    device: "Desktop",
+    startTime: "2026-02-22 09:22:11",
+    url: "/pricing",
+  },
+  {
+    id: "s003",
+    user: "Carol White",
+    email: "carol@example.com",
+    duration: 587,
+    pageCount: 12,
+    rageClicks: 7,
+    errors: 3,
+    country: "CA",
+    browser: "Safari",
+    device: "Mobile",
+    startTime: "2026-02-22 09:31:04",
+    url: "/checkout",
+  },
+  {
+    id: "s004",
+    user: "David Lee",
+    email: "david@example.com",
+    duration: 215,
+    pageCount: 5,
+    rageClicks: 1,
+    errors: 0,
+    country: "AU",
+    browser: "Chrome",
+    device: "Tablet",
+    startTime: "2026-02-22 09:45:33",
+    url: "/settings",
+  },
+  {
+    id: "s005",
+    user: "Eva Brown",
+    email: "eva@example.com",
+    duration: 92,
+    pageCount: 2,
+    rageClicks: 0,
+    errors: 2,
+    country: "DE",
+    browser: "Edge",
+    device: "Desktop",
+    startTime: "2026-02-22 10:02:17",
+    url: "/login",
+  },
+  {
+    id: "s006",
+    user: "Frank Davis",
+    email: "frank@example.com",
+    duration: 431,
+    pageCount: 9,
+    rageClicks: 4,
+    errors: 1,
+    country: "FR",
+    browser: "Chrome",
+    device: "Desktop",
+    startTime: "2026-02-22 10:15:44",
+    url: "/reports",
+  },
+  {
+    id: "s007",
+    user: "Grace Kim",
+    email: "grace@example.com",
+    duration: 178,
+    pageCount: 4,
+    rageClicks: 0,
+    errors: 0,
+    country: "KR",
+    browser: "Chrome",
+    device: "Mobile",
+    startTime: "2026-02-22 10:28:09",
+    url: "/onboarding",
+  },
+  {
+    id: "s008",
+    user: "Henry Wilson",
+    email: "henry@example.com",
+    duration: 644,
+    pageCount: 15,
+    rageClicks: 9,
+    errors: 4,
+    country: "US",
+    browser: "Firefox",
+    device: "Desktop",
+    startTime: "2026-02-22 10:41:55",
+    url: "/analytics",
+  },
 ];
 
-// Deterministic heatmap grid (10×6 = 60 cells)
-const HEAT_COUNTS = [
-  5, 12, 8, 34, 67, 45, 23, 11, 6, 3,
-  9, 18, 41, 72, 80, 61, 38, 19, 7, 2,
-  4, 22, 55, 70, 78, 65, 42, 25, 10, 5,
-  3, 14, 38, 60, 74, 58, 35, 17, 8, 4,
-  6, 10, 27, 44, 62, 49, 28, 13, 5, 2,
-  2, 5, 11, 21, 38, 30, 16, 8, 3, 1,
+const SESSION_EVENTS: SessionEvent[] = [
+  { time: 5, type: "navigation", label: "Navigated to /dashboard" },
+  { time: 12, type: "click", label: "Clicked 'New Report' button" },
+  { time: 28, type: "click", label: "Clicked date picker" },
+  { time: 45, type: "rage_click", label: "Rage clicked submit button (3x)" },
+  { time: 67, type: "navigation", label: "Navigated to /reports" },
+  { time: 89, type: "error", label: "JS Error: Cannot read property 'id'" },
+  { time: 102, type: "click", label: "Clicked 'Download CSV'" },
+  { time: 134, type: "navigation", label: "Navigated to /settings" },
+  { time: 156, type: "click", label: "Clicked 'Save Changes'" },
+  { time: 198, type: "click", label: "Clicked 'Back' button" },
 ];
 
-const HEATMAP: HeatCell[] = HEAT_COUNTS.map((count) => ({ count }));
+const HEATMAP_PAGES = ["/dashboard", "/pricing", "/checkout", "/settings", "/reports"];
 
-// ─── Mock Event Factory ───────────────────────────────────────────────────────
+const HEATMAP_ZONES: HeatmapZone[] = [
+  { zone: "Header Nav", clicks: 1240, intensity: 0.9 },
+  { zone: "Hero CTA", clicks: 980, intensity: 0.75 },
+  { zone: "Feature Cards", clicks: 750, intensity: 0.6 },
+  { zone: "Footer Links", clicks: 320, intensity: 0.25 },
+  { zone: "Sidebar", clicks: 580, intensity: 0.45 },
+  { zone: "Main Content", clicks: 1100, intensity: 0.85 },
+  { zone: "Search Bar", clicks: 890, intensity: 0.68 },
+  { zone: "User Avatar", clicks: 420, intensity: 0.32 },
+  { zone: "Notifications", clicks: 670, intensity: 0.52 },
+  { zone: "Settings Icon", clicks: 280, intensity: 0.22 },
+];
 
-function makeEvents(hasErrors: boolean, hasRageClicks: boolean): ReplayEvent[] {
-  const base: ReplayEvent[] = [
-    { id: "e1", kind: "navigation", ts: 0, label: "Page Load", detail: "/dashboard" },
-    { id: "e2", kind: "click", ts: 3, label: "Click", detail: "Nav: Reports" },
-    { id: "e3", kind: "scroll", ts: 7, label: "Scroll", detail: "Depth 30%" },
-    { id: "e4", kind: "click", ts: 14, label: "Click", detail: "Filter button" },
-    { id: "e5", kind: "input", ts: 20, label: "Input", detail: "Search field" },
-    { id: "e6", kind: "scroll", ts: 28, label: "Scroll", detail: "Depth 60%" },
-    { id: "e7", kind: "click", ts: 40, label: "Click", detail: "Table row #3" },
-    { id: "e8", kind: "navigation", ts: 44, label: "Navigation", detail: "/reports/detail/3" },
-    { id: "e9", kind: "scroll", ts: 51, label: "Scroll", detail: "Depth 20%" },
-    { id: "e10", kind: "click", ts: 63, label: "Click", detail: "Export button" },
-    { id: "e11", kind: "input", ts: 71, label: "Input", detail: "Date range picker" },
-    { id: "e12", kind: "click", ts: 79, label: "Click", detail: "Apply filters" },
-    { id: "e13", kind: "scroll", ts: 94, label: "Scroll", detail: "Depth 85%" },
-    { id: "e14", kind: "click", ts: 108, label: "Click", detail: "Settings icon" },
-    { id: "e15", kind: "navigation", ts: 112, label: "Navigation", detail: "/settings" },
-    { id: "e16", kind: "input", ts: 128, label: "Input", detail: "Email preferences" },
-    { id: "e17", kind: "click", ts: 141, label: "Click", detail: "Save settings" },
-    { id: "e18", kind: "scroll", ts: 157, label: "Scroll", detail: "Depth 50%" },
-    { id: "e19", kind: "click", ts: 172, label: "Click", detail: "Back to dashboard" },
-    { id: "e20", kind: "navigation", ts: 175, label: "Navigation", detail: "/dashboard" },
-    { id: "e21", kind: "scroll", ts: 190, label: "Scroll", detail: "Depth 40%" },
-    { id: "e22", kind: "click", ts: 203, label: "Click", detail: "Notification bell" },
-  ];
-  if (hasErrors) {
-    base.push({ id: "e23", kind: "error", ts: 88, label: "JS Error", detail: "TypeError: Cannot read properties of undefined (reading 'id')" });
-    base.push({ id: "e24", kind: "error", ts: 90, label: "Network Error", detail: "POST /api/events/track → 500 Internal Server Error" });
+const TOP_ELEMENTS: TopElement[] = [
+  { selector: "button.cta-primary", clicks: 980, percentage: 28.4 },
+  { selector: "nav a.active", clicks: 750, percentage: 21.7 },
+  { selector: "input#search", clicks: 612, percentage: 17.7 },
+  { selector: "div.card:first-child", clicks: 445, percentage: 12.9 },
+  { selector: "a.logo", clicks: 380, percentage: 11.0 },
+];
+
+// Precompute heatmap grid (deterministic, no random)
+const HEATMAP_ROWS = 8;
+const HEATMAP_COLS = 12;
+const HEATMAP_GRID: HeatmapCell[] = (function buildGrid() {
+  const cells: HeatmapCell[] = [];
+  for (let i = 0; i < HEATMAP_ROWS * HEATMAP_COLS; i++) {
+    const row = Math.floor(i / HEATMAP_COLS);
+    const col = i % HEATMAP_COLS;
+    const centerX = Math.abs(col - HEATMAP_COLS / 2) / (HEATMAP_COLS / 2);
+    const topBias = 1 - row / HEATMAP_ROWS;
+    const pseudoNoise = (((row * 7 + col * 13) % 17) / 17) * 0.3;
+    const intensity = Math.max(
+      0,
+      Math.min(1, (1 - centerX * 0.5) * topBias * 0.8 + pseudoNoise)
+    );
+    cells.push({ row, col, intensity });
   }
-  if (hasRageClicks) {
-    base.push({ id: "e25", kind: "click", ts: 53, label: "Rage Click ×6", detail: "Submit button (unresponsive for 4s)" });
-  }
-  return base.slice().sort((a, b) => a.ts - b.ts);
-}
+  return cells;
+})();
 
-// ─── Mock Sessions ────────────────────────────────────────────────────────────
+const FUNNELS: Funnel[] = [
+  {
+    name: "Signup Flow",
+    steps: [
+      { name: "Landing Page", users: 10000, dropoff: 0 },
+      { name: "Signup Form", users: 6200, dropoff: 38.0 },
+      { name: "Email Verify", users: 4800, dropoff: 22.6 },
+      { name: "Onboarding", users: 3900, dropoff: 18.8 },
+      { name: "First Action", users: 2600, dropoff: 33.3 },
+    ],
+  },
+  {
+    name: "Checkout Flow",
+    steps: [
+      { name: "Product Page", users: 8000, dropoff: 0 },
+      { name: "Add to Cart", users: 5400, dropoff: 32.5 },
+      { name: "Cart Review", users: 4100, dropoff: 24.1 },
+      { name: "Payment Info", users: 2800, dropoff: 31.7 },
+      { name: "Order Complete", users: 2200, dropoff: 21.4 },
+    ],
+  },
+  {
+    name: "Feature Adoption",
+    steps: [
+      { name: "Dashboard View", users: 5000, dropoff: 0 },
+      { name: "Feature Click", users: 3200, dropoff: 36.0 },
+      { name: "Feature Used", users: 2100, dropoff: 34.4 },
+      { name: "Return Use", users: 1400, dropoff: 33.3 },
+    ],
+  },
+];
 
-const SESSIONS: ReplaySession[] = [
-  {
-    id: "s1", userId: "u001", name: "Alice Chen", email: "alice@acme.com",
-    duration: 342, device: "desktop", browser: "Chrome 121", os: "macOS 14",
-    country: "US", startedAt: "2026-02-22 06:01",
-    hasErrors: true, hasRageClicks: false,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 145 },
-      { url: "http://127.0.0.1:3000/api/sessions/list", method: "GET", status: 200, duration: 213 },
-      { url: "http://127.0.0.1:3000/api/events/track", method: "POST", status: 500, duration: 1203 },
-      { url: "http://127.0.0.1:3000/api/auth/refresh", method: "POST", status: 401, duration: 89 },
-    ],
-    events: makeEvents(true, false),
-  },
-  {
-    id: "s2", userId: "u002", name: "Bob Martinez", email: "bob@techcorp.io",
-    duration: 189, device: "mobile", browser: "Safari 17", os: "iOS 17",
-    country: "MX", startedAt: "2026-02-22 05:47",
-    hasErrors: false, hasRageClicks: true,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 98 },
-      { url: "http://127.0.0.1:3000/api/dashboard/stats", method: "GET", status: 200, duration: 312 },
-      { url: "http://127.0.0.1:3000/api/events/batch", method: "POST", status: 200, duration: 445 },
-    ],
-    events: makeEvents(false, true),
-  },
-  {
-    id: "s3", userId: "u003", name: "Carol White", email: "carol@startup.vc",
-    duration: 501, device: "desktop", browser: "Firefox 122", os: "Ubuntu 22",
-    country: "CA", startedAt: "2026-02-22 05:30",
-    hasErrors: true, hasRageClicks: true,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 201 },
-      { url: "http://127.0.0.1:3000/api/reports/export", method: "POST", status: 422, duration: 678 },
-      { url: "http://127.0.0.1:3000/api/auth/refresh", method: "POST", status: 200, duration: 112 },
-      { url: "http://127.0.0.1:3000/api/reports/export", method: "POST", status: 422, duration: 590 },
-    ],
-    events: makeEvents(true, true),
-  },
-  {
-    id: "s4", userId: "u004", name: "Dan Lee", email: "dan@enterprise.com",
-    duration: 87, device: "tablet", browser: "Chrome 121", os: "Android 14",
-    country: "KR", startedAt: "2026-02-22 05:15",
-    hasErrors: false, hasRageClicks: false,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/dashboard/stats", method: "GET", status: 200, duration: 189 },
-      { url: "http://127.0.0.1:3000/api/user/preferences", method: "PUT", status: 200, duration: 234 },
-    ],
-    events: makeEvents(false, false),
-  },
-  {
-    id: "s5", userId: "u005", name: "Eva Schmidt", email: "eva@company.de",
-    duration: 623, device: "desktop", browser: "Edge 121", os: "Windows 11",
-    country: "DE", startedAt: "2026-02-22 04:58",
-    hasErrors: false, hasRageClicks: false,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 134 },
-      { url: "http://127.0.0.1:3000/api/analytics/funnel", method: "GET", status: 200, duration: 891 },
-      { url: "http://127.0.0.1:3000/api/segments/list", method: "GET", status: 200, duration: 267 },
-      { url: "http://127.0.0.1:3000/api/events/track", method: "POST", status: 200, duration: 99 },
-      { url: "http://127.0.0.1:3000/api/exports/csv", method: "POST", status: 200, duration: 1456 },
-    ],
-    events: makeEvents(false, false),
-  },
-  {
-    id: "s6", userId: "u006", name: "Felix Obi", email: "felix@saas.ng",
-    duration: 256, device: "mobile", browser: "Chrome 121", os: "Android 13",
-    country: "NG", startedAt: "2026-02-22 04:33",
-    hasErrors: true, hasRageClicks: false,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 312 },
-      { url: "http://127.0.0.1:3000/api/onboarding/step", method: "POST", status: 500, duration: 2341 },
-      { url: "http://127.0.0.1:3000/api/onboarding/step", method: "POST", status: 500, duration: 2189 },
-    ],
-    events: makeEvents(true, false),
-  },
-  {
-    id: "s7", userId: "u007", name: "Grace Kim", email: "grace@studio.kr",
-    duration: 412, device: "tablet", browser: "Safari 17", os: "iPadOS 17",
-    country: "KR", startedAt: "2026-02-22 04:10",
-    hasErrors: false, hasRageClicks: false,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 178 },
-      { url: "http://127.0.0.1:3000/api/design/assets", method: "GET", status: 200, duration: 892 },
-      { url: "http://127.0.0.1:3000/api/design/assets", method: "PUT", status: 200, duration: 445 },
-    ],
-    events: makeEvents(false, false),
-  },
-  {
-    id: "s8", userId: "u008", name: "Henry Park", email: "henry@logistics.com",
-    duration: 178, device: "desktop", browser: "Chrome 121", os: "Windows 10",
-    country: "JP", startedAt: "2026-02-22 03:55",
-    hasErrors: true, hasRageClicks: true,
-    requests: [
-      { url: "http://127.0.0.1:3000/api/user/profile", method: "GET", status: 200, duration: 156 },
-      { url: "http://127.0.0.1:3000/api/shipping/routes", method: "GET", status: 200, duration: 789 },
-      { url: "http://127.0.0.1:3000/api/shipping/book", method: "POST", status: 503, duration: 3001 },
-      { url: "http://127.0.0.1:3000/api/shipping/book", method: "POST", status: 503, duration: 2998 },
-    ],
-    events: makeEvents(true, true),
-  },
+const MOBILE_FUNNEL: number[] = [78, 48, 31, 18, 12];
+const DESKTOP_FUNNEL: number[] = [100, 67, 54, 38, 27];
+
+const CONVERSION_TREND = [
+  { month: "Sep", rate: 22 },
+  { month: "Oct", rate: 24 },
+  { month: "Nov", rate: 21 },
+  { month: "Dec", rate: 26 },
+  { month: "Jan", rate: 28 },
+  { month: "Feb", rate: 31 },
+];
+
+const SATISFACTION_BREAKDOWN: SatisfactionBucket[] = [
+  { label: "Very Satisfied", value: 38, color: "bg-emerald-500" },
+  { label: "Satisfied", value: 29, color: "bg-emerald-400" },
+  { label: "Neutral", value: 18, color: "bg-amber-400" },
+  { label: "Dissatisfied", value: 11, color: "bg-rose-400" },
+  { label: "Very Dissatisfied", value: 4, color: "bg-rose-600" },
+];
+
+const TOP_EXIT_PAGES: ExitPage[] = [
+  { page: "/pricing", exits: 1842, rate: 34.2 },
+  { page: "/checkout/payment", exits: 1234, rate: 28.7 },
+  { page: "/signup", exits: 987, rate: 22.1 },
+  { page: "/dashboard", exits: 621, rate: 14.8 },
+  { page: "/settings/billing", exits: 445, rate: 10.3 },
+];
+
+const RAGE_HOTSPOTS: RageHotspot[] = [
+  { element: "Submit Button (#checkout-submit)", count: 342, sessions: 89 },
+  { element: "Tab Navigation (.nav-tabs)", count: 218, sessions: 64 },
+  { element: "Load More Button (.load-more)", count: 187, sessions: 52 },
+  { element: "Filter Dropdown (#category-filter)", count: 134, sessions: 41 },
+  { element: "Close Modal (button.modal-close)", count: 98, sessions: 33 },
+];
+
+const DEAD_CLICKS: DeadClick[] = [
+  { element: "Product Image (.product-img)", count: 512, page: "/products" },
+  { element: "Static Badge (.badge-new)", count: 398, page: "/catalog" },
+  { element: "Decorative Icon (.icon-info)", count: 276, page: "/dashboard" },
+  { element: "Disabled Button (#export-btn)", count: 201, page: "/reports" },
+  { element: "Label Text (label.form-label)", count: 156, page: "/settings" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtDuration(secs: number): string {
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
   return `${m}m ${s}s`;
 }
 
-function initials(name: string): string {
-  return name.split(" ").map((n) => n[0]).join("");
+function formatTimestamp(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-function statusColor(code: number): string {
-  if (code >= 500) return "text-rose-400";
-  if (code >= 400) return "text-amber-400";
-  return "text-emerald-400";
+function getIntensityColor(intensity: number): string {
+  if (intensity >= 0.8) return "bg-rose-500";
+  if (intensity >= 0.6) return "bg-orange-500";
+  if (intensity >= 0.4) return "bg-amber-400";
+  if (intensity >= 0.2) return "bg-yellow-300";
+  return "bg-blue-300";
 }
 
-function statusBg(code: number): string {
-  if (code >= 500) return "bg-rose-500/10 border-rose-500/20";
-  if (code >= 400) return "bg-amber-500/10 border-amber-500/20";
-  return "bg-emerald-500/10 border-emerald-500/20";
+function getEventBadgeClass(type: EventType): string {
+  if (type === "click") return "bg-indigo-500/20 text-indigo-400";
+  if (type === "navigation") return "bg-emerald-500/20 text-emerald-400";
+  if (type === "error") return "bg-rose-500/20 text-rose-400";
+  if (type === "rage_click") return "bg-amber-400/20 text-amber-400";
+  return "bg-zinc-700 text-zinc-400";
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function getEventDotClass(type: EventType): string {
+  if (type === "click") return "bg-indigo-500";
+  if (type === "navigation") return "bg-emerald-500";
+  if (type === "error") return "bg-rose-500";
+  if (type === "rage_click") return "bg-amber-400";
+  return "bg-zinc-500";
+}
 
-export default function SessionReplayViewer() {
-  const [tab, setTab] = useState<TabId>("sessions");
-  const [selectedSession, setSelectedSession] = useState<ReplaySession | null>(null);
-  const [scrubberPos, setScrubberPos] = useState(0);
-  const [selectedPage, setSelectedPage] = useState(PAGES[0]);
-  const [dateRange, setDateRange] = useState<DateRange>("7d");
-  const [deviceFilter, setDeviceFilter] = useState<DeviceFilter>("all");
-  const [segmentFilter, setSegmentFilter] = useState("all");
-  const [hasErrorsOnly, setHasErrorsOnly] = useState(false);
-  const [minDuration, setMinDuration] = useState("");
+function getEventLabel(type: EventType): string {
+  if (type === "click") return "Click";
+  if (type === "navigation") return "Nav";
+  if (type === "error") return "Error";
+  if (type === "rage_click") return "Rage";
+  return "Event";
+}
 
-  const filteredSessions = SESSIONS.filter((s) => {
-    if (deviceFilter !== "all" && s.device !== deviceFilter) return false;
-    if (hasErrorsOnly && !s.hasErrors) return false;
-    const minSecs = minDuration !== "" ? parseInt(minDuration, 10) : 0;
-    if (!isNaN(minSecs) && minSecs > 0 && s.duration < minSecs) return false;
-    return true;
-  });
+// ─── Sessions Tab ─────────────────────────────────────────────────────────────
 
-  const openDetail = (session: ReplaySession) => {
-    setSelectedSession(session);
-    setScrubberPos(0);
-    setTab("detail");
-  };
+function SessionsTab(): React.ReactElement {
+  const [selectedId, setSelectedId] = useState<string>(SESSIONS[0]?.id ?? "");
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [playbackTime, setPlaybackTime] = useState<number>(45);
+  const [speed, setSpeed] = useState<number>(1);
 
-  const TABS: { id: TabId; label: string }[] = [
-    { id: "sessions", label: "Sessions" },
-    { id: "detail", label: "Session Detail" },
-    { id: "heatmaps", label: "Heatmaps" },
-    { id: "filters", label: "Filters" },
-  ];
+  const selected: Session =
+    SESSIONS.find((s) => s.id === selectedId) ?? (SESSIONS[0] as Session);
+
+  const scrubPercent = (playbackTime / selected.duration) * 100;
+
+  function stepBack(): void {
+    setPlaybackTime((t) => Math.max(0, t - 10));
+  }
+
+  function stepForward(): void {
+    setPlaybackTime((t) => Math.min(selected.duration, t + 10));
+  }
+
+  function handleScrubClick(e: React.MouseEvent<HTMLDivElement>): void {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    setPlaybackTime(Math.round(ratio * selected.duration));
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans">
-
-      {/* ── App Header ── */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-semibold text-white tracking-tight">Session Replay</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Debug real user sessions — Hotjar-style</p>
+    <div className="flex gap-4">
+      {/* Session List */}
+      <div className="w-72 flex-shrink-0 bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-zinc-800">
+          <h3 className="text-white font-semibold text-sm">Recorded Sessions</h3>
+          <p className="text-zinc-500 text-xs mt-0.5">8 sessions · last 24h</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-zinc-500">{SESSIONS.length} total sessions</span>
-          <button className="text-xs bg-indigo-600 hover:bg-indigo-500 transition-colors px-3 py-1.5 rounded-md font-medium">
-            + Record New
-          </button>
+        <div className="overflow-y-auto flex-1">
+          {SESSIONS.map((session) => (
+            <button
+              key={session.id}
+              onClick={() => {
+                setSelectedId(session.id);
+                setPlaybackTime(0);
+                setIsPlaying(false);
+              }}
+              className={cn(
+                "w-full text-left p-3 border-b border-zinc-800 transition-colors",
+                selectedId === session.id
+                  ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
+                  : "hover:bg-zinc-800"
+              )}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white text-sm font-medium truncate pr-2">
+                  {session.user}
+                </span>
+                <span className="text-zinc-500 text-xs flex-shrink-0">
+                  {formatDuration(session.duration)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-1.5">
+                <span>{session.browser}</span>
+                <span>·</span>
+                <span>{session.device}</span>
+                <span>·</span>
+                <span>{session.country}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {session.rageClicks > 0 && (
+                  <span className="text-amber-400 text-xs bg-amber-400/10 px-1.5 py-0.5 rounded">
+                    {session.rageClicks} rage
+                  </span>
+                )}
+                {session.errors > 0 && (
+                  <span className="text-rose-400 text-xs bg-rose-400/10 px-1.5 py-0.5 rounded">
+                    {session.errors} err
+                  </span>
+                )}
+                <span className="text-zinc-600 text-xs">{session.pageCount}pg</span>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ── Tab Bar ── */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 flex gap-0">
-        {TABS.map((t) => (
+      {/* Session Detail */}
+      <div className="flex-1 flex flex-col gap-4 min-w-0">
+        {/* Replay Player */}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="text-white font-semibold">{selected.user}</h3>
+              <p className="text-zinc-500 text-xs">
+                {selected.startTime} · {selected.url}
+              </p>
+            </div>
+            <select
+              value={speed}
+              onChange={(e) => setSpeed(Number(e.target.value))}
+              className="bg-zinc-800 text-zinc-400 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 focus:outline-none"
+            >
+              <option value={0.5}>0.5x</option>
+              <option value={1}>1x</option>
+              <option value={2}>2x</option>
+              <option value={4}>4x</option>
+            </select>
+          </div>
+
+          {/* Mock Viewport */}
+          <div className="bg-zinc-950 rounded-lg h-36 mb-3 border border-zinc-800 relative overflow-hidden flex items-center justify-center">
+            <div className="absolute inset-0 opacity-20 pointer-events-none">
+              <div className="h-7 bg-zinc-700 flex items-center px-2 gap-1.5 border-b border-zinc-600">
+                <div className="w-2 h-2 rounded-full bg-rose-400"></div>
+                <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                <div className="flex-1 mx-3 bg-zinc-600 rounded h-3.5"></div>
+              </div>
+              <div className="p-3 grid grid-cols-3 gap-2">
+                <div className="h-5 bg-zinc-700 rounded col-span-3"></div>
+                <div className="h-10 bg-zinc-700 rounded"></div>
+                <div className="h-10 bg-zinc-700 rounded"></div>
+                <div className="h-10 bg-zinc-700 rounded"></div>
+                <div className="h-5 bg-zinc-700 rounded col-span-2"></div>
+                <div className="h-5 bg-zinc-700 rounded"></div>
+              </div>
+            </div>
+            <div className="relative z-10 text-center">
+              <p className="text-zinc-400 text-sm font-medium">Session Recording</p>
+              <p className="text-zinc-600 text-xs mt-0.5">{selected.url}</p>
+              <p className="text-indigo-400 text-xs mt-1 font-mono">
+                {formatTimestamp(playbackTime)} / {formatTimestamp(selected.duration)}
+              </p>
+            </div>
+          </div>
+
+          {/* Scrubber */}
+          <div
+            className="relative h-3 bg-zinc-800 rounded-full mb-3 cursor-pointer"
+            onClick={handleScrubClick}
+          >
+            <div
+              className="absolute inset-y-0 left-0 bg-indigo-500 rounded-full pointer-events-none"
+              style={{ width: `${scrubPercent}%` }}
+            ></div>
+            {SESSION_EVENTS.map((ev) => (
+              <div
+                key={ev.time}
+                className={cn(
+                  "absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-zinc-900 pointer-events-none",
+                  getEventDotClass(ev.type)
+                )}
+                style={{ left: `${(ev.time / selected.duration) * 100}%` }}
+              ></div>
+            ))}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow pointer-events-none border border-zinc-300"
+              style={{ left: `calc(${scrubPercent}% - 6px)` }}
+            ></div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={stepBack}
+              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              ‹‹ 10s
+            </button>
+            <button
+              onClick={() => setIsPlaying((p) => !p)}
+              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-1.5 rounded-lg transition-colors font-medium"
+            >
+              {isPlaying ? "⏸ Pause" : "▶ Play"}
+            </button>
+            <button
+              onClick={stepForward}
+              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              10s ››
+            </button>
+            <span className="text-zinc-600 text-xs ml-auto">
+              {speed}x speed
+            </span>
+          </div>
+        </div>
+
+        {/* Bottom: Events + Metadata */}
+        <div className="flex gap-4">
+          {/* Event Timeline */}
+          <div className="flex-1 bg-zinc-900 rounded-xl border border-zinc-800 p-4 overflow-y-auto max-h-64">
+            <h4 className="text-white font-semibold text-sm mb-3">Event Timeline</h4>
+            <div className="space-y-1.5">
+              {SESSION_EVENTS.map((ev, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setPlaybackTime(ev.time)}
+                  className={cn(
+                    "w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors",
+                    playbackTime >= ev.time
+                      ? "bg-zinc-800/60 hover:bg-zinc-800"
+                      : "opacity-40 hover:opacity-60"
+                  )}
+                >
+                  <span className="text-zinc-600 text-xs w-8 flex-shrink-0 font-mono mt-0.5">
+                    {formatTimestamp(ev.time)}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0",
+                      getEventBadgeClass(ev.type)
+                    )}
+                  >
+                    {getEventLabel(ev.type)}
+                  </span>
+                  <span className="text-zinc-400 text-xs leading-relaxed">
+                    {ev.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="w-44 flex-shrink-0 bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+            <h4 className="text-white font-semibold text-sm mb-3">Metadata</h4>
+            <div className="space-y-3">
+              {[
+                { label: "Browser", value: selected.browser },
+                { label: "Device", value: selected.device },
+                { label: "Country", value: selected.country },
+                { label: "Duration", value: formatDuration(selected.duration) },
+                { label: "Pages", value: String(selected.pageCount) },
+                { label: "Rage Clicks", value: String(selected.rageClicks) },
+                { label: "Errors", value: String(selected.errors) },
+                { label: "Email", value: selected.email },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <div className="text-zinc-500 text-xs">{label}</div>
+                  <div className="text-zinc-300 text-xs font-medium truncate mt-0.5">
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Heatmaps Tab ─────────────────────────────────────────────────────────────
+
+function HeatmapsTab(): React.ReactElement {
+  const [selectedPage, setSelectedPage] = useState<string>(
+    HEATMAP_PAGES[0] ?? "/dashboard"
+  );
+
+  const totalZoneClicks = HEATMAP_ZONES.reduce((sum, z) => sum + z.clicks, 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Header + Page Selector */}
+      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-white font-semibold">Click Heatmap</h3>
+            <p className="text-zinc-500 text-xs mt-0.5">
+              Aggregated click density across {HEATMAP_PAGES.length} pages
+            </p>
+          </div>
+          <div className="flex gap-1.5 flex-wrap justify-end">
+            {HEATMAP_PAGES.map((page) => (
+              <button
+                key={page}
+                onClick={() => setSelectedPage(page)}
+                className={cn(
+                  "text-xs px-3 py-1.5 rounded-lg transition-colors font-mono",
+                  selectedPage === page
+                    ? "bg-indigo-600 text-white"
+                    : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                )}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Browser Chrome + Grid */}
+        <div className="bg-zinc-950 rounded-lg border border-zinc-800 overflow-hidden">
+          <div className="h-7 bg-zinc-800 flex items-center px-3 gap-1.5 border-b border-zinc-700">
+            <div className="w-2.5 h-2.5 rounded-full bg-rose-500 opacity-70"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 opacity-70"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 opacity-70"></div>
+            <div className="flex-1 mx-3 bg-zinc-700 rounded h-4 text-zinc-500 text-xs flex items-center px-2">
+              {selectedPage}
+            </div>
+          </div>
+          <div
+            className="grid"
+            style={{ gridTemplateColumns: `repeat(${HEATMAP_COLS}, 1fr)` }}
+          >
+            {HEATMAP_GRID.map((cell, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "h-8 opacity-75 hover:opacity-100 transition-opacity cursor-crosshair",
+                  getIntensityColor(cell.intensity)
+                )}
+                title={`Row ${cell.row + 1}, Col ${cell.col + 1} — ${Math.round(cell.intensity * 100)}% density`}
+              ></div>
+            ))}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-2 mt-3">
+          <span className="text-zinc-600 text-xs">Low clicks</span>
+          <div className="flex gap-0.5">
+            {["bg-blue-300", "bg-yellow-300", "bg-amber-400", "bg-orange-500", "bg-rose-500"].map(
+              (c, i) => (
+                <div key={i} className={cn("w-6 h-3 rounded-sm", c)}></div>
+              )
+            )}
+          </div>
+          <span className="text-zinc-600 text-xs">High clicks</span>
+        </div>
+      </div>
+
+      {/* Zone Table + Top Elements */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <h4 className="text-white font-semibold text-sm mb-3">Clicks by Zone</h4>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-zinc-500 border-b border-zinc-800">
+                <th className="text-left pb-2 font-medium">Zone</th>
+                <th className="text-right pb-2 font-medium">Clicks</th>
+                <th className="text-right pb-2 font-medium">Share</th>
+              </tr>
+            </thead>
+            <tbody>
+              {HEATMAP_ZONES.map((zone) => {
+                const share = ((zone.clicks / totalZoneClicks) * 100).toFixed(1);
+                return (
+                  <tr key={zone.zone} className="border-b border-zinc-800/40">
+                    <td className="py-2 text-zinc-300">{zone.zone}</td>
+                    <td className="py-2 text-right text-zinc-400">
+                      {zone.clicks.toLocaleString()}
+                    </td>
+                    <td className="py-2 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <div className="w-10 bg-zinc-800 rounded-full h-1.5">
+                          <div
+                            className="bg-indigo-500 h-1.5 rounded-full"
+                            style={{ width: share + "%" }}
+                          ></div>
+                        </div>
+                        <span className="text-zinc-400 w-8 text-right">{share}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <h4 className="text-white font-semibold text-sm mb-3">Top Clicked Elements</h4>
+          <div className="space-y-4">
+            {TOP_ELEMENTS.map((el, i) => (
+              <div key={el.selector}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-zinc-600 text-xs flex-shrink-0">{i + 1}.</span>
+                    <code className="text-indigo-400 text-xs truncate">{el.selector}</code>
+                  </div>
+                  <span className="text-zinc-400 text-xs flex-shrink-0 ml-2">
+                    {el.clicks.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+                    <div
+                      className="bg-indigo-500 h-1.5 rounded-full"
+                      style={{ width: el.percentage + "%" }}
+                    ></div>
+                  </div>
+                  <span className="text-zinc-500 text-xs w-9 text-right">
+                    {el.percentage}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Funnels Tab ──────────────────────────────────────────────────────────────
+
+function FunnelsTab(): React.ReactElement {
+  const [selectedFunnel, setSelectedFunnel] = useState<number>(0);
+
+  const funnel = FUNNELS[selectedFunnel] ?? FUNNELS[0];
+  const maxUsers = funnel.steps[0]?.users ?? 1;
+  const lastStep = funnel.steps[funnel.steps.length - 1];
+  const overallConversion = lastStep
+    ? ((lastStep.users / maxUsers) * 100).toFixed(1)
+    : "0.0";
+  const totalLost = lastStep ? maxUsers - lastStep.users : 0;
+
+  const maxTrendRate = Math.max(...CONVERSION_TREND.map((p) => p.rate));
+
+  return (
+    <div className="space-y-4">
+      {/* Funnel Selector */}
+      <div className="flex items-center gap-2">
+        <span className="text-zinc-500 text-sm">Funnel:</span>
+        {FUNNELS.map((f, i) => (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            key={f.name}
+            onClick={() => setSelectedFunnel(i)}
             className={cn(
-              "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id
-                ? "border-indigo-500 text-white"
-                : "border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+              "text-sm px-4 py-1.5 rounded-lg transition-colors font-medium",
+              selectedFunnel === i
+                ? "bg-indigo-600 text-white"
+                : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
             )}
           >
-            {t.label}
+            {f.name}
           </button>
         ))}
       </div>
 
-      <div className="p-6">
-
-        {/* ════════════════════════════════════
-            TAB: Sessions
-        ════════════════════════════════════ */}
-        {tab === "sessions" && (
-          <div className="space-y-3">
-            <p className="text-xs text-zinc-500 mb-4">
-              {filteredSessions.length} session{filteredSessions.length !== 1 ? "s" : ""} recorded
-            </p>
-            {filteredSessions.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => openDetail(s)}
-                className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-600 hover:bg-zinc-800/70 transition-all"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  {/* Left: avatar + user info */}
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0 select-none">
-                      {initials(s.name)}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-white">{s.name}</span>
-                        <span className="text-xs text-zinc-500">{s.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500 flex-wrap">
-                        <span>{s.startedAt}</span>
-                        <span className="text-zinc-700">·</span>
-                        <span>{s.country}</span>
-                        <span className="text-zinc-700">·</span>
-                        <span>{s.browser}</span>
-                        <span className="text-zinc-700">·</span>
-                        <span className="capitalize">{s.device}</span>
+      <div className="grid grid-cols-3 gap-4">
+        {/* Main Funnel Chart */}
+        <div className="col-span-2 bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+          <h3 className="text-white font-semibold mb-5">{funnel.name}</h3>
+          <div className="space-y-4">
+            {funnel.steps.map((step, i) => {
+              const barWidth = (step.users / maxUsers) * 100;
+              const isFirst = i === 0;
+              return (
+                <div key={step.name}>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="text-zinc-500 text-xs w-28 text-right flex-shrink-0">
+                      {step.name}
+                    </span>
+                    <div className="flex-1">
+                      <div
+                        className={cn(
+                          "h-9 rounded-lg flex items-center px-3 min-w-0 transition-all",
+                          isFirst ? "bg-indigo-600" : "bg-indigo-500/60"
+                        )}
+                        style={{ width: barWidth + "%" }}
+                      >
+                        <span className="text-white text-xs font-semibold whitespace-nowrap">
+                          {step.users.toLocaleString()}
+                        </span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Right: stats + badges */}
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-white">{fmtDuration(s.duration)}</div>
-                      <div className="text-xs text-zinc-500">{s.events.length} events</div>
-                    </div>
-                    <div className="flex flex-col gap-1 min-w-[72px]">
-                      {s.hasErrors && (
-                        <span className="text-xs bg-rose-500/15 text-rose-400 border border-rose-500/25 px-2 py-0.5 rounded-full text-center">
-                          Error
-                        </span>
-                      )}
-                      {s.hasRageClicks && (
-                        <span className="text-xs bg-amber-500/15 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded-full text-center">
-                          Rage Click
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* ════════════════════════════════════
-            TAB: Session Detail
-        ════════════════════════════════════ */}
-        {tab === "detail" && (
-          <div>
-            {!selectedSession ? (
-              <div className="text-center py-20 text-zinc-500">
-                <div className="text-4xl mb-3">▶</div>
-                <p className="text-sm">Select a session to view its replay.</p>
-                <button
-                  onClick={() => setTab("sessions")}
-                  className="mt-4 text-sm bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Browse Sessions
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-5">
-
-                {/* Breadcrumb */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setTab("sessions")}
-                    className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                  >
-                    ← Sessions
-                  </button>
-                  <span className="text-zinc-700 text-xs">/</span>
-                  <span className="text-sm font-medium text-white">{selectedSession.name}</span>
-                  {selectedSession.hasErrors && (
-                    <span className="text-xs bg-rose-500/15 text-rose-400 border border-rose-500/25 px-2 py-0.5 rounded-full">Error</span>
-                  )}
-                  {selectedSession.hasRageClicks && (
-                    <span className="text-xs bg-amber-500/15 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded-full">Rage Click</span>
-                  )}
-                </div>
-
-                {/* Timeline Scrubber */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-white">Timeline</h3>
-                    <span className="text-xs text-zinc-500 font-mono">
-                      {Math.round((scrubberPos / 100) * selectedSession.duration)}s
-                      {" / "}
-                      {fmtDuration(selectedSession.duration)}
+                    <span className="text-zinc-500 text-xs w-10 text-right flex-shrink-0">
+                      {((step.users / maxUsers) * 100).toFixed(0)}%
                     </span>
                   </div>
-
-                  {/* Track */}
-                  <div
-                    className="relative h-3 bg-zinc-800 rounded-full cursor-pointer"
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-                      setScrubberPos(Math.round(pct));
-                    }}
-                  >
-                    {/* Progress fill */}
-                    <div
-                      className="absolute left-0 top-0 h-full bg-indigo-600 rounded-full pointer-events-none"
-                      style={{ width: `${scrubberPos}%` }}
-                    />
-                    {/* Event markers */}
-                    {selectedSession.events.map((ev) => {
-                      const pct = (ev.ts / selectedSession.duration) * 100;
-                      const bg =
-                        ev.kind === "error" ? "#f87171"
-                          : ev.kind === "navigation" ? "#a5b4fc"
-                          : ev.kind === "click" ? "#71717a"
-                          : "#52525b";
-                      return (
-                        <div
-                          key={ev.id}
-                          title={ev.label + ": " + ev.detail}
-                          className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full pointer-events-none"
-                          style={{ left: `${pct}%`, backgroundColor: bg }}
-                        />
-                      );
-                    })}
-                    {/* Thumb */}
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg -translate-x-1/2 pointer-events-none border-2 border-indigo-500"
-                      style={{ left: `${scrubberPos}%` }}
-                    />
-                  </div>
-
-                  {/* Time labels */}
-                  <div className="flex justify-between text-xs text-zinc-600 mt-2 font-mono">
-                    <span>0s</span>
-                    <span>{fmtDuration(Math.round(selectedSession.duration / 2))}</span>
-                    <span>{fmtDuration(selectedSession.duration)}</span>
-                  </div>
-
-                  {/* Legend */}
-                  <div className="flex items-center gap-4 mt-3 text-xs text-zinc-500">
-                    {[
-                      { color: "#f87171", label: "Error" },
-                      { color: "#a5b4fc", label: "Navigation" },
-                      { color: "#71717a", label: "Click/Other" },
-                    ].map((l) => (
-                      <div key={l.label} className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
-                        <span>{l.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Events + User Info grid */}
-                <div className="grid grid-cols-3 gap-4">
-
-                  {/* Events list */}
-                  <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                    <div className="border-b border-zinc-800 px-4 py-3">
-                      <h3 className="text-sm font-semibold text-white">
-                        Events <span className="text-zinc-500 font-normal">({selectedSession.events.length})</span>
-                      </h3>
-                    </div>
-                    <div className="divide-y divide-zinc-800/50 max-h-80 overflow-y-auto">
-                      {selectedSession.events.map((ev) => (
-                        <div
-                          key={ev.id}
-                          className={cn(
-                            "flex items-start gap-3 px-4 py-2.5 hover:bg-zinc-800/40 transition-colors",
-                            ev.kind === "error" && "bg-rose-500/5 hover:bg-rose-500/10"
-                          )}
-                        >
-                          <span className="text-base flex-shrink-0 mt-0.5 select-none">{EVT_ICON[ev.kind]}</span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className={cn(
-                                "text-xs font-medium",
-                                ev.kind === "error" ? "text-rose-400" : "text-zinc-200"
-                              )}>
-                                {ev.label}
-                              </span>
-                              <span className="text-xs text-zinc-600 font-mono flex-shrink-0">{ev.ts}s</span>
-                            </div>
-                            <p className="text-xs text-zinc-500 truncate mt-0.5">{ev.detail}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* User info panel */}
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                    <div className="border-b border-zinc-800 px-4 py-3">
-                      <h3 className="text-sm font-semibold text-white">User</h3>
-                    </div>
-                    <div className="p-4 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold select-none">
-                          {initials(selectedSession.name)}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-white">{selectedSession.name}</div>
-                          <div className="text-xs text-zinc-500">{selectedSession.email}</div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        {[
-                          ["User ID", selectedSession.userId],
-                          ["Device", selectedSession.device],
-                          ["Browser", selectedSession.browser],
-                          ["OS", selectedSession.os],
-                          ["Country", selectedSession.country],
-                          ["Duration", fmtDuration(selectedSession.duration)],
-                          ["Events", String(selectedSession.events.length)],
-                        ].map(([k, v]) => (
-                          <div key={k} className="flex justify-between items-center text-xs">
-                            <span className="text-zinc-500">{k}</span>
-                            <span className="text-zinc-300 capitalize font-mono">{v}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Network Requests */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                  <div className="border-b border-zinc-800 px-4 py-3">
-                    <h3 className="text-sm font-semibold text-white">
-                      Network Requests <span className="text-zinc-500 font-normal">({selectedSession.requests.length})</span>
-                    </h3>
-                  </div>
-                  <div className="divide-y divide-zinc-800/50">
-                    {selectedSession.requests.map((req, i) => (
-                      <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/40 transition-colors">
-                        <span className={cn(
-                          "text-xs font-mono font-bold w-10 flex-shrink-0 text-center px-1.5 py-0.5 rounded border",
-                          statusBg(req.status), statusColor(req.status)
-                        )}>
-                          {req.status}
+                  {!isFirst && (
+                    <div className="flex items-center gap-3 ml-31">
+                      <div className="w-28 flex-shrink-0"></div>
+                      <p className="text-rose-400 text-xs ml-3">
+                        ↓ {step.dropoff}% drop-off
+                        <span className="text-zinc-600 ml-1">
+                          ({(maxUsers - step.users).toLocaleString()} users lost)
                         </span>
-                        <span className="text-xs text-zinc-500 font-mono w-10 flex-shrink-0">{req.method}</span>
-                        <span className="text-xs text-zinc-300 font-mono flex-1 truncate">{req.url}</span>
-                        <span className={cn(
-                          "text-xs font-mono flex-shrink-0",
-                          req.duration > 1000 ? "text-amber-400" : "text-zinc-500"
-                        )}>
-                          {req.duration}ms
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ════════════════════════════════════
-            TAB: Heatmaps
-        ════════════════════════════════════ */}
-        {tab === "heatmaps" && (
-          <div className="space-y-6">
-
-            {/* Page selector */}
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-zinc-400 font-medium">Page:</label>
-              <select
-                value={selectedPage}
-                onChange={(e) => setSelectedPage(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 transition-colors"
-              >
-                {PAGES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Click density heatmap */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-              <div className="border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-white">Click Density — {selectedPage}</h3>
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                  <span>Low</span>
-                  {[0.1, 0.3, 0.5, 0.7, 0.9].map((op) => (
-                    <div
-                      key={op}
-                      className="w-4 h-3 rounded-sm"
-                      style={{ backgroundColor: `rgba(99, 102, 241, ${op})` }}
-                    />
-                  ))}
-                  <span>High</span>
-                </div>
-              </div>
-              <div className="p-4">
-                {/* Wireframe overlay labels */}
-                <div className="mb-2 flex gap-2 text-xs text-zinc-600">
-                  <span>← nav bar →</span>
-                  <span className="ml-auto">← content area →</span>
-                </div>
-                <div
-                  className="rounded-lg overflow-hidden border border-zinc-800"
-                  style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", height: 240 }}
-                >
-                  {HEATMAP.map((cell, i) => {
-                    const opacity = cell.count / 80;
-                    return (
-                      <div
-                        key={i}
-                        title={cell.count + " clicks"}
-                        style={{ backgroundColor: `rgba(99, 102, 241, ${opacity.toFixed(2)})` }}
-                        className="border border-zinc-900/30 cursor-crosshair transition-opacity hover:opacity-80"
-                      />
-                    );
-                  })}
-                </div>
-                <p className="text-xs text-zinc-600 mt-2 text-center">
-                  Hover cells to see click counts · 10×6 grid · {selectedPage}
-                </p>
-              </div>
-            </div>
-
-            {/* Scroll depth */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-              <div className="border-b border-zinc-800 px-4 py-3">
-                <h3 className="text-sm font-semibold text-white">Scroll Depth — {selectedPage}</h3>
-              </div>
-              <div className="p-5 space-y-3">
-                {SCROLL_DEPTHS.map((d) => (
-                  <div key={d.label} className="flex items-center gap-3">
-                    <span className="text-xs text-zinc-500 w-16 flex-shrink-0 font-mono">{d.label}</span>
-                    <div className="flex-1 bg-zinc-800 rounded-full h-3 overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full"
-                        style={{ width: `${d.pct}%` }}
-                      />
+                      </p>
                     </div>
-                    <span className="text-xs text-zinc-300 w-10 text-right font-mono">{d.pct}%</span>
-                  </div>
-                ))}
-                <p className="text-xs text-zinc-600 pt-1">
-                  % of sessions reaching each scroll depth on {selectedPage}
-                </p>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ════════════════════════════════════
-            TAB: Filters
-        ════════════════════════════════════ */}
-        {tab === "filters" && (
-          <div className="space-y-5 max-w-xl">
-            <h2 className="text-base font-semibold text-white">Filter Sessions</h2>
-
-            {/* Date range */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
-              <label className="text-sm font-medium text-white">Date Range</label>
-              <div className="flex gap-2">
-                {(["today", "7d", "30d"] as DateRange[]).map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDateRange(d)}
-                    className={cn(
-                      "px-4 py-2 text-sm rounded-lg border transition-colors font-medium",
-                      dateRange === d
-                        ? "bg-indigo-600 border-indigo-500 text-white"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-                    )}
-                  >
-                    {d === "today" ? "Today" : d === "7d" ? "Last 7 Days" : "Last 30 Days"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* User segment */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
-              <label className="text-sm font-medium text-white">User Segment</label>
-              <select
-                value={segmentFilter}
-                onChange={(e) => setSegmentFilter(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 transition-colors"
-              >
-                <option value="all">All Users</option>
-                <option value="new">New Users</option>
-                <option value="returning">Returning Users</option>
-                <option value="paying">Paying Customers</option>
-                <option value="trial">Trial Users</option>
-                <option value="churned">Churned Users</option>
-              </select>
-            </div>
-
-            {/* Device type */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
-              <label className="text-sm font-medium text-white">Device Type</label>
-              <div className="flex gap-2 flex-wrap">
-                {(["all", "desktop", "mobile", "tablet"] as DeviceFilter[]).map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDeviceFilter(d)}
-                    className={cn(
-                      "px-4 py-2 text-sm rounded-lg border transition-colors capitalize font-medium",
-                      deviceFilter === d
-                        ? "bg-indigo-600 border-indigo-500 text-white"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-                    )}
-                  >
-                    {d === "all" ? "All Devices" : d}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Has errors toggle */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-white">Has Errors Only</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
-                    Show only sessions with at least one error event
-                  </div>
-                </div>
-                <button
-                  onClick={() => setHasErrorsOnly(!hasErrorsOnly)}
-                  className={cn(
-                    "relative w-11 h-6 rounded-full transition-colors flex-shrink-0",
-                    hasErrorsOnly ? "bg-indigo-600" : "bg-zinc-700"
                   )}
-                  aria-label="Toggle errors filter"
-                >
-                  <span
-                    className={cn(
-                      "absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all",
-                      hasErrorsOnly ? "left-6" : "left-1"
-                    )}
-                  />
-                </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Summary */}
+          <div className="mt-6 pt-4 border-t border-zinc-800 flex items-center gap-8">
+            <div>
+              <div className="text-zinc-500 text-xs mb-1">Overall Conversion</div>
+              <div className="text-white text-3xl font-bold">{overallConversion}%</div>
+            </div>
+            <div>
+              <div className="text-zinc-500 text-xs mb-1">Total Users Lost</div>
+              <div className="text-rose-400 text-3xl font-bold">
+                {totalLost.toLocaleString()}
               </div>
             </div>
-
-            {/* Min duration */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
-              <label className="text-sm font-medium text-white">Minimum Duration (seconds)</label>
-              <input
-                type="number"
-                min="0"
-                placeholder="e.g. 60"
-                value={minDuration}
-                onChange={(e) => setMinDuration(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 transition-colors placeholder:text-zinc-600 font-mono"
-              />
-            </div>
-
-            {/* Results summary */}
-            <div className={cn(
-              "rounded-xl p-5 flex items-center justify-between transition-colors",
-              filteredSessions.length > 0
-                ? "bg-emerald-500/10 border border-emerald-500/25"
-                : "bg-zinc-900 border border-zinc-800"
-            )}>
-              <div>
-                <div className={cn(
-                  "text-3xl font-bold",
-                  filteredSessions.length > 0 ? "text-emerald-400" : "text-zinc-500"
-                )}>
-                  {filteredSessions.length}
-                </div>
-                <div className="text-xs text-zinc-500 mt-0.5">
-                  session{filteredSessions.length !== 1 ? "s" : ""} match your filters
-                </div>
-              </div>
-              <button
-                onClick={() => setTab("sessions")}
-                className="text-sm bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg transition-colors font-medium"
-              >
-                View Results →
-              </button>
+            <div>
+              <div className="text-zinc-500 text-xs mb-1">Steps</div>
+              <div className="text-white text-3xl font-bold">{funnel.steps.length}</div>
             </div>
           </div>
-        )}
+        </div>
 
+        {/* Mobile vs Desktop */}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <h4 className="text-white font-semibold text-sm mb-4">
+            Mobile vs Desktop
+          </h4>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-2 bg-amber-400 rounded-sm"></div>
+              <span className="text-zinc-400 text-xs">Mobile</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-2 bg-indigo-500 rounded-sm"></div>
+              <span className="text-zinc-400 text-xs">Desktop</span>
+            </div>
+          </div>
+          <div className="space-y-5">
+            {funnel.steps.map((step, i) => {
+              const mobile = MOBILE_FUNNEL[i] ?? 0;
+              const desktop = DESKTOP_FUNNEL[i] ?? 0;
+              return (
+                <div key={step.name}>
+                  <div className="text-zinc-500 text-xs mb-1.5">{step.name}</div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-zinc-600 text-xs w-12">Mobile</span>
+                      <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                        <div
+                          className="bg-amber-400 h-2 rounded-full"
+                          style={{ width: mobile + "%" }}
+                        ></div>
+                      </div>
+                      <span className="text-zinc-400 text-xs w-7 text-right">
+                        {mobile}%
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-zinc-600 text-xs w-12">Desktop</span>
+                      <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                        <div
+                          className="bg-indigo-500 h-2 rounded-full"
+                          style={{ width: desktop + "%" }}
+                        ></div>
+                      </div>
+                      <span className="text-zinc-400 text-xs w-7 text-right">
+                        {desktop}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Conversion Rate Trend */}
+      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-white font-semibold text-sm">
+            Conversion Rate Trend — Last 6 Months
+          </h4>
+          <div className="flex items-center gap-1.5">
+            <span className="text-emerald-400 text-xs font-semibold">↑ 41%</span>
+            <span className="text-zinc-500 text-xs">improvement</span>
+          </div>
+        </div>
+        <div className="flex items-end gap-3" style={{ height: "120px" }}>
+          {CONVERSION_TREND.map((point) => {
+            const barH = (point.rate / maxTrendRate) * 90;
+            return (
+              <div key={point.month} className="flex-1 flex flex-col items-center gap-1">
+                <span className="text-zinc-400 text-xs">{point.rate}%</span>
+                <div className="w-full flex items-end" style={{ height: "80px" }}>
+                  <div
+                    className="w-full bg-indigo-500 hover:bg-indigo-400 rounded-t-md transition-colors"
+                    style={{ height: barH + "px" }}
+                  ></div>
+                </div>
+                <span className="text-zinc-500 text-xs">{point.month}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Insights Tab ─────────────────────────────────────────────────────────────
+
+function InsightsTab(): React.ReactElement {
+  const metrics: InsightMetric[] = [
+    {
+      label: "Rage Click Sessions",
+      value: "12.4%",
+      change: 2.1,
+      trend: "down",
+      isGoodWhenDown: true,
+    },
+    {
+      label: "Dead Click Rate",
+      value: "8.7%",
+      change: 0.8,
+      trend: "up",
+      isGoodWhenDown: true,
+    },
+    {
+      label: "Error Session Rate",
+      value: "5.2%",
+      change: 1.3,
+      trend: "down",
+      isGoodWhenDown: true,
+    },
+    {
+      label: "Avg Session Duration",
+      value: "3m 18s",
+      change: 14,
+      trend: "up",
+      isGoodWhenDown: false,
+    },
+  ];
+
+  const satisfactionTotal = SATISFACTION_BREAKDOWN.reduce(
+    (sum, s) => sum + s.value,
+    0
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-4 gap-4">
+        {metrics.map((m) => {
+          const isPositive =
+            (m.trend === "down" && m.isGoodWhenDown) ||
+            (m.trend === "up" && !m.isGoodWhenDown);
+          return (
+            <div key={m.label} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+              <div className="text-zinc-500 text-xs mb-2">{m.label}</div>
+              <div className="text-white text-2xl font-bold mb-1">{m.value}</div>
+              <div
+                className={cn(
+                  "text-xs font-medium",
+                  isPositive ? "text-emerald-400" : "text-rose-400"
+                )}
+              >
+                {m.trend === "up" ? "↑" : "↓"} {m.change} vs last week
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Satisfaction + Exit Pages */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* User Satisfaction */}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <h4 className="text-white font-semibold text-sm mb-1">
+            User Satisfaction Score
+          </h4>
+          <div className="flex items-baseline gap-2 mb-5">
+            <span className="text-5xl font-bold text-white">67</span>
+            <span className="text-zinc-500 text-sm">/ 100 NPS</span>
+            <span className="text-emerald-400 text-xs font-medium ml-auto">
+              ↑ 4 pts this month
+            </span>
+          </div>
+          <div className="space-y-3">
+            {SATISFACTION_BREAKDOWN.map((item) => {
+              const pct = (item.value / satisfactionTotal) * 100;
+              return (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-zinc-400 text-xs">{item.label}</span>
+                    <span className="text-zinc-500 text-xs">{item.value}%</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div
+                      className={cn("h-2 rounded-full transition-all", item.color)}
+                      style={{ width: pct.toFixed(1) + "%" }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Top Exit Pages */}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <h4 className="text-white font-semibold text-sm mb-4">Top Exit Pages</h4>
+          <div className="space-y-4">
+            {TOP_EXIT_PAGES.map((page, i) => (
+              <div key={page.page}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-zinc-600 text-xs flex-shrink-0">{i + 1}</span>
+                    <span className="text-zinc-300 text-xs font-mono truncate">
+                      {page.page}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                    <span className="text-rose-400 text-xs font-semibold">
+                      {page.rate}%
+                    </span>
+                    <span className="text-zinc-600 text-xs">exit</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+                    <div
+                      className="bg-rose-500 h-1.5 rounded-full"
+                      style={{ width: page.rate + "%" }}
+                    ></div>
+                  </div>
+                  <span className="text-zinc-600 text-xs w-14 text-right">
+                    {page.exits.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Rage Clicks + Dead Clicks */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-white font-semibold text-sm">Rage Click Hotspots</h4>
+            <span className="text-amber-400 text-xs bg-amber-400/10 px-2 py-0.5 rounded-full">
+              679 total
+            </span>
+          </div>
+          <div className="space-y-3">
+            {RAGE_HOTSPOTS.map((item) => (
+              <div key={item.element} className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-zinc-300 text-xs font-mono truncate">
+                    {item.element}
+                  </div>
+                  <div className="text-zinc-600 text-xs mt-0.5">
+                    {item.sessions} sessions affected
+                  </div>
+                </div>
+                <div className="flex-shrink-0 text-amber-400 text-sm font-bold">
+                  {item.count}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-white font-semibold text-sm">Dead Click Analysis</h4>
+            <span className="text-zinc-400 text-xs bg-zinc-800 px-2 py-0.5 rounded-full">
+              1,543 total
+            </span>
+          </div>
+          <div className="space-y-3">
+            {DEAD_CLICKS.map((item) => (
+              <div key={item.element} className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-zinc-300 text-xs font-mono truncate">
+                    {item.element}
+                  </div>
+                  <div className="text-zinc-600 text-xs mt-0.5">{item.page}</div>
+                </div>
+                <div className="flex-shrink-0 text-zinc-400 text-sm font-bold">
+                  {item.count}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function SessionReplayViewer() {
+  const TABS = ["Sessions", "Heatmaps", "Funnels", "Insights"];
+  const [activeTab, setActiveTab] = useState<string>("Sessions");
+
+  const summaryStats = [
+    { label: "Sessions Today", value: "2,847", sub: "+12% vs yesterday" },
+    { label: "Avg Duration", value: "3m 18s", sub: "↑ 14s improvement" },
+    { label: "Rage Click Rate", value: "12.4%", sub: "↓ 2.1% this week" },
+    { label: "Error Rate", value: "5.2%", sub: "↓ 1.3% this week" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-zinc-950 p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-white text-2xl font-bold tracking-tight">
+              Session Replay
+            </h1>
+            <p className="text-zinc-500 text-sm mt-0.5">
+              User behavior analysis and session recordings
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+              <span className="text-zinc-400 text-sm">Live</span>
+            </div>
+            <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm px-4 py-2 rounded-lg transition-colors border border-zinc-700">
+              Date Range
+            </button>
+            <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
+              Export Data
+            </button>
+          </div>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="grid grid-cols-4 gap-3">
+          {summaryStats.map(({ label, value, sub }) => (
+            <div
+              key={label}
+              className="bg-zinc-900 rounded-xl border border-zinc-800 px-4 py-3"
+            >
+              <div className="text-zinc-500 text-xs mb-1">{label}</div>
+              <div className="text-white text-xl font-bold">{value}</div>
+              <div className="text-zinc-600 text-xs mt-0.5">{sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab Bar */}
+      <div className="flex gap-1 mb-6 bg-zinc-900 rounded-xl border border-zinc-800 p-1 w-fit">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              "px-6 py-2 rounded-lg text-sm font-medium transition-colors",
+              activeTab === tab
+                ? "bg-indigo-600 text-white shadow"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div>
+        {activeTab === "Sessions" && <SessionsTab />}
+        {activeTab === "Heatmaps" && <HeatmapsTab />}
+        {activeTab === "Funnels" && <FunnelsTab />}
+        {activeTab === "Insights" && <InsightsTab />}
       </div>
     </div>
   );

@@ -257,6 +257,8 @@ const DisasterRecoveryPlanner        = React.lazy(() => import("./views/Disaster
 const DataRetentionManager           = React.lazy(() => import("./views/DataRetentionManager"));
 const CodeReviewDashboard            = React.lazy(() => import("./views/CodeReviewDashboard"));
 const EndpointMonitor                = React.lazy(() => import("./views/EndpointMonitor"));
+const SessionReplayViewer            = React.lazy(() => import("./views/SessionReplayViewer"));
+const ChaosEngineeringDashboard      = React.lazy(() => import("./views/ChaosEngineeringDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -491,6 +493,8 @@ export const navItems = [
   { id: "data-retention",       label: "Data Retention",        emoji: "🗑️", shortcut: null },
   { id: "code-review",          label: "Code Review",           emoji: "🔍", shortcut: null },
   { id: "endpoint-monitor",     label: "Endpoint Monitor",      emoji: "📡", shortcut: null },
+  { id: "session-replay-viewer", label: "Session Replay Viewer", emoji: "🎬", shortcut: null },
+  { id: "chaos-engineering",    label: "Chaos Engineering",     emoji: "💥", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -726,6 +730,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-retention":         <ContentSkeleton />,
   "code-review":            <ContentSkeleton />,
   "endpoint-monitor":       <ContentSkeleton />,
+  "session-replay-viewer":  <ContentSkeleton />,
+  "chaos-engineering":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1182,6 +1188,8 @@ function AppContent() {
       case "data-retention":       return <DataRetentionManager />;
       case "code-review":          return <CodeReviewDashboard />;
       case "endpoint-monitor":     return <EndpointMonitor />;
+      case "session-replay-viewer": return <SessionReplayViewer />;
+      case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       default:              return <AgentDashboard />;
     }
   };
