@@ -70,7 +70,7 @@ function TextStepRenderer({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step.required && !value.trim()) return;
+    if (step.required && !value.trim()) {return;}
     onSubmit(value);
   };
 
@@ -491,7 +491,7 @@ export default function WizardModal({
 
   // Close on Escape key (WCAG 2.1.2)
   useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         (onDismiss || onCancel)();
@@ -571,7 +571,7 @@ export default function WizardModal({
     }
   };
 
-  if (!open) return null;
+  if (!open) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

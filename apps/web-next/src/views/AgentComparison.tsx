@@ -185,44 +185,44 @@ function getAllDifferences(agentA: AgentConfig, agentB: AgentConfig): number {
   let count = 0;
   
   // Identity
-  if (agentA.name !== agentB.name) count++;
-  if (agentA.emoji !== agentB.emoji) count++;
-  if (agentA.role !== agentB.role) count++;
-  if (agentA.squad !== agentB.squad) count++;
-  if (agentA.reportsTo !== agentB.reportsTo) count++;
+  if (agentA.name !== agentB.name) {count++;}
+  if (agentA.emoji !== agentB.emoji) {count++;}
+  if (agentA.role !== agentB.role) {count++;}
+  if (agentA.squad !== agentB.squad) {count++;}
+  if (agentA.reportsTo !== agentB.reportsTo) {count++;}
   
   // Model
-  if (agentA.model !== agentB.model) count++;
-  if (agentA.temperature !== agentB.temperature) count++;
-  if (agentA.maxTokens !== agentB.maxTokens) count++;
-  if (agentA.thinkingMode !== agentB.thinkingMode) count++;
-  if (agentA.reasoningLevel !== agentB.reasoningLevel) count++;
+  if (agentA.model !== agentB.model) {count++;}
+  if (agentA.temperature !== agentB.temperature) {count++;}
+  if (agentA.maxTokens !== agentB.maxTokens) {count++;}
+  if (agentA.thinkingMode !== agentB.thinkingMode) {count++;}
+  if (agentA.reasoningLevel !== agentB.reasoningLevel) {count++;}
   
   // Tools
-  const toolsA = [...agentA.tools].sort();
-  const toolsB = [...agentB.tools].sort();
-  if (JSON.stringify(toolsA) !== JSON.stringify(toolsB)) count++;
+  const toolsA = [...agentA.tools].toSorted();
+  const toolsB = [...agentB.tools].toSorted();
+  if (JSON.stringify(toolsA) !== JSON.stringify(toolsB)) {count++;}
   
   // Personality
-  if (agentA.personality.voice !== agentB.personality.voice) count++;
-  if (JSON.stringify(agentA.personality.communicationStyle) !== JSON.stringify(agentB.personality.communicationStyle)) count++;
+  if (agentA.personality.voice !== agentB.personality.voice) {count++;}
+  if (JSON.stringify(agentA.personality.communicationStyle) !== JSON.stringify(agentB.personality.communicationStyle)) {count++;}
   
   // Performance
-  if (agentA.performance.avgResponseTime !== agentB.performance.avgResponseTime) count++;
-  if (agentA.performance.successRate !== agentB.performance.successRate) count++;
-  if (agentA.performance.sessions30d !== agentB.performance.sessions30d) count++;
-  if (agentA.performance.tokens30d !== agentB.performance.tokens30d) count++;
+  if (agentA.performance.avgResponseTime !== agentB.performance.avgResponseTime) {count++;}
+  if (agentA.performance.successRate !== agentB.performance.successRate) {count++;}
+  if (agentA.performance.sessions30d !== agentB.performance.sessions30d) {count++;}
+  if (agentA.performance.tokens30d !== agentB.performance.tokens30d) {count++;}
   
   // Working Hours
-  if (agentA.workingHours.schedule !== agentB.workingHours.schedule) count++;
-  if (agentA.workingHours.cron !== agentB.workingHours.cron) count++;
+  if (agentA.workingHours.schedule !== agentB.workingHours.schedule) {count++;}
+  if (agentA.workingHours.cron !== agentB.workingHours.cron) {count++;}
   
   return count;
 }
 
 function isDifferent(a: unknown, b: unknown): boolean {
   if (Array.isArray(a) && Array.isArray(b)) {
-    return JSON.stringify(a.sort()) !== JSON.stringify(b.sort());
+    return JSON.stringify(a.toSorted()) !== JSON.stringify(b.toSorted());
   }
   return a !== b;
 }
@@ -502,7 +502,7 @@ export default function AgentComparison() {
             <SectionHeader icon={<Check className="w-4 h-4" />} title="Capabilities" />
             <div className={cn(
               "grid grid-cols-2 gap-2 p-3 rounded-lg",
-              JSON.stringify([...agentA.tools].sort()) !== JSON.stringify([...agentB.tools].sort()) 
+              JSON.stringify([...agentA.tools].toSorted()) !== JSON.stringify([...agentB.tools].toSorted()) 
                 ? "bg-amber-500/5 ring-1 ring-amber-500/30" 
                 : "bg-zinc-800/50"
             )}>
@@ -688,7 +688,7 @@ export default function AgentComparison() {
             <SectionHeader icon={<Check className="w-4 h-4" />} title="Capabilities" />
             <div className={cn(
               "grid grid-cols-2 gap-2 p-3 rounded-lg",
-              JSON.stringify([...agentB.tools].sort()) !== JSON.stringify([...agentA.tools].sort()) 
+              JSON.stringify([...agentB.tools].toSorted()) !== JSON.stringify([...agentA.tools].toSorted()) 
                 ? "bg-amber-500/5 ring-1 ring-amber-500/30" 
                 : "bg-zinc-800/50"
             )}>

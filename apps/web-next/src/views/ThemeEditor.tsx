@@ -173,7 +173,7 @@ export default function ThemeEditor() {
 
   const handlePresetSelect = useCallback((presetId: ThemePreset) => {
     const preset = THEME_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    if (!preset) {return;}
 
     setTokens({
       accentColor: preset.def.accentColor,

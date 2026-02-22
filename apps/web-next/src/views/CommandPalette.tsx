@@ -67,7 +67,7 @@ const COMMANDS: Command[] = [
   { id: "sh-search",        kind: "shortcut", label: "Search Everything",       emoji: "🔍", category: "Help", keywords: ["search", "find", "query"], shortcut: ["⌘", "K"], pinned: true },
 ];
 
-const RECENT_IDS = ["nav-theme", "nav-builder", "act-run-cron"];
+const RECENT_IDS = new Set(["nav-theme", "nav-builder", "act-run-cron"]);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ export default function CommandPalette() {
     if (!q) {
       // Show pinned + recent
       const pinned = COMMANDS.filter(c => c.pinned);
-      const recent = COMMANDS.filter(c => RECENT_IDS.includes(c.id) && !c.pinned);
+      const recent = COMMANDS.filter(c => RECENT_IDS.has(c.id) && !c.pinned);
       return [...pinned, ...recent].slice(0, 8);
     }
 
@@ -180,7 +180,7 @@ export default function CommandPalette() {
     const groups: Record<string, Command[]> = {};
     for (const cmd of results) {
       const cat = query.trim() ? cmd.category : (cmd.pinned ? "Pinned" : "Recent");
-      if (!groups[cat]) groups[cat] = [];
+      if (!groups[cat]) {groups[cat] = [];}
       groups[cat].push(cmd);
     }
     return groups;

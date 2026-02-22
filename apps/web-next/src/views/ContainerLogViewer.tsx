@@ -118,9 +118,9 @@ export default function ContainerLogViewer() {
   const [showFields, setShowFields] = useState(true);
 
   const filteredLogs = LIVE_LOGS.filter(log => {
-    if (selectedPod !== "all" && log.pod !== selectedPod) return false;
-    if (levelFilter !== "all" && log.level !== levelFilter) return false;
-    if (namespaceFilter !== "all" && log.namespace !== namespaceFilter) return false;
+    if (selectedPod !== "all" && log.pod !== selectedPod) {return false;}
+    if (levelFilter !== "all" && log.level !== levelFilter) {return false;}
+    if (namespaceFilter !== "all" && log.namespace !== namespaceFilter) {return false;}
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       return log.message.toLowerCase().includes(q) ||

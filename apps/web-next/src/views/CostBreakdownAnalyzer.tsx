@@ -432,7 +432,7 @@ const TYPE_LABELS: Record<SavingsType, string> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtCurrency(amount: number): string {
-  if (amount >= 1000) return "$" + (amount / 1000).toFixed(1) + "k";
+  if (amount >= 1000) {return "$" + (amount / 1000).toFixed(1) + "k";}
   return "$" + amount.toLocaleString();
 }
 
@@ -549,7 +549,7 @@ function OverviewTab() {
     SERVICES.reduce((sum, s) => sum + (s.trend[mi] ?? 0), 0)
   );
 
-  const topFive = [...SERVICES].sort((a, b) => b.currentCost - a.currentCost).slice(0, 5);
+  const topFive = [...SERVICES].toSorted((a, b) => b.currentCost - a.currentCost).slice(0, 5);
 
   const categories = Array.from(new Set(SERVICES.map((s) => s.category)));
 

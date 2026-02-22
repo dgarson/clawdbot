@@ -310,10 +310,10 @@ const ALL_CATEGORIES: Category[] = [
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   const days = Math.floor(hrs / 24);
   return `${days}d ago`;
 }
@@ -334,8 +334,8 @@ function statusLabel(s: Status): string {
 }
 
 function actionLabel(s: Status): string {
-  if (s === "connected") return "Configure";
-  if (s === "error") return "Reconnect";
+  if (s === "connected") {return "Configure";}
+  if (s === "error") {return "Reconnect";}
   return "Connect";
 }
 
@@ -690,7 +690,7 @@ export default function IntegrationHub() {
               <div className="flex items-end gap-1.5 h-16">
                 {selected.syncHistory
                   .slice()
-                  .reverse()
+                  .toReversed()
                   .map((entry, i) => {
                     const max = Math.max(
                       ...selected.syncHistory.map((e) => e.records),
@@ -720,7 +720,7 @@ export default function IntegrationHub() {
               <div className="flex gap-1.5 mt-1">
                 {selected.syncHistory
                   .slice()
-                  .reverse()
+                  .toReversed()
                   .map((_, i) => (
                     <div
                       key={i}

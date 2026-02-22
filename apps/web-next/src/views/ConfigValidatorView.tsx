@@ -189,8 +189,8 @@ const CATEGORY_COLORS: Record<IssueCategory, string> = {
 
 function fileStatus(file: ConfigFile): ValidatorStatus {
   const issues = file.results.flatMap((r) => r.issues);
-  if (issues.some((i) => i.severity === "error")) return "fail";
-  if (issues.some((i) => i.severity === "warning")) return "warning";
+  if (issues.some((i) => i.severity === "error")) {return "fail";}
+  if (issues.some((i) => i.severity === "warning")) {return "warning";}
   return "pass";
 }
 
@@ -209,8 +209,8 @@ export default function ConfigValidatorView() {
   function toggleResult(id: string) {
     setExpandedResults((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {next.delete(id);}
+      else {next.add(id);}
       return next;
     });
   }
@@ -305,7 +305,7 @@ export default function ConfigValidatorView() {
                 (i) => severityFilter === "all" || i.severity === severityFilter
               );
               const show = severityFilter === "all" || visibleIssues.length > 0;
-              if (!show) return null;
+              if (!show) {return null;}
 
               return (
                 <div key={result.id} className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">

@@ -327,7 +327,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog) {return;}
     if (open) {
       dialog.showModal();
     } else {
@@ -338,7 +338,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (!name.trim()) return;
+      if (!name.trim()) {return;}
       onSave({ name: name.trim(), exportType, frequency, format, destination });
       setName("");
       onClose();
@@ -346,7 +346,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
     [name, exportType, frequency, format, destination, onSave, onClose]
   );
 
-  if (!open) return null;
+  if (!open) {return null;}
 
   return (
     <dialog

@@ -101,14 +101,14 @@ const BADGE_COLORS: Record<string, string> = {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
 function highlight(text: string, query: string): React.ReactNode {
-  if (!query.trim()) return text;
+  if (!query.trim()) {return text;}
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   const parts = text.split(regex);
   return parts.map((part, i) =>
@@ -117,7 +117,7 @@ function highlight(text: string, query: string): React.ReactNode {
 }
 
 function fuzzySearch(results: SearchResult[], query: string): SearchResult[] {
-  if (!query.trim()) return results;
+  if (!query.trim()) {return results;}
   const q = query.toLowerCase();
   return results
     .map((r) => {
@@ -126,14 +126,14 @@ function fuzzySearch(results: SearchResult[], query: string): SearchResult[] {
       const subtitleMatch = r.subtitle.toLowerCase().includes(q);
       const descMatch = r.description?.toLowerCase().includes(q) ?? false;
       const tagMatch = r.tags?.some((t) => t.toLowerCase().includes(q)) ?? false;
-      if (titleMatch) score += 3;
-      if (subtitleMatch) score += 2;
-      if (descMatch) score += 1;
-      if (tagMatch) score += 1;
+      if (titleMatch) {score += 3;}
+      if (subtitleMatch) {score += 2;}
+      if (descMatch) {score += 1;}
+      if (tagMatch) {score += 1;}
       return { ...r, _matchScore: score };
     })
     .filter((r) => (r as typeof r & { _matchScore: number })._matchScore > 0)
-    .sort((a, b) => (b as typeof b & { _matchScore: number })._matchScore - (a as typeof a & { _matchScore: number })._matchScore);
+    .toSorted((a, b) => (b as typeof b & { _matchScore: number })._matchScore - (a as typeof a & { _matchScore: number })._matchScore);
 }
 
 // ─── Result Item ─────────────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ function ResultItem({ result, query, selected, onSelect }: ResultItemProps) {
   const ref = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (selected) ref.current?.scrollIntoView({ block: "nearest" });
+    if (selected) {ref.current?.scrollIntoView({ block: "nearest" });}
   }, [selected]);
 
   return (
@@ -288,7 +288,7 @@ export default function GlobalSearch() {
   }, []);
 
   const baseResults = kindFilter === "all" ? ALL_RESULTS : ALL_RESULTS.filter((r) => r.kind === kindFilter);
-  const results = query.trim() ? fuzzySearch(baseResults, query) : baseResults.sort((a, b) => b.score - a.score);
+  const results = query.trim() ? fuzzySearch(baseResults, query) : baseResults.toSorted((a, b) => b.score - a.score);
 
   // Keyboard navigation
   useEffect(() => {
@@ -418,7 +418,7 @@ export default function GlobalSearch() {
             {grouped && kindFilter === "all" ? (
               (["agent", "session", "file", "event", "skill", "view"] as ResultKind[]).map((kind) => {
                 const items = grouped[kind];
-                if (!items || items.length === 0) return null;
+                if (!items || items.length === 0) {return null;}
                 const cfg = KIND_CONFIG[kind];
                 // Find offset for index
                 const offset = (["agent", "session", "file", "event", "skill", "view"] as ResultKind[])

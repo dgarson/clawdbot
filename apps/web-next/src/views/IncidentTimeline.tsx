@@ -510,45 +510,45 @@ const rootCauseMetrics: RootCauseMetric[] = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function severityColor(severity: Severity): string {
-  if (severity === "P1") return "text-rose-400"
-  if (severity === "P2") return "text-amber-400"
-  if (severity === "P3") return "text-indigo-400"
+  if (severity === "P1") {return "text-rose-400"}
+  if (severity === "P2") {return "text-amber-400"}
+  if (severity === "P3") {return "text-indigo-400"}
   return "text-zinc-400"
 }
 
 function severityBadgeCn(severity: Severity): string {
-  if (severity === "P1") return "bg-rose-400/10 border border-rose-400/30 text-rose-400"
-  if (severity === "P2") return "bg-amber-400/10 border border-amber-400/30 text-amber-400"
-  if (severity === "P3") return "bg-indigo-400/10 border border-indigo-400/30 text-indigo-400"
+  if (severity === "P1") {return "bg-rose-400/10 border border-rose-400/30 text-rose-400"}
+  if (severity === "P2") {return "bg-amber-400/10 border border-amber-400/30 text-amber-400"}
+  if (severity === "P3") {return "bg-indigo-400/10 border border-indigo-400/30 text-indigo-400"}
   return "bg-zinc-700/30 border border-zinc-600 text-zinc-400"
 }
 
 function statusColor(status: IncidentStatus): string {
-  if (status === "investigating") return "text-rose-400"
-  if (status === "identified") return "text-amber-400"
-  if (status === "monitoring") return "text-indigo-400"
+  if (status === "investigating") {return "text-rose-400"}
+  if (status === "identified") {return "text-amber-400"}
+  if (status === "monitoring") {return "text-indigo-400"}
   return "text-emerald-400"
 }
 
 function eventBorderCn(type: EventType): string {
-  if (type === "detection") return "border-l-rose-400"
-  if (type === "escalation") return "border-l-amber-400"
-  if (type === "mitigation") return "border-l-indigo-400"
-  if (type === "resolution") return "border-l-emerald-400"
+  if (type === "detection") {return "border-l-rose-400"}
+  if (type === "escalation") {return "border-l-amber-400"}
+  if (type === "mitigation") {return "border-l-indigo-400"}
+  if (type === "resolution") {return "border-l-emerald-400"}
   return "border-l-zinc-500"
 }
 
 function eventBadgeCn(type: EventType): string {
-  if (type === "detection") return "bg-rose-400/10 text-rose-400"
-  if (type === "escalation") return "bg-amber-400/10 text-amber-400"
-  if (type === "mitigation") return "bg-indigo-400/10 text-indigo-400"
-  if (type === "resolution") return "bg-emerald-400/10 text-emerald-400"
+  if (type === "detection") {return "bg-rose-400/10 text-rose-400"}
+  if (type === "escalation") {return "bg-amber-400/10 text-amber-400"}
+  if (type === "mitigation") {return "bg-indigo-400/10 text-indigo-400"}
+  if (type === "resolution") {return "bg-emerald-400/10 text-emerald-400"}
   return "bg-zinc-700 text-zinc-300"
 }
 
 function postmortemBadgeCn(s: PostmortemStatus): string {
-  if (s === "postmortem-pending") return "bg-amber-400/10 text-amber-400"
-  if (s === "postmortem-done") return "bg-emerald-400/10 text-emerald-400"
+  if (s === "postmortem-pending") {return "bg-amber-400/10 text-amber-400"}
+  if (s === "postmortem-done") {return "bg-emerald-400/10 text-emerald-400"}
   return "bg-zinc-700 text-zinc-400"
 }
 
@@ -574,15 +574,15 @@ function fmtDate(iso: string): string {
 
 function timeOpen(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
-  if (mins < 60) return `${mins}m`
+  if (mins < 60) {return `${mins}m`}
   const hrs = Math.floor(mins / 60)
   const rem = mins % 60
   return `${hrs}h ${rem}m`
 }
 
 function postmortemLabel(s: PostmortemStatus): string {
-  if (s === "postmortem-pending") return "Postmortem Pending"
-  if (s === "postmortem-done") return "Postmortem Done"
+  if (s === "postmortem-pending") {return "Postmortem Pending"}
+  if (s === "postmortem-done") {return "Postmortem Done"}
   return "Resolved"
 }
 
@@ -698,7 +698,7 @@ function TimelineTab() {
   const eventTypes: EventType[] = ["detection", "escalation", "mitigation", "resolution", "comms"]
 
   function handleAdd() {
-    if (!newDesc.trim()) return
+    if (!newDesc.trim()) {return}
     const ev: TimelineEvent = {
       id: `e-${Date.now()}`,
       incidentId: selectedId,
@@ -789,7 +789,7 @@ function TimelineTab() {
               type="text"
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleAdd() }}
+              onKeyDown={(e) => { if (e.key === "Enter") {handleAdd()} }}
               placeholder="Describe what happened…"
               className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white px-3 py-1.5 placeholder:text-zinc-600"
             />

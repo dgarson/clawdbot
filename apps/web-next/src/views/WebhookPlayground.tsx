@@ -41,10 +41,10 @@ function uid(): string {
 }
 
 function statusBadgeColor(code: number): string {
-  if (code >= 200 && code < 300) return "bg-emerald-400/15 text-emerald-400 border-emerald-400/30"
-  if (code >= 300 && code < 400) return "bg-amber-400/15 text-amber-400 border-amber-400/30"
-  if (code >= 400 && code < 500) return "bg-rose-400/15 text-rose-400 border-rose-400/30"
-  if (code >= 500) return "bg-rose-500/15 text-rose-500 border-rose-500/30"
+  if (code >= 200 && code < 300) {return "bg-emerald-400/15 text-emerald-400 border-emerald-400/30"}
+  if (code >= 300 && code < 400) {return "bg-amber-400/15 text-amber-400 border-amber-400/30"}
+  if (code >= 400 && code < 500) {return "bg-rose-400/15 text-rose-400 border-rose-400/30"}
+  if (code >= 500) {return "bg-rose-500/15 text-rose-500 border-rose-500/30"}
   return "bg-zinc-700 text-zinc-300 border-zinc-600"
 }
 

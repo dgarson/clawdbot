@@ -348,8 +348,8 @@ const RECOMMENDATIONS: Recommendation[] = [
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 function formatTokens(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${Math.round(n / 1000)}K`;
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`;}
+  if (n >= 1000) {return `${Math.round(n / 1000)}K`;}
   return String(n);
 }
 
@@ -522,7 +522,7 @@ function OverviewTab() {
   }
   const maxModelTokens = Math.max(...(Object.values(modelTotals) as number[]));
 
-  const topConsumers = [...AGENTS].sort((a, b) => b.totalTokens - a.totalTokens).slice(0, 5);
+  const topConsumers = [...AGENTS].toSorted((a, b) => b.totalTokens - a.totalTokens).slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -691,7 +691,7 @@ function AnalysisTab() {
 
   const filtered = AGENTS.filter((a) => modelFilter === "all" || a.model === modelFilter);
 
-  const sorted = [...filtered].sort((a, b) => {
+  const sorted = [...filtered].toSorted((a, b) => {
     if (sortField === "name") {
       return sortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
     }
@@ -951,8 +951,8 @@ function OptimizationTab() {
   const appliedTokenSavings = RECOMMENDATIONS.filter((r) => applied.has(r.id)).reduce((acc, r) => acc + r.estimatedSavings, 0);
 
   const visible = RECOMMENDATIONS.filter((r) => {
-    if (dismissed.has(r.id)) return false;
-    if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
+    if (dismissed.has(r.id)) {return false;}
+    if (categoryFilter !== "all" && r.category !== categoryFilter) {return false;}
     return true;
   });
 
@@ -1376,7 +1376,7 @@ function BudgetTab() {
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={commitEdit}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") commitEdit();
+                        if (e.key === "Enter") {commitEdit();}
                         if (e.key === "Escape") {
                           setEditingId(null);
                           setEditValue("");

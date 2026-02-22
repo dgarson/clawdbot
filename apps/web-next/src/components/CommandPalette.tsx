@@ -80,7 +80,7 @@ export default function CommandPalette({ onNavigate, currentView }: CommandPalet
 
   // Track current view in recent (skip if already first)
   useEffect(() => {
-    if (!currentView) return;
+    if (!currentView) {return;}
     
     const updated = [currentView, ...recentViews.filter(v => v !== currentView)].slice(0, 3);
     setRecentViews(updated);
@@ -142,7 +142,7 @@ export default function CommandPalette({ onNavigate, currentView }: CommandPalet
   // Scroll selected item into view
   useEffect(() => {
     const container = listRef.current;
-    if (!container) return;
+    if (!container) {return;}
     
     const selected = container.querySelector(`[data-index="${selectedIndex}"]`) as HTMLElement;
     if (selected) {
@@ -202,20 +202,20 @@ export default function CommandPalette({ onNavigate, currentView }: CommandPalet
   const getItemGroup = (index: number): "recent" | "navigation" | "actions" => {
     if (search) {
       // In search mode, group based on type
-      if (index < recentViews.length) return "recent";
+      if (index < recentViews.length) {return "recent";}
       const navFilteredCount = NAV_ITEMS.filter(
         item => !search || item.label.toLowerCase().includes(search) || item.id.toLowerCase().includes(search)
       ).length;
-      if (index < recentViews.length + navFilteredCount) return "navigation";
+      if (index < recentViews.length + navFilteredCount) {return "navigation";}
       return "actions";
     }
     
-    if (index < recentCount) return "recent";
-    if (index < recentCount + navCount) return "navigation";
+    if (index < recentCount) {return "recent";}
+    if (index < recentCount + navCount) {return "navigation";}
     return "actions";
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div
@@ -257,7 +257,7 @@ export default function CommandPalette({ onNavigate, currentView }: CommandPalet
               </div>
               {recentViews.map((viewId, idx) => {
                 const item = NAV_ITEMS.find(n => n.id === viewId);
-                if (!item) return null;
+                if (!item) {return null;}
                 return (
                   <button
                     key={item.id}

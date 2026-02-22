@@ -241,51 +241,51 @@ const APPROVAL_REQUESTS: ApprovalRequest[] = [
 function timeAgo(isoStr: string): string {
   const diff = Date.now() - new Date(isoStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60) {return `${mins}m ago`}
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
+  if (hrs < 24) {return `${hrs}h ago`}
   return `${Math.floor(hrs / 24)}d ago`
 }
 
 function healthColor(h: HealthStatus): string {
-  if (h === "healthy") return "text-emerald-400"
-  if (h === "degraded") return "text-amber-400"
-  if (h === "down") return "text-rose-400"
+  if (h === "healthy") {return "text-emerald-400"}
+  if (h === "degraded") {return "text-amber-400"}
+  if (h === "down") {return "text-rose-400"}
   return "text-zinc-500"
 }
 
 function healthDot(h: HealthStatus): string {
-  if (h === "healthy") return "bg-emerald-400"
-  if (h === "degraded") return "bg-amber-400"
-  if (h === "down") return "bg-rose-500"
+  if (h === "healthy") {return "bg-emerald-400"}
+  if (h === "degraded") {return "bg-amber-400"}
+  if (h === "down") {return "bg-rose-500"}
   return "bg-zinc-600"
 }
 
 function statusColor(s: DeployStatus): string {
-  if (s === "success") return "text-emerald-400"
-  if (s === "failed") return "text-rose-400"
-  if (s === "in_progress") return "text-indigo-400"
-  if (s === "rolled_back") return "text-amber-400"
+  if (s === "success") {return "text-emerald-400"}
+  if (s === "failed") {return "text-rose-400"}
+  if (s === "in_progress") {return "text-indigo-400"}
+  if (s === "rolled_back") {return "text-amber-400"}
   return "text-zinc-400"
 }
 
 function statusBadge(s: DeployStatus): string {
-  if (s === "success") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-  if (s === "failed") return "bg-rose-500/15 text-rose-400 border-rose-500/30"
-  if (s === "in_progress") return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"
-  if (s === "rolled_back") return "bg-amber-500/15 text-amber-400 border-amber-500/30"
+  if (s === "success") {return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"}
+  if (s === "failed") {return "bg-rose-500/15 text-rose-400 border-rose-500/30"}
+  if (s === "in_progress") {return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"}
+  if (s === "rolled_back") {return "bg-amber-500/15 text-amber-400 border-amber-500/30"}
   return "bg-zinc-800 text-zinc-400 border-zinc-700"
 }
 
 function roleBadge(r: AccessRole): string {
-  if (r === "admin") return "bg-rose-500/15 text-rose-400 border-rose-500/30"
-  if (r === "deployer") return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"
+  if (r === "admin") {return "bg-rose-500/15 text-rose-400 border-rose-500/30"}
+  if (r === "deployer") {return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"}
   return "bg-zinc-800 text-zinc-400 border-zinc-700"
 }
 
 function approvalBadge(s: ApprovalStatus): string {
-  if (s === "approved") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-  if (s === "pending") return "bg-amber-500/15 text-amber-400 border-amber-500/30"
+  if (s === "approved") {return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"}
+  if (s === "pending") {return "bg-amber-500/15 text-amber-400 border-amber-500/30"}
   return "bg-rose-500/15 text-rose-400 border-rose-500/30"
 }
 
@@ -519,8 +519,8 @@ function ConfigTab() {
 
   function getDiff(key: string, val: string): "same" | "different" | "new" {
     const stagingVar = stagingConfig?.vars.find(v => v.key === key)
-    if (!stagingVar) return "new"
-    if (stagingVar.value === val) return "same"
+    if (!stagingVar) {return "new"}
+    if (stagingVar.value === val) {return "same"}
     return "different"
   }
 

@@ -274,9 +274,9 @@ export default function VoiceInterface() {
     if (voiceState !== "idle" && voiceState !== "error") {
       timerRef.current = setInterval(() => setSessionDuration((d) => d + 1), 1000);
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {clearInterval(timerRef.current);}
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => { if (timerRef.current) {clearInterval(timerRef.current);} };
   }, [voiceState]);
 
   // Simulate voice conversation loop
@@ -294,7 +294,7 @@ export default function VoiceInterface() {
 
       // Simulate a listening → thinking → speaking cycle
       setTimeout(() => {
-        if (stateRef.current !== "listening") return;
+        if (stateRef.current !== "listening") {return;}
         setTranscript((prev) => [...prev, {
           id: `user-${Date.now()}`,
           role: "user",
@@ -305,7 +305,7 @@ export default function VoiceInterface() {
         }]);
         setVoiceState("thinking");
         setTimeout(() => {
-          if (stateRef.current !== "thinking") return;
+          if (stateRef.current !== "thinking") {return;}
           setVoiceState("speaking");
           setTranscript((prev) => [...prev, {
             id: `agent-${Date.now()}`,
@@ -315,7 +315,7 @@ export default function VoiceInterface() {
             duration: 7400,
           }]);
           setTimeout(() => {
-            if (stateRef.current !== "speaking") return;
+            if (stateRef.current !== "speaking") {return;}
             setVoiceState("listening");
           }, 7500);
         }, 1800);
@@ -340,10 +340,10 @@ export default function VoiceInterface() {
     } else if (voiceState === "listening") {
       setVoiceState("thinking");
       setTimeout(() => {
-        if (stateRef.current !== "thinking") return;
+        if (stateRef.current !== "thinking") {return;}
         setVoiceState("speaking");
         setTimeout(() => {
-          if (stateRef.current !== "speaking") return;
+          if (stateRef.current !== "speaking") {return;}
           setVoiceState("listening");
         }, 5000);
       }, 1500);
@@ -401,7 +401,7 @@ export default function VoiceInterface() {
               {VOICE_AGENTS.map((agent) => (
                 <button
                   key={agent.id}
-                  onClick={() => { if (!isActive) setSelectedAgent(agent); }}
+                  onClick={() => { if (!isActive) {setSelectedAgent(agent);} }}
                   disabled={isActive}
                   aria-pressed={selectedAgent.id === agent.id}
                   aria-label={`Select ${agent.name} — ${agent.description}`}

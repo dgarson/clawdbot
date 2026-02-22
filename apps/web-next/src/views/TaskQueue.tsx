@@ -180,20 +180,20 @@ const KIND_EMOJIS: Record<TaskKind, string> = {
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const secs = Math.floor(diff / 1000);
-  if (secs < 60) return `${secs}s ago`;
+  if (secs < 60) {return `${secs}s ago`;}
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
   return `${hrs}h ago`;
 }
 
 function duration(start?: string, end?: string): string {
-  if (!start) return "—";
+  if (!start) {return "—";}
   const from = new Date(start).getTime();
   const to = end ? new Date(end).getTime() : Date.now();
   const ms = to - from;
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 1000) {return `${ms}ms`;}
+  if (ms < 60000) {return `${(ms / 1000).toFixed(1)}s`;}
   return `${(ms / 60000).toFixed(1)}m`;
 }
 
@@ -386,17 +386,17 @@ export default function TaskQueue() {
 
   const filtered = useMemo(() => {
     return TASKS.filter(t => {
-      if (statusFilter !== "all" && t.status !== statusFilter) return false;
-      if (kindFilter !== "all" && t.kind !== kindFilter) return false;
-      if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (statusFilter !== "all" && t.status !== statusFilter) {return false;}
+      if (kindFilter !== "all" && t.kind !== kindFilter) {return false;}
+      if (search && !t.name.toLowerCase().includes(search.toLowerCase())) {return false;}
       return true;
-    }).sort((a, b) => {
+    }).toSorted((a, b) => {
       // Sort: running first, then pending/retrying, then by created desc
       const rank: Record<TaskStatus, number> = {
         running: 0, retrying: 1, pending: 2, failed: 3, completed: 4, cancelled: 5,
       };
       const dr = rank[a.status] - rank[b.status];
-      if (dr !== 0) return dr;
+      if (dr !== 0) {return dr;}
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [statusFilter, kindFilter, search]);
@@ -404,7 +404,7 @@ export default function TaskQueue() {
   const toggle = useCallback((id: string) => {
     setExpandedIds(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) {next.delete(id);} else {next.add(id);}
       return next;
     });
   }, []);

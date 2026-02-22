@@ -294,7 +294,7 @@ export default function AccessControlManager() {
                         
                         {(["Users", "Agents", "Sessions", "Billing", "Settings"] as ResourceGroup[]).map(group => {
                           const groupPerms = PERMISSIONS.filter(p => p.group === group && role.permissions.includes(p.id));
-                          if (groupPerms.length === 0) return null;
+                          if (groupPerms.length === 0) {return null;}
                           
                           return (
                             <div key={group} className="mb-6 last:mb-0">

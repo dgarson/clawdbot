@@ -233,7 +233,7 @@ export default function HealthChecklist() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {displaySuites.map((suite) => {
             const suiteFiltered = suite.checks.filter((c) => filterStatus === "all" || c.status === filterStatus);
-            if (suiteFiltered.length === 0) return null;
+            if (suiteFiltered.length === 0) {return null;}
             const suitePass = suite.checks.filter((c) => c.status === "pass").length;
             const suiteTotal = suite.checks.filter((c) => c.status !== "skip").length;
             return (

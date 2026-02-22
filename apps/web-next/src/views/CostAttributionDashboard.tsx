@@ -174,7 +174,7 @@ export default function CostAttributionDashboard() {
           <div className="flex h-full">
             {/* Left */}
             <div className="w-[48%] flex-none border-r border-zinc-800 overflow-y-auto">
-              {TEAM_COSTS.sort((a, b) => b.spent - a.spent).map(team => {
+              {TEAM_COSTS.toSorted((a, b) => b.spent - a.spent).map(team => {
                 const pct = Math.round((team.spent / team.budget) * 100);
                 const over = team.spent > team.budget;
                 return (
@@ -278,7 +278,7 @@ export default function CostAttributionDashboard() {
         {tab === "services" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
-              {SERVICE_COSTS.sort((a, b) => b.cost - a.cost).map(svc => (
+              {SERVICE_COSTS.toSorted((a, b) => b.cost - a.cost).map(svc => (
                 <div key={svc.id} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
                   <div className="flex items-start justify-between gap-4">
                     <div>

@@ -241,11 +241,11 @@ const KIND_COLORS: Record<ActivityKind, string> = {
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const secs = Math.floor(diff / 1000);
-  if (secs < 60) return `${secs}s ago`;
+  if (secs < 60) {return `${secs}s ago`;}
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -331,13 +331,13 @@ export default function ActivityFeed() {
 
   const filtered = useMemo(() => {
     return EVENTS.filter(e => {
-      if (kindFilter !== "all" && e.kind !== kindFilter) return false;
-      if (actorFilter !== "all" && e.actor.id !== actorFilter) return false;
-      if (importantOnly && !e.important) return false;
+      if (kindFilter !== "all" && e.kind !== kindFilter) {return false;}
+      if (actorFilter !== "all" && e.actor.id !== actorFilter) {return false;}
+      if (importantOnly && !e.important) {return false;}
       if (search && !e.title.toLowerCase().includes(search.toLowerCase()) &&
-          !(e.body ?? "").toLowerCase().includes(search.toLowerCase())) return false;
+          !(e.body ?? "").toLowerCase().includes(search.toLowerCase())) {return false;}
       return true;
-    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }).toSorted((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [kindFilter, actorFilter, importantOnly, search]);
 
   const selected = useMemo(() => EVENTS.find(e => e.id === selectedId) ?? null, [selectedId]);

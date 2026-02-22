@@ -159,8 +159,8 @@ const EVENTS: GateEvent[] = [
 ];
 
 function statusBadge(s: GateStatus) {
-  if (s === "enabled") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "disabled") return "bg-zinc-600 text-zinc-400";
+  if (s === "enabled") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "disabled") {return "bg-zinc-600 text-zinc-400";}
   return "bg-amber-400/10 text-amber-400";
 }
 function typeBadge(t: GateType) {
@@ -174,8 +174,8 @@ function typeBadge(t: GateType) {
   return colors[t];
 }
 function envBadge(e: Environment) {
-  if (e === "production") return "bg-rose-500/10 text-rose-400";
-  if (e === "staging") return "bg-amber-500/10 text-amber-400";
+  if (e === "production") {return "bg-rose-500/10 text-rose-400";}
+  if (e === "staging") {return "bg-amber-500/10 text-amber-400";}
   return "bg-blue-500/10 text-blue-400";
 }
 
@@ -196,9 +196,9 @@ export default function FeatureGatingDashboard() {
   const [filterType, setFilterType] = useState<GateType | "all">("all");
 
   const filtered = GATES.filter(g => {
-    if (filterStatus !== "all" && g.status !== filterStatus) return false;
-    if (filterEnv !== "all" && g.environment !== filterEnv) return false;
-    if (filterType !== "all" && g.type !== filterType) return false;
+    if (filterStatus !== "all" && g.status !== filterStatus) {return false;}
+    if (filterEnv !== "all" && g.environment !== filterEnv) {return false;}
+    if (filterType !== "all" && g.type !== filterType) {return false;}
     return true;
   });
 
@@ -536,7 +536,7 @@ export default function FeatureGatingDashboard() {
           <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-300 mb-4">Gate Evaluation Volume</h3>
             <div className="space-y-3">
-              {[...GATES].sort((a, b) => b.evaluations - a.evaluations).map(g => {
+              {[...GATES].toSorted((a, b) => b.evaluations - a.evaluations).map(g => {
                 const maxEv = GATES[0].evaluations;
                 const pct = Math.min(100, (g.evaluations / maxEv) * 100);
                 return (

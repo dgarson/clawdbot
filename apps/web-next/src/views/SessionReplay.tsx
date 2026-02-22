@@ -144,16 +144,16 @@ const SEED_SESSIONS: ReplaySession[] = [
 // ---------------------------------------------------------------------------
 
 function formatMs(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 1000) {return `${ms}ms`;}
+  if (ms < 60000) {return `${(ms / 1000).toFixed(1)}s`;}
   const mins = Math.floor(ms / 60000);
   const secs = Math.round((ms % 60000) / 1000);
   return `${mins}m ${secs}s`;
 }
 
 function formatOffset(ms: number): string {
-  if (ms === 0) return "+0s";
-  if (ms < 1000) return `+${ms}ms`;
+  if (ms === 0) {return "+0s";}
+  if (ms < 1000) {return `+${ms}ms`;}
   return `+${(ms / 1000).toFixed(1)}s`;
 }
 
@@ -196,17 +196,17 @@ function kindColor(kind: EventKind): string {
 }
 
 function matchesFilter(event: ReplayEvent, filter: FilterChip): boolean {
-  if (filter === "all") return true;
-  if (filter === "messages") return event.kind === "message";
+  if (filter === "all") {return true;}
+  if (filter === "messages") {return event.kind === "message";}
   if (filter === "tools")
-    return event.kind === "tool-call" || event.kind === "tool-result";
+    {return event.kind === "tool-call" || event.kind === "tool-result";}
   if (filter === "system")
-    return (
+    {return (
       event.kind === "system" ||
       event.kind === "subagent-spawn" ||
       event.kind === "subagent-done"
-    );
-  if (filter === "errors") return event.kind === "error";
+    );}
+  if (filter === "errors") {return event.kind === "error";}
   return true;
 }
 
@@ -411,7 +411,7 @@ export default function SessionReplay() {
       intervalRef.current = null;
     }
 
-    if (!isPlaying) return;
+    if (!isPlaying) {return;}
     if (currentEventIndex >= filteredEvents.length - 1) {
       setIsPlaying(false);
       return;

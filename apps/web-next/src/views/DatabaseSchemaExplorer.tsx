@@ -314,7 +314,7 @@ export default function DatabaseSchemaExplorer() {
                                 className="text-indigo-400 hover:text-indigo-300 transition-colors"
                                 onClick={() => {
                                   const t = TABLES.find(t => t.name === col.fk?.table);
-                                  if (t) setSelectedTable(t);
+                                  if (t) {setSelectedTable(t);}
                                 }}
                               >
                                 {col.fk.table}.{col.fk.column}

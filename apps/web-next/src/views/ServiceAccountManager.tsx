@@ -224,13 +224,13 @@ const keyStatusColor: Record<KeyStatus, string> = {
 };
 
 const expiryWarning = (expiresAt: string | null): string | null => {
-  if (!expiresAt) return null;
+  if (!expiresAt) {return null;}
   const now = new Date("2026-02-22");
   const exp = new Date(expiresAt);
   const days = Math.floor((exp.getTime() - now.getTime()) / 86400000);
-  if (days < 0) return "Expired";
-  if (days <= 7) return `Expires in ${days}d`;
-  if (days <= 30) return `Expires in ${days}d`;
+  if (days < 0) {return "Expired";}
+  if (days <= 7) {return `Expires in ${days}d`;}
+  if (days <= 30) {return `Expires in ${days}d`;}
   return null;
 };
 
@@ -248,7 +248,7 @@ export default function ServiceAccountManager(): React.ReactElement {
   );
 
   const expiringSoon = allKeys.filter((k) => {
-    if (!k.expiresAt || k.status !== "active") return false;
+    if (!k.expiresAt || k.status !== "active") {return false;}
     const now = new Date("2026-02-22");
     const exp = new Date(k.expiresAt);
     return (exp.getTime() - now.getTime()) / 86400000 <= 30;

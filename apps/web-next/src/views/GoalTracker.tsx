@@ -192,8 +192,8 @@ export default function GoalTracker() {
 
   const owners = Array.from(new Set(GOALS.map((g) => g.owner)));
   const filtered = GOALS.filter((g) => {
-    if (statusFilter !== "all" && g.status !== statusFilter) return false;
-    if (ownerFilter !== "all" && g.owner !== ownerFilter) return false;
+    if (statusFilter !== "all" && g.status !== statusFilter) {return false;}
+    if (ownerFilter !== "all" && g.owner !== ownerFilter) {return false;}
     return true;
   });
 

@@ -321,9 +321,9 @@ export default function TeamDirectory() {
   const filtered = AGENTS.filter((a) => {
     if (search && !a.name.toLowerCase().includes(search.toLowerCase()) &&
         !a.role.toLowerCase().includes(search.toLowerCase()) &&
-        !a.skills.some((s) => s.includes(search.toLowerCase()))) return false;
-    if (squadFilter !== "all" && a.squad !== squadFilter) return false;
-    if (statusFilter !== "all" && a.status !== statusFilter) return false;
+        !a.skills.some((s) => s.includes(search.toLowerCase()))) {return false;}
+    if (squadFilter !== "all" && a.squad !== squadFilter) {return false;}
+    if (statusFilter !== "all" && a.status !== statusFilter) {return false;}
     return true;
   });
 

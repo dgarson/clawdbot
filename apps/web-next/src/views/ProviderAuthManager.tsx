@@ -374,10 +374,10 @@ export default function ProviderAuthManager() {
 
       // Sort: connected first, then popular, then alphabetically
       providersWithStatus.sort((a, b) => {
-        if (a.status === 'connected' && b.status !== 'connected') return -1;
-        if (a.status !== 'connected' && b.status === 'connected') return 1;
-        if (a.popular && !b.popular) return -1;
-        if (!a.popular && b.popular) return 1;
+        if (a.status === 'connected' && b.status !== 'connected') {return -1;}
+        if (a.status !== 'connected' && b.status === 'connected') {return 1;}
+        if (a.popular && !b.popular) {return -1;}
+        if (!a.popular && b.popular) {return 1;}
         return a.name.localeCompare(b.name);
       });
 
@@ -394,7 +394,7 @@ export default function ProviderAuthManager() {
    */
   const handleConnect = useCallback(async (providerId: string) => {
     const provider = providers.find((p) => p.id === providerId);
-    if (!provider) return;
+    if (!provider) {return;}
 
     setConnectingProvider(providerId);
     setWizardTitle(`Connect ${provider.name}`);
@@ -611,7 +611,7 @@ export default function ProviderAuthManager() {
               type="button"
               onClick={() => {
                 const anthropic = providers.find((p) => p.id === 'anthropic');
-                if (anthropic) handleConnect('anthropic');
+                if (anthropic) {handleConnect('anthropic');}
               }}
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-500 transition-colors"
             >

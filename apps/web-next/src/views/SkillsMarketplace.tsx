@@ -44,9 +44,9 @@ export default function SkillsMarketplace() {
     }
 
     // Sort: popular first, then by name
-    return [...skills].sort((a, b) => {
-      if (a.popular && !b.popular) return -1;
-      if (!a.popular && b.popular) return 1;
+    return [...skills].toSorted((a, b) => {
+      if (a.popular && !b.popular) {return -1;}
+      if (!a.popular && b.popular) {return 1;}
       return a.name.localeCompare(b.name);
     });
   }, [activeTab, searchQuery, activeCategory]);

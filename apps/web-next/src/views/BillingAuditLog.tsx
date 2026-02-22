@@ -107,21 +107,21 @@ function categoryBadge(c: EventCategory) {
   return map[c];
 }
 function statusBadge(s: EventStatus) {
-  if (s === "success") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "failed") return "bg-rose-400/10 text-rose-400";
-  if (s === "pending") return "bg-amber-400/10 text-amber-400";
+  if (s === "success") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
   return "bg-zinc-600 text-zinc-400";
 }
 function amountColor(amount: number) {
-  if (amount < 0) return "text-rose-400";
-  if (amount === 0) return "text-zinc-500";
+  if (amount < 0) {return "text-rose-400";}
+  if (amount === 0) {return "text-zinc-500";}
   return "text-emerald-400";
 }
 function formatAmount(amount: number, currency: string) {
   const abs = Math.abs(amount);
   const formatted = abs.toFixed(2);
-  if (amount < 0) return `-$${formatted} ${currency}`;
-  if (amount === 0) return "—";
+  if (amount < 0) {return `-$${formatted} ${currency}`;}
+  if (amount === 0) {return "—";}
   return `+$${formatted} ${currency}`;
 }
 
@@ -134,8 +134,8 @@ export default function BillingAuditLog() {
   void _exportFormat;
 
   const filteredEvents = EVENTS.filter(e => {
-    if (filterCategory !== "all" && e.category !== filterCategory) return false;
-    if (filterStatus !== "all" && e.status !== filterStatus) return false;
+    if (filterCategory !== "all" && e.category !== filterCategory) {return false;}
+    if (filterStatus !== "all" && e.status !== filterStatus) {return false;}
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       return e.customerName.toLowerCase().includes(q) || e.description.toLowerCase().includes(q) || e.id.toLowerCase().includes(q);

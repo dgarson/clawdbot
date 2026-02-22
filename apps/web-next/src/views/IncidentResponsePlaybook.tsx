@@ -201,15 +201,15 @@ const ACTIVE_RUN: PlaybookRun = {
 };
 
 function sevBg(s: Severity) {
-  if (s === "critical") return "bg-rose-500/10 text-rose-400";
-  if (s === "high") return "bg-orange-500/10 text-orange-400";
-  if (s === "medium") return "bg-amber-500/10 text-amber-400";
+  if (s === "critical") {return "bg-rose-500/10 text-rose-400";}
+  if (s === "high") {return "bg-orange-500/10 text-orange-400";}
+  if (s === "medium") {return "bg-amber-500/10 text-amber-400";}
   return "bg-emerald-500/10 text-emerald-400";
 }
 function pbStatusBg(s: PlaybookStatus) {
-  if (s === "active") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "draft") return "bg-amber-400/10 text-amber-400";
-  if (s === "testing") return "bg-indigo-400/10 text-indigo-400";
+  if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "testing") {return "bg-indigo-400/10 text-indigo-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 function stepTypeBg(t: StepType) {
@@ -224,10 +224,10 @@ function stepTypeBg(t: StepType) {
   return m[t];
 }
 function stepStateColor(s: StepState) {
-  if (s === "done") return "bg-emerald-500";
-  if (s === "running") return "bg-indigo-500 animate-pulse";
-  if (s === "failed") return "bg-rose-500";
-  if (s === "skipped") return "bg-zinc-600";
+  if (s === "done") {return "bg-emerald-500";}
+  if (s === "running") {return "bg-indigo-500 animate-pulse";}
+  if (s === "failed") {return "bg-rose-500";}
+  if (s === "skipped") {return "bg-zinc-600";}
   return "bg-zinc-700";
 }
 
@@ -241,9 +241,9 @@ export default function IncidentResponsePlaybook() {
   const categories = Array.from(new Set(PLAYBOOKS.map(p => p.category)));
 
   const filtered = PLAYBOOKS.filter(p => {
-    if (sevFilter !== "all" && p.severity !== sevFilter) return false;
-    if (catFilter !== "all" && p.category !== catFilter) return false;
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (sevFilter !== "all" && p.severity !== sevFilter) {return false;}
+    if (catFilter !== "all" && p.category !== catFilter) {return false;}
+    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) {return false;}
     return true;
   });
 

@@ -131,10 +131,10 @@ export default function ResourceTagManager() {
   ]
 
   const filtered = RESOURCES.filter(r => {
-    if (complianceFilter !== "all" && r.complianceStatus !== complianceFilter) return false
-    if (typeFilter !== "all" && r.type !== typeFilter) return false
-    if (providerFilter !== "all" && r.provider !== providerFilter) return false
-    if (searchQuery && !r.name.toLowerCase().includes(searchQuery.toLowerCase()) && !r.id.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    if (complianceFilter !== "all" && r.complianceStatus !== complianceFilter) {return false}
+    if (typeFilter !== "all" && r.type !== typeFilter) {return false}
+    if (providerFilter !== "all" && r.provider !== providerFilter) {return false}
+    if (searchQuery && !r.name.toLowerCase().includes(searchQuery.toLowerCase()) && !r.id.toLowerCase().includes(searchQuery.toLowerCase())) {return false}
     return true
   })
 
@@ -152,13 +152,13 @@ export default function ResourceTagManager() {
   // Tag key frequency for analytics
   const keyFreq: Record<string, number> = {}
   RESOURCES.forEach(r => r.tags.forEach(t => { keyFreq[t.key] = (keyFreq[t.key] ?? 0) + 1 }))
-  const topKeys = Object.entries(keyFreq).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const topKeys = Object.entries(keyFreq).toSorted((a, b) => b[1] - a[1]).slice(0, 8)
   const maxFreq = topKeys[0]?.[1] ?? 1
 
   const toggleBulk = (id: string) => {
     const next = new Set(bulkSelected)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
+    if (next.has(id)) {next.delete(id)}
+    else {next.add(id)}
     setBulkSelected(next)
   }
 

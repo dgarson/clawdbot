@@ -432,7 +432,7 @@ export default function ABTestManager() {
                             <tbody className="divide-y divide-zinc-800">
                               {selectedExp.variants.map(v => {
                                 const result = getVariantMetric(v.id, metricKind);
-                                if (!result) return null;
+                                if (!result) {return null;}
                                 return (
                                   <tr key={v.id} className={cn("transition-colors", result.winner ? "bg-emerald-500/5" : "")}>
                                     <td className="px-6 py-4 flex items-center gap-3">

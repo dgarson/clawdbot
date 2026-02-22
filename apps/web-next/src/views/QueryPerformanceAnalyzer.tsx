@@ -263,13 +263,13 @@ const indexStatusColor: Record<IndexStatus, string> = {
 }
 
 function fmtMs(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
+  if (ms < 1000) {return `${ms}ms`}
   return `${(ms / 1000).toFixed(1)}s`
 }
 
 function fmtNum(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`}
+  if (n >= 1000) {return `${(n / 1000).toFixed(1)}K`}
   return n.toString()
 }
 
@@ -318,8 +318,8 @@ export default function QueryPerformanceAnalyzer() {
   ]
 
   const filtered = SLOW_QUERIES.filter(q => {
-    if (statusFilter !== "all" && q.status !== statusFilter) return false
-    if (dbFilter !== "all" && q.database !== dbFilter) return false
+    if (statusFilter !== "all" && q.status !== statusFilter) {return false}
+    if (dbFilter !== "all" && q.database !== dbFilter) {return false}
     return true
   })
 

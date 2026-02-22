@@ -234,7 +234,7 @@ export default function ChatInterface({
     : MOCK_SESSIONS;
 
   const handleSend = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim()) {return;}
 
     const newMessage: ChatMessageType = {
       id: `user-${Date.now()}`,

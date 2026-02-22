@@ -114,10 +114,10 @@ const eventColor: Record<EventType, string> = {
 };
 
 const responseCodeColor = (code: number | null) => {
-  if (!code) return "text-zinc-500";
-  if (code >= 200 && code < 300) return "text-emerald-400";
-  if (code >= 400 && code < 500) return "text-amber-400";
-  if (code >= 500) return "text-rose-400";
+  if (!code) {return "text-zinc-500";}
+  if (code >= 200 && code < 300) {return "text-emerald-400";}
+  if (code >= 400 && code < 500) {return "text-amber-400";}
+  if (code >= 500) {return "text-rose-400";}
   return "text-zinc-400";
 };
 

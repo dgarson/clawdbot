@@ -323,8 +323,8 @@ function RequestsTab() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const filtered = MOCK_DSRS.filter((d) => {
-    if (typeFilter !== "all" && d.type !== typeFilter) return false
-    if (statusFilter !== "all" && d.status !== statusFilter) return false
+    if (typeFilter !== "all" && d.type !== typeFilter) {return false}
+    if (statusFilter !== "all" && d.status !== statusFilter) {return false}
     return true
   })
 

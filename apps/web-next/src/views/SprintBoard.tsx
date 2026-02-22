@@ -125,9 +125,9 @@ export default function SprintBoard() {
   const inProgressPoints = tasks.filter((t) => t.column === "in-progress").reduce((sum, t) => sum + t.points, 0)
 
   const filteredTasks = tasks.filter((t) => {
-    if (filterAssignee && t.assignee !== filterAssignee) return false
-    if (filterPriority && t.priority !== filterPriority) return false
-    if (filterLabel && !t.labels.includes(filterLabel)) return false
+    if (filterAssignee && t.assignee !== filterAssignee) {return false}
+    if (filterPriority && t.priority !== filterPriority) {return false}
+    if (filterLabel && !t.labels.includes(filterLabel)) {return false}
     return true
   })
 

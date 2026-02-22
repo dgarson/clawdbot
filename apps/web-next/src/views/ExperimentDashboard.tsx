@@ -169,9 +169,9 @@ const STATUS_STYLES: Record<Experiment["status"], string> = {
 };
 
 function sigLabel(p: number): { text: string; cls: string } {
-  if (p < 0.01) return { text: "Highly significant", cls: "text-emerald-400" };
-  if (p < 0.05) return { text: "Significant", cls: "text-emerald-400" };
-  if (p < 0.1) return { text: "Trending", cls: "text-amber-400" };
+  if (p < 0.01) {return { text: "Highly significant", cls: "text-emerald-400" };}
+  if (p < 0.05) {return { text: "Significant", cls: "text-emerald-400" };}
+  if (p < 0.1) {return { text: "Trending", cls: "text-amber-400" };}
   return { text: "Not significant", cls: "text-rose-400" };
 }
 
@@ -181,7 +181,7 @@ function fmtPct(v: number, decimals = 1): string {
 
 function bestPValue(exp: Experiment): number {
   const nonControl = exp.variants.filter((v) => !v.isControl);
-  if (nonControl.length === 0) return 1;
+  if (nonControl.length === 0) {return 1;}
   return Math.min(...nonControl.map((v) => v.pValue));
 }
 

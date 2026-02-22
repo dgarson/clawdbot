@@ -29,7 +29,7 @@ test.describe('OpenClaw Horizon UI — Smoke Tests', () => {
   test('no console errors on load', async ({ page }) => {
     const errors: string[] = [];
     page.on('console', msg => {
-      if (msg.type() === 'error') errors.push(msg.text());
+      if (msg.type() === 'error') {errors.push(msg.text());}
     });
     
     await page.goto('http://localhost:3000');

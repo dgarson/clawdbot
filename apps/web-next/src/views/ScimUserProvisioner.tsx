@@ -160,8 +160,8 @@ export default function ScimUserProvisioner(): React.ReactElement {
   const [statusFilter, setStatusFilter] = useState<ProvisionStatus | "all">("all");
 
   const filteredUsers = SCIM_USERS.filter((u) => {
-    if (statusFilter !== "all" && u.status !== statusFilter) return false;
-    if (userSearch && !u.email.includes(userSearch) && !u.username.includes(userSearch)) return false;
+    if (statusFilter !== "all" && u.status !== statusFilter) {return false;}
+    if (userSearch && !u.email.includes(userSearch) && !u.username.includes(userSearch)) {return false;}
     return true;
   });
 

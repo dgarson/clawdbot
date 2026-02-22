@@ -314,13 +314,13 @@ const formatColor: Record<SchemaFormat, string> = {
 const DOMAINS = [...new Set(TOPICS.map(t => t.domain))]
 
 function fmtNum(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`}
+  if (n >= 1000) {return `${(n / 1000).toFixed(1)}K`}
   return n.toString()
 }
 
 function fmtTime(iso?: string): string {
-  if (!iso) return "—"
+  if (!iso) {return "—"}
   const d = new Date(iso)
   return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
 }
@@ -341,9 +341,9 @@ export default function EventCatalogBrowser() {
   ]
 
   const filtered = TOPICS.filter(t => {
-    if (domainFilter !== "all" && t.domain !== domainFilter) return false
-    if (statusFilter !== "all" && t.status !== statusFilter) return false
-    if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase()) && !t.description.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    if (domainFilter !== "all" && t.domain !== domainFilter) {return false}
+    if (statusFilter !== "all" && t.status !== statusFilter) {return false}
+    if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase()) && !t.description.toLowerCase().includes(searchQuery.toLowerCase())) {return false}
     return true
   })
 
@@ -356,7 +356,7 @@ export default function EventCatalogBrowser() {
     domain: d,
     topics: TOPICS.filter(t => t.domain === d).length,
     messagesPerDay: TOPICS.filter(t => t.domain === d).reduce((s, t) => s + t.messagesPerDay, 0),
-  })).sort((a, b) => b.messagesPerDay - a.messagesPerDay)
+  })).toSorted((a, b) => b.messagesPerDay - a.messagesPerDay)
   const maxMsgs = domainStats[0]?.messagesPerDay ?? 1
 
   return (
@@ -783,7 +783,7 @@ export default function EventCatalogBrowser() {
                 </tr>
               </thead>
               <tbody>
-                {[...TOPICS].sort((a, b) => b.messagesPerDay - a.messagesPerDay).map(t => (
+                {[...TOPICS].toSorted((a, b) => b.messagesPerDay - a.messagesPerDay).map(t => (
                   <tr key={t.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
                     <td className="p-3 font-mono text-indigo-300 text-xs">{t.name}</td>
                     <td className="p-3 text-zinc-400 text-xs">{t.domain}</td>

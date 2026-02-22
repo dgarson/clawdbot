@@ -113,8 +113,8 @@ const RECOMMENDATIONS: Recommendation[] = [
 // --- Helpers ---
 
 function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`;}
   return n.toString();
 }
 
@@ -128,23 +128,23 @@ function getHeadroom(current: number, capacity: number): number {
 
 function getStatus(current: number, capacity: number, trend: Trend): Status {
   const usage = getUsagePercent(current, capacity);
-  if (usage >= 90) return "Critical";
-  if (usage >= 80 && trend === "growing") return "At Risk";
-  if (usage >= 70) return "Warning";
+  if (usage >= 90) {return "Critical";}
+  if (usage >= 80 && trend === "growing") {return "At Risk";}
+  if (usage >= 70) {return "Warning";}
   return "Healthy";
 }
 
 function getTrendArrow(growthRate: number): string {
-  if (growthRate >= 10) return "↑";
-  if (growthRate >= 4) return "↗";
-  if (growthRate > -4) return "→";
-  if (growthRate > -10) return "↘";
+  if (growthRate >= 10) {return "↑";}
+  if (growthRate >= 4) {return "↗";}
+  if (growthRate > -4) {return "→";}
+  if (growthRate > -10) {return "↘";}
   return "↓";
 }
 
 function getBarColor(usagePercent: number): string {
-  if (usagePercent >= 90) return "bg-rose-500";
-  if (usagePercent >= 70) return "bg-amber-500";
+  if (usagePercent >= 90) {return "bg-rose-500";}
+  if (usagePercent >= 70) {return "bg-amber-500";}
   return "bg-emerald-500";
 }
 
@@ -192,7 +192,7 @@ export default function CapacityPlanner() {
   const atRiskCount = RESOURCES.filter((r) => getHeadroom(r.current, r.capacity) < 20).length;
   const healthyCount = RESOURCES.filter((r) => getStatus(r.current, r.capacity, r.trend) === "Healthy").length;
   const firstCapDays = RESOURCES.reduce<number | null>((min, r) => {
-    if (r.daysUntilCap === null) return min;
+    if (r.daysUntilCap === null) {return min;}
     return min === null ? r.daysUntilCap : Math.min(min, r.daysUntilCap);
   }, null);
   const actionCount = RECOMMENDATIONS.filter((r) => r.priority === "P0" || r.priority === "P1").length;

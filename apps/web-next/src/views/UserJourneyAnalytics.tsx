@@ -97,28 +97,28 @@ function stageBg(s: JourneyStage) {
   return m[s];
 }
 function dropReasonBg(r: DropReason) {
-  if (r === "friction") return "bg-orange-500/10 text-orange-400";
-  if (r === "confusion") return "bg-amber-500/10 text-amber-400";
-  if (r === "technical") return "bg-rose-500/10 text-rose-400";
-  if (r === "value-gap") return "bg-indigo-500/10 text-indigo-400";
-  if (r === "competitor") return "bg-red-500/10 text-red-400";
+  if (r === "friction") {return "bg-orange-500/10 text-orange-400";}
+  if (r === "confusion") {return "bg-amber-500/10 text-amber-400";}
+  if (r === "technical") {return "bg-rose-500/10 text-rose-400";}
+  if (r === "value-gap") {return "bg-indigo-500/10 text-indigo-400";}
+  if (r === "competitor") {return "bg-red-500/10 text-red-400";}
   return "bg-zinc-700 text-zinc-300";
 }
 function trendColor(t: TrendDir) {
-  if (t === "up") return "text-emerald-400";
-  if (t === "down") return "text-rose-400";
+  if (t === "up") {return "text-emerald-400";}
+  if (t === "down") {return "text-rose-400";}
   return "text-zinc-400";
 }
 function trendArrow(t: TrendDir) {
-  if (t === "up") return "↑";
-  if (t === "down") return "↓";
+  if (t === "up") {return "↑";}
+  if (t === "down") {return "↓";}
   return "→";
 }
 function retentionColor(v: number | null) {
-  if (v === null) return "bg-zinc-800 text-zinc-600";
-  if (v >= 60) return "bg-emerald-700/60 text-emerald-300";
-  if (v >= 40) return "bg-indigo-700/60 text-indigo-300";
-  if (v >= 25) return "bg-amber-700/60 text-amber-300";
+  if (v === null) {return "bg-zinc-800 text-zinc-600";}
+  if (v >= 60) {return "bg-emerald-700/60 text-emerald-300";}
+  if (v >= 40) {return "bg-indigo-700/60 text-indigo-300";}
+  if (v >= 25) {return "bg-amber-700/60 text-amber-300";}
   return "bg-zinc-700 text-zinc-400";
 }
 

@@ -184,13 +184,13 @@ export default function InfrastructureDriftDetector() {
   const criticalCount = DRIFT_RESOURCES.filter(r => r.severity === "critical").length;
 
   const filteredResources = DRIFT_RESOURCES.filter(r => {
-    if (providerFilter !== "all" && r.provider !== providerFilter) return false;
-    if (statusFilter !== "all" && r.status !== statusFilter) return false;
+    if (providerFilter !== "all" && r.provider !== providerFilter) {return false;}
+    if (statusFilter !== "all" && r.status !== statusFilter) {return false;}
     return true;
   });
 
   const providerDriftCounts = DRIFT_RESOURCES.reduce<Record<string, number>>((acc, r) => {
-    if (r.status === "drifted") acc[r.provider] = (acc[r.provider] || 0) + 1;
+    if (r.status === "drifted") {acc[r.provider] = (acc[r.provider] || 0) + 1;}
     return acc;
   }, {});
 

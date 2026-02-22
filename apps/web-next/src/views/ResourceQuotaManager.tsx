@@ -157,35 +157,35 @@ const TREND_DATA: UsageTrend[] = [
 ];
 
 function statusColor(s: QuotaStatus) {
-  if (s === "ok") return "text-emerald-400";
-  if (s === "warning") return "text-amber-400";
-  if (s === "critical") return "text-orange-400";
+  if (s === "ok") {return "text-emerald-400";}
+  if (s === "warning") {return "text-amber-400";}
+  if (s === "critical") {return "text-orange-400";}
   return "text-rose-400";
 }
 function statusBg(s: QuotaStatus) {
-  if (s === "ok") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "warning") return "bg-amber-400/10 text-amber-400";
-  if (s === "critical") return "bg-orange-400/10 text-orange-400";
+  if (s === "ok") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "warning") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "critical") {return "bg-orange-400/10 text-orange-400";}
   return "bg-rose-400/10 text-rose-400";
 }
 function scopeBg(s: QuotaScope) {
-  if (s === "global") return "bg-purple-500/10 text-purple-400";
-  if (s === "tenant") return "bg-indigo-500/10 text-indigo-400";
-  if (s === "user") return "bg-cyan-500/10 text-cyan-400";
+  if (s === "global") {return "bg-purple-500/10 text-purple-400";}
+  if (s === "tenant") {return "bg-indigo-500/10 text-indigo-400";}
+  if (s === "user") {return "bg-cyan-500/10 text-cyan-400";}
   return "bg-zinc-700 text-zinc-300";
 }
 function pct(usage: QuotaUsage) {
   return Math.min((usage.current / usage.limit) * 100, 100);
 }
 function barColor(p: number) {
-  if (p >= 100) return "bg-rose-500";
-  if (p >= 90) return "bg-orange-500";
-  if (p >= 75) return "bg-amber-500";
+  if (p >= 100) {return "bg-rose-500";}
+  if (p >= 90) {return "bg-orange-500";}
+  if (p >= 75) {return "bg-amber-500";}
   return "bg-indigo-500";
 }
 function fmt(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  if (n >= 1_000_000) {return (n / 1_000_000).toFixed(1) + "M";}
+  if (n >= 1_000) {return (n / 1_000).toFixed(1) + "K";}
   return String(n);
 }
 
@@ -231,9 +231,9 @@ export default function ResourceQuotaManager() {
   const [selected, setSelected] = useState<ResourceQuota | null>(null);
 
   const filtered = QUOTAS.filter(q => {
-    if (scopeFilter !== "all" && q.scope !== scopeFilter) return false;
-    if (statusFilter !== "all" && q.status !== statusFilter) return false;
-    if (search && !q.name.toLowerCase().includes(search.toLowerCase()) && !q.entityName.toLowerCase().includes(search.toLowerCase())) return false;
+    if (scopeFilter !== "all" && q.scope !== scopeFilter) {return false;}
+    if (statusFilter !== "all" && q.status !== statusFilter) {return false;}
+    if (search && !q.name.toLowerCase().includes(search.toLowerCase()) && !q.entityName.toLowerCase().includes(search.toLowerCase())) {return false;}
     return true;
   });
 
@@ -477,7 +477,7 @@ export default function ResourceQuotaManager() {
                     </div>
                     {q.usages.map((u, i) => {
                       const p = pct(u);
-                      if (p < 90) return null;
+                      if (p < 90) {return null;}
                       return <QuotaBar key={i} usage={u} />;
                     })}
                     {q.notes && <p className="text-xs text-zinc-500 mt-2">Note: {q.notes}</p>}

@@ -62,10 +62,10 @@ const hrs = (n: number): number => n * 3_600_000;
 function relativeTime(date: Date): string {
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60_000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) {return "just now";}
+  if (diffMins < 60) {return `${diffMins}m ago`;}
   const diffHrs = Math.floor(diffMins / 60);
-  if (diffHrs < 24) return `${diffHrs}h ago`;
+  if (diffHrs < 24) {return `${diffHrs}h ago`;}
   const diffDays = Math.floor(diffHrs / 24);
   return `${diffDays}d ago`;
 }
@@ -426,7 +426,7 @@ function StatsStrip({
     return acc;
   }, {});
 
-  const mostAffected = Object.entries(agentCounts).sort(
+  const mostAffected = Object.entries(agentCounts).toSorted(
     ([, a], [, b]) => b - a
   )[0];
 

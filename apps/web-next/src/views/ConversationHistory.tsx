@@ -205,10 +205,10 @@ export default function ConversationHistory() {
         const matchesFilter = filter === "all" || s.status === filter;
         return matchesSearch && matchesFilter;
       })
-      .sort((a, b) => {
-        if (sortBy === "recent") return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
-        if (sortBy === "messages") return b.messageCount - a.messageCount;
-        if (sortBy === "tokens") return b.totalTokens - a.totalTokens;
+      .toSorted((a, b) => {
+        if (sortBy === "recent") {return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();}
+        if (sortBy === "messages") {return b.messageCount - a.messageCount;}
+        if (sortBy === "tokens") {return b.totalTokens - a.totalTokens;}
         return 0;
       });
   }, [searchQuery, filter, sortBy]);
@@ -217,7 +217,7 @@ export default function ConversationHistory() {
     SEED_SESSIONS.find(s => s.id === selectedId), [selectedId]);
 
   const handleExport = useCallback(() => {
-    if (!selectedSession) return;
+    if (!selectedSession) {return;}
     const json = JSON.stringify(selectedSession, null, 2);
     navigator.clipboard.writeText(json);
     alert("Session data copied to clipboard!");

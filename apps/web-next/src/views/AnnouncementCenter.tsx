@@ -113,8 +113,8 @@ export default function AnnouncementCenter() {
   ];
 
   const filtered = ANNOUNCEMENTS.filter(a => {
-    if (typeFilter !== "all" && a.type !== typeFilter) return false;
-    if (statusFilter !== "all" && a.status !== statusFilter) return false;
+    if (typeFilter !== "all" && a.type !== typeFilter) {return false;}
+    if (statusFilter !== "all" && a.status !== statusFilter) {return false;}
     return true;
   });
 
@@ -484,7 +484,7 @@ export default function AnnouncementCenter() {
             <div>
               <h2 className="text-sm font-semibold text-zinc-300 mb-3">Top Performing Announcements</h2>
               <div className="space-y-2">
-                {ANNOUNCEMENTS.filter(a => a.impressions > 0).sort((a, b) => b.clicks / b.impressions - a.clicks / a.impressions).map(ann => {
+                {ANNOUNCEMENTS.filter(a => a.impressions > 0).toSorted((a, b) => b.clicks / b.impressions - a.clicks / a.impressions).map(ann => {
                   const ctr = ((ann.clicks / ann.impressions) * 100).toFixed(1);
                   return (
                     <div key={ann.id} className="bg-zinc-900 rounded-lg border border-zinc-800 px-4 py-3 flex items-center gap-4">

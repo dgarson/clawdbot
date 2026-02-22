@@ -54,46 +54,46 @@ function buildInitialPermissions(): Permission[][] {
     COLUMNS.map(() => ({ ...g })),
     // Principal — most access, conditional on billing/config admin
     COLUMNS.map(({ resource, action }) => {
-      if (resource === "Billing" && action === "Admin") return { ...d }
-      if (resource === "Config" && action === "Admin") return { ...d }
-      if (resource === "Config" && action === "Delete") return { ...d }
-      if (resource === "Billing" && action === "Delete") return c("Requires Admin approval for billing deletions")
-      if (resource === "Models" && action === "Admin") return c("Can admin models within assigned projects only")
+      if (resource === "Billing" && action === "Admin") {return { ...d }}
+      if (resource === "Config" && action === "Admin") {return { ...d }}
+      if (resource === "Config" && action === "Delete") {return { ...d }}
+      if (resource === "Billing" && action === "Delete") {return c("Requires Admin approval for billing deletions")}
+      if (resource === "Models" && action === "Admin") {return c("Can admin models within assigned projects only")}
       return { ...g }
     }),
     // Lead — elevated but scoped
     COLUMNS.map(({ resource, action }) => {
-      if (action === "Admin" && !["Agents", "Sessions"].includes(resource)) return { ...d }
-      if (resource === "Billing") return { ...d }
-      if (resource === "Config" && action !== "Read") return { ...d }
-      if (resource === "Models" && action === "Delete") return c("Can delete models only in own team scope")
-      if (action === "Delete" && resource === "Logs") return { ...d }
+      if (action === "Admin" && !["Agents", "Sessions"].includes(resource)) {return { ...d }}
+      if (resource === "Billing") {return { ...d }}
+      if (resource === "Config" && action !== "Read") {return { ...d }}
+      if (resource === "Models" && action === "Delete") {return c("Can delete models only in own team scope")}
+      if (action === "Delete" && resource === "Logs") {return { ...d }}
       return { ...g }
     }),
     // Worker — standard
     COLUMNS.map(({ resource, action }) => {
-      if (action === "Admin") return { ...d }
-      if (resource === "Billing") return { ...d }
-      if (resource === "Config") return action === "Read" ? c("Read config for assigned projects only") : { ...d }
-      if (action === "Delete" && !["Files"].includes(resource)) return { ...d }
-      if (action === "Delete" && resource === "Files") return c("Can delete own files only")
-      if (resource === "Agents" && action === "Write") return c("Can modify agents assigned to them")
-      if (action === "Execute") return ["Agents", "API"].includes(resource) ? { ...g } : { ...d }
+      if (action === "Admin") {return { ...d }}
+      if (resource === "Billing") {return { ...d }}
+      if (resource === "Config") {return action === "Read" ? c("Read config for assigned projects only") : { ...d }}
+      if (action === "Delete" && !["Files"].includes(resource)) {return { ...d }}
+      if (action === "Delete" && resource === "Files") {return c("Can delete own files only")}
+      if (resource === "Agents" && action === "Write") {return c("Can modify agents assigned to them")}
+      if (action === "Execute") {return ["Agents", "API"].includes(resource) ? { ...g } : { ...d }}
       return { ...g }
     }),
     // Viewer — read-only
     COLUMNS.map(({ resource, action }) => {
       if (action === "Read") {
-        if (resource === "Billing") return { ...d }
-        if (resource === "Config") return { ...d }
+        if (resource === "Billing") {return { ...d }}
+        if (resource === "Config") {return { ...d }}
         return { ...g }
       }
       return { ...d }
     }),
     // External — minimal
     COLUMNS.map(({ resource, action }) => {
-      if (action === "Read" && ["Agents", "Files", "API"].includes(resource)) return c("Only shared resources visible")
-      if (action === "Execute" && resource === "API") return c("Rate-limited to 100 req/min")
+      if (action === "Read" && ["Agents", "Files", "API"].includes(resource)) {return c("Only shared resources visible")}
+      if (action === "Execute" && resource === "API") {return c("Rate-limited to 100 req/min")}
       return { ...d }
     }),
   ]
@@ -116,7 +116,7 @@ export default function AccessControlMatrix() {
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null)
 
   const filteredColIndices = COLUMNS.reduce<number[]>((acc, col, i) => {
-    if (resourceFilter !== "all" && col.resource !== resourceFilter) return acc
+    if (resourceFilter !== "all" && col.resource !== resourceFilter) {return acc}
     acc.push(i)
     return acc
   }, [])
@@ -159,7 +159,7 @@ export default function AccessControlMatrix() {
   }
 
   function matchesAccessFilter(level: AccessLevel): boolean {
-    if (accessFilter === "all") return true
+    if (accessFilter === "all") {return true}
     return level === accessFilter
   }
 

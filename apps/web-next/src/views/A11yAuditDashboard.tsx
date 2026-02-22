@@ -263,8 +263,8 @@ export default function A11yAuditDashboard() {
   const categories = Array.from(new Set(VIOLATIONS.map(v => v.category)));
 
   const filteredViolations = VIOLATIONS.filter(v => {
-    if (impactFilter !== "all" && v.impact !== impactFilter) return false;
-    if (categoryFilter !== "all" && v.category !== categoryFilter) return false;
+    if (impactFilter !== "all" && v.impact !== impactFilter) {return false;}
+    if (categoryFilter !== "all" && v.category !== categoryFilter) {return false;}
     return true;
   });
 
@@ -534,7 +534,7 @@ export default function A11yAuditDashboard() {
                           <div className="space-y-2">
                             {page.violations.map(vid => {
                               const v = VIOLATIONS.find(vv => vv.id === vid);
-                              if (!v) return null;
+                              if (!v) {return null;}
                               return (
                                 <div key={vid} className="flex items-center gap-3 text-sm">
                                   <span className={cn("text-xs px-2 py-0.5 rounded border shrink-0", SEVERITY_CONFIG[v.impact].color, SEVERITY_CONFIG[v.impact].bg)}>
@@ -576,7 +576,7 @@ export default function A11yAuditDashboard() {
           <div className="space-y-3">
             {REMEDIATIONS.map(rem => {
               const v = VIOLATIONS.find(vv => vv.id === rem.violationId);
-              if (!v) return null;
+              if (!v) {return null;}
               return (
                 <div key={rem.violationId} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
                   <div className="flex items-start justify-between gap-4">

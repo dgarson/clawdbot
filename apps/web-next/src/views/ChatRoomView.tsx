@@ -68,9 +68,9 @@ const MEMBERS: Member[] = [
 ];
 
 const presenceColor = (p: PresenceStatus) => {
-  if (p === "online")  return "bg-emerald-400";
-  if (p === "away")    return "bg-amber-400";
-  if (p === "dnd")     return "bg-rose-400";
+  if (p === "online")  {return "bg-emerald-400";}
+  if (p === "away")    {return "bg-amber-400";}
+  if (p === "dnd")     {return "bg-rose-400";}
   return "bg-zinc-600";
 };
 
@@ -129,7 +129,7 @@ export default function ChatRoomView() {
     : channelMessages;
 
   function sendMessage() {
-    if (!inputText.trim()) return;
+    if (!inputText.trim()) {return;}
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       authorId: "luis",
@@ -152,7 +152,7 @@ export default function ChatRoomView() {
   }
 
   function sendThreadReply() {
-    if (!threadInput.trim() || !openThreadId) return;
+    if (!threadInput.trim() || !openThreadId) {return;}
     const reply: ThreadMessage = {
       id: `thread-${Date.now()}`,
       authorId: "luis",
@@ -177,7 +177,7 @@ export default function ChatRoomView() {
     setMessages(prev => ({
       ...prev,
       [activeChannelId]: prev[activeChannelId].map(m => {
-        if (m.id !== msgId) return m;
+        if (m.id !== msgId) {return m;}
         const existing = m.reactions.find(r => r.emoji === emoji);
         if (existing) {
           return {
@@ -485,7 +485,7 @@ export default function ChatRoomView() {
                     type="text"
                     value={threadInput}
                     onChange={e => setThreadInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") sendThreadReply(); }}
+                    onKeyDown={e => { if (e.key === "Enter") {sendThreadReply();} }}
                     placeholder="Reply in thread..."
                     className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-xs px-3 py-2 rounded placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
                   />

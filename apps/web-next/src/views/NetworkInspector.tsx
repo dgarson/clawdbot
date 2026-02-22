@@ -243,31 +243,31 @@ const STATUS_COLORS: Record<RequestStatus, string> = {
 };
 
 function fmtSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes === 0) {return "0 B";}
+  if (bytes >= 1024 * 1024) {return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;}
+  if (bytes >= 1024) {return `${(bytes / 1024).toFixed(0)} KB`;}
   return `${bytes} B`;
 }
 
 function fmtDuration(ms: number): string {
-  if (ms >= 60000) return `${(ms / 60000).toFixed(1)}m`;
-  if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
+  if (ms >= 60000) {return `${(ms / 60000).toFixed(1)}m`;}
+  if (ms >= 1000) {return `${(ms / 1000).toFixed(2)}s`;}
   return `${ms}ms`;
 }
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
   return `${hrs}h ago`;
 }
 
 function statusCodeColor(code?: number): string {
-  if (!code) return "text-zinc-500";
-  if (code < 300) return "text-emerald-400";
-  if (code < 400) return "text-amber-400";
+  if (!code) {return "text-zinc-500";}
+  if (code < 300) {return "text-emerald-400";}
+  if (code < 400) {return "text-amber-400";}
   return "text-rose-400";
 }
 
@@ -275,7 +275,7 @@ function statusCodeColor(code?: number): string {
 
 interface HeadersTableProps { headers: Header[]; title: string; }
 function HeadersTable({ headers, title }: HeadersTableProps) {
-  if (headers.length === 0) return <p className="text-xs text-zinc-600">No {title.toLowerCase()}</p>;
+  if (headers.length === 0) {return <p className="text-xs text-zinc-600">No {title.toLowerCase()}</p>;}
   return (
     <div className="space-y-0.5">
       {headers.map(h => (
@@ -301,12 +301,12 @@ export default function NetworkInspector() {
 
   const filtered = useMemo(() => {
     return REQUESTS.filter(r => {
-      if (methodFilter !== "all" && r.method !== methodFilter) return false;
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (methodFilter !== "all" && r.method !== methodFilter) {return false;}
+      if (statusFilter !== "all" && r.status !== statusFilter) {return false;}
       if (search && !r.url.toLowerCase().includes(search.toLowerCase()) &&
-          !r.initiator.toLowerCase().includes(search.toLowerCase())) return false;
+          !r.initiator.toLowerCase().includes(search.toLowerCase())) {return false;}
       return true;
-    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }).toSorted((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [search, methodFilter, statusFilter]);
 
   const selected = useMemo(() => REQUESTS.find(r => r.id === selectedId) ?? null, [selectedId]);

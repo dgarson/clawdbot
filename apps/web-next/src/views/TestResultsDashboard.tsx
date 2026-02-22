@@ -211,37 +211,37 @@ const historyRuns: HistoryRun[] = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`
+  if (seconds < 60) {return `${seconds}s`}
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
   return `${m}m ${s}s`
 }
 
 function formatMs(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
+  if (ms < 1000) {return `${ms}ms`}
   return `${(ms / 1000).toFixed(1)}s`
 }
 
 function statusIcon(status: TestStatus | SuiteStatus): string {
-  if (status === "passed" || status === "success") return "✓"
-  if (status === "failed") return "✗"
-  if (status === "skipped") return "–"
-  if (status === "partial") return "◐"
+  if (status === "passed" || status === "success") {return "✓"}
+  if (status === "failed") {return "✗"}
+  if (status === "skipped") {return "–"}
+  if (status === "partial") {return "◐"}
   return "?"
 }
 
 function statusTextColor(status: TestStatus | SuiteStatus): string {
-  if (status === "passed" || status === "success") return "text-emerald-400"
-  if (status === "failed") return "text-rose-400"
-  if (status === "skipped") return "text-zinc-400"
-  if (status === "partial") return "text-amber-400"
+  if (status === "passed" || status === "success") {return "text-emerald-400"}
+  if (status === "failed") {return "text-rose-400"}
+  if (status === "skipped") {return "text-zinc-400"}
+  if (status === "partial") {return "text-amber-400"}
   return "text-zinc-400"
 }
 
 function coverageColor(pct: number, threshold: number): string {
-  if (pct >= threshold + 5) return "text-emerald-400"
-  if (pct >= threshold) return "text-emerald-400"
-  if (pct >= threshold - 5) return "text-amber-400"
+  if (pct >= threshold + 5) {return "text-emerald-400"}
+  if (pct >= threshold) {return "text-emerald-400"}
+  if (pct >= threshold - 5) {return "text-amber-400"}
   return "text-rose-400"
 }
 
@@ -263,8 +263,8 @@ export default function TestResultsDashboard() {
   function toggleSuite(id: string) {
     setExpandedSuites(prev => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {next.delete(id)}
+      else {next.add(id)}
       return next
     })
   }
@@ -272,8 +272,8 @@ export default function TestResultsDashboard() {
   function toggleHistory(id: string) {
     setExpandedHistory(prev => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {next.delete(id)}
+      else {next.add(id)}
       return next
     })
   }

@@ -214,7 +214,7 @@ export function getStepTypeLabel(type: string): string {
  * Helper to check if a step requires user input
  */
 export function stepRequiresInput(step: WizardStep | null): boolean {
-  if (!step) return false;
+  if (!step) {return false;}
   return ['text', 'select', 'confirm'].includes(step.type);
 }
 

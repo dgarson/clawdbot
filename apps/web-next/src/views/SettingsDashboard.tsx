@@ -447,7 +447,7 @@ function ProvidersSettings() {
   const [error, setError] = useState<string | null>(null);
 
   const loadProfiles = useCallback(async () => {
-    if (!gateway.isConnected) return;
+    if (!gateway.isConnected) {return;}
     setLoading(true);
     setError(null);
     try {

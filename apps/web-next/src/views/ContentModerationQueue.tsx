@@ -402,27 +402,27 @@ function formatDate(iso: string): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 60) {return `${diffMin}m ago`;}
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) {return `${diffHr}h ago`;}
   const diffDay = Math.floor(diffHr / 24);
   return `${diffDay}d ago`;
 }
 
 function truncate(text: string, max: number): string {
-  if (text.length <= max) return text;
+  if (text.length <= max) {return text;}
   return text.slice(0, max) + "…";
 }
 
 function confidenceColor(score: number): string {
-  if (score >= 80) return "bg-rose-400";
-  if (score >= 60) return "bg-amber-400";
+  if (score >= 80) {return "bg-rose-400";}
+  if (score >= 60) {return "bg-amber-400";}
   return "bg-emerald-400";
 }
 
 function confidenceBarBg(score: number): string {
-  if (score >= 80) return "bg-rose-400/20";
-  if (score >= 60) return "bg-amber-400/20";
+  if (score >= 80) {return "bg-rose-400/20";}
+  if (score >= 60) {return "bg-amber-400/20";}
   return "bg-emerald-400/20";
 }
 
@@ -443,10 +443,10 @@ export default function ContentModerationQueue() {
   const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
 
   const pendingItems = QUEUE_ITEMS.filter((item) => {
-    if (resolvedIds.has(item.id)) return false;
-    if (filterType !== "all" && item.contentType !== filterType) return false;
-    if (filterReason !== "all" && item.flaggedReason !== filterReason) return false;
-    if (filterPriority !== "all" && item.priority !== filterPriority) return false;
+    if (resolvedIds.has(item.id)) {return false;}
+    if (filterType !== "all" && item.contentType !== filterType) {return false;}
+    if (filterReason !== "all" && item.flaggedReason !== filterReason) {return false;}
+    if (filterPriority !== "all" && item.priority !== filterPriority) {return false;}
     return true;
   });
 
@@ -457,7 +457,7 @@ export default function ContentModerationQueue() {
   const escalatedCount = localHistory.filter((h) => h.decision === "escalated").length;
 
   function handleAction(decision: Decision) {
-    if (!selectedItem) return;
+    if (!selectedItem) {return;}
     const entry: HistoryItem = {
       id: selectedItem.id,
       contentExcerpt: truncate(selectedItem.contentExcerpt, 80),

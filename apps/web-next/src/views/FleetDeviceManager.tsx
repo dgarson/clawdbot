@@ -163,8 +163,8 @@ export default function FleetDeviceManager(): React.ReactElement {
   const [groupFilter, setGroupFilter] = useState<string>("all");
 
   const filteredDevices = DEVICES.filter((d) => {
-    if (statusFilter !== "all" && d.status !== statusFilter) return false;
-    if (groupFilter !== "all" && d.group !== groupFilter) return false;
+    if (statusFilter !== "all" && d.status !== statusFilter) {return false;}
+    if (groupFilter !== "all" && d.group !== groupFilter) {return false;}
     return true;
   });
 

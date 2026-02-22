@@ -191,18 +191,18 @@ const KIND_EMOJIS: Record<WorkItemKind, string> = {
 };
 
 function fmtTokens(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(2)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(2)}M`;}
+  if (n >= 1000) {return `${(n / 1000).toFixed(0)}K`;}
   return String(n);
 }
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -211,8 +211,8 @@ function budgetPct(used: number, budget: number): number {
 }
 
 function budgetColor(pct: number): string {
-  if (pct >= 90) return "bg-rose-500";
-  if (pct >= 75) return "bg-amber-400";
+  if (pct >= 90) {return "bg-rose-500";}
+  if (pct >= 75) {return "bg-amber-400";}
   return "bg-emerald-400";
 }
 
@@ -299,9 +299,9 @@ export default function AgentWorkload() {
 
   const filtered = useMemo(() => {
     return AGENTS.filter(a => {
-      if (statusFilter !== "all" && a.status !== statusFilter) return false;
+      if (statusFilter !== "all" && a.status !== statusFilter) {return false;}
       return true;
-    }).sort((a, b) => {
+    }).toSorted((a, b) => {
       const order: Record<AgentStatus, number> = { busy: 0, online: 1, idle: 2, offline: 3 };
       return order[a.status] - order[b.status];
     });

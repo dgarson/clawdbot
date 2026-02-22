@@ -594,15 +594,15 @@ const CONSUMERS: Consumer[] = [
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
 function formatNumber(n: number): string {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
-  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+  if (n >= 1000000) {return (n / 1000000).toFixed(1) + "M";}
+  if (n >= 1000) {return (n / 1000).toFixed(1) + "K";}
   return n.toString();
 }
 
 function formatWindowSeconds(s: number): string {
-  if (s < 60) return `${s}s`;
-  if (s < 3600) return `${s / 60}m`;
-  if (s < 86400) return `${s / 3600}h`;
+  if (s < 60) {return `${s}s`;}
+  if (s < 3600) {return `${s / 60}m`;}
+  if (s < 86400) {return `${s / 3600}h`;}
   return `${s / 86400}d`;
 }
 
@@ -619,7 +619,7 @@ function getUtilizationPct(current: number, limit: number): number {
 
 function getMaskKey(key: string): string {
   const parts = key.split("_");
-  if (parts.length < 3) return key.slice(0, 4) + "••••••••";
+  if (parts.length < 3) {return key.slice(0, 4) + "••••••••";}
   const prefix = parts.slice(0, 2).join("_");
   const suffix = parts[2].slice(-4);
   return `${prefix}_••••${suffix}`;
@@ -805,7 +805,7 @@ function TopConsumersChart({
   consumers: Consumer[];
 }) {
   const sorted = [...consumers]
-    .sort((a, b) => b.currentRequests - a.currentRequests)
+    .toSorted((a, b) => b.currentRequests - a.currentRequests)
     .slice(0, 8);
   const maxVal = Math.max(...sorted.map((c) => c.currentRequests), 1);
 
@@ -1183,9 +1183,9 @@ function RulesTab({
 
   const filtered = rules.filter((r) => {
     const effectiveStatus = ruleStatuses[r.id] ?? r.status;
-    if (filterTier !== "all" && r.tier !== filterTier) return false;
-    if (filterStatus !== "all" && effectiveStatus !== filterStatus) return false;
-    if (filterScope !== "all" && r.scope !== filterScope) return false;
+    if (filterTier !== "all" && r.tier !== filterTier) {return false;}
+    if (filterStatus !== "all" && effectiveStatus !== filterStatus) {return false;}
+    if (filterScope !== "all" && r.scope !== filterScope) {return false;}
     return true;
   });
 
@@ -1392,10 +1392,10 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
 
   const filtered = violations
     .filter((v) => filterSeverity === "all" || v.severity === filterSeverity)
-    .sort((a, b) => {
-      if (sortBy === "count") return b.count - a.count;
+    .toSorted((a, b) => {
+      if (sortBy === "count") {return b.count - a.count;}
       if (sortBy === "severity")
-        return severityOrder[b.severity] - severityOrder[a.severity];
+        {return severityOrder[b.severity] - severityOrder[a.severity];}
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
 
@@ -1596,16 +1596,16 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
 
   const filtered = consumers
     .filter((c) => {
-      if (filterTier !== "all" && c.tier !== filterTier) return false;
-      if (filterStatus === "throttled" && !c.isThrottled) return false;
-      if (filterStatus === "healthy" && c.isThrottled) return false;
+      if (filterTier !== "all" && c.tier !== filterTier) {return false;}
+      if (filterStatus === "throttled" && !c.isThrottled) {return false;}
+      if (filterStatus === "healthy" && c.isThrottled) {return false;}
       return true;
     })
-    .sort((a, b) => {
+    .toSorted((a, b) => {
       if (sortBy === "usage") {
         return getUtilizationPct(b.currentRequests, b.requestLimit) - getUtilizationPct(a.currentRequests, a.requestLimit);
       }
-      if (sortBy === "requests") return b.currentRequests - a.currentRequests;
+      if (sortBy === "requests") {return b.currentRequests - a.currentRequests;}
       return a.name.localeCompare(b.name);
     });
 

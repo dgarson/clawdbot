@@ -415,8 +415,8 @@ const CATEGORY_CONFIG: Record<PromptCategory, { label: string; emoji: string; co
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -439,7 +439,7 @@ function UsePromptModal({ prompt, onClose }: UsePromptModalProps) {
   const result = interpolate(prompt.body, values);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") {onClose();} };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
@@ -631,8 +631,8 @@ export default function PromptLibrary() {
   }, []);
 
   const filtered = prompts.filter((p) => {
-    if (categoryFilter === "favorites" && !p.isFavorite) return false;
-    if (categoryFilter !== "all" && categoryFilter !== "favorites" && p.category !== categoryFilter) return false;
+    if (categoryFilter === "favorites" && !p.isFavorite) {return false;}
+    if (categoryFilter !== "all" && categoryFilter !== "favorites" && p.category !== categoryFilter) {return false;}
     if (search.trim()) {
       const q = search.toLowerCase();
       return p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.tags.some((t) => t.toLowerCase().includes(q));
@@ -640,9 +640,9 @@ export default function PromptLibrary() {
     return true;
   });
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortOrder === "usage") return b.usageCount - a.usageCount;
-    if (sortOrder === "recent") return (b.lastUsedAt?.getTime() ?? 0) - (a.lastUsedAt?.getTime() ?? 0);
+  const sorted = [...filtered].toSorted((a, b) => {
+    if (sortOrder === "usage") {return b.usageCount - a.usageCount;}
+    if (sortOrder === "recent") {return (b.lastUsedAt?.getTime() ?? 0) - (a.lastUsedAt?.getTime() ?? 0);}
     return a.title.localeCompare(b.title);
   });
 

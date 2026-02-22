@@ -183,10 +183,10 @@ const CATEGORY_CONFIG: Record<NotifCategory, { label: string; icon: string }> = 
 function relativeTime(date: Date): string {
   const diffMs = Date.now() - date.getTime();
   const diffMin = Math.floor(diffMs / 60_000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 1) {return "just now";}
+  if (diffMin < 60) {return `${diffMin}m ago`;}
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `${diffH}h ago`;
+  if (diffH < 24) {return `${diffH}h ago`;}
   return `${Math.floor(diffH / 24)}d ago`;
 }
 
@@ -208,7 +208,7 @@ function NotifCard({ notif, selected, onSelect, onRead, onDismiss, onPin }: Noti
   return (
     <button
       type="button"
-      onClick={() => { onSelect(); if (!notif.read) onRead(notif.id); }}
+      onClick={() => { onSelect(); if (!notif.read) {onRead(notif.id);} }}
       className={cn(
         "w-full text-left px-4 py-3 border-b border-zinc-800/60 transition-colors",
         "hover:bg-zinc-800/40 focus-visible:outline-none focus-visible:bg-zinc-800/60",
@@ -484,10 +484,10 @@ export default function NotificationCenter() {
   // Filter + sort (pinned first, then by timestamp desc)
   const filtered = notifs
     .filter((n) => {
-      if (filterSeverity !== "all" && n.severity !== filterSeverity) return false;
-      if (filterRead === "unread" && n.read) return false;
-      if (filterRead === "read" && !n.read) return false;
-      if (filterCategory !== "all" && n.category !== filterCategory) return false;
+      if (filterSeverity !== "all" && n.severity !== filterSeverity) {return false;}
+      if (filterRead === "unread" && n.read) {return false;}
+      if (filterRead === "read" && !n.read) {return false;}
+      if (filterCategory !== "all" && n.category !== filterCategory) {return false;}
       if (search) {
         const q = search.toLowerCase();
         if (
@@ -495,13 +495,13 @@ export default function NotificationCenter() {
           !n.body.toLowerCase().includes(q) &&
           !(n.agentName?.toLowerCase().includes(q))
         )
-          return false;
+          {return false;}
       }
       return true;
     })
-    .sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
+    .toSorted((a, b) => {
+      if (a.pinned && !b.pinned) {return -1;}
+      if (!a.pinned && b.pinned) {return 1;}
       return b.timestamp.getTime() - a.timestamp.getTime();
     });
 

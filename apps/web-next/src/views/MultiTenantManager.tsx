@@ -305,8 +305,8 @@ function roleBadge(role: UserRole): string {
 }
 
 function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`;}
   return n.toString();
 }
 
@@ -324,21 +324,21 @@ function formatLoginTime(iso: string): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffHrs = Math.floor(diffMs / 3_600_000);
-  if (diffHrs < 1) return "Just now";
-  if (diffHrs < 24) return `${diffHrs}h ago`;
+  if (diffHrs < 1) {return "Just now";}
+  if (diffHrs < 24) {return `${diffHrs}h ago`;}
   const diffDays = Math.floor(diffHrs / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 7) {return `${diffDays}d ago`;}
   return formatDate(iso);
 }
 
 function progressPercent(used: number, limit: number): number {
-  if (limit === 0) return 0;
+  if (limit === 0) {return 0;}
   return Math.min(100, Math.round((used / limit) * 100));
 }
 
 function progressColor(pct: number): string {
-  if (pct >= 90) return "bg-rose-400";
-  if (pct >= 70) return "bg-amber-400";
+  if (pct >= 90) {return "bg-rose-400";}
+  if (pct >= 70) {return "bg-amber-400";}
   return "bg-indigo-500";
 }
 
@@ -441,7 +441,7 @@ function OrganizationsTab() {
                     <div className="space-y-2">
                       {org.members.map((m) => {
                         const user = USERS.find((u) => u.id === m.userId);
-                        if (!user) return null;
+                        if (!user) {return null;}
                         return (
                           <div key={m.userId} className="flex items-center justify-between text-sm">
                             <span className="text-zinc-200">{user.name}</span>
@@ -513,8 +513,8 @@ function UsersTab() {
   function toggleUser(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {next.delete(id);}
+      else {next.add(id);}
       return next;
     });
   }

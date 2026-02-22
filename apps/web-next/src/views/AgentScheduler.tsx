@@ -193,25 +193,25 @@ const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ${Math.floor((mins % 60))}m ago`;
+  if (hrs < 24) {return `${hrs}h ${Math.floor((mins % 60))}m ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
 function futureTime(iso: string): string {
   const diff = new Date(iso).getTime() - Date.now();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "now";
-  if (mins < 60) return `in ${mins}m`;
+  if (mins < 1) {return "now";}
+  if (mins < 60) {return `in ${mins}m`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `in ${hrs}h ${Math.floor(mins % 60)}m`;
+  if (hrs < 24) {return `in ${hrs}h ${Math.floor(mins % 60)}m`;}
   return `in ${Math.floor(hrs / 24)}d`;
 }
 
 function repeatLabel(s: ScheduledTask): string {
-  if (s.repeatMode === "cron") return `Cron: ${s.cronExpr}`;
+  if (s.repeatMode === "cron") {return `Cron: ${s.cronExpr}`;}
   if (s.repeatMode === "weekly" && s.daysOfWeek) {
     return `Weekly on ${s.daysOfWeek.map(d => DAY_NAMES[d]).join(", ")} at ${s.timeOfDay}`;
   }
@@ -293,10 +293,10 @@ export default function AgentScheduler() {
 
   const filtered = useMemo(() => {
     return SCHEDULES.filter(s => {
-      if (statusFilter !== "all" && s.status !== statusFilter) return false;
-      if (agentFilter !== "all" && s.agentId !== agentFilter) return false;
+      if (statusFilter !== "all" && s.status !== statusFilter) {return false;}
+      if (agentFilter !== "all" && s.agentId !== agentFilter) {return false;}
       return true;
-    }).sort((a, b) => new Date(a.nextRunAt).getTime() - new Date(b.nextRunAt).getTime());
+    }).toSorted((a, b) => new Date(a.nextRunAt).getTime() - new Date(b.nextRunAt).getTime());
   }, [statusFilter, agentFilter]);
 
   const selected = useMemo(() => SCHEDULES.find(s => s.id === selectedId) ?? null, [selectedId]);

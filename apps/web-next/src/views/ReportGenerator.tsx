@@ -151,11 +151,11 @@ const PREVIEW_ROWS: Record<ReportType, string[][]> = {
 };
 
 const formatColor = (f: ReportFormat) => {
-  if (f === "pdf")      return "text-rose-400 bg-rose-400/10";
-  if (f === "csv")      return "text-emerald-400 bg-emerald-400/10";
-  if (f === "json")     return "text-amber-400 bg-amber-400/10";
-  if (f === "html")     return "text-blue-400 bg-blue-400/10";
-  if (f === "markdown") return "text-purple-400 bg-purple-400/10";
+  if (f === "pdf")      {return "text-rose-400 bg-rose-400/10";}
+  if (f === "csv")      {return "text-emerald-400 bg-emerald-400/10";}
+  if (f === "json")     {return "text-amber-400 bg-amber-400/10";}
+  if (f === "html")     {return "text-blue-400 bg-blue-400/10";}
+  if (f === "markdown") {return "text-purple-400 bg-purple-400/10";}
   return "text-zinc-400 bg-zinc-400/10";
 };
 

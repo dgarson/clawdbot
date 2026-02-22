@@ -130,10 +130,10 @@ const INITIAL_EVENTS: GatewayEvent[] = [
  */
 const JsonViewer: React.FC<{ data: any }> = ({ data }) => {
   const formatValue = (val: any) => {
-    if (typeof val === 'string') return <span className="text-emerald-400">"{val}"</span>;
-    if (typeof val === 'number') return <span className="text-amber-400">{val}</span>;
-    if (typeof val === 'boolean') return <span className="text-indigo-400">{val.toString()}</span>;
-    if (val === null) return <span className="text-rose-400">null</span>;
+    if (typeof val === 'string') {return <span className="text-emerald-400">"{val}"</span>;}
+    if (typeof val === 'number') {return <span className="text-amber-400">{val}</span>;}
+    if (typeof val === 'boolean') {return <span className="text-indigo-400">{val.toString()}</span>;}
+    if (val === null) {return <span className="text-rose-400">null</span>;}
     return val;
   };
 
@@ -156,10 +156,10 @@ const JsonViewer: React.FC<{ data: any }> = ({ data }) => {
           const hasComma = valueMatch[1].endsWith(',');
           
           let valElement: React.ReactNode = valRaw;
-          if (valRaw === 'null') valElement = <span className="text-rose-400">null</span>;
-          else if (valRaw === 'true' || valRaw === 'false') valElement = <span className="text-indigo-400">{valRaw}</span>;
-          else if (!isNaN(Number(valRaw)) && valRaw !== '') valElement = <span className="text-amber-400">{valRaw}</span>;
-          else if (valRaw.startsWith('"')) valElement = <span className="text-emerald-400">{valRaw}</span>;
+          if (valRaw === 'null') {valElement = <span className="text-rose-400">null</span>;}
+          else if (valRaw === 'true' || valRaw === 'false') {valElement = <span className="text-indigo-400">{valRaw}</span>;}
+          else if (!isNaN(Number(valRaw)) && valRaw !== '') {valElement = <span className="text-amber-400">{valRaw}</span>;}
+          else if (valRaw.startsWith('"')) {valElement = <span className="text-emerald-400">{valRaw}</span>;}
 
           return (
             <div key={i}>

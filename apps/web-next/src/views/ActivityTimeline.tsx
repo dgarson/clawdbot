@@ -123,8 +123,8 @@ function dayLabel(ts: string): string {
   const today = new Date("2026-02-22T00:00:00Z");
   const yesterday = new Date("2026-02-21T00:00:00Z");
   const evDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  if (evDay.getTime() === today.getTime()) return "Today";
-  if (evDay.getTime() === yesterday.getTime()) return "Yesterday";
+  if (evDay.getTime() === today.getTime()) {return "Today";}
+  if (evDay.getTime() === yesterday.getTime()) {return "Yesterday";}
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
@@ -152,7 +152,7 @@ function computeHourlyDensity(events: TimelineEvent[]): number[] {
 }
 
 function uniqueActors(events: TimelineEvent[]): string[] {
-  return Array.from(new Set(events.map((e) => e.actor))).sort();
+  return Array.from(new Set(events.map((e) => e.actor))).toSorted();
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -169,20 +169,20 @@ export default function ActivityTimeline() {
   // ── Filtering ─────────────────────────────────────────────────────────────
 
   const filtered = EVENTS.filter((ev) => {
-    if (!activeKinds.has(ev.kind)) return false;
-    if (activeSquad !== "all" && ev.squad !== activeSquad) return false;
-    if (!activeActors.has(ev.actor)) return false;
+    if (!activeKinds.has(ev.kind)) {return false;}
+    if (activeSquad !== "all" && ev.squad !== activeSquad) {return false;}
+    if (!activeActors.has(ev.actor)) {return false;}
     if (search.trim()) {
       const q = search.toLowerCase();
       const haystack = `${ev.title} ${ev.description} ${ev.actor} ${ev.kind}`.toLowerCase();
-      if (!haystack.includes(q)) return false;
+      if (!haystack.includes(q)) {return false;}
     }
     // time range filter
     const now = new Date("2026-02-22T10:00:00Z").getTime();
     const evTime = new Date(ev.timestamp).getTime();
     const diffH = (now - evTime) / 3_600_000;
     const maxH: Record<TimeRange, number> = { "1h": 1, "6h": 6, "24h": 24, "7d": 168 };
-    if (diffH > maxH[timeRange]) return false;
+    if (diffH > maxH[timeRange]) {return false;}
     return true;
   });
 
@@ -198,8 +198,8 @@ export default function ActivityTimeline() {
   const toggleKind = (k: EventKind) => {
     setActiveKinds((prev) => {
       const next = new Set(prev);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
+      if (next.has(k)) {next.delete(k);}
+      else {next.add(k);}
       return next;
     });
     setVisibleCount(15);
@@ -208,8 +208,8 @@ export default function ActivityTimeline() {
   const toggleActor = (a: string) => {
     setActiveActors((prev) => {
       const next = new Set(prev);
-      if (next.has(a)) next.delete(a);
-      else next.add(a);
+      if (next.has(a)) {next.delete(a);}
+      else {next.add(a);}
       return next;
     });
     setVisibleCount(15);

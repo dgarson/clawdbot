@@ -126,9 +126,9 @@ export default function InvoiceManager() {
   ];
 
   const filteredInvoices = INVOICES.filter(inv => {
-    if (filterStatus !== "all" && inv.status !== filterStatus) return false;
+    if (filterStatus !== "all" && inv.status !== filterStatus) {return false;}
     if (searchTerm && !inv.customer.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !inv.number.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+        !inv.number.toLowerCase().includes(searchTerm.toLowerCase())) {return false;}
     return true;
   });
 
@@ -431,7 +431,7 @@ export default function InvoiceManager() {
             <div className="space-y-3">
               {INVOICES
                 .filter(i => i.status === "paid" || i.status === "pending")
-                .sort((a, b) => (b.amount + b.tax) - (a.amount + a.tax))
+                .toSorted((a, b) => (b.amount + b.tax) - (a.amount + a.tax))
                 .slice(0, 6)
                 .map(inv => {
                   const total = inv.amount + inv.tax;
