@@ -183,6 +183,10 @@ const ContainerRegistry          = React.lazy(() => import("./views/ContainerReg
 const EmailCampaignManager       = React.lazy(() => import("./views/EmailCampaignManager"));
 const ChangeDataCapture          = React.lazy(() => import("./views/ChangeDataCapture"));
 const FleetDeviceManager         = React.lazy(() => import("./views/FleetDeviceManager"));
+const CDNManager                 = React.lazy(() => import("./views/CDNManager"));
+const GeofenceManager            = React.lazy(() => import("./views/GeofenceManager"));
+const ScimUserProvisioner        = React.lazy(() => import("./views/ScimUserProvisioner"));
+const LicenseManager             = React.lazy(() => import("./views/LicenseManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -343,6 +347,10 @@ export const navItems = [
   { id: "email-campaigns", label: "Email Campaigns",     emoji: "📧", shortcut: null },
   { id: "cdc",             label: "Change Data Capture", emoji: "🔄", shortcut: null },
   { id: "fleet",           label: "Fleet Devices",       emoji: "📡", shortcut: null },
+  { id: "cdn",             label: "CDN Manager",         emoji: "🌐", shortcut: null },
+  { id: "geofence",        label: "Geofence Manager",    emoji: "🗺️", shortcut: null },
+  { id: "scim",            label: "SCIM Provisioner",    emoji: "👤", shortcut: null },
+  { id: "licenses",        label: "License Manager",     emoji: "🏷️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -504,6 +512,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "email-campaigns":    <ContentSkeleton />,
   "cdc":                <ContentSkeleton />,
   "fleet":              <ContentSkeleton />,
+  "cdn":                <ContentSkeleton />,
+  "geofence":           <ContentSkeleton />,
+  "scim":               <ContentSkeleton />,
+  "licenses":           <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -886,6 +898,10 @@ function AppContent() {
       case "email-campaigns":   return <EmailCampaignManager />;
       case "cdc":               return <ChangeDataCapture />;
       case "fleet":             return <FleetDeviceManager />;
+      case "cdn":               return <CDNManager />;
+      case "geofence":          return <GeofenceManager />;
+      case "scim":              return <ScimUserProvisioner />;
+      case "licenses":          return <LicenseManager />;
       default:              return <AgentDashboard />;
     }
   };
