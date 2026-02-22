@@ -150,6 +150,8 @@ const SLAManager           = React.lazy(() => import("./views/SLAManager"));
 const DocumentationViewer  = React.lazy(() => import("./views/DocumentationViewer"));
 const GanttChartView       = React.lazy(() => import("./views/GanttChartView"));
 const CustomerFeedbackDashboard = React.lazy(() => import("./views/CustomerFeedbackDashboard"));
+const SecurityPolicyEditor  = React.lazy(() => import("./views/SecurityPolicyEditor"));
+const TeamCollaboration     = React.lazy(() => import("./views/TeamCollaboration"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -277,6 +279,8 @@ export const navItems = [
   { id: "docs",             label: "Documentation",       emoji: "📖", shortcut: null },
   { id: "gantt",            label: "Gantt Chart",         emoji: "📊", shortcut: null },
   { id: "feedback",         label: "Customer Feedback",   emoji: "💬", shortcut: null },
+  { id: "sec-policy",       label: "Security Policies",   emoji: "🔒", shortcut: null },
+  { id: "team-collab",      label: "Team Collaboration",  emoji: "👥", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -405,6 +409,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "docs":                <ContentSkeleton />,
   "gantt":               <ContentSkeleton />,
   "feedback":            <ContentSkeleton />,
+  "sec-policy":          <ContentSkeleton />,
+  "team-collab":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -754,6 +760,8 @@ function AppContent() {
       case "docs":               return <DocumentationViewer />;
       case "gantt":              return <GanttChartView />;
       case "feedback":           return <CustomerFeedbackDashboard />;
+      case "sec-policy":         return <SecurityPolicyEditor />;
+      case "team-collab":        return <TeamCollaboration />;
       default:              return <AgentDashboard />;
     }
   };
