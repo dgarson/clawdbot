@@ -55,17 +55,16 @@ function AgentsPage() {
   const { data: agents, isLoading, error } = useAgents();
   const updateStatus = useUpdateAgentStatus();
 
-  // Sync status filter with URL
+  // Sync status filter from URL (external navigation only)
   React.useEffect(() => {
-    if (searchStatus && searchStatus !== statusFilter) {
-      setStatusFilter(searchStatus);
-    }
-  }, [searchStatus, statusFilter]);
+    setStatusFilter(searchStatus ?? "all");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchStatus]);
 
   // Update URL when filter changes
   const handleStatusFilterChange = (value: StatusFilter) => {
     setStatusFilter(value);
-    navigate({
+    void navigate({
       search: (prev) => (value === "all" ? {} : { ...prev, status: value }),
       replace: true,
     });
@@ -73,7 +72,7 @@ function AgentsPage() {
 
   const handleViewSession = (agent: Agent) => {
     // Navigate to the new Agent Session UI with current session
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId: agent.id, sessionKey: "current" },
       search: { newSession: false },
@@ -87,7 +86,7 @@ function AgentsPage() {
 
   const handleChat = (agent: Agent) => {
     // Navigate to the new Agent Session UI (existing/current session)
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId: agent.id, sessionKey: "current" },
       search: { newSession: false },
@@ -344,13 +343,13 @@ function AgentsPage() {
                     variant="expanded"
                     onChat={() => handleChat(agent)}
                     onSettings={() => {
-                      navigate({ to: "/agents/$agentId/configure", params: { agentId: agent.id } });
+                      void navigate({ to: "/agents/$agentId/configure", params: { agentId: agent.id } });
                     }}
                     onToggle={() => handleToggleAgent(agent)}
                     onViewSession={() => handleViewSession(agent)}
                     onNewSession={() => handleNewSession(agent)}
                     onCardClick={() => {
-                      navigate({ to: "/agents/$agentId", params: { agentId: agent.id } });
+                      void navigate({ to: "/agents/$agentId", params: { agentId: agent.id } });
                     }}
                   />
               </motion.div>

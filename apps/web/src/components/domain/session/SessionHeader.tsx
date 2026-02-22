@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AgentAvatar, StatusBadge } from "@/components/composed";
-import type { Agent, AgentStatus } from "@/hooks/queries/useAgents";
+import type { Agent } from "@/hooks/queries/useAgents";
 import type { GatewaySessionRow } from "@/lib/api/sessions";
 import {
   ArrowLeft,
@@ -27,7 +27,14 @@ import {
   Plus,
   Clock,
   MessageSquare,
+  Terminal,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface SessionHeaderProps {
   /** The agent data */
@@ -40,6 +47,10 @@ export interface SessionHeaderProps {
   onSessionChange: (sessionKey: string) => void;
   /** Callback to create new session */
   onNewSession?: () => void;
+  /** Callback to open the floating terminal overlay */
+  onOpenTerminal?: () => void;
+  /** Whether the terminal overlay is currently open */
+  terminalOpen?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -80,6 +91,8 @@ export function SessionHeader({
   selectedSessionKey,
   onSessionChange,
   onNewSession,
+  onOpenTerminal,
+  terminalOpen,
   className,
 }: SessionHeaderProps) {
   const selectedSession = sessions.find((s) => s.key === selectedSessionKey);
@@ -111,7 +124,7 @@ export function SessionHeader({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold truncate">{agent.name}</h1>
-            <StatusBadge status={agent.status as AgentStatus} size="sm" />
+            <StatusBadge status={agent.status} size="sm" />
           </div>
           {agent.role && (
             <p className="text-sm text-muted-foreground truncate">
@@ -121,25 +134,25 @@ export function SessionHeader({
         </div>
       </div>
 
-      {/* Center section: Session selector */}
-      <div className="flex items-center gap-2">
+      {/* Right section: session selector + actions */}
+      <div className="flex items-center gap-2 shrink-0">
         <Select
           value={selectedSessionKey ?? ""}
           onValueChange={onSessionChange}
         >
-          <SelectTrigger className="w-[200px] md:w-[280px]">
+          <SelectTrigger className="w-[180px] md:w-[240px]">
             <div className="flex items-center gap-2 min-w-0">
-              <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Select session">
                 {selectedSession && (
-                  <span className="truncate">
+                  <span className="truncate text-sm">
                     {getSessionLabel(selectedSession)}
                   </span>
                 )}
               </SelectValue>
             </div>
           </SelectTrigger>
-          <SelectContent align="center" className="max-h-[300px]">
+          <SelectContent align="end" className="max-h-[300px]">
             {sessions.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-muted-foreground">
                 No sessions yet
@@ -172,19 +185,37 @@ export function SessionHeader({
         </Select>
 
         {onNewSession && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onNewSession}
-            title="New session"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={onNewSession}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">New session</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
-      </div>
 
-      {/* Right section: Actions */}
-      <div className="flex items-center gap-2 shrink-0">
+        <div className="w-px h-5 bg-border/60 mx-0.5" />
+        {onOpenTerminal && (
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={terminalOpen ? "secondary" : "ghost"}
+                  size="icon"
+                  onClick={onOpenTerminal}
+                  aria-label="Open terminal"
+                >
+                  <Terminal className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Terminal</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">

@@ -13,6 +13,13 @@ export interface AppShellProps {
   panel?: React.ReactNode;
   /** Additional className for the main content area */
   className?: string;
+  /**
+   * Full-height mode: the child route manages its own layout and scroll.
+   * Skips the max-width wrapper, outer padding, and scroll container so the
+   * child fills the entire content area edge-to-edge from the sidebar.
+   * The ApprovalAttentionNudge is not rendered here — the route renders it.
+   */
+  fullHeight?: boolean;
 }
 
 /**
@@ -24,7 +31,7 @@ export interface AppShellProps {
  * - Tablet (768-1023px): Collapsible sidebar (64px collapsed)
  * - Mobile (<768px): Bottom nav (handled separately)
  */
-export function AppShell({ children, panel, className }: AppShellProps) {
+export function AppShell({ children, panel, className, fullHeight = false }: AppShellProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Skip Navigation — keyboard/screen-reader users jump past sidebar */}
@@ -48,34 +55,45 @@ export function AppShell({ children, panel, className }: AppShellProps) {
         role="main"
       >
         <div className="flex flex-1 overflow-hidden">
-          {/* Primary Content */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
-            <SkipNavContent />
-            <ApprovalAttentionNudgeConnected
-              className={cn(
-                "sticky top-0 z-40",
-                "mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8",
-                "bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-              )}
-            />
-            <div className="mx-auto w-full max-w-7xl px-4 py-6 pb-20 md:pb-6 sm:px-6 lg:px-8">
+          {fullHeight ? (
+            /* Full-height mode: no padding, no max-width, no outer scroll.
+               The child route owns its entire layout. */
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+              <SkipNavContent />
               {children}
             </div>
-          </div>
-
-          {/* Optional Right Panel - Only visible on XL screens */}
-          {panel && (
-            <motion.aside
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 320 }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.2 }}
-              className="hidden xl:flex flex-col border-l border-border bg-card"
-            >
-              <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin p-4">
-                {panel}
+          ) : (
+            /* Standard mode: scrollable content area with page padding */
+            <>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
+                <SkipNavContent />
+                <ApprovalAttentionNudgeConnected
+                  className={cn(
+                    "sticky top-0 z-40",
+                    "mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8",
+                    "bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                  )}
+                />
+                <div className="mx-auto w-full max-w-7xl px-4 py-6 pb-20 md:pb-6 sm:px-6 lg:px-8">
+                  {children}
+                </div>
               </div>
-            </motion.aside>
+
+              {/* Optional Right Panel - Only visible on XL screens */}
+              {panel && (
+                <motion.aside
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 320 }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="hidden xl:flex flex-col border-l border-border bg-card"
+                >
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin p-4">
+                    {panel}
+                  </div>
+                </motion.aside>
+              )}
+            </>
           )}
         </div>
       </motion.main>

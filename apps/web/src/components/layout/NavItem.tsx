@@ -23,6 +23,8 @@ export interface NavItemProps {
   exactMatch?: boolean;
   /** Search params that should exclude this item from being active */
   inactiveWhenSearch?: Record<string, string>;
+  /** Child paths that should NOT activate this item even if they start with href */
+  excludePaths?: string[];
 }
 
 export function NavItem({
@@ -35,6 +37,7 @@ export function NavItem({
   onClick,
   exactMatch = false,
   inactiveWhenSearch,
+  excludePaths,
 }: NavItemProps) {
   // Check if we should force inactive state based on current search params
   const routerState = useRouterState();
@@ -58,12 +61,16 @@ export function NavItem({
       const params = new URLSearchParams(currentSearch.startsWith("?") ? currentSearch : `?${currentSearch}`);
       return params.get(key);
     }
-    return readSearchValue((currentSearch as Record<string, unknown>)[key]);
+    return readSearchValue((currentSearch)[key]);
   };
 
   const shouldBeInactive = Boolean(
     inactiveWhenSearch &&
       Object.entries(inactiveWhenSearch).some(([key, value]) => readSearchParam(key) === value)
+  );
+
+  const isExcluded = Boolean(
+    excludePaths?.some((p) => pathname === p || pathname.startsWith(`${p}/`))
   );
 
   const pathMatches = exactMatch
@@ -72,11 +79,12 @@ export function NavItem({
       ? pathname === "/"
       : pathname === href || pathname.startsWith(`${href}/`);
 
+
   const searchMatches = !search
     ? true
     : Object.entries(search).every(([key, value]) => readSearchParam(key) === value);
 
-  const isActive = pathMatches && searchMatches && !shouldBeInactive;
+  const isActive = pathMatches && searchMatches && !shouldBeInactive && !isExcluded;
 
   const content = (
     <>
@@ -106,12 +114,12 @@ export function NavItem({
     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
     "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
     "[&.active]:bg-accent [&.active]:text-accent-foreground",
-    collapsed && "justify-center px-2"
+    collapsed ? "justify-center w-10 h-9 mx-auto px-0" : undefined
   );
 
   if (onClick) {
     const button = (
-      <button type="button" onClick={onClick} className={cn(baseClasses, "w-full text-left")}>
+      <button type="button" onClick={onClick} className={cn(baseClasses, !collapsed && "w-full text-left")}>
         {content}
       </button>
     );
@@ -132,6 +140,7 @@ export function NavItem({
     <Link
       to={href}
       search={search}
+      activeProps={{}}
       className={cn(baseClasses, isActive && "active")}
     >
       {content}

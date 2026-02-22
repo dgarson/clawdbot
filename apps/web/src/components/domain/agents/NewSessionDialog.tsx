@@ -150,7 +150,7 @@ export function NewSessionDialog({
       onSessionStart(sessionKey, config);
     } else {
       // Default navigation behavior - go to the new session
-      navigate({
+      void navigate({
         to: "/agents/$agentId/session/$sessionKey",
         params: { agentId, sessionKey },
         search: {
@@ -180,7 +180,7 @@ export function NewSessionDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquarePlus className="h-5 w-5 text-primary" />
@@ -192,111 +192,80 @@ export function NewSessionDialog({
           </DialogHeader>
 
           <div className="space-y-5 py-4">
-            {/* Session Type & Thinking Level Row */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {/* Session Type */}
-              <div className="space-y-2">
-                <Label htmlFor="session-mode">Session Type</Label>
-                <Select
-                  value={config.mode}
-                  onValueChange={(v) => updateConfig("mode", v as SessionMode)}
-                >
-                  <SelectTrigger id="session-mode" className="h-auto min-h-[60px]">
-                    <SelectValue placeholder="Select session type">
-                      {selectedMode && (
-                        <div className="flex items-center gap-3 py-1">
-                          <div className="text-primary">{selectedMode.icon}</div>
-                          <div className="text-left">
-                            <div className="font-medium">{selectedMode.label}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {selectedMode.description}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sessionModes.map((mode) => (
-                      <SelectItem key={mode.value} value={mode.value} className="py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="text-primary">{mode.icon}</div>
-                          <div>
-                            <div className="font-medium">{mode.label}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {mode.description}
-                            </div>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Thinking Level */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="thinking-level">Thinking Level</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[200px]">
-                        <p className="text-xs">
-                          Controls how much the agent "thinks" before responding.
-                          Higher levels produce more thoughtful but slower responses.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Select
-                  value={config.thinkingLevel}
-                  onValueChange={(v) => updateConfig("thinkingLevel", v as ThinkingLevel)}
-                  disabled={!thinkingSupported}
-                >
-                  <SelectTrigger
-                    id="thinking-level"
-                    className={cn("h-auto min-h-[60px]", !thinkingSupported && "opacity-50")}
+            {/* Session Type — visual cards */}
+            <div className="space-y-2">
+              <Label>Session Type</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {sessionModes.map((mode) => (
+                  <button
+                    key={mode.value}
+                    type="button"
+                    onClick={() => updateConfig("mode", mode.value)}
+                    className={cn(
+                      "flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all",
+                      "hover:border-primary/50 hover:bg-muted/40",
+                      config.mode === mode.value
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "border-border/60 bg-card"
+                    )}
                   >
-                    <SelectValue placeholder="Select thinking level">
-                      <div className="flex items-center gap-3 py-1">
-                        <Brain className="h-5 w-5 text-primary" />
-                        <div className="text-left">
-                          <div className="font-medium">
-                            {thinkingLevels.find((l) => l.value === config.thinkingLevel)?.label}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {thinkingLevels.find((l) => l.value === config.thinkingLevel)?.description}
-                          </div>
-                        </div>
+                    <div className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-lg",
+                      config.mode === mode.value ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    )}>
+                      {mode.icon}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium leading-snug">{mode.label}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                        {mode.description}
                       </div>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {thinkingLevels.map((level) => (
-                      <SelectItem key={level.value} value={level.value} className="py-3">
-                        <div className="flex items-center gap-3">
-                          <Brain className="h-5 w-5 text-primary" />
-                          <div>
-                            <div className="font-medium">{level.label}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {level.description}
-                            </div>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!thinkingSupported && (
-                  <p className="text-xs text-muted-foreground">
-                    Thinking levels not supported for this agent.
-                  </p>
-                )}
+                    </div>
+                  </button>
+                ))}
               </div>
+            </div>
+
+            {/* Thinking Level — segmented buttons */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>Thinking Level</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px]">
+                      <p className="text-xs">
+                        Controls how much the agent "thinks" before responding.
+                        Higher levels produce more thoughtful but slower responses.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className={cn("flex rounded-lg border border-border/60 bg-muted/30 p-1 gap-1", !thinkingSupported && "opacity-50 pointer-events-none")}>
+                {thinkingLevels.map((level) => (
+                  <button
+                    key={level.value}
+                    type="button"
+                    disabled={!thinkingSupported}
+                    onClick={() => updateConfig("thinkingLevel", level.value)}
+                    className={cn(
+                      "flex-1 flex flex-col items-center gap-0.5 rounded-md px-3 py-2 text-center transition-all",
+                      config.thinkingLevel === level.value
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <span className="text-xs font-medium">{level.label}</span>
+                    <span className="text-[10px] text-muted-foreground hidden sm:block">{level.description}</span>
+                  </button>
+                ))}
+              </div>
+              {!thinkingSupported && (
+                <p className="text-xs text-muted-foreground">Not supported for this agent.</p>
+              )}
             </div>
 
             {/* Initial Prompt */}

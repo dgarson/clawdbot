@@ -163,7 +163,7 @@ function NavSection({ title, collapsed, children, defaultOpen = true }: NavSecti
           className={cn(
             "flex w-full items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground",
             "hover:text-foreground transition-colors",
-            collapsed && "justify-center px-2"
+            collapsed && "justify-center px-2 py-0"
           )}
         >
           <AnimatePresence initial={false}>
@@ -213,7 +213,7 @@ export function Sidebar({ className }: SidebarProps) {
     <motion.aside
       initial={false}
       animate={{
-        width: sidebarCollapsed ? 72 : 256,
+        width: sidebarCollapsed ? 78 : 256,
       }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
       role="navigation"
@@ -246,7 +246,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin py-4 space-y-2">
         {/* Primary Navigation */}
         <nav className="space-y-0.5 px-2">
           <NavItem href="/" icon={Home} label={t("nav.home")} collapsed={sidebarCollapsed} />
@@ -294,6 +294,7 @@ export function Sidebar({ className }: SidebarProps) {
               icon={Bot}
               label={t("nav.agents")}
               collapsed={sidebarCollapsed}
+              excludePaths={["/agents/graph", "/agents/new"]}
             />
             <NavItem
               href="/agent-status"

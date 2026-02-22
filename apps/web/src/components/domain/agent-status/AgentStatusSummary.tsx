@@ -18,6 +18,9 @@ import {
   Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { AgentHealthStatus } from "@/hooks/queries/useAgentStatus";
+
+type HealthFilter = "all" | AgentHealthStatus;
 
 export interface AgentStatusSummaryProps {
   total: number;
@@ -27,6 +30,8 @@ export interface AgentStatusSummaryProps {
   errored: number;
   totalTokens: number;
   totalCost: number;
+  activeFilter?: HealthFilter;
+  onFilterChange?: (filter: HealthFilter) => void;
 }
 
 interface StatCardProps {
@@ -35,17 +40,57 @@ interface StatCardProps {
   icon: React.ElementType;
   iconColor: string;
   iconBg: string;
+  ringColor?: string;
   delay?: number;
+  filterValue?: HealthFilter;
+  activeFilter?: HealthFilter;
+  onFilterChange?: (filter: HealthFilter) => void;
 }
 
-function StatCard({ label, value, icon: Icon, iconColor, iconBg, delay = 0 }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  iconColor,
+  iconBg,
+  ringColor,
+  delay = 0,
+  filterValue,
+  activeFilter,
+  onFilterChange,
+}: StatCardProps) {
+  const isClickable = filterValue !== undefined && onFilterChange !== undefined;
+  const isSelected = isClickable && activeFilter === filterValue;
+
+  const handleClick = () => {
+    if (!isClickable) {return;}
+    // Toggle: clicking the selected tile deselects (resets to "all")
+    onFilterChange(isSelected ? "all" : filterValue);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
     >
-      <Card className="border-border/50 bg-card/50">
+      <Card
+        className={cn(
+          "border-border/50 bg-card/50 transition-all duration-150",
+          isClickable && "cursor-pointer hover:bg-muted/40",
+          isSelected && ringColor && `ring-2 ring-offset-1 ${ringColor}`,
+          isSelected && iconBg.replace("/10", "/5")
+        )}
+        onClick={handleClick}
+        role={isClickable ? "button" : undefined}
+        tabIndex={isClickable ? 0 : undefined}
+        onKeyDown={isClickable ? (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+          }
+        } : undefined}
+      >
         <CardContent className="flex items-center gap-3 p-4">
           <div
             className={cn(
@@ -79,6 +124,8 @@ export function AgentStatusSummary({
   errored,
   totalTokens,
   totalCost,
+  activeFilter,
+  onFilterChange,
 }: AgentStatusSummaryProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
@@ -88,7 +135,11 @@ export function AgentStatusSummary({
         icon={Bot}
         iconColor="text-primary"
         iconBg="bg-primary/10"
+        ringColor="ring-primary"
         delay={0}
+        filterValue="all"
+        activeFilter={activeFilter}
+        onFilterChange={onFilterChange}
       />
       <StatCard
         label="Active"
@@ -96,7 +147,11 @@ export function AgentStatusSummary({
         icon={Zap}
         iconColor="text-green-500"
         iconBg="bg-green-500/10"
+        ringColor="ring-green-500"
         delay={0.05}
+        filterValue="active"
+        activeFilter={activeFilter}
+        onFilterChange={onFilterChange}
       />
       <StatCard
         label="Idle"
@@ -104,7 +159,11 @@ export function AgentStatusSummary({
         icon={Pause}
         iconColor="text-gray-500 dark:text-gray-400"
         iconBg="bg-gray-500/10"
+        ringColor="ring-gray-400"
         delay={0.1}
+        filterValue="idle"
+        activeFilter={activeFilter}
+        onFilterChange={onFilterChange}
       />
       <StatCard
         label="Stalled"
@@ -112,7 +171,11 @@ export function AgentStatusSummary({
         icon={AlertTriangle}
         iconColor="text-yellow-500"
         iconBg="bg-yellow-500/10"
+        ringColor="ring-yellow-500"
         delay={0.15}
+        filterValue="stalled"
+        activeFilter={activeFilter}
+        onFilterChange={onFilterChange}
       />
       <StatCard
         label="Errored"
@@ -120,7 +183,11 @@ export function AgentStatusSummary({
         icon={XCircle}
         iconColor="text-red-500"
         iconBg="bg-red-500/10"
+        ringColor="ring-red-500"
         delay={0.2}
+        filterValue="errored"
+        activeFilter={activeFilter}
+        onFilterChange={onFilterChange}
       />
       <StatCard
         label="Total Tokens"

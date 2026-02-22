@@ -56,22 +56,21 @@ function SettingsPage() {
   // Sync URL with active section
   const handleSectionChange = (section: ConfigSection) => {
     setActiveSection(section);
-    navigate({
+    void navigate({
       search: (prev) => (section === "health" ? {} : { ...prev, section }),
       replace: true,
     });
   };
 
-  // Update active section when URL changes
+  // Update active section when URL changes (external navigation only)
   React.useEffect(() => {
-    if (searchSection && searchSection !== activeSection) {
-      setActiveSection(searchSection);
-    }
-  }, [searchSection, activeSection]);
+    setActiveSection(searchSection ?? "health");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchSection]);
 
   React.useEffect(() => {
     if (searchSection !== "agents" || !agentId) {return;}
-    navigate({
+    void navigate({
       search: (prev) => ({ ...prev, agentId: undefined }),
       replace: true,
     });

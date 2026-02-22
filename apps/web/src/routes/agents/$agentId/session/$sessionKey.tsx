@@ -10,6 +10,8 @@ import {
   SessionWorkspacePane,
   type Activity,
 } from "@/components/domain/session";
+import { TerminalOverlay } from "@/components/domain/session/TerminalOverlay";
+import { ChevronDown, Zap, FolderOpen } from "lucide-react";
 import { useAgent } from "@/hooks/queries/useAgents";
 import { useAgentSessions, useChatHistory } from "@/hooks/queries/useSessions";
 import { useChatBackend } from "@/hooks/useChatBackend";
@@ -17,6 +19,7 @@ import { buildAgentSessionKey, type ChatMessage } from "@/lib/api/sessions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { ApprovalAttentionNudgeConnected } from "@/components/composed/ApprovalAttentionNudge";
 
 export const Route = createFileRoute("/agents/$agentId/session/$sessionKey")({
   component: AgentSessionPage,
@@ -72,7 +75,9 @@ function AgentSessionPage() {
   const navigate = Route.useNavigate();
 
   // State
-  const [workspacePaneMaximized, setWorkspacePaneMaximized] = React.useState(false);
+  const [activityOpen, setActivityOpen] = React.useState(true);
+  const [filesOpen, setFilesOpen] = React.useState(false);
+  const [terminalOpen, setTerminalOpen] = React.useState(false);
   const [activities] = React.useState<Activity[]>(mockActivities);
 
   // Queries
@@ -101,7 +106,7 @@ function AgentSessionPage() {
   // Handle session change (switching to an existing session)
   const handleSessionChange = React.useCallback(
     (newSessionKey: string) => {
-      navigate({
+      void navigate({
         to: "/agents/$agentId/session/$sessionKey",
         params: { agentId, sessionKey: newSessionKey },
         search: { newSession: false },
@@ -113,7 +118,7 @@ function AgentSessionPage() {
   // Handle new session (creating a fresh session)
   const handleNewSession = React.useCallback(() => {
     const newKey = buildAgentSessionKey(agentId, `session-${Date.now()}`);
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId, sessionKey: newKey },
       search: { newSession: true },
@@ -151,28 +156,32 @@ function AgentSessionPage() {
     );
   }
 
+  const workspaceDir = `~/.clawdbrain/agents/${agentId}/workspace`;
+
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background text-foreground overflow-hidden">
-      {/* Session Header - Always visible, shrink-0 prevents it from shrinking */}
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      {/* Approval nudge */}
+      <ApprovalAttentionNudgeConnected className="px-4 py-2" />
+
+      {/* Session Header */}
       <SessionHeader
         agent={agent}
         sessions={sessions ?? []}
         selectedSessionKey={sessionKey}
         onSessionChange={handleSessionChange}
         onNewSession={handleNewSession}
+        onOpenTerminal={() => setTerminalOpen((v) => !v)}
+        terminalOpen={terminalOpen}
       />
 
-      {/* Main content area - flex-1 with min-h-0 allows proper height distribution */}
+      {/* Main content area */}
       <div className="flex-1 flex min-h-0">
-        {/* Chat section (center ~60%) - min-h-0 is critical for flex children */}
+        {/* Chat */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className={cn(
-            "flex-1 min-w-0 min-h-0 flex flex-col",
-            workspacePaneMaximized && "hidden"
-          )}
+          className="flex-1 min-w-0 min-h-0 flex flex-col"
         >
           <SessionChat
             messages={messages}
@@ -186,39 +195,82 @@ function AgentSessionPage() {
           />
         </motion.div>
 
-        {/* Right sidebar (activity + workspace) */}
+        {/* Right sidebar — accordion: Activity + Files */}
         <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2, delay: 0.1 }}
-          className={cn(
-            "w-[380px] border-l border-border/50 flex flex-col bg-card/30 p-3 gap-3",
-            workspacePaneMaximized && "flex-1 w-full"
-          )}
+          className="w-[340px] border-l border-border/50 flex flex-col bg-card/30"
         >
-          {/* Activity Feed (top of right sidebar) - hidden when maximized */}
-          {!workspacePaneMaximized && (
-            <div className="h-[280px] border border-border/50 rounded-xl overflow-hidden shrink-0 bg-card/40">
-              <div className="px-4 py-3 border-b border-border/50">
-                <h3 className="text-sm font-medium">Activity</h3>
+          {/* ── Activity accordion section ── */}
+          <div className={cn("flex flex-col min-h-0", activityOpen && "flex-1")}>
+            <button
+              type="button"
+              onClick={() => setActivityOpen((v) => !v)}
+              className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 shrink-0 hover:bg-muted/30 transition-colors w-full text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium">Activity</span>
               </div>
-              <SessionActivityFeed activities={activities} maxItems={8} />
-            </div>
-          )}
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                  !activityOpen && "-rotate-90"
+                )}
+              />
+            </button>
+            {activityOpen && (
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <SessionActivityFeed activities={activities} maxItems={20} />
+              </div>
+            )}
+          </div>
 
-          {/* Workspace Pane (bottom of right sidebar or full when maximized) */}
-          <div className={cn("flex-1 min-h-0", workspacePaneMaximized && "p-4")}>
-            <SessionWorkspacePane
-              isMaximized={workspacePaneMaximized}
-              onToggleMaximize={() => setWorkspacePaneMaximized((v) => !v)}
-              sessionKey={sessionKey}
-              workspaceDir={`~/.clawdbrain/agents/${agentId}/workspace`}
-              agentId={agentId}
-              className="h-full"
-            />
+          {/* ── Files accordion section ── */}
+          <div
+            className={cn(
+              "flex flex-col border-t border-border/50 min-h-0 shrink-0",
+              filesOpen && !activityOpen && "flex-1",
+              filesOpen && activityOpen && "h-[220px]"
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setFilesOpen((v) => !v)}
+              className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 shrink-0 hover:bg-muted/30 transition-colors w-full text-left"
+            >
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium">Files</span>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                  !filesOpen && "-rotate-90"
+                )}
+              />
+            </button>
+            {filesOpen && (
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <SessionWorkspacePane
+                  workspaceDir={workspaceDir}
+                  agentId={agentId}
+                  className="h-full"
+                />
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
+
+      {/* Floating terminal overlay — portal-rendered, bottom 60 % × center 60 % */}
+      <TerminalOverlay
+        open={terminalOpen}
+        onClose={() => setTerminalOpen(false)}
+        sessionKey={sessionKey}
+        workspaceDir={workspaceDir}
+      />
     </div>
   );
 }

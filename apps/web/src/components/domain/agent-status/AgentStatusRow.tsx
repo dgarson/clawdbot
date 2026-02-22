@@ -135,37 +135,39 @@ export function AgentStatusRow({ agent, onDrillDown, className }: AgentStatusRow
         </div>
       </div>
 
-      {/* Agent Info */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm truncate">{agent.name}</span>
-          {agent.label && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {agent.label}
-            </Badge>
-          )}
-          <span className={cn("text-xs font-medium", config.color)}>
-            {config.label}
-          </span>
+      {/* Agent Info + Tags */}
+      <div className="min-w-0 flex-1 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm truncate">{agent.name}</span>
+            {agent.label && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                {agent.label}
+              </Badge>
+            )}
+            <span className={cn("text-xs font-medium", config.color)}>
+              {config.label}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">
+            {agent.currentTask || "No active task"}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">
-          {agent.currentTask || "No active task"}
-        </p>
-      </div>
 
-      {/* Tags */}
-      {agent.tags && agent.tags.length > 0 && (
-        <div className="hidden lg:flex items-center gap-1 flex-shrink-0">
-          {agent.tags.slice(0, 2).map((tag) => (
-            <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">
-              {tag}
-            </Badge>
-          ))}
-          {agent.tags.length > 2 && (
-            <span className="text-[10px] text-muted-foreground">+{agent.tags.length - 2}</span>
-          )}
-        </div>
-      )}
+        {/* Tags — vertically centered alongside the two-line info block */}
+        {agent.tags && agent.tags.length > 0 && (
+          <div className="hidden lg:flex items-center gap-1 flex-shrink-0">
+            {agent.tags.slice(0, 2).map((tag) => (
+              <Badge key={tag} variant="outline" className="rounded-full h-5 px-2 text-[10px] font-normal">
+                {tag}
+              </Badge>
+            ))}
+            {agent.tags.length > 2 && (
+              <span className="text-[10px] text-muted-foreground">+{agent.tags.length - 2}</span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Resource Usage */}
       <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground flex-shrink-0">

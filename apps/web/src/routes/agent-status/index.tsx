@@ -82,24 +82,18 @@ function AgentStatusDashboardPage() {
   const agents = snapshot?.agents;
   const summary = useAgentStatusSummary(agents);
 
-  // ── Derive Heatmap Data ─────────────────────────────────────────
-  const activityTimestamps = React.useMemo(() => {
-    if (!snapshot?.agents) return [];
-    return snapshot.agents
-      .map((a) => a.lastActivityAt)
-      .filter((t): t is number => typeof t === "number" && t > 0);
-  }, [snapshot]);
-
-  // ── Sync health filter with URL ─────────────────────────────────
+  // ── Sync health filter from URL (external navigation only) ────────
+  // Only depend on searchHealth — not healthFilter — to avoid a race where
+  // setHealthFilter("all") + navigate() causes the effect to fire with stale
+  // searchHealth and immediately reset the state back to the old value.
   React.useEffect(() => {
-    if (searchHealth && searchHealth !== healthFilter) {
-      setHealthFilter(searchHealth);
-    }
-  }, [searchHealth, healthFilter]);
+    setHealthFilter(searchHealth ?? "all");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchHealth]);
 
   const handleHealthFilterChange = (value: HealthFilter) => {
     setHealthFilter(value);
-    navigate({
+    void navigate({
       search: (prev) => ({ ...prev, health: value === "all" ? undefined : value }),
       replace: true,
     });
@@ -159,13 +153,20 @@ function AgentStatusDashboardPage() {
     return result;
   }, [agents, debouncedSearch, healthFilter, sortBy]);
 
+  // ── Derive Heatmap Data (filtered so it respects tile selection) ─
+  const activityTimestamps = React.useMemo(() => {
+    return filteredAgents
+      .map((a) => a.lastActivityAt)
+      .filter((t): t is number => typeof t === "number" && t > 0);
+  }, [filteredAgents]);
+
   // ── Drill-down handlers ─────────────────────────────────────────
   const handleDrillDown = (agent: AgentStatusEntry) => {
     setSelectedAgent(agent);
   };
 
   const handleNavigateToSession = (agent: AgentStatusEntry) => {
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId: agent.id, sessionKey: "current" },
       search: { newSession: false },
@@ -239,7 +240,11 @@ function AgentStatusDashboardPage() {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="mb-6 space-y-6"
           >
-            <AgentStatusSummary {...summary} />
+            <AgentStatusSummary
+              {...summary}
+              activeFilter={healthFilter}
+              onFilterChange={handleHealthFilterChange}
+            />
             <ActivityHeatMap activityTimestamps={activityTimestamps} title="Agent Activity Pattern" />
           </motion.div>
         )}

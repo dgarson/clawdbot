@@ -24,10 +24,10 @@ function RouteErrorComponent({ error }: { error: Error }) {
       error={error}
       onReset={() => {
         // Invalidate and retry the current route
-        router.invalidate();
+        void router.invalidate();
       }}
       onGoHome={() => {
-        router.navigate({ to: "/" });
+        void router.navigate({ to: "/" });
       }}
     />
   );
@@ -41,11 +41,20 @@ export const Route = createRootRoute({
 /** Paths where the AppShell should be hidden (fullscreen pages) */
 const FULLSCREEN_PATHS = ["/onboarding", "/unlock"] as const;
 
+/**
+ * Routes that need a full-height, edge-to-edge layout inside the shell
+ * (no max-width wrapper, no scroll padding). The route manages its own
+ * internal scroll areas and the ApprovalAttentionNudge.
+ * Currently: agent session/chat pages.
+ */
+const FULL_HEIGHT_RE = /^\/agents\/[^/]+\/session\//;
+
 function RootLayout() {
   const location = useLocation();
   const isFullscreen = FULLSCREEN_PATHS.some((path) =>
     location.pathname.startsWith(path)
   );
+  const isFullHeight = FULL_HEIGHT_RE.test(location.pathname);
 
   // Check if we should enable gateway auth guard
   // In dev mode, only enable when useLiveGateway is true
@@ -82,7 +91,7 @@ function RootLayout() {
                 {isFullscreen ? (
                   <Outlet />
                 ) : (
-                  <AppShell>
+                  <AppShell fullHeight={isFullHeight}>
                     <Outlet />
                   </AppShell>
                 )}
