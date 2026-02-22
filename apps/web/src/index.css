@@ -1,0 +1,230 @@
+/* Second Brain Platform - Tailwind CSS 4 */
+@import "tailwindcss";
+
+/* Custom dark variant */
+@custom-variant dark (&:is(.dark *));
+
+/* Theme configuration */
+@theme inline {
+  /* Custom breakpoint for extra small screens */
+  --breakpoint-xs: 475px;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+}
+
+/* Warm color palette - Dark mode first */
+:root {
+  --radius: 0.75rem;
+
+  /* Dark mode (default) - Warm tones */
+  --background: oklch(0.14 0.01 60);
+  --foreground: oklch(0.96 0.01 60);
+
+  --card: oklch(0.18 0.01 60);
+  --card-foreground: oklch(0.96 0.01 60);
+
+  --popover: oklch(0.18 0.01 60);
+  --popover-foreground: oklch(0.96 0.01 60);
+
+  --primary: oklch(0.72 0.18 45);
+  --primary-foreground: oklch(0.14 0.01 60);
+
+  --secondary: oklch(0.22 0.01 60);
+  --secondary-foreground: oklch(0.96 0.01 60);
+
+  --muted: oklch(0.26 0.01 60);
+  --muted-foreground: oklch(0.65 0.01 60);
+
+  --accent: oklch(0.65 0.15 300);
+  --accent-foreground: oklch(0.96 0.01 60);
+
+  --destructive: oklch(0.60 0.20 25);
+  --border: oklch(0.28 0.01 60);
+  --input: oklch(0.28 0.01 60);
+  --ring: oklch(0.72 0.18 45);
+
+  /* Semantic colors */
+  --success: oklch(0.65 0.18 145);
+  --warning: oklch(0.75 0.15 80);
+  --error: oklch(0.60 0.20 25);
+}
+
+/* Light mode */
+.light {
+  --background: oklch(0.98 0.01 60);
+  --foreground: oklch(0.14 0.01 60);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0.01 60);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0.01 60);
+
+  --primary: oklch(0.55 0.20 45);
+  --primary-foreground: oklch(0.98 0.01 60);
+
+  --secondary: oklch(0.94 0.01 60);
+  --secondary-foreground: oklch(0.14 0.01 60);
+
+  --muted: oklch(0.94 0.01 60);
+  --muted-foreground: oklch(0.45 0.01 60);
+
+  --accent: oklch(0.55 0.15 300);
+  --accent-foreground: oklch(0.98 0.01 60);
+
+  --destructive: oklch(0.55 0.22 25);
+  --border: oklch(0.88 0.01 60);
+  --input: oklch(0.88 0.01 60);
+  --ring: oklch(0.55 0.20 45);
+
+  --success: oklch(0.55 0.18 145);
+  --warning: oklch(0.65 0.15 80);
+  --error: oklch(0.55 0.22 25);
+}
+
+/* Base styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Allow text selection without showing a text cursor/caret in non-input UI */
+  :where(:not(input):not(textarea):not([contenteditable="true"])):not(.web-terminal *) {
+    caret-color: transparent;
+  }
+
+  :where(p, span, div, h1, h2, h3, h4, h5, h6, li, dt, dd, label, small, strong, em, b, i):not(.web-terminal *):not(.selectable-text):not(.selectable-text *) {
+    cursor: default;
+  }
+
+  :where(.web-terminal, .web-terminal *) {
+    caret-color: auto;
+    cursor: text;
+  }
+
+  :where(.selectable-text, .selectable-text *) {
+    caret-color: transparent;
+    cursor: text;
+    user-select: text;
+  }
+
+  /* Focus ring styles */
+  :focus-visible {
+    @apply outline-2 outline-ring outline-offset-2;
+  }
+}
+
+/* Scrollbar styling */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--muted);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-in {
+    animation: animate-in 0.2s ease-out;
+  }
+
+  .animate-out {
+    animation: animate-out 0.2s ease-in;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes animate-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  .ritual-new-highlight {
+    animation: ritual-highlight 2.4s ease-out;
+  }
+
+  @keyframes ritual-highlight {
+    0% {
+      box-shadow: 0 0 0 0 rgba(250, 160, 84, 0.35);
+      transform: translateY(0);
+    }
+    35% {
+      box-shadow: 0 0 0 6px rgba(250, 160, 84, 0.18);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(250, 160, 84, 0);
+    }
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-in,
+    .animate-out,
+    .ritual-new-highlight {
+      animation: none;
+    }
+  }
+}

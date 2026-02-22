@@ -132,8 +132,8 @@ bash pty:true workdir:$REVIEW_DIR command:"codex review --base origin/main"
 # Clean up after: trash $REVIEW_DIR
 
 # Or use git worktree (keeps main intact)
-git worktree add /tmp/pr-130-review pr-130-branch
-bash pty:true workdir:/tmp/pr-130-review command:"codex review --base main"
+git worktree add /tmp/openclaw/pr-130-review pr-130-branch
+bash pty:true workdir:/tmp/openclaw/pr-130-review command:"codex review --base main"
 ```
 
 ### Batch PR Reviews (parallel army!)
@@ -198,24 +198,24 @@ For fixing multiple issues in parallel, use git worktrees:
 
 ```bash
 # 1. Create worktrees for each issue
-git worktree add -b fix/issue-78 /tmp/issue-78 main
-git worktree add -b fix/issue-99 /tmp/issue-99 main
+git worktree add -b fix/issue-78 /tmp/openclaw/issue-78 main
+git worktree add -b fix/issue-99 /tmp/openclaw/issue-99 main
 
 # 2. Launch Codex in each (background + PTY!)
-bash pty:true workdir:/tmp/issue-78 background:true command:"pnpm install && codex --yolo 'Fix issue #78: <description>. Commit and push.'"
-bash pty:true workdir:/tmp/issue-99 background:true command:"pnpm install && codex --yolo 'Fix issue #99 from the approved ticket summary. Implement only the in-scope edits and commit after review.'"
+bash pty:true workdir:/tmp/openclaw/issue-78 background:true command:"pnpm install && codex --yolo 'Fix issue #78: <description>. Commit and push.'"
+bash pty:true workdir:/tmp/openclaw/issue-99 background:true command:"pnpm install && codex --yolo 'Fix issue #99 from the approved ticket summary. Implement only the in-scope edits and commit after review.'"
 
 # 3. Monitor progress
 process action:list
 process action:log sessionId:XXX
 
 # 4. Create PRs after fixes
-cd /tmp/issue-78 && git push -u origin fix/issue-78
+cd /tmp/openclaw/issue-78 && git push -u origin fix/issue-78
 gh pr create --repo user/repo --head fix/issue-78 --title "fix: ..." --body "..."
 
 # 5. Cleanup
-git worktree remove /tmp/issue-78
-git worktree remove /tmp/issue-99
+git worktree remove /tmp/openclaw/issue-78
+git worktree remove /tmp/openclaw/issue-99
 ```
 
 ---

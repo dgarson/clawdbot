@@ -514,3 +514,222 @@ describe("prepareSlackMessage sender prefix", () => {
     expect(result?.ctxPayload.CommandAuthorized).toBe(true);
   });
 });
+
+describe("slack prepareSlackMessage adjacent channel history", () => {
+  let fixtureRoot = "";
+  let caseId = 0;
+
+  function makeTmpStorePath() {
+    const dir = path.join(fixtureRoot, `adj-${caseId++}`);
+    fs.mkdirSync(dir);
+    return { dir, storePath: path.join(dir, "sessions.json") };
+  }
+
+  beforeAll(() => {
+    fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-slack-adj-"));
+  });
+
+  afterAll(() => {
+    if (fixtureRoot) {
+      fs.rmSync(fixtureRoot, { recursive: true, force: true });
+      fixtureRoot = "";
+    }
+  });
+
+  it("includes adjacent channel messages in ThreadHistoryBody for new thread sessions", async () => {
+    const { storePath } = makeTmpStorePath();
+    // conversations.replies returns thread messages (newest-first, inclusive of root)
+    const replies = vi.fn().mockResolvedValue({
+      messages: [
+        { text: "thread root", user: "U2", ts: "200.000" },
+        { text: "thread reply", user: "U1", ts: "200.500" },
+      ],
+      response_metadata: { next_cursor: "" },
+    });
+    // conversations.history returns channel messages before threadTs (newest-first)
+    const history = vi.fn().mockResolvedValue({
+      messages: [
+        // Root message that spawned a different thread
+        {
+          text: "earlier thread root",
+          user: "U3",
+          ts: "199.000",
+          reply_count: 2,
+          latest_reply: "199.900",
+          thread_ts: "199.000",
+        },
+        // Plain channel message
+        { text: "channel hello", user: "U4", ts: "198.000" },
+      ],
+      response_metadata: { next_cursor: "" },
+    });
+    const cfg = {
+      session: { store: storePath },
+      channels: { slack: { enabled: true, replyToMode: "all", groupPolicy: "open" } },
+    } as OpenClawConfig;
+    const ctx = createSlackMonitorContext({
+      cfg,
+      accountId: "default",
+      botToken: "token",
+      app: { client: { conversations: { replies, history } } } as unknown as App,
+      runtime: {} as RuntimeEnv,
+      botUserId: "B1",
+      teamId: "T1",
+      apiAppId: "A1",
+      historyLimit: 0,
+      sessionScope: "per-sender",
+      mainKey: "main",
+      dmEnabled: false,
+      dmPolicy: "open",
+      allowFrom: [],
+      groupDmEnabled: false,
+      groupDmChannels: [],
+      defaultRequireMention: false,
+      groupPolicy: "open",
+      useAccessGroups: false,
+      reactionMode: "off",
+      reactionAllowlist: [],
+      replyToMode: "all",
+      threadHistoryScope: "thread",
+      threadInheritParent: false,
+      slashCommand: {
+        enabled: false,
+        name: "openclaw",
+        sessionPrefix: "slack:slash",
+        ephemeral: true,
+      },
+      textLimit: 4000,
+      ackReactionScope: "group-mentions",
+      mediaMaxBytes: 1024,
+      removeAckAfterReply: false,
+    });
+    ctx.resolveUserName = async (id: string) => ({
+      name: id === "U1" ? "Alice" : id === "U2" ? "Bob" : id === "U3" ? "Carol" : "Dave",
+    });
+    ctx.resolveChannelName = async () => ({ name: "general", type: "channel" });
+
+    const account: ResolvedSlackAccount = {
+      accountId: "default",
+      enabled: true,
+      botTokenSource: "config",
+      appTokenSource: "config",
+      config: {
+        replyToMode: "all",
+        thread: { initialHistoryLimit: 20, adjacentChannelHistoryLimit: 5 },
+      },
+    };
+
+    const prepared = await prepareSlackMessage({
+      ctx,
+      account,
+      message: {
+        channel: "C1",
+        channel_type: "channel",
+        user: "U1",
+        text: "reply in thread",
+        ts: "201.000",
+        thread_ts: "200.000",
+      } as SlackMessageEvent,
+      opts: { source: "message" },
+    });
+
+    expect(prepared).toBeTruthy();
+    expect(prepared!.ctxPayload.IsFirstThreadTurn).toBe(true);
+    const threadHistoryBody = prepared!.ctxPayload.ThreadHistoryBody ?? "";
+    // Thread history should be present
+    expect(threadHistoryBody).toContain("thread reply");
+    // Adjacent channel messages should also be included
+    expect(threadHistoryBody).toContain("channel hello");
+    expect(threadHistoryBody).toContain("earlier thread root");
+    // Thread annotation for the message with replies
+    expect(threadHistoryBody).toContain("thread: 2 replies");
+    // history API should have been called with latest=threadTs
+    expect(history).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: "C1",
+        latest: "200.000",
+        inclusive: false,
+      }),
+    );
+  });
+
+  it("skips adjacent channel history when adjacentChannelHistoryLimit is 0", async () => {
+    const { storePath } = makeTmpStorePath();
+    const replies = vi.fn().mockResolvedValue({
+      messages: [{ text: "thread root", user: "U2", ts: "200.000" }],
+      response_metadata: { next_cursor: "" },
+    });
+    const history = vi
+      .fn()
+      .mockResolvedValue({ messages: [], response_metadata: { next_cursor: "" } });
+    const cfg = {
+      session: { store: storePath },
+      channels: { slack: { enabled: true, replyToMode: "all", groupPolicy: "open" } },
+    } as OpenClawConfig;
+    const ctx = createSlackMonitorContext({
+      cfg,
+      accountId: "default",
+      botToken: "token",
+      app: { client: { conversations: { replies, history } } } as unknown as App,
+      runtime: {} as RuntimeEnv,
+      botUserId: "B1",
+      teamId: "T1",
+      apiAppId: "A1",
+      historyLimit: 0,
+      sessionScope: "per-sender",
+      mainKey: "main",
+      dmEnabled: false,
+      dmPolicy: "open",
+      allowFrom: [],
+      groupDmEnabled: false,
+      groupDmChannels: [],
+      defaultRequireMention: false,
+      groupPolicy: "open",
+      useAccessGroups: false,
+      reactionMode: "off",
+      reactionAllowlist: [],
+      replyToMode: "all",
+      threadHistoryScope: "thread",
+      threadInheritParent: false,
+      slashCommand: {
+        enabled: false,
+        name: "openclaw",
+        sessionPrefix: "slack:slash",
+        ephemeral: true,
+      },
+      textLimit: 4000,
+      ackReactionScope: "group-mentions",
+      mediaMaxBytes: 1024,
+      removeAckAfterReply: false,
+    });
+    ctx.resolveUserName = async () => ({ name: "Alice" });
+    ctx.resolveChannelName = async () => ({ name: "general", type: "channel" });
+
+    const account: ResolvedSlackAccount = {
+      accountId: "default",
+      enabled: true,
+      botTokenSource: "config",
+      appTokenSource: "config",
+      config: {
+        replyToMode: "all",
+        thread: { initialHistoryLimit: 20, adjacentChannelHistoryLimit: 0 },
+      },
+    };
+
+    await prepareSlackMessage({
+      ctx,
+      account,
+      message: {
+        channel: "C1",
+        channel_type: "channel",
+        user: "U1",
+        text: "reply in thread",
+        ts: "201.000",
+        thread_ts: "200.000",
+      } as SlackMessageEvent,
+      opts: { source: "message" },
+    });
+
+    expect(history).not.toHaveBeenCalled();
+  });
+});

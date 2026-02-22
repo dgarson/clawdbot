@@ -19,6 +19,7 @@ import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
 import { validateSlackBlocksArray } from "./blocks-input.js";
 import { createSlackWebClient } from "./client.js";
 import { markdownToSlackMrkdwnChunks } from "./format.js";
+import { lookupSlackChannelByName } from "./resolve-channels.js";
 import { parseSlackTarget } from "./targets.js";
 import { resolveSlackBotToken } from "./token.js";
 
@@ -166,15 +167,27 @@ async function resolveChannelId(
   client: WebClient,
   recipient: SlackRecipient,
 ): Promise<{ channelId: string; isDm?: boolean }> {
-  // Bare Slack user IDs (U-prefix) may arrive with kind="channel" when the
-  // target string had no explicit prefix (parseSlackTarget defaults bare IDs
-  // to "channel"). chat.postMessage tolerates user IDs directly, but
-  // files.uploadV2 → completeUploadExternal validates channel_id against
-  // ^[CGDZ][A-Z0-9]{8,}$ and rejects U-prefixed IDs.  Always resolve user
-  // IDs via conversations.open to obtain the DM channel ID.
-  const isUserId = recipient.kind === "user" || /^U[A-Z0-9]+$/i.test(recipient.id);
-  if (!isUserId) {
-    return { channelId: recipient.id };
+  if (recipient.kind === "channel") {
+    const id = recipient.id;
+    if (/^U[A-Z0-9]+$/i.test(id)) {
+      const response = await client.conversations.open({ users: id.toUpperCase() });
+      const channelId = response.channel?.id;
+      if (!channelId) {
+        throw new Error("Failed to open Slack DM channel");
+      }
+      return { channelId, isDm: true };
+    }
+    // Slack channel IDs start with C/G/D/W and always contain at least one digit.
+    // Uppercase them so lowercase inputs (e.g. "c123") are valid for the API.
+    if (/^[CGDW][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(id)) {
+      return { channelId: id.toUpperCase() };
+    }
+    // Treat as a channel name and resolve it to an ID via the Slack API.
+    const channelId = await lookupSlackChannelByName(id, client);
+    if (!channelId) {
+      throw new Error(`Slack channel not found for name: "${id}"`);
+    }
+    return { channelId };
   }
   const response = await client.conversations.open({ users: recipient.id });
   const channelId = response.channel?.id;

@@ -487,6 +487,8 @@ Notes:
 - After the ping‑pong, the target agent runs an **announce step**; reply `ANNOUNCE_SKIP` to suppress the announcement.
 - Sandbox clamp: when the current session is sandboxed and `agents.defaults.sandbox.sessionToolsVisibility: "spawned"`, OpenClaw clamps `tools.sessions.visibility` to `tree`.
 
+Need a quick reference for when to spawn a new helper, message an existing run, or manage a sub-agent lifecycle? The [Sub-agents decision table](/tools/subagents#when-to-use-what-quick-decision-table) spells it out and includes the example workflows referenced here, while [Agent Send](/tools/agent-send) shows the CLI equivalent for `sessions_send` flows.
+
 ### `agents_list`
 
 List agent ids that the current session may target with `sessions_spawn`.

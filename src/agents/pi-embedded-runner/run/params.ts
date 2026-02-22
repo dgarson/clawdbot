@@ -101,4 +101,6 @@ export type RunEmbeddedPiAgentParams = {
   streamParams?: AgentStreamParams;
   ownerNumbers?: string[];
   enforceFinalTag?: boolean;
+  /** Agent runtime to use. Defaults to 'pi'. Use 'claude-sdk' to run via @anthropic-ai/claude-agent-sdk. */
+  runtime?: "pi" | "claude-sdk";
 };

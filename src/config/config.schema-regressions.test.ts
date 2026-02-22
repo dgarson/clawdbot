@@ -91,4 +91,39 @@ describe("config schema regressions", () => {
       expect(res.issues[0]?.path).toBe("channels.imessage.attachmentRoots.0");
     }
   });
+
+  it("accepts sessionLabels config in agent defaults", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          sessionLabels: {
+            enabled: true,
+            model: "anthropic/claude-haiku-4-5",
+            maxLength: 79,
+            prompt: "Generate a short session title",
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("rejects sessionLabels.maxLength above schema limit", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          sessionLabels: {
+            enabled: true,
+            maxLength: 80,
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.issues[0]?.path).toBe("agents.defaults.sessionLabels.maxLength");
+    }
+  });
 });

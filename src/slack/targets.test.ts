@@ -51,6 +51,12 @@ describe("resolveSlackChannelId", () => {
     expect(resolveSlackChannelId("C123")).toBe("C123");
   });
 
+  it("preserves channel ID casing", () => {
+    expect(resolveSlackChannelId("c123")).toBe("c123");
+    expect(resolveSlackChannelId("channel:c1a2b3")).toBe("c1a2b3");
+    expect(resolveSlackChannelId("#c999")).toBe("c999");
+  });
+
   it("rejects user targets", () => {
     expect(() => resolveSlackChannelId("user:U123")).toThrow(/channel id is required/i);
   });

@@ -4,6 +4,7 @@ import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentConfig = {
   id: string;
@@ -26,10 +27,15 @@ export type AgentConfig = {
     allowAgents?: string[];
     /** Per-agent default model for spawned sub-agents (string or {primary,fallbacks}). */
     model?: AgentModelConfig;
+    thinking?: string;
   };
   /** Optional per-agent sandbox overrides. */
   sandbox?: AgentSandboxConfig;
   tools?: AgentToolsConfig;
+  /** Agent runtime: "pi" (default) or "claude-sdk". */
+  runtime?: "pi" | "claude-sdk";
+  /** Claude Agent SDK provider config (used when runtime is "claude-sdk"). */
+  claudeSdk?: ClaudeSdkConfig;
 };
 
 export type AgentsConfig = {

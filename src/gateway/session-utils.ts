@@ -7,6 +7,7 @@ import {
   parseModelRef,
   resolveConfiguredModelRef,
   resolveDefaultModelForAgent,
+  resolveThinkingDefault,
 } from "../agents/model-selection.js";
 import { type OpenClawConfig, loadConfig } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
@@ -797,6 +798,8 @@ export function listSessionsFromStore(params: {
       const resolvedModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
       const modelProvider = resolvedModel.provider ?? DEFAULT_PROVIDER;
       const model = resolvedModel.model ?? DEFAULT_MODEL;
+      const resolvedThinkingLevel = resolveThinkingDefault({ cfg, provider: modelProvider, model });
+      const resolvedVerboseLevel = cfg.agents?.defaults?.verboseDefault;
       return {
         key,
         entry,
@@ -816,6 +819,8 @@ export function listSessionsFromStore(params: {
         thinkingLevel: entry?.thinkingLevel,
         verboseLevel: entry?.verboseLevel,
         reasoningLevel: entry?.reasoningLevel,
+        resolvedThinkingLevel,
+        resolvedVerboseLevel,
         elevatedLevel: entry?.elevatedLevel,
         sendPolicy: entry?.sendPolicy,
         inputTokens: entry?.inputTokens,

@@ -2,6 +2,9 @@ import { randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import { generateSecureToken } from "../../infra/secure-random.js";
+import type { RunEmbeddedPiAgentParams } from "./run/params.js";
+import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
+import { emitAgentEvent } from "../../infra/agent-events.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import type { PluginHookBeforeAgentStartResult } from "../../plugins/types.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
@@ -53,13 +56,11 @@ import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
-import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import {
   truncateOversizedToolResultsInSession,
   sessionLikelyHasOversizedToolResults,
 } from "./tool-result-truncation.js";
-import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { describeUnknownError } from "./utils.js";
 
 type ApiKeyInfo = ResolvedProviderAuth;
@@ -248,6 +249,16 @@ export async function runEmbeddedPiAgent(
         workspaceDir: resolvedWorkspace,
         messageProvider: params.messageProvider ?? undefined,
       };
+      // Emit early so features like session auto-labeling can start
+      // processing the user message without waiting for the run to complete.
+      if (params.sessionKey && params.prompt) {
+        emitAgentEvent({
+          runId: params.runId,
+          stream: "input",
+          data: { prompt: params.prompt },
+          sessionKey: params.sessionKey,
+        });
+      }
       if (hookRunner?.hasHooks("before_model_resolve")) {
         try {
           modelResolveOverride = await hookRunner.runBeforeModelResolve(
@@ -585,6 +596,7 @@ export async function runEmbeddedPiAgent(
             model,
             authStorage,
             modelRegistry,
+            resolvedProviderAuth: apiKeyInfo ?? undefined,
             agentId: workspaceResolution.agentId,
             legacyBeforeAgentStartResult,
             thinkLevel,
@@ -613,6 +625,7 @@ export async function runEmbeddedPiAgent(
             streamParams: params.streamParams,
             ownerNumbers: params.ownerNumbers,
             enforceFinalTag: params.enforceFinalTag,
+            runtime: params.runtime,
           });
 
           const {

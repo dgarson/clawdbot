@@ -1,3 +1,8 @@
+.worktrees/
+worktrees/
+**/.env
+**/.env.local
+apps/web/.next
 node_modules
 **/node_modules/
 .env
@@ -19,6 +24,9 @@ ui/playwright-report/
 ui/test-results/
 packages/dashboard-next/.next/
 packages/dashboard-next/out/
+
+# Generated model data files (run pnpm generate:models to recreate)
+generated/
 
 # Mise configuration files
 mise.toml
@@ -104,3 +112,4 @@ apps/ios/LocalSigning.xcconfig
 # Generated protocol schema (produced via pnpm protocol:gen)
 dist/protocol.schema.json
 .ant-colony/
+apps/web/.next/cache/

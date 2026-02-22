@@ -87,6 +87,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "tools.loopDetection.detectors.pingPong": "Tool-loop Ping-Pong Detection",
   "tools.fs.workspaceOnly": "Workspace-only FS tools",
   "tools.sessions.visibility": "Session Tools Visibility",
+  "tools.sessions.sendTimeoutSeconds": "Session Send Default Timeout (s)",
   "tools.exec.notifyOnExit": "Exec Notify On Exit",
   "tools.exec.notifyOnExitEmptySuccess": "Exec Notify On Empty Success",
   "tools.exec.approvalRunningNoticeMs": "Exec Approval Running Notice (ms)",
@@ -356,4 +357,8 @@ export const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.shasum": "Plugin Resolved Shasum",
   "plugins.installs.*.resolvedAt": "Plugin Resolution Time",
   "plugins.installs.*.installedAt": "Plugin Install Time",
+  "agents.defaults.sessionLabels.enabled": "Auto-Label Sessions",
+  "agents.defaults.sessionLabels.model": "Session Label Model",
+  "agents.defaults.sessionLabels.maxLength": "Session Label Max Length",
+  "agents.defaults.sessionLabels.prompt": "Session Label Prompt",
 };
