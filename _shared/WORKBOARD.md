@@ -1563,18 +1563,16 @@ These are strategic R&D items identified by Amadeus. Items already tracked as se
 
 **OBS-03 — Docker Compose Observability Stack** | `observability/docker-stack`
 
-- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Status: `done` — PR #55 merged → `observability/main` (2026-02-22 00:11 MST)
 - Model: opus
-- PR target: `observability/main`
-- Deliverables: `docker-compose.observability.yml`, Prometheus config, Grafana provisioning, 5 dashboards, Loki + Promtail, Jaeger, AlertManager
+- Deliverables: `observability/docker-compose.observability.yml`, Prometheus config, Grafana provisioning, 5 dashboards, Loki + Promtail, Jaeger, AlertManager (1799 lines added)
 - Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 3
 
 **OBS-04 — A/B Testing + Experiment Tracking** | `observability/experiments`
 
-- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Status: `done` — PR #56 merged → `observability/main` (2026-02-22 00:11 MST)
 - Model: minimax-m2.5 (flags) + zai/glm-5 (schema)
-- PR target: `observability/main`
-- Deliverables: `src/experiments/flags.ts`, experiment telemetry schema, Grafana A/B dashboard
+- Deliverables: `src/experiments/{flags,context,schema,index}.ts` + tests, Grafana A/B dashboard (1140 lines added)
 - Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 4
 
 **OBS-05 — Analytics UI Wire-up** | `observability/analytics-ui`
@@ -1587,7 +1585,7 @@ These are strategic R&D items identified by Amadeus. Items already tracked as se
 
 **OBS-06 — Regression Harness + Cost Optimizer** | `observability/regression-harness`
 
-- Status: `in-review` — PR [#57](https://github.com/dgarson/clawdbot/pull/57) open → `observability/main`
+- Status: `done` — PR #57 merged → `observability/main` (2026-02-22 00:10 MST)
 - Completed: 2026-02-21 23:17 MST (Merlin)
 - Deliverables: `scripts/regression-check.ts`, `scripts/weekly-telemetry-digest.ts`, `openclaw telemetry {cost-optimize,regression,baselines}` CLI, 15 tests, cron docs
 - Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 6

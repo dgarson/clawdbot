@@ -4,7 +4,7 @@ _Mega-branch:_ `observability/main`
 _Base branch:_ `dgarson/fork`  
 _Owner:_ Xavier (engineering lead), Merlin (orchestrator)  
 _Created:_ 2026-02-21  
-_Last updated:_ 2026-02-21 22:17 MST  
+_Last updated:_ 2026-02-22 00:11 MST (Merlin — merged OBS-03/04/06 into observability/main)  
 _Priority:_ **P0 — 16-hour overnight workstream**  
 _Deadline:_ 2 PM MST Feb 22
 
@@ -50,14 +50,14 @@ Phase 6 (Regression)          starts after P1+P2 complete ───────�
 
 Reference: `/Users/openclaw/.openclaw/workspace/_shared/WORKBOARD.md` (OBS-01 through OBS-06)
 
-| Task                                         | Branch                              | Lead                       | Model                       | Status                            |
-| -------------------------------------------- | ----------------------------------- | -------------------------- | --------------------------- | --------------------------------- |
-| OBS-01 — OTel Core Instrumentation           | `observability/otel-core`           | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `in-progress` — spawned 23:02 MST |
-| OBS-02 — Prometheus /metrics Endpoint        | `observability/prometheus-exporter` | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `in-progress` — spawned 23:02 MST |
-| OBS-03 — Docker Compose Stack                | `observability/docker-stack`        | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `in-progress` — spawned 23:02 MST |
-| OBS-04 — A/B Testing + Experiment Tracking   | `observability/experiments`         | Merlin sub-agent (minimax) | minimax-portal/MiniMax-M2.5 | `in-progress` — spawned 23:02 MST |
-| OBS-05 — Analytics UI Wire-up                | `observability/analytics-ui`        | Merlin sub-agent (minimax) | minimax-portal/MiniMax-M2.5 | `in-progress` — spawned 23:02 MST |
-| OBS-06 — Regression Harness + Cost Optimizer | `observability/regression-harness`  | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `in-progress` — spawned 23:02 MST |
+| Task                                         | Branch                              | Lead                       | Model                       | Status                                      |
+| -------------------------------------------- | ----------------------------------- | -------------------------- | --------------------------- | ------------------------------------------- |
+| OBS-01 — OTel Core Instrumentation           | `observability/otel-core`           | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `in-progress` — running 00:11 MST           |
+| OBS-02 — Prometheus /metrics Endpoint        | `observability/prometheus-exporter` | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `in-progress` — running 00:11 MST           |
+| OBS-03 — Docker Compose Stack                | `observability/docker-stack`        | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `done` — PR #55 merged → observability/main |
+| OBS-04 — A/B Testing + Experiment Tracking   | `observability/experiments`         | Merlin sub-agent (minimax) | minimax-portal/MiniMax-M2.5 | `done` — PR #56 merged → observability/main |
+| OBS-05 — Analytics UI Wire-up                | `observability/analytics-ui`        | Merlin sub-agent (minimax) | minimax-portal/MiniMax-M2.5 | `in-progress` — running 00:11 MST           |
+| OBS-06 — Regression Harness + Cost Optimizer | `observability/regression-harness`  | Merlin sub-agent (opus)    | anthropic/claude-opus-4-6   | `done` — PR #57 merged → observability/main |
 
 ---
 
