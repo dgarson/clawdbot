@@ -251,6 +251,8 @@ const EnvironmentConfigManager       = React.lazy(() => import("./views/Environm
 const UserPermissionManager          = React.lazy(() => import("./views/UserPermissionManager"));
 const InfrastructureCostManager      = React.lazy(() => import("./views/InfrastructureCostManager"));
 const SessionReplayViewer            = React.lazy(() => import("./views/SessionReplayViewer"));
+const TokenUsageOptimizer            = React.lazy(() => import("./views/TokenUsageOptimizer"));
+const StreamingDebugger              = React.lazy(() => import("./views/StreamingDebugger"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
 const MLExperimentTracker            = React.lazy(() => import("./views/MLExperimentTracker"));
@@ -262,6 +264,7 @@ const ChaosEngineeringDashboard      = React.lazy(() => import("./views/ChaosEng
 const DependencyAuditDashboard       = React.lazy(() => import("./views/DependencyAuditDashboard"));
 const SearchAnalyticsDashboard       = React.lazy(() => import("./views/SearchAnalyticsDashboard"));
 const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeApprovalBoard"));
+const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -501,6 +504,8 @@ export const navItems = [
   { id: "dependency-audit",     label: "Dependency Audit",      emoji: "🔐", shortcut: null },
   { id: "search-analytics",     label: "Search Analytics",      emoji: "🔎", shortcut: null },
   { id: "change-approval",      label: "Change Approval",       emoji: "✅", shortcut: null },
+  { id: "queue-inspector",      label: "Queue Inspector",       emoji: "📬", shortcut: null },
+  { id: "token-usage",          label: "Token Usage Optimizer", emoji: "🪙", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -741,6 +746,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "dependency-audit":       <ContentSkeleton />,
   "search-analytics":       <ContentSkeleton />,
   "change-approval":        <ContentSkeleton />,
+  "queue-inspector":        <ContentSkeleton />,
+  "token-usage":            <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1198,10 +1205,14 @@ function AppContent() {
       case "code-review":          return <CodeReviewDashboard />;
       case "endpoint-monitor":     return <EndpointMonitor />;
       case "session-replay-viewer": return <SessionReplayViewer />;
+      case "token-usage-opt":      return <TokenUsageOptimizer />;
+      case "streaming-debugger":   return <StreamingDebugger />; // alias
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
       case "search-analytics":     return <SearchAnalyticsDashboard />;
       case "change-approval":      return <ChangeApprovalBoard />;
+      case "queue-inspector":      return <QueueInspector />;
+      case "token-usage":          return <TokenUsageOptimizer />;
       default:              return <AgentDashboard />;
     }
   };
