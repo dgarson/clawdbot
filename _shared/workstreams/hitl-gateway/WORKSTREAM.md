@@ -3,7 +3,7 @@
 _Mega-branch:_ `feat/hitl-gateway`
 _Owner:_ Xavier + Tim
 _Created:_ 2026-02-22
-_Last updated:_ 2026-02-22 13:34 MST
+_Last updated:_ 2026-02-22 13:40 MST
 
 ## Deliverable
 
@@ -24,11 +24,12 @@ Reference detailed specs by absolute path:
 
 ## Tasks & Status
 
-| Task                                       | Owner          | Status         | Notes                                  |
-| ------------------------------------------ | -------------- | -------------- | -------------------------------------- |
-| Phase 1 foundation validation              | Tim            | ✅ done        | Landed on `feat/hitl-gateway`          |
-| Phase 2 policy + escalation implementation | Roman + Tony   | 🔄 in-progress | primary critical path                  |
-| Strict-mode/approval boundary tests        | Claire + Barry | ⏳ queued      | must include no-self-approval coverage |
+| Task                                       | Owner          | Status    | Notes                             |
+| ------------------------------------------ | -------------- | --------- | --------------------------------- |
+| Phase 1 foundation validation              | Tim            | ✅ done   | Landed on `feat/hitl-gateway`     |
+| Phase 2 policy + escalation implementation | Roman + Tony   | ✅ done   | HitlGateway class + 26 tests      |
+| Strict-mode/approval boundary tests        | Claire + Barry | ✅ done   | no-self-approval, timeout, strict |
+| Phase 3 integration + e2e validation       | TBD            | ⏳ queued | node-invoke wiring, E2E tests     |
 
 ## Squad
 

@@ -3,7 +3,7 @@
 _Mega-branch:_ `feat/sdk-dev-sandbox`
 _Owner:_ Tim
 _Created:_ 2026-02-22
-_Last updated:_ 2026-02-22 13:33 MST
+_Last updated:_ 2026-02-22 13:34 MST
 
 ## Deliverable
 
@@ -29,12 +29,13 @@ Package boundaries:
 
 ## Tasks & Status
 
-| Task                                  | Owner       | Status         | Notes                            |
-| ------------------------------------- | ----------- | -------------- | -------------------------------- |
-| Branch bootstrap + registry           | Tim         | ✅ done        | Branch pushed to origin          |
-| SDK package scaffolding               | Sandy       | 🔄 in-progress | Feature Dev lead                 |
-| Sandbox lifecycle implementation plan | Claire      | 🔄 in-progress | state machine + failure handling |
-| CLI/quickstart validation             | Larry/Harry | ⏳ queued      | runbook + docs hardening         |
+| Task                             | Owner        | Status    | Notes                                                    |
+| -------------------------------- | ------------ | --------- | -------------------------------------------------------- |
+| Branch bootstrap + registry      | Tim          | ✅ done   | Branch pushed to origin                                  |
+| SDK package scaffolding          | Sandy        | ✅ done   | Added `@openclaw/sdk` skeleton, typed surface, transport |
+| Sandbox lifecycle implementation | Claire       | ✅ done   | Added `@openclaw/sandbox` with state machine + tests     |
+| CLI/quickstart validation        | Larry/Harry  | ⏳ queued | Deferred to phase 2                                      |
+| Initial tests                    | Sandy/Claire | ✅ done   | 28 sandbox tests, 12 SDK tests                           |
 
 ## Squad
 
