@@ -51,6 +51,7 @@ const IntegrationHub = React.lazy(() => import("./views/IntegrationHub"));
 const TeamManagement = React.lazy(() => import("./views/TeamManagement"));
 const GlobalSearch = React.lazy(() => import("./views/GlobalSearch"));
 const PromptLibrary = React.lazy(() => import("./views/PromptLibrary"));
+const DataExportManager = React.lazy(() => import("./views/DataExportManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -79,6 +80,7 @@ export const navItems = [
   { id: "team",             label: "Team",           emoji: "👥", shortcut: null },
   { id: "search",           label: "Search",         emoji: "🔍", shortcut: null },
   { id: "prompts",          label: "Prompt Library", emoji: "📝", shortcut: null },
+  { id: "exports",          label: "Data Export",    emoji: "📦", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -108,6 +110,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "team":          <TableSkeleton rows={6} />,
   "search":        <ContentSkeleton />,
   "prompts":       <CardGridSkeleton count={6} />,
+  "exports":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -358,6 +361,7 @@ function AppContent() {
       case "team":           return <TeamManagement />;
       case "search":         return <GlobalSearch />;
       case "prompts":        return <PromptLibrary />;
+      case "exports":        return <DataExportManager />;
       default:              return <AgentDashboard />;
     }
   };
