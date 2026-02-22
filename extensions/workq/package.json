@@ -1,0 +1,22 @@
+{
+  "name": "@openclaw/workq",
+  "version": "0.1.0",
+  "description": "Centralized work queue for multi-agent coordination",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.41"
+  },
+  "devDependencies": {
+    "commander": "^12.1.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
