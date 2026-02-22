@@ -272,6 +272,8 @@ const AIGovernanceDashboard          = React.lazy(() => import("./views/AIGovern
 const DataRetentionPolicyManager     = React.lazy(() => import("./views/DataRetentionPolicyManager"));
 const IncidentResponsePlaybook       = React.lazy(() => import("./views/IncidentResponsePlaybook"));
 const UserJourneyAnalytics           = React.lazy(() => import("./views/UserJourneyAnalytics"));
+const SecurityAuditTrail             = React.lazy(() => import("./views/SecurityAuditTrail"));
+const ChangeManagementBoard          = React.lazy(() => import("./views/ChangeManagementBoard"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -545,6 +547,8 @@ export const navItems = [
   { id: "retention-policy",         label: "Retention Policy Mgr",   emoji: "🗂️", shortcut: null },
   { id: "incident-playbook",        label: "Incident Playbooks",     emoji: "📖", shortcut: null },
   { id: "user-journey-analytics",   label: "User Journey Analytics", emoji: "🗺️", shortcut: null },
+  { id: "security-audit-trail",     label: "Security Audit Trail",   emoji: "🔎", shortcut: null },
+  { id: "change-mgmt",              label: "Change Management",      emoji: "📋", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -807,6 +811,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "retention-policy":          <ContentSkeleton />,
   "incident-playbook":         <ContentSkeleton />,
   "user-journey-analytics":    <ContentSkeleton />,
+  "security-audit-trail":      <ContentSkeleton />,
+  "change-mgmt":               <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1286,6 +1292,8 @@ function AppContent() {
       case "retention-policy":       return <DataRetentionPolicyManager />;
       case "incident-playbook":      return <IncidentResponsePlaybook />;
       case "user-journey-analytics": return <UserJourneyAnalytics />;
+      case "security-audit-trail":   return <SecurityAuditTrail />;
+      case "change-mgmt":            return <ChangeManagementBoard />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
