@@ -31,6 +31,10 @@ const BraveAPIKeySetupWizard       = React.lazy(() => import("./views/BraveAPIKe
 const DiscoveryWaveResults         = React.lazy(() => import("./views/DiscoveryWaveResults"));
 const DiscoveryAgentCostTracker    = React.lazy(() => import("./views/DiscoveryAgentCostTracker"));
 const ToolReliabilityDashboard     = React.lazy(() => import("./views/ToolReliabilityDashboard"));
+const ModelComparisonMatrix        = React.lazy(() => import("./views/ModelComparisonMatrix"));
+const AgentWaveScheduler           = React.lazy(() => import("./views/AgentWaveScheduler"));
+const DiscoveryPreflightChecklist  = React.lazy(() => import("./views/DiscoveryPreflightChecklist"));
+const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryFindingsSearch"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -1068,6 +1072,10 @@ function AppContent() {
       case "discovery-wave-results":  return <DiscoveryWaveResults />;
       case "agent-cost-tracker":      return <DiscoveryAgentCostTracker />;
       case "tool-reliability":        return <ToolReliabilityDashboard />;
+      case "model-comparison":        return <ModelComparisonMatrix />;
+      case "wave-scheduler":          return <AgentWaveScheduler />;
+      case "preflight-checklist":     return <DiscoveryPreflightChecklist />;
+      case "findings-search":         return <DiscoveryFindingsSearch />;
       case "dashboard":     return <AgentDashboard />;
       case "chat":          return <ChatInterface agentName="Luis" agentEmoji="🎨" />;
       case "builder":       return <AgentBuilderWizard />;
