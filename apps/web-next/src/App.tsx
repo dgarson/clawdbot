@@ -98,6 +98,8 @@ const ModelRouter          = React.lazy(() => import("./views/ModelRouter"));
 const SessionReplay        = React.lazy(() => import("./views/SessionReplay"));
 const ConfigValidatorView  = React.lazy(() => import("./views/ConfigValidatorView"));
 const ContextWindowViewer  = React.lazy(() => import("./views/ContextWindowViewer"));
+const AgentInbox           = React.lazy(() => import("./views/AgentInbox"));
+const DependencyGraph      = React.lazy(() => import("./views/DependencyGraph"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -173,6 +175,8 @@ export const navItems = [
   { id: "session-replay",  label: "Session Replay", emoji: "▶️", shortcut: null },
   { id: "config-validator", label: "Config Validator", emoji: "✅", shortcut: null },
   { id: "context-window",  label: "Context Window",  emoji: "🪟", shortcut: null },
+  { id: "inbox",           label: "Agent Inbox",    emoji: "📬", shortcut: null },
+  { id: "dep-graph",       label: "Dependency Graph", emoji: "🕸️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -249,6 +253,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "session-replay":  <ContentSkeleton />,
   "config-validator": <ContentSkeleton />,
   "context-window":  <ContentSkeleton />,
+  "inbox":           <ContentSkeleton />,
+  "dep-graph":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -546,6 +552,8 @@ function AppContent() {
       case "session-replay":  return <SessionReplay />;
       case "config-validator": return <ConfigValidatorView />;
       case "context-window":  return <ContextWindowViewer />;
+      case "inbox":           return <AgentInbox />;
+      case "dep-graph":       return <DependencyGraph />;
       default:              return <AgentDashboard />;
     }
   };
