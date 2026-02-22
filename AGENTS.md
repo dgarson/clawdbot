@@ -101,6 +101,7 @@
 
 **Full maintainer PR workflow (optional):** If you want the repo's end-to-end maintainer workflow (triage order, quality bar, rebase rules, commit/changelog conventions, co-contributor policy, and the `review-pr` > `prepare-pr` > `merge-pr` pipeline), see `.agents/skills/PR_WORKFLOW.md`. Maintainers may use other workflows; when a maintainer specifies a workflow, follow that. If no workflow is specified, default to PR_WORKFLOW.
 
+- **⛔ Never target `main` in a PR** — always target the megabranch (`feat/<project>`). PRs targeting `main` are a protocol violation and will be retargeted or closed. See `_shared/ops/safety-and-branch-rules.md`.
 - Create commits with `scripts/committer "<msg>" <file...>`; avoid manual `git add`/`git commit` so staging stays scoped.
 - Follow concise, action-oriented commit messages (e.g., `CLI: add verbose flag to send`).
 - Group related changes; avoid bundling unrelated refactors.
@@ -141,6 +142,28 @@
 ## Troubleshooting
 
 - Rebrand/migration issues or legacy config/service warnings: run `openclaw doctor` (see `docs/gateway/doctor.md`).
+
+## Agent Ops Reference
+
+Shared operational protocols for all agents. These files live in `_shared/ops/` and are available to every agent. Read the index first; load individual files as needed for your task.
+
+> **Index (required read):** `_shared/ops/index.md` — one-stop reference for all agent operational docs.
+
+| File                                     | Read when                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| `_shared/ops/safety-and-branch-rules.md` | Starting any task — covers NEVER targets, multi-agent safety. **Required.** |
+| `_shared/ops/worker-workflow.md`         | Starting any IC task — megabranch → branch → PR → notify                    |
+| `_shared/ops/megabranch-workflow.md`     | Creating/managing megabranches (leads) or confirming your base branch       |
+| `_shared/ops/review-protocol.md`         | Handling PR review feedback                                                 |
+| `_shared/ops/sessions-spawn.md`          | Delegating work via sessions_spawn/send                                     |
+| `_shared/ops/blocker-escalation.md`      | Reporting blockers and escalating                                           |
+| `_shared/ops/memory-discipline.md`       | Daily notes, curating MEMORY.md                                             |
+| `_shared/ops/audio-reports.md`           | TTS reports — script, voice, Slack channel                                  |
+| `_shared/ops/release-workflow.md`        | NPM publish, plugin release, changelog                                      |
+| `_shared/ops/org-hierarchy.md`           | Org structure, reporting chain, escalation paths                            |
+| `_shared/MEGA_BRANCHES.md`               | Live registry of all active megabranches                                    |
+| `_shared/WORK_PROTOCOL.md`               | Cross-agent work coordination protocol                                      |
+| `_shared/WORKBOARD.md`                   | Active workboard — tasks, owners, status                                    |
 
 ## Agent-Specific Notes
 
@@ -193,117 +216,11 @@
 - For manual `openclaw message send` messages that include `!`, use the heredoc pattern noted below to avoid the Bash tool’s escaping.
 - Release guardrails: do not change version numbers without operator’s explicit consent; always ask permission before running any npm publish/release step.
 
-## NPM + 1Password (publish/verify)
+## Release (NPM Publish, Plugins, Changelog)
 
-- Use the 1password skill; all `op` commands must run inside a fresh tmux session.
-- Sign in: `eval "$(op signin --account my.1password.com)"` (app unlocked + integration on).
-- OTP: `op read 'op://Private/Npmjs/one-time password?attribute=otp'`.
-- Publish: `npm publish --access public --otp="<otp>"` (run from the package dir).
-- Verify without local npmrc side effects: `npm view <pkg> version --userconfig "$(mktemp)"`.
-- Kill the tmux session after publish.
-
-## Plugin Release Fast Path (no core `openclaw` publish)
-
-- Release only already-on-npm plugins. Source list is in `docs/reference/RELEASING.md` under "Current npm plugin list".
-- Run all CLI `op` calls and `npm publish` inside tmux to avoid hangs/interruption:
-  - `tmux new -d -s release-plugins-$(date +%Y%m%d-%H%M%S)`
-  - `eval "$(op signin --account my.1password.com)"`
-- 1Password helpers:
-  - password used by `npm login`:
-    `op item get Npmjs --format=json | jq -r '.fields[] | select(.id=="password").value'`
-  - OTP:
-    `op read 'op://Private/Npmjs/one-time password?attribute=otp'`
-- Fast publish loop (local helper script in `/tmp` is fine; keep repo clean):
-  - compare local plugin `version` to `npm view <name> version`
-  - only run `npm publish --access public --otp="<otp>"` when versions differ
-  - skip if package is missing on npm or version already matches.
-- Keep `openclaw` untouched: never run publish from repo root unless explicitly requested.
-- Post-check for each release:
-  - per-plugin: `npm view @openclaw/<name> version --userconfig "$(mktemp)"` should be `2026.2.17`
-  - core guard: `npm view openclaw version --userconfig "$(mktemp)"` should stay at previous version unless explicitly requested.
-
-## Changelog Release Notes
-
-- When cutting a mac release with beta GitHub prerelease:
-  - Tag `vYYYY.M.D-beta.N` from the release commit (example: `v2026.2.15-beta.1`).
-  - Create prerelease with title `openclaw YYYY.M.D-beta.N`.
-  - Use release notes from `CHANGELOG.md` version section (`Changes` + `Fixes`, no title duplicate).
-  - Attach at least `OpenClaw-YYYY.M.D.zip` and `OpenClaw-YYYY.M.D.dSYM.zip`; include `.dmg` if available.
-
-- Keep top version entries in `CHANGELOG.md` sorted by impact:
-  - `### Changes` first.
-  - `### Fixes` deduped and ranked with user-facing fixes first.
-- Before tagging/publishing, run:
-  - `node --import tsx scripts/release-check.ts`
-  - `pnpm release:check`
-  - `pnpm test:install:smoke` or `OPENCLAW_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke` for non-root smoke path.
+> **Full workflow:** `_shared/ops/release-workflow.md` — NPM+1Password publish, plugin fast path, changelog rules, pre-release checks.
+> Always read `docs/reference/RELEASING.md` and `docs/platforms/mac/release.md` before any release work.
 
 ## Merlin — Task Delegation (Orchestration)
 
-As the main agent, Merlin coordinates across all functions and should actively delegate discrete tasks rather than doing everything inline.
-
-Use **`sessions_spawn`** for background work that auto-announces results. Use **`sessions_send`** to communicate with agents whose sessions are already running.
-
-- **`sessions_send`** → message a running agent (status update, escalation, coordination, routing info to C-Suite)
-- **`sessions_spawn`** → create a new ephemeral sub-agent to execute a task and report back
-
-### When to spawn
-
-- **Coding/implementation** — delegate to the appropriate tier worker agent (never do implementation inline when a worker can do it)
-- **Research or analysis** — spawn a sub-agent to gather data and return a deliverable
-- **Parallel tasks** — spawn multiple agents simultaneously for independent workstreams
-- **Long-running work** — anything that would block the main thread while David waits; spawn it, respond immediately, result arrives when ready
-- **C-Suite delegation** — when a task belongs to a specific C-Suite owner, spawn their agent with the task rather than doing it yourself
-
-```js
-sessions_spawn({
-  agentId: "xavier",
-  task: "Review PR #123 for architectural soundness, report findings",
-});
-sessions_spawn({
-  agentId: "amadeus",
-  task: "Evaluate GPT-5 vs Opus 4.6 on the eval harness in amadeus/evals/, produce comparison",
-});
-sessions_spawn({ task: "Summarize all agent MEMORY.md files updated in the last 7 days" });
-```
-
-### What stays with Merlin
-
-- Communication, routing, and status synthesis (assemble results from sub-agents, surface to David)
-- Judgment calls requiring cross-org context
-- Anything that needs David's attention or confirmation before action
-- Short tasks where spawning overhead outweighs the benefit
-
-Monitor: `sessions_list`, `subagents(action=list)`. Steer/kill: `subagents(action=steer|kill)`.
-
-### Active Task Listings
-
-Whenever listing active tasks/sessions (via `sessions_list`, `subagents(action=list)`, or any status summary), always include:
-
-- **Model name** being used for each session (from the session metadata)
-- **Agent ID** when it's meaningful for the context (e.g. when showing who owns a task, or when multiple agents are running)
-
-Example format: `[xavier · opus] Reviewing PR #456 for architectural soundness`
-
-### Inbox (Heartbeat Step 0)
-
-At the start of every heartbeat, drain the inbox before doing anything else:
-
-```bash
-_shared/scripts/agent-mail.sh drain
-```
-
-Merlin has authority to read all agent inboxes for org-wide visibility:
-
-```bash
-_shared/scripts/agent-mail.sh list --all   # pending message counts across all agents
-_shared/scripts/agent-mail.sh read --agent xavier  # read a specific agent's inbox
-```
-
-To send an async message to an agent who may not be running:
-
-```bash
-_shared/scripts/agent-mail.sh send --to xavier --subject "PR review needed" "Please review PR #456 before your next heartbeat."
-```
-
-Full docs: `_shared/mailboxes/README.md`
+> **Full protocol:** `_shared/ops/sessions-spawn.md` — sessions_spawn vs sessions_send, when to spawn, syntax, monitoring, inbox management.
