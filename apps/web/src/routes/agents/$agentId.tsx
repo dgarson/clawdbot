@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/composed/StatusBadge";
 import { AgentDetailSkeleton } from "@/components/composed/skeletons";
+import { MobileTabNav } from "@/components/composed/MobileTabNav";
 import {
   AgentOverviewTab,
   AgentWorkTab,
@@ -205,7 +206,7 @@ function AgentDetailPage() {
 
   return (
     <div className="min-h-full bg-background text-foreground">
-      <div className="container mx-auto max-w-6xl px-6 py-8">
+      <div className="container mx-auto max-w-6xl px-6 py-8 pb-20 sm:pb-8">
         {/* Back Button */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -390,9 +391,16 @@ function AgentDetailPage() {
             }}
             className="space-y-6"
           >
-            <TabsList className="w-full justify-start bg-muted/50 p-1">
+            <TabsList className="w-full grid grid-cols-5 bg-muted/50 p-1 sm:w-auto sm:inline-flex">
               {AGENT_TABS.map((t) => (
-                <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
+                <TabsTrigger
+                  key={t.id}
+                  value={t.id}
+                  className="flex flex-col items-center gap-0.5 py-2 sm:flex-row sm:gap-2 sm:py-1.5"
+                >
+                  <t.icon className="h-4 w-4 shrink-0" />
+                  <span className="text-[10px] leading-tight sm:text-sm">{t.label}</span>
+                </TabsTrigger>
               ))}
             </TabsList>
 
@@ -454,6 +462,24 @@ function AgentDetailPage() {
         onOpenChange={setShowNewSessionDialog}
         agentId={agentId}
         agentName={agent.name}
+      />
+
+      {/* Mobile bottom tab nav (sm and below) */}
+      <MobileTabNav
+        activeTab={activeTab}
+        onTabChange={(next) => {
+          setActiveTab(next);
+          void navigate({
+            search: (prev) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { activityId: _activityId, ...rest } = prev as Record<string, unknown>;
+              return next === "activity" && activityId
+                ? { ...rest, tab: next, activityId }
+                : { ...rest, tab: next };
+            },
+            replace: true,
+          });
+        }}
       />
     </div>
   );
