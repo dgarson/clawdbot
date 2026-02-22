@@ -53,6 +53,7 @@ const GlobalSearch = React.lazy(() => import("./views/GlobalSearch"));
 const PromptLibrary = React.lazy(() => import("./views/PromptLibrary"));
 const DataExportManager = React.lazy(() => import("./views/DataExportManager"));
 const VoiceInterface = React.lazy(() => import("./views/VoiceInterface"));
+const AgentInsights = React.lazy(() => import("./views/AgentInsights"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -83,6 +84,7 @@ export const navItems = [
   { id: "prompts",          label: "Prompt Library", emoji: "📝", shortcut: null },
   { id: "exports",          label: "Data Export",    emoji: "📦", shortcut: null },
   { id: "voice",            label: "Voice",          emoji: "🎙️", shortcut: null },
+  { id: "agent-insights",   label: "Agent Insights", emoji: "📊", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -114,6 +116,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "prompts":       <CardGridSkeleton count={6} />,
   "exports":       <ContentSkeleton />,
   "voice":         <ContentSkeleton />,
+  "agent-insights": <DashboardSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -366,6 +369,7 @@ function AppContent() {
       case "prompts":        return <PromptLibrary />;
       case "exports":        return <DataExportManager />;
       case "voice":          return <VoiceInterface />;
+      case "agent-insights": return <AgentInsights />;
       default:              return <AgentDashboard />;
     }
   };
