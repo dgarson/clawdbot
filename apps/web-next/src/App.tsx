@@ -156,6 +156,8 @@ const MigrationManager     = React.lazy(() => import("./views/MigrationManager")
 const LocalizationManager  = React.lazy(() => import("./views/LocalizationManager"));
 const MultiTenantManager   = React.lazy(() => import("./views/MultiTenantManager"));
 const MLModelRegistry      = React.lazy(() => import("./views/MLModelRegistry"));
+const EventStreamViewer    = React.lazy(() => import("./views/EventStreamViewer"));
+const PermissionsMatrix    = React.lazy(() => import("./views/PermissionsMatrix"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -289,6 +291,8 @@ export const navItems = [
   { id: "i18n",             label: "Localization",        emoji: "🌍", shortcut: null },
   { id: "multi-tenant",     label: "Multi-Tenant Mgr",   emoji: "🏢", shortcut: null },
   { id: "ml-registry",      label: "ML Model Registry",  emoji: "🤖", shortcut: null },
+  { id: "event-stream",     label: "Event Streams",       emoji: "📡", shortcut: null },
+  { id: "perms-matrix",     label: "Permissions Matrix",  emoji: "🔐", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -423,6 +427,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "i18n":                <ContentSkeleton />,
   "multi-tenant":        <ContentSkeleton />,
   "ml-registry":         <ContentSkeleton />,
+  "event-stream":        <ContentSkeleton />,
+  "perms-matrix":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -778,6 +784,8 @@ function AppContent() {
       case "i18n":               return <LocalizationManager />;
       case "multi-tenant":       return <MultiTenantManager />;
       case "ml-registry":        return <MLModelRegistry />;
+      case "event-stream":       return <EventStreamViewer />;
+      case "perms-matrix":       return <PermissionsMatrix />;
       default:              return <AgentDashboard />;
     }
   };
