@@ -241,6 +241,8 @@ const WebhookDebugger                = React.lazy(() => import("./views/WebhookD
 const CostAttributionDashboard       = React.lazy(() => import("./views/CostAttributionDashboard"));
 const LogAggregatorView              = React.lazy(() => import("./views/LogAggregatorView"));
 const UserDeviceManager              = React.lazy(() => import("./views/UserDeviceManager"));
+const SecurityScannerDashboard       = React.lazy(() => import("./views/SecurityScannerDashboard"));
+const APIGatewayMonitor              = React.lazy(() => import("./views/APIGatewayMonitor"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -459,6 +461,8 @@ export const navItems = [
   { id: "cost-attribution",     label: "Cost Attribution",      emoji: "💳", shortcut: null },
   { id: "log-aggregator",       label: "Log Aggregator",        emoji: "📜", shortcut: null },
   { id: "user-devices",         label: "User Devices",          emoji: "📱", shortcut: null },
+  { id: "security-scanner",     label: "Security Scanner",      emoji: "🛡️", shortcut: null },
+  { id: "api-gateway-monitor",  label: "API Gateway",           emoji: "🌐", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -678,6 +682,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "cost-attribution":       <ContentSkeleton />,
   "log-aggregator":         <ContentSkeleton />,
   "user-devices":           <ContentSkeleton />,
+  "security-scanner":       <ContentSkeleton />,
+  "api-gateway-monitor":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1118,6 +1124,8 @@ function AppContent() {
       case "cost-attribution":     return <CostAttributionDashboard />;
       case "log-aggregator":       return <LogAggregatorView />;
       case "user-devices":         return <UserDeviceManager />;
+      case "security-scanner":     return <SecurityScannerDashboard />;
+      case "api-gateway-monitor":  return <APIGatewayMonitor />;
       default:              return <AgentDashboard />;
     }
   };
