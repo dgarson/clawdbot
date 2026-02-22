@@ -246,6 +246,7 @@ const APIGatewayMonitor              = React.lazy(() => import("./views/APIGatew
 const DatabaseMigrationManager       = React.lazy(() => import("./views/DatabaseMigrationManager"));
 const ReleaseNotesManager            = React.lazy(() => import("./views/ReleaseNotesManager"));
 const TrafficAnalyticsDashboard      = React.lazy(() => import("./views/TrafficAnalyticsDashboard"));
+const IncidentCommandCenter          = React.lazy(() => import("./views/IncidentCommandCenter"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -469,6 +470,7 @@ export const navItems = [
   { id: "db-migrations",        label: "DB Migrations",         emoji: "🗄️", shortcut: null },
   { id: "release-notes",        label: "Release Notes",         emoji: "📝", shortcut: null },
   { id: "traffic-analytics",    label: "Traffic Analytics",     emoji: "📊", shortcut: null },
+  { id: "incident-command",     label: "Incident Command",      emoji: "🚨", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -693,6 +695,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "db-migrations":          <ContentSkeleton />,
   "release-notes":          <ContentSkeleton />,
   "traffic-analytics":      <ContentSkeleton />,
+  "incident-command":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1138,6 +1141,7 @@ function AppContent() {
       case "db-migrations":        return <DatabaseMigrationManager />;
       case "release-notes":        return <ReleaseNotesManager />;
       case "traffic-analytics":    return <TrafficAnalyticsDashboard />;
+      case "incident-command":     return <IncidentCommandCenter />;
       default:              return <AgentDashboard />;
     }
   };

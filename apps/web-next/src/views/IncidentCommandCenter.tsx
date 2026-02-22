@@ -3,7 +3,7 @@ import { cn } from "../lib/utils";
 
 type IncidentSeverity = "sev1" | "sev2" | "sev3" | "sev4";
 type IncidentStatus = "triggered" | "acknowledged" | "investigating" | "mitigated" | "resolved";
-type ActionType = "comment" | "status_change" | "runbook" | "escalation" | "page" | "mitigation" | "resolution";
+type ActionType = "comment" | "status_change" | "runbook" | "escalation" | "page" | "mitigation" | "resolution" | "alert";
 
 interface IncidentResponder {
   id: string;
@@ -19,7 +19,7 @@ interface TimelineEvent {
   author: string;
   timestamp: string;
   content: string;
-  metadata?: string;
+  metadata?: string | null;
 }
 
 interface Incident {
@@ -93,6 +93,7 @@ const actionIcon: Record<ActionType, string> = {
   page:          "📟",
   mitigation:    "🛠️",
   resolution:    "✅",
+  alert:         "🔔",
 };
 
 const INCIDENTS: Incident[] = [
@@ -118,7 +119,7 @@ const INCIDENTS: Incident[] = [
       { id: "r4", name: "Quinn", role: "Observability", joinedAt: "09:52", active: true },
     ],
     timeline: [
-      { id: "t1", type: "triggered", author: "PagerDuty", timestamp: "09:47:12", content: "Alert triggered: auth_error_rate > 20% for 3m", metadata: "alert:auth-high-error-rate" },
+      { id: "t1", type: "alert", author: "PagerDuty", timestamp: "09:47:12", content: "Alert triggered: auth_error_rate > 20% for 3m", metadata: "alert:auth-high-error-rate" },
       { id: "t2", type: "page", author: "System", timestamp: "09:47:15", content: "On-call paged: Tim, Sam", metadata: null },
       { id: "t3", type: "status_change", author: "Tim", timestamp: "09:48:03", content: "Status changed to Acknowledged", metadata: null },
       { id: "t4", type: "comment", author: "Tim", timestamp: "09:49:22", content: "Taking IC. Pulling up auth-service metrics. Looks like memory spiked ~5 min ago.", metadata: null },
@@ -149,7 +150,7 @@ const INCIDENTS: Incident[] = [
       { id: "r2", name: "Tim", role: "Database Lead", joinedAt: "07:18", active: false },
     ],
     timeline: [
-      { id: "t1", type: "triggered", author: "PagerDuty", timestamp: "07:15:00", content: "Alert: report_generation_p95 > 25s for 5m" },
+      { id: "t1", type: "alert", author: "PagerDuty", timestamp: "07:15:00", content: "Alert: report_generation_p95 > 25s for 5m" },
       { id: "t2", type: "status_change", author: "Xavier", timestamp: "07:16:12", content: "Acknowledged" },
       { id: "t3", type: "status_change", author: "Xavier", timestamp: "07:22:00", content: "Investigating" },
       { id: "t4", type: "comment", author: "Tim", timestamp: "07:35:00", content: "Found deadlock in pg_stat_activity. Killing stuck query." },
@@ -177,7 +178,7 @@ const INCIDENTS: Incident[] = [
       { id: "r2", name: "Tim", role: "Infrastructure", joinedAt: "14:10", active: false },
     ],
     timeline: [
-      { id: "t1", type: "triggered", author: "PagerDuty", timestamp: "14:00:02", content: "Alert: webhook_delivery_error_rate > 90%" },
+      { id: "t1", type: "alert", author: "PagerDuty", timestamp: "14:00:02", content: "Alert: webhook_delivery_error_rate > 90%" },
       { id: "t2", type: "status_change", author: "Sam", timestamp: "14:03:00", content: "Acknowledged" },
       { id: "t3", type: "comment", author: "Tim", timestamp: "14:22:00", content: "TLS cert expired. Issuing emergency renewal via certbot." },
       { id: "t4", type: "mitigation", author: "Tim", timestamp: "15:10:00", content: "New cert deployed. Deliveries resuming." },
