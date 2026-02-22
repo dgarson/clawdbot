@@ -18,6 +18,7 @@ import {
   buildDeviceAuthPayload,
 } from "./device-auth";
 import { loadOrCreateDeviceIdentity, signDevicePayload, type DeviceIdentity } from "./device-identity";
+import { uuidv7 } from "@/lib/ids";
 
 // Client constants matching the reference implementation
 export const GATEWAY_CLIENT_ID = "openclaw-control-ui";
@@ -129,26 +130,6 @@ function getPlatform(): string {
   return "web";
 }
 
-function generateUUID(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  // Fallback for older browsers
-  const bytes = new Uint8Array(16);
-  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
-    crypto.getRandomValues(bytes);
-  } else {
-    // Weak fallback
-    for (let i = 0; i < 16; i++) {bytes[i] = Math.floor(Math.random() * 256);}
-  }
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  let hex = "";
-  for (let i = 0; i < bytes.length; i++) {
-    hex += bytes[i]!.toString(16).padStart(2, "0");
-  }
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-}
 
 class GatewayClient {
   private ws: WebSocket | null = null;
@@ -314,15 +295,15 @@ class GatewayClient {
     try {
       this.ws = new WebSocket(url);
 
-      this.ws.onopen = () => {
+      this.ws.addEventListener("open", () => {
         this.queueConnect();
-      };
+      });
 
-      this.ws.onmessage = (event) => {
+      this.ws.addEventListener("message", (event) => {
         this.handleMessage(String(event.data ?? ""));
-      };
+      });
 
-      this.ws.onclose = (ev) => {
+      this.ws.addEventListener("close", (ev) => {
         const reason = String(ev.reason ?? "");
         this.ws = null;
         this.clearConnectTimer();
@@ -347,12 +328,12 @@ class GatewayClient {
           this.setConnectionState({ status: "disconnected" });
           this.scheduleReconnect();
         }
-      };
+      });
 
-      this.ws.onerror = () => {
+      this.ws.addEventListener("error", () => {
         this.setConnectionState({ status: "error", error: "WebSocket error" });
         this.config.onError?.(new Error("WebSocket error"));
-      };
+      });
     } catch (error) {
       this.setConnectionState({ status: "error", error: String(error) });
       this.config.onError?.(error instanceof Error ? error : new Error(String(error)));
@@ -668,7 +649,7 @@ class GatewayClient {
       throw new Error("Not connected to gateway");
     }
 
-    const id = generateUUID();
+    const id = uuidv7();
     const timeout = options?.timeout || DEFAULT_TIMEOUT;
 
     const frame = {

@@ -35,10 +35,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useCreateAgent } from "@/hooks/mutations/useAgentMutations";
+import { uuidv7 } from "@/lib/ids";
 
 // ── Route ──────────────────────────────────────────────────────────
 
@@ -117,21 +117,21 @@ function extractName(text: string): string | null {
   ];
   for (const p of patterns) {
     const m = text.match(p);
-    if (m?.[1]) return m[1].trim();
+    if (m?.[1]) {return m[1].trim();}
   }
   return null;
 }
 
 function inferRole(text: string): string {
   const lower = text.toLowerCase();
-  if (/\b(monitor|watch|track|observe|alert|notify|detect)\b/.test(lower)) return "Monitor";
-  if (/\b(research|analyze|study|investigate|explore|summarize)\b/.test(lower)) return "Researcher";
-  if (/\b(code|develop|debug|engineer|build|implement|refactor)\b/.test(lower)) return "Developer";
-  if (/\b(write|draft|edit|content|copy|document|blog|article)\b/.test(lower)) return "Writer";
-  if (/\b(coordinate|manage|organize|plan|schedule|track tasks)\b/.test(lower)) return "Coordinator";
-  if (/\b(review|audit|check|inspect|validate|test)\b/.test(lower)) return "Reviewer";
-  if (/\b(support|help|assist|answer|respond|customer)\b/.test(lower)) return "Support";
-  if (/\b(teach|tutor|coach|guide|explain|train)\b/.test(lower)) return "Educator";
+  if (/\b(monitor|watch|track|observe|alert|notify|detect)\b/.test(lower)) {return "Monitor";}
+  if (/\b(research|analyze|study|investigate|explore|summarize)\b/.test(lower)) {return "Researcher";}
+  if (/\b(code|develop|debug|engineer|build|implement|refactor)\b/.test(lower)) {return "Developer";}
+  if (/\b(write|draft|edit|content|copy|document|blog|article)\b/.test(lower)) {return "Writer";}
+  if (/\b(coordinate|manage|organize|plan|schedule|track tasks)\b/.test(lower)) {return "Coordinator";}
+  if (/\b(review|audit|check|inspect|validate|test)\b/.test(lower)) {return "Reviewer";}
+  if (/\b(support|help|assist|answer|respond|customer)\b/.test(lower)) {return "Support";}
+  if (/\b(teach|tutor|coach|guide|explain|train)\b/.test(lower)) {return "Educator";}
   return "";
 }
 
@@ -161,24 +161,24 @@ function inferTags(text: string): string[] {
 
 function inferModel(text: string): string | null {
   const lower = text.toLowerCase();
-  if (/\bopus\b/.test(lower)) return "anthropic/claude-opus-4-20250514";
-  if (/\bhaiku\b|\bfast\b|\bquick\b|\bcheap\b/.test(lower)) return "anthropic/claude-haiku-3-5-20241022";
-  if (/\bgpt-?4o mini\b/.test(lower)) return "openai/gpt-4o-mini";
-  if (/\bgpt-?4\b|\bgpt4\b/.test(lower)) return "openai/gpt-4o";
-  if (/\bgemini\b/.test(lower)) return "google/gemini-3-flash-preview";
-  if (/\bgrok\b/.test(lower)) return "xai/grok-3";
+  if (/\bopus\b/.test(lower)) {return "anthropic/claude-opus-4-20250514";}
+  if (/\bhaiku\b|\bfast\b|\bquick\b|\bcheap\b/.test(lower)) {return "anthropic/claude-haiku-3-5-20241022";}
+  if (/\bgpt-?4o mini\b/.test(lower)) {return "openai/gpt-4o-mini";}
+  if (/\bgpt-?4\b|\bgpt4\b/.test(lower)) {return "openai/gpt-4o";}
+  if (/\bgemini\b/.test(lower)) {return "google/gemini-3-flash-preview";}
+  if (/\bgrok\b/.test(lower)) {return "xai/grok-3";}
   return null;
 }
 
 function inferPersonality(text: string): string {
   const lower = text.toLowerCase();
   const traits: string[] = [];
-  if (/\b(concise|brief|terse|short)\b/.test(lower)) traits.push("concise");
-  if (/\b(detailed|thorough|comprehensive|in-depth)\b/.test(lower)) traits.push("thorough");
-  if (/\b(friendly|warm|casual|conversational)\b/.test(lower)) traits.push("friendly");
-  if (/\b(professional|formal|serious|precise)\b/.test(lower)) traits.push("professional");
-  if (/\b(creative|imaginative|inventive)\b/.test(lower)) traits.push("creative");
-  if (/\b(proactive|initiative|autonomous)\b/.test(lower)) traits.push("proactive");
+  if (/\b(concise|brief|terse|short)\b/.test(lower)) {traits.push("concise");}
+  if (/\b(detailed|thorough|comprehensive|in-depth)\b/.test(lower)) {traits.push("thorough");}
+  if (/\b(friendly|warm|casual|conversational)\b/.test(lower)) {traits.push("friendly");}
+  if (/\b(professional|formal|serious|precise)\b/.test(lower)) {traits.push("professional");}
+  if (/\b(creative|imaginative|inventive)\b/.test(lower)) {traits.push("creative");}
+  if (/\b(proactive|initiative|autonomous)\b/.test(lower)) {traits.push("proactive");}
   return traits.join(", ");
 }
 
@@ -188,7 +188,7 @@ function generateAgentName(role: string, tags: string[]): string {
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
     return `${capitalize(primaryTag)} ${role}`;
   }
-  if (role) return `${role} Agent`;
+  if (role) {return `${role} Agent`;}
   if (tags.length > 0) {
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
     return `${capitalize(tags[0])} Agent`;
@@ -740,7 +740,7 @@ function ChatAgentBuilderPage() {
   const addMessage = React.useCallback((msg: Omit<ChatMessage, "id" | "timestamp">) => {
     setMessages((prev) => [
       ...prev,
-      { ...msg, id: crypto.randomUUID(), timestamp: Date.now() },
+      { ...msg, id: uuidv7(), timestamp: Date.now() },
     ]);
   }, []);
 
@@ -761,7 +761,7 @@ function ChatAgentBuilderPage() {
 
   const handleSend = React.useCallback(async () => {
     const text = inputText.trim();
-    if (!text || isProcessing) return;
+    if (!text || isProcessing) {return;}
 
     setInputText("");
     setShowSuggestions(false);
@@ -820,7 +820,7 @@ function ChatAgentBuilderPage() {
   }, []);
 
   const handleCreate = React.useCallback(async () => {
-    if (!isReady) return;
+    if (!isReady) {return;}
 
     try {
       const result = await createAgent.mutateAsync({
