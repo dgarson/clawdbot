@@ -263,6 +263,8 @@ const ServiceHealthDashboard         = React.lazy(() => import("./views/ServiceH
 const DataMaskingManager             = React.lazy(() => import("./views/DataMaskingManager"));
 const ObservabilityRulesEngine       = React.lazy(() => import("./views/ObservabilityRulesEngine"));
 const AgentRelationshipTopology      = React.lazy(() => import("./views/AgentRelationshipTopology"));
+const TenantProvisioningWizard       = React.lazy(() => import("./views/TenantProvisioningWizard"));
+const BillingAuditLog                = React.lazy(() => import("./views/BillingAuditLog"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -527,6 +529,8 @@ export const navItems = [
   { id: "data-masking",             label: "Data Masking",            emoji: "🎭", shortcut: null },
   { id: "obs-rules-engine",         label: "Observability Rules",     emoji: "🔭", shortcut: null },
   { id: "agent-rel-topology",       label: "Agent Topology",          emoji: "🤝", shortcut: null },
+  { id: "tenant-provisioning",      label: "Tenant Provisioning",     emoji: "🏗️", shortcut: null },
+  { id: "billing-audit-log",        label: "Billing Audit Log",       emoji: "🧾", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -780,6 +784,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-masking":              <ContentSkeleton />,
   "obs-rules-engine":          <ContentSkeleton />,
   "agent-rel-topology":        <ContentSkeleton />,
+  "tenant-provisioning":       <ContentSkeleton />,
+  "billing-audit-log":         <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1250,6 +1256,8 @@ function AppContent() {
       case "data-masking":         return <DataMaskingManager />;
       case "obs-rules-engine":     return <ObservabilityRulesEngine />;
       case "agent-rel-topology":   return <AgentRelationshipTopology />;
+      case "tenant-provisioning":  return <TenantProvisioningWizard />;
+      case "billing-audit-log":    return <BillingAuditLog />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
