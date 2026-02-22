@@ -54,6 +54,7 @@ const PromptLibrary = React.lazy(() => import("./views/PromptLibrary"));
 const DataExportManager = React.lazy(() => import("./views/DataExportManager"));
 const VoiceInterface = React.lazy(() => import("./views/VoiceInterface"));
 const AgentInsights = React.lazy(() => import("./views/AgentInsights"));
+const DeveloperConsole = React.lazy(() => import("./views/DeveloperConsole"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -85,6 +86,7 @@ export const navItems = [
   { id: "exports",          label: "Data Export",    emoji: "📦", shortcut: null },
   { id: "voice",            label: "Voice",          emoji: "🎙️", shortcut: null },
   { id: "agent-insights",   label: "Agent Insights", emoji: "📊", shortcut: null },
+  { id: "dev-console",      label: "Dev Console",    emoji: "🖥️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -117,6 +119,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "exports":       <ContentSkeleton />,
   "voice":         <ContentSkeleton />,
   "agent-insights": <DashboardSkeleton />,
+  "dev-console":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -369,7 +372,8 @@ function AppContent() {
       case "prompts":        return <PromptLibrary />;
       case "exports":        return <DataExportManager />;
       case "voice":          return <VoiceInterface />;
-      case "agent-insights": return <AgentInsights />;
+      case "agent-insights":  return <AgentInsights />;
+      case "dev-console":     return <DeveloperConsole />;
       default:              return <AgentDashboard />;
     }
   };
