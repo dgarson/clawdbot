@@ -113,6 +113,10 @@ const EmbeddingExplorer    = React.lazy(() => import("./views/EmbeddingExplorer"
 const RuleEngine           = React.lazy(() => import("./views/RuleEngine"));
 const TelemetryViewer      = React.lazy(() => import("./views/TelemetryViewer"));
 const ModelHealthDashboard = React.lazy(() => import("./views/ModelHealthDashboard"));
+const ActivityTimeline     = React.lazy(() => import("./views/ActivityTimeline"));
+const PolicyManager        = React.lazy(() => import("./views/PolicyManager"));
+const VersionControl       = React.lazy(() => import("./views/VersionControl"));
+const ScoreCard            = React.lazy(() => import("./views/ScoreCard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -203,6 +207,10 @@ export const navItems = [
   { id: "rules",            label: "Rule Engine",       emoji: "📋", shortcut: null },
   { id: "telemetry",        label: "Telemetry Viewer",  emoji: "📡", shortcut: null },
   { id: "model-health",     label: "Model Health",      emoji: "💚", shortcut: null },
+  { id: "timeline",         label: "Activity Timeline", emoji: "📅", shortcut: null },
+  { id: "policies",         label: "Policy Manager",    emoji: "⚖️", shortcut: null },
+  { id: "git",              label: "Version Control",   emoji: "🌿", shortcut: null },
+  { id: "scorecard",        label: "Score Card",        emoji: "🏆", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -294,6 +302,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "rules":            <ContentSkeleton />,
   "telemetry":        <ContentSkeleton />,
   "model-health":     <ContentSkeleton />,
+  "timeline":         <ContentSkeleton />,
+  "policies":         <ContentSkeleton />,
+  "git":              <ContentSkeleton />,
+  "scorecard":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -606,6 +618,10 @@ function AppContent() {
       case "rules":            return <RuleEngine />;
       case "telemetry":        return <TelemetryViewer />;
       case "model-health":     return <ModelHealthDashboard />;
+      case "timeline":         return <ActivityTimeline />;
+      case "policies":         return <PolicyManager />;
+      case "git":              return <VersionControl />;
+      case "scorecard":        return <ScoreCard />;
       default:              return <AgentDashboard />;
     }
   };
