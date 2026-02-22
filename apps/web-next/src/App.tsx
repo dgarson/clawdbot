@@ -64,6 +64,8 @@ const KnowledgeBase   = React.lazy(() => import("./views/KnowledgeBase"));
 const CrashReporter   = React.lazy(() => import("./views/CrashReporter"));
 const ModelBenchmark  = React.lazy(() => import("./views/ModelBenchmark"));
 const RateLimitDashboard = React.lazy(() => import("./views/RateLimitDashboard"));
+const TaskQueue       = React.lazy(() => import("./views/TaskQueue"));
+const StorageExplorer = React.lazy(() => import("./views/StorageExplorer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -105,6 +107,8 @@ export const navItems = [
   { id: "crashes",         label: "Crash Reports",  emoji: "💥", shortcut: null },
   { id: "benchmark",       label: "Model Benchmark", emoji: "📈", shortcut: null },
   { id: "rate-limits",     label: "Rate Limits",    emoji: "⚡", shortcut: null },
+  { id: "task-queue",      label: "Task Queue",     emoji: "📬", shortcut: null },
+  { id: "storage",         label: "Storage",        emoji: "💾", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -147,6 +151,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "crashes":        <TableSkeleton rows={8} />,
   "benchmark":      <DashboardSkeleton />,
   "rate-limits":    <DashboardSkeleton />,
+  "task-queue":     <TableSkeleton rows={10} />,
+  "storage":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -410,6 +416,8 @@ function AppContent() {
       case "crashes":         return <CrashReporter />;
       case "benchmark":       return <ModelBenchmark />;
       case "rate-limits":     return <RateLimitDashboard />;
+      case "task-queue":      return <TaskQueue />;
+      case "storage":         return <StorageExplorer />;
       default:              return <AgentDashboard />;
     }
   };
