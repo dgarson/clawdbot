@@ -237,3 +237,41 @@
   - `node --import tsx scripts/release-check.ts`
   - `pnpm release:check`
   - `pnpm test:install:smoke` or `OPENCLAW_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke` for non-root smoke path.
+
+## Merlin — Task Delegation (Orchestration)
+
+As the main agent, Merlin coordinates across all functions and should actively delegate discrete tasks rather than doing everything inline.
+
+Use **`sessions_spawn`** for background work that auto-announces results. Use **`sessions_send`** to communicate with agents whose sessions are already running.
+
+- **`sessions_send`** → message a running agent (status update, escalation, coordination, routing info to C-Suite)
+- **`sessions_spawn`** → create a new ephemeral sub-agent to execute a task and report back
+
+### When to spawn
+
+- **Coding/implementation** — delegate to the appropriate tier worker agent (never do implementation inline when a worker can do it)
+- **Research or analysis** — spawn a sub-agent to gather data and return a deliverable
+- **Parallel tasks** — spawn multiple agents simultaneously for independent workstreams
+- **Long-running work** — anything that would block the main thread while David waits; spawn it, respond immediately, result arrives when ready
+- **C-Suite delegation** — when a task belongs to a specific C-Suite owner, spawn their agent with the task rather than doing it yourself
+
+```js
+sessions_spawn({
+  agentId: "xavier",
+  task: "Review PR #123 for architectural soundness, report findings",
+});
+sessions_spawn({
+  agentId: "amadeus",
+  task: "Evaluate GPT-5 vs Opus 4.6 on the eval harness in amadeus/evals/, produce comparison",
+});
+sessions_spawn({ task: "Summarize all agent MEMORY.md files updated in the last 7 days" });
+```
+
+### What stays with Merlin
+
+- Communication, routing, and status synthesis (assemble results from sub-agents, surface to David)
+- Judgment calls requiring cross-org context
+- Anything that needs David's attention or confirmation before action
+- Short tasks where spawning overhead outweighs the benefit
+
+Monitor: `sessions_list`, `subagents(action=list)`. Steer/kill: `subagents(action=steer|kill)`.
