@@ -6,7 +6,6 @@ export { AgentOverviewTab } from "./AgentOverviewTab";
 export { AgentWorkstreamsTab } from "./AgentWorkstreamsTab";
 export { AgentRitualsTab } from "./AgentRitualsTab";
 export { AgentToolsTab } from "./AgentToolsTab";
-export { AgentSoulTab } from "./AgentSoulTab";
 export { AgentActivityTab } from "./AgentActivityTab";
 export { AgentConfigPage } from "./AgentConfigPage";
 export { AgentConfigureTab } from "./AgentConfigureTab";
