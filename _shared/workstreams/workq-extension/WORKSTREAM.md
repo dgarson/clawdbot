@@ -3,7 +3,7 @@
 _Mega-branch:_ `feat/workq-extension`
 _Owner:_ **Tim** (VP Architecture)
 _Created:_ 2026-02-21
-_Last updated:_ 2026-02-22 07:20 MST
+_Last updated:_ 2026-02-22 07:22 MST
 
 > Delete this entire directory (`_shared/workstreams/workq-extension/`) ONLY after `feat/workq-extension` is confirmed merged into `dgarson/fork`.
 
@@ -49,16 +49,16 @@ Key decisions:
 
 See source board: `/Users/openclaw/.openclaw/workspace/_shared/WORKBOARD.md`
 
-| Task                                                               | Owner          | Status                 | Notes                                                                                                                                                                    |
-| ------------------------------------------------------------------ | -------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Create mega-branch `feat/workq-extension` from `dgarson/fork`      | Tim            | ✅ Done                | Branch created + pushed                                                                                                                                                  |
-| Copy extension code from `~/.openclaw/extensions/workq/` into repo | Tim            | ✅ Done                | Copied all required files (excluding `node_modules`, lockfile)                                                                                                           |
-| Add `extensions/workq/tsconfig.json`                               | Sandy          | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:sandy:subagent:44983536-bfcc-44ee-9c95-60752508f02a`); branch `feat/workq-extension`; PR target `feat/workq-extension`              |
-| Register `workq.*` gateway RPC methods                             | Oscar (+Sandy) | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:oscar:subagent:272a3206-71e3-4528-b426-b54c42270e18`); branch `feat/workq-extension`; PR target `feat/workq-extension`              |
-| Pi runtime validation + README notes                               | Wes            | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067`); branch `feat/workq-extension`; PR target `feat/workq-extension`                |
-| Claude Code opt-in docs (`CLAUDE.md`)                              | Nate           | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:nate:subagent:3adcd6e2-8b20-4822-8cf4-af566a881ebc`); branch `feat/workq-extension`; PR target `feat/workq-extension`               |
-| Config registration (`plugins.workq.*`)                            | Tim            | 🔴 Blocked (Sequenced) | Sequencing enforced: execute after plugin schema registration lands (from Sandy/Oscar lane integration), then apply `plugins.workq.*` config and validate CLI acceptance |
-| Dual-purpose inbox design docs                                     | Tim            | ✅ Done                | Added below in this file + SKILL.md created                                                                                                                              |
+| Task                                                               | Owner          | Status                 | Notes                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------ | -------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create mega-branch `feat/workq-extension` from `dgarson/fork`      | Tim            | ✅ Done                | Branch created + pushed                                                                                                                                                                                                                                     |
+| Copy extension code from `~/.openclaw/extensions/workq/` into repo | Tim            | ✅ Done                | Copied all required files (excluding `node_modules`, lockfile)                                                                                                                                                                                              |
+| Add `extensions/workq/tsconfig.json`                               | Sandy          | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:sandy:subagent:44983536-bfcc-44ee-9c95-60752508f02a`) → rate-limited; retried 07:22 MST (`agent:sandy:subagent:b6cc2eca-ad9d-4d77-98a7-6c584a6ad3a4`); branch `feat/workq-extension`; PR target `feat/workq-extension` |
+| Register `workq.*` gateway RPC methods                             | Oscar (+Sandy) | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:oscar:subagent:272a3206-71e3-4528-b426-b54c42270e18`) → rate-limited; retried 07:22 MST (`agent:oscar:subagent:b77c6f83-2c51-4c36-b67d-8aa0e0e5644b`); branch `feat/workq-extension`; PR target `feat/workq-extension` |
+| Pi runtime validation + README notes                               | Wes            | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067`); branch `feat/workq-extension`; PR target `feat/workq-extension`                                                                                                   |
+| Claude Code opt-in docs (`CLAUDE.md`)                              | Nate           | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:nate:subagent:3adcd6e2-8b20-4822-8cf4-af566a881ebc`) → rate-limited; retried 07:22 MST (`agent:nate:subagent:c1cc3a67-8196-468b-bd48-c8445f6c2e75`); branch `feat/workq-extension`; PR target `feat/workq-extension`   |
+| Config registration (`plugins.workq.*`)                            | Tim            | 🔴 Blocked (Sequenced) | Sequencing enforced: execute after plugin schema registration lands (from Sandy/Oscar lane integration), then apply `plugins.workq.*` config and validate CLI acceptance                                                                                    |
+| Dual-purpose inbox design docs                                     | Tim            | ✅ Done                | Added below in this file + SKILL.md created                                                                                                                                                                                                                 |
 
 ---
 
@@ -190,6 +190,9 @@ message, call `workq_inbox_ack` with the message IDs — this is mandatory.
 - 2026-02-22 07:20 MST — Oscar re-dispatched (`agent:oscar:subagent:272a3206-71e3-4528-b426-b54c42270e18`): gateway `workq.*` RPC methods; branch `feat/workq-extension`; PR target `feat/workq-extension`.
 - 2026-02-22 07:20 MST — Wes re-dispatched (`agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067`): Pi runtime compatibility + README notes; branch `feat/workq-extension`; PR target `feat/workq-extension`.
 - 2026-02-22 07:20 MST — Nate re-dispatched (`agent:nate:subagent:3adcd6e2-8b20-4822-8cf4-af566a881ebc`): `extensions/workq/CLAUDE.md`; branch `feat/workq-extension`; PR target `feat/workq-extension`.
+- 2026-02-22 07:22 MST — Sandy retry dispatched after rate-limit (`agent:sandy:subagent:b6cc2eca-ad9d-4d77-98a7-6c584a6ad3a4`) using GLM.
+- 2026-02-22 07:22 MST — Oscar retry dispatched after rate-limit (`agent:oscar:subagent:b77c6f83-2c51-4c36-b67d-8aa0e0e5644b`) using GLM.
+- 2026-02-22 07:22 MST — Nate retry dispatched after rate-limit (`agent:nate:subagent:c1cc3a67-8196-468b-bd48-c8445f6c2e75`) using GLM.
 - Sequencing note: Tim’s `plugins.workq.*` config registration remains blocked until schema registration lands; do not attempt config set before plugin schema acceptance is merged/available.
 
 ---
