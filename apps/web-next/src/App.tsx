@@ -239,6 +239,8 @@ const OnCallRotationManager          = React.lazy(() => import("./views/OnCallRo
 const ResourceInventoryDashboard     = React.lazy(() => import("./views/ResourceInventoryDashboard"));
 const WebhookDebugger                = React.lazy(() => import("./views/WebhookDebugger"));
 const CostAttributionDashboard       = React.lazy(() => import("./views/CostAttributionDashboard"));
+const LogAggregatorView              = React.lazy(() => import("./views/LogAggregatorView"));
+const UserDeviceManager              = React.lazy(() => import("./views/UserDeviceManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -455,6 +457,8 @@ export const navItems = [
   { id: "resource-inventory",   label: "Resource Inventory",    emoji: "📋", shortcut: null },
   { id: "webhook-debugger",     label: "Webhook Debugger",      emoji: "🪝", shortcut: null },
   { id: "cost-attribution",     label: "Cost Attribution",      emoji: "💳", shortcut: null },
+  { id: "log-aggregator",       label: "Log Aggregator",        emoji: "📜", shortcut: null },
+  { id: "user-devices",         label: "User Devices",          emoji: "📱", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -672,6 +676,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "resource-inventory":     <ContentSkeleton />,
   "webhook-debugger":       <ContentSkeleton />,
   "cost-attribution":       <ContentSkeleton />,
+  "log-aggregator":         <ContentSkeleton />,
+  "user-devices":           <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1110,6 +1116,8 @@ function AppContent() {
       case "resource-inventory":   return <ResourceInventoryDashboard />;
       case "webhook-debugger":     return <WebhookDebugger />;
       case "cost-attribution":     return <CostAttributionDashboard />;
+      case "log-aggregator":       return <LogAggregatorView />;
+      case "user-devices":         return <UserDeviceManager />;
       default:              return <AgentDashboard />;
     }
   };
