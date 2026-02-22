@@ -223,6 +223,8 @@ const TestResultsDashboard       = React.lazy(() => import("./views/TestResultsD
 const CustomerSuccessDashboard       = React.lazy(() => import("./views/CustomerSuccessDashboard"));
 const ContainerLogViewer             = React.lazy(() => import("./views/ContainerLogViewer"));
 const InfrastructureDriftDetector    = React.lazy(() => import("./views/InfrastructureDriftDetector"));
+const AnnouncementCenter             = React.lazy(() => import("./views/AnnouncementCenter"));
+const DatabaseSchemaExplorer         = React.lazy(() => import("./views/DatabaseSchemaExplorer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -423,6 +425,8 @@ export const navItems = [
   { id: "customer-success", label: "Customer Success",  emoji: "🌟", shortcut: null },
   { id: "container-logs",  label: "Container Logs",    emoji: "📜", shortcut: null },
   { id: "infra-drift",     label: "Drift Detector",    emoji: "🔀", shortcut: null },
+  { id: "announcements",  label: "Announcements",      emoji: "📣", shortcut: null },
+  { id: "schema-explorer",label: "Schema Explorer",    emoji: "🗄️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -624,6 +628,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "customer-success":  <ContentSkeleton />,
   "container-logs":    <ContentSkeleton />,
   "infra-drift":       <ContentSkeleton />,
+  "announcements":     <ContentSkeleton />,
+  "schema-explorer":   <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1046,6 +1052,8 @@ function AppContent() {
       case "customer-success":     return <CustomerSuccessDashboard />;
       case "container-logs":       return <ContainerLogViewer />;
       case "infra-drift":          return <InfrastructureDriftDetector />;
+      case "announcements":        return <AnnouncementCenter />;
+      case "schema-explorer":      return <DatabaseSchemaExplorer />;
       default:              return <AgentDashboard />;
     }
   };
