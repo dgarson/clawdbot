@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, Target } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { Milestone } from "./GoalCard";
 
 interface MilestoneTrackerProps {
@@ -9,6 +10,8 @@ interface MilestoneTrackerProps {
   variant?: "horizontal" | "vertical";
   showLabels?: boolean;
   className?: string;
+  /** Highlight a specific milestone (e.g. the one just completed from the feed) */
+  highlightMilestoneId?: string;
 }
 
 export function MilestoneTracker({
@@ -16,6 +19,7 @@ export function MilestoneTracker({
   variant = "horizontal",
   showLabels = true,
   className,
+  highlightMilestoneId,
 }: MilestoneTrackerProps) {
   const completedCount = milestones.filter((m) => m.completed).length;
 
@@ -82,16 +86,23 @@ export function MilestoneTracker({
 
                   {/* Milestone content */}
                   <div className="min-w-0 flex-1">
-                    <p
-                      className={cn(
-                        "text-sm font-medium transition-colors",
-                        milestone.completed
-                          ? "text-foreground"
-                          : "text-muted-foreground"
+                    <div className="flex items-center gap-2">
+                      <p
+                        className={cn(
+                          "text-sm font-medium transition-colors",
+                          milestone.completed
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {milestone.title}
+                      </p>
+                      {highlightMilestoneId === milestone.id && (
+                        <Badge variant="secondary" className="shrink-0 text-xs">
+                          Just completed
+                        </Badge>
                       )}
-                    >
-                      {milestone.title}
-                    </p>
+                    </div>
                     {milestone.completedAt && (
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         Completed {new Date(milestone.completedAt).toLocaleDateString()}

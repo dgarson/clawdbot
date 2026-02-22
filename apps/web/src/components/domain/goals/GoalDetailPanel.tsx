@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Clock,
   TrendingUp,
+  Trophy,
 } from "lucide-react";
 import type { GoalStatus } from "./GoalCard";
 
@@ -26,6 +27,11 @@ interface GoalDetailPanelProps {
   onClose: () => void;
   onEdit?: (goal: Goal) => void;
   className?: string;
+  /**
+   * When set, highlights this milestone with a "Just completed" badge and shows
+   * a completion banner if all milestones are done. Used by the milestone feed.
+   */
+  highlightMilestoneId?: string;
 }
 
 const statusConfig: Record<GoalStatus | string, { color: string; bgColor: string; label: string }> = {
@@ -81,11 +87,13 @@ export function GoalDetailPanel({
   onClose,
   onEdit,
   className,
+  highlightMilestoneId,
 }: GoalDetailPanelProps) {
   if (!goal) {return null;}
 
   const status = statusConfig[goal.status] || statusConfig.active;
   const completedMilestones = goal.milestones.filter((m) => m.completed).length;
+  const isGoalComplete = highlightMilestoneId != null && completedMilestones === goal.milestones.length;
 
   return (
     <DetailPanel
@@ -96,6 +104,21 @@ export function GoalDetailPanel({
       className={className}
     >
       <div className="space-y-6">
+        {/* Goal Complete banner — only shown when triggered from milestone feed */}
+        {isGoalComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3"
+          >
+            <Trophy className="h-5 w-5 shrink-0 text-yellow-500" />
+            <div>
+              <p className="text-sm font-semibold text-green-700 dark:text-green-400">Goal Complete</p>
+              <p className="text-xs text-muted-foreground">All milestones have been achieved</p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Header Section */}
         <div className="flex items-start gap-4">
           <motion.div
@@ -205,6 +228,7 @@ export function GoalDetailPanel({
             milestones={convertMilestones(goal.milestones)}
             variant="vertical"
             showLabels
+            highlightMilestoneId={highlightMilestoneId}
           />
         </motion.div>
 

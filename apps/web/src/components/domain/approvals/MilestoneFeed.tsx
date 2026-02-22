@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useGoals } from "@/hooks/queries/useGoals";
 import { MilestoneItem } from "./MilestoneItem";
-import { MilestoneDetailPanel } from "./MilestoneDetailPanel";
+import { GoalDetailPanel } from "@/components/domain/goals";
 import type { Goal, Milestone } from "@/hooks/queries/useGoals";
 import { isToday, isYesterday, isThisWeek } from "date-fns";
 
@@ -57,11 +57,11 @@ export function MilestoneFeed({ mode }: MilestoneFeedProps) {
           onSelect={(m, g) => setSelected({ milestone: m, goal: g })}
         />
       )}
-      <MilestoneDetailPanel
+      <GoalDetailPanel
         open={selected !== null}
-        onOpenChange={(open) => { if (!open) setSelected(null); }}
+        onClose={() => setSelected(null)}
         goal={selected?.goal ?? null}
-        milestone={selected?.milestone ?? null}
+        highlightMilestoneId={selected?.milestone.id}
       />
     </>
   );
