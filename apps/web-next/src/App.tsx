@@ -48,6 +48,7 @@ const AuditLog = React.lazy(() => import("./views/AuditLog"));
 const BillingSubscription = React.lazy(() => import("./views/BillingSubscription"));
 const SystemHealth = React.lazy(() => import("./views/SystemHealth"));
 const IntegrationHub = React.lazy(() => import("./views/IntegrationHub"));
+const TeamManagement = React.lazy(() => import("./views/TeamManagement"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -73,6 +74,7 @@ export const navItems = [
   { id: "billing",      label: "Billing",            emoji: "💳", shortcut: null },
   { id: "system-health",    label: "System Health",  emoji: "🩺", shortcut: null },
   { id: "integrations",     label: "Integrations",   emoji: "🔌", shortcut: null },
+  { id: "team",             label: "Team",           emoji: "👥", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -99,6 +101,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "billing":     <ContentSkeleton />,
   "system-health": <DashboardSkeleton />,
   "integrations":  <CardGridSkeleton count={9} />,
+  "team":          <TableSkeleton rows={6} />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -346,6 +349,7 @@ function AppContent() {
       case "billing":       return <BillingSubscription />;
       case "system-health":  return <SystemHealth />;
       case "integrations":   return <IntegrationHub />;
+      case "team":           return <TeamManagement />;
       default:              return <AgentDashboard />;
     }
   };
