@@ -20,9 +20,30 @@ const ExecApprovalForwardingSchema = z
   .strict()
   .optional();
 
+const HitlPolicySchema = z
+  .object({
+    id: z.string().min(1),
+    tool: z.string().min(1).optional(),
+    category: z.string().min(1).optional(),
+    pattern: z.string().min(1).optional(),
+    minApproverRole: z.string().min(1).optional(),
+    requireDifferentActor: z.boolean().optional(),
+  })
+  .strict();
+
+const HitlApprovalsSchema = z
+  .object({
+    defaultPolicyId: z.string().min(1).optional(),
+    approverRoleOrder: z.array(z.string().min(1)).optional(),
+    policies: z.array(HitlPolicySchema).optional(),
+  })
+  .strict()
+  .optional();
+
 export const ApprovalsSchema = z
   .object({
     exec: ExecApprovalForwardingSchema,
+    hitl: HitlApprovalsSchema,
   })
   .strict()
   .optional();
