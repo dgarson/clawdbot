@@ -2,24 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { usePersonaStore } from '../usePersonaStore';
 
-// The persist middleware requires localStorage; provide a simple in-memory mock.
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
-  };
-})();
-
-Object.defineProperty(globalThis, 'localStorage', {
-  value: localStorageMock,
-  writable: true,
-});
-
 beforeEach(() => {
-  localStorageMock.clear();
+  // Reset only the data fields between tests; keep action functions intact.
   usePersonaStore.setState({ tier: 'casual', hasSeenTierPrompt: false });
 });
 
