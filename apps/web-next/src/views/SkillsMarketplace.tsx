@@ -3,6 +3,7 @@ import { Search, Download, Settings, RefreshCw, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MOCK_SKILLS } from '../mock-data';
 import type { Skill } from '../types';
+import { EmptyState } from '../components/ui/empty-state';
 
 type Tab = 'installed' | 'available' | 'featured';
 
@@ -125,9 +126,16 @@ export default function SkillsMarketplace() {
       </div>
 
       {filteredSkills.length === 0 && (
-        <div className="text-center text-gray-500 py-12">
-          No skills found matching your criteria.
-        </div>
+        <EmptyState
+          variant={searchQuery || activeCategory !== 'All' ? 'no-results' : 'no-skills'}
+          action={{
+            label: searchQuery || activeCategory !== 'All' ? 'Clear Filters' : 'Browse Skills',
+            onClick: () => {
+              setSearchQuery('');
+              setActiveCategory('All');
+            },
+          }}
+        />
       )}
     </div>
   );

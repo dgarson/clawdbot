@@ -4,6 +4,7 @@ import { formatRelativeTime } from '../mock-data';
 import { useGateway } from '../hooks/useGateway';
 import { MOCK_AGENTS, MOCK_SESSIONS } from '../mock-data';
 import type { AgentStatus, AgentHealth } from '../types';
+import { EmptyState } from '../components/ui/empty-state';
 
 // ============================================================================
 // Types (local for component)
@@ -296,8 +297,17 @@ export default function AgentDashboard() {
           {/* Agent Grid */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-lg font-semibold">Agents</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {MOCK_AGENTS.map((agent) => (
+            {MOCK_AGENTS.length === 0 ? (
+              <EmptyState
+                variant="no-agents"
+                action={{
+                  label: 'Create Agent',
+                  onClick: () => console.log('Create agent'),
+                }}
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {MOCK_AGENTS.map((agent) => (
                 <div
                   key={agent.id}
                   className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors cursor-pointer"
@@ -330,7 +340,8 @@ export default function AgentDashboard() {
                 <span className="text-3xl mb-2">+</span>
                 <p className="text-sm text-gray-400">New Agent</p>
               </div>
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Activity Feed */}
