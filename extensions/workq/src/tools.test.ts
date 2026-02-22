@@ -2,9 +2,9 @@ import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { WorkItem, WorkqDatabaseApi } from "./types.js";
 import { WorkqDatabase } from "./database.js";
 import { registerWorkqTools } from "./tools.js";
-import type { WorkItem, WorkqDatabaseApi } from "./types.js";
 
 type ToolDef = {
   name: string;
@@ -91,6 +91,7 @@ function makeItem(issueRef: string, agentId: string): WorkItem {
     files: [],
     claimedAt: "2026-01-01 00:00:00",
     updatedAt: "2026-01-01 00:00:00",
+    claimedSessionKey: null,
     isStale: false,
   };
 }
@@ -107,6 +108,12 @@ describe("registerWorkqTools", () => {
       done: vi.fn(),
       get: vi.fn(() => null),
       getLog: vi.fn(() => []),
+      findStaleActiveItems: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
+      systemMoveToInReview: vi.fn(),
+      systemMarkDone: vi.fn(),
+      systemReleaseToUnclaimed: vi.fn(),
+      systemAnnotate: vi.fn(),
     };
 
     const { factory, options } = makeApiCapture(db);
@@ -156,6 +163,12 @@ describe("registerWorkqTools", () => {
       done: vi.fn(),
       get: vi.fn(() => null),
       getLog: vi.fn(() => []),
+      findStaleActiveItems: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
+      systemMoveToInReview: vi.fn(),
+      systemMarkDone: vi.fn(),
+      systemReleaseToUnclaimed: vi.fn(),
+      systemAnnotate: vi.fn(),
     };
 
     const { factory } = makeApiCapture(db);
@@ -191,6 +204,12 @@ describe("registerWorkqTools", () => {
       done: vi.fn(),
       get: vi.fn(() => null),
       getLog: vi.fn(() => []),
+      findStaleActiveItems: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
+      systemMoveToInReview: vi.fn(),
+      systemMarkDone: vi.fn(),
+      systemReleaseToUnclaimed: vi.fn(),
+      systemAnnotate: vi.fn(),
     };
 
     const { factory } = makeApiCapture(db);
@@ -265,6 +284,12 @@ describe("registerWorkqTools", () => {
       done: vi.fn(),
       get: vi.fn(() => makeItem("ISS-FILES", "ctx-agent")),
       getLog: vi.fn(() => []),
+      findStaleActiveItems: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
+      systemMoveToInReview: vi.fn(),
+      systemMarkDone: vi.fn(),
+      systemReleaseToUnclaimed: vi.fn(),
+      systemAnnotate: vi.fn(),
     };
 
     const { factory } = makeApiCapture(db);

@@ -1,7 +1,8 @@
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { exportWorkqState } from "./export.js";
+import { runWorkqSweep } from "./sweep.js";
 import {
   WORK_ITEM_PRIORITIES,
   WORK_ITEM_STATUSES,
@@ -84,6 +85,13 @@ type StaleOptions = JsonOutput & {
   agent?: string;
   limit?: string;
   offset?: string;
+};
+
+type SweepOptions = JsonOutput & {
+  dryRun?: boolean;
+  staleAfter?: string;
+  autoDone?: boolean;
+  autoRelease?: boolean;
 };
 
 export function registerWorkqCli(
@@ -201,6 +209,7 @@ export function registerWorkqCli(
               branch: normalizeOptional(options.branch),
               worktreePath: normalizeOptional(options.worktree),
               reopen: Boolean(options.reopen),
+              sessionKey: resolveSessionKey(),
             });
 
             if (options.json) {
@@ -561,6 +570,51 @@ export function registerWorkqCli(
             }
           }),
         );
+
+      workq
+        .command("sweep")
+        .description("Reconcile stale claimed/in-progress items against git history")
+        .option("--dry-run", "Preview actions without mutating workq state")
+        .option("--stale-after <minutes>", "Stale threshold in minutes", "120")
+        .option("--auto-done", "Auto-mark done when closes workq footer is present")
+        .option("--auto-release", "Auto-release stale items with no commit evidence")
+        .option("--json", "Output as JSON")
+        .action(
+          withCliErrors((options: SweepOptions) => {
+            const staleAfterMinutes = parseInteger(options.staleAfter, "--stale-after", {
+              min: 1,
+              defaultValue: 120,
+            });
+
+            const result = runWorkqSweep(db, {
+              staleAfterMinutes,
+              autoDone: Boolean(options.autoDone),
+              autoRelease: Boolean(options.autoRelease),
+              mode: options.dryRun ? "dry-run" : "apply",
+            });
+
+            if (options.json) {
+              printJson(result);
+              return;
+            }
+
+            console.log(
+              `Sweep ${options.dryRun ? "(dry-run)" : "(apply)"}: ${result.totalCandidates} stale candidate(s) at ${result.staleAfterMinutes}m`,
+            );
+            console.log(
+              `Actions: in-review=${result.counts["auto-in-review"]} done=${result.counts["auto-done"]} released=${result.counts["auto-release"]} annotated=${result.counts["annotate-stale"]}`,
+            );
+
+            for (const action of result.actions) {
+              const evidence = action.evidence
+                ? ` evidence=${action.evidence.kind}@${action.evidence.commit.slice(0, 8)}`
+                : "";
+              console.log(
+                `- ${action.issueRef} ${action.from} -> ${action.action} (${action.reason})${evidence}`,
+              );
+            }
+          }),
+        );
     },
     { commands: ["workq"] },
   );
@@ -738,6 +792,14 @@ function resolveAgentId(
   }
 
   return inferred;
+}
+
+function resolveSessionKey(): string | undefined {
+  return (
+    normalizeOptional(process.env.OPENCLAW_SESSION_KEY) ??
+    normalizeOptional(process.env.SESSION_KEY) ??
+    undefined
+  );
 }
 
 function requireUrl(urlValue: string | undefined, flagName: string): string {

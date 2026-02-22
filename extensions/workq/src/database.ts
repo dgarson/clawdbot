@@ -1,8 +1,8 @@
+import type { DatabaseSync } from "node:sqlite";
 import { randomInt } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
-import type { DatabaseSync } from "node:sqlite";
 import {
   canonicalizeAbsolutePath,
   canonicalizeAbsolutePaths,
@@ -26,6 +26,8 @@ import {
   type QueryResult,
   type ReleaseInput,
   type StatusInput,
+  type SweepCandidate,
+  type SweepTransitionResult,
   type WorkItem,
   type WorkItemPriority,
   type WorkItemRow,
@@ -110,6 +112,8 @@ function statusListSql(alias: string): string {
   return `${alias}.status IN (${placeholders})`;
 }
 
+const SYSTEM_UNCLAIMED_AGENT_ID = "system:unclaimed";
+
 export class WorkqDatabase implements WorkqDatabaseApi {
   private readonly db: DatabaseSync;
   readonly dbPath: string;
@@ -154,8 +158,8 @@ export class WorkqDatabase implements WorkqDatabaseApi {
           .prepare(
             `INSERT INTO work_items (
               issue_ref, title, agent_id, squad, status, branch, worktree_path,
-              blocked_reason, priority, scope_json, tags_json
-            ) VALUES (?, ?, ?, ?, 'claimed', ?, ?, NULL, ?, ?, ?)`,
+              blocked_reason, priority, scope_json, tags_json, claimed_session_key
+            ) VALUES (?, ?, ?, ?, 'claimed', ?, ?, NULL, ?, ?, ?, ?)`,
           )
           .run(
             issueRef,
@@ -167,6 +171,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
             priority,
             JSON.stringify(scope),
             JSON.stringify(tags),
+            toNullable(input.sessionKey),
           );
 
         this.replaceIssueFiles(issueRef, files);
@@ -197,6 +202,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
                  priority = ?,
                  scope_json = ?,
                  tags_json = ?,
+                 claimed_session_key = ?,
                  updated_at = datetime('now', 'utc')
              WHERE issue_ref = ?`,
           )
@@ -210,6 +216,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
             nextPriority,
             nextScopeJson,
             nextTagsJson,
+            toNullable(input.sessionKey),
             issueRef,
           );
 
@@ -242,6 +249,32 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       if (existing.agent_id === agentId && this.isActiveStatus(existing.status)) {
         return {
           status: "already_yours",
+          item: this.getOrThrow(issueRef),
+        };
+      }
+
+      if (existing.agent_id === SYSTEM_UNCLAIMED_AGENT_ID && this.isActiveStatus(existing.status)) {
+        this.db
+          .prepare(
+            `UPDATE work_items
+             SET agent_id = ?,
+                 status = 'claimed',
+                 blocked_reason = NULL,
+                 claimed_session_key = ?,
+                 updated_at = datetime('now', 'utc')
+             WHERE issue_ref = ?`,
+          )
+          .run(agentId, toNullable(input.sessionKey), issueRef);
+
+        this.insertLog(
+          issueRef,
+          agentId,
+          "reassigned",
+          JSON.stringify({ reassignedFrom: SYSTEM_UNCLAIMED_AGENT_ID }),
+        );
+
+        return {
+          status: "claimed",
           item: this.getOrThrow(issueRef),
         };
       }
@@ -615,6 +648,233 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     }));
   }
 
+  findStaleActiveItems(staleAfterMinutes: number): SweepCandidate[] {
+    const thresholdMinutes = Math.max(1, Math.floor(staleAfterMinutes));
+    const rows = this.db
+      .prepare(
+        `SELECT w.*
+         FROM work_items w
+         WHERE w.status IN ('claimed', 'in-progress')
+           AND w.updated_at <= datetime('now', 'utc', '-' || ? || ' minutes')
+         ORDER BY w.updated_at ASC`,
+      )
+      .all(thresholdMinutes) as WorkItemRow[];
+
+    const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
+
+    return rows.map((row) => {
+      const item = this.toItem(row, filesByIssue.get(row.issue_ref) ?? [], 24);
+      const staleMs = Date.now() - sqliteUtcToEpochMs(row.updated_at);
+      return {
+        ...item,
+        staleMinutes: Math.max(0, Math.floor(staleMs / 60000)),
+      };
+    });
+  }
+
+  autoReleaseBySession(input: { sessionKey: string; actorId: string; reason: string }): {
+    releasedIssueRefs: string[];
+  } {
+    const sessionKey = normalizeText(input.sessionKey);
+    const actorId = normalizeText(input.actorId);
+    const reason = normalizeText(input.reason);
+
+    if (!sessionKey || !actorId || !reason) {
+      throw new Error("sessionKey, actorId, and reason are required");
+    }
+
+    return this.withWriteTransaction(() => {
+      const rows = this.db
+        .prepare(
+          `SELECT issue_ref, status, agent_id
+           FROM work_items
+           WHERE claimed_session_key = ?
+             AND status IN ('claimed', 'in-progress')`,
+        )
+        .all(sessionKey) as Array<{ issue_ref: string; status: WorkItemStatus; agent_id: string }>;
+
+      const releasedIssueRefs: string[] = [];
+      for (const row of rows) {
+        this.db
+          .prepare(
+            `UPDATE work_items
+             SET status = 'claimed',
+                 agent_id = ?,
+                 blocked_reason = NULL,
+                 claimed_session_key = NULL,
+                 updated_at = datetime('now', 'utc')
+             WHERE issue_ref = ?`,
+          )
+          .run(SYSTEM_UNCLAIMED_AGENT_ID, row.issue_ref);
+
+        this.insertLog(
+          row.issue_ref,
+          actorId,
+          "reassigned",
+          JSON.stringify({
+            reason,
+            releasedFromAgentId: row.agent_id,
+            releasedFromStatus: row.status,
+            releasedSessionKey: sessionKey,
+          }),
+        );
+
+        releasedIssueRefs.push(row.issue_ref);
+      }
+
+      return { releasedIssueRefs };
+    });
+  }
+
+  systemMoveToInReview(input: {
+    issueRef: string;
+    actorId: string;
+    reason: string;
+  }): SweepTransitionResult {
+    return this.withWriteTransaction(() => {
+      const issueRef = normalizeText(input.issueRef);
+      const actorId = normalizeText(input.actorId);
+      const reason = normalizeText(input.reason);
+
+      if (!issueRef || !actorId || !reason) {
+        throw new Error("issueRef, actorId, and reason are required");
+      }
+
+      const row = this.getRowOrThrow(issueRef);
+      const from = row.status;
+      if (from === "done" || from === "dropped") {
+        throw new Error(`Cannot auto-advance terminal issue: ${issueRef}`);
+      }
+
+      this.db
+        .prepare(
+          `UPDATE work_items
+           SET status = 'in-review',
+               blocked_reason = NULL,
+               updated_at = datetime('now', 'utc')
+           WHERE issue_ref = ?`,
+        )
+        .run(issueRef);
+
+      this.insertLog(
+        issueRef,
+        actorId,
+        "status_change",
+        JSON.stringify({ from, to: "in-review", reason }),
+      );
+      return { issueRef, from, to: "in-review" };
+    });
+  }
+
+  systemMarkDone(input: {
+    issueRef: string;
+    actorId: string;
+    summary: string;
+    prUrl?: string;
+  }): SweepTransitionResult {
+    return this.withWriteTransaction(() => {
+      const issueRef = normalizeText(input.issueRef);
+      const actorId = normalizeText(input.actorId);
+      const summary = normalizeText(input.summary);
+      const prUrl = normalizeText(input.prUrl);
+
+      if (!issueRef || !actorId || !summary) {
+        throw new Error("issueRef, actorId, and summary are required");
+      }
+
+      const row = this.getRowOrThrow(issueRef);
+      const from = row.status;
+      if (from === "dropped" || from === "done") {
+        throw new Error(`Cannot auto-close terminal issue: ${issueRef}`);
+      }
+
+      this.db
+        .prepare(
+          `UPDATE work_items
+           SET status = 'done',
+               blocked_reason = NULL,
+               pr_url = COALESCE(?, pr_url),
+               updated_at = datetime('now', 'utc')
+           WHERE issue_ref = ?`,
+        )
+        .run(toNullable(prUrl ?? undefined), issueRef);
+
+      this.insertLog(
+        issueRef,
+        actorId,
+        "completed",
+        JSON.stringify({ summary, prUrl: prUrl ?? null, autoClosed: true }),
+      );
+      return { issueRef, from, to: "done" };
+    });
+  }
+
+  systemReleaseToUnclaimed(input: {
+    issueRef: string;
+    actorId: string;
+    reason: string;
+  }): SweepTransitionResult {
+    return this.withWriteTransaction(() => {
+      const issueRef = normalizeText(input.issueRef);
+      const actorId = normalizeText(input.actorId);
+      const reason = normalizeText(input.reason);
+
+      if (!issueRef || !actorId || !reason) {
+        throw new Error("issueRef, actorId, and reason are required");
+      }
+
+      const row = this.getRowOrThrow(issueRef);
+      const from = row.status;
+      if (from !== "claimed" && from !== "in-progress") {
+        throw new Error(`Auto-release only supports claimed/in-progress. Got: ${from}`);
+      }
+
+      this.db
+        .prepare(
+          `UPDATE work_items
+           SET status = 'claimed',
+               agent_id = ?,
+               blocked_reason = NULL,
+               claimed_session_key = NULL,
+               updated_at = datetime('now', 'utc')
+           WHERE issue_ref = ?`,
+        )
+        .run(SYSTEM_UNCLAIMED_AGENT_ID, issueRef);
+
+      this.insertLog(
+        issueRef,
+        actorId,
+        "reassigned",
+        JSON.stringify({
+          reason,
+          releasedFromAgentId: row.agent_id,
+          releasedFromStatus: row.status,
+        }),
+      );
+
+      return { issueRef, from, to: "claimed" };
+    });
+  }
+
+  systemAnnotate(input: { issueRef: string; actorId: string; note: string }): {
+    issueRef: string;
+    annotated: true;
+  } {
+    return this.withWriteTransaction(() => {
+      const issueRef = normalizeText(input.issueRef);
+      const actorId = normalizeText(input.actorId);
+      const note = normalizeText(input.note);
+
+      if (!issueRef || !actorId || !note) {
+        throw new Error("issueRef, actorId, and note are required");
+      }
+
+      this.getRowOrThrow(issueRef);
+      this.insertLog(issueRef, actorId, "note", note);
+      return { issueRef, annotated: true };
+    });
+  }
+
   private initialize(): void {
     this.db.exec("PRAGMA foreign_keys = ON;");
     this.db.exec("PRAGMA journal_mode = WAL;");
@@ -641,7 +901,8 @@ export class WorkqDatabase implements WorkqDatabaseApi {
         scope_json    TEXT NOT NULL DEFAULT '[]',
         tags_json     TEXT NOT NULL DEFAULT '[]',
         claimed_at    TEXT NOT NULL DEFAULT (datetime('now', 'utc')),
-        updated_at    TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
+        updated_at    TEXT NOT NULL DEFAULT (datetime('now', 'utc')),
+        claimed_session_key TEXT
       );
 
       CREATE TABLE IF NOT EXISTS work_log (
@@ -677,16 +938,35 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       CREATE INDEX IF NOT EXISTS idx_work_items_status_updated ON work_items(status, updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_work_items_squad_status_updated
         ON work_items(squad, status, updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_work_items_claimed_session_key ON work_items(claimed_session_key);
       CREATE INDEX IF NOT EXISTS idx_work_item_files_path ON work_item_files(file_path);
       CREATE INDEX IF NOT EXISTS idx_work_log_issue ON work_log(issue_ref);
       CREATE INDEX IF NOT EXISTS idx_work_log_agent ON work_log(agent_id);
       CREATE INDEX IF NOT EXISTS idx_work_log_created ON work_log(created_at);
     `);
 
+    this.tryMigrateClaimedSessionKey();
+
     try {
       this.db.exec("PRAGMA wal_checkpoint(PASSIVE);");
     } catch {
       // no-op: checkpoint is best-effort
+    }
+  }
+
+  private tryMigrateClaimedSessionKey(): void {
+    try {
+      this.db.exec(`ALTER TABLE work_items ADD COLUMN claimed_session_key TEXT`);
+    } catch {
+      // no-op: column already exists on existing databases
+    }
+
+    try {
+      this.db.exec(
+        `CREATE INDEX IF NOT EXISTS idx_work_items_claimed_session_key ON work_items(claimed_session_key)`,
+      );
+    } catch {
+      // no-op: best-effort migration index
     }
   }
 
@@ -937,6 +1217,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       files,
       claimedAt: row.claimed_at,
       updatedAt: row.updated_at,
+      claimedSessionKey: row.claimed_session_key,
       isStale:
         !isTerminal && Number.isFinite(updatedMs) && Date.now() - updatedMs > staleThresholdMs,
     };

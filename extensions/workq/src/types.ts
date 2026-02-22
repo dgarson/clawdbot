@@ -53,6 +53,7 @@ export interface WorkItemRow {
   tags_json: string;
   claimed_at: string;
   updated_at: string;
+  claimed_session_key: string | null;
 }
 
 export interface WorkItem {
@@ -72,6 +73,7 @@ export interface WorkItem {
   files: string[];
   claimedAt: string;
   updatedAt: string;
+  claimedSessionKey: string | null;
   isStale: boolean;
 }
 
@@ -96,6 +98,7 @@ export interface ClaimInput {
   scope?: string[];
   tags?: string[];
   reopen?: boolean;
+  sessionKey?: string;
 }
 
 export type ClaimResult =
@@ -183,6 +186,16 @@ export interface QueryResult {
   total: number;
 }
 
+export interface SweepCandidate extends WorkItem {
+  staleMinutes: number;
+}
+
+export interface SweepTransitionResult {
+  issueRef: string;
+  from: WorkItemStatus;
+  to: WorkItemStatus;
+}
+
 export interface WorkqDatabaseApi {
   claim(input: ClaimInput): ClaimResult;
   release(input: ReleaseInput): { status: "dropped"; issueRef: string };
@@ -198,4 +211,28 @@ export interface WorkqDatabaseApi {
   done(input: DoneInput): { status: "done"; issueRef: string; prUrl: string };
   get(issueRef: string, staleThresholdHours?: number): WorkItem | null;
   getLog(issueRef: string, limit?: number): WorkLogEntry[];
+  findStaleActiveItems(staleAfterMinutes: number): SweepCandidate[];
+  autoReleaseBySession(input: { sessionKey: string; actorId: string; reason: string }): {
+    releasedIssueRefs: string[];
+  };
+  systemMoveToInReview(input: {
+    issueRef: string;
+    actorId: string;
+    reason: string;
+  }): SweepTransitionResult;
+  systemMarkDone(input: {
+    issueRef: string;
+    actorId: string;
+    summary: string;
+    prUrl?: string;
+  }): SweepTransitionResult;
+  systemReleaseToUnclaimed(input: {
+    issueRef: string;
+    actorId: string;
+    reason: string;
+  }): SweepTransitionResult;
+  systemAnnotate(input: { issueRef: string; actorId: string; note: string }): {
+    issueRef: string;
+    annotated: true;
+  };
 }

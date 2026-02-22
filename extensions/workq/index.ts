@@ -1,7 +1,4 @@
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-import { registerWorkqCli } from "./src/cli.js";
-import { WorkqDatabase } from "./src/database.js";
-import { registerWorkqTools } from "./src/tools.js";
 import type {
   ClaimInput,
   DoneInput,
@@ -12,6 +9,10 @@ import type {
   ReleaseInput,
   StatusInput,
 } from "./src/types.js";
+import { registerWorkqCli } from "./src/cli.js";
+import { WorkqDatabase } from "./src/database.js";
+import { runWorkqSweep } from "./src/sweep.js";
+import { registerWorkqTools } from "./src/tools.js";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
@@ -63,6 +64,10 @@ export default function register(api: OpenClawPluginApi) {
     enabled?: boolean;
     dbPath?: string;
     staleThresholdHours?: number;
+    sweepIntervalMinutes?: number;
+    sweepStaleAfterMinutes?: number;
+    sweepAutoDone?: boolean;
+    sweepAutoRelease?: boolean;
   };
 
   if (config.enabled === false) {
@@ -72,6 +77,10 @@ export default function register(api: OpenClawPluginApi) {
 
   const dbPath = api.resolvePath(config.dbPath ?? "~/.openclaw/workq/workq.db");
   const staleHours = Math.max(1, Math.floor(config.staleThresholdHours ?? 24));
+  const sweepIntervalMinutes = Math.max(1, Math.floor(config.sweepIntervalMinutes ?? 60));
+  const sweepStaleAfterMinutes = Math.max(1, Math.floor(config.sweepStaleAfterMinutes ?? 120));
+  const sweepAutoDone = config.sweepAutoDone === true;
+  const sweepAutoRelease = config.sweepAutoRelease !== false;
 
   const db = new WorkqDatabase(dbPath);
   registerWorkqTools(api, db, staleHours);
@@ -92,6 +101,7 @@ export default function register(api: OpenClawPluginApi) {
         scope: asStringArray(input.scope),
         tags: asStringArray(input.tags),
         reopen: asBoolean(input.reopen),
+        sessionKey: asString(input.session_key),
       };
       respond(true, db.claim(payload));
     } catch (error) {
@@ -200,12 +210,79 @@ export default function register(api: OpenClawPluginApi) {
     }
   });
 
+  api.on("agent_end", async (_event, ctx) => {
+    const sessionKey = asString(ctx?.sessionKey);
+    if (!sessionKey) {
+      return;
+    }
+
+    try {
+      const result = db.autoReleaseBySession({
+        sessionKey,
+        actorId: "system:agent_end_hook",
+        reason: "auto-released: session ended without workq_done",
+      });
+      if (result.releasedIssueRefs.length > 0) {
+        api.logger.warn(
+          `[workq] agent_end auto-release session=${sessionKey} released=${result.releasedIssueRefs.join(",")}`,
+        );
+      }
+    } catch (error) {
+      api.logger.warn(`[workq] agent_end auto-release failed: ${String(error)}`);
+    }
+  });
+
+  api.on("session_end", async (_event, ctx) => {
+    const sessionKey = asString(ctx?.sessionId);
+    if (!sessionKey) {
+      return;
+    }
+
+    // session_end context exposes sessionId, while claims are keyed by sessionKey.
+    // Keep a best-effort no-op hook for now; agent_end handles deterministic release.
+    api.logger.debug?.(`[workq] session_end observed sessionId=${sessionKey}`);
+  });
+
+  let sweepTimer: ReturnType<typeof setInterval> | null = null;
+
+  const runScheduledSweep = () => {
+    try {
+      const result = runWorkqSweep(db, {
+        staleAfterMinutes: sweepStaleAfterMinutes,
+        autoDone: sweepAutoDone,
+        autoRelease: sweepAutoRelease,
+        mode: "apply",
+        actorId: "system:workq-sweep-cron",
+      });
+
+      const changed =
+        result.counts["auto-done"] +
+        result.counts["auto-in-review"] +
+        result.counts["auto-release"] +
+        result.counts["annotate-stale"];
+
+      if (changed > 0) {
+        api.logger.warn(
+          `[workq] sweep reconciled=${changed} candidates=${result.totalCandidates} ` +
+            `(done=${result.counts["auto-done"]}, review=${result.counts["auto-in-review"]}, release=${result.counts["auto-release"]})`,
+        );
+      }
+    } catch (error) {
+      api.logger.warn(`[workq] scheduled sweep failed: ${String(error)}`);
+    }
+  };
+
   api.registerService({
     id: "workq",
     start: () => {
       api.logger.info(`[workq] Ready — db: ${dbPath}`);
+      sweepTimer = setInterval(runScheduledSweep, sweepIntervalMinutes * 60_000);
     },
     stop: () => {
+      if (sweepTimer) {
+        clearInterval(sweepTimer);
+        sweepTimer = null;
+      }
       db.close();
     },
   });

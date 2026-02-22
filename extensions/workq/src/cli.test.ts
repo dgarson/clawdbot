@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { registerWorkqCli } from "./cli.js";
 import type { WorkItem } from "./types.js";
+import { registerWorkqCli } from "./cli.js";
 
 function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
   return {
@@ -21,6 +21,7 @@ function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
     files: [],
     claimedAt: "2026-01-01 00:00:00",
     updatedAt: "2026-01-01 00:00:00",
+    claimedSessionKey: null,
     isStale: false,
     ...overrides,
   };
@@ -46,6 +47,12 @@ function createDbMock() {
     })),
     get: vi.fn(() => null),
     getLog: vi.fn(() => []),
+    findStaleActiveItems: vi.fn(() => []),
+    autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
+    systemMoveToInReview: vi.fn(),
+    systemMarkDone: vi.fn(),
+    systemReleaseToUnclaimed: vi.fn(),
+    systemAnnotate: vi.fn(),
   };
 }
 
