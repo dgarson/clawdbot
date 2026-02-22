@@ -213,6 +213,9 @@ const SecurityScanDashboard      = React.lazy(() => import("./views/SecurityScan
 const DataPrivacyDashboard       = React.lazy(() => import("./views/DataPrivacyDashboard"));
 const UserOnboardingFlow         = React.lazy(() => import("./views/UserOnboardingFlow"));
 const QueryPerformanceAnalyzer   = React.lazy(() => import("./views/QueryPerformanceAnalyzer"));
+const ServiceMeshViewer          = React.lazy(() => import("./views/ServiceMeshViewer"));
+const MultiRegionDashboard       = React.lazy(() => import("./views/MultiRegionDashboard"));
+const RevenueAnalyticsDashboard  = React.lazy(() => import("./views/RevenueAnalyticsDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -403,6 +406,9 @@ export const navItems = [
   { id: "data-privacy",    label: "Data Privacy",        emoji: "🔒", shortcut: null },
   { id: "onboarding-flow", label: "Onboarding Flows",   emoji: "🚀", shortcut: null },
   { id: "query-perf",      label: "Query Performance",  emoji: "🐢", shortcut: null },
+  { id: "service-mesh",    label: "Service Mesh",       emoji: "🕸", shortcut: null },
+  { id: "multi-region",    label: "Multi-Region",       emoji: "🌍", shortcut: null },
+  { id: "revenue",         label: "Revenue Analytics",  emoji: "💰", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -594,6 +600,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-privacy":       <ContentSkeleton />,
   "onboarding-flow":    <ContentSkeleton />,
   "query-perf":         <ContentSkeleton />,
+  "service-mesh":       <ContentSkeleton />,
+  "multi-region":       <ContentSkeleton />,
+  "revenue":            <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1006,6 +1015,9 @@ function AppContent() {
       case "data-privacy":      return <DataPrivacyDashboard />;
       case "onboarding-flow":   return <UserOnboardingFlow />;
       case "query-perf":        return <QueryPerformanceAnalyzer />;
+      case "service-mesh":      return <ServiceMeshViewer />;
+      case "multi-region":      return <MultiRegionDashboard />;
+      case "revenue":           return <RevenueAnalyticsDashboard />;
       default:              return <AgentDashboard />;
     }
   };
