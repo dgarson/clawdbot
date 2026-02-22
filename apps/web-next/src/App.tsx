@@ -69,6 +69,8 @@ const StorageExplorer = React.lazy(() => import("./views/StorageExplorer"));
 const AlertCenter          = React.lazy(() => import("./views/AlertCenter"));
 const WebhookManager       = React.lazy(() => import("./views/WebhookManager"));
 const ConversationHistory  = React.lazy(() => import("./views/ConversationHistory"));
+const AgentScheduler       = React.lazy(() => import("./views/AgentScheduler"));
+const TokenLedger          = React.lazy(() => import("./views/TokenLedger"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -115,6 +117,8 @@ export const navItems = [
   { id: "alerts",          label: "Alert Center",   emoji: "🚨", shortcut: null },
   { id: "webhooks",        label: "Webhooks",       emoji: "🔗", shortcut: null },
   { id: "history",         label: "Session History", emoji: "🕐", shortcut: null },
+  { id: "scheduler",       label: "Scheduler",      emoji: "⏰", shortcut: null },
+  { id: "token-ledger",    label: "Token Ledger",   emoji: "🪙", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -162,6 +166,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "alerts":         <DashboardSkeleton />,
   "webhooks":       <TableSkeleton rows={6} />,
   "history":        <ContentSkeleton />,
+  "scheduler":      <DashboardSkeleton />,
+  "token-ledger":   <TableSkeleton rows={10} />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -430,6 +436,8 @@ function AppContent() {
       case "alerts":          return <AlertCenter />;
       case "webhooks":        return <WebhookManager />;
       case "history":         return <ConversationHistory />;
+      case "scheduler":       return <AgentScheduler />;
+      case "token-ledger":    return <TokenLedger />;
       default:              return <AgentDashboard />;
     }
   };
