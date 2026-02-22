@@ -38,10 +38,8 @@ export function AgentConfigureTab({
   const [builderInnerTab, setBuilderInnerTab] = React.useState("overview");
 
   const { data: agent } = useAgent(agentId);
-  const { files, isLoading: filesLoading } = useAgentFiles(agentId);
+  const { files } = useAgentFiles(agentId);
   const { save: saveFile } = useAgentFileSave();
-
-  void filesLoading;
 
   const agentName = agent?.name ?? agentId;
 
