@@ -225,6 +225,7 @@ const ContainerLogViewer             = React.lazy(() => import("./views/Containe
 const InfrastructureDriftDetector    = React.lazy(() => import("./views/InfrastructureDriftDetector"));
 const AnnouncementCenter             = React.lazy(() => import("./views/AnnouncementCenter"));
 const DatabaseSchemaExplorer         = React.lazy(() => import("./views/DatabaseSchemaExplorer"));
+const SupportTicketDashboard         = React.lazy(() => import("./views/SupportTicketDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -427,6 +428,7 @@ export const navItems = [
   { id: "infra-drift",     label: "Drift Detector",    emoji: "🔀", shortcut: null },
   { id: "announcements",  label: "Announcements",      emoji: "📣", shortcut: null },
   { id: "schema-explorer",label: "Schema Explorer",    emoji: "🗄️", shortcut: null },
+  { id: "support-tickets",label: "Support Tickets",    emoji: "🎫", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -630,6 +632,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "infra-drift":       <ContentSkeleton />,
   "announcements":     <ContentSkeleton />,
   "schema-explorer":   <ContentSkeleton />,
+  "support-tickets":   <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1054,6 +1057,7 @@ function AppContent() {
       case "infra-drift":          return <InfrastructureDriftDetector />;
       case "announcements":        return <AnnouncementCenter />;
       case "schema-explorer":      return <DatabaseSchemaExplorer />;
+      case "support-tickets":      return <SupportTicketDashboard />;
       default:              return <AgentDashboard />;
     }
   };
