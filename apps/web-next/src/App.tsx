@@ -228,6 +228,8 @@ const DatabaseSchemaExplorer         = React.lazy(() => import("./views/Database
 const SupportTicketDashboard         = React.lazy(() => import("./views/SupportTicketDashboard"));
 const APIChangelogManager            = React.lazy(() => import("./views/APIChangelogManager"));
 const ProductTourBuilder             = React.lazy(() => import("./views/ProductTourBuilder"));
+const NetworkFirewallRuleManager     = React.lazy(() => import("./views/NetworkFirewallRuleManager"));
+const ObservabilityAlertManager      = React.lazy(() => import("./views/ObservabilityAlertManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -432,7 +434,9 @@ export const navItems = [
   { id: "schema-explorer",label: "Schema Explorer",    emoji: "🗄️", shortcut: null },
   { id: "support-tickets",label: "Support Tickets",    emoji: "🎫", shortcut: null },
   { id: "api-changelog",  label: "API Changelog",      emoji: "📋", shortcut: null },
-  { id: "product-tour",   label: "Product Tours",       emoji: "🗺️", shortcut: null },
+  { id: "product-tour",         label: "Product Tours",       emoji: "🗺️", shortcut: null },
+  { id: "network-firewall",     label: "Firewall Rules",      emoji: "🔥", shortcut: null },
+  { id: "observability-alerts", label: "Alert Manager",       emoji: "🚨", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -638,7 +642,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "schema-explorer":   <ContentSkeleton />,
   "support-tickets":   <ContentSkeleton />,
   "api-changelog":     <ContentSkeleton />,
-  "product-tour":      <ContentSkeleton />,
+  "product-tour":           <ContentSkeleton />,
+  "network-firewall":       <ContentSkeleton />,
+  "observability-alerts":   <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1066,6 +1072,8 @@ function AppContent() {
       case "support-tickets":      return <SupportTicketDashboard />;
       case "api-changelog":        return <APIChangelogManager />;
       case "product-tour":         return <ProductTourBuilder />;
+      case "network-firewall":     return <NetworkFirewallRuleManager />;
+      case "observability-alerts": return <ObservabilityAlertManager />;
       default:              return <AgentDashboard />;
     }
   };
