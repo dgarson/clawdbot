@@ -33,6 +33,14 @@ export function AgentConfigureTab({
   onSubTabChange,
 }: AgentConfigureTabProps) {
   const [activeSubTab, setActiveSubTab] = React.useState<ConfigureSubTab>(defaultSubTab);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => {
+    if (defaultSubTab && defaultSubTab !== activeSubTab) {
+      setActiveSubTab(defaultSubTab);
+    }
+  }, [defaultSubTab]);
+
   const [assistOpen, setAssistOpen] = React.useState(false);
   const [reviewOpen, setReviewOpen] = React.useState(false);
   const [builderInnerTab, setBuilderInnerTab] = React.useState("overview");
