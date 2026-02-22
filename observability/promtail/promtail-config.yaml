@@ -1,0 +1,45 @@
+# Promtail configuration for OpenClaw log shipping
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # OpenClaw gateway logs
+  - job_name: openclaw-gateway
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: openclaw-gateway
+          __path__: /var/log/openclaw/gateway.jsonl
+
+  # OpenClaw per-agent logs
+  - job_name: openclaw-agents
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: openclaw-agents
+          __path__: /var/log/openclaw/agents/**/*.jsonl
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            agent: agentId
+            session: sessionId
+            model: model
+            timestamp: timestamp
+      - labels:
+          level:
+          agent:
+          session:
+          model:
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
