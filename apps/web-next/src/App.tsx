@@ -136,6 +136,8 @@ const UserJourneyMap       = React.lazy(() => import("./views/UserJourneyMap"));
 const MemoryProfiler       = React.lazy(() => import("./views/MemoryProfiler"));
 const ErrorBudgetTracker   = React.lazy(() => import("./views/ErrorBudgetTracker"));
 const MultiModelComparator = React.lazy(() => import("./views/MultiModelComparator"));
+const ContextBrowser       = React.lazy(() => import("./views/ContextBrowser"));
+const GitHubIntegration    = React.lazy(() => import("./views/GitHubIntegration"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -249,6 +251,8 @@ export const navItems = [
   { id: "mem-profiler",   label: "Memory Profiler",    emoji: "🧮", shortcut: null },
   { id: "error-budget",   label: "Error Budget",       emoji: "🎯", shortcut: null },
   { id: "model-compare",  label: "Model Comparator",   emoji: "⚖️", shortcut: null },
+  { id: "ctx-browser",    label: "Context Browser",    emoji: "📖", shortcut: null },
+  { id: "github",         label: "GitHub Integration", emoji: "🐙", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -363,6 +367,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "mem-profiler":     <ContentSkeleton />,
   "error-budget":     <ContentSkeleton />,
   "model-compare":    <ContentSkeleton />,
+  "ctx-browser":      <ContentSkeleton />,
+  "github":           <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -698,6 +704,8 @@ function AppContent() {
       case "mem-profiler":     return <MemoryProfiler />;
       case "error-budget":     return <ErrorBudgetTracker />;
       case "model-compare":    return <MultiModelComparator />;
+      case "ctx-browser":      return <ContextBrowser />;
+      case "github":           return <GitHubIntegration />;
       default:              return <AgentDashboard />;
     }
   };
