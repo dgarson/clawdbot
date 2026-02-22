@@ -2,3 +2,7 @@ export { ApprovalItem } from "./ApprovalItem";
 export type { ApprovalItemProps } from "./ApprovalItem";
 export { ApprovalsQueue } from "./ApprovalsQueue";
 export type { ApprovalsQueueProps, PendingApproval } from "./ApprovalsQueue";
+export { MilestoneItem } from "./MilestoneItem";
+export type { MilestoneItemProps } from "./MilestoneItem";
+export { MilestoneDetailPanel } from "./MilestoneDetailPanel";
+export type { MilestoneDetailPanelProps } from "./MilestoneDetailPanel";
