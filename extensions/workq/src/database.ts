@@ -1,8 +1,8 @@
-import type { DatabaseSync } from "node:sqlite";
 import { randomInt } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import type { DatabaseSync } from "node:sqlite";
 import {
   canonicalizeAbsolutePath,
   canonicalizeAbsolutePaths,
