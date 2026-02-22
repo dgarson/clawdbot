@@ -25,6 +25,7 @@ interface AgentSoulEditorProps {
 }
 
 // Lazy-load all views with proper typing
+const MorningPacket = React.lazy(() => import("./views/MorningPacket"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -293,7 +294,8 @@ const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/Database
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
 
 export const navItems = [
-  { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
+  { id: "morning-packet", label: "Morning Packet", emoji: "☀️", shortcut: "1" },
+  { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "2" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
   { id: "soul-editor",   label: "Soul Editor",    emoji: "✨", shortcut: "4" },
@@ -1050,6 +1052,7 @@ function AppContent() {
 
   const renderView = () => {
     switch (activeView) {
+      case "morning-packet": return <MorningPacket />;
       case "dashboard":     return <AgentDashboard />;
       case "chat":          return <ChatInterface agentName="Luis" agentEmoji="🎨" />;
       case "builder":       return <AgentBuilderWizard />;
