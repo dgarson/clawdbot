@@ -175,6 +175,10 @@ const KubernetesClusterViewer  = React.lazy(() => import("./views/KubernetesClus
 const CohortAnalysisDashboard  = React.lazy(() => import("./views/CohortAnalysisDashboard"));
 const SentimentAnalysisViewer  = React.lazy(() => import("./views/SentimentAnalysisViewer"));
 const GraphQLExplorer          = React.lazy(() => import("./views/GraphQLExplorer"));
+const BackupManager              = React.lazy(() => import("./views/BackupManager"));
+const VectorDatabaseViewer       = React.lazy(() => import("./views/VectorDatabaseViewer"));
+const DocumentTemplateBuilder    = React.lazy(() => import("./views/DocumentTemplateBuilder"));
+const ServiceAccountManager      = React.lazy(() => import("./views/ServiceAccountManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -327,6 +331,10 @@ export const navItems = [
   { id: "cohort-analysis", label: "Cohort Analysis",     emoji: "👥", shortcut: null },
   { id: "sentiment",       label: "Sentiment Analysis",  emoji: "💬", shortcut: null },
   { id: "graphql",         label: "GraphQL Explorer",    emoji: "🔷", shortcut: null },
+  { id: "backups",         label: "Backup Manager",      emoji: "💾", shortcut: null },
+  { id: "vector-db",       label: "Vector Database",     emoji: "🧬", shortcut: null },
+  { id: "doc-templates",   label: "Doc Templates",       emoji: "📄", shortcut: null },
+  { id: "service-accounts",label: "Service Accounts",    emoji: "🤖", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -480,6 +488,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "cohort-analysis":    <ContentSkeleton />,
   "sentiment":          <ContentSkeleton />,
   "graphql":            <ContentSkeleton />,
+  "backups":            <ContentSkeleton />,
+  "vector-db":          <ContentSkeleton />,
+  "doc-templates":      <ContentSkeleton />,
+  "service-accounts":   <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -854,6 +866,10 @@ function AppContent() {
       case "cohort-analysis":   return <CohortAnalysisDashboard />;
       case "sentiment":         return <SentimentAnalysisViewer />;
       case "graphql":           return <GraphQLExplorer />;
+      case "backups":           return <BackupManager />;
+      case "vector-db":         return <VectorDatabaseViewer />;
+      case "doc-templates":     return <DocumentTemplateBuilder />;
+      case "service-accounts":  return <ServiceAccountManager />;
       default:              return <AgentDashboard />;
     }
   };
