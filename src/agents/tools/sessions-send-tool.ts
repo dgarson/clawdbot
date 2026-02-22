@@ -194,7 +194,7 @@ export function createSessionsSendTool(opts?: {
         typeof cfg.tools?.sessions?.sendTimeoutSeconds === "number" &&
         Number.isFinite(cfg.tools.sessions.sendTimeoutSeconds)
           ? Math.max(0, Math.floor(cfg.tools.sessions.sendTimeoutSeconds))
-          : 120;
+          : 900;
       const timeoutSeconds =
         typeof params.timeoutSeconds === "number" && Number.isFinite(params.timeoutSeconds)
           ? Math.max(0, Math.floor(params.timeoutSeconds))
