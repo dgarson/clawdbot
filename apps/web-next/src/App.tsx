@@ -94,6 +94,8 @@ const ABTestManager        = React.lazy(() => import("./views/ABTestManager"));
 const QuotaManager         = React.lazy(() => import("./views/QuotaManager"));
 const AgentDiffViewer      = React.lazy(() => import("./views/AgentDiffViewer"));
 const MCPInspector         = React.lazy(() => import("./views/MCPInspector"));
+const ModelRouter          = React.lazy(() => import("./views/ModelRouter"));
+const SessionReplay        = React.lazy(() => import("./views/SessionReplay"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -165,6 +167,8 @@ export const navItems = [
   { id: "quotas",          label: "Quotas",         emoji: "📏", shortcut: null },
   { id: "agent-diff",      label: "Agent Diff",     emoji: "🔍", shortcut: null },
   { id: "mcp",             label: "MCP Inspector",  emoji: "🔧", shortcut: null },
+  { id: "model-router",    label: "Model Router",   emoji: "🔀", shortcut: null },
+  { id: "session-replay",  label: "Session Replay", emoji: "▶️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -237,6 +241,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "quotas":          <ContentSkeleton />,
   "agent-diff":      <ContentSkeleton />,
   "mcp":             <ContentSkeleton />,
+  "model-router":    <ContentSkeleton />,
+  "session-replay":  <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -530,6 +536,8 @@ function AppContent() {
       case "quotas":          return <QuotaManager />;
       case "agent-diff":      return <AgentDiffViewer />;
       case "mcp":             return <MCPInspector />;
+      case "model-router":    return <ModelRouter />;
+      case "session-replay":  return <SessionReplay />;
       default:              return <AgentDashboard />;
     }
   };
