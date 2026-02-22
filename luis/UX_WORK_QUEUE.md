@@ -1,13 +1,13 @@
 # UX Work Queue — OpenClaw Horizon
 
 **Project:** `apps/web-next` (Vite + React + Tailwind, dark theme)
-**Goal:** 10-12 views done by 7:30 AM MST Feb 22 → ✅ CRUSHED: **287 views** shipped
-**Last Updated:** 2026-02-22 1:22 PM MST
+**Goal:** 10-12 views done by 7:30 AM MST Feb 22 → ✅ CRUSHED: **287+ views** shipped
+**Last Updated:** 2026-02-22 2:04 PM MST
 
 ## Build Status
 
 ```
-✓ 287 views in src/views/ — 0 new TS/lint errors
+✓ 287 views in src/views/ — 0 new TS/lint errors (pre-2PM batch)
 Branch: feat/horizon-post-merge
 Commit: 52ffd6154 — UX: add 5 discovery/agent views
 ```
@@ -19,6 +19,18 @@ Commit: 52ffd6154 — UX: add 5 discovery/agent views
 | **#61** | feat/horizon-ui → dgarson/fork         | ✅ **MERGED** 2026-02-22 | 267 views, clean build              |
 | **#72** | feat/horizon-post-merge → dgarson/fork | 🟡 OPEN                  | Views #268–287 — waiting Tim/Xavier |
 | **#44** | luis/ui-redesign → dgarson/fork        | ✅ CLOSED                | Superceded by #61                   |
+
+---
+
+## In Progress (2:04 PM batch)
+
+| View                   | #   | Agent              | Status              |
+| ---------------------- | --- | ------------------ | ------------------- |
+| DiscoveryRunHistory    | 288 | piper (spawned)    | 🔄 IN PROGRESS      |
+| AgentCapabilityMatrix  | 289 | quinn (spawned)    | 🔄 IN PROGRESS      |
+| FindingDetailModal     | 290 | reed (spawned)     | 🔄 IN PROGRESS      |
+| CostForecastChart      | 291 | wes (spawned)      | 🔄 IN PROGRESS      |
+| DiscoveryRunExport     | 292 | luis (direct)      | ✅ FILE WRITTEN — pending commit |
 
 ---
 
@@ -55,15 +67,15 @@ Commit: 52ffd6154 — UX: add 5 discovery/agent views
 
 ---
 
-## Next Candidates (Mode A)
+## Next Candidates (Mode A) — Post 2PM Batch
 
-| View                  | Type   | Rationale                                                                                |
-| --------------------- | ------ | ---------------------------------------------------------------------------------------- |
-| DiscoveryRunHistory   | Mode A | Paginated table of all past runs: status, cost, finding count, timestamps, re-run button |
-| AgentCapabilityMatrix | Mode A | Grid: agents vs capabilities (tools available, models supported, avg latency)            |
-| FindingDetailModal    | Mode A | Full detail for a single finding: evidence, sources, confidence score, related findings  |
-| CostForecastChart     | Mode A | Projected run cost based on wave config + historical burn rate — SVG line chart          |
-| DiscoveryRunExport    | Mode A | Export panel: JSON/CSV/Markdown, select which data (findings/costs/logs), download mock  |
+| View                       | Type   | Rationale                                                                              |
+| -------------------------- | ------ | -------------------------------------------------------------------------------------- |
+| RunComparisonDashboard     | Mode A | Side-by-side comparison of 2–3 runs: cost, findings, wave efficiency deltas            |
+| AgentRetryInspector        | Mode A | View all retried agent calls: what failed, why, retry outcome, latency impact          |
+| DiscoveryBudgetPlanner     | Mode A | Pre-run budget allocation tool: set per-wave/per-agent limits with guardrails           |
+| WaveAgentDrilldown         | Mode A | Click any wave → see exact agents that ran, their outputs, durations, status           |
+| FindingExportBulkSelector  | Mode A | Multi-select findings → batch export/dismiss/escalate with diff export to PR#72 batch |
 
 ---
 
@@ -71,7 +83,7 @@ Commit: 52ffd6154 — UX: add 5 discovery/agent views
 
 ### Session Goal: 10-12 views by 7:30 AM
 
-### Actual: **287 views** (23.9× the goal)
+### Actual: **292 views** (target after 2PM batch completes)
 
 ### Sprint Arc
 
@@ -83,7 +95,8 @@ Commit: 52ffd6154 — UX: add 5 discovery/agent views
 - 272 views at 10:10 AM (+4 discovery setup views)
 - 276 views at 11:14 AM (+4 preflight/scheduler/comparison/search)
 - 282 views at 12:14 PM (+4 timeline/summary/health/wave-transition)
-- **287 views at 1:22 PM** (+5 compare/error/quota/settings/logstream)
+- 287 views at 1:22 PM (+5 compare/error/quota/settings/logstream)
+- **292 views target at ~2:30 PM** (+5 history/capability/finding/cost/export)
 
 ### Key Components Added Beyond Views
 
@@ -99,5 +112,5 @@ Commit: 52ffd6154 — UX: add 5 discovery/agent views
 - SchemaForm: removed phantom Zod dep → pure TS validation, 0 TSC errors
 - 3 missing views added after build errors: ChangeManagementBoard, CostAllocationDashboard, MultiRegionFailoverManager
 - tsconfig.json: removed unused `baseUrl`/`paths` — fixed pre-existing tsgolint block on pre-commit hook
-- DiscoveryFindingsSearch: removed unused `type Finding` import (lint)
+- DiscoveryFindingsSearch: unused `type Finding` import (lint)
 - AgentLogStream: `void navigator.clipboard.writeText(...)` — fixed floating promise lint error

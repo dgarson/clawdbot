@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg-tim" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#1c1814"/>
+      <stop offset="100%" stop-color="#070503"/>
+    </radialGradient>
+    <filter id="glow-tim" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="32" fill="url(#bg-tim)"/>
+  <!-- Blueprint grid -->
+  <g stroke="#1c1714" stroke-width="1" opacity="0.8">
+    <!-- Fine grid -->
+    <line x1="0" y1="72" x2="512" y2="72"/><line x1="0" y1="144" x2="512" y2="144"/>
+    <line x1="0" y1="216" x2="512" y2="216"/><line x1="0" y1="288" x2="512" y2="288"/>
+    <line x1="0" y1="360" x2="512" y2="360"/><line x1="0" y1="432" x2="512" y2="432"/>
+    <line x1="72" y1="0" x2="72" y2="512"/><line x1="144" y1="0" x2="144" y2="512"/>
+    <line x1="216" y1="0" x2="216" y2="512"/><line x1="288" y1="0" x2="288" y2="512"/>
+    <line x1="360" y1="0" x2="360" y2="512"/><line x1="432" y1="0" x2="432" y2="512"/>
+  </g>
+  <!-- Blueprint accent grid -->
+  <g stroke="#2a2018" stroke-width="1.5" opacity="0.9">
+    <line x1="0" y1="144" x2="512" y2="144"/><line x1="0" y1="288" x2="512" y2="288"/>
+    <line x1="0" y1="432" x2="512" y2="432"/>
+    <line x1="144" y1="0" x2="144" y2="512"/><line x1="288" y1="0" x2="288" y2="512"/>
+    <line x1="432" y1="0" x2="432" y2="512"/>
+  </g>
+  <!-- Structural drawing - building cross section -->
+  <g stroke="#d97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-tim)">
+    <!-- Foundation base -->
+    <rect x="100" y="340" width="312" height="28" rx="2" stroke-width="3"/>
+    <!-- Columns -->
+    <rect x="116" y="176" width="28" height="164"/>
+    <rect x="242" y="176" width="28" height="164"/>
+    <rect x="368" y="176" width="28" height="164"/>
+    <!-- Beams (horizontal) -->
+    <rect x="100" y="176" width="312" height="18"/>
+    <rect x="100" y="268" width="312" height="14" opacity="0.7"/>
+    <!-- Roof/apex structure -->
+    <path d="M100 176 L256 96 L412 176"/>
+    <!-- Roof support cross brace -->
+    <line x1="130" y1="168" x2="256" y2="108"/>
+    <line x1="382" y1="168" x2="256" y2="108"/>
+    <!-- Column highlights (lighter inner) -->
+    <rect x="122" y="182" width="16" height="152" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+    <rect x="248" y="182" width="16" height="152" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+    <rect x="374" y="182" width="16" height="152" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+  </g>
+  <!-- Dimension marks -->
+  <g stroke="#78716c" stroke-width="1" opacity="0.7" font-family="'Courier New', monospace" font-size="10">
+    <!-- Width dimension -->
+    <line x1="100" y1="384" x2="412" y2="384"/>
+    <line x1="100" y1="378" x2="100" y2="390"/>
+    <line x1="412" y1="378" x2="412" y2="390"/>
+    <!-- Height dimension -->
+    <line x1="56" y1="96" x2="56" y2="368"/>
+    <line x1="50" y1="96" x2="62" y2="96"/>
+    <line x1="50" y1="368" x2="62" y2="368"/>
+  </g>
+  <!-- Architectural detail dots -->
+  <g fill="#d97706" opacity="0.8" filter="url(#glow-tim)">
+    <circle cx="100" cy="176" r="5"/><circle cx="412" cy="176" r="5"/>
+    <circle cx="256" cy="96" r="6"/>
+    <circle cx="130" cy="176" r="3"/><circle cx="382" cy="176" r="3"/>
+    <circle cx="100" cy="340" r="4"/><circle cx="412" cy="340" r="4"/>
+    <circle cx="256" cy="176" r="4"/>
+  </g>
+  <!-- Label -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Courier New', monospace" font-size="24" font-weight="bold" fill="#d97706" letter-spacing="10">TIM</text>
+  <text x="256" y="494" text-anchor="middle" font-family="'Courier New', monospace" font-size="10" fill="#78350f" letter-spacing="3">THE FOUNDATION</text>
+</svg>

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg-amadeus" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#2e1065"/>
+      <stop offset="100%" stop-color="#0a0520"/>
+    </radialGradient>
+    <filter id="glow-amadeus" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="32" fill="url(#bg-amadeus)"/>
+  <!-- Outer neural dendrites -->
+  <g stroke="#4c1d95" stroke-width="1.2" opacity="0.5" stroke-linecap="round">
+    <line x1="256" y1="185" x2="140" y2="108"/><line x1="256" y1="185" x2="195" y2="88"/>
+    <line x1="256" y1="185" x2="256" y2="72"/><line x1="256" y1="185" x2="317" y2="88"/>
+    <line x1="256" y1="185" x2="372" y2="108"/>
+    <line x1="256" y1="320" x2="140" y2="400"/><line x1="256" y1="320" x2="195" y2="420"/>
+    <line x1="256" y1="320" x2="256" y2="435"/><line x1="256" y1="320" x2="317" y2="420"/>
+    <line x1="256" y1="320" x2="372" y2="400"/>
+    <line x1="195" y1="252" x2="75" y2="215"/><line x1="195" y1="252" x2="72" y2="252"/>
+    <line x1="195" y1="252" x2="75" y2="290"/>
+    <line x1="317" y1="252" x2="437" y2="215"/><line x1="317" y1="252" x2="440" y2="252"/>
+    <line x1="317" y1="252" x2="437" y2="290"/>
+  </g>
+  <!-- Outer node dots -->
+  <g fill="#7c3aed" opacity="0.7" filter="url(#glow-amadeus)">
+    <circle cx="140" cy="108" r="5"/><circle cx="195" cy="88" r="4"/>
+    <circle cx="256" cy="72" r="6"/><circle cx="317" cy="88" r="4"/>
+    <circle cx="372" cy="108" r="5"/>
+    <circle cx="140" cy="400" r="5"/><circle cx="195" cy="420" r="4"/>
+    <circle cx="256" cy="435" r="6"/><circle cx="317" cy="420" r="4"/>
+    <circle cx="372" cy="400" r="5"/>
+    <circle cx="75" cy="215" r="4"/><circle cx="72" cy="252" r="5"/>
+    <circle cx="75" cy="290" r="4"/><circle cx="437" cy="215" r="4"/>
+    <circle cx="440" cy="252" r="5"/><circle cx="437" cy="290" r="4"/>
+  </g>
+  <!-- Brain silhouette - left hemisphere -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-amadeus)">
+    <path d="M256 190 C245 190 228 193 215 202 C198 214 188 234 190 256 C192 276 204 296 222 308 C234 316 246 318 256 317"
+          stroke="#a855f7" stroke-width="3.5" fill="none"/>
+    <!-- Left gyri (folds) -->
+    <path d="M212 218 C220 224 224 234 216 244" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+    <path d="M203 252 C212 250 217 258 212 266" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+    <path d="M208 283 C218 278 222 287 220 296" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+    <!-- Left top lobe -->
+    <path d="M222 193 C218 180 224 168 234 168 C244 168 248 176 248 186" stroke="#e879f9" stroke-width="3" fill="none"/>
+  </g>
+  <!-- Brain silhouette - right hemisphere -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-amadeus)">
+    <path d="M256 190 C267 190 284 193 297 202 C314 214 324 234 322 256 C320 276 308 296 290 308 C278 316 266 318 256 317"
+          stroke="#a855f7" stroke-width="3.5" fill="none"/>
+    <!-- Right gyri -->
+    <path d="M300 218 C292 224 288 234 296 244" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+    <path d="M309 252 C300 250 295 258 300 266" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+    <path d="M304 283 C294 278 290 287 292 296" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+    <!-- Right top lobe -->
+    <path d="M290 193 C294 180 288 168 278 168 C268 168 264 176 264 186" stroke="#e879f9" stroke-width="3" fill="none"/>
+  </g>
+  <!-- Top center lobe -->
+  <path d="M248 170 C250 160 262 160 264 170" stroke="#e879f9" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Center divide -->
+  <line x1="256" y1="190" x2="256" y2="317" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.7"/>
+  <!-- Brain stem -->
+  <path d="M242 317 C242 330 249 338 256 340 C263 338 270 330 270 317" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Inner neural nodes -->
+  <g fill="#e879f9" opacity="0.9" filter="url(#glow-amadeus)">
+    <circle cx="232" cy="230" r="3.5"/><circle cx="280" cy="230" r="3.5"/>
+    <circle cx="220" cy="260" r="3"/><circle cx="292" cy="260" r="3"/>
+    <circle cx="235" cy="292" r="3"/><circle cx="277" cy="292" r="3"/>
+  </g>
+  <!-- Center glow pulse -->
+  <circle cx="256" cy="255" r="28" fill="#7c3aed" opacity="0.1"/>
+  <circle cx="256" cy="255" r="12" fill="#a855f7" opacity="0.15"/>
+  <!-- Label -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Courier New', monospace" font-size="20" font-weight="bold" fill="#a855f7" letter-spacing="5">AMADEUS</text>
+  <text x="256" y="494" text-anchor="middle" font-family="'Courier New', monospace" font-size="10" fill="#6d28d9" letter-spacing="3">THE ORACLE</text>
+</svg>

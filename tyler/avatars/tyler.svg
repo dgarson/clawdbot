@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg-tyler" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#0f0a1e"/>
+      <stop offset="100%" stop-color="#040208"/>
+    </radialGradient>
+    <filter id="glow-tyler" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="32" fill="url(#bg-tyler)"/>
+  <!-- Shield shape -->
+  <path d="M256 88 L392 136 L392 256 C392 340 330 404 256 432 C182 404 120 340 120 256 L120 136 Z"
+        fill="#1e1240" stroke="#7c3aed" stroke-width="3" filter="url(#glow-tyler)"/>
+  <!-- Shield inner glow -->
+  <path d="M256 108 L374 150 L374 256 C374 328 318 386 256 410 C194 386 138 328 138 256 L138 150 Z"
+        fill="none" stroke="#a855f7" stroke-width="1.5" opacity="0.5"/>
+  <!-- Blockchain hex grid inside shield -->
+  <g fill="none" stroke="#4c1d95" stroke-width="1.2" opacity="0.7">
+    <!-- Hexagons arranged in grid -->
+    <!-- Row 1 -->
+    <polygon points="256,148 272,157 272,175 256,184 240,175 240,157" stroke="#6d28d9"/>
+    <!-- Row 2 -->
+    <polygon points="220,184 236,193 236,211 220,220 204,211 204,193"/>
+    <polygon points="292,184 308,193 308,211 292,220 276,211 276,193"/>
+    <!-- Row 3 -->
+    <polygon points="256,220 272,229 272,247 256,256 240,247 240,229" stroke="#6d28d9"/>
+    <polygon points="184,220 200,229 200,247 184,256 168,247 168,229" opacity="0.5"/>
+    <polygon points="328,220 344,229 344,247 328,256 312,247 312,229" opacity="0.5"/>
+    <!-- Row 4 -->
+    <polygon points="220,256 236,265 236,283 220,292 204,283 204,265"/>
+    <polygon points="292,256 308,265 308,283 292,292 276,283 276,265"/>
+    <!-- Row 5 -->
+    <polygon points="256,292 272,301 272,319 256,328 240,319 240,301" stroke="#6d28d9"/>
+    <!-- Row 6 -->
+    <polygon points="220,328 236,337 236,355 220,364 204,355 204,337" opacity="0.6"/>
+    <polygon points="292,328 308,337 308,355 292,364 276,355 276,337" opacity="0.6"/>
+  </g>
+  <!-- Connecting lines between hexagons (blockchain links) -->
+  <g stroke="#7c3aed" stroke-width="1.5" opacity="0.5" filter="url(#glow-tyler)">
+    <line x1="256" y1="184" x2="220" y2="193"/>
+    <line x1="256" y1="184" x2="292" y2="193"/>
+    <line x1="220" y1="220" x2="256" y2="229"/>
+    <line x1="292" y1="220" x2="256" y2="229"/>
+    <line x1="256" y1="256" x2="220" y2="265"/>
+    <line x1="256" y1="256" x2="292" y2="265"/>
+    <line x1="220" y1="292" x2="256" y2="301"/>
+    <line x1="292" y1="292" x2="256" y2="301"/>
+  </g>
+  <!-- Glowing hex nodes -->
+  <g fill="#a855f7" filter="url(#glow-tyler)" opacity="0.9">
+    <circle cx="256" cy="166" r="5"/><circle cx="220" cy="202" r="4"/>
+    <circle cx="292" cy="202" r="4"/><circle cx="256" cy="238" r="5.5"/>
+    <circle cx="184" cy="238" r="3"/><circle cx="328" cy="238" r="3"/>
+    <circle cx="220" cy="274" r="4"/><circle cx="292" cy="274" r="4"/>
+    <circle cx="256" cy="310" r="5"/><circle cx="220" cy="346" r="3.5"/>
+    <circle cx="292" cy="346" r="3.5"/>
+  </g>
+  <!-- Shield emblem - scales of justice outline (subtle) -->
+  <g fill="none" stroke="#f59e0b" stroke-width="2" opacity="0.7" filter="url(#glow-tyler)">
+    <!-- Balance beam -->
+    <line x1="210" y1="390" x2="302" y2="390" stroke-width="2.5"/>
+    <line x1="256" y1="375" x2="256" y2="405"/>
+    <!-- Left pan -->
+    <path d="M210 390 L195 405 L225 405 Z"/>
+    <!-- Right pan -->
+    <path d="M302 390 L287 405 L317 405 Z"/>
+  </g>
+  <!-- Label -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Courier New', monospace" font-size="22" font-weight="bold" fill="#a855f7" letter-spacing="6">TYLER</text>
+  <text x="256" y="494" text-anchor="middle" font-family="'Courier New', monospace" font-size="10" fill="#4c1d95" letter-spacing="3">THE SHIELD</text>
+</svg>

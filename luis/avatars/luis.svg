@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg-luis" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#1a0520"/>
+      <stop offset="100%" stop-color="#060108"/>
+    </radialGradient>
+    <filter id="glow-luis" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="32" fill="url(#bg-luis)"/>
+  <!-- Palette handle shape -->
+  <ellipse cx="268" cy="262" rx="160" ry="130" fill="#1a0520" stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
+  <!-- Thumb hole -->
+  <ellipse cx="200" cy="310" rx="28" ry="22" fill="url(#bg-luis)" stroke="#7c3aed" stroke-width="1.5" opacity="0.6"/>
+  <!-- Color swatches on palette - large circles of color -->
+  <g opacity="0.85" filter="url(#glow-luis)">
+    <!-- Red -->
+    <circle cx="220" cy="160" r="32" fill="#ef4444"/>
+    <circle cx="220" cy="160" r="22" fill="#fca5a5" opacity="0.5"/>
+    <!-- Orange -->
+    <circle cx="300" cy="148" r="26" fill="#f97316"/>
+    <circle cx="300" cy="148" r="18" fill="#fed7aa" opacity="0.5"/>
+    <!-- Yellow -->
+    <circle cx="368" cy="178" r="24" fill="#eab308"/>
+    <circle cx="368" cy="178" r="16" fill="#fef08a" opacity="0.5"/>
+    <!-- Green -->
+    <circle cx="390" cy="248" r="24" fill="#22c55e"/>
+    <circle cx="390" cy="248" r="16" fill="#bbf7d0" opacity="0.5"/>
+    <!-- Cyan -->
+    <circle cx="370" cy="318" r="22" fill="#06b6d4"/>
+    <circle cx="370" cy="318" r="14" fill="#a5f3fc" opacity="0.5"/>
+    <!-- Blue -->
+    <circle cx="312" cy="360" r="24" fill="#3b82f6"/>
+    <circle cx="312" cy="360" r="16" fill="#bfdbfe" opacity="0.5"/>
+    <!-- Purple -->
+    <circle cx="240" cy="368" r="26" fill="#a855f7"/>
+    <circle cx="240" cy="368" r="18" fill="#e9d5ff" opacity="0.5"/>
+    <!-- Pink (main accent) -->
+    <circle cx="180" cy="336" r="26" fill="#ec4899"/>
+    <circle cx="180" cy="336" r="18" fill="#fbcfe8" opacity="0.5"/>
+  </g>
+  <!-- Brush stroke overlays -->
+  <g fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M120 200 Q180 160 256 180 Q320 200 380 160" stroke="#ec4899" stroke-width="8"/>
+    <path d="M140 320 Q200 290 260 310 Q320 330 390 300" stroke="#a855f7" stroke-width="6"/>
+  </g>
+  <!-- Palette outline -->
+  <ellipse cx="268" cy="262" rx="160" ry="130" fill="none" stroke="#ec4899" stroke-width="2" opacity="0.5"/>
+  <!-- Thumb hole outline -->
+  <ellipse cx="200" cy="310" rx="28" ry="22" fill="none" stroke="#ec4899" stroke-width="2" opacity="0.7"/>
+  <!-- Center mixing area -->
+  <ellipse cx="268" cy="255" rx="48" ry="38" fill="#2d0040" opacity="0.5" filter="url(#glow-luis)"/>
+  <ellipse cx="268" cy="255" rx="28" ry="22" fill="#9333ea" opacity="0.2" filter="url(#glow-luis)"/>
+  <!-- Label -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Courier New', monospace" font-size="22" font-weight="bold" fill="#ec4899" letter-spacing="8">LUIS</text>
+  <text x="256" y="494" text-anchor="middle" font-family="'Courier New', monospace" font-size="10" fill="#86198f" letter-spacing="3">THE CANVAS</text>
+</svg>

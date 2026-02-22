@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg-stephan" cx="40%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#1a0800"/>
+      <stop offset="100%" stop-color="#060200"/>
+    </radialGradient>
+    <filter id="glow-stephan" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="32" fill="url(#bg-stephan)"/>
+  <!-- Broadcast / sound wave arcs - from left focal point -->
+  <g fill="none" stroke-linecap="round" filter="url(#glow-stephan)">
+    <!-- Wave 1 - innermost -->
+    <path d="M148 256 C148 220 164 186 190 162" stroke="#f97316" stroke-width="4" opacity="1"/>
+    <path d="M148 256 C148 292 164 326 190 350" stroke="#f97316" stroke-width="4" opacity="1"/>
+    <!-- Wave 2 -->
+    <path d="M118 256 C118 202 140 152 174 118" stroke="#f97316" stroke-width="3.5" opacity="0.9"/>
+    <path d="M118 256 C118 310 140 360 174 394" stroke="#f97316" stroke-width="3.5" opacity="0.9"/>
+    <!-- Wave 3 -->
+    <path d="M88 256 C88 184 116 118 158 74" stroke="#ea6000" stroke-width="3" opacity="0.75"/>
+    <path d="M88 256 C88 328 116 394 158 438" stroke="#ea6000" stroke-width="3" opacity="0.75"/>
+    <!-- Wave 4 - wide -->
+    <path d="M56 256 C56 162 92 80 148 32" stroke="#c24a00" stroke-width="2.5" opacity="0.55"/>
+    <path d="M56 256 C56 350 92 432 148 480" stroke="#c24a00" stroke-width="2.5" opacity="0.55"/>
+    <!-- Wave 5 - outermost -->
+    <path d="M28 256 C28 144 68 44 136 -10" stroke="#91340a" stroke-width="2" opacity="0.4"/>
+    <path d="M28 256 C28 368 68 468 136 522" stroke="#91340a" stroke-width="2" opacity="0.4"/>
+  </g>
+  <!-- Far-field broadcast waves (to the right) -->
+  <g fill="none" stroke-linecap="round" filter="url(#glow-stephan)" opacity="0.25">
+    <path d="M300 180 C350 190 390 220 410 256 C390 292 350 320 300 330" stroke="#f97316" stroke-width="2"/>
+    <path d="M330 155 C400 170 450 210 476 256 C450 302 400 342 330 357" stroke="#f97316" stroke-width="1.5"/>
+  </g>
+  <!-- Megaphone body -->
+  <g filter="url(#glow-stephan)">
+    <!-- Main cone -->
+    <path d="M148 204 L148 308 L310 370 L310 142 Z"
+          fill="#7c2d12" stroke="#f97316" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Cone highlight -->
+    <path d="M148 204 L310 142 L310 200 L148 240 Z"
+          fill="#f97316" opacity="0.15"/>
+    <!-- Handle/speaker base -->
+    <rect x="88" y="222" width="65" height="68" rx="8"
+          fill="#431407" stroke="#f97316" stroke-width="2"/>
+    <!-- Speaker grille lines -->
+    <line x1="100" y1="235" x2="140" y2="235" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+    <line x1="100" y1="248" x2="140" y2="248" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+    <line x1="100" y1="261" x2="140" y2="261" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+    <line x1="100" y1="274" x2="140" y2="274" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+    <!-- Bell opening highlight -->
+    <path d="M310 142 C330 148 345 165 350 185 L350 327 C345 347 330 364 310 370"
+          fill="#431407" stroke="#f97316" stroke-width="2"/>
+    <ellipse cx="330" cy="256" rx="20" ry="70" fill="#f97316" opacity="0.12"/>
+  </g>
+  <!-- Signal dots -->
+  <g fill="#f97316" opacity="0.8" filter="url(#glow-stephan)">
+    <circle cx="380" cy="200" r="5"/><circle cx="400" cy="240" r="4"/>
+    <circle cx="408" cy="256" r="6"/><circle cx="400" cy="272" r="4"/>
+    <circle cx="380" cy="312" r="5"/>
+    <circle cx="430" cy="180" r="3.5"/><circle cx="450" cy="256" r="4.5"/>
+    <circle cx="430" cy="332" r="3.5"/>
+  </g>
+  <!-- Label -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Courier New', monospace" font-size="18" font-weight="bold" fill="#f97316" letter-spacing="4">STEPHAN</text>
+  <text x="256" y="494" text-anchor="middle" font-family="'Courier New', monospace" font-size="10" fill="#9a3412" letter-spacing="3">THE AMPLIFIER</text>
+</svg>
