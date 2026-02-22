@@ -1653,6 +1653,47 @@ These are strategic R&D items identified by Amadeus. Items already tracked as se
 
 Decision note: no PR above is approved-but-unmerged yet; current blockers are exactly (1) missing Codex sweep artifact for final gate, (2) unresolved conflicts on #44, and (3) pending checks.
 
+## Overnight Proactive Build Kickoff — 2026-02-22 00:00 MST (Tim)
+
+### OVN-PB-01 — UTEE Canary Execution Prep → Decision Packet
+
+- Status: `in-progress`
+- Assignee: Roman (lead), Tony (support)
+- Team/Squad: Platform Core (Roman, Tony) + Architecture review (Tim)
+- Priority: P1
+- Workflow:
+  1. Validate feature toggle and rollback commands in staging-safe dry-run flow.
+  2. Define/verify alert thresholds (error rate, p95/p99 latency deltas, crash triggers).
+  3. Produce single-page GO/NO-GO checklist + decision packet.
+  4. Attach operational evidence and handoff notes for morning approval.
+- Notes: No production rollout overnight; prep + validation artifacts only.
+
+### OVN-PB-02 — ACL/A2M Phase 1 Stabilization (Substrate)
+
+- Status: `in-progress`
+- Assignee: Claire (lead)
+- Team/Squad: Architecture substrate lane (Claire) + Tim final review
+- Priority: P1
+- Workflow:
+  1. Lock stable envelope contract (single canonical schema source).
+  2. Confirm capability registry as source-of-truth with strict invariants.
+  3. Harden ownership handoff primitive with integrity guarantees.
+  4. Add compatibility/invariant test coverage and produce merge-ready handoff.
+- Notes: Safe, additive, backward-compatible with existing `sessions_send` behavior.
+
+### OVN-PB-03 — Integration Failure-Path Harness
+
+- Status: `in-progress`
+- Assignee: Sandy (lead)
+- Team/Squad: Reliability lane (Sandy) + Tim review
+- Priority: P1
+- Workflow:
+  1. Build spawn/respond loop integrity checks.
+  2. Add cron delivery isolation tests (no cross-thread contamination).
+  3. Add A2M↔UTEE feature-flag interaction safety tests.
+  4. Produce a concise morning reliability report with pass/fail evidence.
+- Notes: Additive harness/tests only; avoid broad refactors overnight.
+
 ## Review Queue Policy Update (2026-02-21)
 
 - Final senior review lane (Tim + Xavier) now runs at **consolidated megabranch** level, not incremental PR level.
