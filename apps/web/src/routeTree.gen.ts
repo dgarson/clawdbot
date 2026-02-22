@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ApprovalsRouteImport } from './routes/approvals'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as YouIndexRouteImport } from './routes/you/index'
 import { Route as WorkstreamsIndexRouteImport } from './routes/workstreams/index'
@@ -41,6 +42,11 @@ import { Route as AgentsAgentIdConfigureRouteImport } from './routes/agents/$age
 import { Route as AgentsAgentIdSessionIndexRouteImport } from './routes/agents/$agentId/session/index'
 import { Route as AgentsAgentIdSessionSessionKeyRouteImport } from './routes/agents/$agentId/session/$sessionKey'
 
+const ApprovalsRoute = ApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/approvals.lazy').then((d) => d.Route))
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -203,6 +209,7 @@ const AgentsAgentIdSessionSessionKeyRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/approvals': typeof ApprovalsRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
   '/agents/graph': typeof AgentsGraphRoute
   '/agents/new': typeof AgentsNewRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/approvals': typeof ApprovalsRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
   '/agents/graph': typeof AgentsGraphRoute
   '/agents/new': typeof AgentsNewRoute
@@ -270,6 +278,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/approvals': typeof ApprovalsRoute
   '/agents/$agentId': typeof AgentsAgentIdRouteWithChildren
   '/agents/graph': typeof AgentsGraphRoute
   '/agents/new': typeof AgentsNewRoute
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/approvals'
     | '/agents/$agentId'
     | '/agents/graph'
     | '/agents/new'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/approvals'
     | '/agents/$agentId'
     | '/agents/graph'
     | '/agents/new'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/approvals'
     | '/agents/$agentId'
     | '/agents/graph'
     | '/agents/new'
@@ -405,6 +417,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApprovalsRoute: typeof ApprovalsRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRouteWithChildren
   AgentsGraphRoute: typeof AgentsGraphRoute
   AgentsNewRoute: typeof AgentsNewRoute
@@ -435,6 +448,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/approvals': {
+      id: '/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof ApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -685,6 +705,7 @@ const ConversationsIdRouteWithChildren = ConversationsIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApprovalsRoute: ApprovalsRoute,
   AgentsAgentIdRoute: AgentsAgentIdRouteWithChildren,
   AgentsGraphRoute: AgentsGraphRoute,
   AgentsNewRoute: AgentsNewRoute,

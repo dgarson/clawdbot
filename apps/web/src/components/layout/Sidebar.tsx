@@ -368,6 +368,13 @@ export function Sidebar({ className }: SidebarProps) {
               collapsed={sidebarCollapsed}
             />
             <NavItem
+              href="/approvals"
+              icon={Inbox}
+              label="Inbox"
+              collapsed={sidebarCollapsed}
+              badge={pendingApprovals}
+            />
+            <NavItem
               href="/workstreams"
               icon={ListTodo}
               label={t("nav.workstreams")}
