@@ -193,6 +193,8 @@ const CertificateManager         = React.lazy(() => import("./views/CertificateM
 const FinancialReportingDashboard = React.lazy(() => import("./views/FinancialReportingDashboard"));
 const OpenAPIExplorer            = React.lazy(() => import("./views/OpenAPIExplorer"));
 const DataLineageViewer          = React.lazy(() => import("./views/DataLineageViewer"));
+const StorageBucketManager       = React.lazy(() => import("./views/StorageBucketManager"));
+const AIPromptRouter             = React.lazy(() => import("./views/AIPromptRouter"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -363,6 +365,8 @@ export const navItems = [
   { id: "financial",      label: "Financial Reports",     emoji: "💰", shortcut: null },
   { id: "openapi",        label: "OpenAPI Explorer",      emoji: "📋", shortcut: null },
   { id: "data-lineage",   label: "Data Lineage",          emoji: "🔗", shortcut: null },
+  { id: "storage-buckets", label: "Storage Buckets",      emoji: "🪣", shortcut: null },
+  { id: "prompt-router",  label: "AI Prompt Router",      emoji: "🤖", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -534,6 +538,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "financial":          <ContentSkeleton />,
   "openapi":            <ContentSkeleton />,
   "data-lineage":       <ContentSkeleton />,
+  "storage-buckets":    <ContentSkeleton />,
+  "prompt-router":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -926,6 +932,8 @@ function AppContent() {
       case "financial":         return <FinancialReportingDashboard />;
       case "openapi":           return <OpenAPIExplorer />;
       case "data-lineage":      return <DataLineageViewer />;
+      case "storage-buckets":   return <StorageBucketManager />;
+      case "prompt-router":     return <AIPromptRouter />;
       default:              return <AgentDashboard />;
     }
   };
