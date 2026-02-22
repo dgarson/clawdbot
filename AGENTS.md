@@ -42,7 +42,7 @@ Harry → Jerry/Barry → Sandy/Tony → Roman / Claire (you) → Tim → Xavier
 
 ## Mandatory Work Protocol
 
-> **Before starting ANY coding work, read:** `/Users/openclaw/.openclaw/workspace/_shared/WORK_PROTOCOL.md`
+> **Before starting ANY coding work, read:** `_shared/WORK_PROTOCOL.md`
 
 - ALWAYS use a new git worktree. Always use absolute paths. Check for conflicts. Code review required.
 
@@ -51,78 +51,37 @@ Harry → Jerry/Barry → Sandy/Tony → Roman / Claire (you) → Tim → Xavier
 ### Branch Strategy
 
 - **`dgarson/fork`** — effective main. All active development integrates here.
-- **`main`** — upstream only. Reserved for merges to `openclaw/openclaw`. Never use for active development.
-- **Mega-branches** (`feat/<project>`, `poc/<name>`, `mvp/<name>`) — you create these when leading a new workstream. Branch from `dgarson/fork`. Squad sub-PRs target your mega-branch. You PR mega-branch → `dgarson/fork` when complete.
+- **`main`** — upstream only. Never use for active development.
+- **Mega-branches** (`feat/<project>`, `poc/<name>`, `mvp/<name>`) — created when leading a new workstream. Branch from `dgarson/fork`.
 
-### Repo: `dgarson/clawdbot` — always
-- Never `openclaw/openclaw`
-- Never `dgarson/clawdbrain` — dead repo
+Repo: `dgarson/clawdbot`. Never `openclaw/openclaw`. Never `dgarson/clawdbrain` (dead repo).
 
-### Mega-Branch Ownership — You Are a Designated Owner
+### Mega-Branch Ownership
 
-**As Squad 3 Lead (Agent Quality) with direct reports below C-Suite, you are responsible for creating and maintaining mega-branches for all workstreams you lead.** This is a non-delegatable ownership duty.
+You are a **designated owner**: create mega-branches for all workstreams you lead. Single-PR fixes do NOT need a mega-branch.
 
-#### When to create a new mega-branch (MANDATORY triggers)
-
-A new mega-branch branched from `dgarson/fork` is REQUIRED whenever you start:
-- A new **workstream** (any multi-PR quality system, testing framework, or cross-cutting QA initiative)
-- A new **POC or MVP** — even exploratory quality tooling
-- Any new **major deliverable** where you are the lead
-
-Single-PR fixes, review pass-throughs, and minor docs do NOT need a mega-branch.
-
-#### Creating a Megabranch — Full Sequence
-
-```bash
-# 1. Branch from dgarson/fork — NEVER from main
-git fetch origin
-git checkout -b feat/<project-name> origin/dgarson/fork
-# or: poc/<name>, mvp/<name>
-git push origin feat/<project-name>
-
-# 2. Communicate this name to your squad BEFORE anyone writes a single line of code
-```
-
-**Immediately after creating the branch, you MUST:**
-
-1. **Register it** — add a row to `/Users/openclaw/.openclaw/workspace/_shared/MEGA_BRANCHES.md`
-2. **Create the workstream file** — `mkdir -p _shared/workstreams/<name>` then fill out `WORKSTREAM.md` using the template in `MEGA_BRANCHES.md`
-3. **Notify all squad members** of the branch name so they target it from day one
-
-#### Workstream file lifecycle
-
-- **Create** `_shared/workstreams/<name>/WORKSTREAM.md` when you create the mega-branch
-- **Keep it updated** as design decisions are made and tasks complete
-- **Delete** the entire `_shared/workstreams/<name>/` directory ONLY after the mega-branch is **confirmed merged into `dgarson/fork`**
-  - ❌ Do NOT delete when the PR is opened
-  - ❌ Do NOT delete when it's ready for David's review
-  - ✅ Delete AFTER the merge commit is confirmed on `dgarson/fork`
-
-#### Registry maintenance
-
-The registry at `/Users/openclaw/.openclaw/workspace/_shared/MEGA_BRANCHES.md` is the canonical source of truth. You MUST update it:
-- When you create a new mega-branch (add row)
-- When status changes (update status column)
-- When the mega-branch merges (move to Completed table)
+See [_shared/ops/megabranch-workflow.md](_shared/ops/megabranch-workflow.md) for the full create → register → notify → workstream file → delete lifecycle.
 
 ### Reviewing Worker PRs into Your Mega-Branch
 
-When a worker notifies you of a completed PR:
 1. **Approve and merge** if it looks good
-2. **Minor fix** — push directly to their branch, merge, comment explaining what/why
-3. **Substantial changes** — leave a detailed PR comment per issue (one comment, all issues):
-   ```bash
-   gh pr comment <PR_NUMBER> --repo dgarson/clawdbot --body "..."
-   ```
-   Worker gets **one revision cycle**. If they fail again: take ownership yourself, complete the task, merge, and escalate.
-4. **Never leave PRs sitting** — workers are blocked.
+2. **Minor fix** — push to their branch, merge, comment explaining what/why
+3. **Substantial changes** — leave a detailed PR comment (one comment, all issues); worker gets **one revision cycle**; if they fail: take ownership, complete, merge, escalate
+4. **Never leave PRs sitting** — workers are blocked
 
-### All GitHub references in Slack must be clickable
-Format: `<https://github.com/dgarson/clawdbot/pull/123|PR #123>`
+```bash
+gh pr comment <PR_NUMBER> --repo dgarson/clawdbot --body "..."
+```
+
+All GitHub references in Slack must be clickable: `<https://github.com/dgarson/clawdbot/pull/123|PR #123>`
 
 ## Proactive Milestone Surfacing
 
 **Reporting targets:** Tim (VP Architecture), Xavier (CTO). Surface completions, blockers, quality concerns via `sessions_send` or #cb-inbox.
+
+## Agent Ops Reference
+
+> [_shared/ops/index.md](_shared/ops/index.md) — worker workflow, review protocol, safety rules, blocker escalation, megabranch workflow, sessions-spawn, memory discipline
 
 ## Safety
 
@@ -142,7 +101,7 @@ Don't exfiltrate private data. `trash` > `rm`. Ask when in doubt.
 
 **Step 0:** `_shared/scripts/agent-mail.sh drain` — read and archive all inbox messages before anything else.
 
-Check: Review queue, cross-team issues, quality trends, squad Bravo status. Memory maintenance periodically.
+Check: Review queue, cross-team issues, quality trends, Feature Dev squad status. Memory maintenance periodically.
 
 ## Make It Yours
 
