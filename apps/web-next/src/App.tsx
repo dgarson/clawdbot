@@ -200,6 +200,9 @@ const AccessControlManager       = React.lazy(() => import("./views/AccessContro
 const ErrorTrackingDashboard     = React.lazy(() => import("./views/ErrorTrackingDashboard"));
 const ComplianceTracker          = React.lazy(() => import("./views/ComplianceTracker"));
 const SSOConfigManager           = React.lazy(() => import("./views/SSOConfigManager"));
+const ContentCalendar            = React.lazy(() => import("./views/ContentCalendar"));
+const InfrastructureCostOptimizer = React.lazy(() => import("./views/InfrastructureCostOptimizer"));
+const APIGatewayManager          = React.lazy(() => import("./views/APIGatewayManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -377,6 +380,9 @@ export const navItems = [
   { id: "error-tracking", label: "Error Tracking",        emoji: "🐛", shortcut: null },
   { id: "compliance-v2",  label: "Compliance Tracker",   emoji: "✅", shortcut: null },
   { id: "sso",            label: "SSO Config",            emoji: "🔑", shortcut: null },
+  { id: "content-cal",    label: "Content Calendar",      emoji: "📅", shortcut: null },
+  { id: "infra-cost",     label: "Infra Cost Optimizer",  emoji: "💡", shortcut: null },
+  { id: "api-gateway",    label: "API Gateway",           emoji: "🌐", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -555,6 +561,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "error-tracking":     <ContentSkeleton />,
   "compliance-v2":      <ContentSkeleton />,
   "sso":                <ContentSkeleton />,
+  "content-cal":        <ContentSkeleton />,
+  "infra-cost":         <ContentSkeleton />,
+  "api-gateway":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -954,6 +963,9 @@ function AppContent() {
       case "error-tracking":    return <ErrorTrackingDashboard />;
       case "compliance-v2":     return <ComplianceTracker />;
       case "sso":               return <SSOConfigManager />;
+      case "content-cal":       return <ContentCalendar />;
+      case "infra-cost":        return <InfrastructureCostOptimizer />;
+      case "api-gateway":       return <APIGatewayManager />;
       default:              return <AgentDashboard />;
     }
   };
