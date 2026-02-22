@@ -121,6 +121,7 @@ const CapacityPlanner      = React.lazy(() => import("./views/CapacityPlanner"))
 const ExperimentDashboard  = React.lazy(() => import("./views/ExperimentDashboard"));
 const SearchResultsView    = React.lazy(() => import("./views/SearchResultsView"));
 const HealthChecklist      = React.lazy(() => import("./views/HealthChecklist"));
+const BudgetTracker        = React.lazy(() => import("./views/BudgetTracker"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -219,6 +220,7 @@ export const navItems = [
   { id: "experiments",      label: "Experiments",       emoji: "🔬", shortcut: null },
   { id: "search-results",   label: "Search Results",    emoji: "🔍", shortcut: null },
   { id: "checklist",        label: "Health Checklist",  emoji: "✅", shortcut: null },
+  { id: "budget-tracker",  label: "Budget Tracker",    emoji: "💵", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -318,6 +320,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "experiments":      <ContentSkeleton />,
   "search-results":   <ContentSkeleton />,
   "checklist":        <ContentSkeleton />,
+  "budget-tracker":   <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -638,6 +641,7 @@ function AppContent() {
       case "experiments":      return <ExperimentDashboard />;
       case "search-results":   return <SearchResultsView />;
       case "checklist":        return <HealthChecklist />;
+      case "budget-tracker":   return <BudgetTracker />;
       default:              return <AgentDashboard />;
     }
   };
