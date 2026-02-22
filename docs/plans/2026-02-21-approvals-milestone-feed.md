@@ -1,6 +1,8 @@
 # Approvals + Milestone Feed Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+>
+> **Testing strategy:** Write test files alongside code changes but DO NOT run them. After each task, run only `pnpm --filter web tsc --noEmit` to catch type errors. Run the full test suite (`pnpm --filter web test`) ONLY after all 8 tasks are complete.
 
 **Goal:** Build a reusable approvals queue + milestone feed that surfaces in a sidebar slide-out panel (urgent items only) and a dedicated `/approvals` page (full triage + history).
 
@@ -152,9 +154,10 @@ export { ApprovalItem } from "./ApprovalItem";
 export type { ApprovalItemProps } from "./ApprovalItem";
 ```
 
-**Step 3: Commit**
+**Step 3: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/components/domain/approvals/
 git commit -m "feat(approvals): add ApprovalItem component"
 ```
@@ -413,9 +416,10 @@ export { ApprovalsQueue } from "./ApprovalsQueue";
 export type { ApprovalsQueueProps, PendingApproval } from "./ApprovalsQueue";
 ```
 
-**Step 4: Commit**
+**Step 4: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/components/domain/approvals/
 git commit -m "feat(approvals): add ApprovalsQueue with compact/full modes and agent grouping"
 ```
@@ -600,9 +604,10 @@ export { MilestoneDetailPanel } from "./MilestoneDetailPanel";
 export type { MilestoneDetailPanelProps } from "./MilestoneDetailPanel";
 ```
 
-**Step 4: Commit**
+**Step 4: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/components/domain/approvals/
 git commit -m "feat(approvals): add MilestoneItem and MilestoneDetailPanel"
 ```
@@ -752,9 +757,10 @@ export { MilestoneFeed } from "./MilestoneFeed";
 export type { MilestoneFeedProps } from "./MilestoneFeed";
 ```
 
-**Step 4: Commit**
+**Step 4: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/components/domain/approvals/
 git commit -m "feat(approvals): add MilestoneFeed with date grouping"
 ```
@@ -868,9 +874,10 @@ export function InboxPanel({ open, onOpenChange }: InboxPanelProps) {
 }
 ```
 
-**Step 4: Commit**
+**Step 4: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/components/composed/InboxPanel.tsx apps/web/src/hooks/usePendingApprovals.ts
 git commit -m "feat(approvals): add InboxPanel slide-out with compact approvals + milestones"
 ```
@@ -939,9 +946,10 @@ For the button, follow the same pattern as `KeyboardShortcutsButton` (it's defin
 <InboxPanel open={inboxOpen} onOpenChange={setInboxOpen} />
 ```
 
-**Step 2: Commit**
+**Step 2: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/components/layout/Sidebar.tsx
 git commit -m "feat(approvals): add inbox icon + badge to sidebar"
 ```
@@ -1082,9 +1090,10 @@ grep "approvals" apps/web/src/routeTree.gen.ts
 
 Expected: see `ApprovalsRoute` entries. If not, restart the dev server.
 
-**Step 5: Commit**
+**Step 5: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add apps/web/src/routes/approvals.tsx apps/web/src/routes/approvals.lazy.tsx \
   apps/web/src/components/pages/ApprovalsPage.tsx \
   apps/web/src/components/layout/Sidebar.tsx \
@@ -1113,18 +1122,35 @@ Read those files. If per-toolcall approval exists, wire it. If not, the fallback
 
 **Step 2:** Update `handleApprove`/`handleReject` in `InboxPanel` and `ApprovalsPage` once you know the correct API.
 
-**Step 3: Commit**
+**Step 3: Type-check then commit**
 
 ```bash
+pnpm --filter web tsc --noEmit
 git add -p  # stage only relevant changes
 git commit -m "fix(approvals): wire per-toolcall approve/reject to correct API"
 ```
 
 ---
 
-## Verification
+## Verification (run only after ALL 8 tasks are complete)
 
-After all tasks:
+**Step 1: Type-check the full project**
+
+```bash
+pnpm --filter web tsc --noEmit
+```
+
+Expected: 0 errors.
+
+**Step 2: Run the full test suite**
+
+```bash
+pnpm --filter web test
+```
+
+Expected: all pre-existing tests pass; no regressions. New tests written during implementation should also pass.
+
+**Step 3: Manual smoke test**
 
 1. Start dev server: `pnpm --filter web dev`
 2. Navigate to `/approvals` — page renders with queue and milestone feed
@@ -1133,4 +1159,4 @@ After all tasks:
 5. Click a milestone item — `MilestoneDetailPanel` opens
 6. If all milestones in a goal are complete — "Goal Complete" banner shows
 7. Approve/reject a tool call — item disappears from queue
-8. Group card: create 3+ pending approvals on one agent — group card shows with bulk actions
+8. Group card with 3+ pending approvals from one agent — group card with bulk actions appears
