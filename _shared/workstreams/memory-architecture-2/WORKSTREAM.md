@@ -3,7 +3,7 @@
 _Mega-branch:_ `feat/memory-architecture-2`
 _Owner:_ Tim
 _Created:_ 2026-02-22
-_Last updated:_ 2026-02-22 13:33 MST
+_Last updated:_ 2026-02-22 13:42 MST
 
 ## Deliverable
 
@@ -30,12 +30,13 @@ Key decisions:
 
 ## Tasks & Status
 
-| Task                           | Owner         | Status         | Notes                                       |
-| ------------------------------ | ------------- | -------------- | ------------------------------------------- |
-| Branch bootstrap + registry    | Tim           | ✅ done        | Branch pushed to origin                     |
-| Implementation plan refinement | Amadeus/Jerry | 🔄 in-progress | fallback spec complete, now execution slice |
-| Phase 1 scaffolding PR prep    | Oscar         | ⏳ queued      | kick off immediately                        |
-| Evaluation metrics integration | Nate          | ⏳ queued      | align with bs-tim-7 harness                 |
+| Task                           | Owner         | Status         | Notes                                                                                         |
+| ------------------------------ | ------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| Branch bootstrap + registry    | Tim           | ✅ done        | Branch pushed to origin.                                                                        |
+| Implementation plan refinement | Amadeus/Jerry | ✅ done        | fallback spec complete and aligned.                                                             |
+| Phase 1 scaffolding PR prep    | Oscar         | ✅ done        | added memory architecture interfaces/schema and shadow-write wiring, added tests, PR updated/ready. |
+| Evaluation metrics integration | Nate          | ✅ done        | waiting on merged validation context.                                                           |
+| Open PR                        | Oscar         | ✅ done        | https://github.com/dgarson/clawdbot/pull/78                                                      |
 
 ## Squad
 
