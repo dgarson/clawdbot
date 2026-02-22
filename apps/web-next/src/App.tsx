@@ -126,6 +126,8 @@ const ChatRoomView         = React.lazy(() => import("./views/ChatRoomView"));
 const ReportGenerator      = React.lazy(() => import("./views/ReportGenerator"));
 const AccessControlMatrix  = React.lazy(() => import("./views/AccessControlMatrix"));
 const InfrastructureMap    = React.lazy(() => import("./views/InfrastructureMap"));
+const StatusPageBuilder    = React.lazy(() => import("./views/StatusPageBuilder"));
+const DiffViewer           = React.lazy(() => import("./views/DiffViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -229,6 +231,8 @@ export const navItems = [
   { id: "reports",         label: "Report Generator",  emoji: "📊", shortcut: null },
   { id: "access-control",  label: "Access Control",    emoji: "🔐", shortcut: null },
   { id: "infra-map",       label: "Infrastructure",    emoji: "🗺️", shortcut: null },
+  { id: "status-page",     label: "Status Page",       emoji: "🟢", shortcut: null },
+  { id: "diff-viewer",     label: "Diff Viewer",       emoji: "⚖️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -333,6 +337,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "reports":          <ContentSkeleton />,
   "access-control":   <ContentSkeleton />,
   "infra-map":        <ContentSkeleton />,
+  "status-page":      <ContentSkeleton />,
+  "diff-viewer":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -658,6 +664,8 @@ function AppContent() {
       case "reports":          return <ReportGenerator />;
       case "access-control":   return <AccessControlMatrix />;
       case "infra-map":        return <InfrastructureMap />;
+      case "status-page":      return <StatusPageBuilder />;
+      case "diff-viewer":      return <DiffViewer />;
       default:              return <AgentDashboard />;
     }
   };
