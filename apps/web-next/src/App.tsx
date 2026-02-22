@@ -104,6 +104,8 @@ const GoalTracker          = React.lazy(() => import("./views/GoalTracker"));
 const ResourceMonitor      = React.lazy(() => import("./views/ResourceMonitor"));
 const ServiceMap           = React.lazy(() => import("./views/ServiceMap"));
 const PromptOptimizer      = React.lazy(() => import("./views/PromptOptimizer"));
+const TeamDirectory        = React.lazy(() => import("./views/TeamDirectory"));
+const WorkflowBuilder      = React.lazy(() => import("./views/WorkflowBuilder"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -185,6 +187,8 @@ export const navItems = [
   { id: "resources",       label: "Resources",      emoji: "📊", shortcut: null },
   { id: "service-map",     label: "Service Map",    emoji: "🗺️", shortcut: null },
   { id: "prompt-optimizer", label: "Prompt Optimizer", emoji: "✨", shortcut: null },
+  { id: "directory",        label: "Team Directory",   emoji: "👥", shortcut: null },
+  { id: "workflows",        label: "Workflow Builder",  emoji: "🔄", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -267,6 +271,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "resources":       <DashboardSkeleton />,
   "service-map":     <ContentSkeleton />,
   "prompt-optimizer": <ContentSkeleton />,
+  "directory":        <ContentSkeleton />,
+  "workflows":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -570,6 +576,8 @@ function AppContent() {
       case "resources":       return <ResourceMonitor />;
       case "service-map":     return <ServiceMap />;
       case "prompt-optimizer": return <PromptOptimizer />;
+      case "directory":        return <TeamDirectory />;
+      case "workflows":        return <WorkflowBuilder />;
       default:              return <AgentDashboard />;
     }
   };
