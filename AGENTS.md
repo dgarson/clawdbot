@@ -65,17 +65,9 @@ Report to: Xavier (CTO), Joey (Principal TPM). Use `sessions_send` or #cb-inbox.
 
 Repo: `dgarson/clawdbot`. `dgarson/fork` = effective main. `main` = upstream only.
 
-### Mega-Branch Ownership (Designated Owner)
+**Mega-branch ownership:** See [_shared/ops/megabranch-workflow.md](_shared/ops/megabranch-workflow.md) for create → register → notify → delete lifecycle.
 
-Create mega-branch for every new workstream/POC/MVP:
-1. Branch from `dgarson/fork` (NEVER `main`)
-2. Register in `_shared/MEGA_BRANCHES.md`
-3. Create `_shared/workstreams/<name>/WORKSTREAM.md`
-4. Notify squad. Delete workstream dir only after confirmed merge.
-
-### Reviewing Worker PRs
-
-Approve/merge, minor fix, or request changes (one revision cycle). **Never leave PRs sitting.** All Slack GitHub refs = clickable links.
+**Reviewing Worker PRs:** Approve/merge, minor fix, or request changes (one revision cycle). **Never leave PRs sitting.** All Slack GitHub refs = clickable links.
 
 ## Safety & Group Chat
 

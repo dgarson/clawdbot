@@ -356,8 +356,9 @@ export default function OnboardingFlow() {
 
               {selectedTemplate && (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-                  <label className="block text-sm text-gray-400 mb-2">Agent Name</label>
+                  <label htmlFor="agent-name-input" className="block text-sm text-gray-400 mb-2">Agent Name</label>
                   <input
+                    id="agent-name-input"
                     type="text"
                     value={agentName}
                     onChange={(e) => setAgentName(e.target.value)}

@@ -43,6 +43,7 @@ const WorkspaceFileBrowser = React.lazy(() => import("./views/WorkspaceFileBrows
 const ProviderAuthManager = React.lazy(() => import("./views/ProviderAuthManager"));
 const AgentPulseMonitor = React.lazy(() => import("./views/AgentPulseMonitor"));
 const NotificationCenter = React.lazy(() => import("./views/NotificationCenter"));
+const ApiKeysManager = React.lazy(() => import("./views/ApiKeysManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -63,6 +64,7 @@ export const navItems = [
   { id: "onboarding",    label: "Onboarding",     emoji: "🚀", shortcut: null },
   { id: "pulse",         label: "Agent Pulse",    emoji: "📡", shortcut: null },
   { id: "notifications", label: "Notifications",  emoji: "🔔", shortcut: null },
+  { id: "api-keys",      label: "API & Integrations", emoji: "🗝️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -84,6 +86,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   onboarding:    <ContentSkeleton />,
   pulse:         <DashboardSkeleton />,
   notifications: <TableSkeleton rows={8} />,
+  "api-keys":    <TableSkeleton rows={6} />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -326,6 +329,7 @@ function AppContent() {
       case "onboarding":    return <OnboardingFlow />;
       case "pulse":         return <AgentPulseMonitor />;
       case "notifications": return <NotificationCenter />;
+      case "api-keys":      return <ApiKeysManager />;
       default:              return <AgentDashboard />;
     }
   };

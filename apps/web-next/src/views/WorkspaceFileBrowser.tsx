@@ -169,6 +169,8 @@ function TreeNode({ node, depth, selectedPath, onSelect, path }: TreeNodeProps) 
         <button
           type="button"
           onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          aria-label={`${node.name} folder, ${open ? 'collapse' : 'expand'}`}
           className={cn(
             'w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm transition-colors hover:bg-gray-800/50 text-left',
             isSelected ? 'bg-gray-800 text-white' : 'text-gray-400'
@@ -264,19 +266,20 @@ export default function WorkspaceFileBrowser() {
               Files
             </h2>
             <div className="flex items-center gap-1">
-              <button type="button" className="w-7 h-7 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-colors">
-                <Plus className="w-3.5 h-3.5" />
+              <button type="button" aria-label="New file" className="w-7 h-7 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-colors">
+                <Plus className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
-              <button type="button" className="w-7 h-7 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-colors">
-                <RefreshCw className="w-3.5 h-3.5" />
+              <button type="button" aria-label="Refresh files" className="w-7 h-7 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-colors">
+                <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
             <input
               type="text"
+              aria-label="Search files"
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -374,8 +377,9 @@ export default function WorkspaceFileBrowser() {
                   type="button"
                   className="w-7 h-7 rounded-lg bg-gray-800 hover:bg-red-600/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition-colors"
                   title="Delete file"
+                  aria-label="Delete file"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               </div>
             </div>

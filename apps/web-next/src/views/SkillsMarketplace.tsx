@@ -70,9 +70,10 @@ export default function SkillsMarketplace() {
 
       {/* Search Bar */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
         <input
           type="text"
+          aria-label="Search skills by name or category"
           placeholder="Search skills by name or category..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

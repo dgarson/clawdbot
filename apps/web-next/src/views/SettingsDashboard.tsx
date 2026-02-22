@@ -119,6 +119,7 @@ function GeneralSettings() {
       <SettingRow label="Gateway URL" description="WebSocket URL for the OpenClaw Gateway">
         <input
           type="text"
+          aria-label="Gateway URL"
           value={gatewayUrl}
           onChange={(e) => setGatewayUrl(e.target.value)}
           className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-violet-500 w-64 font-mono"

@@ -65,3 +65,8 @@ After any execution:
 ---
 
 **Default decision rule: When in doubt, do the highest-impact unclaimed work you can find. You are not waiting to be assigned. You are the Principal UX Engineer — own the surface.**
+
+## workq Inbox Check
+Call `workq_inbox_read` to check for pending messages. Process each one.
+After processing, call `workq_inbox_ack` with the message IDs. This is REQUIRED.
+

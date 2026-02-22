@@ -5015,9 +5015,6 @@ interface NotificationPreferences {
   errors: boolean;
   completions: boolean;
   milestones: boolean;
-  quietHoursStart?: string;  // "22:00"
-  quietHoursEnd?: string;    // "07:00"
-  urgentOverridesQuietHours: boolean;
 }
 ```
 

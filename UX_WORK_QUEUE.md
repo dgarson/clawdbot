@@ -2,8 +2,8 @@
 
 **Project:** `apps/web-next` (Vite + React + Tailwind, dark theme)
 **Goal:** 10-12 views done by 7:30 AM MST Feb 22
-**Sprint Status:** ✅ EXCEEDED — 16 views + full P2 shell polish
-**Last Updated:** 2026-02-21 8:10 PM MST
+**Sprint Status:** ✅ EXCEEDED — 18 views + full P2 shell polish
+**Last Updated:** 2026-02-21 11:15 PM MST
 
 ## Build Status
 ```
@@ -32,6 +32,7 @@
 | NodeManager | ✅ |
 | AgentConfigReview | ✅ |
 | WorkspaceFileBrowser | ✅ |
+| NotificationCenter | ✅ |
 
 ---
 
@@ -91,11 +92,39 @@
 - App.tsx integration: ProficiencyProvider wraps app, badge in sidebar footer,
   navigate() calls visitView() + recordInteraction() on every navigation
 
+## View #17 (Creative Invention — 10:18 PM MST)
+
+### ✅ NotificationCenter (`src/views/NotificationCenter.tsx`) — commit `f97de28` (11:15 PM MST)
+- Master/detail layout: filter list (left) + full detail panel (right)
+- Severity chips: All / Critical / Warning / Success / Info
+- Filters: read state + category dropdown + Cmd+F search
+- Stats bar: per-severity live counts
+- Actions: mark read, mark all read, clear read, pin, dismiss, primary action CTA
+- Detail panel: agent card, meta, event timeline, actionable button
+- Live event injection every 45s (aria-live polite)
+- Pinned items sort to top; 12 realistic seed events
+- Full a11y: aria-selected, aria-pressed, aria-label, focus-visible rings throughout
+- Build: ✓ 0 TS errors, 1.58s, 16.65 kB / gzip 4.82 kB
+
+### ✅ AgentPulseMonitor (`src/views/AgentPulseMonitor.tsx`)
+- Mission-control real-time view for all active agents
+- Agent card grid with sparkline, status pulse dot, current task
+- Activity feed (role=log, aria-live=polite) with live event simulation
+- Detail panel: stats grid, bar chart, relationship graph, model badge
+- Status filter chips + live/pause toggle
+- Full keyboard accessibility throughout
+- Commit `f1d6125` — 17 total views in Horizon UI
+
+### ✅ Accessibility Audit — WCAG 2.1 AA fixes (commit `f1d6125`)
+- AgentBuilderWizard: htmlFor+id on Agent Name + Role inputs
+- CronScheduleBuilder: htmlFor+id on Job Name; sr-only label + aria-label on custom cron input
+- SessionExplorer: <span onClick> → <button type=button> with aria-label + focus-visible ring
+- Clean build: ✓ 0 TS errors, 1.45s
+
 ## Remaining P2 (lower priority)
 
 | Task | Priority |
 |------|----------|
-| Accessibility audit | P2 — WCAG 2.1 AA sweep (self-initiated) |
 | Gateway RPC integration | P2 — blocked on backend contract |
 
 ---

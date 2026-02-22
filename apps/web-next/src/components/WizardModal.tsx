@@ -93,6 +93,8 @@ function TextStepRenderer({
         onChange={(e) => setValue(e.target.value)}
         placeholder={step.placeholder}
         disabled={loading}
+        aria-label={step.title || step.placeholder || 'Input'}
+        aria-required={step.required}
         className={cn(
           'w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3',
           'text-white placeholder-gray-500 text-sm',
@@ -414,7 +416,7 @@ function ProgressStepRenderer({
         </div>
       ) : (
         <div className="relative w-32 h-32">
-          <svg className="w-32 h-32 -rotate-90" viewBox="0 0 100 100">
+          <svg className="w-32 h-32 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
             <circle
               className="text-gray-800"
               strokeWidth="8"
@@ -437,7 +439,7 @@ function ProgressStepRenderer({
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl font-bold text-white">
+            <span className="text-2xl font-bold text-white" aria-live="polite" aria-atomic="true">
               {step.progress || 0}%
             </span>
           </div>
@@ -486,6 +488,18 @@ export default function WizardModal({
       setStepHistory([]);
     }
   }, [open]);
+
+  // Close on Escape key (WCAG 2.1.2)
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        (onDismiss || onCancel)();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onDismiss, onCancel]);
 
   const handleSubmit = (value: string | boolean | string[]) => {
     if (step) {
@@ -569,6 +583,9 @@ export default function WizardModal({
 
       {/* Modal */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="wizard-modal-title"
         className={cn(
           'relative w-full max-w-md bg-gray-900 rounded-2xl border border-gray-800',
           'shadow-2xl shadow-black/50',
@@ -582,19 +599,21 @@ export default function WizardModal({
               <button
                 type="button"
                 onClick={onCancel}
+                aria-label="Go back"
                 className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
               >
-                <ChevronLeft className="w-4 h-4 text-gray-400" />
+                <ChevronLeft className="w-4 h-4 text-gray-400" aria-hidden="true" />
               </button>
             )}
-            <h2 className="text-lg font-semibold text-white">{title}</h2>
+            <h2 id="wizard-modal-title" className="text-lg font-semibold text-white">{title}</h2>
           </div>
           <button
             type="button"
             onClick={onDismiss || onCancel}
+            aria-label="Close wizard"
             className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-400" />
+            <X className="w-5 h-5 text-gray-400" aria-hidden="true" />
           </button>
         </div>
 
