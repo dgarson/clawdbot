@@ -1,5 +1,5 @@
-import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { Type } from "@sinclair/typebox";
 import { exportWorkqState } from "./export.js";
 import { getValidTransitions } from "./state-machine.js";
 import {
@@ -43,6 +43,7 @@ const STATUS_SCHEMA = Type.Union([
 
 interface ToolContextLike {
   agentId?: string | null;
+  sessionKey?: string | null;
 }
 
 interface ScopeOverlapWarning {
@@ -66,6 +67,7 @@ export function registerWorkqTools(
   api.registerTool(
     (ctx: ToolContextLike) => {
       const boundAgentId = normalizeText(ctx?.agentId) ?? null;
+      const boundSessionKey = normalizeText(ctx?.sessionKey) ?? undefined;
 
       return [
         {
@@ -111,6 +113,7 @@ export function registerWorkqTools(
                 scope: optionalStringArray(params, "scope") ?? undefined,
                 tags: optionalStringArray(params, "tags") ?? undefined,
                 reopen: optionalBoolean(params, "reopen"),
+                sessionKey: boundSessionKey,
               });
 
               if (result.status === "conflict") {

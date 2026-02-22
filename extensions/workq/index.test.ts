@@ -11,6 +11,12 @@ const mockFns = vi.hoisted(() => ({
   dbLog: vi.fn(),
   registerWorkqTools: vi.fn(),
   registerWorkqCli: vi.fn(),
+  dbFindStaleActiveItems: vi.fn(() => []),
+  dbAutoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
+  dbSystemMoveToInReview: vi.fn(),
+  dbSystemMarkDone: vi.fn(),
+  dbSystemReleaseToUnclaimed: vi.fn(),
+  dbSystemAnnotate: vi.fn(),
 }));
 
 vi.mock("./src/database.js", () => {
@@ -25,6 +31,12 @@ vi.mock("./src/database.js", () => {
       done = mockFns.dbDone;
       files = mockFns.dbFiles;
       log = mockFns.dbLog;
+      findStaleActiveItems = mockFns.dbFindStaleActiveItems;
+      autoReleaseBySession = mockFns.dbAutoReleaseBySession;
+      systemMoveToInReview = mockFns.dbSystemMoveToInReview;
+      systemMarkDone = mockFns.dbSystemMarkDone;
+      systemReleaseToUnclaimed = mockFns.dbSystemReleaseToUnclaimed;
+      systemAnnotate = mockFns.dbSystemAnnotate;
     },
   };
 });
@@ -56,12 +68,19 @@ describe("workq index integration", () => {
     mockFns.dbLog.mockReset();
     mockFns.registerWorkqTools.mockClear();
     mockFns.registerWorkqCli.mockClear();
+    mockFns.dbFindStaleActiveItems.mockReset();
+    mockFns.dbAutoReleaseBySession.mockReset();
+    mockFns.dbSystemMoveToInReview.mockReset();
+    mockFns.dbSystemMarkDone.mockReset();
+    mockFns.dbSystemReleaseToUnclaimed.mockReset();
+    mockFns.dbSystemAnnotate.mockReset();
   });
 
   it("wires tools, cli, service, and gateway methods", () => {
     const registerService = vi.fn();
     const registerGatewayMethod = vi.fn();
-    const logger = { info: vi.fn() };
+    const on = vi.fn();
+    const logger = { info: vi.fn(), warn: vi.fn(), debug: vi.fn() };
 
     const api = {
       pluginConfig: {
@@ -72,6 +91,7 @@ describe("workq index integration", () => {
       logger,
       registerService,
       registerGatewayMethod,
+      on,
     };
 
     register(api as never);
@@ -98,6 +118,9 @@ describe("workq index integration", () => {
       ]),
     );
 
+    expect(on).toHaveBeenCalledWith("agent_end", expect.any(Function));
+    expect(on).toHaveBeenCalledWith("session_end", expect.any(Function));
+
     expect(registerService).toHaveBeenCalledTimes(1);
     const service = registerService.mock.calls[0]?.[0] as {
       start: () => void;
@@ -118,9 +141,10 @@ describe("workq index integration", () => {
     const api = {
       pluginConfig: {},
       resolvePath: vi.fn(() => "/tmp/workq.db"),
-      logger: { info: vi.fn() },
+      logger: { info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
       registerService: vi.fn(),
       registerGatewayMethod,
+      on: vi.fn(),
     };
 
     register(api as never);
@@ -153,6 +177,7 @@ describe("workq index integration", () => {
       scope: ["api"],
       tags: ["infra"],
       reopen: undefined,
+      sessionKey: undefined,
     });
     expect(claimRespond).toHaveBeenCalledWith(true, { status: "claimed" });
 
@@ -298,9 +323,10 @@ describe("workq index integration", () => {
     const api = {
       pluginConfig: {},
       resolvePath: vi.fn(() => "/tmp/workq.db"),
-      logger: { info: vi.fn() },
+      logger: { info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
       registerService: vi.fn(),
       registerGatewayMethod,
+      on: vi.fn(),
     };
 
     register(api as never);
@@ -326,9 +352,10 @@ describe("workq index integration", () => {
     const api = {
       pluginConfig: { enabled: false },
       resolvePath: vi.fn(),
-      logger: { info: vi.fn() },
+      logger: { info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
       registerService: vi.fn(),
       registerGatewayMethod: vi.fn(),
+      on: vi.fn(),
     };
 
     register(api as never);
