@@ -1,245 +1,449 @@
-/**
- * OpenClaw SDK - Client Implementation
- */
-
 import {
-  type OpenClawClientConfig,
-  type HealthResult,
-  type ToolInvokeRequest,
-  type ToolInvokeResponse,
-  type SessionCreateRequest,
-  type SessionResponse,
-  type ResourceListRequest,
-  type ResourceItem,
-  DEFAULT_CLIENT_CONFIG,
-  ok,
-  err,
+  AuthError,
   OpenClawError,
+  SandboxUnavailableError,
+  ToolRuntimeError,
   TransportError,
+  ValidationError,
+  parseErrorPayload,
+} from "./errors.js";
+import { FetchOpenClawTransport } from "./transport/index.js";
+import {
+  DEFAULT_TIMEOUT_MS,
+  DFLT_BASE_URL,
+  type EnvValidatedClientConfig,
+  type HealthResult,
+  type OpenClawClient,
+  type OpenClawClientConfig,
+  type OpenClawTransport,
+  type OpenClawHttpRequest,
+  type OpenClawLogger,
+  type Result,
+  type RetryOptions,
+  type RuntimeExecRequest,
+  type RuntimeExecResponse,
+  type RuntimeStatus,
+  type SessionClient,
+  type SessionCreateRequest,
+  type SessionRecord,
+  type SandboxController,
+  type ToolClient,
+  type ToolInvocationRequest,
+  type ToolInvocationResult,
+  type ToolListRequest,
+  type ToolListResult,
+  type ToolStreamEvent,
+  type ResourceClient,
+  type ResourceRecord,
+  type LocalSandboxRuntime,
 } from "./types.js";
 
-/**
- * Tool client for tool operations
- */
-export class ToolClient {
-  constructor(private client: OpenClawClient) {}
+type Envelope<T> = {
+  ok: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    statusCode?: number;
+    requestId?: string;
+    spanId?: string;
+  };
+};
 
-  /**
-   * List available tools
-   */
-  async list(): Promise<{ ok: true; data: string[] } | { ok: false; error: OpenClawError }> {
+const NOOP_LOGGER: OpenClawLogger = {
+  debug: () => {
+    return;
+  },
+  info: () => {
+    return;
+  },
+  warn: () => {
+    return;
+  },
+  error: () => {
+    return;
+  },
+};
+
+const validateConfig = (config: OpenClawClientConfig = {}): EnvValidatedClientConfig => {
+  const baseUrl = config.baseUrl?.trim() || DFLT_BASE_URL;
+  if (!/^https?:\/\//i.test(baseUrl)) {
+    throw new ValidationError(`Invalid baseUrl: ${baseUrl}`);
+  }
+
+  const timeoutMs =
+    typeof config.timeoutMs === "number" &&
+    Number.isFinite(config.timeoutMs) &&
+    config.timeoutMs > 0
+      ? config.timeoutMs
+      : DEFAULT_TIMEOUT_MS;
+
+  return {
+    baseUrl,
+    apiKey: config.apiKey,
+    timeoutMs,
+    userAgent: config.userAgent ?? `@openclaw/sdk/1`,
+  };
+};
+
+const errorFromEnvelope = (
+  status: number,
+  rawError: {
+    code: string;
+    message: string;
+    statusCode?: number;
+    requestId?: string;
+    spanId?: string;
+  },
+): OpenClawError => {
+  const payload = parseErrorPayload(rawError);
+  const metadata = {
+    statusCode: payload.statusCode ?? status,
+    requestId: payload.requestId,
+    spanId: payload.spanId,
+  };
+
+  if (status === 401 || status === 403) {
+    return new AuthError(payload.message, metadata);
+  }
+
+  if (status >= 500) {
+    return new TransportError(payload.message, metadata);
+  }
+
+  return new ToolRuntimeError(payload.message, metadata);
+};
+
+class ToolClientImpl implements ToolClient {
+  public constructor(
+    private readonly request: <TBody, TResponse>(
+      request: OpenClawHttpRequest<TBody>,
+    ) => Promise<Result<TResponse>>,
+  ) {}
+
+  public async list(request?: ToolListRequest): Promise<Result<ToolListResult>> {
+    return this.request<ToolListRequest | undefined, ToolListResult>({
+      method: "GET",
+      path: "/v1/tools",
+      query: request?.cursor ? { cursor: request.cursor } : undefined,
+      headers: request?.limit ? { "x-openclaw-limit": `${request.limit}` } : undefined,
+    });
+  }
+
+  public async invoke<TInput = unknown, TOutput = unknown>(
+    request: ToolInvocationRequest<TInput>,
+  ): Promise<Result<ToolInvocationResult<TOutput>>> {
+    return this.request<ToolInvocationRequest<TInput>, ToolInvocationResult<TOutput>>({
+      method: "POST",
+      path: "/v1/tools/invoke",
+      body: request,
+    });
+  }
+
+  public async stream<TInput = unknown, TOutput = unknown>(
+    request: ToolInvocationRequest<TInput>,
+  ): Promise<Result<AsyncIterable<ToolStreamEvent<TOutput>>>> {
+    const result = await this.request<ToolInvocationRequest<TInput>, ToolInvocationResult<TOutput>>(
+      {
+        method: "POST",
+        path: "/v1/tools/invoke",
+        body: request,
+      },
+    );
+
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+
+    const events: AsyncGenerator<ToolStreamEvent<TOutput>> = (async function* () {
+      yield { kind: "result", payload: result.data };
+    })();
+
+    return { ok: true, data: events };
+  }
+}
+
+class SessionClientImpl implements SessionClient {
+  public constructor(
+    private readonly request: <TBody, TResponse>(
+      request: OpenClawHttpRequest<TBody>,
+    ) => Promise<Result<TResponse>>,
+  ) {}
+
+  public async list(): Promise<Result<SessionRecord[]>> {
+    return this.request<undefined, SessionRecord[]>({
+      method: "GET",
+      path: "/v1/sessions",
+    });
+  }
+
+  public async create(request: SessionCreateRequest): Promise<Result<SessionRecord>> {
+    return this.request<SessionCreateRequest, SessionRecord>({
+      method: "POST",
+      path: "/v1/sessions",
+      body: request,
+    });
+  }
+}
+
+class ResourceClientImpl implements ResourceClient {
+  public constructor(
+    private readonly request: <TBody, TResponse>(
+      request: OpenClawHttpRequest<TBody>,
+    ) => Promise<Result<TResponse>>,
+  ) {}
+
+  public async list(): Promise<Result<ResourceRecord[]>> {
+    return this.request<undefined, ResourceRecord[]>({
+      method: "GET",
+      path: "/v1/resources",
+    });
+  }
+
+  public async get(id: string): Promise<Result<ResourceRecord>> {
+    if (!id || id.trim().length === 0) {
+      return { ok: false, error: new ValidationError("Resource id is required") };
+    }
+
+    return this.request<undefined, ResourceRecord>({
+      method: "GET",
+      path: `/v1/resources/${encodeURIComponent(id)}`,
+    });
+  }
+}
+
+class SandboxControllerImpl implements SandboxController {
+  public constructor(
+    private readonly runtime: LocalSandboxRuntime | undefined,
+    private readonly logger: OpenClawLogger,
+  ) {}
+
+  public async start(): Promise<Result<void>> {
+    if (!this.runtime) {
+      return { ok: false, error: new SandboxUnavailableError() };
+    }
+
     try {
-      const response = await this.client.request("GET", "/tools");
-      return ok(response as string[]);
+      await this.runtime.start();
+      return { ok: true, data: undefined };
     } catch (error) {
-      return err(error as OpenClawError);
+      if (error instanceof OpenClawError) {
+        return { ok: false, error };
+      }
+
+      this.logger.error("Sandbox start failed", error);
+      return {
+        ok: false,
+        error: new ToolRuntimeError("Unable to start sandbox runtime", {
+          statusCode: 500,
+        }),
+      };
     }
   }
 
-  /**
-   * Invoke a tool
-   */
-  async invoke<T = unknown>(request: ToolInvokeRequest): Promise<ToolInvokeResponse<T>> {
-    if (!request.name) {
+  public async stop(): Promise<Result<void>> {
+    if (!this.runtime) {
+      return { ok: false, error: new SandboxUnavailableError() };
+    }
+
+    try {
+      await this.runtime.stop();
+      return { ok: true, data: undefined };
+    } catch (error) {
+      if (error instanceof OpenClawError) {
+        return { ok: false, error };
+      }
+
+      this.logger.error("Sandbox stop failed", error);
       return {
         ok: false,
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Tool name is required",
-          statusCode: 400,
-        },
+        error: new ToolRuntimeError("Unable to stop sandbox runtime", {
+          statusCode: 500,
+        }),
+      };
+    }
+  }
+
+  public async status(): Promise<Result<RuntimeStatus>> {
+    if (!this.runtime) {
+      return {
+        ok: false,
+        error: new SandboxUnavailableError("Sandbox runtime unavailable for status call"),
       };
     }
 
     try {
-      const response = await this.client.request("POST", `/tools/${request.name}/invoke`, {
-        input: request.input,
-        timeoutMs: request.timeoutMs,
-      });
-      return ok(response as T);
+      const status = await this.runtime.status();
+      return { ok: true, data: status };
     } catch (error) {
       if (error instanceof OpenClawError) {
-        return err(error);
-      }
-      return err(new TransportError(error instanceof Error ? error.message : "Unknown error"));
-    }
-  }
-}
-
-/**
- * Session client for session management
- */
-export class SessionClient {
-  constructor(private client: OpenClawClient) {}
-
-  /**
-   * Create a new session
-   */
-  async create(
-    request?: SessionCreateRequest,
-  ): Promise<{ ok: true; data: SessionResponse } | { ok: false; error: OpenClawError }> {
-    try {
-      const response = await this.client.request("POST", "/sessions", request ?? {});
-      return ok(response as SessionResponse);
-    } catch (error) {
-      return err(error as OpenClawError);
-    }
-  }
-
-  /**
-   * Get session by ID
-   */
-  async get(
-    sessionId: string,
-  ): Promise<{ ok: true; data: unknown } | { ok: false; error: OpenClawError }> {
-    try {
-      const response = await this.client.request("GET", `/sessions/${sessionId}`);
-      return ok(response);
-    } catch (error) {
-      return err(error as OpenClawError);
-    }
-  }
-}
-
-/**
- * Resource client for resource operations
- */
-export class ResourceClient {
-  constructor(private client: OpenClawClient) {}
-
-  /**
-   * List resources
-   */
-  async list(
-    request?: ResourceListRequest,
-  ): Promise<{ ok: true; data: ResourceItem[] } | { ok: false; error: OpenClawError }> {
-    try {
-      const params = new URLSearchParams();
-      if (request?.type) {
-        params.set("type", request.type);
-      }
-      if (request?.limit) {
-        params.set("limit", String(request.limit));
+        return { ok: false, error };
       }
 
-      const query = params.toString();
-      const path = query ? `/resources?${query}` : "/resources";
-      const response = await this.client.request("GET", path);
-      return ok(response as ResourceItem[]);
-    } catch (error) {
-      return err(error as OpenClawError);
-    }
-  }
-}
-
-/**
- * Main OpenClaw Client
- */
-export class OpenClawClient {
-  protected config: Required<OpenClawClientConfig>;
-  public tools: ToolClient;
-  public sessions: SessionClient;
-  public resources: ResourceClient;
-
-  constructor(config: OpenClawClientConfig = {}) {
-    this.config = {
-      ...DEFAULT_CLIENT_CONFIG,
-      ...config,
-    };
-
-    this.tools = new ToolClient(this);
-    this.sessions = new SessionClient(this);
-    this.resources = new ResourceClient(this);
-  }
-
-  /**
-   * Check gateway health
-   */
-  async health(): Promise<HealthResult> {
-    try {
-      const response = await this.request("GET", "/health");
-      return response as HealthResult;
-    } catch {
+      this.logger.error("Sandbox status failed", error);
       return {
         ok: false,
-        status: "unhealthy",
-        timestamp: new Date().toISOString(),
+        error: new ToolRuntimeError("Unable to read sandbox status", {
+          statusCode: 500,
+        }),
       };
     }
   }
 
-  /**
-   * Close the client and clean up
-   */
-  async close(): Promise<void> {
-    // No-op for HTTP client, but can be overridden
-  }
-
-  /**
-   * Make a request to the gateway
-   */
-  protected async request(method: string, path: string, body?: unknown): Promise<unknown> {
-    const url = `${this.config.baseUrl}${path}`;
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      "User-Agent": this.config.userAgent,
-    };
-
-    if (this.config.apiKey) {
-      headers["Authorization"] = `Bearer ${this.config.apiKey}`;
+  public async exec<TInput = unknown, TOutput = unknown>(
+    request: RuntimeExecRequest<TInput>,
+  ): Promise<Result<RuntimeExecResponse<TOutput>>> {
+    if (!this.runtime) {
+      return { ok: false, error: new SandboxUnavailableError() };
     }
 
-    this.config.logger.debug(`${method} ${url}`, body);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
-
     try {
-      const response = await fetch(url, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        await response.text().catch(() => "");
-        throw new TransportError(
-          `Request failed: ${response.status} ${response.statusText}`,
-          response.status,
-        );
-      }
-
-      const contentType = response.headers.get("content-type") ?? "";
-      if (contentType.includes("application/json")) {
-        return await response.json();
-      }
-
-      return await response.text();
+      const output = await this.runtime.exec<TInput, TOutput>(request);
+      return { ok: true, data: output };
     } catch (error) {
-      clearTimeout(timeoutId);
-
       if (error instanceof OpenClawError) {
-        throw error;
+        return { ok: false, error };
       }
 
-      if (error instanceof Error) {
-        if (error.name === "AbortError") {
-          throw new TransportError("Request timed out");
+      this.logger.error("Sandbox exec failed", error);
+      return {
+        ok: false,
+        error: new ToolRuntimeError("Unable to execute in sandbox", {
+          statusCode: 500,
+        }),
+      };
+    }
+  }
+}
+
+class OpenClawClientImpl implements OpenClawClient {
+  public readonly tools: ToolClient;
+  public readonly sessions: SessionClient;
+  public readonly resources: ResourceClient;
+  public readonly sandbox: SandboxController;
+
+  public constructor(
+    private readonly config: EnvValidatedClientConfig,
+    private readonly transport: OpenClawTransport,
+    private readonly logger: OpenClawLogger,
+    sandboxRuntime?: LocalSandboxRuntime,
+  ) {
+    const request = this.request.bind(this);
+    this.tools = new ToolClientImpl(request);
+    this.sessions = new SessionClientImpl(request);
+    this.resources = new ResourceClientImpl(request);
+    this.sandbox = new SandboxControllerImpl(sandboxRuntime, this.logger);
+  }
+
+  public async health(): Promise<Result<HealthResult>> {
+    return this.request({
+      method: "GET",
+      path: "/v1/health",
+    });
+  }
+
+  public async close(): Promise<void> {
+    return;
+  }
+
+  public async withRetries<T>(operation: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
+    const attempts = options.attempts ?? 3;
+    const baseDelayMs = options.baseDelayMs ?? 100;
+    const maxDelayMs = options.maxDelayMs ?? 1500;
+
+    let lastError: unknown;
+    for (let i = 0; i < attempts; i += 1) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        if (i >= attempts - 1) {
+          break;
         }
-        throw new TransportError(error.message);
+
+        const delay = Math.min(maxDelayMs, baseDelayMs * 2 ** i);
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delay);
+        });
+      }
+    }
+
+    throw lastError;
+  }
+
+  private async request<TBody, TResponse>(
+    request: OpenClawHttpRequest<TBody>,
+  ): Promise<Result<TResponse>> {
+    try {
+      const response = await this.transport.request<TBody, Envelope<TResponse>>(request);
+      const body = response.body;
+      if (!body || typeof body !== "object") {
+        return {
+          ok: false,
+          error: new ValidationError("Transport returned an invalid envelope"),
+        };
       }
 
-      throw new TransportError("Unknown error");
+      if (!body.ok) {
+        return {
+          ok: false,
+          error: errorFromEnvelope(
+            response.status,
+            body.error ?? { code: "OPEN_CLAW_ERROR", message: "Unknown" },
+          ),
+        };
+      }
+
+      if (body.data === undefined) {
+        return {
+          ok: false,
+          error: new ValidationError("Transport returned missing data payload"),
+        };
+      }
+
+      return { ok: true, data: body.data };
+    } catch (error) {
+      if (error instanceof OpenClawError) {
+        return { ok: false, error };
+      }
+
+      this.logger.error("Request failed", error);
+      return {
+        ok: false,
+        error:
+          error instanceof TransportError
+            ? error
+            : new TransportError("Unable to complete request", {
+                statusCode: 500,
+              }),
+      };
     }
   }
 }
 
-/**
- * Create an OpenClaw client instance
- */
-export function createClient(config?: OpenClawClientConfig): OpenClawClient {
-  return new OpenClawClient(config);
-}
+export const createClient = (config: OpenClawClientConfig = {}): OpenClawClient => {
+  const validated = validateConfig(config);
+  const logger = config.logger ?? NOOP_LOGGER;
+  const transportHeaders: Record<string, string> = {
+    "content-type": "application/json",
+    "user-agent": validated.userAgent,
+  };
+
+  if (validated.apiKey) {
+    transportHeaders.authorization = `Bearer ${validated.apiKey}`;
+  }
+
+  const transport =
+    config.transport ??
+    new FetchOpenClawTransport(validated.baseUrl, transportHeaders, validated.timeoutMs);
+
+  return new OpenClawClientImpl(validated, transport, logger, config.sandbox?.runtime);
+};
+
+export {
+  OpenClawClientImpl,
+  ToolClientImpl,
+  SessionClientImpl,
+  ResourceClientImpl,
+  SandboxControllerImpl,
+};

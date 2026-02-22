@@ -1,389 +1,191 @@
-/**
- * Local Sandbox Runtime - Core Implementation
- */
-
-import { spawn, type ChildProcess } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { type RuntimeState, isValidTransition, getStateDescription } from "./state-machine.js";
 import {
-  type LocalSandboxOptions,
-  type RuntimeStatus,
   type RuntimeExecRequest,
   type RuntimeExecResponse,
-  type RuntimeEvent,
-  type EventHandler,
-  type SandboxLifecycleCallbacks,
-  DEFAULT_SANDBOX_OPTIONS,
-  DEFAULT_STARTUP_TIMEOUT_MS,
-  DEFAULT_EXECUTION_TIMEOUT_MS,
-} from "./types.js";
+  type RuntimeState,
+  type RuntimeStatus,
+  SandboxUnavailableError,
+} from "@openclaw/sdk";
+import {
+  ProcessManager,
+  type LocalSandboxOptions as ProcessManagerOptions,
+} from "./process-manager.js";
+import { buildEvent, type SandboxEvent } from "./protocol.js";
+import { isWorkspaceReadable, normalizeWorkspaceRoot } from "./workspace.js";
 
-/**
- * Local Sandbox Runtime
- *
- * Implements the state machine for sandbox lifecycle management:
- * idle -> starting -> ready -> busy -> (ready | terminating)
- *                                   ↘
- *                                    failed -> ready_retry | terminal
- */
-export class LocalSandboxRuntime {
-  private state: RuntimeState = "idle";
-  private process: ChildProcess | null = null;
-  private options: Required<LocalSandboxOptions>;
-  private eventHandlers: Set<EventHandler> = new Set();
-  private callbacks: SandboxLifecycleCallbacks;
-  private executionCount = 0;
-  private lastError: string | null = null;
-  private startedAt: Date | null = null;
-  private pendingExec: {
-    resolve: (result: RuntimeExecResponse) => void;
-    reject: (error: Error) => void;
-    timeout: NodeJS.Timeout;
-  } | null = null;
+type State = RuntimeState;
 
-  constructor(options: LocalSandboxOptions, callbacks: SandboxLifecycleCallbacks = {}) {
-    this.options = {
-      ...DEFAULT_SANDBOX_OPTIONS,
-      ...options,
-    };
-    this.callbacks = callbacks;
+export interface MountPoint {
+  from: string;
+  to: string;
+  readOnly: boolean;
+}
+
+export interface LocalSandboxOptions {
+  rootDir: string;
+  command?: string;
+  mode?: "memory" | "persist";
+  timeoutMs?: number;
+  env?: Record<string, string>;
+  mounts?: MountPoint[];
+}
+
+export interface LocalSandboxRuntime {
+  start(): Promise<void>;
+  stop(options?: { force?: boolean }): Promise<void>;
+  status(): Promise<RuntimeStatus>;
+  exec<TInput = unknown, TOutput = unknown>(
+    payload: RuntimeExecRequest<TInput>,
+  ): Promise<RuntimeExecResponse<TOutput>>;
+  streamEvents(handler: (event: SandboxEvent) => void): () => void;
+}
+
+const defaultOptions = (
+  input: LocalSandboxOptions,
+): Required<Pick<LocalSandboxOptions, "command" | "mode" | "timeoutMs" | "env" | "mounts">> => {
+  const command = input.command?.trim() || "openclaw-runtime";
+  return {
+    command,
+    mode: input.mode || "memory",
+    timeoutMs: input.timeoutMs ?? 5_000,
+    env: { ...input.env },
+    mounts: input.mounts ?? [],
+  };
+};
+
+export const createLocalSandbox = (input: LocalSandboxOptions): LocalSandboxRuntime => {
+  if (!isWorkspaceReadable(input.rootDir)) {
+    throw new Error("rootDir is required");
   }
 
-  /**
-   * Get current runtime status
-   */
-  async status(): Promise<RuntimeStatus> {
-    return {
-      state: this.state,
-      pid: this.process?.pid,
-      startedAt: this.startedAt ?? undefined,
-      lastError: this.lastError ?? undefined,
-      executionCount: this.executionCount,
-      canRestart: this.state === "failed",
-    };
-  }
+  const resolved = defaultOptions(input);
+  const rootDir = normalizeWorkspaceRoot(input.rootDir);
+  const status: RuntimeStatus = {
+    state: "idle",
+    command: resolved.command,
+    mode: resolved.mode,
+    rootDir,
+  };
 
-  /**
-   * Get current state
-   */
-  getState(): RuntimeState {
-    return this.state;
-  }
-
-  /**
-   * Start the sandbox runtime
-   */
-  async start(): Promise<void> {
-    if (!isValidTransition(this.state, "starting")) {
-      throw new Error(`Cannot start from state: ${this.state}. ${getStateDescription(this.state)}`);
+  const processor = new ProcessManager({
+    rootDir,
+    command: resolved.command,
+    timeoutMs: resolved.timeoutMs,
+    mode: resolved.mode,
+    env: resolved.env,
+  } as ProcessManagerOptions);
+  const listeners = new Set<(event: SandboxEvent) => void>();
+  const emit = (event: SandboxEvent): void => {
+    for (const listener of listeners.values()) {
+      listener(event);
     }
+  };
 
-    this.transitionTo("starting");
-    this.lastError = null;
+  const transition = (nextState: State): void => {
+    status.state = nextState;
+    if (nextState === "ready") {
+      status.readyAt = new Date().toISOString();
+    }
+    if (nextState === "idle") {
+      status.stoppedAt = new Date().toISOString();
+    }
+  };
+
+  const setTerminalError = (message: string): void => {
+    status.state = "failed";
+    status.runtime = {
+      ...status.runtime,
+      lastError: message,
+    };
+  };
+
+  const withState = async <T>(nextState: State, cb: () => Promise<T>): Promise<T> => {
+    transition(nextState);
+    emit(
+      buildEvent(
+        nextState === "ready" || nextState === "starting"
+          ? "started"
+          : nextState === "terminating"
+            ? "stopped"
+            : "idle",
+      ),
+    );
 
     try {
-      await this.launchProcess();
-      this.transitionTo("ready");
-      this.startedAt = new Date();
-      this.callbacks.onReady?.();
-
-      this.emit({
-        type: "ready",
-        timestamp: new Date(),
-      });
+      const result = await cb();
+      if (nextState !== "failed") {
+        transition(nextState === "starting" ? "ready" : nextState);
+      }
+      return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.lastError = errorMessage;
-      this.transitionTo("failed");
-      this.callbacks.onError?.(error instanceof Error ? error : new Error(errorMessage));
-
-      throw error;
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setTerminalError(message);
+      emit(buildEvent("error", message));
+      throw new SandboxUnavailableError(message);
     }
-  }
+  };
 
-  /**
-   * Stop the sandbox runtime
-   */
-  async stop(): Promise<void> {
-    if (!isValidTransition(this.state, "terminating")) {
-      if (this.state === "idle") {
-        return; // Already stopped
+  const setRuntimeState = (updater: (runtimeState: State) => State): void => {
+    transition(updater(status.state));
+  };
+
+  const runtime: LocalSandboxRuntime = {
+    start: async () => {
+      if (status.state === "ready") {
+        return;
       }
-      throw new Error(`Cannot stop from state: ${this.state}. ${getStateDescription(this.state)}`);
-    }
 
-    this.transitionTo("terminating");
+      if (status.state === "starting") {
+        return;
+      }
 
-    // Wait for any pending execution to complete
-    if (this.pendingExec) {
-      // Give it a moment to complete naturally
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    await this.terminateProcess();
-
-    this.transitionTo("idle");
-    this.startedAt = null;
-
-    this.emit({
-      type: "stopped",
-      timestamp: new Date(),
-    });
-  }
-
-  /**
-   * Execute a tool in the sandbox
-   */
-  async exec<TInput, TOutput>(
-    payload: RuntimeExecRequest<TInput>,
-  ): Promise<RuntimeExecResponse<TOutput>> {
-    if (!isValidTransition(this.state, "busy")) {
-      throw new Error(
-        `Cannot execute from state: ${this.state}. ${getStateDescription(this.state)}`,
-      );
-    }
-
-    const executionId = payload.executionId ?? randomUUID();
-    const startTime = Date.now();
-
-    this.transitionTo("busy");
-
-    this.emit({
-      type: "execution_start",
-      timestamp: new Date(),
-      executionId,
-      payload: { tool: payload.tool },
-    });
-
-    this.callbacks.onExecutionStart?.(executionId, payload.tool);
-
-    // Set up execution timeout
-    const timeoutMs = payload.timeoutMs ?? DEFAULT_EXECUTION_TIMEOUT_MS;
-
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        const errorResult: RuntimeExecResponse<TOutput> = {
-          ok: false,
-          error: {
-            code: "EXECUTION_TIMEOUT",
-            message: `Execution timed out after ${timeoutMs}ms`,
-          },
-          executionId,
-          durationMs: Date.now() - startTime,
-        };
-
-        this.handleExecutionError(executionId, errorResult, Date.now() - startTime);
-        resolve(errorResult);
-      }, timeoutMs);
-
-      this.pendingExec = {
-        resolve: (_result) => {
-          clearTimeout(timeout);
-          this.pendingExec = null;
-        },
-        reject: (_error) => {
-          clearTimeout(timeout);
-          this.pendingExec = null;
-        },
-        timeout,
-      };
-
-      // For now, implement a mock execution that returns a placeholder
-      // In phase 2, this will actually communicate with the sandbox process
-      const mockResult: RuntimeExecResponse<TOutput> = {
-        ok: true,
-        data: { result: "mock-output" } as TOutput,
-        executionId,
-        durationMs: Date.now() - startTime,
-      };
-
-      this.executionCount++;
-      this.transitionTo("ready");
-
-      this.emit({
-        type: "execution_complete",
-        timestamp: new Date(),
-        executionId,
-        payload: mockResult,
+      await withState("starting", async () => {
+        await processor.start();
+        processor.status(status);
       });
+    },
 
-      this.callbacks.onExecutionComplete?.(executionId, mockResult);
-
-      if (this.pendingExec) {
-        this.pendingExec.resolve(mockResult);
+    stop: async ({ force } = {}) => {
+      if (status.state === "idle") {
+        return;
       }
 
-      resolve(mockResult);
-    });
-  }
+      transition("terminating");
+      await processor.stop(force);
+      setRuntimeState(() => "idle");
+      emit(buildEvent("stopped", "sandbox stopped"));
+    },
 
-  /**
-   * Subscribe to runtime events
-   */
-  streamEvents(handler: EventHandler): () => void {
-    this.eventHandlers.add(handler);
+    status: async () => {
+      processor.status(status);
+      return { ...status };
+    },
 
-    // Return unsubscribe function
-    return () => {
-      this.eventHandlers.delete(handler);
-    };
-  }
+    exec: async <TInput = unknown, TOutput = unknown>(
+      payload: RuntimeExecRequest<TInput>,
+    ): Promise<RuntimeExecResponse<TOutput>> => {
+      if (status.state !== "ready") {
+        throw new SandboxUnavailableError("sandbox not ready");
+      }
 
-  /**
-   * Attempt to restart from failed state
-   */
-  async restart(): Promise<void> {
-    if (this.state !== "failed") {
-      throw new Error(`Cannot restart from state: ${this.state}`);
-    }
-
-    await this.stop();
-    await this.start();
-  }
-
-  /**
-   * Close the runtime and clean up resources
-   */
-  async close(): Promise<void> {
-    await this.stop();
-    this.eventHandlers.clear();
-  }
-
-  // Private methods
-
-  private transitionTo(newState: RuntimeState): void {
-    const oldState = this.state;
-
-    if (oldState === newState) {
-      return;
-    }
-
-    if (!isValidTransition(oldState, newState)) {
-      throw new Error(
-        `Invalid state transition: ${oldState} -> ${newState}. ${getStateDescription(oldState)}`,
-      );
-    }
-
-    this.state = newState;
-
-    this.emit({
-      type: "state_changed",
-      timestamp: new Date(),
-      payload: { from: oldState, to: newState },
-    });
-
-    this.callbacks.onStateChange?.(oldState, newState);
-  }
-
-  private async launchProcess(): Promise<void> {
-    const timeoutMs = this.options.timeoutMs ?? DEFAULT_STARTUP_TIMEOUT_MS;
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        void this.terminateProcess();
-        reject(new Error(`Startup timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
-
+      transition("busy");
+      emit(buildEvent("busy", "execution started"));
       try {
-        // For phase 1, we create a mock process that stays alive
-        // In phase 2, this will actually spawn the sandbox runtime
-        this.process = spawn("sleep", ["infinity"], {
-          cwd: this.options.rootDir,
-          env: { ...process.env, ...this.options.env },
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-
-        this.process.on("error", (error) => {
-          clearTimeout(timeout);
-          void this.terminateProcess();
-          reject(error);
-        });
-
-        this.process.stdout?.on("data", (data) => {
-          this.emit({
-            type: "stdout",
-            timestamp: new Date(),
-            payload: data.toString(),
-          });
-        });
-
-        this.process.stderr?.on("data", (data) => {
-          this.emit({
-            type: "stderr",
-            timestamp: new Date(),
-            payload: data.toString(),
-          });
-        });
-
-        // Resolve immediately for mock implementation
-        clearTimeout(timeout);
-        resolve();
-      } catch (error) {
-        clearTimeout(timeout);
-        reject(error);
+        const output = await processor.exec<TInput, TOutput>(payload);
+        return output;
+      } finally {
+        transition("ready");
+        emit(buildEvent("idle", "execution complete"));
       }
-    });
-  }
+    },
 
-  private async terminateProcess(): Promise<void> {
-    if (this.process) {
-      this.process.kill("SIGTERM");
+    streamEvents: (handler) => {
+      listeners.add(handler);
 
-      // Wait for process to exit
-      await new Promise<void>((resolve) => {
-        if (this.process?.killed || !this.process.pid) {
-          resolve();
-          return;
-        }
+      return () => {
+        listeners.delete(handler);
+      };
+    },
+  };
 
-        setTimeout(() => {
-          if (this.process && !this.process.killed) {
-            this.process.kill("SIGKILL");
-          }
-          resolve();
-        }, 5000);
-      });
-
-      this.process = null;
-    }
-  }
-
-  private handleExecutionError<TOutput>(
-    executionId: string,
-    error: RuntimeExecResponse<TOutput>,
-    _durationMs: number,
-  ): void {
-    this.transitionTo("failed");
-    this.lastError = !error.ok ? error.error.message : "Unknown error";
-
-    this.emit({
-      type: "execution_error",
-      timestamp: new Date(),
-      executionId,
-      payload: error,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.callbacks.onExecutionError?.(executionId, error as any);
-  }
-
-  private emit(event: RuntimeEvent): void {
-    for (const handler of this.eventHandlers) {
-      try {
-        handler(event);
-      } catch (error) {
-        console.error("Event handler error:", error);
-      }
-    }
-  }
-}
-
-/**
- * Create a local sandbox runtime instance
- */
-export function createLocalSandbox(
-  options: LocalSandboxOptions,
-  callbacks?: SandboxLifecycleCallbacks,
-): LocalSandboxRuntime {
-  return new LocalSandboxRuntime(options, callbacks);
-}
+  return runtime;
+};
