@@ -28,16 +28,16 @@ interface ThemePresetDef {
 }
 
 // Constants
-const ACCENT_COLORS: { id: AccentColor; label: string; class: string }[] = [
-  { id: 'indigo', label: 'Indigo', class: 'bg-indigo-500' },
-  { id: 'emerald', label: 'Emerald', class: 'bg-emerald-500' },
-  { id: 'violet', label: 'Violet', class: 'bg-violet-500' },
-  { id: 'orange', label: 'Orange', class: 'bg-orange-500' },
-  { id: 'rose', label: 'Rose', class: 'bg-rose-500' },
-  { id: 'amber', label: 'Amber', class: 'bg-amber-500' },
-  { id: 'cyan', label: 'Cyan', class: 'bg-cyan-500' },
-  { id: 'teal', label: 'Teal', class: 'bg-teal-500' },
-  { id: 'zinc', label: 'Zinc', class: 'bg-zinc-500' },
+const ACCENT_COLORS: { id: AccentColor; label: string; hex: string }[] = [
+  { id: 'indigo', label: 'Indigo', hex: '#6366f1' },
+  { id: 'emerald', label: 'Emerald', hex: '#10b981' },
+  { id: 'violet', label: 'Violet', hex: '#8b5cf6' },
+  { id: 'orange', label: 'Orange', hex: '#f97316' },
+  { id: 'rose', label: 'Rose', hex: '#f43f5e' },
+  { id: 'amber', label: 'Amber', hex: '#f59e0b' },
+  { id: 'cyan', label: 'Cyan', hex: '#06b6d4' },
+  { id: 'teal', label: 'Teal', hex: '#14b8a6' },
+  { id: 'zinc', label: 'Zinc', hex: '#71717a' },
 ];
 
 const BORDER_RADII: { id: BorderRadius; label: string; value: string }[] = [
@@ -138,52 +138,6 @@ const DEFAULT_TOKENS: ThemeTokens = {
   typography: 'Inter',
 };
 
-// Helper to get Tailwind class for accent
-function getAccentClass(color: AccentColor): string {
-  const colorMap: Record<AccentColor, string> = {
-    indigo: 'bg-indigo-500',
-    emerald: 'bg-emerald-500',
-    violet: 'bg-violet-500',
-    orange: 'bg-orange-500',
-    rose: 'bg-rose-500',
-    amber: 'bg-amber-500',
-    cyan: 'bg-cyan-500',
-    teal: 'bg-teal-500',
-    zinc: 'bg-zinc-500',
-  };
-  return colorMap[color];
-}
-
-function getAccentTextClass(color: AccentColor): string {
-  const colorMap: Record<AccentColor, string> = {
-    indigo: 'text-indigo-500',
-    emerald: 'text-emerald-500',
-    violet: 'text-violet-500',
-    orange: 'text-orange-500',
-    rose: 'text-rose-500',
-    amber: 'text-amber-500',
-    cyan: 'text-cyan-500',
-    teal: 'text-teal-500',
-    zinc: 'text-zinc-500',
-  };
-  return colorMap[color];
-}
-
-function getAccentBorderClass(color: AccentColor): string {
-  const colorMap: Record<AccentColor, string> = {
-    indigo: 'border-indigo-500',
-    emerald: 'border-emerald-500',
-    violet: 'border-violet-500',
-    orange: 'border-orange-500',
-    rose: 'border-rose-500',
-    amber: 'border-amber-500',
-    cyan: 'border-cyan-500',
-    teal: 'border-teal-500',
-    zinc: 'border-zinc-500',
-  };
-  return colorMap[color];
-}
-
 // Generate CSS variables
 function generateCSSVariables(tokens: ThemeTokens): string {
   const radiusValue = BORDER_RADII.find((r) => r.id === tokens.borderRadius)?.value || '8px';
@@ -199,6 +153,12 @@ function generateCSSVariables(tokens: ThemeTokens): string {
   --theme-border-radius: ${radiusValue};
   --theme-font-family: ${fontFamily};
 }`;
+}
+
+// Helper to get accent hex
+function getAccentHex(color: AccentColor): string {
+  const found = ACCENT_COLORS.find((c) => c.id === color);
+  return found?.hex || '#6366f1';
 }
 
 export default function ThemeEditor() {
@@ -241,25 +201,13 @@ export default function ThemeEditor() {
 
   // Computed preview styles
   const previewStyles = useMemo(() => {
-    const bgBase = activePreset === 'midnight' ? 'slate' : 'zinc';
+    const bgBase: 'zinc' | 'slate' = activePreset === 'midnight' ? 'slate' : 'zinc';
     const radiusValue = BORDER_RADII.find((r) => r.id === tokens.borderRadius)?.value || '8px';
     const fontSizeValue = FONT_SIZES.find((f) => f.id === tokens.fontSize)?.rem || '1rem';
     const fontFamilyValue = TYPOGRAPHY_OPTIONS.find((t) => t.id === tokens.typography)?.fontFamily || 'Inter, system-ui, sans-serif';
+    const accentHex = getAccentHex(tokens.accentColor);
     
-    // Map accent colors to hex values
-    const accentHex: Record<AccentColor, string> = {
-      indigo: '#6366f1',
-      emerald: '#10b981',
-      violet: '#8b5cf6',
-      orange: '#f97316',
-      rose: '#f43f5e',
-      amber: '#f59e0b',
-      cyan: '#06b6d4',
-      teal: '#14b8a6',
-      zinc: '#71717a',
-    };
-    
-    // Map bg levels to hex values
+    // Background color maps
     const bgHexZinc: Record<number, string> = {
       950: '#09090b',
       900: '#18181b',
@@ -274,18 +222,17 @@ export default function ThemeEditor() {
     const bgHex = bgBase === 'zinc' ? bgHexZinc : bgHexSlate;
     
     return {
-      backgroundColor: bgHex[tokens.pageBg] || bgHex[950],
-      cardBackgroundColor: bgHex[tokens.cardBg] || bgHex[900],
-      borderColor: bgHex[tokens.borderBg] || bgHex[800],
-      accentColor: accentHex[tokens.accentColor],
+      pageBg: bgHex[tokens.pageBg] || bgHex[950],
+      cardBg: bgHex[tokens.cardBg] || bgHex[900],
+      borderBg: bgHex[tokens.borderBg] || bgHex[800],
+      accentColor: accentHex,
       fontSize: fontSizeValue,
       borderRadius: radiusValue,
       fontFamily: fontFamilyValue,
-      accentClass: getAccentClass(tokens.accentColor),
     };
   }, [tokens, activePreset]);
 
-  const bgBase = activePreset === 'midnight' ? 'slate' : 'zinc';
+  const accentHex = getAccentHex(tokens.accentColor);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6" role="main" aria-label="Theme Editor">
@@ -346,7 +293,10 @@ export default function ThemeEditor() {
                     aria-checked={tokens.accentColor === color.id}
                     aria-label={color.label}
                   >
-                    <span className={cn('block w-full h-full rounded-lg', color.class)} />
+                    <span 
+                      className="block w-full h-full rounded-lg" 
+                      style={{ backgroundColor: color.hex }}
+                    />
                   </button>
                 ))}
               </div>
@@ -503,24 +453,17 @@ export default function ThemeEditor() {
             <section aria-labelledby="preview-heading">
               <h2 id="preview-heading" className="text-lg font-medium mb-4">Live Preview</h2>
               <div
-                className={cn(
-                  'rounded-xl p-6 transition-all duration-200',
-                  `bg-${bgBase}-${tokens.pageBg}`
-                )}
-                style={{
-                  backgroundColor: `var(--tw-bg-opacity: 1, #${bgBase === 'zinc' ? '09090b' : '020617'})`,
-                }}
+                className="rounded-xl p-6 transition-all duration-200"
+                style={{ backgroundColor: previewStyles.pageBg }}
               >
                 {/* Preview Card */}
                 <div
-                  className={cn(
-                    'rounded-xl p-5 mb-4',
-                    `bg-${bgBase}-${tokens.cardBg}`,
-                    `border border-${bgBase}-${tokens.borderBg}`
-                  )}
+                  className="rounded-xl p-5 mb-4"
                   style={{
-                    backgroundColor: bgBase === 'zinc' ? '#27272a' : '#1e293b',
-                    borderColor: bgBase === 'zinc' ? '#52525b' : '#334155',
+                    backgroundColor: previewStyles.cardBg,
+                    borderColor: previewStyles.borderBg,
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
                     borderRadius: previewStyles.borderRadius,
                     fontFamily: previewStyles.fontFamily,
                     fontSize: previewStyles.fontSize,
@@ -531,24 +474,10 @@ export default function ThemeEditor() {
                       Settings
                     </h3>
                     <span
-                      className={cn('px-2.5 py-1 rounded-full text-xs font-medium', previewStyles.accentClass)}
+                      className="px-2.5 py-1 rounded-full text-xs font-medium"
                       style={{
-                        backgroundColor: tokens.accentColor === 'indigo' ? 'rgba(99, 102, 241, 0.2)' :
-                          tokens.accentColor === 'emerald' ? 'rgba(16, 185, 129, 0.2)' :
-                          tokens.accentColor === 'violet' ? 'rgba(139, 92, 246, 0.2)' :
-                          tokens.accentColor === 'orange' ? 'rgba(249, 115, 22, 0.2)' :
-                          tokens.accentColor === 'rose' ? 'rgba(244, 63, 94, 0.2)' :
-                          tokens.accentColor === 'amber' ? 'rgba(245, 158, 11, 0.2)' :
-                          tokens.accentColor === 'cyan' ? 'rgba(6, 182, 212, 0.2)' :
-                          'rgba(20, 184, 166, 0.2)',
-                        color: tokens.accentColor === 'indigo' ? '#818cf8' :
-                          tokens.accentColor === 'emerald' ? '#34d399' :
-                          tokens.accentColor === 'violet' ? '#a78bfa' :
-                          tokens.accentColor === 'orange' ? '#fb923c' :
-                          tokens.accentColor === 'rose' ? '#fb7185' :
-                          tokens.accentColor === 'amber' ? '#fbbf24' :
-                          tokens.accentColor === 'cyan' ? '#22d3ee' :
-                          '#2dd4bf',
+                        backgroundColor: `${accentHex}33`,
+                        color: accentHex,
                       }}
                     >
                       Pro
@@ -572,14 +501,10 @@ export default function ThemeEditor() {
                       id="preview-input"
                       type="text"
                       placeholder="Enter username..."
-                      className={cn(
-                        'w-full px-3 py-2 text-zinc-100 placeholder-zinc-500',
-                        'border transition-colors duration-150',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0'
-                      )}
+                      className="w-full px-3 py-2 text-zinc-100 placeholder-zinc-500 border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                        borderColor: `rgb(${tokens.accentColor === 'indigo' ? '99, 102, 241' : tokens.accentColor === 'emerald' ? '16, 185, 129' : tokens.accentColor === 'violet' ? '139, 92, 246' : tokens.accentColor === 'orange' ? '249, 115, 22' : tokens.accentColor === 'rose' ? '244, 63, 94' : tokens.accentColor === 'amber' ? '245, 158, 11' : tokens.accentColor === 'cyan' ? '6, 182, 212' : '20, 184, 166'}, 0.3)`,
+                        borderColor: `${accentHex}4d`,
                         borderRadius: previewStyles.borderRadius,
                         fontFamily: previewStyles.fontFamily,
                         fontSize: previewStyles.fontSize,
@@ -589,19 +514,9 @@ export default function ThemeEditor() {
 
                   {/* Button */}
                   <button
-                    className={cn(
-                      'px-4 py-2 font-medium transition-all duration-150',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
-                    )}
+                    className="px-4 py-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                     style={{
-                      backgroundColor: tokens.accentColor === 'indigo' ? '#6366f1' :
-                        tokens.accentColor === 'emerald' ? '#10b981' :
-                        tokens.accentColor === 'violet' ? '#8b5cf6' :
-                        tokens.accentColor === 'orange' ? '#f97316' :
-                        tokens.accentColor === 'rose' ? '#f43f5e' :
-                        tokens.accentColor === 'amber' ? '#f59e0b' :
-                        tokens.accentColor === 'cyan' ? '#06b6d4' :
-                        '#14b8a6',
+                      backgroundColor: accentHex,
                       borderRadius: previewStyles.borderRadius,
                       fontFamily: previewStyles.fontFamily,
                       fontSize: previewStyles.fontSize,
@@ -613,41 +528,30 @@ export default function ThemeEditor() {
 
                 {/* Mini Nav */}
                 <div
-                  className={cn(
-                    'flex items-center gap-1 p-2 rounded-lg',
-                    `bg-${bgBase}-${tokens.cardBg}`,
-                    `border border-${bgBase}-${tokens.borderBg}`
-                  )}
+                  className="flex items-center gap-1 p-2 rounded-lg"
                   style={{
-                    backgroundColor: bgBase === 'zinc' ? '#18181b' : '#0f172a',
+                    backgroundColor: previewStyles.cardBg,
+                    borderColor: previewStyles.borderBg,
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
                     borderRadius: previewStyles.borderRadius,
                   }}
                 >
-                  {['Home', 'Profile', 'Settings'].map((item, i) => (
+                  {[
+                    { name: 'Home', active: false },
+                    { name: 'Profile', active: false },
+                    { name: 'Settings', active: true },
+                  ].map((item) => (
                     <button
-                      key={item}
-                      className={cn(
-                        'px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
-                        i === 2
-                          ? 'text-white'
-                          : 'text-zinc-400 hover:text-zinc-200'
-                      )}
+                      key={item.name}
+                      className="px-3 py-1.5 text-sm rounded-md transition-colors duration-150"
                       style={{
                         fontFamily: previewStyles.fontFamily,
-                        backgroundColor: i === 2 
-                          ? (tokens.accentColor === 'indigo' ? 'rgba(99, 102, 241, 0.3)' :
-                             tokens.accentColor === 'emerald' ? 'rgba(16, 185, 129, 0.3)' :
-                             tokens.accentColor === 'violet' ? 'rgba(139, 92, 246, 0.3)' :
-                             tokens.accentColor === 'orange' ? 'rgba(249, 115, 22, 0.3)' :
-                             tokens.accentColor === 'rose' ? 'rgba(244, 63, 94, 0.3)' :
-                             tokens.accentColor === 'amber' ? 'rgba(245, 158, 11, 0.3)' :
-                             tokens.accentColor === 'cyan' ? 'rgba(6, 182, 212, 0.3)' :
-                             'rgba(20, 184, 166, 0.3)')
-                          : 'transparent',
-                        borderRadius: previewStyles.borderRadius,
+                        backgroundColor: item.active ? `${accentHex}4d` : 'transparent',
+                        color: item.active ? '#fff' : '#a1a1aa',
                       }}
                     >
-                      {item}
+                      {item.name}
                     </button>
                   ))}
                 </div>
