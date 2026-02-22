@@ -1547,33 +1547,51 @@ These are strategic R&D items identified by Amadeus. Items already tracked as se
 
 **OBS-01 — OTel Core Instrumentation** | `observability/otel-core`
 
-- Status: `unclaimed` → assign to Roman (gpt-5.3-codex-spark, High Thinking)
+- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Model: opus
+- PR target: `observability/main`
 - Deliverables: `src/telemetry/{otel,tracer,metrics,logger}.ts`, session span lifecycle, tool span via UTEE
+- Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 1
 
 **OBS-02 — Prometheus /metrics Endpoint** | `observability/prometheus-exporter`
 
-- Status: `unclaimed` → assign to Roman (after OBS-01) + Larry
+- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Model: opus
+- PR target: `observability/main`
 - Deliverables: `/metrics` HTTP endpoint, 6 metric families, per-agent/model labels
+- Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 2
 
 **OBS-03 — Docker Compose Observability Stack** | `observability/docker-stack`
 
-- Status: `unclaimed` → assign Larry + Oscar + Nate + Vince (all gpt-5.3-codex-spark, High Thinking)
+- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Model: opus
+- PR target: `observability/main`
 - Deliverables: `docker-compose.observability.yml`, Prometheus config, Grafana provisioning, 5 dashboards, Loki + Promtail, Jaeger, AlertManager
+- Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 3
 
 **OBS-04 — A/B Testing + Experiment Tracking** | `observability/experiments`
 
-- Status: `unclaimed` → assign Barry (feature flags, MiniMax M2.5) + Jerry (experiment schema, GLM-5)
+- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Model: minimax-m2.5 (flags) + zai/glm-5 (schema)
+- PR target: `observability/main`
 - Deliverables: `src/experiments/flags.ts`, experiment telemetry schema, Grafana A/B dashboard
+- Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 4
 
 **OBS-05 — Analytics UI Wire-up** | `observability/analytics-ui`
 
-- Status: `unclaimed` → Luis team (Wes, Quinn, Piper, Reed, Sam — MiniMax M2.5)
-- Deliverables: UsageDashboard on real data, Mission Control Dashboard, Session Replay, A/B Dashboard, Cost Optimization view
+- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Model: minimax-m2.5
+- PR target: `observability/main`
+- Deliverables: UsageDashboard on real data, Agent Activity Dashboard, Session Replay, A/B Dashboard, Cost Optimization view
+- Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 5
 
 **OBS-06 — Regression Harness + Cost Optimizer** | `observability/regression-harness`
 
-- Status: `unclaimed` → assign Larry + Sandy (gpt-5.3-codex-spark)
+- Status: `in-progress` — Merlin (spawned 2026-02-21 23:02 MST)
+- Model: opus
+- PR target: `observability/main`
 - Deliverables: `scripts/regression-check.ts`, `openclaw telemetry cost-optimize` CLI, weekly digest cron
+- Spec: `/Users/openclaw/.openclaw/workspace/_shared/OBS_STACK_SPEC.md` §Phase 6
 
 ### Architecture Decisions Locked
 

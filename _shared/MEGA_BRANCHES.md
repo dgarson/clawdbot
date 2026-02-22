@@ -1,6 +1,6 @@
 # MEGA_BRANCHES.md — Canonical Mega-Branch Registry
 
-_Last updated: 2026-02-21 — Merlin (Main)_
+_Last updated: 2026-02-21 23:08 MST — Tim_
 
 **This file is the single source of truth for all active mega-branches.**
 
@@ -18,10 +18,12 @@ If a mega-branch is not in this file, it doesn't officially exist. Treat an unre
 
 ## Active Mega-Branches
 
-| Branch             | Owner | Deliverable                                                                  | Status                           | Workstream File                                                                                                                          | PR  |
-| ------------------ | ----- | ---------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| `acp`              | Tim   | ACP — Agent Communication Protocol (A2A messaging infrastructure)            | 🟡 P1 implementation in progress | [`_shared/workstreams/acp/WORKSTREAM.md`](/Users/openclaw/.openclaw/workspace/_shared/workstreams/acp/WORKSTREAM.md)                     | —   |
-| `luis/ui-redesign` | Luis  | Horizon UI v2 — Production frontend rebuild (Vite 7/React 19/TanStack/Radix) | 🟠 PR pending → `dgarson/fork`   | [`_shared/workstreams/horizon-ui-v2/WORKSTREAM.md`](/Users/openclaw/.openclaw/workspace/_shared/workstreams/horizon-ui-v2/WORKSTREAM.md) | —   |
+| Branch                 | Owner           | Deliverable                                                                                                      | Status                                                           | Workstream File                                                                                                                              | PR      |
+| ---------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `observability/main`   | Xavier + Merlin | Full observability stack: OTel tracing, Prometheus metrics, Jaeger, Loki, Grafana, A/B framework, regression CLI | 🔴 P0 — agents spawned 23:02 MST, all 6 sub-branches in-progress | [`_shared/workstreams/observability/WORKSTREAM.md`](/Users/openclaw/.openclaw/workspace/_shared/workstreams/observability/WORKSTREAM.md)     | pending |
+| `acp`                  | Tim             | ACP — Agent Communication Protocol (A2A messaging infrastructure)                                                | 🟡 P1 implementation in progress                                 | [`_shared/workstreams/acp/WORKSTREAM.md`](/Users/openclaw/.openclaw/workspace/_shared/workstreams/acp/WORKSTREAM.md)                         | —       |
+| `luis/ui-redesign`     | Luis            | Horizon UI v2 — Production frontend rebuild (Vite 7/React 19/TanStack/Radix)                                     | 🟠 PR pending → `dgarson/fork`                                   | [`_shared/workstreams/horizon-ui-v2/WORKSTREAM.md`](/Users/openclaw/.openclaw/workspace/_shared/workstreams/horizon-ui-v2/WORKSTREAM.md)     | —       |
+| `feat/workq-extension` | Tim             | workq extension integration + dual-purpose inbox expansion                                                       | 🟡 Integration in progress                                       | [`_shared/workstreams/workq-extension/WORKSTREAM.md`](/Users/openclaw/.openclaw/workspace/_shared/workstreams/workq-extension/WORKSTREAM.md) | —       |
 
 ---
 
@@ -29,11 +31,11 @@ If a mega-branch is not in this file, it doesn't officially exist. Treat an unre
 
 Workstreams with active work but no registered mega-branch. Owner must create the branch, register it, and create a workstream file before any squad work begins.
 
-| Workstream            | Designated Owner | Priority | Blocker                                                               |
-| --------------------- | ---------------- | -------- | --------------------------------------------------------------------- |
-| workq Extension       | Tim              | P1       | Implementation underway on squad worktrees; no mega-branch created    |
-| Telemetry Extension   | Unassigned       | P0       | Needs lead assigned by Xavier/David before mega-branch can be created |
-| Session Summarization | Tim + Xavier     | P1       | Awaiting architecture decision (SUM-01) before workstream scoped      |
+| Workstream            | Designated Owner | Priority | Blocker                                                          |
+| --------------------- | ---------------- | -------- | ---------------------------------------------------------------- |
+| Session Summarization | Tim + Xavier     | P1       | Awaiting architecture decision (SUM-01) before workstream scoped |
+
+> **Note:** Telemetry Extension (PR #47) is now part of `observability/main`. No separate mega-branch needed.
 
 ---
 
