@@ -6,3 +6,5 @@ export { RitualList } from "./RitualList";
 export { RitualScheduler } from "./RitualScheduler";
 export { RitualDetailPanel } from "./RitualDetailPanel";
 export { CreateRitualModal } from "./CreateRitualModal";
+export { RitualAssignDialog } from "./RitualAssignDialog";
+export type { RitualAssignPayload } from "./RitualAssignDialog";

@@ -243,6 +243,17 @@ export function RitualDetailPanel({
       title="Ritual Details"
       width="lg"
       className={className}
+      headerActions={ritual && onTrigger && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onTrigger(ritual.id)}
+          className="h-8 rounded-lg gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Trigger
+        </Button>
+      )}
     >
       <div className="space-y-6">
         {/* Header */}

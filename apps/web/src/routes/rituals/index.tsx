@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RitualCard, RitualDetailPanel, CreateRitualModal } from "@/components/domain/rituals";
+import { RitualCard, RitualDetailPanel, CreateRitualModal, RitualAssignDialog } from "@/components/domain/rituals";
+import type { RitualAssignPayload } from "@/components/domain/rituals";
 import { ListItemSkeleton } from "@/components/composed/LoadingSkeleton";
 import { useRituals, useRitualExecutions } from "@/hooks/queries/useRituals";
 import { useAgents } from "@/hooks/queries/useAgents";
@@ -99,6 +100,7 @@ function RitualsPage() {
   const [selectedRitual, setSelectedRitual] = React.useState<Ritual | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
+  const [isReassignOpen, setIsReassignOpen] = React.useState(false);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -171,7 +173,7 @@ function RitualsPage() {
   const pausedCount = filteredRituals.filter((r) => r.status === "paused").length;
 
   const handleViewDetails = (ritual: Ritual) => {
-    navigate({ search: { ritualId: ritual.id } });
+    void navigate({ search: { ritualId: ritual.id } });
     setSelectedRitual(ritual);
     setIsDetailOpen(true);
   };
@@ -179,7 +181,7 @@ function RitualsPage() {
   const handleCloseDetail = React.useCallback(() => {
     setIsDetailOpen(false);
     setSelectedRitual(null);
-    navigate({ search: {} });
+    void navigate({ search: {} });
   }, [navigate]);
 
   const handleToggle = (ritual: Ritual) => {
@@ -188,6 +190,21 @@ function RitualsPage() {
     } else if (ritual.status === "paused") {
       resumeRitual.mutate(ritual.id);
     }
+  };
+
+  const handleReassign = (payload: RitualAssignPayload) => {
+    if (!selectedRitual) {return;}
+    updateRitual.mutate(
+      {
+        id: selectedRitual.id,
+        agentId: payload.agentId,
+        goals: payload.goals,
+        workstreams: payload.workstreams,
+        directivesMarkdown: payload.directivesMarkdown ?? undefined,
+        guidancePackIds: payload.guidancePackIds,
+      },
+      { onSuccess: () => setIsReassignOpen(false) }
+    );
   };
 
   const handleSkipNext = (id: string) => {
@@ -571,6 +588,24 @@ function RitualsPage() {
           }}
           onTrigger={(id) => triggerRitual.mutate(id)}
           agents={agentOptions}
+          onReassign={() => setIsReassignOpen(true)}
+        />
+
+        {/* Reassign Agent Dialog */}
+        <RitualAssignDialog
+          open={isReassignOpen}
+          onOpenChange={setIsReassignOpen}
+          agents={(agents ?? []).map((a) => ({
+            id: a.id,
+            name: a.name,
+            role: a.role,
+            status: a.status,
+            description: a.description,
+            tags: a.tags,
+            currentTask: a.currentTask,
+          }))}
+          initialAgentId={selectedRitual?.agentId}
+          onConfirm={handleReassign}
         />
 
         {/* Create Ritual Modal */}

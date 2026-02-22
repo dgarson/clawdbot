@@ -205,10 +205,10 @@ export function GoalDetailPanel({
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">Due Date</span>
               </div>
-              <p className="text-sm font-medium text-foreground">
+              <p className="pl-6 text-sm font-medium text-foreground">
                 {formatDate(goal.dueDate)}
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="pl-6 text-xs text-muted-foreground mt-0.5">
                 {formatRelativeDate(goal.dueDate)}
               </p>
             </div>
@@ -218,7 +218,7 @@ export function GoalDetailPanel({
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Created</span>
             </div>
-            <p className="text-sm font-medium text-foreground">
+            <p className="pl-6 text-sm font-medium text-foreground">
               {formatDate(goal.createdAt)}
             </p>
           </div>
