@@ -255,6 +255,8 @@ const DeploymentEnvironmentManager   = React.lazy(() => import("./views/Deployme
 const MLExperimentTracker            = React.lazy(() => import("./views/MLExperimentTracker"));
 const DisasterRecoveryPlanner        = React.lazy(() => import("./views/DisasterRecoveryPlanner"));
 const DataRetentionManager           = React.lazy(() => import("./views/DataRetentionManager"));
+const CodeReviewDashboard            = React.lazy(() => import("./views/CodeReviewDashboard"));
+const EndpointMonitor                = React.lazy(() => import("./views/EndpointMonitor"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -487,6 +489,8 @@ export const navItems = [
   { id: "ml-experiment",        label: "ML Experiments",        emoji: "🧪", shortcut: null },
   { id: "disaster-recovery",    label: "Disaster Recovery",     emoji: "🛟", shortcut: null },
   { id: "data-retention",       label: "Data Retention",        emoji: "🗑️", shortcut: null },
+  { id: "code-review",          label: "Code Review",           emoji: "🔍", shortcut: null },
+  { id: "endpoint-monitor",     label: "Endpoint Monitor",      emoji: "📡", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -720,6 +724,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "ml-experiment":          <ContentSkeleton />,
   "disaster-recovery":      <ContentSkeleton />,
   "data-retention":         <ContentSkeleton />,
+  "code-review":            <ContentSkeleton />,
+  "endpoint-monitor":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1174,6 +1180,8 @@ function AppContent() {
       case "ml-experiment":        return <MLExperimentTracker />;
       case "disaster-recovery":    return <DisasterRecoveryPlanner />;
       case "data-retention":       return <DataRetentionManager />;
+      case "code-review":          return <CodeReviewDashboard />;
+      case "endpoint-monitor":     return <EndpointMonitor />;
       default:              return <AgentDashboard />;
     }
   };
