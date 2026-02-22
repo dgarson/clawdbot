@@ -46,6 +46,7 @@ const NotificationCenter = React.lazy(() => import("./views/NotificationCenter")
 const ApiKeysManager = React.lazy(() => import("./views/ApiKeysManager"));
 const AuditLog = React.lazy(() => import("./views/AuditLog"));
 const BillingSubscription = React.lazy(() => import("./views/BillingSubscription"));
+const SystemHealth = React.lazy(() => import("./views/SystemHealth"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -69,6 +70,7 @@ export const navItems = [
   { id: "api-keys",      label: "API & Integrations", emoji: "🗝️", shortcut: null },
   { id: "audit-log",    label: "Audit Log",          emoji: "🔎", shortcut: null },
   { id: "billing",      label: "Billing",            emoji: "💳", shortcut: null },
+  { id: "system-health", label: "System Health",    emoji: "🩺", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -93,6 +95,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "api-keys":    <TableSkeleton rows={6} />,
   "audit-log":   <TableSkeleton rows={10} />,
   "billing":     <ContentSkeleton />,
+  "system-health": <DashboardSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -338,6 +341,7 @@ function AppContent() {
       case "api-keys":      return <ApiKeysManager />;
       case "audit-log":     return <AuditLog />;
       case "billing":       return <BillingSubscription />;
+      case "system-health": return <SystemHealth />;
       default:              return <AgentDashboard />;
     }
   };
