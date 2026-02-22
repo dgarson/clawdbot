@@ -88,7 +88,25 @@ EOF
 
 Fill every section with real information. See your AGENTS.md for specialty-specific body sections.
 
-## Step 9 — Notify Lead
+## Step 9 — Close Your workq Item
+
+> ⛔ **Non-negotiable. Your work is incomplete until this is done — even if the code is committed and the PR is open.**
+
+If you claimed a workq item for this task, mark it done **before** notifying your lead:
+
+```bash
+openclaw workq done openclaw/openclaw#<your-item-ref>
+```
+
+If you only implemented part of the item, transition to `in-review` instead:
+
+```bash
+openclaw workq status openclaw/openclaw#<your-item-ref> --set in-review
+```
+
+**Why this matters:** Items left in `in-progress` look stale and get reassigned, causing duplicated work. The workq is the source of truth for what's done. If it doesn't reflect your work, from the system's perspective your work didn't happen.
+
+## Step 10 — Notify Lead
 
 Send the PR link to your lead via `sessions_send` immediately after opening.
 Do not wait for them to find it.
