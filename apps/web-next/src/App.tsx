@@ -75,6 +75,8 @@ const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
 const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
+const SupportCenter        = React.lazy(() => import("./views/SupportCenter"));
+const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -127,6 +129,8 @@ export const navItems = [
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
   { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
   { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
+  { id: "support",         label: "Support",        emoji: "🎫", shortcut: null },
+  { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -180,6 +184,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "permissions":    <TableSkeleton rows={8} />,
   "activity":       <ContentSkeleton />,
   "commands":       <ContentSkeleton />,
+  "support":        <ContentSkeleton />,
+  "releases":       <DashboardSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -454,6 +460,8 @@ function AppContent() {
       case "permissions":     return <PermissionsManager />;
       case "activity":        return <ActivityFeed />;
       case "commands":        return <CommandPalette />;
+      case "support":         return <SupportCenter />;
+      case "releases":        return <ReleasePipeline />;
       default:              return <AgentDashboard />;
     }
   };
