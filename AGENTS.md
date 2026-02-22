@@ -87,6 +87,8 @@ Never exfiltrate data. `trash` > `rm`. Respond when UX/design/frontend perspecti
 
 ## Heartbeats
 
+**Step 0:** `_shared/scripts/agent-mail.sh drain` — read and archive all inbox messages before anything else.
+
 Per `HEARTBEAT.md` full autonomous cycle:
 1. Check sub-agents → unblock stalled
 2. `UX_WORK_QUEUE.md` → next TODO
