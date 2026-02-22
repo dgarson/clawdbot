@@ -84,6 +84,8 @@ const OnboardingChecklist  = React.lazy(() => import("./views/OnboardingChecklis
 const AgentWorkload        = React.lazy(() => import("./views/AgentWorkload"));
 const ApiPlayground        = React.lazy(() => import("./views/ApiPlayground"));
 const WorkspaceSettings    = React.lazy(() => import("./views/WorkspaceSettings"));
+const AgentTracer          = React.lazy(() => import("./views/AgentTracer"));
+const DataPipelineViewer   = React.lazy(() => import("./views/DataPipelineViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -145,6 +147,8 @@ export const navItems = [
   { id: "workload",        label: "Agent Workload", emoji: "👥", shortcut: null },
   { id: "api-playground",  label: "API Playground", emoji: "🔬", shortcut: null },
   { id: "workspace",       label: "Workspace",      emoji: "🏠", shortcut: null },
+  { id: "tracer",          label: "Agent Tracer",   emoji: "🔭", shortcut: null },
+  { id: "pipelines",       label: "Pipelines",      emoji: "🔀", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -207,6 +211,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "workload":       <DashboardSkeleton />,
   "api-playground": <ContentSkeleton />,
   "workspace":      <ContentSkeleton />,
+  "tracer":         <ContentSkeleton />,
+  "pipelines":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -490,6 +496,8 @@ function AppContent() {
       case "workload":        return <AgentWorkload />;
       case "api-playground":  return <ApiPlayground />;
       case "workspace":       return <WorkspaceSettings />;
+      case "tracer":          return <AgentTracer />;
+      case "pipelines":       return <DataPipelineViewer />;
       default:              return <AgentDashboard />;
     }
   };
