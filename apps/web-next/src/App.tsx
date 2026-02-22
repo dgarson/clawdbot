@@ -272,6 +272,10 @@ const AIGovernanceDashboard          = React.lazy(() => import("./views/AIGovern
 const DataRetentionPolicyManager     = React.lazy(() => import("./views/DataRetentionPolicyManager"));
 const IncidentResponsePlaybook       = React.lazy(() => import("./views/IncidentResponsePlaybook"));
 const UserJourneyAnalytics           = React.lazy(() => import("./views/UserJourneyAnalytics"));
+const SecurityAuditTrail             = React.lazy(() => import("./views/SecurityAuditTrail"));
+const ChangeManagementBoard          = React.lazy(() => import("./views/ChangeManagementBoard"));
+const MultiRegionFailoverManager     = React.lazy(() => import("./views/MultiRegionFailoverManager"));
+const CostAllocationDashboard        = React.lazy(() => import("./views/CostAllocationDashboard"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -285,6 +289,8 @@ const DependencyAuditDashboard       = React.lazy(() => import("./views/Dependen
 const SearchAnalyticsDashboard       = React.lazy(() => import("./views/SearchAnalyticsDashboard"));
 const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeApprovalBoard"));
 const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
+const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
+const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -525,6 +531,8 @@ export const navItems = [
   { id: "search-analytics",     label: "Search Analytics",      emoji: "🔎", shortcut: null },
   { id: "change-approval",      label: "Change Approval",       emoji: "✅", shortcut: null },
   { id: "queue-inspector",      label: "Queue Inspector",       emoji: "📬", shortcut: null },
+  { id: "db-query-analyzer",    label: "DB Query Analyzer",     emoji: "🔬", shortcut: null },
+  { id: "feature-flag-manager", label: "Feature Flag Manager",  emoji: "🏁", shortcut: null },
   { id: "token-usage",          label: "Token Usage Optimizer", emoji: "🪙", shortcut: null },
   { id: "streaming-debugger",      label: "Streaming Debugger",     emoji: "📺", shortcut: null },
   { id: "sla-compliance",          label: "SLA Compliance",         emoji: "📋", shortcut: null },
@@ -545,6 +553,10 @@ export const navItems = [
   { id: "retention-policy",         label: "Retention Policy Mgr",   emoji: "🗂️", shortcut: null },
   { id: "incident-playbook",        label: "Incident Playbooks",     emoji: "📖", shortcut: null },
   { id: "user-journey-analytics",   label: "User Journey Analytics", emoji: "🗺️", shortcut: null },
+  { id: "security-audit-trail",     label: "Security Audit Trail",   emoji: "🔎", shortcut: null },
+  { id: "change-mgmt",              label: "Change Management",      emoji: "📋", shortcut: null },
+  { id: "multi-region-failover",    label: "Multi-Region Failover",  emoji: "🔄", shortcut: null },
+  { id: "cost-allocation",          label: "Cost Allocation",         emoji: "💰", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -787,6 +799,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "search-analytics":       <ContentSkeleton />,
   "change-approval":        <ContentSkeleton />,
   "queue-inspector":        <ContentSkeleton />,
+  "db-query-analyzer":      <ContentSkeleton />,
+  "feature-flag-manager":   <ContentSkeleton />,
   "token-usage":            <ContentSkeleton />,
   "streaming-debugger":        <ContentSkeleton />,
   "sla-compliance":            <ContentSkeleton />,
@@ -807,6 +821,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "retention-policy":          <ContentSkeleton />,
   "incident-playbook":         <ContentSkeleton />,
   "user-journey-analytics":    <ContentSkeleton />,
+  "security-audit-trail":      <ContentSkeleton />,
+  "change-mgmt":               <ContentSkeleton />,
+  "multi-region-failover":     <ContentSkeleton />,
+  "cost-allocation":           <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1284,13 +1302,21 @@ function AppContent() {
       case "workflow-orchestration": return <WorkflowOrchestrationDashboard />;
       case "ai-governance":          return <AIGovernanceDashboard />;
       case "retention-policy":       return <DataRetentionPolicyManager />;
+      case "incident-playbook":      return <IncidentResponsePlaybook />;
+      case "user-journey-analytics": return <UserJourneyAnalytics />;
+      case "security-audit-trail":   return <SecurityAuditTrail />;
+      case "change-mgmt":            return <ChangeManagementBoard />;
+      case "multi-region-failover":  return <MultiRegionFailoverManager />;
+      case "cost-allocation":        return <CostAllocationDashboard />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
       case "search-analytics":     return <SearchAnalyticsDashboard />;
       case "change-approval":      return <ChangeApprovalBoard />;
-      case "queue-inspector":      return <QueueInspector />;
-      case "token-usage":          return <TokenUsageOptimizer />;
+      case "queue-inspector":         return <QueueInspector />;
+      case "db-query-analyzer":       return <DatabaseQueryAnalyzer />;
+      case "feature-flag-manager":    return <FeatureFlagManager />;
+      case "token-usage":             return <TokenUsageOptimizer />;
       default:              return <AgentDashboard />;
     }
   };
