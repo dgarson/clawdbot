@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg-wes" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#1a0d02"/>
+      <stop offset="100%" stop-color="#060300"/>
+    </radialGradient>
+    <filter id="glow-wes" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="32" fill="url(#bg-wes)"/>
+  <!-- Isometric grid suggestion -->
+  <g stroke="#291000" stroke-width="1" opacity="0.5">
+    <line x1="256" y1="50" x2="80" y2="152"/><line x1="256" y1="50" x2="432" y2="152"/>
+    <line x1="256" y1="120" x2="80" y2="222"/><line x1="256" y1="120" x2="432" y2="222"/>
+    <line x1="80" y1="152" x2="80" y2="292"/><line x1="432" y1="152" x2="432" y2="292"/>
+  </g>
+  <!-- Stacked block arrangement - isometric-style -->
+  <!-- Bottom row (3 blocks) -->
+  <g filter="url(#glow-wes)">
+    <!-- Block bottom-left -->
+    <polygon points="96,330 176,284 176,354 96,400" fill="#431407"/>
+    <polygon points="96,330 176,284 256,330 176,376" fill="#78350f"/>
+    <polygon points="176,376 256,330 256,400 176,446" fill="#292524"/>
+    <line x1="96" y1="330" x2="176" y2="376" stroke="#b45309" stroke-width="1.5"/>
+    <line x1="176" y1="284" x2="256" y2="330" stroke="#d97706" stroke-width="1.5"/>
+    <!-- Block bottom-right -->
+    <polygon points="256,330 336,284 336,354 256,400" fill="#431407"/>
+    <polygon points="256,330 336,284 416,330 336,376" fill="#78350f"/>
+    <polygon points="336,376 416,330 416,400 336,446" fill="#292524"/>
+    <line x1="256" y1="330" x2="336" y2="376" stroke="#b45309" stroke-width="1.5"/>
+    <line x1="336" y1="284" x2="416" y2="330" stroke="#d97706" stroke-width="1.5"/>
+  </g>
+  <!-- Middle row (2 blocks, offset) -->
+  <g filter="url(#glow-wes)">
+    <!-- Block mid-left -->
+    <polygon points="96,260 176,214 176,284 96,330" fill="#57180a"/>
+    <polygon points="96,260 176,214 256,260 176,306" fill="#92400e"/>
+    <polygon points="176,306 256,260 256,330 176,376" fill="#3b2015"/>
+    <line x1="96" y1="260" x2="176" y2="306" stroke="#d97706" stroke-width="1.5"/>
+    <line x1="176" y1="214" x2="256" y2="260" stroke="#f59e0b" stroke-width="1.5"/>
+    <!-- Block mid-right -->
+    <polygon points="256,260 336,214 336,284 256,330" fill="#57180a"/>
+    <polygon points="256,260 336,214 416,260 336,306" fill="#92400e"/>
+    <polygon points="336,306 416,260 416,330 336,376" fill="#3b2015"/>
+    <line x1="256" y1="260" x2="336" y2="306" stroke="#d97706" stroke-width="1.5"/>
+    <line x1="336" y1="214" x2="416" y2="260" stroke="#f59e0b" stroke-width="1.5"/>
+  </g>
+  <!-- Top row (1 block, centered) -->
+  <g filter="url(#glow-wes)">
+    <polygon points="176,190 256,144 256,214 176,260" fill="#7c2d12"/>
+    <polygon points="176,190 256,144 336,190 256,236" fill="#b45309"/>
+    <polygon points="256,236 336,190 336,260 256,306" fill="#431407"/>
+    <line x1="176" y1="190" x2="256" y2="236" stroke="#f59e0b" stroke-width="2"/>
+    <line x1="256" y1="144" x2="336" y2="190" stroke="#fbbf24" stroke-width="2"/>
+    <!-- Top face highlight -->
+    <polygon points="176,190 256,144 336,190 256,236" fill="#fbbf24" opacity="0.1"/>
+  </g>
+  <!-- Edge highlights -->
+  <g stroke="#f59e0b" stroke-width="2" opacity="0.6" filter="url(#glow-wes)">
+    <!-- Outer edges of each top face -->
+    <line x1="256" y1="144" x2="176" y2="190"/>
+    <line x1="256" y1="144" x2="336" y2="190"/>
+    <line x1="256" y1="144" x2="256" y2="236"/>
+  </g>
+  <!-- Label -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Courier New', monospace" font-size="24" font-weight="bold" fill="#d97706" letter-spacing="10">WES</text>
+  <text x="256" y="494" text-anchor="middle" font-family="'Courier New', monospace" font-size="10" fill="#78350f" letter-spacing="3">THE BRICK</text>
+</svg>
