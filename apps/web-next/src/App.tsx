@@ -234,6 +234,9 @@ const CloudCostOptimizer             = React.lazy(() => import("./views/CloudCos
 const NetworkBandwidthMonitor        = React.lazy(() => import("./views/NetworkBandwidthMonitor"));
 const ServiceDependencyMap           = React.lazy(() => import("./views/ServiceDependencyMap"));
 const FeatureRequestBoard            = React.lazy(() => import("./views/FeatureRequestBoard"));
+const DataCatalog                    = React.lazy(() => import("./views/DataCatalog"));
+const OnCallRotationManager          = React.lazy(() => import("./views/OnCallRotationManager"));
+const ResourceInventoryDashboard     = React.lazy(() => import("./views/ResourceInventoryDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -445,6 +448,9 @@ export const navItems = [
   { id: "network-bw",           label: "Network Bandwidth",    emoji: "📶", shortcut: null },
   { id: "service-deps",         label: "Service Dependencies", emoji: "🕸️", shortcut: null },
   { id: "feature-requests",     label: "Feature Requests",     emoji: "💡", shortcut: null },
+  { id: "data-catalog",         label: "Data Catalog",          emoji: "🗂️", shortcut: null },
+  { id: "oncall-rotation",      label: "On-Call Rotation",      emoji: "🔔", shortcut: null },
+  { id: "resource-inventory",   label: "Resource Inventory",    emoji: "📋", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -657,6 +663,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "network-bw":             <ContentSkeleton />,
   "service-deps":           <ContentSkeleton />,
   "feature-requests":       <ContentSkeleton />,
+  "data-catalog":           <ContentSkeleton />,
+  "oncall-rotation":        <ContentSkeleton />,
+  "resource-inventory":     <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1090,6 +1099,9 @@ function AppContent() {
       case "network-bw":           return <NetworkBandwidthMonitor />;
       case "service-deps":         return <ServiceDependencyMap />;
       case "feature-requests":     return <FeatureRequestBoard />;
+      case "data-catalog":         return <DataCatalog />;
+      case "oncall-rotation":      return <OnCallRotationManager />;
+      case "resource-inventory":   return <ResourceInventoryDashboard />;
       default:              return <AgentDashboard />;
     }
   };
