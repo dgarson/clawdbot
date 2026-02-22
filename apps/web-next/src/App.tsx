@@ -274,6 +274,8 @@ const IncidentResponsePlaybook       = React.lazy(() => import("./views/Incident
 const UserJourneyAnalytics           = React.lazy(() => import("./views/UserJourneyAnalytics"));
 const SecurityAuditTrail             = React.lazy(() => import("./views/SecurityAuditTrail"));
 const ChangeManagementBoard          = React.lazy(() => import("./views/ChangeManagementBoard"));
+const MultiRegionFailoverManager     = React.lazy(() => import("./views/MultiRegionFailoverManager"));
+const CostAllocationDashboard        = React.lazy(() => import("./views/CostAllocationDashboard"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -549,6 +551,8 @@ export const navItems = [
   { id: "user-journey-analytics",   label: "User Journey Analytics", emoji: "🗺️", shortcut: null },
   { id: "security-audit-trail",     label: "Security Audit Trail",   emoji: "🔎", shortcut: null },
   { id: "change-mgmt",              label: "Change Management",      emoji: "📋", shortcut: null },
+  { id: "multi-region-failover",    label: "Multi-Region Failover",  emoji: "🔄", shortcut: null },
+  { id: "cost-allocation",          label: "Cost Allocation",         emoji: "💰", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -813,6 +817,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "user-journey-analytics":    <ContentSkeleton />,
   "security-audit-trail":      <ContentSkeleton />,
   "change-mgmt":               <ContentSkeleton />,
+  "multi-region-failover":     <ContentSkeleton />,
+  "cost-allocation":           <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1294,6 +1300,8 @@ function AppContent() {
       case "user-journey-analytics": return <UserJourneyAnalytics />;
       case "security-audit-trail":   return <SecurityAuditTrail />;
       case "change-mgmt":            return <ChangeManagementBoard />;
+      case "multi-region-failover":  return <MultiRegionFailoverManager />;
+      case "cost-allocation":        return <CostAllocationDashboard />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
