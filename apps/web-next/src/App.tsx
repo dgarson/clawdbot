@@ -59,6 +59,7 @@ const SecurityDashboard = React.lazy(() => import("./views/SecurityDashboard"));
 const ChangelogView = React.lazy(() => import("./views/ChangelogView"));
 const EnvironmentManager = React.lazy(() => import("./views/EnvironmentManager"));
 const FeatureFlags = React.lazy(() => import("./views/FeatureFlags"));
+const AgentComparison = React.lazy(() => import("./views/AgentComparison"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -95,6 +96,7 @@ export const navItems = [
   { id: "changelog",        label: "What's New",     emoji: "🎉", shortcut: null },
   { id: "env-vars",         label: "Environment",    emoji: "🔑", shortcut: null },
   { id: "feature-flags",   label: "Feature Flags",  emoji: "🚩", shortcut: null },
+  { id: "agent-compare",   label: "Agent Compare",  emoji: "⚖️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -132,6 +134,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "changelog":      <ContentSkeleton />,
   "env-vars":       <TableSkeleton rows={8} />,
   "feature-flags":  <ContentSkeleton />,
+  "agent-compare":  <DashboardSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -390,6 +393,7 @@ function AppContent() {
       case "changelog":       return <ChangelogView />;
       case "env-vars":        return <EnvironmentManager />;
       case "feature-flags":   return <FeatureFlags />;
+      case "agent-compare":   return <AgentComparison />;
       default:              return <AgentDashboard />;
     }
   };
