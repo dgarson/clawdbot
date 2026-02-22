@@ -88,6 +88,8 @@ const AgentTracer          = React.lazy(() => import("./views/AgentTracer"));
 const DataPipelineViewer   = React.lazy(() => import("./views/DataPipelineViewer"));
 const CostOptimizer        = React.lazy(() => import("./views/CostOptimizer"));
 const PluginManager        = React.lazy(() => import("./views/PluginManager"));
+const LogViewer            = React.lazy(() => import("./views/LogViewer"));
+const LLMPlayground        = React.lazy(() => import("./views/LLMPlayground"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -153,6 +155,8 @@ export const navItems = [
   { id: "pipelines",       label: "Pipelines",      emoji: "🔀", shortcut: null },
   { id: "cost",            label: "Cost Optimizer", emoji: "💰", shortcut: null },
   { id: "plugins",         label: "Plugins",        emoji: "🧩", shortcut: null },
+  { id: "logs",            label: "Log Viewer",     emoji: "📜", shortcut: null },
+  { id: "llm-playground",  label: "LLM Playground", emoji: "🎮", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -219,6 +223,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "pipelines":      <ContentSkeleton />,
   "cost":           <DashboardSkeleton />,
   "plugins":        <ContentSkeleton />,
+  "logs":           <ContentSkeleton />,
+  "llm-playground": <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -506,6 +512,8 @@ function AppContent() {
       case "pipelines":       return <DataPipelineViewer />;
       case "cost":            return <CostOptimizer />;
       case "plugins":         return <PluginManager />;
+      case "logs":            return <LogViewer />;
+      case "llm-playground":  return <LLMPlayground />;
       default:              return <AgentDashboard />;
     }
   };
