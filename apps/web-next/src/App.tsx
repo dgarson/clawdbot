@@ -66,6 +66,7 @@ const ModelBenchmark  = React.lazy(() => import("./views/ModelBenchmark"));
 const RateLimitDashboard = React.lazy(() => import("./views/RateLimitDashboard"));
 const TaskQueue       = React.lazy(() => import("./views/TaskQueue"));
 const StorageExplorer = React.lazy(() => import("./views/StorageExplorer"));
+const AlertCenter     = React.lazy(() => import("./views/AlertCenter"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -109,6 +110,7 @@ export const navItems = [
   { id: "rate-limits",     label: "Rate Limits",    emoji: "⚡", shortcut: null },
   { id: "task-queue",      label: "Task Queue",     emoji: "📬", shortcut: null },
   { id: "storage",         label: "Storage",        emoji: "💾", shortcut: null },
+  { id: "alerts",          label: "Alert Center",   emoji: "🚨", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -153,6 +155,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "rate-limits":    <DashboardSkeleton />,
   "task-queue":     <TableSkeleton rows={10} />,
   "storage":        <ContentSkeleton />,
+  "alerts":         <DashboardSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -418,6 +421,7 @@ function AppContent() {
       case "rate-limits":     return <RateLimitDashboard />;
       case "task-queue":      return <TaskQueue />;
       case "storage":         return <StorageExplorer />;
+      case "alerts":          return <AlertCenter />;
       default:              return <AgentDashboard />;
     }
   };
