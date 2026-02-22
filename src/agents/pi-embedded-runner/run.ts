@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
+import type { RunEmbeddedPiAgentParams } from "./run/params.js";
+import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
@@ -24,6 +26,7 @@ import {
   resolveAuthProfileOrder,
   type ResolvedProviderAuth,
 } from "../model-auth.js";
+import { resolveDynamicModelRoute } from "../model-router.js";
 import { normalizeProviderId } from "../model-selection.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
@@ -50,13 +53,11 @@ import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
-import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import {
   truncateOversizedToolResultsInSession,
   sessionLikelyHasOversizedToolResults,
 } from "./tool-result-truncation.js";
-import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { describeUnknownError } from "./utils.js";
 
 type ApiKeyInfo = ResolvedProviderAuth;
@@ -210,11 +211,33 @@ export async function runEmbeddedPiAgent(
       }
       const prevCwd = process.cwd();
 
+      const hasExplicitProvider = Boolean((params.provider ?? "").trim());
+      const hasExplicitModel = Boolean((params.model ?? "").trim());
+
       let provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
       let modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
       const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
       const fallbackConfigured =
         (params.config?.agents?.defaults?.model?.fallbacks?.length ?? 0) > 0;
+      let dynamicThinkLevel: ThinkLevel | undefined;
+
+      if (!hasExplicitProvider && !hasExplicitModel) {
+        const dynamicRoute = resolveDynamicModelRoute({
+          prompt: params.prompt,
+          defaultProvider: provider,
+          defaultModel: modelId,
+          config: params.config,
+        });
+
+        if (dynamicRoute) {
+          provider = dynamicRoute.provider;
+          modelId = dynamicRoute.model;
+          dynamicThinkLevel = dynamicRoute.thinkLevel;
+          log.info(
+            `[dynamic-router] matched intent=${dynamicRoute.intent} confidence=${dynamicRoute.confidence} reason=${dynamicRoute.reason} -> ${provider}/${modelId}`,
+          );
+        }
+      }
       await ensureOpenClawModelsJson(params.config, agentDir);
 
       // Run before_model_resolve hooks early so plugins can override the
@@ -336,7 +359,10 @@ export async function runEmbeddedPiAgent(
           : [undefined];
       let profileIndex = 0;
 
-      const initialThinkLevel = params.thinkLevel ?? "off";
+      const initialThinkLevel =
+        params.thinkLevel ??
+        (hasExplicitModel || hasExplicitProvider ? undefined : dynamicThinkLevel) ??
+        "off";
       let thinkLevel = initialThinkLevel;
       const attemptedThinking = new Set<ThinkLevel>();
       let apiKeyInfo: ApiKeyInfo | null = null;

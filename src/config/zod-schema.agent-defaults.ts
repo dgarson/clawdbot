@@ -42,6 +42,49 @@ export const AgentDefaultsSchema = z
           .strict(),
       )
       .optional(),
+    modelRouting: z
+      .object({
+        enabled: z.boolean().optional(),
+        fallbackModel: z.string().optional(),
+        fallbackThinkLevel: z
+          .union([
+            z.literal("off"),
+            z.literal("minimal"),
+            z.literal("low"),
+            z.literal("medium"),
+            z.literal("high"),
+            z.literal("xhigh"),
+          ])
+          .optional(),
+        rules: z
+          .array(
+            z
+              .object({
+                id: z.string().optional(),
+                intent: z.union([
+                  z.literal("simple"),
+                  z.literal("analysis"),
+                  z.literal("coding"),
+                  z.literal("critical"),
+                ]),
+                model: z.string(),
+                thinkLevel: z
+                  .union([
+                    z.literal("off"),
+                    z.literal("minimal"),
+                    z.literal("low"),
+                    z.literal("medium"),
+                    z.literal("high"),
+                    z.literal("xhigh"),
+                  ])
+                  .optional(),
+              })
+              .strict(),
+          )
+          .optional(),
+      })
+      .strict()
+      .optional(),
     workspace: z.string().optional(),
     repoRoot: z.string().optional(),
     skipBootstrap: z.boolean().optional(),

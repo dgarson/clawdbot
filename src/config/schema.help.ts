@@ -306,6 +306,18 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.defaults.model.primary": "Primary model (provider/model).",
   "agents.defaults.model.fallbacks":
     "Ordered fallback models (provider/model). Used when the primary model fails.",
+  "agents.defaults.modelRouting":
+    "Enable or configure rules-based dynamic routing between models based on prompt intent.",
+  "agents.defaults.modelRouting.enabled": "Enable rules-based routing for model selection.",
+  "agents.defaults.modelRouting.fallbackModel":
+    "Model to use when no route explicitly matches the classified intent (provider/model).",
+  "agents.defaults.modelRouting.fallbackThinkLevel":
+    "Optional thinking level to apply when fallback routing is used and no route-level value is set.",
+  "agents.defaults.modelRouting.rules": "Intent-specific routing rules in priority order.",
+  "agents.defaults.modelRouting.rules[].id": "Stable name for diagnostics/observability.",
+  "agents.defaults.modelRouting.rules[].intent": "Intent bucket to match for this route.",
+  "agents.defaults.modelRouting.rules[].model": "Model to route this intent to (provider/model).",
+  "agents.defaults.modelRouting.rules[].thinkLevel": "Optional thinking level for this route.",
   "agents.defaults.imageModel.primary":
     "Optional image model (provider/model) used when the primary model lacks image input.",
   "agents.defaults.imageModel.fallbacks": "Ordered fallback image models (provider/model).",

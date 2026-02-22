@@ -25,6 +25,28 @@ export type AgentModelListConfig = {
   fallbacks?: string[];
 };
 
+export type AgentModelRoutingRuleConfig = {
+  /** Optional stable identifier for debugging/observability. */
+  id?: string;
+  /** Intent bucket. */
+  intent: "simple" | "analysis" | "coding" | "critical";
+  /** Provider/model for this intent (e.g. "anthropic/claude-3.5-sonnet"). */
+  model: string;
+  /** Optional thinking level for this routed model. */
+  thinkLevel?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
+};
+
+export type AgentModelRoutingConfig = {
+  /** Enable rules-based intent routing. */
+  enabled?: boolean;
+  /** Default model for unmatched intent classes. */
+  fallbackModel?: string;
+  /** Default thinking level for unmatched or fallback routing. */
+  fallbackThinkLevel?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  /** Intent-specific routes. */
+  rules?: AgentModelRoutingRuleConfig[];
+};
+
 export type AgentContextPruningConfig = {
   mode?: "off" | "cache-ttl";
   /** TTL to consider cache expired (duration string, default unit: minutes). */
@@ -128,6 +150,8 @@ export type AgentDefaultsConfig = {
   imageModel?: AgentModelListConfig;
   /** Model catalog with optional aliases (full provider/model keys). */
   models?: Record<string, AgentModelEntryConfig>;
+  /** Rules-based dynamic model routing by intent. */
+  modelRouting?: AgentModelRoutingConfig;
   /** Agent working directory (preferred). Used as the default cwd for agent runs. */
   workspace?: string;
   /** Optional repository root for system prompt runtime line (overrides auto-detect). */
