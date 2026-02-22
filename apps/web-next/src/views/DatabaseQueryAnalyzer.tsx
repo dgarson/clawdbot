@@ -194,15 +194,9 @@ export default function DatabaseQueryAnalyzer() {
   const filteredQueries = MOCK_QUERIES.filter(q => dbFilter === "ALL" || q.database === dbFilter);
 
   const getLatencyColor = (ms: number) => {
-    if (ms < 50) return "text-emerald-400";
-    if (ms < 500) return "text-amber-400";
+    if (ms < 50) {return "text-emerald-400";}
+    if (ms < 500) {return "text-amber-400";}
     return "text-rose-400";
-  };
-
-  const getLatencyBg = (ms: number) => {
-    if (ms < 50) return "bg-emerald-400/10";
-    if (ms < 500) return "bg-amber-400/10";
-    return "bg-rose-400/10";
   };
 
   const PlanNode = ({ node, depth = 0 }: { node: ExecutionPlanNode, depth?: number }) => (
