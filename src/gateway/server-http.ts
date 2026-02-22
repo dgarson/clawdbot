@@ -459,6 +459,10 @@ export function createGatewayHttpServer(opts: {
   openResponsesConfig?: import("../config/types.gateway.js").GatewayHttpResponsesConfig;
   handleHooksRequest: HooksRequestHandler;
   handlePluginRequest?: HooksRequestHandler;
+  /** Optional Prometheus /metrics request handler. */
+  handleMetricsRequest?: (req: IncomingMessage, res: ServerResponse) => void;
+  /** Path that triggers the metrics handler (default: "/metrics"). */
+  metricsEndpoint?: string;
   resolvedAuth: ResolvedGatewayAuth;
   /** Optional rate limiter for auth brute-force protection. */
   rateLimiter?: AuthRateLimiter;
@@ -475,6 +479,8 @@ export function createGatewayHttpServer(opts: {
     openResponsesConfig,
     handleHooksRequest,
     handlePluginRequest,
+    handleMetricsRequest,
+    metricsEndpoint,
     resolvedAuth,
     rateLimiter,
   } = opts;
@@ -506,6 +512,16 @@ export function createGatewayHttpServer(opts: {
         req.url = scopedCanvas.rewrittenUrl;
       }
       const requestPath = new URL(req.url ?? "/", "http://localhost").pathname;
+      // Prometheus /metrics — served without gateway auth so scrapers can reach it.
+      // Access is restricted to local requests only for security.
+      if (handleMetricsRequest && requestPath === (metricsEndpoint ?? "/metrics")) {
+        if (isLocalDirectRequest(req, trustedProxies)) {
+          handleMetricsRequest(req, res);
+          return;
+        }
+        sendGatewayAuthFailure(res, { ok: false, reason: "unauthorized" });
+        return;
+      }
       if (await handleHooksRequest(req, res)) {
         return;
       }

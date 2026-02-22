@@ -60,6 +60,12 @@ export const FIELD_HELP: Record<string, string> = {
     "Include full message payloads in trace output (default: true).",
   "diagnostics.cacheTrace.includePrompt": "Include prompt text in trace output (default: true).",
   "diagnostics.cacheTrace.includeSystem": "Include system prompt in trace output (default: true).",
+  "diagnostics.metrics.enabled":
+    "Enable the Prometheus /metrics endpoint on the gateway HTTP server. Default: true when diagnostics are enabled.",
+  "diagnostics.metrics.port":
+    "Port for standalone Prometheus metrics server (unused when attached to gateway). Default: 9464.",
+  "diagnostics.metrics.endpoint":
+    "HTTP path for the Prometheus metrics endpoint. Default: /metrics.",
   "tools.exec.applyPatch.enabled":
     "Experimental. Enables apply_patch for OpenAI models when allowed by tool policy.",
   "tools.exec.applyPatch.workspaceOnly":

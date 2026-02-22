@@ -158,12 +158,24 @@ export type DiagnosticsCacheTraceConfig = {
   includeSystem?: boolean;
 };
 
+/** Prometheus metrics endpoint configuration. */
+export type DiagnosticsMetricsConfig = {
+  /** Whether the Prometheus /metrics endpoint is enabled. Default: true when diagnostics enabled. */
+  enabled?: boolean;
+  /** Port for standalone metrics server (unused when attaching to gateway). Default: 9464. */
+  port?: number;
+  /** HTTP path for the metrics endpoint. Default: "/metrics". */
+  endpoint?: string;
+};
+
 export type DiagnosticsConfig = {
   enabled?: boolean;
   /** Optional ad-hoc diagnostics flags (e.g. "telegram.http"). */
   flags?: string[];
   otel?: DiagnosticsOtelConfig;
   cacheTrace?: DiagnosticsCacheTraceConfig;
+  /** Prometheus metrics endpoint configuration. */
+  metrics?: DiagnosticsMetricsConfig;
 };
 
 export type WebReconnectConfig = {
