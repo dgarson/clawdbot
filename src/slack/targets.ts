@@ -25,10 +25,6 @@ function normalizeSlackId(id: string): string {
   return /^[CUWGD][A-Z0-9]{8,}$/i.test(id) ? id.toUpperCase() : id;
 }
 
-function isSlackId(id: string): boolean {
-  return  /^[CUWGD][A-Z0-9]{8,}$/i.test(id)
-}
-
 export function parseSlackTarget(
   raw: string,
   options: SlackTargetParseOptions = {},
@@ -84,5 +80,5 @@ export function resolveSlackChannelId(raw: string): string {
   const target = parseSlackTarget(raw, { defaultKind: "channel" });
   const id = requireTargetKind({ platform: "Slack", target, kind: "channel" });
   // Uppercase if it looks like a Slack channel ID (e.g. c123 → C123).
-  return isSlackId(id) ? id.toUpperCase() : id;
+  return normalizeSlackId(id);
 }
