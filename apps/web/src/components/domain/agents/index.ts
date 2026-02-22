@@ -9,6 +9,7 @@ export { AgentToolsTab } from "./AgentToolsTab";
 export { AgentSoulTab } from "./AgentSoulTab";
 export { AgentActivityTab } from "./AgentActivityTab";
 export { AgentConfigPage } from "./AgentConfigPage";
+export { AgentConfigureTab } from "./AgentConfigureTab";
 export { SoulEditor } from "./SoulEditor";
 export { AgentFileEditor } from "./AgentFileEditor";
 export { AgentOverviewConfig } from "./AgentOverviewConfig";
