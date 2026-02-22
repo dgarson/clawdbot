@@ -74,6 +74,7 @@ const TokenLedger          = React.lazy(() => import("./views/TokenLedger"));
 const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
 const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
+const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -125,6 +126,7 @@ export const navItems = [
   { id: "theme-editor",    label: "Theme Editor",   emoji: "🎨", shortcut: null },
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
   { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
+  { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -177,6 +179,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "theme-editor":   <ContentSkeleton />,
   "permissions":    <TableSkeleton rows={8} />,
   "activity":       <ContentSkeleton />,
+  "commands":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -450,6 +453,7 @@ function AppContent() {
       case "theme-editor":    return <ThemeEditor />;
       case "permissions":     return <PermissionsManager />;
       case "activity":        return <ActivityFeed />;
+      case "commands":        return <CommandPalette />;
       default:              return <AgentDashboard />;
     }
   };
