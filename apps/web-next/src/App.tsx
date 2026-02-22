@@ -226,6 +226,8 @@ const InfrastructureDriftDetector    = React.lazy(() => import("./views/Infrastr
 const AnnouncementCenter             = React.lazy(() => import("./views/AnnouncementCenter"));
 const DatabaseSchemaExplorer         = React.lazy(() => import("./views/DatabaseSchemaExplorer"));
 const SupportTicketDashboard         = React.lazy(() => import("./views/SupportTicketDashboard"));
+const APIChangelogManager            = React.lazy(() => import("./views/APIChangelogManager"));
+const ProductTourBuilder             = React.lazy(() => import("./views/ProductTourBuilder"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -429,6 +431,8 @@ export const navItems = [
   { id: "announcements",  label: "Announcements",      emoji: "📣", shortcut: null },
   { id: "schema-explorer",label: "Schema Explorer",    emoji: "🗄️", shortcut: null },
   { id: "support-tickets",label: "Support Tickets",    emoji: "🎫", shortcut: null },
+  { id: "api-changelog",  label: "API Changelog",      emoji: "📋", shortcut: null },
+  { id: "product-tour",   label: "Product Tours",       emoji: "🗺️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -633,6 +637,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "announcements":     <ContentSkeleton />,
   "schema-explorer":   <ContentSkeleton />,
   "support-tickets":   <ContentSkeleton />,
+  "api-changelog":     <ContentSkeleton />,
+  "product-tour":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1058,6 +1064,8 @@ function AppContent() {
       case "announcements":        return <AnnouncementCenter />;
       case "schema-explorer":      return <DatabaseSchemaExplorer />;
       case "support-tickets":      return <SupportTicketDashboard />;
+      case "api-changelog":        return <APIChangelogManager />;
+      case "product-tour":         return <ProductTourBuilder />;
       default:              return <AgentDashboard />;
     }
   };
