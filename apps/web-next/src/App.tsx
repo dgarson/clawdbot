@@ -96,6 +96,8 @@ const AgentDiffViewer      = React.lazy(() => import("./views/AgentDiffViewer"))
 const MCPInspector         = React.lazy(() => import("./views/MCPInspector"));
 const ModelRouter          = React.lazy(() => import("./views/ModelRouter"));
 const SessionReplay        = React.lazy(() => import("./views/SessionReplay"));
+const ConfigValidatorView  = React.lazy(() => import("./views/ConfigValidatorView"));
+const ContextWindowViewer  = React.lazy(() => import("./views/ContextWindowViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -169,6 +171,8 @@ export const navItems = [
   { id: "mcp",             label: "MCP Inspector",  emoji: "🔧", shortcut: null },
   { id: "model-router",    label: "Model Router",   emoji: "🔀", shortcut: null },
   { id: "session-replay",  label: "Session Replay", emoji: "▶️", shortcut: null },
+  { id: "config-validator", label: "Config Validator", emoji: "✅", shortcut: null },
+  { id: "context-window",  label: "Context Window",  emoji: "🪟", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -243,6 +247,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "mcp":             <ContentSkeleton />,
   "model-router":    <ContentSkeleton />,
   "session-replay":  <ContentSkeleton />,
+  "config-validator": <ContentSkeleton />,
+  "context-window":  <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -538,6 +544,8 @@ function AppContent() {
       case "mcp":             return <MCPInspector />;
       case "model-router":    return <ModelRouter />;
       case "session-replay":  return <SessionReplay />;
+      case "config-validator": return <ConfigValidatorView />;
+      case "context-window":  return <ContextWindowViewer />;
       default:              return <AgentDashboard />;
     }
   };
