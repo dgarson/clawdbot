@@ -513,6 +513,13 @@ importers:
         version: link:../..
 
   extensions/issue-tracking:
+    dependencies:
+      '@sinclair/typebox':
+        specifier: 0.34.48
+        version: 0.34.48
+      yaml:
+        specifier: ^2.8.2
+        version: 2.8.2
     devDependencies:
       openclaw:
         specifier: workspace:*
