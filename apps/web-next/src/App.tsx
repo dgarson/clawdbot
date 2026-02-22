@@ -128,6 +128,8 @@ const AccessControlMatrix  = React.lazy(() => import("./views/AccessControlMatri
 const InfrastructureMap    = React.lazy(() => import("./views/InfrastructureMap"));
 const StatusPageBuilder    = React.lazy(() => import("./views/StatusPageBuilder"));
 const DiffViewer           = React.lazy(() => import("./views/DiffViewer"));
+const OncallScheduler      = React.lazy(() => import("./views/OncallScheduler"));
+const DataQualityDashboard = React.lazy(() => import("./views/DataQualityDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -233,6 +235,8 @@ export const navItems = [
   { id: "infra-map",       label: "Infrastructure",    emoji: "🗺️", shortcut: null },
   { id: "status-page",     label: "Status Page",       emoji: "🟢", shortcut: null },
   { id: "diff-viewer",     label: "Diff Viewer",       emoji: "⚖️", shortcut: null },
+  { id: "oncall",          label: "On-Call Schedule",  emoji: "📟", shortcut: null },
+  { id: "data-quality",   label: "Data Quality",      emoji: "🔬", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -339,6 +343,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "infra-map":        <ContentSkeleton />,
   "status-page":      <ContentSkeleton />,
   "diff-viewer":      <ContentSkeleton />,
+  "oncall":           <ContentSkeleton />,
+  "data-quality":     <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -666,6 +672,8 @@ function AppContent() {
       case "infra-map":        return <InfrastructureMap />;
       case "status-page":      return <StatusPageBuilder />;
       case "diff-viewer":      return <DiffViewer />;
+      case "oncall":           return <OncallScheduler />;
+      case "data-quality":     return <DataQualityDashboard />;
       default:              return <AgentDashboard />;
     }
   };
