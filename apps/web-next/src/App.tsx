@@ -237,6 +237,8 @@ const FeatureRequestBoard            = React.lazy(() => import("./views/FeatureR
 const DataCatalog                    = React.lazy(() => import("./views/DataCatalog"));
 const OnCallRotationManager          = React.lazy(() => import("./views/OnCallRotationManager"));
 const ResourceInventoryDashboard     = React.lazy(() => import("./views/ResourceInventoryDashboard"));
+const WebhookDebugger                = React.lazy(() => import("./views/WebhookDebugger"));
+const CostAttributionDashboard       = React.lazy(() => import("./views/CostAttributionDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -451,6 +453,8 @@ export const navItems = [
   { id: "data-catalog",         label: "Data Catalog",          emoji: "🗂️", shortcut: null },
   { id: "oncall-rotation",      label: "On-Call Rotation",      emoji: "🔔", shortcut: null },
   { id: "resource-inventory",   label: "Resource Inventory",    emoji: "📋", shortcut: null },
+  { id: "webhook-debugger",     label: "Webhook Debugger",      emoji: "🪝", shortcut: null },
+  { id: "cost-attribution",     label: "Cost Attribution",      emoji: "💳", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -666,6 +670,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-catalog":           <ContentSkeleton />,
   "oncall-rotation":        <ContentSkeleton />,
   "resource-inventory":     <ContentSkeleton />,
+  "webhook-debugger":       <ContentSkeleton />,
+  "cost-attribution":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1102,6 +1108,8 @@ function AppContent() {
       case "data-catalog":         return <DataCatalog />;
       case "oncall-rotation":      return <OnCallRotationManager />;
       case "resource-inventory":   return <ResourceInventoryDashboard />;
+      case "webhook-debugger":     return <WebhookDebugger />;
+      case "cost-attribution":     return <CostAttributionDashboard />;
       default:              return <AgentDashboard />;
     }
   };
