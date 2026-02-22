@@ -220,6 +220,9 @@ const VaultSecretsManager        = React.lazy(() => import("./views/VaultSecrets
 const MLPipelineMonitor          = React.lazy(() => import("./views/MLPipelineMonitor"));
 const IncidentTimeline           = React.lazy(() => import("./views/IncidentTimeline"));
 const TestResultsDashboard       = React.lazy(() => import("./views/TestResultsDashboard"));
+const CustomerSuccessDashboard       = React.lazy(() => import("./views/CustomerSuccessDashboard"));
+const ContainerLogViewer             = React.lazy(() => import("./views/ContainerLogViewer"));
+const InfrastructureDriftDetector    = React.lazy(() => import("./views/InfrastructureDriftDetector"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -417,6 +420,9 @@ export const navItems = [
   { id: "ml-pipeline",    label: "ML Pipelines",        emoji: "🤖", shortcut: null },
   { id: "incident-timeline", label: "Incident Timeline", emoji: "🚨", shortcut: null },
   { id: "test-results",  label: "Test Results",         emoji: "🧪", shortcut: null },
+  { id: "customer-success", label: "Customer Success",  emoji: "🌟", shortcut: null },
+  { id: "container-logs",  label: "Container Logs",    emoji: "📜", shortcut: null },
+  { id: "infra-drift",     label: "Drift Detector",    emoji: "🔀", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -615,6 +621,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "ml-pipeline":       <ContentSkeleton />,
   "incident-timeline": <ContentSkeleton />,
   "test-results":      <ContentSkeleton />,
+  "customer-success":  <ContentSkeleton />,
+  "container-logs":    <ContentSkeleton />,
+  "infra-drift":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1034,6 +1043,9 @@ function AppContent() {
       case "ml-pipeline":      return <MLPipelineMonitor />;
       case "incident-timeline": return <IncidentTimeline />;
       case "test-results":     return <TestResultsDashboard />;
+      case "customer-success":     return <CustomerSuccessDashboard />;
+      case "container-logs":       return <ContainerLogViewer />;
+      case "infra-drift":          return <InfrastructureDriftDetector />;
       default:              return <AgentDashboard />;
     }
   };
