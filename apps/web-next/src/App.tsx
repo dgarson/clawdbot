@@ -57,6 +57,7 @@ const AgentInsights = React.lazy(() => import("./views/AgentInsights"));
 const DeveloperConsole = React.lazy(() => import("./views/DeveloperConsole"));
 const SecurityDashboard = React.lazy(() => import("./views/SecurityDashboard"));
 const ChangelogView = React.lazy(() => import("./views/ChangelogView"));
+const EnvironmentManager = React.lazy(() => import("./views/EnvironmentManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -91,6 +92,7 @@ export const navItems = [
   { id: "dev-console",      label: "Dev Console",    emoji: "🖥️", shortcut: null },
   { id: "security",         label: "Security",       emoji: "🛡️", shortcut: null },
   { id: "changelog",        label: "What's New",     emoji: "🎉", shortcut: null },
+  { id: "env-vars",         label: "Environment",    emoji: "🔑", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -126,6 +128,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "dev-console":    <ContentSkeleton />,
   "security":       <DashboardSkeleton />,
   "changelog":      <ContentSkeleton />,
+  "env-vars":       <TableSkeleton rows={8} />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -382,6 +385,7 @@ function AppContent() {
       case "dev-console":     return <DeveloperConsole />;
       case "security":        return <SecurityDashboard />;
       case "changelog":       return <ChangelogView />;
+      case "env-vars":        return <EnvironmentManager />;
       default:              return <AgentDashboard />;
     }
   };
