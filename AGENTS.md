@@ -275,3 +275,12 @@ sessions_spawn({ task: "Summarize all agent MEMORY.md files updated in the last 
 - Short tasks where spawning overhead outweighs the benefit
 
 Monitor: `sessions_list`, `subagents(action=list)`. Steer/kill: `subagents(action=steer|kill)`.
+
+### Active Task Listings
+
+Whenever listing active tasks/sessions (via `sessions_list`, `subagents(action=list)`, or any status summary), always include:
+
+- **Model name** being used for each session (from the session metadata)
+- **Agent ID** when it's meaningful for the context (e.g. when showing who owns a task, or when multiple agents are running)
+
+Example format: `[xavier · opus] Reviewing PR #456 for architectural soundness`
