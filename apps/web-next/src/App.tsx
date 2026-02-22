@@ -90,6 +90,8 @@ const CostOptimizer        = React.lazy(() => import("./views/CostOptimizer"));
 const PluginManager        = React.lazy(() => import("./views/PluginManager"));
 const LogViewer            = React.lazy(() => import("./views/LogViewer"));
 const LLMPlayground        = React.lazy(() => import("./views/LLMPlayground"));
+const ABTestManager        = React.lazy(() => import("./views/ABTestManager"));
+const QuotaManager         = React.lazy(() => import("./views/QuotaManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -157,6 +159,8 @@ export const navItems = [
   { id: "plugins",         label: "Plugins",        emoji: "🧩", shortcut: null },
   { id: "logs",            label: "Log Viewer",     emoji: "📜", shortcut: null },
   { id: "llm-playground",  label: "LLM Playground", emoji: "🎮", shortcut: null },
+  { id: "ab-tests",        label: "A/B Tests",      emoji: "🧪", shortcut: null },
+  { id: "quotas",          label: "Quotas",         emoji: "📏", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -225,6 +229,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "plugins":        <ContentSkeleton />,
   "logs":           <ContentSkeleton />,
   "llm-playground": <ContentSkeleton />,
+  "ab-tests":        <ContentSkeleton />,
+  "quotas":          <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -514,6 +520,8 @@ function AppContent() {
       case "plugins":         return <PluginManager />;
       case "logs":            return <LogViewer />;
       case "llm-playground":  return <LLMPlayground />;
+      case "ab-tests":        return <ABTestManager />;
+      case "quotas":          return <QuotaManager />;
       default:              return <AgentDashboard />;
     }
   };
