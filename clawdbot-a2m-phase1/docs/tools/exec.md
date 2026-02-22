@@ -1,0 +1,97 @@
+---
+summary: "Exec tool usage, stdin modes, and TTY support"
+read_when:
+  - Using or modifying the exec tool
+  - Debugging stdin or TTY behavior
+---
+
+# Exec tool
+
+Run shell commands in the workspace. Supports foreground + background execution via `process`.
+If `process` is disallowed, `exec` runs synchronously and ignores `yieldMs`/`background`.
+Background sessions are scoped per agent; `process` only sees sessions from the same agent.
+
+## Parameters
+
+- `command` (required)
+- `workdir` (defaults to cwd)
+- `env` (key/value overrides)
+- `yieldMs` (default 10000): auto-background after delay
+- `background` (bool): background immediately
+- `timeout` (seconds, default 1800): kill on expiry
+- `pty` (bool): run in a pseudo-terminal when available (TTY-only CLIs, coding agents, terminal UIs)
+- `host` (`sandbox | gateway | node`): where to execute
+- `security` (`deny | allowlist | full`): enforcement mode for `gateway`/`node`
+- `ask` (`off | on-miss | always`): approval prompts for `gateway`/`node`
+- `node` (string): node id/name for `host=node`
+- `elevated` (bool): alias for `host=gateway` + `security=full` when sandboxed and allowed
+
+Notes:
+- `host` defaults to `sandbox`.
+- `elevated` is ignored when sandboxing is off (exec already runs on the host).
+- `gateway`/`node` approvals are controlled by `~/.clawdbot/exec-approvals.json`.
+- `node` requires a paired node (macOS companion app).
+- If multiple nodes are available, set `exec.node` or `tools.exec.node` to select one.
+
+## Config
+
+- `tools.exec.notifyOnExit` (default: true): when true, backgrounded exec sessions enqueue a system event and request a heartbeat on exit.
+- `tools.exec.host` (default: `sandbox`)
+- `tools.exec.security` (default: `deny`)
+- `tools.exec.ask` (default: `on-miss`)
+- `tools.exec.node` (default: unset)
+
+## Exec approvals (macOS app)
+
+Sandboxed agents can require per-request approval before `exec` runs on the gateway or node host.
+See [Exec approvals](/tools/exec-approvals) for the policy, allowlist, and UI flow.
+
+## Examples
+
+Foreground:
+```json
+{"tool":"exec","command":"ls -la"}
+```
+
+Background + poll:
+```json
+{"tool":"exec","command":"npm run build","yieldMs":1000}
+{"tool":"process","action":"poll","sessionId":"<id>"}
+```
+
+Send keys (tmux-style):
+```json
+{"tool":"process","action":"send-keys","sessionId":"<id>","keys":["Enter"]}
+{"tool":"process","action":"send-keys","sessionId":"<id>","keys":["C-c"]}
+{"tool":"process","action":"send-keys","sessionId":"<id>","keys":["Up","Up","Enter"]}
+```
+
+Submit (send CR only):
+```json
+{"tool":"process","action":"submit","sessionId":"<id>"}
+```
+
+Paste (bracketed by default):
+```json
+{"tool":"process","action":"paste","sessionId":"<id>","text":"line1\nline2\n"}
+```
+
+## apply_patch (experimental)
+
+`apply_patch` is a subtool of `exec` for structured multi-file edits.
+Enable it explicitly:
+
+```json5
+{
+  tools: {
+    exec: {
+      applyPatch: { enabled: true, allowModels: ["gpt-5.2"] }
+    }
+  }
+}
+```
+
+Notes:
+- Only available for OpenAI/OpenAI Codex models.
+- Tool policy still applies; `allow: ["exec"]` implicitly allows `apply_patch`.
+- Config lives under `tools.exec.applyPatch`.

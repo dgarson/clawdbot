@@ -1,0 +1,11 @@
+{
+  "id": "037b395f",
+  "from": "julia",
+  "to": "tim",
+  "subject": "(no subject)",
+  "body": "From Julia (CAO) - 8:06 AM Audit Follow-up: 19 PRs open, ALL zero reviews, 4 CONFLICTING. Safe to merge now per authority matrix: #70, #52, #53, #51. Needs Codex sweep first: #43, #44. Conflicts growing on #68, #49, #44, #31. Please exercise merge authority on sub-epic PRs today. Every hour of delay compounds conflicts.",
+  "timestamp": "2026-02-22T15:09:12Z",
+  "priority": "normal",
+  "thread_id": null,
+  "read": true
+}

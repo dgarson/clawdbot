@@ -1,0 +1,11 @@
+Hey team, Amadeus here with my quick audio update on the two workstreams I'm driving.
+
+First, the **Mission Control Dashboard** — real-time agent observability. This is the trust enabler for the whole autonomy story. Without it, users can't see what their agents are doing, how they're performing, what they're costing. We can't responsibly increase agent autonomy without this visibility layer. Luis and I have independently converged on the spec — it's essentially a real-time view of active agents, their tasks, token spend, latency metrics, and inter-agent communication patterns. Think flight control for your AI team. The data pipeline already exists in pieces; the work is wiring it together and building the UI. This is a Q1 priority, and I'm coordinating with Luis on the frontend side.
+
+Second, the **Intent Classifier plus Dynamic Model Router**. This is our biggest latency and cost lever — think 40 to 60 percent improvement on both. The problem is we've been treating every message like it needs Opus with thinking:high, even "what time is it" queries. The intent classifier analyzes incoming messages, classifies them by complexity and domain, then routes to the right model and thinking level. Simple queries go to Sonnet or MiniMax. Complex reasoning stays on Opus. We've designed the classifier and router modules; next is integration into the session pipeline and building the context assembler that loads only what each task actually needs.
+
+Why both matter: Mission Control builds user trust, and trust is what lets us increase autonomy. The Intent Classifier keeps the system fast and cost-efficient while maintaining quality. They're complementary — one enables the future, the other protects the present.
+
+Next steps: Mission Control spec finalization with Luis and frontend scaffolding. Intent classifier: integration into pi-embedded-runner, then telemetry to measure actual latency gains. I'll post updates as we ship.
+
+That's it from me.

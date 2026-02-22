@@ -1,0 +1,418 @@
+name: macOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: macos-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  peekaboo-core:
+    name: PeekabooCore build & tests
+    runs-on: macos-latest
+    env:
+      PEEKABOO_INCLUDE_AUTOMATION_TESTS: "false"
+      RUN_AUTOMATION_TESTS: "false"
+      RUN_LOCAL_TESTS: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Install Bun runtime
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: "latest"
+
+      - name: Docs lint
+        run: ./runner node scripts/docs-lint.mjs
+
+      - name: Select Xcode 26.2 (if present) or fallback to default
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_26.2.app /Applications/Xcode_26.1.app /Applications/Xcode_26.0.app /Applications/Xcode_16.4.app /Applications/Xcode_16.3.app /Applications/Xcode.app; do
+            if [[ -d "$candidate" ]]; then
+              sudo xcode-select -s "$candidate"
+              echo "DEVELOPER_DIR=${candidate}/Contents/Developer" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          /usr/bin/xcodebuild -version
+
+      - name: Prepare Swift Argument Parser fork
+        run: |
+          sudo mkdir -p /Users/steipete/Projects
+          sudo chown $USER /Users/steipete
+          sudo mkdir -p /Users/steipete/Projects
+          sudo chown $USER /Users/steipete/Projects
+          if [ -d /Users/steipete/Projects/swift-argument-parser ]; then
+            cd /Users/steipete/Projects/swift-argument-parser
+            git fetch origin approachable-concurrency
+            git checkout approachable-concurrency
+            git pull --ff-only origin approachable-concurrency
+          else
+            git clone --branch approachable-concurrency --depth 1 https://github.com/steipete/swift-argument-parser.git /Users/steipete/Projects/swift-argument-parser
+          fi
+
+      - name: Compute SwiftPM cache key (PeekabooCore)
+        id: cache-key-core
+        env:
+          CACHE_PREFIX: ${{ runner.os }}-spm-core-
+        run: |
+          set -euo pipefail
+          if [ -f Core/PeekabooCore/Package.resolved ]; then
+            HASH=$(shasum Core/PeekabooCore/Package.resolved | awk '{print $1}')
+          else
+            echo "Package.resolved missing, falling back to commit SHA"
+            HASH=${GITHUB_SHA}
+          fi
+          echo "key=${CACHE_PREFIX}${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache SwiftPM (PeekabooCore)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            ~/.cache/org.swift.swiftpm
+            Core/PeekabooCore/.build
+          key: ${{ steps.cache-key-core.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-spm-core-
+
+      - name: Clean SwiftPM trait state (PeekabooCore)
+        run: |
+          set -euo pipefail
+          # SwiftPM caches evaluated manifests in an sqlite DB. We've seen this get stale across
+          # `swift-configuration` trait renames (e.g. `JSONSupport` -> `JSON`) and break resolution.
+          for root in "$HOME/Library/Caches/org.swift.swiftpm" "$HOME/.cache/org.swift.swiftpm"; do
+            if [ -d "$root" ]; then
+              find "$root" -type f -name "manifest.db*" -print -delete || true
+              find "$root" -type f -name "manifests.db*" -print -delete || true
+              find "$root" -type f -name "package-collection.db*" -print -delete || true
+            fi
+          done
+          # SwiftPM traits can be persisted into `.swiftpm/configuration/traits.json` (and can get stuck in caches).
+          # When upstream packages rename/remove traits, stale state can break builds.
+          find ~/.swiftpm -type f -name traits.json -print -delete || true
+          if [ -d ~/.cache/org.swift.swiftpm ]; then
+            find ~/.cache/org.swift.swiftpm -type d -name .swiftpm -prune -print -exec rm -rf {} + || true
+          fi
+          if [ -d Core/PeekabooCore/.swiftpm ]; then
+            find Core/PeekabooCore/.swiftpm -type f -name traits.json -print -delete || true
+          fi
+          if [ -d Core/PeekabooCore/.build/checkouts ]; then
+            find Core/PeekabooCore/.build/checkouts -type d -name .swiftpm -prune -print -exec rm -rf {} + || true
+          fi
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Show Swift toolchain version
+        run: swift --version
+
+      - name: Build PeekabooCore
+        working-directory: Core/PeekabooCore
+        run: |
+          swift build --configuration debug
+
+      - name: Run focused Swift tests
+        working-directory: Core/PeekabooCore
+        run: |
+          swift test --no-parallel --filter ScreenCaptureServiceFlowTests
+
+  peekaboo-cli:
+    name: Peekaboo CLI build & tests
+    runs-on: macos-latest
+    needs: peekaboo-core
+    env:
+      PEEKABOO_INCLUDE_AUTOMATION_TESTS: "false"
+      PEEKABOO_SKIP_AUTOMATION: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Select Xcode 26.2 (if present) or fallback to default
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_26.2.app /Applications/Xcode_26.1.app /Applications/Xcode_26.0.app /Applications/Xcode_16.4.app /Applications/Xcode_16.3.app /Applications/Xcode.app; do
+            if [[ -d "$candidate" ]]; then
+              sudo xcode-select -s "$candidate"
+              echo "DEVELOPER_DIR=${candidate}/Contents/Developer" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          /usr/bin/xcodebuild -version
+
+      - name: Prepare Swift Argument Parser fork
+        run: |
+          sudo mkdir -p /Users/steipete/Projects
+          sudo chown $USER /Users/steipete
+          sudo mkdir -p /Users/steipete/Projects
+          sudo chown $USER /Users/steipete/Projects
+          if [ -d /Users/steipete/Projects/swift-argument-parser ]; then
+            cd /Users/steipete/Projects/swift-argument-parser
+            git fetch origin approachable-concurrency
+            git checkout approachable-concurrency
+            git pull --ff-only origin approachable-concurrency
+          else
+            git clone --branch approachable-concurrency --depth 1 https://github.com/steipete/swift-argument-parser.git /Users/steipete/Projects/swift-argument-parser
+          fi
+
+      - name: Compute SwiftPM cache key (CLI)
+        id: cache-key-cli
+        env:
+          CACHE_PREFIX: ${{ runner.os }}-spm-cli-
+        run: |
+          set -euo pipefail
+          if [ -f Apps/CLI/Package.resolved ]; then
+            HASH=$(shasum Apps/CLI/Package.resolved | awk '{print $1}')
+          else
+            echo "Package.resolved missing, falling back to commit SHA"
+            HASH=${GITHUB_SHA}
+          fi
+          echo "key=${CACHE_PREFIX}${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache SwiftPM (CLI)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            ~/.cache/org.swift.swiftpm
+            Apps/CLI/.build
+          key: ${{ steps.cache-key-cli.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-spm-cli-
+
+      - name: Clean SwiftPM trait state (CLI)
+        run: |
+          set -euo pipefail
+          # SwiftPM caches evaluated manifests in an sqlite DB. We've seen this get stale across
+          # `swift-configuration` trait renames (e.g. `JSONSupport` -> `JSON`) and break resolution.
+          for root in "$HOME/Library/Caches/org.swift.swiftpm" "$HOME/.cache/org.swift.swiftpm"; do
+            if [ -d "$root" ]; then
+              find "$root" -type f -name "manifest.db*" -print -delete || true
+              find "$root" -type f -name "manifests.db*" -print -delete || true
+              find "$root" -type f -name "package-collection.db*" -print -delete || true
+            fi
+          done
+          # SwiftPM traits can be persisted into `.swiftpm/configuration/traits.json` (and can get stuck in caches).
+          # When upstream packages rename/remove traits, stale state can break builds.
+          find ~/.swiftpm -type f -name traits.json -print -delete || true
+          if [ -d ~/.cache/org.swift.swiftpm ]; then
+            find ~/.cache/org.swift.swiftpm -type d -name .swiftpm -prune -print -exec rm -rf {} + || true
+          fi
+          if [ -d Apps/CLI/.swiftpm ]; then
+            find Apps/CLI/.swiftpm -type f -name traits.json -print -delete || true
+          fi
+          if [ -d Apps/CLI/.build/checkouts ]; then
+            find Apps/CLI/.build/checkouts -type d -name .swiftpm -prune -print -exec rm -rf {} + || true
+          fi
+          # Avoid caching any package-local state that might remember old trait selections.
+          rm -rf Apps/CLI/.build || true
+
+      - name: Show Swift toolchain version
+        run: swift --version
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build CLI target
+        working-directory: Apps/CLI
+        run: |
+          swift build --configuration debug
+
+      - name: Run CLI unit tests (skip automation)
+        working-directory: Apps/CLI
+        run: |
+          swift test --no-parallel -Xswiftc -DPEEKABOO_SKIP_AUTOMATION
+
+  tachikoma:
+    name: Tachikoma build & tests
+    runs-on: macos-latest
+    needs: peekaboo-cli
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Select Xcode 26.2 (if present) or fallback to default
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_26.2.app /Applications/Xcode_26.1.app /Applications/Xcode_26.0.app /Applications/Xcode_16.4.app /Applications/Xcode_16.3.app /Applications/Xcode.app; do
+            if [[ -d "$candidate" ]]; then
+              sudo xcode-select -s "$candidate"
+              echo "DEVELOPER_DIR=${candidate}/Contents/Developer" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          /usr/bin/xcodebuild -version
+
+      - name: Remove phantom submodule metadata
+        run: |
+          rm -f .gitmodules
+          git config --local --remove-section submodule.Tachikoma || true
+
+      - name: Prepare Swift Argument Parser fork
+        run: |
+          sudo mkdir -p /Users/steipete/Projects
+          sudo chown $USER /Users/steipete
+          sudo mkdir -p /Users/steipete/Projects
+          sudo chown $USER /Users/steipete/Projects
+          if [ -d /Users/steipete/Projects/swift-argument-parser ]; then
+            cd /Users/steipete/Projects/swift-argument-parser
+            git fetch origin approachable-concurrency
+            git checkout approachable-concurrency
+            git pull --ff-only origin approachable-concurrency
+          else
+            git clone --branch approachable-concurrency --depth 1 https://github.com/steipete/swift-argument-parser.git /Users/steipete/Projects/swift-argument-parser
+          fi
+
+      - name: Compute SwiftPM cache key (Tachikoma)
+        id: cache-key-tachikoma
+        env:
+          CACHE_PREFIX: ${{ runner.os }}-spm-tachikoma-
+        run: |
+          set -euo pipefail
+          if [ -f Tachikoma/Package.resolved ]; then
+            HASH=$(shasum Tachikoma/Package.resolved | awk '{print $1}')
+          else
+            echo "Package.resolved missing, falling back to commit SHA"
+            HASH=${GITHUB_SHA}
+          fi
+          echo "key=${CACHE_PREFIX}${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache SwiftPM (Tachikoma)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            ~/.cache/org.swift.swiftpm
+            Tachikoma/.build
+          key: ${{ steps.cache-key-tachikoma.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-spm-tachikoma-
+
+      - name: Clean SwiftPM trait state (Tachikoma)
+        run: |
+          set -euo pipefail
+          # SwiftPM caches evaluated manifests in an sqlite DB. We've seen this get stale across
+          # `swift-configuration` trait renames (e.g. `JSONSupport` -> `JSON`) and break resolution.
+          for root in "$HOME/Library/Caches/org.swift.swiftpm" "$HOME/.cache/org.swift.swiftpm"; do
+            if [ -d "$root" ]; then
+              find "$root" -type f -name "manifest.db*" -print -delete || true
+              find "$root" -type f -name "manifests.db*" -print -delete || true
+              find "$root" -type f -name "package-collection.db*" -print -delete || true
+            fi
+          done
+          # SwiftPM traits can be persisted into `.swiftpm/configuration/traits.json` (and can get stuck in caches).
+          # When upstream packages rename/remove traits, stale state can break builds.
+          find ~/.swiftpm -type f -name traits.json -print -delete || true
+          if [ -d ~/.cache/org.swift.swiftpm ]; then
+            find ~/.cache/org.swift.swiftpm -type d -name .swiftpm -prune -print -exec rm -rf {} + || true
+          fi
+          if [ -d Tachikoma/.swiftpm ]; then
+            find Tachikoma/.swiftpm -type f -name traits.json -print -delete || true
+          fi
+          if [ -d Tachikoma/.build/checkouts ]; then
+            find Tachikoma/.build/checkouts -type d -name .swiftpm -prune -print -exec rm -rf {} + || true
+          fi
+
+      - name: Show Swift toolchain version
+        run: swift --version
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build Tachikoma
+        working-directory: Tachikoma
+        run: |
+          swift build --configuration debug
+
+      - name: Run Tachikoma unit tests
+        working-directory: Tachikoma
+        run: |
+          swift test --no-parallel --filter unit
+
+  mac-apps:
+    name: Build macOS apps (Peekaboo + Inspector)
+    runs-on: macos-latest
+    needs: [peekaboo-cli, tachikoma]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Select Xcode 26.2 (if present) or fallback to default
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_26.2.app /Applications/Xcode_26.1.app /Applications/Xcode_26.0.app /Applications/Xcode_16.4.app /Applications/Xcode_16.3.app /Applications/Xcode.app; do
+            if [[ -d "$candidate" ]]; then
+              sudo xcode-select -s "$candidate"
+              echo "DEVELOPER_DIR=${candidate}/Contents/Developer" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          /usr/bin/xcodebuild -version
+
+      - name: Build Peekaboo app (Xcode)
+        working-directory: Apps
+        run: |
+          /usr/bin/env \
+            -u DYLD_LIBRARY_PATH \
+            -u DYLD_FRAMEWORK_PATH \
+            -u DYLD_FALLBACK_FRAMEWORK_PATH \
+            -u DYLD_ROOT_PATH \
+            -u DYLD_INSERT_LIBRARIES \
+            -u DYLD_IMAGE_SUFFIX \
+            -u DYLD_VERSIONED_LIBRARY_PATH \
+            -u DYLD_VERSIONED_FRAMEWORK_PATH \
+            xcodebuild -workspace Peekaboo.xcworkspace \
+            -scheme Peekaboo \
+            -configuration Debug \
+            -sdk macosx \
+            CODE_SIGNING_ALLOWED=NO \
+            -derivedDataPath /tmp/DerivedData-Peekaboo
+
+      - name: Build Inspector app (Xcode)
+        working-directory: Apps/PeekabooInspector
+        run: |
+          /usr/bin/env \
+            -u DYLD_LIBRARY_PATH \
+            -u DYLD_FRAMEWORK_PATH \
+            -u DYLD_FALLBACK_FRAMEWORK_PATH \
+            -u DYLD_ROOT_PATH \
+            -u DYLD_INSERT_LIBRARIES \
+            -u DYLD_IMAGE_SUFFIX \
+            -u DYLD_VERSIONED_LIBRARY_PATH \
+            -u DYLD_VERSIONED_FRAMEWORK_PATH \
+            xcodebuild -project Inspector.xcodeproj \
+            -scheme Inspector \
+            -configuration Debug \
+            -sdk macosx \
+            CODE_SIGNING_ALLOWED=NO \
+            -derivedDataPath /tmp/DerivedData-Inspector
+
+  lint:
+    name: SwiftLint (core + CLI)
+    runs-on: macos-latest
+    needs: [peekaboo-cli, tachikoma, mac-apps]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint with CI config
+        run: swiftlint --config .swiftlint-ci.yml

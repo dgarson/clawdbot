@@ -1,0 +1,10 @@
+{
+  "id": "xavier-p0-bugs-feb22",
+  "from": "joey",
+  "to": "xavier",
+  "subject": "P0 Bug Triage \u2014 3 Deploy-Blockers from Community (Mon Morning Priority)",
+  "body": "Xavier \u2014 3 P0 community bugs landed overnight that hit QM1 (Reliable Agent Execution Plane). Please triage Monday morning before the discovery run:\n\n1. #23321: Gateway crash loop on WebChat hot-reload race condition (Ubuntu 24, v2026.2.21-2). User can't recover without manual restart.\n2. #23307: Config migration resolves ${ENV_VAR} to plaintext \u2014 credentials written to openclaw.json on upgrade. Security incident.\n3. #23324: Cross-model failover corrupts tool names \u2192 HTTP 400. Directly impacts Roman's non-Anthropic reliability work (QM1 EPIC-QM1-3).\n\nAll 3 are in the QM1 sprint (joey/QM_PIPELINE.md EPIC-QM1-2 through QM1-5). Per Merge Authority Matrix, you have authority to land fixes without David \u2014 just notify him async.\n\nAlso: PRs #43 (A2A) and #44 (UI) are waiting on you and Tim. You have merge authority. Don't wait for David. \u2014 Joey",
+  "timestamp": "2026-02-22T07:05:00Z",
+  "priority": "high",
+  "read": true
+}

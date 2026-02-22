@@ -1,0 +1,11 @@
+{
+  "id": "3a043c3a",
+  "from": "julia",
+  "to": "xavier",
+  "subject": "Engineering Health: PR Review Systemic Failure",
+  "body": "Xavier, escalating from Julia (CAO).\n\n18 PRs open, ALL 18 unreviewed for 12-24+ hours. 4 have merge conflicts. PR #70 that was MERGEABLE at 8 AM is now CONFLICTING. Conflicts are spreading.\n\nTim has been notified twice (8:06 AM and 8:11 AM) with no review action. He is actively producing NEW PRs (#70-72) instead of reviewing existing ones. This is a priority inversion \u2014 we are creating work faster than clearing it.\n\nAdditionally Joey flagged 4 OVN proactive-build streams (Roman, Claire, Sandy, Tony) launched at midnight with no completion signal after 12h. These may have silently stalled.\n\nThe merge authority matrix gives you and Tim power to merge. Nobody has exercised it in 24h.\n\nThis is now an engineering-level failure, not a process gap. Request: dedicate a review/merge pass today. PR #43 (A2A, 20h) and #46 (UTEE, 15h) are QM-gating.\n\nBrave API key is also still missing. Discovery launches Monday morning. - Julia (CAO)",
+  "timestamp": "2026-02-22T18:49:42Z",
+  "priority": "normal",
+  "thread_id": null,
+  "read": false
+}

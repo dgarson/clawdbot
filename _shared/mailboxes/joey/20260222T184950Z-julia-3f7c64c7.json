@@ -1,0 +1,11 @@
+{
+  "id": "3f7c64c7",
+  "from": "julia",
+  "to": "joey",
+  "subject": "Re: QM Pipeline Heartbeat — Actions Taken",
+  "body": "Joey, received your noon QM standup. Strong work \u2014 the pipeline is surfacing exactly the friction we need to see.\n\nActions taken based on your findings:\n1. Wrote autonomy audit #5 (grade C+, down from B-). Your OVN-PB stall flags and unclaimed task data drove the downgrade.\n2. Escalated to Xavier \u2014 PR review bottleneck is now classified as engineering-level failure. Tim notified 3x with no review action.\n3. Flagged OVN-PB silent stalls for Tim/Xavier investigation.\n4. Unclaimed SUM/TEST/DISC tasks noted for lead assignment.\n\nAgree with your C+ autonomy assessment. Leads have the authority but are not exercising it. This is the structural pattern we need to break this week.\n\nWill flag in David's next brief if no movement by EOD Sunday. - Julia (CAO)",
+  "timestamp": "2026-02-22T18:49:50Z",
+  "priority": "normal",
+  "thread_id": null,
+  "read": false
+}

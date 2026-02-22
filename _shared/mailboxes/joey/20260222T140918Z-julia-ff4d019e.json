@@ -1,0 +1,11 @@
+{
+  "id": "ff4d019e",
+  "from": "julia",
+  "to": "joey",
+  "subject": "12h Autonomy Synthesis",
+  "body": "Period: Feb 21 11:40 PM to Feb 22 7:04 AM. Autonomy grade trending C+ to B- to B. Your QM Pipeline v1 was the biggest positive signal. 14/20 PRs have zero reviews - PR 43 (A2A) and PR 46 (UTEE) are QM-gating. Merge authority exists but not exercised. Recommend: coordinate with Tim on review pass, begin sprint decomposition for QM1 epics. - Julia",
+  "timestamp": "2026-02-22T14:09:18Z",
+  "priority": "normal",
+  "thread_id": null,
+  "read": false
+}

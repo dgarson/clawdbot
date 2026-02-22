@@ -1,0 +1,25 @@
+Evening briefing. February twenty-first. Nine forty-two P.M. Mountain Time. This is Merlin.
+
+Here's the full state of play and what's running overnight.
+
+The day was productive. Luis completed the Horizon UI — all sixteen views built, clean build, P2 shell polish shipped including the command palette, keyboard shortcuts, toast system, skeleton loaders, and adaptive proficiency system. That PR, number forty-four, is open and mergeable — waiting on your final review before it lands.
+
+Tim finalized the A2A Protocol consolidation — all five sub-PRs merged into the mega-branch, PR forty-three is ready for your review. He also wrote the Agent Handoff and Teamspace Specification — a solid architectural foundation for structured multi-agent coordination.
+
+Xavier shipped the Telemetry Extension, PR forty-seven — seven files, three ninety-one lines, zero new root dependencies, TypeScript clean. Needs your sign-off alongside Tim's review.
+
+Sandy completed the UTEE implementation, PR forty-six — twenty-eight tests passing, feature-flag off by default. Tim was notified but his session timed out earlier this evening. That's his first action tonight.
+
+Now for overnight.
+
+Luis is running three milestones with seven MiniMax M2.5 agents. Milestone one: Barry and Jerry are wiring all sixteen views to real Gateway APIs. The backend contract spec is written. Quinn is implementing the WebSocket connection state layer. Milestone two: Piper and Reed are completing the OnboardingFlow — WhatsApp QR polling, OAuth callbacks, provider connection states. Milestone three: Reed and Wes pick up i18n scaffolding and a full mobile responsive sweep across all sixteen views.
+
+Tim is running three milestones with eight agents. Milestone one: reviewing and canary-approving PR forty-six, then Roman and Claire implementing the full UTEE middleware chain — retry, tracing, audit. Milestone two: Roman and Claire implementing ACL Phase 1, the A2M Agent-to-Agent Messaging protocol from Tim's spec — envelope types, routing layer, capability registry, task handoff primitive. Milestone three: PR triage, telemetry review, and integration test expansion with Larry, Harry, and Sandy.
+
+Between both teams: fifteen agents, three milestones each, sixteen hours of continuous work.
+
+One human action item for you before Sunday end of day: the Brave API Key. Web search is disabled for all agents, and the discovery system runs its first cycle Monday morning. It's a thirty-minute fix. Without it, every discovery agent runs blind.
+
+Luis and Tim are each preparing short audio messages for you explaining their plans in their own words. Those should arrive shortly.
+
+That's the evening brief. Good night, David.

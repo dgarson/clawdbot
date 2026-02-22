@@ -1,0 +1,43 @@
+// swift-tools-version: 6.2
+import PackageDescription
+
+let approachableConcurrencySettings: [SwiftSetting] = [
+    .enableExperimentalFeature("StrictConcurrency"),
+    .enableUpcomingFeature("ExistentialAny"),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+    .defaultIsolation(MainActor.self),
+]
+
+let package = Package(
+    name: "PeekabooInspector",
+    platforms: [.macOS(.v14)],
+    products: [
+        .executable(
+            name: "PeekabooInspector",
+            targets: ["PeekabooInspector"]),
+    ],
+    dependencies: [
+        .package(path: "../../AXorcist"),
+        .package(path: "../../Core/PeekabooCore"),
+        .package(path: "../../Core/PeekabooUICore"),
+    ],
+    targets: [
+        .executableTarget(
+            name: "PeekabooInspector",
+            dependencies: [
+                .product(name: "AXorcist", package: "AXorcist"),
+                .product(name: "PeekabooCore", package: "PeekabooCore"),
+                .product(name: "PeekabooUICore", package: "PeekabooUICore"),
+            ],
+            path: "Inspector",
+            exclude: ["Info.plist", "PeekabooInspector.entitlements", "AppIcon.icon-source"],
+            resources: [
+                .process("Assets.xcassets"),
+            ],
+            swiftSettings: approachableConcurrencySettings),
+        .testTarget(
+            name: "PeekabooInspectorTests",
+            dependencies: ["PeekabooInspector"],
+            path: "Tests/PeekabooInspectorTests",
+            swiftSettings: approachableConcurrencySettings),
+    ])

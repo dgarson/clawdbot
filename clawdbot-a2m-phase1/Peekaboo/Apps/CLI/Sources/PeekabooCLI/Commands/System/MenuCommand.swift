@@ -1,0 +1,1157 @@
+import AppKit
+import Commander
+import Foundation
+import PeekabooCore
+import PeekabooFoundation
+
+/// Menu-specific errors
+enum MenuError: Error {
+    case menuBarNotFound
+    case menuItemNotFound(String)
+    case submenuNotFound(String)
+    case menuExtraNotFound
+    case menuItemDisabled(String)
+    case menuOperationFailed(String)
+}
+
+extension MenuError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .menuBarNotFound:
+            "Menu bar not found"
+        case let .menuItemNotFound(path):
+            "Menu item not found: \(path)"
+        case let .submenuNotFound(path):
+            "Submenu not found: \(path)"
+        case .menuExtraNotFound:
+            "Menu extra not found"
+        case let .menuItemDisabled(path):
+            "Menu item is disabled: \(path)"
+        case let .menuOperationFailed(reason):
+            "Menu operation failed: \(reason)"
+        }
+    }
+}
+
+/// Interact with application menu bar items and system menu extras
+@MainActor
+struct MenuCommand: ParsableCommand {
+    nonisolated(unsafe) static var commandDescription: CommandDescription {
+        MainActorCommandDescription.describe {
+            CommandDescription(
+                commandName: "menu",
+                abstract: "Interact with application menu bar",
+                discussion: """
+                Provides access to application menu bar items and system menu extras.
+
+                EXAMPLES:
+                  # Click a simple menu item
+                  peekaboo menu click --app Safari --item "New Window"
+
+                  # Navigate nested menus with path
+                  peekaboo menu click --app TextEdit --path "Format > Font > Show Fonts"
+
+                  # Click system menu extras (WiFi, Bluetooth, etc.)
+                  peekaboo menu click-extra --title "WiFi"
+
+                  # List all menu items for an app
+                  peekaboo menu list --app Finder
+                """,
+                subcommands: [
+                    ClickSubcommand.self,
+                    ClickExtraSubcommand.self,
+                    ListSubcommand.self,
+                    ListAllSubcommand.self,
+                ],
+                showHelpOnEmptyInvocation: true
+            )
+        }
+    }
+}
+
+extension MenuCommand {
+    // MARK: - Click Menu Item
+
+    @MainActor
+
+    struct ClickSubcommand: OutputFormattable {
+        @OptionGroup var target: InteractionTargetOptions
+
+        @Option(help: "Menu item to click (for simple, non-nested items)")
+        var item: String?
+
+        @Option(help: "Menu path for nested items (e.g., 'File > Export > PDF')")
+        var path: String?
+
+        @OptionGroup var focusOptions: FocusCommandOptions
+        @RuntimeStorage private var runtime: CommandRuntime?
+
+        private var resolvedRuntime: CommandRuntime {
+            guard let runtime else {
+                preconditionFailure("CommandRuntime must be configured before accessing runtime resources")
+            }
+            return runtime
+        }
+
+        private var services: any PeekabooServiceProviding { self.resolvedRuntime.services }
+        private var logger: Logger { self.resolvedRuntime.logger }
+        var outputLogger: Logger { self.logger }
+        var jsonOutput: Bool { self.resolvedRuntime.configuration.jsonOutput }
+
+        @MainActor
+        mutating func run(using runtime: CommandRuntime) async throws {
+            self.runtime = runtime
+            self.logger.setJsonOutputMode(self.jsonOutput)
+
+            var normalizedItem = self.item
+            var normalizedPath = self.path
+            // Convert legacy --item inputs (containing '>') into proper paths so we accept
+            // the shape agents typically copy out of menu list output without requiring
+            // them to learn about --path vs --item flag differences.
+            let normalization = normalizeMenuSelection(item: normalizedItem, path: normalizedPath)
+            normalizedItem = normalization.item
+            normalizedPath = normalization.path
+
+            if normalization.convertedFromItem, let resolvedPath = normalizedPath {
+                let note = "Interpreting --item value as menu path: \(resolvedPath)"
+                if self.jsonOutput {
+                    self.logger.info(note)
+                } else {
+                    print("ℹ️ \(note)")
+                }
+            }
+
+            guard normalizedItem != nil || normalizedPath != nil else {
+                throw ValidationError("Must specify either --item or --path")
+            }
+
+            guard normalizedItem == nil || normalizedPath == nil else {
+                throw ValidationError("Cannot specify both --item and --path")
+            }
+
+            do {
+                try self.target.validate()
+                let appIdentifier = try await self.resolveTargetApplicationIdentifier()
+                let windowID = try await self.target.resolveWindowID(services: self.services)
+                try await ensureFocusIgnoringMissingWindows(
+                    request: FocusIgnoringMissingWindowsRequest(
+                        windowID: windowID,
+                        applicationName: appIdentifier,
+                        windowTitle: self.target.windowTitle
+                    ),
+                    options: self.focusOptions,
+                    services: self.services,
+                    logger: self.logger
+                )
+
+                let canonicalPath: String? = normalizedPath.map(Self.canonicalizeMenuPath)
+                if let canonicalPath {
+                    try await self.ensureMenuItemEnabled(appIdentifier: appIdentifier, menuPath: canonicalPath)
+                }
+
+                if let itemName = normalizedItem {
+                    try await MenuServiceBridge.clickMenuItemByName(
+                        menu: self.services.menu,
+                        appIdentifier: appIdentifier,
+                        itemName: itemName
+                    )
+                } else if let path = canonicalPath {
+                    try await MenuServiceBridge.clickMenuItem(
+                        menu: self.services.menu,
+                        appIdentifier: appIdentifier,
+                        itemPath: path
+                    )
+                }
+
+                let appInfo = try await self.services.applications.findApplication(identifier: appIdentifier)
+                let clickedPath = canonicalPath ?? normalizedItem!
+
+                if self.jsonOutput {
+                    let data = MenuClickResult(
+                        action: "menu_click",
+                        app: appInfo.name,
+                        menu_path: clickedPath,
+                        clicked_item: clickedPath
+                    )
+                    outputSuccessCodable(data: data, logger: self.outputLogger)
+                } else {
+                    print("✓ Clicked menu item: \(clickedPath)")
+                }
+
+            } catch let error as MenuError {
+                self.handleMenuError(error)
+                throw ExitCode(1)
+            } catch let error as PeekabooError {
+                self.handleApplicationError(error)
+                throw ExitCode(1)
+            } catch {
+                self.handleGenericError(error)
+                throw ExitCode(1)
+            }
+        }
+
+        private func resolveTargetApplicationIdentifier() async throws -> String {
+            if let appIdentifier = try self.target.resolveApplicationIdentifierOptional() {
+                return appIdentifier
+            }
+
+            guard let frontmost = NSWorkspace.shared.frontmostApplication else {
+                throw ValidationError("No frontmost app found; provide --app or --pid")
+            }
+
+            return frontmost.bundleIdentifier ?? frontmost.localizedName ?? "PID:\(frontmost.processIdentifier)"
+        }
+
+        private func handleMenuError(_ error: MenuError) {
+            if self.jsonOutput {
+                let errorCode: ErrorCode = switch error {
+                case .menuBarNotFound:
+                    .MENU_BAR_NOT_FOUND
+                case .menuItemNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .submenuNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuExtraNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuItemDisabled:
+                    .INTERACTION_FAILED
+                case .menuOperationFailed:
+                    .INTERACTION_FAILED
+                }
+
+                outputError(
+                    message: error.localizedDescription,
+                    code: errorCode,
+                    details: "Failed to click menu item",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func handleApplicationError(_ error: PeekabooError) {
+            if self.jsonOutput {
+                outputError(
+                    message: error.localizedDescription,
+                    code: .APP_NOT_FOUND,
+                    details: "Application not found",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func handleGenericError(_ error: any Error) {
+            if self.jsonOutput {
+                outputError(
+                    message: error.localizedDescription,
+                    code: .UNKNOWN_ERROR,
+                    details: "Menu operation failed",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ Error: \(error.localizedDescription)\n", stderr)
+            }
+        }
+    }
+
+    // MARK: - Click System Menu Extra
+
+    @MainActor
+
+    struct ClickExtraSubcommand: OutputFormattable {
+        @Option(help: "Title of the menu extra (e.g., 'WiFi', 'Bluetooth')")
+        var title: String
+
+        @Option(help: "Menu item to click after opening the extra")
+        var item: String?
+
+        @Flag(help: "Verify the menu extra popover opens after clicking")
+        var verify: Bool = false
+        @RuntimeStorage private var runtime: CommandRuntime?
+
+        private var resolvedRuntime: CommandRuntime {
+            guard let runtime else {
+                preconditionFailure("CommandRuntime must be configured before accessing runtime resources")
+            }
+            return runtime
+        }
+
+        private var services: any PeekabooServiceProviding { self.resolvedRuntime.services }
+        private var logger: Logger { self.resolvedRuntime.logger }
+        var outputLogger: Logger { self.logger }
+        var jsonOutput: Bool { self.resolvedRuntime.configuration.jsonOutput }
+
+        @MainActor
+        mutating func run(using runtime: CommandRuntime) async throws {
+            self.runtime = runtime
+            self.logger.setJsonOutputMode(self.jsonOutput)
+
+            do {
+                let verifier = MenuBarClickVerifier(services: self.services)
+                let verifyTarget = self.verify ? try await self.resolveVerificationTarget() : nil
+                let preFocus = self.verify ? try await verifier.captureFocusSnapshot() : nil
+                let clickResult = try await MenuServiceBridge
+                    .clickMenuBarItem(named: self.title, menu: self.services.menu)
+
+                let verification: MenuBarClickVerification?
+                if self.verify {
+                    guard let verifyTarget else {
+                        throw PeekabooError
+                            .operationError(message: "Menu extra verification requested but no target resolved")
+                    }
+                    verification = try await verifier.verifyClick(
+                        target: verifyTarget,
+                        preFocus: preFocus,
+                        clickLocation: clickResult.location
+                    )
+                } else {
+                    verification = nil
+                }
+
+                if self.item != nil {
+                    try await Task.sleep(nanoseconds: 200_000_000)
+                    fputs("Warning: Clicking menu items within menu extras is not yet implemented\n", stderr)
+                }
+
+                if self.jsonOutput {
+                    let data = MenuExtraClickResult(
+                        action: "menu_extra_click",
+                        menu_extra: title,
+                        clicked_item: item ?? self.title,
+                        location: clickResult.location.map { ["x": $0.x, "y": $0.y] },
+                        verified: verification?.verified
+                    )
+                    outputSuccessCodable(data: data, logger: self.outputLogger)
+                } else if let clickedItem = item {
+                    print("✓ Clicked '\(clickedItem)' in \(self.title) menu")
+                } else {
+                    if let location = clickResult.location {
+                        print("✓ Clicked menu extra: \(self.title) at (\(Int(location.x)), \(Int(location.y)))")
+                    } else {
+                        print("✓ Clicked menu extra: \(self.title)")
+                    }
+                    if let verification {
+                        print("🔎 Verified menu extra click (\(verification.method))")
+                    }
+                }
+
+            } catch let error as MenuError {
+                self.handleMenuError(error)
+                throw ExitCode(1)
+            } catch {
+                self.handleGenericError(error)
+                throw ExitCode(1)
+            }
+        }
+
+        private func handleMenuError(_ error: MenuError) {
+            if self.jsonOutput {
+                let errorCode: ErrorCode = switch error {
+                case .menuBarNotFound:
+                    .MENU_BAR_NOT_FOUND
+                case .menuItemNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .submenuNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuExtraNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuItemDisabled:
+                    .INTERACTION_FAILED
+                case .menuOperationFailed:
+                    .INTERACTION_FAILED
+                }
+
+                outputError(
+                    message: error.localizedDescription,
+                    code: errorCode,
+                    details: "Failed to click menu extra",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func handleGenericError(_ error: any Error) {
+            if self.jsonOutput {
+                outputError(
+                    message: error.localizedDescription,
+                    code: .UNKNOWN_ERROR,
+                    details: "Menu extra operation failed",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ Error: \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func resolveVerificationTarget() async throws -> MenuBarVerifyTarget {
+            let items = try await MenuServiceBridge.listMenuBarItems(
+                menu: self.services.menu,
+                includeRaw: true
+            )
+            let normalized = self.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let item = self.matchMenuBarItem(named: normalized, items: items) else {
+                throw PeekabooError.operationError(message: "Unable to resolve '\(self.title)' for verification")
+            }
+
+            return MenuBarVerifyTarget(
+                title: item.title ?? item.rawTitle ?? normalized,
+                ownerPID: item.rawOwnerPID,
+                ownerName: item.ownerName,
+                bundleIdentifier: item.bundleIdentifier,
+                preferredX: item.frame?.midX
+            )
+        }
+
+        private func matchMenuBarItem(named name: String, items: [MenuBarItemInfo]) -> MenuBarItemInfo? {
+            let normalized = name.lowercased()
+            let candidates: [(MenuBarItemInfo, [String])] = items.map { item in
+                let fields = [
+                    item.title,
+                    item.rawTitle,
+                    item.identifier,
+                    item.axDescription,
+                    item.ownerName,
+                ].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                return (item, fields)
+            }
+
+            if let exact = candidates.first(where: { _, fields in
+                fields.contains(where: { $0.lowercased() == normalized })
+            })?.0 {
+                return exact
+            }
+
+            return candidates.first(where: { _, fields in
+                fields.contains(where: { $0.lowercased().contains(normalized) })
+            })?.0
+        }
+    }
+
+    // MARK: - List Menu Items
+
+    @MainActor
+
+    struct ListSubcommand: OutputFormattable {
+        @OptionGroup var target: InteractionTargetOptions
+
+        @Flag(help: "Include disabled menu items")
+        var includeDisabled = false
+
+        @OptionGroup var focusOptions: FocusCommandOptions
+        @RuntimeStorage private var runtime: CommandRuntime?
+
+        private var resolvedRuntime: CommandRuntime {
+            guard let runtime else {
+                preconditionFailure("CommandRuntime must be configured before accessing runtime resources")
+            }
+            return runtime
+        }
+
+        private var services: any PeekabooServiceProviding { self.resolvedRuntime.services }
+        private var logger: Logger { self.resolvedRuntime.logger }
+        var outputLogger: Logger { self.logger }
+        var jsonOutput: Bool { self.resolvedRuntime.configuration.jsonOutput }
+
+        @MainActor
+        mutating func run(using runtime: CommandRuntime) async throws {
+            self.runtime = runtime
+            self.logger.setJsonOutputMode(self.jsonOutput)
+
+            do {
+                try self.target.validate()
+                let appIdentifier = try await self.resolveTargetApplicationIdentifier()
+                let windowID = try await self.target.resolveWindowID(services: self.services)
+                try await ensureFocusIgnoringMissingWindows(
+                    request: FocusIgnoringMissingWindowsRequest(
+                        windowID: windowID,
+                        applicationName: appIdentifier,
+                        windowTitle: self.target.windowTitle
+                    ),
+                    options: self.focusOptions,
+                    services: self.services,
+                    logger: self.logger
+                )
+
+                let menuStructure = try await MenuServiceBridge.listMenus(
+                    menu: self.services.menu,
+                    appIdentifier: appIdentifier
+                )
+                let filteredMenus = self.includeDisabled ? menuStructure.menus : self
+                    .filterDisabledMenus(menuStructure.menus)
+
+                if self.jsonOutput {
+                    let data = MenuListData(
+                        app: menuStructure.application.name,
+                        owner_name: menuStructure.application.name,
+                        bundle_id: menuStructure.application.bundleIdentifier,
+                        menu_structure: self.convertMenusToTyped(filteredMenus)
+                    )
+                    outputSuccessCodable(data: data, logger: self.outputLogger)
+                } else {
+                    print("Menu structure for \(menuStructure.application.name):")
+                    for menu in filteredMenus {
+                        self.printMenu(menu, indent: 0)
+                    }
+                }
+
+            } catch let error as PeekabooError {
+                self.handleApplicationError(error)
+                throw ExitCode(1)
+            } catch let error as MenuError {
+                self.handleMenuError(error)
+                throw ExitCode(1)
+            } catch {
+                self.handleGenericError(error)
+                throw ExitCode(1)
+            }
+        }
+
+        private func resolveTargetApplicationIdentifier() async throws -> String {
+            if let appIdentifier = try self.target.resolveApplicationIdentifierOptional() {
+                return appIdentifier
+            }
+
+            guard let frontmost = NSWorkspace.shared.frontmostApplication else {
+                throw ValidationError("No frontmost app found; provide --app or --pid")
+            }
+
+            return frontmost.bundleIdentifier ?? frontmost.localizedName ?? "PID:\(frontmost.processIdentifier)"
+        }
+
+        private func filterDisabledMenus(_ menus: [Menu]) -> [Menu] {
+            menus.compactMap { menu in
+                guard menu.isEnabled else { return nil }
+                let filteredItems = self.filterDisabledItems(menu.items)
+                return Menu(title: menu.title, items: filteredItems, isEnabled: menu.isEnabled)
+            }
+        }
+
+        private func filterDisabledItems(_ items: [MenuItem]) -> [MenuItem] {
+            items.compactMap { item in
+                guard item.isEnabled else { return nil }
+                let filteredSubmenu = self.filterDisabledItems(item.submenu)
+                return MenuItem(
+                    title: item.title,
+                    keyboardShortcut: item.keyboardShortcut,
+                    isEnabled: item.isEnabled,
+                    isChecked: item.isChecked,
+                    isSeparator: item.isSeparator,
+                    submenu: filteredSubmenu,
+                    path: item.path
+                )
+            }
+        }
+
+        private func convertMenusToTyped(_ menus: [Menu]) -> [MenuData] {
+            menus.map { menu in
+                MenuData(
+                    title: menu.title,
+                    bundle_id: menu.bundleIdentifier,
+                    owner_name: menu.ownerName,
+                    enabled: menu.isEnabled,
+                    items: menu.items.isEmpty ? nil : self.convertMenuItemsToTyped(menu.items)
+                )
+            }
+        }
+
+        private func convertMenuItemsToTyped(_ items: [MenuItem]) -> [MenuItemData] {
+            items.map { item in
+                MenuItemData(
+                    title: item.title,
+                    bundle_id: item.bundleIdentifier,
+                    owner_name: item.ownerName,
+                    enabled: item.isEnabled,
+                    shortcut: item.keyboardShortcut?.displayString,
+                    checked: item.isChecked ? true : nil,
+                    separator: item.isSeparator ? true : nil,
+                    items: item.submenu.isEmpty ? nil : self.convertMenuItemsToTyped(item.submenu)
+                )
+            }
+        }
+
+        private func printMenu(_ menu: Menu, indent: Int) {
+            let spacing = String(repeating: "  ", count: indent)
+
+            var line = "\(spacing)\(menu.title)"
+            if !menu.isEnabled {
+                line += " (disabled)"
+            }
+            print(line)
+
+            for item in menu.items {
+                self.printMenuItem(item, indent: indent + 1)
+            }
+        }
+
+        private func printMenuItem(_ item: MenuItem, indent: Int) {
+            let spacing = String(repeating: "  ", count: indent)
+
+            if item.isSeparator {
+                print("\(spacing)---")
+                return
+            }
+
+            var line = "\(spacing)\(item.title)"
+            if !item.isEnabled {
+                line += " (disabled)"
+            }
+            if item.isChecked {
+                line += " ✓"
+            }
+            if let shortcut = item.keyboardShortcut {
+                line += " [\(shortcut.displayString)]"
+            }
+            print(line)
+
+            for subitem in item.submenu {
+                self.printMenuItem(subitem, indent: indent + 1)
+            }
+        }
+
+        private func handleApplicationError(_ error: PeekabooError) {
+            if self.jsonOutput {
+                outputError(
+                    message: error.localizedDescription,
+                    code: .APP_NOT_FOUND,
+                    details: "Application not found",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func handleMenuError(_ error: MenuError) {
+            if self.jsonOutput {
+                let errorCode: ErrorCode = switch error {
+                case .menuBarNotFound:
+                    .MENU_BAR_NOT_FOUND
+                case .menuItemNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .submenuNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuExtraNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuItemDisabled:
+                    .INTERACTION_FAILED
+                case .menuOperationFailed:
+                    .INTERACTION_FAILED
+                }
+
+                outputError(
+                    message: error.localizedDescription,
+                    code: errorCode,
+                    details: "Failed to list menus",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func handleGenericError(_ error: any Error) {
+            if self.jsonOutput {
+                outputError(
+                    message: error.localizedDescription,
+                    code: .UNKNOWN_ERROR,
+                    details: "Menu list operation failed",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ Error: \(error.localizedDescription)\n", stderr)
+            }
+        }
+    }
+
+    // MARK: - List All Menu Bar Items
+
+    @MainActor
+
+    struct ListAllSubcommand: OutputFormattable {
+        @Flag(help: "Include disabled menu items")
+        var includeDisabled = false
+
+        @Flag(help: "Include item frames (pixel positions)")
+        var includeFrames = false
+        @RuntimeStorage private var runtime: CommandRuntime?
+
+        private var resolvedRuntime: CommandRuntime {
+            guard let runtime else {
+                preconditionFailure("CommandRuntime must be configured before accessing runtime resources")
+            }
+            return runtime
+        }
+
+        private var services: any PeekabooServiceProviding { self.resolvedRuntime.services }
+        private var logger: Logger { self.resolvedRuntime.logger }
+        var outputLogger: Logger { self.logger }
+        var jsonOutput: Bool { self.resolvedRuntime.configuration.jsonOutput }
+
+        @MainActor
+        mutating func run(using runtime: CommandRuntime) async throws {
+            self.runtime = runtime
+            self.logger.setJsonOutputMode(self.jsonOutput)
+
+            do {
+                let frontmostMenus = try await MenuServiceBridge.listFrontmostMenus(menu: self.services.menu)
+                let menuExtras = try await MenuServiceBridge.listMenuExtras(menu: self.services.menu)
+
+                let filteredMenus = self.includeDisabled ? frontmostMenus.menus : self
+                    .filterDisabledMenus(frontmostMenus.menus)
+
+                if self.jsonOutput {
+                    struct MenuAllResult: Codable {
+                        let apps: [AppMenuInfo]
+
+                        struct AppMenuInfo: Codable {
+                            let appName: String
+                            let bundleId: String
+                            let pid: Int32
+                            let menus: [MenuData]
+                            let statusItems: [StatusItem]?
+                        }
+
+                        struct StatusItem: Codable {
+                            let type: String
+                            let title: String
+                            let enabled: Bool
+                            let frame: Frame?
+
+                            struct Frame: Codable {
+                                let x: Double
+                                let y: Double
+                                let width: Int
+                                let height: Int
+                            }
+                        }
+                    }
+
+                    let statusItems = menuExtras.map { extra in
+                        MenuAllResult.StatusItem(
+                            type: "status_item",
+                            title: extra.title,
+                            enabled: true,
+                            frame: self.includeFrames ? MenuAllResult.StatusItem.Frame(
+                                x: Double(extra.position.x),
+                                y: Double(extra.position.y),
+                                width: 0,
+                                height: 0
+                            ) : nil
+                        )
+                    }
+
+                    let appInfo = MenuAllResult.AppMenuInfo(
+                        appName: frontmostMenus.application.name,
+                        bundleId: frontmostMenus.application.bundleIdentifier ?? "unknown",
+                        pid: frontmostMenus.application.processIdentifier,
+                        menus: self.convertMenusToTyped(filteredMenus),
+                        statusItems: statusItems.isEmpty ? nil : statusItems
+                    )
+
+                    let outputData = MenuAllResult(apps: [appInfo])
+                    outputSuccessCodable(data: outputData, logger: self.outputLogger)
+                } else {
+                    print("\n=== \(frontmostMenus.application.name) ===")
+                    for menu in filteredMenus {
+                        self.printMenu(menu, indent: 0)
+                    }
+
+                    if !menuExtras.isEmpty {
+                        print("\n=== System Menu Extras ===")
+                        for extra in menuExtras {
+                            print("  \(extra.title)")
+                            if self.includeFrames {
+                                print("    Position: (\(Int(extra.position.x)), \(Int(extra.position.y)))")
+                            }
+                        }
+                    }
+                }
+
+            } catch let error as MenuError {
+                self.handleMenuError(error)
+                throw ExitCode(1)
+            } catch {
+                self.handleGenericError(error)
+                throw ExitCode(1)
+            }
+        }
+
+        private func filterDisabledMenus(_ menus: [Menu]) -> [Menu] {
+            menus.compactMap { menu in
+                guard menu.isEnabled else { return nil }
+                let filteredItems = self.filterDisabledItems(menu.items)
+                return Menu(title: menu.title, items: filteredItems, isEnabled: menu.isEnabled)
+            }
+        }
+
+        private func filterDisabledItems(_ items: [MenuItem]) -> [MenuItem] {
+            items.compactMap { item in
+                guard item.isEnabled else { return nil }
+                let filteredSubmenu = self.filterDisabledItems(item.submenu)
+                return MenuItem(
+                    title: item.title,
+                    keyboardShortcut: item.keyboardShortcut,
+                    isEnabled: item.isEnabled,
+                    isChecked: item.isChecked,
+                    isSeparator: item.isSeparator,
+                    submenu: filteredSubmenu,
+                    path: item.path
+                )
+            }
+        }
+
+        private func convertMenusToTyped(_ menus: [Menu]) -> [MenuData] {
+            menus.map { menu in
+                MenuData(
+                    title: menu.title,
+                    bundle_id: menu.bundleIdentifier,
+                    owner_name: menu.ownerName,
+                    enabled: menu.isEnabled,
+                    items: menu.items.isEmpty ? nil : self.convertMenuItemsToTyped(menu.items)
+                )
+            }
+        }
+
+        private func convertMenuItemsToTyped(_ items: [MenuItem]) -> [MenuItemData] {
+            items.map { item in
+                MenuItemData(
+                    title: item.title,
+                    bundle_id: item.bundleIdentifier,
+                    owner_name: item.ownerName,
+                    enabled: item.isEnabled,
+                    shortcut: item.keyboardShortcut?.displayString,
+                    checked: item.isChecked ? true : nil,
+                    separator: item.isSeparator ? true : nil,
+                    items: item.submenu.isEmpty ? nil : self.convertMenuItemsToTyped(item.submenu)
+                )
+            }
+        }
+
+        private func printMenu(_ menu: Menu, indent: Int) {
+            let spacing = String(repeating: "  ", count: indent)
+
+            var line = "\(spacing)\(menu.title)"
+            if !menu.isEnabled {
+                line += " (disabled)"
+            }
+            print(line)
+
+            for item in menu.items {
+                self.printMenuItem(item, indent: indent + 1)
+            }
+        }
+
+        private func printMenuItem(_ item: MenuItem, indent: Int) {
+            let spacing = String(repeating: "  ", count: indent)
+
+            if item.isSeparator {
+                print("\(spacing)---")
+                return
+            }
+
+            var line = "\(spacing)\(item.title)"
+            if !item.isEnabled {
+                line += " (disabled)"
+            }
+            if item.isChecked {
+                line += " ✓"
+            }
+            if let shortcut = item.keyboardShortcut {
+                line += " [\(shortcut.displayString)]"
+            }
+            print(line)
+
+            for subitem in item.submenu {
+                self.printMenuItem(subitem, indent: indent + 1)
+            }
+        }
+
+        private func handleMenuError(_ error: MenuError) {
+            if self.jsonOutput {
+                let errorCode: ErrorCode = switch error {
+                case .menuBarNotFound:
+                    .MENU_BAR_NOT_FOUND
+                case .menuItemNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .submenuNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuExtraNotFound:
+                    .MENU_ITEM_NOT_FOUND
+                case .menuItemDisabled:
+                    .INTERACTION_FAILED
+                case .menuOperationFailed:
+                    .INTERACTION_FAILED
+                }
+
+                outputError(
+                    message: error.localizedDescription,
+                    code: errorCode,
+                    details: "Failed to list menus",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ \(error.localizedDescription)\n", stderr)
+            }
+        }
+
+        private func handleGenericError(_ error: any Error) {
+            if self.jsonOutput {
+                outputError(
+                    message: error.localizedDescription,
+                    code: .UNKNOWN_ERROR,
+                    details: "Menu list operation failed",
+                    logger: self.outputLogger
+                )
+            } else {
+                fputs("❌ Error: \(error.localizedDescription)\n", stderr)
+            }
+        }
+    }
+}
+
+// MARK: - Focus Helpers
+
+@MainActor
+private struct FocusIgnoringMissingWindowsRequest {
+    let windowID: CGWindowID?
+    let applicationName: String
+    let windowTitle: String?
+}
+
+@MainActor
+private func ensureFocusIgnoringMissingWindows(
+    request: FocusIgnoringMissingWindowsRequest,
+    options: any FocusOptionsProtocol,
+    services: any PeekabooServiceProviding,
+    logger: Logger
+) async throws {
+    do {
+        try await ensureFocused(
+            windowID: request.windowID,
+            applicationName: request.applicationName,
+            windowTitle: request.windowTitle,
+            options: options,
+            services: services
+        )
+    } catch let focusError as FocusError {
+        switch focusError {
+        case .noWindowsFound:
+            logger.debug("Skipping focus: no windows found for '\(request.applicationName)'")
+        case .windowNotFound, .axElementNotFound:
+            logger.debug("Skipping focus: window lookup failed for '\(request.applicationName)': \(focusError)")
+        default:
+            throw focusError
+        }
+    }
+}
+
+@MainActor
+private func findMenuItem(
+    canonicalPath: String,
+    in menus: [Menu]
+) -> MenuItem? {
+    for menu in menus {
+        let menuBase = MenuCommand.ClickSubcommand.canonicalizeMenuPath(menu.title)
+        if menuBase == canonicalPath {
+            return nil // top-level menu is not a clickable item
+        }
+        if let item = findMenuItem(in: menu.items, canonicalPath: canonicalPath) {
+            return item
+        }
+    }
+    return nil
+}
+
+private func findMenuItem(
+    in items: [MenuItem],
+    canonicalPath: String
+) -> MenuItem? {
+    for item in items {
+        if MenuCommand.ClickSubcommand.canonicalizeMenuPath(item.path) == canonicalPath {
+            return item
+        }
+        if let nested = findMenuItem(in: item.submenu, canonicalPath: canonicalPath) {
+            return nested
+        }
+    }
+    return nil
+}
+
+@MainActor
+extension MenuCommand.ClickSubcommand {
+    fileprivate static func canonicalizeMenuPath(_ rawPath: String) -> String {
+        rawPath
+            .split(separator: ">")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " > ")
+    }
+
+    fileprivate func ensureMenuItemEnabled(appIdentifier: String, menuPath: String) async throws {
+        let structure = try await MenuServiceBridge.listMenus(
+            menu: self.services.menu,
+            appIdentifier: appIdentifier
+        )
+        let canonical = menuPath
+        guard let item = findMenuItem(canonicalPath: canonical, in: structure.menus) else {
+            throw MenuError.menuItemNotFound(canonical)
+        }
+        guard item.isEnabled else {
+            throw MenuError.menuItemDisabled(canonical)
+        }
+    }
+}
+
+@MainActor
+func normalizeMenuSelection(item: String?, path: String?) -> (item: String?, path: String?, convertedFromItem: Bool) {
+    // Agents historically passed menu paths via --item (e.g. "File > New"), which Commander
+    // happily accepts but the runtime interpreted as a literal button title. Auto-detect and
+    // reinterpret those inputs so legacy scripts keep working without special casing.
+    guard path == nil, let item, item.contains(">") else {
+        return (item, path, false)
+    }
+    return (nil, item, true)
+}
+
+// MARK: - Subcommand Conformances
+
+@MainActor
+extension MenuCommand.ClickSubcommand: ParsableCommand {
+    nonisolated(unsafe) static var commandDescription: CommandDescription {
+        MainActorCommandDescription.describe {
+            CommandDescription(
+                commandName: "click",
+                abstract: "Click a menu item"
+            )
+        }
+    }
+}
+
+extension MenuCommand.ClickSubcommand: AsyncRuntimeCommand {}
+
+@MainActor
+extension MenuCommand.ClickSubcommand: CommanderBindableCommand {
+    mutating func applyCommanderValues(_ values: CommanderBindableValues) throws {
+        self.target = try values.makeInteractionTargetOptions()
+        self.item = values.singleOption("item")
+        self.path = values.singleOption("path")
+        self.focusOptions = try values.makeFocusOptions()
+    }
+}
+
+@MainActor
+extension MenuCommand.ClickExtraSubcommand: ParsableCommand {
+    nonisolated(unsafe) static var commandDescription: CommandDescription {
+        MainActorCommandDescription.describe {
+            CommandDescription(
+                commandName: "click-extra",
+                abstract: "Click a system menu extra (status bar item)"
+            )
+        }
+    }
+}
+
+extension MenuCommand.ClickExtraSubcommand: AsyncRuntimeCommand {}
+
+@MainActor
+extension MenuCommand.ClickExtraSubcommand: CommanderBindableCommand {
+    mutating func applyCommanderValues(_ values: CommanderBindableValues) throws {
+        self.title = try values.requireOption("title", as: String.self)
+        self.item = values.singleOption("item")
+        self.verify = values.flag("verify")
+    }
+}
+
+@MainActor
+extension MenuCommand.ListSubcommand: ParsableCommand {
+    nonisolated(unsafe) static var commandDescription: CommandDescription {
+        MainActorCommandDescription.describe {
+            CommandDescription(
+                commandName: "list",
+                abstract: "List all menu items for an application"
+            )
+        }
+    }
+}
+
+extension MenuCommand.ListSubcommand: AsyncRuntimeCommand {}
+
+@MainActor
+extension MenuCommand.ListSubcommand: CommanderBindableCommand {
+    mutating func applyCommanderValues(_ values: CommanderBindableValues) throws {
+        self.target = try values.makeInteractionTargetOptions()
+        self.includeDisabled = values.flag("includeDisabled")
+        self.focusOptions = try values.makeFocusOptions()
+    }
+}
+
+@MainActor
+extension MenuCommand.ListAllSubcommand: ParsableCommand {
+    nonisolated(unsafe) static var commandDescription: CommandDescription {
+        MainActorCommandDescription.describe {
+            CommandDescription(
+                commandName: "list-all",
+                abstract: "List all menu bar items system-wide (including status items)"
+            )
+        }
+    }
+}
+
+extension MenuCommand.ListAllSubcommand: AsyncRuntimeCommand {}
+
+@MainActor
+extension MenuCommand.ListAllSubcommand: CommanderBindableCommand {
+    mutating func applyCommanderValues(_ values: CommanderBindableValues) throws {
+        self.includeDisabled = values.flag("includeDisabled")
+        self.includeFrames = values.flag("includeFrames")
+    }
+}
+
+// MARK: - Data Structures
+
+struct MenuClickResult: Codable {
+    let action: String
+    let app: String
+    let menu_path: String
+    let clicked_item: String
+}
+
+struct MenuExtraClickResult: Codable {
+    let action: String
+    let menu_extra: String
+    let clicked_item: String
+    let location: [String: Double]?
+    let verified: Bool?
+}
+
+// Typed menu structures for JSON output
+struct MenuListData: Codable {
+    let app: String
+    let owner_name: String?
+    let bundle_id: String?
+    let menu_structure: [MenuData]
+}
+
+struct MenuData: Codable {
+    let title: String
+    let bundle_id: String?
+    let owner_name: String?
+    let enabled: Bool
+    let items: [MenuItemData]?
+}
+
+struct MenuItemData: Codable {
+    let title: String
+    let bundle_id: String?
+    let owner_name: String?
+    let enabled: Bool
+    let shortcut: String?
+    let checked: Bool?
+    let separator: Bool?
+    let items: [MenuItemData]?
+}

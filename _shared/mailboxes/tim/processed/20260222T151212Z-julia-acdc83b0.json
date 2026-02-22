@@ -1,0 +1,11 @@
+{
+  "id": "acdc83b0",
+  "from": "julia",
+  "to": "tim",
+  "subject": "PR Review Bottleneck \u2014 Urgent",
+  "body": "Tim, the PR review backlog is now the single most severe org bottleneck. 19 PRs open, ALL 19 with zero reviews, 4 with merge conflicts growing. Oldest PR is 19.5 hours without review.\n\nQM-gating PRs need action today:\n- PR #43 (A2A mega-branch, 17h old): You and Xavier have merge authority\n- PR #46 (UTEE Phase 1, 11.4h old): Your review is the gate\n- PR #47 (Telemetry, 11.3h old): Needs review\n\nI understand you flagged PRs 44 and 43 for Codex sweeps \u2014 good practice. But the sweep should run in parallel with review, not gate it. Can you do a review pass on what is reviewable today? Merge conflicts compound every hour.\n\nThis goes into the morning report to David. - Julia (CAO)",
+  "timestamp": "2026-02-22T15:12:12Z",
+  "priority": "normal",
+  "thread_id": null,
+  "read": true
+}

@@ -1,0 +1,266 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# macOS Extended Attributes and Metadata
+*.bridgesupport
+.metadata_never_index
+.ql_*
+.Trash-*
+
+# Node.js / TypeScript
+node_modules/
+/node_modules/
+Server/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+*.tsbuildinfo
+.eslintcache
+.node_repl_history
+*.tgz
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+Server/dist/
+dist/
+build/
+*.js.map
+
+# Logs
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+.nyc_output/
+lib-cov/
+*.lcov
+.grunt
+.lock-wscript
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Swift / Xcode
+## Build artifacts (at any level)
+**/.build/
+**/DerivedData/
+**/build/
+**/*.xcodeproj/project.xcworkspace/xcshareddata/
+**/*.xcworkspace/xcshareddata/
+
+## Build binaries
+# Peekaboo CLI binary only (not directories)
+/peekaboo
+/Apps/CLI/peekaboo
+
+## Various Xcode settings
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+**/xcuserdata/
+*.xccheckout
+*.moved-aside
+**/*.xcuserstate
+*.xcscmblueprint
+**/*.xcworkspace/xcuserdata/
+
+## Xcode Patch
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+
+## Swift Package Manager
+Packages/
+Package.pins
+**/Package.resolved
+**/.swiftpm/
+*.xcworkspace/xcshareddata/swiftpm/
+
+## Playgrounds
+playground.xcworkspace
+timeline.xctimeline
+
+## Build products
+# Only ignore built app bundles in specific locations
+/build/*.app
+/DerivedData/**/*.app
+/Apps/Mac/build/*.app
+/Apps/Mac/DerivedData/**/*.app
+/Apps/peekaboo
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## CocoaPods (if used)
+Pods/
+
+## Carthage (if used)
+Carthage/Build/
+
+## FastLane (if used)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+## Code Injection
+iOSInjectionProject/
+
+## LLVM bitcode files (Swift compiler artifacts)
+*.bc
+
+## Module-specific build artifacts
+Core/**/.build/
+Core/**/DerivedData/
+Core/**/.swiftpm/
+
+## Swift compiler artifacts
+*.hmap
+*.bc
+**/*.dia
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+debug
+!docs/debug/
+docs/debug/*
+!docs/debug/visualizer-issues.md
+!docs/debug/watch.md
+.poltergeist-state/
+.poltergeist*
+*.bak
+*.backup
+*~
+
+# Build artifacts and derived data
+.artifacts/
+.derived-data/
+
+# Crush directory
+.crush/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Editor backup files
+*.swp
+*.swo
+.#*
+#*#
+
+# npm package files
+*.tgz
+
+# Auto-generated version file
+Apps/CLI/Sources/peekaboo/Version.swift
+Apps/CLI/.generated/
+# Built CLI binary only (not the source folder)
+/Apps/CLI/peekaboo
+
+# Release artifacts
+/release/
+Commander/Commander.tar.gz
+
+# Test images and screenshots
+*_screenshot.png
+*_Screenshot_*.png
+Calculator_*.png
+TextEdit_*.png
+Safari_*.png
+Wispr_*.png
+Finder_*.png
+test-*.png
+screenshot-*.png
+Screenshot*.png
+capture_*.png
+peekaboo_*.png
+!Apps/Mac/Peekaboo/Assets.xcassets/MenuIcon.imageset/peekaboo_menu_18.png
+!Apps/Mac/Peekaboo/Assets.xcassets/MenuIcon.imageset/peekaboo_menu_36.png
+!Apps/Mac/Peekaboo/Assets.xcassets/MenuIcon.imageset/peekaboo_menu_54.png
+
+# Temporary test files
+test.peekaboo.json
+test_*.sh
+check_*.sh
+*.test.png
+*.test.json
+
+# Menubar elements JSON (test data)
+menubar_elements.json
+
+# Vite cache
+.vite/
+
+# Documentation audits and summaries
+docc-class-audit.md
+test-fixes-summary.md
+
+# Archive directory (if truly archived)
+# Uncomment if Archive/ should be excluded:
+# /Archive/
+
+# Root level test scripts that should be in scripts/
+/test-*.sh
+/check-*.sh
+
+# AppleScript at root
+/peekaboo.scpt
+/peekaboo-x86_64
+/peekaboo-arm64
+/debug
+# Root binary only
+/peekaboo
+
+# Vendored build caches
+Vendor/swift-argument-parser/.build/
+/info

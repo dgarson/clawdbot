@@ -1,0 +1,172 @@
+import Commander
+import Foundation
+import PeekabooCore
+
+@available(macOS 14.0, *)
+@MainActor
+struct RunCommand: OutputFormattable {
+    nonisolated(unsafe) static var commandDescription: CommandDescription {
+        MainActorCommandDescription.describe {
+            CommandDescription(
+                commandName: "run",
+                abstract: "Execute a Peekaboo automation script",
+                showHelpOnEmptyInvocation: true
+            )
+        }
+    }
+
+    @Argument(help: "Path to the script file (.peekaboo.json)")
+    var scriptPath: String
+
+    @Option(help: "Save results to file instead of stdout")
+    var output: String?
+
+    @Flag(help: "Continue execution even if a step fails")
+    var noFailFast = false
+    @RuntimeStorage private var runtime: CommandRuntime?
+
+    private var resolvedRuntime: CommandRuntime {
+        guard let runtime else {
+            preconditionFailure("CommandRuntime must be configured before accessing runtime resources")
+        }
+        return runtime
+    }
+
+    private var services: any PeekabooServiceProviding { self.resolvedRuntime.services }
+    private var logger: Logger { self.resolvedRuntime.logger }
+    var outputLogger: Logger { self.logger }
+    private var configuration: CommandRuntime.Configuration { self.resolvedRuntime.configuration }
+    var jsonOutput: Bool { self.configuration.jsonOutput }
+    private var isVerbose: Bool { self.configuration.verbose }
+
+    @MainActor
+    mutating func run(using runtime: CommandRuntime) async throws {
+        self.runtime = runtime
+        let startTime = Date()
+        var didEmitJSONResponse = false
+
+        do {
+            let script = try await ProcessServiceBridge.loadScript(services: self.services, path: self.scriptPath)
+            let results = try await ProcessServiceBridge.executeScript(
+                services: self.services,
+                script,
+                failFast: !self.noFailFast,
+                verbose: self.isVerbose
+            )
+
+            let output = ScriptExecutionResult(
+                success: results.allSatisfy(\.success),
+                scriptPath: self.scriptPath,
+                description: script.description,
+                totalSteps: script.steps.count,
+                completedSteps: results.count { $0.success },
+                failedSteps: results.count { !$0.success },
+                executionTime: Date().timeIntervalSince(startTime),
+                steps: results
+            )
+
+            if let outputPath = self.output {
+                let data = try JSONEncoder().encode(output)
+                try data.write(to: URL(fileURLWithPath: outputPath))
+                if !self.jsonOutput {
+                    print("✅ Script completed. Results saved to: \(outputPath)")
+                }
+            } else if self.jsonOutput {
+                let response = CodableJSONResponse(
+                    success: output.success,
+                    data: output,
+                    messages: nil,
+                    debug_logs: self.outputLogger.getDebugLogs()
+                )
+                outputJSONCodable(response, logger: self.outputLogger)
+                didEmitJSONResponse = true
+            } else {
+                self.printSummary(output)
+            }
+
+            if !output.success {
+                throw ExitCode.failure
+            }
+        } catch let error as ExitCode {
+            // RunCommand intentionally exits non-zero when a step fails. In JSON mode we already emitted
+            // a structured payload, so don't print a second JSON error wrapper.
+            if didEmitJSONResponse {
+                throw error
+            }
+            throw ExitCode.failure
+        } catch {
+            if self.jsonOutput {
+                outputError(message: error.localizedDescription, code: .INVALID_ARGUMENT, logger: self.outputLogger)
+            } else {
+                print("❌ Error: \(error.localizedDescription)")
+            }
+            throw ExitCode.failure
+        }
+    }
+
+    @MainActor
+    private func printSummary(_ result: ScriptExecutionResult) {
+        if result.success {
+            print("✅ Script completed successfully")
+        } else {
+            print("❌ Script failed")
+        }
+        print("   Total steps: \(result.totalSteps)")
+        print("   Completed: \(result.completedSteps)")
+        print("   Failed: \(result.failedSteps)")
+        print("   Execution time: \(String(format: "%.2f", result.executionTime))s")
+
+        if !result.success {
+            let failedSteps = result.steps.filter { !$0.success }
+            if !failedSteps.isEmpty {
+                print("\nFailed steps:")
+                for step in failedSteps {
+                    print("   - Step \(step.stepNumber) (\(step.command)): \(step.error ?? "Unknown error")")
+                }
+            }
+        }
+    }
+}
+
+struct ScriptExecutionResult: Codable {
+    let success: Bool
+    let scriptPath: String
+    let description: String?
+    let totalSteps: Int
+    let completedSteps: Int
+    let failedSteps: Int
+    let executionTime: TimeInterval
+    let steps: [PeekabooCore.StepResult]
+}
+
+private enum ProcessServiceBridge {
+    static func loadScript(services: any PeekabooServiceProviding, path: String) async throws -> PeekabooScript {
+        try await Task { @MainActor in
+            try await services.process.loadScript(from: path)
+        }.value
+    }
+
+    static func executeScript(
+        services: any PeekabooServiceProviding,
+        _ script: PeekabooScript,
+        failFast: Bool,
+        verbose: Bool
+    ) async throws -> [StepResult] {
+        try await Task { @MainActor in
+            try await services.process.executeScript(script, failFast: failFast, verbose: verbose)
+        }.value
+    }
+}
+
+@MainActor
+extension RunCommand: ParsableCommand {}
+extension RunCommand: AsyncRuntimeCommand {}
+
+@MainActor
+extension RunCommand: CommanderBindableCommand {
+    mutating func applyCommanderValues(_ values: CommanderBindableValues) throws {
+        self.scriptPath = try values.decodePositional(0, label: "scriptPath")
+        self.output = try values.decodeOption("output", as: String.self)
+        self.noFailFast = values.flag("noFailFast")
+    }
+}

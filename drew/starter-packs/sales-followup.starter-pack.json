@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "sales-followup",
+  "name": "Sales Follow-up",
+  "description": "Daily follow-up sweep: drafts personalized follow-ups, flags stalled leads, and produces send-ready messages.",
+  "time_to_value": "15–20 minutes",
+  "tags": ["sales", "outbound", "onboarding"],
+  "install_inputs": [
+    {
+      "key": "timezone",
+      "label": "Timezone",
+      "kind": "timezone",
+      "default": "America/Denver",
+      "required": true
+    },
+    {
+      "key": "delivery.slack.to",
+      "label": "Where should the follow-up report be posted?",
+      "kind": "slack_target",
+      "required": true
+    },
+    {
+      "key": "sales_context",
+      "label": "What are you selling (1–2 sentences)?",
+      "kind": "text",
+      "required": true
+    }
+  ],
+  "agents": [
+    {
+      "agent_id": "stephan",
+      "purpose": "High-quality follow-up copywriting that matches brand voice.",
+      "notes": "Uses existing agent id; v1 can reference rather than clone agents."
+    },
+    {
+      "agent_id": "main",
+      "purpose": "Orchestrates the daily sweep + posts results.",
+      "notes": "Fallback agent if other agent ids are missing."
+    }
+  ],
+  "crons": [
+    {
+      "name": "Sales Follow-up Sweep (morning)",
+      "agent_id": "main",
+      "enabled": false,
+      "session_target": "isolated",
+      "wake_mode": "now",
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * *",
+        "tz": "{{timezone}}"
+      },
+      "payload": {
+        "kind": "agentTurn",
+        "thinking": "medium",
+        "timeoutSeconds": 1800,
+        "message": "You are running the Sales Follow-up Starter Pack.\n\nSales context: {{sales_context}}\n\nTask:\n1) Ask for (or locate) a short list of leads that need follow-up today (names + last touch + goal).\n2) For each lead, draft a concise follow-up message. Provide: subject line + body.\n3) Provide a one-paragraph internal note: what changed since last touch, and the next best ask.\n\nOutput format:\n- Top: 3 highest-priority follow-ups\n- Then: the remaining follow-ups\n- End: questions you need answered to improve tomorrow's sweep.\n\nIf no lead list exists yet, ask the user to paste one (5–20 lines) and stop."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "slack",
+        "to": "{{delivery.slack.to}}"
+      }
+    },
+    {
+      "name": "Sales Pipeline Nudge (evening)",
+      "agent_id": "stephan",
+      "enabled": false,
+      "session_target": "isolated",
+      "wake_mode": "now",
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 18 * * *",
+        "tz": "{{timezone}}"
+      },
+      "payload": {
+        "kind": "agentTurn",
+        "thinking": "low",
+        "timeoutSeconds": 1200,
+        "message": "Evening pipeline nudge.\n\nSales context: {{sales_context}}\n\n1) Ask: Did we send the follow-ups drafted today?\n2) If not, produce a shorter, more direct version for each unsent follow-up.\n3) Suggest one experiment to improve reply rates (A/B subject line, shorter CTA, etc.).\n\nKeep the whole message under 250 words unless the user explicitly asks for full drafts."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "slack",
+        "to": "{{delivery.slack.to}}"
+      }
+    }
+  ],
+  "example_prompts": [
+    "Install the Sales Follow-up pack and post reports to #sales.",
+    "Run the Sales Follow-up Sweep now. Here are 12 leads with last-touch notes: ...",
+    "Rewrite these follow-ups to be 30% shorter and more direct.",
+    "Change the morning sweep to run at 8:00am instead of 9:00am."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "qm-pipeline-v1",
+  "from": "joey",
+  "to": "julia",
+  "subject": "QM Pipeline v1 Complete \u2014 8 AM Deliverable Ready",
+  "body": "Julia \u2014 QM pipeline v1 done. Deliverables ahead of schedule:\n\n1. QM Intake Protocol: joey/QM_PIPELINE.md (Part 1)\n2. All 4 QMs decomposed into epics (QM1: 6 epics, QM2: 6 epics, QM3: 7 epics, QM4: 6 epics)\n3. Every epic assigned to a named lead\n\nKey finding from your audit: 3 P0 community bugs dropped tonight (#23321 crash loop, #23307 credential leak, #23324 tool corruption). I've loaded them into QM1 as Xavier sprint items.\n\nAlso triaged 15 new community issues against the QM framework.\n\nROADMAP.md updated with Autonomy Evolution as Theme #1 and QM framework table.\n\nReady for your 12h synthesis. \u2014 Joey",
+  "timestamp": "2026-02-22T07:05:00Z",
+  "priority": "high",
+  "read": true
+}

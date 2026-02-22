@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "daily-ops-digest",
+  "name": "Daily Ops Digest",
+  "description": "A daily morning digest (and optional pre-bed check) that summarizes what happened and what to do next.",
+  "time_to_value": "10–15 minutes",
+  "tags": ["ops", "digest", "onboarding"],
+  "install_inputs": [
+    {
+      "key": "timezone",
+      "label": "Timezone",
+      "kind": "timezone",
+      "default": "America/Denver",
+      "required": true
+    },
+    {
+      "key": "delivery.slack.to",
+      "label": "Where should the digest be posted?",
+      "kind": "slack_target",
+      "required": true
+    },
+    {
+      "key": "focus",
+      "label": "What should the digest focus on?",
+      "kind": "select",
+      "options": ["Engineering", "Business", "Everything"],
+      "default": "Everything",
+      "required": true
+    }
+  ],
+  "agents": [
+    {
+      "agent_id": "joey",
+      "purpose": "TPM-style daily summary with next actions.",
+      "notes": "Great default for non-technical users; focuses on clarity and priorities."
+    },
+    {
+      "agent_id": "main",
+      "purpose": "General operator; used for optional pre-bedtime check.",
+      "notes": "Fallback agent if other agent ids are missing."
+    }
+  ],
+  "crons": [
+    {
+      "name": "Daily Ops Digest (morning)",
+      "agent_id": "joey",
+      "enabled": false,
+      "session_target": "isolated",
+      "wake_mode": "now",
+      "schedule": {
+        "kind": "cron",
+        "expr": "30 7 * * *",
+        "tz": "{{timezone}}"
+      },
+      "payload": {
+        "kind": "agentTurn",
+        "thinking": "medium",
+        "timeoutSeconds": 1800,
+        "message": "You are running the Daily Ops Digest Starter Pack.\n\nFocus: {{focus}}\n\nProduce a concise morning digest:\n1) Overnight activity: what changed since yesterday (major threads, decisions, or alerts).\n2) Today's docket: top priorities (max 5) + who owns each.\n3) Scheduled automations: which cron jobs will run today and what they do.\n4) Risks/blockers: what needs attention.\n5) Suggested next actions: 3 concrete actions.\n\nIf you lack context, ask exactly 3 questions to set this up (where to look, what to summarize, who the audience is) and stop."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "slack",
+        "to": "{{delivery.slack.to}}"
+      }
+    },
+    {
+      "name": "Pre-Bedtime Check (optional)",
+      "agent_id": "main",
+      "enabled": false,
+      "session_target": "isolated",
+      "wake_mode": "now",
+      "schedule": {
+        "kind": "cron",
+        "expr": "30 22 * * *",
+        "tz": "{{timezone}}"
+      },
+      "payload": {
+        "kind": "agentTurn",
+        "thinking": "low",
+        "timeoutSeconds": 1200,
+        "message": "Quick pre-bedtime ops check:\n1) What work is currently in progress?\n2) Do active agents have clear instructions overnight?\n3) Any blockers needing attention before tomorrow?\n\nKeep it brief."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "slack",
+        "to": "{{delivery.slack.to}}"
+      }
+    }
+  ],
+  "example_prompts": [
+    "Install the Daily Ops Digest pack and post it to #ops.",
+    "Run the Daily Ops Digest now and keep it under 12 bullets.",
+    "Change the digest to include GitHub PRs and CI failures.",
+    "Enable only the morning digest and keep the pre-bed check disabled."
+  ]
+}

@@ -1,0 +1,17 @@
+Hey team, Luis here with my two-minute UX update.
+
+Workstream one: Guided Interactive Onboarding Tour — this is my number-one UX investment and the single highest-leverage adoption lever we have.
+
+Here's the problem: the current path from install to first successful agent interaction has too many context switches — CLI, docs, config files, CLI again. Our web onboarding wizard collects preferences but doesn't actually configure anything. We need to close that gap.
+
+The new tour is gateway-connected. It drives real wizard RPCs, writes real config, connects a real channel, and ends with the user chatting with a live agent — not a mock. It's adaptive: if you've already set up a provider, we skip that step. It adjusts to your proficiency level. And critically — every step that happens actually configures the system.
+
+Why this matters: users who complete a guided first experience are far more likely to activate and stick. This is where we win or lose people. Permanently. Phase one is in active build — smooth Framer Motion transitions, inline config forms, and yes — confetti at the end. Mandatory.
+
+Workstream two: Agent Relationship Topology Visualization — I'm calling this one demo gold.
+
+It's a zoomable interactive graph showing the full agent ecosystem — who spawns whom, who delegates to whom, live edges forming in real-time as agents coordinate. Click a node, get a detail panel. Watch sub-agents appear during a complex task. React Flow with a dagre layout, fed by live gateway WebSocket events.
+
+Why this matters: multi-agent orchestration is our core differentiator, and right now it's invisible. This makes it tangible, visceral, and debuggable. No competitor has anything like this. It's the feature that makes people go whoa in demos.
+
+Both workstreams are in active build. More next week. That's my update — back to you, David.

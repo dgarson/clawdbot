@@ -1,0 +1,384 @@
+{
+  "_meta": {
+    "description": "Sample JSON payloads for every A2A Communication Protocol message type. Reference for all implementation agents.",
+    "spec": "/Users/openclaw/.openclaw/workspace/_shared/specs/a2a-communication-protocol.md",
+    "protocol": "openclaw.a2a.v1",
+    "created": "2026-02-21",
+    "author": "Amadeus (CAIO)"
+  },
+
+  "task_request": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "timestamp": "2026-02-21T18:30:00.000Z",
+    "from": {
+      "agentId": "amadeus",
+      "role": "CAIO",
+      "sessionKey": "agent:amadeus:subagent:abc123"
+    },
+    "to": {
+      "agentId": "roman",
+      "role": "Staff Engineer"
+    },
+    "type": "task_request",
+    "priority": "high",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "taskId": "task-001-schema-validation",
+      "title": "Implement A2A message schema and validator",
+      "description": "Build TypeScript types, JSON Schema definitions, and a validator module for all 7 A2A message types per spec.",
+      "taskType": "implementation",
+      "complexity": "medium",
+      "deadline": "2026-02-23T00:00:00Z",
+      "context": {
+        "branch": "roman/a2a-schema-validator",
+        "worktree": "/Users/openclaw/openclaw/worktrees/a2a-schema-validator",
+        "relatedFiles": [
+          "/Users/openclaw/.openclaw/workspace/_shared/specs/a2a-communication-protocol.md",
+          "/Users/openclaw/.openclaw/workspace/_shared/specs/a2a-sample-payloads.json"
+        ]
+      },
+      "acceptanceCriteria": [
+        "TypeScript types for all 7 message types + envelope",
+        "JSON Schema definitions for runtime validation",
+        "Validator function that returns typed errors for invalid messages",
+        "All valid sample payloads pass validation",
+        "100% test coverage on validator"
+      ]
+    }
+  },
+
+  "task_response_accepted": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "timestamp": "2026-02-21T18:35:00.000Z",
+    "from": {
+      "agentId": "roman",
+      "role": "Staff Engineer",
+      "sessionKey": "agent:roman:subagent:def456"
+    },
+    "to": {
+      "agentId": "amadeus",
+      "role": "CAIO"
+    },
+    "type": "task_response",
+    "priority": "normal",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "taskId": "task-001-schema-validation",
+      "action": "accepted",
+      "reason": null,
+      "result": null
+    }
+  },
+
+  "task_response_completed": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    "timestamp": "2026-02-21T22:15:00.000Z",
+    "from": {
+      "agentId": "roman",
+      "role": "Staff Engineer",
+      "sessionKey": "agent:roman:subagent:def456"
+    },
+    "to": {
+      "agentId": "amadeus",
+      "role": "CAIO"
+    },
+    "type": "task_response",
+    "priority": "normal",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "taskId": "task-001-schema-validation",
+      "action": "completed",
+      "reason": null,
+      "result": {
+        "branch": "roman/a2a-schema-validator",
+        "worktree": "/Users/openclaw/openclaw/worktrees/a2a-schema-validator",
+        "filesChanged": [
+          "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/types.ts",
+          "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/schema.ts",
+          "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/validator.ts",
+          "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/index.ts",
+          "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/test/a2a/validator.test.ts"
+        ],
+        "summary": "Implemented TypeScript types for all 7 message types plus envelope. JSON Schema validation with descriptive error messages. 48 tests, all passing.",
+        "nextSteps": ["Needs T1 review from Tim", "Router (Workstream B) can start once types are stable"]
+      }
+    }
+  },
+
+  "task_response_declined": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "d4e5f6a7-b8c9-0123-defa-234567890123",
+    "timestamp": "2026-02-21T18:40:00.000Z",
+    "from": {
+      "agentId": "barry",
+      "role": "Mid Engineer",
+      "sessionKey": "agent:barry:subagent:ghi789"
+    },
+    "to": {
+      "agentId": "claire",
+      "role": "Staff Engineer"
+    },
+    "type": "task_response",
+    "priority": "normal",
+    "correlationId": "proj-a2a-audit-001",
+    "payload": {
+      "taskId": "task-004-audit-log",
+      "action": "declined",
+      "reason": "Currently blocked on another P0 task (UI migration). Estimated availability: 2026-02-22T14:00:00Z.",
+      "result": null
+    }
+  },
+
+  "task_response_blocked": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "e5f6a7b8-c9d0-1234-efab-345678901234",
+    "timestamp": "2026-02-22T10:00:00.000Z",
+    "from": {
+      "agentId": "tony",
+      "role": "Senior Engineer",
+      "sessionKey": "agent:tony:subagent:jkl012"
+    },
+    "to": {
+      "agentId": "amadeus",
+      "role": "CAIO"
+    },
+    "type": "task_response",
+    "priority": "high",
+    "correlationId": "proj-a2a-router-001",
+    "payload": {
+      "taskId": "task-002-router",
+      "action": "blocked",
+      "reason": "Schema types from Workstream A not yet merged. Need types.ts to be stable before router can import them.",
+      "result": null
+    }
+  },
+
+  "review_request": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+    "timestamp": "2026-02-21T22:20:00.000Z",
+    "from": {
+      "agentId": "roman",
+      "role": "Staff Engineer",
+      "sessionKey": "agent:roman:subagent:def456"
+    },
+    "to": {
+      "agentId": "tim",
+      "role": "VP Architecture"
+    },
+    "type": "review_request",
+    "priority": "high",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "taskId": "task-001-schema-validation",
+      "title": "Review: A2A message schema, types, and validator",
+      "branch": "roman/a2a-schema-validator",
+      "worktree": "/Users/openclaw/openclaw/worktrees/a2a-schema-validator",
+      "filesForReview": [
+        "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/types.ts",
+        "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/schema.ts",
+        "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/validator.ts",
+        "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/index.ts",
+        "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/test/a2a/validator.test.ts"
+      ],
+      "authorAgent": "roman",
+      "authorTier": "T3-Staff",
+      "reviewLevel": "T1 (VP Architecture)",
+      "priorReviewNotes": null
+    }
+  },
+
+  "review_response_approved": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+    "timestamp": "2026-02-22T01:00:00.000Z",
+    "from": {
+      "agentId": "tim",
+      "role": "VP Architecture",
+      "sessionKey": "agent:tim:subagent:mno345"
+    },
+    "to": {
+      "agentId": "roman",
+      "role": "Staff Engineer"
+    },
+    "type": "review_response",
+    "priority": "normal",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "taskId": "task-001-schema-validation",
+      "verdict": "approved",
+      "branch": "roman/a2a-schema-validator",
+      "worktree": "/Users/openclaw/openclaw/worktrees/a2a-schema-validator",
+      "reviewerFixes": [
+        {
+          "file": "/Users/openclaw/openclaw/worktrees/a2a-schema-validator/src/gateway/a2a/validator.ts",
+          "description": "Added explicit null check for optional correlationId field (line 52)"
+        }
+      ],
+      "unresolvedConcerns": [],
+      "nextAction": "push_and_close",
+      "nextTasks": [
+        {
+          "title": "Implement A2A message router and delivery (Workstream B)",
+          "assignTo": "roman + tony",
+          "dependencies": ["Workstream A types are now stable"]
+        },
+        {
+          "title": "Implement A2A agent-side SDK (Workstream C)",
+          "assignTo": "sandy or claire",
+          "dependencies": ["Workstream A types are now stable"]
+        }
+      ]
+    }
+  },
+
+  "review_response_changes_requested": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+    "timestamp": "2026-02-22T09:00:00.000Z",
+    "from": {
+      "agentId": "claire",
+      "role": "Staff Engineer",
+      "sessionKey": "agent:claire:subagent:pqr678"
+    },
+    "to": {
+      "agentId": "jerry",
+      "role": "Mid Engineer"
+    },
+    "type": "review_response",
+    "priority": "normal",
+    "correlationId": "proj-a2a-audit-001",
+    "payload": {
+      "taskId": "task-004-audit-log",
+      "verdict": "changes_requested",
+      "branch": "jerry/a2a-audit-log",
+      "worktree": "/Users/openclaw/openclaw/worktrees/a2a-audit-log",
+      "reviewerFixes": [],
+      "unresolvedConcerns": [
+        {
+          "file": "/Users/openclaw/openclaw/worktrees/a2a-audit-log/src/gateway/a2a/audit.ts",
+          "line": 34,
+          "severity": "must_fix",
+          "description": "File rotation logic will fail when log exceeds 100MB. Need to implement size-based rotation, not just date-based."
+        },
+        {
+          "file": "/Users/openclaw/openclaw/worktrees/a2a-audit-log/src/gateway/a2a/audit.ts",
+          "line": 78,
+          "severity": "should_fix",
+          "description": "The query function does a full file scan. For large logs, this will be too slow. Consider indexing by agentId and type."
+        },
+        {
+          "file": "/Users/openclaw/openclaw/worktrees/a2a-audit-log/test/a2a/audit.test.ts",
+          "line": null,
+          "severity": "must_fix",
+          "description": "Missing test for concurrent writes. Two agents logging simultaneously could corrupt the JSONL file."
+        }
+      ],
+      "nextAction": "send_back_to_worker",
+      "nextTasks": []
+    }
+  },
+
+  "status_update_in_progress": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+    "timestamp": "2026-02-21T20:00:00.000Z",
+    "from": {
+      "agentId": "roman",
+      "role": "Staff Engineer",
+      "sessionKey": "agent:roman:subagent:def456"
+    },
+    "to": {
+      "agentId": "amadeus",
+      "role": "CAIO"
+    },
+    "type": "status_update",
+    "priority": "normal",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "taskId": "task-001-schema-validation",
+      "status": "in_progress",
+      "progress": "TypeScript types for all 7 message types complete. JSON Schema definitions 80% done. Starting validator logic next.",
+      "blockedBy": null,
+      "estimatedCompletion": "2026-02-21T22:00:00.000Z"
+    }
+  },
+
+  "status_update_blocked": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "d0e1f2a3-b4c5-6789-defa-890123456789",
+    "timestamp": "2026-02-22T14:00:00.000Z",
+    "from": {
+      "agentId": "sandy",
+      "role": "Senior Engineer",
+      "sessionKey": "agent:sandy:subagent:stu901"
+    },
+    "to": {
+      "agentId": "amadeus",
+      "role": "CAIO"
+    },
+    "type": "status_update",
+    "priority": "high",
+    "correlationId": "proj-a2a-sdk-001",
+    "payload": {
+      "taskId": "task-003-sdk",
+      "status": "blocked",
+      "progress": "SDK scaffolding complete, but cannot finalize send/receive helpers.",
+      "blockedBy": "Waiting on Workstream B router.ts to be merged — SDK needs to know the delivery interface to wrap it.",
+      "estimatedCompletion": null
+    }
+  },
+
+  "knowledge_share": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "e1f2a3b4-c5d6-7890-efab-901234567890",
+    "timestamp": "2026-02-22T16:00:00.000Z",
+    "from": {
+      "agentId": "tim",
+      "role": "VP Architecture",
+      "sessionKey": "agent:tim:subagent:mno345"
+    },
+    "to": {
+      "agentId": "amadeus",
+      "role": "CAIO"
+    },
+    "type": "knowledge_share",
+    "priority": "normal",
+    "correlationId": null,
+    "payload": {
+      "topic": "Session infrastructure limitation for A2A routing",
+      "discovery": "The existing sessions_send function has a 10KB payload limit per message. A2A messages with large context payloads (e.g., multi-file review requests) may exceed this. We should either chunk large messages or add a file-reference mode where the payload points to a file path instead of inlining content.",
+      "relevantTo": ["roman", "tony", "sandy"],
+      "source": "Discovered during Workstream B router code review — attempted to send a review_request with 8 file contents inlined and hit the limit.",
+      "actionable": true,
+      "suggestedAction": "Add a 'payloadRef' field to the schema that allows pointing to a file path for large payloads. Implement in Workstream A as a schema extension before Workstream C SDK wraps it."
+    }
+  },
+
+  "broadcast": {
+    "protocol": "openclaw.a2a.v1",
+    "messageId": "f2a3b4c5-d6e7-8901-fabc-012345678901",
+    "timestamp": "2026-02-22T18:00:00.000Z",
+    "from": {
+      "agentId": "amadeus",
+      "role": "CAIO",
+      "sessionKey": "agent:amadeus:main:slack"
+    },
+    "to": {
+      "agentId": "*",
+      "role": "*"
+    },
+    "type": "broadcast",
+    "priority": "high",
+    "correlationId": "proj-a2a-001",
+    "payload": {
+      "scope": "org",
+      "topic": "A2A Communication Protocol — v1 Implementation Complete",
+      "message": "The A2A Communication Protocol v1 has passed all integration tests and is ready for merge. All agents should read the usage guide at /Users/openclaw/.openclaw/workspace/_shared/specs/a2a-usage-guide.md and begin using structured A2A messaging for inter-agent coordination. The old file-based coordination pattern is now deprecated for task handoffs.",
+      "urgency": "attention_needed"
+    }
+  }
+}
