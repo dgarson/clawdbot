@@ -315,5 +315,5 @@ export function SchemaForm({
 }
 
 export { FIELD_COMPONENTS, StringField, NumberField, BooleanField, EnumField, ArrayField } from './fields';
-export { validateForm, getDefaultValues, formSchemaToZod } from './validation';
+export { validateForm, validateField, getDefaultValues } from './validation';
 export type { FormSchema, FormState, SchemaField, FormSection, FieldType } from './types';

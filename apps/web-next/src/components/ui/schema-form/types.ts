@@ -1,7 +1,8 @@
-import { z } from 'zod';
-
 // Field type enumeration
 export type FieldType = 'string' | 'number' | 'boolean' | 'enum' | 'array' | 'object';
+
+// Custom validator function type — replaces Zod dependency
+export type FieldValidator = (value: unknown) => string | null | undefined;
 
 // JSON Schema field definition
 export interface SchemaField {
@@ -28,8 +29,8 @@ export interface SchemaField {
   maxItems?: number;
   // Object-specific
   properties?: SchemaField[];
-  // Validation
-  validation?: z.ZodType<unknown>;
+  // Validation — custom validator fn, returns error message or null/undefined if valid
+  validation?: FieldValidator;
 }
 
 // Section definition for grouping fields
