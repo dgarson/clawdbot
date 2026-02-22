@@ -131,9 +131,10 @@ const TABS: TabDefinition[] = [
 
 export interface AgentConfigPageProps {
   agentId: string;
+  embedded?: boolean;
 }
 
-export function AgentConfigPage({ agentId }: AgentConfigPageProps) {
+export function AgentConfigPage({ agentId, embedded = false }: AgentConfigPageProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState<ConfigTab>("overview");
   const [assistOpen, setAssistOpen] = React.useState(false);
@@ -186,94 +187,138 @@ export function AgentConfigPage({ agentId }: AgentConfigPageProps) {
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate({ to: "/agents/$agentId", params: { agentId } })}
-                className="gap-1.5"
-              >
-                <ChevronLeft className="size-4" />
-                Back
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-2xl">
-                  {agentEmoji}
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    {isLoading ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Loader2 className="size-5 animate-spin" />
-                        Loading…
-                      </span>
-                    ) : (
-                      <>Configure {agentName}</>
-                    )}
-                  </h1>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {workspace ? (
-                      <code className="text-xs">{workspace}</code>
-                    ) : (
-                      "Agent workspace configuration"
-                    )}
-                  </p>
-                </div>
+          {!embedded && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate({ to: "/agents/$agentId", params: { agentId } })}
+                  className="gap-1.5"
+                >
+                  <ChevronLeft className="size-4" />
+                  Back
+                </Button>
               </div>
 
-              <div className="flex items-center gap-2">
-                {/* Auto Review Button */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={reviewOpen ? "default" : "outline"}
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={() => setReviewOpen(!reviewOpen)}
-                    >
-                      <CheckCircle2 className="size-4" />
-                      Auto Review
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Analyze config and get suggestions for improvement</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                {/* AI Assist Toggle */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={assistOpen ? "default" : "outline"}
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={() => setAssistOpen(!assistOpen)}
-                    >
-                      {assistOpen ? (
-                        <PanelRightClose className="size-4" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-2xl">
+                    {agentEmoji}
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                      {isLoading ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="size-5 animate-spin" />
+                          Loading…
+                        </span>
                       ) : (
-                        <PanelRightOpen className="size-4" />
+                        <>Configure {agentName}</>
                       )}
-                      AI Assist
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Get AI help configuring this agent</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </motion.div>
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {workspace ? (
+                        <code className="text-xs">{workspace}</code>
+                      ) : (
+                        "Agent workspace configuration"
+                      )}
+                    </p>
+                  </div>
+                </div>
 
-          <Separator className="mb-6" />
+                <div className="flex items-center gap-2">
+                  {/* Auto Review Button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={reviewOpen ? "default" : "outline"}
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setReviewOpen(!reviewOpen)}
+                      >
+                        <CheckCircle2 className="size-4" />
+                        Auto Review
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Analyze config and get suggestions for improvement</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  {/* AI Assist Toggle */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={assistOpen ? "default" : "outline"}
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setAssistOpen(!assistOpen)}
+                      >
+                        {assistOpen ? (
+                          <PanelRightClose className="size-4" />
+                        ) : (
+                          <PanelRightOpen className="size-4" />
+                        )}
+                        AI Assist
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Get AI help configuring this agent</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {embedded && (
+            <div className="flex items-center justify-end gap-2 mb-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={reviewOpen ? "default" : "outline"}
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setReviewOpen(!reviewOpen)}
+                  >
+                    <CheckCircle2 className="size-4" />
+                    Auto Review
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Analyze config and get suggestions for improvement</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={assistOpen ? "default" : "outline"}
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setAssistOpen(!assistOpen)}
+                  >
+                    {assistOpen ? (
+                      <PanelRightClose className="size-4" />
+                    ) : (
+                      <PanelRightOpen className="size-4" />
+                    )}
+                    AI Assist
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Get AI help configuring this agent</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+
+          {!embedded && <Separator className="mb-6" />}
 
           {/* Auto Review Panel (inline, toggled) */}
           <AnimatePresence>
