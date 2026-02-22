@@ -197,6 +197,9 @@ const StorageBucketManager       = React.lazy(() => import("./views/StorageBucke
 const AIPromptRouter             = React.lazy(() => import("./views/AIPromptRouter"));
 const ObservabilityDashboard     = React.lazy(() => import("./views/ObservabilityDashboard"));
 const AccessControlManager       = React.lazy(() => import("./views/AccessControlManager"));
+const ErrorTrackingDashboard     = React.lazy(() => import("./views/ErrorTrackingDashboard"));
+const ComplianceTracker          = React.lazy(() => import("./views/ComplianceTracker"));
+const SSOConfigManager           = React.lazy(() => import("./views/SSOConfigManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -371,6 +374,9 @@ export const navItems = [
   { id: "prompt-router",  label: "AI Prompt Router",      emoji: "🤖", shortcut: null },
   { id: "observability",  label: "Observability",         emoji: "📡", shortcut: null },
   { id: "rbac",           label: "RBAC Manager",          emoji: "🛡", shortcut: null },
+  { id: "error-tracking", label: "Error Tracking",        emoji: "🐛", shortcut: null },
+  { id: "compliance-v2",  label: "Compliance Tracker",   emoji: "✅", shortcut: null },
+  { id: "sso",            label: "SSO Config",            emoji: "🔑", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -546,6 +552,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "prompt-router":      <ContentSkeleton />,
   "observability":      <ContentSkeleton />,
   "rbac":               <ContentSkeleton />,
+  "error-tracking":     <ContentSkeleton />,
+  "compliance-v2":      <ContentSkeleton />,
+  "sso":                <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -942,6 +951,9 @@ function AppContent() {
       case "prompt-router":     return <AIPromptRouter />;
       case "observability":     return <ObservabilityDashboard />;
       case "rbac":              return <AccessControlManager />;
+      case "error-tracking":    return <ErrorTrackingDashboard />;
+      case "compliance-v2":     return <ComplianceTracker />;
+      case "sso":               return <SSOConfigManager />;
       default:              return <AgentDashboard />;
     }
   };
