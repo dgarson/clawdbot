@@ -104,6 +104,11 @@ export function installSessionToolResultGuard(
     beforeMessageWriteHook?: (
       event: PluginHookBeforeMessageWriteEvent,
     ) => PluginHookBeforeMessageWriteResult | undefined;
+    /**
+     * Session metadata used by shadow-write consumers.
+     */
+    agentId?: string;
+    sessionKey?: string;
   },
 ): {
   flushPendingToolResults: () => void;
@@ -230,7 +235,14 @@ export function installSessionToolResultGuard(
       sessionManager as { getSessionFile?: () => string | null }
     ).getSessionFile?.();
     if (sessionFile) {
-      emitSessionTranscriptUpdate(sessionFile);
+      emitSessionTranscriptUpdate(sessionFile, {
+        agentId: opts?.agentId,
+        sessionKey: opts?.sessionKey,
+        message: {
+          role: (finalMessage as { role?: unknown }).role as string | undefined,
+          content: (finalMessage as { content?: unknown }).content,
+        },
+      });
     }
 
     if (toolCalls.length > 0) {
