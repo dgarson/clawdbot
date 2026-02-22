@@ -613,6 +613,16 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     return this.toItem(row, files, staleThresholdHours);
   }
 
+  getById(id: number, staleThresholdHours = 24): WorkItem | null {
+    const row =
+      (this.db.prepare(`SELECT * FROM work_items WHERE id = ?`).get(id) as WorkItemRow) ?? null;
+    if (!row) {
+      return null;
+    }
+    const files = this.listIssueFiles(row.issue_ref);
+    return this.toItem(row, files, staleThresholdHours);
+  }
+
   getLog(issueRef: string, limit = 20): WorkLogEntry[] {
     const normalizedIssueRef = normalizeText(issueRef);
     if (!normalizedIssueRef) {
