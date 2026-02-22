@@ -243,6 +243,9 @@ const LogAggregatorView              = React.lazy(() => import("./views/LogAggre
 const UserDeviceManager              = React.lazy(() => import("./views/UserDeviceManager"));
 const SecurityScannerDashboard       = React.lazy(() => import("./views/SecurityScannerDashboard"));
 const APIGatewayMonitor              = React.lazy(() => import("./views/APIGatewayMonitor"));
+const DatabaseMigrationManager       = React.lazy(() => import("./views/DatabaseMigrationManager"));
+const ReleaseNotesManager            = React.lazy(() => import("./views/ReleaseNotesManager"));
+const TrafficAnalyticsDashboard      = React.lazy(() => import("./views/TrafficAnalyticsDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -463,6 +466,9 @@ export const navItems = [
   { id: "user-devices",         label: "User Devices",          emoji: "📱", shortcut: null },
   { id: "security-scanner",     label: "Security Scanner",      emoji: "🛡️", shortcut: null },
   { id: "api-gateway-monitor",  label: "API Gateway",           emoji: "🌐", shortcut: null },
+  { id: "db-migrations",        label: "DB Migrations",         emoji: "🗄️", shortcut: null },
+  { id: "release-notes",        label: "Release Notes",         emoji: "📝", shortcut: null },
+  { id: "traffic-analytics",    label: "Traffic Analytics",     emoji: "📊", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -684,6 +690,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "user-devices":           <ContentSkeleton />,
   "security-scanner":       <ContentSkeleton />,
   "api-gateway-monitor":    <ContentSkeleton />,
+  "db-migrations":          <ContentSkeleton />,
+  "release-notes":          <ContentSkeleton />,
+  "traffic-analytics":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1126,6 +1135,9 @@ function AppContent() {
       case "user-devices":         return <UserDeviceManager />;
       case "security-scanner":     return <SecurityScannerDashboard />;
       case "api-gateway-monitor":  return <APIGatewayMonitor />;
+      case "db-migrations":        return <DatabaseMigrationManager />;
+      case "release-notes":        return <ReleaseNotesManager />;
+      case "traffic-analytics":    return <TrafficAnalyticsDashboard />;
       default:              return <AgentDashboard />;
     }
   };
