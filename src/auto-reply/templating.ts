@@ -25,6 +25,7 @@ export type MsgContext = {
     sender: string;
     body: string;
     timestamp?: number;
+    messageId?: string;
   }>;
   /**
    * Raw message body without structural context (history, sender labels).

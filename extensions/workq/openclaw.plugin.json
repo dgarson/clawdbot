@@ -1,0 +1,34 @@
+{
+  "id": "workq",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "dbPath": {
+        "type": "string",
+        "description": "Path to SQLite database file"
+      },
+      "staleThresholdHours": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Hours before a work item is flagged as stale"
+      }
+    }
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Work Queue"
+    },
+    "dbPath": {
+      "label": "Database Path",
+      "placeholder": "~/.openclaw/workq/workq.db"
+    },
+    "staleThresholdHours": {
+      "label": "Stale Threshold (hours)",
+      "placeholder": "24"
+    }
+  }
+}

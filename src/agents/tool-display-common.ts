@@ -25,7 +25,24 @@ function asRecord(args: unknown): ArgsRecord | undefined {
 }
 
 export function normalizeToolName(name?: string): string {
-  return (name ?? "tool").trim();
+  const raw = (name ?? "tool").trim();
+  if (!raw.startsWith("mcp__")) {
+    return raw;
+  }
+  // mcp__SERVER__toolname → strip MCP prefix
+  const withoutPrefix = raw.slice("mcp__".length);
+  const sepIdx = withoutPrefix.indexOf("__");
+  if (sepIdx === -1) {
+    return withoutPrefix.toLowerCase();
+  }
+  const server = withoutPrefix.slice(0, sepIdx).toLowerCase();
+  const toolName = withoutPrefix.slice(sepIdx + 2).toLowerCase();
+  // Internal openclaw-tools bridge: just the bare tool name
+  if (server === "openclaw-tools") {
+    return toolName;
+  }
+  // External MCP server: SERVER:toolname
+  return `${server}:${toolName}`;
 }
 
 export function defaultTitle(name: string): string {

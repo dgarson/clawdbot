@@ -5,6 +5,7 @@ import * as mediaStore from "../../media/store.js";
 import { type FetchMock, withFetchPreconnect } from "../../test-utils/fetch-mock.js";
 import {
   fetchWithSlackAuth,
+  resolveSlackAdjacentChannelHistory,
   resolveSlackAttachmentContent,
   resolveSlackMedia,
   resolveSlackThreadHistory,
@@ -656,5 +657,120 @@ describe("resolveSlackThreadHistory", () => {
     });
 
     expect(result).toEqual([]);
+  });
+});
+
+describe("resolveSlackAdjacentChannelHistory", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("fetches channel messages before threadTs, excluding thread replies", async () => {
+    const history = vi.fn().mockResolvedValueOnce({
+      messages: [
+        // Root message with replies
+        {
+          text: "start a thread",
+          user: "U1",
+          ts: "1700000002.000",
+          reply_count: 3,
+          latest_reply: "1700000030.000",
+        },
+        // Thread reply — should be excluded (thread_ts differs from ts)
+        { text: "a reply", user: "U2", ts: "1700000001.500", thread_ts: "1700000001.000" },
+        // Plain channel message
+        { text: "hello world", user: "U3", ts: "1700000001.000" },
+      ],
+      response_metadata: { next_cursor: "" },
+    });
+    const client = {
+      conversations: { history },
+    } as unknown as Parameters<typeof resolveSlackAdjacentChannelHistory>[0]["client"];
+
+    const result = await resolveSlackAdjacentChannelHistory({
+      channelId: "C1",
+      threadTs: "1700000010.000",
+      client,
+      limit: 5,
+    });
+
+    expect(history).toHaveBeenCalledOnce();
+    expect(history).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: "C1",
+        latest: "1700000010.000",
+        inclusive: false,
+        limit: expect.any(Number),
+      }),
+    );
+    // Thread replies should be excluded; root messages included
+    expect(result).toHaveLength(2);
+    expect(result[0]?.ts).toBe("1700000001.000");
+    expect(result[0]?.text).toBe("hello world");
+    expect(result[1]?.ts).toBe("1700000002.000");
+    expect(result[1]?.text).toBe("start a thread");
+    expect(result[1]?.replyCount).toBe(3);
+    expect(result[1]?.latestReply).toBe("1700000030.000");
+  });
+
+  it("returns empty when limit is zero without calling Slack API", async () => {
+    const history = vi.fn();
+    const client = {
+      conversations: { history },
+    } as unknown as Parameters<typeof resolveSlackAdjacentChannelHistory>[0]["client"];
+
+    const result = await resolveSlackAdjacentChannelHistory({
+      channelId: "C1",
+      threadTs: "1700000010.000",
+      client,
+      limit: 0,
+    });
+
+    expect(result).toEqual([]);
+    expect(history).not.toHaveBeenCalled();
+  });
+
+  it("returns empty when Slack API throws", async () => {
+    const history = vi.fn().mockRejectedValueOnce(new Error("slack down"));
+    const client = {
+      conversations: { history },
+    } as unknown as Parameters<typeof resolveSlackAdjacentChannelHistory>[0]["client"];
+
+    const result = await resolveSlackAdjacentChannelHistory({
+      channelId: "C1",
+      threadTs: "1700000010.000",
+      client,
+      limit: 5,
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("limits results to requested count", async () => {
+    // Slack conversations.history returns messages newest-first
+    const history = vi.fn().mockResolvedValueOnce({
+      messages: Array.from({ length: 10 }, (_, i) => ({
+        text: `msg-${10 - i}`,
+        user: "U1",
+        ts: `${1700000009 - i}.000`,
+      })),
+      response_metadata: { next_cursor: "" },
+    });
+    const client = {
+      conversations: { history },
+    } as unknown as Parameters<typeof resolveSlackAdjacentChannelHistory>[0]["client"];
+
+    const result = await resolveSlackAdjacentChannelHistory({
+      channelId: "C1",
+      threadTs: "1700000020.000",
+      client,
+      limit: 3,
+    });
+
+    expect(result).toHaveLength(3);
+    // Should return the 3 most recent messages, in chronological order (oldest first)
+    expect(result[0]?.text).toBe("msg-8");
+    expect(result[1]?.text).toBe("msg-9");
+    expect(result[2]?.text).toBe("msg-10");
   });
 });

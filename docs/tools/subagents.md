@@ -88,6 +88,71 @@ Auto-archive:
 - `runTimeoutSeconds` does **not** auto-archive; it only stops the run. The session remains until auto-archive.
 - Auto-archive applies equally to depth-1 and depth-2 sessions.
 
+## When to use what (quick decision table)
+
+| Scenario                                                                                         | `sessions_spawn`                                                                                                   | `sessions_send`                                                                                                                   | `subagents` (`steer`/`kill`/`list`)                                                                               |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Start a new isolated helper/orchestrator run that announces a final result back to the requester | ✅ Creates the child session and runs it independently; the announce step posts `Status` + `Result` automatically. | ❌ Only works for sessions that already exist.                                                                                    | ⚪ You can `list` the run for visibility, but management happens after the spawn.                                 |
+| Send incremental instructions or clarifications to a session you already created                 | ❌ Spawning again would duplicate work.                                                                            | ✅ Targets the existing session key and reuses the announce flow; `timeoutSeconds` waits for completion if you need final output. | ✅ Use `steer` when the session is a known sub-agent run and you want to nudge it without creating a new session. |
+| Inspect, steer, or cancel active sub-agent runs                                                  | ❌ Not applicable (spawn creates, does not manage).                                                                | ⚪ Not the right tool for lifecycle ops.                                                                                          | ✅ `list` reveals runs, `steer` injects guidance, `kill` stops the run (cascading to nested children).            |
+
+Remember: `sessions_spawn` always **creates a new isolated run** (new session key). `sessions_send` only **communicates with an existing session** and will never create a sibling. Use `subagents` actions when you need to manage a child run after it exists. All three flows are summarized on [the Tools index](/tools/index) and [Agent Send](/tools/agent-send).
+
+## Example workflows
+
+### Spawn background task and receive the completion announce
+
+```ts
+const spawnResult = await sessions_spawn({
+  task: "Audit 2025 release notes for risk flags",
+  label: "release-risk-audit",
+  model: "gpt-5.2",
+  thinking: "medium",
+});
+// { status: "accepted", runId, childSessionKey }
+console.log(`Spawned ${spawnResult.runId}`);
+```
+
+`sessions_spawn` creates a brand-new child session (`deliver=false`, `global lane=subagent`). The run sends a system message back to the requester channel as soon as it finishes, e.g.:
+
+```
+System: Result: "Risk gaps sorted by severity" | Status: completed successfully | runtime 4m12s | tokens 1.2k | sessionKey agent:claire:subagent:...
+```
+
+If you want real-time visibility before that announce arrives, call `subagents({ action: "list" })` or `sessions_list({ kinds: ["agent"] })` to see the new session key without interfering. The completion message is reliable—no extra `deliver` or `send` call is needed.
+
+### Message an already-running session
+
+```ts
+const { sessions } = await sessions_list({ kinds: ["agent"], limit: 20 });
+const child = sessions.find((s) => s.label === "release-risk-audit");
+await sessions_send({
+  sessionKey: child.sessionKey,
+  message: "Follow up: prioritize infrastructure risk, not feature requests.",
+  timeoutSeconds: 60,
+});
+```
+
+`sessions_send` targets the already-running session (no new run is created). It re-enters the session, delivers the clarification, and waits for whatever announce step that session emits next (or returns immediately if `timeoutSeconds` is `0`). Use it when you need to keep the same context around an existing instrumented agent run.
+
+### Steer or kill a spawned run
+
+```ts
+const { runs } = await subagents({ action: "list" });
+const run = runs.find((r) => r.label === "release-risk-audit");
+await subagents({
+  action: "steer",
+  runId: run.id,
+  message: "Drop the product suggestions section and focus on security only.",
+});
+// Later, if the run stalls:
+await subagents({ action: "kill", runId: run.id });
+```
+
+`subagents steer` is a convenience wrapper around the same delivery flow as `sessions_send`, but it is scoped to the run ids you already see in `subagents list`. `subagents kill` stops the run and cascades to its children, while `subagents list` keeps you aware of every active child session.
+
+For CLI-based runs and direct sessions, see [Agent Send](/tools/agent-send) and this section of the [Tools index](/tools/index#sessions_list--sessions_history--sessions_send--sessions_spawn--session_status).
+
 ## Nested Sub-Agents
 
 By default, sub-agents can spawn one additional level (`maxSpawnDepth: 2`), enabling the **orchestrator pattern**: main → orchestrator sub-agent → worker sub-sub-agents. Set `maxSpawnDepth: 1` to disable nested spawning.

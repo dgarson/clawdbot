@@ -86,7 +86,7 @@ Global runtime flags
 ```bash
 peekaboo permissions
 peekaboo list apps --json
-peekaboo see --annotate --path /tmp/peekaboo-see.png
+peekaboo see --annotate --path /tmp/openclaw/peekaboo-see.png
 peekaboo click --on B1
 peekaboo type "Hello" --return
 ```
@@ -118,7 +118,7 @@ peekaboo type "Hello" --return
 ### See -> click -> type (most reliable flow)
 
 ```bash
-peekaboo see --app Safari --window-title "Login" --annotate --path /tmp/see.png
+peekaboo see --app Safari --window-title "Login" --annotate --path /tmp/openclaw/see.png
 peekaboo click --on B3 --app Safari
 peekaboo type "user@example.com" --app Safari
 peekaboo press tab --count 1 --app Safari
@@ -136,7 +136,7 @@ peekaboo type "Hello from Peekaboo" --window-id 12345
 ### Capture screenshots + analyze
 
 ```bash
-peekaboo image --mode screen --screen-index 0 --retina --path /tmp/screen.png
+peekaboo image --mode screen --screen-index 0 --retina --path /tmp/openclaw/screen.png
 peekaboo image --app Safari --window-title "Dashboard" --analyze "Summarize KPIs"
 peekaboo see --mode screen --screen-index 0 --analyze "Summarize the dashboard"
 ```
@@ -145,7 +145,7 @@ peekaboo see --mode screen --screen-index 0 --analyze "Summarize the dashboard"
 
 ```bash
 peekaboo capture live --mode region --region 100,100,800,600 --duration 30 \
-  --active-fps 8 --idle-fps 2 --highlight-changes --path /tmp/capture
+  --active-fps 8 --idle-fps 2 --highlight-changes --path /tmp/openclaw/capture
 ```
 
 ### App + window management

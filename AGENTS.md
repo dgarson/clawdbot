@@ -103,6 +103,9 @@
 
 - Create commits with `scripts/committer "<msg>" <file...>`; avoid manual `git add`/`git commit` so staging stays scoped.
 - Follow concise, action-oriented commit messages (e.g., `CLI: add verbose flag to send`).
+- For work-queue tracked tasks, include a footer for deterministic reconciliation:
+  - `closes workq:<owner/repo#ref>` when the commit completes the item.
+  - `refs workq:<owner/repo#ref>` when the commit is related but not complete.
 - Group related changes; avoid bundling unrelated refactors.
 - PR submission template (canonical): `.github/pull_request_template.md`
 - Issue submission templates (canonical): `.github/ISSUE_TEMPLATE/`

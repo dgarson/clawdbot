@@ -420,6 +420,7 @@ export function buildIMessageInboundContext(params: {
           sender: entry.sender,
           body: entry.body,
           timestamp: entry.timestamp,
+          ...(entry.messageId ? { messageId: entry.messageId } : {}),
         }))
       : undefined;
 

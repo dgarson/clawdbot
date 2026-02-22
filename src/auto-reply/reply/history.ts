@@ -1,7 +1,7 @@
 import { CURRENT_MESSAGE_MARKER } from "./mentions.js";
 
 export const HISTORY_CONTEXT_MARKER = "[Chat messages since your last reply - for context]";
-export const DEFAULT_GROUP_HISTORY_LIMIT = 50;
+export const DEFAULT_GROUP_HISTORY_LIMIT = 10;
 
 /** Maximum number of group history keys to retain (LRU eviction when exceeded). */
 export const MAX_HISTORY_KEYS = 1000;

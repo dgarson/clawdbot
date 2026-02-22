@@ -90,6 +90,19 @@ function resolveByName(
   return active ?? matches[0];
 }
 
+/**
+ * Looks up a single Slack channel by name. Returns the channel ID if found,
+ * or undefined if no channel with that name exists.
+ */
+export async function lookupSlackChannelByName(
+  name: string,
+  client: WebClient,
+): Promise<string | undefined> {
+  const channels = await listSlackChannels(client);
+  const match = resolveByName(name, channels);
+  return match?.id;
+}
+
 export async function resolveSlackChannelAllowlist(params: {
   token: string;
   entries: string[];
