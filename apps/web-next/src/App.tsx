@@ -145,6 +145,9 @@ const ThreatIntelligenceFeed = React.lazy(() => import("./views/ThreatIntelligen
 const PipelineMonitor      = React.lazy(() => import("./views/PipelineMonitor"));
 const A11yAuditDashboard   = React.lazy(() => import("./views/A11yAuditDashboard"));
 const DesignTokenManager   = React.lazy(() => import("./views/DesignTokenManager"));
+const WebhookPlayground    = React.lazy(() => import("./views/WebhookPlayground"));
+const SLAManager           = React.lazy(() => import("./views/SLAManager"));
+const DocumentationViewer  = React.lazy(() => import("./views/DocumentationViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -267,6 +270,9 @@ export const navItems = [
   { id: "pipeline-monitor", label: "Pipeline Monitor",    emoji: "⚙️", shortcut: null },
   { id: "a11y-audit",       label: "A11y Audit",          emoji: "♿", shortcut: null },
   { id: "design-tokens",    label: "Design Tokens",       emoji: "🎨", shortcut: null },
+  { id: "webhook-play",     label: "Webhook Playground",  emoji: "📨", shortcut: null },
+  { id: "sla-manager",      label: "SLA Manager",         emoji: "📋", shortcut: null },
+  { id: "docs",             label: "Documentation",       emoji: "📖", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -390,6 +396,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "pipeline-monitor":    <ContentSkeleton />,
   "a11y-audit":          <ContentSkeleton />,
   "design-tokens":       <ContentSkeleton />,
+  "webhook-play":        <ContentSkeleton />,
+  "sla-manager":         <ContentSkeleton />,
+  "docs":                <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -734,6 +743,9 @@ function AppContent() {
       case "pipeline-monitor":   return <PipelineMonitor />;
       case "a11y-audit":         return <A11yAuditDashboard />;
       case "design-tokens":      return <DesignTokenManager />;
+      case "webhook-play":       return <WebhookPlayground />;
+      case "sla-manager":        return <SLAManager />;
+      case "docs":               return <DocumentationViewer />;
       default:              return <AgentDashboard />;
     }
   };
