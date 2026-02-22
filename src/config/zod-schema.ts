@@ -13,6 +13,7 @@ import {
   SessionSchema,
   SessionSendPolicySchema,
 } from "./zod-schema.session.js";
+import { UteeSchema } from "./zod-schema.utee.js";
 
 const BrowserSnapshotDefaultsSchema = z
   .object({
@@ -662,6 +663,7 @@ export const OpenClawSchema = z
       })
       .strict()
       .optional(),
+    utee: UteeSchema,
   })
   .strict()
   .superRefine((cfg, ctx) => {
