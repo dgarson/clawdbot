@@ -27,9 +27,9 @@ Things like:
 
 ### TTS
 
-- **Provider**: OpenAI TTS (`tts-1-hd`) — canonical script: `~/.openclaw/workspace/_shared/scripts/openai-tts.sh`
+- **Provider**: OpenAI TTS (`tts-1-hd`) — canonical script: `/Users/openclaw/.openclaw/workspace/_shared/scripts/openai-tts.sh`
 - **Merlin's voice**: `fable` (warm British — fits the character)
-- **Output path**: always write to `~/.openclaw/workspace/_shared/audio/` — **never `/tmp/`** (Slack rejects attachments outside workspace)
+- **Output path**: always write to `/Users/openclaw/.openclaw/workspace/_shared/audio/` — **never `/tmp/`** (Slack rejects attachments outside workspace)
 - Do NOT use `sag` (ElevenLabs), macOS `say`, or Edge TTS — OpenAI TTS is the standard
 - Attach generated MP3s via `filePath` parameter in the `message` tool — never post raw `MEDIA:` paths
 - See the `openai-tts` skill for full docs and voice table

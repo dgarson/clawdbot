@@ -22,7 +22,7 @@ Generate speech audio via OpenAI's `/v1/audio/speech` endpoint.
 ## Canonical script
 
 ```
-~/.openclaw/workspace/_shared/scripts/openai-tts.sh
+/Users/openclaw/.openclaw/workspace/_shared/scripts/openai-tts.sh
 ```
 
 This is the shared script used by all agents. Do not use the `sag` (ElevenLabs) CLI, macOS `say`, or Edge TTS.
@@ -30,19 +30,19 @@ This is the shared script used by all agents. Do not use the `sag` (ElevenLabs) 
 ## Quick start
 
 ```bash
-SCRIPT=~/.openclaw/workspace/_shared/scripts/openai-tts.sh
+SCRIPT=/Users/openclaw/.openclaw/workspace/_shared/scripts/openai-tts.sh
 
 # Basic — text argument
-$SCRIPT -v fable -o ~/.openclaw/workspace/_shared/audio/report.mp3 "Hello, here is your update."
+$SCRIPT -v fable -o /Users/openclaw/.openclaw/workspace/_shared/audio/report.mp3 "Hello, here is your update."
 
 # Pipe from stdin
-echo "Long report text..." | $SCRIPT -v fable -o ~/.openclaw/workspace/_shared/audio/report.mp3
+echo "Long report text..." | $SCRIPT -v fable -o /Users/openclaw/.openclaw/workspace/_shared/audio/report.mp3
 
 # Higher quality model
-$SCRIPT -v onyx -m tts-1-hd -o ~/.openclaw/workspace/_shared/audio/report.mp3 "Text here"
+$SCRIPT -v onyx -m tts-1-hd -o /Users/openclaw/.openclaw/workspace/_shared/audio/report.mp3 "Text here"
 
 # Control speed
-$SCRIPT -v nova -s 1.1 -o ~/.openclaw/workspace/_shared/audio/report.mp3 "Text here"
+$SCRIPT -v nova -s 1.1 -o /Users/openclaw/.openclaw/workspace/_shared/audio/report.mp3 "Text here"
 ```
 
 ## Flags
@@ -63,7 +63,7 @@ Slack and other channel integrations will reject attachments from `/tmp/` due to
 Use:
 
 ```
-~/.openclaw/workspace/_shared/audio/<label>.mp3
+/Users/openclaw/.openclaw/workspace/_shared/audio/<label>.mp3
 ~/.openclaw/workspace/<agent>/audio/<label>.mp3
 ```
 
@@ -96,8 +96,8 @@ Each agent has a specific assigned voice in their `TOOLS.md`. Use your assigned 
 ## Full example
 
 ```bash
-SCRIPT=~/.openclaw/workspace/_shared/scripts/openai-tts.sh
-OUT=~/.openclaw/workspace/_shared/audio/status-$(date +%Y%m%d-%H%M%S).mp3
+SCRIPT=/Users/openclaw/.openclaw/workspace/_shared/scripts/openai-tts.sh
+OUT=/Users/openclaw/.openclaw/workspace/_shared/audio/status-$(date +%Y%m%d-%H%M%S).mp3
 
 $SCRIPT -v fable -m tts-1-hd -o "$OUT" "Here is your weekly status update..."
 
@@ -114,8 +114,8 @@ $SCRIPT -v fable -m tts-1-hd -o "$OUT" "Here is your weekly status update..."
 Split into parts and concatenate with ffmpeg:
 
 ```bash
-$SCRIPT -v fable -o ~/.openclaw/workspace/_shared/audio/p1.mp3 "Part 1 text..."
-$SCRIPT -v fable -o ~/.openclaw/workspace/_shared/audio/p2.mp3 "Part 2 text..."
-ffmpeg -i "concat:~/.openclaw/workspace/_shared/audio/p1.mp3|~/.openclaw/workspace/_shared/audio/p2.mp3" \
-  -acodec copy ~/.openclaw/workspace/_shared/audio/full-report.mp3
+$SCRIPT -v fable -o /Users/openclaw/.openclaw/workspace/_shared/audio/p1.mp3 "Part 1 text..."
+$SCRIPT -v fable -o /Users/openclaw/.openclaw/workspace/_shared/audio/p2.mp3 "Part 2 text..."
+ffmpeg -i "concat:/Users/openclaw/.openclaw/workspace/_shared/audio/p1.mp3|/Users/openclaw/.openclaw/workspace/_shared/audio/p2.mp3" \
+  -acodec copy /Users/openclaw/.openclaw/workspace/_shared/audio/full-report.mp3
 ```
