@@ -158,6 +158,10 @@ const MultiTenantManager   = React.lazy(() => import("./views/MultiTenantManager
 const MLModelRegistry      = React.lazy(() => import("./views/MLModelRegistry"));
 const EventStreamViewer    = React.lazy(() => import("./views/EventStreamViewer"));
 const PermissionsMatrix    = React.lazy(() => import("./views/PermissionsMatrix"));
+const ChangelogViewer        = React.lazy(() => import("./views/ChangelogViewer"));
+const ResourceQuotaManager   = React.lazy(() => import("./views/ResourceQuotaManager"));
+const DatabaseQueryBuilder   = React.lazy(() => import("./views/DatabaseQueryBuilder"));
+const InvoiceManager         = React.lazy(() => import("./views/InvoiceManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -293,6 +297,10 @@ export const navItems = [
   { id: "ml-registry",      label: "ML Model Registry",  emoji: "🤖", shortcut: null },
   { id: "event-stream",     label: "Event Streams",       emoji: "📡", shortcut: null },
   { id: "perms-matrix",     label: "Permissions Matrix",  emoji: "🔐", shortcut: null },
+  { id: "changelog-v2",      label: "Changelog Viewer",    emoji: "📝", shortcut: null },
+  { id: "quota-mgr",        label: "Resource Quotas",     emoji: "📊", shortcut: null },
+  { id: "db-query",         label: "DB Query Builder",    emoji: "🗃️", shortcut: null },
+  { id: "invoices",         label: "Invoice Manager",     emoji: "🧾", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -429,6 +437,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "ml-registry":         <ContentSkeleton />,
   "event-stream":        <ContentSkeleton />,
   "perms-matrix":        <ContentSkeleton />,
+  "changelog-v2":        <ContentSkeleton />,
+  "quota-mgr":           <ContentSkeleton />,
+  "db-query":            <ContentSkeleton />,
+  "invoices":            <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -786,6 +798,10 @@ function AppContent() {
       case "ml-registry":        return <MLModelRegistry />;
       case "event-stream":       return <EventStreamViewer />;
       case "perms-matrix":       return <PermissionsMatrix />;
+      case "changelog-v2":       return <ChangelogViewer />;
+      case "quota-mgr":          return <ResourceQuotaManager />;
+      case "db-query":           return <DatabaseQueryBuilder />;
+      case "invoices":           return <InvoiceManager />;
       default:              return <AgentDashboard />;
     }
   };
