@@ -26,7 +26,11 @@ interface AgentSoulEditorProps {
 
 // Lazy-load all views with proper typing
 const MorningPacket = React.lazy(() => import("./views/MorningPacket"));
-const DiscoveryRunMonitor = React.lazy(() => import("./views/DiscoveryRunMonitor"));
+const DiscoveryRunMonitor          = React.lazy(() => import("./views/DiscoveryRunMonitor"));
+const BraveAPIKeySetupWizard       = React.lazy(() => import("./views/BraveAPIKeySetupWizard"));
+const DiscoveryWaveResults         = React.lazy(() => import("./views/DiscoveryWaveResults"));
+const DiscoveryAgentCostTracker    = React.lazy(() => import("./views/DiscoveryAgentCostTracker"));
+const ToolReliabilityDashboard     = React.lazy(() => import("./views/ToolReliabilityDashboard"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -296,7 +300,11 @@ const FeatureFlagManager             = React.lazy(() => import("./views/FeatureF
 
 export const navItems = [
   { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
-  { id: "discovery-run-monitor", label: "Discovery Monitor",     emoji: "🔭", shortcut: null },
+  { id: "discovery-run-monitor",   label: "Discovery Monitor",    emoji: "🔭", shortcut: null },
+  { id: "brave-api-wizard",        label: "Brave API Setup",      emoji: "🔑", shortcut: null },
+  { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
+  { id: "agent-cost-tracker",      label: "Agent Cost Tracker",   emoji: "💰", shortcut: null },
+  { id: "tool-reliability",        label: "Tool Reliability",     emoji: "🛡️", shortcut: null },
   { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
@@ -918,12 +926,12 @@ function AppContent() {
       setNavHistory((prev) => {
         const trimmed = prev.slice(0, historyIndex + 1);
         // Don't push if same as current
-        if (trimmed[trimmed.length - 1] === viewId) return prev;
+        if (trimmed[trimmed.length - 1] === viewId) {return prev;}
         return [...trimmed, viewId];
       });
       setHistoryIndex((i) => {
         const trimmed = navHistory.slice(0, i + 1);
-        if (trimmed[trimmed.length - 1] === viewId) return i;
+        if (trimmed[trimmed.length - 1] === viewId) {return i;}
         return i + 1;
       });
     }
@@ -939,14 +947,14 @@ function AppContent() {
   }, [historyIndex, navHistory, visitView, recordInteraction]);
 
   const goBack = useCallback(() => {
-    if (!canGoBack) return;
+    if (!canGoBack) {return;}
     const newIndex = historyIndex - 1;
     setHistoryIndex(newIndex);
     setActiveView(navHistory[newIndex]);
   }, [canGoBack, historyIndex, navHistory]);
 
   const goForward = useCallback(() => {
-    if (!canGoForward) return;
+    if (!canGoForward) {return;}
     const newIndex = historyIndex + 1;
     setHistoryIndex(newIndex);
     setActiveView(navHistory[newIndex]);
@@ -975,7 +983,7 @@ function AppContent() {
         if (mobileSidebarOpen) { setMobileSidebarOpen(false); return; }
       }
 
-      if (isInput || cmdPaletteOpen || shortcutsOpen) return;
+      if (isInput || cmdPaletteOpen || shortcutsOpen) {return;}
 
       // ? — keyboard shortcuts help
       if (e.key === "?") {
@@ -1048,14 +1056,18 @@ function AppContent() {
       setHighlightedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       const item = allPaletteItems[highlightedIndex];
-      if (item) navigate(item.id);
+      if (item) {navigate(item.id);}
     }
   };
 
   const renderView = () => {
     switch (activeView) {
       case "morning-packet": return <MorningPacket />;
-      case "discovery-run-monitor": return <DiscoveryRunMonitor />;
+      case "discovery-run-monitor":   return <DiscoveryRunMonitor />;
+      case "brave-api-wizard":        return <BraveAPIKeySetupWizard />;
+      case "discovery-wave-results":  return <DiscoveryWaveResults />;
+      case "agent-cost-tracker":      return <DiscoveryAgentCostTracker />;
+      case "tool-reliability":        return <ToolReliabilityDashboard />;
       case "dashboard":     return <AgentDashboard />;
       case "chat":          return <ChatInterface agentName="Luis" agentEmoji="🎨" />;
       case "builder":       return <AgentBuilderWizard />;
