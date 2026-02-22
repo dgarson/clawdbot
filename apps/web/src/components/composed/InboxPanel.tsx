@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ApprovalsQueue, MilestoneFeed } from "@/components/domain/approvals";
 import { usePendingApprovals } from "@/hooks/usePendingApprovals";
-import { useOptionalGateway } from "@/providers/GatewayProvider";
-import { useAgentStore } from "@/stores/useAgentStore";
-import { showError, showSuccess } from "@/lib/toast";
+import { useToolCallActions } from "@/hooks/useToolCallActions";
 
 export interface InboxPanelProps {
   open: boolean;
@@ -17,46 +15,7 @@ export interface InboxPanelProps {
 
 export function InboxPanel({ open, onOpenChange }: InboxPanelProps) {
   const approvals = usePendingApprovals();
-  const gatewayCtx = useOptionalGateway();
-  const updateAgentWith = useAgentStore((s) => s.updateAgentWith);
-
-  const handleApprove = async (toolCallId: string) => {
-    const approval = approvals.find((a) => a.toolCall.toolCallId === toolCallId);
-    if (!approval) return;
-    if (!gatewayCtx?.isConnected) {
-      showError("Gateway not connected.");
-      return;
-    }
-    try {
-      await gatewayCtx.client.request("tool.approve", { toolCallId });
-      updateAgentWith(approval.agentId, (agent) => {
-        const remaining = (agent.pendingToolCallIds ?? []).filter((id) => id !== toolCallId);
-        return { ...agent, pendingToolCallIds: remaining, pendingApprovals: remaining.length };
-      });
-      showSuccess("Approved.");
-    } catch {
-      showError("Failed to approve. The request may have expired.");
-    }
-  };
-
-  const handleReject = async (toolCallId: string) => {
-    const approval = approvals.find((a) => a.toolCall.toolCallId === toolCallId);
-    if (!approval) return;
-    if (!gatewayCtx?.isConnected) {
-      showError("Gateway not connected.");
-      return;
-    }
-    try {
-      await gatewayCtx.client.request("tool.reject", { toolCallId, reason: "Denied by operator" });
-      updateAgentWith(approval.agentId, (agent) => {
-        const remaining = (agent.pendingToolCallIds ?? []).filter((id) => id !== toolCallId);
-        return { ...agent, pendingToolCallIds: remaining, pendingApprovals: remaining.length };
-      });
-      showSuccess("Rejected.");
-    } catch {
-      showError("Failed to reject. The request may have expired.");
-    }
-  };
+  const { approveToolCall, rejectToolCall } = useToolCallActions(approvals);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -87,8 +46,8 @@ export function InboxPanel({ open, onOpenChange }: InboxPanelProps) {
             <ApprovalsQueue
               approvals={approvals}
               mode="compact"
-              onApprove={(id) => { void handleApprove(id); }}
-              onReject={(id) => { void handleReject(id); }}
+              onApprove={(id) => { void approveToolCall(id); }}
+              onReject={(id) => { void rejectToolCall(id); }}
             />
           </div>
 

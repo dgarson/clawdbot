@@ -343,7 +343,7 @@ function AgentsPage() {
                     variant="expanded"
                     onChat={() => handleChat(agent)}
                     onSettings={() => {
-                      void navigate({ to: "/agents/$agentId/configure", params: { agentId: agent.id } });
+                      void navigate({ to: "/agents/$agentId", params: { agentId: agent.id }, search: { tab: "configure" } });
                     }}
                     onToggle={() => handleToggleAgent(agent)}
                     onViewSession={() => handleViewSession(agent)}

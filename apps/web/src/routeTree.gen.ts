@@ -38,7 +38,6 @@ import { Route as AgentsNewRouteImport } from './routes/agents/new'
 import { Route as AgentsGraphRouteImport } from './routes/agents/graph'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as ConversationsIdAgenticRouteImport } from './routes/conversations/$id/agentic'
-import { Route as AgentsAgentIdConfigureRouteImport } from './routes/agents/$agentId/configure'
 import { Route as AgentsAgentIdSessionIndexRouteImport } from './routes/agents/$agentId/session/index'
 import { Route as AgentsAgentIdSessionSessionKeyRouteImport } from './routes/agents/$agentId/session/$sessionKey'
 
@@ -189,11 +188,6 @@ const ConversationsIdAgenticRoute = ConversationsIdAgenticRouteImport.update({
   path: '/agentic',
   getParentRoute: () => ConversationsIdRoute,
 } as any)
-const AgentsAgentIdConfigureRoute = AgentsAgentIdConfigureRouteImport.update({
-  id: '/configure',
-  path: '/configure',
-  getParentRoute: () => AgentsAgentIdRoute,
-} as any)
 const AgentsAgentIdSessionIndexRoute =
   AgentsAgentIdSessionIndexRouteImport.update({
     id: '/session/',
@@ -236,7 +230,6 @@ export interface FileRoutesByFullPath {
   '/unlock/': typeof UnlockIndexRoute
   '/workstreams/': typeof WorkstreamsIndexRoute
   '/you/': typeof YouIndexRoute
-  '/agents/$agentId/configure': typeof AgentsAgentIdConfigureRoute
   '/conversations/$id/agentic': typeof ConversationsIdAgenticRoute
   '/agents/$agentId/session/$sessionKey': typeof AgentsAgentIdSessionSessionKeyRoute
   '/agents/$agentId/session/': typeof AgentsAgentIdSessionIndexRoute
@@ -270,7 +263,6 @@ export interface FileRoutesByTo {
   '/unlock': typeof UnlockIndexRoute
   '/workstreams': typeof WorkstreamsIndexRoute
   '/you': typeof YouIndexRoute
-  '/agents/$agentId/configure': typeof AgentsAgentIdConfigureRoute
   '/conversations/$id/agentic': typeof ConversationsIdAgenticRoute
   '/agents/$agentId/session/$sessionKey': typeof AgentsAgentIdSessionSessionKeyRoute
   '/agents/$agentId/session': typeof AgentsAgentIdSessionIndexRoute
@@ -305,7 +297,6 @@ export interface FileRoutesById {
   '/unlock/': typeof UnlockIndexRoute
   '/workstreams/': typeof WorkstreamsIndexRoute
   '/you/': typeof YouIndexRoute
-  '/agents/$agentId/configure': typeof AgentsAgentIdConfigureRoute
   '/conversations/$id/agentic': typeof ConversationsIdAgenticRoute
   '/agents/$agentId/session/$sessionKey': typeof AgentsAgentIdSessionSessionKeyRoute
   '/agents/$agentId/session/': typeof AgentsAgentIdSessionIndexRoute
@@ -341,7 +332,6 @@ export interface FileRouteTypes {
     | '/unlock/'
     | '/workstreams/'
     | '/you/'
-    | '/agents/$agentId/configure'
     | '/conversations/$id/agentic'
     | '/agents/$agentId/session/$sessionKey'
     | '/agents/$agentId/session/'
@@ -375,7 +365,6 @@ export interface FileRouteTypes {
     | '/unlock'
     | '/workstreams'
     | '/you'
-    | '/agents/$agentId/configure'
     | '/conversations/$id/agentic'
     | '/agents/$agentId/session/$sessionKey'
     | '/agents/$agentId/session'
@@ -409,7 +398,6 @@ export interface FileRouteTypes {
     | '/unlock/'
     | '/workstreams/'
     | '/you/'
-    | '/agents/$agentId/configure'
     | '/conversations/$id/agentic'
     | '/agents/$agentId/session/$sessionKey'
     | '/agents/$agentId/session/'
@@ -651,13 +639,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConversationsIdAgenticRouteImport
       parentRoute: typeof ConversationsIdRoute
     }
-    '/agents/$agentId/configure': {
-      id: '/agents/$agentId/configure'
-      path: '/configure'
-      fullPath: '/agents/$agentId/configure'
-      preLoaderRoute: typeof AgentsAgentIdConfigureRouteImport
-      parentRoute: typeof AgentsAgentIdRoute
-    }
     '/agents/$agentId/session/': {
       id: '/agents/$agentId/session/'
       path: '/session'
@@ -676,13 +657,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface AgentsAgentIdRouteChildren {
-  AgentsAgentIdConfigureRoute: typeof AgentsAgentIdConfigureRoute
   AgentsAgentIdSessionSessionKeyRoute: typeof AgentsAgentIdSessionSessionKeyRoute
   AgentsAgentIdSessionIndexRoute: typeof AgentsAgentIdSessionIndexRoute
 }
 
 const AgentsAgentIdRouteChildren: AgentsAgentIdRouteChildren = {
-  AgentsAgentIdConfigureRoute: AgentsAgentIdConfigureRoute,
   AgentsAgentIdSessionSessionKeyRoute: AgentsAgentIdSessionSessionKeyRoute,
   AgentsAgentIdSessionIndexRoute: AgentsAgentIdSessionIndexRoute,
 }

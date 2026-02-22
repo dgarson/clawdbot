@@ -3,103 +3,13 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ApprovalsQueue, MilestoneFeed } from "@/components/domain/approvals";
 import { usePendingApprovals } from "@/hooks/usePendingApprovals";
-import { useOptionalGateway } from "@/providers/GatewayProvider";
-import { useAgentStore } from "@/stores/useAgentStore";
-import { showError, showSuccess } from "@/lib/toast";
+import { useToolCallActions } from "@/hooks/useToolCallActions";
 
 export const Route = createLazyFileRoute("/approvals")({ component: ApprovalsPage });
 
 function ApprovalsPage() {
   const approvals = usePendingApprovals();
-  const gatewayCtx = useOptionalGateway();
-  const updateAgentWith = useAgentStore((s) => s.updateAgentWith);
-
-  const approveToolCall = async (toolCallId: string) => {
-    const approval = approvals.find((a) => a.toolCall.toolCallId === toolCallId);
-    if (!approval) return;
-    if (!gatewayCtx?.isConnected) {
-      showError("Gateway not connected.");
-      return;
-    }
-    try {
-      await gatewayCtx.client.request("tool.approve", { toolCallId });
-      updateAgentWith(approval.agentId, (agent) => {
-        const remaining = (agent.pendingToolCallIds ?? []).filter((id) => id !== toolCallId);
-        return { ...agent, pendingToolCallIds: remaining, pendingApprovals: remaining.length };
-      });
-      showSuccess("Approved.");
-    } catch {
-      showError("Failed to approve. The request may have expired.");
-    }
-  };
-
-  const rejectToolCall = async (toolCallId: string) => {
-    const approval = approvals.find((a) => a.toolCall.toolCallId === toolCallId);
-    if (!approval) return;
-    if (!gatewayCtx?.isConnected) {
-      showError("Gateway not connected.");
-      return;
-    }
-    try {
-      await gatewayCtx.client.request("tool.reject", { toolCallId, reason: "Denied by operator" });
-      updateAgentWith(approval.agentId, (agent) => {
-        const remaining = (agent.pendingToolCallIds ?? []).filter((id) => id !== toolCallId);
-        return { ...agent, pendingToolCallIds: remaining, pendingApprovals: remaining.length };
-      });
-      showSuccess("Rejected.");
-    } catch {
-      showError("Failed to reject. The request may have expired.");
-    }
-  };
-
-  const approveAllForAgent = async (agentId: string) => {
-    if (!gatewayCtx?.isConnected) {
-      showError("Gateway not connected.");
-      return;
-    }
-    const agentApprovals = approvals.filter((a) => a.agentId === agentId);
-    try {
-      await Promise.all(
-        agentApprovals.map((a) =>
-          gatewayCtx.client.request("tool.approve", { toolCallId: a.toolCall.toolCallId }),
-        ),
-      );
-      updateAgentWith(agentId, (agent) => ({
-        ...agent,
-        pendingToolCallIds: [],
-        pendingApprovals: 0,
-      }));
-      showSuccess(`Approved ${agentApprovals.length} requests.`);
-    } catch {
-      showError("Failed to approve all. Some requests may have expired.");
-    }
-  };
-
-  const rejectAllForAgent = async (agentId: string) => {
-    if (!gatewayCtx?.isConnected) {
-      showError("Gateway not connected.");
-      return;
-    }
-    const agentApprovals = approvals.filter((a) => a.agentId === agentId);
-    try {
-      await Promise.all(
-        agentApprovals.map((a) =>
-          gatewayCtx.client.request("tool.reject", {
-            toolCallId: a.toolCall.toolCallId,
-            reason: "Denied by operator",
-          }),
-        ),
-      );
-      updateAgentWith(agentId, (agent) => ({
-        ...agent,
-        pendingToolCallIds: [],
-        pendingApprovals: 0,
-      }));
-      showSuccess(`Rejected ${agentApprovals.length} requests.`);
-    } catch {
-      showError("Failed to reject all. Some requests may have expired.");
-    }
-  };
+  const { approveToolCall, rejectToolCall, approveAllForAgent, rejectAllForAgent } = useToolCallActions(approvals);
 
   // Low-risk agent IDs for the batch approve button
   const lowRiskAgentIds = [
