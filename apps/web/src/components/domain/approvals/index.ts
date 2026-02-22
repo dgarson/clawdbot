@@ -6,3 +6,5 @@ export { MilestoneItem } from "./MilestoneItem";
 export type { MilestoneItemProps } from "./MilestoneItem";
 export { MilestoneDetailPanel } from "./MilestoneDetailPanel";
 export type { MilestoneDetailPanelProps } from "./MilestoneDetailPanel";
+export { MilestoneFeed } from "./MilestoneFeed";
+export type { MilestoneFeedProps } from "./MilestoneFeed";
