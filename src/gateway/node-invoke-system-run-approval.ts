@@ -2,7 +2,11 @@ import {
   formatExecCommand,
   validateSystemRunCommandConsistency,
 } from "../infra/system-run-command.js";
-import type { ExecApprovalManager, ExecApprovalRecord } from "./exec-approval-manager.js";
+import type {
+  ExecApprovalManager,
+  ExecApprovalRecord,
+  HitlRequestPayload,
+} from "./exec-approval-manager.js";
 import type { GatewayClient } from "./server-methods/types.js";
 
 type SystemRunParamsLike = {
