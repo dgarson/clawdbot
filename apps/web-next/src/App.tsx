@@ -253,6 +253,8 @@ const InfrastructureCostManager      = React.lazy(() => import("./views/Infrastr
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
 const MLExperimentTracker            = React.lazy(() => import("./views/MLExperimentTracker"));
+const DisasterRecoveryPlanner        = React.lazy(() => import("./views/DisasterRecoveryPlanner"));
+const DataRetentionManager           = React.lazy(() => import("./views/DataRetentionManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -480,6 +482,11 @@ export const navItems = [
   { id: "env-config",           label: "Env Config",            emoji: "⚙️", shortcut: null },
   { id: "user-perms",           label: "User Permissions",      emoji: "👥", shortcut: null },
   { id: "infra-cost-mgr",       label: "Infra Cost",            emoji: "💸", shortcut: null },
+  { id: "db-schema-viewer",     label: "DB Schema",             emoji: "🗃️", shortcut: null },
+  { id: "deploy-env-mgr",       label: "Deploy Environments",   emoji: "🚀", shortcut: null },
+  { id: "ml-experiment",        label: "ML Experiments",        emoji: "🧪", shortcut: null },
+  { id: "disaster-recovery",    label: "Disaster Recovery",     emoji: "🛟", shortcut: null },
+  { id: "data-retention",       label: "Data Retention",        emoji: "🗑️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -708,6 +715,11 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "env-config":             <ContentSkeleton />,
   "user-perms":             <ContentSkeleton />,
   "infra-cost-mgr":         <ContentSkeleton />,
+  "db-schema-viewer":       <ContentSkeleton />,
+  "deploy-env-mgr":         <ContentSkeleton />,
+  "ml-experiment":          <ContentSkeleton />,
+  "disaster-recovery":      <ContentSkeleton />,
+  "data-retention":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1160,6 +1172,8 @@ function AppContent() {
       case "db-schema-viewer":     return <DatabaseSchemaViewer />;
       case "deploy-env-mgr":       return <DeploymentEnvironmentManager />;
       case "ml-experiment":        return <MLExperimentTracker />;
+      case "disaster-recovery":    return <DisasterRecoveryPlanner />;
+      case "data-retention":       return <DataRetentionManager />;
       default:              return <AgentDashboard />;
     }
   };
