@@ -255,6 +255,7 @@ const TokenUsageOptimizer            = React.lazy(() => import("./views/TokenUsa
 const StreamingDebugger              = React.lazy(() => import("./views/StreamingDebugger"));
 const AgentCollaborationGraph        = React.lazy(() => import("./views/AgentCollaborationGraph"));
 const SLAComplianceTracker           = React.lazy(() => import("./views/SLAComplianceTracker"));
+const CostBreakdownAnalyzer          = React.lazy(() => import("./views/CostBreakdownAnalyzer"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -511,6 +512,8 @@ export const navItems = [
   { id: "token-usage",          label: "Token Usage Optimizer", emoji: "🪙", shortcut: null },
   { id: "streaming-debugger",      label: "Streaming Debugger",     emoji: "📺", shortcut: null },
   { id: "sla-compliance",          label: "SLA Compliance",         emoji: "📋", shortcut: null },
+  { id: "agent-collab-graph",      label: "Agent Collab Graph",     emoji: "🕸️", shortcut: null },
+  { id: "cost-breakdown",          label: "Cost Breakdown",         emoji: "💰", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -756,6 +759,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "token-usage":            <ContentSkeleton />,
   "streaming-debugger":        <ContentSkeleton />,
   "sla-compliance":            <ContentSkeleton />,
+  "agent-collab-graph":        <ContentSkeleton />,
+  "cost-breakdown":            <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1216,8 +1221,9 @@ function AppContent() {
       case "session-replay-viewer": return <SessionReplayViewer />;
       case "token-usage-opt":      return <TokenUsageOptimizer />;
       case "streaming-debugger":   return <StreamingDebugger />;
-      case "agent-collab-graph":   return <AgentCollaborationGraph />; // alias
+      case "agent-collab-graph":   return <AgentCollaborationGraph />;
       case "sla-compliance":       return <SLAComplianceTracker />;
+      case "cost-breakdown":       return <CostBreakdownAnalyzer />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
