@@ -15,6 +15,18 @@ import type {
   TicketRelationship,
 } from "./types.js";
 
+const COMPLEXITY_ORDER: Record<string, number> = {
+  trivial: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+  critical: 4,
+};
+
+function complexityRank(value: string): number {
+  return COMPLEXITY_ORDER[value.toLowerCase()] ?? Number.MAX_SAFE_INTEGER;
+}
+
 type FrontmatterTicket = Omit<IssueTicket, "trackerId">;
 
 function normalizeTicket(trackerId: string, ticket: FrontmatterTicket): IssueTicket {
@@ -29,9 +41,10 @@ function normalizeTicket(trackerId: string, ticket: FrontmatterTicket): IssueTic
 }
 
 function serializeTicket(ticket: FrontmatterTicket): string {
-  const frontmatter = YAML.stringify(ticket).trim();
-  const body = ticket.body?.trim() ?? "";
-  return `---\n${frontmatter}\n---\n\n${body}\n`;
+  const { body, ...meta } = ticket;
+  const frontmatter = YAML.stringify(meta).trim();
+  const content = body?.trim() ?? "";
+  return `---\n${frontmatter}\n---\n\n${content}\n`;
 }
 
 function parseTicket(source: string): FrontmatterTicket {
@@ -113,7 +126,10 @@ function matchesQuery(ticket: IssueTicket, query: IssueQuery): boolean {
 
   if (query.assignedAgent?.maxComplexity) {
     const complexity = ticket.classifications.find((cls) => cls.dimension === "complexity");
-    if (complexity?.value && complexity.value > query.assignedAgent.maxComplexity) {
+    if (
+      complexity?.value &&
+      complexityRank(complexity.value) > complexityRank(query.assignedAgent.maxComplexity)
+    ) {
       return false;
     }
   }

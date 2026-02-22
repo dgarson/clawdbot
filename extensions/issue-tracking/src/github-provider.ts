@@ -31,7 +31,7 @@ function fromStatus(status: TicketStatus): "open" | "closed" {
   return status === "done" || status === "canceled" ? "closed" : "open";
 }
 
-function parseMetadata(body: string | null): {
+export function parseMetadata(body: string | null): {
   textBody: string;
   classifications: ClassificationValue[];
   references: TicketReference[];
@@ -68,20 +68,25 @@ function parseMetadata(body: string | null): {
   }
 }
 
-function serializeBody(
-  ticket: IssueTicketCreateInput | IssueTicketUpdateInput,
-): string | undefined {
-  const text = ticket.body?.trim() ?? "";
-  const metadata = {
-    classifications: ticket.classifications ?? [],
-    references: [
-      ...(ticket.references ?? []),
-      ...("appendReferences" in ticket && ticket.appendReferences ? ticket.appendReferences : []),
-    ],
-    relationships: "appendRelationships" in ticket ? (ticket.appendRelationships ?? []) : [],
-  };
+export function serializeMetadataBody(
+  text: string,
+  metadata: {
+    classifications: ClassificationValue[];
+    references: TicketReference[];
+    relationships: TicketRelationship[];
+  },
+): string {
   const encoded = JSON.stringify(metadata, null, 2);
   return `${text}\n\n<!-- openclaw-issue-meta\n${encoded}\n-->`;
+}
+
+function serializeBodyForCreate(input: IssueTicketCreateInput): string {
+  const text = input.body?.trim() ?? "";
+  return serializeMetadataBody(text, {
+    classifications: input.classifications ?? [],
+    references: input.references ?? [],
+    relationships: input.relationships ?? [],
+  });
 }
 
 export class GithubIssueTrackerProvider implements IssueTrackerProvider {
@@ -119,12 +124,12 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
       method: "POST",
       body: JSON.stringify({
         title: input.title,
-        body: serializeBody(input),
+        body: serializeBodyForCreate(input),
         labels: input.labels,
       }),
     });
     if (input.status && fromStatus(input.status) === "closed") {
-      await this.updateTicket(String(issue.number), { status: input.status });
+      return this.updateTicket(String(issue.number), { status: input.status });
     }
     return this.#toTicket(issue);
   }
@@ -141,13 +146,31 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
   }
 
   async updateTicket(ticketId: string, input: IssueTicketUpdateInput): Promise<IssueTicket> {
+    // Fetch current issue to merge metadata rather than overwriting it.
+    const current = await this.#request<GitHubIssue>(
+      `/repos/${this.#owner}/${this.#repo}/issues/${ticketId}`,
+    );
+    const existing = parseMetadata(current.body);
+
+    const mergedBody = input.body?.trim() ?? existing.textBody;
+    const mergedClassifications = input.classifications ?? existing.classifications;
+    const mergedReferences = [
+      ...(input.references ?? existing.references),
+      ...(input.appendReferences ?? []),
+    ];
+    const mergedRelationships = [...existing.relationships, ...(input.appendRelationships ?? [])];
+
     const issue = await this.#request<GitHubIssue>(
       `/repos/${this.#owner}/${this.#repo}/issues/${ticketId}`,
       {
         method: "PATCH",
         body: JSON.stringify({
           title: input.title,
-          body: serializeBody(input),
+          body: serializeMetadataBody(mergedBody, {
+            classifications: mergedClassifications,
+            references: mergedReferences,
+            relationships: mergedRelationships,
+          }),
           labels: input.labels,
           state: input.status ? fromStatus(input.status) : undefined,
         }),
