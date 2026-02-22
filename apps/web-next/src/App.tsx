@@ -207,6 +207,9 @@ const CostAnomalyDetector        = React.lazy(() => import("./views/CostAnomalyD
 const KnowledgeGraphViewer       = React.lazy(() => import("./views/KnowledgeGraphViewer"));
 const WorkflowOrchestrator       = React.lazy(() => import("./views/WorkflowOrchestrator"));
 const ResourceTagManager         = React.lazy(() => import("./views/ResourceTagManager"));
+const CapacityForecastDashboard  = React.lazy(() => import("./views/CapacityForecastDashboard"));
+const EventCatalogBrowser        = React.lazy(() => import("./views/EventCatalogBrowser"));
+const SecurityScanDashboard      = React.lazy(() => import("./views/SecurityScanDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -391,6 +394,9 @@ export const navItems = [
   { id: "knowledge-graph", label: "Knowledge Graph",     emoji: "🕸️", shortcut: null },
   { id: "workflow-orch",  label: "Workflow Orchestrator", emoji: "🔄", shortcut: null },
   { id: "resource-tags",  label: "Resource Tags",        emoji: "🏷️", shortcut: null },
+  { id: "capacity-forecast", label: "Capacity Forecast", emoji: "📈", shortcut: null },
+  { id: "event-catalog",    label: "Event Catalog",      emoji: "📚", shortcut: null },
+  { id: "security-scan",    label: "Security Scans",     emoji: "🔍", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -576,6 +582,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "knowledge-graph":    <ContentSkeleton />,
   "workflow-orch":      <ContentSkeleton />,
   "resource-tags":      <ContentSkeleton />,
+  "capacity-forecast":  <ContentSkeleton />,
+  "event-catalog":      <ContentSkeleton />,
+  "security-scan":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -982,6 +991,9 @@ function AppContent() {
       case "knowledge-graph":   return <KnowledgeGraphViewer />;
       case "workflow-orch":     return <WorkflowOrchestrator />;
       case "resource-tags":     return <ResourceTagManager />;
+      case "capacity-forecast": return <CapacityForecastDashboard />;
+      case "event-catalog":     return <EventCatalogBrowser />;
+      case "security-scan":     return <SecurityScanDashboard />;
       default:              return <AgentDashboard />;
     }
   };
