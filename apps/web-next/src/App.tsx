@@ -203,6 +203,8 @@ const SSOConfigManager           = React.lazy(() => import("./views/SSOConfigMan
 const ContentCalendar            = React.lazy(() => import("./views/ContentCalendar"));
 const InfrastructureCostOptimizer = React.lazy(() => import("./views/InfrastructureCostOptimizer"));
 const APIGatewayManager          = React.lazy(() => import("./views/APIGatewayManager"));
+const CostAnomalyDetector        = React.lazy(() => import("./views/CostAnomalyDetector"));
+const KnowledgeGraphViewer       = React.lazy(() => import("./views/KnowledgeGraphViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -383,6 +385,8 @@ export const navItems = [
   { id: "content-cal",    label: "Content Calendar",      emoji: "📅", shortcut: null },
   { id: "infra-cost",     label: "Infra Cost Optimizer",  emoji: "💡", shortcut: null },
   { id: "api-gateway",    label: "API Gateway",           emoji: "🌐", shortcut: null },
+  { id: "cost-anomaly",  label: "Cost Anomaly",          emoji: "🚨", shortcut: null },
+  { id: "knowledge-graph", label: "Knowledge Graph",     emoji: "🕸️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -564,6 +568,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "content-cal":        <ContentSkeleton />,
   "infra-cost":         <ContentSkeleton />,
   "api-gateway":        <ContentSkeleton />,
+  "cost-anomaly":       <ContentSkeleton />,
+  "knowledge-graph":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -966,6 +972,8 @@ function AppContent() {
       case "content-cal":       return <ContentCalendar />;
       case "infra-cost":        return <InfrastructureCostOptimizer />;
       case "api-gateway":       return <APIGatewayManager />;
+      case "cost-anomaly":      return <CostAnomalyDetector />;
+      case "knowledge-graph":   return <KnowledgeGraphViewer />;
       default:              return <AgentDashboard />;
     }
   };
