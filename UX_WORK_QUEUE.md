@@ -3,7 +3,7 @@
 **Project:** `apps/web-next` (Vite + React + Tailwind, dark theme)
 **Goal:** 10-12 views done by 7:30 AM MST Feb 22
 **Sprint Status:** ✅ ABSOLUTELY CRUSHED — **267 views** shipped
-**Last Updated:** 2026-02-22 2:47 AM MST
+**Last Updated:** 2026-02-22 8:10 AM MST
 
 ## Build Status
 ```
@@ -60,5 +60,5 @@ Full list in git: `apps/web-next/src/views/` — 267 files.
 |------|----------|--------|
 | Gateway RPC integration | P2 | Blocked on backend contract (Tim) |
 | PR #44 conflict resolution or close | P2 | Pending Tim guidance |
-| ESLint unused-import cleanup (SchemaForm, validation.ts) | P3 | Pre-existing, cosmetic |
+| ~~ESLint unused-import cleanup (SchemaForm, validation.ts)~~ | P3 | ✅ DONE 2026-02-22 08:03 — Zod dep removed, pure TS validation, 0 errors |
 | tsconfig baseUrl lint warning | P3 | Pre-existing in tsconfig.json |
