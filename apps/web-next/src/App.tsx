@@ -73,6 +73,7 @@ const AgentScheduler       = React.lazy(() => import("./views/AgentScheduler"));
 const TokenLedger          = React.lazy(() => import("./views/TokenLedger"));
 const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
+const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -123,6 +124,7 @@ export const navItems = [
   { id: "token-ledger",    label: "Token Ledger",   emoji: "🪙", shortcut: null },
   { id: "theme-editor",    label: "Theme Editor",   emoji: "🎨", shortcut: null },
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
+  { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -174,6 +176,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "token-ledger":   <TableSkeleton rows={10} />,
   "theme-editor":   <ContentSkeleton />,
   "permissions":    <TableSkeleton rows={8} />,
+  "activity":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -446,6 +449,7 @@ function AppContent() {
       case "token-ledger":    return <TokenLedger />;
       case "theme-editor":    return <ThemeEditor />;
       case "permissions":     return <PermissionsManager />;
+      case "activity":        return <ActivityFeed />;
       default:              return <AgentDashboard />;
     }
   };
