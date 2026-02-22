@@ -265,6 +265,9 @@ const ObservabilityRulesEngine       = React.lazy(() => import("./views/Observab
 const AgentRelationshipTopology      = React.lazy(() => import("./views/AgentRelationshipTopology"));
 const TenantProvisioningWizard       = React.lazy(() => import("./views/TenantProvisioningWizard"));
 const BillingAuditLog                = React.lazy(() => import("./views/BillingAuditLog"));
+const APIRateLimitManager            = React.lazy(() => import("./views/APIRateLimitManager"));
+const EnvironmentDriftDetector       = React.lazy(() => import("./views/EnvironmentDriftDetector"));
+const WorkflowOrchestrationDashboard = React.lazy(() => import("./views/WorkflowOrchestrationDashboard"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -531,6 +534,9 @@ export const navItems = [
   { id: "agent-rel-topology",       label: "Agent Topology",          emoji: "🤝", shortcut: null },
   { id: "tenant-provisioning",      label: "Tenant Provisioning",     emoji: "🏗️", shortcut: null },
   { id: "billing-audit-log",        label: "Billing Audit Log",       emoji: "🧾", shortcut: null },
+  { id: "api-rate-limit",           label: "API Rate Limits",         emoji: "⛽", shortcut: null },
+  { id: "env-drift",                label: "Env Drift Detector",      emoji: "🌊", shortcut: null },
+  { id: "workflow-orchestration",   label: "Workflow Orchestration",  emoji: "⚙️", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -786,6 +792,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "agent-rel-topology":        <ContentSkeleton />,
   "tenant-provisioning":       <ContentSkeleton />,
   "billing-audit-log":         <ContentSkeleton />,
+  "api-rate-limit":            <ContentSkeleton />,
+  "env-drift":                 <ContentSkeleton />,
+  "workflow-orchestration":    <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1258,6 +1267,9 @@ function AppContent() {
       case "agent-rel-topology":   return <AgentRelationshipTopology />;
       case "tenant-provisioning":  return <TenantProvisioningWizard />;
       case "billing-audit-log":    return <BillingAuditLog />;
+      case "api-rate-limit":       return <APIRateLimitManager />;
+      case "env-drift":            return <EnvironmentDriftDetector />;
+      case "workflow-orchestration": return <WorkflowOrchestrationDashboard />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
