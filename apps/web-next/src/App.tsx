@@ -138,6 +138,9 @@ const ErrorBudgetTracker   = React.lazy(() => import("./views/ErrorBudgetTracker
 const MultiModelComparator = React.lazy(() => import("./views/MultiModelComparator"));
 const ContextBrowser       = React.lazy(() => import("./views/ContextBrowser"));
 const GitHubIntegration    = React.lazy(() => import("./views/GitHubIntegration"));
+const FunnelAnalytics      = React.lazy(() => import("./views/FunnelAnalytics"));
+const SprintBoard          = React.lazy(() => import("./views/SprintBoard"));
+const CostForecast         = React.lazy(() => import("./views/CostForecast"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -253,6 +256,9 @@ export const navItems = [
   { id: "model-compare",  label: "Model Comparator",   emoji: "⚖️", shortcut: null },
   { id: "ctx-browser",    label: "Context Browser",    emoji: "📖", shortcut: null },
   { id: "github",         label: "GitHub Integration", emoji: "🐙", shortcut: null },
+  { id: "funnel",         label: "Funnel Analytics",   emoji: "📉", shortcut: null },
+  { id: "sprint-board",   label: "Sprint Board",       emoji: "🏃", shortcut: null },
+  { id: "cost-forecast",  label: "Cost Forecast",      emoji: "💸", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -369,6 +375,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "model-compare":    <ContentSkeleton />,
   "ctx-browser":      <ContentSkeleton />,
   "github":           <ContentSkeleton />,
+  "funnel":           <ContentSkeleton />,
+  "sprint-board":     <ContentSkeleton />,
+  "cost-forecast":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -706,6 +715,9 @@ function AppContent() {
       case "model-compare":    return <MultiModelComparator />;
       case "ctx-browser":      return <ContextBrowser />;
       case "github":           return <GitHubIntegration />;
+      case "funnel":           return <FunnelAnalytics />;
+      case "sprint-board":     return <SprintBoard />;
+      case "cost-forecast":    return <CostForecast />;
       default:              return <AgentDashboard />;
     }
   };
