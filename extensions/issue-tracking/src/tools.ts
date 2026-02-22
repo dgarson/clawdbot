@@ -328,7 +328,107 @@ export function createIssueTrackingTools(registry: IssueTrackerRegistry): AnyAge
     },
   };
 
-  return [createTicketTool, queryTicketsTool, queryDagTool, linkTool];
+  const getTicketTool: AnyAgentTool = {
+    name: "issue_tracking_get",
+    label: "Issue Tracking Get",
+    description: "Fetch a single ticket by id.",
+    parameters: ProviderAndTicketSchema,
+    async execute(_toolCallId, params) {
+      const providerId = typeof params.providerId === "string" ? params.providerId : "";
+      const ticketId = typeof params.ticketId === "string" ? params.ticketId : "";
+      if (!providerId || !ticketId) {
+        throw new ToolInputError("providerId and ticketId are required");
+      }
+      const provider = registry.get(providerId);
+      if (!provider) {
+        throw new ToolInputError(`Unknown issue tracker provider: ${providerId}`);
+      }
+      const ticket = await provider.getTicket(ticketId);
+      if (!ticket) {
+        throw new ToolInputError(`Ticket not found: ${ticketId}`);
+      }
+      return jsonResult(ticket);
+    },
+  };
+
+  const updateTicketTool: AnyAgentTool = {
+    name: "issue_tracking_update",
+    label: "Issue Tracking Update",
+    description:
+      "Update ticket fields. All fields are optional; only provided fields are changed. Use appendRelationships to add new dependency links without replacing existing ones.",
+    parameters: Type.Intersect([
+      ProviderAndTicketSchema,
+      Type.Object({
+        title: Type.Optional(Type.String({ description: "New ticket title." })),
+        body: Type.Optional(Type.String({ description: "New ticket body/details." })),
+        status: Type.Optional(Type.String({ description: "New status value." })),
+        labels: Type.Optional(
+          Type.Array(Type.String(), { description: "Replacement label list." }),
+        ),
+        classifications: Type.Optional(
+          Type.Array(
+            Type.Object({
+              dimension: Type.String({ description: "Classification dimension." }),
+              value: Type.String({ description: "Classification value." }),
+              source: Type.Optional(
+                Type.String({ description: "Source: human, agent, or system." }),
+              ),
+            }),
+          ),
+        ),
+        appendRelationships: Type.Optional(
+          Type.Array(
+            Type.Object({
+              kind: Type.String({
+                description: "Relationship kind (blocks, blocked_by, duplicates, related).",
+              }),
+              ticketId: Type.String({ description: "Target ticket id." }),
+            }),
+          ),
+        ),
+      }),
+    ]),
+    async execute(_toolCallId, params) {
+      const providerId = typeof params.providerId === "string" ? params.providerId : "";
+      const ticketId = typeof params.ticketId === "string" ? params.ticketId : "";
+      if (!providerId || !ticketId) {
+        throw new ToolInputError("providerId and ticketId are required");
+      }
+      const provider = registry.get(providerId);
+      if (!provider) {
+        throw new ToolInputError(`Unknown issue tracker provider: ${providerId}`);
+      }
+      const ticket = await provider.updateTicket(ticketId, {
+        title: typeof params.title === "string" ? params.title.trim() || undefined : undefined,
+        body: typeof params.body === "string" ? params.body : undefined,
+        status: readStatus(params.status),
+        labels: readStringArray(params.labels),
+        classifications: readClassifications(params.classifications),
+        appendRelationships: Array.isArray(params.appendRelationships)
+          ? params.appendRelationships
+              .filter(
+                (entry: unknown): entry is Record<string, unknown> =>
+                  typeof entry === "object" && entry !== null,
+              )
+              .map((entry: Record<string, unknown>) => ({
+                kind: readRelationshipKind(entry.kind) ?? "related",
+                ticketId: typeof entry.ticketId === "string" ? entry.ticketId : "",
+              }))
+              .filter((entry: { ticketId: string }) => entry.ticketId)
+          : undefined,
+      });
+      return jsonResult(ticket);
+    },
+  };
+
+  return [
+    createTicketTool,
+    queryTicketsTool,
+    queryDagTool,
+    linkTool,
+    getTicketTool,
+    updateTicketTool,
+  ];
 }
 
 export function registerIssueTrackingTools(

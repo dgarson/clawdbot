@@ -68,6 +68,16 @@ function parseTicket(source: string): FrontmatterTicket {
   };
 }
 
+function deduplicateRelationships(relationships: TicketRelationship[]): TicketRelationship[] {
+  const seen = new Set<string>();
+  return relationships.filter((rel) => {
+    const key = `${rel.kind}:${rel.ticketId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function mergeUpdate(ticket: IssueTicket, input: IssueTicketUpdateInput): IssueTicket {
   const now = new Date().toISOString();
   return {
@@ -78,7 +88,10 @@ function mergeUpdate(ticket: IssueTicket, input: IssueTicketUpdateInput): IssueT
     labels: input.labels ?? ticket.labels,
     classifications: input.classifications ?? ticket.classifications,
     references: [...ticket.references, ...(input.appendReferences ?? [])],
-    relationships: [...ticket.relationships, ...(input.appendRelationships ?? [])],
+    relationships: deduplicateRelationships([
+      ...ticket.relationships,
+      ...(input.appendRelationships ?? []),
+    ]),
     updatedAt: now,
   };
 }
@@ -144,6 +157,9 @@ function matchesQuery(ticket: IssueTicket, query: IssueQuery): boolean {
   return true;
 }
 
+/** Soft cap on tickets fetched when building a full DAG to prevent memory issues. */
+const DAG_MAX_TICKETS = 10_000;
+
 const LOCK_STALE_MS = 30_000;
 const LOCK_RETRY_MS = 40;
 const LOCK_TIMEOUT_MS = 10_000;
@@ -151,6 +167,61 @@ const LOCK_TIMEOUT_MS = 10_000;
 async function wait(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+/**
+ * Strategy interface for per-ticket mutual exclusion.
+ *
+ * The default implementation ({@link FileTicketLockStrategy}) uses `O_EXCL`
+ * file creation which provides single-machine exclusion only. Swap in a
+ * different strategy (e.g. backed by Redis SET NX or an advisory flock) for
+ * multi-machine deployments where multiple agents share a network filesystem.
+ */
+export interface TicketLockStrategy {
+  withLock<T>(lockKey: string, operation: () => Promise<T>): Promise<T>;
+}
+
+/** File-based lock strategy using O_EXCL creation. Single-machine safe. */
+export class FileTicketLockStrategy implements TicketLockStrategy {
+  async withLock<T>(lockPath: string, operation: () => Promise<T>): Promise<T> {
+    const lockFile = await this.#acquire(lockPath);
+    try {
+      return await operation();
+    } finally {
+      await lockFile.close();
+      await fs.rm(lockPath, { force: true });
+    }
+  }
+
+  async #acquire(lockPath: string): Promise<fs.FileHandle> {
+    const deadline = Date.now() + LOCK_TIMEOUT_MS;
+    while (true) {
+      try {
+        const lockFile = await fs.open(lockPath, "wx");
+        await lockFile.writeFile(`${process.pid}\n${Date.now()}`);
+        return lockFile;
+      } catch {
+        await this.#clearStale(lockPath);
+        if (Date.now() > deadline) {
+          throw new Error(`Timed out waiting for issue lock: ${lockPath}`);
+        }
+        await wait(LOCK_RETRY_MS);
+      }
+    }
+  }
+
+  async #clearStale(lockPath: string): Promise<void> {
+    try {
+      const stat = await fs.stat(lockPath);
+      if (Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
+        await fs.rm(lockPath, { force: true });
+      }
+    } catch {
+      // Best-effort stale lock cleanup.
+    }
+  }
+}
+
+const defaultLockStrategy = new FileTicketLockStrategy();
 
 export class LocalMarkdownIssueTrackerProvider implements IssueTrackerProvider {
   readonly id: string;
@@ -162,11 +233,18 @@ export class LocalMarkdownIssueTrackerProvider implements IssueTrackerProvider {
   } as const;
 
   readonly #baseDir: string;
+  readonly #lockStrategy: TicketLockStrategy;
 
-  constructor(options: { id?: string; label?: string; baseDir: string }) {
+  constructor(options: {
+    id?: string;
+    label?: string;
+    baseDir: string;
+    lockStrategy?: TicketLockStrategy;
+  }) {
     this.id = options.id ?? "local-md";
     this.label = options.label ?? "Local Markdown";
     this.#baseDir = options.baseDir;
+    this.#lockStrategy = options.lockStrategy ?? defaultLockStrategy;
   }
 
   async createTicket(input: IssueTicketCreateInput): Promise<IssueTicket> {
@@ -239,7 +317,7 @@ export class LocalMarkdownIssueTrackerProvider implements IssueTrackerProvider {
   }
 
   async queryDag(query: IssueDagQuery): Promise<IssueDag> {
-    const tickets = await this.queryTickets({ limit: Number.MAX_SAFE_INTEGER });
+    const tickets = await this.queryTickets({ limit: DAG_MAX_TICKETS });
     return buildIssueDagFromTickets(tickets, query);
   }
   async #getTicketUnsafe(ticketId: string): Promise<IssueTicket | null> {
@@ -253,42 +331,8 @@ export class LocalMarkdownIssueTrackerProvider implements IssueTrackerProvider {
   }
 
   async #withTicketLock<T>(ticketId: string, operation: () => Promise<T>): Promise<T> {
-    const lockPath = `${this.#ticketFile(ticketId)}.lock`;
-    const lockFile = await this.#acquireLock(lockPath);
-    try {
-      return await operation();
-    } finally {
-      await lockFile.close();
-      await fs.rm(lockPath, { force: true });
-    }
-  }
-
-  async #acquireLock(lockPath: string): Promise<fs.FileHandle> {
-    const deadline = Date.now() + LOCK_TIMEOUT_MS;
-    while (true) {
-      try {
-        const lockFile = await fs.open(lockPath, "wx");
-        await lockFile.writeFile(`${process.pid}\n${Date.now()}`);
-        return lockFile;
-      } catch {
-        await this.#clearStaleLock(lockPath);
-        if (Date.now() > deadline) {
-          throw new Error(`Timed out waiting for issue lock: ${lockPath}`);
-        }
-        await wait(LOCK_RETRY_MS);
-      }
-    }
-  }
-
-  async #clearStaleLock(lockPath: string): Promise<void> {
-    try {
-      const stat = await fs.stat(lockPath);
-      if (Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
-        await fs.rm(lockPath, { force: true });
-      }
-    } catch {
-      // Best-effort stale lock cleanup.
-    }
+    const lockKey = `${this.#ticketFile(ticketId)}.lock`;
+    return this.#lockStrategy.withLock(lockKey, operation);
   }
 
   #ticketFile(ticketId: string): string {

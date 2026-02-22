@@ -31,46 +31,58 @@ function fromStatus(status: TicketStatus): "open" | "closed" {
   return status === "done" || status === "canceled" ? "closed" : "open";
 }
 
-export function parseMetadata(body: string | null): {
+/** Maximum per_page value accepted by the GitHub Issues API. */
+const GITHUB_MAX_PER_PAGE = 100;
+
+/** Soft cap on the number of tickets fetched when building a full DAG. */
+const DAG_MAX_TICKETS = 500;
+
+type ParsedMetadata = {
   textBody: string;
+  status: TicketStatus | null;
   classifications: ClassificationValue[];
   references: TicketReference[];
   relationships: TicketRelationship[];
-} {
+};
+
+export function parseMetadata(body: string | null): ParsedMetadata {
   if (!body) {
-    return { textBody: "", classifications: [], references: [], relationships: [] };
+    return { textBody: "", status: null, classifications: [], references: [], relationships: [] };
   }
   const marker = "\n<!-- openclaw-issue-meta\n";
   const markerIndex = body.indexOf(marker);
   if (markerIndex < 0) {
-    return { textBody: body, classifications: [], references: [], relationships: [] };
+    return { textBody: body, status: null, classifications: [], references: [], relationships: [] };
   }
   const textBody = body.slice(0, markerIndex).trim();
   const tail = body.slice(markerIndex + marker.length);
   const end = tail.indexOf("\n-->");
   if (end < 0) {
-    return { textBody, classifications: [], references: [], relationships: [] };
+    return { textBody, status: null, classifications: [], references: [], relationships: [] };
   }
   try {
     const metadata = JSON.parse(tail.slice(0, end)) as {
+      status?: TicketStatus;
       classifications?: ClassificationValue[];
       references?: TicketReference[];
       relationships?: TicketRelationship[];
     };
     return {
       textBody,
+      status: metadata.status ?? null,
       classifications: metadata.classifications ?? [],
       references: metadata.references ?? [],
       relationships: metadata.relationships ?? [],
     };
   } catch {
-    return { textBody, classifications: [], references: [], relationships: [] };
+    return { textBody, status: null, classifications: [], references: [], relationships: [] };
   }
 }
 
 export function serializeMetadataBody(
   text: string,
   metadata: {
+    status?: TicketStatus;
     classifications: ClassificationValue[];
     references: TicketReference[];
     relationships: TicketRelationship[];
@@ -80,9 +92,20 @@ export function serializeMetadataBody(
   return `${text}\n\n<!-- openclaw-issue-meta\n${encoded}\n-->`;
 }
 
+function deduplicateRelationships(relationships: TicketRelationship[]): TicketRelationship[] {
+  const seen = new Set<string>();
+  return relationships.filter((rel) => {
+    const key = `${rel.kind}:${rel.ticketId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function serializeBodyForCreate(input: IssueTicketCreateInput): string {
   const text = input.body?.trim() ?? "";
   return serializeMetadataBody(text, {
+    status: input.status,
     classifications: input.classifications ?? [],
     references: input.references ?? [],
     relationships: input.relationships ?? [],
@@ -152,13 +175,17 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
     );
     const existing = parseMetadata(current.body);
 
+    const mergedStatus = input.status ?? existing.status ?? undefined;
     const mergedBody = input.body?.trim() ?? existing.textBody;
     const mergedClassifications = input.classifications ?? existing.classifications;
     const mergedReferences = [
       ...(input.references ?? existing.references),
       ...(input.appendReferences ?? []),
     ];
-    const mergedRelationships = [...existing.relationships, ...(input.appendRelationships ?? [])];
+    const mergedRelationships = deduplicateRelationships([
+      ...existing.relationships,
+      ...(input.appendRelationships ?? []),
+    ]);
 
     const issue = await this.#request<GitHubIssue>(
       `/repos/${this.#owner}/${this.#repo}/issues/${ticketId}`,
@@ -167,12 +194,13 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
         body: JSON.stringify({
           title: input.title,
           body: serializeMetadataBody(mergedBody, {
+            status: mergedStatus,
             classifications: mergedClassifications,
             references: mergedReferences,
             relationships: mergedRelationships,
           }),
           labels: input.labels,
-          state: input.status ? fromStatus(input.status) : undefined,
+          state: mergedStatus ? fromStatus(mergedStatus) : undefined,
         }),
       },
     );
@@ -196,7 +224,9 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
     if (query.labels && query.labels.length > 0) {
       params.set("labels", query.labels.join(","));
     }
-    params.set("per_page", String(query.limit ?? 50));
+    // GitHub API accepts at most 100 per page; clamp to avoid a 422 error.
+    const perPage = Math.min(query.limit ?? 50, GITHUB_MAX_PER_PAGE);
+    params.set("per_page", String(perPage));
 
     const issues = await this.#request<GitHubIssue[]>(
       `/repos/${this.#owner}/${this.#repo}/issues?${params.toString()}`,
@@ -214,7 +244,7 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
   }
 
   async queryDag(query: IssueDagQuery): Promise<IssueDag> {
-    const tickets = await this.queryTickets({ limit: Number.MAX_SAFE_INTEGER });
+    const tickets = await this.queryTickets({ limit: DAG_MAX_TICKETS });
     return buildIssueDagFromTickets(tickets, query);
   }
 
@@ -239,12 +269,15 @@ export class GithubIssueTrackerProvider implements IssueTrackerProvider {
     const labels = issue.labels
       .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
       .filter(Boolean);
+    // Prefer the granular status stored in our metadata comment over the
+    // coarse GitHub open/closed mapping (which loses backlog/ready/blocked etc.).
+    const status = metadata.status ?? toStatus(issue);
     return {
       id: String(issue.number),
       trackerId: this.id,
       title: issue.title,
       body: metadata.textBody,
-      status: toStatus(issue),
+      status,
       labels,
       classifications: metadata.classifications,
       references: metadata.references,
