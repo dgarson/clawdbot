@@ -230,6 +230,10 @@ const APIChangelogManager            = React.lazy(() => import("./views/APIChang
 const ProductTourBuilder             = React.lazy(() => import("./views/ProductTourBuilder"));
 const NetworkFirewallRuleManager     = React.lazy(() => import("./views/NetworkFirewallRuleManager"));
 const ObservabilityAlertManager      = React.lazy(() => import("./views/ObservabilityAlertManager"));
+const CloudCostOptimizer             = React.lazy(() => import("./views/CloudCostOptimizer"));
+const NetworkBandwidthMonitor        = React.lazy(() => import("./views/NetworkBandwidthMonitor"));
+const ServiceDependencyMap           = React.lazy(() => import("./views/ServiceDependencyMap"));
+const FeatureRequestBoard            = React.lazy(() => import("./views/FeatureRequestBoard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -437,6 +441,10 @@ export const navItems = [
   { id: "product-tour",         label: "Product Tours",       emoji: "🗺️", shortcut: null },
   { id: "network-firewall",     label: "Firewall Rules",      emoji: "🔥", shortcut: null },
   { id: "observability-alerts", label: "Alert Manager",       emoji: "🚨", shortcut: null },
+  { id: "cloud-cost-opt",       label: "Cloud Cost Optimizer", emoji: "💰", shortcut: null },
+  { id: "network-bw",           label: "Network Bandwidth",    emoji: "📶", shortcut: null },
+  { id: "service-deps",         label: "Service Dependencies", emoji: "🕸️", shortcut: null },
+  { id: "feature-requests",     label: "Feature Requests",     emoji: "💡", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -645,6 +653,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "product-tour":           <ContentSkeleton />,
   "network-firewall":       <ContentSkeleton />,
   "observability-alerts":   <ContentSkeleton />,
+  "cloud-cost-opt":         <ContentSkeleton />,
+  "network-bw":             <ContentSkeleton />,
+  "service-deps":           <ContentSkeleton />,
+  "feature-requests":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1074,6 +1086,10 @@ function AppContent() {
       case "product-tour":         return <ProductTourBuilder />;
       case "network-firewall":     return <NetworkFirewallRuleManager />;
       case "observability-alerts": return <ObservabilityAlertManager />;
+      case "cloud-cost-opt":       return <CloudCostOptimizer />;
+      case "network-bw":           return <NetworkBandwidthMonitor />;
+      case "service-deps":         return <ServiceDependencyMap />;
+      case "feature-requests":     return <FeatureRequestBoard />;
       default:              return <AgentDashboard />;
     }
   };
