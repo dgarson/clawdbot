@@ -1,5 +1,14 @@
 import type { ApprovalsConfig, HitlApprovalsConfig } from "../config/types.approvals.js";
 
+export type HitlEscalationConfig = {
+  /** Role to escalate to when approval is denied. */
+  onDeny?: string;
+  /** Role to escalate to when approval times out. */
+  onTimeout?: string;
+  /** Maximum number of escalation attempts before giving up. */
+  maxEscalations?: number;
+};
+
 export type HitlPolicyDefinition = {
   /** Stable identifier for audit records and request storage. */
   id: string;
@@ -12,7 +21,11 @@ export type HitlPolicyDefinition = {
   /** Minimum role required to approve this request. */
   minApproverRole?: string;
   /** If true, the approver must be different from the requesting actor. */
-  requireDifferentActor?: boolean;
+  requireDifferentActor?: string | boolean;
+  /** Maximum approval chain depth to prevent escalation attacks (0 = no limit). */
+  maxApprovalChainDepth?: number;
+  /** Escalation configuration for denied/timeout scenarios. */
+  escalation?: HitlEscalationConfig;
 };
 
 export type HitlPolicyEngineConfig = {
@@ -33,14 +46,30 @@ export type HitlAuthorizationInput = {
   approverRole?: string;
   approverActorId?: string;
   requestActorId?: string;
+  /** Current approval chain depth (e.g., how many times this request has been escalated). */
+  currentChainDepth?: number;
 };
 
 export type HitlAuthorizationResult =
   | { allowed: true }
   | {
       allowed: false;
-      reason: "insufficient-role" | "same-actor-required-different";
+      reason: "insufficient-role" | "same-actor-required-different" | "approval-chain-exceeded";
     };
+
+export type HitlEscalationInput = {
+  policy: HitlPolicyDefinition;
+  trigger: "deny" | "timeout";
+  currentEscalationCount?: number;
+};
+
+export type HitlEscalationResult =
+  | {
+      shouldEscalate: true;
+      escalateToRole: string;
+      maxEscalations: number;
+    }
+  | { shouldEscalate: false };
 
 const DEFAULT_APPROVER_ROLE_ORDER = ["viewer", "operator", "admin", "owner"];
 
@@ -105,6 +134,7 @@ export type HitlPolicyEngine = {
   policies: HitlPolicyDefinition[];
   resolvePolicy(input: HitlPolicyResolutionInput): HitlPolicyDefinition | null;
   authorize(input: HitlAuthorizationInput): HitlAuthorizationResult;
+  shouldEscalate(input: HitlEscalationInput): HitlEscalationResult;
 };
 
 function createPolicyEngineFromHitlConfig(config: HitlApprovalsConfig = {}): HitlPolicyEngine {
@@ -193,6 +223,7 @@ export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): Hit
       }
     }
 
+    // Check no-self-approval (requireDifferentActor)
     if (input.policy.requireDifferentActor) {
       const approverActorId = input.approverActorId?.trim();
       const requestActorId = input.requestActorId?.trim();
@@ -201,12 +232,56 @@ export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): Hit
       }
     }
 
+    // Check approval chain depth (approval-boundary enforcement)
+    const maxDepth = input.policy.maxApprovalChainDepth;
+    if (maxDepth !== undefined && maxDepth > 0) {
+      const currentDepth = input.currentChainDepth ?? 0;
+      if (currentDepth >= maxDepth) {
+        return { allowed: false, reason: "approval-chain-exceeded" };
+      }
+    }
+
     return { allowed: true };
+  }
+
+  function shouldEscalate(input: HitlEscalationInput): HitlEscalationResult {
+    const escalation = input.policy.escalation;
+    if (!escalation) {
+      return { shouldEscalate: false };
+    }
+
+    const triggerRole =
+      input.trigger === "deny"
+        ? normalizeToken(escalation.onDeny)
+        : normalizeToken(escalation.onTimeout);
+
+    if (!triggerRole) {
+      return { shouldEscalate: false };
+    }
+
+    const maxEscalations = escalation.maxEscalations ?? 3;
+    const currentCount = input.currentEscalationCount ?? 0;
+
+    if (currentCount >= maxEscalations) {
+      return { shouldEscalate: false };
+    }
+
+    // Verify the escalation target role exists in our role order
+    if (!roleRank.has(triggerRole)) {
+      return { shouldEscalate: false };
+    }
+
+    return {
+      shouldEscalate: true,
+      escalateToRole: triggerRole,
+      maxEscalations,
+    };
   }
 
   return {
     policies: normalizedPolicies,
     resolvePolicy,
     authorize,
+    shouldEscalate,
   };
 }

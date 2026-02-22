@@ -87,7 +87,7 @@ describe("hitl-policy-engine", () => {
     ).toEqual({ allowed: true });
   });
 
-  it("enforces requireDifferentActor", () => {
+  it("enforces requireDifferentActor (no-self-approval)", () => {
     const engine = createHitlPolicyEngine({
       policies: [{ id: "policy-different", tool: "exec", requireDifferentActor: true }],
     });
@@ -109,5 +109,151 @@ describe("hitl-policy-engine", () => {
         requestActorId: "actor-1",
       }),
     ).toEqual({ allowed: true });
+  });
+
+  it("enforces maxApprovalChainDepth (approval-boundary)", () => {
+    const engine = createHitlPolicyEngine({
+      policies: [{ id: "policy-depth", tool: "exec", maxApprovalChainDepth: 2 }],
+    });
+    const policy = engine.resolvePolicy({ tool: "exec" });
+
+    expect(policy).toBeTruthy();
+
+    // Depth 0 should be allowed
+    expect(
+      engine.authorize({
+        policy: policy!,
+        currentChainDepth: 0,
+      }),
+    ).toEqual({ allowed: true });
+
+    // Depth 1 should be allowed
+    expect(
+      engine.authorize({
+        policy: policy!,
+        currentChainDepth: 1,
+      }),
+    ).toEqual({ allowed: true });
+
+    // Depth 2 should be denied (exceeds max of 2)
+    expect(
+      engine.authorize({
+        policy: policy!,
+        currentChainDepth: 2,
+      }),
+    ).toEqual({ allowed: false, reason: "approval-chain-exceeded" });
+  });
+
+  it("allows unlimited depth when maxApprovalChainDepth is 0", () => {
+    const engine = createHitlPolicyEngine({
+      policies: [{ id: "policy-unlimited", tool: "exec", maxApprovalChainDepth: 0 }],
+    });
+    const policy = engine.resolvePolicy({ tool: "exec" });
+
+    expect(policy).toBeTruthy();
+    expect(
+      engine.authorize({
+        policy: policy!,
+        currentChainDepth: 100,
+      }),
+    ).toEqual({ allowed: true });
+  });
+
+  describe("escalation", () => {
+    it("returns shouldEscalate false when no escalation config", () => {
+      const engine = createHitlPolicyEngine({
+        policies: [{ id: "policy-basic", tool: "exec" }],
+      });
+      const policy = engine.resolvePolicy({ tool: "exec" });
+
+      expect(engine.shouldEscalate({ policy: policy!, trigger: "deny" })).toEqual({
+        shouldEscalate: false,
+      });
+    });
+
+    it("escalates on deny when configured", () => {
+      const engine = createHitlPolicyEngine({
+        policies: [
+          {
+            id: "policy-escalate",
+            tool: "exec",
+            escalation: { onDeny: "admin", maxEscalations: 3 },
+          },
+        ],
+        approverRoleOrder: ["viewer", "operator", "admin", "owner"],
+      });
+      const policy = engine.resolvePolicy({ tool: "exec" });
+
+      expect(engine.shouldEscalate({ policy: policy!, trigger: "deny" })).toEqual({
+        shouldEscalate: true,
+        escalateToRole: "admin",
+        maxEscalations: 3,
+      });
+    });
+
+    it("escalates on timeout when configured", () => {
+      const engine = createHitlPolicyEngine({
+        policies: [
+          {
+            id: "policy-timeout",
+            tool: "exec",
+            escalation: { onTimeout: "owner", maxEscalations: 2 },
+          },
+        ],
+        approverRoleOrder: ["viewer", "operator", "admin", "owner"],
+      });
+      const policy = engine.resolvePolicy({ tool: "exec" });
+
+      expect(engine.shouldEscalate({ policy: policy!, trigger: "timeout" })).toEqual({
+        shouldEscalate: true,
+        escalateToRole: "owner",
+        maxEscalations: 2,
+      });
+    });
+
+    it("does not escalate beyond maxEscalations", () => {
+      const engine = createHitlPolicyEngine({
+        policies: [
+          {
+            id: "policy-limit",
+            tool: "exec",
+            escalation: { onDeny: "admin", maxEscalations: 2 },
+          },
+        ],
+      });
+      const policy = engine.resolvePolicy({ tool: "exec" });
+
+      // At maxEscalations, should not escalate
+      expect(
+        engine.shouldEscalate({ policy: policy!, trigger: "deny", currentEscalationCount: 2 }),
+      ).toEqual({ shouldEscalate: false });
+
+      // Just under max, should escalate
+      expect(
+        engine.shouldEscalate({ policy: policy!, trigger: "deny", currentEscalationCount: 1 }),
+      ).toEqual({
+        shouldEscalate: true,
+        escalateToRole: "admin",
+        maxEscalations: 2,
+      });
+    });
+
+    it("does not escalate to unknown role", () => {
+      const engine = createHitlPolicyEngine({
+        policies: [
+          {
+            id: "policy-unknown",
+            tool: "exec",
+            escalation: { onDeny: "superuser" }, // Not in role order
+          },
+        ],
+        approverRoleOrder: ["viewer", "operator", "admin", "owner"],
+      });
+      const policy = engine.resolvePolicy({ tool: "exec" });
+
+      expect(engine.shouldEscalate({ policy: policy!, trigger: "deny" })).toEqual({
+        shouldEscalate: false,
+      });
+    });
   });
 });
