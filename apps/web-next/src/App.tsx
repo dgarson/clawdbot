@@ -268,6 +268,8 @@ const BillingAuditLog                = React.lazy(() => import("./views/BillingA
 const APIRateLimitManager            = React.lazy(() => import("./views/APIRateLimitManager"));
 const EnvironmentDriftDetector       = React.lazy(() => import("./views/EnvironmentDriftDetector"));
 const WorkflowOrchestrationDashboard = React.lazy(() => import("./views/WorkflowOrchestrationDashboard"));
+const AIGovernanceDashboard          = React.lazy(() => import("./views/AIGovernanceDashboard"));
+const DataRetentionPolicyManager     = React.lazy(() => import("./views/DataRetentionPolicyManager"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -537,6 +539,8 @@ export const navItems = [
   { id: "api-rate-limit",           label: "API Rate Limits",         emoji: "⛽", shortcut: null },
   { id: "env-drift",                label: "Env Drift Detector",      emoji: "🌊", shortcut: null },
   { id: "workflow-orchestration",   label: "Workflow Orchestration",  emoji: "⚙️", shortcut: null },
+  { id: "ai-governance",            label: "AI Governance",           emoji: "🤖", shortcut: null },
+  { id: "retention-policy",         label: "Retention Policy Mgr",   emoji: "🗂️", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -795,6 +799,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "api-rate-limit":            <ContentSkeleton />,
   "env-drift":                 <ContentSkeleton />,
   "workflow-orchestration":    <ContentSkeleton />,
+  "ai-governance":             <ContentSkeleton />,
+  "retention-policy":          <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1270,6 +1276,8 @@ function AppContent() {
       case "api-rate-limit":       return <APIRateLimitManager />;
       case "env-drift":            return <EnvironmentDriftDetector />;
       case "workflow-orchestration": return <WorkflowOrchestrationDashboard />;
+      case "ai-governance":          return <AIGovernanceDashboard />;
+      case "retention-policy":       return <DataRetentionPolicyManager />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
