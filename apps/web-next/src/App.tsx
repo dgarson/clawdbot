@@ -160,8 +160,12 @@ const EventStreamViewer    = React.lazy(() => import("./views/EventStreamViewer"
 const PermissionsMatrix    = React.lazy(() => import("./views/PermissionsMatrix"));
 const ChangelogViewer        = React.lazy(() => import("./views/ChangelogViewer"));
 const ResourceQuotaManager   = React.lazy(() => import("./views/ResourceQuotaManager"));
-const DatabaseQueryBuilder   = React.lazy(() => import("./views/DatabaseQueryBuilder"));
-const InvoiceManager         = React.lazy(() => import("./views/InvoiceManager"));
+const DatabaseQueryBuilder    = React.lazy(() => import("./views/DatabaseQueryBuilder"));
+const InvoiceManager          = React.lazy(() => import("./views/InvoiceManager"));
+const NetworkTopologyViewer   = React.lazy(() => import("./views/NetworkTopologyViewer"));
+const ComplianceDashboard     = React.lazy(() => import("./views/ComplianceDashboard"));
+const UserSegmentation        = React.lazy(() => import("./views/UserSegmentation"));
+const DeploymentTracker       = React.lazy(() => import("./views/DeploymentTracker"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -301,6 +305,10 @@ export const navItems = [
   { id: "quota-mgr",        label: "Resource Quotas",     emoji: "📊", shortcut: null },
   { id: "db-query",         label: "DB Query Builder",    emoji: "🗃️", shortcut: null },
   { id: "invoices",         label: "Invoice Manager",     emoji: "🧾", shortcut: null },
+  { id: "net-topology",     label: "Network Topology",    emoji: "🌐", shortcut: null },
+  { id: "compliance",       label: "Compliance",          emoji: "✅", shortcut: null },
+  { id: "user-segments",    label: "User Segmentation",   emoji: "🎯", shortcut: null },
+  { id: "deployments",      label: "Deployment Tracker",  emoji: "🚀", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -441,6 +449,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "quota-mgr":           <ContentSkeleton />,
   "db-query":            <ContentSkeleton />,
   "invoices":            <ContentSkeleton />,
+  "net-topology":        <ContentSkeleton />,
+  "compliance":          <ContentSkeleton />,
+  "user-segments":       <ContentSkeleton />,
+  "deployments":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -802,6 +814,10 @@ function AppContent() {
       case "quota-mgr":          return <ResourceQuotaManager />;
       case "db-query":           return <DatabaseQueryBuilder />;
       case "invoices":           return <InvoiceManager />;
+      case "net-topology":       return <NetworkTopologyViewer />;
+      case "compliance":         return <ComplianceDashboard />;
+      case "user-segments":      return <UserSegmentation />;
+      case "deployments":        return <DeploymentTracker />;
       default:              return <AgentDashboard />;
     }
   };
