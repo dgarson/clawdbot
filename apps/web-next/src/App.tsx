@@ -256,6 +256,8 @@ const StreamingDebugger              = React.lazy(() => import("./views/Streamin
 const AgentCollaborationGraph        = React.lazy(() => import("./views/AgentCollaborationGraph"));
 const SLAComplianceTracker           = React.lazy(() => import("./views/SLAComplianceTracker"));
 const CostBreakdownAnalyzer          = React.lazy(() => import("./views/CostBreakdownAnalyzer"));
+const CompliancePolicyEditor         = React.lazy(() => import("./views/CompliancePolicyEditor"));
+const FeatureGatingDashboard         = React.lazy(() => import("./views/FeatureGatingDashboard"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -514,6 +516,8 @@ export const navItems = [
   { id: "sla-compliance",          label: "SLA Compliance",         emoji: "📋", shortcut: null },
   { id: "agent-collab-graph",      label: "Agent Collab Graph",     emoji: "🕸️", shortcut: null },
   { id: "cost-breakdown",          label: "Cost Breakdown",         emoji: "💰", shortcut: null },
+  { id: "compliance-policy",       label: "Compliance Policies",    emoji: "📜", shortcut: null },
+  { id: "feature-gating",          label: "Feature Gating",         emoji: "🚦", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -761,6 +765,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "sla-compliance":            <ContentSkeleton />,
   "agent-collab-graph":        <ContentSkeleton />,
   "cost-breakdown":            <ContentSkeleton />,
+  "compliance-policy":         <ContentSkeleton />,
+  "feature-gating":            <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1224,6 +1230,8 @@ function AppContent() {
       case "agent-collab-graph":   return <AgentCollaborationGraph />;
       case "sla-compliance":       return <SLAComplianceTracker />;
       case "cost-breakdown":       return <CostBreakdownAnalyzer />;
+      case "compliance-policy":    return <CompliancePolicyEditor />;
+      case "feature-gating":       return <FeatureGatingDashboard />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
