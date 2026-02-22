@@ -18,6 +18,7 @@ interface DetailPanelProps {
   children: React.ReactNode;
   className?: string;
   width?: "sm" | "md" | "lg";
+  headerActions?: React.ReactNode;
 }
 
 export function DetailPanel({
@@ -27,6 +28,7 @@ export function DetailPanel({
   children,
   className,
   width = "md",
+  headerActions,
 }: DetailPanelProps) {
   const panelRef = React.useRef<HTMLDivElement>(null);
 
@@ -134,15 +136,18 @@ export function DetailPanel({
               >
                 {title}
               </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-8 w-8 rounded-lg hover:bg-secondary"
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close panel</span>
-              </Button>
+              <div className="flex items-center gap-1">
+                {headerActions}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="h-8 w-8 rounded-lg hover:bg-secondary"
+                >
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Close panel</span>
+                </Button>
+              </div>
             </div>
 
             {/* Content */}

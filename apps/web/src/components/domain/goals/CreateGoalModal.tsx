@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Target, X, Plus, Trash2, Loader2 } from "lucide-react";
+import { Target, X, Plus, Trash2, Loader2, Save } from "lucide-react";
+import type { Goal } from "@/hooks/queries/useGoals";
 
 interface MilestoneInput {
   id: string;
   title: string;
+  completed: boolean;
 }
 
 interface CreateGoalModalProps {
@@ -21,8 +23,16 @@ interface CreateGoalModalProps {
   onSubmit: (data: {
     title: string;
     description?: string;
-    milestones: { title: string; completed: boolean }[];
+    milestones: { id: string; title: string; completed: boolean }[];
     status: "not_started";
+    dueDate?: string;
+  }) => void;
+  /** When provided, the modal runs in edit mode and calls onUpdate instead of onSubmit */
+  initialGoal?: Goal;
+  onUpdate?: (data: {
+    title: string;
+    description?: string;
+    milestones: { id: string; title: string; completed: boolean }[];
     dueDate?: string;
   }) => void;
   isLoading?: boolean;
@@ -33,30 +43,45 @@ export function CreateGoalModal({
   open,
   onOpenChange,
   onSubmit,
+  initialGoal,
+  onUpdate,
   isLoading = false,
   className,
 }: CreateGoalModalProps) {
+  const isEditMode = Boolean(initialGoal);
+
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [dueDate, setDueDate] = React.useState("");
   const [milestones, setMilestones] = React.useState<MilestoneInput[]>([
-    { id: uuidv7(), title: "" },
+    { id: uuidv7(), title: "", completed: false },
   ]);
   const [errors, setErrors] = React.useState<{ title?: string }>({});
 
-  // Reset form when modal closes
+  // Populate or reset form when the modal opens/closes or the goal changes
   React.useEffect(() => {
     if (!open) {
       setTitle("");
       setDescription("");
       setDueDate("");
-      setMilestones([{ id: uuidv7(), title: "" }]);
+      setMilestones([{ id: uuidv7(), title: "", completed: false }]);
       setErrors({});
+      return;
     }
-  }, [open]);
+    if (initialGoal) {
+      setTitle(initialGoal.title);
+      setDescription(initialGoal.description ?? "");
+      setDueDate(initialGoal.dueDate ?? "");
+      setMilestones(
+        initialGoal.milestones.length > 0
+          ? initialGoal.milestones.map((m) => ({ id: m.id, title: m.title, completed: m.completed }))
+          : [{ id: uuidv7(), title: "", completed: false }]
+      );
+    }
+  }, [open, initialGoal]);
 
   const handleAddMilestone = () => {
-    setMilestones([...milestones, { id: uuidv7(), title: "" }]);
+    setMilestones([...milestones, { id: uuidv7(), title: "", completed: false }]);
   };
 
   const handleRemoveMilestone = (id: string) => {
@@ -85,18 +110,27 @@ export function CreateGoalModal({
       return;
     }
 
-    // Filter out empty milestones
+    // Filter out empty milestones, preserve IDs and completion state
     const validMilestones = milestones
       .filter((m) => m.title.trim())
-      .map((m) => ({ title: m.title.trim(), completed: false }));
+      .map((m) => ({ id: m.id, title: m.title.trim(), completed: m.completed }));
 
-    onSubmit({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      milestones: validMilestones,
-      status: "not_started",
-      dueDate: dueDate || undefined,
-    });
+    if (isEditMode && onUpdate) {
+      onUpdate({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        milestones: validMilestones,
+        dueDate: dueDate || undefined,
+      });
+    } else {
+      onSubmit({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        milestones: validMilestones,
+        status: "not_started",
+        dueDate: dueDate || undefined,
+      });
+    }
   };
 
   return (
@@ -135,10 +169,10 @@ export function CreateGoalModal({
                       </div>
                       <div>
                         <h2 className="text-lg font-semibold text-foreground">
-                          Create New Goal
+                          {isEditMode ? "Edit Goal" : "Create New Goal"}
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                          Define your objective and milestones
+                          {isEditMode ? "Update your objective and milestones" : "Define your objective and milestones"}
                         </p>
                       </div>
                     </div>
@@ -278,7 +312,12 @@ export function CreateGoalModal({
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
+                          {isEditMode ? "Saving..." : "Creating..."}
+                        </>
+                      ) : isEditMode ? (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Changes
                         </>
                       ) : (
                         <>

@@ -16,7 +16,6 @@ import {
   TrendingUp,
   Trophy,
 } from "lucide-react";
-import type { GoalStatus } from "./GoalCard";
 
 // Use the type from the query hook for consistency
 import type { Goal, Milestone } from "@/hooks/queries/useGoals";
@@ -34,7 +33,7 @@ interface GoalDetailPanelProps {
   highlightMilestoneId?: string;
 }
 
-const statusConfig: Record<GoalStatus | string, { color: string; bgColor: string; label: string }> = {
+const statusConfig: Record<string, { color: string; bgColor: string; label: string }> = {
   active: { color: "text-primary", bgColor: "bg-primary/20", label: "Active" },
   in_progress: { color: "text-primary", bgColor: "bg-primary/20", label: "In Progress" },
   not_started: { color: "text-muted-foreground", bgColor: "bg-muted", label: "Not Started" },
@@ -102,6 +101,17 @@ export function GoalDetailPanel({
       title="Goal Details"
       width="lg"
       className={className}
+      headerActions={onEdit && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEdit(goal)}
+          className="h-8 rounded-lg gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Edit className="h-3.5 w-3.5" />
+          Edit
+        </Button>
+      )}
     >
       <div className="space-y-6">
         {/* Goal Complete banner — only shown when triggered from milestone feed */}
@@ -255,7 +265,7 @@ export function GoalDetailPanel({
           transition={{ delay: 0.3 }}
           className="flex gap-3 pt-2"
         >
-          {onEdit && goal.status !== "completed" && (
+          {onEdit && (
             <Button
               onClick={() => onEdit(goal)}
               className="flex-1 h-11 rounded-xl"

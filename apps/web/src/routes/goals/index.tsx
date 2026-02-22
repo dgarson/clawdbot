@@ -14,9 +14,8 @@ import {
 import { GoalCard, GoalDetailPanel, CreateGoalModal } from "@/components/domain/goals";
 import { CardSkeleton } from "@/components/composed/LoadingSkeleton";
 import { useGoals } from "@/hooks/queries/useGoals";
-import { useCreateGoal } from "@/hooks/mutations/useGoalMutations";
+import { useCreateGoal, useUpdateGoal } from "@/hooks/mutations/useGoalMutations";
 import { useDebounce } from "@/hooks/useDebounce";
-import { uuidv7 } from "@/lib/ids";
 import { Target, Plus, Search, SlidersHorizontal } from "lucide-react";
 import type { Goal, GoalStatus } from "@/hooks/queries/useGoals";
 
@@ -64,11 +63,13 @@ function GoalsPage() {
   const [selectedGoal, setSelectedGoal] = React.useState<Goal | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
+  const [editingGoal, setEditingGoal] = React.useState<Goal | null>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { data: goals, isLoading, error } = useGoals();
   const createGoal = useCreateGoal();
+  const updateGoal = useUpdateGoal();
 
   // Filter goals based on search and status
   const filteredGoals = React.useMemo(() => {
@@ -100,30 +101,41 @@ function GoalsPage() {
   };
 
   const handleEdit = (goal: Goal) => {
-    // Close detail panel and open edit modal
     setIsDetailOpen(false);
-    // For now, just log - in a real app, open edit modal
-    console.log("Edit goal:", goal);
+    setEditingGoal(goal);
+    setIsCreateOpen(true);
+  };
+
+  const handleUpdateGoal = (data: {
+    title: string;
+    description?: string;
+    milestones: { id: string; title: string; completed: boolean }[];
+    dueDate?: string;
+  }) => {
+    if (!editingGoal) {return;}
+    updateGoal.mutate(
+      { id: editingGoal.id, ...data },
+      {
+        onSuccess: () => {
+          setIsCreateOpen(false);
+          setEditingGoal(null);
+        },
+      }
+    );
   };
 
   const handleCreateGoal = (data: {
     title: string;
     description?: string;
-    milestones: { title: string; completed: boolean }[];
+    milestones: { id: string; title: string; completed: boolean }[];
     status: "not_started";
     dueDate?: string;
   }) => {
-    createGoal.mutate(
-      {
-        ...data,
-        milestones: data.milestones.map((m) => ({ ...m, id: uuidv7() })),
-      },
-      {
+    createGoal.mutate(data, {
       onSuccess: () => {
         setIsCreateOpen(false);
       },
-      }
-    );
+    });
   };
 
   // Convert Goal from query to GoalCard format
@@ -301,12 +313,17 @@ function GoalsPage() {
           onEdit={handleEdit}
         />
 
-      {/* Create Goal Modal */}
+      {/* Create / Edit Goal Modal */}
       <CreateGoalModal
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) {setEditingGoal(null);}
+        }}
         onSubmit={handleCreateGoal}
-        isLoading={createGoal.isPending}
+        initialGoal={editingGoal ?? undefined}
+        onUpdate={handleUpdateGoal}
+        isLoading={editingGoal ? updateGoal.isPending : createGoal.isPending}
       />
     </>
   );
