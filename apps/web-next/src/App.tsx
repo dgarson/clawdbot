@@ -216,6 +216,8 @@ const QueryPerformanceAnalyzer   = React.lazy(() => import("./views/QueryPerform
 const ServiceMeshViewer          = React.lazy(() => import("./views/ServiceMeshViewer"));
 const MultiRegionDashboard       = React.lazy(() => import("./views/MultiRegionDashboard"));
 const RevenueAnalyticsDashboard  = React.lazy(() => import("./views/RevenueAnalyticsDashboard"));
+const VaultSecretsManager        = React.lazy(() => import("./views/VaultSecretsManager"));
+const MLPipelineMonitor          = React.lazy(() => import("./views/MLPipelineMonitor"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -409,6 +411,8 @@ export const navItems = [
   { id: "service-mesh",    label: "Service Mesh",       emoji: "🕸", shortcut: null },
   { id: "multi-region",    label: "Multi-Region",       emoji: "🌍", shortcut: null },
   { id: "revenue",         label: "Revenue Analytics",  emoji: "💰", shortcut: null },
+  { id: "vault-secrets",  label: "Vault Secrets",       emoji: "🔐", shortcut: null },
+  { id: "ml-pipeline",    label: "ML Pipelines",        emoji: "🤖", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -603,6 +607,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "service-mesh":       <ContentSkeleton />,
   "multi-region":       <ContentSkeleton />,
   "revenue":            <ContentSkeleton />,
+  "vault-secrets":     <ContentSkeleton />,
+  "ml-pipeline":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1018,6 +1024,8 @@ function AppContent() {
       case "service-mesh":      return <ServiceMeshViewer />;
       case "multi-region":      return <MultiRegionDashboard />;
       case "revenue":           return <RevenueAnalyticsDashboard />;
+      case "vault-secrets":    return <VaultSecretsManager />;
+      case "ml-pipeline":      return <MLPipelineMonitor />;
       default:              return <AgentDashboard />;
     }
   };
