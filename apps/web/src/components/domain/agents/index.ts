@@ -25,3 +25,4 @@ export type { ToolConfig, ToolProfilePickerProps } from "./ToolProfilePicker";
 export { AgentWorkTab } from "./AgentWorkTab";
 export { AgentChatTab } from "./AgentChatTab";
 export { WorkSubNav } from "./WorkSubNav";
+export { AgentVisualConfigurator } from "./AgentVisualConfigurator";
