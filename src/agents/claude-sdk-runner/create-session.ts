@@ -49,6 +49,7 @@ function resolveThinkingTokenBudget(thinkLevel?: string): number | null {
       return 16384;
     case "max":
       return 32768;
+    case "none":
     default:
       return null; // "none" or undefined → disabled
   }

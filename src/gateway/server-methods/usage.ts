@@ -579,7 +579,10 @@ export const usageHandlers: GatewayRequestHandlers = {
                 ? mcpMatch[2]
                 : `${mcpMatch[1]}:${mcpMatch[2]}`
               : tool.name;
-            toolMap.set(normalizedName, (toolMap.get(normalizedName) ?? 0) + tool.count);
+            toolAggregateMap.set(
+              normalizedName,
+              (toolAggregateMap.get(normalizedName) ?? 0) + tool.count,
+            );
           }
         }
 

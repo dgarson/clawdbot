@@ -55,7 +55,13 @@ export async function prepareClaudeSdkSession(
     tools: builtInTools,
     customTools: allCustomTools,
     systemPrompt: systemPromptText,
-    thinkLevel: params.thinkLevel,
+    // Explicit user directive (anything other than the "off" default) takes precedence
+    // over the config-level thinkingLevel. If no directive was given, the config acts
+    // as the agent-level default, falling back to the runtime "off" if unset.
+    thinkLevel:
+      params.thinkLevel !== "off"
+        ? params.thinkLevel
+        : (claudeSdkConfig.thinkingLevel ?? params.thinkLevel),
     extraParams: params.streamParams as Record<string, unknown> | undefined,
     sessionManager,
     claudeSdkResumeSessionId,

@@ -190,10 +190,15 @@ export function createSessionsSendTool(opts?: {
           });
         }
       }
+      const configDefaultTimeout =
+        typeof cfg.tools?.sessions?.sendTimeoutSeconds === "number" &&
+        Number.isFinite(cfg.tools.sessions.sendTimeoutSeconds)
+          ? Math.max(0, Math.floor(cfg.tools.sessions.sendTimeoutSeconds))
+          : 120;
       const timeoutSeconds =
         typeof params.timeoutSeconds === "number" && Number.isFinite(params.timeoutSeconds)
           ? Math.max(0, Math.floor(params.timeoutSeconds))
-          : 30;
+          : configDefaultTimeout;
       const timeoutMs = timeoutSeconds * 1000;
       const announceTimeoutMs = timeoutSeconds === 0 ? 30_000 : timeoutMs;
       const idempotencyKey = crypto.randomUUID();

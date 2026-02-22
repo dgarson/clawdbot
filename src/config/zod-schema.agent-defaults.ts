@@ -171,6 +171,15 @@ export const AgentDefaultsSchema = z
     sandbox: AgentSandboxSchema,
     runtime: z.enum(["pi", "claude-sdk"]).optional(),
     claudeSdk: ClaudeSdkConfigSchema,
+    sessionLabels: z
+      .object({
+        enabled: z.boolean().optional(),
+        model: z.string().optional(),
+        maxLength: z.number().int().min(1).max(79).optional(),
+        prompt: z.string().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();

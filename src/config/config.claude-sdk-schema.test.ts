@@ -66,6 +66,37 @@ describe("claudeSdk config schema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts thinkingLevel values on any provider", () => {
+    for (const thinkingLevel of ["none", "low", "medium", "high"] as const) {
+      const result = OpenClawSchema.safeParse({
+        agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingLevel } } },
+      });
+      expect(result.success, `thinkingLevel=${thinkingLevel}`).toBe(true);
+    }
+  });
+
+  it("rejects invalid thinkingLevel value", () => {
+    const result = OpenClawSchema.safeParse({
+      agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingLevel: "extreme" } } },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts thinkingLevel on custom provider", () => {
+    const result = OpenClawSchema.safeParse({
+      agents: {
+        defaults: {
+          claudeSdk: {
+            provider: "custom",
+            baseUrl: "https://my-gateway.internal/v1",
+            thinkingLevel: "high",
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects unknown provider in agents.list entry", () => {
     const result = OpenClawSchema.safeParse({
       agents: {
