@@ -195,6 +195,8 @@ const OpenAPIExplorer            = React.lazy(() => import("./views/OpenAPIExplo
 const DataLineageViewer          = React.lazy(() => import("./views/DataLineageViewer"));
 const StorageBucketManager       = React.lazy(() => import("./views/StorageBucketManager"));
 const AIPromptRouter             = React.lazy(() => import("./views/AIPromptRouter"));
+const ObservabilityDashboard     = React.lazy(() => import("./views/ObservabilityDashboard"));
+const AccessControlManager       = React.lazy(() => import("./views/AccessControlManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -367,6 +369,8 @@ export const navItems = [
   { id: "data-lineage",   label: "Data Lineage",          emoji: "🔗", shortcut: null },
   { id: "storage-buckets", label: "Storage Buckets",      emoji: "🪣", shortcut: null },
   { id: "prompt-router",  label: "AI Prompt Router",      emoji: "🤖", shortcut: null },
+  { id: "observability",  label: "Observability",         emoji: "📡", shortcut: null },
+  { id: "rbac",           label: "RBAC Manager",          emoji: "🛡", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -540,6 +544,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-lineage":       <ContentSkeleton />,
   "storage-buckets":    <ContentSkeleton />,
   "prompt-router":      <ContentSkeleton />,
+  "observability":      <ContentSkeleton />,
+  "rbac":               <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -934,6 +940,8 @@ function AppContent() {
       case "data-lineage":      return <DataLineageViewer />;
       case "storage-buckets":   return <StorageBucketManager />;
       case "prompt-router":     return <AIPromptRouter />;
+      case "observability":     return <ObservabilityDashboard />;
+      case "rbac":              return <AccessControlManager />;
       default:              return <AgentDashboard />;
     }
   };
