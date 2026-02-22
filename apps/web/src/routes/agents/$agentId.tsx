@@ -15,6 +15,7 @@ import {
   AgentToolsTab,
   AgentSoulTab,
   AgentActivityTab,
+  AgentVisualConfigurator,
   NewSessionDialog,
 } from "@/components/domain/agents";
 import { useAgent } from "@/hooks/queries/useAgents";
@@ -42,12 +43,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type AgentDetailTab = "overview" | "workstreams" | "rituals" | "tools" | "soul" | "activity";
+type AgentDetailTab = "overview" | "workstreams" | "rituals" | "tools" | "soul" | "activity" | "configure";
 
 export const Route = createFileRoute("/agents/$agentId")({
   component: AgentDetailPage,
   validateSearch: (search: Record<string, unknown>): { tab?: AgentDetailTab; activityId?: string; newSession?: boolean } => {
-    const validTabs: AgentDetailTab[] = ["overview", "workstreams", "rituals", "tools", "soul", "activity"];
+    const validTabs: AgentDetailTab[] = ["overview", "workstreams", "rituals", "tools", "soul", "activity", "configure"];
     const tab = typeof search.tab === "string" && validTabs.includes(search.tab as AgentDetailTab)
       ? (search.tab as AgentDetailTab)
       : undefined;
@@ -389,6 +390,7 @@ function AgentDetailPage() {
               <TabsTrigger value="tools">Tools</TabsTrigger>
               <TabsTrigger value="soul">Soul</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="configure">Configure</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -433,6 +435,10 @@ function AgentDetailPage() {
                   });
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="configure">
+              <AgentVisualConfigurator agentId={agentId} />
             </TabsContent>
           </Tabs>
         </motion.div>

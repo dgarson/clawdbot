@@ -22,3 +22,4 @@ export type {
 } from "./ModelBehaviorConfig";
 export { ToolProfilePicker } from "./ToolProfilePicker";
 export type { ToolConfig, ToolProfilePickerProps } from "./ToolProfilePicker";
+export { AgentVisualConfigurator } from "./AgentVisualConfigurator";
