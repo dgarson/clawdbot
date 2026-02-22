@@ -1,0 +1,33 @@
+David — quick overnight command brief. We shipped hard today: workq extension integration is complete end-to-end, PR fifty-four landed, and the Phase B through E roadmap gives us a clear next arc. So tonight is about conversion speed, not more planning.
+
+First: what I’d kick off while you sleep.
+
+Stream one is production observability and telemetry hardening. We already have major pieces moving, including observability stack work and telemetry foundation. Overnight objective is simple: by morning, we want one source of truth dashboard for agent throughput, queue aging, tool-call failure rate, and cost per completed deliverable. Not vanity metrics — operational controls. Team assignment: Platform squad owns instrumentation quality and alert thresholds; Analytics/UI squad owns operator-facing dashboards; QA squad runs canary checks and flags regressions.
+
+Stream two is milestone operating model wiring. This is where we stop asking you to manage epics manually. We’ll implement a milestone intake template in WORKBOARD and workq where each milestone has: business outcome, hard deadline, acceptance criteria, risk tolerance, and owner. Then agents auto-expand that into epics, tasks, dependencies, and staffing plans. Overnight deliverable: first draft of the milestone-to-epic compiler and a dry-run against two live milestones.
+
+Stream three is ACP and handoff reliability to reduce coordination drag. We prioritize schema freeze items and delivery trigger reliability so cross-agent delegation is deterministic, not personality-driven. Objective: morning status packet with what is blocked by architecture versus just waiting on assignment.
+
+Stream four is PR backlog compression with strict merge lanes. We wake up with fewer review bottlenecks: staff-level merges for low-risk increments, architect-only review for integration branches and cross-squad interfaces. No ambiguous ownership by sunrise.
+
+Now second: quarterly milestone framing — the model you asked for.
+
+You should own only two to seven day quarterly deliverables. Think of each as a contract, not a task list. You define four fields: desired business result, deadline window, confidence target, and non-negotiables. That’s it.
+
+My layer then translates each deliverable into: epic map, execution graph, staffing by squad, daily burn plan, and recovery branches if we miss intermediate checkpoints. In other words: you set destination and constraints, we own route planning and driving.
+
+Cadence becomes: you set milestone on day zero, we return execution plan in under two hours, then you get two updates per day: trajectory and risk. Not status theater, just three states: on-track, at-risk, off-track, each with clear intervention options.
+
+This removes the biggest scaling failure mode: founder context fragmentation into twenty micro-decisions. You stay in strategic control but out of epic surgery.
+
+Third: process mechanics to enforce “David owns milestones, agents own epics.”
+
+workq becomes the execution contract engine. Every work item must reference a parent milestone ID. If it doesn’t, it cannot be claimed. WORKBOARD becomes the portfolio view grouped by milestone, not by random project threads.
+
+Agent squads are accountable by SLA: decomposition SLA, handoff SLA, and unblock SLA. If a squad misses SLA, it auto-escalates with a proposed recovery plan — not just a red flag.
+
+Review gates enforce the model: milestone-level approval stays with you; epic and task approvals stay with leads and architecture. We do not route epic decisions upward unless they change milestone outcome, deadline, or risk envelope.
+
+Finally, every morning packet should answer exactly five questions in two minutes: what milestones are active, what moved overnight, what is at risk, what decision is needed from you, and what we will finish before noon.
+
+Bottom line: tonight we convert today’s progress into a self-driving delivery system. You run the scoreboard and outcomes. Agents run decomposition, execution, and recovery. That’s how we scale without pulling you into the weeds.

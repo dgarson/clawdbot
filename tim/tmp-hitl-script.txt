@@ -1,0 +1,11 @@
+Team, quick update on the Human Approval Gateway workstream. This is our policy-driven human-in-the-loop control plane for high-risk actions. In plain English: before an agent sends an external message, runs a production command, merges code, exports sensitive data, or triggers spend over threshold, we classify the action, evaluate policy, and require explicit approval when risk says “pause.”
+
+Where we stand: the architecture is defined and prioritized as a Now item because it unlocks safe autonomy. We’ve framed the core building blocks clearly: an action-classification taxonomy, a policy layer with org-level configuration, and an approval queue with notification routing. That gives us a concrete path from concept to enforceable guardrails, not just advisory warnings.
+
+Why this matters is simple: trust is the bottleneck. Teams won’t hand real workflows to agents unless they can prove control, auditability, and accountability. This gateway lets us increase automation without increasing organizational anxiety. It’s also a major enterprise differentiator—legal, compliance, and security leaders can set boundaries once, then let teams move faster inside those boundaries.
+
+What’s next: we’ll finalize the policy DSL shape, stand up the config store and evaluation engine, and ship a first approval queue flow that captures decision context, approver identity, and rationale. In parallel, we’ll define default policy packs by risk tier so customers can start safely on day one. After that, we harden with observability and replay hooks so every blocked or approved action is traceable.
+
+We’re also designing this to compose cleanly with workflow graphs and tool reliability controls, so approval isn’t a bolt-on popup—it’s a first-class runtime gate with deterministic behavior under retry, timeout, and escalation conditions. That integration is how we avoid policy drift and operational surprises.
+
+Bottom line: Human Approval Gateway is the trust layer that makes higher autonomy deployable in the real world.
