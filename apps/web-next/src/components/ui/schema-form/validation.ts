@@ -1,113 +1,141 @@
-import { z, ZodString, ZodNumber, ZodArray, ZodOptional, ZodEnum, ZodBoolean, ZodTypeAny } from 'zod';
 import type { SchemaField, ValidationError, FormSchema } from './types';
 
 /**
- * Convert a SchemaField to a Zod schema
+ * Validate a single field value against its schema constraints.
+ * Returns an array of error messages (empty = valid).
  */
-export function fieldToZod(field: SchemaField): ZodTypeAny {
-  const { type, required, minLength, maxLength, min, max, pattern, options, itemSchema, minItems, maxItems } = field;
+export function validateField(field: SchemaField, value: unknown): string[] {
+  const errors: string[] = [];
 
-  let schema: ZodTypeAny;
+  // Required check
+  if (field.required) {
+    if (value === null || value === undefined || value === '') {
+      errors.push(`${field.label} is required`);
+      return errors; // No point validating further
+    }
+    if (field.type === 'array' && Array.isArray(value) && value.length === 0) {
+      errors.push(`${field.label} is required`);
+      return errors;
+    }
+  }
 
-  switch (type) {
+  // Skip further validation if value is empty and not required
+  if (value === null || value === undefined || value === '') {
+    return errors;
+  }
+
+  switch (field.type) {
     case 'string': {
-      let stringSchema: ZodString = z.string();
-      if (minLength) {stringSchema = stringSchema.min(minLength);}
-      if (maxLength) {stringSchema = stringSchema.max(maxLength);}
-      if (pattern) {
-        stringSchema = stringSchema.regex(new RegExp(pattern));
+      const strVal = String(value);
+      if (field.minLength !== undefined && strVal.length < field.minLength) {
+        errors.push(`${field.label} must be at least ${field.minLength} characters`);
       }
-      schema = stringSchema;
+      if (field.maxLength !== undefined && strVal.length > field.maxLength) {
+        errors.push(`${field.label} must be at most ${field.maxLength} characters`);
+      }
+      if (field.pattern) {
+        const regex = new RegExp(field.pattern);
+        if (!regex.test(strVal)) {
+          errors.push(`${field.label} does not match the required format`);
+        }
+      }
       break;
     }
 
     case 'number': {
-      let numberSchema: ZodNumber = z.number();
-      if (min !== undefined) {numberSchema = numberSchema.min(min);}
-      if (max !== undefined) {numberSchema = numberSchema.max(max);}
-      schema = numberSchema;
+      const numVal = Number(value);
+      if (isNaN(numVal)) {
+        errors.push(`${field.label} must be a valid number`);
+        break;
+      }
+      if (field.min !== undefined && numVal < field.min) {
+        errors.push(`${field.label} must be at least ${field.min}`);
+      }
+      if (field.max !== undefined && numVal > field.max) {
+        errors.push(`${field.label} must be at most ${field.max}`);
+      }
+      break;
+    }
+
+    case 'enum': {
+      const allowedValues = (field.options ?? []).map(o => o.value);
+      if (!allowedValues.includes(String(value))) {
+        errors.push(`${field.label} must be one of: ${allowedValues.join(', ')}`);
+      }
+      break;
+    }
+
+    case 'array': {
+      if (!Array.isArray(value)) {
+        errors.push(`${field.label} must be an array`);
+        break;
+      }
+      if (field.minItems !== undefined && value.length < field.minItems) {
+        errors.push(`${field.label} must have at least ${field.minItems} items`);
+      }
+      if (field.maxItems !== undefined && value.length > field.maxItems) {
+        errors.push(`${field.label} must have at most ${field.maxItems} items`);
+      }
+      // Validate each item if itemSchema is defined
+      if (field.itemSchema) {
+        value.forEach((item, idx) => {
+          const itemErrors = validateField(
+            { ...field.itemSchema!, key: `${field.key}[${idx}]`, label: `${field.label} item ${idx + 1}` },
+            item
+          );
+          errors.push(...itemErrors);
+        });
+      }
       break;
     }
 
     case 'boolean':
-      schema = z.boolean();
-      break;
-
-    case 'enum':
-      if (!options || options.length === 0) {
-        schema = z.string();
-      } else {
-        const enumValues = options.map(o => o.value) as [string, ...string[]];
-        schema = z.enum(enumValues);
-      }
-      break;
-
-    case 'array':
-      if (itemSchema) {
-        const itemZod = fieldToZod(itemSchema);
-        let arraySchema: ZodArray<ZodTypeAny> = z.array(itemZod);
-        if (minItems) {arraySchema = arraySchema.min(minItems);}
-        if (maxItems) {arraySchema = arraySchema.max(maxItems);}
-        schema = arraySchema;
-      } else {
-        schema = z.array(z.any());
+      if (typeof value !== 'boolean') {
+        errors.push(`${field.label} must be true or false`);
       }
       break;
 
     case 'object':
-      // For objects, we'd build a nested schema from properties
-      schema = z.record(z.any());
+      if (typeof value !== 'object' || Array.isArray(value)) {
+        errors.push(`${field.label} must be an object`);
+      }
       break;
-
-    default:
-      schema = z.any();
   }
 
-  // Handle optional
-  if (!required) {
-    schema = schema.optional();
+  // Run custom validator if present
+  if (field.validation) {
+    const customError = field.validation(value);
+    if (customError) {
+      errors.push(customError);
+    }
   }
 
-  return schema;
+  return errors;
 }
 
 /**
- * Convert FormSchema to a full Zod schema
- */
-export function formSchemaToZod(schema: FormSchema): ZodTypeAny {
-  const shape: Record<string, ZodTypeAny> = {};
-
-  for (const field of schema.fields) {
-    shape[field.key] = fieldToZod(field);
-  }
-
-  return z.object(shape);
-}
-
-/**
- * Validate form values against a schema
+ * Validate all form values against a schema.
+ * Returns a flat list of ValidationErrors.
  */
 export function validateForm(
   values: Record<string, unknown>,
   schema: FormSchema
 ): ValidationError[] {
-  try {
-    const zodSchema = formSchemaToZod(schema);
-    zodSchema.parse(values);
-    return [];
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return error.errors.map(err => ({
-        path: err.path.join('.'),
-        message: err.message,
-      }));
+  const errors: ValidationError[] = [];
+
+  for (const field of schema.fields) {
+    const value = values[field.key];
+    const fieldErrors = validateField(field, value);
+    for (const message of fieldErrors) {
+      errors.push({ path: field.key, message });
     }
-    return [{ path: '', message: 'Validation failed' }];
   }
+
+  return errors;
 }
 
 /**
- * Get default values from schema
+ * Get default values from schema fields.
  */
 export function getDefaultValues(schema: FormSchema): Record<string, unknown> {
   const defaults: Record<string, unknown> = {};
@@ -116,7 +144,6 @@ export function getDefaultValues(schema: FormSchema): Record<string, unknown> {
     if (field.default !== undefined) {
       defaults[field.key] = field.default;
     } else {
-      // Set appropriate defaults based on type
       switch (field.type) {
         case 'string':
           defaults[field.key] = '';
