@@ -148,6 +148,8 @@ const DesignTokenManager   = React.lazy(() => import("./views/DesignTokenManager
 const WebhookPlayground    = React.lazy(() => import("./views/WebhookPlayground"));
 const SLAManager           = React.lazy(() => import("./views/SLAManager"));
 const DocumentationViewer  = React.lazy(() => import("./views/DocumentationViewer"));
+const GanttChartView       = React.lazy(() => import("./views/GanttChartView"));
+const CustomerFeedbackDashboard = React.lazy(() => import("./views/CustomerFeedbackDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -273,6 +275,8 @@ export const navItems = [
   { id: "webhook-play",     label: "Webhook Playground",  emoji: "📨", shortcut: null },
   { id: "sla-manager",      label: "SLA Manager",         emoji: "📋", shortcut: null },
   { id: "docs",             label: "Documentation",       emoji: "📖", shortcut: null },
+  { id: "gantt",            label: "Gantt Chart",         emoji: "📊", shortcut: null },
+  { id: "feedback",         label: "Customer Feedback",   emoji: "💬", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -399,6 +403,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "webhook-play":        <ContentSkeleton />,
   "sla-manager":         <ContentSkeleton />,
   "docs":                <ContentSkeleton />,
+  "gantt":               <ContentSkeleton />,
+  "feedback":            <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -746,6 +752,8 @@ function AppContent() {
       case "webhook-play":       return <WebhookPlayground />;
       case "sla-manager":        return <SLAManager />;
       case "docs":               return <DocumentationViewer />;
+      case "gantt":              return <GanttChartView />;
+      case "feedback":           return <CustomerFeedbackDashboard />;
       default:              return <AgentDashboard />;
     }
   };
