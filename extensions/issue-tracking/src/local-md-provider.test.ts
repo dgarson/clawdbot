@@ -94,6 +94,92 @@ describe("LocalMarkdownIssueTrackerProvider", () => {
     expect(reloaded?.relationships).toHaveLength(2);
   });
 
+  it("does not duplicate exact relationships on repeated updates", async () => {
+    const provider = await createProvider();
+    const created = await provider.createTicket({
+      title: "Relationship dedupe",
+      status: "in_progress",
+    });
+
+    await provider.updateTicket(created.id, {
+      appendRelationships: [
+        { kind: "blocks", ticketId: "ticket-a" },
+        { kind: "related", ticketId: "ticket-b" },
+      ],
+    });
+
+    await provider.updateTicket(created.id, {
+      appendRelationships: [
+        { kind: "blocks", ticketId: "ticket-a" },
+        { kind: "blocked_by", ticketId: "ticket-c" },
+      ],
+    });
+
+    const reloaded = await provider.getTicket(created.id);
+    expect(reloaded?.relationships).toEqual([
+      { kind: "blocks", ticketId: "ticket-a" },
+      { kind: "related", ticketId: "ticket-b" },
+      { kind: "blocked_by", ticketId: "ticket-c" },
+    ]);
+  });
+
+  it("does not duplicate exact references on repeated updates", async () => {
+    const provider = await createProvider();
+    const created = await provider.createTicket({
+      title: "Reference dedupe",
+      status: "in_progress",
+    });
+
+    const reference = {
+      id: "alpha",
+      kind: "ticket",
+      title: "Alpha",
+      uri: "ticket://alpha",
+      metadata: { severity: "high", order: 1 },
+    };
+
+    await provider.updateTicket(created.id, {
+      appendReferences: [reference],
+    });
+
+    await provider.updateTicket(created.id, {
+      appendReferences: [
+        {
+          id: "alpha",
+          kind: "ticket",
+          title: "Alpha",
+          uri: "ticket://alpha",
+          metadata: { order: 1, severity: "high" },
+        },
+        {
+          id: "beta",
+          kind: "artifact",
+          uri: "artifact://beta",
+          title: "Beta",
+          metadata: { source: "ci" },
+        },
+      ],
+    });
+
+    const reloaded = await provider.getTicket(created.id);
+    expect(reloaded?.references).toEqual([
+      {
+        id: "alpha",
+        kind: "ticket",
+        title: "Alpha",
+        uri: "ticket://alpha",
+        metadata: { severity: "high", order: 1 },
+      },
+      {
+        id: "beta",
+        kind: "artifact",
+        uri: "artifact://beta",
+        title: "Beta",
+        metadata: { source: "ci" },
+      },
+    ]);
+  });
+
   it("returns a focused dependency DAG", async () => {
     const provider = await createProvider();
     const root = await provider.createTicket({
