@@ -10,12 +10,14 @@ import { StatusBadge } from "@/components/composed/StatusBadge";
 import { AgentDetailSkeleton } from "@/components/composed/skeletons";
 import {
   AgentOverviewTab,
-  AgentWorkstreamsTab,
+  AgentWorkTab,
+  AgentChatTab,
   AgentConfigureTab,
   AgentActivityTab,
   NewSessionDialog,
 } from "@/components/domain/agents";
 import type { ConfigureSubTab } from "@/components/domain/agents/AgentConfigureTab";
+import { resolveTab, AGENT_TABS, type AgentDetailTab } from "@/config/agent-tabs";
 import { useAgent } from "@/hooks/queries/useAgents";
 import { useWorkstreamsByOwner } from "@/hooks/queries/useWorkstreams";
 import { useRitualsByAgent } from "@/hooks/queries/useRituals";
@@ -41,34 +43,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type AgentDetailTab = "overview" | "workstreams" | "configure" | "activity";
-
 export const Route = createFileRoute("/agents/$agentId")({
   component: AgentDetailPage,
   validateSearch: (search: Record<string, unknown>): {
     tab?: AgentDetailTab;
+    section?: string;
     activityId?: string;
     newSession?: boolean;
     configureTab?: ConfigureSubTab;
   } => {
-    const validTabs: AgentDetailTab[] = ["overview", "workstreams", "configure", "activity"];
-    const tab = typeof search.tab === "string" && validTabs.includes(search.tab as AgentDetailTab)
-      ? (search.tab as AgentDetailTab)
-      : undefined;
+    const rawTab = typeof search.tab === "string" ? search.tab : undefined;
+    const tab = rawTab ? resolveTab(rawTab) : undefined;
+    const section = typeof search.section === "string" ? search.section : undefined;
     const activityId = typeof search.activityId === "string" ? search.activityId : undefined;
     const newSession = search.newSession === true || search.newSession === "true";
     const validConfigureTabs: ConfigureSubTab[] = ["builder", "rituals", "tools"];
     const configureTab = typeof search.configureTab === "string" && validConfigureTabs.includes(search.configureTab as ConfigureSubTab)
       ? (search.configureTab as ConfigureSubTab)
       : undefined;
-    return { tab, activityId, newSession, configureTab };
+    return { tab, section, activityId, newSession, configureTab };
   },
 });
 
 function AgentDetailPage() {
   const { agentId } = Route.useParams();
   const navigate = Route.useNavigate();
-  const { tab: searchTab, activityId, newSession, configureTab } = Route.useSearch();
+  const { tab: searchTab, section, activityId, newSession, configureTab } = Route.useSearch();
   const [activeTab, setActiveTab] = React.useState<AgentDetailTab>(searchTab ?? "overview");
   const [showNewSessionDialog, setShowNewSessionDialog] = React.useState(false);
 
@@ -97,7 +97,7 @@ function AgentDetailPage() {
 
   const handleEditClick = () => {
     void navigate({
-      search: (prev) => ({ ...prev, tab: "configure" as AgentDetailTab }),
+      search: (prev) => ({ ...prev, tab: "configure" }),
       replace: true,
     });
   };
@@ -391,10 +391,9 @@ function AgentDetailPage() {
             className="space-y-6"
           >
             <TabsList className="w-full justify-start bg-muted/50 p-1">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="workstreams">Workstreams</TabsTrigger>
-              <TabsTrigger value="configure">Configure</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
+              {AGENT_TABS.map((t) => (
+                <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="overview">
@@ -405,21 +404,8 @@ function AgentDetailPage() {
               />
             </TabsContent>
 
-            <TabsContent value="workstreams">
-              <AgentWorkstreamsTab agentId={agentId} />
-            </TabsContent>
-
-            <TabsContent value="configure">
-              <AgentConfigureTab
-                agentId={agentId}
-                defaultSubTab={configureTab}
-                onSubTabChange={(subTab) => {
-                  void navigate({
-                    search: (prev) => ({ ...prev, configureTab: subTab }),
-                    replace: true,
-                  });
-                }}
-              />
+            <TabsContent value="work">
+              <AgentWorkTab agentId={agentId} section={section} />
             </TabsContent>
 
             <TabsContent value="activity">
@@ -436,6 +422,23 @@ function AgentDetailPage() {
                         ? { ...rest, tab: "activity", activityId: nextActivityId }
                         : { ...rest, tab: "activity" };
                     },
+                    replace: true,
+                  });
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="chat">
+              <AgentChatTab agentId={agentId} />
+            </TabsContent>
+
+            <TabsContent value="configure">
+              <AgentConfigureTab
+                agentId={agentId}
+                defaultSubTab={configureTab}
+                onSubTabChange={(subTab) => {
+                  void navigate({
+                    search: (prev) => ({ ...prev, configureTab: subTab }),
                     replace: true,
                   });
                 }}
