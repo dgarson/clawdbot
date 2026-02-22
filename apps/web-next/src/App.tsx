@@ -179,6 +179,10 @@ const BackupManager              = React.lazy(() => import("./views/BackupManage
 const VectorDatabaseViewer       = React.lazy(() => import("./views/VectorDatabaseViewer"));
 const DocumentTemplateBuilder    = React.lazy(() => import("./views/DocumentTemplateBuilder"));
 const ServiceAccountManager      = React.lazy(() => import("./views/ServiceAccountManager"));
+const ContainerRegistry          = React.lazy(() => import("./views/ContainerRegistry"));
+const EmailCampaignManager       = React.lazy(() => import("./views/EmailCampaignManager"));
+const ChangeDataCapture          = React.lazy(() => import("./views/ChangeDataCapture"));
+const FleetDeviceManager         = React.lazy(() => import("./views/FleetDeviceManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -335,6 +339,10 @@ export const navItems = [
   { id: "vector-db",       label: "Vector Database",     emoji: "🧬", shortcut: null },
   { id: "doc-templates",   label: "Doc Templates",       emoji: "📄", shortcut: null },
   { id: "service-accounts",label: "Service Accounts",    emoji: "🤖", shortcut: null },
+  { id: "container-reg",   label: "Container Registry",  emoji: "📦", shortcut: null },
+  { id: "email-campaigns", label: "Email Campaigns",     emoji: "📧", shortcut: null },
+  { id: "cdc",             label: "Change Data Capture", emoji: "🔄", shortcut: null },
+  { id: "fleet",           label: "Fleet Devices",       emoji: "📡", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -492,6 +500,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "vector-db":          <ContentSkeleton />,
   "doc-templates":      <ContentSkeleton />,
   "service-accounts":   <ContentSkeleton />,
+  "container-reg":      <ContentSkeleton />,
+  "email-campaigns":    <ContentSkeleton />,
+  "cdc":                <ContentSkeleton />,
+  "fleet":              <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -870,6 +882,10 @@ function AppContent() {
       case "vector-db":         return <VectorDatabaseViewer />;
       case "doc-templates":     return <DocumentTemplateBuilder />;
       case "service-accounts":  return <ServiceAccountManager />;
+      case "container-reg":     return <ContainerRegistry />;
+      case "email-campaigns":   return <EmailCampaignManager />;
+      case "cdc":               return <ChangeDataCapture />;
+      case "fleet":             return <FleetDeviceManager />;
       default:              return <AgentDashboard />;
     }
   };
