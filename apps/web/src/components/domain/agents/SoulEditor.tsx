@@ -11,11 +11,12 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Copy,
+  Wand2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAgentFile, useAgentFileSave } from "@/hooks/queries/useAgentFiles";
 
@@ -27,7 +28,7 @@ export interface SoulEditorProps {
   agentId: string;
 }
 
-type ViewMode = "edit" | "preview" | "split";
+type ViewMode = "edit" | "preview" | "split" | "guided";
 
 // ---------------------------------------------------------------------------
 // Simple Markdown Preview
@@ -101,6 +102,21 @@ export function SoulEditor({ agentId }: SoulEditorProps) {
 
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
+  // Guided mode state
+  const CORE_VALUES = [
+    "Accuracy", "Creativity", "Efficiency", "Empathy",
+    "Humor", "Thoroughness", "Brevity", "Curiosity",
+    "Patience", "Proactivity", "Clarity", "Innovation",
+  ] as const;
+
+  const [guidedState, setGuidedState] = React.useState({
+    formality: 50,
+    verbosity: 60,
+    tone: 40,
+    creativity: 70,
+    coreValues: ["Accuracy", "Efficiency", "Clarity"] as string[],
+  });
+
   // Sync remote content → local state
   React.useEffect(() => {
     if (content != null && !hasUnsavedChanges) {
@@ -137,6 +153,37 @@ export function SoulEditor({ agentId }: SoulEditorProps) {
     setHasUnsavedChanges(false);
     setSaveSuccess(false);
     resetSave();
+  };
+
+  const getSliderLabel = (value: number, lowLabel: string, highLabel: string) => {
+    if (value < 35) {return lowLabel;}
+    if (value > 65) {return highLabel;}
+    return "Balanced";
+  };
+
+  const generateSoulContent = () => {
+    const formalityLabel = getSliderLabel(guidedState.formality, "formal and professional", "casual and conversational");
+    const verbosityLabel = getSliderLabel(guidedState.verbosity, "concise", "detailed and thorough");
+    const toneLabel = getSliderLabel(guidedState.tone, "serious and focused", "warm and playful");
+    const creativityLabel = getSliderLabel(guidedState.creativity, "conservative and reliable", "creative and innovative");
+    const values = guidedState.coreValues.join(", ");
+
+    const generated = `# Soul
+
+## Core Identity
+
+This agent communicates in a ${formalityLabel} style, providing ${verbosityLabel} responses with a ${toneLabel} tone. In problem-solving, this agent is ${creativityLabel}.
+
+## Core Values
+
+${guidedState.coreValues.map((v) => `- **${v}**`).join("\n")}
+
+## Guiding Principles
+
+This agent is guided by: ${values}. These values inform every interaction and decision.
+`;
+    handleContentChange(generated);
+    setViewMode("split");
   };
 
   // Keyboard shortcuts
@@ -184,6 +231,21 @@ export function SoulEditor({ agentId }: SoulEditorProps) {
           <div className="flex items-center gap-2">
             {/* View mode toggles */}
             <div className="flex rounded-lg border border-border bg-muted/30 p-0.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setViewMode("guided")}
+                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                      viewMode === "guided"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Wand2 className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Guided setup</TooltipContent>
+              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -274,43 +336,120 @@ export function SoulEditor({ agentId }: SoulEditorProps) {
             Failed to load file: {String(loadError)}
           </div>
         ) : (
-          <div className={`flex gap-4 ${viewMode === "split" ? "flex-row" : "flex-col"}`}>
-            {/* Editor */}
-            {(viewMode === "edit" || viewMode === "split") && (
-              <div className={viewMode === "split" ? "flex-1" : "w-full"}>
-                <textarea
-                  ref={textareaRef}
-                  value={localContent}
-                  onChange={(e) => handleContentChange(e.target.value)}
-                  placeholder={
-                    isEmpty
-                      ? `# SOUL.md — Agent Name\n\nDescribe who this agent is...\n\n## Core Identity\n\nWhat defines this agent's personality?\n\n## Communication Style\n\nHow does this agent talk?\n\n## What Drives You\n\nWhat motivates this agent?`
-                      : "Enter SOUL.md content..."
-                  }
-                  className="w-full min-h-[500px] rounded-lg border border-border bg-muted/30 p-4 font-mono text-sm leading-relaxed text-foreground outline-none resize-y focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                  spellCheck={false}
-                />
+          <>
+            {viewMode === "guided" && (
+              <div className="space-y-6">
+                {/* Personality Sliders */}
+                <div className="space-y-5">
+                  {[
+                    { key: "formality" as const, label: "Formality", low: "Formal", high: "Casual" },
+                    { key: "verbosity" as const, label: "Detail Level", low: "Concise", high: "Detailed" },
+                    { key: "tone" as const, label: "Tone", low: "Serious", high: "Playful" },
+                    { key: "creativity" as const, label: "Creativity", low: "Conservative", high: "Creative" },
+                  ].map(({ key, label, low, high }) => (
+                    <div key={key} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{label}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {getSliderLabel(guidedState[key], low, high)}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{low}</span>
+                          <span>{high}</span>
+                        </div>
+                        <Slider
+                          value={[guidedState[key]]}
+                          onValueChange={(v) =>
+                            setGuidedState((prev) => ({ ...prev, [key]: v[0] }))
+                          }
+                          max={100}
+                          step={1}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Core Values */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Core Values</p>
+                  <p className="text-xs text-muted-foreground">
+                    Select the values that guide this agent's behavior.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {CORE_VALUES.map((value) => (
+                      <Badge
+                        key={value}
+                        variant={guidedState.coreValues.includes(value) ? "default" : "outline"}
+                        className="cursor-pointer transition-all px-3 py-1"
+                        onClick={() =>
+                          setGuidedState((prev) => ({
+                            ...prev,
+                            coreValues: prev.coreValues.includes(value)
+                              ? prev.coreValues.filter((v) => v !== value)
+                              : [...prev.coreValues, value],
+                          }))
+                        }
+                      >
+                        {value}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Generate button */}
+                <Button onClick={generateSoulContent} className="gap-2 w-full">
+                  <Wand2 className="size-4" />
+                  Generate SOUL.md from selections
+                </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  This will generate a SOUL.md draft and switch to split view for editing.
+                </p>
               </div>
             )}
 
-            {/* Preview */}
-            {(viewMode === "preview" || viewMode === "split") && (
-              <div
-                className={`${viewMode === "split" ? "flex-1" : "w-full"} rounded-lg border border-border bg-muted/10 p-6 overflow-y-auto max-h-[600px]`}
-              >
-                {localContent.trim() ? (
-                  <MarkdownPreview content={localContent} />
-                ) : (
-                  <div className="text-center py-12">
-                    <Sparkles className="size-8 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-sm text-muted-foreground">
-                      Start writing to see a preview here.
-                    </p>
+            {viewMode !== "guided" && (
+              <div className={`flex gap-4 ${viewMode === "split" ? "flex-row" : "flex-col"}`}>
+                {/* Editor */}
+                {(viewMode === "edit" || viewMode === "split") && (
+                  <div className={viewMode === "split" ? "flex-1" : "w-full"}>
+                    <textarea
+                      ref={textareaRef}
+                      value={localContent}
+                      onChange={(e) => handleContentChange(e.target.value)}
+                      placeholder={
+                        isEmpty
+                          ? `# SOUL.md — Agent Name\n\nDescribe who this agent is...\n\n## Core Identity\n\nWhat defines this agent's personality?\n\n## Communication Style\n\nHow does this agent talk?\n\n## What Drives You\n\nWhat motivates this agent?`
+                          : "Enter SOUL.md content..."
+                      }
+                      className="w-full min-h-[500px] rounded-lg border border-border bg-muted/30 p-4 font-mono text-sm leading-relaxed text-foreground outline-none resize-y focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      spellCheck={false}
+                    />
+                  </div>
+                )}
+
+                {/* Preview */}
+                {(viewMode === "preview" || viewMode === "split") && (
+                  <div
+                    className={`${viewMode === "split" ? "flex-1" : "w-full"} rounded-lg border border-border bg-muted/10 p-6 overflow-y-auto max-h-[600px]`}
+                  >
+                    {localContent.trim() ? (
+                      <MarkdownPreview content={localContent} />
+                    ) : (
+                      <div className="text-center py-12">
+                        <Sparkles className="size-8 mx-auto text-muted-foreground mb-3" />
+                        <p className="text-sm text-muted-foreground">
+                          Start writing to see a preview here.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </>
         )}
 
         {saveError && (
