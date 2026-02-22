@@ -2,8 +2,8 @@
 
 **Project:** `apps/web-next` (Vite + React + Tailwind, dark theme)
 **Goal:** 10-12 views done by 7:30 AM MST Feb 22
-**Sprint Status:** ✅ EXCEEDED — 18 views + full P2 shell polish
-**Last Updated:** 2026-02-21 11:15 PM MST
+**Sprint Status:** ✅ EXCEEDED — 19 views + full P2 shell polish
+**Last Updated:** 2026-02-22 12:10 AM MST
 
 ## Build Status
 ```
@@ -33,6 +33,7 @@
 | AgentConfigReview | ✅ |
 | WorkspaceFileBrowser | ✅ |
 | NotificationCenter | ✅ |
+| ApiKeysManager | ✅ |
 
 ---
 
@@ -120,6 +121,23 @@
 - CronScheduleBuilder: htmlFor+id on Job Name; sr-only label + aria-label on custom cron input
 - SessionExplorer: <span onClick> → <button type=button> with aria-label + focus-visible ring
 - Clean build: ✓ 0 TS errors, 1.45s
+
+## View #19 (Creative Invention — 12:10 AM Feb 22 MST)
+
+### ✅ ApiKeysManager (`src/views/ApiKeysManager.tsx`) — commit `e738631`
+- **API Keys tab:** master/detail, active/revoked/expired status filter chips,
+  search bar, masked key display, revoke/rotate/delete actions,
+  28-bar usage sparkline, per-scope badge listing, meta grid (created/expires/IP/calls)
+- **Webhooks tab:** delivery stats (total/success rate/last fired), signing secret
+  copy-to-clipboard, pause/resume/delete, event subscriptions, failing-state alert banner
+- **Create Key modal:** name + expiry picker (30/90/365/never) + scope selector
+  grouped by category (Agents/Sessions/Models/Nodes/Cron/Files/Admin), admin warning,
+  one-time key reveal step with copy-to-clipboard
+- **Create Webhook modal:** name, endpoint URL, event multi-select pill tags
+- **Security UX:** admin scope warning, "copy now or lose it" reveal flow, security notice banner
+- Build: ✓ 0 TS errors, 1.47s, 30.88 kB / gzip 6.98 kB
+
+---
 
 ## Remaining P2 (lower priority)
 
