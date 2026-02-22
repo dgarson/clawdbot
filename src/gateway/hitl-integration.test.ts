@@ -208,9 +208,7 @@ describe("hitl-integration", () => {
         currentChainDepth: 0,
       });
       expect(authResult1.allowed).toBe(false);
-      if (!authResult1.allowed) {
-        expect(authResult1.reason).toBe("insufficient-role");
-      }
+      expect(authResult1.reason).toBe("insufficient-role");
 
       // Authorize with sufficient role but same actor (no-self-approval)
       const authResult2 = engine.authorize({
@@ -221,9 +219,7 @@ describe("hitl-integration", () => {
         currentChainDepth: 0,
       });
       expect(authResult2.allowed).toBe(false);
-      if (!authResult2.allowed) {
-        expect(authResult2.reason).toBe("same-actor-required-different");
-      }
+      expect(authResult2.reason).toBe("same-actor-required-different");
 
       // Authorize correctly
       const authResult3 = engine.authorize({
@@ -242,9 +238,7 @@ describe("hitl-integration", () => {
         currentEscalationCount: 0,
       });
       expect(escalateResult.shouldEscalate).toBe(true);
-      if (escalateResult.shouldEscalate) {
-        expect(escalateResult.escalateToRole).toBe("owner");
-      }
+      expect(escalateResult.escalateToRole).toBe("owner");
 
       // Test escalation exhausted
       const escalateExhausted = engine.shouldEscalate({
@@ -276,9 +270,7 @@ describe("hitl-integration", () => {
       // Depth 2 should fail
       const result = engine.authorize({ policy: policy!, currentChainDepth: 2 });
       expect(result.allowed).toBe(false);
-      if (!result.allowed) {
-        expect(result.reason).toBe("approval-chain-exceeded");
-      }
+      expect(result.reason).toBe("approval-chain-exceeded");
     });
   });
 
