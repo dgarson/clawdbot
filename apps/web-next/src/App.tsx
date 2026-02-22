@@ -253,6 +253,7 @@ const InfrastructureCostManager      = React.lazy(() => import("./views/Infrastr
 const SessionReplayViewer            = React.lazy(() => import("./views/SessionReplayViewer"));
 const TokenUsageOptimizer            = React.lazy(() => import("./views/TokenUsageOptimizer"));
 const StreamingDebugger              = React.lazy(() => import("./views/StreamingDebugger"));
+const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
 const MLExperimentTracker            = React.lazy(() => import("./views/MLExperimentTracker"));
@@ -506,6 +507,8 @@ export const navItems = [
   { id: "change-approval",      label: "Change Approval",       emoji: "✅", shortcut: null },
   { id: "queue-inspector",      label: "Queue Inspector",       emoji: "📬", shortcut: null },
   { id: "token-usage",          label: "Token Usage Optimizer", emoji: "🪙", shortcut: null },
+  { id: "streaming-debugger",      label: "Streaming Debugger",     emoji: "📺", shortcut: null },
+  { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -748,6 +751,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "change-approval":        <ContentSkeleton />,
   "queue-inspector":        <ContentSkeleton />,
   "token-usage":            <ContentSkeleton />,
+  "streaming-debugger":        <ContentSkeleton />,
+  "session-debug-timeline":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1207,6 +1212,7 @@ function AppContent() {
       case "session-replay-viewer": return <SessionReplayViewer />;
       case "token-usage-opt":      return <TokenUsageOptimizer />;
       case "streaming-debugger":   return <StreamingDebugger />; // alias
+      case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
       case "search-analytics":     return <SearchAnalyticsDashboard />;
