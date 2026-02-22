@@ -35,6 +35,8 @@ const ModelComparisonMatrix        = React.lazy(() => import("./views/ModelCompa
 const AgentWaveScheduler           = React.lazy(() => import("./views/AgentWaveScheduler"));
 const DiscoveryPreflightChecklist  = React.lazy(() => import("./views/DiscoveryPreflightChecklist"));
 const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryFindingsSearch"));
+const DiscoveryRunTimeline       = React.lazy(() => import("./views/DiscoveryRunTimeline"));
+const DiscoveryRunSummaryReport  = React.lazy(() => import("./views/DiscoveryRunSummaryReport"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -309,6 +311,8 @@ export const navItems = [
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
   { id: "agent-cost-tracker",      label: "Agent Cost Tracker",   emoji: "💰", shortcut: null },
   { id: "tool-reliability",        label: "Tool Reliability",     emoji: "🛡️", shortcut: null },
+  { id: "run-timeline",          label: "Run Timeline",         emoji: "📊", shortcut: null },
+  { id: "run-summary",           label: "Run Summary",          emoji: "📋", shortcut: null },
   { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
@@ -1076,6 +1080,8 @@ function AppContent() {
       case "wave-scheduler":          return <AgentWaveScheduler />;
       case "preflight-checklist":     return <DiscoveryPreflightChecklist />;
       case "findings-search":         return <DiscoveryFindingsSearch />;
+      case "run-timeline":        return <DiscoveryRunTimeline />;
+      case "run-summary":         return <DiscoveryRunSummaryReport />;
       case "dashboard":     return <AgentDashboard />;
       case "chat":          return <ChatInterface agentName="Luis" agentEmoji="🎨" />;
       case "builder":       return <AgentBuilderWizard />;
