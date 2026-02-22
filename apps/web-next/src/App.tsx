@@ -258,6 +258,9 @@ const SLAComplianceTracker           = React.lazy(() => import("./views/SLACompl
 const CostBreakdownAnalyzer          = React.lazy(() => import("./views/CostBreakdownAnalyzer"));
 const CompliancePolicyEditor         = React.lazy(() => import("./views/CompliancePolicyEditor"));
 const FeatureGatingDashboard         = React.lazy(() => import("./views/FeatureGatingDashboard"));
+const ServiceHealthDashboard         = React.lazy(() => import("./views/ServiceHealthDashboard"));
+const DataMaskingManager             = React.lazy(() => import("./views/DataMaskingManager"));
+const ObservabilityRulesEngine       = React.lazy(() => import("./views/ObservabilityRulesEngine"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -518,6 +521,9 @@ export const navItems = [
   { id: "cost-breakdown",          label: "Cost Breakdown",         emoji: "💰", shortcut: null },
   { id: "compliance-policy",       label: "Compliance Policies",    emoji: "📜", shortcut: null },
   { id: "feature-gating",          label: "Feature Gating",         emoji: "🚦", shortcut: null },
+  { id: "service-health-dashboard", label: "Service Health",          emoji: "❤️", shortcut: null },
+  { id: "data-masking",             label: "Data Masking",            emoji: "🎭", shortcut: null },
+  { id: "obs-rules-engine",         label: "Observability Rules",     emoji: "🔭", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -767,6 +773,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "cost-breakdown":            <ContentSkeleton />,
   "compliance-policy":         <ContentSkeleton />,
   "feature-gating":            <ContentSkeleton />,
+  "service-health-dashboard":  <ContentSkeleton />,
+  "data-masking":              <ContentSkeleton />,
+  "obs-rules-engine":          <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1232,6 +1241,9 @@ function AppContent() {
       case "cost-breakdown":       return <CostBreakdownAnalyzer />;
       case "compliance-policy":    return <CompliancePolicyEditor />;
       case "feature-gating":       return <FeatureGatingDashboard />;
+      case "service-health-dashboard": return <ServiceHealthDashboard />;
+      case "data-masking":         return <DataMaskingManager />;
+      case "obs-rules-engine":     return <ObservabilityRulesEngine />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
