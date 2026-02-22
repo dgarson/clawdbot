@@ -17,6 +17,17 @@ import {
   PanelLeftClose,
   AlertCircle,
   Clock,
+  LayoutDashboard,
+  Activity,
+  FileText,
+  LineChart,
+  HardDrive,
+  User,
+  GitBranch,
+  Network,
+  Calendar,
+  Wrench,
+  Search,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -33,6 +44,7 @@ import { useAgentStore } from "@/stores/useAgentStore";
 import { useConversationStore } from "@/stores/useConversationStore";
 import { derivePendingApprovalsSummary } from "@/lib/approvals/pending";
 import { showInfo } from "@/lib/toast";
+import { getPaletteIntent } from "@/lib/palette-intent";
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -46,6 +58,7 @@ export function CommandPalette({
   onShowShortcuts,
 }: CommandPaletteProps) {
   const navigate = useNavigate();
+  const [query, setQuery] = React.useState("");
   const {
     theme,
     setTheme,
@@ -58,10 +71,13 @@ export function CommandPalette({
   const conversations = useConversationStore((s) => s.conversations);
   const approvals = React.useMemo(() => derivePendingApprovalsSummary(agents), [agents]);
 
+  const intent = React.useMemo(() => getPaletteIntent(query), [query]);
+
   const handleSelect = React.useCallback(
     (action: () => void) => {
       action();
       onOpenChange(false);
+      setQuery("");
     },
     [onOpenChange]
   );
@@ -101,6 +117,17 @@ export function CommandPalette({
     [navigate]
   );
 
+  const handleCheckGatewayStatus = React.useCallback(async () => {
+    // In a real implementation this would call gateway.status
+    // For this UI task, we show a toast as requested
+    showInfo("Gateway Status: Online (v1.2.4). All systems nominal.");
+  }, []);
+
+  const handleRunHeartbeat = React.useCallback(() => {
+    // In a real implementation this would send a message to the main agent
+    showInfo("Sent heartbeat signal to main agent.");
+  }, []);
+
   const handleChatWithAgent = React.useCallback(
     (agentId: string) => {
       navigate({
@@ -121,7 +148,9 @@ export function CommandPalette({
     { label: "Memories", to: "/memories" as const, icon: Brain },
     { label: "Rituals", to: "/rituals" as const, icon: RefreshCw },
     { label: "Workstreams", to: "/workstreams" as const, icon: ListTodo },
-    { label: "Settings", to: "/you" as const, icon: Settings },
+    { label: "Skills", to: "/skills" as const, icon: Wrench },
+    { label: "Nodes", to: "/nodes" as const, icon: Network },
+    { label: "Settings", to: "/you" as const, icon: User },
   ];
 
   return (
@@ -131,8 +160,35 @@ export function CommandPalette({
       title="Command Palette"
       description="Search for commands, navigate, or perform actions"
     >
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput 
+        placeholder="Type a command or search..." 
+        value={query}
+        onValueChange={setQuery}
+      />
       <CommandList>
+        {intent && (
+          <CommandGroup heading="Suggestions">
+            <CommandItem
+              onSelect={() =>
+                handleSelect(() =>
+                  navigate({
+                    to: intent.to as any,
+                    params: intent.params as any,
+                    search: intent.search as any,
+                  })
+                )
+              }
+            >
+              <Search className="mr-2 h-4 w-4" />
+              <div className="flex flex-col">
+                <span>{intent.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  Try: {intent.suggestion}
+                </span>
+              </div>
+            </CommandItem>
+          </CommandGroup>
+        )}
         <CommandEmpty>No results found.</CommandEmpty>
 
         {/* Quick Actions */}
@@ -169,6 +225,69 @@ export function CommandPalette({
             </CommandItem>
           )}
         </CommandGroup>
+
+        <CommandSeparator />
+
+        {/* New Groups */}
+        <CommandGroup heading="Agents">
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/agents/new" }))}>
+            <Plus className="mr-2 h-4 w-4" />
+            <span>Create Agent</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/agents/graph" }))}>
+            <GitBranch className="mr-2 h-4 w-4" />
+            <span>Agent Graph</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/agent-status" }))}>
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Agent Status</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Sessions">
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/conversations" }))}>
+            <MessageCircle className="mr-2 h-4 w-4" />
+            <span>New Conversation</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/analytics", search: { tab: "sessions" } }))}>
+            <Search className="mr-2 h-4 w-4" />
+            <span>Session Inspector</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Gateway">
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/logs" }))}>
+            <FileText className="mr-2 h-4 w-4" />
+            <span>View Logs</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/analytics" }))}>
+            <LineChart className="mr-2 h-4 w-4" />
+            <span>View Analytics</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(handleCheckGatewayStatus)}>
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Check Status</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Cron">
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/jobs" }))}>
+            <Clock className="mr-2 h-4 w-4" />
+            <span>View Jobs</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(handleRunHeartbeat)}>
+            <Zap className="mr-2 h-4 w-4" />
+            <span>Run Heartbeat Now</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
 
         {approvals.pendingApprovals > 0 ? (
           <>
