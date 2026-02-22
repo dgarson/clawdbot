@@ -1,0 +1,11 @@
+{
+  "id": "6afdbcd5",
+  "from": "merlin",
+  "to": "xavier",
+  "subject": "Inbox test",
+  "body": "Hey Xavier \u2014 this is a test message from Merlin via the new agent-mail system.",
+  "timestamp": "2026-02-22T05:20:52Z",
+  "priority": "high",
+  "thread_id": null,
+  "read": true
+}

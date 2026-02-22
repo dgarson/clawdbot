@@ -284,3 +284,26 @@ Whenever listing active tasks/sessions (via `sessions_list`, `subagents(action=l
 - **Agent ID** when it's meaningful for the context (e.g. when showing who owns a task, or when multiple agents are running)
 
 Example format: `[xavier · opus] Reviewing PR #456 for architectural soundness`
+
+### Inbox (Heartbeat Step 0)
+
+At the start of every heartbeat, drain the inbox before doing anything else:
+
+```bash
+_shared/scripts/agent-mail.sh drain
+```
+
+Merlin has authority to read all agent inboxes for org-wide visibility:
+
+```bash
+_shared/scripts/agent-mail.sh list --all   # pending message counts across all agents
+_shared/scripts/agent-mail.sh read --agent xavier  # read a specific agent's inbox
+```
+
+To send an async message to an agent who may not be running:
+
+```bash
+_shared/scripts/agent-mail.sh send --to xavier --subject "PR review needed" "Please review PR #456 before your next heartbeat."
+```
+
+Full docs: `_shared/mailboxes/README.md`
