@@ -442,6 +442,12 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  extensions/github:
+    devDependencies:
+      openclaw:
+        specifier: workspace:*
+        version: link:../..
+
   extensions/google-antigravity-auth:
     devDependencies:
       openclaw:
@@ -471,6 +477,12 @@ importers:
         version: link:../..
 
   extensions/irc:
+    devDependencies:
+      openclaw:
+        specifier: workspace:*
+        version: link:../..
+
+  extensions/issue-tracking:
     devDependencies:
       openclaw:
         specifier: workspace:*
