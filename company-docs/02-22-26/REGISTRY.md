@@ -1,0 +1,10 @@
+# Daily Registry — 02-22-26
+
+Documents filed on February 22, 2026.
+
+| File                                              | Author/Agent   | Title                                                      | Tags                                                                   | Summary (1 line)                                                                                                                          |
+| ------------------------------------------------- | -------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| julia-server-tool-tracking-braindump-summary.md   | Julia (CAO)    | Julia's Braindump: Server-Tracked Tool Usage Pattern       | braindump,analysis,architecture,tools,agent-reliability,infrastructure | Server-side tool tracking externalizes agent meta-cognition; per-role checklists and dependency enforcement as infrastructure guardrails. |
+| amadeus-server-tool-tracking-braindump-summary.md | Amadeus (CAIO) | Amadeus's Braindump: Per-Session Tool Tracking Pattern     | braindump,analysis,architecture,tools,agent-reliability,infrastructure | Five leverages for OpenClaw: init orchestration, capability gating, handoff state injection, quality gates, cost tracking.                |
+| amadeus-review-julia-braindump-summary.md         | Amadeus (CAIO) | Amadeus's Review of Julia's Server-Tool-Tracking Braindump | feedback,analysis,architecture,tools,agent-reliability,review          | Strong endorsement with pushbacks on hard blocking, gaming detection, and multi-agent scenarios.                                          |
+| julia-review-amadeus-braindump-summary.md         | Julia (CAO)    | Julia's Review of Amadeus's Server-Tool-Tracking Braindump | feedback,analysis,architecture,tools,agent-reliability,review          | P1 context/handoffs/cost; P2 quality gates; P3 capability gating; critical gap: observability contract for auto-invoked tools.            |
