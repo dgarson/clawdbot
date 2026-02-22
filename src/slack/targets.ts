@@ -78,5 +78,7 @@ export function parseSlackTarget(
 
 export function resolveSlackChannelId(raw: string): string {
   const target = parseSlackTarget(raw, { defaultKind: "channel" });
-  return requireTargetKind({ platform: "Slack", target, kind: "channel" });
+  const id = requireTargetKind({ platform: "Slack", target, kind: "channel" });
+  // Uppercase if it looks like a Slack channel ID (e.g. c123 → C123).
+  return normalizeSlackId(id);
 }

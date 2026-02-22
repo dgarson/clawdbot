@@ -14,19 +14,24 @@ import { sensitive } from "./zod-schema.sensitive.js";
 // Claude SDK runtime config
 // ---------------------------------------------------------------------------
 
+const thinkingLevelField = {
+  thinkingLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+} as const;
+
 export const ClaudeSdkConfigSchema = z
   .discriminatedUnion("provider", [
-    z.object({ provider: z.literal("claude-code") }).strict(),
-    z.object({ provider: z.literal("anthropic") }).strict(),
-    z.object({ provider: z.literal("minimax") }).strict(),
-    z.object({ provider: z.literal("minimax-portal") }).strict(),
-    z.object({ provider: z.literal("zai") }).strict(),
-    z.object({ provider: z.literal("openrouter") }).strict(),
+    z.object({ provider: z.literal("claude-code"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("anthropic"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("minimax"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("minimax-portal"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("zai"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("openrouter"), ...thinkingLevelField }).strict(),
     z
       .object({
         provider: z.literal("custom"),
         baseUrl: z.string().url(),
         apiKey: z.string().optional().register(sensitive),
+        ...thinkingLevelField,
       })
       .strict(),
   ])

@@ -74,15 +74,18 @@ export default defineConfig(({ mode }) => {
               if (id.includes('reagraph') || id.includes('graphology')) {
                 return 'vendor-graph';
               }
-              // React ecosystem - bundle React core with UI libraries, state management, and flow diagrams
-              // to eliminate circular dependencies through shared utilities
+              // Flow/DAG visualization (lazy-loaded, only used in workstreams/workflow)
+              if (id.includes('@xyflow/')) {
+                return 'vendor-xyflow';
+              }
+              // React ecosystem - bundle React core with Radix, state management and UI utilities
+              // Radix depends on React internals, so they must stay together to avoid circular chunks
               if (
                 id.match(/\/react\//) ||
                 id.match(/\/react-dom\//) ||
+                id.includes('@radix-ui/') ||
                 id.includes('zustand') ||
                 id.includes('immer') ||
-                id.includes('@xyflow/') ||
-                id.includes('@radix-ui/') ||
                 // React UI component libraries
                 id.includes('cmdk') ||
                 id.includes('sonner') ||

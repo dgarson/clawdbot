@@ -69,7 +69,10 @@ const ACTION_TARGET_ALIASES: Partial<Record<ChannelMessageActionName, string[]>>
 };
 
 export function actionRequiresTarget(action: ChannelMessageActionName): boolean {
-  return MESSAGE_ACTION_TARGET_MODE[action] !== "none";
+  const mode = MESSAGE_ACTION_TARGET_MODE[action];
+  // Unknown actions return undefined — treat as "none" so the dispatch layer
+  // produces a clear "unknown action" error rather than a misleading "requires a target".
+  return mode !== undefined && mode !== "none";
 }
 
 export function actionHasTarget(

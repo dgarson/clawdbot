@@ -34,9 +34,34 @@ describe("parseSlackTarget", () => {
     });
   });
 
-  it("rejects invalid @ and # targets", () => {
+  it("uppercases lowercase channel IDs in # targets", () => {
+    expect(parseSlackTarget("#c999")).toMatchObject({
+      kind: "channel",
+      id: "C999",
+    });
+    expect(parseSlackTarget("#c1a2b3")).toMatchObject({
+      kind: "channel",
+      id: "C1A2B3",
+    });
+  });
+
+  it("parses #-prefixed channel names as channel targets for async lookup", () => {
+    expect(parseSlackTarget("#general")).toMatchObject({
+      kind: "channel",
+      id: "general",
+    });
+    expect(parseSlackTarget("#general-1")).toMatchObject({
+      kind: "channel",
+      id: "general-1",
+    });
+    expect(parseSlackTarget("#eng-frontend")).toMatchObject({
+      kind: "channel",
+      id: "eng-frontend",
+    });
+  });
+
+  it("rejects invalid @ targets", () => {
     expect(() => parseSlackTarget("@bob-1")).toThrow(/Slack DMs require a user id/);
-    expect(() => parseSlackTarget("#general-1")).toThrow(/Slack channels require a channel id/);
   });
 
   it("uppercases full-length slack ids regardless of input casing", () => {
@@ -77,9 +102,10 @@ describe("resolveSlackChannelId", () => {
     expect(resolveSlackChannelId("C123")).toBe("C123");
   });
 
-  it("uppercases lowercase full-length channel ids", () => {
-    expect(resolveSlackChannelId("c0aap72r7l5")).toBe("C0AAP72R7L5");
-    expect(resolveSlackChannelId("channel:c0aap72r7l5")).toBe("C0AAP72R7L5");
+  it("uppercases lowercase channel IDs", () => {
+    expect(resolveSlackChannelId("c123")).toBe("C123");
+    expect(resolveSlackChannelId("channel:c1a2b3")).toBe("C1A2B3");
+    expect(resolveSlackChannelId("#c999")).toBe("C999");
   });
 
   it("rejects user targets", () => {
