@@ -27,7 +27,7 @@ export function TokenCostIndicator({
   const iconSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
 
   return (
-    <div className={cn("flex items-center gap-2 rounded-full border border-border/60 bg-secondary/30 px-3 py-1", className)}>
+    <div className={cn("flex items-center gap-2 rounded-full border border-border/60 bg-secondary/30 px-1.5 py-0.5", className)}>
       {hasTokens && (
         <div className={cn("flex items-center gap-1 text-muted-foreground", textSize)}>
           <Hash className={iconSize} />

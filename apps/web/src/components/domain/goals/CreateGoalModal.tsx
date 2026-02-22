@@ -199,7 +199,7 @@ export function CreateGoalModal({
                         type="date"
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className="h-11 rounded-xl"
+                        className="h-11 rounded-xl [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-60"
                         min={new Date().toISOString().split("T")[0]}
                       />
                     </div>

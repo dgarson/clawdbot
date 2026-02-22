@@ -28,6 +28,7 @@ import {
   SkipForward,
   ChevronDown,
   ChevronUp,
+  UserCog,
 } from "lucide-react";
 import type { Ritual, RitualExecution, RitualStatus, RitualFrequency } from "@/hooks/queries/useRituals";
 
@@ -42,6 +43,7 @@ interface RitualDetailPanelProps {
   onTrigger?: (id: string) => void;
   onSkipNext?: (id: string) => void;
   onUpdateSchedule?: (id: string, schedule: { time: string; frequency: RitualFrequency }) => void;
+  onReassign?: (id: string) => void;
   agents?: { id: string; name: string }[];
   className?: string;
 }
@@ -163,6 +165,7 @@ export function RitualDetailPanel({
   onTrigger,
   onSkipNext,
   onUpdateSchedule,
+  onReassign,
   agents = [],
   className,
 }: RitualDetailPanelProps) {
@@ -317,10 +320,10 @@ export function RitualDetailPanel({
                   Skip next
                 </Button>
               </div>
-              <p className="text-sm font-medium text-foreground">
+              <p className="pl-6 text-sm font-medium text-foreground">
                 {formatDate(ritual.nextRun)}
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="pl-6 text-xs text-muted-foreground mt-0.5">
                 {formatRelativeTime(ritual.nextRun)}
               </p>
             </div>
@@ -331,10 +334,10 @@ export function RitualDetailPanel({
                 <History className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">Last Run</span>
               </div>
-              <p className="text-sm font-medium text-foreground">
+              <p className="pl-6 text-sm font-medium text-foreground">
                 {formatDate(ritual.lastRun)}
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="pl-6 text-xs text-muted-foreground mt-0.5">
                 {formatRelativeTime(ritual.lastRun)}
               </p>
             </div>
@@ -383,7 +386,7 @@ export function RitualDetailPanel({
               Assigned Agent
             </h4>
             <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-background/40 p-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-accent/20 text-lg font-semibold text-foreground">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-accent/20 text-lg font-semibold text-foreground">
                 {(assignedAgent?.name ?? ritual.agentId).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -391,19 +394,32 @@ export function RitualDetailPanel({
                   {assignedAgent?.name || `Agent #${ritual.agentId}`}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Click to view agent profile
+                  Assigned agent
                 </div>
               </div>
-              <Button
-                asChild
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-lg bg-secondary/50 hover:bg-secondary"
-              >
-                <Link to="/agents/$agentId" params={{ agentId: ritual.agentId }}>
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                {onReassign && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 rounded-lg gap-1.5 text-xs font-medium"
+                    onClick={() => onReassign(ritual.id)}
+                  >
+                    <UserCog className="h-3.5 w-3.5" />
+                    Reassign
+                  </Button>
+                )}
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-lg bg-secondary/50 hover:bg-secondary"
+                >
+                  <Link to="/agents/$agentId" params={{ agentId: ritual.agentId }}>
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -512,12 +528,12 @@ export function RitualDetailPanel({
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <Badge
                         variant="secondary"
-                        className={cn("text-[10px] uppercase tracking-wide", statusBadge.className)}
+                        className={cn("text-xs uppercase tracking-wide", statusBadge.className)}
                       >
                         {statusBadge.label}
                       </Badge>
                       {execution.toolCalls !== undefined && (
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge variant="outline" className="text-xs">
                           {execution.toolCalls} tool calls
                         </Badge>
                       )}
@@ -529,7 +545,7 @@ export function RitualDetailPanel({
                     </div>
                   </div>
                   {sessionHref && (
-                    <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-background/50">
+                    <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary">
                       <Link to={sessionHref}>
                         <ArrowUpRight className="h-4 w-4" />
                       </Link>
