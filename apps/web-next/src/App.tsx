@@ -86,6 +86,8 @@ const ApiPlayground        = React.lazy(() => import("./views/ApiPlayground"));
 const WorkspaceSettings    = React.lazy(() => import("./views/WorkspaceSettings"));
 const AgentTracer          = React.lazy(() => import("./views/AgentTracer"));
 const DataPipelineViewer   = React.lazy(() => import("./views/DataPipelineViewer"));
+const CostOptimizer        = React.lazy(() => import("./views/CostOptimizer"));
+const PluginManager        = React.lazy(() => import("./views/PluginManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -149,6 +151,8 @@ export const navItems = [
   { id: "workspace",       label: "Workspace",      emoji: "🏠", shortcut: null },
   { id: "tracer",          label: "Agent Tracer",   emoji: "🔭", shortcut: null },
   { id: "pipelines",       label: "Pipelines",      emoji: "🔀", shortcut: null },
+  { id: "cost",            label: "Cost Optimizer", emoji: "💰", shortcut: null },
+  { id: "plugins",         label: "Plugins",        emoji: "🧩", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -213,6 +217,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "workspace":      <ContentSkeleton />,
   "tracer":         <ContentSkeleton />,
   "pipelines":      <ContentSkeleton />,
+  "cost":           <DashboardSkeleton />,
+  "plugins":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -498,6 +504,8 @@ function AppContent() {
       case "workspace":       return <WorkspaceSettings />;
       case "tracer":          return <AgentTracer />;
       case "pipelines":       return <DataPipelineViewer />;
+      case "cost":            return <CostOptimizer />;
+      case "plugins":         return <PluginManager />;
       default:              return <AgentDashboard />;
     }
   };
