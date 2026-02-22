@@ -1,18 +1,25 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useGatewayStore } from "@/lib/stores/gateway";
 import {
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
-import { TokenUsageChartLazy as TokenUsageChart, CostBreakdownChartLazy as CostBreakdownChart } from "@/components/charts/lazy-charts";
-import type { UsageStatus } from "@/lib/gateway/types";
+import {
+  TokenUsageChartLazy as TokenUsageChart,
+  CostBreakdownChartLazy as CostBreakdownChart,
+} from "@/components/charts/lazy-charts";
+import type { SessionsUsageResult } from "@/lib/gateway/types";
 import {
   RefreshCw,
   Coins,
@@ -22,28 +29,17 @@ import {
   ArrowUpDown,
   WifiOff,
   Download,
+  ArrowRight,
+  MessageSquare,
+  Terminal,
+  FlaskConical,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type SessionUsageRow = {
-  sessionKey: string;
-  agentId?: string;
-  label?: string;
-  tokens: number;
-  cost: number;
-  requests: number;
-  lastActiveAtMs?: number;
-};
-
-type DailyUsagePoint = {
-  date: string;
-  tokens: number;
-  cost: number;
-};
 
 type SortField = "tokens" | "cost" | "requests" | "lastActiveAtMs";
 type SortDir = "asc" | "desc";
@@ -52,8 +48,11 @@ type SortDir = "asc" | "desc";
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatCost(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+function formatCost(usd: number): string {
+  if (usd >= 1) {return `$${usd.toFixed(2)}`;}
+  if (usd >= 0.01) {return `$${usd.toFixed(3)}`;}
+  if (usd >= 0.001) {return `$${usd.toFixed(4)}`;}
+  return `$${usd.toFixed(6)}`;
 }
 
 function formatTokens(n: number): string {
@@ -143,16 +142,24 @@ function StatCardSkeleton() {
 function TableRowSkeleton() {
   return (
     <tr className="animate-pulse">
-      <td className="px-4 py-3"><div className="h-4 w-32 rounded bg-muted" /></td>
-      <td className="px-4 py-3"><div className="h-4 w-16 rounded bg-muted" /></td>
-      <td className="px-4 py-3"><div className="h-4 w-14 rounded bg-muted" /></td>
-      <td className="px-4 py-3"><div className="h-4 w-10 rounded bg-muted" /></td>
-      <td className="px-4 py-3"><div className="h-4 w-24 rounded bg-muted" /></td>
+      <td className="px-4 py-3">
+        <div className="h-4 w-32 rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-4 w-16 rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-4 w-14 rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-4 w-10 rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-4 w-24 rounded bg-muted" />
+      </td>
     </tr>
   );
 }
-
-// Chart placeholders removed — now using real Recharts components
 
 // ---------------------------------------------------------------------------
 // Sortable table header
@@ -182,7 +189,7 @@ function SortableHeader({
         <ArrowUpDown
           className={cn(
             "h-3 w-3",
-            active ? "text-foreground" : "text-muted-foreground/50"
+            active ? "text-foreground" : "text-muted-foreground/50",
           )}
         />
         {active && (
@@ -192,6 +199,35 @@ function SortableHeader({
         )}
       </span>
     </th>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-navigation links
+// ---------------------------------------------------------------------------
+
+function AnalyticsSubNav() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button variant="outline" size="sm" asChild>
+        <Link href="/analytics/cost">
+          <Coins className="h-3.5 w-3.5 mr-1.5" />
+          Cost Analysis
+        </Link>
+      </Button>
+      <Button variant="outline" size="sm" asChild>
+        <Link href="/analytics/activity">
+          <Activity className="h-3.5 w-3.5 mr-1.5" />
+          Live Activity
+        </Link>
+      </Button>
+      <Button variant="outline" size="sm" asChild>
+        <Link href="/analytics/experiments">
+          <FlaskConical className="h-3.5 w-3.5 mr-1.5" />
+          Experiments
+        </Link>
+      </Button>
+    </div>
   );
 }
 
@@ -223,6 +259,8 @@ function EmptyTable() {
 // Page
 // ---------------------------------------------------------------------------
 
+const AUTO_REFRESH_MS = 30_000;
+
 export default function AnalyticsPage() {
   const { connected, request } = useGatewayStore();
 
@@ -235,9 +273,7 @@ export default function AnalyticsPage() {
   const [endDate, setEndDate] = React.useState(() => toISODate(new Date()));
 
   // Data
-  const [usage, setUsage] = React.useState<UsageStatus | null>(null);
-  const [sessions, setSessions] = React.useState<SessionUsageRow[]>([]);
-  const [dailyUsage, setDailyUsage] = React.useState<DailyUsagePoint[]>([]);
+  const [data, setData] = React.useState<SessionsUsageResult | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -245,32 +281,21 @@ export default function AnalyticsPage() {
   const [sortField, setSortField] = React.useState<SortField>("cost");
   const [sortDir, setSortDir] = React.useState<SortDir>("desc");
 
-  // Fetch data
+  // Fetch data from the rich sessions.usage API
   const fetchData = React.useCallback(async () => {
     if (!connected) {return;}
     setLoading(true);
     setError(null);
     try {
-      const [usageResult, sessionsResult, dailyResult] = await Promise.all([
-        request<UsageStatus>("usage.status", {
-          startDate,
-          endDate,
-        }),
-        request<{ sessions: SessionUsageRow[] }>("sessions.usage", {
-          startDate,
-          endDate,
-        }),
-        request<{ daily: DailyUsagePoint[] }>("usage.daily", {
-          startDate,
-          endDate,
-        }).catch(() => ({ daily: [] as DailyUsagePoint[] })),
-      ]);
-      setUsage(usageResult);
-      setSessions(sessionsResult.sessions ?? []);
-      setDailyUsage(dailyResult.daily ?? []);
+      const result = await request<SessionsUsageResult>("sessions.usage", {
+        startDate,
+        endDate,
+        limit: 100,
+      });
+      setData(result);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to load analytics"
+        err instanceof Error ? err.message : "Failed to load analytics",
       );
     } finally {
       setLoading(false);
@@ -280,6 +305,13 @@ export default function AnalyticsPage() {
   React.useEffect(() => {
     void fetchData();
   }, [fetchData]);
+
+  // Auto-refresh every 30s
+  React.useEffect(() => {
+    if (!connected) {return;}
+    const id = setInterval(() => void fetchData(), AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [connected, fetchData]);
 
   // Sort handler
   const handleSort = React.useCallback(
@@ -291,19 +323,39 @@ export default function AnalyticsPage() {
         setSortDir("desc");
       }
     },
-    [sortField]
+    [sortField],
   );
 
   // Sorted sessions
   const sortedSessions = React.useMemo(() => {
-    return [...sessions].toSorted((a, b) => {
-      const aVal = a[sortField] ?? 0;
-      const bVal = b[sortField] ?? 0;
-      return sortDir === "asc"
-        ? (aVal) - (bVal)
-        : (bVal) - (aVal);
+    if (!data?.sessions) {return [];}
+    return [...data.sessions].toSorted((a, b) => {
+      let aVal = 0;
+      let bVal = 0;
+      switch (sortField) {
+        case "tokens":
+          aVal = a.usage?.totalTokens ?? 0;
+          bVal = b.usage?.totalTokens ?? 0;
+          break;
+        case "cost":
+          aVal = a.usage?.totalCost ?? 0;
+          bVal = b.usage?.totalCost ?? 0;
+          break;
+        case "requests":
+          aVal = a.usage?.messageCounts?.total ?? 0;
+          bVal = b.usage?.messageCounts?.total ?? 0;
+          break;
+        case "lastActiveAtMs":
+          aVal = a.updatedAt ?? 0;
+          bVal = b.updatedAt ?? 0;
+          break;
+      }
+      return sortDir === "asc" ? aVal - bVal : bVal - aVal;
     });
-  }, [sessions, sortField, sortDir]);
+  }, [data, sortField, sortDir]);
+
+  const totals = data?.totals;
+  const aggregates = data?.aggregates;
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -325,17 +377,23 @@ export default function AnalyticsPage() {
             />
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchData}
-          disabled={loading || !connected}
-        >
-          <RefreshCw
-            className={cn("mr-1.5 h-3.5 w-3.5", loading && "animate-spin")}
-          />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <AnalyticsSubNav />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchData}
+            disabled={loading || !connected}
+          >
+            <RefreshCw
+              className={cn(
+                "mr-1.5 h-3.5 w-3.5",
+                loading && "animate-spin",
+              )}
+            />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Connection warning */}
@@ -386,7 +444,6 @@ export default function AnalyticsPage() {
             />
           </div>
           <div className="flex gap-2 sm:ml-auto">
-            {/* Quick range presets */}
             {[
               { label: "7d", days: 7 },
               { label: "30d", days: 30 },
@@ -413,59 +470,181 @@ export default function AnalyticsPage() {
 
       {/* Summary stats */}
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCardSkeleton />
           <StatCardSkeleton />
           <StatCardSkeleton />
           <StatCardSkeleton />
         </div>
-      ) : usage ? (
-        <div className="grid gap-4 md:grid-cols-3">
+      ) : totals ? (
+        <div className="grid gap-4 md:grid-cols-4">
           <StatCard
             title="Total Tokens"
-            value={formatTokens(usage.totalTokens)}
-            description={`${usage.totalTokens.toLocaleString()} tokens`}
+            value={formatTokens(totals.totalTokens)}
+            description={`${totals.input.toLocaleString()} in · ${totals.output.toLocaleString()} out`}
             icon={Zap}
           />
           <StatCard
             title="Total Cost"
-            value={formatCost(usage.totalCost)}
+            value={formatCost(totals.totalCost)}
             description="For selected period"
             icon={Coins}
             variant="warning"
           />
           <StatCard
-            title="Active Sessions"
-            value={usage.activeSessions}
-            description="Sessions with activity"
-            icon={Activity}
+            title="Sessions"
+            value={data?.sessions.length ?? 0}
+            description="With activity in range"
+            icon={MessageSquare}
             variant="success"
+          />
+          <StatCard
+            title="Tool Calls"
+            value={aggregates?.tools.totalCalls ?? 0}
+            description={`${aggregates?.tools.uniqueTools ?? 0} unique tools`}
+            icon={Terminal}
           />
         </div>
       ) : null}
 
+      {/* Latency + Messages summary row */}
+      <ComplexityGate level="standard">
+        {aggregates && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Messages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-lg font-bold">{aggregates.messages.user}</p>
+                    <p className="text-xs text-muted-foreground">User</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{aggregates.messages.assistant}</p>
+                    <p className="text-xs text-muted-foreground">Assistant</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-destructive">
+                      {aggregates.messages.errors}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Errors</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {aggregates.latency && aggregates.latency.count > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="h-4 w-4" /> Latency
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-lg font-bold">{aggregates.latency.avgMs.toFixed(0)}ms</p>
+                      <p className="text-xs text-muted-foreground">Avg</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{aggregates.latency.p95Ms.toFixed(0)}ms</p>
+                      <p className="text-xs text-muted-foreground">p95</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{aggregates.latency.maxMs.toFixed(0)}ms</p>
+                      <p className="text-xs text-muted-foreground">Max</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {aggregates.tools.tools.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Top Tools</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {aggregates.tools.tools.slice(0, 5).map((tool) => (
+                      <div key={tool.name} className="flex items-center justify-between text-sm">
+                        <span className="truncate text-muted-foreground">{tool.name}</span>
+                        <Badge variant="secondary" className="text-xs tabular-nums">
+                          {tool.count}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </ComplexityGate>
+
       {/* Charts */}
       <ComplexityGate level="standard">
         <div className="grid gap-4 md:grid-cols-2">
-          <TokenUsageChart data={dailyUsage} />
+          <TokenUsageChart data={aggregates?.daily ?? []} />
           <CostBreakdownChart
             data={
-              sessions.length > 0
-                ? (() => {
-                    // Aggregate cost by agentId
-                    const costMap = new Map<string, number>();
-                    for (const s of sessions) {
-                      const key = s.agentId ?? "unknown";
-                      costMap.set(key, (costMap.get(key) ?? 0) + s.cost);
-                    }
-                    return Array.from(costMap.entries())
-                      .map(([name, value]) => ({ name, value }))
-                      .toSorted((a, b) => b.value - a.value)
-                      .slice(0, 8);
-                  })()
+              aggregates?.byAgent
+                ? aggregates.byAgent
+                    .map((a) => ({
+                      name: a.agentId,
+                      value: Math.round(a.totals.totalCost * 100),
+                    }))
+                    .filter((a) => a.value > 0)
+                    .slice(0, 8)
                 : []
             }
           />
         </div>
+      </ComplexityGate>
+
+      {/* Model breakdown quick view */}
+      <ComplexityGate level="standard">
+        {aggregates && aggregates.byModel.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Cost by Model</CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/analytics/cost">
+                    Full analysis <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {aggregates.byModel.slice(0, 5).map((entry) => {
+                  const maxCost = aggregates.byModel[0]?.totals.totalCost ?? 1;
+                  const pct = maxCost > 0 ? (entry.totals.totalCost / maxCost) * 100 : 0;
+                  return (
+                    <div key={`${entry.provider}-${entry.model}`} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="truncate">
+                          <span className="text-muted-foreground">{entry.provider}/</span>
+                          {entry.model}
+                        </span>
+                        <span className="font-mono text-xs tabular-nums">
+                          {formatCost(entry.totals.totalCost)} · {formatTokens(entry.totals.totalTokens)}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary/70"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </ComplexityGate>
 
       {/* Session usage table */}
@@ -492,11 +671,21 @@ export default function AnalyticsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Session</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Tokens</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cost</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Requests</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Last Active</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                      Session
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                      Tokens
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                      Cost
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                      Messages
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                      Last Active
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -533,7 +722,7 @@ export default function AnalyticsPage() {
                       onSort={handleSort}
                     />
                     <SortableHeader
-                      label="Requests"
+                      label="Messages"
                       field="requests"
                       currentField={sortField}
                       currentDir={sortDir}
@@ -551,32 +740,36 @@ export default function AnalyticsPage() {
                 <tbody>
                   {sortedSessions.map((row) => (
                     <tr
-                      key={row.sessionKey}
-                      className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+                      key={row.key}
+                      className="border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
                     >
                       <td className="px-4 py-3">
-                        <div className="flex flex-col">
+                        <Link
+                          href={`/analytics/sessions/${encodeURIComponent(row.key)}`}
+                          className="flex flex-col hover:underline"
+                        >
                           <span className="text-sm font-medium truncate max-w-[200px]">
-                            {row.label ?? row.sessionKey}
+                            {row.label ?? row.key}
                           </span>
                           {row.agentId && (
                             <span className="text-xs text-muted-foreground">
                               {row.agentId}
+                              {row.model && ` · ${row.model}`}
                             </span>
                           )}
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-sm tabular-nums">
-                        {formatTokens(row.tokens)}
+                        {formatTokens(row.usage?.totalTokens ?? 0)}
                       </td>
                       <td className="px-4 py-3 text-sm tabular-nums">
-                        {formatCost(row.cost)}
+                        {formatCost(row.usage?.totalCost ?? 0)}
                       </td>
                       <td className="px-4 py-3 text-sm tabular-nums">
-                        {row.requests}
+                        {row.usage?.messageCounts?.total ?? 0}
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {formatDate(row.lastActiveAtMs)}
+                        {formatDate(row.updatedAt)}
                       </td>
                     </tr>
                   ))}
@@ -590,9 +783,10 @@ export default function AnalyticsPage() {
       {/* Expert summary */}
       <ComplexityGate level="expert">
         <p className="text-xs text-muted-foreground">
-          {sessions.length} session{sessions.length !== 1 ? "s" : ""} ·{" "}
-          Range: {startDate} → {endDate} ·{" "}
-          Sorted by {sortField} {sortDir}
+          {data?.sessions.length ?? 0} session
+          {(data?.sessions.length ?? 0) !== 1 ? "s" : ""} · Range:{" "}
+          {data?.startDate ?? startDate} → {data?.endDate ?? endDate} · Sorted
+          by {sortField} {sortDir} · Auto-refresh: {AUTO_REFRESH_MS / 1000}s
         </p>
       </ComplexityGate>
     </div>

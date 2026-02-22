@@ -39,8 +39,10 @@ function formatTokensShort(n: number): string {
   return n.toString();
 }
 
-function formatCostShort(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+function formatCostShort(usd: number): string {
+  if (usd >= 1) {return `$${usd.toFixed(2)}`;}
+  if (usd >= 0.01) {return `$${usd.toFixed(3)}`;}
+  return `$${usd.toFixed(4)}`;
 }
 
 type CustomTooltipProps = {
@@ -191,7 +193,7 @@ export function CostBreakdownChart({ data }: { data: CostBreakdownItem[] }) {
                 ))}
               </Pie>
               <ReTooltip
-                formatter={(value: number) => formatCostShort(value)}
+                formatter={(value: number) => [formatCostShort(value), "Cost"]}
                 contentStyle={{
                   background: "hsl(240 10% 6%)",
                   border: "1px solid hsl(240 4% 16%)",
