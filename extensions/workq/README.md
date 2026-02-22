@@ -19,7 +19,7 @@ This extension is intended to live at:
 
 In this repo, it is located at:
 
-- `/Users/openclaw/openclaw/extensions/workq/`
+- `extensions/workq/`
 
 OpenClaw discovers the extension entrypoint from `package.json`:
 
@@ -61,16 +61,75 @@ Example config:
 }
 ```
 
-### Pi / ARM runtime note
+### Pi / ARM runtime portability
 
-- `workq` uses Node built-in `node:sqlite` (no native addon compile step).
-- On Raspberry Pi / ARM agents, use a persistent DB path such as:
-  - `/data/openclaw/workq/workq.db`
-- After registration/config, verify plugin load with:
+`workq` is fully portable to ARM-based hosts (Raspberry Pi 4/5, Orange Pi,
+other aarch64 SBCs) with no native compilation step:
+
+| Concern | Detail |
+|---------|--------|
+| **SQLite** | Uses the built-in `node:sqlite` module (shipped with Node ≥ 22.5.0, unflagged since ~22.8). No `node-gyp`, no `better-sqlite3`, no native addon rebuild required. |
+| **Node version** | Requires **Node ≥ 22.12.0** (repo `engines` constraint). Install via [NodeSource](https://github.com/nodesource/distributions) or `nvm` — both support `linux/arm64`. |
+| **Architecture** | Pure JS + built-in bindings. Works identically on `x64`, `arm64`, and `armv7l` (32-bit Pi OS). |
+| **File I/O** | WAL journal mode is enabled by default (`PRAGMA journal_mode = WAL`). This is safe on ext4/f2fs but **not on FAT32/exFAT** partitions. |
+
+#### Recommended database path (Pi)
+
+On Pi hosts the default `~/.openclaw/workq/workq.db` lives on the SD card,
+which has limited write endurance. For longer-lived deployments, place the
+database on an external drive or a dedicated data partition:
+
+```
+/data/openclaw/workq/workq.db
+```
+
+Set it in your OpenClaw config:
+
+```json
+{
+  "workq": {
+    "dbPath": "/data/openclaw/workq/workq.db"
+  }
+}
+```
+
+Make sure the directory exists and is writable by the OpenClaw process:
 
 ```bash
-openclaw channels status --probe
+sudo mkdir -p /data/openclaw/workq
+sudo chown openclaw:openclaw /data/openclaw/workq
 ```
+
+#### Probe and verification commands
+
+After deploying on a Pi (or any new host), verify the extension loads and
+the database is functional:
+
+```bash
+# 1. Confirm Node.js version meets the minimum
+node -e "const v = process.versions.node.split('.').map(Number); \
+  console.log(v[0] > 22 || (v[0] === 22 && v[1] >= 12) \
+    ? 'OK  node ' + process.version + ' (' + process.arch + ')' \
+    : 'FAIL  need >= 22.12.0, got ' + process.version)"
+
+# 2. Confirm node:sqlite is available (no flag needed)
+node -e "require('node:sqlite'); console.log('OK  node:sqlite available')"
+
+# 3. Smoke-test the database at the configured path
+node -e "const { DatabaseSync } = require('node:sqlite'); \
+  const db = new DatabaseSync('/data/openclaw/workq/workq.db'); \
+  db.exec('SELECT 1'); db.close(); \
+  console.log('OK  database opens at configured path')"
+
+# 4. Verify the workq extension registered its tools and CLI
+openclaw channels status --probe
+
+# 5. Quick functional check — list current queue (should return empty or items)
+openclaw workq list --json
+```
+
+> **Tip:** On headless Pi hosts, run the probe commands in a startup script or
+> systemd `ExecStartPost` to catch misconfiguration early.
 
 ---
 
