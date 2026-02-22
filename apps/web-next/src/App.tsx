@@ -166,6 +166,9 @@ const NetworkTopologyViewer   = React.lazy(() => import("./views/NetworkTopology
 const ComplianceDashboard     = React.lazy(() => import("./views/ComplianceDashboard"));
 const UserSegmentation        = React.lazy(() => import("./views/UserSegmentation"));
 const DeploymentTracker       = React.lazy(() => import("./views/DeploymentTracker"));
+const ContentModerationQueue  = React.lazy(() => import("./views/ContentModerationQueue"));
+const PricingCalculator       = React.lazy(() => import("./views/PricingCalculator"));
+const TechRadar               = React.lazy(() => import("./views/TechRadar"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -309,6 +312,9 @@ export const navItems = [
   { id: "compliance",       label: "Compliance",          emoji: "✅", shortcut: null },
   { id: "user-segments",    label: "User Segmentation",   emoji: "🎯", shortcut: null },
   { id: "deployments",      label: "Deployment Tracker",  emoji: "🚀", shortcut: null },
+  { id: "moderation",       label: "Content Moderation",  emoji: "🛡️", shortcut: null },
+  { id: "pricing-calc",     label: "Pricing Calculator",  emoji: "💰", shortcut: null },
+  { id: "tech-radar",       label: "Tech Radar",          emoji: "📡", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -453,6 +459,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "compliance":          <ContentSkeleton />,
   "user-segments":       <ContentSkeleton />,
   "deployments":         <ContentSkeleton />,
+  "moderation":          <ContentSkeleton />,
+  "pricing-calc":        <ContentSkeleton />,
+  "tech-radar":          <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -818,6 +827,9 @@ function AppContent() {
       case "compliance":         return <ComplianceDashboard />;
       case "user-segments":      return <UserSegmentation />;
       case "deployments":        return <DeploymentTracker />;
+      case "moderation":         return <ContentModerationQueue />;
+      case "pricing-calc":       return <PricingCalculator />;
+      case "tech-radar":         return <TechRadar />;
       default:              return <AgentDashboard />;
     }
   };
