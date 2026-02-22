@@ -289,6 +289,8 @@ const DependencyAuditDashboard       = React.lazy(() => import("./views/Dependen
 const SearchAnalyticsDashboard       = React.lazy(() => import("./views/SearchAnalyticsDashboard"));
 const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeApprovalBoard"));
 const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
+const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
+const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -529,6 +531,8 @@ export const navItems = [
   { id: "search-analytics",     label: "Search Analytics",      emoji: "🔎", shortcut: null },
   { id: "change-approval",      label: "Change Approval",       emoji: "✅", shortcut: null },
   { id: "queue-inspector",      label: "Queue Inspector",       emoji: "📬", shortcut: null },
+  { id: "db-query-analyzer",    label: "DB Query Analyzer",     emoji: "🔬", shortcut: null },
+  { id: "feature-flag-manager", label: "Feature Flag Manager",  emoji: "🏁", shortcut: null },
   { id: "token-usage",          label: "Token Usage Optimizer", emoji: "🪙", shortcut: null },
   { id: "streaming-debugger",      label: "Streaming Debugger",     emoji: "📺", shortcut: null },
   { id: "sla-compliance",          label: "SLA Compliance",         emoji: "📋", shortcut: null },
@@ -795,6 +799,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "search-analytics":       <ContentSkeleton />,
   "change-approval":        <ContentSkeleton />,
   "queue-inspector":        <ContentSkeleton />,
+  "db-query-analyzer":      <ContentSkeleton />,
+  "feature-flag-manager":   <ContentSkeleton />,
   "token-usage":            <ContentSkeleton />,
   "streaming-debugger":        <ContentSkeleton />,
   "sla-compliance":            <ContentSkeleton />,
@@ -1307,8 +1313,10 @@ function AppContent() {
       case "dependency-audit":     return <DependencyAuditDashboard />;
       case "search-analytics":     return <SearchAnalyticsDashboard />;
       case "change-approval":      return <ChangeApprovalBoard />;
-      case "queue-inspector":      return <QueueInspector />;
-      case "token-usage":          return <TokenUsageOptimizer />;
+      case "queue-inspector":         return <QueueInspector />;
+      case "db-query-analyzer":       return <DatabaseQueryAnalyzer />;
+      case "feature-flag-manager":    return <FeatureFlagManager />;
+      case "token-usage":             return <TokenUsageOptimizer />;
       default:              return <AgentDashboard />;
     }
   };
