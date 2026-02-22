@@ -25,11 +25,36 @@ import { buildAgentToAgentMessageContext, resolvePingPongTurns } from "./session
 import { runSessionsSendA2AFlow } from "./sessions-send-tool.a2a.js";
 
 const SessionsSendToolSchema = Type.Object({
-  sessionKey: Type.Optional(Type.String()),
-  label: Type.Optional(Type.String({ minLength: 1, maxLength: SESSION_LABEL_MAX_LENGTH })),
-  agentId: Type.Optional(Type.String({ minLength: 1, maxLength: 64 })),
-  message: Type.String(),
-  timeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
+  sessionKey: Type.Optional(
+    Type.String({
+      description:
+        "Target session key (internal identifier; alternative: use 'label' + 'agentId').",
+    }),
+  ),
+  label: Type.Optional(
+    Type.String({
+      minLength: 1,
+      maxLength: SESSION_LABEL_MAX_LENGTH,
+      description:
+        "User-friendly session label for lookup (combine with 'agentId' for cross-agent resolution).",
+    }),
+  ),
+  agentId: Type.Optional(
+    Type.String({
+      minLength: 1,
+      maxLength: 64,
+      description: "Agent ID for label-based session lookup (used with 'label').",
+    }),
+  ),
+  message: Type.String({
+    description: "Message text to inject into the target session as user input.",
+  }),
+  timeoutSeconds: Type.Optional(
+    Type.Number({
+      minimum: 0,
+      description: "Response timeout in seconds (0=fire-and-forget; default: 60).",
+    }),
+  ),
 });
 
 export function createSessionsSendTool(opts?: {
