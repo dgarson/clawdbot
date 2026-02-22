@@ -29,6 +29,8 @@ export type AgentConfig = {
     model?: AgentModelConfig;
     thinking?: string;
   };
+  /** Default thinking level when no /think directive is present for this agent. */
+  thinkingDefault?: AgentDefaultsConfig["thinkingDefault"];
   /** Optional per-agent sandbox overrides. */
   sandbox?: AgentSandboxConfig;
   tools?: AgentToolsConfig;

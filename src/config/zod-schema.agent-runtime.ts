@@ -14,27 +14,41 @@ import { sensitive } from "./zod-schema.sensitive.js";
 // Claude SDK runtime config
 // ---------------------------------------------------------------------------
 
-const thinkingLevelField = {
+const thinkingDefaultsField = {
+  thinkingDefault: z.enum(["none", "low", "medium", "high"]).optional(),
+  /** @deprecated Use thinkingDefault instead. */
   thinkingLevel: z.enum(["none", "low", "medium", "high"]).optional(),
 } as const;
 
 export const ClaudeSdkConfigSchema = z
   .discriminatedUnion("provider", [
-    z.object({ provider: z.literal("claude-code"), ...thinkingLevelField }).strict(),
-    z.object({ provider: z.literal("anthropic"), ...thinkingLevelField }).strict(),
-    z.object({ provider: z.literal("minimax"), ...thinkingLevelField }).strict(),
-    z.object({ provider: z.literal("minimax-portal"), ...thinkingLevelField }).strict(),
-    z.object({ provider: z.literal("zai"), ...thinkingLevelField }).strict(),
-    z.object({ provider: z.literal("openrouter"), ...thinkingLevelField }).strict(),
+    z.object({ provider: z.literal("claude-code"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("anthropic"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("minimax"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("minimax-portal"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("zai"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("openrouter"), ...thinkingDefaultsField }).strict(),
     z
       .object({
         provider: z.literal("custom"),
         baseUrl: z.string().url(),
         apiKey: z.string().optional().register(sensitive),
-        ...thinkingLevelField,
+        ...thinkingDefaultsField,
       })
       .strict(),
   ])
+  .superRefine((val, ctx) => {
+    if (!val?.thinkingDefault || !val.thinkingLevel) {
+      return;
+    }
+    if (val.thinkingDefault !== val.thinkingLevel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["thinkingDefault"],
+        message: "thinkingDefault and thinkingLevel must match when both are set",
+      });
+    }
+  })
   .optional();
 
 export type ClaudeSdkConfig = NonNullable<z.infer<typeof ClaudeSdkConfigSchema>>;
