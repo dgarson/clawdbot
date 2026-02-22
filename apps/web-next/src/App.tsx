@@ -248,6 +248,8 @@ const ReleaseNotesManager            = React.lazy(() => import("./views/ReleaseN
 const TrafficAnalyticsDashboard      = React.lazy(() => import("./views/TrafficAnalyticsDashboard"));
 const IncidentCommandCenter          = React.lazy(() => import("./views/IncidentCommandCenter"));
 const EnvironmentConfigManager       = React.lazy(() => import("./views/EnvironmentConfigManager"));
+const UserPermissionManager          = React.lazy(() => import("./views/UserPermissionManager"));
+const InfrastructureCostManager      = React.lazy(() => import("./views/InfrastructureCostManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -473,6 +475,8 @@ export const navItems = [
   { id: "traffic-analytics",    label: "Traffic Analytics",     emoji: "📊", shortcut: null },
   { id: "incident-command",     label: "Incident Command",      emoji: "🚨", shortcut: null },
   { id: "env-config",           label: "Env Config",            emoji: "⚙️", shortcut: null },
+  { id: "user-perms",           label: "User Permissions",      emoji: "👥", shortcut: null },
+  { id: "infra-cost-mgr",       label: "Infra Cost",            emoji: "💸", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -699,6 +703,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "traffic-analytics":      <ContentSkeleton />,
   "incident-command":       <ContentSkeleton />,
   "env-config":             <ContentSkeleton />,
+  "user-perms":             <ContentSkeleton />,
+  "infra-cost-mgr":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1146,6 +1152,8 @@ function AppContent() {
       case "traffic-analytics":    return <TrafficAnalyticsDashboard />;
       case "incident-command":     return <IncidentCommandCenter />;
       case "env-config":           return <EnvironmentConfigManager />;
+      case "user-perms":           return <UserPermissionManager />;
+      case "infra-cost-mgr":       return <InfrastructureCostManager />;
       default:              return <AgentDashboard />;
     }
   };
