@@ -24,6 +24,15 @@ export type ExecApprovalForwardingConfig = {
   targets?: ExecApprovalForwardTarget[];
 };
 
+export type HitlEscalationConfig = {
+  /** Role to escalate to when approval is denied. */
+  onDeny?: string;
+  /** Role to escalate to when approval times out. */
+  onTimeout?: string;
+  /** Maximum number of escalation attempts before giving up. */
+  maxEscalations?: number;
+};
+
 export type HitlApprovalsPolicyConfig = {
   /** Stable policy identifier for request records and audit trails. */
   id: string;
@@ -37,6 +46,10 @@ export type HitlApprovalsPolicyConfig = {
   minApproverRole?: string;
   /** Require approver and requester to be different actors. */
   requireDifferentActor?: boolean;
+  /** Maximum approval chain depth to prevent escalation attacks (0 = no limit). */
+  maxApprovalChainDepth?: number;
+  /** Escalation configuration for this policy. */
+  escalation?: HitlEscalationConfig;
 };
 
 export type HitlApprovalsConfig = {
