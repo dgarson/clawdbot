@@ -208,6 +208,8 @@ Also incorporate the finalized Amadeus v0.1 additions from architecture:
 
 ## Coordination Notes
 
+- 2026-02-22 07:21 MST (Xavier, heartbeat): Observability check complete — OBS-01/02/05 remain `in-progress`; OBS-03/04/06 are `done`; no OBS lane in-review items requiring ping this cycle. workq-extension non-done dispatch lanes were escalated to Tim due spawn allowlist constraints in Xavier session; Tim confirmed immediate re-dispatch to Sandy/Oscar/Wes/Nate and updated workstream state.
+
 - 2026-02-21 21:01 MST (Xavier, evening cron): **Evening review complete.** Key completions: PR #36 MERGED (P0 cron fix, 17:06 MST). TEL-01 done by David (PR #47 open, Xavier review queued for morning). PR #44 (Horizon UI v2) open — Xavier review needed. PR #43 (A2A) in staff review. PR #48 (integration test scaffold, David) OPEN — targets `main` which is protocol violation; do NOT merge, flag David morning. Tim briefed for overnight: Barry→ACP P0-01, Harry→P0-07, Larry→P0-08, Sandy→workq test improvements, Roman→review PR #48. No merges of PRs #43/#44/#47/#48 overnight — Xavier morning review required.
 - 2026-02-21 17:50 MST (Luis): Added **Horizon UI v2 Production Build** project (HRZ2-01 through HRZ2-PR) — 11 tasks shipped today on `luis/ui-redesign` branch (`dgarson/clawdbot`), 1 task unclaimed (HRZ2-PR: open mega-branch PR to `dgarson/fork`). Distinct from the Horizon prototype (`apps/web-next/`) — this is the full production codebase with 424 source files, 29 TanStack Router routes, Radix/Shadcn design system, real gateway RPC integration. Updated board summary totals: 102 tasks / 46 done / 9 in-progress / 1 blocked / 34 unclaimed / 13 backlog.
 
@@ -1655,18 +1657,19 @@ Decision note: no PR above is approved-but-unmerged yet; current blockers are ex
 
 ## Overnight Proactive Build Kickoff — 2026-02-22 00:00 MST (Tim)
 
-### OVN-PB-01 — UTEE Canary Execution Prep → Decision Packet
+### OVN-PB-01 — Production Observability + UTEE Canary Decision Packet
 
 - Status: `in-progress`
 - Assignee: Roman (lead), Tony (support)
 - Team/Squad: Platform Core (Roman, Tony) + Architecture review (Tim)
 - Priority: P1
 - Workflow:
-  1. Validate feature toggle and rollback commands in staging-safe dry-run flow.
-  2. Define/verify alert thresholds (error rate, p95/p99 latency deltas, crash triggers).
-  3. Produce single-page GO/NO-GO checklist + decision packet.
-  4. Attach operational evidence and handoff notes for morning approval.
-- Notes: No production rollout overnight; prep + validation artifacts only.
+  1. Publish **data contract handoff for Luis** (schema + endpoints + refresh cadence + sample payloads) for: throughput, queue aging, tool failure rate, cost per completed deliverable.
+  2. Validate feature toggle and rollback commands in staging-safe dry-run flow.
+  3. Define/verify alert thresholds (error rate, p95/p99 latency deltas, crash triggers).
+  4. Produce single-page GO/NO-GO checklist + decision packet.
+  5. Attach operational evidence and handoff notes for morning approval.
+- Notes: No production rollout overnight; prep + validation artifacts only. Luis handoff is first output.
 
 ### OVN-PB-02 — ACL/A2M Phase 1 Stabilization (Substrate)
 
@@ -1681,18 +1684,31 @@ Decision note: no PR above is approved-but-unmerged yet; current blockers are ex
   4. Add compatibility/invariant test coverage and produce merge-ready handoff.
 - Notes: Safe, additive, backward-compatible with existing `sessions_send` behavior.
 
-### OVN-PB-03 — Integration Failure-Path Harness
+### OVN-PB-03 — ACP + Handoff Reliability Status Packet
 
 - Status: `in-progress`
 - Assignee: Sandy (lead)
 - Team/Squad: Reliability lane (Sandy) + Tim review
 - Priority: P1
 - Workflow:
-  1. Build spawn/respond loop integrity checks.
-  2. Add cron delivery isolation tests (no cross-thread contamination).
-  3. Add A2M↔UTEE feature-flag interaction safety tests.
-  4. Produce a concise morning reliability report with pass/fail evidence.
-- Notes: Additive harness/tests only; avoid broad refactors overnight.
+  1. Build schema freeze matrix (frozen/provisional/blocked items).
+  2. Validate delivery trigger reliability for deterministic cross-agent delegation.
+  3. Separate blockers into architecture-blockers vs assignment-blockers.
+  4. Produce concise morning status packet with clear owner actions.
+- Notes: Additive analysis/tests only; avoid broad refactors overnight.
+
+### OVN-PB-04 — PR Backlog Compression + Merge-Lane Ownership
+
+- Status: `in-progress`
+- Assignee: Tony (lead)
+- Team/Squad: Delivery operations lane (Tony) + Tim review
+- Priority: P1
+- Workflow:
+  1. Classify all open PRs into staff-merge vs architect-review lanes.
+  2. Assign explicit owner + next action + blocker for every PR before sunrise.
+  3. Identify top bottlenecks and propose immediate unblock actions.
+  4. Produce morning compression table for David packet.
+- Notes: Coordination artifact lane; no deep code changes required.
 
 ## Review Queue Policy Update (2026-02-21)
 
