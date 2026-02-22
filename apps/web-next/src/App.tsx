@@ -100,6 +100,8 @@ const ConfigValidatorView  = React.lazy(() => import("./views/ConfigValidatorVie
 const ContextWindowViewer  = React.lazy(() => import("./views/ContextWindowViewer"));
 const AgentInbox           = React.lazy(() => import("./views/AgentInbox"));
 const DependencyGraph      = React.lazy(() => import("./views/DependencyGraph"));
+const GoalTracker          = React.lazy(() => import("./views/GoalTracker"));
+const ResourceMonitor      = React.lazy(() => import("./views/ResourceMonitor"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -177,6 +179,8 @@ export const navItems = [
   { id: "context-window",  label: "Context Window",  emoji: "🪟", shortcut: null },
   { id: "inbox",           label: "Agent Inbox",    emoji: "📬", shortcut: null },
   { id: "dep-graph",       label: "Dependency Graph", emoji: "🕸️", shortcut: null },
+  { id: "goals",           label: "Goal Tracker",   emoji: "🎯", shortcut: null },
+  { id: "resources",       label: "Resources",      emoji: "📊", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -255,6 +259,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "context-window":  <ContentSkeleton />,
   "inbox":           <ContentSkeleton />,
   "dep-graph":       <ContentSkeleton />,
+  "goals":           <ContentSkeleton />,
+  "resources":       <DashboardSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -554,6 +560,8 @@ function AppContent() {
       case "context-window":  return <ContextWindowViewer />;
       case "inbox":           return <AgentInbox />;
       case "dep-graph":       return <DependencyGraph />;
+      case "goals":           return <GoalTracker />;
+      case "resources":       return <ResourceMonitor />;
       default:              return <AgentDashboard />;
     }
   };
