@@ -154,6 +154,8 @@ const SecurityPolicyEditor  = React.lazy(() => import("./views/SecurityPolicyEdi
 const TeamCollaboration     = React.lazy(() => import("./views/TeamCollaboration"));
 const MigrationManager     = React.lazy(() => import("./views/MigrationManager"));
 const LocalizationManager  = React.lazy(() => import("./views/LocalizationManager"));
+const MultiTenantManager   = React.lazy(() => import("./views/MultiTenantManager"));
+const MLModelRegistry      = React.lazy(() => import("./views/MLModelRegistry"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -285,6 +287,8 @@ export const navItems = [
   { id: "team-collab",      label: "Team Collaboration",  emoji: "👥", shortcut: null },
   { id: "migrations",       label: "Migrations",          emoji: "🗂️", shortcut: null },
   { id: "i18n",             label: "Localization",        emoji: "🌍", shortcut: null },
+  { id: "multi-tenant",     label: "Multi-Tenant Mgr",   emoji: "🏢", shortcut: null },
+  { id: "ml-registry",      label: "ML Model Registry",  emoji: "🤖", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -417,6 +421,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "team-collab":         <ContentSkeleton />,
   "migrations":          <ContentSkeleton />,
   "i18n":                <ContentSkeleton />,
+  "multi-tenant":        <ContentSkeleton />,
+  "ml-registry":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -770,6 +776,8 @@ function AppContent() {
       case "team-collab":        return <TeamCollaboration />;
       case "migrations":         return <MigrationManager />;
       case "i18n":               return <LocalizationManager />;
+      case "multi-tenant":       return <MultiTenantManager />;
+      case "ml-registry":        return <MLModelRegistry />;
       default:              return <AgentDashboard />;
     }
   };
