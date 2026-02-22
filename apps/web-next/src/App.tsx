@@ -141,6 +141,8 @@ const GitHubIntegration    = React.lazy(() => import("./views/GitHubIntegration"
 const FunnelAnalytics      = React.lazy(() => import("./views/FunnelAnalytics"));
 const SprintBoard          = React.lazy(() => import("./views/SprintBoard"));
 const CostForecast         = React.lazy(() => import("./views/CostForecast"));
+const ThreatIntelligenceFeed = React.lazy(() => import("./views/ThreatIntelligenceFeed"));
+const PipelineMonitor      = React.lazy(() => import("./views/PipelineMonitor"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -259,6 +261,8 @@ export const navItems = [
   { id: "funnel",         label: "Funnel Analytics",   emoji: "📉", shortcut: null },
   { id: "sprint-board",   label: "Sprint Board",       emoji: "🏃", shortcut: null },
   { id: "cost-forecast",  label: "Cost Forecast",      emoji: "💸", shortcut: null },
+  { id: "threat-intel",      label: "Threat Intelligence", emoji: "🛡️", shortcut: null },
+  { id: "pipeline-monitor", label: "Pipeline Monitor",    emoji: "⚙️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -378,6 +382,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "funnel":           <ContentSkeleton />,
   "sprint-board":     <ContentSkeleton />,
   "cost-forecast":    <ContentSkeleton />,
+  "threat-intel":        <ContentSkeleton />,
+  "pipeline-monitor":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -718,6 +724,8 @@ function AppContent() {
       case "funnel":           return <FunnelAnalytics />;
       case "sprint-board":     return <SprintBoard />;
       case "cost-forecast":    return <CostForecast />;
+      case "threat-intel":       return <ThreatIntelligenceFeed />;
+      case "pipeline-monitor":   return <PipelineMonitor />;
       default:              return <AgentDashboard />;
     }
   };
