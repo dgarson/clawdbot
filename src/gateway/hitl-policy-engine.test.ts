@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createHitlPolicyEngine } from "./hitl-policy-engine.js";
+import { createHitlPolicyEngine, createHitlPolicyEngineFromConfig } from "./hitl-policy-engine.js";
 
 describe("hitl-policy-engine", () => {
   it("prefers exact tool match over category fallback", () => {
@@ -26,7 +26,7 @@ describe("hitl-policy-engine", () => {
     expect(resolved?.id).toBe("policy-node");
   });
 
-  it("uses default policy when no exact or category match exists", () => {
+  it("uses default policy when no exact/category/pattern match exists", () => {
     const engine = createHitlPolicyEngine({
       policies: [{ id: "policy-default", minApproverRole: "operator" }],
       defaultPolicyId: "policy-default",
@@ -35,6 +35,33 @@ describe("hitl-policy-engine", () => {
     const resolved = engine.resolvePolicy({ tool: "unknown.tool", category: "unknown" });
 
     expect(resolved?.id).toBe("policy-default");
+  });
+
+  it("matches wildcard pattern after exact and category checks", () => {
+    const engine = createHitlPolicyEngine({
+      policies: [
+        { id: "policy-pattern", pattern: "file.*", minApproverRole: "operator" },
+        { id: "policy-tool", tool: "file.write", minApproverRole: "admin" },
+      ],
+    });
+
+    expect(engine.resolvePolicy({ tool: "file.write" })?.id).toBe("policy-tool");
+    expect(engine.resolvePolicy({ tool: "file.read" })?.id).toBe("policy-pattern");
+  });
+
+  it("can be created from approvals config", () => {
+    const engine = createHitlPolicyEngineFromConfig({
+      hitl: {
+        defaultPolicyId: "policy-default",
+        policies: [
+          { id: "policy-default", minApproverRole: "operator" },
+          { id: "policy-run", tool: "nodes.run", minApproverRole: "admin" },
+        ],
+      },
+    });
+
+    expect(engine.resolvePolicy({ tool: "nodes.run" })?.id).toBe("policy-run");
+    expect(engine.resolvePolicy({ tool: "unknown" })?.id).toBe("policy-default");
   });
 
   it("enforces minApproverRole", () => {

@@ -1,3 +1,5 @@
+import type { ApprovalsConfig, HitlApprovalsConfig } from "../config/types.approvals.js";
+
 export type HitlPolicyDefinition = {
   /** Stable identifier for audit records and request storage. */
   id: string;
@@ -5,6 +7,8 @@ export type HitlPolicyDefinition = {
   tool?: string;
   /** Tool category fallback match (case-insensitive). */
   category?: string;
+  /** Wildcard tool match (supports `*` and `?`, case-insensitive). */
+  pattern?: string;
   /** Minimum role required to approve this request. */
   minApproverRole?: string;
   /** If true, the approver must be different from the requesting actor. */
@@ -13,7 +17,7 @@ export type HitlPolicyDefinition = {
 
 export type HitlPolicyEngineConfig = {
   policies?: HitlPolicyDefinition[];
-  /** Optional explicit default policy id used when no tool/category match exists. */
+  /** Optional explicit default policy id used when no tool/category/pattern match exists. */
   defaultPolicyId?: string;
   /** Ordered low→high roles used for minApproverRole checks. */
   approverRoleOrder?: string[];
@@ -48,22 +52,53 @@ function normalizeToken(value: string | undefined): string | undefined {
   return trimmed.toLowerCase();
 }
 
-function normalizePolicies(policies: HitlPolicyDefinition[]): HitlPolicyDefinition[] {
-  return policies
-    .map((policy) => {
-      const id = policy.id?.trim();
-      if (!id) {
-        return null;
+function escapeRegExp(value: string): string {
+  return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+}
+
+function wildcardToRegExp(pattern: string): RegExp {
+  const escaped = pattern
+    .split("")
+    .map((ch) => {
+      if (ch === "*") {
+        return ".*";
       }
-      return {
-        ...policy,
-        id,
-        tool: normalizeToken(policy.tool),
-        category: normalizeToken(policy.category),
-        minApproverRole: normalizeToken(policy.minApproverRole),
-      };
+      if (ch === "?") {
+        return ".";
+      }
+      return escapeRegExp(ch);
     })
-    .filter((policy): policy is HitlPolicyDefinition => Boolean(policy));
+    .join("");
+  return new RegExp(`^${escaped}$`, "i");
+}
+
+type NormalizedPolicy = HitlPolicyDefinition & {
+  tool?: string;
+  category?: string;
+  minApproverRole?: string;
+  pattern?: string;
+  patternRegex?: RegExp;
+};
+
+function normalizePolicies(policies: HitlPolicyDefinition[]): NormalizedPolicy[] {
+  const normalized: NormalizedPolicy[] = [];
+  for (const policy of policies) {
+    const id = policy.id?.trim();
+    if (!id) {
+      continue;
+    }
+    const pattern = policy.pattern?.trim() || undefined;
+    normalized.push({
+      ...policy,
+      id,
+      tool: normalizeToken(policy.tool),
+      category: normalizeToken(policy.category),
+      pattern,
+      patternRegex: pattern ? wildcardToRegExp(pattern) : undefined,
+      minApproverRole: normalizeToken(policy.minApproverRole),
+    });
+  }
+  return normalized;
 }
 
 export type HitlPolicyEngine = {
@@ -72,12 +107,27 @@ export type HitlPolicyEngine = {
   authorize(input: HitlAuthorizationInput): HitlAuthorizationResult;
 };
 
+function createPolicyEngineFromHitlConfig(config: HitlApprovalsConfig = {}): HitlPolicyEngine {
+  return createHitlPolicyEngine({
+    policies: config.policies,
+    defaultPolicyId: config.defaultPolicyId,
+    approverRoleOrder: config.approverRoleOrder,
+  });
+}
+
+export function createHitlPolicyEngineFromConfig(
+  approvals: ApprovalsConfig | null | undefined,
+): HitlPolicyEngine {
+  return createPolicyEngineFromHitlConfig(approvals?.hitl);
+}
+
 export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): HitlPolicyEngine {
   const normalizedPolicies = normalizePolicies(config.policies ?? []);
 
   const byTool = new Map<string, HitlPolicyDefinition>();
   const byCategory = new Map<string, HitlPolicyDefinition>();
   const byId = new Map<string, HitlPolicyDefinition>();
+  const byPattern: Array<{ regex: RegExp; policy: HitlPolicyDefinition }> = [];
 
   for (const policy of normalizedPolicies) {
     byId.set(policy.id, policy);
@@ -87,12 +137,16 @@ export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): Hit
     if (policy.category && !byCategory.has(policy.category)) {
       byCategory.set(policy.category, policy);
     }
+    if (policy.patternRegex) {
+      byPattern.push({ regex: policy.patternRegex, policy });
+    }
   }
 
   const defaultPolicy =
     config.defaultPolicyId && config.defaultPolicyId.trim().length > 0
       ? (byId.get(config.defaultPolicyId.trim()) ?? null)
-      : null;
+      : (normalizedPolicies.find((policy) => !policy.tool && !policy.category && !policy.pattern) ??
+        null);
 
   const roleOrder = (config.approverRoleOrder ?? DEFAULT_APPROVER_ROLE_ORDER)
     .map((role) => normalizeToken(role))
@@ -115,6 +169,12 @@ export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): Hit
       const fallback = byCategory.get(category);
       if (fallback) {
         return fallback;
+      }
+    }
+
+    for (const entry of byPattern) {
+      if (entry.regex.test(tool)) {
+        return entry.policy;
       }
     }
 
