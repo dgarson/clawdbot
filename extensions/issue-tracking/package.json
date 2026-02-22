@@ -1,0 +1,14 @@
+{
+  "name": "@openclaw/issue-tracking",
+  "version": "2026.2.20",
+  "description": "Issue tracking extension for local markdown and GitHub Issues",
+  "type": "module",
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
