@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { levenshtein, validateToolCall } from "./tool-call-validator.js";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  getToolCallValidationTelemetry,
+  levenshtein,
+  resetToolCallValidationTelemetry,
+  validateAndRepairToolCall,
+  validateToolCall,
+} from "./tool-call-validator.js";
 
 // ---------------------------------------------------------------------------
 // Shared test fixtures
@@ -684,5 +690,97 @@ describe("validateToolCall — edge cases", () => {
       availableTools: TOOLS,
     });
     expect(result.issues.some((i) => i.kind === "malformed_json")).toBe(true);
+  });
+});
+
+describe("validateAndRepairToolCall", () => {
+  beforeEach(() => {
+    resetToolCallValidationTelemetry();
+  });
+
+  it("repairs malformed arguments for non-anthropic providers", () => {
+    const schema = {
+      type: "object",
+      properties: {
+        file_path: { type: "string" },
+        retries: { type: "integer" },
+      },
+      required: ["file_path"],
+    };
+
+    const result = validateAndRepairToolCall({
+      toolName: "read",
+      args: '{"file-path":"./tmp.log", "retries":"2"}',
+      schema,
+      provider: "openai",
+      model: "gpt-4",
+      toolCallId: "call123",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.repaired).toBe(true);
+    expect(result.args).toMatchObject({
+      file_path: "./tmp.log",
+      retries: 2,
+    });
+  });
+
+  it("tracks telemetry by provider/model", () => {
+    const schema = {
+      type: "object",
+      properties: { path: { type: "string" } },
+      required: ["path"],
+    };
+
+    validateAndRepairToolCall({
+      toolName: "read",
+      args: '{"path":"/tmp/ok.txt"}',
+      schema,
+      provider: "openai",
+      model: "gpt-4",
+      toolCallId: "ok-1",
+    });
+
+    const telemetry = getToolCallValidationTelemetry();
+    const key = "openai/gpt-4";
+    const row = telemetry.get(key);
+    expect(row).toMatchObject({ attempts: 1, successful: 1, repaired: 0, failed: 0 });
+
+    const fail = validateAndRepairToolCall({
+      toolName: "read",
+      args: "{bad json",
+      schema,
+      provider: "openai",
+      model: "gpt-4",
+      toolCallId: "bad-1",
+    });
+
+    expect(fail.valid).toBe(false);
+    expect(fail.reason).toContain("read:");
+
+    const again = getToolCallValidationTelemetry();
+    const row2 = again.get(key);
+    expect(row2).toMatchObject({ attempts: 2, successful: 1, failed: 1 });
+  });
+
+  it("skips Anthropic provider", () => {
+    const schema = {
+      type: "object",
+      properties: { path: { type: "string" } },
+      required: ["path"],
+    };
+
+    const result = validateAndRepairToolCall({
+      toolName: "read",
+      args: "{bad json",
+      schema,
+      provider: "anthropic",
+      model: "claude-4-opus",
+      toolCallId: "anthropic-1",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.skipped).toBe(true);
+    expect(result.args).toBe("{bad json");
   });
 });
