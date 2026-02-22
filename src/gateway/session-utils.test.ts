@@ -564,3 +564,92 @@ describe("listSessionsFromStore search", () => {
     expect(missing?.totalTokensFresh).toBe(false);
   });
 });
+
+describe("listSessionsFromStore resolved level defaults", () => {
+  const makeBaseCfg = (overrides?: {
+    thinkingDefault?: string;
+    verboseDefault?: string;
+  }): OpenClawConfig =>
+    ({
+      session: { mainKey: "main" },
+      agents: {
+        list: [{ id: "main", default: true }],
+        defaults: {
+          ...(overrides?.thinkingDefault !== undefined
+            ? { thinkingDefault: overrides.thinkingDefault }
+            : {}),
+          ...(overrides?.verboseDefault !== undefined
+            ? { verboseDefault: overrides.verboseDefault }
+            : {}),
+        },
+      },
+    }) as OpenClawConfig;
+
+  const makeStore = (): Record<string, SessionEntry> => ({
+    "agent:main:sess-a": {
+      sessionId: "sess-a",
+      updatedAt: Date.now(),
+    } as SessionEntry,
+    "agent:main:sess-b": {
+      sessionId: "sess-b",
+      updatedAt: Date.now() - 1000,
+      thinkingLevel: "high",
+      verboseLevel: "full",
+    } as SessionEntry,
+  });
+
+  test("resolvedThinkingLevel reflects configured thinkingDefault when session has no explicit level", () => {
+    const result = listSessionsFromStore({
+      cfg: makeBaseCfg({ thinkingDefault: "medium" }),
+      storePath: "/tmp/sessions.json",
+      store: makeStore(),
+      opts: {},
+    });
+    const row = result.sessions.find((s) => s.key === "agent:main:sess-a");
+    expect(row?.resolvedThinkingLevel).toBe("medium");
+  });
+
+  test("resolvedThinkingLevel is 'off' when no thinkingDefault is configured", () => {
+    const result = listSessionsFromStore({
+      cfg: makeBaseCfg(),
+      storePath: "/tmp/sessions.json",
+      store: makeStore(),
+      opts: {},
+    });
+    const row = result.sessions.find((s) => s.key === "agent:main:sess-a");
+    expect(row?.resolvedThinkingLevel).toBe("off");
+  });
+
+  test("resolvedThinkingLevel is present even when session has an explicit thinkingLevel", () => {
+    const result = listSessionsFromStore({
+      cfg: makeBaseCfg({ thinkingDefault: "medium" }),
+      storePath: "/tmp/sessions.json",
+      store: makeStore(),
+      opts: {},
+    });
+    const row = result.sessions.find((s) => s.key === "agent:main:sess-b");
+    expect(row?.resolvedThinkingLevel).toBe("medium");
+  });
+
+  test("resolvedVerboseLevel reflects configured verboseDefault when session has no explicit level", () => {
+    const result = listSessionsFromStore({
+      cfg: makeBaseCfg({ verboseDefault: "full" }),
+      storePath: "/tmp/sessions.json",
+      store: makeStore(),
+      opts: {},
+    });
+    const row = result.sessions.find((s) => s.key === "agent:main:sess-a");
+    expect(row?.resolvedVerboseLevel).toBe("full");
+  });
+
+  test("resolvedVerboseLevel is undefined when no verboseDefault is configured", () => {
+    const result = listSessionsFromStore({
+      cfg: makeBaseCfg(),
+      storePath: "/tmp/sessions.json",
+      store: makeStore(),
+      opts: {},
+    });
+    const row = result.sessions.find((s) => s.key === "agent:main:sess-a");
+    expect(row?.resolvedVerboseLevel).toBeUndefined();
+  });
+});

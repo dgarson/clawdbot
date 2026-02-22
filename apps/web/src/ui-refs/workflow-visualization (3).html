@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow Engine Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind config for dark mode
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Theme CSS Variables */
+    :root {
+      --color-bg-primary: #ffffff;
+      --color-bg-secondary: #f1f5f9;
+      --color-bg-tertiary: #e2e8f0;
+      --color-bg-elevated: #ffffff;
+      --color-text-primary: #0f172a;
+      --color-text-secondary: #475569;
+      --color-text-tertiary: #94a3b8;
+      --color-border: #e2e8f0;
+      --color-border-subtle: #f1f5f9;
+      --color-canvas: #f8fafc;
+      --color-grid: #e2e8f0;
+    }
+    
+    .dark {
+      --color-bg-primary: #030712;
+      --color-bg-secondary: #0f172a;
+      --color-bg-tertiary: #1e293b;
+      --color-bg-elevated: #1e293b;
+      --color-text-primary: #f8fafc;
+      --color-text-secondary: #94a3b8;
+      --color-text-tertiary: #64748b;
+      --color-border: #334155;
+      --color-border-subtle: #1e293b;
+      --color-canvas: #030712;
+      --color-grid: #1e293b;
+    }
+
+    /* Animations */
+    @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+    @keyframes pulse { 50% { opacity: .5; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes progress { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+    
+    .animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .animate-spin { animation: spin 1s linear infinite; }
+    .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+    .animate-slideUp { animation: slideUp 0.3s ease-out; }
+    
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--color-bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-text-tertiary); }
+    
+    /* Tooltip styles */
+    .tooltip { pointer-events: none; z-index: 1000; }
+    
+    /* Log panel */
+    .log-entry { font-family: ui-monospace, monospace; font-size: 12px; }
+    
+    /* Progress ring */
+    .progress-ring { transform: rotate(-90deg); }
+    .progress-ring-circle { transition: stroke-dashoffset 0.3s ease; }
+  </style>
+</head>
+<body class="bg-[var(--color-bg-primary)] transition-colors duration-200">
+  <div id="root"></div>
+  <script>
+const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+
+// ============================================================================
+// THEME PROVIDER (like next-themes)
+// ============================================================================
+
+const ThemeContext = createContext({ theme: 'dark', setTheme: () => {}, toggleTheme: () => {} });
+
+const ThemeProvider = ({ children }) => {
+  const [theme, setThemeState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('workflow-theme');
+      if (stored) return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('workflow-theme', theme);
+  }, [theme]);
+
+  // Listen for system preference changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      const stored = localStorage.getItem('workflow-theme');
+      if (!stored) setThemeState(e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const setTheme = (newTheme) => setThemeState(newTheme);
+  const toggleTheme = () => setThemeState(prev => prev === 'dark' ? 'light' : 'dark');
+
+  return React.createElement(ThemeContext.Provider, { value: { theme, setTheme, toggleTheme } }, children);
+};
+
+const useTheme = () => useContext(ThemeContext);
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const NodeStatus = { IDLE: 'idle', RUNNING: 'running', SUCCESS: 'success', ERROR: 'error', WAITING: 'waiting', SKIPPED: 'skipped' };
+const NodeType = { START: 'start', PROCESS: 'process', WORKER: 'worker', ROUTER: 'router', ORCHESTRATOR: 'orchestrator', QUALITY_CHECK: 'quality_check', COMPLETE: 'complete', AGENT: 'agent', RESULT: 'result' };
+const EdgeType = { DEFAULT: 'default', CONDITIONAL: 'conditional', PARALLEL: 'parallel', FEEDBACK: 'feedback' };
+
+// ============================================================================
+// KEYBOARD SHORTCUTS HOOK
+// ============================================================================
+
+const useKeyboardShortcuts = (shortcuts, deps = []) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      const key = e.key.toLowerCase();
+      const shortcut = shortcuts.find(s => {
+        const matches = s.key.toLowerCase() === key;
+        const ctrlMatch = s.ctrl ? e.ctrlKey || e.metaKey : !e.ctrlKey && !e.metaKey;
+        const shiftMatch = s.shift ? e.shiftKey : !e.shiftKey;
+        return matches && ctrlMatch && shiftMatch;
+      });
+      
+      if (shortcut) {
+        e.preventDefault();
+        shortcut.action();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, deps);
+};
+
+// ============================================================================
+// TOOLTIP COMPONENT
+// ============================================================================
+
+const Tooltip = ({ children, content, position = 'top' }) => {
+  const [show, setShow] = useState(false);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const triggerRef = useRef(null);
+  
+  const handleMouseEnter = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    let x = rect.left + rect.width / 2;
+    let y = position === 'top' ? rect.top - 8 : rect.bottom + 8;
+    setCoords({ x, y });
+    setShow(true);
+  };
+  
+  return React.createElement('div', { 
+    ref: triggerRef,
+    onMouseEnter: handleMouseEnter,
+    onMouseLeave: () => setShow(false),
+    className: 'relative inline-block'
+  },
+    children,
+    show && React.createElement('div', {
+      className: 'tooltip fixed animate-fadeIn',
+      style: {
+        left: coords.x,
+        top: coords.y,
+        transform: position === 'top' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)'
+      }
+    },
+      React.createElement('div', {
+        className: 'px-3 py-2 text-xs font-medium rounded-lg shadow-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 whitespace-nowrap'
+      }, content)
+    )
+  );
+};
+
+// ============================================================================
+// NODE TOOLTIP (for hover preview)
+// ============================================================================
+
+const NodeTooltip = ({ node, x, y, visible }) => {
+  if (!visible || !node) return null;
+  
+  const statusColors = {
+    idle: 'bg-gray-500',
+    running: 'bg-blue-500',
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    waiting: 'bg-yellow-500',
+    skipped: 'bg-gray-400'
+  };
+  
+  return React.createElement('div', {
+    className: 'tooltip fixed animate-fadeIn',
+    style: { left: x + 20, top: y - 10, zIndex: 1000 }
+  },
+    React.createElement('div', {
+      className: 'p-3 rounded-xl shadow-xl border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 min-w-[200px]'
+    },
+      React.createElement('div', { className: 'flex items-center gap-2 mb-2' },
+        React.createElement('div', { className: `w-2 h-2 rounded-full ${statusColors[node.status]}` }),
+        React.createElement('span', { className: 'font-semibold text-sm text-gray-900 dark:text-white' }, node.title)
+      ),
+      React.createElement('div', { className: 'space-y-1 text-xs' },
+        React.createElement('div', { className: 'flex justify-between' },
+          React.createElement('span', { className: 'text-gray-500 dark:text-gray-400' }, 'Type'),
+          React.createElement('span', { className: 'text-gray-700 dark:text-gray-300 capitalize' }, node.type.replace('_', ' '))
+        ),
+        React.createElement('div', { className: 'flex justify-between' },
+          React.createElement('span', { className: 'text-gray-500 dark:text-gray-400' }, 'Status'),
+          React.createElement('span', { className: 'text-gray-700 dark:text-gray-300 capitalize' }, node.status)
+        ),
+        node.metadata?.model && React.createElement('div', { className: 'flex justify-between' },
+          React.createElement('span', { className: 'text-gray-500 dark:text-gray-400' }, 'Model'),
+          React.createElement('span', { className: 'text-gray-700 dark:text-gray-300 font-mono' }, node.metadata.model)
+        ),
+        node.metadata?.duration && React.createElement('div', { className: 'flex justify-between' },
+          React.createElement('span', { className: 'text-gray-500 dark:text-gray-400' }, 'Duration'),
+          React.createElement('span', { className: 'text-gray-700 dark:text-gray-300' }, node.metadata.duration)
+        )
+      ),
+      React.createElement('div', { className: 'mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-[10px] text-gray-400' },
+        'Click for details • Double-click for full view'
+      )
+    )
+  );
+};
+
+// ============================================================================
+// PROGRESS RING COMPONENT
+// ============================================================================
+
+const ProgressRing = ({ progress = 0, size = 40, strokeWidth = 3, color = '#3b82f6' }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+  
+  return React.createElement('svg', { width: size, height: size, className: 'progress-ring' },
+    React.createElement('circle', {
+      cx: size / 2,
+      cy: size / 2,
+      r: radius,
+      fill: 'none',
+      stroke: 'currentColor',
+      strokeWidth,
+      className: 'text-gray-200 dark:text-gray-700'
+    }),
+    React.createElement('circle', {
+      cx: size / 2,
+      cy: size / 2,
+      r: radius,
+      fill: 'none',
+      stroke: color,
+      strokeWidth,
+      strokeLinecap: 'round',
+      strokeDasharray: circumference,
+      strokeDashoffset: offset,
+      className: 'progress-ring-circle'
+    })
+  );
+};
+
+// ============================================================================
+// LOG PANEL COMPONENT
+// ============================================================================
+
+const LogPanel = ({ logs = [], isOpen, onToggle, onClear }) => {
+  const logEndRef = useRef(null);
+  const [filter, setFilter] = useState('all');
+  
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
+  
+  const filteredLogs = filter === 'all' ? logs : logs.filter(l => l.level === filter);
+  
+  const levelColors = {
+    info: 'text-blue-500 dark:text-blue-400',
+    success: 'text-green-500 dark:text-green-400',
+    warning: 'text-yellow-500 dark:text-yellow-400',
+    error: 'text-red-500 dark:text-red-400'
+  };
+  
+  const levelBg = {
+    info: 'bg-blue-500/10',
+    success: 'bg-green-500/10',
+    warning: 'bg-yellow-500/10',
+    error: 'bg-red-500/10'
+  };
+  
+  return React.createElement('div', {
+    className: `fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`
+  },
+    // Header
+    React.createElement('div', {
+      className: 'h-10 px-4 flex items-center justify-between cursor-pointer bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700',
+      onClick: onToggle
+    },
+      React.createElement('div', { className: 'flex items-center gap-3' },
+        React.createElement('svg', { 
+          width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2,
+          className: 'text-gray-500 dark:text-gray-400'
+        },
+          React.createElement('path', { d: 'M4 19.5A2.5 2.5 0 016.5 17H20' }),
+          React.createElement('path', { d: 'M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z' })
+        ),
+        React.createElement('span', { className: 'text-sm font-medium text-gray-700 dark:text-gray-300' }, 'Execution Log'),
+        React.createElement('span', { className: 'px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }, logs.length)
+      ),
+      React.createElement('div', { className: 'flex items-center gap-2' },
+        // Filter buttons
+        React.createElement('div', { className: 'flex gap-1 mr-2' },
+          ['all', 'info', 'success', 'warning', 'error'].map(level =>
+            React.createElement('button', {
+              key: level,
+              onClick: (e) => { e.stopPropagation(); setFilter(level); },
+              className: `px-2 py-0.5 text-xs rounded transition-colors ${filter === level 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`
+            }, level.charAt(0).toUpperCase() + level.slice(1))
+          )
+        ),
+        React.createElement('button', {
+          onClick: (e) => { e.stopPropagation(); onClear(); },
+          className: 'p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500'
+        },
+          React.createElement('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            React.createElement('path', { d: 'M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2' })
+          )
+        ),
+        React.createElement('svg', { 
+          width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2,
+          className: `text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`
+        },
+          React.createElement('path', { d: 'M18 15l-6-6-6 6' })
+        )
+      )
+    ),
+    // Log content
+    React.createElement('div', {
+      className: 'h-48 overflow-y-auto bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700'
+    },
+      filteredLogs.length === 0
+        ? React.createElement('div', { className: 'h-full flex items-center justify-center text-gray-400 text-sm' }, 'No logs yet')
+        : React.createElement('div', { className: 'p-2 space-y-1' },
+            filteredLogs.map((log, i) =>
+              React.createElement('div', {
+                key: i,
+                className: `log-entry flex items-start gap-2 px-2 py-1.5 rounded ${levelBg[log.level]}`
+              },
+                React.createElement('span', { className: 'text-gray-400 dark:text-gray-500 shrink-0' }, log.timestamp),
+                React.createElement('span', { className: `shrink-0 uppercase text-[10px] font-bold ${levelColors[log.level]}` }, log.level),
+                log.node && React.createElement('span', { className: 'shrink-0 px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400 text-[10px]' }, log.node),
+                React.createElement('span', { className: 'text-gray-700 dark:text-gray-300' }, log.message)
+              )
+            ),
+            React.createElement('div', { ref: logEndRef })
+          )
+    )
+  );
+};
+
+// ============================================================================
+// KEYBOARD SHORTCUTS HELP MODAL
+// ============================================================================
+
+const ShortcutsModal = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+  
+  const shortcuts = [
+    { keys: ['?'], desc: 'Show/hide this help' },
+    { keys: ['Esc'], desc: 'Close panels and dialogs' },
+    { keys: ['F'], desc: 'Fit workflow to view' },
+    { keys: ['L'], desc: 'Toggle log panel' },
+    { keys: ['T'], desc: 'Toggle theme (dark/light)' },
+    { keys: ['←', '→'], desc: 'Navigate between nodes' },
+    { keys: ['+', '-'], desc: 'Zoom in/out' },
+    { keys: ['0'], desc: 'Reset zoom' },
+  ];
+  
+  return React.createElement('div', {
+    className: 'fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[100]',
+    onClick: onClose
+  },
+    React.createElement('div', {
+      className: 'bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200 dark:border-gray-700',
+      onClick: e => e.stopPropagation()
+    },
+      React.createElement('div', { className: 'flex items-center justify-between mb-4' },
+        React.createElement('h3', { className: 'text-lg font-bold text-gray-900 dark:text-white' }, 'Keyboard Shortcuts'),
+        React.createElement('button', {
+          onClick: onClose,
+          className: 'p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500'
+        },
+          React.createElement('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            React.createElement('path', { d: 'M18 6L6 18M6 6l12 12' })
+          )
+        )
+      ),
+      React.createElement('div', { className: 'space-y-2' },
+        shortcuts.map((s, i) =>
+          React.createElement('div', {
+            key: i,
+            className: 'flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0'
+          },
+            React.createElement('span', { className: 'text-gray-600 dark:text-gray-300 text-sm' }, s.desc),
+            React.createElement('div', { className: 'flex gap-1' },
+              s.keys.map((key, j) =>
+                React.createElement('kbd', {
+                  key: j,
+                  className: 'px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded border border-gray-300 dark:border-gray-600'
+                }, key)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
+// ============================================================================
+// THEME TOGGLE BUTTON
+// ============================================================================
+
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+  
+  return React.createElement(Tooltip, { content: `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode (T)` },
+    React.createElement('button', {
+      onClick: toggleTheme,
+      className: 'p-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors'
+    },
+      theme === 'dark'
+        ? React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            React.createElement('circle', { cx: 12, cy: 12, r: 5 }),
+            React.createElement('path', { d: 'M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42' })
+          )
+        : React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            React.createElement('path', { d: 'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z' })
+          )
+    )
+  );
+};
+
+// ============================================================================
+// ANIMATION HOOK
+// ============================================================================
+
+const useAnimationFrame = (callback, isRunning = true) => {
+  const requestRef = useRef();
+  const previousTimeRef = useRef();
+  useEffect(() => {
+    if (!isRunning) return;
+    const animate = (time) => {
+      if (previousTimeRef.current !== undefined) callback(time - previousTimeRef.current, time);
+      previousTimeRef.current = time;
+      requestRef.current = requestAnimationFrame(animate);
+    };
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [callback, isRunning]);
+};
+
+// ============================================================================
+// ANIMATED DOT
+// ============================================================================
+
+const AnimatedDot = ({ pathD, duration = 2000, delay = 0, size = 6, color = '#3b82f6', glowColor = '#60a5fa', isActive = true }) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(0);
+  const pathRef = useRef(null);
+  const startTimeRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathD);
+      svg.appendChild(path);
+      pathRef.current = path;
+    }
+  }, [pathD]);
+
+  useAnimationFrame((deltaTime, time) => {
+    if (!isActive || !pathRef.current) return;
+    if (startTimeRef.current === null) startTimeRef.current = time + delay;
+    const elapsed = time - startTimeRef.current;
+    if (elapsed < 0) return;
+    const progress = (elapsed % duration) / duration;
+    const totalLength = pathRef.current.getTotalLength();
+    const point = pathRef.current.getPointAtLength(progress * totalLength);
+    setPosition({ x: point.x, y: point.y });
+    const fadeZone = 0.15;
+    if (progress < fadeZone) setOpacity(progress / fadeZone);
+    else if (progress > 1 - fadeZone) setOpacity((1 - progress) / fadeZone);
+    else setOpacity(1);
+  }, isActive);
+
+  if (!isActive) return null;
+  return React.createElement('g', { style: { opacity } },
+    React.createElement('circle', { cx: position.x, cy: position.y, r: size * 2.5, fill: glowColor, opacity: 0.25 }),
+    React.createElement('circle', { cx: position.x, cy: position.y, r: size, fill: color }),
+    React.createElement('circle', { cx: position.x, cy: position.y, r: size * 0.4, fill: 'white', opacity: 0.9 })
+  );
+};
+
+// ============================================================================
+// WORKFLOW EDGE
+// ============================================================================
+
+const WorkflowEdge = ({ id, sourceX, sourceY, targetX, targetY, type = EdgeType.DEFAULT, isActive = false, label, animated = true }) => {
+  const { theme } = useTheme();
+  const dx = targetX - sourceX, dy = targetY - sourceY;
+  const midX = (sourceX + targetX) / 2, midY = (sourceY + targetY) / 2;
+  let pathD;
+  if (type === EdgeType.FEEDBACK) {
+    const loopHeight = Math.abs(dy) * 0.5 + 80;
+    pathD = `M ${sourceX} ${sourceY} C ${sourceX + 50} ${sourceY - loopHeight}, ${targetX - 50} ${targetY - loopHeight}, ${targetX} ${targetY}`;
+  } else if (Math.abs(dx) > Math.abs(dy) * 0.5) {
+    pathD = `M ${sourceX} ${sourceY} C ${sourceX + dx * 0.35} ${sourceY}, ${sourceX + dx * 0.65} ${targetY}, ${targetX} ${targetY}`;
+  } else {
+    pathD = `M ${sourceX} ${sourceY} C ${sourceX} ${sourceY + dy * 0.35}, ${targetX} ${sourceY + dy * 0.65}, ${targetX} ${targetY}`;
+  }
+  const colors = { [EdgeType.CONDITIONAL]: { stroke: '#f59e0b', glow: '#fbbf24' }, [EdgeType.PARALLEL]: { stroke: '#8b5cf6', glow: '#a78bfa' }, [EdgeType.FEEDBACK]: { stroke: '#ec4899', glow: '#f472b6' }, [EdgeType.DEFAULT]: { stroke: '#3b82f6', glow: '#60a5fa' } }[type] || { stroke: '#3b82f6', glow: '#60a5fa' };
+  const inactiveColor = theme === 'dark' ? '#374151' : '#d1d5db';
+
+  return React.createElement('g', { className: 'workflow-edge' },
+    React.createElement('path', { d: pathD, fill: 'none', stroke: colors.glow, strokeWidth: isActive ? 6 : 3, strokeOpacity: isActive ? 0.3 : 0.08, strokeLinecap: 'round' }),
+    React.createElement('path', { d: pathD, fill: 'none', stroke: isActive ? colors.stroke : inactiveColor, strokeWidth: 2, strokeDasharray: type === EdgeType.CONDITIONAL ? '8 4' : 'none', strokeLinecap: 'round', style: { transition: 'stroke 0.3s ease' } }),
+    animated && isActive && [
+      React.createElement(AnimatedDot, { key: 0, pathD, duration: 1800, delay: 0, color: colors.stroke, glowColor: colors.glow, size: 5, isActive }),
+      React.createElement(AnimatedDot, { key: 1, pathD, duration: 1800, delay: 600, color: colors.stroke, glowColor: colors.glow, size: 4, isActive }),
+      React.createElement(AnimatedDot, { key: 2, pathD, duration: 1800, delay: 1200, color: colors.stroke, glowColor: colors.glow, size: 3, isActive })
+    ],
+    label && React.createElement('g', { transform: `translate(${midX}, ${midY - 12})` },
+      React.createElement('rect', { x: -label.length * 4 - 6, y: -10, width: label.length * 8 + 12, height: 20, rx: 6, fill: theme === 'dark' ? '#1f2937' : '#f3f4f6', stroke: theme === 'dark' ? '#374151' : '#e5e7eb', strokeWidth: 1 }),
+      React.createElement('text', { textAnchor: 'middle', dy: 4, fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 10, fontFamily: 'ui-monospace, monospace' }, label)
+    )
+  );
+};
+
+// ============================================================================
+// STATUS INDICATOR
+// ============================================================================
+
+const StatusIndicator = ({ status, size = 14 }) => {
+  const config = { [NodeStatus.RUNNING]: { color: '#3b82f6', pulse: true }, [NodeStatus.SUCCESS]: { color: '#10b981', pulse: false }, [NodeStatus.ERROR]: { color: '#ef4444', pulse: true }, [NodeStatus.WAITING]: { color: '#f59e0b', pulse: true }, [NodeStatus.SKIPPED]: { color: '#6b7280', pulse: false } }[status] || { color: '#4b5563', pulse: false };
+  return React.createElement('div', { className: 'relative', style: { width: size, height: size } },
+    config.pulse && React.createElement('span', { className: 'absolute inset-0 rounded-full animate-ping', style: { backgroundColor: config.color, opacity: 0.4 } }),
+    React.createElement('span', { className: 'relative block w-full h-full rounded-full', style: { backgroundColor: config.color } },
+      status === NodeStatus.RUNNING && React.createElement('span', { className: 'absolute inset-0 flex items-center justify-center text-white animate-spin', style: { fontSize: size * 0.7 } }, '⟳'),
+      status === NodeStatus.SUCCESS && React.createElement('span', { className: 'absolute inset-0 flex items-center justify-center text-white', style: { fontSize: size * 0.6 } }, '✓')
+    )
+  );
+};
+
+// ============================================================================
+// NODE ICON
+// ============================================================================
+
+const NodeIcon = ({ type, color, size = 18 }) => {
+  const paths = {
+    [NodeType.START]: React.createElement('polygon', { points: '5,3 19,12 5,21', fill: 'currentColor' }),
+    [NodeType.COMPLETE]: React.createElement(React.Fragment, null, React.createElement('circle', { cx: 12, cy: 12, r: 9 }), React.createElement('path', { d: 'M9 12l2 2 4-4' })),
+    [NodeType.RESULT]: React.createElement(React.Fragment, null, React.createElement('rect', { x: 4, y: 4, width: 16, height: 16, rx: 2 }), React.createElement('path', { d: 'M9 12h6M12 9v6' })),
+    [NodeType.WORKER]: React.createElement(React.Fragment, null, React.createElement('circle', { cx: 12, cy: 12, r: 3 }), React.createElement('path', { d: 'M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83' })),
+    [NodeType.ROUTER]: React.createElement(React.Fragment, null, React.createElement('circle', { cx: 12, cy: 12, r: 4 }), React.createElement('path', { d: 'M12 3v3M12 18v3M3 12h3M18 12h3' })),
+    [NodeType.ORCHESTRATOR]: React.createElement(React.Fragment, null, React.createElement('circle', { cx: 12, cy: 12, r: 2.5, fill: 'currentColor' }), React.createElement('circle', { cx: 12, cy: 5, r: 2 }), React.createElement('circle', { cx: 12, cy: 19, r: 2 }), React.createElement('circle', { cx: 5, cy: 12, r: 2 }), React.createElement('circle', { cx: 19, cy: 12, r: 2 })),
+    [NodeType.QUALITY_CHECK]: React.createElement(React.Fragment, null, React.createElement('path', { d: 'M9 11l3 3L22 4' }), React.createElement('path', { d: 'M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11' })),
+    [NodeType.AGENT]: React.createElement(React.Fragment, null, React.createElement('rect', { x: 4, y: 5, width: 16, height: 14, rx: 2 }), React.createElement('circle', { cx: 9, cy: 10, r: 1.5 }), React.createElement('circle', { cx: 15, cy: 10, r: 1.5 }), React.createElement('path', { d: 'M9 15c0-.8 1.2-1.5 3-1.5s3 .7 3 1.5' })),
+    [NodeType.PROCESS]: React.createElement(React.Fragment, null, React.createElement('rect', { x: 4, y: 4, width: 16, height: 16, rx: 2 }), React.createElement('path', { d: 'M9 12h6M12 9v6' }))
+  };
+  return React.createElement('svg', { style: { width: size, height: size, color, flexShrink: 0 }, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, paths[type] || paths[NodeType.PROCESS]);
+};
+
+// ============================================================================
+// WORKFLOW NODE
+// ============================================================================
+
+const WorkflowNode = ({ id, type = NodeType.PROCESS, title, subtitle, description, status = NodeStatus.IDLE, metadata = {}, position = { x: 0, y: 0 }, width = 260, isSelected = false, onClick, onDoubleClick, onHover, progress }) => {
+  const { theme } = useTheme();
+  
+  const styles = {
+    [NodeType.START]: { bgLight: 'from-emerald-50 to-emerald-100', bgDark: 'from-emerald-900/80 to-emerald-950/80', border: '#10b981', accent: '#10b981' },
+    [NodeType.COMPLETE]: { bgLight: 'from-blue-50 to-blue-100', bgDark: 'from-blue-900/80 to-blue-950/80', border: '#3b82f6', accent: '#3b82f6' },
+    [NodeType.RESULT]: { bgLight: 'from-blue-50 to-blue-100', bgDark: 'from-blue-900/80 to-blue-950/80', border: '#3b82f6', accent: '#3b82f6' },
+    [NodeType.WORKER]: { bgLight: 'from-violet-50 to-violet-100', bgDark: 'from-violet-900/80 to-violet-950/80', border: '#8b5cf6', accent: '#8b5cf6' },
+    [NodeType.ROUTER]: { bgLight: 'from-amber-50 to-amber-100', bgDark: 'from-amber-900/80 to-amber-950/80', border: '#f59e0b', accent: '#f59e0b' },
+    [NodeType.ORCHESTRATOR]: { bgLight: 'from-fuchsia-50 to-fuchsia-100', bgDark: 'from-fuchsia-900/80 to-fuchsia-950/80', border: '#d946ef', accent: '#d946ef' },
+    [NodeType.QUALITY_CHECK]: { bgLight: 'from-cyan-50 to-cyan-100', bgDark: 'from-cyan-900/80 to-cyan-950/80', border: '#06b6d4', accent: '#06b6d4' },
+    [NodeType.AGENT]: { bgLight: 'from-indigo-50 to-indigo-100', bgDark: 'from-indigo-900/80 to-indigo-950/80', border: '#6366f1', accent: '#6366f1' }
+  };
+  const style = styles[type] || { bgLight: 'from-gray-50 to-gray-100', bgDark: 'from-gray-800 to-gray-900', border: '#6b7280', accent: '#6b7280' };
+  const isActive = status === NodeStatus.RUNNING || status === NodeStatus.WAITING;
+  const bgClass = theme === 'dark' ? style.bgDark : style.bgLight;
+
+  return React.createElement('g', { 
+    transform: `translate(${position.x}, ${position.y})`, 
+    onClick: () => onClick && onClick(id),
+    onDoubleClick: () => onDoubleClick && onDoubleClick(id),
+    onMouseEnter: (e) => onHover && onHover(id, e.clientX, e.clientY, true),
+    onMouseLeave: () => onHover && onHover(id, 0, 0, false),
+    style: { cursor: 'pointer' },
+    className: 'workflow-node'
+  },
+    isActive && React.createElement('rect', { x: -4, y: -4, width: width + 8, height: 128, rx: 16, fill: 'none', stroke: style.accent, strokeWidth: 2, opacity: 0.4 },
+      React.createElement('animate', { attributeName: 'opacity', values: '0.2;0.5;0.2', dur: '2s', repeatCount: 'indefinite' })
+    ),
+    isSelected && React.createElement('rect', { x: -6, y: -6, width: width + 12, height: 132, rx: 18, fill: 'none', stroke: '#60a5fa', strokeWidth: 2, strokeDasharray: '6 3' }),
+    React.createElement('foreignObject', { x: 0, y: 0, width, height: 120 },
+      React.createElement('div', { 
+        className: `h-full rounded-xl bg-gradient-to-br ${bgClass} border overflow-hidden transition-all duration-200 hover:scale-[1.02]`, 
+        style: { borderColor: style.border, boxShadow: isActive ? `0 0 30px ${style.accent}40` : theme === 'dark' ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.1)' } 
+      },
+        React.createElement('div', { className: 'px-3 py-2.5 border-b flex items-center gap-2.5', style: { borderColor: `${style.accent}30` } },
+          React.createElement(NodeIcon, { type, color: style.accent, size: 18 }),
+          React.createElement('div', { className: 'flex-1 min-w-0' },
+            React.createElement('h3', { className: 'font-semibold text-sm leading-tight truncate text-gray-900 dark:text-white' }, title),
+            subtitle && React.createElement('p', { className: 'text-xs truncate text-gray-500 dark:text-gray-400' }, subtitle)
+          ),
+          // Progress ring for running nodes
+          status === NodeStatus.RUNNING && progress !== undefined
+            ? React.createElement(ProgressRing, { progress, size: 24, strokeWidth: 2.5, color: style.accent })
+            : React.createElement(StatusIndicator, { status, size: 14 })
+        ),
+        React.createElement('div', { className: 'px-3 py-2.5' },
+          description && React.createElement('p', { className: 'text-xs leading-relaxed line-clamp-2 mb-2 text-gray-600 dark:text-gray-300' }, description),
+          Object.keys(metadata).length > 0 && React.createElement('div', { className: 'flex flex-wrap gap-1' },
+            metadata.model && React.createElement('span', { className: 'px-1.5 py-0.5 rounded text-[10px] font-mono truncate max-w-full bg-black/10 dark:bg-black/30 text-gray-600 dark:text-gray-400' }, metadata.model),
+            metadata.step && React.createElement('span', { className: 'px-1.5 py-0.5 rounded text-[10px] bg-black/10 dark:bg-black/30 text-gray-600 dark:text-gray-400' }, `Step ${metadata.step}`),
+            metadata.execution && React.createElement('span', { className: 'px-1.5 py-0.5 rounded text-[10px] font-medium', style: { backgroundColor: `${style.accent}25`, color: style.accent } }, metadata.execution)
+          )
+        )
+      )
+    ),
+    React.createElement('circle', { cx: 0, cy: 60, r: 5, fill: style.accent, opacity: 0.7 }),
+    React.createElement('circle', { cx: width, cy: 60, r: 5, fill: style.accent, opacity: 0.7 })
+  );
+};
+
+// ============================================================================
+// WORKFLOW CANVAS
+// ============================================================================
+
+const WorkflowCanvas = ({ nodes = [], edges = [], width = 1400, height = 500, onNodeClick, onNodeDoubleClick, selectedNodeId, nodeProgress = {} }) => {
+  const { theme } = useTheme();
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [hoveredNode, setHoveredNode] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const svgRef = useRef(null);
+
+  const handleNodeHover = (nodeId, x, y, visible) => {
+    if (visible) {
+      setHoveredNode(nodes.find(n => n.id === nodeId));
+      setTooltipPos({ x, y });
+    } else {
+      setHoveredNode(null);
+    }
+  };
+
+  const handleMouseDown = (e) => { if (e.target.closest('.workflow-node')) return; setIsDragging(true); setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y }); };
+  const handleMouseMove = (e) => { if (!isDragging) return; setTransform(prev => ({ ...prev, x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })); };
+  const handleMouseUp = () => setIsDragging(false);
+  const handleWheel = (e) => { e.preventDefault(); const factor = e.deltaY > 0 ? 0.92 : 1.08; setTransform(prev => ({ ...prev, scale: Math.max(0.4, Math.min(2.5, prev.scale * factor)) })); };
+
+  // Fit to view function
+  const fitToView = useCallback(() => {
+    if (nodes.length === 0) return;
+    const padding = 60;
+    const minX = Math.min(...nodes.map(n => n.position.x)) - padding;
+    const maxX = Math.max(...nodes.map(n => n.position.x + (n.width || 260))) + padding;
+    const minY = Math.min(...nodes.map(n => n.position.y)) - padding;
+    const maxY = Math.max(...nodes.map(n => n.position.y + 120)) + padding;
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    const scale = Math.min(width / contentWidth, height / contentHeight, 1);
+    const x = (width - contentWidth * scale) / 2 - minX * scale;
+    const y = (height - contentHeight * scale) / 2 - minY * scale;
+    setTransform({ x, y, scale });
+  }, [nodes, width, height]);
+
+  // Expose fitToView
+  useEffect(() => {
+    window.workflowFitToView = fitToView;
+  }, [fitToView]);
+
+  const canvasBg = theme === 'dark' ? '#030712' : '#f8fafc';
+  const gridColor = theme === 'dark' ? '#1e293b' : '#e2e8f0';
+
+  return React.createElement('div', { className: 'relative w-full rounded-xl overflow-hidden border bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800', style: { height } },
+    React.createElement('svg', { ref: svgRef, width: '100%', height: '100%', viewBox: `0 0 ${width} ${height}`, className: isDragging ? 'cursor-grabbing' : 'cursor-grab', onMouseDown: handleMouseDown, onMouseMove: handleMouseMove, onMouseUp: handleMouseUp, onMouseLeave: handleMouseUp, onWheel: handleWheel },
+      React.createElement('defs', null, 
+        React.createElement('pattern', { id: 'grid-pattern', width: 32, height: 32, patternUnits: 'userSpaceOnUse' }, 
+          React.createElement('path', { d: 'M 32 0 L 0 0 0 32', fill: 'none', stroke: gridColor, strokeWidth: 0.5 })
+        )
+      ),
+      React.createElement('rect', { width, height, fill: canvasBg }),
+      React.createElement('rect', { width, height, fill: 'url(#grid-pattern)', opacity: 0.6 }),
+      React.createElement('g', { transform: `translate(${transform.x}, ${transform.y}) scale(${transform.scale})` },
+        edges.map(edge => {
+          const source = nodes.find(n => n.id === edge.source), target = nodes.find(n => n.id === edge.target);
+          if (!source || !target) return null;
+          return React.createElement(WorkflowEdge, { key: edge.id, id: edge.id, sourceX: source.position.x + (source.width || 260), sourceY: source.position.y + 60, targetX: target.position.x, targetY: target.position.y + 60, type: edge.type, isActive: edge.isActive, label: edge.label, animated: edge.animated !== false });
+        }),
+        nodes.map(node => React.createElement(WorkflowNode, { 
+          key: node.id, 
+          ...node, 
+          isSelected: selectedNodeId === node.id, 
+          onClick: onNodeClick,
+          onDoubleClick: onNodeDoubleClick,
+          onHover: handleNodeHover,
+          progress: nodeProgress[node.id]
+        }))
+      )
+    ),
+    // Zoom controls
+    React.createElement('div', { className: 'absolute bottom-4 right-4 flex gap-2' },
+      React.createElement(Tooltip, { content: 'Zoom in (+)' },
+        React.createElement('button', { onClick: () => setTransform(prev => ({ ...prev, scale: Math.min(2.5, prev.scale * 1.25) })), className: 'p-2.5 rounded-lg backdrop-blur transition-colors bg-white/90 dark:bg-gray-800/90 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300' },
+          React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, React.createElement('circle', { cx: 11, cy: 11, r: 8 }), React.createElement('path', { d: 'M21 21l-4.35-4.35M11 8v6M8 11h6' }))
+        )
+      ),
+      React.createElement(Tooltip, { content: 'Zoom out (-)' },
+        React.createElement('button', { onClick: () => setTransform(prev => ({ ...prev, scale: Math.max(0.4, prev.scale * 0.8) })), className: 'p-2.5 rounded-lg backdrop-blur transition-colors bg-white/90 dark:bg-gray-800/90 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300' },
+          React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, React.createElement('circle', { cx: 11, cy: 11, r: 8 }), React.createElement('path', { d: 'M21 21l-4.35-4.35M8 11h6' }))
+        )
+      ),
+      React.createElement(Tooltip, { content: 'Fit to view (F)' },
+        React.createElement('button', { onClick: fitToView, className: 'p-2.5 rounded-lg backdrop-blur transition-colors bg-white/90 dark:bg-gray-800/90 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300' },
+          React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, 
+            React.createElement('path', { d: 'M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3' })
+          )
+        )
+      ),
+      React.createElement(Tooltip, { content: 'Reset zoom (0)' },
+        React.createElement('button', { onClick: () => setTransform({ x: 0, y: 0, scale: 1 }), className: 'p-2.5 rounded-lg backdrop-blur transition-colors bg-white/90 dark:bg-gray-800/90 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300' },
+          React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, React.createElement('path', { d: 'M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8' }), React.createElement('path', { d: 'M3 3v5h5' }))
+        )
+      )
+    ),
+    // Node tooltip
+    React.createElement(NodeTooltip, { node: hoveredNode, x: tooltipPos.x, y: tooltipPos.y, visible: hoveredNode !== null && selectedNodeId !== hoveredNode?.id })
+  );
+};
+
+// ============================================================================
+// WORKFLOW DATA
+// ============================================================================
+
+const orchestratorData = {
+  nodes: [
+    { id: 'start', type: NodeType.START, title: 'Start Workflow', subtitle: 'Initialize orchestrator', description: 'Input: Feature Request', status: NodeStatus.SUCCESS, position: { x: 40, y: 180 }, metadata: { execution: 'fetch setup', duration: '0.2s' }, outLinks: [{ label: 'Workflow Documentation', url: '#', icon: 'docs' }] },
+    { id: 'orch', type: NodeType.ORCHESTRATOR, title: 'Orchestrator', subtitle: 'Plan implementation', description: 'Generate files array with purpose, path, changeType', status: NodeStatus.SUCCESS, position: { x: 340, y: 180 }, metadata: { model: 'o4-mini', step: 1, duration: '1.3s' }, outLinks: [{ label: 'Orchestrator API Reference', url: '#', icon: 'api' }] },
+    { id: 'w1', type: NodeType.WORKER, title: 'Worker: Create', subtitle: 'Implement new files', description: 'Expert at implementing new files following best practices', status: NodeStatus.RUNNING, position: { x: 640, y: 40 }, metadata: { execution: 'Parallel', duration: '—' }, outLinks: [{ label: 'Worker Implementation Guide', url: '#', icon: 'docs' }] },
+    { id: 'w2', type: NodeType.WORKER, title: 'Worker: Modify', subtitle: 'Update existing code', description: 'Expert at modifying code while maintaining consistency', status: NodeStatus.RUNNING, position: { x: 640, y: 180 }, metadata: { execution: 'Parallel', duration: '—' } },
+    { id: 'w3', type: NodeType.WORKER, title: 'Worker: Delete', subtitle: 'Safely remove code', description: 'Expert at safely removing code without breaking changes', status: NodeStatus.WAITING, position: { x: 640, y: 320 }, metadata: { execution: 'Parallel', duration: '—' } },
+    { id: 'end', type: NodeType.COMPLETE, title: 'Complete', subtitle: 'Workflow finished', description: 'All file changes executed successfully', status: NodeStatus.IDLE, position: { x: 940, y: 180 }, metadata: { execution: 'Success' } }
+  ],
+  edges: [
+    { id: 'e1', source: 'start', target: 'orch', isActive: true },
+    { id: 'e2', source: 'orch', target: 'w1', isActive: true, type: EdgeType.PARALLEL },
+    { id: 'e3', source: 'orch', target: 'w2', isActive: true, type: EdgeType.PARALLEL },
+    { id: 'e4', source: 'orch', target: 'w3', isActive: true, type: EdgeType.PARALLEL },
+    { id: 'e5', source: 'w1', target: 'end', isActive: false },
+    { id: 'e6', source: 'w2', target: 'end', isActive: false },
+    { id: 'e7', source: 'w3', target: 'end', isActive: false }
+  ]
+};
+
+const routingData = {
+  nodes: [
+    { id: 'start', type: NodeType.START, title: 'Start Workflow', subtitle: 'Initialize routing', description: 'Input: Customer Query', status: NodeStatus.SUCCESS, position: { x: 40, y: 180 }, metadata: { execution: 'fetch setup', duration: '0.1s' } },
+    { id: 'classify', type: NodeType.ROUTER, title: 'Classify Query', subtitle: 'Determine type + complexity', description: 'Classify: general, refund, technical', status: NodeStatus.SUCCESS, position: { x: 340, y: 180 }, metadata: { model: 'gpt-4o', step: 1, duration: '0.8s' } },
+    { id: 'r1', type: NodeType.AGENT, title: 'Route: General', subtitle: 'Handle general inquiries', description: 'Expert customer service agent', status: NodeStatus.IDLE, position: { x: 640, y: 40 }, metadata: { model: 'gpt-4o-mini', execution: 'Conditional' } },
+    { id: 'r2', type: NodeType.AGENT, title: 'Route: Refund', subtitle: 'Handle refund requests', description: 'Refund specialist', status: NodeStatus.RUNNING, position: { x: 640, y: 180 }, metadata: { model: 'gpt-4o-mini', execution: 'Conditional', duration: '—' } },
+    { id: 'r3', type: NodeType.AGENT, title: 'Route: Technical', subtitle: 'Handle technical support', description: 'Technical specialist', status: NodeStatus.IDLE, position: { x: 640, y: 320 }, metadata: { model: 'gpt-4o-mini', execution: 'Conditional' } },
+    { id: 'end', type: NodeType.COMPLETE, title: 'Complete', subtitle: 'Workflow finished', description: 'Response generated', status: NodeStatus.IDLE, position: { x: 940, y: 180 }, metadata: { execution: 'Success' } }
+  ],
+  edges: [
+    { id: 'e1', source: 'start', target: 'classify', isActive: true },
+    { id: 'e2', source: 'classify', target: 'r1', isActive: false, type: EdgeType.CONDITIONAL, label: 'general' },
+    { id: 'e3', source: 'classify', target: 'r2', isActive: true, type: EdgeType.CONDITIONAL, label: 'refund' },
+    { id: 'e4', source: 'classify', target: 'r3', isActive: false, type: EdgeType.CONDITIONAL, label: 'technical' },
+    { id: 'e5', source: 'r1', target: 'end', isActive: false },
+    { id: 'e6', source: 'r2', target: 'end', isActive: false },
+    { id: 'e7', source: 'r3', target: 'end', isActive: false }
+  ]
+};
+
+const sequentialData = {
+  nodes: [
+    { id: 'start', type: NodeType.START, title: 'Start Workflow', subtitle: 'Initialize sequential', description: 'Input: Marketing copy request', status: NodeStatus.SUCCESS, position: { x: 40, y: 220 }, metadata: { execution: 'fetch setup', duration: '0.1s' } },
+    { id: 'gen', type: NodeType.PROCESS, title: 'Generate Copy', subtitle: 'Create persuasive copy', description: 'Write marketing copy focusing on benefits', status: NodeStatus.SUCCESS, position: { x: 300, y: 220 }, metadata: { model: 'o4-mini', step: 1, duration: '2.1s' } },
+    { id: 'check', type: NodeType.QUALITY_CHECK, title: 'Quality Check', subtitle: 'Evaluate metrics', description: 'Check: CTA, emotionalAppeal, clarity', status: NodeStatus.RUNNING, position: { x: 560, y: 220 }, metadata: { model: 'o4-mini', step: 2, duration: '—' } },
+    { id: 'regen', type: NodeType.PROCESS, title: 'Regenerate', subtitle: 'Improve on feedback', description: 'Rewrite with improvements', status: NodeStatus.IDLE, position: { x: 560, y: 60 }, metadata: { execution: 'Conditional' } },
+    { id: 'thresh', type: NodeType.ROUTER, title: 'Threshold', subtitle: 'Meets standards?', description: 'appeal ≥ 7 && clarity ≥ 7', status: NodeStatus.IDLE, position: { x: 820, y: 220 }, metadata: { execution: 'Check' } },
+    { id: 'end', type: NodeType.COMPLETE, title: 'Complete', subtitle: 'Workflow finished', description: 'Marketing copy meets standards', status: NodeStatus.IDLE, position: { x: 1080, y: 220 }, metadata: { execution: 'Success' } }
+  ],
+  edges: [
+    { id: 'e1', source: 'start', target: 'gen', isActive: true },
+    { id: 'e2', source: 'gen', target: 'check', isActive: true },
+    { id: 'e3', source: 'check', target: 'regen', isActive: false, type: EdgeType.FEEDBACK, label: 'fail' },
+    { id: 'e4', source: 'regen', target: 'check', isActive: false, type: EdgeType.FEEDBACK },
+    { id: 'e5', source: 'check', target: 'thresh', isActive: false },
+    { id: 'e6', source: 'thresh', target: 'end', isActive: false, type: EdgeType.CONDITIONAL, label: 'pass' }
+  ]
+};
+
+// ============================================================================
+// MAIN APP
+// ============================================================================
+
+const App = () => {
+  const { theme, toggleTheme } = useTheme();
+  const [pattern, setPattern] = useState('orchestrator');
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [nodeProgress, setNodeProgress] = useState({ w1: 65, w2: 42, r2: 78, check: 55 });
+
+  const patterns = [{ id: 'orchestrator', label: 'Orchestrator-Worker', icon: '⚡' }, { id: 'routing', label: 'Routing', icon: '🔀' }, { id: 'sequential', label: 'Sequential', icon: '📋' }];
+  const data = { orchestrator: orchestratorData, routing: routingData, sequential: sequentialData }[pattern];
+  const headers = { 
+    orchestrator: { title: 'Orchestrator-Worker Pattern', desc: 'Parallel execution of specialized workers', tags: ['Orchestrator', 'Workers', 'Parallel'] }, 
+    routing: { title: 'Routing Pattern', desc: 'Classify and route to specialized handlers', tags: ['Classification', 'Conditional'] }, 
+    sequential: { title: 'Sequential Pattern', desc: 'Step-by-step execution with quality gates', tags: ['Sequential', 'Quality Check'] }
+  };
+  const h = headers[pattern];
+  const node = data?.nodes?.find(n => n.id === selectedNode);
+
+  // Simulate log generation
+  useEffect(() => {
+    const messages = [
+      { level: 'info', node: 'orch', message: 'Planning file changes...' },
+      { level: 'success', node: 'start', message: 'Workflow initialized successfully' },
+      { level: 'info', node: 'w1', message: 'Creating new component file...' },
+      { level: 'info', node: 'w2', message: 'Modifying existing imports...' },
+      { level: 'warning', node: 'w3', message: 'Waiting for dependencies to complete' },
+      { level: 'success', node: 'orch', message: 'Generated 3 file change tasks' },
+      { level: 'info', node: 'w1', message: 'Writing TypeScript interfaces...' },
+      { level: 'info', node: 'w2', message: 'Updating component props...' },
+    ];
+    
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < messages.length) {
+        const msg = messages[index];
+        setLogs(prev => [...prev, {
+          ...msg,
+          timestamp: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        }]);
+        index++;
+      }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [pattern]);
+
+  // Simulate progress updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNodeProgress(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(key => {
+          if (updated[key] < 100) {
+            updated[key] = Math.min(100, updated[key] + Math.random() * 5);
+          }
+        });
+        return updated;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Keyboard shortcuts
+  const nodeIds = data?.nodes?.map(n => n.id) || [];
+  const currentIndex = nodeIds.indexOf(selectedNode);
+  
+  useKeyboardShortcuts([
+    { key: '?', action: () => setShowShortcuts(s => !s) },
+    { key: 'Escape', action: () => { setSelectedNode(null); setShowShortcuts(false); } },
+    { key: 'f', action: () => window.workflowFitToView?.() },
+    { key: 'l', action: () => setLogOpen(l => !l) },
+    { key: 't', action: toggleTheme },
+    { key: 'ArrowRight', action: () => { if (currentIndex < nodeIds.length - 1) setSelectedNode(nodeIds[currentIndex + 1]); else if (currentIndex === -1) setSelectedNode(nodeIds[0]); } },
+    { key: 'ArrowLeft', action: () => { if (currentIndex > 0) setSelectedNode(nodeIds[currentIndex - 1]); } },
+    { key: '+', action: () => document.querySelector('[data-zoom-in]')?.click() },
+    { key: '=', action: () => document.querySelector('[data-zoom-in]')?.click() },
+    { key: '-', action: () => document.querySelector('[data-zoom-out]')?.click() },
+    { key: '0', action: () => document.querySelector('[data-zoom-reset]')?.click() },
+  ], [currentIndex, nodeIds, toggleTheme]);
+
+  return React.createElement('div', { className: 'min-h-screen transition-colors duration-200 bg-white dark:bg-gray-950 text-gray-900 dark:text-white p-6 md:p-8' },
+    React.createElement('div', { className: 'max-w-[1500px] mx-auto' },
+      // Header
+      React.createElement('div', { className: 'flex items-center justify-between mb-8' },
+        React.createElement('div', { className: 'text-center flex-1' },
+          React.createElement('h1', { className: 'text-3xl font-bold bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 bg-clip-text text-transparent' }, 'Workflow Engine Visualization'),
+          React.createElement('p', { className: 'text-gray-500 dark:text-gray-400 mt-2' }, 'Interactive workflow patterns with animated connections')
+        ),
+        React.createElement('div', { className: 'flex items-center gap-2' },
+          React.createElement(Tooltip, { content: 'Keyboard shortcuts (?)' },
+            React.createElement('button', {
+              onClick: () => setShowShortcuts(true),
+              className: 'p-2.5 rounded-lg transition-colors bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+            },
+              React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('rect', { x: 2, y: 4, width: 20, height: 16, rx: 2 }),
+                React.createElement('path', { d: 'M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M8 16h8' })
+              )
+            )
+          ),
+          React.createElement(ThemeToggle)
+        )
+      ),
+
+      // Pattern tabs
+      React.createElement('div', { className: 'flex gap-2 mb-6 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-900' },
+        patterns.map(p => React.createElement('button', { 
+          key: p.id, 
+          onClick: () => { setPattern(p.id); setSelectedNode(null); setLogs([]); }, 
+          className: `flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all ${pattern === p.id ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800'}` 
+        },
+          React.createElement('span', { className: 'mr-2' }, p.icon), p.label
+        ))
+      ),
+
+      // Workflow header
+      React.createElement('div', { className: 'flex items-center justify-between mb-5 pb-4 border-b border-gray-200 dark:border-gray-800' },
+        React.createElement('div', null,
+          React.createElement('div', { className: 'flex items-center gap-3 mb-1' },
+            React.createElement('h2', { className: 'text-xl font-bold' }, h.title),
+            React.createElement('span', { className: 'px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400' }, 'Running')
+          ),
+          React.createElement('p', { className: 'text-gray-500 dark:text-gray-400 text-sm' }, h.desc)
+        ),
+        React.createElement('div', { className: 'flex gap-2' }, 
+          h.tags.map((t, i) => React.createElement('span', { key: i, className: 'px-3 py-1.5 rounded-lg text-sm cursor-pointer transition-colors bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700' }, t))
+        )
+      ),
+
+      // Canvas
+      React.createElement(WorkflowCanvas, { 
+        nodes: data.nodes, 
+        edges: data.edges, 
+        width: 1400, 
+        height: 450, 
+        onNodeClick: setSelectedNode, 
+        onNodeDoubleClick: (id) => { setSelectedNode(id); /* Could open full dialog */ },
+        selectedNodeId: selectedNode,
+        nodeProgress
+      }),
+
+      // Legend
+      React.createElement('div', { className: 'mt-6 p-4 rounded-xl border bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800' },
+        React.createElement('h4', { className: 'text-sm font-medium mb-3 text-gray-700 dark:text-gray-300' }, 'Legend'),
+        React.createElement('div', { className: 'flex flex-wrap gap-x-6 gap-y-2' },
+          [['#10b981', 'Success'], ['#3b82f6', 'Running', true], ['#f59e0b', 'Waiting', true], ['#4b5563', 'Idle'], ['#ef4444', 'Error']].map(([c, l, pulse]) =>
+            React.createElement('div', { key: l, className: 'flex items-center gap-2' },
+              React.createElement('div', { className: `w-3 h-3 rounded-full ${pulse ? 'animate-pulse' : ''}`, style: { backgroundColor: c } }),
+              React.createElement('span', { className: 'text-xs text-gray-500 dark:text-gray-400' }, l)
+            )
+          ),
+          React.createElement('div', { className: 'flex items-center gap-2' }, React.createElement('div', { className: 'w-8 h-0.5 bg-blue-500' }), React.createElement('span', { className: 'text-xs text-gray-500 dark:text-gray-400' }, 'Default')),
+          React.createElement('div', { className: 'flex items-center gap-2' }, React.createElement('div', { className: 'w-8 h-0.5 bg-purple-500' }), React.createElement('span', { className: 'text-xs text-gray-500 dark:text-gray-400' }, 'Parallel')),
+          React.createElement('div', { className: 'flex items-center gap-2' }, React.createElement('div', { className: 'w-8 h-0.5 bg-yellow-500', style: { borderTop: '2px dashed #f59e0b' } }), React.createElement('span', { className: 'text-xs text-gray-500 dark:text-gray-400' }, 'Conditional')),
+          React.createElement('div', { className: 'flex items-center gap-2' }, React.createElement('div', { className: 'w-8 h-0.5 bg-pink-500' }), React.createElement('span', { className: 'text-xs text-gray-500 dark:text-gray-400' }, 'Feedback'))
+        )
+      ),
+
+      React.createElement('p', { className: 'mt-6 text-center text-sm text-gray-400 dark:text-gray-500' }, 'Drag to pan • Scroll to zoom • Click nodes for details • Press ? for shortcuts')
+    ),
+
+    // Sidebar
+    node && React.createElement('div', { className: 'fixed right-0 top-0 h-full w-80 p-5 shadow-2xl z-50 overflow-y-auto border-l bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800' },
+      React.createElement('div', { className: 'flex items-center justify-between mb-5' },
+        React.createElement('h3', { className: 'text-lg font-semibold' }, 'Node Details'),
+        React.createElement('button', { onClick: () => setSelectedNode(null), className: 'p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800' },
+          React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, React.createElement('path', { d: 'M18 6L6 18M6 6l12 12' }))
+        )
+      ),
+      React.createElement('div', { className: 'space-y-4' },
+        React.createElement('div', null, 
+          React.createElement('label', { className: 'text-xs uppercase tracking-wider text-gray-500' }, 'Title'), 
+          React.createElement('p', { className: 'font-medium mt-1' }, node.title)
+        ),
+        React.createElement('div', null, 
+          React.createElement('label', { className: 'text-xs uppercase tracking-wider text-gray-500' }, 'Type'), 
+          React.createElement('p', { className: 'mt-1 capitalize text-gray-600 dark:text-gray-300' }, node.type.replace('_', ' '))
+        ),
+        React.createElement('div', null, 
+          React.createElement('label', { className: 'text-xs uppercase tracking-wider text-gray-500' }, 'Status'), 
+          React.createElement('div', { className: 'flex items-center gap-2 mt-1' },
+            React.createElement(StatusIndicator, { status: node.status, size: 12 }),
+            React.createElement('span', { className: 'capitalize text-gray-600 dark:text-gray-300' }, node.status),
+            nodeProgress[node.id] !== undefined && React.createElement('span', { className: 'text-xs text-gray-400' }, `(${Math.round(nodeProgress[node.id])}%)`)
+          )
+        ),
+        node.description && React.createElement('div', null, 
+          React.createElement('label', { className: 'text-xs uppercase tracking-wider text-gray-500' }, 'Description'), 
+          React.createElement('p', { className: 'mt-1 text-gray-600 dark:text-gray-300' }, node.description)
+        ),
+        node.metadata && Object.keys(node.metadata).length > 0 && React.createElement('div', null,
+          React.createElement('label', { className: 'text-xs uppercase tracking-wider text-gray-500' }, 'Metadata'),
+          React.createElement('div', { className: 'mt-2 space-y-2' },
+            Object.entries(node.metadata).map(([k, v]) => React.createElement('div', { key: k, className: 'flex items-center justify-between py-2 px-3 rounded-lg bg-gray-100 dark:bg-gray-800' },
+              React.createElement('span', { className: 'text-sm text-gray-500 dark:text-gray-400' }, k),
+              React.createElement('span', { className: 'text-sm font-mono' }, v)
+            ))
+          )
+        )
+      )
+    ),
+
+    // Log panel
+    React.createElement(LogPanel, { 
+      logs, 
+      isOpen: logOpen, 
+      onToggle: () => setLogOpen(l => !l), 
+      onClear: () => setLogs([]) 
+    }),
+
+    // Shortcuts modal
+    React.createElement(ShortcutsModal, { isOpen: showShortcuts, onClose: () => setShowShortcuts(false) })
+  );
+};
+
+// ============================================================================
+// RENDER
+// ============================================================================
+
+const Root = () => React.createElement(ThemeProvider, null, React.createElement(App));
+ReactDOM.render(React.createElement(Root), document.getElementById('root'));
+  </script>
+</body>
+</html>

@@ -249,7 +249,12 @@ function buildReactionSchema() {
 
 function buildFetchSchema() {
   return {
-    limit: Type.Optional(Type.Number()),
+    limit: Type.Optional(
+      Type.Number({
+        description:
+          "Number of messages to return (default: 20). Use smaller values for a quick scan, larger for deep context.",
+      }),
+    ),
     before: Type.Optional(Type.String()),
     after: Type.Optional(Type.String()),
     around: Type.Optional(Type.String()),

@@ -19,6 +19,7 @@ import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
 import { validateSlackBlocksArray } from "./blocks-input.js";
 import { createSlackWebClient } from "./client.js";
 import { markdownToSlackMrkdwnChunks } from "./format.js";
+import { lookupSlackChannelByName } from "./resolve-channels.js";
 import { parseSlackTarget } from "./targets.js";
 import { resolveSlackBotToken } from "./token.js";
 
@@ -167,7 +168,18 @@ async function resolveChannelId(
   recipient: SlackRecipient,
 ): Promise<{ channelId: string; isDm?: boolean }> {
   if (recipient.kind === "channel") {
-    return { channelId: recipient.id };
+    const id = recipient.id;
+    // Slack channel IDs start with C/G/D/W and always contain at least one digit.
+    // Uppercase them so lowercase inputs (e.g. "c123") are valid for the API.
+    if (/^[CGDW][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(id)) {
+      return { channelId: id.toUpperCase() };
+    }
+    // Treat as a channel name and resolve it to an ID via the Slack API.
+    const channelId = await lookupSlackChannelByName(id, client);
+    if (!channelId) {
+      throw new Error(`Slack channel not found for name: "${id}"`);
+    }
+    return { channelId };
   }
   const response = await client.conversations.open({ users: recipient.id });
   const channelId = response.channel?.id;
