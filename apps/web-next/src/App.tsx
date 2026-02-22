@@ -247,6 +247,7 @@ const DatabaseMigrationManager       = React.lazy(() => import("./views/Database
 const ReleaseNotesManager            = React.lazy(() => import("./views/ReleaseNotesManager"));
 const TrafficAnalyticsDashboard      = React.lazy(() => import("./views/TrafficAnalyticsDashboard"));
 const IncidentCommandCenter          = React.lazy(() => import("./views/IncidentCommandCenter"));
+const EnvironmentConfigManager       = React.lazy(() => import("./views/EnvironmentConfigManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -471,6 +472,7 @@ export const navItems = [
   { id: "release-notes",        label: "Release Notes",         emoji: "📝", shortcut: null },
   { id: "traffic-analytics",    label: "Traffic Analytics",     emoji: "📊", shortcut: null },
   { id: "incident-command",     label: "Incident Command",      emoji: "🚨", shortcut: null },
+  { id: "env-config",           label: "Env Config",            emoji: "⚙️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -696,6 +698,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "release-notes":          <ContentSkeleton />,
   "traffic-analytics":      <ContentSkeleton />,
   "incident-command":       <ContentSkeleton />,
+  "env-config":             <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -1142,6 +1145,7 @@ function AppContent() {
       case "release-notes":        return <ReleaseNotesManager />;
       case "traffic-analytics":    return <TrafficAnalyticsDashboard />;
       case "incident-command":     return <IncidentCommandCenter />;
+      case "env-config":           return <EnvironmentConfigManager />;
       default:              return <AgentDashboard />;
     }
   };
