@@ -1,5 +1,4 @@
 import { type Api, complete, type Context, type Model } from "@mariozechner/pi-ai";
-import type { AgentEventPayload } from "../infra/agent-events.js";
 import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
 import { getApiKeyForModel, requireApiKey } from "../agents/model-auth.js";
 import { resolveDefaultModelForAgent } from "../agents/model-selection.js";
@@ -8,6 +7,7 @@ import { discoverAuthStorage, discoverModels } from "../agents/pi-model-discover
 import { loadConfig } from "../config/config.js";
 import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { updateSessionStoreEntry } from "../config/sessions/store.js";
+import type { AgentEventPayload } from "../infra/agent-events.js";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveAgentIdFromSessionKey } from "../routing/session-key.js";
