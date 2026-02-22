@@ -41,8 +41,8 @@ export default function CronScheduleBuilder() {
   });
 
   const filteredJobs = jobs.filter(job => {
-    if (activeTab === 'enabled') return job.status === 'enabled' || job.status === 'running';
-    if (activeTab === 'disabled') return job.status === 'disabled';
+    if (activeTab === 'enabled') {return job.status === 'enabled' || job.status === 'running';}
+    if (activeTab === 'disabled') {return job.status === 'disabled';}
     return true;
   });
 

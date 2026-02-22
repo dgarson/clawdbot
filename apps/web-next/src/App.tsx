@@ -11,6 +11,10 @@ import {
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
+import { OnboardingTour, TourStep } from "./components/OnboardingTour";
+import { useTourStore } from "./stores/tourStore";
+import { useCommandRegistry } from "./stores/commandRegistry";
+import { Bot, Zap, Settings, Sparkles, Plus, Search as SearchIcon, FileText, Activity } from "lucide-react";
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -175,12 +179,12 @@ function AppContent() {
       setNavHistory((prev) => {
         const trimmed = prev.slice(0, historyIndex + 1);
         // Don't push if same as current
-        if (trimmed[trimmed.length - 1] === viewId) return prev;
+        if (trimmed[trimmed.length - 1] === viewId) {return prev;}
         return [...trimmed, viewId];
       });
       setHistoryIndex((i) => {
         const trimmed = navHistory.slice(0, i + 1);
-        if (trimmed[trimmed.length - 1] === viewId) return i;
+        if (trimmed[trimmed.length - 1] === viewId) {return i;}
         return i + 1;
       });
     }
@@ -196,14 +200,14 @@ function AppContent() {
   }, [historyIndex, navHistory, visitView, recordInteraction]);
 
   const goBack = useCallback(() => {
-    if (!canGoBack) return;
+    if (!canGoBack) {return;}
     const newIndex = historyIndex - 1;
     setHistoryIndex(newIndex);
     setActiveView(navHistory[newIndex]);
   }, [canGoBack, historyIndex, navHistory]);
 
   const goForward = useCallback(() => {
-    if (!canGoForward) return;
+    if (!canGoForward) {return;}
     const newIndex = historyIndex + 1;
     setHistoryIndex(newIndex);
     setActiveView(navHistory[newIndex]);
@@ -232,7 +236,7 @@ function AppContent() {
         if (mobileSidebarOpen) { setMobileSidebarOpen(false); return; }
       }
 
-      if (isInput || cmdPaletteOpen || shortcutsOpen) return;
+      if (isInput || cmdPaletteOpen || shortcutsOpen) {return;}
 
       // ? — keyboard shortcuts help
       if (e.key === "?") {
@@ -295,6 +299,95 @@ function AppContent() {
     ? filteredNav
     : [...(recentItems.length ? recentItems : []), ...navItems.filter((n) => !recentIds.includes(n.id))];
 
+  const tourSteps: TourStep[] = [
+    {
+      id: 'welcome',
+      title: 'Welcome to OpenClaw!',
+      content: 'Ready to build your fleet of autonomous AI agents? Let\'s take a 1-minute tour to see how it works.',
+      placement: 'center',
+      icon: <Sparkles className="w-5 h-5" />
+    },
+    {
+      id: 'sidebar',
+      target: 'aside[role="navigation"]',
+      title: 'Main Navigation',
+      content: 'This is where you manage your agents, souls, and system settings. You can collapse this with the "[" key.',
+      placement: 'right',
+      icon: <Settings className="w-5 h-5" />
+    },
+    {
+      id: 'chat',
+      target: 'button[title*="Chat"]',
+      title: 'Chat Interface',
+      content: 'Start talking to your agents here. Each agent has its own soul and personality.',
+      placement: 'right',
+      icon: <Bot className="w-5 h-5" />
+    },
+    {
+      id: 'cmd-palette',
+      target: 'button[aria-label="Open command palette"]',
+      title: 'Command Palette',
+      content: 'Press ⌘K anytime to search for agents, views, or trigger actions globally.',
+      placement: 'top',
+      icon: <Zap className="w-5 h-5" />
+    }
+  ];
+
+  const { hasCompletedTour, startTour } = useTourStore();
+  const { register } = useCommandRegistry();
+
+  // Register commands
+  useEffect(() => {
+    // Navigation
+    navItems.forEach(item => {
+      register({
+        id: `nav-${item.id}`,
+        label: `Go to ${item.label}`,
+        emoji: item.emoji,
+        category: 'navigation',
+        shortcut: item.shortcut ? `⌥${item.shortcut}` : undefined,
+        action: () => navigate(item.id)
+      });
+    });
+
+    // Actions
+    register({
+      id: 'action-new-agent',
+      label: 'Create New Agent',
+      emoji: '➕',
+      category: 'actions',
+      action: () => navigate('builder')
+    });
+    register({
+      id: 'action-reset-tour',
+      label: 'Reset Onboarding Tour',
+      emoji: '🔄',
+      category: 'actions',
+      action: () => {
+          const { resetTour, startTour } = useTourStore.getState();
+          resetTour();
+          startTour();
+      }
+    });
+    register({
+        id: 'action-toggle-sidebar',
+        label: 'Toggle Sidebar',
+        emoji: '⬅️',
+        category: 'actions',
+        action: () => setSidebarCollapsed(prev => !prev)
+    });
+  }, [register, navigate]);
+
+  useEffect(() => {
+    // Auto-start tour if never completed
+    if (!hasCompletedTour) {
+      const timeout = setTimeout(() => {
+        startTour();
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, [hasCompletedTour, startTour]);
+
   // Palette keyboard nav
   const handlePaletteKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -305,7 +398,7 @@ function AppContent() {
       setHighlightedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       const item = allPaletteItems[highlightedIndex];
-      if (item) navigate(item.id);
+      if (item) {navigate(item.id);}
     }
   };
 
@@ -603,144 +696,11 @@ function AppContent() {
       {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
+      {/* Onboarding Tour */}
+      <OnboardingTour steps={tourSteps} />
+
       {/* Command Palette */}
-      {cmdPaletteOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            onClick={() => setCmdPaletteOpen(false)}
-            aria-hidden="true"
-          />
-
-          {/* Palette modal */}
-          <div
-            role="dialog"
-            aria-label="Command palette"
-            aria-modal="true"
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg animate-slide-in"
-          >
-            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
-              {/* Search input */}
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 15 15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="text-muted-foreground shrink-0"
-                  aria-hidden="true"
-                >
-                  <circle cx="6.5" cy="6.5" r="5" />
-                  <path d="m11 11 3 3" strokeLinecap="round" />
-                </svg>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Search views and commands..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setHighlightedIndex(0);
-                  }}
-                  onKeyDown={handlePaletteKey}
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-                  aria-autocomplete="list"
-                  aria-controls="palette-results"
-                  autoComplete="off"
-                />
-                <kbd className="text-[10px] text-muted-foreground/50 font-mono bg-secondary/60 px-1.5 py-0.5 rounded border border-border">
-                  ESC
-                </kbd>
-              </div>
-
-              {/* Results */}
-              <div
-                id="palette-results"
-                role="listbox"
-                className="max-h-80 overflow-y-auto py-1"
-              >
-                {allPaletteItems.length === 0 ? (
-                  <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    No results for "{searchQuery}"
-                  </p>
-                ) : (
-                  <>
-                    {!searchQuery && recentItems.length > 0 && (
-                      <div className="px-3 pt-2 pb-1">
-                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">
-                          Recent
-                        </span>
-                      </div>
-                    )}
-                    {allPaletteItems.map((item, idx) => {
-                      const isRecent = !searchQuery && idx < recentItems.length;
-                      const showNavHeader =
-                        !searchQuery &&
-                        recentItems.length > 0 &&
-                        idx === recentItems.length;
-                      return (
-                        <React.Fragment key={item.id}>
-                          {showNavHeader && (
-                            <div className="px-3 pt-3 pb-1 border-t border-border mt-1">
-                              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">
-                                Navigation
-                              </span>
-                            </div>
-                          )}
-                          <button
-                            role="option"
-                            aria-selected={idx === highlightedIndex}
-                            onClick={() => navigate(item.id)}
-                            onMouseEnter={() => setHighlightedIndex(idx)}
-                            className={cn(
-                              "w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors cursor-pointer",
-                              idx === highlightedIndex
-                                ? "bg-primary/10 text-primary"
-                                : "text-foreground hover:bg-secondary/50"
-                            )}
-                          >
-                            <span className="text-base w-6 text-center" aria-hidden="true">
-                              {item.emoji}
-                            </span>
-                            <span className="flex-1 text-left">{item.label}</span>
-                            {isRecent && (
-                              <span className="text-[10px] text-muted-foreground/40">Recent</span>
-                            )}
-                            {item.shortcut && (
-                              <kbd className="text-[10px] text-muted-foreground/50 font-mono bg-secondary/60 px-1.5 py-0.5 rounded">
-                                ⌥{item.shortcut}
-                              </kbd>
-                            )}
-                            {item.id === activeView && (
-                              <span className="text-[10px] text-muted-foreground/40">Current</span>
-                            )}
-                          </button>
-                        </React.Fragment>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-
-              {/* Footer hint */}
-              <div className="flex items-center gap-4 px-4 py-2 border-t border-border bg-secondary/20">
-                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
-                  <kbd className="font-mono">↑↓</kbd> navigate
-                </span>
-                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
-                  <kbd className="font-mono">↵</kbd> open
-                </span>
-                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
-                  <kbd className="font-mono">ESC</kbd> close
-                </span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <CommandPalette isOpen={cmdPaletteOpen} onClose={() => setCmdPaletteOpen(false)} />
     </div>
   );
 }

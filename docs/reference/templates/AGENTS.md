@@ -212,7 +212,7 @@ Periodically (every few days), use a heartbeat to:
 
 Think of it like a human reviewing their journal and updating their mental model. Daily files are raw notes; MEMORY.md is curated wisdom.
 
-The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
+The goal: Be helpful without being annoying. Check in a few times a day, do useful background work. Check in regularly — this is a 24/7 operation.
 
 ## Make It Yours
 

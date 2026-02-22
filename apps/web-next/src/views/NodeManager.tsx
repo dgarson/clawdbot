@@ -9,8 +9,8 @@ import { MOCK_NODES, formatRelativeTime } from '../mock-data';
 import type { Node, NodeStatus } from '../types';
 
 function getPlatformIcon(platform: string) {
-  if (platform === 'ios' || platform === 'android') return Smartphone;
-  if (platform === 'darwin') return Monitor;
+  if (platform === 'ios' || platform === 'android') {return Smartphone;}
+  if (platform === 'darwin') {return Monitor;}
   return Server;
 }
 
@@ -280,8 +280,8 @@ export default function NodeManager() {
   const selected = nodes.find(n => n.id === selectedNode) ?? null;
 
   const filteredNodes = nodes.filter(n => {
-    if (filter === 'online') return n.status === 'online';
-    if (filter === 'offline') return n.status !== 'online';
+    if (filter === 'online') {return n.status === 'online';}
+    if (filter === 'offline') {return n.status !== 'online';}
     return true;
   });
 

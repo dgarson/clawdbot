@@ -168,7 +168,7 @@ export default function WhatsAppQrLogin({
    */
   const pollForConnection = useCallback(async () => {
     try {
-      if (mockMode) return; // Handled in startLogin
+      if (mockMode) {return;} // Handled in startLogin
 
       const result = await gateway.call<WebLoginWaitResponse>('web.login.wait', {
         timeoutMs: 120000,

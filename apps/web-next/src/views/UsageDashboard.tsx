@@ -6,8 +6,8 @@ import { MOCK_USAGE, MOCK_SESSIONS, MOCK_AGENTS, formatRelativeTime } from '../m
 type DateRange = 'today' | '7days' | '30days' | 'custom';
 
 function formatTokens(tokens: number): string {
-  if (tokens >= 1000000) return `${(tokens / 1000000).toFixed(1)}M`;
-  if (tokens >= 1000) return `${Math.floor(tokens / 1000)}K`;
+  if (tokens >= 1000000) {return `${(tokens / 1000000).toFixed(1)}M`;}
+  if (tokens >= 1000) {return `${Math.floor(tokens / 1000)}K`;}
   return tokens.toString();
 }
 
@@ -34,7 +34,7 @@ export default function UsageDashboard() {
   const topSessions = useMemo(() => {
     return [...MOCK_SESSIONS]
       .filter(s => s.cost !== undefined)
-      .sort((a, b) => (b.cost || 0) - (a.cost || 0))
+      .toSorted((a, b) => (b.cost || 0) - (a.cost || 0))
       .slice(0, 5);
   }, []);
 
@@ -316,9 +316,9 @@ function SummaryCard({ icon, label, value, color }: SummaryCardProps) {
 }
 
 function formatDuration(ms: number): string {
-  if (ms <= 0) return '—';
+  if (ms <= 0) {return '—';}
   const hours = Math.floor(ms / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) {return `${hours}h ${minutes}m`;}
   return `${minutes}m`;
 }
