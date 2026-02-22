@@ -171,6 +171,10 @@ const PricingCalculator       = React.lazy(() => import("./views/PricingCalculat
 const TechRadar               = React.lazy(() => import("./views/TechRadar"));
 const IncidentPostmortem      = React.lazy(() => import("./views/IncidentPostmortem"));
 const AccessTokenManager      = React.lazy(() => import("./views/AccessTokenManager"));
+const KubernetesClusterViewer  = React.lazy(() => import("./views/KubernetesClusterViewer"));
+const CohortAnalysisDashboard  = React.lazy(() => import("./views/CohortAnalysisDashboard"));
+const SentimentAnalysisViewer  = React.lazy(() => import("./views/SentimentAnalysisViewer"));
+const GraphQLExplorer          = React.lazy(() => import("./views/GraphQLExplorer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -319,6 +323,10 @@ export const navItems = [
   { id: "tech-radar",       label: "Tech Radar",          emoji: "📡", shortcut: null },
   { id: "postmortem",       label: "Incident Postmortem", emoji: "📝", shortcut: null },
   { id: "access-tokens",    label: "Access Tokens",       emoji: "🔑", shortcut: null },
+  { id: "k8s-cluster",     label: "K8s Cluster",         emoji: "☸️", shortcut: null },
+  { id: "cohort-analysis", label: "Cohort Analysis",     emoji: "👥", shortcut: null },
+  { id: "sentiment",       label: "Sentiment Analysis",  emoji: "💬", shortcut: null },
+  { id: "graphql",         label: "GraphQL Explorer",    emoji: "🔷", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -468,6 +476,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "tech-radar":          <ContentSkeleton />,
   "postmortem":          <ContentSkeleton />,
   "access-tokens":       <ContentSkeleton />,
+  "k8s-cluster":        <ContentSkeleton />,
+  "cohort-analysis":    <ContentSkeleton />,
+  "sentiment":          <ContentSkeleton />,
+  "graphql":            <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -838,6 +850,10 @@ function AppContent() {
       case "tech-radar":         return <TechRadar />;
       case "postmortem":         return <IncidentPostmortem />;
       case "access-tokens":      return <AccessTokenManager />;
+      case "k8s-cluster":       return <KubernetesClusterViewer />;
+      case "cohort-analysis":   return <CohortAnalysisDashboard />;
+      case "sentiment":         return <SentimentAnalysisViewer />;
+      case "graphql":           return <GraphQLExplorer />;
       default:              return <AgentDashboard />;
     }
   };
