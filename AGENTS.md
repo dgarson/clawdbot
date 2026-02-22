@@ -140,6 +140,8 @@ Don't exfiltrate private data. `trash` > `rm`. Ask when in doubt.
 
 ## Heartbeats
 
+**Step 0:** `_shared/scripts/agent-mail.sh drain` — read and archive all inbox messages before anything else.
+
 Check: Review queue, cross-team issues, quality trends, squad Bravo status. Memory maintenance periodically.
 
 ## Make It Yours
