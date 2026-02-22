@@ -254,7 +254,7 @@ function NavSection({ title, collapsed, children, defaultOpen = true }: NavSecti
           transition={{ duration: 0.2 }}
           className="overflow-hidden"
         >
-          <nav className="space-y-0.5">{children}</nav>
+          <nav className="space-y-1">{children}</nav>
         </motion.div>
       </Collapsible.Content>
     </Collapsible.Root>
@@ -307,7 +307,7 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin py-4 space-y-2">
         {/* Primary Navigation */}
-        <nav className="space-y-0.5 px-2">
+        <nav className="space-y-1 px-2">
           <NavItem href="/" icon={Home} label={t("nav.home")} collapsed={sidebarCollapsed} />
           <NavItem
             href="/conversations"
@@ -452,7 +452,7 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Bottom Navigation */}
       <div className="border-t border-border p-2">
         {/* Agent Session Indicators */}
-        <div className="space-y-0.5 mb-2">
+        <div className="space-y-1 mb-2">
           <AgentSessionsIndicator collapsed={sidebarCollapsed} />
         </div>
 
@@ -460,7 +460,7 @@ export function Sidebar({ className }: SidebarProps) {
         <Separator className="my-2" />
 
         {/* Gateway Status + Workspace Switcher (centered when collapsed) */}
-        <div className="space-y-0.5 mb-2">
+        <div className="space-y-1 mb-2">
           <GatewayStatusIndicator collapsed={sidebarCollapsed} />
           <WorkspaceSwitcher
             collapsed={sidebarCollapsed}
@@ -475,7 +475,7 @@ export function Sidebar({ className }: SidebarProps) {
         <Separator className="my-2" />
 
         {/* Actions Section */}
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           <InboxButton
             collapsed={sidebarCollapsed}
             pendingCount={pendingApprovals}

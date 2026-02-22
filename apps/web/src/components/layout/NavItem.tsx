@@ -114,7 +114,7 @@ export function NavItem({
     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
     "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
     "[&.active]:bg-accent [&.active]:text-accent-foreground",
-    collapsed ? "justify-center w-10 h-9 mx-auto px-0" : undefined
+    collapsed ? "justify-center w-11 h-10 mx-auto px-0" : undefined
   );
 
   if (onClick) {
