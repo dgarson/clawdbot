@@ -254,6 +254,7 @@ const SessionReplayViewer            = React.lazy(() => import("./views/SessionR
 const TokenUsageOptimizer            = React.lazy(() => import("./views/TokenUsageOptimizer"));
 const StreamingDebugger              = React.lazy(() => import("./views/StreamingDebugger"));
 const AgentCollaborationGraph        = React.lazy(() => import("./views/AgentCollaborationGraph"));
+const IntegrationTestRunner          = React.lazy(() => import("./views/IntegrationTestRunner"));
 const SLAComplianceTracker           = React.lazy(() => import("./views/SLAComplianceTracker"));
 const CostBreakdownAnalyzer          = React.lazy(() => import("./views/CostBreakdownAnalyzer"));
 const CompliancePolicyEditor         = React.lazy(() => import("./views/CompliancePolicyEditor"));
@@ -261,6 +262,7 @@ const FeatureGatingDashboard         = React.lazy(() => import("./views/FeatureG
 const ServiceHealthDashboard         = React.lazy(() => import("./views/ServiceHealthDashboard"));
 const DataMaskingManager             = React.lazy(() => import("./views/DataMaskingManager"));
 const ObservabilityRulesEngine       = React.lazy(() => import("./views/ObservabilityRulesEngine"));
+const AgentRelationshipTopology      = React.lazy(() => import("./views/AgentRelationshipTopology"));
 const SessionDebugTimeline           = React.lazy(() => import("./views/SessionDebugTimeline"));
 const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
 const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
@@ -524,6 +526,7 @@ export const navItems = [
   { id: "service-health-dashboard", label: "Service Health",          emoji: "❤️", shortcut: null },
   { id: "data-masking",             label: "Data Masking",            emoji: "🎭", shortcut: null },
   { id: "obs-rules-engine",         label: "Observability Rules",     emoji: "🔭", shortcut: null },
+  { id: "agent-rel-topology",       label: "Agent Topology",          emoji: "🤝", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
 ];
 
@@ -776,6 +779,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "service-health-dashboard":  <ContentSkeleton />,
   "data-masking":              <ContentSkeleton />,
   "obs-rules-engine":          <ContentSkeleton />,
+  "agent-rel-topology":        <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
@@ -1237,6 +1241,7 @@ function AppContent() {
       case "token-usage-opt":      return <TokenUsageOptimizer />;
       case "streaming-debugger":   return <StreamingDebugger />;
       case "agent-collab-graph":   return <AgentCollaborationGraph />;
+      case "integration-tests":    return <IntegrationTestRunner />;
       case "sla-compliance":       return <SLAComplianceTracker />;
       case "cost-breakdown":       return <CostBreakdownAnalyzer />;
       case "compliance-policy":    return <CompliancePolicyEditor />;
@@ -1244,6 +1249,7 @@ function AppContent() {
       case "service-health-dashboard": return <ServiceHealthDashboard />;
       case "data-masking":         return <DataMaskingManager />;
       case "obs-rules-engine":     return <ObservabilityRulesEngine />;
+      case "agent-rel-topology":   return <AgentRelationshipTopology />;
       case "session-debug-timeline": return <SessionDebugTimeline />;
       case "chaos-engineering":    return <ChaosEngineeringDashboard />;
       case "dependency-audit":     return <DependencyAuditDashboard />;
