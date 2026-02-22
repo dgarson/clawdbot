@@ -250,6 +250,9 @@ const IncidentCommandCenter          = React.lazy(() => import("./views/Incident
 const EnvironmentConfigManager       = React.lazy(() => import("./views/EnvironmentConfigManager"));
 const UserPermissionManager          = React.lazy(() => import("./views/UserPermissionManager"));
 const InfrastructureCostManager      = React.lazy(() => import("./views/InfrastructureCostManager"));
+const DatabaseSchemaViewer           = React.lazy(() => import("./views/DatabaseSchemaViewer"));
+const DeploymentEnvironmentManager   = React.lazy(() => import("./views/DeploymentEnvironmentManager"));
+const MLExperimentTracker            = React.lazy(() => import("./views/MLExperimentTracker"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -1154,6 +1157,9 @@ function AppContent() {
       case "env-config":           return <EnvironmentConfigManager />;
       case "user-perms":           return <UserPermissionManager />;
       case "infra-cost-mgr":       return <InfrastructureCostManager />;
+      case "db-schema-viewer":     return <DatabaseSchemaViewer />;
+      case "deploy-env-mgr":       return <DeploymentEnvironmentManager />;
+      case "ml-experiment":        return <MLExperimentTracker />;
       default:              return <AgentDashboard />;
     }
   };
