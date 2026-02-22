@@ -1,4 +1,7 @@
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { registerWorkqCli } from "./src/cli.js";
+import { WorkqDatabase } from "./src/database.js";
+import { registerWorkqTools } from "./src/tools.js";
 import type {
   ClaimInput,
   DoneInput,
@@ -9,9 +12,6 @@ import type {
   ReleaseInput,
   StatusInput,
 } from "./src/types.js";
-import { registerWorkqCli } from "./src/cli.js";
-import { WorkqDatabase } from "./src/database.js";
-import { registerWorkqTools } from "./src/tools.js";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};

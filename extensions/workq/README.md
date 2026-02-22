@@ -66,12 +66,12 @@ Example config:
 `workq` is fully portable to ARM-based hosts (Raspberry Pi 4/5, Orange Pi,
 other aarch64 SBCs) with no native compilation step:
 
-| Concern | Detail |
-|---------|--------|
-| **SQLite** | Uses the built-in `node:sqlite` module (shipped with Node ≥ 22.5.0, unflagged since ~22.8). No `node-gyp`, no `better-sqlite3`, no native addon rebuild required. |
+| Concern          | Detail                                                                                                                                                                |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SQLite**       | Uses the built-in `node:sqlite` module (shipped with Node ≥ 22.5.0, unflagged since ~22.8). No `node-gyp`, no `better-sqlite3`, no native addon rebuild required.     |
 | **Node version** | Requires **Node ≥ 22.12.0** (repo `engines` constraint). Install via [NodeSource](https://github.com/nodesource/distributions) or `nvm` — both support `linux/arm64`. |
-| **Architecture** | Pure JS + built-in bindings. Works identically on `x64`, `arm64`, and `armv7l` (32-bit Pi OS). |
-| **File I/O** | WAL journal mode is enabled by default (`PRAGMA journal_mode = WAL`). This is safe on ext4/f2fs but **not on FAT32/exFAT** partitions. |
+| **Architecture** | Pure JS + built-in bindings. Works identically on `x64`, `arm64`, and `armv7l` (32-bit Pi OS).                                                                        |
+| **File I/O**     | WAL journal mode is enabled by default (`PRAGMA journal_mode = WAL`). This is safe on ext4/f2fs but **not on FAT32/exFAT** partitions.                                |
 
 #### Recommended database path (Pi)
 

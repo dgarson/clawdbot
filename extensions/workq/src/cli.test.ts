@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { WorkItem } from "./types.js";
 import { registerWorkqCli } from "./cli.js";
+import type { WorkItem } from "./types.js";
 
 function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
   return {
