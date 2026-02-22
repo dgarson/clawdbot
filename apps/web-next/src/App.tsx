@@ -117,6 +117,8 @@ const ActivityTimeline     = React.lazy(() => import("./views/ActivityTimeline")
 const PolicyManager        = React.lazy(() => import("./views/PolicyManager"));
 const VersionControl       = React.lazy(() => import("./views/VersionControl"));
 const ScoreCard            = React.lazy(() => import("./views/ScoreCard"));
+const CapacityPlanner      = React.lazy(() => import("./views/CapacityPlanner"));
+const ExperimentDashboard  = React.lazy(() => import("./views/ExperimentDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -211,6 +213,8 @@ export const navItems = [
   { id: "policies",         label: "Policy Manager",    emoji: "⚖️", shortcut: null },
   { id: "git",              label: "Version Control",   emoji: "🌿", shortcut: null },
   { id: "scorecard",        label: "Score Card",        emoji: "🏆", shortcut: null },
+  { id: "capacity",         label: "Capacity Planner",  emoji: "📐", shortcut: null },
+  { id: "experiments",      label: "Experiments",       emoji: "🔬", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -306,6 +310,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "policies":         <ContentSkeleton />,
   "git":              <ContentSkeleton />,
   "scorecard":        <ContentSkeleton />,
+  "capacity":         <ContentSkeleton />,
+  "experiments":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -622,6 +628,8 @@ function AppContent() {
       case "policies":         return <PolicyManager />;
       case "git":              return <VersionControl />;
       case "scorecard":        return <ScoreCard />;
+      case "capacity":         return <CapacityPlanner />;
+      case "experiments":      return <ExperimentDashboard />;
       default:              return <AgentDashboard />;
     }
   };
