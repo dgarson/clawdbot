@@ -124,6 +124,25 @@ describe("normalizeLegacyConfigValues", () => {
     ]);
   });
 
+  it("is idempotent after dm.policy migration is applied", () => {
+    const first = normalizeLegacyConfigValues({
+      channels: {
+        slack: {
+          dm: { enabled: true, policy: "open", allowFrom: ["*"] },
+        },
+      },
+    });
+
+    const second = normalizeLegacyConfigValues(first.config);
+
+    expect(first.changes).toEqual([
+      "Moved channels.slack.dm.policy → channels.slack.dmPolicy.",
+      "Moved channels.slack.dm.allowFrom → channels.slack.allowFrom.",
+    ]);
+    expect(second.changes).toEqual([]);
+    expect(second.config).toEqual(first.config);
+  });
+
   it("migrates Discord account dm.policy/dm.allowFrom to dmPolicy/allowFrom aliases", () => {
     const res = normalizeLegacyConfigValues({
       channels: {

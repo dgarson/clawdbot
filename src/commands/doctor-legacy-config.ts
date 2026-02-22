@@ -40,8 +40,11 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
     };
 
     const topDmPolicy = updated.dmPolicy;
-    const legacyDmPolicy = dm?.policy;
-    if (topDmPolicy === undefined && legacyDmPolicy !== undefined) {
+    // Idempotency guard: only migrate when the legacy key is explicitly present on `dm`.
+    // This avoids re-triggering on computed/inherited/fallback values that are not persisted.
+    const hasLegacyDmPolicy = dm ? Object.prototype.hasOwnProperty.call(dm, "policy") : false;
+    const legacyDmPolicy = hasLegacyDmPolicy ? dm.policy : undefined;
+    if (topDmPolicy === undefined && hasLegacyDmPolicy) {
       updated = { ...updated, dmPolicy: legacyDmPolicy };
       changed = true;
       if (dm) {
@@ -49,7 +52,7 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
         dmChanged = true;
       }
       changes.push(`Moved ${params.pathPrefix}.dm.policy → ${params.pathPrefix}.dmPolicy.`);
-    } else if (topDmPolicy !== undefined && legacyDmPolicy !== undefined) {
+    } else if (topDmPolicy !== undefined && hasLegacyDmPolicy) {
       if (topDmPolicy === legacyDmPolicy) {
         if (dm) {
           delete dm.policy;
@@ -60,8 +63,9 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
     }
 
     const topAllowFrom = updated.allowFrom;
-    const legacyAllowFrom = dm?.allowFrom;
-    if (topAllowFrom === undefined && legacyAllowFrom !== undefined) {
+    const hasLegacyAllowFrom = dm ? Object.prototype.hasOwnProperty.call(dm, "allowFrom") : false;
+    const legacyAllowFrom = hasLegacyAllowFrom ? dm.allowFrom : undefined;
+    if (topAllowFrom === undefined && hasLegacyAllowFrom) {
       updated = { ...updated, allowFrom: legacyAllowFrom };
       changed = true;
       if (dm) {
@@ -69,7 +73,7 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
         dmChanged = true;
       }
       changes.push(`Moved ${params.pathPrefix}.dm.allowFrom → ${params.pathPrefix}.allowFrom.`);
-    } else if (topAllowFrom !== undefined && legacyAllowFrom !== undefined) {
+    } else if (topAllowFrom !== undefined && hasLegacyAllowFrom) {
       if (allowFromEqual(topAllowFrom, legacyAllowFrom)) {
         if (dm) {
           delete dm.allowFrom;
