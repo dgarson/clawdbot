@@ -9,6 +9,14 @@ const ExecApprovalForwardTargetSchema = z
   })
   .strict();
 
+const ExecApprovalForwardingEscalationSchema = z
+  .object({
+    afterTimeoutMs: z.number().nonnegative().optional(),
+    escalationTargets: z.array(ExecApprovalForwardTargetSchema).optional(),
+    message: z.string().optional(),
+  })
+  .strict();
+
 const ExecApprovalForwardingSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -16,6 +24,7 @@ const ExecApprovalForwardingSchema = z
     agentFilter: z.array(z.string()).optional(),
     sessionFilter: z.array(z.string()).optional(),
     targets: z.array(ExecApprovalForwardTargetSchema).optional(),
+    escalation: ExecApprovalForwardingEscalationSchema.optional(),
   })
   .strict()
   .optional();
@@ -35,6 +44,7 @@ const HitlApprovalsSchema = z
   .object({
     defaultPolicyId: z.string().min(1).optional(),
     approverRoleOrder: z.array(z.string().min(1)).optional(),
+    strict: z.boolean().optional(),
     policies: z.array(HitlPolicySchema).optional(),
   })
   .strict()

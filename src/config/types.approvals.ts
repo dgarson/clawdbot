@@ -22,6 +22,15 @@ export type ExecApprovalForwardingConfig = {
   sessionFilter?: string[];
   /** Explicit delivery targets (used when mode includes targets). */
   targets?: ExecApprovalForwardTarget[];
+  /** Optional escalation channels/timeouts when approval stays pending. */
+  escalation?: {
+    /** Send escalation message after this many ms of outstanding approval state. */
+    afterTimeoutMs?: number;
+    /** Escalation-only targets. */
+    escalationTargets?: ExecApprovalForwardTarget[];
+    /** Optional custom escalation message. */
+    message?: string;
+  };
 };
 
 export type HitlApprovalsPolicyConfig = {
@@ -44,6 +53,8 @@ export type HitlApprovalsConfig = {
   defaultPolicyId?: string;
   /** Role ordering from low→high used for authorization checks. */
   approverRoleOrder?: string[];
+  /** Enable strict matrix resolution behavior (reject ambiguous duplicate selectors). */
+  strict?: boolean;
   /** Policy list evaluated in declaration order. */
   policies?: HitlApprovalsPolicyConfig[];
 };

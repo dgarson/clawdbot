@@ -34,6 +34,21 @@ const TARGETS_CFG = {
   },
 } as OpenClawConfig;
 
+const ESCALATION_CFG = {
+  approvals: {
+    exec: {
+      enabled: true,
+      mode: "targets",
+      targets: [{ channel: "telegram", to: "123" }],
+      escalation: {
+        afterTimeoutMs: 2000,
+        escalationTargets: [{ channel: "telegram", to: "escalate" }],
+        message: "⚠️ Escalation channel",
+      },
+    },
+  },
+} as OpenClawConfig;
+
 function createForwarder(params: {
   cfg: OpenClawConfig;
   deliver?: ReturnType<typeof vi.fn>;
@@ -86,6 +101,45 @@ describe("exec approval forwarder", () => {
     expect(deliver).toHaveBeenCalledTimes(1);
 
     await vi.runAllTimersAsync();
+    expect(deliver).toHaveBeenCalledTimes(2);
+  });
+
+  it("escalates to configured escalation targets before timeout expiry", async () => {
+    vi.useFakeTimers();
+    const { deliver, forwarder } = createForwarder({ cfg: ESCALATION_CFG });
+
+    await forwarder.handleRequested(baseRequest);
+    expect(deliver).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(deliver).toHaveBeenCalledTimes(2);
+    expect(deliver.mock.calls[1]?.[0]?.payloads?.[0]?.text as string | undefined).toContain(
+      "⚠️ Escalation channel",
+    );
+
+    await vi.runAllTimersAsync();
+    expect(deliver).toHaveBeenCalledTimes(3);
+    expect(deliver.mock.calls[2]?.[0]?.payloads?.[0]?.text as string | undefined).toContain(
+      "expired",
+    );
+  });
+
+  it("does not escalate if approval is resolved first", async () => {
+    vi.useFakeTimers();
+    const { deliver, forwarder } = createForwarder({ cfg: ESCALATION_CFG });
+
+    await forwarder.handleRequested(baseRequest);
+    expect(deliver).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1000);
+    await forwarder.handleResolved({
+      id: baseRequest.id,
+      decision: "allow-once",
+      resolvedBy: "telegram:123",
+      ts: 2000,
+    });
+
+    await vi.advanceTimersByTimeAsync(5000);
     expect(deliver).toHaveBeenCalledTimes(2);
   });
 

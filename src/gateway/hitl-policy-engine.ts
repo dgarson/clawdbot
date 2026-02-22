@@ -21,6 +21,8 @@ export type HitlPolicyEngineConfig = {
   defaultPolicyId?: string;
   /** Ordered low→high roles used for minApproverRole checks. */
   approverRoleOrder?: string[];
+  /** Enforce strict matrix validation (default: true). */
+  strict?: boolean;
 };
 
 export type HitlPolicyResolutionInput = {
@@ -43,6 +45,7 @@ export type HitlAuthorizationResult =
     };
 
 const DEFAULT_APPROVER_ROLE_ORDER = ["viewer", "operator", "admin", "owner"];
+const DEFAULT_STRICT_POLICY_MATRIX = true;
 
 function normalizeToken(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -112,6 +115,7 @@ function createPolicyEngineFromHitlConfig(config: HitlApprovalsConfig = {}): Hit
     policies: config.policies,
     defaultPolicyId: config.defaultPolicyId,
     approverRoleOrder: config.approverRoleOrder,
+    strict: config.strict,
   });
 }
 
@@ -123,35 +127,93 @@ export function createHitlPolicyEngineFromConfig(
 
 export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): HitlPolicyEngine {
   const normalizedPolicies = normalizePolicies(config.policies ?? []);
+  const strict = config.strict ?? DEFAULT_STRICT_POLICY_MATRIX;
 
   const byTool = new Map<string, HitlPolicyDefinition>();
   const byCategory = new Map<string, HitlPolicyDefinition>();
+  const categoryOnlyPolicies = new Map<string, HitlPolicyDefinition>();
   const byId = new Map<string, HitlPolicyDefinition>();
-  const byPattern: Array<{ regex: RegExp; policy: HitlPolicyDefinition }> = [];
+  const byPattern = new Map<string, { regex: RegExp; policy: HitlPolicyDefinition }>();
+  const defaults: HitlPolicyDefinition[] = [];
 
   for (const policy of normalizedPolicies) {
+    if (strict && byId.has(policy.id)) {
+      throw new Error(`HITL policy matrix conflict: duplicate policy id '${policy.id}'.`);
+    }
     byId.set(policy.id, policy);
-    if (policy.tool && !byTool.has(policy.tool)) {
-      byTool.set(policy.tool, policy);
+
+    if (policy.tool) {
+      if (strict && byTool.has(policy.tool)) {
+        throw new Error(
+          `HITL policy matrix conflict: duplicate tool selector '${policy.tool}' in policy '${policy.id}'.`,
+        );
+      }
+      if (!byTool.has(policy.tool)) {
+        byTool.set(policy.tool, policy);
+      }
     }
-    if (policy.category && !byCategory.has(policy.category)) {
-      byCategory.set(policy.category, policy);
+
+    if (policy.category) {
+      if (!policy.tool && strict && categoryOnlyPolicies.has(policy.category)) {
+        throw new Error(
+          `HITL policy matrix conflict: duplicate category selector '${policy.category}' in policy '${policy.id}'.`,
+        );
+      }
+      if (!policy.tool) {
+        categoryOnlyPolicies.set(policy.category, policy);
+      }
+      if (!byCategory.has(policy.category)) {
+        byCategory.set(policy.category, policy);
+      }
     }
+
     if (policy.patternRegex) {
-      byPattern.push({ regex: policy.patternRegex, policy });
+      const key = (policy.pattern ?? "").toLowerCase();
+      if (strict && byPattern.has(key)) {
+        throw new Error(
+          `HITL policy matrix conflict: duplicate pattern selector '${policy.pattern}' in policy '${policy.id}'.`,
+        );
+      }
+      if (!byPattern.has(key)) {
+        byPattern.set(key, { regex: policy.patternRegex, policy });
+      }
+    }
+
+    if (!policy.tool && !policy.category && !policy.pattern) {
+      defaults.push(policy);
     }
   }
 
-  const defaultPolicy =
-    config.defaultPolicyId && config.defaultPolicyId.trim().length > 0
-      ? (byId.get(config.defaultPolicyId.trim()) ?? null)
-      : (normalizedPolicies.find((policy) => !policy.tool && !policy.category && !policy.pattern) ??
-        null);
+  const defaultPolicy = (() => {
+    const resolvedDefaultPolicyId = config.defaultPolicyId?.trim();
+    if (resolvedDefaultPolicyId) {
+      if (strict) {
+        const found = byId.get(resolvedDefaultPolicyId);
+        if (!found) {
+          throw new Error(
+            `HITL policy matrix conflict: defaultPolicyId '${resolvedDefaultPolicyId}' does not exist.`,
+          );
+        }
+        return found;
+      }
+      return byId.get(resolvedDefaultPolicyId) ?? null;
+    }
+
+    if (strict && defaults.length > 1) {
+      const ids = defaults.map((policy) => policy.id).join(", ");
+      throw new Error(
+        `HITL policy matrix conflict: multiple default policies found without explicit defaultPolicyId: ${ids}`,
+      );
+    }
+
+    return defaults[0] ?? null;
+  })();
 
   const roleOrder = (config.approverRoleOrder ?? DEFAULT_APPROVER_ROLE_ORDER)
     .map((role) => normalizeToken(role))
     .filter((role): role is string => Boolean(role));
   const roleRank = new Map(roleOrder.map((role, index) => [role, index]));
+  const byPatternList = Array.from(byPattern.values());
 
   function resolvePolicy(input: HitlPolicyResolutionInput): HitlPolicyDefinition | null {
     const tool = normalizeToken(input.tool);
@@ -172,7 +234,7 @@ export function createHitlPolicyEngine(config: HitlPolicyEngineConfig = {}): Hit
       }
     }
 
-    for (const entry of byPattern) {
+    for (const entry of byPatternList) {
       if (entry.regex.test(tool)) {
         return entry.policy;
       }

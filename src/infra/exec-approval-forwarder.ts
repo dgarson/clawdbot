@@ -25,7 +25,9 @@ type ForwardTarget = ExecApprovalForwardTarget & { source: "session" | "target" 
 type PendingApproval = {
   request: ExecApprovalRequest;
   targets: ForwardTarget[];
+  escalationTargets: ForwardTarget[];
   timeoutId: NodeJS.Timeout | null;
+  escalationTimeoutId: NodeJS.Timeout | null;
 };
 
 export type ExecApprovalForwarder = {
@@ -48,6 +50,13 @@ const DEFAULT_MODE = "session" as const;
 
 function normalizeMode(mode?: ExecApprovalForwardingConfig["mode"]) {
   return mode ?? DEFAULT_MODE;
+}
+
+function normalizeEscalationDelayMs(value: number | undefined): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(0, Math.trunc(value));
 }
 
 function matchSessionFilter(sessionKey: string, patterns: string[]): boolean {
@@ -166,6 +175,10 @@ function buildExpiredMessage(request: ExecApprovalRequest) {
   return `⏱️ Exec approval expired. ID: ${request.id}`;
 }
 
+function buildEscalationMessage(request: ExecApprovalRequest, message?: string) {
+  return `${message || "⚠️ Exec approval not resolved after timeout."} ID: ${request.id}`;
+}
+
 function defaultResolveSessionTarget(params: {
   cfg: OpenClawConfig;
   request: ExecApprovalRequest;
@@ -228,6 +241,57 @@ async function deliverToTargets(params: {
   await Promise.allSettled(deliveries);
 }
 
+function collectTargets(params: {
+  config?: ExecApprovalForwardingConfig;
+  mode: ReturnType<typeof normalizeMode>;
+  request: ExecApprovalRequest;
+  resolveSessionTarget: ExecApprovalForwarderDeps["resolveSessionTarget"];
+  cfg: OpenClawConfig;
+  source: "session" | "target" | "escalation";
+  seen?: Set<string>;
+}) {
+  const { config, mode, request, resolveSessionTarget, cfg, source, seen: sharedSeen } = params;
+  const seen = sharedSeen ?? new Set<string>();
+  const targets: ForwardTarget[] = [];
+
+  if ((mode === "session" || mode === "both") && source === "session") {
+    const sessionTarget = resolveSessionTarget({ cfg, request });
+    if (sessionTarget) {
+      const key = buildTargetKey(sessionTarget);
+      if (!seen.has(key)) {
+        seen.add(key);
+        targets.push({ ...sessionTarget, source: "session" });
+      }
+    }
+  }
+
+  if ((mode === "targets" || mode === "both") && source === "target") {
+    const explicitTargets = config?.targets ?? [];
+    for (const target of explicitTargets) {
+      const key = buildTargetKey(target);
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      targets.push({ ...target, source: "target" });
+    }
+  }
+
+  if (source === "escalation") {
+    const escalationTargets = config?.escalation?.escalationTargets ?? [];
+    for (const target of escalationTargets) {
+      const key = buildTargetKey(target);
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      targets.push({ ...target, source: "target" });
+    }
+  }
+
+  return { targets: targets.filter((target) => !shouldSkipDiscordForwarding(target)), seen };
+}
+
 export function createExecApprovalForwarder(
   deps: ExecApprovalForwarderDeps = {},
 ): ExecApprovalForwarder {
@@ -245,53 +309,89 @@ export function createExecApprovalForwarder(
     }
 
     const mode = normalizeMode(config?.mode);
-    const targets: ForwardTarget[] = [];
     const seen = new Set<string>();
+    const { targets: sessionTargets } = collectTargets({
+      config,
+      mode,
+      request,
+      resolveSessionTarget,
+      cfg,
+      source: "session",
+      seen,
+    });
+    const { targets: explicitTargets } = collectTargets({
+      config,
+      mode,
+      request,
+      resolveSessionTarget,
+      cfg,
+      source: "target",
+      seen,
+    });
+    const targets = [...sessionTargets, ...explicitTargets];
 
-    if (mode === "session" || mode === "both") {
-      const sessionTarget = resolveSessionTarget({ cfg, request });
-      if (sessionTarget) {
-        const key = buildTargetKey(sessionTarget);
-        if (!seen.has(key)) {
-          seen.add(key);
-          targets.push({ ...sessionTarget, source: "session" });
-        }
-      }
-    }
+    const { targets: escalationTargets } = collectTargets({
+      config,
+      mode,
+      request,
+      resolveSessionTarget,
+      cfg,
+      source: "escalation",
+      seen,
+    });
 
-    if (mode === "targets" || mode === "both") {
-      const explicitTargets = config?.targets ?? [];
-      for (const target of explicitTargets) {
-        const key = buildTargetKey(target);
-        if (seen.has(key)) {
-          continue;
-        }
-        seen.add(key);
-        targets.push({ ...target, source: "target" });
-      }
-    }
-
-    const filteredTargets = targets.filter((target) => !shouldSkipDiscordForwarding(target));
-
-    if (filteredTargets.length === 0) {
+    if (targets.length === 0 && escalationTargets.length === 0) {
       return;
     }
 
     const expiresInMs = Math.max(0, request.expiresAtMs - nowMs());
-    const timeoutId = setTimeout(() => {
-      void (async () => {
+    const expirationId = setTimeout(() => {
+      const entry = pending.get(request.id);
+      if (!entry) {
+        return;
+      }
+      pending.delete(request.id);
+      const expiredText = buildExpiredMessage(request);
+      void deliverToTargets({
+        cfg,
+        targets: entry.targets,
+        text: expiredText,
+        deliver,
+      });
+    }, expiresInMs);
+    expirationId.unref?.();
+
+    const escalationDelayMs = normalizeEscalationDelayMs(config?.escalation?.afterTimeoutMs);
+    const escalationDelayClamped =
+      escalationTargets.length > 0 && escalationDelayMs > 0
+        ? Math.min(expiresInMs, escalationDelayMs)
+        : 0;
+
+    let escalationTimeoutId: NodeJS.Timeout | null = null;
+    if (escalationDelayClamped > 0) {
+      escalationTimeoutId = setTimeout(() => {
         const entry = pending.get(request.id);
         if (!entry) {
           return;
         }
-        pending.delete(request.id);
-        const expiredText = buildExpiredMessage(request);
-        await deliverToTargets({ cfg, targets: entry.targets, text: expiredText, deliver });
-      })();
-    }, expiresInMs);
-    timeoutId.unref?.();
+        const escalationText = buildEscalationMessage(request, config?.escalation?.message);
+        void deliverToTargets({
+          cfg,
+          targets: entry.escalationTargets,
+          text: escalationText,
+          deliver,
+        });
+      }, escalationDelayClamped);
+      escalationTimeoutId.unref?.();
+    }
 
-    const pendingEntry: PendingApproval = { request, targets: filteredTargets, timeoutId };
+    const pendingEntry: PendingApproval = {
+      request,
+      targets,
+      escalationTargets,
+      timeoutId: expirationId,
+      escalationTimeoutId,
+    };
     pending.set(request.id, pendingEntry);
 
     if (pending.get(request.id) !== pendingEntry) {
@@ -301,7 +401,7 @@ export function createExecApprovalForwarder(
     const text = buildRequestMessage(request, nowMs());
     await deliverToTargets({
       cfg,
-      targets: filteredTargets,
+      targets,
       text,
       deliver,
       shouldSend: () => pending.get(request.id) === pendingEntry,
@@ -316,6 +416,9 @@ export function createExecApprovalForwarder(
     if (entry.timeoutId) {
       clearTimeout(entry.timeoutId);
     }
+    if (entry.escalationTimeoutId) {
+      clearTimeout(entry.escalationTimeoutId);
+    }
     pending.delete(resolved.id);
 
     const cfg = getConfig();
@@ -327,6 +430,9 @@ export function createExecApprovalForwarder(
     for (const entry of pending.values()) {
       if (entry.timeoutId) {
         clearTimeout(entry.timeoutId);
+      }
+      if (entry.escalationTimeoutId) {
+        clearTimeout(entry.escalationTimeoutId);
       }
     }
     pending.clear();

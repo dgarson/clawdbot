@@ -37,6 +37,46 @@ describe("hitl-policy-engine", () => {
     expect(resolved?.id).toBe("policy-default");
   });
 
+  it("is strict by default when duplicate tool selectors are configured", () => {
+    expect(() =>
+      createHitlPolicyEngine({
+        policies: [
+          { id: "policy-1", tool: "nodes.run" },
+          { id: "policy-2", tool: "nodes.run" },
+        ],
+      }),
+    ).toThrow(/duplicate tool selector/i);
+  });
+
+  it("is strict by default when duplicate default policies are configured", () => {
+    expect(() =>
+      createHitlPolicyEngine({
+        policies: [{ id: "policy-default-1" }, { id: "policy-default-2" }],
+      }),
+    ).toThrow(/multiple default policies/i);
+  });
+
+  it("throws on explicit defaultPolicyId when not present in strict mode", () => {
+    expect(() =>
+      createHitlPolicyEngine({
+        policies: [{ id: "policy-run", tool: "nodes.run" }],
+        defaultPolicyId: "policy-missing",
+      }),
+    ).toThrow(/defaultPolicyId/i);
+  });
+
+  it("allows duplicate tool selectors when strict validation is disabled", () => {
+    const engine = createHitlPolicyEngine({
+      strict: false,
+      policies: [
+        { id: "policy-1", tool: "nodes.run" },
+        { id: "policy-2", tool: "nodes.run" },
+      ],
+    });
+
+    expect(engine.resolvePolicy({ tool: "nodes.run" })?.id).toBe("policy-1");
+  });
+
   it("matches wildcard pattern after exact and category checks", () => {
     const engine = createHitlPolicyEngine({
       policies: [
