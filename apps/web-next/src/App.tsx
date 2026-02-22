@@ -130,6 +130,8 @@ const StatusPageBuilder    = React.lazy(() => import("./views/StatusPageBuilder"
 const DiffViewer           = React.lazy(() => import("./views/DiffViewer"));
 const OncallScheduler      = React.lazy(() => import("./views/OncallScheduler"));
 const DataQualityDashboard = React.lazy(() => import("./views/DataQualityDashboard"));
+const EventScheduler       = React.lazy(() => import("./views/EventScheduler"));
+const SlackIntegrationManager = React.lazy(() => import("./views/SlackIntegrationManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -237,6 +239,8 @@ export const navItems = [
   { id: "diff-viewer",     label: "Diff Viewer",       emoji: "⚖️", shortcut: null },
   { id: "oncall",          label: "On-Call Schedule",  emoji: "📟", shortcut: null },
   { id: "data-quality",   label: "Data Quality",      emoji: "🔬", shortcut: null },
+  { id: "cal",             label: "Event Scheduler",   emoji: "📅", shortcut: null },
+  { id: "slack-mgr",      label: "Slack Integration",  emoji: "💬", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -345,6 +349,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "diff-viewer":      <ContentSkeleton />,
   "oncall":           <ContentSkeleton />,
   "data-quality":     <ContentSkeleton />,
+  "cal":              <ContentSkeleton />,
+  "slack-mgr":        <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -674,6 +680,8 @@ function AppContent() {
       case "diff-viewer":      return <DiffViewer />;
       case "oncall":           return <OncallScheduler />;
       case "data-quality":     return <DataQualityDashboard />;
+      case "cal":              return <EventScheduler />;
+      case "slack-mgr":        return <SlackIntegrationManager />;
       default:              return <AgentDashboard />;
     }
   };
