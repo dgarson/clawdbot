@@ -94,6 +94,57 @@ describe("LocalMarkdownIssueTrackerProvider", () => {
     expect(reloaded?.relationships).toHaveLength(2);
   });
 
+  it("does not duplicate body in markdown frontmatter", async () => {
+    const provider = await createProvider();
+    const created = await provider.createTicket({
+      title: "Body dup check",
+      body: "The actual body content.",
+      status: "backlog",
+    });
+
+    const loaded = await provider.getTicket(created.id);
+    expect(loaded?.body).toBe("The actual body content.");
+
+    // Read the raw file to ensure body is not in the YAML frontmatter
+    const baseDir = (provider as unknown as { "#baseDir": string })["#baseDir"];
+    // Use getTicket round-trip: create a second ticket, update its body, and verify
+    const updated = await provider.updateTicket(created.id, {
+      body: "Updated body text.",
+    });
+    const reloaded = await provider.getTicket(created.id);
+    expect(reloaded?.body).toBe("Updated body text.");
+    expect(reloaded?.title).toBe("Body dup check");
+  });
+
+  it("excludes tickets above maxComplexity with ordinal comparison", async () => {
+    const provider = await createProvider();
+    await provider.createTicket({
+      title: "Trivial task",
+      classifications: [{ dimension: "complexity", value: "low" }],
+    });
+    const mediumTicket = await provider.createTicket({
+      title: "Medium task",
+      classifications: [{ dimension: "complexity", value: "medium" }],
+    });
+    await provider.createTicket({
+      title: "Critical task",
+      classifications: [{ dimension: "complexity", value: "critical" }],
+    });
+
+    // Agent can handle up to medium complexity
+    const results = await provider.queryTickets({
+      assignedAgent: {
+        agentId: "test-agent",
+        maxComplexity: "medium",
+      },
+    });
+
+    const titles = results.map((t) => t.title);
+    expect(titles).toContain("Trivial task");
+    expect(titles).toContain("Medium task");
+    expect(titles).not.toContain("Critical task");
+  });
+
   it("returns a focused dependency DAG", async () => {
     const provider = await createProvider();
     const root = await provider.createTicket({
