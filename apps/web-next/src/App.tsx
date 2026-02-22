@@ -134,6 +134,8 @@ const EventScheduler       = React.lazy(() => import("./views/EventScheduler"));
 const SlackIntegrationManager = React.lazy(() => import("./views/SlackIntegrationManager"));
 const UserJourneyMap       = React.lazy(() => import("./views/UserJourneyMap"));
 const MemoryProfiler       = React.lazy(() => import("./views/MemoryProfiler"));
+const ErrorBudgetTracker   = React.lazy(() => import("./views/ErrorBudgetTracker"));
+const MultiModelComparator = React.lazy(() => import("./views/MultiModelComparator"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -245,6 +247,8 @@ export const navItems = [
   { id: "slack-mgr",      label: "Slack Integration",  emoji: "💬", shortcut: null },
   { id: "user-journey",   label: "User Journey Map",   emoji: "🗺️", shortcut: null },
   { id: "mem-profiler",   label: "Memory Profiler",    emoji: "🧮", shortcut: null },
+  { id: "error-budget",   label: "Error Budget",       emoji: "🎯", shortcut: null },
+  { id: "model-compare",  label: "Model Comparator",   emoji: "⚖️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -357,6 +361,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "slack-mgr":        <ContentSkeleton />,
   "user-journey":     <ContentSkeleton />,
   "mem-profiler":     <ContentSkeleton />,
+  "error-budget":     <ContentSkeleton />,
+  "model-compare":    <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -690,6 +696,8 @@ function AppContent() {
       case "slack-mgr":        return <SlackIntegrationManager />;
       case "user-journey":     return <UserJourneyMap />;
       case "mem-profiler":     return <MemoryProfiler />;
+      case "error-budget":     return <ErrorBudgetTracker />;
+      case "model-compare":    return <MultiModelComparator />;
       default:              return <AgentDashboard />;
     }
   };
