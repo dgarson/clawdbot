@@ -42,3 +42,24 @@ Announce to a specific channel:
 ```bash
 openclaw cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
 ```
+
+## Telemetry digest cron (example)
+
+Schedule a weekly telemetry cost report every Monday at 9am:
+
+```bash
+openclaw cron add \
+  --id weekly-cost-digest \
+  --schedule "0 9 * * 1" \
+  --message "Run bun /path/to/openclaw/scripts/weekly-telemetry-digest.ts and summarize the output"
+```
+
+Or reference the regression harness in CI:
+
+```bash
+# Save a baseline before deploy
+bun scripts/regression-check.ts --save-baseline v2026.2.21
+
+# After deploy — check for regressions
+bun scripts/regression-check.ts --baseline v2026.2.21 --current HEAD
+```
