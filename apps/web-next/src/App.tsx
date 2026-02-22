@@ -210,6 +210,9 @@ const ResourceTagManager         = React.lazy(() => import("./views/ResourceTagM
 const CapacityForecastDashboard  = React.lazy(() => import("./views/CapacityForecastDashboard"));
 const EventCatalogBrowser        = React.lazy(() => import("./views/EventCatalogBrowser"));
 const SecurityScanDashboard      = React.lazy(() => import("./views/SecurityScanDashboard"));
+const DataPrivacyDashboard       = React.lazy(() => import("./views/DataPrivacyDashboard"));
+const UserOnboardingFlow         = React.lazy(() => import("./views/UserOnboardingFlow"));
+const QueryPerformanceAnalyzer   = React.lazy(() => import("./views/QueryPerformanceAnalyzer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -397,6 +400,9 @@ export const navItems = [
   { id: "capacity-forecast", label: "Capacity Forecast", emoji: "📈", shortcut: null },
   { id: "event-catalog",    label: "Event Catalog",      emoji: "📚", shortcut: null },
   { id: "security-scan",    label: "Security Scans",     emoji: "🔍", shortcut: null },
+  { id: "data-privacy",    label: "Data Privacy",        emoji: "🔒", shortcut: null },
+  { id: "onboarding-flow", label: "Onboarding Flows",   emoji: "🚀", shortcut: null },
+  { id: "query-perf",      label: "Query Performance",  emoji: "🐢", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -585,6 +591,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "capacity-forecast":  <ContentSkeleton />,
   "event-catalog":      <ContentSkeleton />,
   "security-scan":      <ContentSkeleton />,
+  "data-privacy":       <ContentSkeleton />,
+  "onboarding-flow":    <ContentSkeleton />,
+  "query-perf":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -994,6 +1003,9 @@ function AppContent() {
       case "capacity-forecast": return <CapacityForecastDashboard />;
       case "event-catalog":     return <EventCatalogBrowser />;
       case "security-scan":     return <SecurityScanDashboard />;
+      case "data-privacy":      return <DataPrivacyDashboard />;
+      case "onboarding-flow":   return <UserOnboardingFlow />;
+      case "query-perf":        return <QueryPerformanceAnalyzer />;
       default:              return <AgentDashboard />;
     }
   };
