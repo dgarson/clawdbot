@@ -143,6 +143,8 @@ const SprintBoard          = React.lazy(() => import("./views/SprintBoard"));
 const CostForecast         = React.lazy(() => import("./views/CostForecast"));
 const ThreatIntelligenceFeed = React.lazy(() => import("./views/ThreatIntelligenceFeed"));
 const PipelineMonitor      = React.lazy(() => import("./views/PipelineMonitor"));
+const A11yAuditDashboard   = React.lazy(() => import("./views/A11yAuditDashboard"));
+const DesignTokenManager   = React.lazy(() => import("./views/DesignTokenManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -263,6 +265,8 @@ export const navItems = [
   { id: "cost-forecast",  label: "Cost Forecast",      emoji: "💸", shortcut: null },
   { id: "threat-intel",      label: "Threat Intelligence", emoji: "🛡️", shortcut: null },
   { id: "pipeline-monitor", label: "Pipeline Monitor",    emoji: "⚙️", shortcut: null },
+  { id: "a11y-audit",       label: "A11y Audit",          emoji: "♿", shortcut: null },
+  { id: "design-tokens",    label: "Design Tokens",       emoji: "🎨", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -384,6 +388,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "cost-forecast":    <ContentSkeleton />,
   "threat-intel":        <ContentSkeleton />,
   "pipeline-monitor":    <ContentSkeleton />,
+  "a11y-audit":          <ContentSkeleton />,
+  "design-tokens":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -726,6 +732,8 @@ function AppContent() {
       case "cost-forecast":    return <CostForecast />;
       case "threat-intel":       return <ThreatIntelligenceFeed />;
       case "pipeline-monitor":   return <PipelineMonitor />;
+      case "a11y-audit":         return <A11yAuditDashboard />;
+      case "design-tokens":      return <DesignTokenManager />;
       default:              return <AgentDashboard />;
     }
   };
