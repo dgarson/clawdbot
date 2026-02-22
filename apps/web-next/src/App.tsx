@@ -77,6 +77,7 @@ const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
 const SupportCenter        = React.lazy(() => import("./views/SupportCenter"));
 const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"));
+const AgentMemoryViewer    = React.lazy(() => import("./views/AgentMemoryViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -131,6 +132,7 @@ export const navItems = [
   { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
   { id: "support",         label: "Support",        emoji: "🎫", shortcut: null },
   { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
+  { id: "memory",          label: "Agent Memory",   emoji: "🧠", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -186,6 +188,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "commands":       <ContentSkeleton />,
   "support":        <ContentSkeleton />,
   "releases":       <DashboardSkeleton />,
+  "memory":         <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -462,6 +465,7 @@ function AppContent() {
       case "commands":        return <CommandPalette />;
       case "support":         return <SupportCenter />;
       case "releases":        return <ReleasePipeline />;
+      case "memory":          return <AgentMemoryViewer />;
       default:              return <AgentDashboard />;
     }
   };
