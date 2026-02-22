@@ -169,6 +169,8 @@ const DeploymentTracker       = React.lazy(() => import("./views/DeploymentTrack
 const ContentModerationQueue  = React.lazy(() => import("./views/ContentModerationQueue"));
 const PricingCalculator       = React.lazy(() => import("./views/PricingCalculator"));
 const TechRadar               = React.lazy(() => import("./views/TechRadar"));
+const IncidentPostmortem      = React.lazy(() => import("./views/IncidentPostmortem"));
+const AccessTokenManager      = React.lazy(() => import("./views/AccessTokenManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -315,6 +317,8 @@ export const navItems = [
   { id: "moderation",       label: "Content Moderation",  emoji: "🛡️", shortcut: null },
   { id: "pricing-calc",     label: "Pricing Calculator",  emoji: "💰", shortcut: null },
   { id: "tech-radar",       label: "Tech Radar",          emoji: "📡", shortcut: null },
+  { id: "postmortem",       label: "Incident Postmortem", emoji: "📝", shortcut: null },
+  { id: "access-tokens",    label: "Access Tokens",       emoji: "🔑", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -462,6 +466,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "moderation":          <ContentSkeleton />,
   "pricing-calc":        <ContentSkeleton />,
   "tech-radar":          <ContentSkeleton />,
+  "postmortem":          <ContentSkeleton />,
+  "access-tokens":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -830,6 +836,8 @@ function AppContent() {
       case "moderation":         return <ContentModerationQueue />;
       case "pricing-calc":       return <PricingCalculator />;
       case "tech-radar":         return <TechRadar />;
+      case "postmortem":         return <IncidentPostmortem />;
+      case "access-tokens":      return <AccessTokenManager />;
       default:              return <AgentDashboard />;
     }
   };
