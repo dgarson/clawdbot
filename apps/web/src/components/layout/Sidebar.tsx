@@ -28,6 +28,7 @@ import {
   BarChart3,
   Keyboard,
   Network,
+  Inbox,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useShortcutsContext } from "@/providers";
@@ -35,8 +36,11 @@ import { NavItem } from "./NavItem";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { GatewayStatusIndicator } from "@/components/composed/GatewayStatusIndicator";
 import { AgentSessionsIndicator } from "@/components/composed/AgentSessionsIndicator";
+import { InboxPanel } from "@/components/composed/InboxPanel";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useAgentStore } from "@/stores/useAgentStore";
+import { derivePendingApprovalsSummary } from "@/lib/approvals/pending";
 
 /**
  * Sidebar button that opens the KeyboardShortcutsModal.
@@ -140,6 +144,58 @@ function KeyboardShortcutsButton({ collapsed }: { collapsed: boolean }) {
   );
 }
 
+function InboxButton({
+  collapsed,
+  pendingCount,
+  onClick,
+}: {
+  collapsed: boolean;
+  pendingCount: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Inbox"
+      aria-label="Open inbox"
+      className={cn(
+        "relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground",
+        "hover:bg-accent hover:text-accent-foreground transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        collapsed && "justify-center px-2"
+      )}
+    >
+      <span className="relative shrink-0">
+        <Inbox className="size-4" aria-hidden="true" />
+        {pendingCount > 0 && (
+          <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            {pendingCount > 99 ? "99+" : pendingCount}
+          </span>
+        )}
+      </span>
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: "auto" }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-1 items-center justify-between overflow-hidden whitespace-nowrap"
+          >
+            <span>Inbox</span>
+            {pendingCount > 0 && (
+              <span className="ml-2 shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                {pendingCount > 99 ? "99+" : pendingCount}
+              </span>
+            )}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+}
+
 export interface SidebarProps {
   /** Additional className */
   className?: string;
@@ -208,6 +264,9 @@ function NavSection({ title, collapsed, children, defaultOpen = true }: NavSecti
 export function Sidebar({ className }: SidebarProps) {
   const { t } = useTranslation();
   const { sidebarCollapsed, toggleSidebar, powerUserMode } = useUIStore();
+  const [inboxOpen, setInboxOpen] = React.useState(false);
+  const agents = useAgentStore((s) => s.agents);
+  const { pendingApprovals } = derivePendingApprovalsSummary(agents);
 
   return (
     <motion.aside
@@ -410,6 +469,11 @@ export function Sidebar({ className }: SidebarProps) {
 
         {/* Actions Section */}
         <div className="space-y-0.5">
+          <InboxButton
+            collapsed={sidebarCollapsed}
+            pendingCount={pendingApprovals}
+            onClick={() => setInboxOpen(true)}
+          />
           <KeyboardShortcutsButton collapsed={sidebarCollapsed} />
           <NavItem
             href="/settings"
@@ -428,6 +492,8 @@ export function Sidebar({ className }: SidebarProps) {
           />
         </div>
       </div>
+
+      <InboxPanel open={inboxOpen} onOpenChange={setInboxOpen} />
 
       {/* Collapse Toggle */}
       <button
