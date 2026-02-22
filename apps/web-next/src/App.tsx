@@ -187,6 +187,12 @@ const CDNManager                 = React.lazy(() => import("./views/CDNManager")
 const GeofenceManager            = React.lazy(() => import("./views/GeofenceManager"));
 const ScimUserProvisioner        = React.lazy(() => import("./views/ScimUserProvisioner"));
 const LicenseManager             = React.lazy(() => import("./views/LicenseManager"));
+const MessageQueueManager        = React.lazy(() => import("./views/MessageQueueManager"));
+const TenantUsageDashboard       = React.lazy(() => import("./views/TenantUsageDashboard"));
+const CertificateManager         = React.lazy(() => import("./views/CertificateManager"));
+const FinancialReportingDashboard = React.lazy(() => import("./views/FinancialReportingDashboard"));
+const OpenAPIExplorer            = React.lazy(() => import("./views/OpenAPIExplorer"));
+const DataLineageViewer          = React.lazy(() => import("./views/DataLineageViewer"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -351,6 +357,12 @@ export const navItems = [
   { id: "geofence",        label: "Geofence Manager",    emoji: "🗺️", shortcut: null },
   { id: "scim",            label: "SCIM Provisioner",    emoji: "👤", shortcut: null },
   { id: "licenses",        label: "License Manager",     emoji: "🏷️", shortcut: null },
+  { id: "message-queues",  label: "Message Queues",      emoji: "📬", shortcut: null },
+  { id: "tenant-usage",   label: "Tenant Usage",         emoji: "🏢", shortcut: null },
+  { id: "certs",          label: "Certificates",          emoji: "🔒", shortcut: null },
+  { id: "financial",      label: "Financial Reports",     emoji: "💰", shortcut: null },
+  { id: "openapi",        label: "OpenAPI Explorer",      emoji: "📋", shortcut: null },
+  { id: "data-lineage",   label: "Data Lineage",          emoji: "🔗", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -516,6 +528,12 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "geofence":           <ContentSkeleton />,
   "scim":               <ContentSkeleton />,
   "licenses":           <ContentSkeleton />,
+  "message-queues":     <ContentSkeleton />,
+  "tenant-usage":       <ContentSkeleton />,
+  "certs":              <ContentSkeleton />,
+  "financial":          <ContentSkeleton />,
+  "openapi":            <ContentSkeleton />,
+  "data-lineage":       <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -902,6 +920,12 @@ function AppContent() {
       case "geofence":          return <GeofenceManager />;
       case "scim":              return <ScimUserProvisioner />;
       case "licenses":          return <LicenseManager />;
+      case "message-queues":    return <MessageQueueManager />;
+      case "tenant-usage":      return <TenantUsageDashboard />;
+      case "certs":             return <CertificateManager />;
+      case "financial":         return <FinancialReportingDashboard />;
+      case "openapi":           return <OpenAPIExplorer />;
+      case "data-lineage":      return <DataLineageViewer />;
       default:              return <AgentDashboard />;
     }
   };
