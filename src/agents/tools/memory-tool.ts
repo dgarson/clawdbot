@@ -11,15 +11,31 @@ import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 
 const MemorySearchSchema = Type.Object({
-  query: Type.String(),
-  maxResults: Type.Optional(Type.Number()),
-  minScore: Type.Optional(Type.Number()),
+  query: Type.String({
+    description:
+      "Semantic search query across memory files (MEMORY.md, memory/*.md, session transcripts).",
+  }),
+  maxResults: Type.Optional(
+    Type.Number({ description: "Maximum results to return (default: 10)." }),
+  ),
+  minScore: Type.Optional(
+    Type.Number({
+      description:
+        "Minimum similarity score (0-1; default: 0.3; higher = fewer but more relevant results).",
+    }),
+  ),
 });
 
 const MemoryGetSchema = Type.Object({
-  path: Type.String(),
-  from: Type.Optional(Type.Number()),
-  lines: Type.Optional(Type.Number()),
+  path: Type.String({
+    description: "File path in memory store (e.g. 'MEMORY.md' or 'memory/projects.md').",
+  }),
+  from: Type.Optional(
+    Type.Number({ description: "Starting line number for file excerpt (1-indexed)." }),
+  ),
+  lines: Type.Optional(
+    Type.Number({ description: "Number of lines to read from 'from' position." }),
+  ),
 });
 
 function resolveMemoryToolContext(options: { config?: OpenClawConfig; agentSessionKey?: string }) {

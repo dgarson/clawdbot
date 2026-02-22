@@ -63,6 +63,37 @@ describe("parseSlackTarget", () => {
   it("rejects invalid @ targets", () => {
     expect(() => parseSlackTarget("@bob-1")).toThrow(/Slack DMs require a user id/);
   });
+
+  it("uppercases full-length slack ids regardless of input casing", () => {
+    // Channel IDs (start with C, 11 chars total)
+    expect(parseSlackTarget("c0aap72r7l5")).toMatchObject({
+      kind: "channel",
+      id: "C0AAP72R7L5",
+      normalized: "channel:c0aap72r7l5",
+    });
+    expect(parseSlackTarget("channel:c0aap72r7l5")).toMatchObject({
+      kind: "channel",
+      id: "C0AAP72R7L5",
+      normalized: "channel:c0aap72r7l5",
+    });
+    // User IDs (start with U, 11 chars total)
+    expect(parseSlackTarget("u0aap72r7l5")).toMatchObject({
+      kind: "channel",
+      id: "U0AAP72R7L5",
+      normalized: "channel:u0aap72r7l5",
+    });
+    expect(parseSlackTarget("user:u0aap72r7l5")).toMatchObject({
+      kind: "user",
+      id: "U0AAP72R7L5",
+      normalized: "user:u0aap72r7l5",
+    });
+  });
+
+  it("preserves casing for name references", () => {
+    // Channel names are not Slack IDs and must not be uppercased
+    expect(parseSlackTarget("general")).toMatchObject({ id: "general" });
+    expect(parseSlackTarget("dev-team")).toMatchObject({ id: "dev-team" });
+  });
 });
 
 describe("resolveSlackChannelId", () => {
