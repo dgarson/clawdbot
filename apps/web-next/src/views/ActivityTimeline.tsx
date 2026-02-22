@@ -143,7 +143,7 @@ function groupByDay(events: TimelineEvent[]): { label: string; events: TimelineE
 }
 
 function computeHourlyDensity(events: TimelineEvent[]): number[] {
-  const buckets = new Array<number>(24).fill(0);
+  const buckets = Array.from({ length: 24 }, () => 0);
   for (const ev of events) {
     const h = new Date(ev.timestamp).getUTCHours();
     buckets[h]++;

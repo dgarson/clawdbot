@@ -22,7 +22,7 @@ interface ChangedCell {
   to: AccessLevel
 }
 
-type ResourceFilter = "all" | string
+type ResourceFilter = string
 type AccessFilter = "all" | AccessLevel
 
 const ROLES: RoleInfo[] = [

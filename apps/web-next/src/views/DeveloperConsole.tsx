@@ -32,7 +32,7 @@ interface ApiRequest {
 interface ApiResponse {
   status: number;
   time: number;
-  data: any;
+  data: unknown;
   headers: Record<string, string>;
 }
 
@@ -128,8 +128,8 @@ const INITIAL_EVENTS: GatewayEvent[] = [
 /**
  * Syntax highlighted JSON viewer
  */
-const JsonViewer: React.FC<{ data: any }> = ({ data }) => {
-  const formatValue = (val: any) => {
+const JsonViewer: React.FC<{ data: unknown }> = ({ data }) => {
+  const formatValue = (val: unknown) => {
     if (typeof val === 'string') {return <span className="text-emerald-400">"{val}"</span>;}
     if (typeof val === 'number') {return <span className="text-amber-400">{val}</span>;}
     if (typeof val === 'boolean') {return <span className="text-indigo-400">{val.toString()}</span>;}
@@ -466,7 +466,7 @@ export default function DeveloperConsole() {
                   <select 
                     id="log-filter"
                     value={logFilter}
-                    onChange={(e) => setLogFilter(e.target.value as any)}
+                    onChange={(e) => setLogFilter(e.target.value as LogLevel | 'ALL')}
                     className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs focus:outline-none"
                   >
                     <option value="ALL">ALL LEVELS</option>

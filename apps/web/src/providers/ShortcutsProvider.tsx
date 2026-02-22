@@ -91,7 +91,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
       {
         key: "n",
         meta: true,
-        action: () => navigate({ to: "/conversations" }),
+        action: () => void navigate({ to: "/conversations" }),
       },
 
       // Toggle sidebar
@@ -140,7 +140,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         key: "h",
         action: () => {
           if (waitingForGoTo) {
-            navigate({ to: "/" });
+            void navigate({ to: "/" });
             clearGoToState();
           }
         },
@@ -152,7 +152,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         key: "c",
         action: () => {
           if (waitingForGoTo) {
-            navigate({ to: "/conversations" });
+            void navigate({ to: "/conversations" });
             clearGoToState();
           }
         },
@@ -164,7 +164,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         key: "a",
         action: () => {
           if (waitingForGoTo) {
-            navigate({ to: "/agents" });
+            void navigate({ to: "/agents" });
             clearGoToState();
           }
         },
@@ -176,7 +176,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         key: "w",
         action: () => {
           if (waitingForGoTo) {
-            navigate({ to: "/agents", search: { status: "waiting" } });
+            void navigate({ to: "/agents", search: { status: "waiting" } });
             clearGoToState();
           }
         },

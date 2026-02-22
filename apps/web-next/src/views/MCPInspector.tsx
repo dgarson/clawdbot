@@ -230,7 +230,7 @@ export default function MCPInspector() {
           >
             All
           </button>
-          {(Array.from(new Set(TOOLS.map((t) => t.kind))) as ToolKind[]).map((k) => (
+          {(Array.from(new Set(TOOLS.map((t) => t.kind)))).map((k) => (
             <button
               key={k}
               onClick={() => setKindFilter(k)}

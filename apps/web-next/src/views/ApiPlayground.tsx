@@ -249,7 +249,7 @@ export function ApiPlayground() {
 
   const copyResponse = useCallback(() => {
     if (response) {
-      navigator.clipboard.writeText(JSON.stringify(response.body, null, 2));
+      void navigator.clipboard.writeText(JSON.stringify(response.body, null, 2));
     }
   }, [response]);
 

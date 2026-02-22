@@ -59,10 +59,10 @@ export function ProfileSection({ className }: ProfileSectionProps) {
 
       // Create a preview URL for the selected image
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.addEventListener("load", (event) => {
         setFormData((prev) => ({ ...prev, avatar: event.target?.result as string }));
         setHasChanges(true);
-      };
+      });
       reader.readAsDataURL(file);
     }
   };

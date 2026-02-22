@@ -22,7 +22,7 @@ export function FilePreviewPanel({ file, content, loading, error }: FilePreviewP
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = React.useCallback(() => {
-    navigator.clipboard.writeText(content);
+    void navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [content]);

@@ -52,7 +52,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
 
     // Redirect to onboarding if not onboarded
     if (!isOnboarded) {
-      navigate({ to: "/onboarding" });
+      void navigate({ to: "/onboarding" });
     }
 
     setHasChecked(true);

@@ -316,7 +316,7 @@ export default function TeamDirectory() {
   const [viewMode, setViewMode] = useState<"cards" | "table" | "org">("cards");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
-  const squads = Array.from(new Set(AGENTS.map((a) => a.squad))) as Squad[];
+  const squads = Array.from(new Set(AGENTS.map((a) => a.squad)));
 
   const filtered = AGENTS.filter((a) => {
     if (search && !a.name.toLowerCase().includes(search.toLowerCase()) &&

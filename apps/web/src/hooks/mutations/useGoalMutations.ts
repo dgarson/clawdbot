@@ -81,7 +81,7 @@ export function useCreateGoal() {
       queryClient.setQueryData<Goal[]>(goalKeys.lists(), (old) =>
         old ? [newGoal, ...old] : [newGoal]
       );
-      queryClient.invalidateQueries({ queryKey: goalKeys.all });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.all });
       toast.success("Goal created successfully");
     },
     onError: (error) => {
@@ -113,8 +113,8 @@ export function useUpdateGoal() {
       return { previousGoal };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: goalKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.detail(variables.id) });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.lists() });
       toast.success("Goal updated successfully");
     },
     onError: (_error, variables, context) => {
@@ -146,7 +146,7 @@ export function useDeleteGoal() {
       return { previousGoals };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.all });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.all });
       toast.success("Goal deleted successfully");
     },
     onError: (_error, _, context) => {
@@ -182,7 +182,7 @@ export function useUpdateGoalStatus() {
       return { previousGoal };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(variables.id) });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.detail(variables.id) });
       toast.success(`Goal marked as ${variables.status.replace("_", " ")}`);
     },
     onError: (_error, variables, context) => {
@@ -214,7 +214,7 @@ export function useAddMilestone() {
           ? { ...old, milestones: [...old.milestones, newMilestone] }
           : undefined
       );
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) });
       toast.success("Milestone added");
     },
     onError: () => {
@@ -255,7 +255,7 @@ export function useUpdateMilestone() {
       return { previousGoal };
     },
     onSuccess: (_, { goalId }) => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) });
+      void queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) });
       toast.success("Milestone updated");
     },
     onError: (_error, { goalId }, context) => {

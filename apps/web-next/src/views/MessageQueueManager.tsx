@@ -39,7 +39,7 @@ interface Message {
   size: string;
   contentType: string;
   deliveryCount: number;
-  payload: any;
+  payload: unknown;
 }
 
 interface DeadLetterMessage extends Message {

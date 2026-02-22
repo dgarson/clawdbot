@@ -520,7 +520,7 @@ function OverviewTab() {
   for (const agent of AGENTS) {
     modelTotals[agent.model] += agent.totalTokens;
   }
-  const maxModelTokens = Math.max(...(Object.values(modelTotals) as number[]));
+  const maxModelTokens = Math.max(...(Object.values(modelTotals)));
 
   const topConsumers = [...AGENTS].toSorted((a, b) => b.totalTokens - a.totalTokens).slice(0, 5);
 

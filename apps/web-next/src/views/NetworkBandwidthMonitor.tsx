@@ -759,7 +759,7 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
           silence: "silenced",
           resolve: "resolved",
         }
-        return { ...a, state: stateMap[action] as AlertState }
+        return { ...a, state: stateMap[action] }
       })
     )
   }

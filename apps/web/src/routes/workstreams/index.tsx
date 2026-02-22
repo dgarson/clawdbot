@@ -85,11 +85,11 @@ function WorkstreamsPage() {
   };
 
   const handleViewDetails = (workstreamId: string) => {
-    navigate({ to: "/workstreams/$workstreamId", params: { workstreamId } });
+    void navigate({ to: "/workstreams/$workstreamId", params: { workstreamId } });
   };
 
   const handleOpenDAG = (workstreamId: string) => {
-    navigate({ to: "/workstreams/$workstreamId", params: { workstreamId } });
+    void navigate({ to: "/workstreams/$workstreamId", params: { workstreamId } });
   };
 
   const handleTaskClick = (task: Task) => {
@@ -98,7 +98,7 @@ function WorkstreamsPage() {
   };
 
   const handleCreateSuccess = (workstreamId: string) => {
-    navigate({ to: "/workstreams/$workstreamId", params: { workstreamId } });
+    void navigate({ to: "/workstreams/$workstreamId", params: { workstreamId } });
   };
 
   if (error) {

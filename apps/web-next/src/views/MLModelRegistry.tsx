@@ -821,8 +821,8 @@ function ExperimentsTab() {
   const canCompare =
     compareIds !== null && compareIds[0] !== "" && compareIds[1] !== ""
 
-  const expA = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds![0]) : undefined
-  const expB = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds![1]) : undefined
+  const expA = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds[0]) : undefined
+  const expB = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds[1]) : undefined
 
   return (
     <div>

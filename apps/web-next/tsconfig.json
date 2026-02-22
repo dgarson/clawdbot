@@ -14,7 +14,17 @@
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true
+<<<<<<< HEAD
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+=======
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+>>>>>>> fc7ecd771 (chore: pass 2 of 3 in fixing tslint issues)
   },
   "include": ["src"]
 }

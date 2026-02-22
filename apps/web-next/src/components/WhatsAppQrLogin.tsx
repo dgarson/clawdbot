@@ -155,7 +155,7 @@ export default function WhatsAppQrLogin({
       }, 25000);
 
       // Start polling for connection
-      pollForConnection();
+      void pollForConnection();
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start login');
@@ -221,7 +221,7 @@ export default function WhatsAppQrLogin({
    */
   useEffect(() => {
     if (status === 'idle') {
-      startLogin();
+      void startLogin();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

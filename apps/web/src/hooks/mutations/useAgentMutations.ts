@@ -142,9 +142,9 @@ export function useCreateAgent() {
       queryClient.setQueryData<Agent[]>(listKey, (old) =>
         old ? [...old, newAgent] : [newAgent]
       );
-      queryClient.invalidateQueries({ queryKey: agentKeys.all });
+      void queryClient.invalidateQueries({ queryKey: agentKeys.all });
       if (result.source === "gateway") {
-        queryClient.invalidateQueries({ queryKey: configKeys.all });
+        void queryClient.invalidateQueries({ queryKey: configKeys.all });
       }
       toast.success("Agent created successfully");
     },
@@ -196,12 +196,12 @@ export function useUpdateAgent() {
       return { previousAgent };
     },
     onSuccess: (result, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: agentKeys.detail(variables.id, liveMode ? "live" : "mock"),
       });
-      queryClient.invalidateQueries({ queryKey: listKey });
+      void queryClient.invalidateQueries({ queryKey: listKey });
       if (result.source === "gateway") {
-        queryClient.invalidateQueries({ queryKey: configKeys.all });
+        void queryClient.invalidateQueries({ queryKey: configKeys.all });
       }
       toast.success("Agent updated successfully");
     },
@@ -253,9 +253,9 @@ export function useDeleteAgent() {
       return { previousAgents };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: agentKeys.all });
+      void queryClient.invalidateQueries({ queryKey: agentKeys.all });
       if (result.source === "gateway") {
-        queryClient.invalidateQueries({ queryKey: configKeys.all });
+        void queryClient.invalidateQueries({ queryKey: configKeys.all });
       }
       toast.success("Agent deleted successfully");
     },
@@ -305,7 +305,7 @@ export function useUpdateAgentStatus() {
       return { previousAgent };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: agentKeys.detail(variables.id, liveMode ? "live" : "mock"),
       });
       toast.success(`Agent status updated to ${variables.status}`);

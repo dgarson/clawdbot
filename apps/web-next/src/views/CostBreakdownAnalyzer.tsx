@@ -904,11 +904,11 @@ function SavingsTab() {
             className={cn(
               "px-3 py-1.5 text-xs rounded-lg font-medium transition-colors capitalize",
               filter === opt
-                ? opt === "all" ? "bg-indigo-600 text-white" : typeActive[opt as SavingsType]
+                ? opt === "all" ? "bg-indigo-600 text-white" : typeActive[opt]
                 : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
             )}
           >
-            {opt === "all" ? "All" : TYPE_LABELS[opt as SavingsType]}
+            {opt === "all" ? "All" : TYPE_LABELS[opt]}
           </button>
         ))}
       </div>

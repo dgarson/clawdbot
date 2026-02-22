@@ -127,7 +127,7 @@ function WorkflowVisualizationInner({ className }: { className?: string }) {
   const { fitView } = useReactFlow();
 
   const handleResetView = React.useCallback(() => {
-    fitView({ padding: 0.2, duration: 300 });
+    void fitView({ padding: 0.2, duration: 300 });
   }, [fitView]);
   const [patternId, setPatternId] = React.useState(patterns[0]!.id);
   const pattern = patterns.find((p) => p.id === patternId) ?? patterns[0]!;

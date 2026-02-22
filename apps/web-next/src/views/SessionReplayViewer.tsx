@@ -393,7 +393,7 @@ function SessionsTab(): React.ReactElement {
   const [speed, setSpeed] = useState<number>(1);
 
   const selected: Session =
-    SESSIONS.find((s) => s.id === selectedId) ?? (SESSIONS[0] as Session);
+    SESSIONS.find((s) => s.id === selectedId) ?? (SESSIONS[0]);
 
   const scrubPercent = (playbackTime / selected.duration) * 100;
 

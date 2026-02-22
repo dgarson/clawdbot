@@ -348,7 +348,7 @@ export default function InfrastructureMap() {
                 : "border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-white",
             )}
           >
-            {f === "all" ? `All (${NODES.length})` : `${f} (${statusCount(f as NodeStatus)})`}
+            {f === "all" ? `All (${NODES.length})` : `${f} (${statusCount(f)})`}
           </button>
         ))}
       </div>

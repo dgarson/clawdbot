@@ -302,7 +302,7 @@ export default function ModelBenchmark() {
     list.sort((a, b) => {
       const va = a[sortKey];
       const vb = b[sortKey];
-      return sortAsc ? (va as number) - (vb as number) : (vb as number) - (va as number);
+      return sortAsc ? (va) - (vb) : (vb) - (va);
     });
     return list;
   }, [sortKey, sortAsc, providerFilter]);

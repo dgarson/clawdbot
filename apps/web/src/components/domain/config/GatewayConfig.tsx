@@ -190,7 +190,7 @@ function TokenDisplay({ token }: { token: string }) {
   const [visible, setVisible] = React.useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(token);
+    void navigator.clipboard.writeText(token);
     showSuccess("Token copied to clipboard");
   };
 

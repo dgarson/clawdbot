@@ -527,7 +527,7 @@ export default function WizardModal({
       case 'text':
         return (
           <TextStepRenderer
-            step={step as WizardStep}
+            step={step}
             onSubmit={handleSubmit as (v: string) => void}
             loading={loading}
           />
@@ -535,7 +535,7 @@ export default function WizardModal({
       case 'select':
         return (
           <SelectStepRenderer
-            step={step as WizardStep}
+            step={step}
             onSubmit={handleSubmit as (v: string | string[]) => void}
             loading={loading}
           />
@@ -543,7 +543,7 @@ export default function WizardModal({
       case 'confirm':
         return (
           <ConfirmStepRenderer
-            step={step as WizardStep}
+            step={step}
             onSubmit={handleSubmit as (v: boolean) => void}
             loading={loading}
           />
@@ -551,7 +551,7 @@ export default function WizardModal({
       case 'note':
         return (
           <NoteStepRenderer
-            step={step as WizardStep}
+            step={step}
             onContinue={handleNoteContinue}
             loading={loading}
           />
@@ -559,7 +559,7 @@ export default function WizardModal({
       case 'progress':
         return (
           <ProgressStepRenderer
-            step={step as WizardStep}
+            step={step}
           />
         );
       default:

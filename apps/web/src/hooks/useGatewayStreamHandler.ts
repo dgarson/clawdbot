@@ -51,7 +51,7 @@ function toPrettyString(value: unknown): string | undefined {
   try {
     return JSON.stringify(value, null, 2);
   } catch {
-    return String(value);
+    return Object.prototype.toString.call(value);
   }
 }
 

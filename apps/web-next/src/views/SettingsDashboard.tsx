@@ -452,14 +452,14 @@ function ProvidersSettings() {
     setError(null);
     try {
       const config = await gateway.call<OpenClawConfig>('config.get', {});
-      const rawProfiles = (config.auth?.profiles ?? {}) as Record<string, unknown>;
+      const rawProfiles = (config.auth?.profiles ?? {});
       const parsed: Record<string, { provider: string; mode: string }> = {};
       for (const [k, v] of Object.entries(rawProfiles)) {
         if (v && typeof v === 'object') {
           const obj = v as Record<string, unknown>;
           parsed[k] = {
-            provider: String(obj.provider ?? k),
-            mode: String(obj.mode ?? 'unknown'),
+            provider: typeof obj.provider === "string" ? obj.provider : k,
+            mode: typeof obj.mode === "string" ? obj.mode : "unknown",
           };
         }
       }
@@ -473,7 +473,7 @@ function ProvidersSettings() {
 
   useEffect(() => {
     if (gateway.isConnected) {
-      loadProfiles();
+      void loadProfiles();
     }
   }, [gateway.isConnected, loadProfiles]);
 

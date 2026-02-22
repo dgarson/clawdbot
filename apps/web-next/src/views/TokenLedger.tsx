@@ -49,7 +49,7 @@ const ENTRIES: TokenEntry[] = [
 ];
 
 const DAILY_SUMMARIES: DailySummary[] = [
-  { date: "2026-02-22", totalInputTokens: 399900, totalOutputTokens: 59300, totalCacheRead: 480000, totalCost: 0.693,
+  { date: "2026-02-22", totalInputTokens: 399900, totalOutputTokens: 59300, totalCacheRead: 480000, totalCost: 0.6935,
     byAgent: { luis: 0.469, piper: 0.064, reed: 0.026, wes: 0.019, xavier: 0.231, quinn: 0.033, tim: 0.074 },
     byModel: { "claude-sonnet-4-6": 0.470, "claude-opus-4-6": 0.231, "gemini-3-flash": 0.059, "minimax-m2-5": 0.064, "glm-5": 0.019 },
   },

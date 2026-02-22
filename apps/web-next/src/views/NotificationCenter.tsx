@@ -540,7 +540,7 @@ export default function NotificationCenter() {
           )}
           <button
             type="button"
-            onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned || !n.read ? true : false))}
+            onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned || !n.read))}
             className="text-xs text-zinc-400 hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
           >
             Clear read

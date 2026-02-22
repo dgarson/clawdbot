@@ -107,7 +107,7 @@ export function AgentVisualConfigurator({ agentId }: AgentVisualConfiguratorProp
       }
     }
 
-    loadConfig();
+    void loadConfig();
   }, [client, agentId]);
 
   // Debounced save
@@ -149,7 +149,7 @@ export function AgentVisualConfigurator({ agentId }: AgentVisualConfiguratorProp
   }, [client, config, hasChanges]);
 
   const handleSave = () => {
-    debouncedSave();
+    void debouncedSave();
   };
 
   const updateConfig = <K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) => {

@@ -467,7 +467,7 @@ export default function SecurityDashboard() {
                     eventFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200"
                   )}
                 >
-                  {f === "all" ? "All" : f === "unresolved" ? "Unresolved" : THREAT_CONFIG[f as ThreatLevel].label}
+                  {f === "all" ? "All" : f === "unresolved" ? "Unresolved" : THREAT_CONFIG[f].label}
                 </button>
               ))}
             </div>

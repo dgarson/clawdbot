@@ -464,7 +464,7 @@ export default function WebhookPlayground(): React.ReactElement {
     const delay = 120 + Math.floor(Math.random() * 400)
     setTimeout(() => {
       const codes = [200, 200, 200, 201, 204, 400, 500]
-      const code = codes[Math.floor(Math.random() * codes.length)] as number
+      const code = codes[Math.floor(Math.random() * codes.length)]
       const isSuccess = code >= 200 && code < 300
 
       setResponse({

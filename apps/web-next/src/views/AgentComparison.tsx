@@ -222,7 +222,12 @@ function getAllDifferences(agentA: AgentConfig, agentB: AgentConfig): number {
 
 function isDifferent(a: unknown, b: unknown): boolean {
   if (Array.isArray(a) && Array.isArray(b)) {
-    return JSON.stringify(a.toSorted()) !== JSON.stringify(b.toSorted());
+    const sortByStableString = (left: unknown, right: unknown) => {
+      const leftKey = JSON.stringify(left) ?? "";
+      const rightKey = JSON.stringify(right) ?? "";
+      return leftKey.localeCompare(rightKey);
+    };
+    return JSON.stringify(a.toSorted(sortByStableString)) !== JSON.stringify(b.toSorted(sortByStableString));
   }
   return a !== b;
 }

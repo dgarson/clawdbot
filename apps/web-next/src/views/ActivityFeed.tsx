@@ -308,7 +308,7 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
 
 const ALL_KINDS = Array.from(new Set(EVENTS.map(e => e.kind)));
 type KindFilter = ActivityKind | "all";
-type ActorFilter = string | "all"; // agentId or "all"
+type ActorFilter = string; // agentId or "all"
 
 export default function ActivityFeed() {
   const [search, setSearch] = useState("");

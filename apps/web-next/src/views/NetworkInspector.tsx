@@ -337,7 +337,7 @@ export default function NetworkInspector() {
             {[
               { label: "Requests", value: totalRequests,            color: "text-white" },
               { label: "Errors",   value: errorCount,               color: "text-rose-400" },
-              { label: "Avg time", value: `${fmtDuration(avgDuration)}`, color: "text-zinc-300" },
+              { label: "Avg time", value: fmtDuration(avgDuration), color: "text-zinc-300" },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className={cn("text-xl font-bold font-mono", s.color)}>{s.value}</p>

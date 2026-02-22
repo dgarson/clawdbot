@@ -263,7 +263,7 @@ export default function AgentMemoryViewer() {
 
   const handleCopy = useCallback(() => {
     if (selected) {
-      navigator.clipboard.writeText(selected.content);
+      void navigator.clipboard.writeText(selected.content);
     }
   }, [selected]);
 

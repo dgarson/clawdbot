@@ -63,15 +63,16 @@ function priorityColor(p: number): string {
 function evaluateCondition(cond: Condition, payload: Record<string, unknown>): boolean {
   const raw = payload[cond.field];
   const val = cond.value;
-  if (cond.operator === "==" ) {return String(raw ?? "null") === val;}
-  if (cond.operator === "!=" ) {return String(raw ?? "null") !== val;}
+  const stringValue = typeof raw === "string" ? raw : raw == null ? "null" : JSON.stringify(raw);
+  if (cond.operator === "==" ) {return stringValue === val;}
+  if (cond.operator === "!=" ) {return stringValue !== val;}
   if (cond.operator === ">"  ) {return Number(raw) > Number(val);}
   if (cond.operator === "<"  ) {return Number(raw) < Number(val);}
   if (cond.operator === ">=" ) {return Number(raw) >= Number(val);}
   if (cond.operator === "<=" ) {return Number(raw) <= Number(val);}
-  if (cond.operator === "contains") {return String(raw).includes(val);}
-  if (cond.operator === "not_contains") {return !String(raw).includes(val);}
-  if (cond.operator === "in") {return val.split(",").includes(String(raw));}
+  if (cond.operator === "contains") {return stringValue.includes(val);}
+  if (cond.operator === "not_contains") {return !stringValue.includes(val);}
+  if (cond.operator === "in") {return val.split(",").includes(stringValue);}
   if (cond.operator === "not_in") {return !val.split(",").includes(String(raw));}
   return false;
 }

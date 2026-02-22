@@ -46,7 +46,7 @@ export function AppearanceSection({ className }: AppearanceSectionProps) {
   };
 
   const handleLanguageChange = (value: string) => {
-    i18n.changeLanguage(value);
+    void i18n.changeLanguage(value);
   };
 
   const isSaving = updateMutation.isPending;

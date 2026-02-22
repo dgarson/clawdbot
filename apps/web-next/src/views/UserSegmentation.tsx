@@ -163,7 +163,7 @@ export default function UserSegmentation() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Segments",    value: SEGMENTS.length,                                          color: "text-indigo-400" },
-          { label: "Largest Segment",   value: `${SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name}`, color: "text-white"     },
+          { label: "Largest Segment",   value: SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name, color: "text-white"     },
           { label: "Users Segmented",   value: `${Math.round((SEGMENTS.reduce((a,s)=>a+s.userCount,0)/totalUsers)*100)}%`, color: "text-emerald-400" },
           { label: "Avg Segment Size",  value: Math.round(SEGMENTS.reduce((a,s)=>a+s.userCount,0)/SEGMENTS.length).toLocaleString(), color: "text-amber-400" },
         ].map(card => (

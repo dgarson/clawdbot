@@ -388,7 +388,7 @@ export default function IncidentPostmortem() {
                     {inc.id === "pm1" && <div className="text-xs text-indigo-400">← currently viewing</div>}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={cn("text-xs px-2 py-0.5 rounded border uppercase font-semibold", SEV_COLORS[inc.sev as keyof typeof SEV_COLORS])}>{inc.sev}</span>
+                    <span className={cn("text-xs px-2 py-0.5 rounded border uppercase font-semibold", SEV_COLORS[inc.sev])}>{inc.sev}</span>
                   </td>
                   <td className="px-4 py-3 text-xs text-zinc-400">{inc.date}</td>
                   <td className="px-4 py-3 text-xs text-zinc-400">{inc.duration}</td>

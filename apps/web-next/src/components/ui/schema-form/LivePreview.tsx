@@ -133,7 +133,7 @@ function toYaml(obj: unknown, indent: number = 0): string {
     }).join('\n');
   }
 
-  return String(obj);
+  return typeof obj === 'string' ? obj : JSON.stringify(obj);
 }
 
 export default LivePreview;

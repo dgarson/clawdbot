@@ -627,7 +627,7 @@ export default function SystemHealth() {
                       : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
                   )}
                 >
-                  {cat === "all" ? "All" : CATEGORY_LABELS[cat as ServiceCheck["category"]]}
+                  {cat === "all" ? "All" : CATEGORY_LABELS[cat]}
                 </button>
               ))}
             </div>

@@ -721,7 +721,7 @@ export default function PromptLibrary() {
           {categories.map((cat) => {
             const isAll = cat === "all";
             const isFav = cat === "favorites";
-            const cfg = !isAll && !isFav ? CATEGORY_CONFIG[cat as PromptCategory] : null;
+            const cfg = !isAll && !isFav ? CATEGORY_CONFIG[cat] : null;
             const count = cat === "all" ? prompts.length : cat === "favorites" ? prompts.filter((p) => p.isFavorite).length : prompts.filter((p) => p.category === cat).length;
             return (
               <button

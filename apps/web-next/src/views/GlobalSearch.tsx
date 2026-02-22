@@ -132,8 +132,8 @@ function fuzzySearch(results: SearchResult[], query: string): SearchResult[] {
       if (tagMatch) {score += 1;}
       return { ...r, _matchScore: score };
     })
-    .filter((r) => (r as typeof r & { _matchScore: number })._matchScore > 0)
-    .toSorted((a, b) => (b as typeof b & { _matchScore: number })._matchScore - (a as typeof a & { _matchScore: number })._matchScore);
+    .filter((r) => r._matchScore > 0)
+    .toSorted((a, b) => (b)._matchScore - (a)._matchScore);
 }
 
 // ─── Result Item ─────────────────────────────────────────────────────────────

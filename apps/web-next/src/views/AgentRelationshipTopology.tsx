@@ -917,8 +917,8 @@ function SessionChains() {
                             <div className={cn("rounded-xl border p-3 text-center w-40 flex-shrink-0", cardBorder)}>
                               {/* Kind badge */}
                               {step.kind !== "root" && (
-                                <div className={cn("text-xs rounded px-1.5 py-0.5 mb-2 inline-block", edgePillClass(step.kind as EdgeKind))}>
-                                  {edgeText(step.kind as EdgeKind)}
+                                <div className={cn("text-xs rounded px-1.5 py-0.5 mb-2 inline-block", edgePillClass(step.kind))}>
+                                  {edgeText(step.kind)}
                                 </div>
                               )}
                               {step.kind === "root" && (
@@ -1001,8 +1001,8 @@ function EventStream() {
               )}
             >
               {f.label}
-              {f.value !== "all" && kindCounts[f.value as EventKind] != null && (
-                <span className="ml-1 opacity-60">({kindCounts[f.value as EventKind]})</span>
+              {f.value !== "all" && kindCounts[f.value] != null && (
+                <span className="ml-1 opacity-60">({kindCounts[f.value]})</span>
               )}
             </button>
           ))}

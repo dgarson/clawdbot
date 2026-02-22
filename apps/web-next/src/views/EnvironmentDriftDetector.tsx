@@ -1353,7 +1353,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                     filterSeverity === s
                       ? s === "all"
                         ? "bg-zinc-700 border-zinc-600 text-white"
-                        : cn(severityBgBorder(s as Severity), severityTextColor(s as Severity))
+                        : cn(severityBgBorder(s), severityTextColor(s))
                       : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
                   )}
                 >
@@ -1731,11 +1731,11 @@ function HistoryTab({ events }: HistoryTabProps) {
                     filterEnv === env
                       ? env === "all"
                         ? "bg-zinc-700 border-zinc-600 text-white"
-                        : envBadgeStyle(env as Environment)
+                        : envBadgeStyle(env)
                       : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
                   )}
                 >
-                  {env === "all" ? "All" : envLabel(env as Environment)}
+                  {env === "all" ? "All" : envLabel(env)}
                 </button>
               ))}
             </div>
