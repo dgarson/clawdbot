@@ -132,6 +132,8 @@ const OncallScheduler      = React.lazy(() => import("./views/OncallScheduler"))
 const DataQualityDashboard = React.lazy(() => import("./views/DataQualityDashboard"));
 const EventScheduler       = React.lazy(() => import("./views/EventScheduler"));
 const SlackIntegrationManager = React.lazy(() => import("./views/SlackIntegrationManager"));
+const UserJourneyMap       = React.lazy(() => import("./views/UserJourneyMap"));
+const MemoryProfiler       = React.lazy(() => import("./views/MemoryProfiler"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -241,6 +243,8 @@ export const navItems = [
   { id: "data-quality",   label: "Data Quality",      emoji: "🔬", shortcut: null },
   { id: "cal",             label: "Event Scheduler",   emoji: "📅", shortcut: null },
   { id: "slack-mgr",      label: "Slack Integration",  emoji: "💬", shortcut: null },
+  { id: "user-journey",   label: "User Journey Map",   emoji: "🗺️", shortcut: null },
+  { id: "mem-profiler",   label: "Memory Profiler",    emoji: "🧮", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -351,6 +355,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-quality":     <ContentSkeleton />,
   "cal":              <ContentSkeleton />,
   "slack-mgr":        <ContentSkeleton />,
+  "user-journey":     <ContentSkeleton />,
+  "mem-profiler":     <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -682,6 +688,8 @@ function AppContent() {
       case "data-quality":     return <DataQualityDashboard />;
       case "cal":              return <EventScheduler />;
       case "slack-mgr":        return <SlackIntegrationManager />;
+      case "user-journey":     return <UserJourneyMap />;
+      case "mem-profiler":     return <MemoryProfiler />;
       default:              return <AgentDashboard />;
     }
   };
