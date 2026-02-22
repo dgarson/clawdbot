@@ -93,6 +93,12 @@ const SECTION_PROMPTS: Record<string, string[]> = {
     "Set up secure exec permissions",
     "What's the minimal tool set?",
   ],
+  rituals: [
+    "Create a daily standup ritual",
+    "Set up a weekly review ritual",
+    "How often should I run this?",
+    "Make this ritual more efficient",
+  ],
   overview: [
     "Help me improve this agent",
     "What files am I missing?",
@@ -119,7 +125,7 @@ export function LLMAssistPanel({
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const quickPrompts = SECTION_PROMPTS[context.section] ?? SECTION_PROMPTS.overview!;
+  const quickPrompts = SECTION_PROMPTS[context.section] ?? SECTION_PROMPTS.overview;
 
   // Auto-scroll to bottom
   React.useEffect(() => {
