@@ -205,6 +205,8 @@ const InfrastructureCostOptimizer = React.lazy(() => import("./views/Infrastruct
 const APIGatewayManager          = React.lazy(() => import("./views/APIGatewayManager"));
 const CostAnomalyDetector        = React.lazy(() => import("./views/CostAnomalyDetector"));
 const KnowledgeGraphViewer       = React.lazy(() => import("./views/KnowledgeGraphViewer"));
+const WorkflowOrchestrator       = React.lazy(() => import("./views/WorkflowOrchestrator"));
+const ResourceTagManager         = React.lazy(() => import("./views/ResourceTagManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -387,6 +389,8 @@ export const navItems = [
   { id: "api-gateway",    label: "API Gateway",           emoji: "🌐", shortcut: null },
   { id: "cost-anomaly",  label: "Cost Anomaly",          emoji: "🚨", shortcut: null },
   { id: "knowledge-graph", label: "Knowledge Graph",     emoji: "🕸️", shortcut: null },
+  { id: "workflow-orch",  label: "Workflow Orchestrator", emoji: "🔄", shortcut: null },
+  { id: "resource-tags",  label: "Resource Tags",        emoji: "🏷️", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -570,6 +574,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "api-gateway":        <ContentSkeleton />,
   "cost-anomaly":       <ContentSkeleton />,
   "knowledge-graph":    <ContentSkeleton />,
+  "workflow-orch":      <ContentSkeleton />,
+  "resource-tags":      <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -974,6 +980,8 @@ function AppContent() {
       case "api-gateway":       return <APIGatewayManager />;
       case "cost-anomaly":      return <CostAnomalyDetector />;
       case "knowledge-graph":   return <KnowledgeGraphViewer />;
+      case "workflow-orch":     return <WorkflowOrchestrator />;
+      case "resource-tags":     return <ResourceTagManager />;
       default:              return <AgentDashboard />;
     }
   };
