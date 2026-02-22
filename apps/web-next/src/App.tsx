@@ -152,6 +152,8 @@ const GanttChartView       = React.lazy(() => import("./views/GanttChartView"));
 const CustomerFeedbackDashboard = React.lazy(() => import("./views/CustomerFeedbackDashboard"));
 const SecurityPolicyEditor  = React.lazy(() => import("./views/SecurityPolicyEditor"));
 const TeamCollaboration     = React.lazy(() => import("./views/TeamCollaboration"));
+const MigrationManager     = React.lazy(() => import("./views/MigrationManager"));
+const LocalizationManager  = React.lazy(() => import("./views/LocalizationManager"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -281,6 +283,8 @@ export const navItems = [
   { id: "feedback",         label: "Customer Feedback",   emoji: "💬", shortcut: null },
   { id: "sec-policy",       label: "Security Policies",   emoji: "🔒", shortcut: null },
   { id: "team-collab",      label: "Team Collaboration",  emoji: "👥", shortcut: null },
+  { id: "migrations",       label: "Migrations",          emoji: "🗂️", shortcut: null },
+  { id: "i18n",             label: "Localization",        emoji: "🌍", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -411,6 +415,8 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "feedback":            <ContentSkeleton />,
   "sec-policy":          <ContentSkeleton />,
   "team-collab":         <ContentSkeleton />,
+  "migrations":          <ContentSkeleton />,
+  "i18n":                <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -762,6 +768,8 @@ function AppContent() {
       case "feedback":           return <CustomerFeedbackDashboard />;
       case "sec-policy":         return <SecurityPolicyEditor />;
       case "team-collab":        return <TeamCollaboration />;
+      case "migrations":         return <MigrationManager />;
+      case "i18n":               return <LocalizationManager />;
       default:              return <AgentDashboard />;
     }
   };
