@@ -25,6 +25,10 @@ function normalizeSlackId(id: string): string {
   return /^[CUWGD][A-Z0-9]{8,}$/i.test(id) ? id.toUpperCase() : id;
 }
 
+function isSlackId(id: string): boolean {
+  return  /^[CUWGD][A-Z0-9]{8,}$/i.test(id)
+}
+
 export function parseSlackTarget(
   raw: string,
   options: SlackTargetParseOptions = {},
