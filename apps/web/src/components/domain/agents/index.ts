@@ -22,3 +22,6 @@ export type {
 } from "./ModelBehaviorConfig";
 export { ToolProfilePicker } from "./ToolProfilePicker";
 export type { ToolConfig, ToolProfilePickerProps } from "./ToolProfilePicker";
+export { AgentWorkTab } from "./AgentWorkTab";
+export { AgentChatTab } from "./AgentChatTab";
+export { WorkSubNav } from "./WorkSubNav";
