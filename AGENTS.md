@@ -1,5 +1,13 @@
 # Repository Guidelines
 
+> ## ⛔⛔⛔ ABSOLUTE HARD RULE — READ FIRST ⛔⛔⛔
+>
+> **NEVER open a pull request, create or edit issues, or perform any GitHub management actions against `github.com/openclaw/openclaw` (the public upstream). This is a zero-exception rule.**
+>
+> - All PRs go to `dgarson/clawdbot` (origin), targeting the megabranch (`feat/<project>`).
+> - Issue management, comments, and reviews happen in `dgarson/clawdbot`, never in `openclaw/openclaw`.
+> - If you are about to run any `gh` command targeting `openclaw/openclaw`, **stop immediately**. You are about to violate this rule.
+
 - Repo: https://github.com/openclaw/openclaw
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
 
@@ -101,6 +109,7 @@
 
 **Full maintainer PR workflow (optional):** If you want the repo's end-to-end maintainer workflow (triage order, quality bar, rebase rules, commit/changelog conventions, co-contributor policy, and the `review-pr` > `prepare-pr` > `merge-pr` pipeline), see `.agents/skills/PR_WORKFLOW.md`. Maintainers may use other workflows; when a maintainer specifies a workflow, follow that. If no workflow is specified, default to PR_WORKFLOW.
 
+- **⛔⛔⛔ NEVER open PRs, create/edit issues, or manage anything in `github.com/openclaw/openclaw`.** All GitHub activity goes to `dgarson/clawdbot`. No exceptions, ever.
 - **⛔ Never target `main` in a PR** — always target the megabranch (`feat/<project>`). PRs targeting `main` are a protocol violation and will be retargeted or closed. See `_shared/ops/safety-and-branch-rules.md`.
 - Create commits with `scripts/committer "<msg>" <file...>`; avoid manual `git add`/`git commit` so staging stays scoped.
 - Follow concise, action-oriented commit messages (e.g., `CLI: add verbose flag to send`).

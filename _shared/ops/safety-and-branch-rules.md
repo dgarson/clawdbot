@@ -2,6 +2,12 @@
 
 > Read when: starting any new work, considering destructive commands, or verifying branch targets.
 
+## ⛔⛔⛔ NEVER TOUCH `openclaw/openclaw` ON GITHUB ⛔⛔⛔
+
+**NEVER open pull requests, create or edit issues, comment on issues/PRs, or perform any GitHub management actions against `github.com/openclaw/openclaw`.**
+
+This is a hard, zero-exception rule. All PRs and GitHub activity go to `dgarson/clawdbot`. If any command you are about to run targets `openclaw/openclaw`, stop immediately — you are about to violate this rule.
+
 ## Safety Rules (All Agents)
 
 - `trash` not `rm` — deleted files are recoverable; never run destructive commands without confirmation
@@ -29,7 +35,7 @@ CORRECT TARGET:  feat/<megabranch>        ← your lead creates this
 
 NEVER:  main              ← upstream only; PRs targeting main are rejected
 NEVER:  dgarson/fork      ← leads only; not for workers
-NEVER:  openclaw/openclaw ← never, for any reason, ever
+NEVER:  openclaw/openclaw ← NEVER, FOR ANY REASON, EVER — no PRs, no issues, no comments, nothing
 NEVER:  dgarson/clawdbrain ← dead repo; do not touch
 ```
 

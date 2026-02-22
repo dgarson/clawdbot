@@ -100,6 +100,10 @@ T4 Fast Worker → T3 Workhorse review → T2 Bridge/Staff review → merge
 
 ## 6. PR Target Rule (CRITICAL — NEVER VIOLATE)
 
+> ### ⛔⛔⛔ ABSOLUTE HARD RULE ⛔⛔⛔
+>
+> **NEVER open pull requests, create or edit issues, comment, or perform ANY GitHub management actions against `github.com/openclaw/openclaw`.** Not PRs. Not issues. Not comments. Not labels. Nothing. Ever.
+
 **ALL pull requests MUST be opened against `dgarson/clawdbot` (origin). NEVER open PRs against `openclaw/openclaw` (upstream).**
 
 This is a hard rule. No exceptions. No "just this once."
