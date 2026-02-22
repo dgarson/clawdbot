@@ -3,7 +3,7 @@
 _Mega-branch:_ `feat/workq-extension`
 _Owner:_ **Tim** (VP Architecture)
 _Created:_ 2026-02-21
-_Last updated:_ 2026-02-22 07:22 MST
+_Last updated:_ 2026-02-22 08:41 MST
 
 > Delete this entire directory (`_shared/workstreams/workq-extension/`) ONLY after `feat/workq-extension` is confirmed merged into `dgarson/fork`.
 
@@ -49,16 +49,16 @@ Key decisions:
 
 See source board: `/Users/openclaw/.openclaw/workspace/_shared/WORKBOARD.md`
 
-| Task                                                               | Owner          | Status                 | Notes                                                                                                                                                                                                                                                       |
-| ------------------------------------------------------------------ | -------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Create mega-branch `feat/workq-extension` from `dgarson/fork`      | Tim            | ✅ Done                | Branch created + pushed                                                                                                                                                                                                                                     |
-| Copy extension code from `~/.openclaw/extensions/workq/` into repo | Tim            | ✅ Done                | Copied all required files (excluding `node_modules`, lockfile)                                                                                                                                                                                              |
-| Add `extensions/workq/tsconfig.json`                               | Sandy          | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:sandy:subagent:44983536-bfcc-44ee-9c95-60752508f02a`) → rate-limited; retried 07:22 MST (`agent:sandy:subagent:b6cc2eca-ad9d-4d77-98a7-6c584a6ad3a4`); branch `feat/workq-extension`; PR target `feat/workq-extension` |
-| Register `workq.*` gateway RPC methods                             | Oscar (+Sandy) | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:oscar:subagent:272a3206-71e3-4528-b426-b54c42270e18`) → rate-limited; retried 07:22 MST (`agent:oscar:subagent:b77c6f83-2c51-4c36-b67d-8aa0e0e5644b`); branch `feat/workq-extension`; PR target `feat/workq-extension` |
-| Pi runtime validation + README notes                               | Wes            | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067`); branch `feat/workq-extension`; PR target `feat/workq-extension`                                                                                                   |
-| Claude Code opt-in docs (`CLAUDE.md`)                              | Nate           | 🟠 Re-dispatched       | Spawned 2026-02-22 07:20 MST (`agent:nate:subagent:3adcd6e2-8b20-4822-8cf4-af566a881ebc`) → rate-limited; retried 07:22 MST (`agent:nate:subagent:c1cc3a67-8196-468b-bd48-c8445f6c2e75`); branch `feat/workq-extension`; PR target `feat/workq-extension`   |
-| Config registration (`plugins.workq.*`)                            | Tim            | 🔴 Blocked (Sequenced) | Sequencing enforced: execute after plugin schema registration lands (from Sandy/Oscar lane integration), then apply `plugins.workq.*` config and validate CLI acceptance                                                                                    |
-| Dual-purpose inbox design docs                                     | Tim            | ✅ Done                | Added below in this file + SKILL.md created                                                                                                                                                                                                                 |
+| Task                                                               | Owner          | Status                 | Notes                                                                                                                                                                        |
+| ------------------------------------------------------------------ | -------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create mega-branch `feat/workq-extension` from `dgarson/fork`      | Tim            | ✅ Done                | Branch created + pushed                                                                                                                                                      |
+| Copy extension code from `~/.openclaw/extensions/workq/` into repo | Tim            | ✅ Done                | Copied all required files (excluding `node_modules`, lockfile)                                                                                                               |
+| Add `extensions/workq/tsconfig.json`                               | Sandy          | 🟣 In review           | Completed on retry lane with commit `008274f6d94fc116d15000f9ee4d17de37c391ee`; attached to PR #54 (`feat/workq-extension`) for consolidated review                          |
+| Register `workq.*` gateway RPC methods                             | Oscar (+Sandy) | 🟣 In review           | Completed on retry lane with commit `d332135c426793b5e951368b961b6163332457b3`; attached to PR #54 (`feat/workq-extension`) for consolidated review                          |
+| Pi runtime validation + README notes                               | Wes            | 🟣 In review           | Completed in-session (commit `dce4c9cef3c589867a4c3bc8f8b709a5051cd901`) with README Pi/ARM portability updates; landed on existing PR #54 for `feat/workq-extension` review |
+| Claude Code opt-in docs (`CLAUDE.md`)                              | Nate           | 🟣 In review           | Completed on retry lane with commit `1df2acb4c`; attached to PR #54 (`feat/workq-extension`) for consolidated review                                                         |
+| Config registration (`plugins.workq.*`)                            | Tim            | 🔴 Blocked (Sequenced) | Sequencing enforced: execute after plugin schema registration lands (from Sandy/Oscar lane integration), then apply `plugins.workq.*` config and validate CLI acceptance     |
+| Dual-purpose inbox design docs                                     | Tim            | ✅ Done                | Added below in this file + SKILL.md created                                                                                                                                  |
 
 ---
 
@@ -193,6 +193,13 @@ message, call `workq_inbox_ack` with the message IDs — this is mandatory.
 - 2026-02-22 07:22 MST — Sandy retry dispatched after rate-limit (`agent:sandy:subagent:b6cc2eca-ad9d-4d77-98a7-6c584a6ad3a4`) using GLM.
 - 2026-02-22 07:22 MST — Oscar retry dispatched after rate-limit (`agent:oscar:subagent:b77c6f83-2c51-4c36-b67d-8aa0e0e5644b`) using GLM.
 - 2026-02-22 07:22 MST — Nate retry dispatched after rate-limit (`agent:nate:subagent:c1cc3a67-8196-468b-bd48-c8445f6c2e75`) using GLM.
+- 2026-02-22 07:26 MST — Wes lane moved to in-review after completion on `agent:wes:subagent:53240a0f-f1c0-45cf-a504-127ee2b9b067` (commit `dce4c9cef3c589867a4c3bc8f8b709a5051cd901`; update attached to PR #54).
+- 2026-02-22 07:29 MST — Reviewer ping sent to Tim (`agent:tim:main`) for PR #54 in-review lane; Tim confirmed review pass posted and classified Wes scope as approved pending global CI/integration checks.
+- 2026-02-22 07:29 MST — Temporary routing override: remove `gpt-5.3-codex-spark` from redispatch pool for workq lanes due to usage-limit failures; use `glm-5` / `MiniMax-M2.5` until quota recovery to prevent churn.
+- 2026-02-22 08:00 MST — Lane completions confirmed from retry sessions: Sandy (`008274f6d94fc116d15000f9ee4d17de37c391ee`), Oscar (`d332135c426793b5e951368b961b6163332457b3`), Nate (`1df2acb4c`) all attached to PR #54 and moved to `In review`.
+- 2026-02-22 08:00 MST — Reviewer ping executed to Tim (`agent:tim:main`); consolidated review pass posted on PR #54 (`issuecomment-3941139843`), pending global CI/integration checks.
+- 2026-02-22 08:30 MST — Reviewer ping refresh executed to Tim (`agent:tim:main`); blocker check confirms PR #54 still unmergeable pending required checks (`docs-scope`, `secrets`, `actionlint`, `label`, `label-issues`, `no-tabs`). Merge path remains: checks green → final sequencing sanity (`plugins.workq.*` gate) → merge → close in-review lanes.
+- 2026-02-22 08:41 MST — Tim reconfirmed blocker state and merge path for PR #54; no new lane-level quality blockers introduced. PR #54 is operating as the integration PR (`feat/workq-extension` → `dgarson/fork`).
 - Sequencing note: Tim’s `plugins.workq.*` config registration remains blocked until schema registration lands; do not attempt config set before plugin schema acceptance is merged/available.
 
 ---
@@ -202,3 +209,4 @@ message, call `workq_inbox_ack` with the message IDs — this is mandatory.
 1. **Config schema gate:** `openclaw config set plugins.workq.enabled true` currently fails with `Unrecognized key: workq`; requires plugin schema registration path or plugin load before config accepts key.
 2. **RPC naming parity:** tools are currently snake_case (`workq_claim`) while gateway RPC target is dotted (`workq.claim`)—intentional but must be clearly documented.
 3. **Inbox ack enforcement mode:** hard-fail on next read vs soft warning; decision required before rollout.
+4. **Heartbeat inbox execution gap:** `openclaw workq` CLI currently has no `inbox` subcommand, so heartbeat-required `workq_inbox_read/ack` flow cannot be executed from this runtime until inbox tool surface is wired/exposed.
