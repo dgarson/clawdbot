@@ -109,6 +109,10 @@ const WorkflowBuilder      = React.lazy(() => import("./views/WorkflowBuilder"))
 const TokenBudgetPlanner   = React.lazy(() => import("./views/TokenBudgetPlanner"));
 const SandboxRunner        = React.lazy(() => import("./views/SandboxRunner"));
 const MetricsDrilldown     = React.lazy(() => import("./views/MetricsDrilldown"));
+const EmbeddingExplorer    = React.lazy(() => import("./views/EmbeddingExplorer"));
+const RuleEngine           = React.lazy(() => import("./views/RuleEngine"));
+const TelemetryViewer      = React.lazy(() => import("./views/TelemetryViewer"));
+const ModelHealthDashboard = React.lazy(() => import("./views/ModelHealthDashboard"));
 
 export const navItems = [
   { id: "dashboard",     label: "Dashboard",     emoji: "📊", shortcut: "1" },
@@ -195,6 +199,10 @@ export const navItems = [
   { id: "token-budget",     label: "Token Budget",      emoji: "💰", shortcut: null },
   { id: "sandbox",          label: "Sandbox Runner",    emoji: "🧪", shortcut: null },
   { id: "metrics",          label: "Metrics Drilldown", emoji: "📊", shortcut: null },
+  { id: "embeddings",       label: "Embedding Explorer", emoji: "🧭", shortcut: null },
+  { id: "rules",            label: "Rule Engine",       emoji: "📋", shortcut: null },
+  { id: "telemetry",        label: "Telemetry Viewer",  emoji: "📡", shortcut: null },
+  { id: "model-health",     label: "Model Health",      emoji: "💚", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -282,6 +290,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "token-budget":     <ContentSkeleton />,
   "sandbox":          <ContentSkeleton />,
   "metrics":          <ContentSkeleton />,
+  "embeddings":       <ContentSkeleton />,
+  "rules":            <ContentSkeleton />,
+  "telemetry":        <ContentSkeleton />,
+  "model-health":     <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -590,6 +602,10 @@ function AppContent() {
       case "token-budget":     return <TokenBudgetPlanner />;
       case "sandbox":          return <SandboxRunner />;
       case "metrics":          return <MetricsDrilldown />;
+      case "embeddings":       return <EmbeddingExplorer />;
+      case "rules":            return <RuleEngine />;
+      case "telemetry":        return <TelemetryViewer />;
+      case "model-health":     return <ModelHealthDashboard />;
       default:              return <AgentDashboard />;
     }
   };
