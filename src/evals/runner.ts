@@ -1,3 +1,4 @@
+import { buildEvaluationRunId, writeEvaluationReport } from "./report.js";
 import type {
   EvaluationCase,
   EvaluationCaseRun,
@@ -5,7 +6,6 @@ import type {
   EvaluationRunReport,
   EvaluationRunner,
 } from "./types.js";
-import { buildEvaluationRunId, writeEvaluationReport } from "./report.js";
 
 export class BasicEvaluationRunner implements EvaluationRunner {
   private readonly now: () => Date;

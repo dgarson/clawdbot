@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { EvaluationCase } from "./types.js";
 import { BasicEvaluationRunner } from "./runner.js";
+import type { EvaluationCase } from "./types.js";
 
 describe("BasicEvaluationRunner", () => {
   it("runs cases and returns aggregate pass/fail counts", async () => {
