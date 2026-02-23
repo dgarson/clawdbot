@@ -253,8 +253,13 @@ export type AgentDefaultsConfig = {
     /** Default thinking level for spawned sub-agents (e.g. "off", "low", "medium", "high"). */
     thinking?: string;
   };
-  /** Opt-in: generate a short LLM label for new sessions after the first message. */
+  /** Opt-in: generate a short LLM label and classification for new sessions after the first message. */
   sessionLabels?: SessionLabelsConfig;
+  /**
+   * Inline prompt contributors that are included in the agent system prompt based on
+   * session classification tags. Contributors with no tags are always included.
+   */
+  promptContributors?: PromptContributorConfig[];
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: AgentSandboxConfig;
 };
@@ -288,15 +293,56 @@ export type AgentCompactionMemoryFlushConfig = {
 };
 
 export type SessionLabelsConfig = {
-  /** Enable LLM-generated session labels after first message. Default: false. */
+  /** Enable LLM-generated session labels and classification after first message. Default: false. */
   enabled?: boolean;
   /**
-   * Model for label generation (provider/model string).
-   * Defaults to the agent's configured primary model.
+   * Model for classification (provider/model string). REQUIRED when enabled is true.
+   * Use a lightweight, cheap model (e.g. "openai/gpt-4o-mini").
+   * If not set, classification is skipped with a warning.
    */
   model?: string;
   /** Max label length in characters. Default: 79. */
   maxLength?: number;
-  /** Override the label generation user prompt. */
+  /** Override the classification prompt. Must request JSON output in the same schema. */
   prompt?: string;
+};
+
+/**
+ * A tag that controls which sessions a prompt contributor is included in.
+ *
+ * Dimensions map directly to SessionClassification fields:
+ *   - "topic"      → session topic (e.g. "coding", "ops")
+ *   - "complexity" → session complexity (e.g. "hard", "complex")
+ *   - "domain"     → membership in the domain array (e.g. "frontend")
+ *   - "flag"       → membership in the flags array (e.g. "security-sensitive")
+ *   - "channel"    → runtime channel (e.g. "telegram")
+ *
+ * Use "*" as value to match any non-empty value for a dimension.
+ */
+export type PromptContributorTagConfig = {
+  dimension: "topic" | "complexity" | "domain" | "flag" | "channel";
+  value: string;
+};
+
+/** An inline prompt contributor defined in agent config. */
+export type PromptContributorConfig = {
+  /** Unique identifier. Duplicate ids overwrite earlier registrations. */
+  id: string;
+  /**
+   * Classification tags for selective inclusion.
+   * Empty array = always included (universal contributor).
+   */
+  tags?: PromptContributorTagConfig[];
+  /**
+   * Insertion order relative to other contributors. Lower = earlier in prompt.
+   * Built-in sections use 10–90; external contributors should use 100+.
+   * Default: 100.
+   */
+  priority?: number;
+  /** Prompt section content. Supports Markdown. */
+  content: string;
+  /** Optional heading inserted before content (e.g. "## Security Guidelines"). */
+  heading?: string;
+  /** Max characters for this section; truncated if exceeded. */
+  maxChars?: number;
 };

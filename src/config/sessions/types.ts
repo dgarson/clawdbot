@@ -96,6 +96,8 @@ export type SessionEntry = {
   cliSessionIds?: Record<string, string>;
   claudeCliSessionId?: string;
   label?: string;
+  /** Structured classification from the auto-label LLM pass. */
+  classification?: SessionClassification;
   displayName?: string;
   channel?: string;
   groupId?: string;
@@ -148,6 +150,49 @@ export type GroupKeyResolution = {
   channel?: string;
   id?: string;
   chatType?: SessionChatType;
+};
+
+// =============================================================================
+// Session Classification
+// =============================================================================
+
+/** Broad thematic topic inferred from the first user message. */
+export type SessionTopic =
+  | "coding"
+  | "research"
+  | "ops"
+  | "conversation"
+  | "creative"
+  | "debugging"
+  | "config"
+  | "other";
+
+/**
+ * Five-tier complexity scale inferred from the first user message.
+ * - trivial:  single-shot factual answers, greetings, config lookups
+ * - simple:   single-file edits, straightforward Q&A with one tool call
+ * - moderate: multi-file changes, requires reading context before acting
+ * - hard:     cross-cutting refactors, multi-step debugging, architecture decisions
+ * - complex:  system design, multi-service coordination, novel problem-solving
+ */
+export type SessionComplexity = "trivial" | "simple" | "moderate" | "hard" | "complex";
+
+/**
+ * Structured classification produced by the session auto-label LLM call.
+ * Persisted alongside the human-readable label for use by prompt contributors,
+ * tool routing, analytics, and plugin hooks.
+ */
+export type SessionClassification = {
+  /** Short topic bucket inferred from the conversation opener. */
+  topic: SessionTopic;
+  /** Estimated complexity of the task. */
+  complexity: SessionComplexity;
+  /** 0-3 short domain tags (e.g. ["frontend","react"], ["devops","k8s"]). */
+  domain: string[];
+  /** 0-2 notable attributes (e.g. ["security-sensitive","multi-file"]). */
+  flags: string[];
+  /** ISO timestamp when classification was produced. */
+  classifiedAt: number;
 };
 
 export type SessionSkillSnapshot = {

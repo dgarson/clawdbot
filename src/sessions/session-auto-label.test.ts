@@ -10,9 +10,7 @@ vi.mock("../config/config.js", () => ({
 }));
 vi.mock("../infra/agent-events.js", () => ({
   onAgentEvent: vi.fn(),
-}));
-vi.mock("../agents/model-selection.js", () => ({
-  resolveDefaultModelForAgent: vi.fn(),
+  emitAgentEvent: vi.fn(),
 }));
 vi.mock("../agents/models-config.js", () => ({
   ensureOpenClawModelsJson: vi.fn(),
@@ -39,12 +37,20 @@ vi.mock("../config/sessions/store.js", () => ({
 import { complete } from "@mariozechner/pi-ai";
 import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
 import { getApiKeyForModel, requireApiKey } from "../agents/model-auth.js";
-import { resolveDefaultModelForAgent } from "../agents/model-selection.js";
 import { discoverAuthStorage, discoverModels } from "../agents/pi-model-discovery.js";
 import { loadConfig } from "../config/config.js";
 import { resolveStorePath, loadSessionStore } from "../config/sessions.js";
 import { updateSessionStoreEntry } from "../config/sessions/store.js";
-import { onAgentEvent } from "../infra/agent-events.js";
+import { onAgentEvent, emitAgentEvent } from "../infra/agent-events.js";
+
+/** Valid classification JSON response. */
+const VALID_CLASSIFICATION_JSON = JSON.stringify({
+  label: "Debug session with greetings",
+  topic: "conversation",
+  complexity: "trivial",
+  domain: [],
+  flags: [],
+});
 
 describe("session-auto-label service", () => {
   let capturedListener: ((evt: unknown) => Promise<void> | void) | undefined;
@@ -79,6 +85,8 @@ describe("session-auto-label service", () => {
         defaults: {
           sessionLabels: {
             enabled: true,
+            // Default to a valid provider/model when not overridden.
+            model: "anthropic/claude-haiku-4-5",
             ...overrides,
           },
         },
@@ -97,10 +105,6 @@ describe("session-auto-label service", () => {
         "agent:main:direct": { sessionId: "abc", updatedAt: Date.now() },
       },
     );
-    vi.mocked(resolveDefaultModelForAgent).mockReturnValue({
-      provider: "anthropic",
-      model: "claude-haiku-4-5",
-    });
 
     const fakeAuthStorage = { setRuntimeApiKey: vi.fn() };
     const fakeModel =
@@ -214,12 +218,12 @@ describe("session-auto-label service", () => {
     expect(updateSessionStoreEntry).not.toHaveBeenCalled();
   });
 
-  it("generates and writes a label for a new session", async () => {
+  it("generates and writes a label + classification for a new session", async () => {
     mockConfigEnabled({ maxLength: 79 });
     mockHappyPathDeps();
 
     vi.mocked(complete).mockResolvedValue({
-      content: [{ type: "text", text: "Debug session with greetings" }],
+      content: [{ type: "text", text: VALID_CLASSIFICATION_JSON }],
     } as never);
     vi.mocked(updateSessionStoreEntry).mockResolvedValue(null);
 
@@ -234,7 +238,58 @@ describe("session-auto-label service", () => {
     );
   });
 
-  it("skips when sessionLabels.model is not provider/model", async () => {
+  it("emits a classification event after persisting", async () => {
+    mockConfigEnabled();
+    mockHappyPathDeps();
+
+    vi.mocked(complete).mockResolvedValue({
+      content: [{ type: "text", text: VALID_CLASSIFICATION_JSON }],
+    } as never);
+    vi.mocked(updateSessionStoreEntry).mockImplementation(async (params) => {
+      await params.update({ sessionId: "abc", updatedAt: Date.now() } as never);
+      return null;
+    });
+
+    await loadService();
+    await emitInput("hello");
+    await flush();
+
+    expect(emitAgentEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stream: "classification",
+        runId: "run1",
+        sessionKey: "agent:main:direct",
+        data: expect.objectContaining({
+          label: "Debug session with greetings",
+          classification: expect.objectContaining({
+            topic: "conversation",
+            complexity: "trivial",
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("skips when sessionLabels.model is not configured", async () => {
+    // model not set → should warn and skip
+    vi.mocked(loadConfig).mockReturnValue({
+      agents: {
+        defaults: {
+          sessionLabels: { enabled: true },
+        },
+      },
+    } as ReturnType<typeof loadConfig>);
+    mockHappyPathDeps();
+
+    await loadService();
+    await emitInput();
+    await flush();
+
+    expect(complete).not.toHaveBeenCalled();
+    expect(updateSessionStoreEntry).not.toHaveBeenCalled();
+  });
+
+  it("skips when sessionLabels.model is not in provider/model format", async () => {
     mockConfigEnabled({ model: "claude-haiku-4-5" });
     mockHappyPathDeps();
 
@@ -283,11 +338,11 @@ describe("session-auto-label service", () => {
     expect(updateSessionStoreEntry).not.toHaveBeenCalled();
   });
 
-  it("skips write when LLM returns empty text", async () => {
+  it("skips write when LLM returns invalid JSON", async () => {
     mockConfigEnabled();
     mockHappyPathDeps();
     vi.mocked(complete).mockResolvedValue({
-      content: [{ type: "text", text: "    " }],
+      content: [{ type: "text", text: "not valid json" }],
     } as never);
 
     await loadService();
@@ -297,13 +352,56 @@ describe("session-auto-label service", () => {
     expect(updateSessionStoreEntry).not.toHaveBeenCalled();
   });
 
-  it("uses custom prompt and maxLength and truncates prompt + label", async () => {
-    const maxLength = 12;
-    mockConfigEnabled({ prompt: "Custom title prompt", maxLength });
+  it("skips write when LLM returns JSON without a label", async () => {
+    mockConfigEnabled();
+    mockHappyPathDeps();
+    vi.mocked(complete).mockResolvedValue({
+      content: [
+        { type: "text", text: '{"topic":"coding","complexity":"simple","domain":[],"flags":[]}' },
+      ],
+    } as never);
+
+    await loadService();
+    await emitInput();
+    await flush();
+
+    expect(updateSessionStoreEntry).not.toHaveBeenCalled();
+  });
+
+  it("strips markdown fences from JSON response", async () => {
+    mockConfigEnabled({ maxLength: 79 });
     mockHappyPathDeps();
 
     vi.mocked(complete).mockResolvedValue({
-      content: [{ type: "text", text: "This label is definitely too long" }],
+      content: [{ type: "text", text: "```json\n" + VALID_CLASSIFICATION_JSON + "\n```" }],
+    } as never);
+    vi.mocked(updateSessionStoreEntry).mockResolvedValue(null);
+
+    await loadService();
+    await emitInput("hello");
+    await flush();
+
+    expect(updateSessionStoreEntry).toHaveBeenCalled();
+  });
+
+  it("uses custom prompt override", async () => {
+    const maxLength = 12;
+    mockConfigEnabled({ prompt: "Custom classification prompt", maxLength });
+    mockHappyPathDeps();
+
+    vi.mocked(complete).mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            label: "This label is definitely too long",
+            topic: "other",
+            complexity: "trivial",
+            domain: [],
+            flags: [],
+          }),
+        },
+      ],
     } as never);
 
     let writtenLabel = "";
@@ -324,11 +422,11 @@ describe("session-auto-label service", () => {
     expect(completionCall).toBeTruthy();
     const context = completionCall?.[1] as { messages?: Array<{ content?: string }> };
     const text = context.messages?.[0]?.content ?? "";
-    expect(text).toContain("Custom title prompt");
-    expect(text).toContain(`Max length: ${maxLength} characters.`);
+    expect(text).toContain("Custom classification prompt");
     expect(text).toContain("Conversation:\n");
     expect(text.endsWith("…")).toBe(true);
 
+    // Label should be truncated to maxLength.
     expect(writtenLabel).toBe("This label i");
     expect(writtenLabel.length).toBe(maxLength);
   });
@@ -341,7 +439,8 @@ describe("session-auto-label service", () => {
     vi.mocked(complete).mockImplementation(
       () =>
         new Promise((resolve) => {
-          resolveComplete = () => resolve({ content: [{ type: "text", text: "Hello" }] } as never);
+          resolveComplete = () =>
+            resolve({ content: [{ type: "text", text: VALID_CLASSIFICATION_JSON }] } as never);
         }) as never,
     );
     vi.mocked(updateSessionStoreEntry).mockResolvedValue(null);
@@ -365,7 +464,7 @@ describe("session-auto-label service", () => {
     mockHappyPathDeps();
 
     vi.mocked(complete).mockResolvedValue({
-      content: [{ type: "text", text: "Will be ignored" }],
+      content: [{ type: "text", text: VALID_CLASSIFICATION_JSON }],
     } as never);
 
     let patchResult: unknown;
@@ -390,7 +489,7 @@ describe("session-auto-label service", () => {
     mockHappyPathDeps();
 
     vi.mocked(complete).mockResolvedValue({
-      content: [{ type: "text", text: "Race label" }],
+      content: [{ type: "text", text: VALID_CLASSIFICATION_JSON }],
     } as never);
     vi.mocked(updateSessionStoreEntry).mockResolvedValue(null);
 

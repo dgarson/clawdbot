@@ -4,6 +4,7 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { isPlainObject } from "../utils.js";
 import { normalizeToolName } from "./tool-policy.js";
+import { checkToolSequence } from "./tool-sequence-enforcer.js";
 import type { AnyAgentTool } from "./tools/common.js";
 
 export type HookContext = {
@@ -130,6 +131,12 @@ export async function runBeforeToolCallHook(args: {
     }
 
     recordToolCall(sessionState, toolName, params, args.toolCallId, args.ctx.loopDetection);
+  }
+
+  // Check tool sequence prerequisites (hard enforcement layer).
+  const seqResult = checkToolSequence(toolName, args.ctx?.sessionKey);
+  if (seqResult.blocked) {
+    return { blocked: true, reason: seqResult.reason };
   }
 
   const hookRunner = getGlobalHookRunner();

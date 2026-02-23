@@ -497,6 +497,20 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerCli: (registrar, opts) => registerCli(record, registrar, opts),
       registerService: (service) => registerService(record, service),
       registerCommand: (command) => registerCommand(record, command),
+      registerPromptContributor: (contributor) => {
+        // Lazy import to avoid circular dependencies at module load time.
+        import("../agents/prompt-contributors/registry.js")
+          .then(({ registerPromptContributor }) => {
+            registerPromptContributor(contributor, "plugin");
+          })
+          .catch((err) => {
+            pushDiagnostic({
+              level: "error",
+              pluginId: record.id,
+              message: `registerPromptContributor failed: ${String(err)}`,
+            });
+          });
+      },
       resolvePath: (input: string) => resolveUserPath(input),
       on: (hookName, handler, opts) => registerTypedHook(record, hookName, handler, opts),
     };
