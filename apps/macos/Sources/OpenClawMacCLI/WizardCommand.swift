@@ -251,7 +251,7 @@ actor GatewayWizardClient {
         let clientMode = "ui"
         let role = "operator"
         // Explicit scopes; gateway no longer defaults empty scopes to admin.
-        let scopes = defaultOperatorConnectScopes
+        let scopes: [String] = ["operator.admin", "operator.approvals", "operator.pairing"]
         let client: [String: ProtoAnyCodable] = [
             "id": ProtoAnyCodable(clientId),
             "displayName": ProtoAnyCodable(Host.current().localizedName ?? "OpenClaw macOS Wizard CLI"),
@@ -281,8 +281,8 @@ actor GatewayWizardClient {
         let identity = DeviceIdentityStore.loadOrCreate()
         let signedAtMs = Int(Date().timeIntervalSince1970 * 1000)
         let scopesValue = scopes.joined(separator: ",")
-        let payloadParts = [
-            "v2",
+        var payloadParts = [
+            connectNonce == nil ? "v1" : "v2",
             identity.deviceId,
             clientId,
             clientMode,
@@ -290,19 +290,23 @@ actor GatewayWizardClient {
             scopesValue,
             String(signedAtMs),
             self.token ?? "",
-            connectNonce,
         ]
+        if let connectNonce {
+            payloadParts.append(connectNonce)
+        }
         let payload = payloadParts.joined(separator: "|")
         if let signature = DeviceIdentityStore.signPayload(payload, identity: identity),
            let publicKey = DeviceIdentityStore.publicKeyBase64Url(identity)
         {
-            let device: [String: ProtoAnyCodable] = [
+            var device: [String: ProtoAnyCodable] = [
                 "id": ProtoAnyCodable(identity.deviceId),
                 "publicKey": ProtoAnyCodable(publicKey),
                 "signature": ProtoAnyCodable(signature),
                 "signedAt": ProtoAnyCodable(signedAtMs),
-                "nonce": ProtoAnyCodable(connectNonce),
             ]
+            if let connectNonce {
+                device["nonce"] = ProtoAnyCodable(connectNonce)
+            }
             params["device"] = ProtoAnyCodable(device)
         }
 
@@ -329,24 +333,29 @@ actor GatewayWizardClient {
         }
     }
 
-    private func waitForConnectChallenge() async throws -> String {
-        guard let task = self.task else { throw ConnectChallengeError.timeout }
-        return try await AsyncTimeout.withTimeout(
-            seconds: self.connectChallengeTimeoutSeconds,
-            onTimeout: { ConnectChallengeError.timeout },
-            operation: {
-                while true {
-                    let message = try await task.receive()
-                    let frame = try await self.decodeFrame(message)
-                    if case let .event(evt) = frame, evt.event == "connect.challenge",
-                       let payload = evt.payload?.value as? [String: ProtoAnyCodable],
-                       let nonce = payload["nonce"]?.value as? String,
-                       nonce.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-                    {
-                        return nonce
+    private func waitForConnectChallenge() async throws -> String? {
+        guard let task = self.task else { return nil }
+        do {
+            return try await AsyncTimeout.withTimeout(
+                seconds: self.connectChallengeTimeoutSeconds,
+                onTimeout: { ConnectChallengeError.timeout },
+                operation: {
+                    while true {
+                        let message = try await task.receive()
+                        let frame = try await self.decodeFrame(message)
+                        if case let .event(evt) = frame, evt.event == "connect.challenge" {
+                            if let payload = evt.payload?.value as? [String: ProtoAnyCodable],
+                               let nonce = payload["nonce"]?.value as? String
+                            {
+                                return nonce
+                            }
+                        }
                     }
-                }
-            })
+                })
+        } catch {
+            if error is ConnectChallengeError { return nil }
+            throw error
+        }
     }
 }
 

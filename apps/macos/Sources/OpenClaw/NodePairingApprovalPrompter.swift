@@ -520,12 +520,11 @@ final class NodePairingApprovalPrompter {
         let preferred = GatewayDiscoveryPreferences.preferredStableID()
         let gateway = model.gateways.first { $0.stableID == preferred } ?? model.gateways.first
         guard let gateway else { return nil }
-        guard let target = GatewayDiscoveryHelpers.sshTarget(for: gateway),
-              let parsed = CommandResolver.parseSSHTarget(target)
-        else {
-            return nil
-        }
-        return SSHTarget(host: parsed.host, port: parsed.port)
+        let host = (gateway.tailnetDns?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty ??
+            gateway.lanHost?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty)
+        guard let host, !host.isEmpty else { return nil }
+        let port = gateway.sshPort > 0 ? gateway.sshPort : 22
+        return SSHTarget(host: host, port: port)
     }
 
     private static func probeSSH(user: String, host: String, port: Int) async -> Bool {

@@ -16,8 +16,8 @@ const stripAnsi = (str: string) =>
 describe("markdownTheme", () => {
   describe("highlightCode", () => {
     beforeEach(() => {
-      cliHighlightMocks.highlight.mockClear();
-      cliHighlightMocks.supportsLanguage.mockClear();
+      cliHighlightMocks.highlight.mockReset();
+      cliHighlightMocks.supportsLanguage.mockReset();
       cliHighlightMocks.highlight.mockImplementation((code: string) => code);
       cliHighlightMocks.supportsLanguage.mockReturnValue(true);
     });

@@ -12,9 +12,6 @@
  */
 
 import type { ModelApi, ModelDefinitionConfig } from "../config/types.js";
-import { createSubsystemLogger } from "../logging/subsystem.js";
-
-const log = createSubsystemLogger("opencode-zen-models");
 
 export const OPENCODE_ZEN_API_BASE_URL = "https://opencode.ai/zen/v1";
 export const OPENCODE_ZEN_DEFAULT_MODEL = "claude-opus-4-6";
@@ -305,7 +302,7 @@ export async function fetchOpencodeZenModels(apiKey?: string): Promise<ModelDefi
 
     return models;
   } catch (error) {
-    log.warn(`Failed to fetch models, using static fallback: ${String(error)}`);
+    console.warn(`[opencode-zen] Failed to fetch models, using static fallback: ${String(error)}`);
     return getOpencodeZenStaticFallbackModels();
   }
 }

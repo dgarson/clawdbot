@@ -45,8 +45,7 @@ export type SlackChannelConfig = {
 };
 
 export type SlackReactionNotificationMode = "off" | "own" | "all" | "allowlist";
-export type SlackStreamingMode = "off" | "partial" | "block" | "progress";
-export type SlackLegacyStreamMode = "replace" | "status_final" | "append";
+export type SlackStreamMode = "replace" | "status_final" | "append";
 
 export type SlackActionConfig = {
   reactions?: boolean;
@@ -77,8 +76,6 @@ export type SlackThreadConfig = {
   inheritParent?: boolean;
   /** Maximum number of thread messages to fetch as context when starting a new thread session (default: 20). Set to 0 to disable thread history fetching. */
   initialHistoryLimit?: number;
-  /** Maximum number of adjacent channel messages (before thread start) to include as context when starting a new thread session (default: 5). Set to 0 to disable. */
-  adjacentChannelHistoryLimit?: number;
 };
 
 export type SlackAccountConfig = {
@@ -129,22 +126,14 @@ export type SlackAccountConfig = {
   /** Merge streamed block replies before sending. */
   blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
   /**
-   * Stream preview mode:
-   * - "off": disable live preview streaming
-   * - "partial": replace preview text with the latest partial output (default)
-   * - "block": append chunked preview updates
-   * - "progress": show progress status, then send final text
+   * Enable Slack native text streaming (Agents & AI Apps). Default: true.
    *
-   * Legacy boolean values are still accepted and auto-migrated.
+   * Set to `false` to disable native Slack text streaming and use normal reply
+   * delivery behavior only.
    */
-  streaming?: SlackStreamingMode | boolean;
-  /**
-   * Slack native text streaming toggle (`chat.startStream` / `chat.appendStream` / `chat.stopStream`).
-   * Used when `streaming` is `partial`. Default: true.
-   */
-  nativeStreaming?: boolean;
-  /** @deprecated Legacy preview mode key; migrated automatically to `streaming`. */
-  streamMode?: SlackLegacyStreamMode;
+  streaming?: boolean;
+  /** Slack stream preview mode (replace|status_final|append). Default: replace. */
+  streamMode?: SlackStreamMode;
   mediaMaxMb?: number;
   /** Reaction notification mode (off|own|all|allowlist). Default: own. */
   reactionNotifications?: SlackReactionNotificationMode;

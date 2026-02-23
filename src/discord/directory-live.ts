@@ -9,7 +9,6 @@ type DiscordGuild = { id: string; name: string };
 type DiscordUser = { id: string; username: string; global_name?: string; bot?: boolean };
 type DiscordMember = { user: DiscordUser; nick?: string | null };
 type DiscordChannel = { id: string; name?: string | null };
-type DiscordDirectoryAccess = { token: string; query: string };
 
 function normalizeQuery(value?: string | null): string {
   return value?.trim().toLowerCase() ?? "";
@@ -19,31 +18,17 @@ function buildUserRank(user: DiscordUser): number {
   return user.bot ? 0 : 1;
 }
 
-function resolveDiscordDirectoryAccess(
-  params: DirectoryConfigParams,
-): DiscordDirectoryAccess | null {
-  const account = resolveDiscordAccount({ cfg: params.cfg, accountId: params.accountId });
-  const token = normalizeDiscordToken(account.token);
-  if (!token) {
-    return null;
-  }
-  return { token, query: normalizeQuery(params.query) };
-}
-
-async function listDiscordGuilds(token: string): Promise<DiscordGuild[]> {
-  const rawGuilds = await fetchDiscord<DiscordGuild[]>("/users/@me/guilds", token);
-  return rawGuilds.filter((guild) => guild.id && guild.name);
-}
-
 export async function listDiscordDirectoryGroupsLive(
   params: DirectoryConfigParams,
 ): Promise<ChannelDirectoryEntry[]> {
-  const access = resolveDiscordDirectoryAccess(params);
-  if (!access) {
+  const account = resolveDiscordAccount({ cfg: params.cfg, accountId: params.accountId });
+  const token = normalizeDiscordToken(account.token);
+  if (!token) {
     return [];
   }
-  const { token, query } = access;
-  const guilds = await listDiscordGuilds(token);
+  const query = normalizeQuery(params.query);
+  const rawGuilds = await fetchDiscord<DiscordGuild[]>("/users/@me/guilds", token);
+  const guilds = rawGuilds.filter((g) => g.id && g.name);
   const rows: ChannelDirectoryEntry[] = [];
 
   for (const guild of guilds) {
@@ -75,16 +60,18 @@ export async function listDiscordDirectoryGroupsLive(
 export async function listDiscordDirectoryPeersLive(
   params: DirectoryConfigParams,
 ): Promise<ChannelDirectoryEntry[]> {
-  const access = resolveDiscordDirectoryAccess(params);
-  if (!access) {
+  const account = resolveDiscordAccount({ cfg: params.cfg, accountId: params.accountId });
+  const token = normalizeDiscordToken(account.token);
+  if (!token) {
     return [];
   }
-  const { token, query } = access;
+  const query = normalizeQuery(params.query);
   if (!query) {
     return [];
   }
 
-  const guilds = await listDiscordGuilds(token);
+  const rawGuilds = await fetchDiscord<DiscordGuild[]>("/users/@me/guilds", token);
+  const guilds = rawGuilds.filter((g) => g.id && g.name);
   const rows: ChannelDirectoryEntry[] = [];
   const limit = typeof params.limit === "number" && params.limit > 0 ? params.limit : 25;
 

@@ -41,9 +41,8 @@ describe("buildTelegramMessageContext DM topic threadId in deliveryContext (#889
     expect(recordInboundSessionMock).toHaveBeenCalled();
 
     // Check that updateLastRoute includes threadId
-    const updateLastRoute = getUpdateLastRoute() as { threadId?: string; to?: string } | undefined;
+    const updateLastRoute = getUpdateLastRoute() as { threadId?: string } | undefined;
     expect(updateLastRoute).toBeDefined();
-    expect(updateLastRoute?.to).toBe("telegram:1234");
     expect(updateLastRoute?.threadId).toBe("42");
   });
 
@@ -58,9 +57,8 @@ describe("buildTelegramMessageContext DM topic threadId in deliveryContext (#889
     expect(recordInboundSessionMock).toHaveBeenCalled();
 
     // Check that updateLastRoute does NOT include threadId
-    const updateLastRoute = getUpdateLastRoute() as { threadId?: string; to?: string } | undefined;
+    const updateLastRoute = getUpdateLastRoute() as { threadId?: string } | undefined;
     expect(updateLastRoute).toBeDefined();
-    expect(updateLastRoute?.to).toBe("telegram:1234");
     expect(updateLastRoute?.threadId).toBeUndefined();
   });
 

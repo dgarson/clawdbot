@@ -20,14 +20,6 @@ export const DEFAULT_QUEUE_DROP: QueueDropPolicy = "summarize";
 
 export const FOLLOWUP_QUEUES = new Map<string, FollowupQueueState>();
 
-export function getExistingFollowupQueue(key: string): FollowupQueueState | undefined {
-  const cleaned = key.trim();
-  if (!cleaned) {
-    return undefined;
-  }
-  return FOLLOWUP_QUEUES.get(cleaned);
-}
-
 export function getFollowupQueue(key: string, settings: QueueSettings): FollowupQueueState {
   const existing = FOLLOWUP_QUEUES.get(key);
   if (existing) {
@@ -65,7 +57,10 @@ export function getFollowupQueue(key: string, settings: QueueSettings): Followup
 
 export function clearFollowupQueue(key: string): number {
   const cleaned = key.trim();
-  const queue = getExistingFollowupQueue(cleaned);
+  if (!cleaned) {
+    return 0;
+  }
+  const queue = FOLLOWUP_QUEUES.get(cleaned);
   if (!queue) {
     return 0;
   }

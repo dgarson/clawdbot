@@ -10,7 +10,6 @@ export type SlackEditTestClient = WebClient & {
 export type SlackSendTestClient = WebClient & {
   conversations: {
     open: ReturnType<typeof vi.fn>;
-    list: ReturnType<typeof vi.fn>;
   };
   chat: {
     postMessage: ReturnType<typeof vi.fn>;
@@ -40,13 +39,10 @@ export function createSlackEditTestClient(): SlackEditTestClient {
   } as unknown as SlackEditTestClient;
 }
 
-export function createSlackSendTestClient(
-  channels: Array<{ id: string; name: string; is_archived?: boolean }> = [],
-): SlackSendTestClient {
+export function createSlackSendTestClient(): SlackSendTestClient {
   return {
     conversations: {
       open: vi.fn(async () => ({ channel: { id: "D123" } })),
-      list: vi.fn(async () => ({ channels })),
     },
     chat: {
       postMessage: vi.fn(async () => ({ ts: "171234.567" })),

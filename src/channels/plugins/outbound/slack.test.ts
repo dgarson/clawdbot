@@ -13,7 +13,7 @@ import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import { sendMessageSlack } from "../../../slack/send.js";
 import { slackOutbound } from "./slack.js";
 
-type SlackSendTextCtx = {
+const sendSlackText = async (ctx: {
   to: string;
   text: string;
   accountId: string;
@@ -23,45 +23,11 @@ type SlackSendTextCtx = {
     avatarUrl?: string;
     emoji?: string;
   };
-};
-
-const BASE_SLACK_SEND_CTX = {
-  to: "C123",
-  accountId: "default",
-  replyToId: "1111.2222",
-} as const;
-
-const sendSlackText = async (ctx: SlackSendTextCtx) => {
+}) => {
   const sendText = slackOutbound.sendText as NonNullable<typeof slackOutbound.sendText>;
   return await sendText({
     cfg: {} as OpenClawConfig,
     ...ctx,
-  });
-};
-
-const sendSlackTextWithDefaults = async (
-  overrides: Partial<SlackSendTextCtx> & Pick<SlackSendTextCtx, "text">,
-) => {
-  return await sendSlackText({
-    ...BASE_SLACK_SEND_CTX,
-    ...overrides,
-  });
-};
-
-const expectSlackSendCalledWith = (
-  text: string,
-  options?: {
-    identity?: {
-      username?: string;
-      iconUrl?: string;
-      iconEmoji?: string;
-    };
-  },
-) => {
-  expect(sendMessageSlack).toHaveBeenCalledWith("C123", text, {
-    threadTs: "1111.2222",
-    accountId: "default",
-    ...options,
   });
 };
 
@@ -77,15 +43,27 @@ describe("slack outbound hook wiring", () => {
   it("calls send without hooks when no hooks registered", async () => {
     vi.mocked(getGlobalHookRunner).mockReturnValue(null);
 
-    await sendSlackTextWithDefaults({ text: "hello" });
-    expectSlackSendCalledWith("hello");
+    await sendSlackText({
+      to: "C123",
+      text: "hello",
+      accountId: "default",
+      replyToId: "1111.2222",
+    });
+
+    expect(sendMessageSlack).toHaveBeenCalledWith("C123", "hello", {
+      threadTs: "1111.2222",
+      accountId: "default",
+    });
   });
 
   it("forwards identity opts when present", async () => {
     vi.mocked(getGlobalHookRunner).mockReturnValue(null);
 
-    await sendSlackTextWithDefaults({
+    await sendSlackText({
+      to: "C123",
       text: "hello",
+      accountId: "default",
+      replyToId: "1111.2222",
       identity: {
         name: "My Agent",
         avatarUrl: "https://example.com/avatar.png",
@@ -93,7 +71,9 @@ describe("slack outbound hook wiring", () => {
       },
     });
 
-    expectSlackSendCalledWith("hello", {
+    expect(sendMessageSlack).toHaveBeenCalledWith("C123", "hello", {
+      threadTs: "1111.2222",
+      accountId: "default",
       identity: { username: "My Agent", iconUrl: "https://example.com/avatar.png" },
     });
   });
@@ -101,12 +81,17 @@ describe("slack outbound hook wiring", () => {
   it("forwards icon_emoji only when icon_url is absent", async () => {
     vi.mocked(getGlobalHookRunner).mockReturnValue(null);
 
-    await sendSlackTextWithDefaults({
+    await sendSlackText({
+      to: "C123",
       text: "hello",
+      accountId: "default",
+      replyToId: "1111.2222",
       identity: { emoji: ":lobster:" },
     });
 
-    expectSlackSendCalledWith("hello", {
+    expect(sendMessageSlack).toHaveBeenCalledWith("C123", "hello", {
+      threadTs: "1111.2222",
+      accountId: "default",
       identity: { iconEmoji: ":lobster:" },
     });
   });
@@ -119,14 +104,22 @@ describe("slack outbound hook wiring", () => {
     // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
-    await sendSlackTextWithDefaults({ text: "hello" });
+    await sendSlackText({
+      to: "C123",
+      text: "hello",
+      accountId: "default",
+      replyToId: "1111.2222",
+    });
 
     expect(mockRunner.hasHooks).toHaveBeenCalledWith("message_sending");
     expect(mockRunner.runMessageSending).toHaveBeenCalledWith(
       { to: "C123", content: "hello", metadata: { threadTs: "1111.2222", channelId: "C123" } },
       { channelId: "slack", accountId: "default" },
     );
-    expectSlackSendCalledWith("hello");
+    expect(sendMessageSlack).toHaveBeenCalledWith("C123", "hello", {
+      threadTs: "1111.2222",
+      accountId: "default",
+    });
   });
 
   it("cancels send when hook returns cancel:true", async () => {
@@ -137,7 +130,12 @@ describe("slack outbound hook wiring", () => {
     // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
-    const result = await sendSlackTextWithDefaults({ text: "hello" });
+    const result = await sendSlackText({
+      to: "C123",
+      text: "hello",
+      accountId: "default",
+      replyToId: "1111.2222",
+    });
 
     expect(sendMessageSlack).not.toHaveBeenCalled();
     expect(result.channel).toBe("slack");
@@ -151,8 +149,17 @@ describe("slack outbound hook wiring", () => {
     // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
-    await sendSlackTextWithDefaults({ text: "original" });
-    expectSlackSendCalledWith("modified");
+    await sendSlackText({
+      to: "C123",
+      text: "original",
+      accountId: "default",
+      replyToId: "1111.2222",
+    });
+
+    expect(sendMessageSlack).toHaveBeenCalledWith("C123", "modified", {
+      threadTs: "1111.2222",
+      accountId: "default",
+    });
   });
 
   it("skips hooks when runner has no message_sending hooks", async () => {
@@ -163,7 +170,12 @@ describe("slack outbound hook wiring", () => {
     // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
-    await sendSlackTextWithDefaults({ text: "hello" });
+    await sendSlackText({
+      to: "C123",
+      text: "hello",
+      accountId: "default",
+      replyToId: "1111.2222",
+    });
 
     expect(mockRunner.runMessageSending).not.toHaveBeenCalled();
     expect(sendMessageSlack).toHaveBeenCalled();

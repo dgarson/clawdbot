@@ -69,7 +69,7 @@ function seedDepthTwoAncestryStore(params?: { sessionIds?: boolean }) {
 describe("sessions_spawn depth + child limits", () => {
   beforeEach(() => {
     resetSubagentRegistryForTests();
-    callGatewayMock.mockClear();
+    callGatewayMock.mockReset();
     storeTemplatePath = path.join(
       os.tmpdir(),
       `openclaw-subagent-depth-${Date.now()}-${Math.random().toString(16).slice(2)}-{agentId}.json`,
@@ -94,13 +94,14 @@ describe("sessions_spawn depth + child limits", () => {
     });
   });
 
-  it("rejects spawning when caller depth reaches maxSpawnDepth", async () => {
+  it("allows depth-1 callers by default (maxSpawnDepth defaults to 2)", async () => {
     const tool = createSessionsSpawnTool({ agentSessionKey: "agent:main:subagent:parent" });
     const result = await tool.execute("call-depth-reject", { task: "hello" });
 
     expect(result.details).toMatchObject({
-      status: "forbidden",
-      error: "sessions_spawn is not allowed at this depth (current depth: 1, max: 1)",
+      status: "accepted",
+      childSessionKey: expect.stringMatching(/^agent:main:subagent:/),
+      runId: "run-depth",
     });
   });
 

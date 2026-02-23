@@ -1,7 +1,7 @@
 /**
  * Session memory hook handler
  *
- * Saves session context to memory when /new or /reset command is triggered
+ * Saves session context to memory when /new command is triggered
  * Creates a new dated memory file with LLM-generated slug
  */
 
@@ -167,17 +167,16 @@ async function findPreviousSessionFile(params: {
 }
 
 /**
- * Save session context to memory when /new or /reset command is triggered
+ * Save session context to memory when /new command is triggered
  */
 const saveSessionToMemory: HookHandler = async (event) => {
-  // Only trigger on reset/new commands
-  const isResetCommand = event.action === "new" || event.action === "reset";
-  if (event.type !== "command" || !isResetCommand) {
+  // Only trigger on 'new' command
+  if (event.type !== "command" || event.action !== "new") {
     return;
   }
 
   try {
-    log.debug("Hook triggered for reset/new command", { action: event.action });
+    log.debug("Hook triggered for /new command");
 
     const context = event.context || {};
     const cfg = context.cfg as OpenClawConfig | undefined;

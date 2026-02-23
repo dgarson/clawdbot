@@ -5,7 +5,6 @@ export type EmbeddedPiAgentMeta = {
   sessionId: string;
   provider: string;
   model: string;
-  toolCallCount?: number;
   compactionCount?: number;
   promptTokens?: number;
   usage?: {
@@ -37,12 +36,7 @@ export type EmbeddedPiRunMeta = {
   aborted?: boolean;
   systemPromptReport?: SessionSystemPromptReport;
   error?: {
-    kind:
-      | "context_overflow"
-      | "compaction_failure"
-      | "role_ordering"
-      | "image_size"
-      | "retry_limit";
+    kind: "context_overflow" | "compaction_failure" | "role_ordering" | "image_size";
     message: string;
   };
   /** Stop reason for the agent run (e.g., "completed", "tool_calls"). */
@@ -75,10 +69,6 @@ export type EmbeddedPiRunResult = {
   messagingToolSentTargets?: MessagingToolSend[];
   // Count of successful cron.add tool calls in this run.
   successfulCronAdds?: number;
-  // Additional lane diagnostic information for this run (always included when present).
-  extraInfo?: string;
-  // Additional lane diagnostic information that is only emitted when diagnostics.enabled is true.
-  debugInfo?: string;
 };
 
 export type EmbeddedPiCompactResult = {

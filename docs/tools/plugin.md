@@ -330,29 +330,22 @@ Plugins export either:
 
 ## Plugin hooks
 
-Plugins can register hooks at runtime. This lets a plugin bundle event-driven
-automation without a separate hook pack install.
+Plugins can ship hooks and register them at runtime. This lets a plugin bundle
+event-driven automation without a separate hook pack install.
 
 ### Example
 
-```ts
+```
+import { registerPluginHooksFromDir } from "openclaw/plugin-sdk";
+
 export default function register(api) {
-  api.registerHook(
-    "command:new",
-    async () => {
-      // Hook logic here.
-    },
-    {
-      name: "my-plugin.command-new",
-      description: "Runs when /new is invoked",
-    },
-  );
+  registerPluginHooksFromDir(api, "./hooks");
 }
 ```
 
 Notes:
 
-- Register hooks explicitly via `api.registerHook(...)`.
+- Hook directories follow the normal hook structure (`HOOK.md` + `handler.ts`).
 - Hook eligibility rules still apply (OS/bins/env/config requirements).
 - Plugin-managed hooks show up in `openclaw hooks list` with `plugin:<id>`.
 - You cannot enable/disable plugin-managed hooks via `openclaw hooks`; enable/disable the plugin instead.

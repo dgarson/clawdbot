@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyPluginAutoEnable } from "./plugin-auto-enable.js";
 
 describe("applyPluginAutoEnable", () => {
-  it("auto-enables built-in channels and appends to existing allowlist", () => {
+  it("auto-enables channel plugins and updates allowlist", () => {
     const result = applyPluginAutoEnable({
       config: {
         channels: { slack: { botToken: "x" } },
@@ -11,41 +11,9 @@ describe("applyPluginAutoEnable", () => {
       env: {},
     });
 
-    expect(result.config.channels?.slack?.enabled).toBe(true);
-    expect(result.config.plugins?.entries?.slack).toBeUndefined();
+    expect(result.config.plugins?.entries?.slack?.enabled).toBe(true);
     expect(result.config.plugins?.allow).toEqual(["telegram", "slack"]);
     expect(result.changes.join("\n")).toContain("Slack configured, enabled automatically.");
-  });
-
-  it("does not create plugins.allow when allowlist is unset", () => {
-    const result = applyPluginAutoEnable({
-      config: {
-        channels: { slack: { botToken: "x" } },
-      },
-      env: {},
-    });
-
-    expect(result.config.channels?.slack?.enabled).toBe(true);
-    expect(result.config.plugins?.allow).toBeUndefined();
-  });
-
-  it("ignores channels.modelByChannel for plugin auto-enable", () => {
-    const result = applyPluginAutoEnable({
-      config: {
-        channels: {
-          modelByChannel: {
-            openai: {
-              whatsapp: "openai/gpt-5.2",
-            },
-          },
-        },
-      },
-      env: {},
-    });
-
-    expect(result.config.plugins?.entries?.modelByChannel).toBeUndefined();
-    expect(result.config.plugins?.allow).toBeUndefined();
-    expect(result.changes).toEqual([]);
   });
 
   it("respects explicit disable", () => {
@@ -61,19 +29,6 @@ describe("applyPluginAutoEnable", () => {
     expect(result.changes).toEqual([]);
   });
 
-  it("respects built-in channel explicit disable via channels.<id>.enabled", () => {
-    const result = applyPluginAutoEnable({
-      config: {
-        channels: { slack: { botToken: "x", enabled: false } },
-      },
-      env: {},
-    });
-
-    expect(result.config.channels?.slack?.enabled).toBe(false);
-    expect(result.config.plugins?.entries?.slack).toBeUndefined();
-    expect(result.changes).toEqual([]);
-  });
-
   it("auto-enables irc when configured via env", () => {
     const result = applyPluginAutoEnable({
       config: {},
@@ -83,7 +38,7 @@ describe("applyPluginAutoEnable", () => {
       },
     });
 
-    expect(result.config.channels?.irc?.enabled).toBe(true);
+    expect(result.config.plugins?.entries?.irc?.enabled).toBe(true);
     expect(result.changes.join("\n")).toContain("IRC configured, enabled automatically.");
   });
 
@@ -167,7 +122,7 @@ describe("applyPluginAutoEnable", () => {
       });
 
       expect(result.config.plugins?.entries?.bluebubbles?.enabled).toBe(false);
-      expect(result.config.channels?.imessage?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
       expect(result.changes.join("\n")).toContain("iMessage configured, enabled automatically.");
     });
 
@@ -184,7 +139,7 @@ describe("applyPluginAutoEnable", () => {
       });
 
       expect(result.config.plugins?.entries?.bluebubbles?.enabled).toBeUndefined();
-      expect(result.config.channels?.imessage?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
     });
 
     it("auto-enables imessage when only imessage is configured", () => {
@@ -195,7 +150,7 @@ describe("applyPluginAutoEnable", () => {
         env: {},
       });
 
-      expect(result.config.channels?.imessage?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
       expect(result.changes.join("\n")).toContain("iMessage configured, enabled automatically.");
     });
   });

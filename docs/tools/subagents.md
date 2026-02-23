@@ -3,7 +3,6 @@ summary: "Sub-agents: spawning isolated agent runs that announce results back to
 read_when:
   - You want background/parallel work via the agent
   - You are changing sessions_spawn or sub-agent tool policy
-  - You are implementing or troubleshooting thread-bound subagent sessions
 title: "Sub-Agents"
 ---
 
@@ -23,15 +22,6 @@ Use `/subagents` to inspect or control sub-agent runs for the **current session*
 - `/subagents steer <id|#> <message>`
 - `/subagents spawn <agentId> <task> [--model <model>] [--thinking <level>]`
 
-Thread binding controls:
-
-These commands work on channels that support persistent thread bindings. See **Thread supporting channels** below.
-
-- `/focus <subagent-label|session-key|session-id|session-label>`
-- `/unfocus`
-- `/agents`
-- `/session ttl <duration|off>`
-
 `/subagents info` shows run metadata (status, timestamps, session id, transcript path, cleanup).
 
 ### Spawn behavior
@@ -45,12 +35,11 @@ These commands work on channels that support persistent thread bindings. See **T
   - If direct delivery fails, it falls back to queue routing.
   - If queue routing is still not available, the announce is retried with a short exponential backoff before final give-up.
 - The completion message is a system message and includes:
-  - `Result` (`assistant` reply text, or latest `toolResult` if the assistant reply is empty)
+  - `Result` (latest assistant reply text from the child session, after a short settle retry)
   - `Status` (`completed successfully` / `failed` / `timed out`)
   - compact runtime/token stats
 - `--model` and `--thinking` override defaults for that specific run.
 - Use `info`/`log` to inspect details and output after completion.
-- `/subagents spawn` is one-shot mode (`mode: "run"`). For persistent thread-bound sessions, use `sessions_spawn` with `thread: true` and `mode: "session"`.
 
 Primary goals:
 
@@ -80,42 +69,7 @@ Tool params:
 - `model?` (optional; overrides the sub-agent model; invalid values are skipped and the sub-agent runs on the default model with a warning in the tool result)
 - `thinking?` (optional; overrides thinking level for the sub-agent run)
 - `runTimeoutSeconds?` (default `0`; when set, the sub-agent run is aborted after N seconds)
-- `thread?` (default `false`; when `true`, requests channel thread binding for this sub-agent session)
-- `mode?` (`run|session`)
-  - default is `run`
-  - if `thread: true` and `mode` omitted, default becomes `session`
-  - `mode: "session"` requires `thread: true`
 - `cleanup?` (`delete|keep`, default `keep`)
-
-## Thread-bound sessions
-
-When thread bindings are enabled for a channel, a sub-agent can stay bound to a thread so follow-up user messages in that thread keep routing to the same sub-agent session.
-
-### Thread supporting channels
-
-- Discord (currently the only supported channel): supports persistent thread-bound subagent sessions (`sessions_spawn` with `thread: true`), manual thread controls (`/focus`, `/unfocus`, `/agents`, `/session ttl`), and adapter keys `channels.discord.threadBindings.enabled`, `channels.discord.threadBindings.ttlHours`, and `channels.discord.threadBindings.spawnSubagentSessions`.
-
-Quick flow:
-
-1. Spawn with `sessions_spawn` using `thread: true` (and optionally `mode: "session"`).
-2. OpenClaw creates or binds a thread to that session target in the active channel.
-3. Replies and follow-up messages in that thread route to the bound session.
-4. Use `/session ttl` to inspect/update auto-unfocus TTL.
-5. Use `/unfocus` to detach manually.
-
-Manual controls:
-
-- `/focus <target>` binds the current thread (or creates one) to a sub-agent/session target.
-- `/unfocus` removes the binding for the current bound thread.
-- `/agents` lists active runs and binding state (`thread:<id>` or `unbound`).
-- `/session ttl` only works for focused bound threads.
-
-Config switches:
-
-- Global default: `session.threadBindings.enabled`, `session.threadBindings.ttlHours`
-- Channel override and spawn auto-bind keys are adapter-specific. See **Thread supporting channels** above.
-
-See [Configuration Reference](/gateway/configuration-reference) and [Slash commands](/tools/slash-commands) for current adapter details.
 
 Allowlist:
 
@@ -134,74 +88,9 @@ Auto-archive:
 - `runTimeoutSeconds` does **not** auto-archive; it only stops the run. The session remains until auto-archive.
 - Auto-archive applies equally to depth-1 and depth-2 sessions.
 
-## When to use what (quick decision table)
-
-| Scenario                                                                                         | `sessions_spawn`                                                                                                   | `sessions_send`                                                                                                                   | `subagents` (`steer`/`kill`/`list`)                                                                               |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Start a new isolated helper/orchestrator run that announces a final result back to the requester | ✅ Creates the child session and runs it independently; the announce step posts `Status` + `Result` automatically. | ❌ Only works for sessions that already exist.                                                                                    | ⚪ You can `list` the run for visibility, but management happens after the spawn.                                 |
-| Send incremental instructions or clarifications to a session you already created                 | ❌ Spawning again would duplicate work.                                                                            | ✅ Targets the existing session key and reuses the announce flow; `timeoutSeconds` waits for completion if you need final output. | ✅ Use `steer` when the session is a known sub-agent run and you want to nudge it without creating a new session. |
-| Inspect, steer, or cancel active sub-agent runs                                                  | ❌ Not applicable (spawn creates, does not manage).                                                                | ⚪ Not the right tool for lifecycle ops.                                                                                          | ✅ `list` reveals runs, `steer` injects guidance, `kill` stops the run (cascading to nested children).            |
-
-Remember: `sessions_spawn` always **creates a new isolated run** (new session key). `sessions_send` only **communicates with an existing session** and will never create a sibling. Use `subagents` actions when you need to manage a child run after it exists. All three flows are summarized on [the Tools index](/tools/index) and [Agent Send](/tools/agent-send).
-
-## Example workflows
-
-### Spawn background task and receive the completion announce
-
-```ts
-const spawnResult = await sessions_spawn({
-  task: "Audit 2025 release notes for risk flags",
-  label: "release-risk-audit",
-  model: "gpt-5.2",
-  thinking: "medium",
-});
-// { status: "accepted", runId, childSessionKey }
-console.log(`Spawned ${spawnResult.runId}`);
-```
-
-`sessions_spawn` creates a brand-new child session (`deliver=false`, `global lane=subagent`). The run sends a system message back to the requester channel as soon as it finishes, e.g.:
-
-```
-System: Result: "Risk gaps sorted by severity" | Status: completed successfully | runtime 4m12s | tokens 1.2k | sessionKey agent:claire:subagent:...
-```
-
-If you want real-time visibility before that announce arrives, call `subagents({ action: "list" })` or `sessions_list({ kinds: ["agent"] })` to see the new session key without interfering. The completion message is reliable—no extra `deliver` or `send` call is needed.
-
-### Message an already-running session
-
-```ts
-const { sessions } = await sessions_list({ kinds: ["agent"], limit: 20 });
-const child = sessions.find((s) => s.label === "release-risk-audit");
-await sessions_send({
-  sessionKey: child.sessionKey,
-  message: "Follow up: prioritize infrastructure risk, not feature requests.",
-  timeoutSeconds: 60,
-});
-```
-
-`sessions_send` targets the already-running session (no new run is created). It re-enters the session, delivers the clarification, and waits for whatever announce step that session emits next (or returns immediately if `timeoutSeconds` is `0`). Use it when you need to keep the same context around an existing instrumented agent run.
-
-### Steer or kill a spawned run
-
-```ts
-const { runs } = await subagents({ action: "list" });
-const run = runs.find((r) => r.label === "release-risk-audit");
-await subagents({
-  action: "steer",
-  runId: run.id,
-  message: "Drop the product suggestions section and focus on security only.",
-});
-// Later, if the run stalls:
-await subagents({ action: "kill", runId: run.id });
-```
-
-`subagents steer` is a convenience wrapper around the same delivery flow as `sessions_send`, but it is scoped to the run ids you already see in `subagents list`. `subagents kill` stops the run and cascades to its children, while `subagents list` keeps you aware of every active child session.
-
-For CLI-based runs and direct sessions, see [Agent Send](/tools/agent-send) and this section of the [Tools index](/tools/index#sessions_list--sessions_history--sessions_send--sessions_spawn--session_status).
-
 ## Nested Sub-Agents
 
-By default, sub-agents cannot spawn their own sub-agents (`maxSpawnDepth: 1`). You can enable one level of nesting by setting `maxSpawnDepth: 2`, which allows the **orchestrator pattern**: main → orchestrator sub-agent → worker sub-sub-agents.
+By default, sub-agents can spawn one additional level (`maxSpawnDepth: 2`), enabling the **orchestrator pattern**: main → orchestrator sub-agent → worker sub-sub-agents. Set `maxSpawnDepth: 1` to disable nested spawning.
 
 ### How to enable
 
@@ -210,7 +99,7 @@ By default, sub-agents cannot spawn their own sub-agents (`maxSpawnDepth: 1`). Y
   agents: {
     defaults: {
       subagents: {
-        maxSpawnDepth: 2, // allow sub-agents to spawn children (default: 1)
+        maxSpawnDepth: 2, // allow sub-agents to spawn children (default: 2)
         maxChildrenPerAgent: 5, // max active children per agent session (default: 5)
         maxConcurrent: 8, // global concurrency lane cap (default: 8)
       },
@@ -221,11 +110,11 @@ By default, sub-agents cannot spawn their own sub-agents (`maxSpawnDepth: 1`). Y
 
 ### Depth levels
 
-| Depth | Session key shape                            | Role                                          | Can spawn?                   |
-| ----- | -------------------------------------------- | --------------------------------------------- | ---------------------------- |
-| 0     | `agent:<id>:main`                            | Main agent                                    | Always                       |
-| 1     | `agent:<id>:subagent:<uuid>`                 | Sub-agent (orchestrator when depth 2 allowed) | Only if `maxSpawnDepth >= 2` |
-| 2     | `agent:<id>:subagent:<uuid>:subagent:<uuid>` | Sub-sub-agent (leaf worker)                   | Never                        |
+| Depth | Session key shape                            | Role                                | Can spawn?                     |
+| ----- | -------------------------------------------- | ----------------------------------- | ------------------------------ |
+| 0     | `agent:<id>:main`                            | Main agent                          | Always                         |
+| 1     | `agent:<id>:subagent:<uuid>`                 | Sub-agent (orchestrator by default) | Yes, when `maxSpawnDepth >= 2` |
+| 2     | `agent:<id>:subagent:<uuid>:subagent:<uuid>` | Sub-sub-agent (leaf worker)         | No, when `maxSpawnDepth = 2`   |
 
 ### Announce chain
 
@@ -239,9 +128,9 @@ Each level only sees announces from its direct children.
 
 ### Tool policy by depth
 
-- **Depth 1 (orchestrator, when `maxSpawnDepth >= 2`)**: Gets `sessions_spawn`, `subagents`, `sessions_list`, `sessions_history` so it can manage its children. Other session/system tools remain denied.
-- **Depth 1 (leaf, when `maxSpawnDepth == 1`)**: No session tools (current default behavior).
-- **Depth 2 (leaf worker)**: No session tools — `sessions_spawn` is always denied at depth 2. Cannot spawn further children.
+- **Depth 1 (orchestrator, default with `maxSpawnDepth = 2`)**: Gets `sessions_spawn`, `subagents`, `sessions_list`, `sessions_history` so it can manage its children. Other session/system tools remain denied.
+- **Depth 1 (leaf, when `maxSpawnDepth = 1`)**: No session tools.
+- **Depth 2 (leaf worker, default `maxSpawnDepth = 2`)**: No session tools, `sessions_spawn` is denied at depth 2, cannot spawn further children.
 
 ### Per-agent spawn limit
 
@@ -267,17 +156,16 @@ Note: the merge is additive, so main profiles are always available as fallbacks.
 
 ## Announce
 
-Sub-agents report back via an announce step:
+Sub-agents report back via an announce injection step:
 
-- The announce step runs inside the sub-agent session (not the requester session).
-- If the sub-agent replies exactly `ANNOUNCE_SKIP`, nothing is posted.
-- Otherwise the announce reply is posted to the requester chat channel via a follow-up `agent` call (`deliver=true`).
-- Announce replies preserve thread/topic routing when available on channel adapters.
-- Announce messages are normalized to a stable template:
-  - `Status:` derived from the run outcome (`success`, `error`, `timeout`, or `unknown`).
-  - `Result:` the summary content from the announce step (or `(not available)` if missing).
-  - `Notes:` error details and other useful context.
-- `Status` is not inferred from model output; it comes from runtime outcome signals.
+- OpenClaw reads the child session's latest assistant reply after completion, with a short settle retry.
+- It builds a system message with `Status`, `Result`, compact stats, and reply guidance.
+- The message is injected with a follow-up `agent` call:
+  - `deliver=false` when the requester is another sub-agent, this keeps orchestration internal.
+  - `deliver=true` when the requester is main, this produces the user-facing update.
+- Delivery context prefers captured requester origin, but non-deliverable channels (for example `webchat`) are ignored in favor of persisted deliverable routes.
+- Recipient agents can return the internal silent token to suppress duplicate outward delivery in the same turn.
+- `Status` is derived from runtime outcome signals, not inferred from model output.
 
 Announce payloads include a stats line at the end (even when wrapped):
 
@@ -295,7 +183,7 @@ By default, sub-agents get **all tools except session tools** and system tools:
 - `sessions_send`
 - `sessions_spawn`
 
-When `maxSpawnDepth >= 2`, depth-1 orchestrator sub-agents additionally receive `sessions_spawn`, `subagents`, `sessions_list`, and `sessions_history` so they can manage their children.
+With the default `maxSpawnDepth = 2`, depth-1 orchestrator sub-agents receive `sessions_spawn`, `subagents`, `sessions_list`, and `sessions_history` so they can manage their children. If you set `maxSpawnDepth = 1`, those session tools stay denied.
 
 Override via config:
 

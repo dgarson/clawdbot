@@ -129,20 +129,20 @@ function mockSuccessfulWakeConfig(nodeId: string) {
 
 describe("node.invoke APNs wake path", () => {
   beforeEach(() => {
-    mocks.loadConfig.mockClear();
+    mocks.loadConfig.mockReset();
     mocks.loadConfig.mockReturnValue({});
-    mocks.resolveNodeCommandAllowlist.mockClear();
+    mocks.resolveNodeCommandAllowlist.mockReset();
     mocks.resolveNodeCommandAllowlist.mockReturnValue([]);
-    mocks.isNodeCommandAllowed.mockClear();
+    mocks.isNodeCommandAllowed.mockReset();
     mocks.isNodeCommandAllowed.mockReturnValue({ ok: true });
-    mocks.sanitizeNodeInvokeParamsForForwarding.mockClear();
+    mocks.sanitizeNodeInvokeParamsForForwarding.mockReset();
     mocks.sanitizeNodeInvokeParamsForForwarding.mockImplementation(
       ({ rawParams }: { rawParams: unknown }) => ({ ok: true, params: rawParams }),
     );
-    mocks.loadApnsRegistration.mockClear();
-    mocks.resolveApnsAuthConfigFromEnv.mockClear();
-    mocks.sendApnsBackgroundWake.mockClear();
-    mocks.sendApnsAlert.mockClear();
+    mocks.loadApnsRegistration.mockReset();
+    mocks.resolveApnsAuthConfigFromEnv.mockReset();
+    mocks.sendApnsBackgroundWake.mockReset();
+    mocks.sendApnsAlert.mockReset();
   });
 
   afterEach(() => {

@@ -15,7 +15,7 @@ struct ConnectOptions {
     var clientMode: String = "ui"
     var displayName: String?
     var role: String = "operator"
-    var scopes: [String] = defaultOperatorConnectScopes
+    var scopes: [String] = ["operator.admin", "operator.approvals", "operator.pairing"]
     var help: Bool = false
 
     static func parse(_ args: [String]) -> ConnectOptions {

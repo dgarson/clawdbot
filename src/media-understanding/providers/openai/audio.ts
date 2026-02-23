@@ -1,11 +1,6 @@
 import path from "node:path";
 import type { AudioTranscriptionRequest, AudioTranscriptionResult } from "../../types.js";
-import {
-  assertOkOrThrowHttpError,
-  normalizeBaseUrl,
-  postTranscriptionRequest,
-  requireTranscriptionText,
-} from "../shared.js";
+import { assertOkOrThrowHttpError, fetchWithTimeoutGuarded, normalizeBaseUrl } from "../shared.js";
 
 export const DEFAULT_OPENAI_AUDIO_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_OPENAI_AUDIO_MODEL = "gpt-4o-mini-transcribe";
@@ -44,23 +39,26 @@ export async function transcribeOpenAiCompatibleAudio(
     headers.set("authorization", `Bearer ${params.apiKey}`);
   }
 
-  const { response: res, release } = await postTranscriptionRequest({
+  const { response: res, release } = await fetchWithTimeoutGuarded(
     url,
-    headers,
-    body: form,
-    timeoutMs: params.timeoutMs,
+    {
+      method: "POST",
+      headers,
+      body: form,
+    },
+    params.timeoutMs,
     fetchFn,
-    allowPrivateNetwork: allowPrivate,
-  });
+    allowPrivate ? { ssrfPolicy: { allowPrivateNetwork: true } } : undefined,
+  );
 
   try {
     await assertOkOrThrowHttpError(res, "Audio transcription failed");
 
     const payload = (await res.json()) as { text?: string };
-    const text = requireTranscriptionText(
-      payload.text,
-      "Audio transcription response missing text",
-    );
+    const text = payload.text?.trim();
+    if (!text) {
+      throw new Error("Audio transcription response missing text");
+    }
     return { text, model };
   } finally {
     await release();

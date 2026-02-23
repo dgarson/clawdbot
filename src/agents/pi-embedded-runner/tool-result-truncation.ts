@@ -33,32 +33,21 @@ const TRUNCATION_SUFFIX =
   "The content above is a partial view. If you need more, request specific sections or use " +
   "offset/limit parameters to read smaller chunks.]";
 
-type ToolResultTruncationOptions = {
-  suffix?: string;
-  minKeepChars?: number;
-};
-
 /**
  * Truncate a single text string to fit within maxChars, preserving the beginning.
  */
-export function truncateToolResultText(
-  text: string,
-  maxChars: number,
-  options: ToolResultTruncationOptions = {},
-): string {
-  const suffix = options.suffix ?? TRUNCATION_SUFFIX;
-  const minKeepChars = options.minKeepChars ?? MIN_KEEP_CHARS;
+export function truncateToolResultText(text: string, maxChars: number): string {
   if (text.length <= maxChars) {
     return text;
   }
-  const keepChars = Math.max(minKeepChars, maxChars - suffix.length);
+  const keepChars = Math.max(MIN_KEEP_CHARS, maxChars - TRUNCATION_SUFFIX.length);
   // Try to break at a newline boundary to avoid cutting mid-line
   let cutPoint = keepChars;
   const lastNewline = text.lastIndexOf("\n", keepChars);
   if (lastNewline > keepChars * 0.8) {
     cutPoint = lastNewline;
   }
-  return text.slice(0, cutPoint) + suffix;
+  return text.slice(0, cutPoint) + TRUNCATION_SUFFIX;
 }
 
 /**
@@ -78,7 +67,7 @@ export function calculateMaxToolResultChars(contextWindowTokens: number): number
 /**
  * Get the total character count of text content blocks in a tool result message.
  */
-export function getToolResultTextLength(msg: AgentMessage): number {
+function getToolResultTextLength(msg: AgentMessage): number {
   if (!msg || (msg as { role?: string }).role !== "toolResult") {
     return 0;
   }
@@ -102,13 +91,7 @@ export function getToolResultTextLength(msg: AgentMessage): number {
  * Truncate a tool result message's text content blocks to fit within maxChars.
  * Returns a new message (does not mutate the original).
  */
-export function truncateToolResultMessage(
-  msg: AgentMessage,
-  maxChars: number,
-  options: ToolResultTruncationOptions = {},
-): AgentMessage {
-  const suffix = options.suffix ?? TRUNCATION_SUFFIX;
-  const minKeepChars = options.minKeepChars ?? MIN_KEEP_CHARS;
+function truncateToolResultMessage(msg: AgentMessage, maxChars: number): AgentMessage {
   const content = (msg as { content?: unknown }).content;
   if (!Array.isArray(content)) {
     return msg;
@@ -131,10 +114,10 @@ export function truncateToolResultMessage(
     }
     // Proportional budget for this block
     const blockShare = textBlock.text.length / totalTextChars;
-    const blockBudget = Math.max(minKeepChars + suffix.length, Math.floor(maxChars * blockShare));
+    const blockBudget = Math.max(MIN_KEEP_CHARS, Math.floor(maxChars * blockShare));
     return {
       ...textBlock,
-      text: truncateToolResultText(textBlock.text, blockBudget, { suffix, minKeepChars }),
+      text: truncateToolResultText(textBlock.text, blockBudget),
     };
   });
 

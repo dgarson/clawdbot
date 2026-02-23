@@ -3,9 +3,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import { peekSystemEvents } from "../infra/system-events.js";
 import { resolveAgentRoute } from "../routing/resolve-route.js";
 import { normalizeE164 } from "../utils.js";
-import type { SignalDaemonExitEvent } from "./daemon.js";
 import {
-  createMockSignalDaemonHandle,
   config,
   flush,
   getSignalToolResultTestMocks,
@@ -16,7 +14,7 @@ import {
 installSignalToolResultTestHooks();
 
 // Import after the harness registers `vi.mock(...)` for Signal internals.
-const { monitorSignalProvider } = await import("./monitor.js");
+await import("./monitor.js");
 
 const {
   replyMock,
@@ -25,11 +23,9 @@ const {
   updateLastRouteMock,
   upsertPairingRequestMock,
   waitForTransportReadyMock,
-  spawnSignalDaemonMock,
 } = getSignalToolResultTestMocks();
 
 const SIGNAL_BASE_URL = "http://127.0.0.1:8080";
-type MonitorSignalProviderOptions = Parameters<typeof monitorSignalProvider>[0];
 
 function createMonitorRuntime() {
   return {
@@ -73,13 +69,16 @@ function createAutoAbortController() {
   return abortController;
 }
 
-async function runMonitorWithMocks(opts: MonitorSignalProviderOptions) {
+async function runMonitorWithMocks(
+  opts: Parameters<(typeof import("./monitor.js"))["monitorSignalProvider"]>[0],
+) {
+  const { monitorSignalProvider } = await import("./monitor.js");
   return monitorSignalProvider(opts);
 }
 
 async function receiveSignalPayloads(params: {
   payloads: unknown[];
-  opts?: Partial<MonitorSignalProviderOptions>;
+  opts?: Partial<Parameters<(typeof import("./monitor.js"))["monitorSignalProvider"]>[0]>;
 }) {
   const abortController = new AbortController();
   streamMock.mockImplementation(async ({ onEvent }) => {
@@ -123,7 +122,7 @@ function makeBaseEnvelope(overrides: Record<string, unknown> = {}) {
 
 async function receiveSingleEnvelope(
   envelope: Record<string, unknown>,
-  opts?: Partial<MonitorSignalProviderOptions>,
+  opts?: Partial<Parameters<(typeof import("./monitor.js"))["monitorSignalProvider"]>[0]>,
 ) {
   await receiveSignalPayloads({
     payloads: [{ envelope }],
@@ -179,7 +178,7 @@ describe("monitorSignalProvider tool results", () => {
         logIntervalMs: 10_000,
         pollIntervalMs: 150,
         runtime,
-        abortSignal: expect.any(AbortSignal),
+        abortSignal: abortController.signal,
       }),
     );
   });
@@ -213,77 +212,6 @@ describe("monitorSignalProvider tool results", () => {
     });
 
     expectWaitForTransportReadyTimeout(120_000);
-  });
-
-  it("fails fast when auto-started signal daemon exits during startup", async () => {
-    const runtime = createMonitorRuntime();
-    setSignalAutoStartConfig();
-    spawnSignalDaemonMock.mockReturnValueOnce(
-      createMockSignalDaemonHandle({
-        exited: Promise.resolve({ source: "process", code: 1, signal: null }),
-        isExited: () => true,
-      }),
-    );
-    waitForTransportReadyMock.mockImplementationOnce(
-      async (params: { abortSignal?: AbortSignal | null }) => {
-        await new Promise<void>((_resolve, reject) => {
-          if (params.abortSignal?.aborted) {
-            reject(params.abortSignal.reason);
-            return;
-          }
-          params.abortSignal?.addEventListener(
-            "abort",
-            () => reject(params.abortSignal?.reason ?? new Error("aborted")),
-            { once: true },
-          );
-        });
-      },
-    );
-
-    await expect(
-      runMonitorWithMocks({
-        autoStart: true,
-        baseUrl: SIGNAL_BASE_URL,
-        runtime,
-      }),
-    ).rejects.toThrow(/signal daemon exited/i);
-  });
-
-  it("treats daemon exit after user abort as clean shutdown", async () => {
-    const runtime = createMonitorRuntime();
-    setSignalAutoStartConfig();
-    const abortController = new AbortController();
-    let exited = false;
-    let resolveExit!: (value: SignalDaemonExitEvent) => void;
-    const exitedPromise = new Promise<SignalDaemonExitEvent>((resolve) => {
-      resolveExit = resolve;
-    });
-    const stop = vi.fn(() => {
-      if (exited) {
-        return;
-      }
-      exited = true;
-      resolveExit({ source: "process", code: null, signal: "SIGTERM" });
-    });
-    spawnSignalDaemonMock.mockReturnValueOnce(
-      createMockSignalDaemonHandle({
-        stop,
-        exited: exitedPromise,
-        isExited: () => exited,
-      }),
-    );
-    streamMock.mockImplementationOnce(async () => {
-      abortController.abort(new Error("stop"));
-    });
-
-    await expect(
-      runMonitorWithMocks({
-        autoStart: true,
-        baseUrl: SIGNAL_BASE_URL,
-        runtime,
-        abortSignal: abortController.signal,
-      }),
-    ).resolves.toBeUndefined();
   });
 
   it("skips tool summaries with responsePrefix", async () => {

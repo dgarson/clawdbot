@@ -13,18 +13,13 @@ function createConnection(): AgentSideConnection {
 }
 
 describe("acp prompt cwd prefix", () => {
-  async function runPromptWithCwd(cwd: string) {
-    const pinnedHome = os.homedir();
-    const previousOpenClawHome = process.env.OPENCLAW_HOME;
-    const previousHome = process.env.HOME;
-    delete process.env.OPENCLAW_HOME;
-    process.env.HOME = pinnedHome;
-
+  it("redacts home directory in prompt prefix", async () => {
     const sessionStore = createInMemorySessionStore();
+    const homeCwd = path.join(os.homedir(), "openclaw-test");
     sessionStore.createSession({
       sessionId: "session-1",
       sessionKey: "agent:main:main",
-      cwd,
+      cwd: homeCwd,
     });
 
     const requestSpy = vi.fn(async (method: string) => {
@@ -42,46 +37,18 @@ describe("acp prompt cwd prefix", () => {
       prefixCwd: true,
     });
 
-    try {
-      await expect(
-        agent.prompt({
-          sessionId: "session-1",
-          prompt: [{ type: "text", text: "hello" }],
-          _meta: {},
-        } as unknown as PromptRequest),
-      ).rejects.toThrow("stop-after-send");
-      return requestSpy;
-    } finally {
-      if (previousOpenClawHome === undefined) {
-        delete process.env.OPENCLAW_HOME;
-      } else {
-        process.env.OPENCLAW_HOME = previousOpenClawHome;
-      }
-      if (previousHome === undefined) {
-        delete process.env.HOME;
-      } else {
-        process.env.HOME = previousHome;
-      }
-    }
-  }
+    await expect(
+      agent.prompt({
+        sessionId: "session-1",
+        prompt: [{ type: "text", text: "hello" }],
+        _meta: {},
+      } as unknown as PromptRequest),
+    ).rejects.toThrow("stop-after-send");
 
-  it("redacts home directory in prompt prefix", async () => {
-    const requestSpy = await runPromptWithCwd(path.join(os.homedir(), "openclaw-test"));
     expect(requestSpy).toHaveBeenCalledWith(
       "chat.send",
       expect.objectContaining({
         message: expect.stringMatching(/\[Working directory: ~[\\/]openclaw-test\]/),
-      }),
-      { expectFinal: true },
-    );
-  });
-
-  it("keeps backslash separators when cwd uses them", async () => {
-    const requestSpy = await runPromptWithCwd(`${os.homedir()}\\openclaw-test`);
-    expect(requestSpy).toHaveBeenCalledWith(
-      "chat.send",
-      expect.objectContaining({
-        message: expect.stringContaining("[Working directory: ~\\openclaw-test]"),
       }),
       { expectFinal: true },
     );

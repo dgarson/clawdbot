@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_CHAT_CHANNEL } from "../../channels/registry.js";
 import type { OpenClawConfig } from "../../config/config.js";
 
 vi.mock("../../config/sessions.js", () => ({
@@ -8,9 +9,7 @@ vi.mock("../../config/sessions.js", () => ({
 }));
 
 vi.mock("../../infra/outbound/channel-selection.js", () => ({
-  resolveMessageChannelSelection: vi
-    .fn()
-    .mockResolvedValue({ channel: "telegram", configured: ["telegram"] }),
+  resolveMessageChannelSelection: vi.fn().mockResolvedValue({ channel: "telegram" }),
 }));
 
 vi.mock("../../pairing/pairing-store.js", () => ({
@@ -48,16 +47,6 @@ function setMainSessionEntry(entry?: SessionStore[string]) {
   vi.mocked(loadSessionStore).mockReturnValue(store);
 }
 
-function setWhatsAppAllowFrom(allowFrom: string[]) {
-  vi.mocked(resolveWhatsAppAccount).mockReturnValue({
-    allowFrom,
-  } as unknown as ReturnType<typeof resolveWhatsAppAccount>);
-}
-
-function setStoredWhatsAppAllowFrom(allowFrom: string[]) {
-  vi.mocked(readChannelAllowFromStoreSync).mockReturnValue(allowFrom);
-}
-
 async function resolveForAgent(params: {
   cfg: OpenClawConfig;
   target?: { channel?: "last" | "telegram"; to?: string };
@@ -78,8 +67,10 @@ describe("resolveDeliveryTarget", () => {
       lastChannel: "whatsapp",
       lastTo: "+15550000099",
     });
-    setWhatsAppAllowFrom([]);
-    setStoredWhatsAppAllowFrom(["+15550000001"]);
+    vi.mocked(resolveWhatsAppAccount).mockReturnValue({
+      allowFrom: [],
+    } as unknown as ReturnType<typeof resolveWhatsAppAccount>);
+    vi.mocked(readChannelAllowFromStoreSync).mockReturnValue(["+15550000001"]);
 
     const cfg = makeCfg({ bindings: [] });
     const result = await resolveDeliveryTarget(cfg, AGENT_ID, { channel: "last", to: undefined });
@@ -95,8 +86,10 @@ describe("resolveDeliveryTarget", () => {
       lastChannel: "whatsapp",
       lastTo: "+15550000099",
     });
-    setWhatsAppAllowFrom([]);
-    setStoredWhatsAppAllowFrom(["+15550000001"]);
+    vi.mocked(resolveWhatsAppAccount).mockReturnValue({
+      allowFrom: [],
+    } as unknown as ReturnType<typeof resolveWhatsAppAccount>);
+    vi.mocked(readChannelAllowFromStoreSync).mockReturnValue(["+15550000001"]);
 
     const cfg = makeCfg({ bindings: [] });
     const result = await resolveDeliveryTarget(cfg, AGENT_ID, {
@@ -222,94 +215,15 @@ describe("resolveDeliveryTarget", () => {
     expect(result.threadId).toBe("thread-2");
   });
 
-  it("uses single configured channel when neither explicit nor session channel exists", async () => {
+  it("falls back to default channel when selection probe fails", async () => {
     setMainSessionEntry(undefined);
+    vi.mocked(resolveMessageChannelSelection).mockRejectedValueOnce(new Error("no selection"));
 
     const result = await resolveForAgent({
       cfg: makeCfg({ bindings: [] }),
       target: { channel: "last", to: undefined },
     });
-    expect(result.channel).toBe("telegram");
-    expect(result.error).toBeUndefined();
-  });
-
-  it("strips session-derived threadId when stripSessionThreadId is true", async () => {
-    setMainSessionEntry({
-      sessionId: "sess-strip-1",
-      updatedAt: 1000,
-      lastChannel: "telegram",
-      lastTo: "123456",
-      lastThreadId: "thread-stale",
-    });
-
-    const cfg = makeCfg({ bindings: [] });
-    const result = await resolveDeliveryTarget(cfg, AGENT_ID, {
-      channel: "telegram",
-      to: "123456",
-      stripSessionThreadId: true,
-    });
-
-    expect(result.channel).toBe("telegram");
-    expect(result.to).toBe("123456");
-    expect(result.threadId).toBeUndefined();
-  });
-
-  it("returns an error when channel selection is ambiguous", async () => {
-    setMainSessionEntry(undefined);
-    vi.mocked(resolveMessageChannelSelection).mockRejectedValueOnce(
-      new Error("Channel is required when multiple channels are configured: telegram, slack"),
-    );
-
-    const result = await resolveForAgent({
-      cfg: makeCfg({ bindings: [] }),
-      target: { channel: "last", to: undefined },
-    });
-    expect(result.channel).toBeUndefined();
+    expect(result.channel).toBe(DEFAULT_CHAT_CHANNEL);
     expect(result.to).toBeUndefined();
-    expect(result.error?.message).toContain("Channel is required");
-  });
-
-  it("uses sessionKey thread entry before main session entry", async () => {
-    vi.mocked(loadSessionStore).mockReturnValue({
-      "agent:test:main": {
-        sessionId: "main-session",
-        updatedAt: 1000,
-        lastChannel: "telegram",
-        lastTo: "main-chat",
-      },
-      "agent:test:thread:42": {
-        sessionId: "thread-session",
-        updatedAt: 2000,
-        lastChannel: "telegram",
-        lastTo: "thread-chat",
-      },
-    } as SessionStore);
-
-    const result = await resolveDeliveryTarget(makeCfg({ bindings: [] }), AGENT_ID, {
-      channel: "last",
-      sessionKey: "agent:test:thread:42",
-      to: undefined,
-    });
-
-    expect(result.channel).toBe("telegram");
-    expect(result.to).toBe("thread-chat");
-  });
-
-  it("uses main session channel when channel=last and session route exists", async () => {
-    setMainSessionEntry({
-      sessionId: "sess-4",
-      updatedAt: 1000,
-      lastChannel: "telegram",
-      lastTo: "987654",
-    });
-
-    const result = await resolveForAgent({
-      cfg: makeCfg({ bindings: [] }),
-      target: { channel: "last", to: undefined },
-    });
-
-    expect(result.channel).toBe("telegram");
-    expect(result.to).toBe("987654");
-    expect(result.error).toBeUndefined();
   });
 });

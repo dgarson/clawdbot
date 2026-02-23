@@ -34,22 +34,26 @@ describe("compaction retry integration", () => {
     model: "claude-3-opus",
   } as unknown as NonNullable<ExtensionContext["model"]>;
 
-  const invokeGenerateSummary = (signal = new AbortController().signal) =>
-    mockGenerateSummary(testMessages, testModel, 1000, "test-api-key", signal);
-
-  const runSummaryRetry = (options: Parameters<typeof retryAsync>[1]) =>
-    retryAsync(() => invokeGenerateSummary(), options);
-
   it("should successfully call generateSummary with retry wrapper", async () => {
     mockGenerateSummary.mockResolvedValueOnce("Test summary");
 
-    const result = await runSummaryRetry({
-      attempts: 3,
-      minDelayMs: 500,
-      maxDelayMs: 5000,
-      jitter: 0.2,
-      label: "compaction/generateSummary",
-    });
+    const result = await retryAsync(
+      () =>
+        mockGenerateSummary(
+          testMessages,
+          testModel,
+          1000,
+          "test-api-key",
+          new AbortController().signal,
+        ),
+      {
+        attempts: 3,
+        minDelayMs: 500,
+        maxDelayMs: 5000,
+        jitter: 0.2,
+        label: "compaction/generateSummary",
+      },
+    );
 
     expect(result).toBe("Test summary");
     expect(mockGenerateSummary).toHaveBeenCalledTimes(1);
@@ -60,12 +64,22 @@ describe("compaction retry integration", () => {
       .mockRejectedValueOnce(new Error("Network timeout"))
       .mockResolvedValueOnce("Success after retry");
 
-    const result = await runSummaryRetry({
-      attempts: 3,
-      minDelayMs: 0,
-      maxDelayMs: 0,
-      label: "compaction/generateSummary",
-    });
+    const result = await retryAsync(
+      () =>
+        mockGenerateSummary(
+          testMessages,
+          testModel,
+          1000,
+          "test-api-key",
+          new AbortController().signal,
+        ),
+      {
+        attempts: 3,
+        minDelayMs: 0,
+        maxDelayMs: 0,
+        label: "compaction/generateSummary",
+      },
+    );
 
     expect(result).toBe("Success after retry");
     expect(mockGenerateSummary).toHaveBeenCalledTimes(2);
@@ -79,12 +93,22 @@ describe("compaction retry integration", () => {
     mockGenerateSummary.mockRejectedValueOnce(abortErr);
 
     await expect(
-      retryAsync(() => invokeGenerateSummary(), {
-        attempts: 3,
-        minDelayMs: 0,
-        label: "compaction/generateSummary",
-        shouldRetry: (err: unknown) => !(err instanceof Error && err.name === "AbortError"),
-      }),
+      retryAsync(
+        () =>
+          mockGenerateSummary(
+            testMessages,
+            testModel,
+            1000,
+            "test-api-key",
+            new AbortController().signal,
+          ),
+        {
+          attempts: 3,
+          minDelayMs: 0,
+          label: "compaction/generateSummary",
+          shouldRetry: (err: unknown) => !(err instanceof Error && err.name === "AbortError"),
+        },
+      ),
     ).rejects.toThrow("aborted");
 
     // Should NOT retry on user cancellation (AbortError filtered by shouldRetry)
@@ -95,12 +119,22 @@ describe("compaction retry integration", () => {
     mockGenerateSummary.mockRejectedValue(new Error("Persistent API error"));
 
     await expect(
-      runSummaryRetry({
-        attempts: 3,
-        minDelayMs: 0,
-        maxDelayMs: 0,
-        label: "compaction/generateSummary",
-      }),
+      retryAsync(
+        () =>
+          mockGenerateSummary(
+            testMessages,
+            testModel,
+            1000,
+            "test-api-key",
+            new AbortController().signal,
+          ),
+        {
+          attempts: 3,
+          minDelayMs: 0,
+          maxDelayMs: 0,
+          label: "compaction/generateSummary",
+        },
+      ),
     ).rejects.toThrow("Persistent API error");
 
     expect(mockGenerateSummary).toHaveBeenCalledTimes(3);
@@ -115,14 +149,24 @@ describe("compaction retry integration", () => {
       .mockResolvedValueOnce("Success on 3rd attempt");
 
     const delays: number[] = [];
-    const promise = runSummaryRetry({
-      attempts: 3,
-      minDelayMs: 500,
-      maxDelayMs: 5000,
-      jitter: 0,
-      label: "compaction/generateSummary",
-      onRetry: (info) => delays.push(info.delayMs),
-    });
+    const promise = retryAsync(
+      () =>
+        mockGenerateSummary(
+          testMessages,
+          testModel,
+          1000,
+          "test-api-key",
+          new AbortController().signal,
+        ),
+      {
+        attempts: 3,
+        minDelayMs: 500,
+        maxDelayMs: 5000,
+        jitter: 0,
+        label: "compaction/generateSummary",
+        onRetry: (info) => delays.push(info.delayMs),
+      },
+    );
 
     await vi.runAllTimersAsync();
     const result = await promise;

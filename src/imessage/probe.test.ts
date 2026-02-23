@@ -18,15 +18,15 @@ vi.mock("./client.js", () => ({
 }));
 
 beforeEach(() => {
-  detectBinaryMock.mockClear().mockResolvedValue(true);
-  runCommandWithTimeoutMock.mockClear().mockResolvedValue({
+  detectBinaryMock.mockReset().mockResolvedValue(true);
+  runCommandWithTimeoutMock.mockReset().mockResolvedValue({
     stdout: "",
     stderr: 'unknown command "rpc" for "imsg"',
     code: 1,
     signal: null,
     killed: false,
   });
-  createIMessageRpcClientMock.mockClear();
+  createIMessageRpcClientMock.mockReset();
 });
 
 describe("probeIMessage", () => {

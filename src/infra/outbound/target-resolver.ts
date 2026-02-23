@@ -342,12 +342,8 @@ export async function resolveMessagingTarget(params: {
   const normalized = normalizeTargetForProvider(params.channel, raw) ?? raw;
   const looksLikeTargetId = (): boolean => {
     const trimmed = raw.trim();
-    const normalizedTrimmed = normalized.trim();
     if (!trimmed) {
       return false;
-    }
-    if (/^(channel|group|user|conversation):/i.test(normalizedTrimmed)) {
-      return true;
     }
     const lookup = plugin?.messaging?.targetResolver?.looksLikeId;
     if (lookup) {

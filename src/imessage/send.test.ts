@@ -39,8 +39,8 @@ function getSentParams() {
 
 describe("sendMessageIMessage", () => {
   beforeEach(() => {
-    requestMock.mockClear().mockResolvedValue({ ok: true });
-    stopMock.mockClear().mockResolvedValue(undefined);
+    requestMock.mockReset().mockResolvedValue({ ok: true });
+    stopMock.mockReset().mockResolvedValue(undefined);
   });
 
   it("sends to chat_id targets", async () => {

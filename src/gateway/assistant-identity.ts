@@ -3,11 +3,6 @@ import { resolveAgentIdentity } from "../agents/identity.js";
 import { loadAgentIdentity } from "../commands/agents.config.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { normalizeAgentId } from "../routing/session-key.js";
-import {
-  isAvatarHttpUrl,
-  isAvatarImageDataUrl,
-  looksLikeAvatarPath,
-} from "../shared/avatar-policy.js";
 
 const MAX_ASSISTANT_NAME = 50;
 const MAX_ASSISTANT_AVATAR = 200;
@@ -41,7 +36,14 @@ function coerceIdentityValue(value: string | undefined, maxLength: number): stri
 }
 
 function isAvatarUrl(value: string): boolean {
-  return isAvatarHttpUrl(value) || isAvatarImageDataUrl(value);
+  return /^https?:\/\//i.test(value) || /^data:image\//i.test(value);
+}
+
+function looksLikeAvatarPath(value: string): boolean {
+  if (/[\\/]/.test(value)) {
+    return true;
+  }
+  return /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(value);
 }
 
 function normalizeAvatarValue(value: string | undefined): string | undefined {

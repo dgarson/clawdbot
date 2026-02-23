@@ -430,16 +430,6 @@ const ProviderOptionsSchema = z
   .record(z.string(), z.record(z.string(), ProviderOptionValueSchema))
   .optional();
 
-const MediaUnderstandingRuntimeFields = {
-  prompt: z.string().optional(),
-  timeoutSeconds: z.number().int().positive().optional(),
-  language: z.string().optional(),
-  providerOptions: ProviderOptionsSchema,
-  deepgram: DeepgramAudioSchema,
-  baseUrl: z.string().optional(),
-  headers: z.record(z.string(), z.string()).optional(),
-};
-
 export const MediaUnderstandingModelSchema = z
   .object({
     provider: z.string().optional(),
@@ -448,9 +438,15 @@ export const MediaUnderstandingModelSchema = z
     type: z.union([z.literal("provider"), z.literal("cli")]).optional(),
     command: z.string().optional(),
     args: z.array(z.string()).optional(),
+    prompt: z.string().optional(),
     maxChars: z.number().int().positive().optional(),
     maxBytes: z.number().int().positive().optional(),
-    ...MediaUnderstandingRuntimeFields,
+    timeoutSeconds: z.number().int().positive().optional(),
+    language: z.string().optional(),
+    providerOptions: ProviderOptionsSchema,
+    deepgram: DeepgramAudioSchema,
+    baseUrl: z.string().optional(),
+    headers: z.record(z.string(), z.string()).optional(),
     profile: z.string().optional(),
     preferredProfile: z.string().optional(),
   })
@@ -463,7 +459,13 @@ export const ToolsMediaUnderstandingSchema = z
     scope: MediaUnderstandingScopeSchema,
     maxBytes: z.number().int().positive().optional(),
     maxChars: z.number().int().positive().optional(),
-    ...MediaUnderstandingRuntimeFields,
+    prompt: z.string().optional(),
+    timeoutSeconds: z.number().int().positive().optional(),
+    language: z.string().optional(),
+    providerOptions: ProviderOptionsSchema,
+    deepgram: DeepgramAudioSchema,
+    baseUrl: z.string().optional(),
+    headers: z.record(z.string(), z.string()).optional(),
     attachments: MediaUnderstandingAttachmentsSchema,
     models: z.array(MediaUnderstandingModelSchema).optional(),
   })

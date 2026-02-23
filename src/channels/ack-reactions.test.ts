@@ -65,46 +65,62 @@ describe("shouldAckReaction", () => {
   });
 
   it("requires mention gating for group-mentions", () => {
-    const groupMentionsScope = {
-      scope: "group-mentions" as const,
-      isDirect: false,
-      isGroup: true,
-      isMentionableGroup: true,
-      requireMention: true,
-      canDetectMention: true,
-      effectiveWasMentioned: true,
-    };
-
     expect(
       shouldAckReaction({
-        ...groupMentionsScope,
+        scope: "group-mentions",
+        isDirect: false,
+        isGroup: true,
+        isMentionableGroup: true,
         requireMention: false,
+        canDetectMention: true,
+        effectiveWasMentioned: true,
       }),
     ).toBe(false);
 
     expect(
       shouldAckReaction({
-        ...groupMentionsScope,
+        scope: "group-mentions",
+        isDirect: false,
+        isGroup: true,
+        isMentionableGroup: true,
+        requireMention: true,
         canDetectMention: false,
+        effectiveWasMentioned: true,
       }),
     ).toBe(false);
 
     expect(
       shouldAckReaction({
-        ...groupMentionsScope,
+        scope: "group-mentions",
+        isDirect: false,
+        isGroup: true,
         isMentionableGroup: false,
+        requireMention: true,
+        canDetectMention: true,
+        effectiveWasMentioned: true,
       }),
     ).toBe(false);
 
     expect(
       shouldAckReaction({
-        ...groupMentionsScope,
+        scope: "group-mentions",
+        isDirect: false,
+        isGroup: true,
+        isMentionableGroup: true,
+        requireMention: true,
+        canDetectMention: true,
+        effectiveWasMentioned: true,
       }),
     ).toBe(true);
 
     expect(
       shouldAckReaction({
-        ...groupMentionsScope,
+        scope: "group-mentions",
+        isDirect: false,
+        isGroup: true,
+        isMentionableGroup: true,
+        requireMention: true,
+        canDetectMention: true,
         effectiveWasMentioned: false,
         shouldBypassMention: true,
       }),

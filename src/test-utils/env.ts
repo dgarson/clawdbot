@@ -17,16 +17,6 @@ export function captureEnv(keys: string[]) {
   };
 }
 
-function applyEnvValues(env: Record<string, string | undefined>): void {
-  for (const [key, value] of Object.entries(env)) {
-    if (value === undefined) {
-      delete process.env[key];
-    } else {
-      process.env[key] = value;
-    }
-  }
-}
-
 export function captureFullEnv() {
   const snapshot: Record<string, string | undefined> = { ...process.env };
 
@@ -51,7 +41,13 @@ export function captureFullEnv() {
 export function withEnv<T>(env: Record<string, string | undefined>, fn: () => T): T {
   const snapshot = captureEnv(Object.keys(env));
   try {
-    applyEnvValues(env);
+    for (const [key, value] of Object.entries(env)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
     return fn();
   } finally {
     snapshot.restore();
@@ -64,7 +60,13 @@ export async function withEnvAsync<T>(
 ): Promise<T> {
   const snapshot = captureEnv(Object.keys(env));
   try {
-    applyEnvValues(env);
+    for (const [key, value] of Object.entries(env)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
     return await fn();
   } finally {
     snapshot.restore();

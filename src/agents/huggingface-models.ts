@@ -1,7 +1,4 @@
 import type { ModelDefinitionConfig } from "../config/types.models.js";
-import { createSubsystemLogger } from "../logging/subsystem.js";
-
-const log = createSubsystemLogger("huggingface-models");
 
 /** Hugging Face Inference Providers (router) — OpenAI-compatible chat completions. */
 export const HUGGINGFACE_BASE_URL = "https://router.huggingface.co/v1";
@@ -171,14 +168,16 @@ export async function discoverHuggingfaceModels(apiKey: string): Promise<ModelDe
     });
 
     if (!response.ok) {
-      log.warn(`GET /v1/models failed: HTTP ${response.status}, using static catalog`);
+      console.warn(
+        `[huggingface-models] GET /v1/models failed: HTTP ${response.status}, using static catalog`,
+      );
       return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
     }
 
     const body = (await response.json()) as OpenAIListModelsResponse;
     const data = body?.data;
     if (!Array.isArray(data) || data.length === 0) {
-      log.warn("No models in response, using static catalog");
+      console.warn("[huggingface-models] No models in response, using static catalog");
       return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
     }
 
@@ -224,7 +223,7 @@ export async function discoverHuggingfaceModels(apiKey: string): Promise<ModelDe
       ? models
       : HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   } catch (error) {
-    log.warn(`Discovery failed: ${String(error)}, using static catalog`);
+    console.warn(`[huggingface-models] Discovery failed: ${String(error)}, using static catalog`);
     return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   }
 }

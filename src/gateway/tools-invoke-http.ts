@@ -24,7 +24,7 @@ import { isSubagentSessionKey } from "../routing/session-key.js";
 import { DEFAULT_GATEWAY_HTTP_TOOL_DENY } from "../security/dangerous-tools.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
-import { authorizeHttpGatewayConnect, type ResolvedGatewayAuth } from "./auth.js";
+import { authorizeGatewayConnect, type ResolvedGatewayAuth } from "./auth.js";
 import {
   readJsonBodyOrError,
   sendGatewayAuthFailure,
@@ -112,23 +112,16 @@ function getErrorMessage(err: unknown): string {
   return String(err);
 }
 
-function resolveToolInputErrorStatus(err: unknown): number | null {
+function isToolInputError(err: unknown): boolean {
   if (err instanceof ToolInputError) {
-    const status = (err as { status?: unknown }).status;
-    return typeof status === "number" ? status : 400;
+    return true;
   }
-  if (typeof err !== "object" || err === null || !("name" in err)) {
-    return null;
-  }
-  const name = (err as { name?: unknown }).name;
-  if (name !== "ToolInputError" && name !== "ToolAuthorizationError") {
-    return null;
-  }
-  const status = (err as { status?: unknown }).status;
-  if (typeof status === "number") {
-    return status;
-  }
-  return name === "ToolAuthorizationError" ? 403 : 400;
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "name" in err &&
+    (err as { name?: unknown }).name === "ToolInputError"
+  );
 }
 
 export async function handleToolsInvokeHttpRequest(
@@ -138,7 +131,6 @@ export async function handleToolsInvokeHttpRequest(
     auth: ResolvedGatewayAuth;
     maxBodyBytes?: number;
     trustedProxies?: string[];
-    allowRealIpFallback?: boolean;
     rateLimiter?: AuthRateLimiter;
   },
 ): Promise<boolean> {
@@ -154,12 +146,11 @@ export async function handleToolsInvokeHttpRequest(
 
   const cfg = loadConfig();
   const token = getBearerToken(req);
-  const authResult = await authorizeHttpGatewayConnect({
+  const authResult = await authorizeGatewayConnect({
     auth: opts.auth,
     connectAuth: token ? { token, password: token } : null,
     req,
     trustedProxies: opts.trustedProxies ?? cfg.gateway?.trustedProxies,
-    allowRealIpFallback: opts.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
     rateLimiter: opts.rateLimiter,
   });
   if (!authResult.ok) {
@@ -315,9 +306,8 @@ export async function handleToolsInvokeHttpRequest(
     const result = await (tool as any).execute?.(`http-${Date.now()}`, toolArgs);
     sendJson(res, 200, { ok: true, result });
   } catch (err) {
-    const inputStatus = resolveToolInputErrorStatus(err);
-    if (inputStatus !== null) {
-      sendJson(res, inputStatus, {
+    if (isToolInputError(err)) {
+      sendJson(res, 400, {
         ok: false,
         error: { type: "tool_error", message: getErrorMessage(err) || "invalid tool arguments" },
       });

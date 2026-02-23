@@ -13,8 +13,6 @@ export type OperatorScope =
 
 export const CLI_DEFAULT_OPERATOR_SCOPES: OperatorScope[] = [
   ADMIN_SCOPE,
-  READ_SCOPE,
-  WRITE_SCOPE,
   APPROVALS_SCOPE,
   PAIRING_SCOPE,
 ];

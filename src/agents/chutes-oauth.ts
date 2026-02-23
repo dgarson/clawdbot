@@ -218,7 +218,6 @@ export async function refreshChutesTokens(params: {
   return {
     ...params.credential,
     access,
-    // RFC 6749 section 6: new refresh token is optional; if present, replace old.
     refresh: newRefresh || refreshToken,
     expires: coerceExpiresAt(expiresIn, now),
     clientId,

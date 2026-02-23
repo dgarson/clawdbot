@@ -37,19 +37,6 @@ function makeCfg(overrides: Partial<OpenClawConfig> = {}): OpenClawConfig {
   } as OpenClawConfig;
 }
 
-function expectFallbackUsed(
-  result: { result: unknown; attempts: Array<{ reason?: string }> },
-  run: {
-    (...args: unknown[]): unknown;
-    mock: { calls: unknown[][] };
-  },
-) {
-  expect(result.result).toBe("ok");
-  expect(run).toHaveBeenCalledTimes(1);
-  expect(run).toHaveBeenCalledWith("anthropic", "claude-haiku-3-5");
-  expect(result.attempts[0]?.reason).toBe("rate_limit");
-}
-
 describe("runWithModelFallback – probe logic", () => {
   let realDateNow: () => number;
   const NOW = 1_700_000_000_000;
@@ -108,7 +95,10 @@ describe("runWithModelFallback – probe logic", () => {
     });
 
     // Should skip primary and use fallback
-    expectFallbackUsed(result, run);
+    expect(result.result).toBe("ok");
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run).toHaveBeenCalledWith("anthropic", "claude-haiku-3-5");
+    expect(result.attempts[0]?.reason).toBe("rate_limit");
   });
 
   it("probes primary model when within 2-min margin of cooldown expiry", async () => {
@@ -211,7 +201,10 @@ describe("runWithModelFallback – probe logic", () => {
     });
 
     // Should be throttled → skip primary, use fallback
-    expectFallbackUsed(result, run);
+    expect(result.result).toBe("ok");
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run).toHaveBeenCalledWith("anthropic", "claude-haiku-3-5");
+    expect(result.attempts[0]?.reason).toBe("rate_limit");
   });
 
   it("allows probe when 30s have passed since last probe", async () => {

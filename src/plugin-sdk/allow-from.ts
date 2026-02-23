@@ -26,7 +26,7 @@ export function isAllowedParsedChatSender<TParsed extends ParsedChatAllowTarget>
 }): boolean {
   const allowFrom = params.allowFrom.map((entry) => String(entry).trim());
   if (allowFrom.length === 0) {
-    return false;
+    return true;
   }
   if (allowFrom.includes("*")) {
     return true;

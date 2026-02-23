@@ -101,8 +101,8 @@ export async function sweepCronRunSessions(params: {
 
   if (pruned > 0) {
     params.log.info(
-      { pruned, retentionMs, storePath },
-      `cron-reaper: pruned ${pruned} expired cron run session(s) (storePath=${storePath})`,
+      { pruned, retentionMs },
+      `cron-reaper: pruned ${pruned} expired cron run session(s)`,
     );
   }
 

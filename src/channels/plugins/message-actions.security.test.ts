@@ -2,10 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { jsonResult } from "../../agents/tools/common.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import { setActivePluginRegistry } from "../../plugins/runtime.js";
-import {
-  createChannelTestPluginBase,
-  createTestRegistry,
-} from "../../test-utils/channel-plugins.js";
+import { createTestRegistry } from "../../test-utils/channel-plugins.js";
 import { dispatchChannelMessageAction } from "./message-actions.js";
 import type { ChannelPlugin } from "./types.js";
 
@@ -14,14 +11,19 @@ const handleAction = vi.fn(async () => jsonResult({ ok: true }));
 const emptyRegistry = createTestRegistry([]);
 
 const discordPlugin: ChannelPlugin = {
-  ...createChannelTestPluginBase({
+  id: "discord",
+  meta: {
     id: "discord",
     label: "Discord",
-    capabilities: { chatTypes: ["direct", "group"] },
-    config: {
-      listAccountIds: () => ["default"],
-    },
-  }),
+    selectionLabel: "Discord",
+    docsPath: "/channels/discord",
+    blurb: "Discord test plugin.",
+  },
+  capabilities: { chatTypes: ["direct", "group"] },
+  config: {
+    listAccountIds: () => ["default"],
+    resolveAccount: () => ({}),
+  },
   actions: {
     listActions: () => ["kick"],
     supportsAction: ({ action }) => action === "kick",

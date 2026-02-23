@@ -212,14 +212,6 @@
   - changed-files:
       - any-glob-to-any-file:
           - "extensions/google-gemini-cli-auth/**"
-"extensions: issue-tracking":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "extensions/issue-tracking/**"
-"extensions: github":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "extensions/github/**"
 "extensions: llm-task":
   - changed-files:
       - any-glob-to-any-file:

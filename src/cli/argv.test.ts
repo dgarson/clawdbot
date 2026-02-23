@@ -40,11 +40,6 @@ describe("argv helpers", () => {
       expected: true,
     },
     {
-      name: "root -v alias with log-level",
-      argv: ["node", "openclaw", "--log-level", "debug", "-v"],
-      expected: true,
-    },
-    {
       name: "subcommand -v should not be treated as version",
       argv: ["node", "openclaw", "acp", "-v"],
       expected: false,

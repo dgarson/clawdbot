@@ -34,8 +34,8 @@ const {
 
 describe("agent runner helpers", () => {
   beforeEach(() => {
-    hoisted.loadSessionStoreMock.mockClear();
-    hoisted.scheduleFollowupDrainMock.mockClear();
+    hoisted.loadSessionStoreMock.mockReset();
+    hoisted.scheduleFollowupDrainMock.mockReset();
   });
 
   it("detects audio payloads from mediaUrl/mediaUrls", () => {
@@ -80,7 +80,7 @@ describe("agent runner helpers", () => {
     });
     expect(fallbackOn()).toBe(true);
 
-    hoisted.loadSessionStoreMock.mockClear();
+    hoisted.loadSessionStoreMock.mockReset();
     hoisted.loadSessionStoreMock.mockReturnValue({
       "agent:main:main": { verboseLevel: "weird" },
     });

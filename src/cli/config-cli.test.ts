@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ConfigFileSnapshot, OpenClawConfig } from "../config/types.js";
 
 /**
@@ -9,14 +9,11 @@ import type { ConfigFileSnapshot, OpenClawConfig } from "../config/types.js";
  */
 
 const mockReadConfigFileSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>();
-const mockWriteConfigFile = vi.fn<
-  (cfg: OpenClawConfig, options?: { unsetPaths?: string[][] }) => Promise<void>
->(async () => {});
+const mockWriteConfigFile = vi.fn<(cfg: OpenClawConfig) => Promise<void>>(async () => {});
 
 vi.mock("../config/config.js", () => ({
   readConfigFileSnapshot: () => mockReadConfigFileSnapshot(),
-  writeConfigFile: (cfg: OpenClawConfig, options?: { unsetPaths?: string[][] }) =>
-    mockWriteConfigFile(cfg, options),
+  writeConfigFile: (cfg: OpenClawConfig) => mockWriteConfigFile(cfg),
 }));
 
 const mockLog = vi.fn();
@@ -56,9 +53,8 @@ function setSnapshot(resolved: OpenClawConfig, config: OpenClawConfig) {
   mockReadConfigFileSnapshot.mockResolvedValueOnce(buildSnapshot({ resolved, config }));
 }
 
-let registerConfigCli: typeof import("./config-cli.js").registerConfigCli;
-
 async function runConfigCommand(args: string[]) {
+  const { registerConfigCli } = await import("./config-cli.js");
   const program = new Command();
   program.exitOverride();
   registerConfigCli(program);
@@ -66,10 +62,6 @@ async function runConfigCommand(args: string[]) {
 }
 
 describe("config cli", () => {
-  beforeAll(async () => {
-    ({ registerConfigCli } = await import("./config-cli.js"));
-  });
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -174,6 +166,7 @@ describe("config cli", () => {
     });
 
     it("shows --strict-json and keeps --json as a legacy alias in help", async () => {
+      const { registerConfigCli } = await import("./config-cli.js");
       const program = new Command();
       registerConfigCli(program);
 
@@ -219,9 +212,6 @@ describe("config cli", () => {
       expect(written.gateway).toEqual(resolved.gateway);
       expect(written.tools?.profile).toBe("coding");
       expect(written.logging).toEqual(resolved.logging);
-      expect(mockWriteConfigFile.mock.calls[0]?.[1]).toEqual({
-        unsetPaths: [["tools", "alsoAllow"]],
-      });
     });
   });
 });

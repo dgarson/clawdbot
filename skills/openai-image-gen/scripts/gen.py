@@ -21,7 +21,8 @@ def slugify(text: str) -> str:
 
 def default_out_dir() -> Path:
     now = dt.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    base = Path("/tmp/openclaw")
+    preferred = Path.home() / "Projects" / "tmp"
+    base = preferred if preferred.is_dir() else Path("./tmp")
     base.mkdir(parents=True, exist_ok=True)
     return base / f"openai-image-gen-{now}"
 
@@ -169,7 +170,7 @@ def main() -> int:
     ap.add_argument("--background", default="", help="Background transparency (GPT models only): transparent, opaque, or auto.")
     ap.add_argument("--output-format", default="", help="Output format (GPT models only): png, jpeg, or webp.")
     ap.add_argument("--style", default="", help="Image style (dall-e-3 only): vivid or natural.")
-    ap.add_argument("--out-dir", default="", help="Output directory (default: /tmp/openclaw/openai-image-gen-<ts>).")
+    ap.add_argument("--out-dir", default="", help="Output directory (default: ./tmp/openai-image-gen-<ts>).")
     args = ap.parse_args()
 
     api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()

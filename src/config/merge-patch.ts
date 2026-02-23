@@ -1,5 +1,4 @@
 import { isPlainObject } from "../utils.js";
-import { isBlockedObjectKey } from "./prototype-keys.js";
 
 type PlainObject = Record<string, unknown>;
 
@@ -71,9 +70,6 @@ export function applyMergePatch(
   const result: PlainObject = isPlainObject(base) ? { ...base } : {};
 
   for (const [key, value] of Object.entries(patch)) {
-    if (isBlockedObjectKey(key)) {
-      continue;
-    }
     if (value === null) {
       delete result[key];
       continue;

@@ -62,28 +62,6 @@ async function withWrapperEnvContext(configPath: string, run: () => Promise<void
   );
 }
 
-function createGatewayTokenConfigJson(): string {
-  return JSON.stringify({ gateway: { remote: { token: "${MY_API_KEY}" } } }, null, 2);
-}
-
-function createMutableApiKeyEnv(initialValue = "original-key-123"): Record<string, string> {
-  return { MY_API_KEY: initialValue };
-}
-
-async function withGatewayTokenTempConfig(
-  run: (configPath: string) => Promise<void>,
-): Promise<void> {
-  await withTempConfig(createGatewayTokenConfigJson(), run);
-}
-
-async function withWrapperGatewayTokenContext(
-  run: (configPath: string) => Promise<void>,
-): Promise<void> {
-  await withGatewayTokenTempConfig(async (configPath) => {
-    await withWrapperEnvContext(configPath, async () => run(configPath));
-  });
-}
-
 async function readGatewayToken(configPath: string): Promise<string> {
   const written = await fs.readFile(configPath, "utf-8");
   const parsed = JSON.parse(written) as { gateway: { remote: { token: string } } };
@@ -92,8 +70,13 @@ async function readGatewayToken(configPath: string): Promise<string> {
 
 describe("env snapshot TOCTOU via createConfigIO", () => {
   it("restores env refs using read-time env even after env mutation", async () => {
-    const env = createMutableApiKeyEnv();
-    await withGatewayTokenTempConfig(async (configPath) => {
+    const env: Record<string, string> = {
+      MY_API_KEY: "original-key-123",
+    };
+
+    const configJson = JSON.stringify({ gateway: { remote: { token: "${MY_API_KEY}" } } }, null, 2);
+
+    await withTempConfig(configJson, async (configPath) => {
       // Instance A: read config (captures env snapshot)
       const ioA = createConfigIO({ configPath, env: env as unknown as NodeJS.ProcessEnv });
       const firstRead = await ioA.readConfigFileSnapshotForWrite();
@@ -116,8 +99,13 @@ describe("env snapshot TOCTOU via createConfigIO", () => {
   });
 
   it("without snapshot bridging, mutated env causes incorrect restoration", async () => {
-    const env = createMutableApiKeyEnv();
-    await withGatewayTokenTempConfig(async (configPath) => {
+    const env: Record<string, string> = {
+      MY_API_KEY: "original-key-123",
+    };
+
+    const configJson = JSON.stringify({ gateway: { remote: { token: "${MY_API_KEY}" } } }, null, 2);
+
+    await withTempConfig(configJson, async (configPath) => {
       // Instance A: read config
       const ioA = createConfigIO({ configPath, env: env as unknown as NodeJS.ProcessEnv });
       const snapshot = await ioA.readConfigFileSnapshot();
@@ -144,34 +132,40 @@ describe("env snapshot TOCTOU via createConfigIO", () => {
 
 describe("env snapshot TOCTOU via wrapper APIs", () => {
   it("uses explicit read context even if another read interleaves", async () => {
-    await withWrapperGatewayTokenContext(async (configPath) => {
-      const firstRead = await readConfigFileSnapshotForWrite();
-      expect(firstRead.snapshot.config.gateway?.remote?.token).toBe("original-key-123");
+    const configJson = JSON.stringify({ gateway: { remote: { token: "${MY_API_KEY}" } } }, null, 2);
+    await withTempConfig(configJson, async (configPath) => {
+      await withWrapperEnvContext(configPath, async () => {
+        const firstRead = await readConfigFileSnapshotForWrite();
+        expect(firstRead.snapshot.config.gateway?.remote?.token).toBe("original-key-123");
 
-      // Interleaving read from another request context with a different env value.
-      process.env.MY_API_KEY = "mutated-key-456";
-      const secondRead = await readConfigFileSnapshotForWrite();
-      expect(secondRead.snapshot.config.gateway?.remote?.token).toBe("mutated-key-456");
+        // Interleaving read from another request context with a different env value.
+        process.env.MY_API_KEY = "mutated-key-456";
+        const secondRead = await readConfigFileSnapshotForWrite();
+        expect(secondRead.snapshot.config.gateway?.remote?.token).toBe("mutated-key-456");
 
-      // Write using the first read's explicit context.
-      await writeConfigFileViaWrapper(firstRead.snapshot.config, firstRead.writeOptions);
-      expect(await readGatewayToken(configPath)).toBe("${MY_API_KEY}");
+        // Write using the first read's explicit context.
+        await writeConfigFileViaWrapper(firstRead.snapshot.config, firstRead.writeOptions);
+        expect(await readGatewayToken(configPath)).toBe("${MY_API_KEY}");
+      });
     });
   });
 
   it("ignores read context when expected config path does not match", async () => {
-    await withWrapperGatewayTokenContext(async (configPath) => {
-      const firstRead = await readConfigFileSnapshotForWrite();
-      expect(firstRead.snapshot.config.gateway?.remote?.token).toBe("original-key-123");
-      expect(firstRead.writeOptions.expectedConfigPath).toBe(configPath);
+    const configJson = JSON.stringify({ gateway: { remote: { token: "${MY_API_KEY}" } } }, null, 2);
+    await withTempConfig(configJson, async (configPath) => {
+      await withWrapperEnvContext(configPath, async () => {
+        const firstRead = await readConfigFileSnapshotForWrite();
+        expect(firstRead.snapshot.config.gateway?.remote?.token).toBe("original-key-123");
+        expect(firstRead.writeOptions.expectedConfigPath).toBe(configPath);
 
-      process.env.MY_API_KEY = "mutated-key-456";
-      await writeConfigFileViaWrapper(firstRead.snapshot.config, {
-        ...firstRead.writeOptions,
-        expectedConfigPath: `${configPath}.different`,
+        process.env.MY_API_KEY = "mutated-key-456";
+        await writeConfigFileViaWrapper(firstRead.snapshot.config, {
+          ...firstRead.writeOptions,
+          expectedConfigPath: `${configPath}.different`,
+        });
+
+        expect(await readGatewayToken(configPath)).toBe("original-key-123");
       });
-
-      expect(await readGatewayToken(configPath)).toBe("original-key-123");
     });
   });
 });

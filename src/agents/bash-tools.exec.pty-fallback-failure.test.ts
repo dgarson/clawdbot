@@ -26,12 +26,7 @@ test("exec cleans session state when PTY fallback spawn also fails", async () =>
     .mockRejectedValueOnce(new Error("pty spawn failed"))
     .mockRejectedValueOnce(new Error("child fallback failed"));
 
-  const tool = createExecTool({
-    allowBackground: false,
-    host: "gateway",
-    security: "full",
-    ask: "off",
-  });
+  const tool = createExecTool({ allowBackground: false });
 
   await expect(
     tool.execute("toolcall", {

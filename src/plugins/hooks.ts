@@ -36,13 +36,6 @@ import type {
   PluginHookSessionContext,
   PluginHookSessionEndEvent,
   PluginHookSessionStartEvent,
-  PluginHookSubagentContext,
-  PluginHookSubagentDeliveryTargetEvent,
-  PluginHookSubagentDeliveryTargetResult,
-  PluginHookSubagentSpawningEvent,
-  PluginHookSubagentSpawningResult,
-  PluginHookSubagentEndedEvent,
-  PluginHookSubagentSpawnedEvent,
   PluginHookToolContext,
   PluginHookToolResultPersistContext,
   PluginHookToolResultPersistEvent,
@@ -83,13 +76,6 @@ export type {
   PluginHookSessionContext,
   PluginHookSessionStartEvent,
   PluginHookSessionEndEvent,
-  PluginHookSubagentContext,
-  PluginHookSubagentDeliveryTargetEvent,
-  PluginHookSubagentDeliveryTargetResult,
-  PluginHookSubagentSpawningEvent,
-  PluginHookSubagentSpawningResult,
-  PluginHookSubagentSpawnedEvent,
-  PluginHookSubagentEndedEvent,
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
@@ -146,51 +132,6 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
         : (next.prependContext ?? acc?.prependContext),
   });
 
-  const mergeSubagentSpawningResult = (
-    acc: PluginHookSubagentSpawningResult | undefined,
-    next: PluginHookSubagentSpawningResult,
-  ): PluginHookSubagentSpawningResult => {
-    if (acc?.status === "error") {
-      return acc;
-    }
-    if (next.status === "error") {
-      return next;
-    }
-    return {
-      status: "ok",
-      threadBindingReady: Boolean(acc?.threadBindingReady || next.threadBindingReady),
-    };
-  };
-
-  const mergeSubagentDeliveryTargetResult = (
-    acc: PluginHookSubagentDeliveryTargetResult | undefined,
-    next: PluginHookSubagentDeliveryTargetResult,
-  ): PluginHookSubagentDeliveryTargetResult => {
-    if (acc?.origin) {
-      return acc;
-    }
-    return next;
-  };
-
-  const str = (v: unknown): string | undefined =>
-    typeof v === "string" ? v : typeof v === "number" ? String(v) : undefined;
-
-  const buildHookContextHint = (ctx: unknown, event?: unknown): string => {
-    const c = ctx && typeof ctx === "object" ? (ctx as Record<string, unknown>) : null;
-    const e = event && typeof event === "object" ? (event as Record<string, unknown>) : null;
-    if (!c) {
-      return "";
-    }
-    const parts = [
-      str(c["agentId"]) ? `agent=${str(c["agentId"])}` : null,
-      str(c["sessionKey"]) ? `session=${str(c["sessionKey"])}` : null,
-      str(c["messageProvider"]) ? `provider=${str(c["messageProvider"])}` : null,
-      str(c["model"]) ? `model=${str(c["model"])}` : null,
-      typeof e?.["durationMs"] === "number" ? `durationMs=${e["durationMs"]}` : null,
-    ].filter(Boolean);
-    return parts.length ? parts.join(" ") : "";
-  };
-
   /**
    * Run a hook that doesn't return a value (fire-and-forget style).
    * All handlers are executed in parallel for performance.
@@ -205,10 +146,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return;
     }
 
-    const agentHint = buildHookContextHint(ctx, event);
-    logger?.debug?.(
-      `[hooks] running ${hookName} (${hooks.length} handlers)${agentHint ? ` ${agentHint}` : ""}`,
-    );
+    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers)`);
 
     const promises = hooks.map(async (hook) => {
       try {
@@ -241,10 +179,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return undefined;
     }
 
-    const agentHint = buildHookContextHint(ctx);
-    logger?.debug?.(
-      `[hooks] running ${hookName} (${hooks.length} handlers, sequential)${agentHint ? ` ${agentHint}` : ""}`,
-    );
+    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers, sequential)`);
 
     let result: TResult | undefined;
 
@@ -635,60 +570,6 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return runVoidHook("session_end", event, ctx);
   }
 
-  /**
-   * Run subagent_spawning hook.
-   * Runs sequentially so channel plugins can deterministically provision session bindings.
-   */
-  async function runSubagentSpawning(
-    event: PluginHookSubagentSpawningEvent,
-    ctx: PluginHookSubagentContext,
-  ): Promise<PluginHookSubagentSpawningResult | undefined> {
-    return runModifyingHook<"subagent_spawning", PluginHookSubagentSpawningResult>(
-      "subagent_spawning",
-      event,
-      ctx,
-      mergeSubagentSpawningResult,
-    );
-  }
-
-  /**
-   * Run subagent_delivery_target hook.
-   * Runs sequentially so channel plugins can deterministically resolve routing.
-   */
-  async function runSubagentDeliveryTarget(
-    event: PluginHookSubagentDeliveryTargetEvent,
-    ctx: PluginHookSubagentContext,
-  ): Promise<PluginHookSubagentDeliveryTargetResult | undefined> {
-    return runModifyingHook<"subagent_delivery_target", PluginHookSubagentDeliveryTargetResult>(
-      "subagent_delivery_target",
-      event,
-      ctx,
-      mergeSubagentDeliveryTargetResult,
-    );
-  }
-
-  /**
-   * Run subagent_spawned hook.
-   * Runs in parallel (fire-and-forget).
-   */
-  async function runSubagentSpawned(
-    event: PluginHookSubagentSpawnedEvent,
-    ctx: PluginHookSubagentContext,
-  ): Promise<void> {
-    return runVoidHook("subagent_spawned", event, ctx);
-  }
-
-  /**
-   * Run subagent_ended hook.
-   * Runs in parallel (fire-and-forget).
-   */
-  async function runSubagentEnded(
-    event: PluginHookSubagentEndedEvent,
-    ctx: PluginHookSubagentContext,
-  ): Promise<void> {
-    return runVoidHook("subagent_ended", event, ctx);
-  }
-
   // =========================================================================
   // Gateway Hooks
   // =========================================================================
@@ -757,10 +638,6 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     // Session hooks
     runSessionStart,
     runSessionEnd,
-    runSubagentSpawning,
-    runSubagentDeliveryTarget,
-    runSubagentSpawned,
-    runSubagentEnded,
     // Gateway hooks
     runGatewayStart,
     runGatewayStop,

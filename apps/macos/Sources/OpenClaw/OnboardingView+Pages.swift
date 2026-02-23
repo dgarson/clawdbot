@@ -265,11 +265,9 @@ extension OnboardingView {
         if self.state.remoteTransport == .direct {
             return GatewayDiscoveryHelpers.directUrl(for: gateway) ?? "Gateway pairing only"
         }
-        if let target = GatewayDiscoveryHelpers.sshTarget(for: gateway),
-           let parsed = CommandResolver.parseSSHTarget(target)
-        {
-            let portSuffix = parsed.port != 22 ? " · ssh \(parsed.port)" : ""
-            return "\(parsed.host)\(portSuffix)"
+        if let host = GatewayDiscoveryHelpers.sanitizedTailnetHost(gateway.tailnetDns) ?? gateway.lanHost {
+            let portSuffix = gateway.sshPort != 22 ? " · ssh \(gateway.sshPort)" : ""
+            return "\(host)\(portSuffix)"
         }
         return "Gateway pairing only"
     }

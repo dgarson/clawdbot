@@ -1,8 +1,6 @@
 import { Command } from "commander";
 import { describe, expect, it, vi } from "vitest";
 
-const CRON_CLI_TEST_TIMEOUT_MS = 15_000;
-
 const defaultGatewayMock = async (
   method: string,
   _opts: unknown,
@@ -62,7 +60,7 @@ function buildProgram() {
 }
 
 function resetGatewayMock() {
-  callGatewayFromCli.mockClear();
+  callGatewayFromCli.mockReset();
   callGatewayFromCli.mockImplementation(defaultGatewayMock);
 }
 
@@ -145,7 +143,7 @@ async function expectCronEditWithScheduleLookupExit(
 }
 
 describe("cron cli", () => {
-  it("trims model and thinking on cron add", { timeout: CRON_CLI_TEST_TIMEOUT_MS }, async () => {
+  it("trims model and thinking on cron add", { timeout: 60_000 }, async () => {
     await runCronCommand([
       "cron",
       "add",

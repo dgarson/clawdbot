@@ -12,7 +12,7 @@ import { createCronTool } from "./cron-tool.js";
 
 describe("cron tool flat-params", () => {
   beforeEach(() => {
-    callGatewayToolMock.mockClear();
+    callGatewayToolMock.mockReset();
     callGatewayToolMock.mockResolvedValue({ ok: true });
   });
 

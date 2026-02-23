@@ -1,11 +1,8 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
-import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { formatSandboxToolPolicyBlockedMessage } from "../sandbox.js";
 import { stableStringify } from "../stable-stringify.js";
 import type { FailoverReason } from "./types.js";
-
-const log = createSubsystemLogger("errors");
 
 export function formatBillingErrorMessage(provider?: string, model?: string): string {
   const providerName = provider?.trim();
@@ -244,6 +241,18 @@ function shouldRewriteContextOverflowText(raw: string): boolean {
     isLikelyHttpErrorText(raw) ||
     ERROR_PREFIX_RE.test(raw) ||
     CONTEXT_OVERFLOW_ERROR_HEAD_RE.test(raw)
+  );
+}
+
+function shouldRewriteBillingText(raw: string): boolean {
+  if (!isBillingErrorMessage(raw)) {
+    return false;
+  }
+  return (
+    isRawApiErrorPayload(raw) ||
+    isLikelyHttpErrorText(raw) ||
+    ERROR_PREFIX_RE.test(raw) ||
+    BILLING_ERROR_HEAD_RE.test(raw)
   );
 }
 
@@ -490,7 +499,7 @@ export function formatAssistantErrorText(
 
   // Never return raw unhandled errors - log for debugging but return safe message
   if (raw.length > 600) {
-    log.warn(`Long error truncated: ${raw.slice(0, 200)}`);
+    console.warn("[formatAssistantErrorText] Long error truncated:", raw.slice(0, 200));
   }
   return raw.length > 600 ? `${raw.slice(0, 600)}…` : raw;
 }
@@ -541,6 +550,13 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
       }
       return formatRawAssistantErrorForUi(trimmed);
     }
+  }
+
+  // Preserve legacy behavior for explicit billing-head text outside known
+  // error contexts (e.g., "billing: please upgrade your plan"), while
+  // keeping conversational billing mentions untouched.
+  if (shouldRewriteBillingText(trimmed)) {
+    return BILLING_ERROR_USER_MESSAGE;
   }
 
   // Strip leading blank lines (including whitespace-only lines) without clobbering indentation on
@@ -614,7 +630,6 @@ const ERROR_PATTERNS = {
     "tool_use_id",
     "messages.1.content.1.tool_use.id",
     "invalid request format",
-    /tool call id was.*must be/i,
   ],
 } as const;
 
@@ -685,16 +700,6 @@ export function isAuthErrorMessage(raw: string): boolean {
 
 export function isOverloadedErrorMessage(raw: string): boolean {
   return matchesErrorPatterns(raw, ERROR_PATTERNS.overloaded);
-}
-
-function isJsonApiInternalServerError(raw: string): boolean {
-  if (!raw) {
-    return false;
-  }
-  const value = raw.toLowerCase();
-  // Anthropic often wraps transient 500s in JSON payloads like:
-  // {"type":"error","error":{"type":"api_error","message":"Internal server error"}}
-  return value.includes('"type":"api_error"') && value.includes("internal server error");
 }
 
 export function parseImageDimensionError(raw: string): {
@@ -803,9 +808,6 @@ export function classifyFailoverReason(raw: string): FailoverReason | null {
   }
   if (isTransientHttpError(raw)) {
     // Treat transient 5xx provider failures as retryable transport issues.
-    return "timeout";
-  }
-  if (isJsonApiInternalServerError(raw)) {
     return "timeout";
   }
   if (isRateLimitErrorMessage(raw)) {

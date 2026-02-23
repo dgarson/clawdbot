@@ -27,7 +27,7 @@ async function runLogsCli(argv: string[]) {
 
 describe("logs cli", () => {
   afterEach(() => {
-    callGatewayFromCli.mockClear();
+    callGatewayFromCli.mockReset();
     vi.restoreAllMocks();
   });
 

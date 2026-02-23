@@ -79,31 +79,34 @@ describe("telegram proxy client", () => {
     botApi.sendMessage.mockResolvedValue({ message_id: 1, chat: { id: "123" } });
     botApi.setMessageReaction.mockResolvedValue(undefined);
     botApi.deleteMessage.mockResolvedValue(true);
-    botCtorSpy.mockClear();
+    botCtorSpy.mockReset();
     loadConfig.mockReturnValue({
       channels: { telegram: { accounts: { foo: { proxy: proxyUrl } } } },
     });
-    makeProxyFetch.mockClear();
-    resolveTelegramFetch.mockClear();
+    makeProxyFetch.mockReset();
+    resolveTelegramFetch.mockReset();
   });
 
-  it.each([
-    {
-      name: "sendMessage",
-      run: () => sendMessageTelegram("123", "hi", { token: "tok", accountId: "foo" }),
-    },
-    {
-      name: "reactions",
-      run: () => reactMessageTelegram("123", "456", "✅", { token: "tok", accountId: "foo" }),
-    },
-    {
-      name: "deleteMessage",
-      run: () => deleteMessageTelegram("123", "456", { token: "tok", accountId: "foo" }),
-    },
-  ])("uses proxy fetch for $name", async (testCase) => {
+  it("uses proxy fetch for sendMessage", async () => {
     const { fetchImpl } = prepareProxyFetch();
 
-    await testCase.run();
+    await sendMessageTelegram("123", "hi", { token: "tok", accountId: "foo" });
+
+    expectProxyClient(fetchImpl);
+  });
+
+  it("uses proxy fetch for reactions", async () => {
+    const { fetchImpl } = prepareProxyFetch();
+
+    await reactMessageTelegram("123", "456", "✅", { token: "tok", accountId: "foo" });
+
+    expectProxyClient(fetchImpl);
+  });
+
+  it("uses proxy fetch for deleteMessage", async () => {
+    const { fetchImpl } = prepareProxyFetch();
+
+    await deleteMessageTelegram("123", "456", { token: "tok", accountId: "foo" });
 
     expectProxyClient(fetchImpl);
   });

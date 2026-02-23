@@ -1,12 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { MANIFEST_KEY } from "../compat/legacy-names.js";
-import { fileExists, readJsonFile, resolveArchiveKind } from "../infra/archive.js";
-import { resolveExistingInstallPath, withExtractedArchiveRoot } from "../infra/install-flow.js";
 import {
-  resolveInstallModeOptions,
-  resolveTimedInstallModeOptions,
-} from "../infra/install-mode-options.js";
+  extractArchive,
+  fileExists,
+  readJsonFile,
+  resolveArchiveKind,
+  resolvePackedRootDir,
+} from "../infra/archive.js";
 import { installPackageDir } from "../infra/install-package-dir.js";
 import {
   resolveSafeInstallDir,
@@ -17,11 +18,9 @@ import {
   type NpmIntegrityDrift,
   type NpmSpecResolution,
   resolveArchiveSourcePath,
+  withTempDir,
 } from "../infra/install-source-utils.js";
-import {
-  finalizeNpmSpecArchiveInstall,
-  installFromNpmSpecArchiveWithInstaller,
-} from "../infra/npm-pack-install.js";
+import { installFromNpmSpecArchive } from "../infra/npm-pack-install.js";
 import { validateRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import { extensionUsesSkippedScannerPath, isPathInside } from "../security/scan-paths.js";
 import * as skillScanner from "../security/skill-scanner.js";
@@ -88,6 +87,35 @@ async function ensureOpenClawExtensions(manifest: PackageManifest) {
   return list;
 }
 
+function resolvePluginInstallModeOptions(params: {
+  logger?: PluginInstallLogger;
+  mode?: "install" | "update";
+  dryRun?: boolean;
+}): { logger: PluginInstallLogger; mode: "install" | "update"; dryRun: boolean } {
+  return {
+    logger: params.logger ?? defaultLogger,
+    mode: params.mode ?? "install",
+    dryRun: params.dryRun ?? false,
+  };
+}
+
+function resolveTimedPluginInstallModeOptions(params: {
+  logger?: PluginInstallLogger;
+  timeoutMs?: number;
+  mode?: "install" | "update";
+  dryRun?: boolean;
+}): {
+  logger: PluginInstallLogger;
+  timeoutMs: number;
+  mode: "install" | "update";
+  dryRun: boolean;
+} {
+  return {
+    ...resolvePluginInstallModeOptions(params),
+    timeoutMs: params.timeoutMs ?? 120_000,
+  };
+}
+
 function buildFileInstallResult(pluginId: string, targetFile: string): InstallPluginResult {
   return {
     ok: true,
@@ -127,7 +155,7 @@ async function installPluginFromPackageDir(params: {
   dryRun?: boolean;
   expectedPluginId?: string;
 }): Promise<InstallPluginResult> {
-  const { logger, timeoutMs, mode, dryRun } = resolveTimedInstallModeOptions(params, defaultLogger);
+  const { logger, timeoutMs, mode, dryRun } = resolveTimedPluginInstallModeOptions(params);
 
   const manifestPath = path.join(params.packageDir, "package.json");
   if (!(await fileExists(manifestPath))) {
@@ -290,21 +318,38 @@ export async function installPluginFromArchive(params: {
   }
   const archivePath = archivePathResult.path;
 
-  return await withExtractedArchiveRoot({
-    archivePath,
-    tempDirPrefix: "openclaw-plugin-",
-    timeoutMs,
-    logger,
-    onExtracted: async (packageDir) =>
-      await installPluginFromPackageDir({
-        packageDir,
-        extensionsDir: params.extensionsDir,
+  return await withTempDir("openclaw-plugin-", async (tmpDir) => {
+    const extractDir = path.join(tmpDir, "extract");
+    await fs.mkdir(extractDir, { recursive: true });
+
+    logger.info?.(`Extracting ${archivePath}…`);
+    try {
+      await extractArchive({
+        archivePath,
+        destDir: extractDir,
         timeoutMs,
         logger,
-        mode,
-        dryRun: params.dryRun,
-        expectedPluginId: params.expectedPluginId,
-      }),
+      });
+    } catch (err) {
+      return { ok: false, error: `failed to extract archive: ${String(err)}` };
+    }
+
+    let packageDir = "";
+    try {
+      packageDir = await resolvePackedRootDir(extractDir);
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
+
+    return await installPluginFromPackageDir({
+      packageDir,
+      extensionsDir: params.extensionsDir,
+      timeoutMs,
+      logger,
+      mode,
+      dryRun: params.dryRun,
+      expectedPluginId: params.expectedPluginId,
+    });
   });
 }
 
@@ -344,7 +389,7 @@ export async function installPluginFromFile(params: {
   mode?: "install" | "update";
   dryRun?: boolean;
 }): Promise<InstallPluginResult> {
-  const { logger, mode, dryRun } = resolveInstallModeOptions(params, defaultLogger);
+  const { logger, mode, dryRun } = resolvePluginInstallModeOptions(params);
 
   const filePath = resolveUserPath(params.filePath);
   if (!(await fileExists(filePath))) {
@@ -389,7 +434,7 @@ export async function installPluginFromNpmSpec(params: {
   expectedIntegrity?: string;
   onIntegrityDrift?: (params: PluginNpmIntegrityDriftParams) => boolean | Promise<boolean>;
 }): Promise<InstallPluginResult> {
-  const { logger, timeoutMs, mode, dryRun } = resolveTimedInstallModeOptions(params, defaultLogger);
+  const { logger, timeoutMs, mode, dryRun } = resolveTimedPluginInstallModeOptions(params);
   const expectedPluginId = params.expectedPluginId;
   const spec = params.spec.trim();
   const specError = validateRegistryNpmSpec(spec);
@@ -398,7 +443,7 @@ export async function installPluginFromNpmSpec(params: {
   }
 
   logger.info?.(`Downloading ${spec}…`);
-  const flowResult = await installFromNpmSpecArchiveWithInstaller({
+  const flowResult = await installFromNpmSpecArchive({
     tempDirPrefix: "openclaw-npm-pack-",
     spec,
     timeoutMs,
@@ -407,17 +452,28 @@ export async function installPluginFromNpmSpec(params: {
     warn: (message) => {
       logger.warn?.(message);
     },
-    installFromArchive: installPluginFromArchive,
-    archiveInstallParams: {
-      extensionsDir: params.extensionsDir,
-      timeoutMs,
-      logger,
-      mode,
-      dryRun,
-      expectedPluginId,
-    },
+    installFromArchive: async ({ archivePath }) =>
+      await installPluginFromArchive({
+        archivePath,
+        extensionsDir: params.extensionsDir,
+        timeoutMs,
+        logger,
+        mode,
+        dryRun,
+        expectedPluginId,
+      }),
   });
-  return finalizeNpmSpecArchiveInstall(flowResult);
+  if (!flowResult.ok) {
+    return flowResult;
+  }
+  if (!flowResult.installResult.ok) {
+    return flowResult.installResult;
+  }
+  return {
+    ...flowResult.installResult,
+    npmResolution: flowResult.npmResolution,
+    integrityDrift: flowResult.integrityDrift,
+  };
 }
 
 export async function installPluginFromPath(params: {
@@ -429,12 +485,12 @@ export async function installPluginFromPath(params: {
   dryRun?: boolean;
   expectedPluginId?: string;
 }): Promise<InstallPluginResult> {
-  const pathResult = await resolveExistingInstallPath(params.path);
-  if (!pathResult.ok) {
-    return pathResult;
+  const resolved = resolveUserPath(params.path);
+  if (!(await fileExists(resolved))) {
+    return { ok: false, error: `path not found: ${resolved}` };
   }
-  const { resolvedPath: resolved, stat } = pathResult;
 
+  const stat = await fs.stat(resolved);
   if (stat.isDirectory()) {
     return await installPluginFromDir({
       dirPath: resolved,

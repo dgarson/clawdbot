@@ -53,26 +53,10 @@ const STEER_ABORT_SETTLE_TIMEOUT_MS = 5_000;
 const steerRateLimit = new Map<string, number>();
 
 const SubagentsToolSchema = Type.Object({
-  action: optionalStringEnum(SUBAGENT_ACTIONS, {
-    description:
-      "'list' (list spawned subagents), 'kill' (terminate), 'steer' (send message to subagent).",
-  }),
-  target: Type.Optional(
-    Type.String({
-      description: "Target subagent session key or label (required for 'kill'/'steer').",
-    }),
-  ),
-  message: Type.Optional(
-    Type.String({
-      description: "Message to send to subagent (action='steer'; interrupts current execution).",
-    }),
-  ),
-  recentMinutes: Type.Optional(
-    Type.Number({
-      minimum: 1,
-      description: "Only show subagents active in the last N minutes (action='list'; default: 30).",
-    }),
-  ),
+  action: optionalStringEnum(SUBAGENT_ACTIONS),
+  target: Type.Optional(Type.String()),
+  message: Type.Optional(Type.String()),
+  recentMinutes: Type.Optional(Type.Number({ minimum: 1 })),
 });
 
 type SessionEntryResolution = {
@@ -168,7 +152,7 @@ function resolveSubagentTarget(
 
 function resolveStorePathForKey(
   cfg: ReturnType<typeof loadConfig>,
-  _key: string,
+  key: string,
   parsed?: ParsedAgentSessionKey | null,
 ) {
   return resolveStorePath(cfg.session?.store, {

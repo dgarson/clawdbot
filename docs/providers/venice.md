@@ -79,7 +79,7 @@ openclaw onboard --non-interactive \
 ### 3. Verify Setup
 
 ```bash
-openclaw agent --model venice/llama-3.3-70b --message "Hello, are you working?"
+openclaw chat --model venice/llama-3.3-70b "Hello, are you working?"
 ```
 
 ## Model Selection
@@ -195,19 +195,19 @@ Venice uses a credit-based system. Check [venice.ai/pricing](https://venice.ai/p
 
 ```bash
 # Use default private model
-openclaw agent --model venice/llama-3.3-70b --message "Quick health check"
+openclaw chat --model venice/llama-3.3-70b
 
 # Use Claude via Venice (anonymized)
-openclaw agent --model venice/claude-opus-45 --message "Summarize this task"
+openclaw chat --model venice/claude-opus-45
 
 # Use uncensored model
-openclaw agent --model venice/venice-uncensored --message "Draft options"
+openclaw chat --model venice/venice-uncensored
 
 # Use vision model with image
-openclaw agent --model venice/qwen3-vl-235b-a22b --message "Review attached image"
+openclaw chat --model venice/qwen3-vl-235b-a22b
 
 # Use coding model
-openclaw agent --model venice/qwen3-coder-480b-a35b-instruct --message "Refactor this function"
+openclaw chat --model venice/qwen3-coder-480b-a35b-instruct
 ```
 
 ## Troubleshooting

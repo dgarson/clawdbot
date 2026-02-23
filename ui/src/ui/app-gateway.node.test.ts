@@ -5,11 +5,7 @@ import { connectGateway } from "./app-gateway.ts";
 type GatewayClientMock = {
   start: ReturnType<typeof vi.fn>;
   stop: ReturnType<typeof vi.fn>;
-  emitClose: (info: {
-    code: number;
-    reason?: string;
-    error?: { code: string; message: string; details?: unknown };
-  }) => void;
+  emitClose: (code: number, reason?: string) => void;
   emitGap: (expected: number, received: number) => void;
   emitEvent: (evt: { event: string; payload?: unknown; seq?: number }) => void;
 };
@@ -23,11 +19,7 @@ vi.mock("./gateway.ts", () => {
 
     constructor(
       private opts: {
-        onClose?: (info: {
-          code: number;
-          reason: string;
-          error?: { code: string; message: string; details?: unknown };
-        }) => void;
+        onClose?: (info: { code: number; reason: string }) => void;
         onGap?: (info: { expected: number; received: number }) => void;
         onEvent?: (evt: { event: string; payload?: unknown; seq?: number }) => void;
       },
@@ -35,12 +27,8 @@ vi.mock("./gateway.ts", () => {
       gatewayClientInstances.push({
         start: this.start,
         stop: this.stop,
-        emitClose: (info) => {
-          this.opts.onClose?.({
-            code: info.code,
-            reason: info.reason ?? "",
-            error: info.error,
-          });
+        emitClose: (code, reason) => {
+          this.opts.onClose?.({ code, reason: reason ?? "" });
         },
         emitGap: (expected, received) => {
           this.opts.onGap?.({ expected, received });
@@ -74,7 +62,6 @@ function createHost() {
     connected: false,
     hello: null,
     lastError: null,
-    lastErrorCode: null,
     eventLogBuffer: [],
     eventLog: [],
     tab: "overview",
@@ -184,34 +171,10 @@ describe("connectGateway", () => {
     const secondClient = gatewayClientInstances[1];
     expect(secondClient).toBeDefined();
 
-    firstClient.emitClose({ code: 1005 });
+    firstClient.emitClose(1005);
     expect(host.lastError).toBeNull();
-    expect(host.lastErrorCode).toBeNull();
 
-    secondClient.emitClose({ code: 1005 });
+    secondClient.emitClose(1005);
     expect(host.lastError).toBe("disconnected (1005): no reason");
-    expect(host.lastErrorCode).toBeNull();
-  });
-
-  it("prefers structured connect errors over close reason", () => {
-    const host = createHost();
-
-    connectGateway(host);
-    const client = gatewayClientInstances[0];
-    expect(client).toBeDefined();
-
-    client.emitClose({
-      code: 4008,
-      reason: "connect failed",
-      error: {
-        code: "INVALID_REQUEST",
-        message:
-          "unauthorized: gateway token mismatch (open the dashboard URL and paste the token in Control UI settings)",
-        details: { code: "AUTH_TOKEN_MISMATCH" },
-      },
-    });
-
-    expect(host.lastError).toContain("gateway token mismatch");
-    expect(host.lastErrorCode).toBe("AUTH_TOKEN_MISMATCH");
   });
 });

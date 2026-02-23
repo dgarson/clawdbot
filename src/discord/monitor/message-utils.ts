@@ -218,7 +218,6 @@ async function appendResolvedMediaFromAttachments(params: {
       const fetched = await fetchRemoteMedia({
         url: attachment.url,
         filePathHint: attachment.filename ?? attachment.url,
-        maxBytes: params.maxBytes,
       });
       const saved = await saveMediaBuffer(
         fetched.buffer,
@@ -308,7 +307,6 @@ async function appendResolvedMediaFromStickers(params: {
         const fetched = await fetchRemoteMedia({
           url: candidate.url,
           filePathHint: candidate.fileName,
-          maxBytes: params.maxBytes,
         });
         const saved = await saveMediaBuffer(
           fetched.buffer,

@@ -34,35 +34,31 @@ function createInvokeParams(params: Record<string, unknown>) {
   };
 }
 
-function expectInvalidRequestResponse(
-  respond: ReturnType<typeof vi.fn>,
-  expectedMessagePart: string,
-) {
-  const call = respond.mock.calls[0] as RespondCall | undefined;
-  expect(call?.[0]).toBe(false);
-  expect(call?.[2]?.code).toBe(ErrorCodes.INVALID_REQUEST);
-  expect(call?.[2]?.message).toContain(expectedMessagePart);
-}
-
 describe("push.test handler", () => {
   beforeEach(() => {
-    vi.mocked(loadApnsRegistration).mockClear();
-    vi.mocked(normalizeApnsEnvironment).mockClear();
-    vi.mocked(resolveApnsAuthConfigFromEnv).mockClear();
-    vi.mocked(sendApnsAlert).mockClear();
+    vi.mocked(loadApnsRegistration).mockReset();
+    vi.mocked(normalizeApnsEnvironment).mockReset();
+    vi.mocked(resolveApnsAuthConfigFromEnv).mockReset();
+    vi.mocked(sendApnsAlert).mockReset();
   });
 
   it("rejects invalid params", async () => {
     const { respond, invoke } = createInvokeParams({ title: "hello" });
     await invoke();
-    expectInvalidRequestResponse(respond, "invalid push.test params");
+    const call = respond.mock.calls[0] as RespondCall | undefined;
+    expect(call?.[0]).toBe(false);
+    expect(call?.[2]?.code).toBe(ErrorCodes.INVALID_REQUEST);
+    expect(call?.[2]?.message).toContain("invalid push.test params");
   });
 
   it("returns invalid request when node has no APNs registration", async () => {
     vi.mocked(loadApnsRegistration).mockResolvedValue(null);
     const { respond, invoke } = createInvokeParams({ nodeId: "ios-node-1" });
     await invoke();
-    expectInvalidRequestResponse(respond, "has no APNs registration");
+    const call = respond.mock.calls[0] as RespondCall | undefined;
+    expect(call?.[0]).toBe(false);
+    expect(call?.[2]?.code).toBe(ErrorCodes.INVALID_REQUEST);
+    expect(call?.[2]?.message).toContain("has no APNs registration");
   });
 
   it("sends push test when registration and auth are available", async () => {

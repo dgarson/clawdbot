@@ -22,17 +22,6 @@ type MockChatLog = {
 };
 type MockTui = { requestRender: MockFn };
 
-function createMockChatLog(): MockChatLog & HandlerChatLog {
-  return {
-    startTool: vi.fn(),
-    updateToolResult: vi.fn(),
-    addSystem: vi.fn(),
-    updateAssistant: vi.fn(),
-    finalizeAssistant: vi.fn(),
-    dropAssistant: vi.fn(),
-  } as unknown as MockChatLog & HandlerChatLog;
-}
-
 describe("tui-event-handlers: handleAgentEvent", () => {
   const makeState = (overrides?: Partial<TuiStateAccess>): TuiStateAccess => ({
     agentDefaultId: "main",
@@ -58,7 +47,14 @@ describe("tui-event-handlers: handleAgentEvent", () => {
   });
 
   const makeContext = (state: TuiStateAccess) => {
-    const chatLog = createMockChatLog();
+    const chatLog = {
+      startTool: vi.fn(),
+      updateToolResult: vi.fn(),
+      addSystem: vi.fn(),
+      updateAssistant: vi.fn(),
+      finalizeAssistant: vi.fn(),
+      dropAssistant: vi.fn(),
+    } as unknown as MockChatLog & HandlerChatLog;
     const tui = { requestRender: vi.fn() } as unknown as MockTui & HandlerTui;
     const setActivityStatus = vi.fn();
     const loadHistory = vi.fn();
@@ -66,9 +62,13 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     const noteLocalRunId = (runId: string) => {
       localRunIds.add(runId);
     };
-    const forgetLocalRunId = localRunIds.delete.bind(localRunIds);
-    const isLocalRunId = localRunIds.has.bind(localRunIds);
-    const clearLocalRunIds = localRunIds.clear.bind(localRunIds);
+    const forgetLocalRunId = (runId: string) => {
+      localRunIds.delete(runId);
+    };
+    const isLocalRunId = (runId: string) => localRunIds.has(runId);
+    const clearLocalRunIds = () => {
+      localRunIds.clear();
+    };
 
     return {
       chatLog,
@@ -148,7 +148,14 @@ describe("tui-event-handlers: handleAgentEvent", () => {
   });
 
   it("processes lifecycle events when runId matches activeChatRunId", () => {
-    const chatLog = createMockChatLog();
+    const chatLog = {
+      startTool: vi.fn(),
+      updateToolResult: vi.fn(),
+      addSystem: vi.fn(),
+      updateAssistant: vi.fn(),
+      finalizeAssistant: vi.fn(),
+      dropAssistant: vi.fn(),
+    } as unknown as HandlerChatLog;
     const { tui, setActivityStatus, handleAgentEvent } = createHandlersHarness({
       state: { activeChatRunId: "run-9" },
       chatLog,

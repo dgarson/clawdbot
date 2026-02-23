@@ -3,7 +3,6 @@ import { buildBatchHeaders, normalizeBatchBaseUrl } from "./batch-utils.js";
 import { debugEmbeddingsLog } from "./embeddings-debug.js";
 import type { GeminiEmbeddingClient } from "./embeddings-gemini.js";
 import { hashText } from "./internal.js";
-import { withRemoteHttpResponse } from "./remote-http.js";
 
 export type GeminiBatchRequest = {
   custom_id: string;
@@ -94,25 +93,19 @@ async function submitGeminiBatch(params: {
     baseUrl,
     requests: params.requests.length,
   });
-  const filePayload = await withRemoteHttpResponse({
-    url: uploadUrl,
-    ssrfPolicy: params.gemini.ssrfPolicy,
-    init: {
-      method: "POST",
-      headers: {
-        ...buildBatchHeaders(params.gemini, { json: false }),
-        "Content-Type": uploadPayload.contentType,
-      },
-      body: uploadPayload.body,
+  const fileRes = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      ...buildBatchHeaders(params.gemini, { json: false }),
+      "Content-Type": uploadPayload.contentType,
     },
-    onResponse: async (fileRes) => {
-      if (!fileRes.ok) {
-        const text = await fileRes.text();
-        throw new Error(`gemini batch file upload failed: ${fileRes.status} ${text}`);
-      }
-      return (await fileRes.json()) as { name?: string; file?: { name?: string } };
-    },
+    body: uploadPayload.body,
   });
+  if (!fileRes.ok) {
+    const text = await fileRes.text();
+    throw new Error(`gemini batch file upload failed: ${fileRes.status} ${text}`);
+  }
+  const filePayload = (await fileRes.json()) as { name?: string; file?: { name?: string } };
   const fileId = filePayload.name ?? filePayload.file?.name;
   if (!fileId) {
     throw new Error("gemini batch file upload failed: missing file id");
@@ -132,27 +125,21 @@ async function submitGeminiBatch(params: {
     batchEndpoint,
     fileId,
   });
-  return await withRemoteHttpResponse({
-    url: batchEndpoint,
-    ssrfPolicy: params.gemini.ssrfPolicy,
-    init: {
-      method: "POST",
-      headers: buildBatchHeaders(params.gemini, { json: true }),
-      body: JSON.stringify(batchBody),
-    },
-    onResponse: async (batchRes) => {
-      if (batchRes.ok) {
-        return (await batchRes.json()) as GeminiBatchStatus;
-      }
-      const text = await batchRes.text();
-      if (batchRes.status === 404) {
-        throw new Error(
-          "gemini batch create failed: 404 (asyncBatchEmbedContent not available for this model/baseUrl). Disable remote.batch.enabled or switch providers.",
-        );
-      }
-      throw new Error(`gemini batch create failed: ${batchRes.status} ${text}`);
-    },
+  const batchRes = await fetch(batchEndpoint, {
+    method: "POST",
+    headers: buildBatchHeaders(params.gemini, { json: true }),
+    body: JSON.stringify(batchBody),
   });
+  if (batchRes.ok) {
+    return (await batchRes.json()) as GeminiBatchStatus;
+  }
+  const text = await batchRes.text();
+  if (batchRes.status === 404) {
+    throw new Error(
+      "gemini batch create failed: 404 (asyncBatchEmbedContent not available for this model/baseUrl). Disable remote.batch.enabled or switch providers.",
+    );
+  }
+  throw new Error(`gemini batch create failed: ${batchRes.status} ${text}`);
 }
 
 async function fetchGeminiBatchStatus(params: {
@@ -165,20 +152,14 @@ async function fetchGeminiBatchStatus(params: {
     : `batches/${params.batchName}`;
   const statusUrl = `${baseUrl}/${name}`;
   debugEmbeddingsLog("memory embeddings: gemini batch status", { statusUrl });
-  return await withRemoteHttpResponse({
-    url: statusUrl,
-    ssrfPolicy: params.gemini.ssrfPolicy,
-    init: {
-      headers: buildBatchHeaders(params.gemini, { json: true }),
-    },
-    onResponse: async (res) => {
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`gemini batch status failed: ${res.status} ${text}`);
-      }
-      return (await res.json()) as GeminiBatchStatus;
-    },
+  const res = await fetch(statusUrl, {
+    headers: buildBatchHeaders(params.gemini, { json: true }),
   });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`gemini batch status failed: ${res.status} ${text}`);
+  }
+  return (await res.json()) as GeminiBatchStatus;
 }
 
 async function fetchGeminiFileContent(params: {
@@ -189,20 +170,14 @@ async function fetchGeminiFileContent(params: {
   const file = params.fileId.startsWith("files/") ? params.fileId : `files/${params.fileId}`;
   const downloadUrl = `${baseUrl}/${file}:download`;
   debugEmbeddingsLog("memory embeddings: gemini batch download", { downloadUrl });
-  return await withRemoteHttpResponse({
-    url: downloadUrl,
-    ssrfPolicy: params.gemini.ssrfPolicy,
-    init: {
-      headers: buildBatchHeaders(params.gemini, { json: true }),
-    },
-    onResponse: async (res) => {
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`gemini batch file content failed: ${res.status} ${text}`);
-      }
-      return await res.text();
-    },
+  const res = await fetch(downloadUrl, {
+    headers: buildBatchHeaders(params.gemini, { json: true }),
   });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`gemini batch file content failed: ${res.status} ${text}`);
+  }
+  return await res.text();
 }
 
 function parseGeminiBatchOutput(text: string): GeminiBatchOutputLine[] {

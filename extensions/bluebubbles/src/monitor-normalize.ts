@@ -1,4 +1,4 @@
-import { extractHandleFromChatGuid, normalizeBlueBubblesHandle } from "./targets.js";
+import { normalizeBlueBubblesHandle } from "./targets.js";
 import type { BlueBubblesAttachment } from "./types.js";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -629,42 +629,18 @@ export function parseTapbackText(params: {
 }
 
 function extractMessagePayload(payload: Record<string, unknown>): Record<string, unknown> | null {
-  const parseRecord = (value: unknown): Record<string, unknown> | null => {
-    const record = asRecord(value);
-    if (record) {
-      return record;
-    }
-    if (Array.isArray(value)) {
-      for (const entry of value) {
-        const parsedEntry = parseRecord(entry);
-        if (parsedEntry) {
-          return parsedEntry;
-        }
-      }
-      return null;
-    }
-    if (typeof value !== "string") {
-      return null;
-    }
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return null;
-    }
-    try {
-      return parseRecord(JSON.parse(trimmed));
-    } catch {
-      return null;
-    }
-  };
-
   const dataRaw = payload.data ?? payload.payload ?? payload.event;
-  const data = parseRecord(dataRaw);
+  const data =
+    asRecord(dataRaw) ??
+    (typeof dataRaw === "string" ? (asRecord(JSON.parse(dataRaw)) ?? null) : null);
   const messageRaw = payload.message ?? data?.message ?? data;
-  const message = parseRecord(messageRaw);
-  if (message) {
-    return message;
+  const message =
+    asRecord(messageRaw) ??
+    (typeof messageRaw === "string" ? (asRecord(JSON.parse(messageRaw)) ?? null) : null);
+  if (!message) {
+    return null;
   }
-  return null;
+  return message;
 }
 
 export function normalizeWebhookMessage(
@@ -724,10 +700,7 @@ export function normalizeWebhookMessage(
         : timestampRaw * 1000
       : undefined;
 
-  // BlueBubbles may omit `handle` in webhook payloads; for DM chat GUIDs we can still infer sender.
-  const senderFallbackFromChatGuid =
-    !senderId && !isGroup && chatGuid ? extractHandleFromChatGuid(chatGuid) : null;
-  const normalizedSender = normalizeBlueBubblesHandle(senderId || senderFallbackFromChatGuid || "");
+  const normalizedSender = normalizeBlueBubblesHandle(senderId);
   if (!normalizedSender) {
     return null;
   }
@@ -801,9 +774,7 @@ export function normalizeWebhookReaction(
         : timestampRaw * 1000
       : undefined;
 
-  const senderFallbackFromChatGuid =
-    !senderId && !isGroup && chatGuid ? extractHandleFromChatGuid(chatGuid) : null;
-  const normalizedSender = normalizeBlueBubblesHandle(senderId || senderFallbackFromChatGuid || "");
+  const normalizedSender = normalizeBlueBubblesHandle(senderId);
   if (!normalizedSender) {
     return null;
   }

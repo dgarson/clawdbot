@@ -28,9 +28,6 @@ function createMockContext(overrides?: {
       messagingToolSentTextsNormalized: [],
       messagingToolSentMediaUrls: [],
       messagingToolSentTargets: [],
-      successfulCronAdds: 0,
-      toolDiagnosticExtraInfos: [],
-      toolDiagnosticDebugInfos: [],
     },
     log: { debug: vi.fn(), warn: vi.fn() },
     shouldEmitToolResult: vi.fn(() => false),
@@ -38,7 +35,6 @@ function createMockContext(overrides?: {
     emitToolSummary: vi.fn(),
     emitToolOutput: vi.fn(),
     trimMessagingToolSent: vi.fn(),
-    trimToolDiagnosticInfos: vi.fn(),
     hookRunner: undefined,
     // Fill in remaining required fields with no-ops.
     blockChunker: null,
@@ -204,28 +200,6 @@ describe("handleToolExecutionEnd media emission", () => {
           {
             type: "text",
             text: "<media:audio> placeholder with successful preflight voice transcript",
-          },
-        ],
-      },
-    });
-
-    expect(onToolResult).not.toHaveBeenCalled();
-  });
-
-  it("does NOT emit media for malformed MEDIA:-prefixed prose", async () => {
-    const onToolResult = vi.fn();
-    const ctx = createMockContext({ shouldEmitToolOutput: false, onToolResult });
-
-    await handleToolExecutionEnd(ctx, {
-      type: "tool_execution_end",
-      toolName: "browser",
-      toolCallId: "tc-1",
-      isError: false,
-      result: {
-        content: [
-          {
-            type: "text",
-            text: "MEDIA:-prefixed paths (lenient whitespace) when loading outbound media",
           },
         ],
       },

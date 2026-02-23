@@ -73,10 +73,6 @@ export function renderUsageTab(state: AppViewState) {
     onRefresh: () => loadUsage(state),
     onTimeZoneChange: (zone) => {
       state.usageTimeZone = zone;
-      state.usageSelectedDays = [];
-      state.usageSelectedHours = [];
-      state.usageSelectedSessions = [];
-      void loadUsage(state);
     },
     onToggleContextExpanded: () => {
       state.usageContextExpanded = !state.usageContextExpanded;

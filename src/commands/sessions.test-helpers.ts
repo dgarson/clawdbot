@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -50,8 +49,10 @@ export function makeRuntime(params?: { throwOnError?: boolean }): {
 }
 
 export function writeStore(data: unknown, prefix = "sessions"): string {
-  const fileName = `${[prefix, Date.now(), randomUUID()].join("-")}.json`;
-  const file = path.join(os.tmpdir(), fileName);
+  const file = path.join(
+    os.tmpdir(),
+    `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`,
+  );
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
   return file;
 }

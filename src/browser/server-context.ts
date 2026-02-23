@@ -137,6 +137,7 @@ function createProfileContext(
 
   const openTab = async (url: string): Promise<BrowserTab> => {
     const ssrfPolicyOpts = withBrowserNavigationPolicy(state().resolved.ssrfPolicy);
+    await assertBrowserNavigationAllowed({ url, ...ssrfPolicyOpts });
 
     // For remote profiles, use Playwright's persistent connection to create tabs
     // This ensures the tab persists beyond a single request
@@ -148,6 +149,7 @@ function createProfileContext(
           cdpUrl: profile.cdpUrl,
           url,
           ...ssrfPolicyOpts,
+          navigationChecked: true,
         });
         const profileState = getProfileState();
         profileState.lastTargetId = page.targetId;
@@ -164,6 +166,7 @@ function createProfileContext(
       cdpUrl: profile.cdpUrl,
       url,
       ...ssrfPolicyOpts,
+      navigationChecked: true,
     })
       .then((r) => r.targetId)
       .catch(() => null);
@@ -193,7 +196,6 @@ function createProfileContext(
     };
 
     const endpointUrl = new URL(appendCdpPath(profile.cdpUrl, "/json/new"));
-    await assertBrowserNavigationAllowed({ url, ...ssrfPolicyOpts });
     const endpoint = endpointUrl.search
       ? (() => {
           endpointUrl.searchParams.set("url", url);
@@ -410,12 +412,8 @@ function createProfileContext(
     };
 
     let chosen = targetId ? resolveById(targetId) : pickDefault();
-    if (
-      !chosen &&
-      (profile.driver === "extension" || !profile.cdpIsLoopback) &&
-      candidates.length === 1
-    ) {
-      // If an agent passes a stale/foreign targetId but only one candidate remains,
+    if (!chosen && profile.driver === "extension" && candidates.length === 1) {
+      // If an agent passes a stale/foreign targetId but we only have a single attached tab,
       // recover by using that tab instead of failing hard.
       chosen = candidates[0] ?? null;
     }
@@ -430,7 +428,7 @@ function createProfileContext(
     return chosen;
   };
 
-  const resolveTargetIdOrThrow = async (targetId: string): Promise<string> => {
+  const focusTab = async (targetId: string): Promise<void> => {
     const tabs = await listTabs();
     const resolved = resolveTargetIdFromTabs(targetId, tabs);
     if (!resolved.ok) {
@@ -439,11 +437,6 @@ function createProfileContext(
       }
       throw new Error("tab not found");
     }
-    return resolved.targetId;
-  };
-
-  const focusTab = async (targetId: string): Promise<void> => {
-    const resolvedTargetId = await resolveTargetIdOrThrow(targetId);
 
     if (!profile.cdpIsLoopback) {
       const mod = await getPwAiModule({ mode: "strict" });
@@ -452,21 +445,28 @@ function createProfileContext(
       if (typeof focusPageByTargetIdViaPlaywright === "function") {
         await focusPageByTargetIdViaPlaywright({
           cdpUrl: profile.cdpUrl,
-          targetId: resolvedTargetId,
+          targetId: resolved.targetId,
         });
         const profileState = getProfileState();
-        profileState.lastTargetId = resolvedTargetId;
+        profileState.lastTargetId = resolved.targetId;
         return;
       }
     }
 
-    await fetchOk(appendCdpPath(profile.cdpUrl, `/json/activate/${resolvedTargetId}`));
+    await fetchOk(appendCdpPath(profile.cdpUrl, `/json/activate/${resolved.targetId}`));
     const profileState = getProfileState();
-    profileState.lastTargetId = resolvedTargetId;
+    profileState.lastTargetId = resolved.targetId;
   };
 
   const closeTab = async (targetId: string): Promise<void> => {
-    const resolvedTargetId = await resolveTargetIdOrThrow(targetId);
+    const tabs = await listTabs();
+    const resolved = resolveTargetIdFromTabs(targetId, tabs);
+    if (!resolved.ok) {
+      if (resolved.reason === "ambiguous") {
+        throw new Error("ambiguous target id prefix");
+      }
+      throw new Error("tab not found");
+    }
 
     // For remote profiles, use Playwright's persistent connection to close tabs
     if (!profile.cdpIsLoopback) {
@@ -476,13 +476,13 @@ function createProfileContext(
       if (typeof closePageByTargetIdViaPlaywright === "function") {
         await closePageByTargetIdViaPlaywright({
           cdpUrl: profile.cdpUrl,
-          targetId: resolvedTargetId,
+          targetId: resolved.targetId,
         });
         return;
       }
     }
 
-    await fetchOk(appendCdpPath(profile.cdpUrl, `/json/close/${resolvedTargetId}`));
+    await fetchOk(appendCdpPath(profile.cdpUrl, `/json/close/${resolved.targetId}`));
   };
 
   const stopRunningBrowser = async (): Promise<{ stopped: boolean }> => {

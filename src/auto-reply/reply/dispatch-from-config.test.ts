@@ -107,13 +107,13 @@ async function dispatchTwiceWithFreshDispatchers(params: Omit<DispatchReplyArgs,
 describe("dispatchReplyFromConfig", () => {
   beforeEach(() => {
     resetInboundDedupe();
-    diagnosticMocks.logMessageQueued.mockClear();
-    diagnosticMocks.logMessageProcessed.mockClear();
-    diagnosticMocks.logSessionStateChange.mockClear();
-    hookMocks.runner.hasHooks.mockClear();
+    diagnosticMocks.logMessageQueued.mockReset();
+    diagnosticMocks.logMessageProcessed.mockReset();
+    diagnosticMocks.logSessionStateChange.mockReset();
+    hookMocks.runner.hasHooks.mockReset();
     hookMocks.runner.hasHooks.mockReturnValue(false);
-    hookMocks.runner.runMessageReceived.mockClear();
-    internalHookMocks.createInternalHookEvent.mockClear();
+    hookMocks.runner.runMessageReceived.mockReset();
+    internalHookMocks.createInternalHookEvent.mockReset();
     internalHookMocks.createInternalHookEvent.mockImplementation(createInternalHookEventPayload);
     internalHookMocks.triggerInternalHook.mockClear();
   });

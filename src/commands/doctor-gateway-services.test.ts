@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../config/config.js";
-import { withEnvAsync } from "../test-utils/env.js";
 
 const mocks = vi.hoisted(() => ({
   readCommand: vi.fn(),
@@ -140,7 +139,9 @@ describe("maybeRepairGatewayServiceConfig", () => {
   });
 
   it("uses OPENCLAW_GATEWAY_TOKEN when config token is missing", async () => {
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+    const previousToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
+    try {
       setupGatewayTokenRepairScenario("env-token");
 
       const cfg: OpenClawConfig = {
@@ -160,6 +161,12 @@ describe("maybeRepairGatewayServiceConfig", () => {
         }),
       );
       expect(mocks.install).toHaveBeenCalledTimes(1);
-    });
+    } finally {
+      if (previousToken === undefined) {
+        delete process.env.OPENCLAW_GATEWAY_TOKEN;
+      } else {
+        process.env.OPENCLAW_GATEWAY_TOKEN = previousToken;
+      }
+    }
   });
 });

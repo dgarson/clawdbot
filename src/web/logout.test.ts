@@ -9,7 +9,6 @@ const runtime = {
   error: vi.fn(),
   exit: vi.fn(),
 };
-const WEB_LOGOUT_TEST_TIMEOUT_MS = 15_000;
 
 describe("web logout", () => {
   let fixtureRoot = "";
@@ -31,16 +30,6 @@ describe("web logout", () => {
     return dir;
   };
 
-  const createAuthCase = async (files: Record<string, string>) => {
-    const authDir = await makeCaseDir();
-    await Promise.all(
-      Object.entries(files).map(async ([name, contents]) => {
-        await fsPromises.writeFile(path.join(authDir, name), contents, "utf-8");
-      }),
-    );
-    return authDir;
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -49,29 +38,15 @@ describe("web logout", () => {
     vi.restoreAllMocks();
   });
 
-  it(
-    "deletes cached credentials when present",
-    { timeout: WEB_LOGOUT_TEST_TIMEOUT_MS },
-    async () => {
-      const authDir = await createAuthCase({ "creds.json": "{}" });
-      const result = await logoutWeb({ authDir, runtime: runtime as never });
-      expect(result).toBe(true);
-      expect(fs.existsSync(authDir)).toBe(false);
-    },
-  );
-
-  it("removes oauth.json too when not using legacy auth dir", async () => {
-    const authDir = await createAuthCase({
-      "creds.json": "{}",
-      "oauth.json": '{"token":true}',
-      "session-abc.json": "{}",
-    });
+  it("deletes cached credentials when present", { timeout: 60_000 }, async () => {
+    const authDir = await makeCaseDir();
+    fs.writeFileSync(path.join(authDir, "creds.json"), "{}");
     const result = await logoutWeb({ authDir, runtime: runtime as never });
     expect(result).toBe(true);
     expect(fs.existsSync(authDir)).toBe(false);
   });
 
-  it("no-ops when nothing to delete", { timeout: WEB_LOGOUT_TEST_TIMEOUT_MS }, async () => {
+  it("no-ops when nothing to delete", { timeout: 60_000 }, async () => {
     const authDir = await makeCaseDir();
     const result = await logoutWeb({ authDir, runtime: runtime as never });
     expect(result).toBe(false);
@@ -79,11 +54,10 @@ describe("web logout", () => {
   });
 
   it("keeps shared oauth.json when using legacy auth dir", async () => {
-    const credsDir = await createAuthCase({
-      "creds.json": "{}",
-      "oauth.json": '{"token":true}',
-      "session-abc.json": "{}",
-    });
+    const credsDir = await makeCaseDir();
+    fs.writeFileSync(path.join(credsDir, "creds.json"), "{}");
+    fs.writeFileSync(path.join(credsDir, "oauth.json"), '{"token":true}');
+    fs.writeFileSync(path.join(credsDir, "session-abc.json"), "{}");
 
     const result = await logoutWeb({
       authDir: credsDir,

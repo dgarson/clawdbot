@@ -3,7 +3,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
-import { withEnv } from "../test-utils/env.js";
 import { loadOpenClawPlugins } from "./loader.js";
 
 type TempPlugin = { dir: string; file: string; id: string };
@@ -517,8 +516,10 @@ describe("loadOpenClawPlugins", () => {
 
   it("warns when loaded non-bundled plugin has no install/load-path provenance", () => {
     process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    const prevStateDir = process.env.OPENCLAW_STATE_DIR;
     const stateDir = makeTempDir();
-    withEnv({ OPENCLAW_STATE_DIR: stateDir, CLAWDBOT_STATE_DIR: undefined }, () => {
+    process.env.OPENCLAW_STATE_DIR = stateDir;
+    try {
       const globalDir = path.join(stateDir, "extensions", "rogue");
       fs.mkdirSync(globalDir, { recursive: true });
       writePlugin({
@@ -551,7 +552,13 @@ describe("loadOpenClawPlugins", () => {
             msg.includes("rogue") && msg.includes("loaded without install/load-path provenance"),
         ),
       ).toBe(true);
-    });
+    } finally {
+      if (prevStateDir === undefined) {
+        delete process.env.OPENCLAW_STATE_DIR;
+      } else {
+        process.env.OPENCLAW_STATE_DIR = prevStateDir;
+      }
+    }
   });
 
   it("rejects plugin entry files that escape plugin root via symlink", () => {

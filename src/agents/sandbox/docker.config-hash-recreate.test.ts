@@ -106,7 +106,6 @@ function createSandboxConfig(dns: string[]): SandboxConfig {
       enabled: false,
       image: "openclaw-browser:test",
       containerPrefix: "oc-browser-",
-      network: "openclaw-sandbox-browser",
       cdpPort: 9222,
       vncPort: 5900,
       noVncPort: 6080,
@@ -126,8 +125,8 @@ describe("ensureSandboxContainer config-hash recreation", () => {
     spawnState.calls.length = 0;
     spawnState.inspectRunning = true;
     spawnState.labelHash = "";
-    registryMocks.readRegistry.mockClear();
-    registryMocks.updateRegistry.mockClear();
+    registryMocks.readRegistry.mockReset();
+    registryMocks.updateRegistry.mockReset();
     registryMocks.updateRegistry.mockResolvedValue(undefined);
   });
 

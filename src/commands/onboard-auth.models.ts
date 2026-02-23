@@ -42,12 +42,12 @@ export function resolveZaiBaseUrl(endpoint?: string): string {
   }
 }
 
-// Pricing per 1M tokens (USD) — https://platform.minimaxi.com/document/Price
+// Pricing: MiniMax doesn't publish public rates. Override in models.json for accurate costs.
 export const MINIMAX_API_COST = {
-  input: 0.3,
-  output: 1.2,
-  cacheRead: 0.03,
-  cacheWrite: 0.12,
+  input: 15,
+  output: 60,
+  cacheRead: 2,
+  cacheWrite: 10,
 };
 export const MINIMAX_HOSTED_COST = {
   input: 0,

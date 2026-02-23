@@ -1,10 +1,8 @@
 export function mergeAllowFromSources(params: {
   allowFrom?: Array<string | number>;
   storeAllowFrom?: string[];
-  dmPolicy?: string;
 }): string[] {
-  const storeEntries = params.dmPolicy === "allowlist" ? [] : (params.storeAllowFrom ?? []);
-  return [...(params.allowFrom ?? []), ...storeEntries]
+  return [...(params.allowFrom ?? []), ...(params.storeAllowFrom ?? [])]
     .map((value) => String(value).trim())
     .filter(Boolean);
 }

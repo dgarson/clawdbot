@@ -182,41 +182,6 @@ describe("runMessageAction context isolation", () => {
     expect(result.kind).toBe("send");
   });
 
-  it("repairs misplaced destination names provided as channel when context provider is known", async () => {
-    const result = await runDrySend({
-      cfg: slackConfig,
-      actionParams: {
-        channel: "cb-inbox",
-        message: "hi",
-      },
-      toolContext: { currentChannelProvider: "slack" },
-    });
-
-    expect(result.kind).toBe("send");
-    if (result.kind !== "send") {
-      throw new Error("expected send result");
-    }
-    expect(result.channel).toBe("slack");
-    expect(result.to).toBe("cb-inbox");
-  });
-
-  it("repairs misplaced destination names using single configured provider fallback", async () => {
-    const result = await runDrySend({
-      cfg: slackConfig,
-      actionParams: {
-        channel: "ops-alerts",
-        message: "hi",
-      },
-    });
-
-    expect(result.kind).toBe("send");
-    if (result.kind !== "send") {
-      throw new Error("expected send result");
-    }
-    expect(result.channel).toBe("slack");
-    expect(result.to).toBe("ops-alerts");
-  });
-
   it("allows media-only send when target matches current channel", async () => {
     const result = await runDrySend({
       cfg: slackConfig,
@@ -396,38 +361,39 @@ describe("runMessageAction context isolation", () => {
     ).rejects.toThrow(/Cross-context messaging denied/);
   });
 
-  it.each([
-    {
-      name: "send",
-      run: (abortSignal: AbortSignal) =>
-        runDrySend({
-          cfg: slackConfig,
-          actionParams: {
-            channel: "slack",
-            target: "#C12345678",
-            message: "hi",
-          },
-          abortSignal,
-        }),
-    },
-    {
-      name: "broadcast",
-      run: (abortSignal: AbortSignal) =>
-        runDryAction({
-          cfg: slackConfig,
-          action: "broadcast",
-          actionParams: {
-            targets: ["channel:C12345678"],
-            channel: "slack",
-            message: "hi",
-          },
-          abortSignal,
-        }),
-    },
-  ])("aborts $name when abortSignal is already aborted", async ({ run }) => {
+  it("aborts send when abortSignal is already aborted", async () => {
     const controller = new AbortController();
     controller.abort();
-    await expect(run(controller.signal)).rejects.toMatchObject({ name: "AbortError" });
+
+    await expect(
+      runDrySend({
+        cfg: slackConfig,
+        actionParams: {
+          channel: "slack",
+          target: "#C12345678",
+          message: "hi",
+        },
+        abortSignal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  it("aborts broadcast when abortSignal is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      runDryAction({
+        cfg: slackConfig,
+        action: "broadcast",
+        actionParams: {
+          targets: ["channel:C12345678"],
+          channel: "slack",
+          message: "hi",
+        },
+        abortSignal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
   });
 });
 
@@ -638,33 +604,6 @@ describe("runMessageAction sandboxed media validation", () => {
       }
       expect(result.sendResult?.mediaUrl).toBe(path.join(sandboxDir, "data", "note.ogg"));
     });
-  });
-
-  it("allows media paths under os.tmpdir()", async () => {
-    const sandboxDir = await fs.mkdtemp(path.join(os.tmpdir(), "msg-sandbox-"));
-    try {
-      const tmpFile = path.join(os.tmpdir(), "test-media-image.png");
-      const result = await runMessageAction({
-        cfg: slackConfig,
-        action: "send",
-        params: {
-          channel: "slack",
-          target: "#C12345678",
-          media: tmpFile,
-          message: "",
-        },
-        sandboxRoot: sandboxDir,
-        dryRun: true,
-      });
-
-      expect(result.kind).toBe("send");
-      if (result.kind !== "send") {
-        throw new Error("expected send result");
-      }
-      expect(result.sendResult?.mediaUrl).toBe(tmpFile);
-    } finally {
-      await fs.rm(sandboxDir, { recursive: true, force: true });
-    }
   });
 });
 

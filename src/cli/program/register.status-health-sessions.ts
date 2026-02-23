@@ -24,21 +24,6 @@ function parseTimeoutMs(timeout: unknown): number | null | undefined {
   return parsed;
 }
 
-async function runWithVerboseAndTimeout(
-  opts: { verbose?: boolean; debug?: boolean; timeout?: unknown },
-  action: (params: { verbose: boolean; timeoutMs: number | undefined }) => Promise<void>,
-): Promise<void> {
-  const verbose = resolveVerbose(opts);
-  setVerbose(verbose);
-  const timeoutMs = parseTimeoutMs(opts.timeout);
-  if (timeoutMs === null) {
-    return;
-  }
-  await runCommandWithRuntime(defaultRuntime, async () => {
-    await action({ verbose, timeoutMs });
-  });
-}
-
 export function registerStatusHealthSessionsCommands(program: Command) {
   program
     .command("status")
@@ -71,14 +56,20 @@ export function registerStatusHealthSessionsCommands(program: Command) {
         `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/status", "docs.openclaw.ai/cli/status")}\n`,
     )
     .action(async (opts) => {
-      await runWithVerboseAndTimeout(opts, async ({ verbose, timeoutMs }) => {
+      const verbose = resolveVerbose(opts);
+      setVerbose(verbose);
+      const timeout = parseTimeoutMs(opts.timeout);
+      if (timeout === null) {
+        return;
+      }
+      await runCommandWithRuntime(defaultRuntime, async () => {
         await statusCommand(
           {
             json: Boolean(opts.json),
             all: Boolean(opts.all),
             deep: Boolean(opts.deep),
             usage: Boolean(opts.usage),
-            timeoutMs,
+            timeoutMs: timeout,
             verbose,
           },
           defaultRuntime,
@@ -99,11 +90,17 @@ export function registerStatusHealthSessionsCommands(program: Command) {
         `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/health", "docs.openclaw.ai/cli/health")}\n`,
     )
     .action(async (opts) => {
-      await runWithVerboseAndTimeout(opts, async ({ verbose, timeoutMs }) => {
+      const verbose = resolveVerbose(opts);
+      setVerbose(verbose);
+      const timeout = parseTimeoutMs(opts.timeout);
+      if (timeout === null) {
+        return;
+      }
+      await runCommandWithRuntime(defaultRuntime, async () => {
         await healthCommand(
           {
             json: Boolean(opts.json),
-            timeoutMs,
+            timeoutMs: timeout,
             verbose,
           },
           defaultRuntime,

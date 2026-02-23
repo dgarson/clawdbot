@@ -1,6 +1,4 @@
-import { loadConfig } from "../../config/config.js";
 import type { startGatewayServer } from "../../gateway/server.js";
-import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { acquireGatewayLock } from "../../infra/gateway-lock.js";
 import { restartGatewayProcessWithFreshPid } from "../../infra/process-respawn.js";
 import {
@@ -11,7 +9,6 @@ import {
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   getActiveTaskCount,
-  getActiveLanes,
   resetAllLanes,
   waitForActiveTasks,
 } from "../../process/command-queue.js";
@@ -26,7 +23,7 @@ export async function runGatewayLoop(params: {
   start: () => Promise<Awaited<ReturnType<typeof startGatewayServer>>>;
   runtime: typeof defaultRuntime;
 }) {
-  let lock = await acquireGatewayLock();
+  const lock = await acquireGatewayLock();
   let server: Awaited<ReturnType<typeof startGatewayServer>> | null = null;
   let shuttingDown = false;
   let restartResolver: (() => void) | null = null;
@@ -35,58 +32,6 @@ export async function runGatewayLoop(params: {
     process.removeListener("SIGTERM", onSigterm);
     process.removeListener("SIGINT", onSigint);
     process.removeListener("SIGUSR1", onSigusr1);
-  };
-  const exitProcess = (code: number) => {
-    cleanupSignals();
-    params.runtime.exit(code);
-  };
-  const releaseLockIfHeld = async (): Promise<boolean> => {
-    if (!lock) {
-      return false;
-    }
-    await lock.release();
-    lock = null;
-    return true;
-  };
-  const reacquireLockForInProcessRestart = async (): Promise<boolean> => {
-    try {
-      lock = await acquireGatewayLock();
-      return true;
-    } catch (err) {
-      gatewayLog.error(`failed to reacquire gateway lock for in-process restart: ${String(err)}`);
-      exitProcess(1);
-      return false;
-    }
-  };
-  const handleRestartAfterServerClose = async () => {
-    const hadLock = await releaseLockIfHeld();
-    // Release the lock BEFORE spawning so the child can acquire it immediately.
-    const respawn = restartGatewayProcessWithFreshPid();
-    if (respawn.mode === "spawned" || respawn.mode === "supervised") {
-      const modeLabel =
-        respawn.mode === "spawned"
-          ? `spawned pid ${respawn.pid ?? "unknown"}`
-          : "supervisor restart";
-      gatewayLog.info(`restart mode: full process restart (${modeLabel})`);
-      exitProcess(0);
-      return;
-    }
-    if (respawn.mode === "failed") {
-      gatewayLog.warn(
-        `full process restart failed (${respawn.detail ?? "unknown error"}); falling back to in-process restart`,
-      );
-    } else {
-      gatewayLog.info("restart mode: in-process restart (OPENCLAW_NO_RESPAWN)");
-    }
-    if (hadLock && !(await reacquireLockForInProcessRestart())) {
-      return;
-    }
-    shuttingDown = false;
-    restartResolver?.();
-  };
-  const handleStopAfterServerClose = async () => {
-    await releaseLockIfHeld();
-    exitProcess(0);
   };
 
   const DRAIN_TIMEOUT_MS = 30_000;
@@ -105,7 +50,8 @@ export async function runGatewayLoop(params: {
     const forceExitMs = isRestart ? DRAIN_TIMEOUT_MS + SHUTDOWN_TIMEOUT_MS : SHUTDOWN_TIMEOUT_MS;
     const forceExitTimer = setTimeout(() => {
       gatewayLog.error("shutdown timed out; exiting without full cleanup");
-      exitProcess(0);
+      cleanupSignals();
+      params.runtime.exit(0);
     }, forceExitMs);
 
     void (async () => {
@@ -115,25 +61,14 @@ export async function runGatewayLoop(params: {
         if (isRestart) {
           const activeTasks = getActiveTaskCount();
           if (activeTasks > 0) {
-            const cfg = loadConfig();
-            const laneDetail = isDiagnosticsEnabled(cfg)
-              ? ` lanes=[${[...getActiveLanes().entries()].map(([l, n]) => `${l}:${n}`).join(",")}]`
-              : "";
             gatewayLog.info(
-              `draining ${activeTasks} active task(s) before restart (timeout ${DRAIN_TIMEOUT_MS}ms)${laneDetail}`,
+              `draining ${activeTasks} active task(s) before restart (timeout ${DRAIN_TIMEOUT_MS}ms)`,
             );
             const { drained } = await waitForActiveTasks(DRAIN_TIMEOUT_MS);
             if (drained) {
               gatewayLog.info("all active tasks drained");
             } else {
-              const abandoned = getActiveTaskCount();
-              const cfg = loadConfig();
-              const laneDetail = isDiagnosticsEnabled(cfg)
-                ? ` lanes=[${[...getActiveLanes().entries()].map(([l, n]) => `${l}:${n}`).join(",")}]`
-                : "";
-              gatewayLog.warn(
-                `drain timeout reached; proceeding with restart (abandonedTasks=${abandoned})${laneDetail}`,
-              );
+              gatewayLog.warn("drain timeout reached; proceeding with restart");
             }
           }
         }
@@ -148,9 +83,29 @@ export async function runGatewayLoop(params: {
         clearTimeout(forceExitTimer);
         server = null;
         if (isRestart) {
-          await handleRestartAfterServerClose();
+          const respawn = restartGatewayProcessWithFreshPid();
+          if (respawn.mode === "spawned" || respawn.mode === "supervised") {
+            const modeLabel =
+              respawn.mode === "spawned"
+                ? `spawned pid ${respawn.pid ?? "unknown"}`
+                : "supervisor restart";
+            gatewayLog.info(`restart mode: full process restart (${modeLabel})`);
+            cleanupSignals();
+            params.runtime.exit(0);
+          } else {
+            if (respawn.mode === "failed") {
+              gatewayLog.warn(
+                `full process restart failed (${respawn.detail ?? "unknown error"}); falling back to in-process restart`,
+              );
+            } else {
+              gatewayLog.info("restart mode: in-process restart (OPENCLAW_NO_RESPAWN)");
+            }
+            shuttingDown = false;
+            restartResolver?.();
+          }
         } else {
-          await handleStopAfterServerClose();
+          cleanupSignals();
+          params.runtime.exit(0);
         }
       }
     })();
@@ -203,7 +158,7 @@ export async function runGatewayLoop(params: {
       });
     }
   } finally {
-    await releaseLockIfHeld();
+    await lock?.release();
     cleanupSignals();
   }
 }

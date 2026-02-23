@@ -36,18 +36,15 @@ function createHooksConfig(): HooksConfigResolved {
   };
 }
 
-function createRequest(params?: {
-  authorization?: string;
-  remoteAddress?: string;
-}): IncomingMessage {
+function createRequest(): IncomingMessage {
   return {
     method: "POST",
     url: "/hooks/wake",
     headers: {
       host: "127.0.0.1:18789",
-      authorization: params?.authorization ?? "Bearer hook-secret",
+      authorization: "Bearer hook-secret",
     },
-    socket: { remoteAddress: params?.remoteAddress ?? "127.0.0.1" },
+    socket: { remoteAddress: "127.0.0.1" },
   } as IncomingMessage;
 }
 
@@ -68,7 +65,7 @@ function createResponse(): {
 
 describe("createHooksRequestHandler timeout status mapping", () => {
   beforeEach(() => {
-    readJsonBodyMock.mockClear();
+    readJsonBodyMock.mockReset();
   });
 
   test("returns 408 for request body timeout", async () => {
@@ -98,43 +95,5 @@ describe("createHooksRequestHandler timeout status mapping", () => {
     expect(end).toHaveBeenCalledWith(JSON.stringify({ ok: false, error: "request body timeout" }));
     expect(dispatchWakeHook).not.toHaveBeenCalled();
     expect(dispatchAgentHook).not.toHaveBeenCalled();
-  });
-
-  test("shares hook auth rate-limit bucket across ipv4 and ipv4-mapped ipv6 forms", async () => {
-    const handler = createHooksRequestHandler({
-      getHooksConfig: () => createHooksConfig(),
-      bindHost: "127.0.0.1",
-      port: 18789,
-      logHooks: {
-        warn: vi.fn(),
-        debug: vi.fn(),
-        info: vi.fn(),
-        error: vi.fn(),
-      } as unknown as ReturnType<typeof createSubsystemLogger>,
-      dispatchWakeHook: vi.fn(),
-      dispatchAgentHook: vi.fn(() => "run-1"),
-    });
-
-    for (let i = 0; i < 20; i++) {
-      const req = createRequest({
-        authorization: "Bearer wrong",
-        remoteAddress: "1.2.3.4",
-      });
-      const { res } = createResponse();
-      const handled = await handler(req, res);
-      expect(handled).toBe(true);
-      expect(res.statusCode).toBe(401);
-    }
-
-    const mappedReq = createRequest({
-      authorization: "Bearer wrong",
-      remoteAddress: "::ffff:1.2.3.4",
-    });
-    const { res: mappedRes, setHeader } = createResponse();
-    const handled = await handler(mappedReq, mappedRes);
-
-    expect(handled).toBe(true);
-    expect(mappedRes.statusCode).toBe(429);
-    expect(setHeader).toHaveBeenCalledWith("Retry-After", expect.any(String));
   });
 });
