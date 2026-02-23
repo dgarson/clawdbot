@@ -4,12 +4,16 @@ Developer CLI entrypoints for OpenClaw local tooling.
 
 ## Quickstart
 
+Run against the local workspace packages using Node ESM:
+
 ```bash
-node -e "import { run } from '@openclaw/cli';
-await run(['sdk','doctor']);"
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sdk', 'doctor']);"
 ```
 
 ```bash
-node -e "import { run } from '@openclaw/cli';
-await run(['sandbox','start','--root',process.cwd()]);"
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'verify', '--root', process.cwd()]);"
+```
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello\"}']);"
 ```

@@ -48,7 +48,7 @@ describe("OpenClawClient", () => {
 
     it("should create client with custom config", () => {
       const customClient = createClient({
-        baseUrl: "http://localhost:8080",
+        baseUrl: "http://127.0.0.1:8080",
         apiKey: "test-key",
         timeoutMs: 10000,
       });
