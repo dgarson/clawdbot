@@ -696,6 +696,23 @@ export async function runEmbeddedAttempt(
           params.streamParams,
         );
 
+        // Inject X-OpenClaw-Session-Id and X-OpenClaw-Agent-Id headers for cost attribution.
+        // This enables Robert's analytics to attribute API costs to specific sessions.
+        if (params.sessionKey || params.agentId) {
+          const sessionIdHeader = params.sessionKey ?? params.sessionId;
+          const agentIdHeader = params.agentId;
+          const inner = activeSession.agent.streamFn;
+          activeSession.agent.streamFn = (model, context, options) =>
+            inner(model, context, {
+              ...options,
+              headers: {
+                ...options?.headers,
+                ...(sessionIdHeader && { "X-OpenClaw-Session-Id": sessionIdHeader }),
+                ...(agentIdHeader && { "X-OpenClaw-Agent-Id": agentIdHeader }),
+              },
+            });
+        }
+
         if (cacheTrace) {
           cacheTrace.recordStage("session:loaded", {
             messages: activeSession.messages,
