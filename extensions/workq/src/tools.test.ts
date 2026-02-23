@@ -85,6 +85,7 @@ function makeItem(issueRef: string, agentId: string): WorkItem {
     worktreePath: null,
     prUrl: null,
     blockedReason: null,
+    droppedReason: null,
     priority: "medium",
     scope: [],
     tags: [],

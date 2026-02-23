@@ -277,10 +277,11 @@ export class WorkqDatabase implements WorkqDatabaseApi {
           `UPDATE work_items
            SET status = 'dropped',
                blocked_reason = NULL,
+               dropped_reason = ?,
                updated_at = datetime('now', 'utc')
            WHERE issue_ref = ?`,
         )
-        .run(issueRef);
+        .run(toNullable(input.reason), issueRef);
 
       this.insertLog(issueRef, agentId, "dropped", toNullable(input.reason));
 
@@ -637,6 +638,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
         worktree_path TEXT,
         pr_url        TEXT,
         blocked_reason TEXT,
+        dropped_reason TEXT,
         priority      TEXT NOT NULL DEFAULT 'medium' CHECK(priority IN (${priorityCheck})),
         scope_json    TEXT NOT NULL DEFAULT '[]',
         tags_json     TEXT NOT NULL DEFAULT '[]',
@@ -687,6 +689,13 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       this.db.exec("PRAGMA wal_checkpoint(PASSIVE);");
     } catch {
       // no-op: checkpoint is best-effort
+    }
+
+    // Schema evolution: add dropped_reason column for existing databases that pre-date it.
+    try {
+      this.db.exec(`ALTER TABLE work_items ADD COLUMN dropped_reason TEXT`);
+    } catch {
+      // column already exists — safe to continue
     }
   }
 
@@ -931,6 +940,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       worktreePath: row.worktree_path,
       prUrl: row.pr_url,
       blockedReason: row.blocked_reason,
+      droppedReason: row.dropped_reason,
       priority: row.priority,
       scope: parseJsonStringArray(row.scope_json),
       tags: parseJsonStringArray(row.tags_json),

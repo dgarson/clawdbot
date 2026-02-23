@@ -48,6 +48,7 @@ export interface WorkItemRow {
   worktree_path: string | null;
   pr_url: string | null;
   blocked_reason: string | null;
+  dropped_reason: string | null;
   priority: WorkItemPriority;
   scope_json: string;
   tags_json: string;
@@ -66,6 +67,7 @@ export interface WorkItem {
   worktreePath: string | null;
   prUrl: string | null;
   blockedReason: string | null;
+  droppedReason: string | null;
   priority: WorkItemPriority;
   scope: string[];
   tags: string[];

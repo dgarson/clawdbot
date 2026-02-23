@@ -379,7 +379,7 @@ export function registerWorkqCli(
         .command("release")
         .description("Release (drop) an active work item")
         .argument("<issue_ref>", "Issue reference")
-        .option("--reason <text>", "Reason for releasing")
+        .requiredOption("--reason <text>", "Reason for releasing (required)")
         .option("--agent <id>", "Owning agent id")
         .option("--json", "Output as JSON")
         .action(
@@ -395,7 +395,7 @@ export function registerWorkqCli(
               return;
             }
 
-            console.log(`Released ${result.issueRef} (status=dropped).`);
+            console.log(`Released ${result.issueRef} (status=dropped). Reason: ${options.reason}`);
           }),
         );
 
@@ -847,8 +847,14 @@ function printListHuman(items: WorkItem[], total: number): void {
   for (const item of items) {
     const title = item.title ? ` — ${item.title}` : "";
     const stale = item.isStale ? " [STALE]" : "";
+    const droppedSuffix =
+      item.status === "dropped" && item.droppedReason
+        ? ` | reason=${item.droppedReason}`
+        : item.status === "dropped"
+          ? " | reason=(none)"
+          : "";
     console.log(
-      `- ${item.issueRef}${title} | status=${item.status}${stale} | priority=${item.priority} | agent=${item.agentId} | squad=${item.squad ?? "-"} | updated=${item.updatedAt}`,
+      `- ${item.issueRef}${title} | status=${item.status}${stale} | priority=${item.priority} | agent=${item.agentId} | squad=${item.squad ?? "-"} | updated=${item.updatedAt}${droppedSuffix}`,
     );
   }
 }
@@ -866,6 +872,7 @@ function printItemDetailHuman(item: WorkItem): void {
   console.log(`Worktree: ${item.worktreePath ?? "-"}`);
   console.log(`PR: ${item.prUrl ?? "-"}`);
   console.log(`Blocked reason: ${item.blockedReason ?? "-"}`);
+  console.log(`Dropped reason: ${item.droppedReason ?? "-"}`);
   console.log(`Files: ${item.files.length ? item.files.join(", ") : "-"}`);
   console.log(`Claimed at: ${item.claimedAt}`);
   console.log(`Updated at: ${item.updatedAt}`);

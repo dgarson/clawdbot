@@ -15,6 +15,7 @@ function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
     worktreePath: null,
     prUrl: null,
     blockedReason: null,
+    droppedReason: null,
     priority: "high",
     scope: [],
     tags: [],
