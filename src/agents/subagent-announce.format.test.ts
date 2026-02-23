@@ -939,6 +939,33 @@ describe("subagent announce formatting", () => {
     expect(params.accountId).toBeUndefined();
   });
 
+  it("does not treat heartbeat sentinel as a direct Slack target for completion announces", async () => {
+    sessionStore = {
+      "agent:main:main": {
+        sessionId: "session-slack-heartbeat-sentinel",
+        lastChannel: "slack",
+        lastTo: "heartbeat",
+      },
+    };
+
+    const didAnnounce = await runSubagentAnnounceFlow({
+      childSessionKey: "agent:main:subagent:test",
+      childRunId: "run-slack-heartbeat-sentinel",
+      requesterSessionKey: "main",
+      requesterDisplayKey: "main",
+      requesterOrigin: { channel: "slack", to: "heartbeat", accountId: "default" },
+      expectsCompletionMessage: true,
+      ...defaultOutcomeAnnounce,
+    });
+
+    expect(didAnnounce).toBe(true);
+    expect(sendSpy).toHaveBeenCalledTimes(0);
+    for (const call of agentSpy.mock.calls) {
+      const params = (call[0] as { params?: Record<string, unknown> })?.params ?? {};
+      expect(params.to).not.toBe("heartbeat");
+    }
+  });
+
   it("keeps queued idempotency unique for same-ms distinct child runs", async () => {
     embeddedRunMock.isEmbeddedPiRunActive.mockReturnValue(true);
     embeddedRunMock.isEmbeddedPiRunStreaming.mockReturnValue(false);

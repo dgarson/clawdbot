@@ -42,6 +42,7 @@ import { sanitizeTextContent, extractAssistantText } from "./tools/sessions-help
 const FAST_TEST_MODE = process.env.OPENCLAW_TEST_FAST === "1";
 const FAST_TEST_RETRY_INTERVAL_MS = 8;
 const FAST_TEST_REPLY_CHANGE_WAIT_MS = 20;
+const INTERNAL_HEARTBEAT_SENDER_SENTINEL = "heartbeat";
 
 type ToolResultMessage = {
   role?: unknown;
@@ -492,8 +493,8 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     isDeliverableMessageChannel(origin.channel) &&
     !resolvedDelivery.deliver
   ) {
-    defaultRuntime.warn?.(
-      `Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
+    defaultRuntime.log(
+      `[warn] Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
     );
   }
   const threadId =
@@ -563,6 +564,11 @@ function normalizeDeliverableTo(raw: unknown): string | undefined {
   // Treat malformed Slack-style channel markers as absent targets so normal
   // fallback target resolution can run (implicit/default-to/session-bound).
   if (/^channel\s*:?\s*$/i.test(trimmed)) {
+    return undefined;
+  }
+  // Heartbeat internals may use the synthetic sender value "heartbeat" to
+  // represent "no concrete recipient". Never treat it as a real target.
+  if (trimmed.toLowerCase() === INTERNAL_HEARTBEAT_SENDER_SENTINEL) {
     return undefined;
   }
   return trimmed;

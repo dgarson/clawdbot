@@ -285,7 +285,7 @@ type ResolvedActionContext = {
   abortSignal?: AbortSignal;
 };
 
-function trimField(value: string | undefined, max = 80): string | undefined {
+function trimField(value: string | null | undefined, max = 80): string | undefined {
   const trimmed = value?.trim();
   if (!trimmed) {
     return undefined;
@@ -401,7 +401,7 @@ async function repairMisplacedChannelTarget(params: {
   const targetHint = readExplicitTarget(params.args);
   const normalizedTargetHint = normalizeMessageChannel(targetHint);
   const isKnownTargetProvider =
-    Boolean(normalizedTargetHint) && isDeliverableMessageChannel(normalizedTargetHint);
+    normalizedTargetHint !== undefined && isDeliverableMessageChannel(normalizedTargetHint);
   const warnContext = [params.actorLabel, params.modelLabel].filter(Boolean).join(" ");
 
   // Guarded swapped-field repair:
