@@ -55,6 +55,12 @@ const SessionsSendToolSchema = Type.Object({
       description: "Response timeout in seconds (0=fire-and-forget; default: 60).",
     }),
   ),
+  spawnIfInactive: Type.Optional(
+    Type.Boolean({
+      description:
+        "If true and the target session is not active, spawn a new sub-agent instead of failing",
+    }),
+  ),
 });
 
 export function createSessionsSendTool(opts?: {
