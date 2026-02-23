@@ -233,12 +233,12 @@ function getStatusColor(status: HealthStatus): string {
   }
 }
 
-function getStatusBadgeVariant(status: HealthStatus): "success" | "warning" | "destructive" | "secondary" {
+function getStatusBadgeVariant(status: HealthStatus): "default" | "outline" | "destructive" | "secondary" {
   switch (status) {
     case "healthy":
-      return "success"
+      return "default"
     case "degraded":
-      return "warning"
+      return "outline"
     case "critical":
       return "destructive"
     case "unknown":
@@ -384,7 +384,6 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
             <Progress
               value={quotaPercentage ?? 0}
               className="h-1.5"
-              indicatorClassName={quotaPercentage !== null ? getQuotaColor(quotaPercentage) : "bg-zinc-400"}
             />
             {credential.quota.resetDate && (
               <p className="text-xs text-zinc-500">
@@ -491,7 +490,7 @@ function AlertItem({ alert, credentialName, onAcknowledge }: AlertItemProps) {
   )
 
   return (
-    <Alert variant={alert.severity === "critical" ? "destructive" : "warning"}>
+    <Alert variant={alert.severity === "critical" ? "destructive" : "default"}>
       <Icons.ExclamationTriangle className={iconClass} />
       <AlertTitle className="flex items-center justify-between">
         <span>{alert.type.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}</span>

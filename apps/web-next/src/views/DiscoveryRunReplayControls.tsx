@@ -214,7 +214,7 @@ const WAVES: WaveData[] = [
       { id: "f032", title: "S3 Bucket Public Access", severity: "high", category: "Cloud Storage", description: "3 buckets publicly accessible" },
       { id: "f033", title: "CloudTrail Logging Disabled", severity: "high", category: "Cloud Security", description: "Logging disabled on production account" },
       { id: "f034", title: "Unrestricted Egress", severity: "medium", category: "Network", description: "No egress filtering" },
-      { id: "f035", title: "Shared IAM", severity: " Rolesmedium", category: "Cloud Security", description: "Overly permissive role assignments" },
+      { id: "f035", title: "Shared IAM", severity: "medium", category: "Cloud Security", description: "Overly permissive role assignments" },
       { id: "f036", title: "Auto-scaling Without Limits", severity: "low", category: "Configuration", description: "No max instance count set" },
       { id: "f037", title: "Console Access Enabled", severity: "medium", category: "Cloud Security", description: "Root account has console access" }
     ],
