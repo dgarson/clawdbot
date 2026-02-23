@@ -21,7 +21,7 @@ export type HitlPolicyDefinition = {
   /** Minimum role required to approve this request. */
   minApproverRole?: string;
   /** If true, the approver must be different from the requesting actor. */
-  requireDifferentActor?: string | boolean;
+  requireDifferentActor?: boolean;
   /** Maximum approval chain depth to prevent escalation attacks (0 = no limit). */
   maxApprovalChainDepth?: number;
   /** Escalation configuration for denied/timeout scenarios. */
