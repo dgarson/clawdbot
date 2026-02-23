@@ -15,6 +15,7 @@ import type { OpenClawConfig } from "../../config/config.js";
 import { loadConfig } from "../../config/config.js";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "../../gateway/protocol/client-info.js";
 import { getToolResult, runMessageAction } from "../../infra/outbound/message-action-runner.js";
+import { actionRequiresTarget } from "../../infra/outbound/message-action-spec.js";
 import { normalizeTargetForProvider } from "../../infra/outbound/target-normalization.js";
 import { normalizeAccountId } from "../../routing/session-key.js";
 import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
@@ -24,6 +25,11 @@ import { listChannelSupportedActions } from "../channel-tools.js";
 import { channelTargetSchema, channelTargetsSchema, stringEnum } from "../schema/typebox.js";
 import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
+import {
+  deliverMessageToParentSession,
+  extractMessageContent,
+  resolveParentSessionKey,
+} from "./message-parent-fallback.js";
 import { resolveGatewayOptions } from "./gateway.js";
 
 const AllMessageActions = CHANNEL_MESSAGE_ACTION_NAMES;
@@ -652,21 +658,56 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
             }
           : undefined;
 
-      const result = await runMessageAction({
-        cfg,
-        action,
-        params,
-        defaultAccountId: accountId ?? undefined,
-        requesterSenderId: options?.requesterSenderId,
-        gateway,
-        toolContext,
-        sessionKey: options?.agentSessionKey,
-        agentId: options?.agentSessionKey
-          ? resolveSessionAgentId({ sessionKey: options.agentSessionKey, config: cfg })
-          : undefined,
-        sandboxRoot: options?.sandboxRoot,
-        abortSignal: signal,
-      });
+      let result;
+      try {
+        result = await runMessageAction({
+          cfg,
+          action,
+          params,
+          defaultAccountId: accountId ?? undefined,
+          requesterSenderId: options?.requesterSenderId,
+          gateway,
+          toolContext,
+          sessionKey: options?.agentSessionKey,
+          agentId: options?.agentSessionKey
+            ? resolveSessionAgentId({ sessionKey: options.agentSessionKey, config: cfg })
+            : undefined,
+          sandboxRoot: options?.sandboxRoot,
+          abortSignal: signal,
+        });
+      } catch (err) {
+        // If the send had no target and this session is a sub-agent, forward the
+        // message content to the parent session rather than surfacing an error.
+        // The parent's next agent turn will receive it as a [System Message] and
+        // can deliver or relay it as appropriate.
+        if (
+          err instanceof Error &&
+          err.message.endsWith("requires a target.") &&
+          actionRequiresTarget(action) &&
+          options?.agentSessionKey
+        ) {
+          const parentSessionKey = resolveParentSessionKey(options.agentSessionKey);
+          if (parentSessionKey) {
+            const messageContent = extractMessageContent(params);
+            if (messageContent) {
+              const forwarded = deliverMessageToParentSession({
+                parentSessionKey,
+                childSessionKey: options.agentSessionKey,
+                messageContent,
+                action,
+              });
+              if (forwarded) {
+                return jsonResult({
+                  status: "forwarded_to_parent",
+                  parent_session: parentSessionKey,
+                  note: "No delivery target was specified. Message content has been forwarded to the parent session as a system event.",
+                });
+              }
+            }
+          }
+        }
+        throw err;
+      }
 
       const toolResult = getToolResult(result);
       if (toolResult) {
