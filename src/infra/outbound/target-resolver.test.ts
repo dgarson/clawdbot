@@ -18,9 +18,9 @@ describe("resolveMessagingTarget (directory fallback)", () => {
   const cfg = {} as OpenClawConfig;
 
   beforeEach(() => {
-    mocks.listGroups.mockClear();
-    mocks.listGroupsLive.mockClear();
-    mocks.getChannelPlugin.mockClear();
+    mocks.listGroups.mockReset();
+    mocks.listGroupsLive.mockReset();
+    mocks.getChannelPlugin.mockReset();
     resetDirectoryCache();
     mocks.getChannelPlugin.mockReturnValue({
       directory: {

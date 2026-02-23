@@ -9,22 +9,6 @@ import {
   saveSessionStore,
 } from "./sessions.js";
 
-function createSessionEntry(overrides: Partial<SessionEntry> = {}): SessionEntry {
-  return {
-    sessionId: "id-1",
-    updatedAt: Date.now(),
-    displayName: "Test Session 1",
-    ...overrides,
-  };
-}
-
-function createSingleSessionStore(
-  entry: SessionEntry = createSessionEntry(),
-  key = "session:1",
-): Record<string, SessionEntry> {
-  return { [key]: entry };
-}
-
 describe("Session Store Cache", () => {
   let fixtureRoot = "";
   let caseId = 0;
@@ -59,7 +43,13 @@ describe("Session Store Cache", () => {
   });
 
   it("should load session store from disk on first call", async () => {
-    const testStore = createSingleSessionStore();
+    const testStore: Record<string, SessionEntry> = {
+      "session:1": {
+        sessionId: "id-1",
+        updatedAt: Date.now(),
+        displayName: "Test Session 1",
+      },
+    };
 
     // Write test data
     await saveSessionStore(storePath, testStore);
@@ -70,7 +60,13 @@ describe("Session Store Cache", () => {
   });
 
   it("should cache session store on first load when file is unchanged", async () => {
-    const testStore = createSingleSessionStore();
+    const testStore: Record<string, SessionEntry> = {
+      "session:1": {
+        sessionId: "id-1",
+        updatedAt: Date.now(),
+        displayName: "Test Session 1",
+      },
+    };
 
     await saveSessionStore(storePath, testStore);
 
@@ -88,15 +84,17 @@ describe("Session Store Cache", () => {
   });
 
   it("should not allow cached session mutations to leak across loads", async () => {
-    const testStore = createSingleSessionStore(
-      createSessionEntry({
+    const testStore: Record<string, SessionEntry> = {
+      "session:1": {
+        sessionId: "id-1",
+        updatedAt: Date.now(),
         cliSessionIds: { openai: "sess-1" },
         skillsSnapshot: {
           prompt: "skills",
           skills: [{ name: "alpha" }],
         },
-      }),
-    );
+      },
+    };
 
     await saveSessionStore(storePath, testStore);
 
@@ -112,7 +110,13 @@ describe("Session Store Cache", () => {
   });
 
   it("should refresh cache when store file changes on disk", async () => {
-    const testStore = createSingleSessionStore();
+    const testStore: Record<string, SessionEntry> = {
+      "session:1": {
+        sessionId: "id-1",
+        updatedAt: Date.now(),
+        displayName: "Test Session 1",
+      },
+    };
 
     await saveSessionStore(storePath, testStore);
 
@@ -134,7 +138,13 @@ describe("Session Store Cache", () => {
   });
 
   it("should invalidate cache on write", async () => {
-    const testStore = createSingleSessionStore();
+    const testStore: Record<string, SessionEntry> = {
+      "session:1": {
+        sessionId: "id-1",
+        updatedAt: Date.now(),
+        displayName: "Test Session 1",
+      },
+    };
 
     await saveSessionStore(storePath, testStore);
 
@@ -162,7 +172,13 @@ describe("Session Store Cache", () => {
     process.env.OPENCLAW_SESSION_CACHE_TTL_MS = "0";
     clearSessionStoreCacheForTest();
 
-    const testStore = createSingleSessionStore();
+    const testStore: Record<string, SessionEntry> = {
+      "session:1": {
+        sessionId: "id-1",
+        updatedAt: Date.now(),
+        displayName: "Test Session 1",
+      },
+    };
 
     await saveSessionStore(storePath, testStore);
 
@@ -171,10 +187,13 @@ describe("Session Store Cache", () => {
     expect(loaded1).toEqual(testStore);
 
     // Modify file on disk
-    const modifiedStore = createSingleSessionStore(
-      createSessionEntry({ sessionId: "id-2", displayName: "Test Session 2" }),
-      "session:2",
-    );
+    const modifiedStore: Record<string, SessionEntry> = {
+      "session:2": {
+        sessionId: "id-2",
+        updatedAt: Date.now(),
+        displayName: "Test Session 2",
+      },
+    };
     fs.writeFileSync(storePath, JSON.stringify(modifiedStore, null, 2));
 
     // Second load - should read from disk (cache disabled)

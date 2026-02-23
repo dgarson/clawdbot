@@ -43,22 +43,18 @@ async function getServerModule() {
   return await serverModulePromise;
 }
 
-const GATEWAY_TEST_ENV_KEYS = [
-  "HOME",
-  "USERPROFILE",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_CONFIG_PATH",
-  "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
-  "OPENCLAW_SKIP_GMAIL_WATCHER",
-  "OPENCLAW_SKIP_CANVAS_HOST",
-  "OPENCLAW_BUNDLED_PLUGINS_DIR",
-  "OPENCLAW_SKIP_CHANNELS",
-  "OPENCLAW_SKIP_PROVIDERS",
-  "OPENCLAW_SKIP_CRON",
-  "OPENCLAW_TEST_MINIMAL_GATEWAY",
-] as const;
-
-let gatewayEnvSnapshot: ReturnType<typeof captureEnv> | undefined;
+let previousHome: string | undefined;
+let previousUserProfile: string | undefined;
+let previousStateDir: string | undefined;
+let previousConfigPath: string | undefined;
+let previousSkipBrowserControl: string | undefined;
+let previousSkipGmailWatcher: string | undefined;
+let previousSkipCanvasHost: string | undefined;
+let previousBundledPluginsDir: string | undefined;
+let previousSkipChannels: string | undefined;
+let previousSkipProviders: string | undefined;
+let previousSkipCron: string | undefined;
+let previousMinimalGateway: string | undefined;
 let tempHome: string | undefined;
 let tempConfigRoot: string | undefined;
 
@@ -91,7 +87,18 @@ export async function writeSessionStore(params: {
 }
 
 async function setupGatewayTestHome() {
-  gatewayEnvSnapshot = captureEnv([...GATEWAY_TEST_ENV_KEYS]);
+  previousHome = process.env.HOME;
+  previousUserProfile = process.env.USERPROFILE;
+  previousStateDir = process.env.OPENCLAW_STATE_DIR;
+  previousConfigPath = process.env.OPENCLAW_CONFIG_PATH;
+  previousSkipBrowserControl = process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER;
+  previousSkipGmailWatcher = process.env.OPENCLAW_SKIP_GMAIL_WATCHER;
+  previousSkipCanvasHost = process.env.OPENCLAW_SKIP_CANVAS_HOST;
+  previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+  previousSkipChannels = process.env.OPENCLAW_SKIP_CHANNELS;
+  previousSkipProviders = process.env.OPENCLAW_SKIP_PROVIDERS;
+  previousSkipCron = process.env.OPENCLAW_SKIP_CRON;
+  previousMinimalGateway = process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
   tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gateway-home-"));
   process.env.HOME = tempHome;
   process.env.USERPROFILE = tempHome;
@@ -169,8 +176,66 @@ async function cleanupGatewayTestHome(options: { restoreEnv: boolean }) {
   vi.useRealTimers();
   resetLogger();
   if (options.restoreEnv) {
-    gatewayEnvSnapshot?.restore();
-    gatewayEnvSnapshot = undefined;
+    if (previousHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = previousHome;
+    }
+    if (previousUserProfile === undefined) {
+      delete process.env.USERPROFILE;
+    } else {
+      process.env.USERPROFILE = previousUserProfile;
+    }
+    if (previousStateDir === undefined) {
+      delete process.env.OPENCLAW_STATE_DIR;
+    } else {
+      process.env.OPENCLAW_STATE_DIR = previousStateDir;
+    }
+    if (previousConfigPath === undefined) {
+      delete process.env.OPENCLAW_CONFIG_PATH;
+    } else {
+      process.env.OPENCLAW_CONFIG_PATH = previousConfigPath;
+    }
+    if (previousSkipBrowserControl === undefined) {
+      delete process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER;
+    } else {
+      process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER = previousSkipBrowserControl;
+    }
+    if (previousSkipGmailWatcher === undefined) {
+      delete process.env.OPENCLAW_SKIP_GMAIL_WATCHER;
+    } else {
+      process.env.OPENCLAW_SKIP_GMAIL_WATCHER = previousSkipGmailWatcher;
+    }
+    if (previousSkipCanvasHost === undefined) {
+      delete process.env.OPENCLAW_SKIP_CANVAS_HOST;
+    } else {
+      process.env.OPENCLAW_SKIP_CANVAS_HOST = previousSkipCanvasHost;
+    }
+    if (previousBundledPluginsDir === undefined) {
+      delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    } else {
+      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = previousBundledPluginsDir;
+    }
+    if (previousSkipChannels === undefined) {
+      delete process.env.OPENCLAW_SKIP_CHANNELS;
+    } else {
+      process.env.OPENCLAW_SKIP_CHANNELS = previousSkipChannels;
+    }
+    if (previousSkipProviders === undefined) {
+      delete process.env.OPENCLAW_SKIP_PROVIDERS;
+    } else {
+      process.env.OPENCLAW_SKIP_PROVIDERS = previousSkipProviders;
+    }
+    if (previousSkipCron === undefined) {
+      delete process.env.OPENCLAW_SKIP_CRON;
+    } else {
+      process.env.OPENCLAW_SKIP_CRON = previousSkipCron;
+    }
+    if (previousMinimalGateway === undefined) {
+      delete process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
+    } else {
+      process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = previousMinimalGateway;
+    }
   }
   if (options.restoreEnv && tempHome) {
     await fs.rm(tempHome, {
@@ -241,37 +306,6 @@ type GatewayTestMessage = {
   stateVersion?: Record<string, unknown>;
   [key: string]: unknown;
 };
-
-const CONNECT_CHALLENGE_NONCE_KEY = "__openclawTestConnectChallengeNonce";
-const CONNECT_CHALLENGE_TRACKED_KEY = "__openclawTestConnectChallengeTracked";
-type TrackedWs = WebSocket & Record<string, unknown>;
-
-export function getTrackedConnectChallengeNonce(ws: WebSocket): string | undefined {
-  const tracked = (ws as TrackedWs)[CONNECT_CHALLENGE_NONCE_KEY];
-  return typeof tracked === "string" && tracked.trim().length > 0 ? tracked.trim() : undefined;
-}
-
-export function trackConnectChallengeNonce(ws: WebSocket): void {
-  const trackedWs = ws as TrackedWs;
-  if (trackedWs[CONNECT_CHALLENGE_TRACKED_KEY] === true) {
-    return;
-  }
-  trackedWs[CONNECT_CHALLENGE_TRACKED_KEY] = true;
-  ws.on("message", (data) => {
-    try {
-      const obj = JSON.parse(rawDataToString(data)) as GatewayTestMessage;
-      if (obj.type !== "event" || obj.event !== "connect.challenge") {
-        return;
-      }
-      const nonce = (obj.payload as { nonce?: unknown } | undefined)?.nonce;
-      if (typeof nonce === "string" && nonce.trim().length > 0) {
-        trackedWs[CONNECT_CHALLENGE_NONCE_KEY] = nonce.trim();
-      }
-    } catch {
-      // ignore parse errors in nonce tracker
-    }
-  });
-}
 
 export function onceMessage<T extends GatewayTestMessage = GatewayTestMessage>(
   ws: WebSocket,
@@ -376,7 +410,6 @@ export async function startServerWithClient(
     `ws://127.0.0.1:${port}`,
     wsHeaders ? { headers: wsHeaders } : undefined,
   );
-  trackConnectChallengeNonce(ws);
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("timeout waiting for ws open")), 10_000);
     const cleanup = () => {
@@ -409,40 +442,13 @@ type ConnectResponse = {
   id: string;
   ok: boolean;
   payload?: Record<string, unknown>;
-  error?: { message?: string; code?: string; details?: unknown };
+  error?: { message?: string };
 };
-
-export async function readConnectChallengeNonce(
-  ws: WebSocket,
-  timeoutMs = 2_000,
-): Promise<string | undefined> {
-  const cached = getTrackedConnectChallengeNonce(ws);
-  if (cached) {
-    return cached;
-  }
-  trackConnectChallengeNonce(ws);
-  try {
-    const evt = await onceMessage<{
-      type?: string;
-      event?: string;
-      payload?: Record<string, unknown> | null;
-    }>(ws, (o) => o.type === "event" && o.event === "connect.challenge", timeoutMs);
-    const nonce = (evt.payload as { nonce?: unknown } | undefined)?.nonce;
-    if (typeof nonce === "string" && nonce.trim().length > 0) {
-      (ws as TrackedWs)[CONNECT_CHALLENGE_NONCE_KEY] = nonce.trim();
-      return nonce.trim();
-    }
-    return undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 export async function connectReq(
   ws: WebSocket,
   opts?: {
     token?: string;
-    deviceToken?: string;
     password?: string;
     skipDefaultAuth?: boolean;
     minProtocol?: number;
@@ -469,8 +475,6 @@ export async function connectReq(
       signedAt: number;
       nonce?: string;
     } | null;
-    skipConnectChallengeNonce?: boolean;
-    timeoutMs?: number;
   },
 ): Promise<ConnectResponse> {
   const { randomUUID } = await import("node:crypto");
@@ -495,28 +499,18 @@ export async function connectReq(
         ? ((testState.gatewayAuth as { password?: string }).password ?? undefined)
         : process.env.OPENCLAW_GATEWAY_PASSWORD;
   const token = opts?.token ?? defaultToken;
-  const deviceToken = opts?.deviceToken?.trim() || undefined;
   const password = opts?.password ?? defaultPassword;
-  const authTokenForSignature = token ?? deviceToken;
   const requestedScopes = Array.isArray(opts?.scopes)
     ? opts.scopes
     : role === "operator"
       ? ["operator.admin"]
       : [];
-  if (opts?.skipConnectChallengeNonce && opts?.device === undefined) {
-    throw new Error("skipConnectChallengeNonce requires an explicit device override");
-  }
-  const connectChallengeNonce =
-    opts?.device !== undefined ? undefined : await readConnectChallengeNonce(ws);
   const device = (() => {
     if (opts?.device === null) {
       return undefined;
     }
     if (opts?.device) {
       return opts.device;
-    }
-    if (!connectChallengeNonce) {
-      throw new Error("missing connect.challenge nonce");
     }
     const identity = loadOrCreateDeviceIdentity();
     const signedAtMs = Date.now();
@@ -527,15 +521,14 @@ export async function connectReq(
       role,
       scopes: requestedScopes,
       signedAtMs,
-      token: authTokenForSignature ?? null,
-      nonce: connectChallengeNonce,
+      token: token ?? null,
     });
     return {
       id: identity.deviceId,
       publicKey: publicKeyRawBase64UrlFromPem(identity.publicKeyPem),
       signature: signDevicePayload(identity.privateKeyPem, payload),
       signedAt: signedAtMs,
-      nonce: connectChallengeNonce,
+      nonce: opts?.device?.nonce,
     };
   })();
   ws.send(
@@ -553,10 +546,9 @@ export async function connectReq(
         role,
         scopes: requestedScopes,
         auth:
-          token || password || deviceToken
+          token || password
             ? {
                 token,
-                deviceToken,
                 password,
               }
             : undefined,
@@ -571,7 +563,7 @@ export async function connectReq(
     const rec = o as Record<string, unknown>;
     return rec.type === "res" && rec.id === id;
   };
-  return await onceMessage<ConnectResponse>(ws, isResponseForId, opts?.timeoutMs);
+  return await onceMessage<ConnectResponse>(ws, isResponseForId);
 }
 
 export async function connectOk(ws: WebSocket, opts?: Parameters<typeof connectReq>[1]) {
@@ -590,7 +582,6 @@ export async function connectWebchatClient(params: {
   const ws = new WebSocket(`ws://127.0.0.1:${params.port}`, {
     headers: { origin },
   });
-  trackConnectChallengeNonce(ws);
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("timeout waiting for ws open")), 10_000);
     const onOpen = () => {

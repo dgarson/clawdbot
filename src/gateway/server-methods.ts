@@ -1,8 +1,11 @@
 import { formatControlPlaneActor, resolveControlPlaneActor } from "./control-plane-audit.js";
 import { consumeControlPlaneWriteBudget } from "./control-plane-rate-limit.js";
-import { ADMIN_SCOPE, authorizeOperatorScopesForMethod } from "./method-scopes.js";
+import {
+  ADMIN_SCOPE,
+  authorizeOperatorScopesForMethod,
+  isNodeRoleMethod,
+} from "./method-scopes.js";
 import { ErrorCodes, errorShape } from "./protocol/index.js";
-import { isRoleAuthorizedForMethod, parseGatewayRole } from "./role-policy.js";
 import { agentHandlers } from "./server-methods/agent.js";
 import { agentsHandlers } from "./server-methods/agents.js";
 import { browserHandlers } from "./server-methods/browser.js";
@@ -39,17 +42,19 @@ function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["c
   if (method === "health") {
     return null;
   }
-  const roleRaw = client.connect.role ?? "operator";
-  const role = parseGatewayRole(roleRaw);
-  if (!role) {
-    return errorShape(ErrorCodes.INVALID_REQUEST, `unauthorized role: ${roleRaw}`);
-  }
+  const role = client.connect.role ?? "operator";
   const scopes = client.connect.scopes ?? [];
-  if (!isRoleAuthorizedForMethod(role, method)) {
+  if (isNodeRoleMethod(method)) {
+    if (role === "node") {
+      return null;
+    }
     return errorShape(ErrorCodes.INVALID_REQUEST, `unauthorized role: ${role}`);
   }
   if (role === "node") {
-    return null;
+    return errorShape(ErrorCodes.INVALID_REQUEST, `unauthorized role: ${role}`);
+  }
+  if (role !== "operator") {
+    return errorShape(ErrorCodes.INVALID_REQUEST, `unauthorized role: ${role}`);
   }
   if (scopes.includes(ADMIN_SCOPE)) {
     return null;

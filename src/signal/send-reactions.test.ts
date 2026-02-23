@@ -27,7 +27,7 @@ vi.mock("./client.js", () => ({
 
 describe("sendReactionSignal", () => {
   beforeEach(() => {
-    rpcMock.mockClear().mockResolvedValue({ timestamp: 123 });
+    rpcMock.mockReset().mockResolvedValue({ timestamp: 123 });
   });
 
   it("uses recipients array and targetAuthor for uuid dms", async () => {

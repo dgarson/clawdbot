@@ -91,7 +91,7 @@ describe("ports helpers", () => {
 
 describeUnix("inspectPortUsage", () => {
   beforeEach(() => {
-    runCommandWithTimeoutMock.mockClear();
+    runCommandWithTimeoutMock.mockReset();
   });
 
   it("reports busy when lsof is missing but loopback listener exists", async () => {

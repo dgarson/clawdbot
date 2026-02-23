@@ -1,9 +1,5 @@
 import fs from "node:fs";
 import type { OpenClawConfig } from "../config/config.js";
-import {
-  DEFAULT_ACCOUNT_ID,
-  normalizeAccountId as normalizeSharedAccountId,
-} from "../routing/account-id.js";
 import type {
   LineConfig,
   LineAccountConfig,
@@ -11,7 +7,7 @@ import type {
   LineTokenSource,
 } from "./types.js";
 
-export { DEFAULT_ACCOUNT_ID } from "../routing/account-id.js";
+export const DEFAULT_ACCOUNT_ID = "default";
 
 function readFileIfExists(filePath: string | undefined): string | undefined {
   if (!filePath) {
@@ -177,5 +173,9 @@ export function resolveDefaultLineAccountId(cfg: OpenClawConfig): string {
 }
 
 export function normalizeAccountId(accountId: string | undefined): string {
-  return normalizeSharedAccountId(accountId);
+  const trimmed = accountId?.trim().toLowerCase();
+  if (!trimmed || trimmed === "default") {
+    return DEFAULT_ACCOUNT_ID;
+  }
+  return trimmed;
 }

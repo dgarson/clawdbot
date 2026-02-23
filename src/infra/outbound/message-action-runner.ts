@@ -294,77 +294,6 @@ function resolveGateway(input: RunMessageActionParams): MessageActionRunnerGatew
   };
 }
 
-function hasLegacyTargetFields(params: Record<string, unknown>): boolean {
-  return (
-    (typeof params.to === "string" && params.to.trim().length > 0) ||
-    (typeof params.channelId === "string" && params.channelId.trim().length > 0)
-  );
-}
-
-function readExplicitTarget(params: Record<string, unknown>): string {
-  return typeof params.target === "string" ? params.target.trim() : "";
-}
-
-function looksLikeDestinationHint(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return false;
-  }
-  return (
-    /^[@#]/.test(trimmed) ||
-    /^(channel|group|user|conversation|chat|thread):/i.test(trimmed) ||
-    /^\+?\d{6,}$/.test(trimmed) ||
-    trimmed.includes("@thread") ||
-    trimmed.includes("-")
-  );
-}
-
-async function repairMisplacedChannelTarget(params: {
-  cfg: OpenClawConfig;
-  action: ChannelMessageActionName;
-  args: Record<string, unknown>;
-  toolContext?: ChannelThreadingToolContext;
-}) {
-  if (!actionRequiresTarget(params.action)) {
-    return;
-  }
-  if (readExplicitTarget(params.args) || hasLegacyTargetFields(params.args)) {
-    return;
-  }
-  const channelHint = typeof params.args.channel === "string" ? params.args.channel.trim() : "";
-  if (!channelHint) {
-    return;
-  }
-  const normalizedChannelHint = normalizeMessageChannel(channelHint);
-  if (normalizedChannelHint && isDeliverableMessageChannel(normalizedChannelHint)) {
-    return;
-  }
-  if (!looksLikeDestinationHint(channelHint)) {
-    return;
-  }
-
-  const inferredFromContext = normalizeMessageChannel(params.toolContext?.currentChannelProvider);
-  const contextChannel =
-    inferredFromContext && isDeliverableMessageChannel(inferredFromContext)
-      ? inferredFromContext
-      : undefined;
-
-  let fallbackChannel: string | undefined = contextChannel;
-  if (!fallbackChannel) {
-    try {
-      fallbackChannel = (await resolveMessageChannelSelection({ cfg: params.cfg })).channel;
-    } catch {
-      fallbackChannel = undefined;
-    }
-  }
-  if (!fallbackChannel) {
-    return;
-  }
-
-  params.args.target = channelHint;
-  params.args.channel = fallbackChannel;
-}
-
 async function handleBroadcastAction(
   input: RunMessageActionParams,
   params: Record<string, unknown>,
@@ -778,8 +707,10 @@ export async function runMessageAction(
     return handleBroadcastAction(input, params);
   }
 
-  const explicitTarget = readExplicitTarget(params);
-  const hasLegacyTarget = hasLegacyTargetFields(params);
+  const explicitTarget = typeof params.target === "string" ? params.target.trim() : "";
+  const hasLegacyTarget =
+    (typeof params.to === "string" && params.to.trim().length > 0) ||
+    (typeof params.channelId === "string" && params.channelId.trim().length > 0);
   if (explicitTarget && hasLegacyTarget) {
     delete params.to;
     delete params.channelId;
@@ -795,11 +726,7 @@ export async function runMessageAction(
       params.target = inferredTarget;
     }
   }
-  if (
-    !readExplicitTarget(params) &&
-    actionRequiresTarget(action) &&
-    hasLegacyTargetFields(params)
-  ) {
+  if (!explicitTarget && actionRequiresTarget(action) && hasLegacyTarget) {
     const legacyTo = typeof params.to === "string" ? params.to.trim() : "";
     const legacyChannelId = typeof params.channelId === "string" ? params.channelId.trim() : "";
     const legacyTarget = legacyTo || legacyChannelId;
@@ -816,12 +743,6 @@ export async function runMessageAction(
       params.channel = inferredChannel;
     }
   }
-  await repairMisplacedChannelTarget({
-    cfg,
-    action,
-    args: params,
-    toolContext: input.toolContext,
-  });
 
   applyTargetToParams({ action, args: params });
   if (actionRequiresTarget(action)) {

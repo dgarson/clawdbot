@@ -1,6 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
-import { createSubmitHarness } from "./tui-submit-test-helpers.js";
-import { createSubmitBurstCoalescer, shouldEnableWindowsGitBashPasteFallback } from "./tui.js";
+import {
+  createEditorSubmitHandler,
+  createSubmitBurstCoalescer,
+  shouldEnableWindowsGitBashPasteFallback,
+} from "./tui.js";
+
+function createSubmitHarness() {
+  const editor = {
+    setText: vi.fn(),
+    addToHistory: vi.fn(),
+  };
+  const handleCommand = vi.fn();
+  const sendMessage = vi.fn();
+  const handleBangLine = vi.fn();
+  const onSubmit = createEditorSubmitHandler({
+    editor,
+    handleCommand,
+    sendMessage,
+    handleBangLine,
+  });
+  return { editor, handleCommand, sendMessage, handleBangLine, onSubmit };
+}
 
 describe("createEditorSubmitHandler", () => {
   it("routes lines starting with ! to handleBangLine", () => {
@@ -110,32 +130,10 @@ describe("shouldEnableWindowsGitBashPasteFallback", () => {
     ).toBe(true);
   });
 
-  it("enables fallback on macOS iTerm", () => {
-    expect(
-      shouldEnableWindowsGitBashPasteFallback({
-        platform: "darwin",
-        env: {
-          TERM_PROGRAM: "iTerm.app",
-        } as NodeJS.ProcessEnv,
-      }),
-    ).toBe(true);
-  });
-
-  it("enables fallback on macOS Terminal.app", () => {
-    expect(
-      shouldEnableWindowsGitBashPasteFallback({
-        platform: "darwin",
-        env: {
-          TERM_PROGRAM: "Apple_Terminal",
-        } as NodeJS.ProcessEnv,
-      }),
-    ).toBe(true);
-  });
-
   it("disables fallback outside Windows", () => {
     expect(
       shouldEnableWindowsGitBashPasteFallback({
-        platform: "linux",
+        platform: "darwin",
         env: {
           MSYSTEM: "MINGW64",
         } as NodeJS.ProcessEnv,

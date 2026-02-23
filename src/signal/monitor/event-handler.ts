@@ -137,7 +137,6 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
             sender: historyEntry.sender,
             body: historyEntry.body,
             timestamp: historyEntry.timestamp,
-            ...(historyEntry.messageId ? { messageId: historyEntry.messageId } : {}),
           }))
         : undefined;
     const ctxPayload = finalizeInboundContext({
@@ -442,10 +441,7 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
     const groupId = dataMessage.groupInfo?.groupId ?? undefined;
     const groupName = dataMessage.groupInfo?.groupName ?? undefined;
     const isGroup = Boolean(groupId);
-    const storeAllowFrom =
-      deps.dmPolicy === "allowlist"
-        ? []
-        : await readChannelAllowFromStore("signal").catch(() => []);
+    const storeAllowFrom = await readChannelAllowFromStore("signal").catch(() => []);
     const effectiveDmAllow = [...deps.allowFrom, ...storeAllowFrom];
     const effectiveGroupAllow = [...deps.groupAllowFrom, ...storeAllowFrom];
     const dmAllowed =

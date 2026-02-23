@@ -36,27 +36,17 @@ export function resolveInboundDebounceMs(params: {
 type DebounceBuffer<T> = {
   items: T[];
   timeout: ReturnType<typeof setTimeout> | null;
-  debounceMs: number;
 };
 
 export function createInboundDebouncer<T>(params: {
   debounceMs: number;
   buildKey: (item: T) => string | null | undefined;
   shouldDebounce?: (item: T) => boolean;
-  resolveDebounceMs?: (item: T) => number | undefined;
   onFlush: (items: T[]) => Promise<void>;
   onError?: (err: unknown, items: T[]) => void;
 }) {
   const buffers = new Map<string, DebounceBuffer<T>>();
-  const defaultDebounceMs = Math.max(0, Math.trunc(params.debounceMs));
-
-  const resolveDebounceMs = (item: T) => {
-    const resolved = params.resolveDebounceMs?.(item);
-    if (typeof resolved !== "number" || !Number.isFinite(resolved)) {
-      return defaultDebounceMs;
-    }
-    return Math.max(0, Math.trunc(resolved));
-  };
+  const debounceMs = Math.max(0, Math.trunc(params.debounceMs));
 
   const flushBuffer = async (key: string, buffer: DebounceBuffer<T>) => {
     buffers.delete(key);
@@ -88,13 +78,12 @@ export function createInboundDebouncer<T>(params: {
     }
     buffer.timeout = setTimeout(() => {
       void flushBuffer(key, buffer);
-    }, buffer.debounceMs);
+    }, debounceMs);
     buffer.timeout.unref?.();
   };
 
   const enqueue = async (item: T) => {
     const key = params.buildKey(item);
-    const debounceMs = resolveDebounceMs(item);
     const canDebounce = debounceMs > 0 && (params.shouldDebounce?.(item) ?? true);
 
     if (!canDebounce || !key) {
@@ -108,12 +97,11 @@ export function createInboundDebouncer<T>(params: {
     const existing = buffers.get(key);
     if (existing) {
       existing.items.push(item);
-      existing.debounceMs = debounceMs;
       scheduleFlush(key, existing);
       return;
     }
 
-    const buffer: DebounceBuffer<T> = { items: [item], timeout: null, debounceMs };
+    const buffer: DebounceBuffer<T> = { items: [item], timeout: null };
     buffers.set(key, buffer);
     scheduleFlush(key, buffer);
   };

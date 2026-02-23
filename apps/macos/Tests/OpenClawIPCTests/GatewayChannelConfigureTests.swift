@@ -45,7 +45,12 @@ import Testing
 
             // First send is the connect handshake request. Subsequent sends are request frames.
             if currentSendCount == 0 {
-                if let id = GatewayWebSocketTestSupport.connectRequestID(from: message) {
+                guard case let .data(data) = message else { return }
+                if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   (obj["type"] as? String) == "req",
+                   (obj["method"] as? String) == "connect",
+                   let id = obj["id"] as? String
+                {
                     self.connectRequestID.withLock { $0 = id }
                 }
                 return
@@ -60,7 +65,7 @@ import Testing
                 return
             }
 
-            let response = GatewayWebSocketTestSupport.okResponseData(id: id)
+            let response = Self.responseData(id: id)
             let handler = self.pendingReceiveHandler.withLock { $0 }
             handler?(Result<URLSessionWebSocketTask.Message, Error>.success(.data(response)))
         }
@@ -70,7 +75,7 @@ import Testing
                 try await Task.sleep(nanoseconds: UInt64(self.helloDelayMs) * 1_000_000)
             }
             let id = self.connectRequestID.withLock { $0 } ?? "connect"
-            return .data(GatewayWebSocketTestSupport.connectOkData(id: id))
+            return .data(Self.connectOkData(id: id))
         }
 
         func receive(
@@ -84,6 +89,41 @@ import Testing
             handler?(Result<URLSessionWebSocketTask.Message, Error>.success(.data(data)))
         }
 
+        private static func connectOkData(id: String) -> Data {
+            let json = """
+            {
+              "type": "res",
+              "id": "\(id)",
+              "ok": true,
+              "payload": {
+                "type": "hello-ok",
+                "protocol": 2,
+                "server": { "version": "test", "connId": "test" },
+                "features": { "methods": [], "events": [] },
+                "snapshot": {
+                  "presence": [ { "ts": 1 } ],
+                  "health": {},
+                  "stateVersion": { "presence": 0, "health": 0 },
+                  "uptimeMs": 0
+                },
+                "policy": { "maxPayload": 1, "maxBufferedBytes": 1, "tickIntervalMs": 30000 }
+              }
+            }
+            """
+            return Data(json.utf8)
+        }
+
+        private static func responseData(id: String) -> Data {
+            let json = """
+            {
+              "type": "res",
+              "id": "\(id)",
+              "ok": true,
+              "payload": { "ok": true }
+            }
+            """
+            return Data(json.utf8)
+        }
     }
 
     private final class FakeWebSocketSession: WebSocketSessioning, @unchecked Sendable {

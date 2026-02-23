@@ -28,10 +28,6 @@ type LastToolError = {
   mutatingAction?: boolean;
   actionFingerprint?: string;
 };
-type ToolErrorWarningPolicy = {
-  showWarning: boolean;
-  includeDetails: boolean;
-};
 
 const RECOVERABLE_TOOL_ERROR_KEYWORDS = [
   "required",
@@ -48,37 +44,30 @@ function isRecoverableToolError(error: string | undefined): boolean {
   return RECOVERABLE_TOOL_ERROR_KEYWORDS.some((keyword) => errorLower.includes(keyword));
 }
 
-function isVerboseToolDetailEnabled(level?: VerboseLevel): boolean {
-  return level === "on" || level === "full";
-}
-
-function resolveToolErrorWarningPolicy(params: {
+function shouldShowToolErrorWarning(params: {
   lastToolError: LastToolError;
   hasUserFacingReply: boolean;
   suppressToolErrors: boolean;
   suppressToolErrorWarnings?: boolean;
   verboseLevel?: VerboseLevel;
-}): ToolErrorWarningPolicy {
-  const includeDetails = isVerboseToolDetailEnabled(params.verboseLevel);
+}): boolean {
   if (params.suppressToolErrorWarnings) {
-    return { showWarning: false, includeDetails };
+    return false;
   }
   const normalizedToolName = params.lastToolError.toolName.trim().toLowerCase();
-  if ((normalizedToolName === "exec" || normalizedToolName === "bash") && !includeDetails) {
-    return { showWarning: false, includeDetails };
+  const verboseEnabled = params.verboseLevel === "on" || params.verboseLevel === "full";
+  if ((normalizedToolName === "exec" || normalizedToolName === "bash") && !verboseEnabled) {
+    return false;
   }
   const isMutatingToolError =
     params.lastToolError.mutatingAction ?? isLikelyMutatingToolName(params.lastToolError.toolName);
   if (isMutatingToolError) {
-    return { showWarning: true, includeDetails };
+    return true;
   }
   if (params.suppressToolErrors) {
-    return { showWarning: false, includeDetails };
+    return false;
   }
-  return {
-    showWarning: !params.hasUserFacingReply && !isRecoverableToolError(params.lastToolError.error),
-    includeDetails,
-  };
+  return !params.hasUserFacingReply && !isRecoverableToolError(params.lastToolError.error);
 }
 
 export function buildEmbeddedRunPayloads(params: {
@@ -267,7 +256,7 @@ export function buildEmbeddedRunPayloads(params: {
   }
 
   if (params.lastToolError) {
-    const warningPolicy = resolveToolErrorWarningPolicy({
+    const shouldShowToolError = shouldShowToolErrorWarning({
       lastToolError: params.lastToolError,
       hasUserFacingReply: hasUserFacingAssistantReply,
       suppressToolErrors: Boolean(params.config?.messages?.suppressToolErrors),
@@ -277,16 +266,13 @@ export function buildEmbeddedRunPayloads(params: {
 
     // Always surface mutating tool failures so we do not silently confirm actions that did not happen.
     // Otherwise, keep the previous behavior and only surface non-recoverable failures when no reply exists.
-    if (warningPolicy.showWarning) {
+    if (shouldShowToolError) {
       const toolSummary = formatToolAggregate(
         params.lastToolError.toolName,
         params.lastToolError.meta ? [params.lastToolError.meta] : undefined,
         { markdown: useMarkdown },
       );
-      const errorSuffix =
-        warningPolicy.includeDetails && params.lastToolError.error
-          ? `: ${params.lastToolError.error}`
-          : "";
+      const errorSuffix = params.lastToolError.error ? `: ${params.lastToolError.error}` : "";
       const warningText = `⚠️ ${toolSummary} failed${errorSuffix}`;
       const normalizedWarning = normalizeTextForComparison(warningText);
       const duplicateWarning = normalizedWarning
@@ -308,7 +294,7 @@ export function buildEmbeddedRunPayloads(params: {
   }
 
   const hasAudioAsVoiceTag = replyItems.some((item) => item.audioAsVoice);
-  const payloads = replyItems
+  return replyItems
     .map((item) => ({
       text: item.text?.trim() ? item.text.trim() : undefined,
       mediaUrls: item.media?.length ? item.media : undefined,
@@ -328,13 +314,4 @@ export function buildEmbeddedRunPayloads(params: {
       }
       return true;
     });
-  if (
-    payloads.length === 0 &&
-    params.toolMetas.length > 0 &&
-    !params.lastToolError &&
-    !lastAssistantErrored
-  ) {
-    return [{ text: "✅ Done." }];
-  }
-  return payloads;
 }

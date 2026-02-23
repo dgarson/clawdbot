@@ -10,7 +10,7 @@ import { createPluginRuntime } from "./index.js";
 
 describe("plugin runtime command execution", () => {
   beforeEach(() => {
-    runCommandWithTimeoutMock.mockClear();
+    runCommandWithTimeoutMock.mockReset();
   });
 
   it("exposes runtime.system.runCommandWithTimeout by default", async () => {

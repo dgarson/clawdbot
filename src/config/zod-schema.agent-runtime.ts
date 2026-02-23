@@ -10,49 +10,6 @@ import {
 } from "./zod-schema.core.js";
 import { sensitive } from "./zod-schema.sensitive.js";
 
-// ---------------------------------------------------------------------------
-// Claude SDK runtime config
-// ---------------------------------------------------------------------------
-
-const thinkingDefaultsField = {
-  thinkingDefault: z.enum(["none", "low", "medium", "high"]).optional(),
-  /** @deprecated Use thinkingDefault instead. */
-  thinkingLevel: z.enum(["none", "low", "medium", "high"]).optional(),
-} as const;
-
-export const ClaudeSdkConfigSchema = z
-  .discriminatedUnion("provider", [
-    z.object({ provider: z.literal("claude-code"), ...thinkingDefaultsField }).strict(),
-    z.object({ provider: z.literal("anthropic"), ...thinkingDefaultsField }).strict(),
-    z.object({ provider: z.literal("minimax"), ...thinkingDefaultsField }).strict(),
-    z.object({ provider: z.literal("minimax-portal"), ...thinkingDefaultsField }).strict(),
-    z.object({ provider: z.literal("zai"), ...thinkingDefaultsField }).strict(),
-    z.object({ provider: z.literal("openrouter"), ...thinkingDefaultsField }).strict(),
-    z
-      .object({
-        provider: z.literal("custom"),
-        baseUrl: z.string().url(),
-        apiKey: z.string().optional().register(sensitive),
-        ...thinkingDefaultsField,
-      })
-      .strict(),
-  ])
-  .superRefine((val, ctx) => {
-    if (!val?.thinkingDefault || !val.thinkingLevel) {
-      return;
-    }
-    if (val.thinkingDefault !== val.thinkingLevel) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["thinkingDefault"],
-        message: "thinkingDefault and thinkingLevel must match when both are set",
-      });
-    }
-  })
-  .optional();
-
-export type ClaudeSdkConfig = NonNullable<z.infer<typeof ClaudeSdkConfigSchema>>;
-
 export const HeartbeatSchema = z
   .object({
     every: z.string().optional(),
@@ -228,9 +185,7 @@ export const SandboxBrowserSchema = z
     enabled: z.boolean().optional(),
     image: z.string().optional(),
     containerPrefix: z.string().optional(),
-    network: z.string().optional(),
     cdpPort: z.number().int().positive().optional(),
-    cdpSourceRange: z.string().optional(),
     vncPort: z.number().int().positive().optional(),
     noVncPort: z.number().int().positive().optional(),
     headless: z.boolean().optional(),
@@ -239,16 +194,6 @@ export const SandboxBrowserSchema = z
     autoStart: z.boolean().optional(),
     autoStartTimeoutMs: z.number().int().positive().optional(),
     binds: z.array(z.string()).optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.network?.trim().toLowerCase() === "host") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["network"],
-        message:
-          'Sandbox security: browser network mode "host" is blocked. Use "bridge" or a custom bridge network instead.',
-      });
-    }
   })
   .strict()
   .optional();
@@ -380,15 +325,6 @@ const ToolExecApplyPatchSchema = z
   .strict()
   .optional();
 
-const ToolExecSafeBinProfileSchema = z
-  .object({
-    minPositional: z.number().int().nonnegative().optional(),
-    maxPositional: z.number().int().nonnegative().optional(),
-    allowedValueFlags: z.array(z.string()).optional(),
-    deniedFlags: z.array(z.string()).optional(),
-  })
-  .strict();
-
 const ToolExecBaseShape = {
   host: z.enum(["sandbox", "gateway", "node"]).optional(),
   security: z.enum(["deny", "allowlist", "full"]).optional(),
@@ -396,7 +332,6 @@ const ToolExecBaseShape = {
   node: z.string().optional(),
   pathPrepend: z.array(z.string()).optional(),
   safeBins: z.array(z.string()).optional(),
-  safeBinProfiles: z.record(z.string(), ToolExecSafeBinProfileSchema).optional(),
   backgroundMs: z.number().int().positive().optional(),
   timeoutSec: z.number().int().positive().optional(),
   cleanupMs: z.number().int().positive().optional(),
@@ -483,17 +418,13 @@ export const AgentSandboxSchema = z
   .strict()
   .optional();
 
-const CommonToolPolicyFields = {
-  profile: ToolProfileSchema,
-  allow: z.array(z.string()).optional(),
-  alsoAllow: z.array(z.string()).optional(),
-  deny: z.array(z.string()).optional(),
-  byProvider: z.record(z.string(), ToolPolicyWithProfileSchema).optional(),
-};
-
 export const AgentToolsSchema = z
   .object({
-    ...CommonToolPolicyFields,
+    profile: ToolProfileSchema,
+    allow: z.array(z.string()).optional(),
+    alsoAllow: z.array(z.string()).optional(),
+    deny: z.array(z.string()).optional(),
+    byProvider: z.record(z.string(), ToolPolicyWithProfileSchema).optional(),
     elevated: z
       .object({
         enabled: z.boolean().optional(),
@@ -533,13 +464,7 @@ export const MemorySearchSchema = z
       .strict()
       .optional(),
     provider: z
-      .union([
-        z.literal("openai"),
-        z.literal("local"),
-        z.literal("gemini"),
-        z.literal("voyage"),
-        z.literal("mistral"),
-      ])
+      .union([z.literal("openai"), z.literal("local"), z.literal("gemini"), z.literal("voyage")])
       .optional(),
     remote: z
       .object({
@@ -565,7 +490,6 @@ export const MemorySearchSchema = z
         z.literal("gemini"),
         z.literal("local"),
         z.literal("voyage"),
-        z.literal("mistral"),
         z.literal("none"),
       ])
       .optional(),
@@ -688,33 +612,24 @@ export const AgentEntrySchema = z
       })
       .strict()
       .optional(),
-    thinkingDefault: z
-      .union([
-        z.literal("off"),
-        z.literal("minimal"),
-        z.literal("low"),
-        z.literal("medium"),
-        z.literal("high"),
-        z.literal("xhigh"),
-      ])
-      .optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
-    runtime: z.enum(["pi", "claude-sdk"]).optional(),
-    claudeSdk: ClaudeSdkConfigSchema,
   })
   .strict();
 
 export const ToolsSchema = z
   .object({
-    ...CommonToolPolicyFields,
+    profile: ToolProfileSchema,
+    allow: z.array(z.string()).optional(),
+    alsoAllow: z.array(z.string()).optional(),
+    deny: z.array(z.string()).optional(),
+    byProvider: z.record(z.string(), ToolPolicyWithProfileSchema).optional(),
     web: ToolsWebSchema,
     media: ToolsMediaSchema,
     links: ToolsLinksSchema,
     sessions: z
       .object({
         visibility: z.enum(["self", "tree", "agent", "all"]).optional(),
-        sendTimeoutSeconds: z.number().int().min(0).optional(),
       })
       .strict()
       .optional(),

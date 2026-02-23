@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withEnvAsync } from "../test-utils/env.js";
+import { captureEnv } from "../test-utils/env.js";
 import { runCommandWithTimeout, shouldSpawnWithShell } from "./exec.js";
 
 describe("runCommandWithTimeout", () => {
@@ -13,7 +13,9 @@ describe("runCommandWithTimeout", () => {
   });
 
   it("merges custom env with process.env", async () => {
-    await withEnvAsync({ OPENCLAW_BASE_ENV: "base" }, async () => {
+    const envSnapshot = captureEnv(["OPENCLAW_BASE_ENV"]);
+    process.env.OPENCLAW_BASE_ENV = "base";
+    try {
       const result = await runCommandWithTimeout(
         [
           process.execPath,
@@ -29,15 +31,17 @@ describe("runCommandWithTimeout", () => {
       expect(result.code).toBe(0);
       expect(result.stdout).toBe("base|ok");
       expect(result.termination).toBe("exit");
-    });
+    } finally {
+      envSnapshot.restore();
+    }
   });
 
   it("kills command when no output timeout elapses", async () => {
     const result = await runCommandWithTimeout(
-      [process.execPath, "-e", "setTimeout(() => {}, 40)"],
+      [process.execPath, "-e", "setTimeout(() => {}, 120)"],
       {
-        timeoutMs: 500,
-        noOutputTimeoutMs: 20,
+        timeoutMs: 1_000,
+        noOutputTimeoutMs: 35,
       },
     );
 
@@ -51,11 +55,11 @@ describe("runCommandWithTimeout", () => {
       [
         process.execPath,
         "-e",
-        'process.stdout.write("."); setTimeout(() => process.stdout.write("."), 20); setTimeout(() => process.exit(0), 40);',
+        'process.stdout.write("."); setTimeout(() => process.stdout.write("."), 30); setTimeout(() => process.exit(0), 60);',
       ],
       {
-        timeoutMs: 500,
-        noOutputTimeoutMs: 250,
+        timeoutMs: 1_000,
+        noOutputTimeoutMs: 500,
       },
     );
 
@@ -68,7 +72,7 @@ describe("runCommandWithTimeout", () => {
 
   it("reports global timeout termination when overall timeout elapses", async () => {
     const result = await runCommandWithTimeout(
-      [process.execPath, "-e", "setTimeout(() => {}, 40)"],
+      [process.execPath, "-e", "setTimeout(() => {}, 120)"],
       {
         timeoutMs: 15,
       },

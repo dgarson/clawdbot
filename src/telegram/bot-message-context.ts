@@ -62,13 +62,6 @@ import {
 } from "./bot/helpers.js";
 import type { StickerMetadata, TelegramContext } from "./bot/types.js";
 import { evaluateTelegramGroupBaseAccess } from "./group-access.js";
-import { resolveTelegramGroupPromptSettings } from "./group-config-helpers.js";
-import {
-  buildTelegramStatusReactionVariants,
-  resolveTelegramAllowedEmojiReactions,
-  resolveTelegramReactionVariant,
-  resolveTelegramStatusReactionEmojis,
-} from "./status-reaction-variants.js";
 
 export type TelegramMediaRef = {
   path: string;
@@ -198,12 +191,11 @@ export const buildTelegramMessageContext = async ({
       : null;
   const sessionKey = threadKeys?.sessionKey ?? baseSessionKey;
   const mentionRegexes = buildMentionRegexes(cfg, route.agentId);
-  const effectiveDmAllow = normalizeAllowFromWithStore({ allowFrom, storeAllowFrom, dmPolicy });
+  const effectiveDmAllow = normalizeAllowFromWithStore({ allowFrom, storeAllowFrom });
   const groupAllowOverride = firstDefined(topicConfig?.allowFrom, groupConfig?.allowFrom);
   const effectiveGroupAllow = normalizeAllowFromWithStore({
     allowFrom: groupAllowOverride ?? groupAllowFrom,
     storeAllowFrom,
-    dmPolicy,
   });
   const hasGroupAllowOverride = typeof groupAllowOverride !== "undefined";
   const senderId = msg.from?.id ? String(msg.from.id) : "";
@@ -530,24 +522,14 @@ export const buildTelegramMessageContext = async ({
       messageId: number,
       reactions: Array<{ type: "emoji"; emoji: string }>,
     ) => Promise<void>;
-    getChat?: (chatId: number | string) => Promise<unknown>;
   };
   const reactionApi =
     typeof api.setMessageReaction === "function" ? api.setMessageReaction.bind(api) : null;
-  const getChatApi = typeof api.getChat === "function" ? api.getChat.bind(api) : null;
 
   // Status Reactions controller (lifecycle reactions)
   const statusReactionsConfig = cfg.messages?.statusReactions;
   const statusReactionsEnabled =
     statusReactionsConfig?.enabled === true && Boolean(reactionApi) && shouldAckReaction();
-  const resolvedStatusReactionEmojis = resolveTelegramStatusReactionEmojis({
-    initialEmoji: ackReaction,
-    overrides: statusReactionsConfig?.emojis,
-  });
-  const statusReactionVariantsByEmoji = buildTelegramStatusReactionVariants(
-    resolvedStatusReactionEmojis,
-  );
-  let allowedStatusReactionEmojisPromise: Promise<Set<string> | null> | null = null;
   const statusReactionController: StatusReactionController | null =
     statusReactionsEnabled && msg.message_id
       ? createStatusReactionController({
@@ -555,36 +537,13 @@ export const buildTelegramMessageContext = async ({
           adapter: {
             setReaction: async (emoji: string) => {
               if (reactionApi) {
-                if (!allowedStatusReactionEmojisPromise) {
-                  allowedStatusReactionEmojisPromise = resolveTelegramAllowedEmojiReactions({
-                    chat: msg.chat,
-                    chatId,
-                    getChat: getChatApi ?? undefined,
-                  }).catch((err) => {
-                    logVerbose(
-                      `telegram status-reaction available_reactions lookup failed for chat ${chatId}: ${String(err)}`,
-                    );
-                    return null;
-                  });
-                }
-                const allowedStatusReactionEmojis = await allowedStatusReactionEmojisPromise;
-                const resolvedEmoji = resolveTelegramReactionVariant({
-                  requestedEmoji: emoji,
-                  variantsByRequestedEmoji: statusReactionVariantsByEmoji,
-                  allowedEmojiReactions: allowedStatusReactionEmojis,
-                });
-                if (!resolvedEmoji) {
-                  return;
-                }
-                await reactionApi(chatId, msg.message_id, [
-                  { type: "emoji", emoji: resolvedEmoji },
-                ]);
+                await reactionApi(chatId, msg.message_id, [{ type: "emoji", emoji }]);
               }
             },
             // Telegram replaces atomically — no removeReaction needed
           },
           initialEmoji: ackReaction,
-          emojis: resolvedStatusReactionEmojis,
+          emojis: statusReactionsConfig?.emojis,
           timing: statusReactionsConfig?.timing,
           onError: (err) => {
             logVerbose(`telegram status-reaction error for chat ${chatId}: ${String(err)}`);
@@ -615,22 +574,14 @@ export const buildTelegramMessageContext = async ({
 
   const replyTarget = describeReplyTarget(msg);
   const forwardOrigin = normalizeForwardedContext(msg);
-  // Build forward annotation for reply target if it was itself a forwarded message (issue #9619)
-  const replyForwardAnnotation = replyTarget?.forwardedFrom
-    ? `[Forwarded from ${replyTarget.forwardedFrom.from}${
-        replyTarget.forwardedFrom.date
-          ? ` at ${new Date(replyTarget.forwardedFrom.date * 1000).toISOString()}`
-          : ""
-      }]\n`
-    : "";
   const replySuffix = replyTarget
     ? replyTarget.kind === "quote"
       ? `\n\n[Quoting ${replyTarget.sender}${
           replyTarget.id ? ` id:${replyTarget.id}` : ""
-        }]\n${replyForwardAnnotation}"${replyTarget.body}"\n[/Quoting]`
+        }]\n"${replyTarget.body}"\n[/Quoting]`
       : `\n\n[Replying to ${replyTarget.sender}${
           replyTarget.id ? ` id:${replyTarget.id}` : ""
-        }]\n${replyForwardAnnotation}${replyTarget.body}\n[/Replying]`
+        }]\n${replyTarget.body}\n[/Replying]`
     : "";
   const forwardPrefix = forwardOrigin
     ? `[Forwarded from ${forwardOrigin.from}${
@@ -684,10 +635,13 @@ export const buildTelegramMessageContext = async ({
     });
   }
 
-  const { skillFilter, groupSystemPrompt } = resolveTelegramGroupPromptSettings({
-    groupConfig,
-    topicConfig,
-  });
+  const skillFilter = firstDefined(topicConfig?.skills, groupConfig?.skills);
+  const systemPromptParts = [
+    groupConfig?.systemPrompt?.trim() || null,
+    topicConfig?.systemPrompt?.trim() || null,
+  ].filter((entry): entry is string => Boolean(entry));
+  const groupSystemPrompt =
+    systemPromptParts.length > 0 ? systemPromptParts.join("\n\n") : undefined;
   const commandBody = normalizeCommandBody(rawBody, { botUsername });
   const inboundHistory =
     isGroup && historyKey && historyLimit > 0
@@ -695,7 +649,6 @@ export const buildTelegramMessageContext = async ({
           sender: entry.sender,
           body: entry.body,
           timestamp: entry.timestamp,
-          ...(entry.messageId ? { messageId: entry.messageId } : {}),
         }))
       : undefined;
   const ctxPayload = finalizeInboundContext({
@@ -723,15 +676,6 @@ export const buildTelegramMessageContext = async ({
     ReplyToBody: replyTarget?.body,
     ReplyToSender: replyTarget?.sender,
     ReplyToIsQuote: replyTarget?.kind === "quote" ? true : undefined,
-    // Forward context from reply target (issue #9619: forward + comment bundling)
-    ReplyToForwardedFrom: replyTarget?.forwardedFrom?.from,
-    ReplyToForwardedFromType: replyTarget?.forwardedFrom?.fromType,
-    ReplyToForwardedFromId: replyTarget?.forwardedFrom?.fromId,
-    ReplyToForwardedFromUsername: replyTarget?.forwardedFrom?.fromUsername,
-    ReplyToForwardedFromTitle: replyTarget?.forwardedFrom?.fromTitle,
-    ReplyToForwardedDate: replyTarget?.forwardedFrom?.date
-      ? replyTarget.forwardedFrom.date * 1000
-      : undefined,
     ForwardedFrom: forwardOrigin?.from,
     ForwardedFromType: forwardOrigin?.fromType,
     ForwardedFromId: forwardOrigin?.fromId,
@@ -781,7 +725,7 @@ export const buildTelegramMessageContext = async ({
       ? {
           sessionKey: route.mainSessionKey,
           channel: "telegram",
-          to: `telegram:${chatId}`,
+          to: String(chatId),
           accountId: route.accountId,
           // Preserve DM topic threadId for replies (fixes #8891)
           threadId: dmThreadId != null ? String(dmThreadId) : undefined,

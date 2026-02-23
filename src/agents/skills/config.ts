@@ -1,6 +1,6 @@
 import type { OpenClawConfig, SkillConfig } from "../../config/config.js";
 import {
-  evaluateRuntimeEligibility,
+  evaluateRuntimeRequires,
   hasBinary,
   isConfigPathTruthyWithDefaults,
   resolveConfigPath,
@@ -76,6 +76,8 @@ export function shouldIncludeSkill(params: {
   const skillKey = resolveSkillKey(entry.skill, entry);
   const skillConfig = resolveSkillConfig(config, skillKey);
   const allowBundled = normalizeAllowlist(config?.skills?.allowBundled);
+  const osList = entry.metadata?.os ?? [];
+  const remotePlatforms = eligibility?.remote?.platforms ?? [];
 
   if (skillConfig?.enabled === false) {
     return false;
@@ -83,10 +85,18 @@ export function shouldIncludeSkill(params: {
   if (!isBundledSkillAllowed(entry, allowBundled)) {
     return false;
   }
-  return evaluateRuntimeEligibility({
-    os: entry.metadata?.os,
-    remotePlatforms: eligibility?.remote?.platforms,
-    always: entry.metadata?.always,
+  if (
+    osList.length > 0 &&
+    !osList.includes(resolveRuntimePlatform()) &&
+    !remotePlatforms.some((platform) => osList.includes(platform))
+  ) {
+    return false;
+  }
+  if (entry.metadata?.always === true) {
+    return true;
+  }
+
+  return evaluateRuntimeRequires({
     requires: entry.metadata?.requires,
     hasBin: hasBinary,
     hasRemoteBin: eligibility?.remote?.hasBin,

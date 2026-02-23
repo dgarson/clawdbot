@@ -272,10 +272,6 @@
       "destination": "/start/openclaw"
     },
     {
-      "source": "/start/pairing",
-      "destination": "/channels/pairing"
-    },
-    {
       "source": "/clawhub",
       "destination": "/tools/clawhub"
     },
@@ -895,14 +891,9 @@
                   "channels/mattermost",
                   "channels/signal",
                   "channels/imessage",
-                  "channels/bluebubbles",
                   "channels/msteams",
                   "channels/line",
                   "channels/matrix",
-                  "channels/nextcloud-talk",
-                  "channels/nostr",
-                  "channels/tlon",
-                  "channels/twitch",
                   "channels/zalo",
                   "channels/zalouser"
                 ]
@@ -1191,20 +1182,14 @@
                 "group": "CLI commands",
                 "pages": [
                   "cli/index",
-                  "cli/acp",
                   "cli/agent",
                   "cli/agents",
                   "cli/approvals",
                   "cli/browser",
                   "cli/channels",
-                  "cli/clawbot",
-                  "cli/completion",
-                  "cli/config",
                   "cli/configure",
                   "cli/cron",
-                  "cli/daemon",
                   "cli/dashboard",
-                  "cli/devices",
                   "cli/directory",
                   "cli/dns",
                   "cli/docs",
@@ -1216,12 +1201,10 @@
                   "cli/memory",
                   "cli/message",
                   "cli/models",
-                  "cli/node",
                   "cli/nodes",
                   "cli/onboard",
                   "cli/pairing",
                   "cli/plugins",
-                  "cli/qr",
                   "cli/reset",
                   "cli/sandbox",
                   "cli/security",
@@ -1233,8 +1216,7 @@
                   "cli/tui",
                   "cli/uninstall",
                   "cli/update",
-                  "cli/voicecall",
-                  "cli/webhooks"
+                  "cli/voicecall"
                 ]
               },
               {

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Component, SelectItem, TUI } from "@mariozechner/pi-tui";
+import type { Component, TUI } from "@mariozechner/pi-tui";
 import {
   formatThinkingLevels,
   normalizeUsageDisplay,
@@ -43,7 +43,6 @@ type CommandHandlerContext = {
   applySessionInfoFromPatch: (result: SessionsPatchResult) => void;
   noteLocalRunId: (runId: string) => void;
   forgetLocalRunId?: (runId: string) => void;
-  requestExit: () => void;
 };
 
 export function createCommandHandlers(context: CommandHandlerContext) {
@@ -66,35 +65,11 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     applySessionInfoFromPatch,
     noteLocalRunId,
     forgetLocalRunId,
-    requestExit,
   } = context;
 
   const setAgent = async (id: string) => {
     state.currentAgentId = normalizeAgentId(id);
     await setSession("");
-  };
-
-  const closeOverlayAndRender = () => {
-    closeOverlay();
-    tui.requestRender();
-  };
-
-  const openSelector = (
-    selector: {
-      onSelect?: (item: SelectItem) => void;
-      onCancel?: () => void;
-    },
-    onSelect: (value: string) => Promise<void>,
-  ) => {
-    selector.onSelect = (item) => {
-      void (async () => {
-        await onSelect(item.value);
-        closeOverlayAndRender();
-      })();
-    };
-    selector.onCancel = closeOverlayAndRender;
-    openOverlay(selector as Component);
-    tui.requestRender();
   };
 
   const openModelSelector = async () => {
@@ -111,19 +86,29 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         description: model.name && model.name !== model.id ? model.name : "",
       }));
       const selector = createSearchableSelectList(items, 9);
-      openSelector(selector, async (value) => {
-        try {
-          const result = await client.patchSession({
-            key: state.currentSessionKey,
-            model: value,
-          });
-          chatLog.addSystem(`model set to ${value}`);
-          applySessionInfoFromPatch(result);
-          await refreshSessionInfo();
-        } catch (err) {
-          chatLog.addSystem(`model set failed: ${String(err)}`);
-        }
-      });
+      selector.onSelect = (item) => {
+        void (async () => {
+          try {
+            const result = await client.patchSession({
+              key: state.currentSessionKey,
+              model: item.value,
+            });
+            chatLog.addSystem(`model set to ${item.value}`);
+            applySessionInfoFromPatch(result);
+            await refreshSessionInfo();
+          } catch (err) {
+            chatLog.addSystem(`model set failed: ${String(err)}`);
+          }
+          closeOverlay();
+          tui.requestRender();
+        })();
+      };
+      selector.onCancel = () => {
+        closeOverlay();
+        tui.requestRender();
+      };
+      openOverlay(selector);
+      tui.requestRender();
     } catch (err) {
       chatLog.addSystem(`model list failed: ${String(err)}`);
       tui.requestRender();
@@ -143,9 +128,19 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       description: agent.id === state.agentDefaultId ? "default" : "",
     }));
     const selector = createSearchableSelectList(items, 9);
-    openSelector(selector, async (value) => {
-      await setAgent(value);
-    });
+    selector.onSelect = (item) => {
+      void (async () => {
+        closeOverlay();
+        await setAgent(item.value);
+        tui.requestRender();
+      })();
+    };
+    selector.onCancel = () => {
+      closeOverlay();
+      tui.requestRender();
+    };
+    openOverlay(selector);
+    tui.requestRender();
   };
 
   const openSessionSelector = async () => {
@@ -186,9 +181,19 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         };
       });
       const selector = createFilterableSelectList(items, 9);
-      openSelector(selector, async (value) => {
-        await setSession(value);
-      });
+      selector.onSelect = (item) => {
+        void (async () => {
+          closeOverlay();
+          await setSession(item.value);
+          tui.requestRender();
+        })();
+      };
+      selector.onCancel = () => {
+        closeOverlay();
+        tui.requestRender();
+      };
+      openOverlay(selector);
+      tui.requestRender();
     } catch (err) {
       chatLog.addSystem(`sessions list failed: ${String(err)}`);
       tui.requestRender();
@@ -446,7 +451,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         break;
       case "exit":
       case "quit":
-        requestExit();
+        client.stop();
+        tui.stop();
+        process.exit(0);
         break;
       default:
         await sendMessage(raw);
@@ -463,7 +470,6 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       noteLocalRunId(runId);
       state.activeChatRunId = runId;
       setActivityStatus("sending");
-      tui.requestRender();
       await client.sendChat({
         sessionKey: state.currentSessionKey,
         message: text,
@@ -473,7 +479,6 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         runId,
       });
       setActivityStatus("waiting");
-      tui.requestRender();
     } catch (err) {
       if (state.activeChatRunId) {
         forgetLocalRunId?.(state.activeChatRunId);
@@ -481,8 +486,8 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       state.activeChatRunId = null;
       chatLog.addSystem(`send failed: ${String(err)}`);
       setActivityStatus("error");
-      tui.requestRender();
     }
+    tui.requestRender();
   };
 
   return {

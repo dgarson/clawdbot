@@ -23,9 +23,9 @@ import { sendMessage } from "./message.js";
 
 describe("sendMessage", () => {
   beforeEach(() => {
-    mocks.getChannelPlugin.mockClear();
-    mocks.resolveOutboundTarget.mockClear();
-    mocks.deliverOutboundPayloads.mockClear();
+    mocks.getChannelPlugin.mockReset();
+    mocks.resolveOutboundTarget.mockReset();
+    mocks.deliverOutboundPayloads.mockReset();
 
     mocks.getChannelPlugin.mockReturnValue({
       outbound: { deliveryMode: "direct" },

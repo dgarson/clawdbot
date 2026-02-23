@@ -45,7 +45,6 @@ export type GatewayClientOptions = {
   connectDelayMs?: number;
   tickWatchMinIntervalMs?: number;
   token?: string;
-  deviceToken?: string;
   password?: string;
   instanceId?: string;
   clientName?: GatewayClientName;
@@ -127,9 +126,7 @@ export class GatewayClient {
       const error = new Error(
         `SECURITY ERROR: Cannot connect to "${displayHost}" over plaintext ws://. ` +
           "Both credentials and chat data would be exposed to network interception. " +
-          "Use wss:// for remote URLs. Safe defaults: keep gateway.bind=loopback and connect via SSH tunnel " +
-          "(ssh -N -L 18789:127.0.0.1:18789 user@gateway-host), or use Tailscale Serve/Funnel. " +
-          "Run `openclaw doctor --fix` for guidance.",
+          "Use wss:// for the gateway URL, or connect via SSH tunnel to localhost.",
       );
       this.opts.onConnectError?.(error);
       return;
@@ -179,14 +176,10 @@ export class GatewayClient {
     this.ws.on("close", (code, reason) => {
       const reasonText = rawDataToString(reason);
       this.ws = null;
-      // Clear persisted device auth state only when device-token auth was active.
-      // Shared token/password failures can return the same close reason but should
-      // not erase a valid cached device token.
+      // If closed due to device token mismatch, clear the stored token and pairing so next attempt can get a fresh one
       if (
         code === 1008 &&
         reasonText.toLowerCase().includes("device token mismatch") &&
-        !this.opts.token &&
-        !this.opts.password &&
         this.opts.deviceIdentity
       ) {
         const deviceId = this.opts.deviceIdentity.deviceId;
@@ -230,40 +223,27 @@ export class GatewayClient {
     if (this.connectSent) {
       return;
     }
-    const nonce = this.connectNonce?.trim() ?? "";
-    if (!nonce) {
-      this.opts.onConnectError?.(new Error("gateway connect challenge missing nonce"));
-      this.ws?.close(1008, "connect challenge missing nonce");
-      return;
-    }
     this.connectSent = true;
     if (this.connectTimer) {
       clearTimeout(this.connectTimer);
       this.connectTimer = null;
     }
     const role = this.opts.role ?? "operator";
-    const explicitGatewayToken = this.opts.token?.trim() || undefined;
-    const explicitDeviceToken = this.opts.deviceToken?.trim() || undefined;
     const storedToken = this.opts.deviceIdentity
       ? loadDeviceAuthToken({ deviceId: this.opts.deviceIdentity.deviceId, role })?.token
       : null;
-    // Keep shared gateway credentials explicit. Persisted per-device tokens only
-    // participate when no explicit shared token is provided.
-    const resolvedDeviceToken =
-      explicitDeviceToken ?? (!explicitGatewayToken ? (storedToken ?? undefined) : undefined);
-    // Legacy compatibility: keep `auth.token` populated for device-token auth when
-    // no explicit shared token is present.
-    const authToken = explicitGatewayToken ?? resolvedDeviceToken;
-    const authPassword = this.opts.password?.trim() || undefined;
+    // Prefer explicitly provided credentials (e.g. CLI `--token`) over any persisted
+    // device-auth tokens. Persisted tokens are only used when no token is provided.
+    const authToken = this.opts.token ?? storedToken ?? undefined;
     const auth =
-      authToken || authPassword || resolvedDeviceToken
+      authToken || this.opts.password
         ? {
             token: authToken,
-            deviceToken: resolvedDeviceToken,
-            password: authPassword,
+            password: this.opts.password,
           }
         : undefined;
     const signedAtMs = Date.now();
+    const nonce = this.connectNonce ?? undefined;
     const scopes = this.opts.scopes ?? ["operator.admin"];
     const device = (() => {
       if (!this.opts.deviceIdentity) {
@@ -352,13 +332,10 @@ export class GatewayClient {
         if (evt.event === "connect.challenge") {
           const payload = evt.payload as { nonce?: unknown } | undefined;
           const nonce = payload && typeof payload.nonce === "string" ? payload.nonce : null;
-          if (!nonce || nonce.trim().length === 0) {
-            this.opts.onConnectError?.(new Error("gateway connect challenge missing nonce"));
-            this.ws?.close(1008, "connect challenge missing nonce");
-            return;
+          if (nonce) {
+            this.connectNonce = nonce;
+            this.sendConnect();
           }
-          this.connectNonce = nonce.trim();
-          this.sendConnect();
           return;
         }
         const seq = typeof evt.seq === "number" ? evt.seq : null;
@@ -401,20 +378,16 @@ export class GatewayClient {
     this.connectNonce = null;
     this.connectSent = false;
     const rawConnectDelayMs = this.opts.connectDelayMs;
-    const connectChallengeTimeoutMs =
+    const connectDelayMs =
       typeof rawConnectDelayMs === "number" && Number.isFinite(rawConnectDelayMs)
-        ? Math.max(250, Math.min(10_000, rawConnectDelayMs))
-        : 2_000;
+        ? Math.max(0, Math.min(5_000, rawConnectDelayMs))
+        : 750;
     if (this.connectTimer) {
       clearTimeout(this.connectTimer);
     }
     this.connectTimer = setTimeout(() => {
-      if (this.connectSent || this.ws?.readyState !== WebSocket.OPEN) {
-        return;
-      }
-      this.opts.onConnectError?.(new Error("gateway connect challenge timeout"));
-      this.ws?.close(1008, "connect challenge timeout");
-    }, connectChallengeTimeoutMs);
+      this.sendConnect();
+    }, connectDelayMs);
   }
 
   private scheduleReconnect() {

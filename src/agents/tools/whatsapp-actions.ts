@@ -2,7 +2,6 @@ import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { OpenClawConfig } from "../../config/config.js";
 import { sendReactionWhatsApp } from "../../web/outbound.js";
 import { createActionGate, jsonResult, readReactionParams, readStringParam } from "./common.js";
-import { resolveAuthorizedWhatsAppOutboundTarget } from "./whatsapp-target-auth.js";
 
 export async function handleWhatsAppAction(
   params: Record<string, unknown>,
@@ -24,21 +23,12 @@ export async function handleWhatsAppAction(
     const accountId = readStringParam(params, "accountId");
     const fromMeRaw = params.fromMe;
     const fromMe = typeof fromMeRaw === "boolean" ? fromMeRaw : undefined;
-
-    // Resolve account + allowFrom via shared account logic so auth and routing stay aligned.
-    const resolved = resolveAuthorizedWhatsAppOutboundTarget({
-      cfg,
-      chatJid,
-      accountId,
-      actionLabel: "reaction",
-    });
-
     const resolvedEmoji = remove ? "" : emoji;
-    await sendReactionWhatsApp(resolved.to, messageId, resolvedEmoji, {
+    await sendReactionWhatsApp(chatJid, messageId, resolvedEmoji, {
       verbose: false,
       fromMe,
       participant: participant ?? undefined,
-      accountId: resolved.accountId,
+      accountId: accountId ?? undefined,
     });
     if (!remove && !isEmpty) {
       return jsonResult({ ok: true, added: emoji });

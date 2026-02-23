@@ -1,4 +1,3 @@
-import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import { resolveRemoteEmbeddingBearerClient } from "./embeddings-remote-client.js";
 import { fetchRemoteEmbeddingVectors } from "./embeddings-remote-fetch.js";
 import type { EmbeddingProvider, EmbeddingProviderOptions } from "./embeddings.js";
@@ -6,7 +5,6 @@ import type { EmbeddingProvider, EmbeddingProviderOptions } from "./embeddings.j
 export type VoyageEmbeddingClient = {
   baseUrl: string;
   headers: Record<string, string>;
-  ssrfPolicy?: SsrFPolicy;
   model: string;
 };
 
@@ -50,7 +48,6 @@ export async function createVoyageEmbeddingProvider(
     return await fetchRemoteEmbeddingVectors({
       url,
       headers: client.headers,
-      ssrfPolicy: client.ssrfPolicy,
       body,
       errorPrefix: "voyage embeddings failed",
     });
@@ -74,11 +71,11 @@ export async function createVoyageEmbeddingProvider(
 export async function resolveVoyageEmbeddingClient(
   options: EmbeddingProviderOptions,
 ): Promise<VoyageEmbeddingClient> {
-  const { baseUrl, headers, ssrfPolicy } = await resolveRemoteEmbeddingBearerClient({
+  const { baseUrl, headers } = await resolveRemoteEmbeddingBearerClient({
     provider: "voyage",
     options,
     defaultBaseUrl: DEFAULT_VOYAGE_BASE_URL,
   });
   const model = normalizeVoyageModel(options.model);
-  return { baseUrl, headers, ssrfPolicy, model };
+  return { baseUrl, headers, model };
 }

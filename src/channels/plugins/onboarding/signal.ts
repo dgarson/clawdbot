@@ -2,6 +2,8 @@ import { formatCliCommand } from "../../../cli/command-format.js";
 import { detectBinary } from "../../../commands/onboard-helpers.js";
 import { installSignalCli } from "../../../commands/signal-install.js";
 import type { OpenClawConfig } from "../../../config/config.js";
+import type { DmPolicy } from "../../../config/types.js";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../../routing/session-key.js";
 import {
   listSignalAccountIds,
   resolveDefaultSignalAccountId,
@@ -11,7 +13,7 @@ import { formatDocsLink } from "../../../terminal/links.js";
 import { normalizeE164 } from "../../../utils.js";
 import type { WizardPrompter } from "../../../wizard/prompts.js";
 import type { ChannelOnboardingAdapter, ChannelOnboardingDmPolicy } from "../onboarding-types.js";
-import * as onboardingHelpers from "./helpers.js";
+import { addWildcardAllowFrom, mergeAllowFromEntries, promptAccountId } from "./helpers.js";
 
 const channel = "signal" as const;
 const MIN_E164_DIGITS = 5;
@@ -36,28 +38,66 @@ export function normalizeSignalAccountInput(value: string | null | undefined): s
   return `+${digits}`;
 }
 
-function isUuidLike(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+function setSignalDmPolicy(cfg: OpenClawConfig, dmPolicy: DmPolicy) {
+  const allowFrom =
+    dmPolicy === "open" ? addWildcardAllowFrom(cfg.channels?.signal?.allowFrom) : undefined;
+  return {
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      signal: {
+        ...cfg.channels?.signal,
+        dmPolicy,
+        ...(allowFrom ? { allowFrom } : {}),
+      },
+    },
+  };
 }
 
-export function parseSignalAllowFromEntries(raw: string): { entries: string[]; error?: string } {
-  return onboardingHelpers.parseOnboardingEntriesAllowingWildcard(raw, (entry) => {
-    if (entry.toLowerCase().startsWith("uuid:")) {
-      const id = entry.slice("uuid:".length).trim();
-      if (!id) {
-        return { error: "Invalid uuid entry" };
-      }
-      return { value: `uuid:${id}` };
-    }
-    if (isUuidLike(entry)) {
-      return { value: `uuid:${entry}` };
-    }
-    const normalized = normalizeSignalAccountInput(entry);
-    if (!normalized) {
-      return { error: `Invalid entry: ${entry}` };
-    }
-    return { value: normalized };
-  });
+function setSignalAllowFrom(
+  cfg: OpenClawConfig,
+  accountId: string,
+  allowFrom: string[],
+): OpenClawConfig {
+  if (accountId === DEFAULT_ACCOUNT_ID) {
+    return {
+      ...cfg,
+      channels: {
+        ...cfg.channels,
+        signal: {
+          ...cfg.channels?.signal,
+          allowFrom,
+        },
+      },
+    };
+  }
+  return {
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      signal: {
+        ...cfg.channels?.signal,
+        accounts: {
+          ...cfg.channels?.signal?.accounts,
+          [accountId]: {
+            ...cfg.channels?.signal?.accounts?.[accountId],
+            allowFrom,
+          },
+        },
+      },
+    },
+  };
+}
+
+function parseSignalAllowFromInput(raw: string): string[] {
+  return raw
+    .split(/[\n,;]+/g)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function isUuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 async function promptSignalAllowFrom(params: {
@@ -65,29 +105,71 @@ async function promptSignalAllowFrom(params: {
   prompter: WizardPrompter;
   accountId?: string;
 }): Promise<OpenClawConfig> {
-  return onboardingHelpers.promptParsedAllowFromForScopedChannel({
-    cfg: params.cfg,
-    channel: "signal",
-    accountId: params.accountId,
-    defaultAccountId: resolveDefaultSignalAccountId(params.cfg),
-    prompter: params.prompter,
-    noteTitle: "Signal allowlist",
-    noteLines: [
+  const accountId =
+    params.accountId && normalizeAccountId(params.accountId)
+      ? (normalizeAccountId(params.accountId) ?? DEFAULT_ACCOUNT_ID)
+      : resolveDefaultSignalAccountId(params.cfg);
+  const resolved = resolveSignalAccount({ cfg: params.cfg, accountId });
+  const existing = resolved.config.allowFrom ?? [];
+  await params.prompter.note(
+    [
       "Allowlist Signal DMs by sender id.",
       "Examples:",
       "- +15555550123",
       "- uuid:123e4567-e89b-12d3-a456-426614174000",
       "Multiple entries: comma-separated.",
       `Docs: ${formatDocsLink("/signal", "signal")}`,
-    ],
+    ].join("\n"),
+    "Signal allowlist",
+  );
+  const entry = await params.prompter.text({
     message: "Signal allowFrom (E.164 or uuid)",
     placeholder: "+15555550123, uuid:123e4567-e89b-12d3-a456-426614174000",
-    parseEntries: parseSignalAllowFromEntries,
-    getExistingAllowFrom: ({ cfg, accountId }) => {
-      const resolved = resolveSignalAccount({ cfg, accountId });
-      return resolved.config.allowFrom ?? [];
+    initialValue: existing[0] ? String(existing[0]) : undefined,
+    validate: (value) => {
+      const raw = String(value ?? "").trim();
+      if (!raw) {
+        return "Required";
+      }
+      const parts = parseSignalAllowFromInput(raw);
+      for (const part of parts) {
+        if (part === "*") {
+          continue;
+        }
+        if (part.toLowerCase().startsWith("uuid:")) {
+          if (!part.slice("uuid:".length).trim()) {
+            return "Invalid uuid entry";
+          }
+          continue;
+        }
+        if (isUuidLike(part)) {
+          continue;
+        }
+        if (!normalizeE164(part)) {
+          return `Invalid entry: ${part}`;
+        }
+      }
+      return undefined;
     },
   });
+  const parts = parseSignalAllowFromInput(String(entry));
+  const normalized = parts.map((part) => {
+    if (part === "*") {
+      return "*";
+    }
+    if (part.toLowerCase().startsWith("uuid:")) {
+      return `uuid:${part.slice(5).trim()}`;
+    }
+    if (isUuidLike(part)) {
+      return `uuid:${part}`;
+    }
+    return normalizeE164(part);
+  });
+  const unique = mergeAllowFromEntries(
+    undefined,
+    normalized.filter((part): part is string => typeof part === "string" && part.trim().length > 0),
+  );
+  return setSignalAllowFrom(params.cfg, accountId, unique);
 }
 
 const dmPolicy: ChannelOnboardingDmPolicy = {
@@ -96,12 +178,7 @@ const dmPolicy: ChannelOnboardingDmPolicy = {
   policyKey: "channels.signal.dmPolicy",
   allowFromKey: "channels.signal.allowFrom",
   getCurrent: (cfg) => cfg.channels?.signal?.dmPolicy ?? "pairing",
-  setPolicy: (cfg, policy) =>
-    onboardingHelpers.setChannelDmPolicyWithAllowFrom({
-      cfg,
-      channel: "signal",
-      dmPolicy: policy,
-    }),
+  setPolicy: (cfg, policy) => setSignalDmPolicy(cfg, policy),
   promptAllowFrom: promptSignalAllowFrom,
 };
 
@@ -132,16 +209,21 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
     shouldPromptAccountIds,
     options,
   }) => {
+    const signalOverride = accountOverrides.signal?.trim();
     const defaultSignalAccountId = resolveDefaultSignalAccountId(cfg);
-    const signalAccountId = await onboardingHelpers.resolveAccountIdForConfigure({
-      cfg,
-      prompter,
-      label: "Signal",
-      accountOverride: accountOverrides.signal,
-      shouldPromptAccountIds,
-      listAccountIds: listSignalAccountIds,
-      defaultAccountId: defaultSignalAccountId,
-    });
+    let signalAccountId = signalOverride
+      ? normalizeAccountId(signalOverride)
+      : defaultSignalAccountId;
+    if (shouldPromptAccountIds && !signalOverride) {
+      signalAccountId = await promptAccountId({
+        cfg,
+        prompter,
+        label: "Signal",
+        currentId: signalAccountId,
+        listAccountIds: listSignalAccountIds,
+        defaultAccountId: defaultSignalAccountId,
+      });
+    }
 
     let next = cfg;
     const resolvedAccount = resolveSignalAccount({
@@ -216,15 +298,40 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
     }
 
     if (account) {
-      next = onboardingHelpers.patchChannelConfigForAccount({
-        cfg: next,
-        channel: "signal",
-        accountId: signalAccountId,
-        patch: {
-          account,
-          cliPath: resolvedCliPath ?? "signal-cli",
-        },
-      });
+      if (signalAccountId === DEFAULT_ACCOUNT_ID) {
+        next = {
+          ...next,
+          channels: {
+            ...next.channels,
+            signal: {
+              ...next.channels?.signal,
+              enabled: true,
+              account,
+              cliPath: resolvedCliPath ?? "signal-cli",
+            },
+          },
+        };
+      } else {
+        next = {
+          ...next,
+          channels: {
+            ...next.channels,
+            signal: {
+              ...next.channels?.signal,
+              enabled: true,
+              accounts: {
+                ...next.channels?.signal?.accounts,
+                [signalAccountId]: {
+                  ...next.channels?.signal?.accounts?.[signalAccountId],
+                  enabled: next.channels?.signal?.accounts?.[signalAccountId]?.enabled ?? true,
+                  account,
+                  cliPath: resolvedCliPath ?? "signal-cli",
+                },
+              },
+            },
+          },
+        };
+      }
     }
 
     await prompter.note(
@@ -240,5 +347,11 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
     return { cfg: next, accountId: signalAccountId };
   },
   dmPolicy,
-  disable: (cfg) => onboardingHelpers.setOnboardingChannelEnabled(cfg, channel, false),
+  disable: (cfg) => ({
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      signal: { ...cfg.channels?.signal, enabled: false },
+    },
+  }),
 };

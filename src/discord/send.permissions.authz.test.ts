@@ -15,34 +15,6 @@ vi.mock("./client.js", () => ({
   resolveDiscordRest: () => mockRest as unknown as RequestClient,
 }));
 
-type RouteMockParams = {
-  guildId?: string;
-  userId?: string;
-  roles: Array<{ id: string; permissions: string | bigint }>;
-  memberRoles: string[];
-};
-
-function mockGuildMemberRoutes(params: RouteMockParams): void {
-  const guildId = params.guildId ?? "guild-1";
-  const userId = params.userId ?? "user-1";
-  mockRest.get.mockImplementation(async (route: string) => {
-    if (route === Routes.guild(guildId)) {
-      return {
-        id: guildId,
-        roles: params.roles.map((role) => ({
-          id: role.id,
-          permissions:
-            typeof role.permissions === "bigint" ? role.permissions.toString() : role.permissions,
-        })),
-      };
-    }
-    if (route === Routes.guildMember(guildId, userId)) {
-      return { id: userId, roles: params.memberRoles };
-    }
-    throw new Error(`Unexpected route: ${route}`);
-  });
-}
-
 describe("discord guild permission authorization", () => {
   describe("fetchMemberGuildPermissionsDiscord", () => {
     it("returns null when user is not a guild member", async () => {
@@ -53,12 +25,23 @@ describe("discord guild permission authorization", () => {
     });
 
     it("includes @everyone and member roles in computed permissions", async () => {
-      mockGuildMemberRoutes({
-        roles: [
-          { id: "guild-1", permissions: PermissionFlagsBits.ViewChannel },
-          { id: "role-mod", permissions: PermissionFlagsBits.KickMembers },
-        ],
-        memberRoles: ["role-mod"],
+      mockRest.get.mockImplementation(async (route: string) => {
+        if (route === Routes.guild("guild-1")) {
+          return {
+            id: "guild-1",
+            roles: [
+              { id: "guild-1", permissions: PermissionFlagsBits.ViewChannel.toString() },
+              { id: "role-mod", permissions: PermissionFlagsBits.KickMembers.toString() },
+            ],
+          };
+        }
+        if (route === Routes.guildMember("guild-1", "user-1")) {
+          return {
+            id: "user-1",
+            roles: ["role-mod"],
+          };
+        }
+        throw new Error(`Unexpected route: ${route}`);
       });
 
       const result = await fetchMemberGuildPermissionsDiscord("guild-1", "user-1");
@@ -74,12 +57,20 @@ describe("discord guild permission authorization", () => {
 
   describe("hasAnyGuildPermissionDiscord", () => {
     it("returns true when user has required permission", async () => {
-      mockGuildMemberRoutes({
-        roles: [
-          { id: "guild-1", permissions: "0" },
-          { id: "role-mod", permissions: PermissionFlagsBits.KickMembers },
-        ],
-        memberRoles: ["role-mod"],
+      mockRest.get.mockImplementation(async (route: string) => {
+        if (route === Routes.guild("guild-1")) {
+          return {
+            id: "guild-1",
+            roles: [
+              { id: "guild-1", permissions: "0" },
+              { id: "role-mod", permissions: PermissionFlagsBits.KickMembers.toString() },
+            ],
+          };
+        }
+        if (route === Routes.guildMember("guild-1", "user-1")) {
+          return { id: "user-1", roles: ["role-mod"] };
+        }
+        throw new Error(`Unexpected route: ${route}`);
       });
 
       const result = await hasAnyGuildPermissionDiscord("guild-1", "user-1", [
@@ -89,15 +80,23 @@ describe("discord guild permission authorization", () => {
     });
 
     it("returns true when user has ADMINISTRATOR", async () => {
-      mockGuildMemberRoutes({
-        roles: [
-          { id: "guild-1", permissions: "0" },
-          {
-            id: "role-admin",
-            permissions: PermissionFlagsBits.Administrator,
-          },
-        ],
-        memberRoles: ["role-admin"],
+      mockRest.get.mockImplementation(async (route: string) => {
+        if (route === Routes.guild("guild-1")) {
+          return {
+            id: "guild-1",
+            roles: [
+              { id: "guild-1", permissions: "0" },
+              {
+                id: "role-admin",
+                permissions: PermissionFlagsBits.Administrator.toString(),
+              },
+            ],
+          };
+        }
+        if (route === Routes.guildMember("guild-1", "user-1")) {
+          return { id: "user-1", roles: ["role-admin"] };
+        }
+        throw new Error(`Unexpected route: ${route}`);
       });
 
       const result = await hasAnyGuildPermissionDiscord("guild-1", "user-1", [
@@ -107,9 +106,17 @@ describe("discord guild permission authorization", () => {
     });
 
     it("returns false when user lacks all required permissions", async () => {
-      mockGuildMemberRoutes({
-        roles: [{ id: "guild-1", permissions: PermissionFlagsBits.ViewChannel }],
-        memberRoles: [],
+      mockRest.get.mockImplementation(async (route: string) => {
+        if (route === Routes.guild("guild-1")) {
+          return {
+            id: "guild-1",
+            roles: [{ id: "guild-1", permissions: PermissionFlagsBits.ViewChannel.toString() }],
+          };
+        }
+        if (route === Routes.guildMember("guild-1", "user-1")) {
+          return { id: "user-1", roles: [] };
+        }
+        throw new Error(`Unexpected route: ${route}`);
       });
 
       const result = await hasAnyGuildPermissionDiscord("guild-1", "user-1", [
@@ -122,12 +129,20 @@ describe("discord guild permission authorization", () => {
 
   describe("hasAllGuildPermissionsDiscord", () => {
     it("returns false when user has only one of multiple required permissions", async () => {
-      mockGuildMemberRoutes({
-        roles: [
-          { id: "guild-1", permissions: "0" },
-          { id: "role-mod", permissions: PermissionFlagsBits.KickMembers },
-        ],
-        memberRoles: ["role-mod"],
+      mockRest.get.mockImplementation(async (route: string) => {
+        if (route === Routes.guild("guild-1")) {
+          return {
+            id: "guild-1",
+            roles: [
+              { id: "guild-1", permissions: "0" },
+              { id: "role-mod", permissions: PermissionFlagsBits.KickMembers.toString() },
+            ],
+          };
+        }
+        if (route === Routes.guildMember("guild-1", "user-1")) {
+          return { id: "user-1", roles: ["role-mod"] };
+        }
+        throw new Error(`Unexpected route: ${route}`);
       });
 
       const result = await hasAllGuildPermissionsDiscord("guild-1", "user-1", [
@@ -135,22 +150,6 @@ describe("discord guild permission authorization", () => {
         PermissionFlagsBits.BanMembers,
       ]);
       expect(result).toBe(false);
-    });
-
-    it("returns true for hasAll checks when user has ADMINISTRATOR", async () => {
-      mockGuildMemberRoutes({
-        roles: [
-          { id: "guild-1", permissions: "0" },
-          { id: "role-admin", permissions: PermissionFlagsBits.Administrator },
-        ],
-        memberRoles: ["role-admin"],
-      });
-
-      const result = await hasAllGuildPermissionsDiscord("guild-1", "user-1", [
-        PermissionFlagsBits.KickMembers,
-        PermissionFlagsBits.BanMembers,
-      ]);
-      expect(result).toBe(true);
     });
   });
 });

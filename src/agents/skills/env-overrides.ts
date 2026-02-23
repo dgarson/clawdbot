@@ -1,12 +1,8 @@
 import type { OpenClawConfig } from "../../config/config.js";
-import { isDangerousHostEnvVarName } from "../../infra/host-env-security.js";
-import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { sanitizeEnvVars, validateEnvVarValue } from "../sandbox/sanitize-env-vars.js";
 import { resolveSkillConfig } from "./config.js";
 import { resolveSkillKey } from "./frontmatter.js";
 import type { SkillEntry, SkillSnapshot } from "./types.js";
-
-const log = createSubsystemLogger("env-overrides");
 
 type EnvUpdate = { key: string; prev: string | undefined };
 type SkillConfig = NonNullable<ReturnType<typeof resolveSkillConfig>>;
@@ -17,17 +13,16 @@ type SanitizedSkillEnvOverrides = {
   warnings: string[];
 };
 
-// Always block skill env overrides that can alter runtime loading or host execution behavior.
-const SKILL_ALWAYS_BLOCKED_ENV_PATTERNS: ReadonlyArray<RegExp> = [/^OPENSSL_CONF$/i];
+// Never allow skill env overrides that can alter runtime loader flags.
+const HARD_BLOCKED_SKILL_ENV_PATTERNS: ReadonlyArray<RegExp> = [
+  /^NODE_OPTIONS$/i,
+  /^OPENSSL_CONF$/i,
+  /^LD_PRELOAD$/i,
+  /^DYLD_INSERT_LIBRARIES$/i,
+];
 
 function matchesAnyPattern(value: string, patterns: readonly RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(value));
-}
-
-function isAlwaysBlockedSkillEnvKey(key: string): boolean {
-  return (
-    isDangerousHostEnvVarName(key) || matchesAnyPattern(key, SKILL_ALWAYS_BLOCKED_ENV_PATTERNS)
-  );
 }
 
 function sanitizeSkillEnvOverrides(params: {
@@ -38,22 +33,19 @@ function sanitizeSkillEnvOverrides(params: {
     return { allowed: {}, blocked: [], warnings: [] };
   }
 
-  const result = sanitizeEnvVars(params.overrides);
-  const allowed: Record<string, string> = {};
-  const blocked = new Set<string>();
+  const result = sanitizeEnvVars(params.overrides, {
+    customBlockedPatterns: HARD_BLOCKED_SKILL_ENV_PATTERNS,
+  });
+  const allowed = { ...result.allowed };
+  const blocked: string[] = [];
   const warnings = [...result.warnings];
 
-  for (const [key, value] of Object.entries(result.allowed)) {
-    if (isAlwaysBlockedSkillEnvKey(key)) {
-      blocked.add(key);
-      continue;
-    }
-    allowed[key] = value;
-  }
-
   for (const key of result.blocked) {
-    if (isAlwaysBlockedSkillEnvKey(key) || !params.allowedSensitiveKeys.has(key)) {
-      blocked.add(key);
+    if (
+      matchesAnyPattern(key, HARD_BLOCKED_SKILL_ENV_PATTERNS) ||
+      !params.allowedSensitiveKeys.has(key)
+    ) {
+      blocked.push(key);
       continue;
     }
     const value = params.overrides[key];
@@ -63,7 +55,7 @@ function sanitizeSkillEnvOverrides(params: {
     const warning = validateEnvVarValue(value);
     if (warning) {
       if (warning === "Contains null bytes") {
-        blocked.add(key);
+        blocked.push(key);
         continue;
       }
       warnings.push(`${key}: ${warning}`);
@@ -71,7 +63,7 @@ function sanitizeSkillEnvOverrides(params: {
     allowed[key] = value;
   }
 
-  return { allowed, blocked: [...blocked], warnings };
+  return { allowed, blocked, warnings };
 }
 
 function applySkillConfigEnvOverrides(params: {
@@ -117,10 +109,13 @@ function applySkillConfigEnvOverrides(params: {
   });
 
   if (sanitized.blocked.length > 0) {
-    log.warn(`Blocked skill env overrides for ${skillKey}: ${sanitized.blocked.join(", ")}`);
+    console.warn(
+      `[Security] Blocked skill env overrides for ${skillKey}:`,
+      sanitized.blocked.join(", "),
+    );
   }
   if (sanitized.warnings.length > 0) {
-    log.warn(`Suspicious skill env overrides for ${skillKey}: ${sanitized.warnings.join(", ")}`);
+    console.warn(`[Security] Suspicious skill env overrides for ${skillKey}:`, sanitized.warnings);
   }
 
   for (const [envKey, envValue] of Object.entries(sanitized.allowed)) {

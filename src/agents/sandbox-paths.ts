@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isNotFoundPathError, isPathInside } from "../infra/path-guards.js";
 
 const UNICODE_SPACES = /[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g;
 const HTTP_URL_RE = /^https?:\/\//i;
@@ -90,36 +89,12 @@ export async function resolveSandboxedMediaSource(params: {
       throw new Error(`Invalid file:// URL for sandboxed media: ${raw}`);
     }
   }
-  const tmpMediaPath = await resolveAllowedTmpMediaPath({
-    candidate,
-    sandboxRoot: params.sandboxRoot,
-  });
-  if (tmpMediaPath) {
-    return tmpMediaPath;
-  }
-  const sandboxResult = await assertSandboxPath({
+  const resolved = await assertSandboxPath({
     filePath: candidate,
     cwd: params.sandboxRoot,
     root: params.sandboxRoot,
   });
-  return sandboxResult.resolved;
-}
-
-async function resolveAllowedTmpMediaPath(params: {
-  candidate: string;
-  sandboxRoot: string;
-}): Promise<string | undefined> {
-  const candidateIsAbsolute = path.isAbsolute(expandPath(params.candidate));
-  if (!candidateIsAbsolute) {
-    return undefined;
-  }
-  const resolved = path.resolve(resolveSandboxInputPath(params.candidate, params.sandboxRoot));
-  const tmpDir = path.resolve(os.tmpdir());
-  if (!isPathInside(tmpDir, resolved)) {
-    return undefined;
-  }
-  await assertNoSymlinkEscape(path.relative(tmpDir, resolved), tmpDir);
-  return resolved;
+  return resolved.resolved;
 }
 
 async function assertNoSymlinkEscape(
@@ -154,7 +129,8 @@ async function assertNoSymlinkEscape(
         current = target;
       }
     } catch (err) {
-      if (isNotFoundPathError(err)) {
+      const anyErr = err as { code?: string };
+      if (anyErr.code === "ENOENT") {
         return;
       }
       throw err;
@@ -168,6 +144,14 @@ async function tryRealpath(value: string): Promise<string> {
   } catch {
     return path.resolve(value);
   }
+}
+
+function isPathInside(root: string, target: string): boolean {
+  const relative = path.relative(root, target);
+  if (!relative || relative === "") {
+    return true;
+  }
+  return !(relative.startsWith("..") || path.isAbsolute(relative));
 }
 
 function shortPath(value: string) {

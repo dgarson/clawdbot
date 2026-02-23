@@ -7,7 +7,6 @@ import {
   parseModelRef,
   resolveConfiguredModelRef,
   resolveDefaultModelForAgent,
-  resolveThinkingDefault,
 } from "../agents/model-selection.js";
 import { type OpenClawConfig, loadConfig } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
@@ -28,14 +27,6 @@ import {
   parseAgentSessionKey,
 } from "../routing/session-key.js";
 import { isCronRunSessionKey } from "../sessions/session-key-utils.js";
-import {
-  AVATAR_MAX_BYTES,
-  isAvatarDataUrl,
-  isAvatarHttpUrl,
-  isPathWithinRoot,
-  isWorkspaceRelativeAvatarPath,
-  resolveAvatarMime,
-} from "../shared/avatar-policy.js";
 import { normalizeSessionDeliveryFields } from "../utils/delivery-context.js";
 import { readSessionTitleFieldsFromTranscript } from "./session-utils.fs.js";
 import type {
@@ -67,17 +58,41 @@ export type {
 } from "./session-utils.types.js";
 
 const DERIVED_TITLE_MAX_LEN = 60;
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
-function tryResolveExistingPath(value: string): string | null {
-  try {
-    return fs.realpathSync(value);
-  } catch {
-    return null;
-  }
+const AVATAR_DATA_RE = /^data:/i;
+const AVATAR_HTTP_RE = /^https?:\/\//i;
+const AVATAR_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
+const WINDOWS_ABS_RE = /^[a-zA-Z]:[\\/]/;
+
+const AVATAR_MIME_BY_EXT: Record<string, string> = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".bmp": "image/bmp",
+  ".tif": "image/tiff",
+  ".tiff": "image/tiff",
+};
+
+function resolveAvatarMime(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  return AVATAR_MIME_BY_EXT[ext] ?? "application/octet-stream";
 }
 
-function areSameFileIdentity(preOpen: fs.Stats, opened: fs.Stats): boolean {
-  return preOpen.dev === opened.dev && preOpen.ino === opened.ino;
+function isWorkspaceRelativePath(value: string): boolean {
+  if (!value) {
+    return false;
+  }
+  if (value.startsWith("~")) {
+    return false;
+  }
+  if (AVATAR_SCHEME_RE.test(value) && !WINDOWS_ABS_RE.test(value)) {
+    return false;
+  }
+  return true;
 }
 
 function resolveIdentityAvatarUrl(
@@ -92,49 +107,29 @@ function resolveIdentityAvatarUrl(
   if (!trimmed) {
     return undefined;
   }
-  if (isAvatarDataUrl(trimmed) || isAvatarHttpUrl(trimmed)) {
+  if (AVATAR_DATA_RE.test(trimmed) || AVATAR_HTTP_RE.test(trimmed)) {
     return trimmed;
   }
-  if (!isWorkspaceRelativeAvatarPath(trimmed)) {
+  if (!isWorkspaceRelativePath(trimmed)) {
     return undefined;
   }
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
-  const workspaceRoot = tryResolveExistingPath(workspaceDir) ?? path.resolve(workspaceDir);
-  const resolvedCandidate = path.resolve(workspaceRoot, trimmed);
-  if (!isPathWithinRoot(workspaceRoot, resolvedCandidate)) {
+  const workspaceRoot = path.resolve(workspaceDir);
+  const resolved = path.resolve(workspaceRoot, trimmed);
+  const relative = path.relative(workspaceRoot, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
     return undefined;
   }
-  let fd: number | null = null;
   try {
-    const resolvedReal = fs.realpathSync(resolvedCandidate);
-    if (!isPathWithinRoot(workspaceRoot, resolvedReal)) {
+    const stat = fs.statSync(resolved);
+    if (!stat.isFile() || stat.size > AVATAR_MAX_BYTES) {
       return undefined;
     }
-    const preOpenStat = fs.lstatSync(resolvedReal);
-    if (!preOpenStat.isFile() || preOpenStat.size > AVATAR_MAX_BYTES) {
-      return undefined;
-    }
-    const openFlags =
-      fs.constants.O_RDONLY |
-      (typeof fs.constants.O_NOFOLLOW === "number" ? fs.constants.O_NOFOLLOW : 0);
-    fd = fs.openSync(resolvedReal, openFlags);
-    const openedStat = fs.fstatSync(fd);
-    if (
-      !openedStat.isFile() ||
-      openedStat.size > AVATAR_MAX_BYTES ||
-      !areSameFileIdentity(preOpenStat, openedStat)
-    ) {
-      return undefined;
-    }
-    const buffer = fs.readFileSync(fd);
-    const mime = resolveAvatarMime(resolvedCandidate);
+    const buffer = fs.readFileSync(resolved);
+    const mime = resolveAvatarMime(resolved);
     return `data:${mime};base64,${buffer.toString("base64")}`;
   } catch {
     return undefined;
-  } finally {
-    if (fd !== null) {
-      fs.closeSync(fd);
-    }
   }
 }
 
@@ -431,7 +426,7 @@ export function resolveSessionStoreKey(params: {
   cfg: OpenClawConfig;
   sessionKey: string;
 }): string {
-  const raw = (params.sessionKey ?? "").trim();
+  const raw = params.sessionKey.trim();
   if (!raw) {
     return raw;
   }
@@ -669,20 +664,15 @@ export function resolveSessionModelRef(
   const runtimeModel = entry?.model?.trim();
   const runtimeProvider = entry?.modelProvider?.trim();
   if (runtimeModel) {
-    if (runtimeProvider) {
-      // Provider is explicitly recorded — use it directly. Re-parsing the
-      // model string through parseModelRef would incorrectly split OpenRouter
-      // vendor-prefixed model names (e.g. model="anthropic/claude-haiku-4.5"
-      // with provider="openrouter") into { provider: "anthropic" }, discarding
-      // the stored OpenRouter provider and causing direct API calls to a
-      // provider the user has no credentials for.
-      return { provider: runtimeProvider, model: runtimeModel };
-    }
-    const parsedRuntime = parseModelRef(runtimeModel, provider || DEFAULT_PROVIDER);
+    const parsedRuntime = parseModelRef(
+      runtimeModel,
+      runtimeProvider || provider || DEFAULT_PROVIDER,
+    );
     if (parsedRuntime) {
       provider = parsedRuntime.provider;
       model = parsedRuntime.model;
     } else {
+      provider = runtimeProvider || provider;
       model = runtimeModel;
     }
     return { provider, model };
@@ -798,8 +788,6 @@ export function listSessionsFromStore(params: {
       const resolvedModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
       const modelProvider = resolvedModel.provider ?? DEFAULT_PROVIDER;
       const model = resolvedModel.model ?? DEFAULT_MODEL;
-      const resolvedThinkingLevel = resolveThinkingDefault({ cfg, provider: modelProvider, model });
-      const resolvedVerboseLevel = cfg.agents?.defaults?.verboseDefault;
       return {
         key,
         entry,
@@ -819,8 +807,6 @@ export function listSessionsFromStore(params: {
         thinkingLevel: entry?.thinkingLevel,
         verboseLevel: entry?.verboseLevel,
         reasoningLevel: entry?.reasoningLevel,
-        resolvedThinkingLevel,
-        resolvedVerboseLevel,
         elevatedLevel: entry?.elevatedLevel,
         sendPolicy: entry?.sendPolicy,
         inputTokens: entry?.inputTokens,

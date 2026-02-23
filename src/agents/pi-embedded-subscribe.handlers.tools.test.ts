@@ -45,15 +45,12 @@ function createTestContext(): {
       messagingToolSentMediaUrls: [],
       messagingToolSentTargets: [],
       successfulCronAdds: 0,
-      toolDiagnosticExtraInfos: [],
-      toolDiagnosticDebugInfos: [],
     },
     shouldEmitToolResult: () => false,
     shouldEmitToolOutput: () => false,
     emitToolSummary: vi.fn(),
     emitToolOutput: vi.fn(),
     trimMessagingToolSent: vi.fn(),
-    trimToolDiagnosticInfos: vi.fn(),
   };
 
   return { ctx, warn, onBlockReplyFlush };

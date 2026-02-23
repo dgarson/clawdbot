@@ -22,7 +22,7 @@ import { stageSandboxMedia } from "./reply/stage-sandbox-media.js";
 
 afterEach(() => {
   vi.restoreAllMocks();
-  childProcessMocks.spawn.mockClear();
+  childProcessMocks.spawn.mockReset();
 });
 
 describe("stageSandboxMedia", () => {

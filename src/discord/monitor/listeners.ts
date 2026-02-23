@@ -68,32 +68,6 @@ function logSlowDiscordListener(params: {
   });
 }
 
-async function runDiscordListenerWithSlowLog(params: {
-  logger: Logger | undefined;
-  listener: string;
-  event: string;
-  run: () => Promise<void>;
-  onError?: (err: unknown) => void;
-}) {
-  const startedAt = Date.now();
-  try {
-    await params.run();
-  } catch (err) {
-    if (params.onError) {
-      params.onError(err);
-      return;
-    }
-    throw err;
-  } finally {
-    logSlowDiscordListener({
-      logger: params.logger,
-      listener: params.listener,
-      event: params.event,
-      durationMs: Date.now() - startedAt,
-    });
-  }
-}
-
 export function registerDiscordListener(listeners: Array<object>, listener: object) {
   if (listeners.some((existing) => existing.constructor === listener.constructor)) {
     return false;
@@ -111,16 +85,21 @@ export class DiscordMessageListener extends MessageCreateListener {
   }
 
   async handle(data: DiscordMessageEvent, client: Client) {
-    await runDiscordListenerWithSlowLog({
-      logger: this.logger,
-      listener: this.constructor.name,
-      event: this.type,
-      run: () => this.handler(data, client),
-      onError: (err) => {
+    const startedAt = Date.now();
+    const task = Promise.resolve(this.handler(data, client));
+    void task
+      .catch((err) => {
         const logger = this.logger ?? discordEventQueueLog;
         logger.error(danger(`discord handler failed: ${String(err)}`));
-      },
-    });
+      })
+      .finally(() => {
+        logSlowDiscordListener({
+          logger: this.logger,
+          listener: this.constructor.name,
+          event: this.type,
+          durationMs: Date.now() - startedAt,
+        });
+      });
   }
 }
 
@@ -166,22 +145,26 @@ async function runDiscordReactionHandler(params: {
   listener: string;
   event: string;
 }): Promise<void> {
-  await runDiscordListenerWithSlowLog({
-    logger: params.handlerParams.logger,
-    listener: params.listener,
-    event: params.event,
-    run: () =>
-      handleDiscordReactionEvent({
-        data: params.data,
-        client: params.client,
-        action: params.action,
-        cfg: params.handlerParams.cfg,
-        accountId: params.handlerParams.accountId,
-        botUserId: params.handlerParams.botUserId,
-        guildEntries: params.handlerParams.guildEntries,
-        logger: params.handlerParams.logger,
-      }),
-  });
+  const startedAt = Date.now();
+  try {
+    await handleDiscordReactionEvent({
+      data: params.data,
+      client: params.client,
+      action: params.action,
+      cfg: params.handlerParams.cfg,
+      accountId: params.handlerParams.accountId,
+      botUserId: params.handlerParams.botUserId,
+      guildEntries: params.handlerParams.guildEntries,
+      logger: params.handlerParams.logger,
+    });
+  } finally {
+    logSlowDiscordListener({
+      logger: params.handlerParams.logger,
+      listener: params.listener,
+      event: params.event,
+      durationMs: Date.now() - startedAt,
+    });
+  }
 }
 
 async function handleDiscordReactionEvent(params: {

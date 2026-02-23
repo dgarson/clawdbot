@@ -55,7 +55,6 @@ type OpenResponsesHttpOptions = {
   maxBodyBytes?: number;
   config?: GatewayHttpResponsesConfig;
   trustedProxies?: string[];
-  allowRealIpFallback?: boolean;
   rateLimiter?: AuthRateLimiter;
 };
 
@@ -344,7 +343,6 @@ export async function handleOpenResponsesHttpRequest(
     pathname: "/v1/responses",
     auth: opts.auth,
     trustedProxies: opts.trustedProxies,
-    allowRealIpFallback: opts.allowRealIpFallback,
     rateLimiter: opts.rateLimiter,
     maxBodyBytes,
   });

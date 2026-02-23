@@ -15,11 +15,6 @@ const { resolveStorePath } = await import("../config/sessions/paths.js");
 const { loadSessionStore, saveSessionStore } = await import("../config/sessions/store.js");
 
 describe("runBootOnce", () => {
-  type BootWorkspaceOptions = {
-    bootAsDirectory?: boolean;
-    bootContent?: string;
-  };
-
   const resolveMainStore = (
     cfg: {
       session?: { store?: string; scope?: SessionScope; mainKey?: string };
@@ -47,24 +42,6 @@ describe("runBootOnce", () => {
     sendMessageIMessage: vi.fn(),
   });
 
-  const withBootWorkspace = async (
-    options: BootWorkspaceOptions,
-    run: (workspaceDir: string) => Promise<void>,
-  ) => {
-    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
-    try {
-      const bootPath = path.join(workspaceDir, "BOOT.md");
-      if (options.bootAsDirectory) {
-        await fs.mkdir(bootPath, { recursive: true });
-      } else if (typeof options.bootContent === "string") {
-        await fs.writeFile(bootPath, options.bootContent, "utf-8");
-      }
-      await run(workspaceDir);
-    } finally {
-      await fs.rm(workspaceDir, { recursive: true, force: true });
-    }
-  };
-
   const mockAgentUpdatesMainSession = (storePath: string, sessionKey: string) => {
     agentCommand.mockImplementation(async (opts: { sessionId?: string }) => {
       const current = loadSessionStore(storePath, { skipCache: true });
@@ -77,173 +54,166 @@ describe("runBootOnce", () => {
   };
 
   it("skips when BOOT.md is missing", async () => {
-    await withBootWorkspace({}, async (workspaceDir) => {
-      await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "skipped",
-        reason: "missing",
-      });
-      expect(agentCommand).not.toHaveBeenCalled();
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
+    await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "skipped",
+      reason: "missing",
     });
-  });
-
-  it("returns failed when BOOT.md cannot be read", async () => {
-    await withBootWorkspace({ bootAsDirectory: true }, async (workspaceDir) => {
-      const result = await runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir });
-      expect(result.status).toBe("failed");
-      if (result.status === "failed") {
-        expect(result.reason.length).toBeGreaterThan(0);
-      }
-      expect(agentCommand).not.toHaveBeenCalled();
-    });
+    expect(agentCommand).not.toHaveBeenCalled();
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it.each([
     { title: "empty", content: "   \n", reason: "empty" as const },
     { title: "whitespace-only", content: "\n\t ", reason: "empty" as const },
   ])("skips when BOOT.md is $title", async ({ content, reason }) => {
-    await withBootWorkspace({ bootContent: content }, async (workspaceDir) => {
-      await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "skipped",
-        reason,
-      });
-      expect(agentCommand).not.toHaveBeenCalled();
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), content, "utf-8");
+    await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "skipped",
+      reason,
     });
+    expect(agentCommand).not.toHaveBeenCalled();
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it("runs agent command when BOOT.md exists", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
     const content = "Say hello when you wake up.";
-    await withBootWorkspace({ bootContent: content }, async (workspaceDir) => {
-      agentCommand.mockResolvedValue(undefined);
-      await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "ran",
-      });
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), content, "utf-8");
 
-      expect(agentCommand).toHaveBeenCalledTimes(1);
-      const call = agentCommand.mock.calls[0]?.[0];
-      expect(call).toEqual(
-        expect.objectContaining({
-          deliver: false,
-          sessionKey: resolveMainSessionKey({}),
-        }),
-      );
-      expect(call?.message).toContain("BOOT.md:");
-      expect(call?.message).toContain(content);
-      expect(call?.message).toContain("NO_REPLY");
+    agentCommand.mockResolvedValue(undefined);
+    await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "ran",
     });
-  });
 
-  it("returns failed when agent command throws", async () => {
-    await withBootWorkspace({ bootContent: "Wake up and report." }, async (workspaceDir) => {
-      agentCommand.mockRejectedValue(new Error("boom"));
-      await expect(runBootOnce({ cfg: {}, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "failed",
-        reason: expect.stringContaining("agent run failed: boom"),
-      });
-      expect(agentCommand).toHaveBeenCalledTimes(1);
-    });
+    expect(agentCommand).toHaveBeenCalledTimes(1);
+    const call = agentCommand.mock.calls[0]?.[0];
+    expect(call).toEqual(
+      expect.objectContaining({
+        deliver: false,
+        sessionKey: resolveMainSessionKey({}),
+      }),
+    );
+    expect(call?.message).toContain("BOOT.md:");
+    expect(call?.message).toContain(content);
+    expect(call?.message).toContain("NO_REPLY");
+
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it("uses per-agent session key when agentId is provided", async () => {
-    await withBootWorkspace({ bootContent: "Check status." }, async (workspaceDir) => {
-      agentCommand.mockResolvedValue(undefined);
-      const cfg = {};
-      const agentId = "ops";
-      await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir, agentId })).resolves.toEqual({
-        status: "ran",
-      });
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), "Check status.", "utf-8");
 
-      expect(agentCommand).toHaveBeenCalledTimes(1);
-      const perAgentCall = agentCommand.mock.calls[0]?.[0];
-      expect(perAgentCall?.sessionKey).toBe(resolveAgentMainSessionKey({ cfg, agentId }));
+    agentCommand.mockResolvedValue(undefined);
+    const cfg = {};
+    const agentId = "ops";
+    await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir, agentId })).resolves.toEqual({
+      status: "ran",
     });
+
+    expect(agentCommand).toHaveBeenCalledTimes(1);
+    const perAgentCall = agentCommand.mock.calls[0]?.[0];
+    expect(perAgentCall?.sessionKey).toBe(resolveAgentMainSessionKey({ cfg, agentId }));
+
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it("generates new session ID when no existing session exists", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
     const content = "Say hello when you wake up.";
-    await withBootWorkspace({ bootContent: content }, async (workspaceDir) => {
-      agentCommand.mockResolvedValue(undefined);
-      const cfg = {};
-      await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "ran",
-      });
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), content, "utf-8");
 
-      expect(agentCommand).toHaveBeenCalledTimes(1);
-      const call = agentCommand.mock.calls[0]?.[0];
-
-      // Verify a boot-style session ID was generated (format: boot-YYYY-MM-DD_HH-MM-SS-xxx-xxxxxxxx)
-      expect(call?.sessionId).toMatch(
-        /^boot-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-\d{3}-[0-9a-f]{8}$/,
-      );
+    agentCommand.mockResolvedValue(undefined);
+    const cfg = {};
+    await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "ran",
     });
+
+    expect(agentCommand).toHaveBeenCalledTimes(1);
+    const call = agentCommand.mock.calls[0]?.[0];
+
+    // Verify a boot-style session ID was generated (format: boot-YYYY-MM-DD_HH-MM-SS-xxx-xxxxxxxx)
+    expect(call?.sessionId).toMatch(/^boot-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-\d{3}-[0-9a-f]{8}$/);
+
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it("uses a fresh boot session ID even when main session mapping already exists", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
     const content = "Say hello when you wake up.";
-    await withBootWorkspace({ bootContent: content }, async (workspaceDir) => {
-      const cfg = {};
-      const { sessionKey, storePath } = resolveMainStore(cfg);
-      const existingSessionId = "main-session-abc123";
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), content, "utf-8");
 
-      await saveSessionStore(storePath, {
-        [sessionKey]: {
-          sessionId: existingSessionId,
-          updatedAt: Date.now(),
-        },
-      });
+    const cfg = {};
+    const { sessionKey, storePath } = resolveMainStore(cfg);
+    const existingSessionId = "main-session-abc123";
 
-      agentCommand.mockResolvedValue(undefined);
-      await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "ran",
-      });
-
-      expect(agentCommand).toHaveBeenCalledTimes(1);
-      const call = agentCommand.mock.calls[0]?.[0];
-
-      expect(call?.sessionId).not.toBe(existingSessionId);
-      expect(call?.sessionId).toMatch(
-        /^boot-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-\d{3}-[0-9a-f]{8}$/,
-      );
-      expect(call?.sessionKey).toBe(sessionKey);
+    await saveSessionStore(storePath, {
+      [sessionKey]: {
+        sessionId: existingSessionId,
+        updatedAt: Date.now(),
+      },
     });
+
+    agentCommand.mockResolvedValue(undefined);
+    await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "ran",
+    });
+
+    expect(agentCommand).toHaveBeenCalledTimes(1);
+    const call = agentCommand.mock.calls[0]?.[0];
+
+    expect(call?.sessionId).not.toBe(existingSessionId);
+    expect(call?.sessionId).toMatch(/^boot-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-\d{3}-[0-9a-f]{8}$/);
+    expect(call?.sessionKey).toBe(sessionKey);
+
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it("restores the original main session mapping after the boot run", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
     const content = "Check if the system is healthy.";
-    await withBootWorkspace({ bootContent: content }, async (workspaceDir) => {
-      const cfg = {};
-      const { sessionKey, storePath } = resolveMainStore(cfg);
-      const existingSessionId = "main-session-xyz789";
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), content, "utf-8");
 
-      await saveSessionStore(storePath, {
-        [sessionKey]: {
-          sessionId: existingSessionId,
-          updatedAt: Date.now() - 60_000, // 1 minute ago
-        },
-      });
+    const cfg = {};
+    const { sessionKey, storePath } = resolveMainStore(cfg);
+    const existingSessionId = "main-session-xyz789";
 
-      mockAgentUpdatesMainSession(storePath, sessionKey);
-      await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "ran",
-      });
-
-      const restored = loadSessionStore(storePath, { skipCache: true });
-      expect(restored[sessionKey]?.sessionId).toBe(existingSessionId);
+    await saveSessionStore(storePath, {
+      [sessionKey]: {
+        sessionId: existingSessionId,
+        updatedAt: Date.now() - 60_000, // 1 minute ago
+      },
     });
+
+    mockAgentUpdatesMainSession(storePath, sessionKey);
+    await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "ran",
+    });
+
+    const restored = loadSessionStore(storePath, { skipCache: true });
+    expect(restored[sessionKey]?.sessionId).toBe(existingSessionId);
+
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
   it("removes a boot-created main-session mapping when none existed before", async () => {
-    await withBootWorkspace({ bootContent: "health check" }, async (workspaceDir) => {
-      const cfg = {};
-      const { sessionKey, storePath } = resolveMainStore(cfg);
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-boot-"));
+    await fs.writeFile(path.join(workspaceDir, "BOOT.md"), "health check", "utf-8");
 
-      mockAgentUpdatesMainSession(storePath, sessionKey);
+    const cfg = {};
+    const { sessionKey, storePath } = resolveMainStore(cfg);
 
-      await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
-        status: "ran",
-      });
+    mockAgentUpdatesMainSession(storePath, sessionKey);
 
-      const restored = loadSessionStore(storePath, { skipCache: true });
-      expect(restored[sessionKey]).toBeUndefined();
+    await expect(runBootOnce({ cfg, deps: makeDeps(), workspaceDir })).resolves.toEqual({
+      status: "ran",
     });
+
+    const restored = loadSessionStore(storePath, { skipCache: true });
+    expect(restored[sessionKey]).toBeUndefined();
+
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 });

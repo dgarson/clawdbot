@@ -11,31 +11,15 @@ import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 
 const MemorySearchSchema = Type.Object({
-  query: Type.String({
-    description:
-      "Semantic search query across memory files (MEMORY.md, memory/*.md, session transcripts).",
-  }),
-  maxResults: Type.Optional(
-    Type.Number({ description: "Maximum results to return (default: 10)." }),
-  ),
-  minScore: Type.Optional(
-    Type.Number({
-      description:
-        "Minimum similarity score (0-1; default: 0.3; higher = fewer but more relevant results).",
-    }),
-  ),
+  query: Type.String(),
+  maxResults: Type.Optional(Type.Number()),
+  minScore: Type.Optional(Type.Number()),
 });
 
 const MemoryGetSchema = Type.Object({
-  path: Type.String({
-    description: "File path in memory store (e.g. 'MEMORY.md' or 'memory/projects.md').",
-  }),
-  from: Type.Optional(
-    Type.Number({ description: "Starting line number for file excerpt (1-indexed)." }),
-  ),
-  lines: Type.Optional(
-    Type.Number({ description: "Number of lines to read from 'from' position." }),
-  ),
+  path: Type.String(),
+  from: Type.Optional(Type.Number()),
+  lines: Type.Optional(Type.Number()),
 });
 
 function resolveMemoryToolContext(options: { config?: OpenClawConfig; agentSessionKey?: string }) {
@@ -66,7 +50,7 @@ export function createMemorySearchTool(options: {
     label: "Memory Search",
     name: "memory_search",
     description:
-      "Mandatory recall step: semantically search MEMORY.md + memory/*.md (and optional session transcripts) before answering questions about prior work, decisions, dates, people, preferences, or todos; returns top snippets with path + lines. If response has disabled=true, memory retrieval is unavailable and should be surfaced to the user.",
+      "Mandatory recall step: semantically search MEMORY.md + memory/*.md (and optional session transcripts) before answering questions about prior work, decisions, dates, people, preferences, or todos; returns top snippets with path + lines.",
     parameters: MemorySearchSchema,
     execute: async (_toolCallId, params) => {
       const query = readStringParam(params, "query", { required: true });
@@ -77,7 +61,7 @@ export function createMemorySearchTool(options: {
         agentId,
       });
       if (!manager) {
-        return jsonResult(buildMemorySearchUnavailableResult(error));
+        return jsonResult({ results: [], disabled: true, error });
       }
       try {
         const citationsMode = resolveMemoryCitationsMode(cfg);
@@ -108,7 +92,7 @@ export function createMemorySearchTool(options: {
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        return jsonResult(buildMemorySearchUnavailableResult(message));
+        return jsonResult({ results: [], disabled: true, error: message });
       }
     },
   };
@@ -206,25 +190,6 @@ function clampResultsByInjectedChars(
     }
   }
   return clamped;
-}
-
-function buildMemorySearchUnavailableResult(error: string | undefined) {
-  const reason = (error ?? "memory search unavailable").trim() || "memory search unavailable";
-  const isQuotaError = /insufficient_quota|quota|429/.test(reason.toLowerCase());
-  const warning = isQuotaError
-    ? "Memory search is unavailable because the embedding provider quota is exhausted."
-    : "Memory search is unavailable due to an embedding/provider error.";
-  const action = isQuotaError
-    ? "Top up or switch embedding provider, then retry memory_search."
-    : "Check embedding provider configuration and retry memory_search.";
-  return {
-    results: [],
-    disabled: true,
-    unavailable: true,
-    error: reason,
-    warning,
-    action,
-  };
 }
 
 function shouldIncludeCitations(params: {

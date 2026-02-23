@@ -48,16 +48,14 @@ export type RuntimeRequires = {
   config?: string[];
 };
 
-type RuntimeRequirementEvalParams = {
+export function evaluateRuntimeRequires(params: {
   requires?: RuntimeRequires;
   hasBin: (bin: string) => boolean;
   hasAnyRemoteBin?: (bins: string[]) => boolean;
   hasRemoteBin?: (bin: string) => boolean;
   hasEnv: (envName: string) => boolean;
   isConfigPathTruthy: (pathStr: string) => boolean;
-};
-
-export function evaluateRuntimeRequires(params: RuntimeRequirementEvalParams): boolean {
+}): boolean {
   const requires = params.requires;
   if (!requires) {
     return true;
@@ -103,35 +101,6 @@ export function evaluateRuntimeRequires(params: RuntimeRequirementEvalParams): b
   }
 
   return true;
-}
-
-export function evaluateRuntimeEligibility(
-  params: {
-    os?: string[];
-    remotePlatforms?: string[];
-    always?: boolean;
-  } & RuntimeRequirementEvalParams,
-): boolean {
-  const osList = params.os ?? [];
-  const remotePlatforms = params.remotePlatforms ?? [];
-  if (
-    osList.length > 0 &&
-    !osList.includes(resolveRuntimePlatform()) &&
-    !remotePlatforms.some((platform) => osList.includes(platform))
-  ) {
-    return false;
-  }
-  if (params.always === true) {
-    return true;
-  }
-  return evaluateRuntimeRequires({
-    requires: params.requires,
-    hasBin: params.hasBin,
-    hasRemoteBin: params.hasRemoteBin,
-    hasAnyRemoteBin: params.hasAnyRemoteBin,
-    hasEnv: params.hasEnv,
-    isConfigPathTruthy: params.isConfigPathTruthy,
-  });
 }
 
 export function resolveRuntimePlatform(): string {

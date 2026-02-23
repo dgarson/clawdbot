@@ -68,7 +68,7 @@ export function registerPairingCli(program: Command) {
     .argument("[channel]", `Channel (${channels.join(", ")})`)
     .option("--json", "Print JSON", false)
     .action(async (channelArg, opts) => {
-      const channelRaw = opts.channel ?? channelArg ?? (channels.length === 1 ? channels[0] : "");
+      const channelRaw = opts.channel ?? channelArg;
       if (!channelRaw) {
         throw new Error(
           `Channel required. Use --channel <channel> or pass it as the first argument (expected one of: ${channels.join(", ")})`,
@@ -120,20 +120,9 @@ export function registerPairingCli(program: Command) {
     .argument("[code]", "Pairing code (when channel is passed as the 1st arg)")
     .option("--notify", "Notify the requester on the same channel", false)
     .action(async (codeOrChannel, code, opts) => {
-      const defaultChannel = channels.length === 1 ? channels[0] : "";
-      const usingExplicitChannel = Boolean(opts.channel);
-      const hasPositionalCode = code != null;
-      const channelRaw = usingExplicitChannel
-        ? opts.channel
-        : hasPositionalCode
-          ? codeOrChannel
-          : defaultChannel;
-      const resolvedCode = usingExplicitChannel
-        ? codeOrChannel
-        : hasPositionalCode
-          ? code
-          : codeOrChannel;
-      if (!channelRaw || !resolvedCode) {
+      const channelRaw = opts.channel ?? codeOrChannel;
+      const resolvedCode = opts.channel ? codeOrChannel : code;
+      if (!opts.channel && !code) {
         throw new Error(
           `Usage: ${formatCliCommand("openclaw pairing approve <channel> <code>")} (or: ${formatCliCommand("openclaw pairing approve --channel <channel> <code>")})`,
         );

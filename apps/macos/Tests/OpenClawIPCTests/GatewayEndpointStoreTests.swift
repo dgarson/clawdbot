@@ -225,7 +225,7 @@ import Testing
     }
 
     @Test func normalizeGatewayUrlRejectsNonLoopbackWs() {
-        let url = GatewayRemoteConfig.normalizeGatewayUrl("ws://gateway.example:18789")
+        let url = GatewayRemoteConfig.normalizeGatewayUrl("ws://gateway")
         #expect(url == nil)
     }
 

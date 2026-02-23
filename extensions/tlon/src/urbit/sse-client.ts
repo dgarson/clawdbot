@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import type { LookupFn, SsrFPolicy } from "openclaw/plugin-sdk";
 import { ensureUrbitChannelOpen, pokeUrbitChannel, scryUrbitPath } from "./channel-ops.js";
@@ -60,7 +59,7 @@ export class UrbitSSEClient {
     this.url = ctx.baseUrl;
     this.cookie = normalizeUrbitCookie(cookie);
     this.ship = ctx.ship;
-    this.channelId = `${Math.floor(Date.now() / 1000)}-${randomUUID()}`;
+    this.channelId = `${Math.floor(Date.now() / 1000)}-${Math.random().toString(36).substring(2, 8)}`;
     this.channelUrl = new URL(`/~/channel/${this.channelId}`, this.url).toString();
     this.onReconnect = options.onReconnect ?? null;
     this.autoReconnect = options.autoReconnect !== false;
@@ -344,7 +343,7 @@ export class UrbitSSEClient {
     await new Promise((resolve) => setTimeout(resolve, delay));
 
     try {
-      this.channelId = `${Math.floor(Date.now() / 1000)}-${randomUUID()}`;
+      this.channelId = `${Math.floor(Date.now() / 1000)}-${Math.random().toString(36).substring(2, 8)}`;
       this.channelUrl = new URL(`/~/channel/${this.channelId}`, this.url).toString();
 
       if (this.onReconnect) {

@@ -52,23 +52,12 @@ describe("pairing cli", () => {
   });
 
   beforeEach(() => {
-    listChannelPairingRequests.mockClear();
-    listChannelPairingRequests.mockResolvedValue([]);
-    approveChannelPairingCode.mockClear();
-    approveChannelPairingCode.mockResolvedValue({
-      id: "123",
-      entry: {
-        id: "123",
-        code: "ABCDEFGH",
-        createdAt: "2026-01-08T00:00:00Z",
-        lastSeenAt: "2026-01-08T00:00:00Z",
-      },
-    });
-    notifyPairingApproved.mockClear();
+    listChannelPairingRequests.mockReset();
+    approveChannelPairingCode.mockReset();
+    notifyPairingApproved.mockReset();
     normalizeChannelId.mockClear();
     getPairingAdapter.mockClear();
     listPairingChannels.mockClear();
-    notifyPairingApproved.mockResolvedValue(undefined);
   });
 
   function createProgram() {
@@ -174,15 +163,6 @@ describe("pairing cli", () => {
     expect(listChannelPairingRequests).toHaveBeenCalledWith("zalo");
   });
 
-  it("defaults list to the sole available channel", async () => {
-    listPairingChannels.mockReturnValueOnce(["slack"]);
-    listChannelPairingRequests.mockResolvedValueOnce([]);
-
-    await runPairing(["pairing", "list"]);
-
-    expect(listChannelPairingRequests).toHaveBeenCalledWith("slack");
-  });
-
   it("accepts channel as positional for approve (npm-run compatible)", async () => {
     mockApprovedPairing();
 
@@ -218,21 +198,5 @@ describe("pairing cli", () => {
       code: "ABCDEFGH",
       accountId: "yy",
     });
-  });
-
-  it("defaults approve to the sole available channel when only code is provided", async () => {
-    listPairingChannels.mockReturnValueOnce(["slack"]);
-    mockApprovedPairing();
-
-    await runPairing(["pairing", "approve", "ABCDEFGH"]);
-
-    expect(approveChannelPairingCode).toHaveBeenCalledWith({
-      channel: "slack",
-      code: "ABCDEFGH",
-    });
-  });
-
-  it("keeps approve usage error when multiple channels exist and channel is omitted", async () => {
-    await expect(runPairing(["pairing", "approve", "ABCDEFGH"])).rejects.toThrow("Usage:");
   });
 });

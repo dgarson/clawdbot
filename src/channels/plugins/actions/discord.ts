@@ -2,79 +2,77 @@ import type { DiscordActionConfig } from "../../../config/types.discord.js";
 import { createDiscordActionGate, listEnabledDiscordAccounts } from "../../../discord/accounts.js";
 import type { ChannelMessageActionAdapter, ChannelMessageActionName } from "../types.js";
 import { handleDiscordMessageAction } from "./discord/handle-action.js";
-import { createUnionActionGate, listTokenSourcedAccounts } from "./shared.js";
 
 export const discordMessageActions: ChannelMessageActionAdapter = {
   listActions: ({ cfg }) => {
-    const accounts = listTokenSourcedAccounts(listEnabledDiscordAccounts(cfg));
+    const accounts = listEnabledDiscordAccounts(cfg).filter(
+      (account) => account.tokenSource !== "none",
+    );
     if (accounts.length === 0) {
       return [];
     }
     // Union of all accounts' action gates (any account enabling an action makes it available)
-    const gate = createUnionActionGate(accounts, (account) =>
-      createDiscordActionGate({
-        cfg,
-        accountId: account.accountId,
-      }),
+    const gates = accounts.map((account) =>
+      createDiscordActionGate({ cfg, accountId: account.accountId }),
     );
-    const isEnabled = (key: keyof DiscordActionConfig, defaultValue = true) =>
-      gate(key, defaultValue);
+    const gate = (key: keyof DiscordActionConfig, defaultValue = true) =>
+      gates.some((g) => g(key, defaultValue));
     const actions = new Set<ChannelMessageActionName>(["send"]);
-    if (isEnabled("polls")) {
+    if (gate("polls")) {
       actions.add("poll");
     }
-    if (isEnabled("reactions")) {
+    if (gate("reactions")) {
       actions.add("react");
       actions.add("reactions");
     }
-    if (isEnabled("messages")) {
+    if (gate("messages")) {
       actions.add("read");
       actions.add("edit");
       actions.add("delete");
     }
-    if (isEnabled("pins")) {
+    if (gate("pins")) {
       actions.add("pin");
       actions.add("unpin");
       actions.add("list-pins");
     }
-    if (isEnabled("permissions")) {
+    if (gate("permissions")) {
       actions.add("permissions");
     }
-    if (isEnabled("threads")) {
+    if (gate("threads")) {
       actions.add("thread-create");
       actions.add("thread-list");
       actions.add("thread-reply");
     }
-    if (isEnabled("search")) {
+    if (gate("search")) {
       actions.add("search");
     }
-    if (isEnabled("stickers")) {
+    if (gate("stickers")) {
       actions.add("sticker");
     }
-    if (isEnabled("memberInfo")) {
+    if (gate("memberInfo")) {
       actions.add("member-info");
     }
-    if (isEnabled("roleInfo")) {
+    if (gate("roleInfo")) {
       actions.add("role-info");
     }
-    if (isEnabled("reactions")) {
+    if (gate("reactions")) {
       actions.add("emoji-list");
     }
-    if (isEnabled("emojiUploads")) {
+    if (gate("emojiUploads")) {
       actions.add("emoji-upload");
     }
-    if (isEnabled("stickerUploads")) {
+    if (gate("stickerUploads")) {
       actions.add("sticker-upload");
     }
-    if (isEnabled("roles", false)) {
+    if (gate("roles", false)) {
       actions.add("role-add");
       actions.add("role-remove");
     }
-    if (isEnabled("channelInfo")) {
+    if (gate("channelInfo")) {
       actions.add("channel-info");
       actions.add("channel-list");
     }
-    if (isEnabled("channels")) {
+    if (gate("channels")) {
       actions.add("channel-create");
       actions.add("channel-edit");
       actions.add("channel-delete");
@@ -83,19 +81,19 @@ export const discordMessageActions: ChannelMessageActionAdapter = {
       actions.add("category-edit");
       actions.add("category-delete");
     }
-    if (isEnabled("voiceStatus")) {
+    if (gate("voiceStatus")) {
       actions.add("voice-status");
     }
-    if (isEnabled("events")) {
+    if (gate("events")) {
       actions.add("event-list");
       actions.add("event-create");
     }
-    if (isEnabled("moderation", false)) {
+    if (gate("moderation", false)) {
       actions.add("timeout");
       actions.add("kick");
       actions.add("ban");
     }
-    if (isEnabled("presence", false)) {
+    if (gate("presence", false)) {
       actions.add("set-presence");
     }
     return Array.from(actions);

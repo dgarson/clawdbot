@@ -1,23 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TuiStreamAssembler } from "./tui-stream-assembler.js";
 
-const STREAM_WITH_TOOL_BLOCKS = {
-  role: "assistant",
-  content: [
-    { type: "text", text: "Before tool call" },
-    { type: "tool_use", name: "search" },
-    { type: "text", text: "After tool call" },
-  ],
-} as const;
-
-const STREAM_AFTER_TOOL_BLOCKS = {
-  role: "assistant",
-  content: [
-    { type: "tool_use", name: "search" },
-    { type: "text", text: "After tool call" },
-  ],
-} as const;
-
 describe("TuiStreamAssembler", () => {
   it("keeps thinking before content even when thinking arrives later", () => {
     const assembler = new TuiStreamAssembler();
@@ -109,19 +92,61 @@ describe("TuiStreamAssembler", () => {
 
   it("keeps richer streamed text when final payload drops earlier blocks", () => {
     const assembler = new TuiStreamAssembler();
-    assembler.ingestDelta("run-5", STREAM_WITH_TOOL_BLOCKS, false);
+    assembler.ingestDelta(
+      "run-5",
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "Before tool call" },
+          { type: "tool_use", name: "search" },
+          { type: "text", text: "After tool call" },
+        ],
+      },
+      false,
+    );
 
-    const finalText = assembler.finalize("run-5", STREAM_AFTER_TOOL_BLOCKS, false);
+    const finalText = assembler.finalize(
+      "run-5",
+      {
+        role: "assistant",
+        content: [
+          { type: "tool_use", name: "search" },
+          { type: "text", text: "After tool call" },
+        ],
+      },
+      false,
+    );
 
     expect(finalText).toBe("Before tool call\nAfter tool call");
   });
 
   it("does not regress streamed text when a delta drops boundary blocks after tool calls", () => {
     const assembler = new TuiStreamAssembler();
-    const first = assembler.ingestDelta("run-5-stream", STREAM_WITH_TOOL_BLOCKS, false);
+    const first = assembler.ingestDelta(
+      "run-5-stream",
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "Before tool call" },
+          { type: "tool_use", name: "search" },
+          { type: "text", text: "After tool call" },
+        ],
+      },
+      false,
+    );
     expect(first).toBe("Before tool call\nAfter tool call");
 
-    const second = assembler.ingestDelta("run-5-stream", STREAM_AFTER_TOOL_BLOCKS, false);
+    const second = assembler.ingestDelta(
+      "run-5-stream",
+      {
+        role: "assistant",
+        content: [
+          { type: "tool_use", name: "search" },
+          { type: "text", text: "After tool call" },
+        ],
+      },
+      false,
+    );
 
     expect(second).toBeNull();
   });

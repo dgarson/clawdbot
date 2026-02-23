@@ -11,9 +11,18 @@ import type {
 } from "../../config/types.tools.js";
 import { normalizeAtHashSlug, normalizeHyphenSlug } from "../../shared/string-normalization.js";
 import { resolveSlackAccount } from "../../slack/accounts.js";
-import type { ChannelGroupContext } from "./types.js";
 
-type GroupMentionParams = ChannelGroupContext;
+type GroupMentionParams = {
+  cfg: OpenClawConfig;
+  groupId?: string | null;
+  groupChannel?: string | null;
+  groupSpace?: string | null;
+  accountId?: string | null;
+  senderId?: string | null;
+  senderName?: string | null;
+  senderUsername?: string | null;
+  senderE164?: string | null;
+};
 
 function normalizeDiscordSlug(value?: string | null) {
   return normalizeAtHashSlug(value);
@@ -115,18 +124,6 @@ type SlackChannelPolicyEntry = {
   toolsBySender?: GroupToolPolicyBySenderConfig;
 };
 
-type SenderScopedToolsEntry = {
-  tools?: GroupToolPolicyConfig;
-  toolsBySender?: GroupToolPolicyBySenderConfig;
-};
-
-type ChannelGroupPolicyChannel =
-  | "telegram"
-  | "whatsapp"
-  | "imessage"
-  | "googlechat"
-  | "bluebubbles";
-
 function resolveSlackChannelPolicyEntry(
   params: GroupMentionParams,
 ): SlackChannelPolicyEntry | undefined {
@@ -156,69 +153,6 @@ function resolveSlackChannelPolicyEntry(
   return channels["*"];
 }
 
-function resolveChannelRequireMention(
-  params: GroupMentionParams,
-  channel: ChannelGroupPolicyChannel,
-  groupId: string | null | undefined = params.groupId,
-): boolean {
-  return resolveChannelGroupRequireMention({
-    cfg: params.cfg,
-    channel,
-    groupId,
-    accountId: params.accountId,
-  });
-}
-
-function resolveChannelToolPolicyForSender(
-  params: GroupMentionParams,
-  channel: ChannelGroupPolicyChannel,
-  groupId: string | null | undefined = params.groupId,
-): GroupToolPolicyConfig | undefined {
-  return resolveChannelGroupToolsPolicy({
-    cfg: params.cfg,
-    channel,
-    groupId,
-    accountId: params.accountId,
-    senderId: params.senderId,
-    senderName: params.senderName,
-    senderUsername: params.senderUsername,
-    senderE164: params.senderE164,
-  });
-}
-
-function resolveSenderToolsEntry(
-  entry: SenderScopedToolsEntry | undefined | null,
-  params: GroupMentionParams,
-): GroupToolPolicyConfig | undefined {
-  if (!entry) {
-    return undefined;
-  }
-  const senderPolicy = resolveToolsBySender({
-    toolsBySender: entry.toolsBySender,
-    senderId: params.senderId,
-    senderName: params.senderName,
-    senderUsername: params.senderUsername,
-    senderE164: params.senderE164,
-  });
-  if (senderPolicy) {
-    return senderPolicy;
-  }
-  return entry.tools;
-}
-
-function resolveDiscordPolicyContext(params: GroupMentionParams) {
-  const guildEntry = resolveDiscordGuildEntry(
-    params.cfg.channels?.discord?.guilds,
-    params.groupSpace,
-  );
-  const channelEntries = guildEntry?.channels;
-  const channelEntry =
-    channelEntries && Object.keys(channelEntries).length > 0
-      ? resolveDiscordChannelEntry(channelEntries, params)
-      : undefined;
-  return { guildEntry, channelEntry };
-}
-
 export function resolveTelegramGroupRequireMention(
   params: GroupMentionParams,
 ): boolean | undefined {
@@ -240,32 +174,63 @@ export function resolveTelegramGroupRequireMention(
 }
 
 export function resolveWhatsAppGroupRequireMention(params: GroupMentionParams): boolean {
-  return resolveChannelRequireMention(params, "whatsapp");
+  return resolveChannelGroupRequireMention({
+    cfg: params.cfg,
+    channel: "whatsapp",
+    groupId: params.groupId,
+    accountId: params.accountId,
+  });
 }
 
 export function resolveIMessageGroupRequireMention(params: GroupMentionParams): boolean {
-  return resolveChannelRequireMention(params, "imessage");
+  return resolveChannelGroupRequireMention({
+    cfg: params.cfg,
+    channel: "imessage",
+    groupId: params.groupId,
+    accountId: params.accountId,
+  });
 }
 
 export function resolveDiscordGroupRequireMention(params: GroupMentionParams): boolean {
-  const context = resolveDiscordPolicyContext(params);
-  if (typeof context.channelEntry?.requireMention === "boolean") {
-    return context.channelEntry.requireMention;
+  const guildEntry = resolveDiscordGuildEntry(
+    params.cfg.channels?.discord?.guilds,
+    params.groupSpace,
+  );
+  const channelEntries = guildEntry?.channels;
+  if (channelEntries && Object.keys(channelEntries).length > 0) {
+    const entry = resolveDiscordChannelEntry(channelEntries, params);
+    if (entry && typeof entry.requireMention === "boolean") {
+      return entry.requireMention;
+    }
   }
-  if (typeof context.guildEntry?.requireMention === "boolean") {
-    return context.guildEntry.requireMention;
+  if (typeof guildEntry?.requireMention === "boolean") {
+    return guildEntry.requireMention;
   }
   return true;
 }
 
 export function resolveGoogleChatGroupRequireMention(params: GroupMentionParams): boolean {
-  return resolveChannelRequireMention(params, "googlechat");
+  return resolveChannelGroupRequireMention({
+    cfg: params.cfg,
+    channel: "googlechat",
+    groupId: params.groupId,
+    accountId: params.accountId,
+  });
 }
 
 export function resolveGoogleChatGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
-  return resolveChannelToolPolicyForSender(params, "googlechat");
+  return resolveChannelGroupToolsPolicy({
+    cfg: params.cfg,
+    channel: "googlechat",
+    groupId: params.groupId,
+    accountId: params.accountId,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
 }
 
 export function resolveSlackGroupRequireMention(params: GroupMentionParams): boolean {
@@ -277,48 +242,134 @@ export function resolveSlackGroupRequireMention(params: GroupMentionParams): boo
 }
 
 export function resolveBlueBubblesGroupRequireMention(params: GroupMentionParams): boolean {
-  return resolveChannelRequireMention(params, "bluebubbles");
+  return resolveChannelGroupRequireMention({
+    cfg: params.cfg,
+    channel: "bluebubbles",
+    groupId: params.groupId,
+    accountId: params.accountId,
+  });
 }
 
 export function resolveTelegramGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
   const { chatId } = parseTelegramGroupId(params.groupId);
-  return resolveChannelToolPolicyForSender(params, "telegram", chatId ?? params.groupId);
+  return resolveChannelGroupToolsPolicy({
+    cfg: params.cfg,
+    channel: "telegram",
+    groupId: chatId ?? params.groupId,
+    accountId: params.accountId,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
 }
 
 export function resolveWhatsAppGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
-  return resolveChannelToolPolicyForSender(params, "whatsapp");
+  return resolveChannelGroupToolsPolicy({
+    cfg: params.cfg,
+    channel: "whatsapp",
+    groupId: params.groupId,
+    accountId: params.accountId,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
 }
 
 export function resolveIMessageGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
-  return resolveChannelToolPolicyForSender(params, "imessage");
+  return resolveChannelGroupToolsPolicy({
+    cfg: params.cfg,
+    channel: "imessage",
+    groupId: params.groupId,
+    accountId: params.accountId,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
 }
 
 export function resolveDiscordGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
-  const context = resolveDiscordPolicyContext(params);
-  const channelPolicy = resolveSenderToolsEntry(context.channelEntry, params);
-  if (channelPolicy) {
-    return channelPolicy;
+  const guildEntry = resolveDiscordGuildEntry(
+    params.cfg.channels?.discord?.guilds,
+    params.groupSpace,
+  );
+  const channelEntries = guildEntry?.channels;
+  if (channelEntries && Object.keys(channelEntries).length > 0) {
+    const entry = resolveDiscordChannelEntry(channelEntries, params);
+    const senderPolicy = resolveToolsBySender({
+      toolsBySender: entry?.toolsBySender,
+      senderId: params.senderId,
+      senderName: params.senderName,
+      senderUsername: params.senderUsername,
+      senderE164: params.senderE164,
+    });
+    if (senderPolicy) {
+      return senderPolicy;
+    }
+    if (entry?.tools) {
+      return entry.tools;
+    }
   }
-  return resolveSenderToolsEntry(context.guildEntry, params);
+  const guildSenderPolicy = resolveToolsBySender({
+    toolsBySender: guildEntry?.toolsBySender,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
+  if (guildSenderPolicy) {
+    return guildSenderPolicy;
+  }
+  if (guildEntry?.tools) {
+    return guildEntry.tools;
+  }
+  return undefined;
 }
 
 export function resolveSlackGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
   const resolved = resolveSlackChannelPolicyEntry(params);
-  return resolveSenderToolsEntry(resolved, params);
+  if (!resolved) {
+    return undefined;
+  }
+  const senderPolicy = resolveToolsBySender({
+    toolsBySender: resolved?.toolsBySender,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
+  if (senderPolicy) {
+    return senderPolicy;
+  }
+  if (resolved?.tools) {
+    return resolved.tools;
+  }
+  return undefined;
 }
 
 export function resolveBlueBubblesGroupToolPolicy(
   params: GroupMentionParams,
 ): GroupToolPolicyConfig | undefined {
-  return resolveChannelToolPolicyForSender(params, "bluebubbles");
+  return resolveChannelGroupToolsPolicy({
+    cfg: params.cfg,
+    channel: "bluebubbles",
+    groupId: params.groupId,
+    accountId: params.accountId,
+    senderId: params.senderId,
+    senderName: params.senderName,
+    senderUsername: params.senderUsername,
+    senderE164: params.senderE164,
+  });
 }

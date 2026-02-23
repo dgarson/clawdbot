@@ -88,18 +88,7 @@ export async function resolveDiscordUserAllowlist(params: {
     }));
   }
   const fetcher = params.fetcher ?? fetch;
-
-  // Lazy-load guilds: only fetch when an entry actually needs username search.
-  // This prevents listGuilds() failures (permissions, network) from blocking
-  // resolution of plain user-id entries that don't need guild data at all.
-  let guilds: DiscordGuildSummary[] | null = null;
-  const getGuilds = async (): Promise<DiscordGuildSummary[]> => {
-    if (!guilds) {
-      guilds = await listGuilds(token, fetcher);
-    }
-    return guilds;
-  };
-
+  const guilds = await listGuilds(token, fetcher);
   const results: DiscordUserResolution[] = [];
 
   for (const input of params.entries) {
@@ -120,12 +109,11 @@ export async function resolveDiscordUserAllowlist(params: {
     }
 
     const guildName = parsed.guildName?.trim();
-    const allGuilds = await getGuilds();
     const guildList = parsed.guildId
-      ? allGuilds.filter((g) => g.id === parsed.guildId)
+      ? guilds.filter((g) => g.id === parsed.guildId)
       : guildName
-        ? allGuilds.filter((g) => g.slug === normalizeDiscordSlug(guildName))
-        : allGuilds;
+        ? guilds.filter((g) => g.slug === normalizeDiscordSlug(guildName))
+        : guilds;
 
     let best: { member: DiscordMember; guild: DiscordGuildSummary; score: number } | null = null;
     let matches = 0;

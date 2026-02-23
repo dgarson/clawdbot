@@ -23,7 +23,7 @@ export type ProviderInfo = {
 
 export type ModelsKeyboardParams = {
   provider: string;
-  models: readonly string[];
+  models: string[];
   currentModel?: string;
   currentPage: number;
   totalPages: number;

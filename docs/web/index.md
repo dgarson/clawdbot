@@ -101,12 +101,10 @@ Open:
 - The UI sends `connect.params.auth.token` or `connect.params.auth.password`.
 - The Control UI sends anti-clickjacking headers and only accepts same-origin browser
   websocket connections unless `gateway.controlUi.allowedOrigins` is set.
-- With Serve, Tailscale identity headers can satisfy Control UI/WebSocket auth
-  when `gateway.auth.allowTailscale` is `true` (no token/password required).
-  HTTP API endpoints still require token/password. Set
+- With Serve, Tailscale identity headers can satisfy auth when
+  `gateway.auth.allowTailscale` is `true` (no token/password required). Set
   `gateway.auth.allowTailscale: false` to require explicit credentials. See
-  [Tailscale](/gateway/tailscale) and [Security](/gateway/security). This
-  tokenless flow assumes the gateway host is trusted.
+  [Tailscale](/gateway/tailscale) and [Security](/gateway/security).
 - `gateway.tailscale.mode: "funnel"` requires `gateway.auth.mode: "password"` (shared password).
 
 ## Building the UI

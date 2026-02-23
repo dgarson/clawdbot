@@ -16,7 +16,7 @@
  *   {@link createAuthRateLimiter} and pass it where needed.
  */
 
-import { isLoopbackAddress, resolveClientIp } from "./net.js";
+import { isLoopbackAddress } from "./net.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -31,14 +31,11 @@ export interface RateLimitConfig {
   lockoutMs?: number;
   /** Exempt loopback (localhost) addresses from rate limiting.  @default true */
   exemptLoopback?: boolean;
-  /** Background prune interval in milliseconds; set <= 0 to disable auto-prune.  @default 60_000 */
-  pruneIntervalMs?: number;
 }
 
 export const AUTH_RATE_LIMIT_SCOPE_DEFAULT = "default";
 export const AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET = "shared-secret";
 export const AUTH_RATE_LIMIT_SCOPE_DEVICE_TOKEN = "device-token";
-export const AUTH_RATE_LIMIT_SCOPE_HOOK_AUTH = "hook-auth";
 
 export interface RateLimitEntry {
   /** Timestamps (epoch ms) of recent failed attempts inside the window. */
@@ -84,27 +81,18 @@ const PRUNE_INTERVAL_MS = 60_000; // prune stale entries every minute
 // Implementation
 // ---------------------------------------------------------------------------
 
-/**
- * Canonicalize client IPs used for auth throttling so all call sites
- * share one representation (including IPv4-mapped IPv6 forms).
- */
-export function normalizeRateLimitClientIp(ip: string | undefined): string {
-  return resolveClientIp({ remoteAddr: ip }) ?? "unknown";
-}
-
 export function createAuthRateLimiter(config?: RateLimitConfig): AuthRateLimiter {
   const maxAttempts = config?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const windowMs = config?.windowMs ?? DEFAULT_WINDOW_MS;
   const lockoutMs = config?.lockoutMs ?? DEFAULT_LOCKOUT_MS;
   const exemptLoopback = config?.exemptLoopback ?? true;
-  const pruneIntervalMs = config?.pruneIntervalMs ?? PRUNE_INTERVAL_MS;
 
   const entries = new Map<string, RateLimitEntry>();
 
   // Periodic cleanup to avoid unbounded map growth.
-  const pruneTimer = pruneIntervalMs > 0 ? setInterval(() => prune(), pruneIntervalMs) : null;
+  const pruneTimer = setInterval(() => prune(), PRUNE_INTERVAL_MS);
   // Allow the Node.js process to exit even if the timer is still active.
-  if (pruneTimer?.unref) {
+  if (pruneTimer.unref) {
     pruneTimer.unref();
   }
 
@@ -113,7 +101,7 @@ export function createAuthRateLimiter(config?: RateLimitConfig): AuthRateLimiter
   }
 
   function normalizeIp(ip: string | undefined): string {
-    return normalizeRateLimitClientIp(ip);
+    return (ip ?? "").trim() || "unknown";
   }
 
   function resolveKey(
@@ -222,9 +210,7 @@ export function createAuthRateLimiter(config?: RateLimitConfig): AuthRateLimiter
   }
 
   function dispose(): void {
-    if (pruneTimer) {
-      clearInterval(pruneTimer);
-    }
+    clearInterval(pruneTimer);
     entries.clear();
   }
 

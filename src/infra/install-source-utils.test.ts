@@ -9,7 +9,6 @@ import {
 } from "./install-source-utils.js";
 
 const runCommandWithTimeoutMock = vi.fn();
-const TEMP_DIR_PREFIX = "openclaw-install-source-utils-";
 
 vi.mock("../process/exec.js", () => ({
   runCommandWithTimeout: (...args: unknown[]) => runCommandWithTimeoutMock(...args),
@@ -23,41 +22,8 @@ async function createTempDir(prefix: string) {
   return dir;
 }
 
-async function createFixtureDir() {
-  return await createTempDir(TEMP_DIR_PREFIX);
-}
-
-async function createFixtureFile(params: {
-  fileName: string;
-  contents: string;
-  dir?: string;
-}): Promise<{ dir: string; filePath: string }> {
-  const dir = params.dir ?? (await createFixtureDir());
-  const filePath = path.join(dir, params.fileName);
-  await fs.writeFile(filePath, params.contents, "utf-8");
-  return { dir, filePath };
-}
-
-function mockPackCommandResult(params: { stdout: string; stderr?: string; code?: number }) {
-  runCommandWithTimeoutMock.mockResolvedValue({
-    stdout: params.stdout,
-    stderr: params.stderr ?? "",
-    code: params.code ?? 0,
-    signal: null,
-    killed: false,
-  });
-}
-
-async function runPack(spec: string, cwd: string, timeoutMs = 1000) {
-  return await packNpmSpecToArchive({
-    spec,
-    timeoutMs,
-    cwd,
-  });
-}
-
 beforeEach(() => {
-  runCommandWithTimeoutMock.mockClear();
+  runCommandWithTimeoutMock.mockReset();
 });
 
 afterEach(async () => {
@@ -97,10 +63,9 @@ describe("resolveArchiveSourcePath", () => {
   });
 
   it("rejects unsupported archive extensions", async () => {
-    const { filePath } = await createFixtureFile({
-      fileName: "plugin.txt",
-      contents: "not-an-archive",
-    });
+    const dir = await createTempDir("openclaw-install-source-utils-");
+    const filePath = path.join(dir, "plugin.txt");
+    await fs.writeFile(filePath, "not-an-archive", "utf-8");
 
     const result = await resolveArchiveSourcePath(filePath);
     expect(result.ok).toBe(false);
@@ -110,10 +75,9 @@ describe("resolveArchiveSourcePath", () => {
   });
 
   it("accepts supported archive extensions", async () => {
-    const { filePath } = await createFixtureFile({
-      fileName: "plugin.zip",
-      contents: "",
-    });
+    const dir = await createTempDir("openclaw-install-source-utils-");
+    const filePath = path.join(dir, "plugin.zip");
+    await fs.writeFile(filePath, "", "utf-8");
 
     const result = await resolveArchiveSourcePath(filePath);
     expect(result).toEqual({ ok: true, path: filePath });
@@ -122,8 +86,8 @@ describe("resolveArchiveSourcePath", () => {
 
 describe("packNpmSpecToArchive", () => {
   it("packs spec and returns archive path using JSON output metadata", async () => {
-    const cwd = await createFixtureDir();
-    mockPackCommandResult({
+    const cwd = await createTempDir("openclaw-install-source-utils-");
+    runCommandWithTimeoutMock.mockResolvedValue({
       stdout: JSON.stringify([
         {
           id: "openclaw-plugin@1.2.3",
@@ -134,9 +98,17 @@ describe("packNpmSpecToArchive", () => {
           shasum: "abc123",
         },
       ]),
+      stderr: "",
+      code: 0,
+      signal: null,
+      killed: false,
     });
 
-    const result = await runPack("openclaw-plugin@1.2.3", cwd);
+    const result = await packNpmSpecToArchive({
+      spec: "openclaw-plugin@1.2.3",
+      timeoutMs: 1000,
+      cwd,
+    });
 
     expect(result).toEqual({
       ok: true,
@@ -159,12 +131,20 @@ describe("packNpmSpecToArchive", () => {
   });
 
   it("falls back to parsing final stdout line when npm json output is unavailable", async () => {
-    const cwd = await createFixtureDir();
-    mockPackCommandResult({
+    const cwd = await createTempDir("openclaw-install-source-utils-");
+    runCommandWithTimeoutMock.mockResolvedValue({
       stdout: "npm notice created package\nopenclaw-plugin-1.2.3.tgz\n",
+      stderr: "",
+      code: 0,
+      signal: null,
+      killed: false,
     });
 
-    const result = await runPack("openclaw-plugin@1.2.3", cwd);
+    const result = await packNpmSpecToArchive({
+      spec: "openclaw-plugin@1.2.3",
+      timeoutMs: 1000,
+      cwd,
+    });
 
     expect(result).toEqual({
       ok: true,
@@ -174,14 +154,20 @@ describe("packNpmSpecToArchive", () => {
   });
 
   it("returns npm pack error details when command fails", async () => {
-    const cwd = await createFixtureDir();
-    mockPackCommandResult({
+    const cwd = await createTempDir("openclaw-install-source-utils-");
+    runCommandWithTimeoutMock.mockResolvedValue({
       stdout: "fallback stdout",
       stderr: "registry timeout",
       code: 1,
+      signal: null,
+      killed: false,
     });
 
-    const result = await runPack("bad-spec", cwd, 5000);
+    const result = await packNpmSpecToArchive({
+      spec: "bad-spec",
+      timeoutMs: 5000,
+      cwd,
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -191,54 +177,24 @@ describe("packNpmSpecToArchive", () => {
   });
 
   it("returns explicit error when npm pack produces no archive name", async () => {
-    const cwd = await createFixtureDir();
-    mockPackCommandResult({
+    const cwd = await createTempDir("openclaw-install-source-utils-");
+    runCommandWithTimeoutMock.mockResolvedValue({
       stdout: " \n\n",
+      stderr: "",
+      code: 0,
+      signal: null,
+      killed: false,
     });
 
-    const result = await runPack("openclaw-plugin@1.2.3", cwd, 5000);
+    const result = await packNpmSpecToArchive({
+      spec: "openclaw-plugin@1.2.3",
+      timeoutMs: 5000,
+      cwd,
+    });
 
     expect(result).toEqual({
       ok: false,
       error: "npm pack produced no archive",
-    });
-  });
-
-  it("parses scoped metadata from id-only json output even with npm notice prefix", async () => {
-    const cwd = await createFixtureDir();
-    mockPackCommandResult({
-      stdout:
-        "npm notice creating package\n" +
-        JSON.stringify([
-          {
-            id: "@openclaw/plugin-demo@2.0.0",
-            filename: "openclaw-plugin-demo-2.0.0.tgz",
-          },
-        ]),
-    });
-
-    const result = await runPack("@openclaw/plugin-demo@2.0.0", cwd);
-    expect(result).toEqual({
-      ok: true,
-      archivePath: path.join(cwd, "openclaw-plugin-demo-2.0.0.tgz"),
-      metadata: {
-        resolvedSpec: "@openclaw/plugin-demo@2.0.0",
-      },
-    });
-  });
-
-  it("uses stdout fallback error text when stderr is empty", async () => {
-    const cwd = await createFixtureDir();
-    mockPackCommandResult({
-      stdout: "network timeout",
-      stderr: " ",
-      code: 1,
-    });
-
-    const result = await runPack("bad-spec", cwd);
-    expect(result).toEqual({
-      ok: false,
-      error: "npm pack failed: network timeout",
     });
   });
 });

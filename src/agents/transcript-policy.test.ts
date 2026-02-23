@@ -19,10 +19,6 @@ describe("resolveTranscriptPolicy", () => {
       modelApi: "google-generative-ai",
     });
     expect(policy.sanitizeToolCallIds).toBe(true);
-    expect(policy.sanitizeThoughtSignatures).toEqual({
-      allowBase64Only: true,
-      includeCamelCase: true,
-    });
   });
 
   it("enables sanitizeToolCallIds for Mistral provider", () => {

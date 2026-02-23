@@ -138,8 +138,7 @@ export function resolveIMessageInboundDecision(params: {
   }
 
   const groupId = isGroup ? groupIdCandidate : undefined;
-  const storeAllowFrom = params.dmPolicy === "allowlist" ? [] : params.storeAllowFrom;
-  const effectiveDmAllowFrom = Array.from(new Set([...params.allowFrom, ...storeAllowFrom]))
+  const effectiveDmAllowFrom = Array.from(new Set([...params.allowFrom, ...params.storeAllowFrom]))
     .map((v) => String(v).trim())
     .filter(Boolean);
   // Keep DM pairing-store authorization scoped to DMs; group access must come from explicit group allowlist config.
@@ -421,7 +420,6 @@ export function buildIMessageInboundContext(params: {
           sender: entry.sender,
           body: entry.body,
           timestamp: entry.timestamp,
-          ...(entry.messageId ? { messageId: entry.messageId } : {}),
         }))
       : undefined;
 

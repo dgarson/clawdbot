@@ -640,12 +640,14 @@ export async function syncSkillsToWorkspace(params: {
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : JSON.stringify(error);
-        skillsLogger.warn(`Failed to resolve safe destination for ${entry.skill.name}: ${message}`);
+        console.warn(
+          `[skills] Failed to resolve safe destination for ${entry.skill.name}: ${message}`,
+        );
         continue;
       }
       if (!dest) {
-        skillsLogger.warn(
-          `Failed to resolve safe destination for ${entry.skill.name}: invalid source directory name`,
+        console.warn(
+          `[skills] Failed to resolve safe destination for ${entry.skill.name}: invalid source directory name`,
         );
         continue;
       }
@@ -656,7 +658,7 @@ export async function syncSkillsToWorkspace(params: {
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : JSON.stringify(error);
-        skillsLogger.warn(`Failed to copy ${entry.skill.name} to sandbox: ${message}`);
+        console.warn(`[skills] Failed to copy ${entry.skill.name} to sandbox: ${message}`);
       }
     }
   });

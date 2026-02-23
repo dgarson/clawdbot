@@ -13,8 +13,7 @@ import Testing
             configpath: nil,
             statedir: nil,
             sessiondefaults: nil,
-            authmode: nil,
-            updateavailable: nil)
+            authmode: nil)
 
         let hello = HelloOk(
             type: "hello",

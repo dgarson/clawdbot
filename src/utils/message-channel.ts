@@ -1,7 +1,6 @@
 import type { ChannelId } from "../channels/plugins/types.js";
 import {
   CHANNEL_IDS,
-  listChatChannels,
   listChatChannelAliases,
   normalizeChatChannelId,
 } from "../channels/registry.js";
@@ -37,32 +36,6 @@ type GatewayClientInfoLike = {
   id?: string | null;
 };
 
-function normalizeHintKey(raw?: string | null): string {
-  return raw?.trim().toLowerCase() ?? "";
-}
-
-function normalizeHintSlug(raw?: string | null): string {
-  return normalizeHintKey(raw).replace(/[^a-z0-9]/g, "");
-}
-
-function matchesHint(
-  candidate: string | undefined,
-  normalizedHint: string,
-  normalizedHintSlug: string,
-): boolean {
-  const key = normalizeHintKey(candidate);
-  if (!key) {
-    return false;
-  }
-  if (key === normalizedHint) {
-    return true;
-  }
-  if (!normalizedHintSlug) {
-    return false;
-  }
-  return normalizeHintSlug(candidate) === normalizedHintSlug;
-}
-
 export function isGatewayCliClient(client?: GatewayClientInfoLike | null): boolean {
   return normalizeGatewayClientMode(client?.mode) === GATEWAY_CLIENT_MODES.CLI;
 }
@@ -80,11 +53,10 @@ export function isWebchatClient(client?: GatewayClientInfoLike | null): boolean 
 }
 
 export function normalizeMessageChannel(raw?: string | null): string | undefined {
-  const normalized = normalizeHintKey(raw);
+  const normalized = raw?.trim().toLowerCase();
   if (!normalized) {
     return undefined;
   }
-  const normalizedSlug = normalizeHintSlug(raw);
   if (normalized === INTERNAL_MESSAGE_CHANNEL) {
     return INTERNAL_MESSAGE_CHANNEL;
   }
@@ -92,31 +64,13 @@ export function normalizeMessageChannel(raw?: string | null): string | undefined
   if (builtIn) {
     return builtIn;
   }
-  const builtInByLabel = listChatChannels().find((meta) => {
-    return (
-      matchesHint(meta.label, normalized, normalizedSlug) ||
-      matchesHint(meta.selectionLabel, normalized, normalizedSlug) ||
-      matchesHint(meta.detailLabel, normalized, normalizedSlug)
-    );
-  });
-  if (builtInByLabel) {
-    return builtInByLabel.id;
-  }
   const registry = getActivePluginRegistry();
   const pluginMatch = registry?.channels.find((entry) => {
     if (entry.plugin.id.toLowerCase() === normalized) {
       return true;
     }
-    const aliases = (entry.plugin.meta.aliases ?? []).some((alias) =>
-      matchesHint(alias, normalized, normalizedSlug),
-    );
-    if (aliases) {
-      return true;
-    }
-    return (
-      matchesHint(entry.plugin.meta.label, normalized, normalizedSlug) ||
-      matchesHint(entry.plugin.meta.selectionLabel, normalized, normalizedSlug) ||
-      matchesHint(entry.plugin.meta.detailLabel, normalized, normalizedSlug)
+    return (entry.plugin.meta.aliases ?? []).some(
+      (alias) => alias.trim().toLowerCase() === normalized,
     );
   });
   return pluginMatch?.plugin.id ?? normalized;

@@ -45,8 +45,7 @@ export async function recordInboundSession(params: {
       accountId: update.accountId,
       threadId: update.threadId,
     },
-    // Avoid leaking inbound origin metadata into a different target session.
-    ctx: update.sessionKey === sessionKey ? ctx : undefined,
+    ctx,
     groupResolution,
   });
 }

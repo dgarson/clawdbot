@@ -17,7 +17,7 @@ afterEach(() => {
   envSnapshot.restore();
   process.argv = [...originalArgv];
   process.execArgv = [...originalExecArgv];
-  spawnMock.mockClear();
+  spawnMock.mockReset();
 });
 
 function clearSupervisorHints() {

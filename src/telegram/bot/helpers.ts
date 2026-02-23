@@ -1,6 +1,5 @@
 import type { Chat, Message, MessageOrigin, User } from "@grammyjs/types";
 import { formatLocationText, type NormalizedLocation } from "../../channels/location.js";
-import { resolveTelegramPreviewStreamMode } from "../../config/discord-preview-streaming.js";
 import type { TelegramGroupConfig, TelegramTopicConfig } from "../../config/types.js";
 import { readChannelAllowFromStore } from "../../pairing/pairing-store.js";
 import {
@@ -20,7 +19,6 @@ export type TelegramThreadSpec = {
 export async function resolveTelegramGroupAllowFromContext(params: {
   chatId: string | number;
   accountId?: string;
-  dmPolicy?: string;
   isForum?: boolean;
   messageThreadId?: number | null;
   groupAllowFrom?: Array<string | number>;
@@ -54,7 +52,6 @@ export async function resolveTelegramGroupAllowFromContext(params: {
   const effectiveGroupAllow = normalizeAllowFromWithStore({
     allowFrom: groupAllowOverride ?? params.groupAllowFrom,
     storeAllowFrom,
-    dmPolicy: params.dmPolicy,
   });
   const hasGroupAllowOverride = typeof groupAllowOverride !== "undefined";
   return {
@@ -157,10 +154,13 @@ export function buildTypingThreadParams(messageThreadId?: number) {
 }
 
 export function resolveTelegramStreamMode(telegramCfg?: {
-  streaming?: unknown;
-  streamMode?: unknown;
+  streamMode?: TelegramStreamMode;
 }): TelegramStreamMode {
-  return resolveTelegramPreviewStreamMode(telegramCfg);
+  const raw = telegramCfg?.streamMode?.trim().toLowerCase();
+  if (raw === "off" || raw === "partial" || raw === "block") {
+    return raw;
+  }
+  return "partial";
 }
 
 export function buildTelegramGroupPeerId(chatId: number | string, messageThreadId?: number) {
@@ -321,8 +321,6 @@ export type TelegramReplyTarget = {
   sender: string;
   body: string;
   kind: "reply" | "quote";
-  /** Forward context if the reply target was itself a forwarded message (issue #9619). */
-  forwardedFrom?: TelegramForwardedContext;
 };
 
 export function describeReplyTarget(msg: Message): TelegramReplyTarget | null {
@@ -361,17 +359,11 @@ export function describeReplyTarget(msg: Message): TelegramReplyTarget | null {
   const sender = replyLike ? buildSenderName(replyLike) : undefined;
   const senderLabel = sender ?? "unknown sender";
 
-  // Extract forward context from the resolved reply target (reply_to_message or external_reply).
-  const forwardedFrom = replyLike?.forward_origin
-    ? (resolveForwardOrigin(replyLike.forward_origin) ?? undefined)
-    : undefined;
-
   return {
     id: replyLike?.message_id ? String(replyLike.message_id) : undefined,
     sender: senderLabel,
     body,
     kind,
-    forwardedFrom,
   };
 }
 

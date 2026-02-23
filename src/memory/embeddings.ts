@@ -185,9 +185,7 @@ export async function createEmbeddingProvider(
           continue;
         }
         // Non-auth errors (e.g., network) are still fatal
-        const wrapped = new Error(message) as Error & { cause?: unknown };
-        wrapped.cause = err;
-        throw wrapped;
+        throw new Error(message, { cause: err });
       }
     }
 
@@ -230,9 +228,7 @@ export async function createEmbeddingProvider(
           };
         }
         // Non-auth errors are still fatal
-        const wrapped = new Error(combinedReason) as Error & { cause?: unknown };
-        wrapped.cause = fallbackErr;
-        throw wrapped;
+        throw new Error(combinedReason, { cause: fallbackErr });
       }
     }
     // No fallback configured - check if we should degrade to FTS-only
@@ -243,9 +239,7 @@ export async function createEmbeddingProvider(
         providerUnavailableReason: reason,
       };
     }
-    const wrapped = new Error(reason) as Error & { cause?: unknown };
-    wrapped.cause = primaryErr;
-    throw wrapped;
+    throw new Error(reason, { cause: primaryErr });
   }
 }
 

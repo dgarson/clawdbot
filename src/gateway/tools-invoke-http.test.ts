@@ -34,7 +34,7 @@ vi.mock("../config/sessions.js", () => ({
 }));
 
 vi.mock("./auth.js", () => ({
-  authorizeHttpGatewayConnect: async () => ({ ok: true }),
+  authorizeGatewayConnect: async () => ({ ok: true }),
 }));
 
 vi.mock("../logger.js", () => ({
@@ -55,12 +55,6 @@ vi.mock("../agents/openclaw-tools.js", () => {
   const toolInputError = (message: string) => {
     const err = new Error(message);
     err.name = "ToolInputError";
-    return err;
-  };
-  const toolAuthorizationError = (message: string) => {
-    const err = new Error(message) as Error & { status?: number };
-    err.name = "ToolAuthorizationError";
-    err.status = 403;
     return err;
   };
 
@@ -106,9 +100,6 @@ vi.mock("../agents/openclaw-tools.js", () => {
         const mode = (args as { mode?: unknown })?.mode;
         if (mode === "input") {
           throw toolInputError("mode invalid");
-        }
-        if (mode === "auth") {
-          throw toolAuthorizationError("mode forbidden");
         }
         if (mode === "crash") {
           throw new Error("boom");
@@ -198,17 +189,6 @@ const allowAgentsListForMain = () => {
   };
 };
 
-const postToolsInvoke = async (params: {
-  port: number;
-  headers?: Record<string, string>;
-  body: Record<string, unknown>;
-}) =>
-  await fetch(`http://127.0.0.1:${params.port}/tools/invoke`, {
-    method: "POST",
-    headers: { "content-type": "application/json", ...params.headers },
-    body: JSON.stringify(params.body),
-  });
-
 const invokeAgentsList = async (params: {
   port: number;
   headers?: Record<string, string>;
@@ -218,7 +198,11 @@ const invokeAgentsList = async (params: {
   if (params.sessionKey) {
     body.sessionKey = params.sessionKey;
   }
-  return await postToolsInvoke({ port: params.port, headers: params.headers, body });
+  return await fetch(`http://127.0.0.1:${params.port}/tools/invoke`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...params.headers },
+    body: JSON.stringify(body),
+  });
 };
 
 const invokeTool = async (params: {
@@ -239,7 +223,11 @@ const invokeTool = async (params: {
   if (params.sessionKey) {
     body.sessionKey = params.sessionKey;
   }
-  return await postToolsInvoke({ port: params.port, headers: params.headers, body });
+  return await fetch(`http://127.0.0.1:${params.port}/tools/invoke`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...params.headers },
+    body: JSON.stringify(body),
+  });
 };
 
 const invokeAgentsListAuthed = async (params: { sessionKey?: string } = {}) =>
@@ -465,7 +453,7 @@ describe("POST /tools/invoke", () => {
     expect(resMain.status).toBe(200);
   });
 
-  it("maps tool input/auth errors to 400/403 and unexpected execution errors to 500", async () => {
+  it("maps tool input errors to 400 and unexpected execution errors to 500", async () => {
     cfg = {
       ...cfg,
       agents: {
@@ -483,17 +471,6 @@ describe("POST /tools/invoke", () => {
     expect(inputBody.ok).toBe(false);
     expect(inputBody.error?.type).toBe("tool_error");
     expect(inputBody.error?.message).toBe("mode invalid");
-
-    const authRes = await invokeToolAuthed({
-      tool: "tools_invoke_test",
-      args: { mode: "auth" },
-      sessionKey: "main",
-    });
-    expect(authRes.status).toBe(403);
-    const authBody = await authRes.json();
-    expect(authBody.ok).toBe(false);
-    expect(authBody.error?.type).toBe("tool_error");
-    expect(authBody.error?.message).toBe("mode forbidden");
 
     const crashRes = await invokeToolAuthed({
       tool: "tools_invoke_test",

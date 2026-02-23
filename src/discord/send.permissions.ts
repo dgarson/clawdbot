@@ -88,14 +88,12 @@ export async function fetchMemberGuildPermissionsDiscord(
 }
 
 /**
- * Returns true when the user has ADMINISTRATOR or required permission bits
- * matching the provided predicate.
+ * Returns true when the user has ADMINISTRATOR or any required permission bit.
  */
-async function hasGuildPermissionsDiscord(
+export async function hasAnyGuildPermissionDiscord(
   guildId: string,
   userId: string,
   requiredPermissions: bigint[],
-  check: (permissions: bigint, requiredPermissions: bigint[]) => boolean,
   opts: DiscordReactOpts = {},
 ): Promise<boolean> {
   const permissions = await fetchMemberGuildPermissionsDiscord(guildId, userId, opts);
@@ -105,26 +103,7 @@ async function hasGuildPermissionsDiscord(
   if (hasAdministrator(permissions)) {
     return true;
   }
-  return check(permissions, requiredPermissions);
-}
-
-/**
- * Returns true when the user has ADMINISTRATOR or any required permission bit.
- */
-export async function hasAnyGuildPermissionDiscord(
-  guildId: string,
-  userId: string,
-  requiredPermissions: bigint[],
-  opts: DiscordReactOpts = {},
-): Promise<boolean> {
-  return await hasGuildPermissionsDiscord(
-    guildId,
-    userId,
-    requiredPermissions,
-    (permissions, required) =>
-      required.some((permission) => hasPermissionBit(permissions, permission)),
-    opts,
-  );
+  return requiredPermissions.some((permission) => hasPermissionBit(permissions, permission));
 }
 
 /**
@@ -136,14 +115,14 @@ export async function hasAllGuildPermissionsDiscord(
   requiredPermissions: bigint[],
   opts: DiscordReactOpts = {},
 ): Promise<boolean> {
-  return await hasGuildPermissionsDiscord(
-    guildId,
-    userId,
-    requiredPermissions,
-    (permissions, required) =>
-      required.every((permission) => hasPermissionBit(permissions, permission)),
-    opts,
-  );
+  const permissions = await fetchMemberGuildPermissionsDiscord(guildId, userId, opts);
+  if (permissions === null) {
+    return false;
+  }
+  if (hasAdministrator(permissions)) {
+    return true;
+  }
+  return requiredPermissions.every((permission) => hasPermissionBit(permissions, permission));
 }
 
 /**

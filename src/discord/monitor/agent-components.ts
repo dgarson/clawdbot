@@ -464,8 +464,7 @@ async function ensureDmComponentAuthorized(params: {
     return true;
   }
 
-  const storeAllowFrom =
-    dmPolicy === "allowlist" ? [] : await readChannelAllowFromStore("discord").catch(() => []);
+  const storeAllowFrom = await readChannelAllowFromStore("discord").catch(() => []);
   const effectiveAllowFrom = [...(ctx.allowFrom ?? []), ...storeAllowFrom];
   const allowList = normalizeDiscordAllowList(effectiveAllowFrom, ["discord:", "user:", "pk:"]);
   const allowMatch = allowList

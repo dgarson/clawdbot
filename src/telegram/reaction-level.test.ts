@@ -2,43 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveTelegramReactionLevel } from "./reaction-level.js";
 
-type ReactionResolution = ReturnType<typeof resolveTelegramReactionLevel>;
-
 describe("resolveTelegramReactionLevel", () => {
   const prevTelegramToken = process.env.TELEGRAM_BOT_TOKEN;
-
-  const expectReactionFlags = (
-    result: ReactionResolution,
-    expected: {
-      level: "off" | "ack" | "minimal" | "extensive";
-      ackEnabled: boolean;
-      agentReactionsEnabled: boolean;
-      agentReactionGuidance?: "minimal" | "extensive";
-    },
-  ) => {
-    expect(result.level).toBe(expected.level);
-    expect(result.ackEnabled).toBe(expected.ackEnabled);
-    expect(result.agentReactionsEnabled).toBe(expected.agentReactionsEnabled);
-    expect(result.agentReactionGuidance).toBe(expected.agentReactionGuidance);
-  };
-
-  const expectMinimalFlags = (result: ReactionResolution) => {
-    expectReactionFlags(result, {
-      level: "minimal",
-      ackEnabled: false,
-      agentReactionsEnabled: true,
-      agentReactionGuidance: "minimal",
-    });
-  };
-
-  const expectExtensiveFlags = (result: ReactionResolution) => {
-    expectReactionFlags(result, {
-      level: "extensive",
-      ackEnabled: false,
-      agentReactionsEnabled: true,
-      agentReactionGuidance: "extensive",
-    });
-  };
 
   beforeAll(() => {
     process.env.TELEGRAM_BOT_TOKEN = "test-token";
@@ -58,7 +23,10 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg });
-    expectMinimalFlags(result);
+    expect(result.level).toBe("minimal");
+    expect(result.ackEnabled).toBe(false);
+    expect(result.agentReactionsEnabled).toBe(true);
+    expect(result.agentReactionGuidance).toBe("minimal");
   });
 
   it("returns off level with no reactions enabled", () => {
@@ -67,11 +35,10 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg });
-    expectReactionFlags(result, {
-      level: "off",
-      ackEnabled: false,
-      agentReactionsEnabled: false,
-    });
+    expect(result.level).toBe("off");
+    expect(result.ackEnabled).toBe(false);
+    expect(result.agentReactionsEnabled).toBe(false);
+    expect(result.agentReactionGuidance).toBeUndefined();
   });
 
   it("returns ack level with only ackEnabled", () => {
@@ -80,11 +47,10 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg });
-    expectReactionFlags(result, {
-      level: "ack",
-      ackEnabled: true,
-      agentReactionsEnabled: false,
-    });
+    expect(result.level).toBe("ack");
+    expect(result.ackEnabled).toBe(true);
+    expect(result.agentReactionsEnabled).toBe(false);
+    expect(result.agentReactionGuidance).toBeUndefined();
   });
 
   it("returns minimal level with agent reactions enabled and minimal guidance", () => {
@@ -93,7 +59,10 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg });
-    expectMinimalFlags(result);
+    expect(result.level).toBe("minimal");
+    expect(result.ackEnabled).toBe(false);
+    expect(result.agentReactionsEnabled).toBe(true);
+    expect(result.agentReactionGuidance).toBe("minimal");
   });
 
   it("returns extensive level with agent reactions enabled and extensive guidance", () => {
@@ -102,7 +71,10 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg });
-    expectExtensiveFlags(result);
+    expect(result.level).toBe("extensive");
+    expect(result.ackEnabled).toBe(false);
+    expect(result.agentReactionsEnabled).toBe(true);
+    expect(result.agentReactionGuidance).toBe("extensive");
   });
 
   it("resolves reaction level from a specific account", () => {
@@ -118,7 +90,10 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg, accountId: "work" });
-    expectExtensiveFlags(result);
+    expect(result.level).toBe("extensive");
+    expect(result.ackEnabled).toBe(false);
+    expect(result.agentReactionsEnabled).toBe(true);
+    expect(result.agentReactionGuidance).toBe("extensive");
   });
 
   it("falls back to global level when account has no reactionLevel", () => {
@@ -134,6 +109,8 @@ describe("resolveTelegramReactionLevel", () => {
     };
 
     const result = resolveTelegramReactionLevel({ cfg, accountId: "work" });
-    expectMinimalFlags(result);
+    expect(result.level).toBe("minimal");
+    expect(result.agentReactionsEnabled).toBe(true);
+    expect(result.agentReactionGuidance).toBe("minimal");
   });
 });

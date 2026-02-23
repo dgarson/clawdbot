@@ -3,7 +3,6 @@ import { constants as fsConstants } from "node:fs";
 import type { FileHandle } from "node:fs/promises";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { isNotFoundPathError, isPathInside, isSymlinkOpenError } from "./path-guards.js";
 
 export type SafeOpenErrorCode =
   | "invalid-path"
@@ -35,17 +34,27 @@ export type SafeLocalReadResult = {
   stat: Stats;
 };
 
+const NOT_FOUND_CODES = new Set(["ENOENT", "ENOTDIR"]);
 const SUPPORTS_NOFOLLOW = process.platform !== "win32" && "O_NOFOLLOW" in fsConstants;
 const OPEN_READ_FLAGS = fsConstants.O_RDONLY | (SUPPORTS_NOFOLLOW ? fsConstants.O_NOFOLLOW : 0);
 
 const ensureTrailingSep = (value: string) => (value.endsWith(path.sep) ? value : value + path.sep);
+
+const isNodeError = (err: unknown): err is NodeJS.ErrnoException =>
+  Boolean(err && typeof err === "object" && "code" in (err as Record<string, unknown>));
+
+const isNotFoundError = (err: unknown) =>
+  isNodeError(err) && typeof err.code === "string" && NOT_FOUND_CODES.has(err.code);
+
+const isSymlinkOpenError = (err: unknown) =>
+  isNodeError(err) && (err.code === "ELOOP" || err.code === "EINVAL" || err.code === "ENOTSUP");
 
 async function openVerifiedLocalFile(filePath: string): Promise<SafeOpenResult> {
   let handle: FileHandle;
   try {
     handle = await fs.open(filePath, OPEN_READ_FLAGS);
   } catch (err) {
-    if (isNotFoundPathError(err)) {
+    if (isNotFoundError(err)) {
       throw new SafeOpenError("not-found", "file not found");
     }
     if (isSymlinkOpenError(err)) {
@@ -78,7 +87,7 @@ async function openVerifiedLocalFile(filePath: string): Promise<SafeOpenResult> 
     if (err instanceof SafeOpenError) {
       throw err;
     }
-    if (isNotFoundPathError(err)) {
+    if (isNotFoundError(err)) {
       throw new SafeOpenError("not-found", "file not found");
     }
     throw err;
@@ -93,14 +102,14 @@ export async function openFileWithinRoot(params: {
   try {
     rootReal = await fs.realpath(params.rootDir);
   } catch (err) {
-    if (isNotFoundPathError(err)) {
+    if (isNotFoundError(err)) {
       throw new SafeOpenError("not-found", "root dir not found");
     }
     throw err;
   }
   const rootWithSep = ensureTrailingSep(rootReal);
   const resolved = path.resolve(rootWithSep, params.relativePath);
-  if (!isPathInside(rootWithSep, resolved)) {
+  if (!resolved.startsWith(rootWithSep)) {
     throw new SafeOpenError("invalid-path", "path escapes root");
   }
 
@@ -119,7 +128,7 @@ export async function openFileWithinRoot(params: {
     throw err;
   }
 
-  if (!isPathInside(rootWithSep, opened.realPath)) {
+  if (!opened.realPath.startsWith(rootWithSep)) {
     await opened.handle.close().catch(() => {});
     throw new SafeOpenError("invalid-path", "path escapes root");
   }

@@ -133,17 +133,9 @@ describe("pickAsset", () => {
 });
 
 describe("extractSignalCliArchive", () => {
-  async function withArchiveWorkspace(run: (workDir: string) => Promise<void>) {
+  it("rejects zip slip path traversal", async () => {
     const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-signal-install-"));
     try {
-      await run(workDir);
-    } finally {
-      await fs.rm(workDir, { recursive: true, force: true }).catch(() => undefined);
-    }
-  }
-
-  it("rejects zip slip path traversal", async () => {
-    await withArchiveWorkspace(async (workDir) => {
       const archivePath = path.join(workDir, "bad.zip");
       const extractDir = path.join(workDir, "extract");
       await fs.mkdir(extractDir, { recursive: true });
@@ -155,28 +147,14 @@ describe("extractSignalCliArchive", () => {
       await expect(extractSignalCliArchive(archivePath, extractDir, 5_000)).rejects.toThrow(
         /(escapes destination|absolute)/i,
       );
-    });
-  });
-
-  it("extracts zip archives", async () => {
-    await withArchiveWorkspace(async (workDir) => {
-      const archivePath = path.join(workDir, "ok.zip");
-      const extractDir = path.join(workDir, "extract");
-      await fs.mkdir(extractDir, { recursive: true });
-
-      const zip = new JSZip();
-      zip.file("root/signal-cli", "bin");
-      await fs.writeFile(archivePath, await zip.generateAsync({ type: "nodebuffer" }));
-
-      await extractSignalCliArchive(archivePath, extractDir, 5_000);
-
-      const extracted = await fs.readFile(path.join(extractDir, "root", "signal-cli"), "utf-8");
-      expect(extracted).toBe("bin");
-    });
+    } finally {
+      await fs.rm(workDir, { recursive: true, force: true }).catch(() => undefined);
+    }
   });
 
   it("extracts tar.gz archives", async () => {
-    await withArchiveWorkspace(async (workDir) => {
+    const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-signal-install-"));
+    try {
       const archivePath = path.join(workDir, "ok.tgz");
       const extractDir = path.join(workDir, "extract");
       const rootDir = path.join(workDir, "root");
@@ -189,6 +167,8 @@ describe("extractSignalCliArchive", () => {
 
       const extracted = await fs.readFile(path.join(extractDir, "root", "signal-cli"), "utf-8");
       expect(extracted).toBe("bin");
-    });
+    } finally {
+      await fs.rm(workDir, { recursive: true, force: true }).catch(() => undefined);
+    }
   });
 });

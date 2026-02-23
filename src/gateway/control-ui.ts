@@ -3,7 +3,6 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveControlUiRootSync } from "../infra/control-ui-assets.js";
-import { isWithinDir } from "../infra/path-safety.js";
 import { DEFAULT_ASSISTANT_IDENTITY, resolveAssistantIdentity } from "./assistant-identity.js";
 import {
   CONTROL_UI_BOOTSTRAP_CONFIG_PATH,
@@ -180,84 +179,19 @@ function respondNotFound(res: ServerResponse) {
   res.end("Not Found");
 }
 
-function setStaticFileHeaders(res: ServerResponse, filePath: string) {
+function serveFile(res: ServerResponse, filePath: string) {
   const ext = path.extname(filePath).toLowerCase();
   res.setHeader("Content-Type", contentTypeForExt(ext));
   // Static UI should never be cached aggressively while iterating; allow the
   // browser to revalidate.
   res.setHeader("Cache-Control", "no-cache");
-}
-
-function serveFile(res: ServerResponse, filePath: string) {
-  setStaticFileHeaders(res, filePath);
   res.end(fs.readFileSync(filePath));
 }
 
-function serveResolvedFile(res: ServerResponse, filePath: string, body: Buffer) {
-  setStaticFileHeaders(res, filePath);
-  res.end(body);
-}
-
-function serveResolvedIndexHtml(res: ServerResponse, body: string) {
+function serveIndexHtml(res: ServerResponse, indexPath: string) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache");
-  res.end(body);
-}
-
-function isContainedPath(baseDir: string, targetPath: string): boolean {
-  const relative = path.relative(baseDir, targetPath);
-  return relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
-}
-
-function isExpectedSafePathError(error: unknown): boolean {
-  const code =
-    typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
-  return code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP";
-}
-
-function areSameFileIdentity(preOpen: fs.Stats, opened: fs.Stats): boolean {
-  return preOpen.dev === opened.dev && preOpen.ino === opened.ino;
-}
-
-function resolveSafeControlUiFile(
-  rootReal: string,
-  filePath: string,
-): { path: string; fd: number } | null {
-  let fd: number | null = null;
-  try {
-    const fileReal = fs.realpathSync(filePath);
-    if (!isContainedPath(rootReal, fileReal)) {
-      return null;
-    }
-
-    const preOpenStat = fs.lstatSync(fileReal);
-    if (!preOpenStat.isFile()) {
-      return null;
-    }
-
-    const openFlags =
-      fs.constants.O_RDONLY |
-      (typeof fs.constants.O_NOFOLLOW === "number" ? fs.constants.O_NOFOLLOW : 0);
-    fd = fs.openSync(fileReal, openFlags);
-    const openedStat = fs.fstatSync(fd);
-    // Compare inode identity so swaps between validation and open are rejected.
-    if (!openedStat.isFile() || !areSameFileIdentity(preOpenStat, openedStat)) {
-      return null;
-    }
-
-    const resolved = { path: fileReal, fd };
-    fd = null;
-    return resolved;
-  } catch (error) {
-    if (isExpectedSafePathError(error)) {
-      return null;
-    }
-    throw error;
-  } finally {
-    if (fd !== null) {
-      fs.closeSync(fd);
-    }
-  }
+  res.end(fs.readFileSync(indexPath, "utf8"));
 }
 
 function isSafeRelativePath(relPath: string) {
@@ -265,9 +199,6 @@ function isSafeRelativePath(relPath: string) {
     return false;
   }
   const normalized = path.posix.normalize(relPath);
-  if (path.posix.isAbsolute(normalized) || path.win32.isAbsolute(normalized)) {
-    return false;
-  }
   if (normalized.startsWith("../") || normalized === "..") {
     return false;
   }
@@ -384,25 +315,6 @@ export function handleControlUiHttpRequest(
     return true;
   }
 
-  const rootReal = (() => {
-    try {
-      return fs.realpathSync(root);
-    } catch (error) {
-      if (isExpectedSafePathError(error)) {
-        return null;
-      }
-      throw error;
-    }
-  })();
-  if (!rootReal) {
-    res.statusCode = 503;
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.end(
-      "Control UI assets not found. Build them with `pnpm ui:build` (auto-installs UI deps), or run `pnpm ui:dev` during development.",
-    );
-    return true;
-  }
-
   const uiPath =
     basePath && pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : pathname;
   const rel = (() => {
@@ -422,30 +334,19 @@ export function handleControlUiHttpRequest(
     return true;
   }
 
-  const filePath = path.resolve(root, fileRel);
-  if (!isWithinDir(root, filePath)) {
+  const filePath = path.join(root, fileRel);
+  if (!filePath.startsWith(root)) {
     respondNotFound(res);
     return true;
   }
 
-  const safeFile = resolveSafeControlUiFile(rootReal, filePath);
-  if (safeFile) {
-    try {
-      if (req.method === "HEAD") {
-        res.statusCode = 200;
-        setStaticFileHeaders(res, safeFile.path);
-        res.end();
-        return true;
-      }
-      if (path.basename(safeFile.path) === "index.html") {
-        serveResolvedIndexHtml(res, fs.readFileSync(safeFile.fd, "utf8"));
-        return true;
-      }
-      serveResolvedFile(res, safeFile.path, fs.readFileSync(safeFile.fd));
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    if (path.basename(filePath) === "index.html") {
+      serveIndexHtml(res, filePath);
       return true;
-    } finally {
-      fs.closeSync(safeFile.fd);
     }
+    serveFile(res, filePath);
+    return true;
   }
 
   // If the requested path looks like a static asset (known extension), return
@@ -460,20 +361,9 @@ export function handleControlUiHttpRequest(
 
   // SPA fallback (client-side router): serve index.html for unknown paths.
   const indexPath = path.join(root, "index.html");
-  const safeIndex = resolveSafeControlUiFile(rootReal, indexPath);
-  if (safeIndex) {
-    try {
-      if (req.method === "HEAD") {
-        res.statusCode = 200;
-        setStaticFileHeaders(res, safeIndex.path);
-        res.end();
-        return true;
-      }
-      serveResolvedIndexHtml(res, fs.readFileSync(safeIndex.fd, "utf8"));
-      return true;
-    } finally {
-      fs.closeSync(safeIndex.fd);
-    }
+  if (fs.existsSync(indexPath)) {
+    serveIndexHtml(res, indexPath);
+    return true;
   }
 
   respondNotFound(res);

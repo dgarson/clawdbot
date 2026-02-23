@@ -24,8 +24,6 @@ export type AgentEvent = {
   data?: Record<string, unknown>;
 };
 
-export type ResponseUsageMode = "on" | "off" | "tokens" | "full";
-
 export type SessionInfo = {
   thinkingLevel?: string;
   verboseLevel?: string;
@@ -36,7 +34,7 @@ export type SessionInfo = {
   inputTokens?: number | null;
   outputTokens?: number | null;
   totalTokens?: number | null;
-  responseUsage?: ResponseUsageMode;
+  responseUsage?: "on" | "off" | "tokens" | "full";
   updatedAt?: number | null;
   displayName?: string;
 };

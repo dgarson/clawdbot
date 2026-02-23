@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { MsgContext } from "../auto-reply/templating.js";
-import { typedCases } from "../test-utils/typed-cases.js";
 import {
   type ChannelMatchSource,
   buildChannelKeyCandidates,
@@ -43,55 +42,44 @@ describe("resolveChannelEntryMatch", () => {
 });
 
 describe("resolveChannelEntryMatchWithFallback", () => {
-  const fallbackCases = typedCases<{
-    name: string;
-    entries: Record<string, { allow: boolean }>;
-    args: {
-      keys: string[];
-      parentKeys?: string[];
-      wildcardKey?: string;
-    };
-    expectedEntryKey: string;
-    expectedSource: ChannelMatchSource;
-    expectedMatchKey: string;
-  }>([
-    {
-      name: "prefers direct matches over parent and wildcard",
-      entries: { a: { allow: true }, parent: { allow: false }, "*": { allow: false } },
-      args: { keys: ["a"], parentKeys: ["parent"], wildcardKey: "*" },
-      expectedEntryKey: "a",
-      expectedSource: "direct",
-      expectedMatchKey: "a",
-    },
-    {
-      name: "falls back to parent when direct misses",
-      entries: { parent: { allow: false }, "*": { allow: true } },
-      args: { keys: ["missing"], parentKeys: ["parent"], wildcardKey: "*" },
-      expectedEntryKey: "parent",
-      expectedSource: "parent",
-      expectedMatchKey: "parent",
-    },
-    {
-      name: "falls back to wildcard when no direct or parent match",
-      entries: { "*": { allow: true } },
-      args: { keys: ["missing"], parentKeys: ["still-missing"], wildcardKey: "*" },
-      expectedEntryKey: "*",
-      expectedSource: "wildcard",
-      expectedMatchKey: "*",
-    },
-  ]);
-
-  for (const testCase of fallbackCases) {
-    it(testCase.name, () => {
-      const match = resolveChannelEntryMatchWithFallback({
-        entries: testCase.entries,
-        ...testCase.args,
-      });
-      expect(match.entry).toBe(testCase.entries[testCase.expectedEntryKey]);
-      expect(match.matchSource).toBe(testCase.expectedSource);
-      expect(match.matchKey).toBe(testCase.expectedMatchKey);
+  it("prefers direct matches over parent and wildcard", () => {
+    const entries = { a: { allow: true }, parent: { allow: false }, "*": { allow: false } };
+    const match = resolveChannelEntryMatchWithFallback({
+      entries,
+      keys: ["a"],
+      parentKeys: ["parent"],
+      wildcardKey: "*",
     });
-  }
+    expect(match.entry).toBe(entries.a);
+    expect(match.matchSource).toBe("direct");
+    expect(match.matchKey).toBe("a");
+  });
+
+  it("falls back to parent when direct misses", () => {
+    const entries = { parent: { allow: false }, "*": { allow: true } };
+    const match = resolveChannelEntryMatchWithFallback({
+      entries,
+      keys: ["missing"],
+      parentKeys: ["parent"],
+      wildcardKey: "*",
+    });
+    expect(match.entry).toBe(entries.parent);
+    expect(match.matchSource).toBe("parent");
+    expect(match.matchKey).toBe("parent");
+  });
+
+  it("falls back to wildcard when no direct or parent match", () => {
+    const entries = { "*": { allow: true } };
+    const match = resolveChannelEntryMatchWithFallback({
+      entries,
+      keys: ["missing"],
+      parentKeys: ["still-missing"],
+      wildcardKey: "*",
+    });
+    expect(match.entry).toBe(entries["*"]);
+    expect(match.matchSource).toBe("wildcard");
+    expect(match.matchKey).toBe("*");
+  });
 
   it("matches normalized keys when normalizeKey is provided", () => {
     const entries = { "My Team": { allow: true } };
@@ -165,52 +153,44 @@ describe("validateSenderIdentity", () => {
 });
 
 describe("resolveNestedAllowlistDecision", () => {
-  const cases = [
-    {
-      name: "allows when outer allowlist is disabled",
-      value: {
+  it("allows when outer allowlist is disabled", () => {
+    expect(
+      resolveNestedAllowlistDecision({
         outerConfigured: false,
         outerMatched: false,
         innerConfigured: false,
         innerMatched: false,
-      },
-      expected: true,
-    },
-    {
-      name: "blocks when outer allowlist is configured but missing match",
-      value: {
+      }),
+    ).toBe(true);
+  });
+
+  it("blocks when outer allowlist is configured but missing match", () => {
+    expect(
+      resolveNestedAllowlistDecision({
         outerConfigured: true,
         outerMatched: false,
         innerConfigured: false,
         innerMatched: false,
-      },
-      expected: false,
-    },
-    {
-      name: "requires inner match when inner allowlist is configured",
-      value: {
+      }),
+    ).toBe(false);
+  });
+
+  it("requires inner match when inner allowlist is configured", () => {
+    expect(
+      resolveNestedAllowlistDecision({
         outerConfigured: true,
         outerMatched: true,
         innerConfigured: true,
         innerMatched: false,
-      },
-      expected: false,
-    },
-    {
-      name: "allows when both outer and inner allowlists match",
-      value: {
+      }),
+    ).toBe(false);
+    expect(
+      resolveNestedAllowlistDecision({
         outerConfigured: true,
         outerMatched: true,
         innerConfigured: true,
         innerMatched: true,
-      },
-      expected: true,
-    },
-  ] as const;
-
-  for (const testCase of cases) {
-    it(testCase.name, () => {
-      expect(resolveNestedAllowlistDecision(testCase.value)).toBe(testCase.expected);
-    });
-  }
+      }),
+    ).toBe(true);
+  });
 });

@@ -125,6 +125,7 @@ export function toToolDefinitions(
   tools: AnyAgentTool[],
   compatibility?: ToolCompatibilityOptions,
 ): ToolDefinition[] {
+  const sessionPrefix = compatibility?.sessionKey ? `[${compatibility.sessionKey}] ` : "";
   const toolCallIdSeen = new Map<string, number>();
 
   const normalizeToolCallIdWithDupes = (
@@ -224,7 +225,7 @@ export function toToolDefinitions(
               );
             } catch (hookErr) {
               logDebug(
-                `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
+                `${sessionPrefix}after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
               );
             }
           }
@@ -246,9 +247,9 @@ export function toToolDefinitions(
           }
           const described = describeToolExecutionError(err);
           if (described.stack && described.stack !== described.message) {
-            logDebug(`tools: ${normalizedName} failed stack:\n${described.stack}`);
+            logDebug(`${sessionPrefix}tools: ${normalizedName} failed stack:\n${described.stack}`);
           }
-          logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          logError(`${sessionPrefix}[tools] ${normalizedName} failed: ${described.message}`);
 
           const errorResult = jsonResult({
             status: "error",

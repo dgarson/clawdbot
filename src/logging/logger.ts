@@ -5,9 +5,7 @@ import type { OpenClawConfig } from "../config/types.js";
 import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
 import { readLoggingConfig } from "./config.js";
 import type { ConsoleStyle } from "./console.js";
-import { resolveEnvLogLevelOverride } from "./env-log-level.js";
 import { type LogLevel, levelToMinLevel, normalizeLogLevel } from "./levels.js";
-import { resolveNodeRequireFromMeta } from "./node-require.js";
 import { loggingState } from "./state.js";
 
 export const DEFAULT_LOG_DIR = resolvePreferredOpenClawTmpDir();
@@ -16,14 +14,33 @@ export const DEFAULT_LOG_FILE = path.join(DEFAULT_LOG_DIR, "openclaw.log"); // l
 const LOG_PREFIX = "openclaw";
 const LOG_SUFFIX = ".log";
 const MAX_LOG_AGE_MS = 24 * 60 * 60 * 1000; // 24h
-const DEFAULT_MAX_LOG_FILE_BYTES = 500 * 1024 * 1024; // 500 MB
 
-const requireConfig = resolveNodeRequireFromMeta(import.meta.url);
+function resolveNodeRequire(): ((id: string) => NodeJS.Require) | null {
+  const getBuiltinModule = (
+    process as NodeJS.Process & {
+      getBuiltinModule?: (id: string) => unknown;
+    }
+  ).getBuiltinModule;
+  if (typeof getBuiltinModule !== "function") {
+    return null;
+  }
+  try {
+    const moduleNamespace = getBuiltinModule("module") as {
+      createRequire?: (id: string) => NodeJS.Require;
+    };
+    return typeof moduleNamespace.createRequire === "function"
+      ? moduleNamespace.createRequire
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+const requireConfig = resolveNodeRequire()?.(import.meta.url) ?? null;
 
 export type LoggerSettings = {
   level?: LogLevel;
   file?: string;
-  maxFileBytes?: number;
   consoleLevel?: LogLevel;
   consoleStyle?: ConsoleStyle;
 };
@@ -33,7 +50,6 @@ type LogObj = { date?: Date } & Record<string, unknown>;
 type ResolvedSettings = {
   level: LogLevel;
   file: string;
-  maxFileBytes: number;
 };
 export type LoggerResolvedSettings = ResolvedSettings;
 export type LogTransportRecord = Record<string, unknown>;
@@ -71,19 +87,16 @@ function resolveSettings(): ResolvedSettings {
   }
   const defaultLevel =
     process.env.VITEST === "true" && process.env.OPENCLAW_TEST_FILE_LOG !== "1" ? "silent" : "info";
-  const fromConfig = normalizeLogLevel(cfg?.level, defaultLevel);
-  const envLevel = resolveEnvLogLevelOverride();
-  const level = envLevel ?? fromConfig;
+  const level = normalizeLogLevel(cfg?.level, defaultLevel);
   const file = cfg?.file ?? defaultRollingPathForToday();
-  const maxFileBytes = resolveMaxLogFileBytes(cfg?.maxFileBytes);
-  return { level, file, maxFileBytes };
+  return { level, file };
 }
 
 function settingsChanged(a: ResolvedSettings | null, b: ResolvedSettings) {
   if (!a) {
     return true;
   }
-  return a.level !== b.level || a.file !== b.file || a.maxFileBytes !== b.maxFileBytes;
+  return a.level !== b.level || a.file !== b.file;
 }
 
 export function isFileLogLevelEnabled(level: LogLevel): boolean {
@@ -103,8 +116,6 @@ function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
   if (isRollingPath(settings.file)) {
     pruneOldRollingLogs(path.dirname(settings.file));
   }
-  let currentFileBytes = getCurrentLogFileBytes(settings.file);
-  let warnedAboutSizeCap = false;
   const logger = new TsLogger<LogObj>({
     name: "openclaw",
     minLevel: levelToMinLevel(settings.level),
@@ -115,28 +126,7 @@ function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
     try {
       const time = logObj.date?.toISOString?.() ?? new Date().toISOString();
       const line = JSON.stringify({ ...logObj, time });
-      const payload = `${line}\n`;
-      const payloadBytes = Buffer.byteLength(payload, "utf8");
-      const nextBytes = currentFileBytes + payloadBytes;
-      if (nextBytes > settings.maxFileBytes) {
-        if (!warnedAboutSizeCap) {
-          warnedAboutSizeCap = true;
-          const warningLine = JSON.stringify({
-            time: new Date().toISOString(),
-            level: "warn",
-            subsystem: "logging",
-            message: `log file size cap reached; suppressing writes file=${settings.file} maxFileBytes=${settings.maxFileBytes}`,
-          });
-          appendLogLine(settings.file, `${warningLine}\n`);
-          process.stderr.write(
-            `[openclaw] log file size cap reached; suppressing writes file=${settings.file} maxFileBytes=${settings.maxFileBytes}\n`,
-          );
-        }
-        return;
-      }
-      if (appendLogLine(settings.file, payload)) {
-        currentFileBytes = nextBytes;
-      }
+      fs.appendFileSync(settings.file, `${line}\n`, { encoding: "utf8" });
     } catch {
       // never block on logging failures
     }
@@ -146,30 +136,6 @@ function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
   }
 
   return logger;
-}
-
-function resolveMaxLogFileBytes(raw: unknown): number {
-  if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
-    return Math.floor(raw);
-  }
-  return DEFAULT_MAX_LOG_FILE_BYTES;
-}
-
-function getCurrentLogFileBytes(file: string): number {
-  try {
-    return fs.statSync(file).size;
-  } catch {
-    return 0;
-  }
-}
-
-function appendLogLine(file: string, line: string): boolean {
-  try {
-    fs.appendFileSync(file, line, { encoding: "utf8" });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 export function getLogger(): TsLogger<LogObj> {

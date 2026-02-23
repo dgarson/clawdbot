@@ -95,13 +95,6 @@ describe("runWebHeartbeatOnce", () => {
   let replyResolver: typeof getReplyFromConfig;
 
   const getModules = async () => await import("./heartbeat-runner.js");
-  const buildRunArgs = (overrides: Record<string, unknown> = {}) => ({
-    cfg: { agents: { defaults: {} }, session: {} } as never,
-    to: "+123",
-    sender,
-    replyResolver,
-    ...overrides,
-  });
 
   beforeEach(() => {
     state.visibility = { showAlerts: true, showOk: true, useIndicator: false };
@@ -124,14 +117,26 @@ describe("runWebHeartbeatOnce", () => {
 
   it("supports manual override body dry-run without sending", async () => {
     const { runWebHeartbeatOnce } = await getModules();
-    await runWebHeartbeatOnce(buildRunArgs({ overrideBody: "hello", dryRun: true }));
+    await runWebHeartbeatOnce({
+      cfg: { agents: { defaults: {} }, session: {} } as never,
+      to: "+123",
+      sender,
+      replyResolver,
+      overrideBody: "hello",
+      dryRun: true,
+    });
     expect(senderMock).not.toHaveBeenCalled();
     expect(state.events).toHaveLength(0);
   });
 
   it("sends HEARTBEAT_OK when reply is empty and showOk is enabled", async () => {
     const { runWebHeartbeatOnce } = await getModules();
-    await runWebHeartbeatOnce(buildRunArgs());
+    await runWebHeartbeatOnce({
+      cfg: { agents: { defaults: {} }, session: {} } as never,
+      to: "+123",
+      sender,
+      replyResolver,
+    });
     expect(senderMock).toHaveBeenCalledWith("+123", HEARTBEAT_TOKEN, { verbose: false });
     expect(state.events).toEqual(
       expect.arrayContaining([expect.objectContaining({ status: "ok-empty", silent: false })]),
@@ -140,12 +145,13 @@ describe("runWebHeartbeatOnce", () => {
 
   it("injects a cron-style Current time line into the heartbeat prompt", async () => {
     const { runWebHeartbeatOnce } = await getModules();
-    await runWebHeartbeatOnce(
-      buildRunArgs({
-        cfg: { agents: { defaults: { heartbeat: { prompt: "Ops check" } } }, session: {} } as never,
-        dryRun: true,
-      }),
-    );
+    await runWebHeartbeatOnce({
+      cfg: { agents: { defaults: { heartbeat: { prompt: "Ops check" } } }, session: {} } as never,
+      to: "+123",
+      sender,
+      replyResolver,
+      dryRun: true,
+    });
     expect(replyResolver).toHaveBeenCalledTimes(1);
     const ctx = replyResolverMock.mock.calls[0]?.[0];
     expect(ctx?.Body).toContain("Ops check");
@@ -155,7 +161,12 @@ describe("runWebHeartbeatOnce", () => {
   it("treats heartbeat token-only replies as ok-token and preserves session updatedAt", async () => {
     replyResolverMock.mockResolvedValue({ text: HEARTBEAT_TOKEN });
     const { runWebHeartbeatOnce } = await getModules();
-    await runWebHeartbeatOnce(buildRunArgs());
+    await runWebHeartbeatOnce({
+      cfg: { agents: { defaults: {} }, session: {} } as never,
+      to: "+123",
+      sender,
+      replyResolver,
+    });
     expect(state.store.k?.updatedAt).toBe(123);
     expect(senderMock).toHaveBeenCalledWith("+123", HEARTBEAT_TOKEN, { verbose: false });
     expect(state.events).toEqual(
@@ -167,7 +178,12 @@ describe("runWebHeartbeatOnce", () => {
     state.visibility = { showAlerts: false, showOk: true, useIndicator: true };
     replyResolverMock.mockResolvedValue({ text: "ALERT" });
     const { runWebHeartbeatOnce } = await getModules();
-    await runWebHeartbeatOnce(buildRunArgs());
+    await runWebHeartbeatOnce({
+      cfg: { agents: { defaults: {} }, session: {} } as never,
+      to: "+123",
+      sender,
+      replyResolver,
+    });
     expect(senderMock).not.toHaveBeenCalled();
     expect(state.events).toEqual(
       expect.arrayContaining([
@@ -180,7 +196,14 @@ describe("runWebHeartbeatOnce", () => {
     replyResolverMock.mockResolvedValue({ text: "ALERT" });
     senderMock.mockRejectedValueOnce(new Error("nope"));
     const { runWebHeartbeatOnce } = await getModules();
-    await expect(runWebHeartbeatOnce(buildRunArgs())).rejects.toThrow("nope");
+    await expect(
+      runWebHeartbeatOnce({
+        cfg: { agents: { defaults: {} }, session: {} } as never,
+        to: "+123",
+        sender,
+        replyResolver,
+      }),
+    ).rejects.toThrow("nope");
     expect(state.events).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ status: "failed", reason: "ERR:Error: nope" }),

@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { DiscordGuildEntry } from "../../../config/types.discord.js";
+import type { DmPolicy } from "../../../config/types.js";
 import {
   listDiscordAccountIds,
   resolveDefaultDiscordAccountId,
@@ -11,27 +12,35 @@ import {
   type DiscordChannelResolution,
 } from "../../../discord/resolve-channels.js";
 import { resolveDiscordUserAllowlist } from "../../../discord/resolve-users.js";
-import { DEFAULT_ACCOUNT_ID } from "../../../routing/session-key.js";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../../routing/session-key.js";
 import { formatDocsLink } from "../../../terminal/links.js";
 import type { WizardPrompter } from "../../../wizard/prompts.js";
 import type { ChannelOnboardingAdapter, ChannelOnboardingDmPolicy } from "../onboarding-types.js";
-import { configureChannelAccessWithAllowlist } from "./channel-access-configure.js";
-import {
-  applySingleTokenPromptResult,
-  parseMentionOrPrefixedId,
-  noteChannelLookupFailure,
-  noteChannelLookupSummary,
-  patchChannelConfigForAccount,
-  promptLegacyChannelAllowFrom,
-  promptSingleChannelToken,
-  resolveAccountIdForConfigure,
-  resolveOnboardingAccountId,
-  setAccountGroupPolicyForChannel,
-  setLegacyChannelDmPolicyWithAllowFrom,
-  setOnboardingChannelEnabled,
-} from "./helpers.js";
+import { promptChannelAccessConfig } from "./channel-access.js";
+import { addWildcardAllowFrom, promptAccountId, promptResolvedAllowFrom } from "./helpers.js";
 
 const channel = "discord" as const;
+
+function setDiscordDmPolicy(cfg: OpenClawConfig, dmPolicy: DmPolicy) {
+  const existingAllowFrom =
+    cfg.channels?.discord?.allowFrom ?? cfg.channels?.discord?.dm?.allowFrom;
+  const allowFrom = dmPolicy === "open" ? addWildcardAllowFrom(existingAllowFrom) : undefined;
+  return {
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      discord: {
+        ...cfg.channels?.discord,
+        dmPolicy,
+        ...(allowFrom ? { allowFrom } : {}),
+        dm: {
+          ...cfg.channels?.discord?.dm,
+          enabled: cfg.channels?.discord?.dm?.enabled ?? true,
+        },
+      },
+    },
+  };
+}
 
 async function noteDiscordTokenHelp(prompter: WizardPrompter): Promise<void> {
   await prompter.note(
@@ -44,6 +53,52 @@ async function noteDiscordTokenHelp(prompter: WizardPrompter): Promise<void> {
     ].join("\n"),
     "Discord bot token",
   );
+}
+
+function patchDiscordConfigForAccount(
+  cfg: OpenClawConfig,
+  accountId: string,
+  patch: Record<string, unknown>,
+): OpenClawConfig {
+  if (accountId === DEFAULT_ACCOUNT_ID) {
+    return {
+      ...cfg,
+      channels: {
+        ...cfg.channels,
+        discord: {
+          ...cfg.channels?.discord,
+          enabled: true,
+          ...patch,
+        },
+      },
+    };
+  }
+  return {
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      discord: {
+        ...cfg.channels?.discord,
+        enabled: true,
+        accounts: {
+          ...cfg.channels?.discord?.accounts,
+          [accountId]: {
+            ...cfg.channels?.discord?.accounts?.[accountId],
+            enabled: cfg.channels?.discord?.accounts?.[accountId]?.enabled ?? true,
+            ...patch,
+          },
+        },
+      },
+    },
+  };
+}
+
+function setDiscordGroupPolicy(
+  cfg: OpenClawConfig,
+  accountId: string,
+  groupPolicy: "open" | "allowlist" | "disabled",
+): OpenClawConfig {
+  return patchDiscordConfigForAccount(cfg, accountId, { groupPolicy });
 }
 
 function setDiscordGuildChannelAllowlist(
@@ -70,12 +125,31 @@ function setDiscordGuildChannelAllowlist(
       guilds[guildKey] = existing;
     }
   }
-  return patchChannelConfigForAccount({
-    cfg,
-    channel: "discord",
-    accountId,
-    patch: { guilds },
-  });
+  return patchDiscordConfigForAccount(cfg, accountId, { guilds });
+}
+
+function setDiscordAllowFrom(cfg: OpenClawConfig, allowFrom: string[]): OpenClawConfig {
+  return {
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      discord: {
+        ...cfg.channels?.discord,
+        allowFrom,
+        dm: {
+          ...cfg.channels?.discord?.dm,
+          enabled: cfg.channels?.discord?.dm?.enabled ?? true,
+        },
+      },
+    },
+  };
+}
+
+function parseDiscordAllowFromInput(raw: string): string[] {
+  return raw
+    .split(/[\n,;]+/g)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 async function promptDiscordAllowFrom(params: {
@@ -83,30 +157,16 @@ async function promptDiscordAllowFrom(params: {
   prompter: WizardPrompter;
   accountId?: string;
 }): Promise<OpenClawConfig> {
-  const accountId = resolveOnboardingAccountId({
-    accountId: params.accountId,
-    defaultAccountId: resolveDefaultDiscordAccountId(params.cfg),
-  });
+  const accountId =
+    params.accountId && normalizeAccountId(params.accountId)
+      ? (normalizeAccountId(params.accountId) ?? DEFAULT_ACCOUNT_ID)
+      : resolveDefaultDiscordAccountId(params.cfg);
   const resolved = resolveDiscordAccount({ cfg: params.cfg, accountId });
   const token = resolved.token;
   const existing =
     params.cfg.channels?.discord?.allowFrom ?? params.cfg.channels?.discord?.dm?.allowFrom ?? [];
-  const parseId = (value: string) =>
-    parseMentionOrPrefixedId({
-      value,
-      mentionPattern: /^<@!?(\d+)>$/,
-      prefixPattern: /^(user:|discord:)/i,
-      idPattern: /^\d+$/,
-    });
-
-  return promptLegacyChannelAllowFrom({
-    cfg: params.cfg,
-    channel: "discord",
-    prompter: params.prompter,
-    existing,
-    token,
-    noteTitle: "Discord allowlist",
-    noteLines: [
+  await params.prompter.note(
+    [
       "Allowlist Discord DMs by username (we resolve to user ids).",
       "Examples:",
       "- 123456789012345678",
@@ -114,9 +174,35 @@ async function promptDiscordAllowFrom(params: {
       "- alice#1234",
       "Multiple entries: comma-separated.",
       `Docs: ${formatDocsLink("/discord", "discord")}`,
-    ],
+    ].join("\n"),
+    "Discord allowlist",
+  );
+
+  const parseInputs = (value: string) => parseDiscordAllowFromInput(value);
+  const parseId = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const mention = trimmed.match(/^<@!?(\d+)>$/);
+    if (mention) {
+      return mention[1];
+    }
+    const prefixed = trimmed.replace(/^(user:|discord:)/i, "");
+    if (/^\d+$/.test(prefixed)) {
+      return prefixed;
+    }
+    return null;
+  };
+
+  const unique = await promptResolvedAllowFrom({
+    prompter: params.prompter,
+    existing,
+    token,
     message: "Discord allowFrom (usernames or ids)",
     placeholder: "@alice, 123456789012345678",
+    label: "Discord allowlist",
+    parseInputs,
     parseId,
     invalidWithoutTokenNote: "Bot token missing; use numeric user ids (or mention form) only.",
     resolveEntries: ({ token, entries }) =>
@@ -125,6 +211,7 @@ async function promptDiscordAllowFrom(params: {
         entries,
       }),
   });
+  return setDiscordAllowFrom(params.cfg, unique);
 }
 
 const dmPolicy: ChannelOnboardingDmPolicy = {
@@ -134,12 +221,7 @@ const dmPolicy: ChannelOnboardingDmPolicy = {
   allowFromKey: "channels.discord.allowFrom",
   getCurrent: (cfg) =>
     cfg.channels?.discord?.dmPolicy ?? cfg.channels?.discord?.dm?.policy ?? "pairing",
-  setPolicy: (cfg, policy) =>
-    setLegacyChannelDmPolicyWithAllowFrom({
-      cfg,
-      channel: "discord",
-      dmPolicy: policy,
-    }),
+  setPolicy: (cfg, policy) => setDiscordDmPolicy(cfg, policy),
   promptAllowFrom: promptDiscordAllowFrom,
 };
 
@@ -158,16 +240,21 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
     };
   },
   configure: async ({ cfg, prompter, accountOverrides, shouldPromptAccountIds }) => {
+    const discordOverride = accountOverrides.discord?.trim();
     const defaultDiscordAccountId = resolveDefaultDiscordAccountId(cfg);
-    const discordAccountId = await resolveAccountIdForConfigure({
-      cfg,
-      prompter,
-      label: "Discord",
-      accountOverride: accountOverrides.discord,
-      shouldPromptAccountIds,
-      listAccountIds: listDiscordAccountIds,
-      defaultAccountId: defaultDiscordAccountId,
-    });
+    let discordAccountId = discordOverride
+      ? normalizeAccountId(discordOverride)
+      : defaultDiscordAccountId;
+    if (shouldPromptAccountIds && !discordOverride) {
+      discordAccountId = await promptAccountId({
+        cfg,
+        prompter,
+        label: "Discord",
+        currentId: discordAccountId,
+        listAccountIds: listDiscordAccountIds,
+        defaultAccountId: defaultDiscordAccountId,
+      });
+    }
 
     let next = cfg;
     const resolvedAccount = resolveDiscordAccount({
@@ -176,31 +263,86 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
     });
     const accountConfigured = Boolean(resolvedAccount.token);
     const allowEnv = discordAccountId === DEFAULT_ACCOUNT_ID;
-    const canUseEnv =
-      allowEnv && !resolvedAccount.config.token && Boolean(process.env.DISCORD_BOT_TOKEN?.trim());
+    const canUseEnv = allowEnv && Boolean(process.env.DISCORD_BOT_TOKEN?.trim());
     const hasConfigToken = Boolean(resolvedAccount.config.token);
 
+    let token: string | null = null;
     if (!accountConfigured) {
       await noteDiscordTokenHelp(prompter);
     }
+    if (canUseEnv && !resolvedAccount.config.token) {
+      const keepEnv = await prompter.confirm({
+        message: "DISCORD_BOT_TOKEN detected. Use env var?",
+        initialValue: true,
+      });
+      if (keepEnv) {
+        next = {
+          ...next,
+          channels: {
+            ...next.channels,
+            discord: { ...next.channels?.discord, enabled: true },
+          },
+        };
+      } else {
+        token = String(
+          await prompter.text({
+            message: "Enter Discord bot token",
+            validate: (value) => (value?.trim() ? undefined : "Required"),
+          }),
+        ).trim();
+      }
+    } else if (hasConfigToken) {
+      const keep = await prompter.confirm({
+        message: "Discord token already configured. Keep it?",
+        initialValue: true,
+      });
+      if (!keep) {
+        token = String(
+          await prompter.text({
+            message: "Enter Discord bot token",
+            validate: (value) => (value?.trim() ? undefined : "Required"),
+          }),
+        ).trim();
+      }
+    } else {
+      token = String(
+        await prompter.text({
+          message: "Enter Discord bot token",
+          validate: (value) => (value?.trim() ? undefined : "Required"),
+        }),
+      ).trim();
+    }
 
-    const tokenResult = await promptSingleChannelToken({
-      prompter,
-      accountConfigured,
-      canUseEnv,
-      hasConfigToken,
-      envPrompt: "DISCORD_BOT_TOKEN detected. Use env var?",
-      keepPrompt: "Discord token already configured. Keep it?",
-      inputPrompt: "Enter Discord bot token",
-    });
-
-    next = applySingleTokenPromptResult({
-      cfg: next,
-      channel: "discord",
-      accountId: discordAccountId,
-      tokenPatchKey: "token",
-      tokenResult,
-    });
+    if (token) {
+      if (discordAccountId === DEFAULT_ACCOUNT_ID) {
+        next = {
+          ...next,
+          channels: {
+            ...next.channels,
+            discord: { ...next.channels?.discord, enabled: true, token },
+          },
+        };
+      } else {
+        next = {
+          ...next,
+          channels: {
+            ...next.channels,
+            discord: {
+              ...next.channels?.discord,
+              enabled: true,
+              accounts: {
+                ...next.channels?.discord?.accounts,
+                [discordAccountId]: {
+                  ...next.channels?.discord?.accounts?.[discordAccountId],
+                  enabled: next.channels?.discord?.accounts?.[discordAccountId]?.enabled ?? true,
+                  token,
+                },
+              },
+            },
+          },
+        };
+      }
+    }
 
     const currentEntries = Object.entries(resolvedAccount.config.guilds ?? {}).flatMap(
       ([guildKey, value]) => {
@@ -213,35 +355,31 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
         return channelKeys.map((channelKey) => `${guildKey}/${channelKey}`);
       },
     );
-    next = await configureChannelAccessWithAllowlist({
-      cfg: next,
+    const accessConfig = await promptChannelAccessConfig({
       prompter,
       label: "Discord channels",
       currentPolicy: resolvedAccount.config.groupPolicy ?? "allowlist",
       currentEntries,
       placeholder: "My Server/#general, guildId/channelId, #support",
       updatePrompt: Boolean(resolvedAccount.config.guilds),
-      setPolicy: (cfg, policy) =>
-        setAccountGroupPolicyForChannel({
-          cfg,
-          channel: "discord",
-          accountId: discordAccountId,
-          groupPolicy: policy,
-        }),
-      resolveAllowlist: async ({ cfg, entries }) => {
+    });
+    if (accessConfig) {
+      if (accessConfig.policy !== "allowlist") {
+        next = setDiscordGroupPolicy(next, discordAccountId, accessConfig.policy);
+      } else {
         const accountWithTokens = resolveDiscordAccount({
-          cfg,
+          cfg: next,
           accountId: discordAccountId,
         });
-        let resolved: DiscordChannelResolution[] = entries.map((input) => ({
+        let resolved: DiscordChannelResolution[] = accessConfig.entries.map((input) => ({
           input,
           resolved: false,
         }));
-        if (accountWithTokens.token && entries.length > 0) {
+        if (accountWithTokens.token && accessConfig.entries.length > 0) {
           try {
             resolved = await resolveDiscordChannelAllowlist({
               token: accountWithTokens.token,
-              entries,
+              entries: accessConfig.entries,
             });
             const resolvedChannels = resolved.filter((entry) => entry.resolved && entry.channelId);
             const resolvedGuilds = resolved.filter(
@@ -250,36 +388,36 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
             const unresolved = resolved
               .filter((entry) => !entry.resolved)
               .map((entry) => entry.input);
-            await noteChannelLookupSummary({
-              prompter,
-              label: "Discord channels",
-              resolvedSections: [
-                {
-                  title: "Resolved channels",
-                  values: resolvedChannels
+            if (resolvedChannels.length > 0 || resolvedGuilds.length > 0 || unresolved.length > 0) {
+              const summary: string[] = [];
+              if (resolvedChannels.length > 0) {
+                summary.push(
+                  `Resolved channels: ${resolvedChannels
                     .map((entry) => entry.channelId)
-                    .filter((value): value is string => Boolean(value)),
-                },
-                {
-                  title: "Resolved guilds",
-                  values: resolvedGuilds
+                    .filter(Boolean)
+                    .join(", ")}`,
+                );
+              }
+              if (resolvedGuilds.length > 0) {
+                summary.push(
+                  `Resolved guilds: ${resolvedGuilds
                     .map((entry) => entry.guildId)
-                    .filter((value): value is string => Boolean(value)),
-                },
-              ],
-              unresolved,
-            });
+                    .filter(Boolean)
+                    .join(", ")}`,
+                );
+              }
+              if (unresolved.length > 0) {
+                summary.push(`Unresolved (kept as typed): ${unresolved.join(", ")}`);
+              }
+              await prompter.note(summary.join("\n"), "Discord channels");
+            }
           } catch (err) {
-            await noteChannelLookupFailure({
-              prompter,
-              label: "Discord channels",
-              error: err,
-            });
+            await prompter.note(
+              `Channel lookup failed; keeping entries as typed. ${String(err)}`,
+              "Discord channels",
+            );
           }
         }
-        return resolved;
-      },
-      applyAllowlist: ({ cfg, resolved }) => {
         const allowlistEntries: Array<{ guildKey: string; channelKey?: string }> = [];
         for (const entry of resolved) {
           const guildKey =
@@ -294,12 +432,19 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
           }
           allowlistEntries.push({ guildKey, ...(channelKey ? { channelKey } : {}) });
         }
-        return setDiscordGuildChannelAllowlist(cfg, discordAccountId, allowlistEntries);
-      },
-    });
+        next = setDiscordGroupPolicy(next, discordAccountId, "allowlist");
+        next = setDiscordGuildChannelAllowlist(next, discordAccountId, allowlistEntries);
+      }
+    }
 
     return { cfg: next, accountId: discordAccountId };
   },
   dmPolicy,
-  disable: (cfg) => setOnboardingChannelEnabled(cfg, channel, false),
+  disable: (cfg) => ({
+    ...cfg,
+    channels: {
+      ...cfg.channels,
+      discord: { ...cfg.channels?.discord, enabled: false },
+    },
+  }),
 };

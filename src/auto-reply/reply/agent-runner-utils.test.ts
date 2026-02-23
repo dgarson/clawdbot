@@ -50,8 +50,8 @@ function makeRun(overrides: Partial<FollowupRun["run"]> = {}): FollowupRun["run"
 
 describe("agent-runner-utils", () => {
   beforeEach(() => {
-    hoisted.resolveAgentModelFallbacksOverrideMock.mockClear();
-    hoisted.resolveAgentIdFromSessionKeyMock.mockClear();
+    hoisted.resolveAgentModelFallbacksOverrideMock.mockReset();
+    hoisted.resolveAgentIdFromSessionKeyMock.mockReset();
   });
 
   it("resolves model fallback options from run context", () => {

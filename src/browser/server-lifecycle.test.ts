@@ -27,8 +27,8 @@ import { ensureExtensionRelayForProfiles, stopKnownBrowserProfiles } from "./ser
 
 describe("ensureExtensionRelayForProfiles", () => {
   beforeEach(() => {
-    resolveProfileMock.mockClear();
-    ensureChromeExtensionRelayServerMock.mockClear();
+    resolveProfileMock.mockReset();
+    ensureChromeExtensionRelayServerMock.mockReset();
   });
 
   it("starts relay only for extension profiles", async () => {
@@ -74,8 +74,8 @@ describe("ensureExtensionRelayForProfiles", () => {
 
 describe("stopKnownBrowserProfiles", () => {
   beforeEach(() => {
-    createBrowserRouteContextMock.mockClear();
-    listKnownProfileNamesMock.mockClear();
+    createBrowserRouteContextMock.mockReset();
+    listKnownProfileNamesMock.mockReset();
   });
 
   it("stops all known profiles and ignores per-profile failures", async () => {
