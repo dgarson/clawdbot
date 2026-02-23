@@ -401,6 +401,9 @@ export type PluginHookAgentEndEvent = {
   success: boolean;
   error?: string;
   durationMs?: number;
+  tokens?: number;
+  turns?: number;
+  toolCalls?: number;
 };
 
 // Compaction hooks

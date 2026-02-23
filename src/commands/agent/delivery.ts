@@ -24,22 +24,26 @@ type RunResult = Awaited<
   ReturnType<(typeof import("../../agents/pi-embedded.js"))["runEmbeddedPiAgent"]>
 >;
 
-const AGENT_REPLY_LOG_PREFIX = "[agent:reply]";
-
 function formatAgentReplyPrefix(params: {
   sessionId?: string;
   deliveryChannel?: string;
   deliveryTarget?: string;
 }) {
-  const parts = [AGENT_REPLY_LOG_PREFIX];
+  // Fold channel:target into the bracket: [agent:reply:slack:channel:C0AAP72R7L5]
+  let bracket = "[agent:reply";
+  if (params.deliveryChannel || params.deliveryTarget) {
+    const channel = params.deliveryChannel ?? "unknown";
+    bracket += `:${channel}`;
+    if (params.deliveryTarget) {
+      bracket += `:${params.deliveryTarget}`;
+    }
+  }
+  bracket += "]";
+  const parts = [bracket];
   if (params.sessionId) {
     parts.push(`sessionId=${params.sessionId}`);
   }
-  if (params.deliveryChannel || params.deliveryTarget) {
-    const channel = params.deliveryChannel ?? "unknown";
-    const target = params.deliveryTarget ? `${channel}:${params.deliveryTarget}` : channel;
-    parts.push(`target=${target}`);
-  }
+  parts.push("→");
   return parts.join(" ");
 }
 

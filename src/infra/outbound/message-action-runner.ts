@@ -13,6 +13,7 @@ import type {
   ChannelThreadingToolContext,
 } from "../../channels/plugins/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   isDeliverableMessageChannel,
   normalizeMessageChannel,
@@ -102,6 +103,9 @@ export type RunMessageActionParams = {
   sandboxRoot?: string;
   dryRun?: boolean;
   abortSignal?: AbortSignal;
+  modelProvider?: string;
+  modelId?: string;
+  warn?: (message: string) => void;
 };
 
 export type MessageActionRunResult =
@@ -374,11 +378,11 @@ async function repairMisplacedChannelTarget(params: {
   action: ChannelMessageActionName;
   args: Record<string, unknown>;
   toolContext?: ChannelThreadingToolContext;
+  onWarn?: (message: string) => void;
+  actorLabel?: string;
+  modelLabel?: string;
 }) {
   if (!actionRequiresTarget(params.action)) {
-    return;
-  }
-  if (readExplicitTarget(params.args) || hasLegacyTargetFields(params.args)) {
     return;
   }
   const channelHint = typeof params.args.channel === "string" ? params.args.channel.trim() : "";
@@ -473,6 +477,18 @@ async function repairMisplacedChannelTarget(params: {
 
   params.args.target = channelHint;
   params.args.channel = fallbackChannel;
+  params.onWarn?.(
+    [
+      "tools: repaired misplaced message channel provider",
+      `action=${params.action}`,
+      `channel=${channelHint}`,
+      `repairedChannel=${fallbackChannel}`,
+      `repairedTarget=${channelHint}`,
+      warnContext,
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
 }
 
 async function handleBroadcastAction(
@@ -884,6 +900,17 @@ export async function runMessageAction(
   parseComponentsParam(params);
 
   const action = input.action;
+  const warn =
+    input.warn ??
+    ((message: string) => {
+      createSubsystemLogger("tools").warn(message);
+    });
+  const actorLabel = resolveRepairActorLabel({ input, args: params });
+  const modelLabel = [input.modelProvider?.trim(), input.modelId?.trim()]
+    .filter(Boolean)
+    .join("/")
+    .trim();
+  const modelInfo = modelLabel ? `model=${modelLabel}` : undefined;
   if (action === "broadcast") {
     return handleBroadcastAction(input, params);
   }
@@ -931,6 +958,9 @@ export async function runMessageAction(
     action,
     args: params,
     toolContext: input.toolContext,
+    onWarn: warn,
+    actorLabel,
+    modelLabel: modelInfo,
   });
 
   applyTargetToParams({ action, args: params });

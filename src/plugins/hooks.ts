@@ -187,6 +187,9 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       str(c["messageProvider"]) ? `provider=${str(c["messageProvider"])}` : null,
       str(c["model"]) ? `model=${str(c["model"])}` : null,
       typeof e?.["durationMs"] === "number" ? `durationMs=${e["durationMs"]}` : null,
+      typeof e?.["tokens"] === "number" ? `tokens=${e["tokens"]}` : null,
+      typeof e?.["turns"] === "number" ? `turns=${e["turns"]}` : null,
+      typeof e?.["toolCalls"] === "number" ? `toolCalls=${e["toolCalls"]}` : null,
     ].filter(Boolean);
     return parts.length ? parts.join(" ") : "";
   };
