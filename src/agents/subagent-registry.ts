@@ -9,6 +9,7 @@ import {
   loadSubagentRegistryFromDisk,
   saveSubagentRegistryToDisk,
 } from "./subagent-registry.store.js";
+import type { SpawnSubagentMode } from "./subagent-spawn.js";
 import { resolveAgentTimeoutMs } from "./timeout.js";
 
 export type SubagentRunRecord = {
@@ -22,6 +23,7 @@ export type SubagentRunRecord = {
   label?: string;
   model?: string;
   runTimeoutSeconds?: number;
+  spawnMode?: SpawnSubagentMode;
   createdAt: number;
   startedAt?: number;
   endedAt?: number;
@@ -109,6 +111,8 @@ function startSubagentAnnounceCleanupFlow(runId: string, entry: SubagentRunRecor
     endedAt: entry.endedAt,
     label: entry.label,
     outcome: entry.outcome,
+    spawnMode: entry.spawnMode,
+    expectsCompletionMessage: entry.expectsCompletionMessage,
   }).then((didAnnounce) => {
     finalizeSubagentCleanup(runId, entry.cleanup, didAnnounce);
   });
@@ -541,6 +545,7 @@ export function registerSubagentRun(params: {
   model?: string;
   runTimeoutSeconds?: number;
   expectsCompletionMessage?: boolean;
+  spawnMode?: SpawnSubagentMode;
 }) {
   const now = Date.now();
   const cfg = loadConfig();
@@ -562,6 +567,7 @@ export function registerSubagentRun(params: {
     label: params.label,
     model: params.model,
     runTimeoutSeconds,
+    spawnMode: params.spawnMode,
     createdAt: now,
     startedAt: now,
     archiveAtMs,
