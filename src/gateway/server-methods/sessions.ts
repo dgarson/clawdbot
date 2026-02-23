@@ -12,8 +12,17 @@ import {
   type SessionEntry,
   updateSessionStore,
 } from "../../config/sessions.js";
+import { resolveSessionFilePath } from "../../config/sessions/paths.js";
+import { unbindThreadBindingsBySessionKey } from "../../discord/monitor/thread-bindings.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
-import { normalizeAgentId, parseAgentSessionKey } from "../../routing/session-key.js";
+import { appendChangeAuditRecord } from "../../infra/change-audit.js";
+import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
+import {
+  isSubagentSessionKey,
+  normalizeAgentId,
+  parseAgentSessionKey,
+} from "../../routing/session-key.js";
+import { formatControlPlaneActor, resolveControlPlaneActor } from "../control-plane-audit.js";
 import {
   ErrorCodes,
   errorShape,
@@ -292,9 +301,31 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         model: resolved.model,
       },
     };
+    const actor = resolveControlPlaneActor(client);
+    await appendChangeAuditRecord({
+      source: "gateway.sessions",
+      eventType: "sessions.patch",
+      op: "patch",
+      targetPath: storePath,
+      agentId,
+      sessionId: applied.entry.sessionId,
+      sessionKey: target.canonicalKey ?? key,
+      sessionLogPath: applied.entry.sessionId
+        ? resolveSessionFilePath(
+            applied.entry.sessionId,
+            { sessionFile: applied.entry.sessionFile },
+            { agentId },
+          )
+        : undefined,
+      actor,
+      result: "ok",
+      details: {
+        actorSummary: formatControlPlaneActor(actor),
+      },
+    });
     respond(true, result, undefined);
   },
-  "sessions.reset": async ({ params, respond }) => {
+  "sessions.reset": async ({ params, respond, client }) => {
     if (!assertValidParams(params, validateSessionsResetParams, "sessions.reset", respond)) {
       return;
     }
@@ -367,6 +398,34 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       agentId: target.agentId,
       reason: "reset",
     });
+    if (hadExistingEntry) {
+      await emitSessionUnboundLifecycleEvent({
+        targetSessionKey: target.canonicalKey ?? key,
+        reason: "session-reset",
+      });
+    }
+    const resetActor = resolveControlPlaneActor(client);
+    await appendChangeAuditRecord({
+      source: "gateway.sessions",
+      eventType: "sessions.reset",
+      op: "replace",
+      targetPath: storePath,
+      agentId: target.agentId,
+      sessionId: next.sessionId,
+      sessionKey: target.canonicalKey ?? key,
+      sessionLogPath: resolveSessionFilePath(
+        next.sessionId,
+        { sessionFile: next.sessionFile },
+        { agentId: target.agentId },
+      ),
+      actor: resetActor,
+      result: "ok",
+      details: {
+        oldSessionId,
+        reason: commandReason,
+        actorSummary: formatControlPlaneActor(resetActor),
+      },
+    });
     respond(true, { ok: true, key: target.canonicalKey, entry: next }, undefined);
   },
   "sessions.delete": async ({ params, respond, client, isWebchatConnect }) => {
@@ -420,7 +479,34 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         })
       : [];
 
-    respond(true, { ok: true, key: target.canonicalKey, deleted: existed, archived }, undefined);
+    const deleteActor = resolveControlPlaneActor(client);
+    await appendChangeAuditRecord({
+      source: "gateway.sessions",
+      eventType: "sessions.delete",
+      op: "delete",
+      targetPath: storePath,
+      agentId: target.agentId,
+      sessionId,
+      sessionKey: target.canonicalKey ?? key,
+      sessionLogPath:
+        sessionId != null
+          ? resolveSessionFilePath(
+              sessionId,
+              { sessionFile: entry?.sessionFile },
+              { agentId: target.agentId },
+            )
+          : undefined,
+      actor: deleteActor,
+      result: "ok",
+      details: {
+        deleted,
+        deleteTranscript,
+        archivedCount: archived.length,
+        actorSummary: formatControlPlaneActor(deleteActor),
+      },
+    });
+
+    respond(true, { ok: true, key: target.canonicalKey, deleted, existed, archived }, undefined);
   },
   "sessions.compact": async ({ params, respond }) => {
     if (!assertValidParams(params, validateSessionsCompactParams, "sessions.compact", respond)) {
