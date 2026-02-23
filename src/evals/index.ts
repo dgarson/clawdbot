@@ -7,6 +7,14 @@ export {
 } from "./report.js";
 export { sampleEchoEvaluationCase } from "./sample-case.js";
 
+// JSONL Export for CI integration
+export {
+  writeEvaluationJsonl,
+  writeEvaluationJsonlSummary,
+  resolveJsonlPath,
+} from "./export-jsonl.js";
+export type { JsonlExportOptions, EvaluationJsonlRecord } from "./export-jsonl.js";
+
 // Catalog schema & metadata
 export { buildScenarioCatalog, filterCatalog, validateScenarioMetadata } from "./catalog.js";
 
