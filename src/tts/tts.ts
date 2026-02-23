@@ -22,6 +22,7 @@ import type {
   TtsModelOverrideConfig,
 } from "../config/types.tts.js";
 import { logVerbose } from "../globals.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
 import { stripMarkdown } from "../line/markdown-to-line.js";
 import { isVoiceCompatibleAudio } from "../media/audio.js";
@@ -210,6 +211,86 @@ type TtsStatusEntry = {
 };
 
 let lastTtsAttempt: TtsStatusEntry | undefined;
+
+function resolveTtsMetricSource(source?: string): string {
+  const trimmed = source?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : "tts.unknown";
+}
+
+function toSingleLineError(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function emitApiUsageMetric(params: {
+  diagnosticsEnabled: boolean;
+  source: string;
+  apiKind: "tts";
+  channel?: string;
+  provider: TtsProvider;
+  model?: string;
+  inputChars: number;
+  success: boolean;
+  latencyMs?: number;
+  error?: string;
+}) {
+  if (!params.diagnosticsEnabled) {
+    return;
+  }
+  emitDiagnosticEvent({
+    type: "api.usage",
+    source: params.source,
+    apiKind: params.apiKind,
+    channel: params.channel,
+    provider: params.provider,
+    model: params.model,
+    requestCount: 1,
+    inputChars: params.inputChars,
+    success: params.success,
+    latencyMs: params.latencyMs,
+    error: params.error ? toSingleLineError(params.error) : undefined,
+  });
+}
+
+function emitTtsUsageMetric(params: {
+  diagnosticsEnabled: boolean;
+  source: string;
+  mode: "media" | "telephony";
+  channel?: string;
+  provider?: TtsProvider;
+  model?: string;
+  textLength: number;
+  success: boolean;
+  summarized?: boolean;
+  latencyMs?: number;
+  outputFormat?: string;
+  sampleRate?: number;
+  voiceCompatible?: boolean;
+  attempts: number;
+  fallbackUsed: boolean;
+  error?: string;
+}) {
+  if (!params.diagnosticsEnabled) {
+    return;
+  }
+  emitDiagnosticEvent({
+    type: "tts.usage",
+    source: params.source,
+    mode: params.mode,
+    channel: params.channel,
+    provider: params.provider,
+    model: params.model,
+    textLength: params.textLength,
+    success: params.success,
+    summarized: params.summarized,
+    latencyMs: params.latencyMs,
+    outputFormat: params.outputFormat,
+    sampleRate: params.sampleRate,
+    voiceCompatible: params.voiceCompatible,
+    attempts: params.attempts,
+    fallbackUsed: params.fallbackUsed,
+    error: params.error ? toSingleLineError(params.error) : undefined,
+  });
+}
 
 export function normalizeTtsAutoMode(value: unknown): TtsAutoMode | undefined {
   if (typeof value !== "string") {
@@ -534,13 +615,29 @@ export async function textToSpeech(params: {
   prefsPath?: string;
   channel?: string;
   overrides?: TtsDirectiveOverrides;
+  source?: string;
+  summarized?: boolean;
 }): Promise<TtsResult> {
   const config = resolveTtsConfig(params.cfg);
+  const diagnosticsEnabled = isDiagnosticsEnabled(params.cfg);
   const prefsPath = params.prefsPath ?? resolveTtsPrefsPath(config);
   const channelId = resolveChannelId(params.channel);
   const output = resolveOutputFormat(channelId);
+  const source = resolveTtsMetricSource(params.source);
 
   if (params.text.length > config.maxTextLength) {
+    emitTtsUsageMetric({
+      diagnosticsEnabled,
+      source,
+      mode: "media",
+      channel: channelId ?? params.channel,
+      textLength: params.text.length,
+      success: false,
+      summarized: params.summarized,
+      attempts: 0,
+      fallbackUsed: false,
+      error: `Text too long (${params.text.length} chars, max ${config.maxTextLength})`,
+    });
     return {
       success: false,
       error: `Text too long (${params.text.length} chars, max ${config.maxTextLength})`,
@@ -553,9 +650,13 @@ export async function textToSpeech(params: {
   const providers = resolveTtsProviderOrder(provider);
 
   const errors: string[] = [];
+  let attempts = 0;
 
   for (const provider of providers) {
+    attempts += 1;
     const providerStart = Date.now();
+    let providerModel: string | undefined;
+    let providerCalled = false;
     try {
       if (provider === "edge") {
         if (!config.edge.enabled) {
@@ -573,6 +674,7 @@ export async function textToSpeech(params: {
         const attemptEdgeTts = async (outputFormat: string) => {
           const extension = inferEdgeExtension(outputFormat);
           const audioPath = path.join(tempDir, `voice-${Date.now()}${extension}`);
+          providerCalled = true;
           await edgeTTS({
             text: params.text,
             outputPath: audioPath,
@@ -616,11 +718,37 @@ export async function textToSpeech(params: {
 
         scheduleCleanup(tempDir);
         const voiceCompatible = isVoiceCompatibleAudio({ fileName: edgeResult.audioPath });
+        const latencyMs = Date.now() - providerStart;
+        emitApiUsageMetric({
+          diagnosticsEnabled,
+          source,
+          apiKind: "tts",
+          channel: channelId ?? params.channel,
+          provider,
+          inputChars: params.text.length,
+          success: true,
+          latencyMs,
+        });
+        emitTtsUsageMetric({
+          diagnosticsEnabled,
+          source,
+          mode: "media",
+          channel: channelId ?? params.channel,
+          provider,
+          textLength: params.text.length,
+          success: true,
+          summarized: params.summarized,
+          latencyMs,
+          outputFormat: edgeResult.outputFormat,
+          voiceCompatible,
+          attempts,
+          fallbackUsed: attempts > 1,
+        });
 
         return {
           success: true,
           audioPath: edgeResult.audioPath,
-          latencyMs: Date.now() - providerStart,
+          latencyMs,
           provider,
           outputFormat: edgeResult.outputFormat,
           voiceCompatible,
@@ -637,6 +765,7 @@ export async function textToSpeech(params: {
       if (provider === "elevenlabs") {
         const voiceIdOverride = params.overrides?.elevenlabs?.voiceId;
         const modelIdOverride = params.overrides?.elevenlabs?.modelId;
+        providerModel = modelIdOverride ?? config.elevenlabs.modelId;
         const voiceSettings = {
           ...config.elevenlabs.voiceSettings,
           ...params.overrides?.elevenlabs?.voiceSettings,
@@ -644,6 +773,7 @@ export async function textToSpeech(params: {
         const seedOverride = params.overrides?.elevenlabs?.seed;
         const normalizationOverride = params.overrides?.elevenlabs?.applyTextNormalization;
         const languageOverride = params.overrides?.elevenlabs?.languageCode;
+        providerCalled = true;
         audioBuffer = await elevenLabsTTS({
           text: params.text,
           apiKey,
@@ -660,6 +790,8 @@ export async function textToSpeech(params: {
       } else {
         const openaiModelOverride = params.overrides?.openai?.model;
         const openaiVoiceOverride = params.overrides?.openai?.voice;
+        providerModel = openaiModelOverride ?? config.openai.model;
+        providerCalled = true;
         audioBuffer = await openaiTTS({
           text: params.text,
           apiKey,
@@ -671,6 +803,17 @@ export async function textToSpeech(params: {
       }
 
       const latencyMs = Date.now() - providerStart;
+      emitApiUsageMetric({
+        diagnosticsEnabled,
+        source,
+        apiKind: "tts",
+        channel: channelId ?? params.channel,
+        provider,
+        model: providerModel,
+        inputChars: params.text.length,
+        success: true,
+        latencyMs,
+      });
 
       const tempRoot = resolvePreferredOpenClawTmpDir();
       mkdirSync(tempRoot, { recursive: true, mode: 0o700 });
@@ -678,23 +821,69 @@ export async function textToSpeech(params: {
       const audioPath = path.join(tempDir, `voice-${Date.now()}${output.extension}`);
       writeFileSync(audioPath, audioBuffer);
       scheduleCleanup(tempDir);
+      const outputFormat = provider === "openai" ? output.openai : output.elevenlabs;
+      emitTtsUsageMetric({
+        diagnosticsEnabled,
+        source,
+        mode: "media",
+        channel: channelId ?? params.channel,
+        provider,
+        model: providerModel,
+        textLength: params.text.length,
+        success: true,
+        summarized: params.summarized,
+        latencyMs,
+        outputFormat,
+        voiceCompatible: output.voiceCompatible,
+        attempts,
+        fallbackUsed: attempts > 1,
+      });
 
       return {
         success: true,
         audioPath,
         latencyMs,
         provider,
-        outputFormat: provider === "openai" ? output.openai : output.elevenlabs,
+        outputFormat,
         voiceCompatible: output.voiceCompatible,
       };
     } catch (err) {
-      errors.push(formatTtsProviderError(provider, err));
+      const providerError = formatTtsProviderError(provider, err);
+      errors.push(providerError);
+      if (providerCalled) {
+        emitApiUsageMetric({
+          diagnosticsEnabled,
+          source,
+          apiKind: "tts",
+          channel: channelId ?? params.channel,
+          provider,
+          model: providerModel,
+          inputChars: params.text.length,
+          success: false,
+          latencyMs: Date.now() - providerStart,
+          error: providerError,
+        });
+      }
     }
   }
 
+  const finalError = `TTS conversion failed: ${errors.join("; ") || "no providers available"}`;
+  emitTtsUsageMetric({
+    diagnosticsEnabled,
+    source,
+    mode: "media",
+    channel: channelId ?? params.channel,
+    textLength: params.text.length,
+    success: false,
+    summarized: params.summarized,
+    attempts,
+    fallbackUsed: attempts > 1,
+    error: finalError,
+  });
+
   return {
     success: false,
-    error: `TTS conversion failed: ${errors.join("; ") || "no providers available"}`,
+    error: finalError,
   };
 }
 
@@ -702,11 +891,24 @@ export async function textToSpeechTelephony(params: {
   text: string;
   cfg: OpenClawConfig;
   prefsPath?: string;
+  source?: string;
 }): Promise<TtsTelephonyResult> {
   const config = resolveTtsConfig(params.cfg);
+  const diagnosticsEnabled = isDiagnosticsEnabled(params.cfg);
   const prefsPath = params.prefsPath ?? resolveTtsPrefsPath(config);
+  const source = resolveTtsMetricSource(params.source ?? "voice.telephony");
 
   if (params.text.length > config.maxTextLength) {
+    emitTtsUsageMetric({
+      diagnosticsEnabled,
+      source,
+      mode: "telephony",
+      textLength: params.text.length,
+      success: false,
+      attempts: 0,
+      fallbackUsed: false,
+      error: `Text too long (${params.text.length} chars, max ${config.maxTextLength})`,
+    });
     return {
       success: false,
       error: `Text too long (${params.text.length} chars, max ${config.maxTextLength})`,
@@ -717,9 +919,13 @@ export async function textToSpeechTelephony(params: {
   const providers = resolveTtsProviderOrder(userProvider);
 
   const errors: string[] = [];
+  let attempts = 0;
 
   for (const provider of providers) {
+    attempts += 1;
     const providerStart = Date.now();
+    let providerModel: string | undefined;
+    let providerCalled = false;
     try {
       if (provider === "edge") {
         errors.push("edge: unsupported for telephony");
@@ -734,6 +940,8 @@ export async function textToSpeechTelephony(params: {
 
       if (provider === "elevenlabs") {
         const output = TELEPHONY_OUTPUT.elevenlabs;
+        providerModel = config.elevenlabs.modelId;
+        providerCalled = true;
         const audioBuffer = await elevenLabsTTS({
           text: params.text,
           apiKey,
@@ -747,11 +955,36 @@ export async function textToSpeechTelephony(params: {
           voiceSettings: config.elevenlabs.voiceSettings,
           timeoutMs: config.timeoutMs,
         });
+        const latencyMs = Date.now() - providerStart;
+        emitApiUsageMetric({
+          diagnosticsEnabled,
+          source,
+          apiKind: "tts",
+          provider,
+          model: providerModel,
+          inputChars: params.text.length,
+          success: true,
+          latencyMs,
+        });
+        emitTtsUsageMetric({
+          diagnosticsEnabled,
+          source,
+          mode: "telephony",
+          provider,
+          model: providerModel,
+          textLength: params.text.length,
+          success: true,
+          latencyMs,
+          outputFormat: output.format,
+          sampleRate: output.sampleRate,
+          attempts,
+          fallbackUsed: attempts > 1,
+        });
 
         return {
           success: true,
           audioBuffer,
-          latencyMs: Date.now() - providerStart,
+          latencyMs,
           provider,
           outputFormat: output.format,
           sampleRate: output.sampleRate,
@@ -759,6 +992,8 @@ export async function textToSpeechTelephony(params: {
       }
 
       const output = TELEPHONY_OUTPUT.openai;
+      providerModel = config.openai.model;
+      providerCalled = true;
       const audioBuffer = await openaiTTS({
         text: params.text,
         apiKey,
@@ -767,23 +1002,74 @@ export async function textToSpeechTelephony(params: {
         responseFormat: output.format,
         timeoutMs: config.timeoutMs,
       });
+      const latencyMs = Date.now() - providerStart;
+      emitApiUsageMetric({
+        diagnosticsEnabled,
+        source,
+        apiKind: "tts",
+        provider,
+        model: providerModel,
+        inputChars: params.text.length,
+        success: true,
+        latencyMs,
+      });
+      emitTtsUsageMetric({
+        diagnosticsEnabled,
+        source,
+        mode: "telephony",
+        provider,
+        model: providerModel,
+        textLength: params.text.length,
+        success: true,
+        latencyMs,
+        outputFormat: output.format,
+        sampleRate: output.sampleRate,
+        attempts,
+        fallbackUsed: attempts > 1,
+      });
 
       return {
         success: true,
         audioBuffer,
-        latencyMs: Date.now() - providerStart,
+        latencyMs,
         provider,
         outputFormat: output.format,
         sampleRate: output.sampleRate,
       };
     } catch (err) {
-      errors.push(formatTtsProviderError(provider, err));
+      const providerError = formatTtsProviderError(provider, err);
+      errors.push(providerError);
+      if (providerCalled) {
+        emitApiUsageMetric({
+          diagnosticsEnabled,
+          source,
+          apiKind: "tts",
+          provider,
+          model: providerModel,
+          inputChars: params.text.length,
+          success: false,
+          latencyMs: Date.now() - providerStart,
+          error: providerError,
+        });
+      }
     }
   }
 
+  const finalError = `TTS conversion failed: ${errors.join("; ") || "no providers available"}`;
+  emitTtsUsageMetric({
+    diagnosticsEnabled,
+    source,
+    mode: "telephony",
+    textLength: params.text.length,
+    success: false,
+    attempts,
+    fallbackUsed: attempts > 1,
+    error: finalError,
+  });
+
   return {
     success: false,
-    error: `TTS conversion failed: ${errors.join("; ") || "no providers available"}`,
+    error: finalError,
   };
 }
 
@@ -897,6 +1183,8 @@ export async function maybeApplyTtsToPayload(params: {
     prefsPath,
     channel: params.channel,
     overrides: directives.overrides,
+    source: `auto-reply.tts.${params.kind ?? "final"}`,
+    summarized: wasSummarized,
   });
 
   if (result.success && result.audioPath) {

@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { getApiKeyForModel } from "../agents/model-auth.js";
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../infra/diagnostic-events.js";
 import { withEnv } from "../test-utils/env.js";
 import * as tts from "./tts.js";
 
@@ -82,6 +83,7 @@ const mockAssistantMessage = (content: AssistantMessage["content"]): AssistantMe
 describe("tts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetDiagnosticEventsForTest();
     vi.mocked(completeSimple).mockResolvedValue(
       mockAssistantMessage([{ type: "text", text: "Summary" }]),
     );
@@ -383,6 +385,41 @@ describe("tts", () => {
         }),
       ).rejects.toThrow("No summary returned");
     });
+
+    it("emits api.usage diagnostics for summary calls when diagnostics are enabled", async () => {
+      const cfg: OpenClawConfig = {
+        agents: { defaults: { model: { primary: "openai/gpt-4o-mini" } } },
+        diagnostics: { enabled: true },
+        messages: { tts: {} },
+      };
+      const config = resolveTtsConfig(cfg);
+      const events: Array<Record<string, unknown>> = [];
+      const stop = onDiagnosticEvent((evt) => {
+        if (evt.type === "api.usage") {
+          events.push(evt as Record<string, unknown>);
+        }
+      });
+
+      await summarizeText({
+        text: "Long text to summarize for diagnostics tracking.",
+        targetLength: 120,
+        cfg,
+        config,
+        timeoutMs: 30_000,
+      });
+
+      stop();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({
+        type: "api.usage",
+        source: "tts.summarize",
+        apiKind: "tts.summary",
+        success: true,
+        provider: "openai",
+        model: "gpt-4o-mini",
+        requestCount: 1,
+      });
+    });
   });
 
   describe("getTtsProvider", () => {
@@ -544,6 +581,48 @@ describe("tts", () => {
 
         expect(result.mediaUrl).toBeDefined();
         expect(fetchMock).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("emits tts.usage and api.usage diagnostics for successful direct TTS calls", async () => {
+      const events: Array<Record<string, unknown>> = [];
+      const stop = onDiagnosticEvent((evt) => {
+        if (evt.type === "tts.usage" || evt.type === "api.usage") {
+          events.push(evt as Record<string, unknown>);
+        }
+      });
+
+      await withMockedAutoTtsFetch(async () => {
+        const cfg: OpenClawConfig = {
+          ...baseCfg,
+          diagnostics: { enabled: true },
+        };
+        const result = await tts.textToSpeech({
+          text: "Hello world from diagnostic tracking",
+          cfg,
+          source: "test.tts",
+          channel: "discord",
+        });
+        expect(result.success).toBe(true);
+      });
+
+      stop();
+      const apiEvent = events.find((evt) => evt.type === "api.usage");
+      const ttsEvent = events.find((evt) => evt.type === "tts.usage");
+      expect(apiEvent).toMatchObject({
+        type: "api.usage",
+        source: "test.tts",
+        apiKind: "tts",
+        provider: "openai",
+        success: true,
+        requestCount: 1,
+      });
+      expect(ttsEvent).toMatchObject({
+        type: "tts.usage",
+        source: "test.tts",
+        mode: "media",
+        provider: "openai",
+        success: true,
       });
     });
   });
