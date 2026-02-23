@@ -175,7 +175,7 @@ export function useAgents() {
   const liveAgents = React.useMemo(() => {
     if (!liveQuery.data?.agents) {return [];}
     return liveQuery.data.agents.map((row) =>
-      mapGatewayAgentToAgent(row, null, row.id === liveQuery.data!.defaultId),
+      mapGatewayAgentToAgent(row, null, row.id === liveQuery.data.defaultId),
     );
   }, [liveQuery.data]);
 

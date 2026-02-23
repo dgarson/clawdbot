@@ -22,7 +22,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -46,8 +46,6 @@ const STEPS = [
   { id: "agents", title: "First Agent", icon: Bot },
   { id: "chat", title: "First Chat", icon: MessageSquare },
 ] as const;
-
-type StepId = (typeof STEPS)[number]["id"];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -87,29 +85,29 @@ interface ChannelStatusResult {
 // ---------------------------------------------------------------------------
 
 function getSavedStep(): number {
-  if (typeof window === "undefined") return 0;
+  if (typeof window === "undefined") {return 0;}
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     const n = parseInt(saved, 10);
-    if (!isNaN(n) && n >= 0 && n < STEPS.length) return n;
+    if (!isNaN(n) && n >= 0 && n < STEPS.length) {return n;}
   }
   return 0;
 }
 
 function saveStep(step: number) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
   localStorage.setItem(STORAGE_KEY, String(step));
 }
 
 function formatUptime(seconds?: number): string {
-  if (seconds == null || seconds <= 0) return "just started";
+  if (seconds == null || seconds <= 0) {return "just started";}
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
   const parts: string[] = [];
-  if (h > 0) parts.push(`${h}h`);
-  if (m > 0) parts.push(`${m}m`);
-  if (s > 0 || parts.length === 0) parts.push(`${s}s`);
+  if (h > 0) {parts.push(`${h}h`);}
+  if (m > 0) {parts.push(`${m}m`);}
+  if (s > 0 || parts.length === 0) {parts.push(`${s}s`);}
   return parts.join(" ");
 }
 
@@ -218,7 +216,7 @@ function StepIdentity({ onSaved }: { onSaved: () => void }) {
         configData.config?.identity?.displayName ??
         configData.config?.identity?.name ??
         "";
-      if (savedName) setName(savedName);
+      if (savedName) {setName(savedName);}
     }
   }, [configData, hasEdited]);
 
@@ -231,7 +229,7 @@ function StepIdentity({ onSaved }: { onSaved: () => void }) {
   });
 
   const handleSave = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {return;}
     saveMutation.mutate({
       key: "identity.displayName",
       value: name.trim(),
@@ -267,7 +265,7 @@ function StepIdentity({ onSaved }: { onSaved: () => void }) {
               setHasEdited(true);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleSave();
+              if (e.key === "Enter") {handleSave();}
             }}
             className="text-center text-lg"
             autoFocus
@@ -321,7 +319,7 @@ function StepChannels() {
   );
 
   const channelList = React.useMemo(() => {
-    if (!channelData?.channelOrder) return [];
+    if (!channelData?.channelOrder) {return [];}
     return channelData.channelOrder.map((id) => {
       const summary = channelData.channels?.[id];
       const label = channelData.channelLabels?.[id] ?? id;
@@ -421,7 +419,7 @@ function StepChannels() {
 // ---------------------------------------------------------------------------
 
 function StepAgents() {
-  const { data: agents, isLoading, isError, error, isLive } = useAgents();
+  const { data: agents, isLoading, isError, error, isLive: _isLive } = useAgents();
 
   const agentList = agents ?? [];
 

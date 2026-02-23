@@ -116,7 +116,7 @@ export function RecoveryCodesDisplay({
             <Checkbox
               id="acknowledge"
               checked={acknowledged}
-              onCheckedChange={(checked) => setAcknowledged(checked === true)}
+              onCheckedChange={(checked) => setAcknowledged(checked)}
             />
             <label
               htmlFor="acknowledge"

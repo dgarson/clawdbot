@@ -90,7 +90,7 @@ function DateGroupedFeed({
       return !assigned.has(key) && bucket.fn(new Date(i.completedAt));
     });
     if (matched.length > 0) {
-      for (const m of matched) assigned.add(`${m.goal.id}-${m.milestone.id}`);
+      for (const m of matched) {assigned.add(`${m.goal.id}-${m.milestone.id}`);}
       groups.push({ label: bucket.label, items: matched });
     }
   }

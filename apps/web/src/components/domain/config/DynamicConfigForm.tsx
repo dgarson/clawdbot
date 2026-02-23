@@ -99,7 +99,7 @@ export function DynamicConfigForm({
   // Handle field change
   const handleFieldChange = React.useCallback(
     (path: string, value: unknown) => {
-      const newValues = setValueAtPath(values as Record<string, unknown>, path, value);
+      const newValues = setValueAtPath(values, path, value);
       onChange(newValues);
       setHasChanges(true);
     },
@@ -109,7 +109,7 @@ export function DynamicConfigForm({
   // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit?.(values as Record<string, unknown>);
+    onSubmit?.(values);
   };
 
   // Handle reset
@@ -166,7 +166,7 @@ export function DynamicConfigForm({
             <ConfigFieldGroup
               key={group.key}
               group={group}
-              values={values as Record<string, unknown>}
+              values={values}
               onChange={handleFieldChange}
               disabled={isSaving}
             />
@@ -175,7 +175,7 @@ export function DynamicConfigForm({
       ) : (
         <FlatFieldsRenderer
           groups={fieldGroups}
-          values={values as Record<string, unknown>}
+          values={values}
           onChange={handleFieldChange}
           disabled={isSaving}
         />

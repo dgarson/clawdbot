@@ -11,7 +11,7 @@ export interface IntentResult {
 }
 
 export function getPaletteIntent(query: string): IntentResult | null {
-  if (query.length <= 3) return null;
+  if (query.length <= 3) {return null;}
 
   const q = query.toLowerCase();
 

@@ -39,15 +39,6 @@ interface LogEntry {
   meta?: Record<string, unknown>;
 }
 
-interface LogsTailResponse {
-  file?: string;
-  cursor?: number;
-  size?: number;
-  lines?: string[];
-  truncated?: boolean;
-  reset?: boolean;
-}
-
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const LOG_LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
@@ -100,7 +91,7 @@ function parseLogLine(line: string): LogEntry {
       typeof obj.time === "string"
         ? obj.time
         : typeof meta?.date === "string"
-          ? (meta.date as string)
+          ? (meta.date)
           : null;
 
     const level = normalizeLevel(meta?.logLevelName ?? meta?.level);
@@ -108,9 +99,9 @@ function parseLogLine(line: string): LogEntry {
     // Extract subsystem
     const contextCandidate =
       typeof obj["0"] === "string"
-        ? (obj["0"] as string)
+        ? (obj["0"])
         : typeof meta?.name === "string"
-          ? (meta.name as string)
+          ? (meta.name)
           : null;
     const contextObj = parseMaybeJson(contextCandidate);
     let subsystem: string | null = null;
@@ -129,11 +120,11 @@ function parseLogLine(line: string): LogEntry {
     // Extract message
     let message: string | null = null;
     if (typeof obj["1"] === "string") {
-      message = obj["1"] as string;
+      message = obj["1"];
     } else if (!contextObj && typeof obj["0"] === "string") {
-      message = obj["0"] as string;
+      message = obj["0"];
     } else if (typeof obj.message === "string") {
-      message = obj.message as string;
+      message = obj.message;
     }
 
     return { raw: line, time, level, subsystem, message: message ?? line, meta: meta ?? undefined };
@@ -189,7 +180,7 @@ function LogsPage() {
           cursor: reset ? undefined : (cursorRef.current ?? undefined),
           limit: FETCH_LIMIT,
           maxBytes: MAX_BYTES,
-        })) as LogsTailResponse;
+        }));
 
         const lines = Array.isArray(res.lines)
           ? res.lines.filter((l): l is string => typeof l === "string")

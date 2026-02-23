@@ -116,7 +116,7 @@ export function AgentVisualConfigurator({ agentId }: AgentVisualConfiguratorProp
     return async () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(async () => {
-        if (!client || !hasChanges) return;
+        if (!client || !hasChanges) {return;}
 
         setIsSaving(true);
         setSaveStatus("idle");

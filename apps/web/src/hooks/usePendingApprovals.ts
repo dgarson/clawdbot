@@ -21,7 +21,7 @@ export function usePendingApprovals(): PendingApproval[] {
 
   for (const agent of agents) {
     const ids = agent.pendingToolCallIds;
-    if (!ids || ids.length === 0) continue;
+    if (!ids || ids.length === 0) {continue;}
 
     // Parse the tool name from currentTask label: "Approve read_file access" → "read_file"
     const toolNameFromTask = agent.currentTask

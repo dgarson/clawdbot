@@ -131,7 +131,7 @@ const ExpandedCard = ({
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <h3 className="text-lg font-semibold">{agentName}</h3>
-            <StatusIndicator status={status!} />
+            <StatusIndicator status={status} />
           </div>
           <Activity className="h-5 w-5 text-muted-foreground" />
         </div>
@@ -214,7 +214,7 @@ const CompactCard = ({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="flex-shrink-0">
-              <StatusIndicator status={status!} />
+              <StatusIndicator status={status} />
             </div>
             <div className="min-w-0 flex-1">
               <h4 className="font-semibold text-sm truncate">{agentName}</h4>

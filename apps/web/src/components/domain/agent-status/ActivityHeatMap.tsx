@@ -41,12 +41,12 @@ function buildCells(timestamps: number[]): HeatMapCell[] {
 }
 
 function getIntensityClass(count: number, max: number): string {
-  if (max === 0 || count === 0) return "bg-muted/20";
+  if (max === 0 || count === 0) {return "bg-muted/20";}
   const ratio = count / max;
-  if (ratio < 0.2) return "bg-primary/20";
-  if (ratio < 0.4) return "bg-primary/40";
-  if (ratio < 0.6) return "bg-primary/60";
-  if (ratio < 0.8) return "bg-primary/80";
+  if (ratio < 0.2) {return "bg-primary/20";}
+  if (ratio < 0.4) {return "bg-primary/40";}
+  if (ratio < 0.6) {return "bg-primary/60";}
+  if (ratio < 0.8) {return "bg-primary/80";}
   return "bg-primary";
 }
 
@@ -57,7 +57,7 @@ export function ActivityHeatMap({ activityTimestamps = [], cells: propCells, tit
 
   // Build lookup
   const lookup = new Map<string, number>();
-  for (const c of cells) lookup.set(`${c.day}-${c.hour}`, c.count);
+  for (const c of cells) {lookup.set(`${c.day}-${c.hour}`, c.count);}
 
   return (
     <Card className={className}>

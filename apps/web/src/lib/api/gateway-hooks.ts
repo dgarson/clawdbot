@@ -9,8 +9,6 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  type UseQueryOptions,
-  type UseMutationOptions,
 } from "@tanstack/react-query";
 import { getGatewayClient, type GatewayClient } from "./gateway-client";
 import { useGatewayConnection } from "@/hooks/useGatewayConnection";
@@ -546,16 +544,14 @@ export function useApplyConfig() {
 /** Send a chat message. */
 export function useSendChat() {
   return useGatewayMutation<
-    { sessionKey: string; message: string; attachments?: unknown[] },
-    unknown
+    { sessionKey: string; message: string; attachments?: unknown[] }
   >("chat.send");
 }
 
 /** Abort an active chat run. */
 export function useAbortChat() {
   return useGatewayMutation<
-    { sessionKey: string },
-    unknown
+    { sessionKey: string }
   >("chat.abort");
 }
 
@@ -570,8 +566,7 @@ export function useChatHistory() {
 /** Toggle a skill on/off. */
 export function useUpdateSkill() {
   return useGatewayMutation<
-    { skillKey: string; enabled: boolean },
-    unknown
+    { skillKey: string; enabled: boolean }
   >("skills.update", {
     invalidate: [["skills.status"]],
   });
@@ -579,28 +574,28 @@ export function useUpdateSkill() {
 
 /** Add a cron job. */
 export function useAddCronJob() {
-  return useGatewayMutation<Record<string, unknown>, unknown>("cron.add", {
+  return useGatewayMutation("cron.add", {
     invalidate: [["cron.list"], ["cron.status"]],
   });
 }
 
 /** Update a cron job. */
 export function useUpdateCronJob() {
-  return useGatewayMutation<Record<string, unknown>, unknown>("cron.update", {
+  return useGatewayMutation("cron.update", {
     invalidate: [["cron.list"], ["cron.status"]],
   });
 }
 
 /** Remove a cron job. */
 export function useRemoveCronJob() {
-  return useGatewayMutation<{ id: string }, unknown>("cron.remove", {
+  return useGatewayMutation<{ id: string }>("cron.remove", {
     invalidate: [["cron.list"], ["cron.status"]],
   });
 }
 
 /** Delete a session. */
 export function useDeleteSession() {
-  return useGatewayMutation<{ key: string }, unknown>("sessions.delete", {
+  return useGatewayMutation<{ key: string }>("sessions.delete", {
     invalidate: [["sessions.list"]],
   });
 }
@@ -608,8 +603,7 @@ export function useDeleteSession() {
 /** Patch session settings. */
 export function usePatchSession() {
   return useGatewayMutation<
-    { key: string; thinkingLevel?: string; reasoningLevel?: string },
-    unknown
+    { key: string; thinkingLevel?: string; reasoningLevel?: string }
   >("sessions.patch", {
     invalidate: [["sessions.list"]],
   });

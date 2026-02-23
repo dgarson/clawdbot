@@ -15,12 +15,12 @@ export interface MonacoFileEditorProps {
 }
 
 function detectLanguage(filename: string): string {
-  if (filename.endsWith(".md")) return "markdown";
-  if (filename.endsWith(".json")) return "json";
-  if (filename.endsWith(".ts") || filename.endsWith(".tsx")) return "typescript";
-  if (filename.endsWith(".js") || filename.endsWith(".jsx")) return "javascript";
-  if (filename.endsWith(".yaml") || filename.endsWith(".yml")) return "yaml";
-  if (filename.endsWith(".sh")) return "shell";
+  if (filename.endsWith(".md")) {return "markdown";}
+  if (filename.endsWith(".json")) {return "json";}
+  if (filename.endsWith(".ts") || filename.endsWith(".tsx")) {return "typescript";}
+  if (filename.endsWith(".js") || filename.endsWith(".jsx")) {return "javascript";}
+  if (filename.endsWith(".yaml") || filename.endsWith(".yml")) {return "yaml";}
+  if (filename.endsWith(".sh")) {return "shell";}
   return "plaintext";
 }
 
