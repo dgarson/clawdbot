@@ -8,8 +8,10 @@ import { loadModelCatalog } from "../agents/model-catalog.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import type { OpenClawConfig } from "../config/config.js";
 import * as configModule from "../config/config.js";
+import type { SessionEntry } from "../config/sessions.js";
 import * as sessionsModule from "../config/sessions.js";
 import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../infra/diagnostic-events.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { createOutboundTestPlugin, createTestRegistry } from "../test-utils/channel-plugins.js";
@@ -60,6 +62,7 @@ function mockConfig(
   agentOverrides?: Partial<NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>>,
   telegramOverrides?: Partial<NonNullable<NonNullable<OpenClawConfig["channels"]>["telegram"]>>,
   agentsList?: Array<{ id: string; default?: boolean }>,
+  diagnosticsEnabled = false,
 ) {
   configSpy.mockReturnValue({
     agents: {
@@ -75,6 +78,7 @@ function mockConfig(
     channels: {
       telegram: telegramOverrides ? { ...telegramOverrides } : undefined,
     },
+    diagnostics: diagnosticsEnabled ? { enabled: true } : undefined,
   });
 }
 
@@ -131,6 +135,7 @@ function createTelegramOutboundPlugin() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetDiagnosticEventsForTest();
   runCliAgentSpy.mockResolvedValue({
     payloads: [{ text: "ok" }],
     meta: {
@@ -339,6 +344,110 @@ describe("agentCommand", () => {
         { provider: "anthropic", model: "claude-opus-4-5" },
         { provider: "openai", model: "gpt-5.2" },
       ]);
+    });
+  });
+
+  it("persists model selection trace on session entries", async () => {
+    await withTempHome(async (home) => {
+      const store = path.join(home, "sessions.json");
+      mockConfig(home, store);
+
+      await agentCommand({ message: "trace me", to: "+1666" }, runtime);
+
+      const saved = JSON.parse(fs.readFileSync(store, "utf-8")) as Record<
+        string,
+        { modelSelectionTrace?: SessionEntry["modelSelectionTrace"] }
+      >;
+      const entry = Object.values(saved)[0];
+      const trace = entry?.modelSelectionTrace;
+      expect(trace).toBeDefined();
+      expect(trace?.selected).toEqual({ provider: "anthropic", model: "claude-opus-4-5" });
+      expect(trace?.active).toEqual({ provider: "anthropic", model: "claude-opus-4-5" });
+      expect(trace?.steps.some((step) => step.source === "final")).toBe(true);
+      expect(trace?.fallback?.attempts?.at(-1)?.outcome).toBe("selected");
+    });
+  });
+
+  it("emits structured model failover attempt diagnostics", async () => {
+    await withTempHome(async (home) => {
+      const store = path.join(home, "sessions.json");
+      writeSessionStoreSeed(store, {
+        "agent:main:subagent:test": {
+          sessionId: "session-subagent",
+          updatedAt: Date.now(),
+          providerOverride: "anthropic",
+          modelOverride: "claude-opus-4-5",
+        },
+      });
+
+      mockConfig(
+        home,
+        store,
+        {
+          model: {
+            primary: "openai/gpt-4.1-mini",
+            fallbacks: ["openai/gpt-5.2"],
+          },
+          models: {
+            "anthropic/claude-opus-4-5": {},
+            "openai/gpt-4.1-mini": {},
+            "openai/gpt-5.2": {},
+          },
+        },
+        undefined,
+        undefined,
+        true,
+      );
+
+      vi.mocked(loadModelCatalog).mockResolvedValueOnce([
+        { id: "claude-opus-4-5", name: "Opus", provider: "anthropic" },
+        { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
+        { id: "gpt-5.2", name: "GPT-5.2", provider: "openai" },
+      ]);
+      vi.mocked(runEmbeddedPiAgent)
+        .mockRejectedValueOnce(Object.assign(new Error("rate limited"), { status: 429 }))
+        .mockResolvedValueOnce({
+          payloads: [{ text: "ok" }],
+          meta: {
+            durationMs: 5,
+            agentMeta: { sessionId: "session-subagent", provider: "openai", model: "gpt-5.2" },
+          },
+        });
+
+      const events: Array<{
+        type: string;
+        outcome?: string;
+        target?: { provider: string; model: string };
+      }> = [];
+      const stop = onDiagnosticEvent((event) => {
+        if (event.type !== "model.failover.attempt") {
+          return;
+        }
+        events.push(event);
+      });
+
+      try {
+        await agentCommand(
+          {
+            message: "hi",
+            sessionKey: "agent:main:subagent:test",
+          },
+          runtime,
+        );
+      } finally {
+        stop();
+      }
+
+      expect(events.some((event) => event.outcome === "failed")).toBe(true);
+      expect(events.some((event) => event.outcome === "selected")).toBe(true);
+      expect(
+        events.some(
+          (event) =>
+            event.target?.provider === "anthropic" &&
+            event.target?.model === "claude-opus-4-5" &&
+            event.outcome === "failed",
+        ),
+      ).toBe(true);
     });
   });
 
@@ -619,7 +728,7 @@ describe("agentCommand", () => {
         agentsList: [{ id: "ops" }],
       });
 
-      expect(runtime.log).toHaveBeenCalledWith("ok");
+      expect(runtime.log).toHaveBeenCalledWith(expect.stringContaining("ok"));
     });
   });
 });

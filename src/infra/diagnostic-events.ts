@@ -37,6 +37,39 @@ export type DiagnosticUsageEvent = DiagnosticBaseEvent & {
   durationMs?: number;
 };
 
+export type DiagnosticApiUsageEvent = DiagnosticBaseEvent & {
+  type: "api.usage";
+  source: string;
+  apiKind: string;
+  channel?: string;
+  provider?: string;
+  model?: string;
+  requestCount?: number;
+  inputChars?: number;
+  success?: boolean;
+  latencyMs?: number;
+  error?: string;
+};
+
+export type DiagnosticTtsUsageEvent = DiagnosticBaseEvent & {
+  type: "tts.usage";
+  source: string;
+  mode: "media" | "telephony";
+  channel?: string;
+  provider?: string;
+  model?: string;
+  textLength: number;
+  success: boolean;
+  summarized?: boolean;
+  latencyMs?: number;
+  outputFormat?: string;
+  sampleRate?: number;
+  voiceCompatible?: boolean;
+  attempts?: number;
+  fallbackUsed?: boolean;
+  error?: string;
+};
+
 export type DiagnosticWebhookReceivedEvent = DiagnosticBaseEvent & {
   type: "webhook.received";
   channel: string;
@@ -122,6 +155,24 @@ export type DiagnosticRunAttemptEvent = DiagnosticBaseEvent & {
   attempt: number;
 };
 
+export type DiagnosticModelFailoverAttemptEvent = DiagnosticBaseEvent & {
+  type: "model.failover.attempt";
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  attempt: number;
+  total?: number;
+  target: {
+    provider: string;
+    model: string;
+  };
+  outcome: "failed" | "skipped" | "selected";
+  reason?: string;
+  status?: number;
+  code?: string;
+  error?: string;
+};
+
 export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   type: "diagnostic.heartbeat";
   webhooks: {
@@ -149,6 +200,8 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
 
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
+  | DiagnosticApiUsageEvent
+  | DiagnosticTtsUsageEvent
   | DiagnosticWebhookReceivedEvent
   | DiagnosticWebhookProcessedEvent
   | DiagnosticWebhookErrorEvent
@@ -159,6 +212,7 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneEnqueueEvent
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
+  | DiagnosticModelFailoverAttemptEvent
   | DiagnosticHeartbeatEvent
   | DiagnosticToolLoopEvent;
 

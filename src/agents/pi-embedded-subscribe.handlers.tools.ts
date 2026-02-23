@@ -130,9 +130,168 @@ function collectMessagingMediaUrlsFromToolResult(result: unknown): string[] {
   return urls;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : undefined;
+}
+
+function readString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function readNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function joinInfo(parts: Array<string | undefined>): string | undefined {
   const filtered = parts.filter(
     (part): part is string => typeof part === "string" && part.length > 0,
   );
+  return filtered.length > 0 ? filtered.join(" · ") : undefined;
+}
+
+function appendToolDiagnosticInfo(
+  ctx: ToolHandlerContext,
+  info: { extraInfo?: string; debugInfo?: string },
+): void {
+  const extraInfo = readString(info.extraInfo);
+  const debugInfo = readString(info.debugInfo);
+  if (extraInfo) {
+    ctx.state.toolDiagnosticExtraInfos.push(extraInfo);
+  }
+  if (debugInfo) {
+    ctx.state.toolDiagnosticDebugInfos.push(debugInfo);
+  }
+  if (extraInfo || debugInfo) {
+    ctx.trimToolDiagnosticInfos();
+  }
+}
+
+function resolveToolResultDetails(result: unknown): Record<string, unknown> | undefined {
+  const resultRecord = asRecord(result);
+  const details = asRecord(resultRecord?.details);
+  return details ?? resultRecord;
+}
+
+function buildToolDiagnosticInfo(params: {
+  toolName: string;
+  toolCallId: string;
+  startArgs: Record<string, unknown>;
+  result: unknown;
+  isToolError: boolean;
+}): { extraInfo?: string; debugInfo?: string } {
+  const details = resolveToolResultDetails(params.result);
+  const status = readString(details?.status);
+  if (params.toolName === "sessions_spawn") {
+    const spawnedSessionId =
+      readString(details?.sessionId) ??
+      readString(details?.sessionKey) ??
+      readString((asRecord(details?.session) ?? {}).id);
+    const extraInfo = joinInfo([
+      spawnedSessionId ? `spawnedSessionId=${spawnedSessionId}` : undefined,
+      readString(params.startArgs.agentId)
+        ? `targetAgent=${readString(params.startArgs.agentId)}`
+        : undefined,
+      readString(params.startArgs.mode) ? `mode=${readString(params.startArgs.mode)}` : undefined,
+      typeof params.startArgs.thread === "boolean"
+        ? `thread=${String(params.startArgs.thread)}`
+        : undefined,
+      readString(params.startArgs.cleanup)
+        ? `cleanup=${readString(params.startArgs.cleanup)}`
+        : undefined,
+      status ? `status=${status}` : undefined,
+    ]);
+    const debugInfo = joinInfo([
+      readNumber(params.startArgs.runTimeoutSeconds) != null
+        ? `runTimeoutSeconds=${readNumber(params.startArgs.runTimeoutSeconds)}`
+        : undefined,
+      readString(details?.runId) ? `spawnRunId=${readString(details?.runId)}` : undefined,
+      readString(details?.agentId) ? `resolvedAgent=${readString(details?.agentId)}` : undefined,
+      `toolCallId=${params.toolCallId}`,
+      params.isToolError ? "error=true" : undefined,
+    ]);
+    return { extraInfo, debugInfo };
+  }
+
+  if (params.toolName === "sessions_send") {
+    const delivery = asRecord(details?.delivery);
+    const deliveryMode = readString(delivery?.mode);
+    const extraInfo = joinInfo([
+      readString(details?.sessionKey)
+        ? `targetSession=${readString(details?.sessionKey)}`
+        : readString(params.startArgs.sessionKey)
+          ? `targetSession=${readString(params.startArgs.sessionKey)}`
+          : readString(params.startArgs.label)
+            ? `targetLabel=${readString(params.startArgs.label)}`
+            : undefined,
+      readString(params.startArgs.agentId)
+        ? `targetAgent=${readString(params.startArgs.agentId)}`
+        : undefined,
+      readNumber(params.startArgs.timeoutSeconds) != null
+        ? `timeout=${readNumber(params.startArgs.timeoutSeconds)}s`
+        : undefined,
+      status ? `status=${status}` : undefined,
+      deliveryMode ? `delivery=${deliveryMode}` : undefined,
+    ]);
+    const debugInfo = joinInfo([
+      readString(details?.runId) ? `runId=${readString(details?.runId)}` : undefined,
+      readString(details?.requester) ? `requester=${readString(details?.requester)}` : undefined,
+      `toolCallId=${params.toolCallId}`,
+      params.isToolError ? "error=true" : undefined,
+    ]);
+    return { extraInfo, debugInfo };
+  }
+
+  if (params.toolName === "cron") {
+    const action = readString(params.startArgs.action);
+    const jobArgs = asRecord(params.startArgs.job);
+    const deliveryArgs = asRecord(jobArgs?.delivery);
+    const scheduleArgs = asRecord(jobArgs?.schedule);
+    const payloadArgs = asRecord(jobArgs?.payload);
+    const targetChannel = readString(deliveryArgs?.channel);
+    const targetTo = readString(deliveryArgs?.to);
+    const extraInfo = joinInfo([
+      action ? `action=${action}` : undefined,
+      readString(jobArgs?.id)
+        ? `job=${readString(jobArgs?.id)}`
+        : readString(params.startArgs.jobId)
+          ? `job=${readString(params.startArgs.jobId)}`
+          : undefined,
+      targetChannel || targetTo
+        ? `target=${[targetChannel, targetTo].filter(Boolean).join(":")}`
+        : undefined,
+      readString(payloadArgs?.kind) ? `payload=${readString(payloadArgs?.kind)}` : undefined,
+      readString(jobArgs?.sessionTarget)
+        ? `sessionTarget=${readString(jobArgs?.sessionTarget)}`
+        : undefined,
+      status ? `status=${status}` : undefined,
+    ]);
+    const debugInfo = joinInfo([
+      readString(scheduleArgs?.kind) ? `scheduleKind=${readString(scheduleArgs?.kind)}` : undefined,
+      readString(scheduleArgs?.expr) ? `expr=${readString(scheduleArgs?.expr)}` : undefined,
+      readNumber(scheduleArgs?.everyMs) != null
+        ? `everyMs=${readNumber(scheduleArgs?.everyMs)}`
+        : undefined,
+      readString(scheduleArgs?.tz) ? `tz=${readString(scheduleArgs?.tz)}` : undefined,
+      readNumber(params.startArgs.contextMessages) != null
+        ? `contextMessages=${readNumber(params.startArgs.contextMessages)}`
+        : undefined,
+      readNumber(params.startArgs.timeoutMs) != null
+        ? `gatewayTimeoutMs=${readNumber(params.startArgs.timeoutMs)}`
+        : undefined,
+      `toolCallId=${params.toolCallId}`,
+      params.isToolError ? "error=true" : undefined,
+    ]);
+    return { extraInfo, debugInfo };
+  }
+
+  return {};
+}
+
+export async function handleToolExecutionStart(
   ctx: ToolHandlerContext,
       readString(params.startArgs.agentId)
         ? `targetAgent=${readString(params.startArgs.agentId)}`
@@ -364,6 +523,17 @@ export async function handleToolExecutionEnd(
   if (!isToolError && toolName === "cron" && isCronAddAction(startData?.args)) {
     ctx.state.successfulCronAdds += 1;
   }
+
+  appendToolDiagnosticInfo(
+    ctx,
+    buildToolDiagnosticInfo({
+      toolName,
+      toolCallId,
+      startArgs,
+      result: sanitizedResult,
+      isToolError,
+    }),
+  );
 
   emitAgentEvent({
     runId: ctx.params.runId,

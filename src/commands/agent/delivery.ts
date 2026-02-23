@@ -1,5 +1,4 @@
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
-import { AGENT_LANE_NESTED } from "../../agents/lanes.js";
 import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
 import { createOutboundSendDeps, type CliDeps } from "../../cli/outbound-send-deps.js";
 import type { OpenClawConfig } from "../../config/config.js";
@@ -25,32 +24,26 @@ type RunResult = Awaited<
   ReturnType<(typeof import("../../agents/pi-embedded.js"))["runEmbeddedPiAgent"]>
 >;
 
-const NESTED_LOG_PREFIX = "[agent:nested]";
+const AGENT_REPLY_LOG_PREFIX = "[agent:reply]";
 
-function formatNestedLogPrefix(opts: AgentCommandOpts): string {
-  const parts = [NESTED_LOG_PREFIX];
-  const session = opts.sessionKey ?? opts.sessionId;
-  if (session) {
-    parts.push(`session=${session}`);
+function formatAgentReplyPrefix(params: {
+  sessionId?: string;
+  deliveryChannel?: string;
+  deliveryTarget?: string;
+}) {
+  const parts = [AGENT_REPLY_LOG_PREFIX];
+  if (params.sessionId) {
+    parts.push(`sessionId=${params.sessionId}`);
   }
-  if (opts.runId) {
-    parts.push(`run=${opts.runId}`);
-  }
-  const channel = opts.messageChannel ?? opts.channel;
-  if (channel) {
-    parts.push(`channel=${channel}`);
-  }
-  if (opts.to) {
-    parts.push(`to=${opts.to}`);
-  }
-  if (opts.accountId) {
-    parts.push(`account=${opts.accountId}`);
+  if (params.deliveryChannel || params.deliveryTarget) {
+    const channel = params.deliveryChannel ?? "unknown";
+    const target = params.deliveryTarget ? `${channel}:${params.deliveryTarget}` : channel;
+    parts.push(`target=${target}`);
   }
   return parts.join(" ");
 }
 
-function logNestedOutput(runtime: RuntimeEnv, opts: AgentCommandOpts, output: string) {
-  const prefix = formatNestedLogPrefix(opts);
+function logAgentReplyOutput(runtime: RuntimeEnv, prefix: string, output: string) {
   for (const line of output.split(/\r?\n/)) {
     if (!line) {
       continue;
@@ -164,6 +157,16 @@ export async function deliverAgentCommandResult(params: {
   }
 
   const normalizedPayloads = normalizeOutboundPayloadsForJson(payloads ?? []);
+  const sessionIdForLogs =
+    opts.sessionId?.trim() ||
+    (result.meta?.agentMeta && typeof result.meta.agentMeta.sessionId === "string"
+      ? result.meta.agentMeta.sessionId
+      : undefined);
+  const replyLogPrefix = formatAgentReplyPrefix({
+    sessionId: sessionIdForLogs,
+    deliveryChannel,
+    deliveryTarget,
+  });
   if (opts.json) {
     runtime.log(
       JSON.stringify(
@@ -194,11 +197,7 @@ export async function deliverAgentCommandResult(params: {
     if (!output) {
       return;
     }
-    if (opts.lane === AGENT_LANE_NESTED) {
-      logNestedOutput(runtime, opts, output);
-      return;
-    }
-    runtime.log(output);
+    logAgentReplyOutput(runtime, replyLogPrefix, output);
   };
   if (!deliver) {
     for (const payload of deliveryPayloads) {

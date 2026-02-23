@@ -49,6 +49,8 @@ export type EmbeddedRunAttemptResult = {
   messagingToolSentMediaUrls: string[];
   messagingToolSentTargets: MessagingToolSend[];
   successfulCronAdds?: number;
+  toolDiagnosticExtraInfos?: string[];
+  toolDiagnosticDebugInfos?: string[];
   cloudCodeAssistFormatError: boolean;
   attemptUsage?: NormalizedUsage;
   compactionCount?: number;

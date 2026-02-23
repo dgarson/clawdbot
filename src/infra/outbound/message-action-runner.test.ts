@@ -182,6 +182,41 @@ describe("runMessageAction context isolation", () => {
     expect(result.kind).toBe("send");
   });
 
+  it("repairs misplaced destination names provided as channel when context provider is known", async () => {
+    const result = await runDrySend({
+      cfg: slackConfig,
+      actionParams: {
+        channel: "cb-inbox",
+        message: "hi",
+      },
+      toolContext: { currentChannelProvider: "slack" },
+    });
+
+    expect(result.kind).toBe("send");
+    if (result.kind !== "send") {
+      throw new Error("expected send result");
+    }
+    expect(result.channel).toBe("slack");
+    expect(result.to).toBe("cb-inbox");
+  });
+
+  it("repairs misplaced destination names using single configured provider fallback", async () => {
+    const result = await runDrySend({
+      cfg: slackConfig,
+      actionParams: {
+        channel: "ops-alerts",
+        message: "hi",
+      },
+    });
+
+    expect(result.kind).toBe("send");
+    if (result.kind !== "send") {
+      throw new Error("expected send result");
+    }
+    expect(result.channel).toBe("slack");
+    expect(result.to).toBe("ops-alerts");
+  });
+
   it("allows media-only send when target matches current channel", async () => {
     const result = await runDrySend({
       cfg: slackConfig,
