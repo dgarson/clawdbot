@@ -25,12 +25,12 @@ import { listChannelSupportedActions } from "../channel-tools.js";
 import { channelTargetSchema, channelTargetsSchema, stringEnum } from "../schema/typebox.js";
 import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
+import { resolveGatewayOptions } from "./gateway.js";
 import {
   deliverMessageToParentSession,
   extractMessageContent,
   resolveParentSessionKey,
 } from "./message-parent-fallback.js";
-import { resolveGatewayOptions } from "./gateway.js";
 
 const AllMessageActions = CHANNEL_MESSAGE_ACTION_NAMES;
 const EXPLICIT_TARGET_ACTIONS = new Set<ChannelMessageActionName>([
@@ -664,6 +664,8 @@ type MessageToolOptions = {
   sandboxRoot?: string;
   requireExplicitTarget?: boolean;
   requesterSenderId?: string;
+  modelProvider?: string;
+  modelId?: string;
 };
 
 function resolveMessageToolSchemaActions(params: {
@@ -894,6 +896,8 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
           params,
           defaultAccountId: accountId ?? undefined,
           requesterSenderId: options?.requesterSenderId,
+          modelProvider: options?.modelProvider,
+          modelId: options?.modelId,
           gateway,
           toolContext,
           sessionKey: options?.agentSessionKey,

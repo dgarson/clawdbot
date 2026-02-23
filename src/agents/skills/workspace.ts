@@ -698,13 +698,6 @@ export function buildWorkspaceSkillCommandSpecs(
   for (const entry of userInvocable) {
     const rawName = entry.skill.name;
     const base = sanitizeSkillCommandName(rawName);
-    if (base !== rawName) {
-      debugSkillCommandOnce(
-        `sanitize:${rawName}:${base}`,
-        `Sanitized skill command name "${rawName}" to "/${base}".`,
-        { rawName, sanitized: `/${base}` },
-      );
-    }
     const unique = resolveUniqueSkillCommandName(base, used);
     if (unique !== base) {
       debugSkillCommandOnce(

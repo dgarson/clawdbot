@@ -312,7 +312,7 @@ export async function runEmbeddedAttempt(
   const runAbortController = new AbortController();
 
   log.debug(
-    `embedded run start: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}${params.trigger ? ` trigger=${params.trigger}` : ""}`,
+    `embedded run start: provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}${params.messageTo ? ` target=${params.messageTo}` : ""} sessionId=${params.sessionId} runId=${params.runId}${params.trigger ? ` trigger=${params.trigger}` : ""}`,
   );
 
   const runtime = resolveAgentRuntime(params);
@@ -1366,6 +1366,9 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                tokens: getUsageTotals()?.total,
+                turns: assistantTexts.length,
+                toolCalls: toolMetas.length,
               },
               {
                 agentId: hookAgentId,

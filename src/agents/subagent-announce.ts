@@ -532,10 +532,11 @@ function resolveAnnounceDeliveryTarget(origin: DeliveryContext): {
   if (!origin.channel || !isDeliverableMessageChannel(origin.channel)) {
     return { deliver: false };
   }
-  const mode = origin.to?.trim() ? "explicit" : "implicit";
+  const to = normalizeDeliverableTo(origin.to);
+  const mode = to ? "explicit" : "implicit";
   const resolvedTarget = resolveOutboundTarget({
     channel: origin.channel,
-    to: origin.to,
+    to,
     cfg: loadConfig(),
     accountId: origin.accountId,
     mode,
@@ -549,6 +550,22 @@ function resolveAnnounceDeliveryTarget(origin: DeliveryContext): {
     accountId: origin.accountId,
     to: resolvedTarget.to,
   };
+}
+
+function normalizeDeliverableTo(raw: unknown): string | undefined {
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  // Treat malformed Slack-style channel markers as absent targets so normal
+  // fallback target resolution can run (implicit/default-to/session-bound).
+  if (/^channel\s*:?\s*$/i.test(trimmed)) {
+    return undefined;
+  }
+  return trimmed;
 }
 
 function resolveRequesterStoreKey(
@@ -694,10 +711,19 @@ async function sendSubagentAnnounceDirectly(params: {
       completionChannelRaw && isDeliverableMessageChannel(completionChannelRaw)
         ? completionChannelRaw
         : "";
-    const completionTo =
-      typeof completionDirectOrigin?.to === "string" ? completionDirectOrigin.to.trim() : "";
+    const completionTo = normalizeDeliverableTo(completionDirectOrigin?.to);
+    const completionResolvedTarget =
+      !params.requesterIsSubagent && completionChannel
+        ? resolveOutboundTarget({
+            channel: completionChannel,
+            to: completionTo,
+            cfg,
+            accountId: completionDirectOrigin?.accountId,
+            mode: completionTo ? "explicit" : "implicit",
+          })
+        : undefined;
     const hasCompletionDirectTarget =
-      !params.requesterIsSubagent && Boolean(completionChannel) && Boolean(completionTo);
+      !params.requesterIsSubagent && Boolean(completionChannel) && completionResolvedTarget?.ok;
 
     if (
       params.expectsCompletionMessage &&
@@ -735,7 +761,7 @@ async function sendSubagentAnnounceDirectly(params: {
           method: "send",
           params: {
             channel: completionChannel,
-            to: completionTo,
+            to: completionResolvedTarget.to,
             accountId: completionDirectOrigin?.accountId,
             threadId: completionThreadId,
             sessionKey: canonicalRequesterSessionKey,
@@ -768,6 +794,7 @@ async function sendSubagentAnnounceDirectly(params: {
       !params.requesterIsSubagent &&
       directChannel != null &&
       isDeliverableMessageChannel(directChannel);
+    const directTo = normalizeDeliverableTo(directOrigin?.to);
     await callGateway({
       method: "agent",
       params: {
@@ -776,7 +803,7 @@ async function sendSubagentAnnounceDirectly(params: {
         deliver: hasDeliverableChannel,
         channel: hasDeliverableChannel ? directChannel : undefined,
         accountId: hasDeliverableChannel ? directOrigin?.accountId : undefined,
-        to: hasDeliverableChannel ? directOrigin?.to : undefined,
+        to: hasDeliverableChannel ? directTo : undefined,
         threadId: hasDeliverableChannel ? threadId : undefined,
         idempotencyKey: params.directIdempotencyKey,
       },

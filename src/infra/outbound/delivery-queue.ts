@@ -194,6 +194,7 @@ export type DeliverFn = (
 ) => Promise<unknown>;
 
 export interface RecoveryLogger {
+  debug?(msg: string): void;
   info(msg: string): void;
   warn(msg: string): void;
   error(msg: string): void;
@@ -233,11 +234,24 @@ export async function recoverPendingDeliveries(opts: {
   let failed = 0;
   let skipped = 0;
 
+  const logDeferredEntries = (fromIndex: number) => {
+    if (!opts.log.debug) {
+      return;
+    }
+    for (const e of pending.slice(fromIndex)) {
+      opts.log.debug(
+        `Deferred delivery entry: id=${e.id} channel=${e.channel} to=${e.to} retryCount=${e.retryCount} enqueuedAt=${e.enqueuedAt}${e.lastError ? ` lastError=${e.lastError}` : ""}`,
+      );
+    }
+  };
+
   for (const entry of pending) {
     const now = Date.now();
     if (now >= deadline) {
-      const deferred = pending.length - recovered - failed - skipped;
+      const processedCount = recovered + failed + skipped;
+      const deferred = pending.length - processedCount;
       opts.log.warn(`Recovery time budget exceeded — ${deferred} entries deferred to next restart`);
+      logDeferredEntries(processedCount);
       break;
     }
     if (entry.retryCount >= MAX_RETRIES) {
@@ -256,10 +270,12 @@ export async function recoverPendingDeliveries(opts: {
     const backoff = computeBackoffMs(entry.retryCount + 1);
     if (backoff > 0) {
       if (now + backoff >= deadline) {
-        const deferred = pending.length - recovered - failed - skipped;
+        const processedCount = recovered + failed + skipped;
+        const deferred = pending.length - processedCount;
         opts.log.warn(
           `Recovery time budget exceeded — ${deferred} entries deferred to next restart`,
         );
+        logDeferredEntries(processedCount);
         break;
       }
       opts.log.info(`Waiting ${backoff}ms before retrying delivery ${entry.id}`);
