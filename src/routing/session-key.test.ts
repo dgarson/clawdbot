@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSubagentDepth, isCronSessionKey } from "../sessions/session-key-utils.js";
+import { getSubagentDepth, isAcpSessionKey, isCronSessionKey } from "../sessions/session-key-utils.js";
 import { classifySessionKeyShape } from "./session-key.js";
 
 describe("classifySessionKeyShape", () => {
@@ -64,5 +64,20 @@ describe("isCronSessionKey", () => {
     expect(isCronSessionKey("agent:main:subagent:worker")).toBe(false);
     expect(isCronSessionKey("cron:job-1")).toBe(false);
     expect(isCronSessionKey(undefined)).toBe(false);
+  });
+});
+
+describe("isAcpSessionKey", () => {
+  it("matches top-level and agent-scoped ACP session keys", () => {
+    expect(isAcpSessionKey("acp:session-1")).toBe(true);
+    expect(isAcpSessionKey("agent:main:acp:session-1")).toBe(true);
+    expect(isAcpSessionKey("agent:main:ACP:session-1")).toBe(true);
+  });
+
+  it("does not match non-ACP session keys", () => {
+    expect(isAcpSessionKey("agent:main:main")).toBe(false);
+    expect(isAcpSessionKey("agent:main:subagent:worker")).toBe(false);
+    expect(isAcpSessionKey("acp")).toBe(false);
+    expect(isAcpSessionKey(undefined)).toBe(false);
   });
 });
