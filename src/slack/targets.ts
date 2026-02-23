@@ -65,7 +65,7 @@ export function parseSlackTarget(
     const candidate = trimmed.slice(1).trim();
     const id = ensureTargetId({
       candidate,
-      pattern: /^[A-Z0-9_-]+$/i,
+      pattern: /^[A-Z0-9]+$/i,
       errorMessage: "Slack channels require a channel id (use channel:<id>)",
     });
     return buildMessagingTarget("channel", normalizeSlackId(id), trimmed);
