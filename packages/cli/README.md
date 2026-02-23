@@ -1,6 +1,6 @@
 # @openclaw/cli
 
-Developer CLI entrypoints for OpenClaw local tooling.
+Developer CLI entrypoints for Openclaw local tooling.
 
 ## Quickstart
 
@@ -16,6 +16,38 @@ node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sa
 
 ```bash
 node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello\"}']);"
+```
+
+## Local templates and one-command scaffolding
+
+Scaffold local plugin or agent skeletons in one command:
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'plugin', 'my-plugin', '--root', process.cwd()]);"
+```
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'agent', 'my-agent', '--root', process.cwd(), '--description', 'Domain-specific agent']);"
+```
+
+The scaffolder creates a small starter set:
+
+- a manifest (`openclaw.plugin.json` or `openclaw.agent.json`)
+- `src/index.ts`
+- `README.md`
+
+## Hot reload local sandbox
+
+Local sandboxes can be started with file watching enabled. The runtime will automatically restart on file changes under the watched root:
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'start', '--root', process.cwd(), '--watch']);"
+```
+
+Optionally control debounce:
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'start', '--root', process.cwd(), '--watch', '--watch-debounce-ms', '250']);"
 ```
 
 ## Verify in local and CI paths

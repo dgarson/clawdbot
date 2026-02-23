@@ -1,9 +1,14 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { LocalSandboxRuntime, RuntimeStatus } from "@openclaw/sandbox";
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { run } from "./run.js";
+import {
+  createMockPolicyGates,
+  createMockRuntime,
+  createMockSessions,
+  createMockTools,
+} from "./test-fixtures.js";
 
 describe("CLI run command", () => {
   let sandboxRoot: string;
@@ -92,6 +97,85 @@ describe("CLI run command", () => {
     expect(result.output).toContain("--root value cannot be empty");
   });
 
+  it("enables watch flag during sandbox start", async () => {
+    const runtime = createMockRuntime();
+    const createLocalSandbox = vi.fn().mockReturnValue(runtime);
+
+    const result = await run(["sandbox", "start", "--root", sandboxRoot, "--watch"], {
+      createClient: vi.fn(),
+      createLocalSandbox,
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(createLocalSandbox).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rootDir: sandboxRoot,
+        watch: true,
+      }),
+    );
+    expect(runtime.start).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates a plugin scaffold from one command", async () => {
+    const result = await run([
+      "new",
+      "plugin",
+      "quickstart-plugin",
+      "--root",
+      sandboxRoot,
+      "--description",
+      "Demo plugin for local testing",
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    const pluginDir = join(sandboxRoot, "quickstart-plugin");
+    const manifestPath = join(pluginDir, "openclaw.plugin.json");
+    const readmePath = join(pluginDir, "README.md");
+
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    const readme = await readFile(readmePath, "utf8");
+
+    expect(manifest.kind).toBe("plugin");
+    expect(manifest.name).toBe("quickstart-plugin");
+    expect(readme).toContain("Demo plugin for local testing");
+    expect(result.output).toContain(pluginDir);
+  });
+
+  it("errors when scaffold target already exists without --force", async () => {
+    const first = await run(["new", "plugin", "safe-plugin", "--root", sandboxRoot]);
+    expect(first.exitCode).toBe(0);
+
+    const second = await run(["new", "plugin", "safe-plugin", "--root", sandboxRoot]);
+    expect(second.exitCode).toBe(1);
+    expect(second.output).toContain("target directory already exists");
+  });
+
+  it("creates an agent scaffold from one command", async () => {
+    const result = await run([
+      "new",
+      "agent",
+      "assistant-agent",
+      "--root",
+      sandboxRoot,
+      "--description",
+      "Agent scaffold test",
+    ]);
+
+    const agentDir = join(sandboxRoot, "assistant-agent");
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(agentDir);
+    expect(await readFile(join(agentDir, "openclaw.agent.json"), "utf8")).toContain(
+      '"kind": "agent"',
+    );
+  });
+
+  it("returns fixture-ready session and tool collections", () => {
+    expect(createMockSessions(2)).toHaveLength(2);
+    expect(createMockTools(2)).toHaveLength(2);
+    expect(createMockPolicyGates(2)).toHaveLength(2);
+  });
+
   it("cleans up sandbox after sandbox verify", async () => {
     const stop = vi.fn().mockResolvedValue(undefined);
     const runtime = createMockRuntime({
@@ -147,42 +231,3 @@ describe("CLI run command", () => {
     await rm(sandboxRoot, { recursive: true, force: true });
   });
 });
-
-type ExecResult = { output: unknown; elapsedMs: number };
-
-const createMockRuntime = (
-  overrides: Partial<{
-    status: Mock<() => Promise<RuntimeStatus>>;
-    start: Mock<() => Promise<void>>;
-    stop: Mock<() => Promise<void>>;
-    exec: Mock<(input: { input: unknown }) => Promise<ExecResult>>;
-    streamEvents: Mock<() => () => void>;
-  }> = {},
-): LocalSandboxRuntime => {
-  const status =
-    overrides.status ??
-    vi.fn().mockResolvedValue({
-      state: "ready",
-      rootDir: "/tmp/test-root",
-      command: "openclaw-runtime",
-      mode: "memory",
-    } satisfies RuntimeStatus);
-
-  const start = overrides.start ?? vi.fn().mockResolvedValue(undefined);
-  const stop = overrides.stop ?? vi.fn().mockResolvedValue(undefined);
-  const exec =
-    overrides.exec ??
-    vi.fn().mockImplementation(async (payload: { input: unknown }) => ({
-      output: payload.input,
-      elapsedMs: 0,
-    }));
-  const streamEvents = overrides.streamEvents ?? vi.fn().mockReturnValue(() => undefined);
-
-  return {
-    start,
-    stop,
-    status,
-    exec,
-    streamEvents,
-  };
-};

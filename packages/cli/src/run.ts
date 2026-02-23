@@ -1,5 +1,11 @@
 import { createLocalSandbox, type LocalSandboxRuntime } from "@openclaw/sandbox";
 import { createClient } from "@openclaw/sdk";
+import {
+  resolveTemplateKind,
+  scaffoldTemplate,
+  resolveTemplateName,
+  type TemplateKind,
+} from "./scaffold.js";
 
 export interface RunResult {
   exitCode: number;
@@ -44,11 +50,12 @@ const parseArgs = (argv: string[]): ParsedArgs => {
 const help = (): string =>
   "Usage:\n" +
   "  openclaw-cli sdk doctor [--base-url ...] [--timeout-ms ...]\n" +
-  "  openclaw-cli sandbox start --root ... [--timeout-ms ...]\n" +
+  "  openclaw-cli sandbox start --root ... [--timeout-ms ...] [--watch]\n" +
   "  openclaw-cli sandbox status --root ...\n" +
   "  openclaw-cli sandbox stop --root ... [--force]\n" +
   "  openclaw-cli sandbox exec --root ... --input ...\n" +
-  "  openclaw-cli sandbox verify --root ... [--timeout-ms ...]\n";
+  "  openclaw-cli sandbox verify --root ... [--timeout-ms ...]\n" +
+  "  openclaw-cli new plugin|agent [name] --root ... [--description ...]\n";
 
 const readStringArg = (value: string | boolean | string[] | undefined): string | undefined => {
   return typeof value === "string" ? value : undefined;
@@ -100,6 +107,15 @@ const parseInputPayload = (raw: string): unknown => {
 
     throw new Error("Invalid --input JSON", { cause: error });
   }
+};
+
+const parseWatchMs = (parsed: ParsedArgs): number | undefined => {
+  const value = readStringArg(parsed["watch-debounce-ms"]);
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return parseTimeoutMs(value, "--watch-debounce-ms");
 };
 
 const withSandboxLifecycle = async <T>(
@@ -166,6 +182,11 @@ const runSandboxExecution = async (
   };
 };
 
+const formatCreatedFiles = (result: { targetDir: string; files: string[] }): string => {
+  const created = result.files.map((path) => `  - ${path}`).join("\n");
+  return `created ${result.targetDir} with files:\n${created}`;
+};
+
 export const run = async (
   argv: string[] = [],
   dependencies: RunDependencies = {
@@ -212,14 +233,41 @@ export const run = async (
       return { exitCode: 2, output: `unknown sdk command: ${command}` };
     }
 
+    if (top === "new") {
+      const kind = resolveTemplateKind(args[1]);
+      const template: TemplateKind = kind;
+      const rawName = args[2];
+      const name = resolveTemplateName([rawName ?? ""], readStringArg(parsed.name));
+      const baseDir = readRootArg(parsed);
+      const description = readStringArg(parsed.description) ?? `Generated ${template} template`;
+
+      const result = await scaffoldTemplate({
+        template,
+        baseDir,
+        name,
+        description,
+        force: parsed.force === true,
+      });
+
+      return {
+        exitCode: 0,
+        output: formatCreatedFiles(result),
+      };
+    }
+
     if (top === "sandbox") {
       const command = args[1] ?? "status";
       const root = readRootArg(parsed);
       const timeoutMsArg = readStringArg(parsed["timeout-ms"]);
       const timeoutMs = timeoutMsArg === undefined ? undefined : parseTimeoutMs(timeoutMsArg);
+      const watchDebounceMs = parseWatchMs(parsed);
+
       const sandbox = dependencies.createLocalSandbox({
         rootDir: root,
         timeoutMs,
+        watch: command === "start" && parsed.watch === true,
+        watchDebounceMs,
+        watchPaths: ["."],
       });
 
       if (command === "start") {

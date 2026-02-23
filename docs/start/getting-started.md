@@ -103,6 +103,31 @@ For deterministic verification in both paths:
 
 This is the same flow used by package-level quickstart tests and keeps the three packages aligned for local runtime debugging.
 
+## Local development workflow
+
+- Scaffold new plugin templates quickly:
+
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'plugin', 'my-plugin', '--root', process.cwd()]);"
+  ```
+
+- Scaffold new agent templates quickly:
+
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'agent', 'my-agent', '--root', process.cwd(), '--description', 'agent workflow']);"
+  ```
+
+- Start sandbox with automatic reload during edits:
+
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'start', '--root', process.cwd(), '--watch']);"
+  ```
+
+- Tune reload debounce (optional):
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'start', '--root', process.cwd(), '--watch', '--watch-debounce-ms', '150']);"
+  ```
+
 ## Optional checks and extras
 
 <AccordionGroup>

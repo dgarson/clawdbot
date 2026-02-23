@@ -1,3 +1,5 @@
+import { watch as watchFile, type FSWatcher } from "node:fs";
+import { resolve } from "node:path";
 import {
   type RuntimeExecRequest,
   type RuntimeExecResponse,
@@ -27,6 +29,9 @@ export interface LocalSandboxOptions {
   timeoutMs?: number;
   env?: Record<string, string>;
   mounts?: MountPoint[];
+  watch?: boolean;
+  watchPaths?: string[];
+  watchDebounceMs?: number;
 }
 
 export interface LocalSandboxRuntime {
@@ -39,9 +44,25 @@ export interface LocalSandboxRuntime {
   streamEvents(handler: (event: SandboxEvent) => void): () => void;
 }
 
+type WatchControl = {
+  enabled: boolean;
+  paths: string[];
+  debounceMs: number;
+};
+
+const DEFAULT_HOT_RELOAD_OPTIONS: Pick<LocalSandboxOptions, "watch" | "watchDebounceMs"> = {
+  watch: false,
+  watchDebounceMs: 120,
+};
+
 const defaultOptions = (
   input: LocalSandboxOptions,
-): Required<Pick<LocalSandboxOptions, "command" | "mode" | "timeoutMs" | "env" | "mounts">> => {
+): Required<
+  Pick<
+    LocalSandboxOptions,
+    "command" | "mode" | "timeoutMs" | "env" | "mounts" | "watch" | "watchDebounceMs"
+  >
+> => {
   const command = input.command?.trim() || "openclaw-runtime";
   return {
     command,
@@ -49,7 +70,20 @@ const defaultOptions = (
     timeoutMs: input.timeoutMs ?? 5_000,
     env: { ...input.env },
     mounts: input.mounts ?? [],
+    watch: input.watch ?? DEFAULT_HOT_RELOAD_OPTIONS.watch,
+    watchDebounceMs: input.watchDebounceMs ?? DEFAULT_HOT_RELOAD_OPTIONS.watchDebounceMs,
   };
+};
+
+const shouldIgnoreWatchFilename = (filename: string): boolean => {
+  const normalized = filename.toLowerCase().replaceAll("\\", "/");
+
+  return (
+    normalized.includes("/.git/") ||
+    normalized.startsWith(".git") ||
+    normalized.includes("/node_modules/") ||
+    normalized.startsWith(".openclaw")
+  );
 };
 
 export const createLocalSandbox = (input: LocalSandboxOptions): LocalSandboxRuntime => {
@@ -58,6 +92,12 @@ export const createLocalSandbox = (input: LocalSandboxOptions): LocalSandboxRunt
   }
 
   const resolved = defaultOptions(input);
+  const watchConfig: WatchControl = {
+    enabled: resolved.watch,
+    debounceMs: resolved.watchDebounceMs,
+    paths: input.watchPaths ?? ["."],
+  };
+
   const rootDir = normalizeWorkspaceRoot(input.rootDir);
   const status: RuntimeStatus = {
     state: "idle",
@@ -73,7 +113,12 @@ export const createLocalSandbox = (input: LocalSandboxOptions): LocalSandboxRunt
     mode: resolved.mode,
     env: resolved.env,
   } as ProcessManagerOptions);
+
+  const watchers = new Set<FSWatcher>();
   const listeners = new Set<(event: SandboxEvent) => void>();
+  let watchTimer: ReturnType<typeof setTimeout> | undefined;
+  let isReloading = false;
+
   const emit = (event: SandboxEvent): void => {
     for (const listener of listeners.values()) {
       listener(event);
@@ -84,9 +129,12 @@ export const createLocalSandbox = (input: LocalSandboxOptions): LocalSandboxRunt
     status.state = nextState;
     if (nextState === "ready") {
       status.readyAt = new Date().toISOString();
+      status.runtime = { ...status.runtime };
     }
+
     if (nextState === "idle") {
       status.stoppedAt = new Date().toISOString();
+      status.runtime = { ...status.runtime, pid: undefined };
     }
   };
 
@@ -124,35 +172,113 @@ export const createLocalSandbox = (input: LocalSandboxOptions): LocalSandboxRunt
     }
   };
 
-  const setRuntimeState = (updater: (runtimeState: State) => State): void => {
-    transition(updater(status.state));
+  const closeWatchers = (): void => {
+    for (const watcher of watchers.values()) {
+      watcher.close();
+    }
+    watchers.clear();
+
+    if (watchTimer !== undefined) {
+      clearTimeout(watchTimer);
+      watchTimer = undefined;
+    }
+  };
+
+  const stopWatchers = (): void => {
+    closeWatchers();
+  };
+
+  const startWatchers = (): void => {
+    if (!watchConfig.enabled || watchers.size > 0 || status.state !== "ready") {
+      return;
+    }
+
+    for (const rawPath of watchConfig.paths) {
+      const absolutePath = resolve(rootDir, rawPath);
+      try {
+        const watcher = watchFile(absolutePath, { recursive: true }, (eventType, filename) => {
+          const filenameText = filename ? filename.toString() : "";
+          if (filenameText && shouldIgnoreWatchFilename(filenameText)) {
+            return;
+          }
+
+          if (watchTimer !== undefined) {
+            clearTimeout(watchTimer);
+          }
+
+          watchTimer = setTimeout(() => {
+            void reloadRuntime();
+          }, watchConfig.debounceMs);
+
+          emit(buildEvent("busy", `${eventType} changed ${filenameText || "<unknown>"}`));
+        });
+
+        watchers.add(watcher);
+      } catch {
+        // Ignore watch failures on unsupported filesystems.
+      }
+    }
+  };
+
+  const stopInternal = async ({
+    force,
+    keepWatchers,
+  }: {
+    force?: boolean;
+    keepWatchers?: boolean;
+  }): Promise<void> => {
+    if (status.state === "idle") {
+      return;
+    }
+
+    transition("terminating");
+    await processor.stop(force);
+    transition("idle");
+    emit(buildEvent("stopped", "sandbox stopped"));
+
+    if (!keepWatchers) {
+      stopWatchers();
+    }
+  };
+
+  const reloadRuntime = async (): Promise<void> => {
+    if (!watchConfig.enabled || isReloading || status.state !== "ready") {
+      return;
+    }
+
+    isReloading = true;
+    try {
+      await stopInternal({ force: true, keepWatchers: true });
+      await startInternal();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to reload sandbox";
+      setTerminalError(message);
+      emit(buildEvent("error", message));
+      throw error;
+    } finally {
+      isReloading = false;
+    }
+  };
+
+  const startInternal = async (): Promise<void> => {
+    if (status.state === "ready" || status.state === "starting") {
+      return;
+    }
+
+    await withState("starting", async () => {
+      await processor.start();
+      processor.status(status);
+      startWatchers();
+    });
   };
 
   const runtime: LocalSandboxRuntime = {
     start: async () => {
-      if (status.state === "ready") {
-        return;
-      }
-
-      if (status.state === "starting") {
-        return;
-      }
-
-      await withState("starting", async () => {
-        await processor.start();
-        processor.status(status);
-      });
+      await startInternal();
     },
 
     stop: async ({ force } = {}) => {
-      if (status.state === "idle") {
-        return;
-      }
-
-      transition("terminating");
-      await processor.stop(force);
-      setRuntimeState(() => "idle");
-      emit(buildEvent("stopped", "sandbox stopped"));
+      await stopInternal({ force, keepWatchers: false });
     },
 
     status: async () => {

@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SandboxUnavailableError } from "@openclaw/sdk";
@@ -8,6 +8,12 @@ import { isWorkspaceReadable } from "./workspace.js";
 
 const createWorkspace = async (): Promise<string> => {
   return mkdtemp(join(tmpdir(), "openclaw-sandbox-"));
+};
+
+const waitFor = (ms: number): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 };
 
 describe("Local sandbox runtime", () => {
@@ -72,6 +78,33 @@ describe("Local sandbox runtime", () => {
     expect(events).toContain("idle");
     expect(events).toContain("stopped");
 
+    unsubscribe();
+  });
+
+  it("reloads automatically when watched files change", async () => {
+    const events: string[] = [];
+    const runtime = createLocalSandbox({
+      rootDir: baseDir,
+      command: "node",
+      watch: true,
+      watchDebounceMs: 25,
+      watchPaths: [baseDir],
+    });
+
+    const unsubscribe = runtime.streamEvents((event) => {
+      events.push(event.kind);
+    });
+
+    await runtime.start();
+    await writeFile(join(baseDir, "agent.ts"), "export const hello = () => 'world';");
+    await waitFor(120);
+
+    const afterReload = await runtime.status();
+    expect(afterReload.state).toBe("ready");
+    expect(events).toContain("started");
+    expect(events.filter((event) => event === "stopped").length).toBeGreaterThanOrEqual(1);
+
+    await runtime.stop();
     unsubscribe();
   });
 
