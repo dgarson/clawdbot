@@ -78,6 +78,19 @@ const isoDate = z
     return !Number.isNaN(parsed);
   }, "must be ISO-like date string");
 
+export const ReplayEventInputSchema = z.object({
+  category: ReplayEventCategorySchema,
+  type: z.string().min(1),
+  correlationId: z.string().trim().min(1).optional(),
+  durationMs: z.number().nonnegative().int().optional(),
+  data: z.record(z.string(), z.unknown()),
+});
+
+export const ReplayEventSchema = ReplayEventInputSchema.extend({
+  seq: z.number().int().nonnegative(),
+  ts: isoDate,
+});
+
 export const ReplayManifestStatsSchema = z.object({
   totalEvents: z.number().int().nonnegative(),
   eventsByCategory: z.record(ReplayEventCategorySchema, z.number().nonnegative().int()),
@@ -101,7 +114,7 @@ export const ReplayManifestSchema = z.object({
     categories: z
       .array(ReplayEventCategorySchema)
       .min(1)
-      .transform((categories) => [...new Set(categories)] as ReplayEventCategory[])
+      .transform((categories) => [...new Set(categories)].toSorted())
       .readonly(),
     redacted: z.boolean(),
   }),
@@ -154,4 +167,66 @@ export function parseReplayManifestJSON(raw: string): ReplayManifest {
 
 export function serializeReplayManifest(manifest: ReplayManifest): string {
   return JSON.stringify(manifest);
+}
+
+export function parseReplayEvent(raw: unknown): ReplayEvent {
+  const result = ReplayEventSchema.safeParse(raw);
+  if (!result.success) {
+    throw new Error(`Invalid replay event: ${formatValidationIssues(result.error.issues)}`);
+  }
+  return result.data;
+}
+
+export function parseReplayEventJSON(raw: string): ReplayEvent {
+  try {
+    return parseReplayEvent(JSON.parse(raw));
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid replay event JSON: ${error.message}`, { cause: error });
+    }
+    throw error;
+  }
+}
+
+export function parseReplayEventJSONL(raw: string): ReplayEvent[] {
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  const parsed: ReplayEvent[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) {
+      continue;
+    }
+
+    const lineNo = i + 1;
+    let parsedLine: unknown;
+    try {
+      parsedLine = JSON.parse(line);
+    } catch (error) {
+      throw new Error(`Invalid replay event JSON on line ${lineNo}: ${(error as Error).message}`, {
+        cause: error,
+      });
+    }
+
+    try {
+      parsed.push(parseReplayEvent(parsedLine));
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Invalid replay event on line ${lineNo}: ${error.message}`, {
+          cause: error,
+        });
+      }
+      throw error;
+    }
+  }
+
+  return parsed;
+}
+
+export function serializeReplayEvent(event: ReplayEvent): string {
+  return JSON.stringify(event);
 }
