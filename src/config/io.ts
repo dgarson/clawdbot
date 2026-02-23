@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import JSON5 from "json5";
+import { ensureOwnerDisplaySecret } from "../agents/owner-display.js";
 import { loadDotEnv } from "../infra/dotenv.js";
 import { normalizeSafeBinProfileFixtures } from "../infra/exec-safe-bin-policy.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
@@ -115,6 +116,11 @@ export type ConfigWriteOptions = {
    * same config file path that produced the snapshot.
    */
   expectedConfigPath?: string;
+  /**
+   * Paths that must be explicitly removed from the persisted file payload,
+   * even if schema/default normalization reintroduces them.
+   */
+  unsetPaths?: string[][];
 };
 
 export type ReadConfigFileSnapshotForWriteResult = {
@@ -1284,5 +1290,6 @@ export async function writeConfigFile(
     options.expectedConfigPath === undefined || options.expectedConfigPath === io.configPath;
   await io.writeConfigFile(cfg, {
     envSnapshotForRestore: sameConfigPath ? options.envSnapshotForRestore : undefined,
+    unsetPaths: options.unsetPaths,
   });
 }
