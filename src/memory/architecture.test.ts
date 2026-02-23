@@ -234,6 +234,79 @@ describe("Memory architecture scope isolation", () => {
     expect(remaining).toHaveLength(1);
     expect(remaining[0]?.metadata.scopeLevel).toBe("project");
   });
+
+  it("keeps session deletion constrained by parent scope when provided", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+    });
+
+    await service.store("session memory in proj-1", {
+      domain: "session_summary",
+      sourceId: "session-a",
+      scope: {
+        session: "sess-1",
+        project: "proj-1",
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    await service.store("session memory in proj-2", {
+      domain: "session_summary",
+      sourceId: "session-b",
+      scope: {
+        session: "sess-1",
+        project: "proj-2",
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    const removed = await service.deleteByScope({ session: "sess-1", project: "proj-1" });
+    expect(removed).toBe(1);
+
+    const remaining = await service.retrieve("session memory", undefined, 10);
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.metadata.scope?.project).toBe("proj-2");
+  });
+
+  it("keeps project deletion constrained by role/org when provided", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+    });
+
+    await service.store("project memory in reliability", {
+      domain: "system_fact",
+      sourceId: "project-a",
+      scope: {
+        project: "proj-1",
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    await service.store("project memory in platform", {
+      domain: "system_fact",
+      sourceId: "project-b",
+      scope: {
+        project: "proj-1",
+        role: "platform",
+        org: "openclaw",
+      },
+    });
+
+    const removed = await service.deleteByScope(
+      { project: "proj-1", role: "reliability", org: "openclaw" },
+      { cascade: true },
+    );
+    expect(removed).toBe(1);
+
+    const remaining = await service.retrieve("project memory", undefined, 10);
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.metadata.scope?.role).toBe("platform");
+  });
 });
 
 describe("Memory architecture governance", () => {

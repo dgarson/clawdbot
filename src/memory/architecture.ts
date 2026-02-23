@@ -574,11 +574,29 @@ function shouldDeleteNodeByScope(
   const nodeLevel = node.metadata.scopeLevel ?? inferScopeLevel(scope);
 
   if (targetLevel === "session") {
-    return requestedScope.session !== undefined && scope.session === requestedScope.session;
+    if (requestedScope.session === undefined || scope.session !== requestedScope.session) {
+      return false;
+    }
+    if (requestedScope.project !== undefined && scope.project !== requestedScope.project) {
+      return false;
+    }
+    if (requestedScope.role !== undefined && scope.role !== requestedScope.role) {
+      return false;
+    }
+    if (requestedScope.org !== undefined && scope.org !== requestedScope.org) {
+      return false;
+    }
+    return true;
   }
 
   if (targetLevel === "project") {
     if (requestedScope.project === undefined || scope.project !== requestedScope.project) {
+      return false;
+    }
+    if (requestedScope.role !== undefined && scope.role !== requestedScope.role) {
+      return false;
+    }
+    if (requestedScope.org !== undefined && scope.org !== requestedScope.org) {
       return false;
     }
     if (cascade) {
