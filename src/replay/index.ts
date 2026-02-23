@@ -17,6 +17,10 @@ export {
   type ReplayScenarioResult,
 } from "./runner.js";
 export {
+  REPLAY_EVENT_CATEGORIES,
+  ReplayEventCategorySchema,
+  ReplayEventInputSchema,
+  ReplayEventSchema,
   REPLAY_SCHEMA_VERSION,
   type ReplayConstraintViolation,
   type ReplayConstraintCheck,
@@ -27,4 +31,12 @@ export {
   type ReplayManifest,
   type ReplaySessionMetadata,
   type ReplayManifestStats,
+  parseReplayManifest,
+  parseReplayManifestJSON,
+  ReplayManifestSchema,
+  parseReplayEvent,
+  parseReplayEventJSON,
+  parseReplayEventJSONL,
+  serializeReplayEvent,
+  serializeReplayManifest,
 } from "./types.js";
