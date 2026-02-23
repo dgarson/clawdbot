@@ -162,6 +162,12 @@ export const AgentDefaultsSchema = z
             "Maximum number of active children a single agent session can spawn (default: 5).",
           ),
         archiveAfterMinutes: z.number().int().positive().optional(),
+        timeoutSeconds: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Default timeout in seconds for spawned sub-agents. 0 or omitted = unlimited."),
         model: AgentModelSchema.optional(),
         thinking: z.string().optional(),
       })
