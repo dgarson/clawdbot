@@ -23,8 +23,9 @@ type AnyAgentTool = AgentTool;
 type UnknownRecord = Record<string, unknown>;
 
 type ToolCompatibilityOptions = {
-  provider: string;
+  provider?: string;
   model?: string;
+  sessionKey?: string;
 };
 
 type ToolExecuteArgsCurrent = [
@@ -149,8 +150,11 @@ export function toToolDefinitions(
           typeof toolCallId === "string" ? toolCallId : "",
         );
         if (resolvedToolCallId !== toolCallId) {
+          const sessionHint = compatibility?.sessionKey
+            ? ` session=${compatibility.sessionKey}`
+            : "";
           logWarn(
-            `tools: duplicate/mutated toolCallId tool=${name} id=${String(toolCallId)} normalized=${resolvedToolCallId}`,
+            `tools: duplicate/mutated toolCallId tool=${name} id=${String(toolCallId)} normalized=${resolvedToolCallId}${sessionHint}`,
           );
         }
 

@@ -103,4 +103,6 @@ export type RunEmbeddedPiAgentParams = {
   enforceFinalTag?: boolean;
   /** Agent runtime to use. Defaults to 'pi'. Use 'claude-sdk' to run via @anthropic-ai/claude-agent-sdk. */
   runtime?: "pi" | "claude-sdk";
+  /** Optional trigger label for diagnostic logging (e.g. "heartbeat"). */
+  trigger?: string;
 };

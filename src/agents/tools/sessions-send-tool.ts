@@ -155,6 +155,7 @@ export function createSessionsSendTool(opts?: {
             runId: crypto.randomUUID(),
             status: "error",
             error: msg || `No session found with label: ${labelParam}`,
+            requester: effectiveRequesterKey,
           });
         }
 
@@ -170,6 +171,7 @@ export function createSessionsSendTool(opts?: {
             runId: crypto.randomUUID(),
             status: "error",
             error: `No session found with label: ${labelParam}`,
+            requester: effectiveRequesterKey,
           });
         }
         sessionKey = resolvedKey;

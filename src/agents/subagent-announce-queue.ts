@@ -177,7 +177,11 @@ function scheduleAnnounceDrain(key: string) {
     } catch (err) {
       // Keep items in queue and retry after debounce; avoid hot-loop retries.
       queue.lastEnqueuedAt = Date.now();
-      defaultRuntime.error?.(`announce queue drain failed for ${key}: ${String(err)}`);
+      const pendingItems = queue.items.length;
+      const firstSessionKey = queue.items[0]?.sessionKey ?? "unknown";
+      defaultRuntime.error?.(
+        `announce queue drain failed for ${key}: ${String(err)} (pendingItems=${pendingItems} firstSessionKey=${firstSessionKey})`,
+      );
     } finally {
       queue.draining = false;
       if (queue.items.length === 0 && queue.droppedCount === 0) {
