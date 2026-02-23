@@ -78,6 +78,20 @@ describe("replay recorder", () => {
     expect(recorder.finalize().stats.totalEvents).toBe(0);
   });
 
+  it("normalizes manifest categories in deterministic order", () => {
+    recorder = new InMemoryReplayRecorder({
+      replayId: "replay-categories",
+      sessionId: "session-categories",
+      agentId: "agent-1",
+      categories: ["tool", "llm", "tool", "message"],
+    });
+
+    recorder.emit({ category: "tool", type: "tool.request", data: { name: "search" } });
+
+    const manifest = recorder.finalize();
+    expect(manifest.recording.categories).toEqual(["llm", "message", "tool"]);
+  });
+
   it("detects sequence mismatches as deterministic constraint violations", () => {
     const events: ReadonlyArray<{
       seq: number;

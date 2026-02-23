@@ -10,6 +10,16 @@ import {
   type ReplayManifestStats,
 } from "./types.js";
 
+const DEFAULT_REPLAY_CATEGORIES: ReplayEventCategory[] = [
+  "llm",
+  "tool",
+  "message",
+  "file",
+  "state",
+  "system",
+  "user",
+];
+
 type ReplayEmitter = (event: ReplayEventInput) => void;
 
 export interface ReplayRecorderOptions {
@@ -149,15 +159,7 @@ export class InMemoryReplayRecorder implements ReplayRecorder {
         architecture: process.arch,
       },
       recording: {
-        categories: this.#options.categories ?? [
-          "llm",
-          "tool",
-          "message",
-          "file",
-          "state",
-          "system",
-          "user",
-        ],
+        categories: [...new Set(this.#options.categories ?? DEFAULT_REPLAY_CATEGORIES)].toSorted(),
         redacted: this.#options.redacted,
       },
       stats,

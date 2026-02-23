@@ -19,6 +19,8 @@ export {
 export {
   REPLAY_EVENT_CATEGORIES,
   ReplayEventCategorySchema,
+  ReplayEventInputSchema,
+  ReplayEventSchema,
   REPLAY_SCHEMA_VERSION,
   type ReplayConstraintViolation,
   type ReplayConstraintCheck,
@@ -32,5 +34,9 @@ export {
   parseReplayManifest,
   parseReplayManifestJSON,
   ReplayManifestSchema,
+  parseReplayEvent,
+  parseReplayEventJSON,
+  parseReplayEventJSONL,
+  serializeReplayEvent,
   serializeReplayManifest,
 } from "./types.js";
