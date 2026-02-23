@@ -86,7 +86,8 @@ function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   };
 }
 
-export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
+export function toToolDefinitions(tools: AnyAgentTool[], sessionKey?: string): ToolDefinition[] {
+  const sessionPrefix = sessionKey ? `[${sessionKey}] ` : "";
   return tools.map((tool) => {
     const name = tool.name || "tool";
     const normalizedName = normalizeToolName(name);
@@ -130,7 +131,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
               );
             } catch (hookErr) {
               logDebug(
-                `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
+                `${sessionPrefix}after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
               );
             }
           }
@@ -152,9 +153,9 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
           }
           const described = describeToolExecutionError(err);
           if (described.stack && described.stack !== described.message) {
-            logDebug(`tools: ${normalizedName} failed stack:\n${described.stack}`);
+            logDebug(`${sessionPrefix}tools: ${normalizedName} failed stack:\n${described.stack}`);
           }
-          logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          logError(`${sessionPrefix}[tools] ${normalizedName} failed: ${described.message}`);
 
           const errorResult = jsonResult({
             status: "error",

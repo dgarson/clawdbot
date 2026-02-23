@@ -411,7 +411,9 @@ export async function handleToolExecutionEnd(
         sessionKey: undefined,
       })
       .catch((err) => {
-        ctx.log.warn(`after_tool_call hook failed: tool=${toolName} error=${String(err)}`);
+        ctx.log.warn(
+          `[${ctx.params.sessionKey ?? "?"}] after_tool_call hook failed: tool=${toolName} error=${String(err)}`,
+        );
       });
   }
 }
