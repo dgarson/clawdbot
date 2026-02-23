@@ -11,6 +11,8 @@ import type {
   QueryFilters,
   ReleaseInput,
   StatusInput,
+  WorkItemPriority,
+  WorkItemStatus,
 } from "./src/types.js";
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -63,6 +65,7 @@ export default function register(api: OpenClawPluginApi) {
     enabled?: boolean;
     dbPath?: string;
     staleThresholdHours?: number;
+    maxConcurrentPerSession?: number;
   };
 
   if (config.enabled === false) {
@@ -76,6 +79,25 @@ export default function register(api: OpenClawPluginApi) {
   const db = new WorkqDatabase(dbPath);
   registerWorkqTools(api, db, staleHours);
   registerWorkqCli(api, db, staleHours);
+
+  // Auto-release any active workq items when an agent session ends without finishing them.
+  // This is the recovery path for stuck or crashed sessions.
+  api.on("agent_end", async (_event, ctx) => {
+    const sessionKey = ctx.sessionKey;
+    if (!sessionKey) {
+      return;
+    }
+    const result = db.autoReleaseBySession({
+      sessionKey,
+      actorId: "system:agent_end_hook",
+      reason: "auto-released: session ended without workq_done or workq_release",
+    });
+    if (result.released > 0) {
+      api.logger.info(
+        `[workq] auto-released ${result.released} item(s) for session ${sessionKey}: ${result.issueRefs.join(", ")}`,
+      );
+    }
+  });
 
   api.registerGatewayMethod("workq.claim", async ({ params, respond }) => {
     try {
@@ -119,8 +141,11 @@ export default function register(api: OpenClawPluginApi) {
       const payload: QueryFilters = {
         squad: asString(input.squad),
         agentId: asString(input.agent_id),
-        status: asStringOrList(input.status),
-        priority: asStringOrList(input.priority),
+        status: asStringOrList(input.status) as WorkItemStatus | WorkItemStatus[] | undefined,
+        priority: asStringOrList(input.priority) as
+          | WorkItemPriority
+          | WorkItemPriority[]
+          | undefined,
         scope: asString(input.scope),
         issueRef: asString(input.issue_ref),
         activeOnly: asBoolean(input.active_only),

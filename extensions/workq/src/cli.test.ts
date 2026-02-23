@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { registerWorkqCli } from "./cli.js";
-import type { WorkItem } from "./types.js";
+import type { FilesResult, WorkItem } from "./types.js";
 
 function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
   return {
@@ -9,6 +9,7 @@ function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
     issueRef: "acme/repo#1",
     title: "Example task",
     agentId: "agent-1",
+    sessionKey: null,
     squad: "core",
     status: "claimed",
     branch: null,
@@ -38,7 +39,7 @@ function createDbMock() {
       to: "blocked",
     })),
     query: vi.fn(() => ({ items: [], total: 0 })),
-    files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+    files: vi.fn((): FilesResult => ({ mode: "check", conflicts: [], hasConflicts: false })),
     log: vi.fn(() => ({ status: "logged", issueRef: "acme/repo#1", logId: 1 })),
     done: vi.fn(() => ({
       status: "done",
@@ -47,6 +48,7 @@ function createDbMock() {
     })),
     get: vi.fn(() => null),
     getLog: vi.fn(() => []),
+    autoReleaseBySession: vi.fn(() => ({ released: 0, issueRefs: [] })),
   };
 }
 
@@ -291,7 +293,7 @@ describe("registerWorkqCli", () => {
       files: ["src/cli.ts", "src/types.ts"],
       added: ["src/types.ts"],
       removed: [],
-    });
+    } as FilesResult);
 
     await run(set.program, [
       "workq",

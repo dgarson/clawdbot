@@ -220,6 +220,17 @@ export function registerWorkqCli(
               return;
             }
 
+            if (result.status === "limit_exceeded") {
+              console.log(
+                [
+                  `Limit exceeded: session already holds active item ${result.activeIssueRef}`,
+                  `active_count=${result.activeCount} max_allowed=${result.maxAllowed}`,
+                  "Release or complete your current item before claiming a new one.",
+                ].join("\n"),
+              );
+              return;
+            }
+
             console.log(
               [
                 `Conflict: ${result.issueRef} is owned by ${result.claimedBy}`,

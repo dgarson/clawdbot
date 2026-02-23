@@ -1,5 +1,9 @@
 import { Type } from "@sinclair/typebox";
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import type {
+  OpenClawPluginApi,
+  OpenClawPluginToolContext,
+  OpenClawPluginToolFactory,
+} from "openclaw/plugin-sdk";
 import { exportWorkqState } from "./export.js";
 import { getValidTransitions } from "./state-machine.js";
 import {
@@ -41,9 +45,8 @@ const STATUS_SCHEMA = Type.Union([
   Type.Literal("dropped"),
 ]);
 
-interface ToolContextLike {
-  agentId?: string | null;
-}
+// Alias to the SDK context type; the local name preserves internal readability.
+type ToolContextLike = OpenClawPluginToolContext;
 
 interface ScopeOverlapWarning {
   issue_ref: string;
@@ -64,13 +67,15 @@ export function registerWorkqTools(
   const staleHours = Math.max(1, Math.floor(staleThresholdHours || 24));
 
   api.registerTool(
-    (ctx: ToolContextLike) => {
+    ((ctx: ToolContextLike) => {
       const boundAgentId = normalizeText(ctx?.agentId) ?? null;
+      const boundSessionKey = normalizeText(ctx?.sessionKey) ?? null;
 
       return [
         {
           name: "workq_claim",
-          description: "Claim a work item for the current agent.",
+          description:
+            "Claim a work item for the current agent session. Each agent session may hold at most one active work item at a time — you must call workq_release or workq_done before claiming a new item. If you already hold an active item this call returns status=limit_exceeded with the active_issue_ref. You must always release or complete your claimed item before your session ends.",
           parameters: Type.Object(
             {
               issue_ref: Type.String({
@@ -97,6 +102,7 @@ export function registerWorkqTools(
               const result = db.claim({
                 issueRef,
                 agentId,
+                sessionKey: boundSessionKey ?? undefined,
                 title: optionalString(params, "title") ?? undefined,
                 squad: optionalString(params, "squad") ?? undefined,
                 files: optionalStringArray(params, "files") ?? undefined,
@@ -113,6 +119,17 @@ export function registerWorkqTools(
                 reopen: optionalBoolean(params, "reopen"),
               });
 
+              if (result.status === "limit_exceeded") {
+                return jsonResult({
+                  status: "limit_exceeded",
+                  active_issue_ref: result.activeIssueRef,
+                  session_key: result.sessionKey,
+                  active_count: result.activeCount,
+                  max_allowed: result.maxAllowed,
+                  message: `You already hold an active work item (${result.activeIssueRef}). Call workq_release or workq_done before claiming a new item.`,
+                });
+              }
+
               if (result.status === "conflict") {
                 return jsonResult({
                   status: "conflict",
@@ -123,22 +140,28 @@ export function registerWorkqTools(
                 });
               }
 
-              const warnings = collectClaimWarnings(db, result.item, agentId, staleHours);
+              // result is now claimed | already_yours — both carry item
+              if (result.status === "already_yours" || result.status === "claimed") {
+                const item = result.item;
+                const warnings = collectClaimWarnings(db, item, agentId, staleHours);
 
-              if (result.status === "already_yours") {
+                if (result.status === "already_yours") {
+                  return jsonResult({
+                    status: "already_yours",
+                    issue_ref: item.issueRef,
+                    ...(warnings ? { warnings } : {}),
+                  });
+                }
+
                 return jsonResult({
-                  status: "already_yours",
-                  issue_ref: result.item.issueRef,
+                  status: "claimed",
+                  issue_ref: item.issueRef,
+                  agent_id: item.agentId,
                   ...(warnings ? { warnings } : {}),
                 });
               }
 
-              return jsonResult({
-                status: "claimed",
-                issue_ref: result.item.issueRef,
-                agent_id: result.item.agentId,
-                ...(warnings ? { warnings } : {}),
-              });
+              return jsonResult(errorPayload(new Error(`Unexpected claim result status`)));
             } catch (error) {
               return jsonResult(errorPayload(error));
             }
@@ -473,7 +496,7 @@ export function registerWorkqTools(
           },
         },
       ];
-    },
+    }) as OpenClawPluginToolFactory,
     {
       optional: true,
       names: [...TOOL_NAMES],
