@@ -15,6 +15,35 @@ function isKnownChannel(value: string): boolean {
   return getMessageChannels().includes(value as MessageChannelId);
 }
 
+function formatChannelSelectionHint(): string {
+  const known = getMessageChannels();
+  const sample = known.slice(0, 6);
+  return sample.length > 0 ? ` Use provider ids like: ${sample.join(", ")}.` : "";
+}
+
+function looksLikeDestinationHint(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  return (
+    /^[@#]/.test(trimmed) ||
+    /^(channel|group|user|conversation|chat|thread):/i.test(trimmed) ||
+    /^\+?\d{6,}$/.test(trimmed) ||
+    trimmed.includes("@thread") ||
+    trimmed.includes("-")
+  );
+}
+
+function unknownChannelMessage(params: { input?: string | null; normalized: string }): string {
+  const input = params.input?.trim() || params.normalized;
+  const base = `Unknown channel provider: "${input}".`;
+  const targetHint = looksLikeDestinationHint(input)
+    ? " This looks like a destination name/ID. Put it in `target` (or `to`/`channelId` for legacy paths), and set `channel` to the provider id."
+    : "";
+  return `${base}${targetHint}${formatChannelSelectionHint()}`;
+}
+
 function isAccountEnabled(account: unknown): boolean {
   if (!account || typeof account !== "object") {
     return true;
@@ -68,10 +97,13 @@ export async function resolveMessageChannelSelection(params: {
   cfg: OpenClawConfig;
   channel?: string | null;
 }): Promise<{ channel: MessageChannelId; configured: MessageChannelId[] }> {
-  const normalized = normalizeMessageChannel(params.channel);
+  const channelInput = params.channel?.trim() ?? null;
+  const normalized = normalizeMessageChannel(channelInput);
   if (normalized) {
     if (!isKnownChannel(normalized)) {
-      throw new Error(`Unknown channel: ${String(normalized)}`);
+      throw new Error(
+        unknownChannelMessage({ input: channelInput, normalized: String(normalized) }),
+      );
     }
     return {
       channel: normalized as MessageChannelId,

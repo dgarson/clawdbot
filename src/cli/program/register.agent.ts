@@ -1,6 +1,6 @@
 import type { Command } from "commander";
-import { DEFAULT_CHAT_CHANNEL } from "../../channels/registry.js";
 import { agentCliCommand } from "../../commands/agent-via-gateway.js";
+import { agentExplainSelectionCommand } from "../../commands/agent/explain-selection.js";
 import {
   agentsAddCommand,
   agentsDeleteCommand,
@@ -18,10 +18,10 @@ import { formatHelpExamples } from "../help-format.js";
 import { collectOption } from "./helpers.js";
 
 export function registerAgentCommands(program: Command, args: { agentChannelOptions: string }) {
-  program
+  const agent = program
     .command("agent")
     .description("Run an agent turn via the Gateway (use --local for embedded)")
-    .requiredOption("-m, --message <text>", "Message body for the agent")
+    .option("-m, --message <text>", "Message body for the agent")
     .option("-t, --to <number>", "Recipient number in E.164 used to derive the session key")
     .option("--session-id <id>", "Use an explicit session id")
     .option("--agent <id>", "Agent id (overrides routing bindings)")
@@ -29,7 +29,7 @@ export function registerAgentCommands(program: Command, args: { agentChannelOpti
     .option("--verbose <on|off>", "Persist agent verbose level for the session")
     .option(
       "--channel <channel>",
-      `Delivery channel: ${args.agentChannelOptions} (default: ${DEFAULT_CHAT_CHANNEL})`,
+      `Delivery channel: ${args.agentChannelOptions} (omit to use the main session channel)`,
     )
     .option("--reply-to <target>", "Delivery target override (separate from session routing)")
     .option("--reply-channel <channel>", "Delivery channel override (separate from routing)")
@@ -77,6 +77,34 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.openclaw.ai/cli/age
       const deps = createDefaultDeps();
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentCliCommand(opts, defaultRuntime, deps);
+      });
+    });
+
+  agent
+    .command("explain-selection")
+    .description("Explain how provider/model selection resolves for the next run")
+    .option("-t, --to <number>", "Recipient number in E.164 used to derive the session key")
+    .option("--session-id <id>", "Use an explicit session id")
+    .option("--session-key <key>", "Use an explicit session key")
+    .option("--agent <id>", "Agent id (overrides routing bindings)")
+    .option("--json", "Output result as JSON", false)
+    .action(async (opts, command) => {
+      const parentJson =
+        typeof (command as { parent?: { opts?: () => { json?: unknown } } }).parent?.opts ===
+        "function"
+          ? Boolean((command as { parent: { opts: () => { json?: unknown } } }).parent.opts().json)
+          : false;
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        await agentExplainSelectionCommand(
+          {
+            to: opts.to as string | undefined,
+            sessionId: opts.sessionId as string | undefined,
+            sessionKey: opts.sessionKey as string | undefined,
+            agent: opts.agent as string | undefined,
+            json: Boolean(opts.json || parentJson),
+          },
+          defaultRuntime,
+        );
       });
     });
 

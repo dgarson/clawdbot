@@ -1,0 +1,273 @@
+{
+  "id": "issue-tracking",
+  "uiHints": {
+    "workstreamId": {
+      "label": "Workstream ID",
+      "help": "Logical backlog key shared across all agents on this machine. When set, all agent instances converge on one shared backlog regardless of repo. Defaults to the GitHub owner/repo pair when both are configured, then the plugin instance ID."
+    },
+    "backend": {
+      "label": "Backend",
+      "help": "Storage backend for ticket data. 'local-md' stores tickets as markdown files (default), 'github' uses GitHub Issues exclusively, 'multi' registers both so agent tools can address either by providerId."
+    },
+    "localDir": {
+      "label": "Local Storage Directory",
+      "help": "Explicit directory for local-md (or sqlite) ticket storage. Overrides the computed shared-state path (~/.openclaw/issue-tracking/<workstream-key>).",
+      "placeholder": "/path/to/my-project/.issues"
+    },
+    "sqliteFile": {
+      "label": "SQLite Database File",
+      "help": "Explicit path for the SQLite ticket database when using the sqlite backend. Defaults to <localDir>/issues.db when localDir is set, otherwise the computed shared-state path.",
+      "placeholder": "/path/to/issues.db",
+      "advanced": true
+    },
+    "defaultProviderId": {
+      "label": "Default Provider ID",
+      "help": "Provider ID used when agent tools omit the providerId argument. Defaults to 'local-md' when that backend is active, otherwise 'github-issues'.",
+      "advanced": true
+    },
+    "githubOwner": {
+      "label": "GitHub Owner",
+      "help": "GitHub organization or user name. Required to enable the GitHub Issues backend."
+    },
+    "githubRepo": {
+      "label": "GitHub Repo",
+      "help": "GitHub repository name (without owner prefix). Required to enable the GitHub Issues backend."
+    },
+    "githubToken": {
+      "label": "GitHub Token",
+      "help": "Personal access token or GitHub App token with repo/issues read+write scope.",
+      "sensitive": true
+    },
+    "githubBaseUrl": {
+      "label": "GitHub API Base URL",
+      "help": "Override for GitHub Enterprise Server. Leave blank to use the public API (https://api.github.com).",
+      "placeholder": "https://github.mycompany.com/api/v3",
+      "advanced": true
+    },
+    "tools.create": {
+      "label": "Enable issue_tracking_create",
+      "help": "Register the ticket-creation agent tool. Enabled by default when the extension is active.",
+      "advanced": true
+    },
+    "tools.query": {
+      "label": "Enable issue_tracking_query",
+      "help": "Register the ticket-query agent tool for text, label, and status filtering.",
+      "advanced": true
+    },
+    "tools.queryDag": {
+      "label": "Enable issue_tracking_query_dag",
+      "help": "Register the dependency DAG query agent tool for traversing blocks/blocked_by relationships.",
+      "advanced": true
+    },
+    "tools.link": {
+      "label": "Enable issue_tracking_link",
+      "help": "Register the ticket relationship-linking agent tool.",
+      "advanced": true
+    },
+    "queryLimit": {
+      "label": "Default Query Limit",
+      "help": "Default maximum number of tickets returned per query when the caller does not specify a limit. Defaults to 100.",
+      "advanced": true
+    },
+    "lock.timeoutMs": {
+      "label": "Lock Timeout (ms)",
+      "help": "Maximum time to wait for a per-ticket file lock before failing. Applies to the local-md backend only. Default: 10000.",
+      "advanced": true
+    },
+    "lock.staleMs": {
+      "label": "Stale Lock Threshold (ms)",
+      "help": "Age at which an uncleaned lock file is considered stale and forcibly removed. Applies to the local-md backend only. Default: 30000.",
+      "advanced": true
+    },
+    "lock.retryMs": {
+      "label": "Lock Retry Interval (ms)",
+      "help": "Polling interval while waiting to acquire a per-ticket file lock. Default: 40.",
+      "advanced": true
+    },
+    "groomer.enabled": {
+      "label": "Enable Groomer",
+      "help": "Run a periodic background groomer to find orphan tickets, propose dependency links, and flag risk/priority concerns as non-destructive comments for human review.",
+      "advanced": true
+    },
+    "groomer.model": {
+      "label": "Groomer Model",
+      "help": "Claude model ID for the background groomer agent. Prefer a lightweight model (e.g. claude-haiku-4-5-20251001).",
+      "advanced": true
+    },
+    "groomer.intervalSec": {
+      "label": "Groomer Interval (sec)",
+      "help": "How frequently the groomer agent runs, in seconds. Minimum 60.",
+      "advanced": true
+    },
+    "reviewers": {
+      "label": "Default Reviewers",
+      "help": "Optional list of reviewer rules automatically evaluated against tickets. Each entry specifies a kind ('agent' for an OpenClaw agent ID, 'model' for a Claude model ID such as claude-sonnet-4-6), an id, and optional triggerOn and filter conditions. A reviewer is assigned only when all specified conditions match — omit triggerOn/filter to match all tickets at all lifecycle points."
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "workstreamId": {
+        "type": "string"
+      },
+      "backend": {
+        "type": "string",
+        "enum": ["local-md", "github", "multi", "sqlite"]
+      },
+      "localDir": {
+        "type": "string"
+      },
+      "sqliteFile": {
+        "type": "string"
+      },
+      "defaultProviderId": {
+        "type": "string"
+      },
+      "githubOwner": {
+        "type": "string"
+      },
+      "githubRepo": {
+        "type": "string"
+      },
+      "githubToken": {
+        "type": "string"
+      },
+      "githubBaseUrl": {
+        "type": "string"
+      },
+      "tools": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "create": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "boolean"
+          },
+          "queryDag": {
+            "type": "boolean"
+          },
+          "link": {
+            "type": "boolean"
+          }
+        }
+      },
+      "queryLimit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10000
+      },
+      "lock": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 60000
+          },
+          "staleMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 300000
+          },
+          "retryMs": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 5000
+          }
+        }
+      },
+      "groomer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "model": {
+            "type": "string"
+          },
+          "intervalSec": {
+            "type": "integer",
+            "minimum": 60
+          }
+        }
+      },
+      "reviewers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["agent", "model"]
+            },
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "triggerOn": {
+              "type": "array",
+              "description": "Lifecycle points that activate this reviewer. 'create' fires when the ticket is first created; any TicketStatus value fires when the ticket transitions into that status. Omit to trigger at every lifecycle point.",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "create",
+                  "backlog",
+                  "ready",
+                  "in_progress",
+                  "blocked",
+                  "in_review",
+                  "done",
+                  "canceled"
+                ]
+              }
+            },
+            "filter": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Scope conditions that must all match for this reviewer to be assigned. Omit to match any ticket.",
+              "properties": {
+                "labels": {
+                  "type": "array",
+                  "description": "Assign only when the ticket carries at least one of these labels (OR semantics).",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "classifications": {
+                  "type": "array",
+                  "description": "Assign only when the ticket matches at least one of these classification dimension/value pairs (OR semantics).",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["dimension", "value"],
+                    "properties": {
+                      "dimension": {
+                        "type": "string",
+                        "enum": ["complexity", "business_domain", "priority", "risk", "custom"]
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

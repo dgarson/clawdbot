@@ -72,9 +72,18 @@ const MemoryQmdLimitsSchema = z
   })
   .strict();
 
+const MemoryQmdMcporterSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    serverName: z.string().optional(),
+    startDaemon: z.boolean().optional(),
+  })
+  .strict();
+
 const MemoryQmdSchema = z
   .object({
     command: z.string().optional(),
+    mcporter: MemoryQmdMcporterSchema.optional(),
     searchMode: z.union([z.literal("query"), z.literal("search"), z.literal("vsearch")]).optional(),
     includeDefaultMemory: z.boolean().optional(),
     paths: z.array(MemoryQmdPathSchema).optional(),
@@ -181,6 +190,7 @@ export const OpenClawSchema = z
           ])
           .optional(),
         file: z.string().optional(),
+        maxFileBytes: z.number().int().positive().optional(),
         consoleLevel: z
           .union([
             z.literal("silent"),
@@ -204,6 +214,15 @@ export const OpenClawSchema = z
       .object({
         channel: z.union([z.literal("stable"), z.literal("beta"), z.literal("dev")]).optional(),
         checkOnStart: z.boolean().optional(),
+        auto: z
+          .object({
+            enabled: z.boolean().optional(),
+            stableDelayHours: z.number().nonnegative().max(168).optional(),
+            stableJitterHours: z.number().nonnegative().max(168).optional(),
+            betaCheckIntervalHours: z.number().positive().max(24).optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
@@ -450,6 +469,7 @@ export const OpenClawSchema = z
           .strict()
           .optional(),
         trustedProxies: z.array(z.string()).optional(),
+        allowRealIpFallback: z.boolean().optional(),
         tools: z
           .object({
             deny: z.array(z.string()).optional(),

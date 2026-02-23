@@ -28,6 +28,8 @@ export type GatewaySessionRow = {
   thinkingLevel?: string;
   verboseLevel?: string;
   reasoningLevel?: string;
+  resolvedThinkingLevel?: string;
+  resolvedVerboseLevel?: string;
   elevatedLevel?: string;
   sendPolicy?: "allow" | "deny";
   inputTokens?: number;

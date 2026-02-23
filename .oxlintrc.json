@@ -23,6 +23,9 @@
     "unicorn/require-post-message-target-origin": "off"
   },
   "ignorePatterns": [
+    "apps/web-next/",
+    "apps/web/next-env.d.ts",
+    "apps/web/src/ui-refs/",
     "assets/",
     "dist/",
     "docs/_layouts/",

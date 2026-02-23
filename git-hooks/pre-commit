@@ -43,7 +43,13 @@ if [ "${#lint_files[@]}" -gt 0 ]; then
 fi
 
 if [ "${#format_files[@]}" -gt 0 ]; then
-  "$RUN_NODE_TOOL" oxfmt --write -- "${format_files[@]}"
+  # oxfmt exits with code 2 when all files match ignorePatterns (e.g. "apps/" is ignored).
+  # Treat that as success — no files needed formatting.
+  oxfmt_rc=0
+  "$RUN_NODE_TOOL" oxfmt --write -- "${format_files[@]}" || oxfmt_rc=$?
+  if [ "$oxfmt_rc" -ne 0 ] && [ "$oxfmt_rc" -ne 2 ]; then
+    exit "$oxfmt_rc"
+  fi
 fi
 
 git add -- "${files[@]}"
