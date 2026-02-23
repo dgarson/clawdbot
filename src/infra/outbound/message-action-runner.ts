@@ -319,6 +319,11 @@ function looksLikeDestinationHint(value: string): boolean {
   );
 }
 
+/** Matches bare Slack channel/user IDs (C/U/W/G/D prefix + 8+ alphanumeric chars). */
+function looksLikeSlackId(value: string): boolean {
+  return /^[CUWGD][A-Z0-9]{8,}$/i.test(value.trim());
+}
+
 async function repairMisplacedChannelTarget(params: {
   cfg: OpenClawConfig;
   action: ChannelMessageActionName;
@@ -337,6 +342,14 @@ async function repairMisplacedChannelTarget(params: {
   }
   const normalizedChannelHint = normalizeMessageChannel(channelHint);
   if (normalizedChannelHint && isDeliverableMessageChannel(normalizedChannelHint)) {
+    return;
+  }
+  // Bare Slack IDs (C/U/W/G/D + 8+ alphanumeric) are a strong signal the agent put
+  // a Slack channel/user ID in the channel (provider) field. Move it to target and
+  // pin the channel to "slack" so the send path can resolve it normally.
+  if (looksLikeSlackId(channelHint)) {
+    params.args.target = channelHint.toUpperCase();
+    params.args.channel = "slack";
     return;
   }
   if (!looksLikeDestinationHint(channelHint)) {

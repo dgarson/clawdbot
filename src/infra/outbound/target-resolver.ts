@@ -143,6 +143,10 @@ function preserveTargetCase(channel: ChannelId, raw: string, normalized: string)
   if (trimmed.startsWith("@")) {
     return `user:${trimmed.slice(1).trim()}`;
   }
+  // Slack IDs (C/U/W/G/D + 8+ alphanumeric) must be uppercase for the API.
+  if (/^[CUWGD][A-Z0-9]{8,}$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
   return trimmed;
 }
 
