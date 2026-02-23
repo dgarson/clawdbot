@@ -41,6 +41,7 @@ import { sanitizeTextContent, extractAssistantText } from "./tools/sessions-help
 const FAST_TEST_MODE = process.env.OPENCLAW_TEST_FAST === "1";
 const FAST_TEST_RETRY_INTERVAL_MS = 8;
 const FAST_TEST_REPLY_CHANGE_WAIT_MS = 20;
+const INTERNAL_HEARTBEAT_SENDER_SENTINEL = "heartbeat";
 
 type ToolResultMessage = {
   role?: unknown;
@@ -481,6 +482,22 @@ async function sendAnnounce(item: AnnounceQueueItem) {
   const requesterDepth = getSubagentDepthFromSessionStore(item.sessionKey);
   const requesterIsSubagent = requesterDepth >= 1;
   const origin = item.origin;
+  
+  // TODO dgarson: validate this logic is alright
+  const resolvedDelivery =
+    requesterIsSubagent || !origin
+      ? { deliver: false as const }
+      : resolveAnnounceDeliveryTarget(origin);
+  if (
+    !requesterIsSubagent &&
+    origin?.channel &&
+    isDeliverableMessageChannel(origin.channel) &&
+    !resolvedDelivery.deliver
+  ) {
+    defaultRuntime.log(
+      `[warn] Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
+    );
+  }
   const threadId =
     origin?.threadId != null && origin.threadId !== "" ? String(origin.threadId) : undefined;
   // Share one announce identity across direct and queued delivery paths so
@@ -506,6 +523,56 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     },
     timeoutMs: 15_000,
   });
+}
+
+function resolveAnnounceDeliveryTarget(origin: DeliveryContext): {
+  deliver: boolean;
+  channel?: string;
+  accountId?: string;
+  to?: string;
+} {
+  if (!origin.channel || !isDeliverableMessageChannel(origin.channel)) {
+    return { deliver: false };
+  }
+  const to = normalizeDeliverableTo(origin.to);
+  const mode = to ? "explicit" : "implicit";
+  const resolvedTarget = resolveOutboundTarget({
+    channel: origin.channel,
+    to,
+    cfg: loadConfig(),
+    accountId: origin.accountId,
+    mode,
+  });
+  if (!resolvedTarget.ok) {
+    return { deliver: false };
+  }
+  return {
+    deliver: true,
+    channel: origin.channel,
+    accountId: origin.accountId,
+    to: resolvedTarget.to,
+  };
+}
+
+function normalizeDeliverableTo(raw: unknown): string | undefined {
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  // Treat malformed Slack-style channel markers as absent targets so normal
+  // fallback target resolution can run (implicit/default-to/session-bound).
+  if (/^channel\s*:?\s*$/i.test(trimmed)) {
+    return undefined;
+  }
+  // Heartbeat internals may use the synthetic sender value "heartbeat" to
+  // represent "no concrete recipient". Never treat it as a real target.
+  if (trimmed.toLowerCase() === INTERNAL_HEARTBEAT_SENDER_SENTINEL) {
+    return undefined;
+  }
+  return trimmed;
 }
 
 function resolveRequesterStoreKey(

@@ -1295,4 +1295,54 @@ describe("initSessionState stale threadId fallback", () => {
     });
     expect(result.sessionEntry.lastThreadId).toBe(99);
   });
+
+  it("does not overwrite lastTo with heartbeat sentinel during synthetic heartbeat runs", async () => {
+    const storePath = await createStorePath("heartbeat-sentinel-preserve-lastto-");
+    const sessionKey = "agent:main:main";
+    await seedSessionStore({
+      storePath,
+      sessionKey,
+      entry: {
+        sessionId: "s1",
+        updatedAt: Date.now(),
+        lastChannel: "slack",
+        lastTo: "channel:C0AAP72R7L5",
+      },
+    });
+    const cfg = { session: { store: storePath } } as OpenClawConfig;
+
+    const result = await initSessionState({
+      ctx: {
+        Body: "Read HEARTBEAT.md",
+        SessionKey: sessionKey,
+        Provider: "heartbeat",
+        To: "heartbeat",
+      },
+      cfg,
+      commandAuthorized: true,
+    });
+
+    expect(result.sessionEntry.lastTo).toBe("channel:C0AAP72R7L5");
+    expect(result.sessionEntry.deliveryContext?.to).toBe("channel:C0AAP72R7L5");
+  });
+
+  it("does not persist heartbeat sentinel when no prior target exists", async () => {
+    const storePath = await createStorePath("heartbeat-sentinel-no-prior-target-");
+    const sessionKey = "agent:main:main";
+    const cfg = { session: { store: storePath } } as OpenClawConfig;
+
+    const result = await initSessionState({
+      ctx: {
+        Body: "Read HEARTBEAT.md",
+        SessionKey: sessionKey,
+        Provider: "heartbeat",
+        To: "heartbeat",
+      },
+      cfg,
+      commandAuthorized: true,
+    });
+
+    expect(result.sessionEntry.lastTo).toBeUndefined();
+    expect(result.sessionEntry.deliveryContext?.to).toBeUndefined();
+  });
 });

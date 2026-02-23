@@ -430,6 +430,7 @@ export async function handleToolExecutionEnd(
   const sanitizedResult = sanitizeToolResult(result);
   const startData = toolStartData.get(toolCallId);
   toolStartData.delete(toolCallId);
+  const durationMs = startData?.startTime != null ? Date.now() - startData.startTime : undefined;
   const callSummary = ctx.state.toolMetaById.get(toolCallId);
   const meta = callSummary?.meta;
   ctx.state.toolMetas.push({ toolName, meta });
@@ -540,7 +541,7 @@ export async function handleToolExecutionEnd(
   });
 
   ctx.log.debug(
-    `embedded run tool end: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId}`,
+    `embedded run tool end: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId}${typeof durationMs === "number" ? ` durationMs=${durationMs}` : ""}`,
   );
 
   if (ctx.params.onToolResult && ctx.shouldEmitToolOutput()) {
@@ -567,7 +568,6 @@ export async function handleToolExecutionEnd(
   // Run after_tool_call plugin hook (fire-and-forget)
   const hookRunnerAfter = ctx.hookRunner ?? getGlobalHookRunner();
   if (hookRunnerAfter?.hasHooks("after_tool_call")) {
-    const durationMs = startData?.startTime != null ? Date.now() - startData.startTime : undefined;
     const toolArgs = startData?.args;
     const hookEvent: PluginHookAfterToolCallEvent = {
       toolName,

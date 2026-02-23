@@ -83,19 +83,170 @@ function scrubAnthropicRefusalMagic(prompt: string): string {
   );
 }
 
-function formatLaneDiagnosticInfo(values: string[] | undefined): string | undefined {
+function truncateLaneDiagnosticSummary(summary: string): string {
+  if (summary.length <= MAX_LANE_DIAG_CHARS) {
+    return summary;
+  }
+  return `${summary.slice(0, MAX_LANE_DIAG_CHARS - 3)}...`;
+}
+
+function formatStatusCounts(statusCounts: Map<string, number>): string {
+  return Array.from(statusCounts.entries())
+    .map(([status, count]) => `${status}:${count}`)
+    .join(",");
+}
+
+function parseLaneInfoEntry(value: string): {
+  status?: string;
+  mode?: string;
+  action?: string;
+  delivery?: string;
+  hasSpawnLikeFields: boolean;
+  hasSendLikeFields: boolean;
+  hasCronLikeFields: boolean;
+} {
+  const segments = value
+    .split("·")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  const fields = new Map<string, string>();
+  for (const segment of segments) {
+    const eqIndex = segment.indexOf("=");
+    if (eqIndex <= 0) {
+      continue;
+    }
+    const key = segment.slice(0, eqIndex).trim();
+    const fieldValue = segment.slice(eqIndex + 1).trim();
+    if (!key || !fieldValue) {
+      continue;
+    }
+    fields.set(key, fieldValue);
+  }
+  return {
+    status: fields.get("status"),
+    mode: fields.get("mode"),
+    action: fields.get("action"),
+    delivery: fields.get("delivery"),
+    hasSpawnLikeFields:
+      fields.has("spawnedSessionId") || fields.has("mode") || fields.has("thread"),
+    hasSendLikeFields:
+      fields.has("targetSession") || fields.has("targetLabel") || fields.has("delivery"),
+    hasCronLikeFields: fields.has("action") || fields.has("job") || fields.has("payload"),
+  };
+}
+
+type LaneDiagAggregate = {
+  label: string;
+  total: number;
+  errors: number;
+  statusCounts: Map<string, number>;
+  lastStatus?: string;
+  lastMode?: string;
+  lastAction?: string;
+  lastDelivery?: string;
+};
+
+function createLaneDiagAggregate(label: string): LaneDiagAggregate {
+  return {
+    label,
+    total: 0,
+    errors: 0,
+    statusCounts: new Map(),
+  };
+}
+
+function inferLaneDiagLabel(parsed: ReturnType<typeof parseLaneInfoEntry>): string {
+  if (parsed.hasCronLikeFields) {
+    return "cron";
+  }
+  if (parsed.hasSendLikeFields) {
+    return "sessions_send";
+  }
+  if (parsed.hasSpawnLikeFields) {
+    return "sessions_spawn";
+  }
+  return "tool";
+}
+
+function formatLaneDiagnosticExtraInfo(values: string[] | undefined): string | undefined {
   if (!Array.isArray(values) || values.length === 0) {
     return undefined;
   }
-  const unique = Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
-  if (unique.length === 0) {
+  const normalized = values.map((value) => value.trim()).filter(Boolean);
+  if (normalized.length === 0) {
     return undefined;
   }
-  const joined = unique.slice(0, MAX_LANE_DIAG_ITEMS).join(" | ");
+  const aggregates = new Map<string, LaneDiagAggregate>();
+  for (const value of normalized) {
+    const parsed = parseLaneInfoEntry(value);
+    const label = inferLaneDiagLabel(parsed);
+    const aggregate = aggregates.get(label) ?? createLaneDiagAggregate(label);
+    aggregate.total += 1;
+    const status = parsed.status;
+    if (status) {
+      aggregate.statusCounts.set(status, (aggregate.statusCounts.get(status) ?? 0) + 1);
+      aggregate.lastStatus = status;
+      if (status === "error") {
+        aggregate.errors += 1;
+      }
+    }
+    if (parsed.mode) {
+      aggregate.lastMode = parsed.mode;
+    }
+    if (parsed.action) {
+      aggregate.lastAction = parsed.action;
+    }
+    if (parsed.delivery) {
+      aggregate.lastDelivery = parsed.delivery;
+    }
+    aggregates.set(label, aggregate);
+  }
+  if (aggregates.size === 0) {
+    return undefined;
+  }
+
+  const summary = Array.from(aggregates.values())
+    .slice(0, MAX_LANE_DIAG_ITEMS)
+    .map((aggregate) => {
+      const parts = [`total=${aggregate.total}`];
+      if (aggregate.statusCounts.size > 0) {
+        parts.push(`status=${formatStatusCounts(aggregate.statusCounts)}`);
+      }
+      if (typeof aggregate.lastStatus === "string") {
+        parts.push(`last=${aggregate.lastStatus}`);
+      }
+      if (typeof aggregate.lastMode === "string") {
+        parts.push(`mode=${aggregate.lastMode}`);
+      }
+      if (typeof aggregate.lastAction === "string") {
+        parts.push(`action=${aggregate.lastAction}`);
+      }
+      if (typeof aggregate.lastDelivery === "string") {
+        parts.push(`delivery=${aggregate.lastDelivery}`);
+      }
+      if (aggregate.errors > 0) {
+        parts.push(`errors=${aggregate.errors}`);
+      }
+      return `${aggregate.label}{${parts.join(",")}}`;
+    })
+    .join(" | ");
+
+  return truncateLaneDiagnosticSummary(summary);
+}
+
+function formatLaneDiagnosticDebugInfo(values: string[] | undefined): string | undefined {
+  if (!Array.isArray(values) || values.length === 0) {
+    return undefined;
+  }
+  const normalized = values.map((value) => value.trim()).filter(Boolean);
+  if (normalized.length === 0) {
+    return undefined;
+  }
+  const joined = normalized.slice(-MAX_LANE_DIAG_ITEMS).join(" | ");
   if (joined.length <= MAX_LANE_DIAG_CHARS) {
     return joined;
   }
-  return `${joined.slice(0, MAX_LANE_DIAG_CHARS - 3)}...`;
+  return `...${joined.slice(joined.length - (MAX_LANE_DIAG_CHARS - 3))}`;
 }
 
 type UsageAccumulator = {
@@ -1119,9 +1270,9 @@ export async function runEmbeddedPiAgent(
             // Emit an explicit timeout error instead of silently completing, so
             // callers do not lose the turn as an orphaned user message.
             if (timedOut && !timedOutDuringCompaction && payloads.length === 0) {
-              const extraInfo = formatLaneDiagnosticInfo(attempt.toolDiagnosticExtraInfos);
+              const extraInfo = formatLaneDiagnosticExtraInfo(attempt.toolDiagnosticExtraInfos);
               const debugInfo = isDiagnosticsEnabled(params.config)
-                ? formatLaneDiagnosticInfo(attempt.toolDiagnosticDebugInfos)
+                ? formatLaneDiagnosticDebugInfo(attempt.toolDiagnosticDebugInfos)
                 : undefined;
               return {
                 payloads: [
@@ -1164,9 +1315,9 @@ export async function runEmbeddedPiAgent(
                 agentDir: params.agentDir,
               });
             }
-            const extraInfo = formatLaneDiagnosticInfo(attempt.toolDiagnosticExtraInfos);
+            const extraInfo = formatLaneDiagnosticExtraInfo(attempt.toolDiagnosticExtraInfos);
             const debugInfo = isDiagnosticsEnabled(params.config)
-              ? formatLaneDiagnosticInfo(attempt.toolDiagnosticDebugInfos)
+              ? formatLaneDiagnosticDebugInfo(attempt.toolDiagnosticDebugInfos)
               : undefined;
             return {
               payloads: payloads.length ? payloads : undefined,

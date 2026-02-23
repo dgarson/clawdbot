@@ -280,6 +280,56 @@ type ResolvedActionContext = {
   resolvedTarget?: ResolvedMessagingTarget;
   abortSignal?: AbortSignal;
 };
+
+function trimField(value: string | null | undefined, max = 80): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  return trimmed.length > max ? `${trimmed.slice(0, max)}...` : trimmed;
+}
+
+function resolveRepairActorLabel(params: {
+  input: RunMessageActionParams;
+  args: Record<string, unknown>;
+}): string {
+  const agentId = trimField(params.input.agentId);
+  if (agentId) {
+    return `actor=agent:${agentId}`;
+  }
+  const sessionKey = trimField(params.input.sessionKey);
+  if (sessionKey) {
+    return `actor=session:${sessionKey}`;
+  }
+  const senderId = trimField(params.input.requesterSenderId);
+  if (senderId) {
+    return `actor=sender:${senderId}`;
+  }
+  const contextProvider = normalizeMessageChannel(params.input.toolContext?.currentChannelProvider);
+  const contextChannelId = trimField(params.input.toolContext?.currentChannelId);
+  if (contextProvider && contextChannelId) {
+    return `actor=context:${contextProvider}:${contextChannelId}`;
+  }
+  if (contextProvider) {
+    return `actor=context:${contextProvider}`;
+  }
+  const explicitProvider = normalizeMessageChannel(
+    typeof params.args.channel === "string" ? params.args.channel : undefined,
+  );
+  if (explicitProvider) {
+    return `actor=provider:${explicitProvider}`;
+  }
+  const clientDisplay = trimField(params.input.gateway?.clientDisplayName);
+  if (clientDisplay) {
+    return `actor=client:${clientDisplay}`;
+  }
+  const clientName = trimField(params.input.gateway?.clientName);
+  if (clientName) {
+    return `actor=client:${clientName}`;
+  }
+  return "actor=system";
+}
+
 function resolveGateway(input: RunMessageActionParams): MessageActionRunnerGateway | undefined {
   if (!input.gateway) {
     return undefined;
@@ -337,6 +387,66 @@ async function repairMisplacedChannelTarget(params: {
   }
   const normalizedChannelHint = normalizeMessageChannel(channelHint);
   if (normalizedChannelHint && isDeliverableMessageChannel(normalizedChannelHint)) {
+    return;
+  }
+  const targetHint = readExplicitTarget(params.args);
+  const normalizedTargetHint = normalizeMessageChannel(targetHint);
+  const isKnownTargetProvider =
+    normalizedTargetHint !== undefined && isDeliverableMessageChannel(normalizedTargetHint);
+  const warnContext = [params.actorLabel, params.modelLabel].filter(Boolean).join(" ");
+
+  // Guarded swapped-field repair:
+  // channel carries destination, target carries provider id (for example channel="C123..." target="slack")
+  if (
+    targetHint &&
+    isKnownTargetProvider &&
+    (looksLikeSlackId(channelHint) || looksLikeDestinationHint(channelHint))
+  ) {
+    const repairedTarget =
+      normalizedTargetHint === "slack" && looksLikeSlackId(channelHint)
+        ? channelHint.toUpperCase()
+        : channelHint;
+    params.args.target = repairedTarget;
+    params.args.channel = normalizedTargetHint;
+    params.onWarn?.(
+      [
+        "tools: repaired swapped message routing fields",
+        `action=${params.action}`,
+        `channel=${channelHint}`,
+        `target=${targetHint}`,
+        `repairedChannel=${normalizedTargetHint}`,
+        `repairedTarget=${repairedTarget}`,
+        warnContext,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+    return;
+  }
+
+  if (targetHint || hasLegacyTargetFields(params.args)) {
+    return;
+  }
+
+  // Bare Slack IDs (C/U/W/G/D + 8+ alphanumeric) are a strong signal the agent put
+  // a Slack channel/user ID in the channel (provider) field. Move it to target and
+  // pin the channel to "slack" so the send path can resolve it normally.
+  if (looksLikeSlackId(channelHint)) {
+    const repairedTarget = channelHint.toUpperCase();
+    params.args.target = repairedTarget;
+    params.args.channel = "slack";
+    params.onWarn?.(
+      [
+        "tools: repaired misplaced message channel provider",
+        `action=${params.action}`,
+        `channel=${channelHint}`,
+        `repairedChannel=slack`,
+        `repairedTarget=${repairedTarget}`,
+        warnContext,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
     return;
   }
   if (!looksLikeDestinationHint(channelHint)) {
