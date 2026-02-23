@@ -1,3 +1,4 @@
+import { isFailoverError } from "../agents/failover-error.js";
 import { diagnosticLogger as diag, logLaneDequeue, logLaneEnqueue } from "../logging/diagnostic.js";
 import { CommandLane } from "./lanes.js";
 /**
@@ -100,8 +101,11 @@ function drainLane(lane: string) {
           const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
           const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
           if (!isProbeLane) {
+            const errSuffix = isFailoverError(err)
+              ? ` provider=${err.provider ?? "unknown"} model=${err.model ?? "unknown"}${err.profileId ? ` profileId=${err.profileId}` : ""}`
+              : "";
             diag.error(
-              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"`,
+              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"${errSuffix}`,
             );
           }
           if (completedCurrentGeneration) {
