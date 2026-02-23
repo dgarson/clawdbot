@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createClient, ValidationError, type OpenClawTransport, DFLT_BASE_URL } from "./index.js";
+import { createMockPolicyGate, createMockSessions, createMockTools } from "./test-fixtures.js";
 import type {
   OpenClawHttpRequest,
   OpenClawHttpResponse,
@@ -150,5 +151,62 @@ describe("OpenClaw SDK client", () => {
     });
 
     expect(result.ok).toBe(false);
+  });
+
+  it("uses fixture sessions and tools for deterministic local transport tests", async () => {
+    const sessions = createMockSessions(2, {
+      name: "Test Session",
+    });
+    const tools = createMockTools(2);
+
+    const transport = new RecordingTransport();
+    transport.responses.push(
+      createEnvelope(true, {
+        tools,
+        nextCursor: undefined,
+      }),
+      createEnvelope(true, sessions),
+      createEnvelope(true, {
+        id: "session-created",
+        name: "new-session",
+        createdAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: DFLT_BASE_URL,
+      transport,
+    });
+
+    const toolList = await client.tools.list();
+    expect(toolList.ok).toBe(true);
+    if (toolList.ok) {
+      expect(toolList.data.tools).toHaveLength(2);
+      expect(toolList.data.tools[0]?.name).toMatch(/^echo_/);
+    }
+
+    const sessionList = await client.sessions.list();
+    expect(sessionList.ok).toBe(true);
+    if (sessionList.ok) {
+      expect(sessionList.data).toHaveLength(2);
+      expect(sessionList.data[1]?.name).toMatch(/Test Session/);
+    }
+
+    const createdSession = await client.sessions.create({ name: "new-session" });
+    expect(createdSession.ok).toBe(true);
+    if (createdSession.ok) {
+      expect(createdSession.data.id).toBe("session-created");
+    }
+  });
+
+  it("builds deterministic mock policy gates", () => {
+    const gate = createMockPolicyGate({
+      allowedSessions: ["session-allowed"],
+      allowedTools: ["tool.allowed"],
+    });
+
+    expect(gate.canInvoke({ sessionId: "session-allowed", tool: "tool.allowed" })).toBe(true);
+    expect(gate.canInvoke({ sessionId: "session-blocked", tool: "tool.allowed" })).toBe(false);
+    expect(gate.scope.sessions).toContain("session-allowed");
   });
 });
