@@ -168,6 +168,17 @@ export function logMessageProcessed(params: {
   markActivity();
 }
 
+/**
+ * Mark a session as active due to a tool call starting or ending.
+ * Keeps `lastActivity` fresh so the stuck-session heuristic doesn't
+ * fire false positives during long agentic turns with many tool calls.
+ */
+export function logToolActivity(params: SessionRef) {
+  const state = getDiagnosticSessionState(params);
+  state.lastActivity = Date.now();
+  markActivity();
+}
+
 export function logSessionStateChange(
   params: SessionRef & {
     state: SessionStateValue;

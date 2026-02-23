@@ -311,6 +311,7 @@ export async function runEmbeddedPiAgent(
             reason: "model_not_found",
             provider,
             model: modelId,
+            runtime: params.runtime,
           });
         }
 
@@ -337,7 +338,7 @@ export async function runEmbeddedPiAgent(
           );
           throw new FailoverError(
             `Model context window too small (${ctxGuard.tokens} tokens). Minimum is ${CONTEXT_WINDOW_HARD_MIN_TOKENS}.`,
-            { reason: "unknown", provider, model: modelId },
+            { reason: "unknown", provider, model: modelId, runtime: params.runtime },
           );
         }
 
@@ -387,18 +388,18 @@ export async function runEmbeddedPiAgent(
           return classified ?? "auth";
         };
 
-        const throwAuthProfileFailover = (params: {
+        const throwAuthProfileFailover = (authParams: {
           allInCooldown: boolean;
           message?: string;
           error?: unknown;
         }): never => {
           const fallbackMessage = `No available auth profile for ${provider} (all in cooldown or unavailable).`;
           const message =
-            params.message?.trim() ||
-            (params.error ? describeUnknownError(params.error).trim() : "") ||
+            authParams.message?.trim() ||
+            (authParams.error ? describeUnknownError(authParams.error).trim() : "") ||
             fallbackMessage;
           const reason = resolveAuthProfileFailoverReason({
-            allInCooldown: params.allInCooldown,
+            allInCooldown: authParams.allInCooldown,
             message,
           });
           if (fallbackConfigured) {
@@ -407,11 +408,12 @@ export async function runEmbeddedPiAgent(
               provider,
               model: modelId,
               status: resolveFailoverStatus(reason),
-              cause: params.error,
+              cause: authParams.error,
+              runtime: params.runtime,
             });
           }
-          if (params.error instanceof Error) {
-            throw params.error;
+          if (authParams.error instanceof Error) {
+            throw authParams.error;
           }
           throw new Error(message);
         };
@@ -938,6 +940,7 @@ export async function runEmbeddedPiAgent(
                   model: modelId,
                   profileId: lastProfileId,
                   status: resolveFailoverStatus(promptFailoverReason ?? "unknown"),
+                  runtime: params.runtime,
                 });
               }
               throw promptError;
@@ -1052,6 +1055,7 @@ export async function runEmbeddedPiAgent(
                   model: activeErrorContext.model,
                   profileId: lastProfileId,
                   status,
+                  runtime: params.runtime,
                 });
               }
             }

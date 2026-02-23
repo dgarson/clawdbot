@@ -103,9 +103,20 @@ function drainLane(lane: string) {
           const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
           const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
           if (!isProbeLane) {
-            const errSuffix = isFailoverError(err)
-              ? ` provider=${err.provider ?? "unknown"} model=${err.model ?? "unknown"}${err.profileId ? ` profileId=${err.profileId}` : ""}`
-              : "";
+            let errSuffix = "";
+            if (isFailoverError(err)) {
+              const rt = err.runtime ?? "pi";
+              errSuffix = ` runtime=${rt}`;
+              if (rt === "claude-sdk") {
+                errSuffix += ` claudeSdk.provider=${err.provider ?? "unknown"}`;
+              } else {
+                errSuffix += ` provider=${err.provider ?? "unknown"}`;
+              }
+              errSuffix += ` model=${err.model ?? "unknown"}`;
+              if (err.profileId) {
+                errSuffix += ` profileId=${err.profileId}`;
+              }
+            }
             diag.error(
               `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"${errSuffix}`,
             );
