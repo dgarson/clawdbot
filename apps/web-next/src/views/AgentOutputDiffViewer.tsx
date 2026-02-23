@@ -85,7 +85,7 @@ import {
   Satellite,
   Orbit,
   Atom,
-  Molecule,
+
   Beaker,
   FlaskConical,
   TestTube,
@@ -99,13 +99,13 @@ import {
   Crown,
   Gem,
   Diamond,
-  Gem,
-  Gem,
+
+
   Swords,
   ShieldHalf,
   Target as TargetIcon,
   Crosshair as CrosshairIcon,
-  A Crosshair,
+
   CircleDot,
   CircleDashed,
   SquareDashed,
@@ -127,8 +127,8 @@ import {
   TrendingUp as TrendingUpIcon,
   DollarSign,
   Euro,
-  Pound,
-  Yen,
+
+
   Bitcoin,
   Coins,
   Receipt,
@@ -155,7 +155,7 @@ import {
   Download as DownloadIcon,
   Share,
   Printer,
-  Scanner,
+
   Monitor,
   Laptop,
   Smartphone,
@@ -177,7 +177,7 @@ import {
   Mail,
   MessageSquare,
   MessageCircle,
-  Chat,
+
   Send,
   Inbox,
   Mailbox,
