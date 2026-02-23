@@ -5,6 +5,7 @@
 Add a new agent runtime `csdk` (Claude Agent SDK) with behavior parity to the current Pi runtime, while preserving all existing caller entrypoints and plugin hook contracts.
 
 Primary target surfaces from existing baseline docs:
+
 - `agent-runtime/review/codex/00-high-level-entrypoints-and-callbacks.md`
 - `agent-runtime/review/codex/10-parity-matrix-and-risks.md`
 
@@ -23,11 +24,13 @@ Primary target surfaces from existing baseline docs:
 ## Runtime design baseline
 
 The best low-risk seam is below orchestration and above transport:
+
 - Keep `runEmbeddedPiAgent` and the retry/fallback/compaction envelope intact.
 - Add runtime dispatch where attempts are executed.
 - Build a `csdk` adapter that emits existing normalized subscription events.
 
 This mirrors the direction in:
+
 - `agent-runtime/review/codex/01-run-embedded-pi-agent.md`
 - `agent-runtime/review/codex/02-subscribe-embedded-pi-session.md`
 - `agent-runtime/review/codex/09-adapter-patterns-csdk.md`

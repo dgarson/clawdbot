@@ -3,6 +3,7 @@
 ## Existing stable caller contract
 
 Current callers import Pi-named functions from:
+
 - `src/agents/pi-embedded.ts`
 - `src/agents/pi-embedded-runner.ts`
 
@@ -11,12 +12,15 @@ Do not change these call sites for POC.
 ## Single dispatch branch
 
 Add runtime selection only at attempt execution boundary in:
+
 - `src/agents/pi-embedded-runner/run.ts`
 
 Current seam:
+
 - The loop calls `runEmbeddedAttempt(...)`.
 
 Target seam:
+
 - Resolve runtime once per run.
 - Call one of:
   - `runEmbeddedAttempt(...)` for Pi
@@ -25,6 +29,7 @@ Target seam:
 ## Runtime selection policy
 
 Recommended order:
+
 1. Explicit per-run runtime override (if added as optional param).
 2. Config default (if supported in current config model).
 3. Implicit default: `pi`.
@@ -34,6 +39,7 @@ If runtime selector is not added in public params, use internal config/env gate 
 ## Compatibility invariants
 
 `runEmbeddedPiAgent` must continue to:
+
 - return `EmbeddedPiRunResult`
 - preserve retry/fallback loop
 - preserve compaction fallback path
@@ -61,12 +67,15 @@ If runtime selector is not added in public params, use internal config/env gate 
 ## Proposed file touch ranking
 
 High impact:
+
 - `src/agents/pi-embedded-runner/run.ts`
 
 Medium impact:
+
 - `src/agents/pi-embedded-runner/run/attempt-csdk.ts` (new)
 - `src/agents/csdk-adapter.ts` (new)
 
 Low impact (optional only):
+
 - `src/agents/pi-embedded-runner/run/params.ts`
 - `src/agents/pi-embedded-runner/run/types.ts`

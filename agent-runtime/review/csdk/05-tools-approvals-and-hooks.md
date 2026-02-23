@@ -12,6 +12,7 @@ Preserve existing OpenClaw tool and hook behavior while integrating CSDK permiss
 - messaging tool telemetry fields are tracked and surfaced in run result.
 
 Current relevant files:
+
 - `src/agents/pi-tool-definition-adapter.ts`
 - `src/agents/pi-tools.before-tool-call.ts`
 - `src/agents/pi-embedded-subscribe.handlers.tools.ts`
@@ -22,6 +23,7 @@ Current relevant files:
 SDK order (documented): hooks -> rules -> mode -> `canUseTool`.
 
 Adapter requirements:
+
 - integrate `canUseTool` decisions without bypassing existing OpenClaw policy.
 - ensure blocked tools produce compatible payload/error behavior.
 - ensure approval-required tools surface correctly in stream and lifecycle.
@@ -35,6 +37,7 @@ Adapter requirements:
 ## Messaging tool telemetry parity
 
 Preserve from existing handlers:
+
 - `didSendViaMessagingTool`
 - `messagingToolSentTexts`
 - `messagingToolSentMediaUrls`

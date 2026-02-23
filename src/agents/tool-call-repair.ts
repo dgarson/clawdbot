@@ -125,9 +125,7 @@ export function normalizeParamName(argKey: string, knownKeys: string[]): string 
   }
 
   const canonical = canonicalizeParamName(argKey);
-  const canonicalMatch = knownKeys.find(
-    (known) => canonicalizeParamName(known) === canonical,
-  );
+  const canonicalMatch = knownKeys.find((known) => canonicalizeParamName(known) === canonical);
   if (canonicalMatch !== undefined) {
     return canonicalMatch;
   }

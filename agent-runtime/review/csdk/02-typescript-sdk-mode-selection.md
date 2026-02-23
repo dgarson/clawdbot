@@ -5,15 +5,18 @@
 Use Claude Agent SDK V1 `query()` for the first parity implementation.
 
 Reason:
+
 - V1 has the mature behavior needed for parity work.
 - V2 is preview and explicitly incomplete for some runtime/session features.
 
 ## Query mode decision
 
 Use **streaming input mode**:
+
 - `query({ prompt: AsyncIterable<SDKUserMessage>, ... })`
 
 Why:
+
 - It is the closest fit to OpenClaw run control semantics:
   - queue/steer follow-up messages during active run
   - interrupt support
@@ -33,6 +36,7 @@ Why:
 ## Message/event classes to normalize
 
 At minimum support:
+
 - partial assistant stream messages (raw stream events)
 - user/assistant/tool messages
 - system compact boundary messages
