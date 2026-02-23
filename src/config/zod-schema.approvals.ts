@@ -20,6 +20,14 @@ const ExecApprovalForwardingSchema = z
   .strict()
   .optional();
 
+const HitlEscalationSchema = z
+  .object({
+    onDeny: z.string().min(1).optional(),
+    onTimeout: z.string().min(1).optional(),
+    maxEscalations: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
 const HitlPolicySchema = z
   .object({
     id: z.string().min(1),
@@ -28,6 +36,8 @@ const HitlPolicySchema = z
     pattern: z.string().min(1).optional(),
     minApproverRole: z.string().min(1).optional(),
     requireDifferentActor: z.boolean().optional(),
+    maxApprovalChainDepth: z.number().int().nonnegative().optional(),
+    escalation: HitlEscalationSchema.optional(),
   })
   .strict();
 
