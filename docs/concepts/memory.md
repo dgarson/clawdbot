@@ -731,3 +731,14 @@ Notes:
 
 - `remote.*` takes precedence over `models.providers.openai.*`.
 - `remote.headers` merge with OpenAI headers; remote wins on key conflicts. Omit `remote.headers` to use the OpenAI defaults.
+
+## Memory Architecture 2.0 guardrails (additive rollout)
+
+`memory.architecture` is still additive and non-cutover by default:
+
+- `memory.architecture.shadowWrite.enabled` can mirror transcript writes into the architecture store.
+- `memory.architecture.retrieval.readPath.enabled` is **off by default** and only enables hybrid read-path hook stubs.
+- Hybrid read stubs expose vector-first + lexical fallback contract surfaces (`on-empty`, `on-error`, `always`) for phased integration work.
+- Existing `memory_search` runtime behavior remains unchanged unless this path is explicitly enabled.
+
+This keeps phase-2 read-path work testable without shifting production retrieval traffic early.

@@ -216,6 +216,9 @@ export const FIELD_LABELS: Record<string, string> = {
   "memory.architecture.retrieval.maxTokensBudget": "Memory Architecture Token Budget",
   "memory.architecture.retrieval.vectorWeight": "Memory Architecture Vector Weight",
   "memory.architecture.retrieval.keywordWeight": "Memory Architecture Keyword Weight",
+  "memory.architecture.retrieval.readPath.enabled": "Memory Architecture Hybrid Read Hook Stubs",
+  "memory.architecture.retrieval.readPath.lexicalFallback":
+    "Memory Architecture Lexical Fallback Mode",
   "memory.architecture.retention": "Memory Architecture Retention",
   "memory.architecture.retention.defaultTtlDays": "Memory Architecture TTL Days",
   "memory.architecture.retention.compactionCron": "Memory Architecture Compaction Cron",

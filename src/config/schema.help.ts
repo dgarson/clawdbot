@@ -283,6 +283,10 @@ export const FIELD_HELP: Record<string, string> = {
     "Token budget cap for retrieval output composition.",
   "memory.architecture.retrieval.vectorWeight": "Vector scoring weight in hybrid ranking (0-1).",
   "memory.architecture.retrieval.keywordWeight": "Keyword scoring weight in hybrid ranking (0-1).",
+  "memory.architecture.retrieval.readPath.enabled":
+    "Enable phase-2 hybrid read-path hook stubs (guardrail: default false, no runtime cutover).",
+  "memory.architecture.retrieval.readPath.lexicalFallback":
+    'Lexical fallback mode for hybrid read stubs ("on-empty" | "on-error" | "always").',
   "memory.architecture.retention": "Retention and compaction settings.",
   "memory.architecture.retention.defaultTtlDays": "Default retention TTL in days.",
   "memory.architecture.retention.compactionCron": "Cron schedule for compaction (if enabled).",

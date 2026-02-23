@@ -38,11 +38,29 @@ export type MemoryServiceEmbeddingConfig = {
   batchSize?: number;
 };
 
+export type MemoryHybridFallbackReason = "vector-empty" | "vector-error" | "forced";
+
+export type MemoryHybridReadContext = {
+  query: string;
+  filters?: Partial<MemoryMetadata>;
+  limit: number;
+};
+
+export type MemoryHybridReadHooks = {
+  vectorRead?: (context: MemoryHybridReadContext) => Promise<MemoryNode[] | undefined>;
+  lexicalRead?: (context: MemoryHybridReadContext) => Promise<MemoryNode[] | undefined>;
+  onFallback?: (context: MemoryHybridReadContext & { reason: MemoryHybridFallbackReason }) => void;
+};
+
 export type MemoryServiceRetrievalConfig = {
   defaultLimit?: number;
   maxTokensBudget?: number;
   vectorWeight?: number;
   keywordWeight?: number;
+  readPath?: {
+    enabled?: boolean;
+    lexicalFallback?: "on-empty" | "on-error" | "always";
+  };
 };
 
 export type MemoryServiceRetentionConfig = {
@@ -70,6 +88,12 @@ export interface MemoryNode {
   version: number;
 }
 
+export type MemoryHybridReadResult = {
+  nodes: MemoryNode[];
+  usedPath: "vector" | "lexical";
+  fallbackReason?: MemoryHybridFallbackReason;
+};
+
 export interface IMemoryService {
   store(
     content: string,
@@ -81,6 +105,11 @@ export interface IMemoryService {
     >,
   ): Promise<string[]>;
   retrieve(query: string, filters?: Partial<MemoryMetadata>, limit?: number): Promise<MemoryNode[]>;
+  retrieveHybrid(
+    query: string,
+    filters?: Partial<MemoryMetadata>,
+    limit?: number,
+  ): Promise<MemoryHybridReadResult>;
   forget(nodeId: string): Promise<boolean>;
   forgetUser(userId: string): Promise<number>;
   compact(userId?: string): Promise<number>;
@@ -103,7 +132,9 @@ export interface MemoryConfig {
   };
 }
 
-export type MemoryServiceOptions = Partial<MemoryConfig>;
+export type MemoryServiceOptions = Partial<MemoryConfig> & {
+  hybridReadHooks?: MemoryHybridReadHooks;
+};
 
 const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
   vectorDb: {
@@ -121,6 +152,10 @@ const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
     maxTokensBudget: 4_000,
     vectorWeight: 0.7,
     keywordWeight: 0.3,
+    readPath: {
+      enabled: false,
+      lexicalFallback: "on-empty",
+    },
   },
   retention: {
     defaultTtlDays: 90,
@@ -145,6 +180,10 @@ function normalizeMemoryConfig(config?: MemoryServiceOptions): Required<MemoryCo
     retrieval: {
       ...DEFAULT_MEMORY_CONFIG.retrieval,
       ...config?.retrieval,
+      readPath: {
+        ...DEFAULT_MEMORY_CONFIG.retrieval?.readPath,
+        ...config?.retrieval?.readPath,
+      },
     },
     retention: {
       ...DEFAULT_MEMORY_CONFIG.retention,
@@ -256,7 +295,10 @@ function scoreByText(match: string, nodeText: string): number {
 class InMemoryMemoryService implements IMemoryService {
   private readonly nodes = new Map<string, MemoryNode>();
 
-  constructor(private readonly config: Required<MemoryConfig>) {}
+  constructor(
+    private readonly config: Required<MemoryConfig>,
+    private readonly hybridReadHooks?: MemoryHybridReadHooks,
+  ) {}
 
   async store(
     content: string,
@@ -303,28 +345,65 @@ class InMemoryMemoryService implements IMemoryService {
     limit = this.config.retrieval.defaultLimit ?? 5,
   ): Promise<MemoryNode[]> {
     const normalizedLimit = Math.max(1, Math.min(1_000, limit));
-    const normalizedQuery = query.trim();
 
-    const nodes = Array.from(this.nodes.values()).filter((node) => {
-      if (!metadataMatchesFilter(node.metadata, filters)) {
-        return false;
-      }
-      return !normalizedQuery || scoreByText(normalizedQuery, node.content) > 0;
+    if (this.config.retrieval.readPath?.enabled) {
+      const hybrid = await this.retrieveHybrid(query, filters, normalizedLimit);
+      return hybrid.nodes;
+    }
+
+    return await this.defaultVectorRead({
+      query: query.trim(),
+      filters,
+      limit: normalizedLimit,
     });
+  }
 
-    return nodes
-      .map((node) => ({
-        node,
-        score: scoreByText(normalizedQuery, node.content),
-      }))
-      .toSorted((a, b) => {
-        if (b.score !== a.score) {
-          return b.score - a.score;
-        }
-        return b.node.updatedAt - a.node.updatedAt;
-      })
-      .slice(0, normalizedLimit)
-      .map((entry) => entry.node);
+  async retrieveHybrid(
+    query: string,
+    filters?: Partial<MemoryMetadata>,
+    limit = this.config.retrieval.defaultLimit ?? 5,
+  ): Promise<MemoryHybridReadResult> {
+    const normalizedLimit = Math.max(1, Math.min(1_000, limit));
+    const normalizedQuery = query.trim();
+    const context: MemoryHybridReadContext = {
+      query: normalizedQuery,
+      filters,
+      limit: normalizedLimit,
+    };
+
+    const fallbackMode = this.config.retrieval.readPath?.lexicalFallback ?? "on-empty";
+
+    let vectorNodes: MemoryNode[] = [];
+    let vectorError = false;
+    try {
+      const hooked = await this.hybridReadHooks?.vectorRead?.(context);
+      vectorNodes = hooked ?? (await this.defaultVectorRead(context));
+    } catch {
+      vectorError = true;
+      vectorNodes = [];
+    }
+
+    const shouldFallback =
+      fallbackMode === "always" ||
+      (fallbackMode === "on-empty" && vectorNodes.length === 0) ||
+      (fallbackMode === "on-error" && vectorError);
+
+    if (!shouldFallback && vectorNodes.length > 0) {
+      return { nodes: vectorNodes, usedPath: "vector" };
+    }
+
+    const fallbackReason: MemoryHybridFallbackReason =
+      fallbackMode === "always" ? "forced" : vectorError ? "vector-error" : "vector-empty";
+    this.hybridReadHooks?.onFallback?.({ ...context, reason: fallbackReason });
+
+    const hookedLexical = await this.hybridReadHooks?.lexicalRead?.(context);
+    const lexicalNodes = hookedLexical ?? (await this.defaultLexicalRead(context));
+
+    if (lexicalNodes.length > 0 || shouldFallback) {
+      return { nodes: lexicalNodes, usedPath: "lexical", fallbackReason };
+    }
+
+    return { nodes: vectorNodes, usedPath: "vector" };
   }
 
   async searchKeywords(
@@ -346,6 +425,39 @@ class InMemoryMemoryService implements IMemoryService {
     });
 
     return nodes.toSorted((a, b) => b.updatedAt - a.updatedAt).slice(0, normalizedLimit);
+  }
+
+  private async defaultVectorRead(context: MemoryHybridReadContext): Promise<MemoryNode[]> {
+    const nodes = Array.from(this.nodes.values()).filter((node) => {
+      if (!metadataMatchesFilter(node.metadata, context.filters)) {
+        return false;
+      }
+      return !context.query || scoreByText(context.query, node.content) > 0;
+    });
+
+    return nodes
+      .map((node) => ({
+        node,
+        score: scoreByText(context.query, node.content),
+      }))
+      .toSorted((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return b.node.updatedAt - a.node.updatedAt;
+      })
+      .slice(0, context.limit)
+      .map((entry) => entry.node);
+  }
+
+  private async defaultLexicalRead(context: MemoryHybridReadContext): Promise<MemoryNode[]> {
+    const keywords = Array.from(
+      new Set(context.query.split(/\s+/).map((word) => word.trim())),
+    ).filter(Boolean);
+    if (keywords.length === 0) {
+      return [];
+    }
+    return await this.searchKeywords(keywords, context.filters, context.limit);
   }
 
   async forget(nodeId: string): Promise<boolean> {
@@ -403,5 +515,5 @@ class InMemoryMemoryService implements IMemoryService {
 }
 
 export function createMemoryService(config?: MemoryServiceOptions): IMemoryService {
-  return new InMemoryMemoryService(normalizeMemoryConfig(config));
+  return new InMemoryMemoryService(normalizeMemoryConfig(config), config?.hybridReadHooks);
 }

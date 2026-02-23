@@ -42,6 +42,10 @@ export type MemoryRetrievalConfig = {
   maxTokensBudget?: number;
   vectorWeight?: number;
   keywordWeight?: number;
+  readPath?: {
+    enabled?: boolean;
+    lexicalFallback?: "on-empty" | "on-error" | "always";
+  };
 };
 
 export type MemoryRetentionConfig = {

@@ -125,6 +125,16 @@ const MemoryArchitectureRetrievalSchema = z
     maxTokensBudget: z.number().int().positive().optional(),
     vectorWeight: z.number().min(0).max(1).optional(),
     keywordWeight: z.number().min(0).max(1).optional(),
+    readPath: z
+      .object({
+        enabled: z.boolean().optional(),
+        lexicalFallback: z
+          .union([z.literal("on-empty"), z.literal("on-error"), z.literal("always")])
+          .optional(),
+      })
+      .partial()
+      .strict()
+      .optional(),
   })
   .partial()
   .strict()
