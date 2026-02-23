@@ -1,7 +1,6 @@
-import AjvPkg from "ajv";
-
-import { repairToolCallArguments } from "./tool-call-repair.js";
+import AjvPkg, { type ValidateFunction as AjvValidateFunction } from "ajv";
 import { logDebug, logWarn } from "../logger.js";
+import { repairToolCallArguments } from "./tool-call-repair.js";
 
 /**
  * Tool-call validation layer for non-Anthropic models.
@@ -332,14 +331,14 @@ type ValidationTelemetry = {
   failed: number;
 };
 
-const ajv = new AjvPkg({
+const ajv = new (AjvPkg as unknown as new (opts?: object) => import("ajv").default)({
   allErrors: true,
   strict: false,
   coerceTypes: false,
   allowUnionTypes: true,
 });
 
-const validatorCache = new WeakMap<object, AjvPkg.ValidateFunction>();
+const validatorCache = new WeakMap<object, AjvValidateFunction>();
 const telemetry = new Map<string, ValidationTelemetry>();
 
 export function isNonAnthropicProvider(provider?: string): boolean {
@@ -351,10 +350,14 @@ function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function getValidator(schema: unknown): AjvPkg.ValidateFunction | undefined {
-  if (!isRecord(schema)) return undefined;
+function getValidator(schema: unknown): AjvValidateFunction | undefined {
+  if (!isRecord(schema)) {
+    return undefined;
+  }
   const cached = validatorCache.get(schema);
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
 
   try {
     const compiled = ajv.compile(schema);
@@ -371,14 +374,20 @@ function getValidator(schema: unknown): AjvPkg.ValidateFunction | undefined {
 }
 
 function describeAjvErrors(errors: unknown): string {
-  if (!Array.isArray(errors) || errors.length === 0) return "schema mismatch";
+  if (!Array.isArray(errors) || errors.length === 0) {
+    return "schema mismatch";
+  }
   return errors
     .map((entry) => {
-      if (!isRecord(entry)) return "schema mismatch";
-      const path = String((entry as UnknownRecord).instancePath ?? entry.path ?? "");
-      const reason = String((entry as UnknownRecord).message ?? "schema mismatch");
-      const allowedValues = (entry as UnknownRecord).allowedValues;
-      const isEnum = (entry as UnknownRecord).keyword === "enum";
+      if (!isRecord(entry)) {
+        return "schema mismatch";
+      }
+      const rawPath = entry.instancePath ?? entry.path;
+      const path = typeof rawPath === "string" ? rawPath : "";
+      const message = entry.message;
+      const reason = typeof message === "string" ? message : "schema mismatch";
+      const allowedValues = entry.allowedValues;
+      const isEnum = entry.keyword === "enum";
       const allowed =
         isEnum && Array.isArray(allowedValues)
           ? ` allowed: ${allowedValues.map((value) => JSON.stringify(value)).join(", ")}`

@@ -4,7 +4,6 @@ import type {
   AgentToolUpdateCallback,
 } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
-import { sanitizeToolCallId } from "./tool-call-id.js";
 import { logDebug, logError, logWarn } from "../logger.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { isPlainObject } from "../utils.js";
@@ -15,12 +14,18 @@ import {
   isToolWrappedWithBeforeToolCallHook,
   runBeforeToolCallHook,
 } from "./pi-tools.before-tool-call.js";
-import { normalizeToolName } from "./tool-policy.js";
+import { sanitizeToolCallId } from "./tool-call-id.js";
 import { validateAndRepairToolCall } from "./tool-call-validator.js";
+import { normalizeToolName } from "./tool-policy.js";
 import { jsonResult } from "./tools/common.js";
 
 type AnyAgentTool = AgentTool;
 type UnknownRecord = Record<string, unknown>;
+
+type ToolCompatibilityOptions = {
+  provider: string;
+  model?: string;
+};
 
 type ToolExecuteArgsCurrent = [
   string,
@@ -109,7 +114,9 @@ function buildRepairFailureResult(params: {
 }
 
 function toRecord(value: unknown): UnknownRecord | undefined {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
   return value as UnknownRecord;
 }
 
@@ -179,7 +186,7 @@ export function toToolDefinitions(
               });
             }
             executeParams = validation.args;
-            if (validation.repaired || validation.skipped === false) {
+            if (validation.repaired || !validation.skipped) {
               const record = toRecord(executeParams);
               logDebug(
                 `tools: tool args ${validation.repaired ? "repaired" : "validated"} ` +
@@ -189,12 +196,7 @@ export function toToolDefinitions(
             }
           }
 
-          const result = await tool.execute(
-            resolvedToolCallId,
-            executeParams,
-            signal,
-            onUpdate,
-          );
+          const result = await tool.execute(resolvedToolCallId, executeParams, signal, onUpdate);
           const afterParams = beforeHookWrapped
             ? (consumeAdjustedParamsForToolCall(resolvedToolCallId) ?? executeParams)
             : executeParams;
