@@ -45,6 +45,7 @@ export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
   ctx.log.debug(
     `embedded run agent end: runId=${ctx.params.runId} isError=${isError} ${formatLifecycleContext(ctx)}`,
   );
+
   if (isError && lastAssistant) {
     const friendlyError = formatAssistantErrorText(lastAssistant, {
       cfg: ctx.params.config,
