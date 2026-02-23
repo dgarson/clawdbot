@@ -76,6 +76,8 @@ export type EmbeddedPiSubscribeState = {
   pendingMessagingTargets: Map<string, MessagingToolSend>;
   successfulCronAdds: number;
   pendingMessagingMediaUrls: Map<string, string[]>;
+  toolDiagnosticExtraInfos: string[];
+  toolDiagnosticDebugInfos: string[];
   lastAssistant?: AgentMessage;
 };
 
@@ -149,6 +151,8 @@ export type ToolHandlerState = Pick<
   | "messagingToolSentMediaUrls"
   | "messagingToolSentTargets"
   | "successfulCronAdds"
+  | "toolDiagnosticExtraInfos"
+  | "toolDiagnosticDebugInfos"
 >;
 
 export type ToolHandlerContext = {
@@ -162,6 +166,7 @@ export type ToolHandlerContext = {
   emitToolSummary: (toolName?: string, meta?: string) => void;
   emitToolOutput: (toolName?: string, meta?: string, output?: string) => void;
   trimMessagingToolSent: () => void;
+  trimToolDiagnosticInfos: () => void;
 };
 
 export type EmbeddedPiSubscribeEvent =

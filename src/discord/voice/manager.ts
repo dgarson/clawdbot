@@ -615,6 +615,7 @@ export class DiscordVoiceManager {
       cfg: ttsCfg,
       channel: "discord",
       overrides: directive.overrides,
+      source: "discord.voice.reply",
     });
     if (!ttsResult.success || !ttsResult.audioPath) {
       logger.warn(`discord voice: TTS failed: ${ttsResult.error ?? "unknown error"}`);

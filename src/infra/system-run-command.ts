@@ -60,13 +60,17 @@ export function extractShellCommandFromArgv(argv: string[]): string | null {
   }
 
   // Windows cmd.exe: cmd.exe /d /s /c "<cmd>"
+  // All args after /c are the shell command (cmd.exe joins them with spaces).
   if (base0 === "cmd.exe" || base0 === "cmd") {
     const idx = argv.findIndex((item) => String(item).trim().toLowerCase() === "/c");
     if (idx === -1) {
       return null;
     }
-    const cmd = argv[idx + 1];
-    return typeof cmd === "string" ? cmd : null;
+    const rest = argv.slice(idx + 1);
+    if (rest.length === 0) {
+      return null;
+    }
+    return rest.join(" ");
   }
 
   return null;
