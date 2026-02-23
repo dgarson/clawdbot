@@ -45,7 +45,7 @@ import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { resolveAgentOutboundIdentity } from "../../infra/outbound/identity.js";
 import { resolveOutboundSessionRoute } from "../../infra/outbound/outbound-session.js";
-import { logWarn } from "../../logger.js";
+import { getChildLogger } from "../../logging/logger.js";
 import { buildAgentMainSessionKey, normalizeAgentId } from "../../routing/session-key.js";
 import {
   buildSafeExternalPrompt,
@@ -175,6 +175,7 @@ export async function runCronIsolatedAgentTurn(params: {
   // This ensures auth-profiles, workspace, and agentDir all resolve to the
   // correct per-agent paths (e.g. ~/.openclaw/agents/<agentId>/agent/).
   const agentId = normalizedRequested ?? defaultAgentId;
+  const cronLogger = getChildLogger({ module: "cron", jobId: params.job.id, agentId });
   const agentCfg: AgentDefaultsConfig = Object.assign(
     {},
     params.cfg.agents?.defaults,
@@ -344,7 +345,7 @@ export async function runCronIsolatedAgentTurn(params: {
     });
   }
   if (thinkLevel === "xhigh" && !supportsXHighThinking(provider, model)) {
-    logWarn(
+    cronLogger.warn(
       `[cron:${params.job.id}] Thinking level "xhigh" is not supported for ${provider}/${model}; downgrading to "high".`,
     );
     thinkLevel = "high";
@@ -382,7 +383,7 @@ export async function runCronIsolatedAgentTurn(params: {
     // Log suspicious patterns for security monitoring
     const suspiciousPatterns = detectSuspiciousPatterns(params.message);
     if (suspiciousPatterns.length > 0) {
-      logWarn(
+      cronLogger.warn(
         `[security] Suspicious patterns detected in external hook content ` +
           `(session=${baseSessionKey}, patterns=${suspiciousPatterns.length}): ${suspiciousPatterns.slice(0, 3).join(", ")}`,
       );
@@ -603,7 +604,7 @@ export async function runCronIsolatedAgentTurn(params: {
           ...telemetry,
         });
       }
-      logWarn(`[cron:${params.job.id}] ${resolvedDelivery.error.message}`);
+      cronLogger.warn(`[cron:${params.job.id}] ${resolvedDelivery.error.message}`);
       return withRunSession({ status: "ok", summary, outputText, ...telemetry });
     }
     if (!resolvedDelivery.to) {
@@ -617,7 +618,7 @@ export async function runCronIsolatedAgentTurn(params: {
           ...telemetry,
         });
       }
-      logWarn(`[cron:${params.job.id}] ${message}`);
+      cronLogger.warn(`[cron:${params.job.id}] ${message}`);
       return withRunSession({ status: "ok", summary, outputText, ...telemetry });
     }
     const identity = resolveAgentOutboundIdentity(cfgWithAgentDefaults, agentId);
@@ -762,7 +763,7 @@ export async function runCronIsolatedAgentTurn(params: {
               ...telemetry,
             });
           }
-          logWarn(`[cron:${params.job.id}] ${message}`);
+          cronLogger.warn(`[cron:${params.job.id}] ${message}`);
         }
       } catch (err) {
         if (!deliveryBestEffort) {
@@ -774,7 +775,7 @@ export async function runCronIsolatedAgentTurn(params: {
             ...telemetry,
           });
         }
-        logWarn(`[cron:${params.job.id}] ${String(err)}`);
+        cronLogger.warn(`[cron:${params.job.id}] ${String(err)}`);
       }
     }
   }

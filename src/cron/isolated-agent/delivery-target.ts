@@ -144,12 +144,19 @@ export async function resolveDeliveryTarget(
     mode,
     allowFrom: allowFromOverride,
   });
+  const actorSessionKey = threadSessionKey || mainSessionKey;
+  const resolvedError =
+    docked.ok || !docked.error
+      ? undefined
+      : new Error(
+          `${docked.error.message} (requestedBy=agent:${agentId} session=${actorSessionKey})`,
+        );
   return {
     channel,
     to: docked.ok ? docked.to : undefined,
     accountId,
     threadId,
     mode,
-    error: docked.ok ? undefined : docked.error,
+    error: resolvedError,
   };
 }
