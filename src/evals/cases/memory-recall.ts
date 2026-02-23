@@ -1,5 +1,5 @@
 /**
- * Memory Path Recall Benchmark Scenario
+ * Memory Path Recall Benchmark Scenarios
  *
  * Tests that the system correctly recalls context from previous
  * interactions and maintains memory path integrity.
@@ -30,26 +30,23 @@ export const memoryRecallCase: CataloguedEvaluationCase = {
   tags: ["memory", "recall", "integration"],
   metadata: memoryMetadata,
   run: async (): Promise<EvaluationCaseResult> => {
-    // Simulate stored memory context
     const memoryStore = new Map<string, unknown>();
 
-    // Simulate storing context from previous interaction
     const previousContext = {
       task: "file-analysis",
       filesReviewed: ["src/auth.ts", "src/middleware.ts"],
       conclusions: ["auth uses JWT", "middleware validates tokens"],
-      timestamp: new Date(Date.now() - 300000).toISOString(), // 5 min ago
+      timestamp: new Date(Date.now() - 300_000).toISOString(), // 5 min ago
     };
 
     memoryStore.set("session-123", previousContext);
 
-    // Simulate recalling context for current task
     const currentTask = "security-audit";
     const recalledContext = memoryStore.get("session-123") as typeof previousContext | undefined;
 
-    // Verify recall is relevant (checking if context is applicable)
     const isRelevant =
-      recalledContext !== undefined && Date.now() - Date.parse(recalledContext.timestamp) < 3600000; // Within 1 hour
+      recalledContext !== undefined &&
+      Date.now() - Date.parse(recalledContext.timestamp) < 3_600_000; // Within 1 hour
 
     const pass = isRelevant && recalledContext !== undefined;
 
@@ -88,7 +85,6 @@ export const memoryPathTraversalCase: CataloguedEvaluationCase = {
     relatedCases: ["memory.recall-context"],
   },
   run: async (): Promise<EvaluationCaseResult> => {
-    // Simulate memory path (chronological list of interaction nodes)
     const memoryPath = [
       { id: "node-1", type: "user-query", timestamp: "2026-02-23T01:00:00Z" },
       { id: "node-2", type: "agent-response", timestamp: "2026-02-23T01:00:05Z" },
@@ -98,20 +94,15 @@ export const memoryPathTraversalCase: CataloguedEvaluationCase = {
       { id: "node-6", type: "user-feedback", timestamp: "2026-02-23T01:01:00Z" },
     ];
 
-    // Validate path ordering (should be chronological)
     const isOrdered = memoryPath.every((node, i) => {
       if (i === 0) {
         return true;
       }
-      const prevTime = Date.parse(memoryPath[i - 1].timestamp);
-      const currTime = Date.parse(node.timestamp);
-      return currTime >= prevTime;
+      return Date.parse(node.timestamp) >= Date.parse(memoryPath[i - 1].timestamp);
     });
 
-    // Check path length is bounded (e.g., max 100 nodes)
     const isBounded = memoryPath.length <= 100;
 
-    // Identify key decision points (tool calls, user feedback)
     const decisionPoints = memoryPath.filter(
       (n) => n.type === "tool-call" || n.type === "user-feedback",
     );

@@ -1,40 +1,71 @@
+// Core runner & report
+export { BasicEvaluationRunner } from "./runner.js";
 export {
   buildEvaluationRunId,
   resolveEvaluationReportPath,
   writeEvaluationReport,
 } from "./report.js";
-export { BasicEvaluationRunner } from "./runner.js";
 export { sampleEchoEvaluationCase } from "./sample-case.js";
 
-// Catalog schema & metadata
+// JSONL Export for CI integration
 export {
-  buildScenarioCatalog,
-  filterCatalog,
-  validateScenarioMetadata,
+  writeEvaluationJsonl,
+  writeEvaluationJsonlSummary,
+  resolveJsonlPath,
+} from "./export-jsonl.js";
+export type { JsonlExportOptions, EvaluationJsonlRecord } from "./export-jsonl.js";
+
+// Catalog schema & metadata
+export { buildScenarioCatalog, filterCatalog, validateScenarioMetadata } from "./catalog.js";
+
+// Catalog types
+export type {
+  CatalogFilter,
+  CataloguedEvaluationCase,
+  ScenarioCatalog,
+  ScenarioCategory,
+  ScenarioDifficulty,
+  ScenarioMetadata,
+} from "./catalog.js";
+
+// Fixture / CI loading
+export {
   createDefaultCatalog,
+  getCatalogStats,
   loadScenarios,
   loadScenariosByCategory,
   loadScenariosByDifficulty,
   loadScenariosBySuite,
-  validateCatalog,
-  getCatalogStats,
   loadScenariosFromFixture,
+  validateCatalog,
 } from "./fixtures.js";
 
-// Catalog types
-export type {
-  ScenarioCategory,
-  ScenarioDifficulty,
-  ScenarioMetadata,
-  CataloguedEvaluationCase,
-  ScenarioCatalog,
-  CatalogFilter,
-} from "./catalog.js";
-
-// Benchmark scenarios
+// Benchmark scenarios — HITL
 export { hitlEscalationCase, hitlTimeoutCase } from "./cases/hitl-escalation.js";
-export { memoryRecallCase, memoryPathTraversalCase } from "./cases/memory-recall.js";
 
+// Benchmark scenarios — Memory
+export { memoryPathTraversalCase, memoryRecallCase } from "./cases/memory-recall.js";
+
+// Benchmark scenarios — Tool reliability
+export {
+  toolDispatchSuccessCase,
+  toolDispatchUnknownCase,
+  toolMaxRetriesExhaustedCase,
+  toolResultSchemaCase,
+  toolRetryCase,
+  toolTimeoutAbortCase,
+} from "./cases/tool-reliability.js";
+
+// Benchmark scenarios — Agent spawning
+export {
+  agentBasicSpawnCase,
+  agentDepthLimitCase,
+  agentOrphanCleanupCase,
+  agentParallelCompletionCase,
+  agentResultRoutingCase,
+} from "./cases/agent-spawning.js";
+
+// Core types
 export type {
   EvaluationCase,
   EvaluationCaseContext,
