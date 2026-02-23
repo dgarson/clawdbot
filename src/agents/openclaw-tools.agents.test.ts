@@ -230,6 +230,80 @@ describe("agents_list", () => {
     expect(agents?.find((agent) => agent.id === "writer")?.capableForRequestedModel).toBe(false);
   });
 
+  it("omits capableForRequestedModel when model param is not passed", async () => {
+    configOverride = {
+      session: {
+        mainKey: "main",
+        scope: "per-sender",
+      },
+      agents: {
+        list: [
+          {
+            id: "main",
+            subagents: { allowAgents: ["research"] },
+          },
+          {
+            id: "research",
+            subagents: { model: "minimax/minimax-m2.5" },
+          },
+        ],
+      },
+    };
+
+    const tool = createOpenClawTools({
+      agentSessionKey: "main",
+    }).find((candidate) => candidate.name === "agents_list");
+    if (!tool) {
+      throw new Error("missing agents_list tool");
+    }
+
+    const result = await tool.execute("call-no-model", {});
+    expect((result.details as { requestedModel?: unknown }).requestedModel).toBeUndefined();
+    const agents = (
+      result.details as { agents?: Array<{ id: string; capableForRequestedModel?: boolean }> }
+    ).agents;
+    for (const agent of agents ?? []) {
+      expect(agent.capableForRequestedModel).toBeUndefined();
+    }
+  });
+
+  it("omits requestedModel and capableForRequestedModel when model is unparseable", async () => {
+    configOverride = {
+      session: {
+        mainKey: "main",
+        scope: "per-sender",
+      },
+      agents: {
+        list: [
+          {
+            id: "main",
+            subagents: { allowAgents: ["research"] },
+          },
+          {
+            id: "research",
+            subagents: { model: "minimax/minimax-m2.5" },
+          },
+        ],
+      },
+    };
+
+    const tool = createOpenClawTools({
+      agentSessionKey: "main",
+    }).find((candidate) => candidate.name === "agents_list");
+    if (!tool) {
+      throw new Error("missing agents_list tool");
+    }
+
+    const result = await tool.execute("call-bad-model", { model: "" });
+    expect((result.details as { requestedModel?: unknown }).requestedModel).toBeUndefined();
+    const agents = (
+      result.details as { agents?: Array<{ id: string; capableForRequestedModel?: boolean }> }
+    ).agents;
+    for (const agent of agents ?? []) {
+      expect(agent.capableForRequestedModel).toBeUndefined();
+    }
+  });
+
   it("marks allowlisted-but-unconfigured agents", async () => {
     configOverride = {
       session: {
