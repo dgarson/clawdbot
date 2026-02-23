@@ -11,6 +11,7 @@ import {
 import { callGateway } from "../gateway/call.js";
 import { createBoundDeliveryRouter } from "../infra/outbound/bound-delivery-router.js";
 import type { ConversationRef } from "../infra/outbound/session-binding-service.js";
+import { resolveOutboundTarget } from "../infra/outbound/targets.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { normalizeAccountId, normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
@@ -494,8 +495,8 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     isDeliverableMessageChannel(origin.channel) &&
     !resolvedDelivery.deliver
   ) {
-    defaultRuntime.log(
-      `[warn] Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
+    defaultRuntime.warn?.(
+      `Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
     );
   }
   const threadId =
@@ -514,11 +515,11 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     params: {
       sessionKey: item.sessionKey,
       message: item.prompt,
-      channel: requesterIsSubagent ? undefined : origin?.channel,
-      accountId: requesterIsSubagent ? undefined : origin?.accountId,
-      to: requesterIsSubagent ? undefined : origin?.to,
-      threadId: requesterIsSubagent ? undefined : threadId,
-      deliver: !requesterIsSubagent,
+      channel: resolvedDelivery.deliver ? resolvedDelivery.channel : undefined,
+      accountId: resolvedDelivery.deliver ? resolvedDelivery.accountId : undefined,
+      to: resolvedDelivery.deliver ? resolvedDelivery.to : undefined,
+      threadId: resolvedDelivery.deliver ? threadId : undefined,
+      deliver: resolvedDelivery.deliver,
       idempotencyKey,
     },
     timeoutMs: 15_000,
