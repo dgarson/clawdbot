@@ -702,6 +702,26 @@ describe("session lifecycle — parity guards", () => {
     await expect(session.prompt("Hello")).rejects.toThrow("Tool execution failed");
   });
 
+  it("throws result text when SDK marks is_error true with subtype success", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_err_2" },
+        {
+          type: "result",
+          subtype: "success",
+          is_error: true,
+          result: "Prompt is too long",
+        },
+      ])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    await expect(session.prompt("Hello")).rejects.toThrow("Prompt is too long");
+  });
+
   it("prefers SDK result error message over trailing process exit code errors", async () => {
     const queryMock = await importQuery();
     let emittedResult = false;
