@@ -24,7 +24,6 @@ export class FailoverError extends Error {
       code?: string;
       runtime?: string;
       cause?: unknown;
-      runtime?: string;
     },
   ) {
     super(message, { cause: params.cause });

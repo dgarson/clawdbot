@@ -9,7 +9,6 @@ import {
   type ModelRef,
 } from "../agents/model-selection.js";
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
-import { normalizeUsage } from "../agents/usage.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import type {
@@ -472,7 +471,6 @@ export async function summarizeText(params: {
       );
       const latencyMs = Date.now() - startTime;
       if (diagnosticsEnabled) {
-        const usage = normalizeUsage(res.usage);
         emitDiagnosticEvent({
           type: "api.usage",
           source: "tts.summarize",
@@ -483,7 +481,6 @@ export async function summarizeText(params: {
           inputChars: text.length,
           success: true,
           latencyMs,
-          usage,
         });
       }
 
