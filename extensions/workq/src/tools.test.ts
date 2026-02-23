@@ -29,13 +29,13 @@ afterEach(() => {
   tempDirs.clear();
 });
 
-function makeApiCapture(db: WorkqDatabaseApi, staleThresholdHours = 24) {
+function makeApiCapture(db: unknown, staleThresholdHours = 24) {
   const registerTool = vi.fn();
   const api = {
     registerTool,
   } as unknown as { registerTool: typeof registerTool };
 
-  registerWorkqTools(api as never, db, staleThresholdHours);
+  registerWorkqTools(api as never, db as WorkqDatabaseApi, staleThresholdHours);
 
   const [factory, options] = registerTool.mock.calls[0] as [
     (ctx: { agentId?: string | null }) => ToolDef[],
@@ -98,7 +98,7 @@ function makeItem(issueRef: string, agentId: string): WorkItem {
 
 describe("registerWorkqTools", () => {
   it("registers all 8 tool names as optional", () => {
-    const db: WorkqDatabaseApi = {
+    const db = {
       claim: vi.fn(),
       release: vi.fn(),
       status: vi.fn(),
@@ -147,7 +147,7 @@ describe("registerWorkqTools", () => {
   });
 
   it("binds ownership to ctx.agentId and ignores spoofed params", async () => {
-    const db: WorkqDatabaseApi = {
+    const db = {
       claim: vi.fn(() => ({
         status: "conflict",
         issueRef: "ISS-AGENT",
@@ -188,7 +188,7 @@ describe("registerWorkqTools", () => {
   });
 
   it("returns claim conflict payload with expected shape", async () => {
-    const db: WorkqDatabaseApi = {
+    const db = {
       claim: vi.fn(() => ({
         status: "conflict",
         issueRef: "ISS-CONFLICT",
@@ -228,7 +228,7 @@ describe("registerWorkqTools", () => {
   });
 
   it("covers files modes at tool layer (check/set/add/remove)", async () => {
-    const db: WorkqDatabaseApi = {
+    const db = {
       claim: vi.fn(),
       release: vi.fn(),
       status: vi.fn(),

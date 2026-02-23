@@ -294,10 +294,9 @@ describe("registerWorkqCli", () => {
       mode: "set",
       conflicts: [],
       hasConflicts: false,
-      files: ["src/cli.ts", "src/types.ts"],
       added: ["src/types.ts"],
       removed: [],
-    });
+    } as never);
 
     await run(set.program, [
       "workq",

@@ -170,8 +170,8 @@ export default function register(api: OpenClawPluginApi) {
       const payload: QueryFilters = {
         squad: asString(input.squad),
         agentId: asString(input.agent_id),
-        status: asStringOrList(input.status),
-        priority: asStringOrList(input.priority),
+        status: asStringOrList(input.status) as QueryFilters["status"],
+        priority: asStringOrList(input.priority) as QueryFilters["priority"],
         scope: asString(input.scope),
         issueRef: asString(input.issue_ref),
         activeOnly: asBoolean(input.active_only),

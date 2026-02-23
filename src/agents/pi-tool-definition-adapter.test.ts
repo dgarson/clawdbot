@@ -1,5 +1,5 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
-import { Type } from "@sinclair/typebox";
+import { Type, type TSchema } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
 import { toToolDefinitions } from "./pi-tool-definition-adapter.js";
 
@@ -60,7 +60,7 @@ describe("pi tool definition adapter", () => {
           limit: { type: "number" },
         },
         required: ["path"],
-      },
+      } as unknown as TSchema,
       execute: async (_id: string, args: unknown) => {
         capturedArgs = args;
         return {
@@ -104,7 +104,7 @@ describe("pi tool definition adapter", () => {
           path: { type: "string" },
         },
         required: ["path"],
-      },
+      } as unknown as TSchema,
       execute: async (_id: string, args: unknown) => {
         capturedArgs = args;
         return {
@@ -138,7 +138,7 @@ describe("pi tool definition adapter", () => {
       name: "noop",
       label: "Noop",
       description: "noop",
-      parameters: {},
+      parameters: {} as unknown as TSchema,
       execute: async (id: string) => {
         ids.push(id);
         return {

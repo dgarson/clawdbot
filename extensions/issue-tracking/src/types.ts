@@ -99,6 +99,12 @@ export type IssueTicketUpdateInput = Partial<Omit<IssueTicketCreateInput, "relat
   appendRelationships?: TicketRelationship[];
 };
 
+export type ReviewerAssignment = {
+  kind: "agent" | "model";
+  id: string;
+  label?: string;
+};
+
 export type IssueQuery = {
   text?: string;
   statuses?: TicketStatus[];
