@@ -412,7 +412,7 @@ function TrafficBar() {
       <h3 className="text-white font-semibold mb-4">Traffic Distribution</h3>
       
       <div className="h-4 bg-zinc-800 rounded-full overflow-hidden flex mb-4">
-        {trafficDistribution.map((item, index) => (
+        {trafficDistribution.map((item) => (
           <div
             key={item.provider}
             className={cn('h-full transition-all duration-300', item.color)}
