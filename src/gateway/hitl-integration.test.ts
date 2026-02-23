@@ -346,4 +346,52 @@ describe("hitl-integration", () => {
       expect(decision).toBe("deny");
     });
   });
+
+  describe("timeout policy vulnerabilities", () => {
+    it("BUG: allows approval of expired request without expiry check", () => {
+      vi.useFakeTimers();
+      const now = 1_700_000_000_000;
+      vi.setSystemTime(now);
+
+      const store = new HitlRequestStore({ now: () => now });
+
+      // Create a request that expires in 30 seconds
+      const request = store.createRequest({
+        tool: "nodes.run",
+        requesterSession: "session-1",
+        requesterRole: "operator",
+        policyId: "policy-1",
+        expiresAtMs: now + 30_000,
+      });
+
+      expect(request.status).toBe("pending");
+      expect(request.expiresAtMs).toBe(now + 30_000);
+
+      // Time passes - the request times out
+      vi.setSystemTime(now + 35_000); // 5 seconds past expiration
+
+      // Background timeout sweep hasn't run yet (Phase 5 not implemented)
+      // So status is still "pending"
+      let retrieved = store.getRequest(request.id);
+      expect(retrieved?.status).toBe("pending"); // Status still pending!
+      expect(retrieved?.expiresAtMs).toBe(now + 30_000); // But it has expired
+
+      // A late approver comes along and approves it
+      // recordDecision does NOT check if Date.now() > request.expiresAtMs
+      const decision = store.recordDecision({
+        requestId: request.id,
+        actorSession: "admin-session",
+        actorRole: "admin",
+        decision: "approve",
+        reason: "Approved after timeout",
+        type: "explicit",
+      });
+
+      // BUG: approval accepted despite request being expired!
+      expect(decision.decision).toBe("approve");
+      // This violates the timeout policy - expired requests should NOT be approvable
+
+      store.close();
+    });
+  });
 });
