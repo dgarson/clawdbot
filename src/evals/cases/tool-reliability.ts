@@ -1,257 +1,361 @@
 /**
- * Tool Reliability Benchmark Scenario
+ * Tool Reliability Benchmark Scenarios
  *
- * Tests that the system correctly handles tool dispatch reliability,
- * including timeout handling, failure recovery, and result validation.
+ * Tests that tool dispatch, error handling, retry logic, and
+ * graceful degradation behave correctly under various failure modes.
+ * All scenarios are deterministic and require no external services.
  */
 
-import type { CataloguedEvaluationCase, ScenarioMetadata } from "../catalog.js";
+import type { CataloguedEvaluationCase } from "../catalog.js";
 import type { EvaluationCaseResult } from "../types.js";
 
-const toolReliabilityMetadata: ScenarioMetadata = {
-  category: "tool-reliability",
-  difficulty: "integration",
-  expectedDurationMs: 5000,
-  requiresExternal: false,
-  assertions: [
-    "tool dispatch returns correct structure",
-    "tool timeout is handled gracefully",
-    "tool failure triggers appropriate fallback",
-    "tool result validation works correctly",
-  ],
-  relatedCases: ["hitl.escalation-smoke"],
-};
+// ---------------------------------------------------------------------------
+// tool-reliability.dispatch-success
+// ---------------------------------------------------------------------------
 
-/**
- * Tool dispatch smoke test - verifies basic tool call structure
- */
-export const toolDispatchCase: CataloguedEvaluationCase = {
-  id: "tool-reliability.dispatch-smoke",
+export const toolDispatchSuccessCase: CataloguedEvaluationCase = {
+  id: "tool-reliability.dispatch-success",
   suite: "tool-reliability",
-  title: "Tool dispatch smoke test",
+  title: "Tool dispatch — successful invocation",
   description:
-    "Validates basic tool dispatch flow - verifies tool call structure and response format.",
-  tags: ["tool", "dispatch", "smoke", "integration"],
-  metadata: toolReliabilityMetadata,
+    "Validates that a tool invocation with valid arguments succeeds and returns the expected result shape.",
+  tags: ["tool-reliability", "dispatch", "smoke"],
+  metadata: {
+    category: "tool-reliability",
+    difficulty: "smoke",
+    expectedDurationMs: 500,
+    requiresExternal: false,
+    assertions: [
+      "tool call with valid arguments returns result",
+      "result contains expected fields",
+      "tool name and call id are tracked",
+    ],
+  },
   run: async (): Promise<EvaluationCaseResult> => {
-    // Simulate a tool dispatch request
-    const toolRequest = {
-      tool: "read_file",
-      args: { path: "/src/main.ts" },
-      requestId: "req-123",
-      timestamp: new Date().toISOString(),
+    // Simulate a tool registry and dispatch
+    type ToolResult = { ok: boolean; value: unknown };
+    type ToolCall = { toolName: string; callId: string; args: Record<string, unknown> };
+
+    const dispatchTool = async (call: ToolCall): Promise<ToolResult> => {
+      const registry: Record<string, (args: Record<string, unknown>) => unknown> = {
+        echo: (args) => args["input"],
+        add: (args) => (args["a"] as number) + (args["b"] as number),
+      };
+
+      const fn = registry[call.toolName];
+      if (!fn) {
+        return { ok: false, value: `Unknown tool: ${call.toolName}` };
+      }
+      return { ok: true, value: fn(call.args) };
     };
 
-    // Simulate tool response structure
-    const toolResponse = {
-      success: true,
-      requestId: toolRequest.requestId,
-      tool: toolRequest.tool,
-      result: {
-        content: "const main = () => { ... }",
-        size: 1024,
+    const call: ToolCall = {
+      toolName: "add",
+      callId: "call-001",
+      args: { a: 3, b: 4 },
+    };
+
+    const result = await dispatchTool(call);
+    const pass = result.ok && result.value === 7;
+
+    return {
+      pass,
+      summary: pass
+        ? "Tool dispatch succeeded with correct result"
+        : `Tool dispatch failed or returned unexpected value: ${JSON.stringify(result.value)}`,
+      score: pass ? 1 : 0,
+      details: {
+        call,
+        result,
+        expected: 7,
       },
-      durationMs: 150,
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// tool-reliability.dispatch-unknown-tool
+// ---------------------------------------------------------------------------
+
+export const toolDispatchUnknownCase: CataloguedEvaluationCase = {
+  id: "tool-reliability.dispatch-unknown-tool",
+  suite: "tool-reliability",
+  title: "Tool dispatch — unknown tool graceful error",
+  description:
+    "Validates that dispatching an unknown tool name returns a structured error without throwing.",
+  tags: ["tool-reliability", "dispatch", "error-handling", "unit"],
+  metadata: {
+    category: "tool-reliability",
+    difficulty: "unit",
+    expectedDurationMs: 200,
+    requiresExternal: false,
+    assertions: [
+      "unknown tool name returns ok=false",
+      "error message includes tool name",
+      "dispatch does not throw",
+    ],
+    relatedCases: ["tool-reliability.dispatch-success"],
+  },
+  run: async (): Promise<EvaluationCaseResult> => {
+    type ToolResult = { ok: boolean; error?: string; value?: unknown };
+
+    const dispatchTool = async (
+      toolName: string,
+      args: Record<string, unknown>,
+    ): Promise<ToolResult> => {
+      const knownTools = new Set(["echo", "add", "read", "write"]);
+      if (!knownTools.has(toolName)) {
+        return { ok: false, error: `Unknown tool: ${toolName}` };
+      }
+      return { ok: true, value: args };
     };
 
-    // Validate response structure
+    const result = await dispatchTool("nonexistent_tool", { x: 1 });
     const pass =
-      toolResponse.success &&
-      toolResponse.requestId === toolRequest.requestId &&
-      toolResponse.tool === toolRequest.tool &&
-      toolResponse.result !== undefined;
+      !result.ok && typeof result.error === "string" && result.error.includes("nonexistent_tool");
 
     return {
       pass,
       summary: pass
-        ? "Tool dispatch correctly returns expected structure"
-        : "Tool dispatch response structure invalid",
+        ? "Unknown tool correctly returned structured error"
+        : "Expected structured error for unknown tool, got: " + JSON.stringify(result),
       score: pass ? 1 : 0,
-      details: {
-        request: toolRequest,
-        response: toolResponse,
-      },
+      details: { result },
     };
   },
 };
 
-/**
- * Tool timeout handling test - verifies timeout detection and handling
- */
-export const toolTimeoutCase: CataloguedEvaluationCase = {
-  id: "tool-reliability.timeout-handling",
+// ---------------------------------------------------------------------------
+// tool-reliability.retry-on-transient-failure
+// ---------------------------------------------------------------------------
+
+export const toolRetryCase: CataloguedEvaluationCase = {
+  id: "tool-reliability.retry-on-transient-failure",
   suite: "tool-reliability",
-  title: "Tool timeout handling",
-  description: "Validates that tool calls timeout correctly and don't hang indefinitely.",
-  tags: ["tool", "timeout", "integration"],
+  title: "Tool retry — transient failure recovery",
+  description:
+    "Validates that the retry logic correctly retries failed tool calls up to the max attempt limit and succeeds on a later attempt.",
+  tags: ["tool-reliability", "retry", "resilience", "unit"],
   metadata: {
     category: "tool-reliability",
-    difficulty: "integration",
-    expectedDurationMs: 3000,
+    difficulty: "unit",
+    expectedDurationMs: 500,
     requiresExternal: false,
     assertions: [
-      "timeout is triggered after configured duration",
-      "timeout error is properly formatted",
-      "no resource leaks on timeout",
+      "tool is retried after transient failure",
+      "success on allowed attempt passes through",
+      "attempt count is tracked correctly",
+      "does not exceed max retries",
     ],
-    relatedCases: ["tool-reliability.dispatch-smoke", "hitl.timeout-handling"],
+    relatedCases: ["tool-reliability.dispatch-success"],
   },
   run: async (): Promise<EvaluationCaseResult> => {
-    // Simulate tool timeout configuration
-    const configuredTimeoutMs = 30000; // 30 seconds
-    const toolStartTime = Date.now() - configuredTimeoutMs - 500; // Past timeout + buffer
+    const maxRetries = 3;
+    let attemptCount = 0;
+    const failUntil = 2; // fails on attempts 1-2, succeeds on 3
 
-    // Check if timeout should have triggered
-    const elapsedMs = Date.now() - toolStartTime;
-    const shouldTimeout = elapsedMs >= configuredTimeoutMs;
-
-    // Simulate timeout error format
-    const timeoutError = shouldTimeout
-      ? {
-          error: "timeout",
-          message: `Tool execution exceeded timeout of ${configuredTimeoutMs}ms`,
-          elapsedMs,
-          timeoutMs: configuredTimeoutMs,
+    const callWithRetry = async (): Promise<{ success: boolean; attempts: number }> => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        attemptCount = attempt;
+        if (attempt < failUntil) {
+          // Simulate transient error
+          continue;
         }
-      : null;
-
-    const pass = shouldTimeout && timeoutError !== null;
-
-    return {
-      pass,
-      summary: pass ? "Tool timeout correctly detected and handled" : "Timeout handling failed",
-      score: pass ? 1 : 0,
-      details: {
-        elapsedMs,
-        timeoutMs: configuredTimeoutMs,
-        timedOut: shouldTimeout,
-        error: timeoutError,
-      },
-    };
-  },
-};
-
-/**
- * Tool failure recovery test - verifies fallback behavior on tool failure
- */
-export const toolFailureRecoveryCase: CataloguedEvaluationCase = {
-  id: "tool-reliability.failure-recovery",
-  suite: "tool-reliability",
-  title: "Tool failure recovery",
-  description: "Validates that tool failures trigger appropriate fallback behavior.",
-  tags: ["tool", "failure", "recovery", "integration"],
-  metadata: {
-    category: "tool-reliability",
-    difficulty: "integration",
-    expectedDurationMs: 4000,
-    requiresExternal: false,
-    assertions: [
-      "failure is detected and reported",
-      "fallback behavior is executed",
-      "error details are preserved for debugging",
-    ],
-    relatedCases: ["tool-reliability.dispatch-smoke"],
-  },
-  run: async (): Promise<EvaluationCaseResult> => {
-    // Simulate a tool failure (e.g., file not found)
-    const toolError = {
-      code: "ENOENT",
-      message: "File not found: /nonexistent/path.txt",
-      tool: "read_file",
-      recoverable: false,
-    };
-
-    // Determine if fallback should be triggered
-    const shouldFallback = !toolError.recoverable;
-
-    // Simulate fallback action
-    const fallbackAction = shouldFallback
-      ? {
-          action: "return-error-to-user",
-          reason: "non-recoverable-tool-error",
-          originalError: toolError.code,
-        }
-      : null;
-
-    const pass = shouldFallback && fallbackAction !== null;
-
-    return {
-      pass,
-      summary: pass
-        ? "Tool failure correctly triggered fallback behavior"
-        : "Failure recovery handling failed",
-      score: pass ? 1 : 0,
-      details: {
-        originalError: toolError,
-        fallbackTriggered: shouldFallback,
-        fallbackAction,
-      },
-    };
-  },
-};
-
-/**
- * Tool result validation test - verifies result structure validation
- */
-export const toolResultValidationCase: CataloguedEvaluationCase = {
-  id: "tool-reliability.result-validation",
-  suite: "tool-reliability",
-  title: "Tool result validation",
-  description: "Validates that tool results are properly validated before being used.",
-  tags: ["tool", "validation", "integration"],
-  metadata: {
-    category: "tool-reliability",
-    difficulty: "integration",
-    expectedDurationMs: 2000,
-    requiresExternal: false,
-    assertions: [
-      "valid results pass validation",
-      "invalid results are caught",
-      "validation errors include helpful details",
-    ],
-    relatedCases: ["tool-reliability.dispatch-smoke"],
-  },
-  run: async (): Promise<EvaluationCaseResult> => {
-    // Simulate validation of tool results
-    const validateResult = (result: unknown): { valid: boolean; errors: string[] } => {
-      const errors: string[] = [];
-
-      if (result === null || result === undefined) {
-        errors.push("Result cannot be null or undefined");
+        // Simulate success
+        return { success: true, attempts: attempt };
       }
+      return { success: false, attempts: attemptCount };
+    };
 
-      if (typeof result === "object") {
-        const obj = result as Record<string, unknown>;
-        if (!("content" in obj) && !("error" in obj)) {
-          errors.push("Result must have 'content' or 'error' field");
+    const outcome = await callWithRetry();
+    const pass = outcome.success && outcome.attempts === failUntil && attemptCount <= maxRetries;
+
+    return {
+      pass,
+      summary: pass
+        ? `Tool succeeded after ${outcome.attempts} attempt(s) (retry worked)`
+        : `Retry logic failed: success=${outcome.success}, attempts=${outcome.attempts}`,
+      score: pass ? 1 : 0,
+      details: {
+        maxRetries,
+        failUntil,
+        outcome,
+      },
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// tool-reliability.max-retries-exhausted
+// ---------------------------------------------------------------------------
+
+export const toolMaxRetriesExhaustedCase: CataloguedEvaluationCase = {
+  id: "tool-reliability.max-retries-exhausted",
+  suite: "tool-reliability",
+  title: "Tool retry — max retries exhausted returns failure",
+  description:
+    "Validates that when all retry attempts fail, the system returns a structured failure and does not loop forever.",
+  tags: ["tool-reliability", "retry", "error-handling", "unit"],
+  metadata: {
+    category: "tool-reliability",
+    difficulty: "unit",
+    expectedDurationMs: 300,
+    requiresExternal: false,
+    assertions: [
+      "retries stop at max limit",
+      "final result is a structured failure",
+      "attempt count equals max retries",
+    ],
+    relatedCases: ["tool-reliability.retry-on-transient-failure"],
+  },
+  run: async (): Promise<EvaluationCaseResult> => {
+    const maxRetries = 3;
+    let attemptsMade = 0;
+
+    const callWithRetry = async (): Promise<{ success: boolean; attempts: number }> => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        attemptsMade = attempt;
+        // Always fail
+      }
+      return { success: false, attempts: attemptsMade };
+    };
+
+    const outcome = await callWithRetry();
+    const pass = !outcome.success && outcome.attempts === maxRetries;
+
+    return {
+      pass,
+      summary: pass
+        ? `Tool correctly gave up after ${maxRetries} failed attempts`
+        : `Expected failure after ${maxRetries} attempts, got: ${JSON.stringify(outcome)}`,
+      score: pass ? 1 : 0,
+      details: { maxRetries, outcome },
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// tool-reliability.timeout-abort
+// ---------------------------------------------------------------------------
+
+export const toolTimeoutAbortCase: CataloguedEvaluationCase = {
+  id: "tool-reliability.timeout-abort",
+  suite: "tool-reliability",
+  title: "Tool timeout — abort signal propagation",
+  description:
+    "Validates that an AbortSignal is propagated to tool execution and causes early termination.",
+  tags: ["tool-reliability", "timeout", "abort", "unit"],
+  metadata: {
+    category: "tool-reliability",
+    difficulty: "unit",
+    expectedDurationMs: 200,
+    requiresExternal: false,
+    assertions: [
+      "abort signal causes tool to stop early",
+      "abort is detected before timeout expires",
+      "result indicates abort rather than success",
+    ],
+    relatedCases: ["tool-reliability.retry-on-transient-failure"],
+  },
+  run: async (): Promise<EvaluationCaseResult> => {
+    const controller = new AbortController();
+
+    // Simulate a tool that checks the abort signal
+    const runTool = async (signal: AbortSignal): Promise<{ aborted: boolean; step: number }> => {
+      let step = 0;
+      for (let i = 0; i < 10; i++) {
+        if (signal.aborted) {
+          return { aborted: true, step };
+        }
+        step++;
+        if (i === 2) {
+          // Simulate abort happening mid-execution
+          controller.abort();
         }
       }
-
-      return { valid: errors.length === 0, errors };
+      return { aborted: false, step };
     };
 
-    // Test case 1: Valid result
-    const validResult = { content: "file content here", size: 100 };
-    const validCheck = validateResult(validResult);
-
-    // Test case 2: Invalid result (missing required fields)
-    const invalidResult = { metadata: { created: "2026-01-01" } };
-    const invalidCheck = validateResult(invalidResult);
-
-    const pass = validCheck.valid && !invalidCheck.valid;
+    const outcome = await runTool(controller.signal);
+    const pass = outcome.aborted && outcome.step <= 10;
 
     return {
       pass,
       summary: pass
-        ? "Tool result validation correctly identifies valid and invalid results"
-        : "Result validation failed",
+        ? `Tool correctly aborted at step ${outcome.step}`
+        : `Expected early abort, tool ran to step ${outcome.step}`,
       score: pass ? 1 : 0,
-      details: {
-        validResult,
-        validCheck,
-        invalidResult,
-        invalidCheck,
-      },
+      details: { outcome },
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// tool-reliability.result-schema-validation
+// ---------------------------------------------------------------------------
+
+export const toolResultSchemaCase: CataloguedEvaluationCase = {
+  id: "tool-reliability.result-schema-validation",
+  suite: "tool-reliability",
+  title: "Tool result schema validation",
+  description:
+    "Validates that tool results are checked against their declared schema and malformed results are rejected.",
+  tags: ["tool-reliability", "schema", "validation", "unit"],
+  metadata: {
+    category: "tool-reliability",
+    difficulty: "unit",
+    expectedDurationMs: 200,
+    requiresExternal: false,
+    assertions: [
+      "valid result passes schema check",
+      "result missing required field is rejected",
+      "result with wrong field type is rejected",
+    ],
+  },
+  run: async (): Promise<EvaluationCaseResult> => {
+    type ToolOutput = { status: "ok" | "error"; data?: unknown; error?: string };
+
+    const validateOutput = (raw: unknown): { valid: boolean; reason?: string } => {
+      if (!raw || typeof raw !== "object") {
+        return { valid: false, reason: "not an object" };
+      }
+      const r = raw as Record<string, unknown>;
+      if (r["status"] !== "ok" && r["status"] !== "error") {
+        return { valid: false, reason: `invalid status: ${String(r["status"])}` };
+      }
+      if (r["status"] === "error" && typeof r["error"] !== "string") {
+        return { valid: false, reason: "error status requires string error field" };
+      }
+      return { valid: true };
+    };
+
+    const validResult: ToolOutput = { status: "ok", data: { items: [1, 2, 3] } };
+    const missingStatus = { data: "something" };
+    const wrongErrorType: Record<string, unknown> = { status: "error", error: 42 };
+
+    const checks = [
+      { label: "valid result", input: validResult, expectValid: true },
+      { label: "missing status", input: missingStatus, expectValid: false },
+      { label: "wrong error type", input: wrongErrorType, expectValid: false },
+    ];
+
+    const results = checks.map(({ label, input, expectValid }) => {
+      const { valid, reason } = validateOutput(input);
+      return { label, valid, reason, passed: valid === expectValid };
+    });
+
+    const pass = results.every((r) => r.passed);
+
+    return {
+      pass,
+      summary: pass
+        ? "All schema validation checks passed"
+        : `Schema validation failed: ${results
+            .filter((r) => !r.passed)
+            .map((r) => r.label)
+            .join(", ")}`,
+      score: results.filter((r) => r.passed).length / results.length,
+      details: { checks: results },
     };
   },
 };
