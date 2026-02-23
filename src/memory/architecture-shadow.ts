@@ -79,6 +79,19 @@ export function startMemoryShadowWrite(cfg?: OpenClawConfig): void {
       agentId: update.agentId,
       userId: update.sessionKey,
       tags: ["shadow", "session", role],
+      scope: update.sessionKey ? { session: update.sessionKey } : undefined,
+      access: update.sessionKey
+        ? {
+            read: {
+              userIds: [update.sessionKey],
+            },
+          }
+        : undefined,
+      provenance: {
+        source: update.sessionFile,
+        timestamp: Date.now(),
+        confidence: role === "user" ? 1 : 0.8,
+      },
     };
 
     void service.store(content, metadata).catch(() => {

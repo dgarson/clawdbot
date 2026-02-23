@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMemoryService } from "./architecture.js";
+import { createMemoryService, migrateLegacyMemoryNode } from "./architecture.js";
 
 describe("Memory architecture scope isolation", () => {
   it("filters retrieve by agent and user scope", async () => {
@@ -145,6 +145,31 @@ describe("Memory architecture scope isolation", () => {
     expect(result?.metadata.provenance.confidence).toBe(0.7);
   });
 
+  it("migrates legacy node metadata into the v2 schema", () => {
+    const migrated = migrateLegacyMemoryNode({
+      id: "legacy-1",
+      content: "legacy memory",
+      embedding: [],
+      createdAt: 1_700_000_000_000,
+      updatedAt: 1_700_000_010_000,
+      metadata: {
+        domain: "system_fact",
+        sourceId: "legacy-source",
+        ttlSec: 120,
+        confidenceScore: 2,
+        scope: { project: "proj-legacy" },
+      },
+    });
+
+    expect(migrated.version).toBe(2);
+    expect(migrated.metadata.scopeLevel).toBe("project");
+    expect(migrated.metadata.provenance.source).toBe("legacy-source");
+    expect(migrated.metadata.provenance.timestamp).toBe(1_700_000_010_000);
+    expect(migrated.metadata.provenance.confidence).toBe(1);
+    expect(migrated.metadata.retention?.ttlSec).toBe(120);
+    expect(migrated.embedding.length).toBeGreaterThan(0);
+  });
+
   it("deletes by scope with cascade semantics", async () => {
     const service = createMemoryService({
       governance: { default: "allow" },
@@ -183,6 +208,31 @@ describe("Memory architecture scope isolation", () => {
     const remaining = await service.retrieve("memory", undefined, 10);
     expect(remaining).toHaveLength(1);
     expect(remaining[0]?.metadata.scopeLevel).toBe("org");
+  });
+
+  it("deletes only the target scope level when cascade is false", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+    });
+
+    await service.store("role memory", {
+      domain: "system_fact",
+      sourceId: "role",
+      scope: { role: "reliability", org: "openclaw" },
+    });
+    await service.store("project memory", {
+      domain: "system_fact",
+      sourceId: "project",
+      scope: { project: "proj-1", role: "reliability", org: "openclaw" },
+    });
+
+    const removed = await service.deleteByScope({ role: "reliability" }, { cascade: false });
+    expect(removed).toBe(1);
+
+    const remaining = await service.retrieve("memory", undefined, 10);
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.metadata.scopeLevel).toBe("project");
   });
 });
 

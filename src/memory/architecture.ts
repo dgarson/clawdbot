@@ -107,6 +107,11 @@ export interface MemoryNode {
   version: number;
 }
 
+export type LegacyMemoryNode = Omit<MemoryNode, "metadata" | "version"> & {
+  version?: number;
+  metadata: MemoryStoreMetadata;
+};
+
 export type MemoryScopedRetrieveOptions = {
   limit?: number;
   filters?: Partial<MemoryMetadata>;
@@ -290,6 +295,29 @@ function toMemoryMetadata(
   };
 
   return normalized;
+}
+
+export function migrateLegacyMemoryNode(
+  node: LegacyMemoryNode,
+  config?: MemoryServiceOptions,
+): MemoryNode {
+  const now = Date.now();
+  const normalizedConfig = normalizeMemoryConfig(config);
+  const updatedAt = Number.isFinite(node.updatedAt) ? node.updatedAt : now;
+  const createdAt = Number.isFinite(node.createdAt) ? node.createdAt : updatedAt;
+
+  return {
+    id: node.id,
+    content: node.content,
+    embedding:
+      node.embedding.length > 0
+        ? node.embedding
+        : defaultMemoryEmbedding(normalizedConfig.embedding.dimensions ?? 512),
+    metadata: toMemoryMetadata(node.metadata, updatedAt, normalizedConfig),
+    createdAt,
+    updatedAt,
+    version: NODE_VERSION,
+  };
 }
 
 function metadataMatchesFilter(
@@ -578,10 +606,116 @@ function shouldDeleteNodeByScope(
   return nodeLevel === "org";
 }
 
+type ScopeIndex = {
+  session: Map<string, Set<string>>;
+  project: Map<string, Set<string>>;
+  role: Map<string, Set<string>>;
+  org: Map<string, Set<string>>;
+};
+
+function createScopeIndex(): ScopeIndex {
+  return {
+    session: new Map(),
+    project: new Map(),
+    role: new Map(),
+    org: new Map(),
+  };
+}
+
+function scopeKeyForLevel(
+  scope: MemoryScopePath | undefined,
+  level: MemoryScopeLevel,
+): string | undefined {
+  if (!scope) {
+    return undefined;
+  }
+
+  if (level === "session") {
+    return scope.session;
+  }
+  if (level === "project") {
+    return scope.project;
+  }
+  if (level === "role") {
+    return scope.role;
+  }
+  return scope.org;
+}
+
 class InMemoryMemoryService implements IMemoryService {
   private readonly nodes = new Map<string, MemoryNode>();
+  private readonly scopeIndex: ScopeIndex = createScopeIndex();
 
   constructor(private readonly config: Required<MemoryConfig>) {}
+
+  private indexNode(node: MemoryNode): void {
+    for (const level of ["session", "project", "role", "org"] as const) {
+      const key = scopeKeyForLevel(node.metadata.scope, level);
+      if (!key) {
+        continue;
+      }
+
+      let nodeIds = this.scopeIndex[level].get(key);
+      if (!nodeIds) {
+        nodeIds = new Set<string>();
+        this.scopeIndex[level].set(key, nodeIds);
+      }
+      nodeIds.add(node.id);
+    }
+  }
+
+  private unindexNode(node: MemoryNode): void {
+    for (const level of ["session", "project", "role", "org"] as const) {
+      const key = scopeKeyForLevel(node.metadata.scope, level);
+      if (!key) {
+        continue;
+      }
+
+      const nodeIds = this.scopeIndex[level].get(key);
+      if (!nodeIds) {
+        continue;
+      }
+
+      nodeIds.delete(node.id);
+      if (nodeIds.size === 0) {
+        this.scopeIndex[level].delete(key);
+      }
+    }
+  }
+
+  private deleteNode(nodeId: string): boolean {
+    const node = this.nodes.get(nodeId);
+    if (!node) {
+      return false;
+    }
+    this.unindexNode(node);
+    this.nodes.delete(nodeId);
+    return true;
+  }
+
+  private getCandidatesByScopeLevel(
+    level: MemoryScopeLevel,
+    requested: MemoryScopePath,
+  ): MemoryNode[] {
+    const key = scopeKeyForLevel(requested, level);
+    if (!key) {
+      return [];
+    }
+
+    const ids = this.scopeIndex[level].get(key);
+    if (!ids || ids.size === 0) {
+      return [];
+    }
+
+    const nodes: MemoryNode[] = [];
+    for (const id of ids) {
+      const node = this.nodes.get(id);
+      if (node) {
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
 
   async store(content: string, metadata: MemoryStoreMetadata): Promise<string> {
     if (!governanceAllowsWrite(metadata, this.config.governance)) {
@@ -600,6 +734,7 @@ class InMemoryMemoryService implements IMemoryService {
     };
 
     this.nodes.set(node.id, node);
+    this.indexNode(node);
     return node.id;
   }
 
@@ -662,7 +797,7 @@ class InMemoryMemoryService implements IMemoryService {
     const out: MemoryNode[] = [];
 
     for (const level of levels) {
-      const candidates = Array.from(this.nodes.values())
+      const candidates = this.getCandidatesByScopeLevel(level, scope)
         .filter((node) => {
           if (seen.has(node.id)) {
             return false;
@@ -730,14 +865,13 @@ class InMemoryMemoryService implements IMemoryService {
   }
 
   async forget(nodeId: string): Promise<boolean> {
-    return this.nodes.delete(nodeId);
+    return this.deleteNode(nodeId);
   }
 
   async forgetUser(userId: string): Promise<number> {
     let removed = 0;
     for (const [id, node] of this.nodes.entries()) {
-      if (node.metadata.userId === userId) {
-        this.nodes.delete(id);
+      if (node.metadata.userId === userId && this.deleteNode(id)) {
         removed += 1;
       }
     }
@@ -755,13 +889,15 @@ class InMemoryMemoryService implements IMemoryService {
 
     const cascade = options?.cascade ?? true;
     let removed = 0;
+    const candidates = this.getCandidatesByScopeLevel(targetLevel, scope);
 
-    for (const [id, node] of this.nodes.entries()) {
+    for (const node of candidates) {
       if (!shouldDeleteNodeByScope(node, scope, targetLevel, cascade)) {
         continue;
       }
-      this.nodes.delete(id);
-      removed += 1;
+      if (this.deleteNode(node.id)) {
+        removed += 1;
+      }
     }
 
     return removed;
@@ -806,8 +942,9 @@ class InMemoryMemoryService implements IMemoryService {
       }
 
       if (isExpired(node.metadata, now)) {
-        this.nodes.delete(id);
-        removed += 1;
+        if (this.deleteNode(id)) {
+          removed += 1;
+        }
         continue;
       }
 
@@ -815,8 +952,9 @@ class InMemoryMemoryService implements IMemoryService {
         continue;
       }
 
-      this.nodes.delete(id);
-      removed += 1;
+      if (this.deleteNode(id)) {
+        removed += 1;
+      }
     }
 
     return removed;

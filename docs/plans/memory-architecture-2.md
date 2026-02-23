@@ -3,7 +3,7 @@
 ## Status
 
 - Branch: `feat/memory-architecture-2`
-- Phase: bootstrap implementation (scoped retrieval + basic provenance + cascade deletion API)
+- Phase: bootstrap+ (scoped retrieval + provenance + cascade deletion + in-memory scope indexing + migration helper)
 
 ## Goals
 
@@ -74,5 +74,8 @@ Examples:
 ## Notes / Follow-ups
 
 - Current implementation is in-memory service for architecture bootstrap.
+- In-memory scope indexes now back `retrieveScoped` and `deleteByScope` candidate selection (session/project/role/org maps).
+- Added `migrateLegacyMemoryNode(...)` utility to normalize legacy records into v2 metadata shape.
 - Next step is wiring these semantics into persistent/vector-backed memory service(s).
 - Add API/tool surface for scoped retrieval and scoped deletion once architecture path is promoted beyond shadow mode.
+- Expand migration from utility-level conversion to end-to-end backfill job against persisted stores.
