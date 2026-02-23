@@ -127,11 +127,16 @@ export function toToolDefinitions(
 ): ToolDefinition[] {
   const toolCallIdSeen = new Map<string, number>();
 
-  const normalizeToolCallIdWithDupes = (toolCallId: string): string => {
+  const normalizeToolCallIdWithDupes = (
+    toolCallId: string,
+  ): { resolved: string; isDuplicate: boolean } => {
     const sanitized = sanitizeToolCallId(toolCallId);
     const next = (toolCallIdSeen.get(sanitized) ?? 0) + 1;
     toolCallIdSeen.set(sanitized, next);
-    return next === 1 ? sanitized : `${sanitized}_${next}`;
+    return {
+      resolved: next === 1 ? sanitized : `${sanitized}_${next}`,
+      isDuplicate: next > 1,
+    };
   };
 
   return tools.map((tool) => {
@@ -146,15 +151,15 @@ export function toToolDefinitions(
       parameters: tool.parameters,
       execute: async (...args: ToolExecuteArgs): Promise<AgentToolResult<unknown>> => {
         const { toolCallId, params, onUpdate, signal } = splitToolExecuteArgs(args);
-        const resolvedToolCallId = normalizeToolCallIdWithDupes(
+        const { resolved: resolvedToolCallId, isDuplicate } = normalizeToolCallIdWithDupes(
           typeof toolCallId === "string" ? toolCallId : "",
         );
-        if (resolvedToolCallId !== toolCallId) {
+        if (isDuplicate) {
           const sessionHint = compatibility?.sessionKey
             ? ` session=${compatibility.sessionKey}`
             : "";
           logWarn(
-            `tools: duplicate/mutated toolCallId tool=${name} id=${String(toolCallId)} normalized=${resolvedToolCallId}${sessionHint}`,
+            `tools: duplicate toolCallId tool=${name} id=${String(toolCallId)} normalized=${resolvedToolCallId}${sessionHint}`,
           );
         }
 

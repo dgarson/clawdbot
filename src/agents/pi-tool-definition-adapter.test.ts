@@ -1,6 +1,7 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import { Type, type TSchema } from "@sinclair/typebox";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import * as logger from "../logger.js";
 import { toToolDefinitions } from "./pi-tool-definition-adapter.js";
 
 type ToolExecute = ReturnType<typeof toToolDefinitions>[number]["execute"];
@@ -154,5 +155,62 @@ describe("pi tool definition adapter", () => {
     await defs[0].execute("same-id", {}, undefined, undefined, extensionContext);
 
     expect(ids).toEqual(["sameid", "sameid_2"]);
+  });
+
+  it("does not warn when toolCallId is merely sanitized (hyphens stripped)", async () => {
+    const warnSpy = vi.spyOn(logger, "logWarn");
+    const tool = {
+      name: "noop",
+      label: "Noop",
+      description: "noop",
+      parameters: {} as unknown as TSchema,
+      execute: async () => ({
+        content: [{ type: "text", text: "ok" }] as const,
+        details: {},
+      }),
+    } satisfies AgentTool;
+
+    const defs = toToolDefinitions([tool], { provider: "openai" });
+
+    // UUID with hyphens — sanitization strips them but should not warn
+    await defs[0].execute(
+      "40b2a00f-8ebf-4896-827e-44e97dfb54db",
+      {},
+      undefined,
+      undefined,
+      extensionContext,
+    );
+
+    expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("duplicate toolCallId"));
+    warnSpy.mockRestore();
+  });
+
+  it("warns only when the same toolCallId appears more than once", async () => {
+    const warnSpy = vi.spyOn(logger, "logWarn");
+    const tool = {
+      name: "exec",
+      label: "Exec",
+      description: "exec",
+      parameters: {} as unknown as TSchema,
+      execute: async () => ({
+        content: [{ type: "text", text: "ok" }] as const,
+        details: {},
+      }),
+    } satisfies AgentTool;
+
+    const defs = toToolDefinitions([tool], {
+      provider: "openai",
+      sessionKey: "test-session",
+    });
+
+    // First call — no warning
+    await defs[0].execute("dup-id", {}, undefined, undefined, extensionContext);
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    // Second call with same id — should warn
+    await defs[0].execute("dup-id", {}, undefined, undefined, extensionContext);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("duplicate toolCallId tool=exec"));
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("session=test-session"));
+    warnSpy.mockRestore();
   });
 });
