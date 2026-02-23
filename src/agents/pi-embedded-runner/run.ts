@@ -70,6 +70,8 @@ type ApiKeyInfo = ResolvedProviderAuth;
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
 const ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)";
+const MAX_LANE_DIAG_ITEMS = 4;
+const MAX_LANE_DIAG_CHARS = 320;
 
 function scrubAnthropicRefusalMagic(prompt: string): string {
   if (!prompt.includes(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL)) {
@@ -79,6 +81,21 @@ function scrubAnthropicRefusalMagic(prompt: string): string {
     ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL,
     ANTHROPIC_MAGIC_STRING_REPLACEMENT,
   );
+}
+
+function formatLaneDiagnosticInfo(values: string[] | undefined): string | undefined {
+  if (!Array.isArray(values) || values.length === 0) {
+    return undefined;
+  }
+  const unique = Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+  if (unique.length === 0) {
+    return undefined;
+  }
+  const joined = unique.slice(0, MAX_LANE_DIAG_ITEMS).join(" | ");
+  if (joined.length <= MAX_LANE_DIAG_CHARS) {
+    return joined;
+  }
+  return `${joined.slice(0, MAX_LANE_DIAG_CHARS - 3)}...`;
 }
 
 type UsageAccumulator = {
@@ -1102,6 +1119,10 @@ export async function runEmbeddedPiAgent(
             // Emit an explicit timeout error instead of silently completing, so
             // callers do not lose the turn as an orphaned user message.
             if (timedOut && !timedOutDuringCompaction && payloads.length === 0) {
+              const extraInfo = formatLaneDiagnosticInfo(attempt.toolDiagnosticExtraInfos);
+              const debugInfo = isDiagnosticsEnabled(params.config)
+                ? formatLaneDiagnosticInfo(attempt.toolDiagnosticDebugInfos)
+                : undefined;
               return {
                 payloads: [
                   {
@@ -1122,6 +1143,8 @@ export async function runEmbeddedPiAgent(
                 messagingToolSentMediaUrls: attempt.messagingToolSentMediaUrls,
                 messagingToolSentTargets: attempt.messagingToolSentTargets,
                 successfulCronAdds: attempt.successfulCronAdds,
+                extraInfo,
+                debugInfo,
               };
             }
 
@@ -1141,6 +1164,10 @@ export async function runEmbeddedPiAgent(
                 agentDir: params.agentDir,
               });
             }
+            const extraInfo = formatLaneDiagnosticInfo(attempt.toolDiagnosticExtraInfos);
+            const debugInfo = isDiagnosticsEnabled(params.config)
+              ? formatLaneDiagnosticInfo(attempt.toolDiagnosticDebugInfos)
+              : undefined;
             return {
               payloads: payloads.length ? payloads : undefined,
               meta: {
@@ -1165,6 +1192,8 @@ export async function runEmbeddedPiAgent(
               messagingToolSentMediaUrls: attempt.messagingToolSentMediaUrls,
               messagingToolSentTargets: attempt.messagingToolSentTargets,
               successfulCronAdds: attempt.successfulCronAdds,
+              extraInfo,
+              debugInfo,
             };
           }
         } finally {
@@ -1178,6 +1207,10 @@ export async function runEmbeddedPiAgent(
           agentMeta && "toolCallCount" in agentMeta ? agentMeta.toolCallCount : undefined;
         return typeof toolCallCount === "number" ? `toolCalls=${toolCallCount}` : undefined;
       },
+      getDiagnosticFields: (result: EmbeddedPiRunResult) => ({
+        extraInfo: result?.extraInfo,
+        debugInfo: result?.debugInfo,
+      }),
     },
   );
 }

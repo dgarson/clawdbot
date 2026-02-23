@@ -9,6 +9,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
+import {
+  onDiagnosticEvent,
+  resetDiagnosticEventsForTest,
+} from "../../../infra/diagnostic-events.js";
 import type { ClaudeSdkSession, ClaudeSdkSessionParams } from "../types.js";
 
 // ---------------------------------------------------------------------------
@@ -666,6 +670,7 @@ describe("session lifecycle — provider env wiring", () => {
 describe("session lifecycle — parity guards", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetDiagnosticEventsForTest();
   });
 
   it("disables Claude built-in tools so OpenClaw MCP tools are the only execution path", async () => {
@@ -720,6 +725,43 @@ describe("session lifecycle — parity guards", () => {
     const session = await createSession(makeParams());
 
     await expect(session.prompt("Hello")).rejects.toThrow("Prompt is too long");
+  });
+
+  it("emits runtime.warning diagnostics with sdk_result source attribution", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_err_diag" },
+        {
+          type: "result",
+          subtype: "success",
+          is_error: true,
+          result: "Prompt is too long",
+        },
+      ])(),
+    );
+
+    const events: Array<Record<string, unknown>> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "runtime.warning") {
+        events.push(evt as Record<string, unknown>);
+      }
+    });
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+    await expect(session.prompt("Hello")).rejects.toThrow("Prompt is too long");
+    stop();
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      type: "runtime.warning",
+      runtime: "claude-sdk",
+      source: "sdk_result.result_string",
+      code: "success",
+      message: "Prompt is too long",
+      sessionId: "sess_local_001",
+    });
   });
 
   it("prefers SDK result error message over trailing process exit code errors", async () => {

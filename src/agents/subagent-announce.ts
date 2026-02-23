@@ -714,16 +714,27 @@ async function sendSubagentAnnounceDirectly(params: {
       directOrigin?.threadId != null && directOrigin.threadId !== ""
         ? String(directOrigin.threadId)
         : undefined;
+    // Only request outbound delivery when the requester session has a valid
+    // deliverable channel. Sessions without one (e.g. cron jobs with
+    // delivery.mode="none") have no external target, so passing deliver=true
+    // causes the gateway to fall back to the "heartbeat" sentinel and attempt
+    // a bogus Slack send. Instead, inject as a session message (deliver=false)
+    // and let the session — or its cron runner — handle any external delivery.
+    const directChannel = directOrigin?.channel;
+    const hasDeliverableChannel =
+      !params.requesterIsSubagent &&
+      directChannel != null &&
+      isDeliverableMessageChannel(directChannel);
     await callGateway({
       method: "agent",
       params: {
         sessionKey: canonicalRequesterSessionKey,
         message: params.triggerMessage,
-        deliver: !params.requesterIsSubagent,
-        channel: params.requesterIsSubagent ? undefined : directOrigin?.channel,
-        accountId: params.requesterIsSubagent ? undefined : directOrigin?.accountId,
-        to: params.requesterIsSubagent ? undefined : directOrigin?.to,
-        threadId: params.requesterIsSubagent ? undefined : threadId,
+        deliver: hasDeliverableChannel,
+        channel: hasDeliverableChannel ? directChannel : undefined,
+        accountId: hasDeliverableChannel ? directOrigin?.accountId : undefined,
+        to: hasDeliverableChannel ? directOrigin?.to : undefined,
+        threadId: hasDeliverableChannel ? threadId : undefined,
         idempotencyKey: params.directIdempotencyKey,
       },
       expectFinal: true,

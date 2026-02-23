@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const agentCliCommandMock = vi.fn();
+const agentExplainSelectionCommandMock = vi.fn();
 const agentsAddCommandMock = vi.fn();
 const agentsDeleteCommandMock = vi.fn();
 const agentsListCommandMock = vi.fn();
@@ -17,6 +18,10 @@ const runtime = {
 
 vi.mock("../../commands/agent-via-gateway.js", () => ({
   agentCliCommand: agentCliCommandMock,
+}));
+
+vi.mock("../../commands/agent/explain-selection.js", () => ({
+  agentExplainSelectionCommand: agentExplainSelectionCommandMock,
 }));
 
 vi.mock("../../commands/agents.js", () => ({
@@ -54,6 +59,7 @@ describe("registerAgentCommands", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     agentCliCommandMock.mockResolvedValue(undefined);
+    agentExplainSelectionCommandMock.mockResolvedValue(undefined);
     agentsAddCommandMock.mockResolvedValue(undefined);
     agentsDeleteCommandMock.mockResolvedValue(undefined);
     agentsListCommandMock.mockResolvedValue(undefined);
@@ -88,6 +94,21 @@ describe("registerAgentCommands", () => {
       }),
       runtime,
       { deps: true },
+    );
+  });
+
+  it("runs agent explain-selection subcommand", async () => {
+    await runCli(["agent", "explain-selection", "--session-key", "agent:main:main", "--json"]);
+
+    expect(agentExplainSelectionCommandMock).toHaveBeenCalledWith(
+      {
+        to: undefined,
+        sessionId: undefined,
+        sessionKey: "agent:main:main",
+        agent: undefined,
+        json: true,
+      },
+      runtime,
     );
   });
 
