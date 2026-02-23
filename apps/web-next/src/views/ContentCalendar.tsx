@@ -101,8 +101,8 @@ const getChannelStatusColor = (status: ChannelStatus): string => {
 };
 
 const formatNumber = (num: number): string => {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+  if (num >= 1000000) {return (num / 1000000).toFixed(1) + "M";}
+  if (num >= 1000) {return (num / 1000).toFixed(1) + "K";}
   return num.toString();
 };
 
@@ -136,14 +136,14 @@ const getMonthDays = (year: number, month: number): (Date | null)[] => {
 };
 
 const isSameDay = (date1: Date, date2: Date | null): boolean => {
-  if (!date2) return false;
+  if (!date2) {return false;}
   return date1.getFullYear() === date2.getFullYear() &&
     date1.getMonth() === date2.getMonth() &&
     date1.getDate() === date2.getDate();
 };
 
 const isToday = (date: Date | null): boolean => {
-  if (!date) return false;
+  if (!date) {return false;}
   const today = new Date();
   return isSameDay(date, today);
 };
@@ -362,7 +362,7 @@ const QueueTab: React.FC = () => {
   
   const upcomingContent = [...sampleContent]
     .filter(item => item.status === "scheduled" || item.status === "draft")
-    .sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
+    .toSorted((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
     .slice(0, 15);
   
   return (

@@ -140,16 +140,16 @@ const SAVED_RUNS: ComparisonRun[] = [
 ];
 
 const providerColor = (provider: string) => {
-  if (provider === "Anthropic") return "text-purple-400 bg-purple-400/10";
-  if (provider === "OpenAI")    return "text-emerald-400 bg-emerald-400/10";
-  if (provider === "Google")    return "text-blue-400 bg-blue-400/10";
-  if (provider === "MiniMax")   return "text-amber-400 bg-amber-400/10";
+  if (provider === "Anthropic") {return "text-purple-400 bg-purple-400/10";}
+  if (provider === "OpenAI")    {return "text-emerald-400 bg-emerald-400/10";}
+  if (provider === "Google")    {return "text-blue-400 bg-blue-400/10";}
+  if (provider === "MiniMax")   {return "text-amber-400 bg-amber-400/10";}
   return "text-zinc-400 bg-zinc-400/10";
 };
 
 const qualityBar = (score: number) => {
-  if (score >= 90) return "bg-emerald-400";
-  if (score >= 75) return "bg-amber-400";
+  if (score >= 90) {return "bg-emerald-400";}
+  if (score >= 75) {return "bg-amber-400";}
   return "bg-rose-400";
 };
 
@@ -169,13 +169,13 @@ export default function MultiModelComparator() {
   function toggleModel(id: string) {
     setEnabledModels(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {next.delete(id);} else {next.add(id);}
       return next;
     });
   }
 
   function runComparison() {
-    if (!promptText.trim() || enabledModels.size === 0) return;
+    if (!promptText.trim() || enabledModels.size === 0) {return;}
     setStatus("running");
     setTimeout(() => {
       setStatus("complete");
@@ -185,17 +185,17 @@ export default function MultiModelComparator() {
   }
 
   function getMetricValue(result: ModelResult): string {
-    if (metric === "quality") return `${result.qualityScore}/100`;
-    if (metric === "speed")   return `${result.latencyMs}ms`;
-    if (metric === "cost")    return `$${result.costUsd.toFixed(5)}`;
+    if (metric === "quality") {return `${result.qualityScore}/100`;}
+    if (metric === "speed")   {return `${result.latencyMs}ms`;}
+    if (metric === "cost")    {return `$${result.costUsd.toFixed(5)}`;}
     return `${result.outputTokens} tok`;
   }
 
   function getMetricBar(result: ModelResult, results: ModelResult[]): number {
     const vals = results.map(r => {
-      if (metric === "quality") return r.qualityScore;
-      if (metric === "speed")   return 1000 / r.latencyMs; // invert: faster = higher
-      if (metric === "cost")    return 1 / (r.costUsd * 1000 + 0.001); // invert: cheaper = higher
+      if (metric === "quality") {return r.qualityScore;}
+      if (metric === "speed")   {return 1000 / r.latencyMs;} // invert: faster = higher
+      if (metric === "cost")    {return 1 / (r.costUsd * 1000 + 0.001);} // invert: cheaper = higher
       return r.outputTokens;
     });
     const max = Math.max(...vals);
@@ -324,7 +324,7 @@ export default function MultiModelComparator() {
 
               {/* Model outputs */}
               <div className="space-y-3">
-                {selectedRun.results.sort((a, b) => b.qualityScore - a.qualityScore).map((result, i) => {
+                {selectedRun.results.toSorted((a, b) => b.qualityScore - a.qualityScore).map((result, i) => {
                   const barPct = getMetricBar(result, selectedRun.results);
                   const isExpanded = expandedResultId === result.modelId;
                   return (

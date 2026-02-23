@@ -240,7 +240,7 @@ export default function SandboxRunner() {
   const [outputTab, setOutputTab] = useState<"stdout" | "stderr">("stdout");
 
   function handleRun() {
-    if (runStatus === "running") return;
+    if (runStatus === "running") {return;}
     setRunStatus("running");
     const newRun: SandboxRun = {
       id: `run-${Date.now()}`,

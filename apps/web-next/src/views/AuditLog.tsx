@@ -300,8 +300,8 @@ function fmtFull(d: Date): string {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 60_000) {return `${Math.floor(diff / 1000)}s ago`;}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
   return `${Math.floor(diff / 3_600_000)}h ago`;
 }
 
@@ -370,7 +370,7 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
   useEffect(() => {
     closeRef.current?.focus();
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {onClose();}
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -471,10 +471,10 @@ export default function AuditLog() {
   }, []);
 
   const filtered = events.filter((e) => {
-    if (severityFilter !== "all" && e.severity !== severityFilter) return false;
-    if (categoryFilter !== "all" && e.category !== categoryFilter) return false;
-    if (resultFilter !== "all" && e.result !== resultFilter) return false;
-    if (actorKindFilter !== "all" && e.actorKind !== actorKindFilter) return false;
+    if (severityFilter !== "all" && e.severity !== severityFilter) {return false;}
+    if (categoryFilter !== "all" && e.category !== categoryFilter) {return false;}
+    if (resultFilter !== "all" && e.result !== resultFilter) {return false;}
+    if (actorKindFilter !== "all" && e.actorKind !== actorKindFilter) {return false;}
     if (search.trim()) {
       const q = search.toLowerCase();
       return (

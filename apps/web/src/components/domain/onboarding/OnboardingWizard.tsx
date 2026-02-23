@@ -529,7 +529,7 @@ function StepChat({ onComplete }: { onComplete: () => void }) {
   const handleSend = (message: string, agentId: string) => {
     // Navigate to conversations with the message pre-sent
     onComplete();
-    navigate({
+    void navigate({
       to: "/conversations",
       search: { agentId, message },
     });
@@ -599,12 +599,12 @@ export function OnboardingWizard({ onComplete, onCancel }: OnboardingWizardProps
     // Clean up saved progress
     localStorage.removeItem(STORAGE_KEY);
     onComplete?.();
-    navigate({ to: "/" });
+    void navigate({ to: "/" });
   }, [onComplete, navigate]);
 
   const handleCancel = React.useCallback(() => {
     onCancel?.();
-    navigate({ to: "/" });
+    void navigate({ to: "/" });
   }, [onCancel, navigate]);
 
   return (

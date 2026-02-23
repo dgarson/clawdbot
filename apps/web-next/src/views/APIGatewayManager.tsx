@@ -346,7 +346,7 @@ function TrafficTab() {
       <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
         <h3 className="text-sm font-semibold text-white mb-3">Top Routes by Volume</h3>
         <div className="space-y-2">
-          {routes.filter((r) => r.gatewayId === "gw-prod").sort((a, b) => b.requestCount24h - a.requestCount24h).slice(0, 5).map((r) => {
+          {routes.filter((r) => r.gatewayId === "gw-prod").toSorted((a, b) => b.requestCount24h - a.requestCount24h).slice(0, 5).map((r) => {
             const totalReqs = routes.filter((rt) => rt.gatewayId === "gw-prod").reduce((a, rt) => a + rt.requestCount24h, 0);
             return (
               <div key={r.id} className="flex items-center gap-3">

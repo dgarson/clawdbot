@@ -68,7 +68,7 @@ export function useCreateRitual() {
       queryClient.setQueryData<Ritual[]>(ritualKeys.lists(), (old) =>
         old ? [newRitual, ...old] : [newRitual]
       );
-      queryClient.invalidateQueries({ queryKey: ritualKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.all });
       toast.success("Ritual created successfully");
     },
     onError: (error) => {
@@ -101,10 +101,10 @@ export function useUpdateRitual() {
       return { previousRitual };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ritualKeys.detail(variables.id),
       });
-      queryClient.invalidateQueries({ queryKey: ritualKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.lists() });
       toast.success("Ritual updated successfully");
     },
     onError: (_error, variables, context) => {
@@ -138,7 +138,7 @@ export function useDeleteRitual() {
       return { previousRituals };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.all });
       toast.success("Ritual deleted successfully");
     },
     onError: (_error, _, context) => {
@@ -178,7 +178,7 @@ export function useUpdateRitualStatus() {
       return { previousRitual };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ritualKeys.detail(variables.id),
       });
       toast.success(`Ritual ${variables.status}`);
@@ -201,8 +201,8 @@ export function useTriggerRitual() {
   return useMutation({
     mutationFn: triggerRitual,
     onSuccess: ({ id }) => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: ritualKeys.executions(id) });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.executions(id) });
       toast.success("Ritual triggered successfully");
     },
     onError: () => {
@@ -230,7 +230,7 @@ export function usePauseRitual() {
       return { previousRitual };
     },
     onSuccess: ({ id }) => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
       toast.success("Ritual paused");
     },
     onError: (_error, id, context) => {
@@ -261,7 +261,7 @@ export function useResumeRitual() {
       return { previousRitual };
     },
     onSuccess: ({ id }) => {
-      queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: ritualKeys.detail(id) });
       toast.success("Ritual resumed");
     },
     onError: (_error, id, context) => {

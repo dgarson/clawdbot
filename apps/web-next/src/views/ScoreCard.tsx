@@ -44,12 +44,12 @@ interface AgentScore {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function scoreToGrade(score: number): ScoreGrade {
-  if (score >= 97) return "A+";
-  if (score >= 93) return "A";
-  if (score >= 88) return "B+";
-  if (score >= 80) return "B";
-  if (score >= 70) return "C";
-  if (score >= 60) return "D";
+  if (score >= 97) {return "A+";}
+  if (score >= 93) {return "A";}
+  if (score >= 88) {return "B+";}
+  if (score >= 80) {return "B";}
+  if (score >= 70) {return "C";}
+  if (score >= 60) {return "D";}
   return "F";
 }
 
@@ -72,9 +72,9 @@ function gradeBg(grade: ScoreGrade): string {
 }
 
 function scoreBarColor(score: number): string {
-  if (score >= 90) return "bg-emerald-500";
-  if (score >= 75) return "bg-blue-500";
-  if (score >= 60) return "bg-amber-500";
+  if (score >= 90) {return "bg-emerald-500";}
+  if (score >= 75) {return "bg-blue-500";}
+  if (score >= 60) {return "bg-amber-500";}
   return "bg-rose-500";
 }
 
@@ -331,7 +331,7 @@ export default function ScoreCard() {
         {view === "agents" && (
           <div className="flex-1 overflow-y-auto p-5">
             <div className="space-y-3">
-              {AGENT_SCORES.sort((a, b) => b.overallScore - a.overallScore).map((agent) => (
+              {AGENT_SCORES.toSorted((a, b) => b.overallScore - a.overallScore).map((agent) => (
                 <div key={agent.agent} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
                   <div className="flex items-center gap-4 mb-4">
                     <span className="text-2xl">{agent.emoji}</span>

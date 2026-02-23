@@ -164,7 +164,7 @@ function typeColor(t: ResourceType): string {
 }
 
 function wasteColor(reason: WasteReason | null): string {
-  if (!reason) return "text-emerald-400";
+  if (!reason) {return "text-emerald-400";}
   const map: Record<WasteReason, string> = {
     idle:        "text-rose-400",
     oversized:   "text-amber-400",
@@ -254,7 +254,7 @@ function OpportunitiesTab() {
         Total potential savings: <span className="text-emerald-400 font-semibold">${total.toLocaleString()}/month</span> · {" "}
         <span className="text-emerald-300 font-semibold">${(total * 12).toLocaleString()}/year</span>
       </div>
-      {opportunities.sort((a, b) => b.monthlySavings - a.monthlySavings).map((op) => (
+      {opportunities.toSorted((a, b) => b.monthlySavings - a.monthlySavings).map((op) => (
         <div
           key={op.id}
           className={cn(

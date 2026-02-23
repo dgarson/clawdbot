@@ -90,7 +90,7 @@ export function ImportConfigDialog({
       }
     };
 
-    validate();
+    void validate();
   }, [file, open]);
 
   const sectionPreviews = React.useMemo((): SectionPreview[] => {

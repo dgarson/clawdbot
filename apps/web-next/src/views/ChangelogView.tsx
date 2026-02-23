@@ -170,7 +170,7 @@ const Section = ({ title, icon, items, colorClass, iconColor }: {
   colorClass: string;
   iconColor: string;
 }) => {
-  if (!items || items.length === 0) return null;
+  if (!items || items.length === 0) {return null;}
 
   return (
     <div className="mb-8">
@@ -212,11 +212,11 @@ export default function ChangelogView() {
   const currentIndex = RELEASES.findIndex(r => r.version === selectedVersion);
 
   const goToNext = () => {
-    if (currentIndex > 0) setSelectedVersion(RELEASES[currentIndex - 1].version);
+    if (currentIndex > 0) {setSelectedVersion(RELEASES[currentIndex - 1].version);}
   };
 
   const goToPrev = () => {
-    if (currentIndex < RELEASES.length - 1) setSelectedVersion(RELEASES[currentIndex + 1].version);
+    if (currentIndex < RELEASES.length - 1) {setSelectedVersion(RELEASES[currentIndex + 1].version);}
   };
 
   return (

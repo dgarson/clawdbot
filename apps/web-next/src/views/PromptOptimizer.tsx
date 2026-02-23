@@ -169,14 +169,14 @@ export default function PromptOptimizer() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score <= 40) return "text-rose-400";
-    if (score <= 70) return "text-amber-400";
+    if (score <= 40) {return "text-rose-400";}
+    if (score <= 70) {return "text-amber-400";}
     return "text-emerald-400";
   };
 
   const getScoreBorder = (score: number) => {
-    if (score <= 40) return "border-rose-400";
-    if (score <= 70) return "border-amber-400";
+    if (score <= 40) {return "border-rose-400";}
+    if (score <= 70) {return "border-amber-400";}
     return "border-emerald-400";
   };
 
@@ -309,7 +309,7 @@ export default function PromptOptimizer() {
                     <span className="text-xs text-zinc-500">{result.issues.length} Issues found</span>
                   </div>
                   <div className="divide-y divide-zinc-800 max-h-[300px] overflow-y-auto">
-                    {result.issues.sort((a, b) => {
+                    {result.issues.toSorted((a, b) => {
                       const priority = { high: 0, medium: 1, low: 2 };
                       return priority[a.severity] - priority[b.severity];
                     }).map((issue) => (

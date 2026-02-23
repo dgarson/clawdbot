@@ -192,7 +192,7 @@ function eventStatusColor(s: RoutingEvent["status"]): string {
 }
 
 function fmtCtx(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(0) + "M";
+  if (n >= 1_000_000) {return (n / 1_000_000).toFixed(0) + "M";}
   return (n / 1_000).toFixed(0) + "K";
 }
 
@@ -413,7 +413,7 @@ function AnalyticsTab() {
       modelUsage[mid] = (modelUsage[mid] ?? 0) + Math.round(r.requestCount24h / r.modelIds.length);
     });
   });
-  const sortedModels = Object.entries(modelUsage).sort((a, b) => b[1] - a[1]);
+  const sortedModels = Object.entries(modelUsage).toSorted((a, b) => b[1] - a[1]);
   const maxModelReqs = sortedModels[0]?.[1] ?? 1;
 
   return (
@@ -435,7 +435,7 @@ function AnalyticsTab() {
       <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
         <h3 className="text-sm font-semibold text-white mb-4">Requests by Route (24h)</h3>
         <div className="space-y-3">
-          {routeReqs.sort((a, b) => b.requestCount24h - a.requestCount24h).map((r) => (
+          {routeReqs.toSorted((a, b) => b.requestCount24h - a.requestCount24h).map((r) => (
             <div key={r.id} className="flex items-center gap-3">
               <span className="text-xs text-zinc-300 w-40 truncate">{r.name}</span>
               <div className="flex-1 bg-zinc-800 rounded-full h-2">

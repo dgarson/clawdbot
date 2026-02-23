@@ -54,25 +54,26 @@ const SEED_RULES: Rule[] = [
 ];
 
 function priorityColor(p: number): string {
-  if (p >= 9) return "text-rose-400 bg-rose-500/15";
-  if (p >= 7) return "text-amber-400 bg-amber-500/15";
-  if (p >= 4) return "text-indigo-400 bg-indigo-500/15";
+  if (p >= 9) {return "text-rose-400 bg-rose-500/15";}
+  if (p >= 7) {return "text-amber-400 bg-amber-500/15";}
+  if (p >= 4) {return "text-indigo-400 bg-indigo-500/15";}
   return "text-zinc-400 bg-zinc-700/40";
 }
 
 function evaluateCondition(cond: Condition, payload: Record<string, unknown>): boolean {
   const raw = payload[cond.field];
   const val = cond.value;
-  if (cond.operator === "==" ) return String(raw ?? "null") === val;
-  if (cond.operator === "!=" ) return String(raw ?? "null") !== val;
-  if (cond.operator === ">"  ) return Number(raw) > Number(val);
-  if (cond.operator === "<"  ) return Number(raw) < Number(val);
-  if (cond.operator === ">=" ) return Number(raw) >= Number(val);
-  if (cond.operator === "<=" ) return Number(raw) <= Number(val);
-  if (cond.operator === "contains") return String(raw).includes(val);
-  if (cond.operator === "not_contains") return !String(raw).includes(val);
-  if (cond.operator === "in") return val.split(",").includes(String(raw));
-  if (cond.operator === "not_in") return !val.split(",").includes(String(raw));
+  const stringValue = typeof raw === "string" ? raw : raw == null ? "null" : JSON.stringify(raw);
+  if (cond.operator === "==" ) {return stringValue === val;}
+  if (cond.operator === "!=" ) {return stringValue !== val;}
+  if (cond.operator === ">"  ) {return Number(raw) > Number(val);}
+  if (cond.operator === "<"  ) {return Number(raw) < Number(val);}
+  if (cond.operator === ">=" ) {return Number(raw) >= Number(val);}
+  if (cond.operator === "<=" ) {return Number(raw) <= Number(val);}
+  if (cond.operator === "contains") {return stringValue.includes(val);}
+  if (cond.operator === "not_contains") {return !stringValue.includes(val);}
+  if (cond.operator === "in") {return val.split(",").includes(stringValue);}
+  if (cond.operator === "not_in") {return !val.split(",").includes(String(raw));}
   return false;
 }
 
@@ -90,7 +91,7 @@ export default function RuleEngine() {
   const activeCount = rules.filter((r) => r.enabled).length;
   const totalMatches = rules.reduce((s, r) => s + r.matchHistory.reduce((a, b) => a + b, 0), 0);
   const categoryTotals = CATEGORIES.map((c) => ({ c, n: rules.filter((r) => r.category === c).length }));
-  const topCategory = categoryTotals.sort((a, b) => b.n - a.n)[0]?.c ?? "routing";
+  const topCategory = categoryTotals.toSorted((a, b) => b.n - a.n)[0]?.c ?? "routing";
 
   const toggleEnabled = (id: string) => {
     setRules((prev) => prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)));
@@ -98,11 +99,11 @@ export default function RuleEngine() {
 
   const deleteRule = (id: string) => {
     setRules((prev) => prev.filter((r) => r.id !== id));
-    if (selectedId === id) setSelectedId(null);
+    if (selectedId === id) {setSelectedId(null);}
   };
 
   const runTest = () => {
-    if (!selected) return;
+    if (!selected) {return;}
     try {
       const payload = JSON.parse(testPayload) as Record<string, unknown>;
       const results = new Map<string, boolean>();

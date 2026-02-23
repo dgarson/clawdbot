@@ -53,7 +53,7 @@ function YouPage() {
   const handleSectionChange = React.useCallback(
     (section: ProfileSectionType) => {
       setActiveSection(section);
-      navigate({
+      void navigate({
         search: (prev) => (section === "profile" ? {} : { ...prev, section }),
         replace: true,
       });

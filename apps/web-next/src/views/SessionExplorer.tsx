@@ -7,13 +7,13 @@ import type { Session, SessionStatus } from '../types';
 type StatusFilter = 'all' | SessionStatus;
 
 function formatTokens(tokens: number): string {
-  if (tokens >= 1000000) return `${(tokens / 1000000).toFixed(1)}M`;
-  if (tokens >= 1000) return `${Math.floor(tokens / 1000)}K`;
+  if (tokens >= 1000000) {return `${(tokens / 1000000).toFixed(1)}M`;}
+  if (tokens >= 1000) {return `${Math.floor(tokens / 1000)}K`;}
   return tokens.toString();
 }
 
 function truncateKey(key: string): string {
-  if (key.length <= 24) return key;
+  if (key.length <= 24) {return key;}
   return `${key.slice(0, 12)}...${key.slice(-9)}`;
 }
 
@@ -28,8 +28,8 @@ export default function SessionExplorer() {
 
   const filteredSessions = useMemo(() => {
     return MOCK_SESSIONS.filter(session => {
-      if (statusFilter !== 'all' && session.status !== statusFilter) return false;
-      if (agentFilter !== 'all' && session.agentId !== agentFilter) return false;
+      if (statusFilter !== 'all' && session.status !== statusFilter) {return false;}
+      if (agentFilter !== 'all' && session.agentId !== agentFilter) {return false;}
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (

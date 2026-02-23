@@ -93,9 +93,9 @@ export default function EventStreamViewer() {
   const sources = Array.from(new Set(EVENTS.map(e => e.source)));
 
   const filteredEvents = EVENTS.filter(e => {
-    if (filterStatus !== "all" && e.status !== filterStatus) return false;
-    if (filterSource !== "all" && e.source !== filterSource) return false;
-    if (searchTerm && !JSON.stringify(e).toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (filterStatus !== "all" && e.status !== filterStatus) {return false;}
+    if (filterSource !== "all" && e.source !== filterSource) {return false;}
+    if (searchTerm && !JSON.stringify(e).toLowerCase().includes(searchTerm.toLowerCase())) {return false;}
     return true;
   });
 

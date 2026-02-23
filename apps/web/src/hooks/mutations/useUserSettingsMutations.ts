@@ -180,8 +180,8 @@ export function useUpdateProfile() {
     },
     onSettled: () => {
       // Refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.profile() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.profile() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }
@@ -231,8 +231,8 @@ export function useUpdatePreferences() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.preferences() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.preferences() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }
@@ -279,8 +279,8 @@ export function useUpdateNotification() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.preferences() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.preferences() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }
@@ -321,8 +321,8 @@ export function useUpdateAllNotifications() {
       toast.success(enabled ? "All notifications enabled" : "All notifications disabled");
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.preferences() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.preferences() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }

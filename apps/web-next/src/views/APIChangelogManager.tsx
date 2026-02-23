@@ -110,8 +110,8 @@ export default function APIChangelogManager() {
   ];
 
   const filteredChanges = CHANGES.filter(c => {
-    if (typeFilter !== "all" && c.type !== typeFilter) return false;
-    if (versionFilter !== "all" && c.version !== versionFilter) return false;
+    if (typeFilter !== "all" && c.type !== typeFilter) {return false;}
+    if (versionFilter !== "all" && c.version !== versionFilter) {return false;}
     return true;
   });
 
@@ -415,7 +415,7 @@ export default function APIChangelogManager() {
         {/* SUBSCRIBERS TAB */}
         {tab === "subscribers" && (
           <div className="p-6 space-y-3">
-            {SUBSCRIBERS.sort((a, b) => b.breakingChangesAhead - a.breakingChangesAhead).map(sub => (
+            {SUBSCRIBERS.toSorted((a, b) => b.breakingChangesAhead - a.breakingChangesAhead).map(sub => (
               <div key={sub.id} className={cn(
                 "bg-zinc-900 rounded-lg border px-5 py-4",
                 sub.breakingChangesAhead > 0 ? "border-amber-500/20" : "border-zinc-800"

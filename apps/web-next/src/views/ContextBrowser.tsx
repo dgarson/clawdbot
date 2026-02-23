@@ -116,7 +116,7 @@ const MOCK_SESSIONS: Session[] = [
 // --- Helper Functions ---
 
 function formatTokens(count: number): string {
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}k`
+  if (count >= 1000) {return `${(count / 1000).toFixed(1)}k`}
   return String(count)
 }
 
@@ -125,28 +125,28 @@ function getUsagePercent(used: number, max: number): number {
 }
 
 function getUsageColor(percent: number): string {
-  if (percent >= 95) return "bg-red-500"
-  if (percent >= 80) return "bg-orange-500"
-  if (percent >= 50) return "bg-yellow-500"
+  if (percent >= 95) {return "bg-red-500"}
+  if (percent >= 80) {return "bg-orange-500"}
+  if (percent >= 50) {return "bg-yellow-500"}
   return "bg-green-500"
 }
 
 function getUsageTextColor(percent: number): string {
-  if (percent >= 95) return "text-red-400"
-  if (percent >= 80) return "text-orange-400"
-  if (percent >= 50) return "text-yellow-400"
+  if (percent >= 95) {return "text-red-400"}
+  if (percent >= 80) {return "text-orange-400"}
+  if (percent >= 50) {return "text-yellow-400"}
   return "text-green-400"
 }
 
 function getStatusDot(status: SessionStatus): string {
-  if (status === "active") return "bg-green-400"
-  if (status === "idle") return "bg-yellow-400"
+  if (status === "active") {return "bg-green-400"}
+  if (status === "idle") {return "bg-yellow-400"}
   return "bg-zinc-500"
 }
 
 function getStatusLabel(status: SessionStatus): string {
-  if (status === "active") return "Active"
-  if (status === "idle") return "Idle"
+  if (status === "active") {return "Active"}
+  if (status === "idle") {return "Idle"}
   return "Done"
 }
 
@@ -170,10 +170,10 @@ export default function ContextBrowser() {
   }
 
   function handleTrimContext() {
-    if (!selected) return
+    if (!selected) {return}
     setSessions((prev) =>
       prev.map((s) => {
-        if (s.id !== selected.id) return s
+        if (s.id !== selected.id) {return s}
         const removedTokens = Math.round(s.segments.conversationHistory.sizeTokens * 0.3)
         const removedMessages = Math.round(s.segments.conversationHistory.messageCount * 0.3)
         return {
@@ -193,7 +193,7 @@ export default function ContextBrowser() {
   }
 
   function matchesSearch(text: string): boolean {
-    if (!searchQuery.trim()) return true
+    if (!searchQuery.trim()) {return true}
     return text.toLowerCase().includes(searchQuery.toLowerCase())
   }
 
@@ -232,7 +232,7 @@ export default function ContextBrowser() {
   function renderSegmentHeader(label: string, tokens: number, segKey: string, extra?: string) {
     const isOpen = expandedSegments[segKey] ?? false
     const visible = matchesSearch(label)
-    if (!visible) return null
+    if (!visible) {return null}
 
     return (
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg mb-3 overflow-hidden">
@@ -290,7 +290,7 @@ export default function ContextBrowser() {
 
   function renderSubItems(items: Array<{ key: string; label: string; tokens: number; preview: string; accent?: boolean }>, emptyMsg: string) {
     const filtered = items.filter((i) => matchesSearch(i.label))
-    if (filtered.length === 0) return <p className="mt-3 text-xs text-zinc-500 italic">{emptyMsg}</p>
+    if (filtered.length === 0) {return <p className="mt-3 text-xs text-zinc-500 italic">{emptyMsg}</p>}
     return (
       <div className="mt-3 space-y-2">
         {filtered.map((item) => {
@@ -334,7 +334,7 @@ export default function ContextBrowser() {
         <div className="h-4 w-full rounded-full bg-zinc-800 overflow-hidden flex">
           {parts.map((p) => {
             const w = Math.max((p.tokens / total) * 100, 0)
-            if (w < 0.5) return null
+            if (w < 0.5) {return null}
             return (
               <div
                 key={p.label}

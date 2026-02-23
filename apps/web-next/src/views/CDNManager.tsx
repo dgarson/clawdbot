@@ -159,7 +159,7 @@ export default function CDNManager() {
 
   const handleAddOrigin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newOrigin.hostname) return;
+    if (!newOrigin.hostname) {return;}
     const origin: Origin = {
       id: Math.random().toString(36).substr(2, 9),
       hostname: newOrigin.hostname,
@@ -176,7 +176,7 @@ export default function CDNManager() {
 
   const handleAddRule = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRule.pathPattern) return;
+    if (!newRule.pathPattern) {return;}
     const rule: CacheRule = {
       id: Math.random().toString(36).substr(2, 9),
       priority: rules.length + 1,
@@ -432,7 +432,7 @@ export default function CDNManager() {
                   <span className="text-xs text-zinc-500 uppercase font-medium">Active Rules (Priority Order)</span>
                   <span className="text-xs text-zinc-500 uppercase font-medium">Rules: {rules.length}</span>
                 </div>
-                {rules.sort((a, b) => a.priority - b.priority).map((rule) => (
+                {rules.toSorted((a, b) => a.priority - b.priority).map((rule) => (
                   <div key={rule.id} className="group relative">
                     <div className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-zinc-600">
                       ⣿

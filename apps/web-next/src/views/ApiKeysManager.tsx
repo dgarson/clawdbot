@@ -138,19 +138,19 @@ const INITIAL_WEBHOOKS: Webhook[] = Array.from({ length: 4 }, (_, i) => makeWebh
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function relativeTime(date: Date | null): string {
-  if (!date) return "never";
+  if (!date) {return "never";}
   const diff = Date.now() - date.getTime();
   const s = Math.floor(diff / 1000);
-  if (s < 60) return `${s}s ago`;
+  if (s < 60) {return `${s}s ago`;}
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) {return `${m}m ago`;}
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) {return `${h}h ago`;}
   return `${Math.floor(h / 24)}d ago`;
 }
 
 function formatDate(date: Date | null): string {
-  if (!date) return "Never";
+  if (!date) {return "Never";}
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
@@ -216,13 +216,13 @@ function CreateKeyModal({ onClose, onCreated }: CreateKeyModalProps) {
   const toggleScope = (s: Scope) => {
     setSelectedScopes(prev => {
       const next = new Set(prev);
-      if (next.has(s)) next.delete(s); else next.add(s);
+      if (next.has(s)) {next.delete(s);} else {next.add(s);}
       return next;
     });
   };
 
   const handleCreate = () => {
-    if (!name.trim() || selectedScopes.size === 0) return;
+    if (!name.trim() || selectedScopes.size === 0) {return;}
     const raw = `oc_sk_${randomHex(32)}`;
     const now = new Date();
     let expiresAt: Date | null = null;
@@ -255,7 +255,7 @@ function CreateKeyModal({ onClose, onCreated }: CreateKeyModalProps) {
       aria-modal="true"
       aria-label="Create API Key"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) {onClose();} }}
     >
       <div className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-xl shadow-2xl">
         {/* Header */}
@@ -450,13 +450,13 @@ function CreateWebhookModal({ onClose, onCreated }: CreateWebhookModalProps) {
   const toggle = (ev: string) => {
     setSelectedEvents(prev => {
       const next = new Set(prev);
-      if (next.has(ev)) next.delete(ev); else next.add(ev);
+      if (next.has(ev)) {next.delete(ev);} else {next.add(ev);}
       return next;
     });
   };
 
   const handleCreate = () => {
-    if (!name.trim() || !url.trim() || selectedEvents.size === 0) return;
+    if (!name.trim() || !url.trim() || selectedEvents.size === 0) {return;}
     const wh: Webhook = {
       id: `wh_${randomHex(8)}`,
       name: name.trim(),
@@ -478,7 +478,7 @@ function CreateWebhookModal({ onClose, onCreated }: CreateWebhookModalProps) {
       aria-modal="true"
       aria-label="Create Webhook"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) {onClose();} }}
     >
       <div className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-xl shadow-2xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
@@ -564,8 +564,8 @@ function ApiKeysTab({ keys, onRevoke, onDelete, onRotate, onCreate, revealedKeys
   const [search, setSearch] = useState("");
 
   const filtered = keys.filter(k => {
-    if (filterStatus !== "all" && k.status !== filterStatus) return false;
-    if (search && !k.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterStatus !== "all" && k.status !== filterStatus) {return false;}
+    if (search && !k.name.toLowerCase().includes(search.toLowerCase())) {return false;}
     return true;
   });
 

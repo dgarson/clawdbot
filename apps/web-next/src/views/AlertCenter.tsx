@@ -273,10 +273,10 @@ const CATEGORY_EMOJIS: Record<AlertCategory, string> = {
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -345,14 +345,14 @@ export default function AlertCenter() {
 
   const filteredAlerts = useMemo(() => {
     return ALERTS.filter(a => {
-      if (statusFilter !== "all" && a.status !== statusFilter) return false;
-      if (severityFilter !== "all" && a.severity !== severityFilter) return false;
+      if (statusFilter !== "all" && a.status !== statusFilter) {return false;}
+      if (severityFilter !== "all" && a.severity !== severityFilter) {return false;}
       return true;
-    }).sort((a, b) => {
+    }).toSorted((a, b) => {
       const sevOrder: Record<AlertSeverity, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
       const statOrder: Record<AlertStatus, number> = { firing: 0, acknowledged: 1, resolved: 2, suppressed: 3 };
       const s = statOrder[a.status] - statOrder[b.status];
-      if (s !== 0) return s;
+      if (s !== 0) {return s;}
       return sevOrder[a.severity] - sevOrder[b.severity];
     });
   }, [statusFilter, severityFilter]);

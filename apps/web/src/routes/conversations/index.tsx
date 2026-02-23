@@ -20,7 +20,7 @@ function ConversationsPage() {
   const createConversation = useCreateConversation();
 
   const handleSelectConversation = (conversation: Conversation) => {
-    navigate({ to: "/conversations/$id", params: { id: conversation.id } });
+    void navigate({ to: "/conversations/$id", params: { id: conversation.id } });
   };
 
   const handleNewConversation = () => {
@@ -36,7 +36,7 @@ function ConversationsPage() {
     });
 
     // Navigate to the new conversation
-    navigate({ to: "/conversations/$id", params: { id: newConversation.id } });
+    void navigate({ to: "/conversations/$id", params: { id: newConversation.id } });
   };
 
   return (

@@ -176,9 +176,9 @@ function computeStats(releases: Release[]): { total: number; breaking: number; f
   let bugfixes = 0;
   for (const r of releases) {
     for (const c of r.changes) {
-      if (c.type === "breaking") breaking++;
-      else if (c.type === "feature") features++;
-      else if (c.type === "bugfix") bugfixes++;
+      if (c.type === "breaking") {breaking++;}
+      else if (c.type === "feature") {features++;}
+      else if (c.type === "bugfix") {bugfixes++;}
     }
   }
   return { total: releases.length, breaking, features, bugfixes };
@@ -195,9 +195,9 @@ export default function ChangelogViewer() {
 
   // Filter releases that match search
   const filteredReleases = RELEASES.filter((r) => {
-    if (!lowerSearch) return true;
-    if (r.version.toLowerCase().includes(lowerSearch)) return true;
-    if (r.summary.toLowerCase().includes(lowerSearch)) return true;
+    if (!lowerSearch) {return true;}
+    if (r.version.toLowerCase().includes(lowerSearch)) {return true;}
+    if (r.summary.toLowerCase().includes(lowerSearch)) {return true;}
     return r.changes.some(
       (c) =>
         c.title.toLowerCase().includes(lowerSearch) ||

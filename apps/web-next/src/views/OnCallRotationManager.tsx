@@ -320,7 +320,7 @@ export default function OnCallRotationManager() {
         {tab === "schedule" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-2">
-              {SHIFTS.sort((a, b) => (a.status === "active" ? -1 : b.status === "active" ? 1 : 0)).map(shift => {
+              {SHIFTS.toSorted((a, b) => (a.status === "active" ? -1 : b.status === "active" ? 1 : 0)).map(shift => {
                 const person = getPerson(shift.personId);
                 const rotation = getRotation(shift.rotationId);
                 return (
@@ -412,7 +412,7 @@ export default function OnCallRotationManager() {
         {tab === "team" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
-              {PEOPLE.sort((a, b) => a.avgResponseMin - b.avgResponseMin).map(person => (
+              {PEOPLE.toSorted((a, b) => a.avgResponseMin - b.avgResponseMin).map(person => (
                 <div key={person.id} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">

@@ -110,16 +110,16 @@ const DATA_SOURCES: DataSource[] = [
 ]
 
 function scoreColor(score: number): string {
-  if (score >= 90) return "bg-emerald-500"
-  if (score >= 75) return "bg-indigo-500"
-  if (score >= 60) return "bg-amber-500"
+  if (score >= 90) {return "bg-emerald-500"}
+  if (score >= 75) {return "bg-indigo-500"}
+  if (score >= 60) {return "bg-amber-500"}
   return "bg-red-500"
 }
 
 function scoreTextColor(score: number): string {
-  if (score >= 90) return "text-emerald-400"
-  if (score >= 75) return "text-indigo-400"
-  if (score >= 60) return "text-amber-400"
+  if (score >= 90) {return "text-emerald-400"}
+  if (score >= 75) {return "text-indigo-400"}
+  if (score >= 60) {return "text-amber-400"}
   return "text-red-400"
 }
 
@@ -146,8 +146,8 @@ function severityBadge(severity: Severity): { label: string; dot: string; classe
 }
 
 function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`}
   return String(n)
 }
 
@@ -216,7 +216,7 @@ export default function DataQualityDashboard() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all")
 
   const filteredChecks = FAILED_CHECKS.filter((check) => {
-    if (activeFilter === "all") return true
+    if (activeFilter === "all") {return true}
     return check.severity === activeFilter
   })
 

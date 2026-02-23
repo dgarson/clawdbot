@@ -215,8 +215,8 @@ const deletionJobs: DeletionJob[] = [
 ];
 
 function fmt(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(0)}k`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000)     {return `${(n / 1_000).toFixed(0)}k`;}
   return String(n);
 }
 
@@ -282,7 +282,7 @@ export default function DataRetentionManager() {
                 { label: "Active Policies",   value: policies.filter(p => p.enabled).length, color: "text-emerald-400" },
                 { label: "Expired Records",   value: expiredCount,      color: "text-rose-400" },
                 { label: "Expiring Soon",     value: expiringCount,     color: "text-amber-400" },
-                { label: "Reclaimable GB",    value: `${totalExpiredGB.toFixed(1)}`, color: "text-sky-400" },
+                { label: "Reclaimable GB",    value: totalExpiredGB.toFixed(1), color: "text-sky-400" },
               ].map(kpi => (
                 <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                   <p className="text-xs text-zinc-500 uppercase tracking-wider">{kpi.label}</p>

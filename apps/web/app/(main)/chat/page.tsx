@@ -48,7 +48,7 @@ function MessageBubble({
   const isUser = message.role === "user";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(message.content);
+    void navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -193,7 +193,7 @@ export default function ChatPage() {
   // Load sessions & history
   React.useEffect(() => {
     if (!connected) {return;}
-    (async () => {
+    void (async () => {
       try {
         const result = await request<{ sessions: SessionEntry[] }>("sessions.list", {
           limit: 50,
@@ -208,7 +208,7 @@ export default function ChatPage() {
   // Load chat history when session changes
   React.useEffect(() => {
     if (!connected || !sessionKey) {return;}
-    (async () => {
+    void (async () => {
       try {
         const history = await request<{ messages: ChatMessage[] }>("chat.history", {
           sessionKey,
@@ -245,13 +245,18 @@ export default function ChatPage() {
           typeof evt.message === "object" && evt.message
             ? (evt.message as Record<string, unknown>).delta ?? (evt.message as Record<string, unknown>).content ?? ""
             : "";
-        setStreamContent((prev) => prev + String(delta));
+        setStreamContent((prev) =>
+          prev + (typeof delta === "string" ? delta : JSON.stringify(delta))
+        );
         setStreaming(true);
         setCurrentRunId(evt.runId);
       } else if (evt.state === "final") {
         const content =
           typeof evt.message === "object" && evt.message
-            ? String((evt.message as Record<string, unknown>).content ?? "")
+            ? (() => {
+                const raw = (evt.message as Record<string, unknown>).content ?? "";
+                return typeof raw === "string" ? raw : JSON.stringify(raw);
+              })()
             : streamContent;
         setMessages((prev) => [
           ...prev,
@@ -339,7 +344,7 @@ export default function ChatPage() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 

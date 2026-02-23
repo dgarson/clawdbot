@@ -254,8 +254,8 @@ function formatTimestamp(iso: string): string {
 }
 
 function formatDuration(ms: number): string {
-  if (ms === 0) return "—";
-  if (ms < 1000) return `${ms}ms`;
+  if (ms === 0) {return "—";}
+  if (ms < 1000) {return `${ms}ms`;}
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
@@ -589,7 +589,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
     onClose();
   }, [onClose, resetForm]);
 
-  if (!open) return null;
+  if (!open) {return null;}
 
   const inputClass = cn(
     "w-full rounded-md border border-zinc-800 bg-zinc-800 px-3 py-2 text-sm text-white",
@@ -916,9 +916,9 @@ export default function WebhookManager() {
   const filteredLogs = useMemo(() => {
     return deliveryLogs.filter((log) => {
       if (filterWebhook !== "all" && log.webhookId !== filterWebhook)
-        return false;
+        {return false;}
       if (filterStatus !== "all" && log.status !== filterStatus)
-        return false;
+        {return false;}
       return true;
     });
   }, [deliveryLogs, filterWebhook, filterStatus]);
@@ -927,7 +927,7 @@ export default function WebhookManager() {
   const webhookOptions = useMemo(() => {
     const seen = new Map<string, string>();
     deliveryLogs.forEach((l) => {
-      if (!seen.has(l.webhookId)) seen.set(l.webhookId, l.webhookName);
+      if (!seen.has(l.webhookId)) {seen.set(l.webhookId, l.webhookName);}
     });
     return Array.from(seen.entries());
   }, [deliveryLogs]);

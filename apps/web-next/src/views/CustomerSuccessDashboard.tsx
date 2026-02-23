@@ -445,47 +445,47 @@ const PLAYBOOKS: Playbook[] = [
 ]
 
 function formatARR(arr: number): string {
-  if (arr >= 1000000) return `$${(arr / 1000000).toFixed(1)}M`
-  if (arr >= 1000) return `$${(arr / 1000).toFixed(0)}K`
+  if (arr >= 1000000) {return `$${(arr / 1000000).toFixed(1)}M`}
+  if (arr >= 1000) {return `$${(arr / 1000).toFixed(0)}K`}
   return `$${arr}`
 }
 
 function healthScoreColor(score: number): string {
-  if (score >= 90) return "text-emerald-400"
-  if (score >= 70) return "text-indigo-400"
-  if (score >= 50) return "text-amber-400"
+  if (score >= 90) {return "text-emerald-400"}
+  if (score >= 70) {return "text-indigo-400"}
+  if (score >= 50) {return "text-amber-400"}
   return "text-rose-400"
 }
 
 function healthScoreBadge(score: number): string {
-  if (score >= 90) return "bg-emerald-400/10 text-emerald-400"
-  if (score >= 70) return "bg-indigo-400/10 text-indigo-400"
-  if (score >= 50) return "bg-amber-400/10 text-amber-400"
+  if (score >= 90) {return "bg-emerald-400/10 text-emerald-400"}
+  if (score >= 70) {return "bg-indigo-400/10 text-indigo-400"}
+  if (score >= 50) {return "bg-amber-400/10 text-amber-400"}
   return "bg-rose-400/10 text-rose-400"
 }
 
 function riskBadgeClass(risk: RiskLevel): string {
-  if (risk === "healthy") return "bg-emerald-400/10 text-emerald-400"
-  if (risk === "at-risk") return "bg-amber-400/10 text-amber-400"
+  if (risk === "healthy") {return "bg-emerald-400/10 text-emerald-400"}
+  if (risk === "at-risk") {return "bg-amber-400/10 text-amber-400"}
   return "bg-rose-400/10 text-rose-400"
 }
 
 function npsScoreColor(score: number): string {
-  if (score >= 9) return "text-emerald-400"
-  if (score >= 7) return "text-indigo-400"
-  if (score >= 5) return "text-amber-400"
+  if (score >= 9) {return "text-emerald-400"}
+  if (score >= 7) {return "text-indigo-400"}
+  if (score >= 5) {return "text-amber-400"}
   return "text-rose-400"
 }
 
 function sentimentBadgeClass(sentiment: Sentiment): string {
-  if (sentiment === "positive") return "bg-emerald-400/10 text-emerald-400"
-  if (sentiment === "neutral") return "bg-zinc-700 text-zinc-300"
+  if (sentiment === "positive") {return "bg-emerald-400/10 text-emerald-400"}
+  if (sentiment === "neutral") {return "bg-zinc-700 text-zinc-300"}
   return "bg-rose-400/10 text-rose-400"
 }
 
 function ticketColor(count: number): string {
-  if (count > 5) return "text-rose-400"
-  if (count > 2) return "text-amber-400"
+  if (count > 5) {return "text-rose-400"}
+  if (count > 2) {return "text-amber-400"}
   return "text-emerald-400"
 }
 
@@ -503,7 +503,7 @@ const bucketLow = ACCOUNTS.filter(a => a.healthScore < 50).length
 
 const decliningAccounts = [...ACCOUNTS]
   .filter(a => a.riskLevel !== "healthy")
-  .sort((a, b) => a.healthScore - b.healthScore)
+  .toSorted((a, b) => a.healthScore - b.healthScore)
   .slice(0, 5)
 
 const totalARR = ACCOUNTS.reduce((sum, a) => sum + a.arr, 0)
@@ -524,8 +524,8 @@ export default function CustomerSuccessDashboard() {
   const [expandedPlaybook, setExpandedPlaybook] = useState<string | null>(null)
 
   const filteredAccounts = ACCOUNTS.filter(a => {
-    if (planFilter !== "all" && a.plan !== planFilter) return false
-    if (riskFilter !== "all" && a.riskLevel !== riskFilter) return false
+    if (planFilter !== "all" && a.plan !== planFilter) {return false}
+    if (riskFilter !== "all" && a.riskLevel !== riskFilter) {return false}
     return true
   })
 

@@ -46,7 +46,7 @@ export function UnlockGuard({ children }: UnlockGuardProps) {
 
     // Redirect to unlock if needed
     if (needsUnlock) {
-      navigate({ to: "/unlock" });
+      void navigate({ to: "/unlock" });
     }
 
     setHasChecked(true);

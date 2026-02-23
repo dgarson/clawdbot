@@ -86,7 +86,7 @@ function getCurrentShiftPeriod(now: Date): "AM" | "PM" {
 
 function getNextHandoff(now: Date): string {
   const hour = now.getHours()
-  if (hour < 12) return "Today 12:00 PM"
+  if (hour < 12) {return "Today 12:00 PM"}
   return "Tomorrow 12:00 AM"
 }
 
@@ -317,7 +317,7 @@ export default function OncallScheduler() {
                     <button
                       key={agent.name}
                       onClick={() => {
-                        if (!isCurrent) updateShift(swapTarget.day, swapTarget.period, idx)
+                        if (!isCurrent) {updateShift(swapTarget.day, swapTarget.period, idx)}
                       }}
                       disabled={isCurrent}
                       className={cn(

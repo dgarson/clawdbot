@@ -531,8 +531,8 @@ const LINEAGE: LineageEntry[] = [
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`}
   return n.toString()
 }
 
@@ -806,11 +806,11 @@ function ExperimentsTab() {
 
   function toggleCompare(id: string) {
     setCompareIds((prev) => {
-      if (prev === null) return [id, ""]
-      if (prev[0] === id) return null
-      if (prev[1] === id) return [prev[0], ""]
-      if (prev[0] === "") return [id, prev[1]]
-      if (prev[1] === "") return [prev[0], id]
+      if (prev === null) {return [id, ""]}
+      if (prev[0] === id) {return null}
+      if (prev[1] === id) {return [prev[0], ""]}
+      if (prev[0] === "") {return [id, prev[1]]}
+      if (prev[1] === "") {return [prev[0], id]}
       return [id, ""]
     })
   }
@@ -821,8 +821,8 @@ function ExperimentsTab() {
   const canCompare =
     compareIds !== null && compareIds[0] !== "" && compareIds[1] !== ""
 
-  const expA = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds![0]) : undefined
-  const expB = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds![1]) : undefined
+  const expA = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds[0]) : undefined
+  const expB = canCompare ? EXPERIMENTS.find((e) => e.id === compareIds[1]) : undefined
 
   return (
     <div>
@@ -965,9 +965,9 @@ function ComparePanel({
   function betterClass(row: CompareRow, side: "a" | "b"): string {
     const numA = parseFloat(row.valA)
     const numB = parseFloat(row.valB)
-    if (isNaN(numA) || isNaN(numB) || numA === numB) return "text-white"
+    if (isNaN(numA) || isNaN(numB) || numA === numB) {return "text-white"}
     const aWins = row.better === "lower" ? numA < numB : numA > numB
-    if (side === "a") return aWins ? "text-emerald-400" : "text-zinc-400"
+    if (side === "a") {return aWins ? "text-emerald-400" : "text-zinc-400"}
     return aWins ? "text-zinc-400" : "text-emerald-400"
   }
 
@@ -1068,7 +1068,7 @@ function DeploymentsTab() {
 
 function LineageTab() {
   const grouped = LINEAGE.reduce<Record<string, LineageEntry[]>>((acc, entry) => {
-    if (!acc[entry.modelName]) acc[entry.modelName] = []
+    if (!acc[entry.modelName]) {acc[entry.modelName] = []}
     acc[entry.modelName].push(entry)
     return acc
   }, {})

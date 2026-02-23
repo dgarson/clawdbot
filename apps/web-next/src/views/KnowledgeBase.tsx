@@ -400,7 +400,7 @@ const STATUS_CONFIG: Record<DocStatus, { label: string; badge: string }> = {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -456,15 +456,15 @@ function DocDetail({ doc }: { doc: KBDoc }) {
   // Very simple markdown-to-HTML renderer for the seed content
   const renderContent = (md: string): React.ReactNode => {
     return md.split("\n").map((line, i) => {
-      if (line.startsWith("# ")) return <h1 key={i} className="text-xl font-bold text-white mt-0 mb-3">{line.slice(2)}</h1>;
-      if (line.startsWith("## ")) return <h2 key={i} className="text-base font-semibold text-zinc-200 mt-5 mb-2">{line.slice(3)}</h2>;
-      if (line.startsWith("### ")) return <h3 key={i} className="text-sm font-semibold text-zinc-300 mt-4 mb-1">{line.slice(4)}</h3>;
-      if (line.startsWith("- ")) return <li key={i} className="text-sm text-zinc-400 ml-4 list-disc leading-relaxed">{line.slice(2)}</li>;
-      if (line.startsWith("```")) return <div key={i} className={line === "```" ? "mb-3" : "mt-2 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg font-mono text-xs text-zinc-300"} />;
+      if (line.startsWith("# ")) {return <h1 key={i} className="text-xl font-bold text-white mt-0 mb-3">{line.slice(2)}</h1>;}
+      if (line.startsWith("## ")) {return <h2 key={i} className="text-base font-semibold text-zinc-200 mt-5 mb-2">{line.slice(3)}</h2>;}
+      if (line.startsWith("### ")) {return <h3 key={i} className="text-sm font-semibold text-zinc-300 mt-4 mb-1">{line.slice(4)}</h3>;}
+      if (line.startsWith("- ")) {return <li key={i} className="text-sm text-zinc-400 ml-4 list-disc leading-relaxed">{line.slice(2)}</li>;}
+      if (line.startsWith("```")) {return <div key={i} className={line === "```" ? "mb-3" : "mt-2 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg font-mono text-xs text-zinc-300"} />;}
       if (line.startsWith("**") && line.endsWith("**")) {
         return <p key={i} className="text-sm font-semibold text-zinc-200 mt-2">{line.slice(2, -2)}</p>;
       }
-      if (line === "") return <div key={i} className="h-2" />;
+      if (line === "") {return <div key={i} className="h-2" />;}
       if (line.startsWith("❌") || line.startsWith("✅")) {
         return <p key={i} className={cn("text-sm font-mono mt-1", line.startsWith("❌") ? "text-rose-400" : "text-emerald-400")}>{line}</p>;
       }
@@ -558,16 +558,16 @@ export default function KnowledgeBase() {
 
   const filtered = SEED_DOCS
     .filter((d) => {
-      if (typeFilter !== "all" && d.type !== typeFilter) return false;
+      if (typeFilter !== "all" && d.type !== typeFilter) {return false;}
       if (search.trim()) {
         const q = search.toLowerCase();
         return d.title.toLowerCase().includes(q) || d.excerpt.toLowerCase().includes(q) || d.tags.some((t) => t.toLowerCase().includes(q));
       }
       return true;
     })
-    .sort((a, b) => {
-      if (sortOrder === "views") return b.views - a.views;
-      if (sortOrder === "title") return a.title.localeCompare(b.title);
+    .toSorted((a, b) => {
+      if (sortOrder === "views") {return b.views - a.views;}
+      if (sortOrder === "title") {return a.title.localeCompare(b.title);}
       return b.updatedAt.getTime() - a.updatedAt.getTime();
     });
 

@@ -285,13 +285,13 @@ const MODELS = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatMs(ms: number): string {
-  if (ms === 0) return "—";
+  if (ms === 0) {return "—";}
   return `${ms}ms`;
 }
 
 function formatDuration(sec: number): string {
-  if (sec === 0) return "—";
-  if (sec < 60) return `${sec.toFixed(1)}s`;
+  if (sec === 0) {return "—";}
+  if (sec < 60) {return `${sec.toFixed(1)}s`;}
   return `${Math.floor(sec / 60)}m ${(sec % 60).toFixed(0)}s`;
 }
 
@@ -300,15 +300,15 @@ function formatTimestamp(iso: string): string {
 }
 
 function statusColor(status: SessionStatus): string {
-  if (status === "complete") return "text-emerald-400";
-  if (status === "truncated") return "text-amber-400";
+  if (status === "complete") {return "text-emerald-400";}
+  if (status === "truncated") {return "text-amber-400";}
   return "text-rose-400";
 }
 
 function finishColor(reason: FinishReason): string {
-  if (reason === "stop") return "text-emerald-400";
-  if (reason === "length") return "text-amber-400";
-  if (reason === "error") return "text-rose-400";
+  if (reason === "stop") {return "text-emerald-400";}
+  if (reason === "length") {return "text-amber-400";}
+  if (reason === "error") {return "text-rose-400";}
   return "text-indigo-400";
 }
 
@@ -428,7 +428,7 @@ function LiveStreamTab() {
       setTokenIndex(idx + 1);
       setOutputTokens(idx + 1);
       const elapsed = (Date.now() - t0) / 1000;
-      if (elapsed > 0) setTokensPerSec(Math.round((idx + 1) / elapsed));
+      if (elapsed > 0) {setTokensPerSec(Math.round((idx + 1) / elapsed));}
       idx++;
     }, delay);
   };
@@ -454,7 +454,7 @@ function LiveStreamTab() {
         setTokenIndex(idx + 1);
         setOutputTokens(idx + 1);
         const elapsed = (Date.now() - t0) / 1000;
-        if (elapsed > 0) setTokensPerSec(Math.round((idx + 1) / elapsed));
+        if (elapsed > 0) {setTokensPerSec(Math.round((idx + 1) / elapsed));}
         idx++;
       }, delay);
     }
@@ -638,8 +638,8 @@ function HistoryTab() {
   const [selectedSession, setSelectedSession] = useState<StreamSession | null>(null);
 
   const filtered = MOCK_SESSIONS.filter((s) => {
-    if (filterModel !== "all" && s.model !== filterModel) return false;
-    if (filterStatus !== "all" && s.status !== filterStatus) return false;
+    if (filterModel !== "all" && s.model !== filterModel) {return false;}
+    if (filterStatus !== "all" && s.status !== filterStatus) {return false;}
     return true;
   });
 

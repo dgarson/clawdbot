@@ -620,45 +620,45 @@ function fmtDollarsShort(n: number): string {
 }
 
 function trendArrow(t: TrendDirection): string {
-  if (t === "up") return "↑"
-  if (t === "down") return "↓"
+  if (t === "up") {return "↑"}
+  if (t === "down") {return "↓"}
   return "→"
 }
 
 function trendColor(t: TrendDirection): string {
-  if (t === "up") return "text-rose-400"
-  if (t === "down") return "text-emerald-400"
+  if (t === "up") {return "text-rose-400"}
+  if (t === "down") {return "text-emerald-400"}
   return "text-zinc-400"
 }
 
 function effortClasses(e: EffortLevel): string {
-  if (e === "low") return "bg-emerald-900 text-emerald-300 border border-emerald-800"
-  if (e === "medium") return "bg-amber-900 text-amber-300 border border-amber-800"
+  if (e === "low") {return "bg-emerald-900 text-emerald-300 border border-emerald-800"}
+  if (e === "medium") {return "bg-amber-900 text-amber-300 border border-amber-800"}
   return "bg-rose-900 text-rose-300 border border-rose-800"
 }
 
 function statusClasses(s: RecommendationStatus): string {
-  if (s === "new") return "bg-indigo-900 text-indigo-300 border border-indigo-800"
-  if (s === "in-progress") return "bg-amber-900 text-amber-300 border border-amber-800"
-  if (s === "implemented") return "bg-emerald-900 text-emerald-300 border border-emerald-800"
+  if (s === "new") {return "bg-indigo-900 text-indigo-300 border border-indigo-800"}
+  if (s === "in-progress") {return "bg-amber-900 text-amber-300 border border-amber-800"}
+  if (s === "implemented") {return "bg-emerald-900 text-emerald-300 border border-emerald-800"}
   return "bg-zinc-800 text-zinc-400 border border-zinc-700"
 }
 
 function severityClasses(s: PolicySeverity): string {
-  if (s === "critical") return "bg-rose-900 text-rose-300 border border-rose-800"
-  if (s === "warning") return "bg-amber-900 text-amber-300 border border-amber-800"
+  if (s === "critical") {return "bg-rose-900 text-rose-300 border border-rose-800"}
+  if (s === "warning") {return "bg-amber-900 text-amber-300 border border-amber-800"}
   return "bg-blue-900 text-blue-300 border border-blue-800"
 }
 
 function utilizationBarColor(pct: number): string {
-  if (pct < 25) return "bg-rose-500"
-  if (pct < 50) return "bg-amber-500"
+  if (pct < 25) {return "bg-rose-500"}
+  if (pct < 50) {return "bg-amber-500"}
   return "bg-emerald-500"
 }
 
 function complianceBarColor(pct: number): string {
-  if (pct < 70) return "bg-rose-500"
-  if (pct < 90) return "bg-amber-500"
+  if (pct < 70) {return "bg-rose-500"}
+  if (pct < 90) {return "bg-amber-500"}
   return "bg-emerald-500"
 }
 
@@ -911,7 +911,7 @@ function ResourcesTab({ resources }: ResourcesTabProps) {
       {/* Resources by category */}
       {CATEGORY_ORDER.map((cat) => {
         const catResources = resources.filter((r) => r.category === cat)
-        if (catResources.length === 0) return null
+        if (catResources.length === 0) {return null}
         const catTotal = catResources.reduce((sum, r) => sum + r.costPerMonth, 0)
 
         return (

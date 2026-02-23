@@ -163,22 +163,22 @@ const AGENTS: AgentStat[] = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(0)}K`;}
   return n.toString();
 }
 
 function fmtDuration(secs: number): string {
-  if (secs < 60) return `${secs}s`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
+  if (secs < 60) {return `${secs}s`;}
+  if (secs < 3600) {return `${Math.floor(secs / 60)}m ${secs % 60}s`;}
   return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
 }
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -430,10 +430,10 @@ export default function AgentInsights() {
 
   const filtered = AGENTS
     .filter((a) => a.name.toLowerCase().includes(search.toLowerCase()) || a.role.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (sortKey === "tokens")   return b.totalTokens - a.totalTokens;
-      if (sortKey === "sessions") return b.totalSessions - a.totalSessions;
-      if (sortKey === "cost")     return b.totalCostUsd - a.totalCostUsd;
+    .toSorted((a, b) => {
+      if (sortKey === "tokens")   {return b.totalTokens - a.totalTokens;}
+      if (sortKey === "sessions") {return b.totalSessions - a.totalSessions;}
+      if (sortKey === "cost")     {return b.totalCostUsd - a.totalCostUsd;}
       return a.name.localeCompare(b.name);
     });
 

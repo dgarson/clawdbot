@@ -136,10 +136,10 @@ function formatRelativeDate(dateString: string): string {
   const diffTime = date.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 0) return 'Expired';
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Tomorrow';
-  if (diffDays < 7) return `${diffDays} days`;
+  if (diffDays < 0) {return 'Expired';}
+  if (diffDays === 0) {return 'Today';}
+  if (diffDays === 1) {return 'Tomorrow';}
+  if (diffDays < 7) {return `${diffDays} days`;}
   return formatDate(dateString);
 }
 
@@ -232,7 +232,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
   const [role, setRole] = useState<MemberRole>('member');
   const [error, setError] = useState('');
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,7 +371,7 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -526,7 +526,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const filteredMembers = useMemo(() => {
-    if (!searchQuery.trim()) return members;
+    if (!searchQuery.trim()) {return members;}
     const query = searchQuery.toLowerCase();
     return members.filter(
       (m) =>

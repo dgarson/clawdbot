@@ -215,8 +215,8 @@ const ENV_LABELS: Record<FlagEnv, string> = {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -233,7 +233,7 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
   const typeCfg = TYPE_CONFIG[flag.type];
 
   const displayValue = (val: boolean | string | number): string => {
-    if (typeof val === "boolean") return val ? "true" : "false";
+    if (typeof val === "boolean") {return val ? "true" : "false";}
     return String(val);
   };
 
@@ -413,9 +413,9 @@ export default function FeatureFlags() {
   }, []);
 
   const filtered = flags.filter((f) => {
-    if (filterMode === "enabled" && !f.enabled) return false;
-    if (filterMode === "disabled" && f.enabled) return false;
-    if (filterMode === "experimental" && !f.isExperimental) return false;
+    if (filterMode === "enabled" && !f.enabled) {return false;}
+    if (filterMode === "disabled" && f.enabled) {return false;}
+    if (filterMode === "experimental" && !f.isExperimental) {return false;}
     if (search.trim()) {
       const q = search.toLowerCase();
       return f.key.toLowerCase().includes(q) || f.name.toLowerCase().includes(q) || f.description.toLowerCase().includes(q) || f.tags.some((t) => t.includes(q));

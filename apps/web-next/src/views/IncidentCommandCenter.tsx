@@ -355,7 +355,7 @@ export default function IncidentCommandCenter() {
             <div>
               <div className="text-sm font-medium text-zinc-300 mb-3">Recent Activity</div>
               <div className="space-y-2">
-                {selectedIncident.timeline.slice(-4).reverse().map(evt => (
+                {selectedIncident.timeline.slice(-4).toReversed().map(evt => (
                   <div key={evt.id} className="flex items-start gap-3 py-2 border-b border-zinc-800/40 last:border-0">
                     <span className="text-base mt-0.5">{actionIcon[evt.type]}</span>
                     <div className="flex-1 min-w-0">

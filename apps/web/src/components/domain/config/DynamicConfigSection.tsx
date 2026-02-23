@@ -77,7 +77,7 @@ export function DynamicConfigSection({
         note: `Update ${sectionPrefix} settings`,
       });
       // Refetch to get latest values
-      refetchConfig();
+      void refetchConfig();
     } catch (error) {
       console.error("Failed to save config:", error);
     }
@@ -221,7 +221,7 @@ export function DynamicConfigFormConnected({
         raw: JSON.stringify(formValues),
         note: sectionPrefix ? `Update ${sectionPrefix} settings` : "Update configuration",
       });
-      refetch();
+      void refetch();
     } catch (error) {
       console.error("Failed to save config:", error);
     }

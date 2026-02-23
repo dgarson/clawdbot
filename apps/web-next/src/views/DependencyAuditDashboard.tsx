@@ -360,7 +360,7 @@ export default function DependencyAuditDashboard() {
         {/* Vulns tab */}
         {tab === "vulns" && (
           <div className="space-y-3">
-            {vulns.sort((a, b) => b.cvss - a.cvss).map(v => (
+            {vulns.toSorted((a, b) => b.cvss - a.cvss).map(v => (
               <div key={v.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div className="flex items-center gap-3">

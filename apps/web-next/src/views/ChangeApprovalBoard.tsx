@@ -452,7 +452,7 @@ export default function ChangeApprovalBoard() {
             <p className="text-sm text-zinc-400">Upcoming scheduled changes</p>
             {changes
               .filter(c => !["completed","rejected","cancelled"].includes(c.status))
-              .sort((a, b) => a.scheduledStart.localeCompare(b.scheduledStart))
+              .toSorted((a, b) => a.scheduledStart.localeCompare(b.scheduledStart))
               .map(cr => (
                 <div key={cr.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4">
                   <div className="bg-indigo-500/20 border border-indigo-500/30 rounded-lg p-3 text-center flex-shrink-0 w-20">

@@ -134,13 +134,13 @@ const BANDWIDTH_TREND   = [480, 420, 360, 320, 290, 330, 570, 780, 1020, 1110, 1
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`}
+  if (n >= 1_000)     {return `${(n / 1_000).toFixed(1)}K`}
   return n.toString()
 }
 
 function formatMs(ms: number): string {
-  if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`
+  if (ms >= 1000) {return `${(ms / 1000).toFixed(1)}s`}
   return `${ms}ms`
 }
 
@@ -170,8 +170,8 @@ function SparkBar({
 }
 
 function TrendArrow({ trend }: { trend: "up" | "down" | "stable" }) {
-  if (trend === "up")     return <span className="text-emerald-400 text-xs font-bold">↑</span>
-  if (trend === "down")   return <span className="text-rose-400   text-xs font-bold">↓</span>
+  if (trend === "up")     {return <span className="text-emerald-400 text-xs font-bold">↑</span>}
+  if (trend === "down")   {return <span className="text-rose-400   text-xs font-bold">↓</span>}
   return                         <span className="text-zinc-400   text-xs font-bold">→</span>
 }
 
@@ -370,9 +370,9 @@ type PageSortKey = "requests" | "avgTime" | "bounceRate"
 function TopPagesTab() {
   const [sortBy, setSortBy] = useState<PageSortKey>("requests")
 
-  const sorted = [...PAGE_STATS].sort((a, b) => {
-    if (sortBy === "requests")   return b.requests   - a.requests
-    if (sortBy === "avgTime")    return b.avgTimeMs  - a.avgTimeMs
+  const sorted = [...PAGE_STATS].toSorted((a, b) => {
+    if (sortBy === "requests")   {return b.requests   - a.requests}
+    if (sortBy === "avgTime")    {return b.avgTimeMs  - a.avgTimeMs}
     return b.bounceRate - a.bounceRate
   })
 
@@ -602,7 +602,7 @@ function BotsTab() {
   }
 
   const filteredBots = BOT_ENTRIES.filter((b) => {
-    if (botFilter === "all") return true
+    if (botFilter === "all") {return true}
     return botStatuses[b.name] === botFilter
   })
 

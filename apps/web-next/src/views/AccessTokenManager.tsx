@@ -95,8 +95,8 @@ export default function AccessTokenManager() {
   ];
 
   const filteredTokens = TOKENS.filter(t => {
-    if (filterStatus !== "all" && t.status !== filterStatus) return false;
-    if (filterApp    !== "all" && t.appId  !== filterApp)    return false;
+    if (filterStatus !== "all" && t.status !== filterStatus) {return false;}
+    if (filterApp    !== "all" && t.appId  !== filterApp)    {return false;}
     return true;
   });
 

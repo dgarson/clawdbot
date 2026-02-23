@@ -67,7 +67,7 @@ export function useCreateMemory() {
       queryClient.setQueryData<Memory[]>(memoryKeys.lists(), (old) =>
         old ? [newMemory, ...old] : [newMemory]
       );
-      queryClient.invalidateQueries({ queryKey: memoryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.all });
       toast.success("Memory saved successfully");
     },
     onError: (error) => {
@@ -100,10 +100,10 @@ export function useUpdateMemory() {
       return { previousMemory };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: memoryKeys.detail(variables.id),
       });
-      queryClient.invalidateQueries({ queryKey: memoryKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.lists() });
       toast.success("Memory updated successfully");
     },
     onError: (_error, variables, context) => {
@@ -137,7 +137,7 @@ export function useDeleteMemory() {
       return { previousMemories };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memoryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.all });
       toast.success("Memory deleted successfully");
     },
     onError: (_error, _, context) => {
@@ -174,7 +174,7 @@ export function useAddMemoryTags() {
       return { previousMemory };
     },
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) });
       toast.success("Tags added");
     },
     onError: (_error, { id }, context) => {
@@ -211,7 +211,7 @@ export function useRemoveMemoryTags() {
       return { previousMemory };
     },
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) });
       toast.success("Tags removed");
     },
     onError: (_error, { id }, context) => {
@@ -243,8 +243,8 @@ export function useChangeMemoryType() {
       return { previousMemory };
     },
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: memoryKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.lists() });
       toast.success("Memory type updated");
     },
     onError: (_error, { id }, context) => {

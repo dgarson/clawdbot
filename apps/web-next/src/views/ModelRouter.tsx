@@ -153,7 +153,7 @@ export default function ModelRouter() {
 
   const moveRule = (id: string, direction: 'up' | 'down') => {
     const index = rules.findIndex(r => r.id === id);
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === rules.length - 1)) return;
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === rules.length - 1)) {return;}
 
     const newRules = [...rules];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -165,10 +165,10 @@ export default function ModelRouter() {
   };
 
   const findMatchingRule = () => {
-    const activeRules = rules.filter(r => r.enabled).sort((a, b) => a.priority - b.priority);
+    const activeRules = rules.filter(r => r.enabled).toSorted((a, b) => a.priority - b.priority);
 
     for (const rule of activeRules) {
-      if (rule.conditions.length === 0) return rule; // Default fallback
+      if (rule.conditions.length === 0) {return rule;} // Default fallback
 
       const matches = rule.conditions.every(cond => {
         switch (cond.kind) {
@@ -177,8 +177,8 @@ export default function ModelRouter() {
           case 'task-complexity':
             return cond.op === 'lt' ? testComplexity < (cond.value as number) : testComplexity > (cond.value as number);
           case 'agent':
-            if (cond.op === 'eq') return testAgent === cond.value;
-            if (cond.op === 'in') return (cond.value as string).split(',').includes(testAgent);
+            if (cond.op === 'eq') {return testAgent === cond.value;}
+            if (cond.op === 'in') {return (cond.value as string).split(',').includes(testAgent);}
             return false;
           case 'time-of-day':
             return cond.op === 'lt' ? testTime < (cond.value as number) : testTime > (cond.value as number);
@@ -189,7 +189,7 @@ export default function ModelRouter() {
         }
       });
 
-      if (matches) return rule;
+      if (matches) {return rule;}
     }
     return null;
   };

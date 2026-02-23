@@ -71,8 +71,8 @@ export default function PricingCalculator() {
   const toggleAddon = (id: string) => {
     setSelectedAddons(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {next.delete(id);}
+      else {next.add(id);}
       return next;
     });
   };
@@ -82,7 +82,7 @@ export default function PricingCalculator() {
 
   const addonTotal = Array.from(selectedAddons).reduce((sum, id) => {
     const addon = ADDONS.find(a => a.id === id);
-    if (!addon) return sum;
+    if (!addon) {return sum;}
     const qty = addonQtys[id] ?? 1;
     return sum + addon.price * qty;
   }, 0);
@@ -263,7 +263,7 @@ export default function PricingCalculator() {
                 )}
                 {Array.from(selectedAddons).map(id => {
                   const addon = ADDONS.find(a => a.id === id);
-                  if (!addon) return null;
+                  if (!addon) {return null;}
                   const qty = addonQtys[id] ?? 1;
                   const price = addon.price * qty;
                   return (

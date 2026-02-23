@@ -151,8 +151,8 @@ export function useHealthProbe() {
     },
     onSuccess: () => {
       // Invalidate related queries to refresh UI with latest data
-      queryClient.invalidateQueries({ queryKey: gatewayKeys.all });
-      queryClient.invalidateQueries({ queryKey: channelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: gatewayKeys.all });
+      void queryClient.invalidateQueries({ queryKey: channelKeys.all });
     },
   });
 }

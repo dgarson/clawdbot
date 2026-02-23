@@ -256,37 +256,37 @@ const AUDITS: AuditEntry[] = [
 ];
 
 function riskBg(r: RiskLevel) {
-  if (r === "critical") return "bg-rose-500/10 text-rose-400";
-  if (r === "high") return "bg-orange-500/10 text-orange-400";
-  if (r === "medium") return "bg-amber-500/10 text-amber-400";
+  if (r === "critical") {return "bg-rose-500/10 text-rose-400";}
+  if (r === "high") {return "bg-orange-500/10 text-orange-400";}
+  if (r === "medium") {return "bg-amber-500/10 text-amber-400";}
   return "bg-emerald-500/10 text-emerald-400";
 }
 function statusBg(s: ModelStatus) {
-  if (s === "approved") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "pending") return "bg-amber-400/10 text-amber-400";
-  if (s === "rejected") return "bg-rose-400/10 text-rose-400";
-  if (s === "deprecated") return "bg-zinc-700 text-zinc-400";
+  if (s === "approved") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "rejected") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "deprecated") {return "bg-zinc-700 text-zinc-400";}
   return "bg-indigo-400/10 text-indigo-400";
 }
 function incidentSevBg(s: IncidentSeverity) {
-  if (s === "critical") return "bg-rose-500/10 text-rose-400";
-  if (s === "high") return "bg-orange-500/10 text-orange-400";
-  if (s === "medium") return "bg-amber-500/10 text-amber-400";
+  if (s === "critical") {return "bg-rose-500/10 text-rose-400";}
+  if (s === "high") {return "bg-orange-500/10 text-orange-400";}
+  if (s === "medium") {return "bg-amber-500/10 text-amber-400";}
   return "bg-emerald-500/10 text-emerald-400";
 }
 function incidentStateBg(s: IncidentState) {
-  if (s === "open") return "bg-rose-400/10 text-rose-400";
-  if (s === "investigating") return "bg-amber-400/10 text-amber-400";
+  if (s === "open") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "investigating") {return "bg-amber-400/10 text-amber-400";}
   return "bg-emerald-400/10 text-emerald-400";
 }
 function auditResultBg(r: "pass" | "fail" | "partial") {
-  if (r === "pass") return "bg-emerald-400/10 text-emerald-400";
-  if (r === "fail") return "bg-rose-400/10 text-rose-400";
+  if (r === "pass") {return "bg-emerald-400/10 text-emerald-400";}
+  if (r === "fail") {return "bg-rose-400/10 text-rose-400";}
   return "bg-amber-400/10 text-amber-400";
 }
 function scoreColor(n: number) {
-  if (n >= 85) return "text-emerald-400";
-  if (n >= 70) return "text-amber-400";
+  if (n >= 85) {return "text-emerald-400";}
+  if (n >= 70) {return "text-amber-400";}
   return "text-rose-400";
 }
 function biasLabel(m: BiasMetric) {
@@ -299,8 +299,8 @@ function biasLabel(m: BiasMetric) {
   return labels[m];
 }
 function policyStatusBg(s: PolicyStatus) {
-  if (s === "active") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "draft") return "bg-amber-400/10 text-amber-400";
+  if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 
@@ -313,9 +313,9 @@ export default function AIGovernanceDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<GovernanceIncident | null>(null);
 
   const filteredModels = MODELS.filter(m => {
-    if (riskFilter !== "all" && m.riskLevel !== riskFilter) return false;
-    if (statusFilter !== "all" && m.status !== statusFilter) return false;
-    if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !m.useCase.toLowerCase().includes(search.toLowerCase())) return false;
+    if (riskFilter !== "all" && m.riskLevel !== riskFilter) {return false;}
+    if (statusFilter !== "all" && m.status !== statusFilter) {return false;}
+    if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !m.useCase.toLowerCase().includes(search.toLowerCase())) {return false;}
     return true;
   });
 

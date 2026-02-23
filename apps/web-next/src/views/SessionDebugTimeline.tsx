@@ -593,13 +593,13 @@ const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
 ];
 
 function fmtMs(ms: number): string {
-  if (ms === 0) return "0ms";
-  if (ms < 1000) return `${ms}ms`;
+  if (ms === 0) {return "0ms";}
+  if (ms < 1000) {return `${ms}ms`;}
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
 function fmtOffset(ms: number): string {
-  if (ms < 1000) return `+${ms}ms`;
+  if (ms < 1000) {return `+${ms}ms`;}
   return `+${(ms / 1000).toFixed(1)}s`;
 }
 
@@ -623,7 +623,7 @@ function ScrubBar({
   const trackRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!trackRef.current) return;
+    if (!trackRef.current) {return;}
     const rect = trackRef.current.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     onScrub(Math.round(pct * durationMs));
@@ -1032,7 +1032,7 @@ export default function SessionDebugTimeline() {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    if (!playing) return;
+    if (!playing) {return;}
 
     const TICK_MS = 50;
     intervalRef.current = setInterval(() => {
@@ -1076,13 +1076,13 @@ export default function SessionDebugTimeline() {
   };
 
   const handlePlay = () => {
-    if (currentMs >= session.durationMs) setCurrentMs(0);
+    if (currentMs >= session.durationMs) {setCurrentMs(0);}
     setPlaying(true);
   };
 
   const filteredEvents = session.events.filter((e) => {
-    if (filter === "all") return true;
-    if (filter === "tool_call") return e.type === "tool_call" || e.type === "tool_result";
+    if (filter === "all") {return true;}
+    if (filter === "tool_call") {return e.type === "tool_call" || e.type === "tool_result";}
     return e.type === filter;
   });
 

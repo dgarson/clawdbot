@@ -170,7 +170,7 @@ function tickPhysics(
   edges.forEach((edge) => {
     const src = nodeMap[edge.source];
     const tgt = nodeMap[edge.target];
-    if (!src || !tgt) return;
+    if (!src || !tgt) {return;}
     const dx = tgt.x - src.x;
     const dy = tgt.y - src.y;
     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -206,7 +206,7 @@ function EdgeLine({ edge, nodes }: { edge: AgentEdge; nodes: PhysicsNode[] }) {
   nodes.forEach((n) => { nodeMap[n.id] = n; });
   const src = nodeMap[edge.source];
   const tgt = nodeMap[edge.target];
-  if (!src || !tgt) return null;
+  if (!src || !tgt) {return null;}
 
   const midX = (src.x + tgt.x) / 2;
   const midY = (src.y + tgt.y) / 2;
@@ -370,9 +370,9 @@ export default function AgentTopologyView() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredAgents = useMemo(() => MOCK_AGENTS.filter((a) => {
-    if (filterStatus !== "all" && a.status !== filterStatus) return false;
-    if (filterRole !== "all" && a.roleType !== filterRole) return false;
-    if (searchQuery && !a.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (filterStatus !== "all" && a.status !== filterStatus) {return false;}
+    if (filterRole !== "all" && a.roleType !== filterRole) {return false;}
+    if (searchQuery && !a.name.toLowerCase().includes(searchQuery.toLowerCase())) {return false;}
     return true;
   }), [filterStatus, filterRole, searchQuery]);
 
@@ -386,7 +386,7 @@ export default function AgentTopologyView() {
 
   // Observe container size
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {return;}
     const ro = new ResizeObserver((entries) => {
       const e = entries[0];
       if (e) {

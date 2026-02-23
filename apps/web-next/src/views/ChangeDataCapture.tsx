@@ -218,7 +218,7 @@ export default function ChangeDataCapture(): React.ReactElement {
   const filteredEvents = CDCEvents_filtered();
 
   function CDCEvents_filtered(): CDCEvent[] {
-    if (eventFilter === "all") return CDC_EVENTS;
+    if (eventFilter === "all") {return CDC_EVENTS;}
     return CDC_EVENTS.filter(e => e.op === eventFilter);
   }
 

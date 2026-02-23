@@ -190,7 +190,7 @@ export default function ResourceMonitor() {
   const [procSort, setProcSort] = useState<"cpu" | "mem">("cpu");
 
   const selected = METRICS.find((m) => m.kind === selectedKind) ?? METRICS[0];
-  const sortedProcs = [...PROCESSES].sort((a, b) => b[procSort] - a[procSort]);
+  const sortedProcs = [...PROCESSES].toSorted((a, b) => b[procSort] - a[procSort]);
 
   const memUsed = Math.round((NODE.totalMemMB * 0.84) / 1024);
 

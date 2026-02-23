@@ -381,12 +381,12 @@ function formatRelativeTime(iso: string): string {
   const then = new Date(iso)
   const diffMs = now.getTime() - then.getTime()
   const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return "just now"
-  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffMin < 1) {return "just now"}
+  if (diffMin < 60) {return `${diffMin}m ago`}
   const diffHrs = Math.floor(diffMin / 60)
-  if (diffHrs < 24) return `${diffHrs}h ago`
+  if (diffHrs < 24) {return `${diffHrs}h ago`}
   const diffDays = Math.floor(diffHrs / 24)
-  if (diffDays < 30) return `${diffDays}d ago`
+  if (diffDays < 30) {return `${diffDays}d ago`}
   return then.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
@@ -533,8 +533,8 @@ function BanIcon({ className }: { className?: string }) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function DeviceKindIcon({ kind, className }: { kind: DeviceKind; className?: string }) {
-  if (kind === "mobile") return <MobileIcon className={className} />
-  if (kind === "tablet") return <TabletIcon className={className} />
+  if (kind === "mobile") {return <MobileIcon className={className} />}
+  if (kind === "tablet") {return <TabletIcon className={className} />}
   return <DesktopIcon className={className} />
 }
 
@@ -607,11 +607,11 @@ function EventTypeBadge({ eventType }: { eventType: EventType }) {
 
 function EventIcon({ eventType }: { eventType: EventType }) {
   const base = "w-4 h-4"
-  if (eventType === "login") return <LogInIcon className={cn(base, "text-emerald-400")} />
-  if (eventType === "logout") return <LogOutIcon className={cn(base, "text-zinc-400")} />
-  if (eventType === "block") return <BanIcon className={cn(base, "text-rose-400")} />
-  if (eventType === "unblock") return <ShieldCheckIcon className={cn(base, "text-emerald-400")} />
-  if (eventType === "trust") return <ShieldCheckIcon className={cn(base, "text-indigo-400")} />
+  if (eventType === "login") {return <LogInIcon className={cn(base, "text-emerald-400")} />}
+  if (eventType === "logout") {return <LogOutIcon className={cn(base, "text-zinc-400")} />}
+  if (eventType === "block") {return <BanIcon className={cn(base, "text-rose-400")} />}
+  if (eventType === "unblock") {return <ShieldCheckIcon className={cn(base, "text-emerald-400")} />}
+  if (eventType === "trust") {return <ShieldCheckIcon className={cn(base, "text-indigo-400")} />}
   return <XIcon className={cn(base, "text-amber-400")} />
 }
 
@@ -863,8 +863,8 @@ function SessionsTab() {
         <div>
           <p className="text-sm text-zinc-400">
             {activeSessions.length} active session{activeSessions.length !== 1 ? "s" : ""} across {
-              [...new Set(activeSessions.map((s) => s.deviceId))].length
-            } device{[...new Set(activeSessions.map((s) => s.deviceId))].length !== 1 ? "s" : ""}
+              new Set(activeSessions.map((s) => s.deviceId)).size
+            } device{new Set(activeSessions.map((s) => s.deviceId)).size !== 1 ? "s" : ""}
           </p>
         </div>
         {activeSessions.length > 1 && (
@@ -1109,7 +1109,7 @@ function AuditTab() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const filtered = AUDIT_EVENTS.filter((e) => {
-    if (typeFilter !== "all" && e.eventType !== typeFilter) return false
+    if (typeFilter !== "all" && e.eventType !== typeFilter) {return false}
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
       return (

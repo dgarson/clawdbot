@@ -29,7 +29,7 @@ export default function AgentsPage() {
   const connected = useGatewayStore((s) => s.connected);
   const request = useGatewayStore((s) => s.request);
 
-  const [agents, setAgents] = React.useState<AgentsListResult | null>(null);
+  const [agents, setAgents] = React.useState<AgentsListResult>();
   const [identities, setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -37,7 +37,7 @@ export default function AgentsPage() {
 
   React.useEffect(() => {
     if (!connected) {return;}
-    (async () => {
+    void (async () => {
       try {
         const result = await request<AgentsListResult>("agents.list", {});
         setAgents(result);

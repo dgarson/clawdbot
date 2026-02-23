@@ -121,14 +121,14 @@ export function SecurityProvider({ children }: SecurityProviderProps) {
     setLocalUnlocked(true);
     setLocalSession(session);
     storeSession(session.id, session.expiresAt);
-    queryClient.invalidateQueries({ queryKey: securityKeys.state() });
+    void queryClient.invalidateQueries({ queryKey: securityKeys.state() });
   }, [queryClient]);
 
   const setLocked = React.useCallback(() => {
     setLocalUnlocked(false);
     setLocalSession(null);
     clearStoredSession();
-    queryClient.invalidateQueries({ queryKey: securityKeys.state() });
+    void queryClient.invalidateQueries({ queryKey: securityKeys.state() });
   }, [queryClient]);
 
   const handleRefetch = React.useCallback(async () => {

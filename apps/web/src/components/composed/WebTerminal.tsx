@@ -101,8 +101,8 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
   ) => {
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const terminalRef = React.useRef<XtermTerminal | null>(null);
-    const fitRef = React.useRef<FitAddonLike | null>(null);
-    const searchRef = React.useRef<SearchAddonLike | null>(null);
+    const fitRef = React.useRef<FitAddonLike | undefined>(undefined);
+    const searchRef = React.useRef<unknown>(null);
     const resizeObserverRef = React.useRef<ResizeObserver | null>(null);
     const [loadError, setLoadError] = React.useState<string | null>(null);
 

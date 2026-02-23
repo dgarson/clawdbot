@@ -101,8 +101,8 @@ const ROLE_LABEL_COLOR: Record<MessageRole, string> = {
 
 // Simulate a response based on content
 function simulateResponse(messages: Message[], model: ModelId): string {
-  const lastUser = [...messages].reverse().find((m) => m.role === "user");
-  if (!lastUser) return "No user message to respond to.";
+  const lastUser = [...messages].toReversed().find((m) => m.role === "user");
+  if (!lastUser) {return "No user message to respond to.";}
   const q = lastUser.content.toLowerCase();
 
   if (q.includes("hello") || q.includes("hi")) {
@@ -159,7 +159,7 @@ export default function LLMPlayground() {
   function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const input = activeSession ? editInput : draftInput;
-    if (!input.trim()) return;
+    if (!input.trim()) {return;}
 
     const model = activeSession ? activeSession.model : draftModel;
     const userMsg: Message = { role: "user", content: input.trim() };

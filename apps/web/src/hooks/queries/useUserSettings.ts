@@ -394,23 +394,23 @@ export function usePrefetchUserSettings() {
   const queryClient = useQueryClient();
 
   return () => {
-    queryClient.prefetchQuery({
+    void queryClient.prefetchQuery({
       queryKey: userSettingsKeys.profile(),
       queryFn: getUserProfile,
     });
-    queryClient.prefetchQuery({
+    void queryClient.prefetchQuery({
       queryKey: userSettingsKeys.preferences(),
       queryFn: getUserPreferences,
     });
-    queryClient.prefetchQuery({
+    void queryClient.prefetchQuery({
       queryKey: userSettingsKeys.interactionStyle(),
       queryFn: getInteractionStyle,
     });
-    queryClient.prefetchQuery({
+    void queryClient.prefetchQuery({
       queryKey: userSettingsKeys.appearance(),
       queryFn: getAppearance,
     });
-    queryClient.prefetchQuery({
+    void queryClient.prefetchQuery({
       queryKey: userSettingsKeys.accessibility(),
       queryFn: getAccessibility,
     });
@@ -455,8 +455,8 @@ export function useUpdateInteractionStyle() {
       toast.success("Interaction style updated", { id: "interaction-style-update" });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.interactionStyle() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.interactionStyle() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }
@@ -496,8 +496,8 @@ export function useUpdateAppearance() {
       toast.success("Appearance updated", { id: "appearance-update" });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.appearance() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.appearance() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }
@@ -537,8 +537,8 @@ export function useUpdateAccessibility() {
       toast.success("Accessibility settings updated", { id: "accessibility-update" });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.accessibility() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.accessibility() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }
@@ -578,8 +578,8 @@ export function useUpdateNotificationSettings() {
       toast.success("Notification settings updated", { id: "notification-settings-update" });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.notificationSettings() });
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.notificationSettings() });
+      void queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
     },
   });
 }

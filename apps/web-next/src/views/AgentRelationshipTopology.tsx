@@ -308,68 +308,68 @@ function getTopoAgent(id: string): TopoAgent {
 }
 
 function statusDotClass(status: AgentStatus): string {
-  if (status === "active") return "bg-emerald-400";
-  if (status === "busy")   return "bg-amber-400";
-  if (status === "error")  return "bg-rose-400";
-  if (status === "done")   return "bg-zinc-500";
+  if (status === "active") {return "bg-emerald-400";}
+  if (status === "busy")   {return "bg-amber-400";}
+  if (status === "error")  {return "bg-rose-400";}
+  if (status === "done")   {return "bg-zinc-500";}
   return "bg-zinc-600";
 }
 
 function statusPillClass(status: AgentStatus): string {
-  if (status === "active") return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
-  if (status === "busy")   return "text-amber-400 border-amber-500/30 bg-amber-500/10";
-  if (status === "error")  return "text-rose-400 border-rose-500/30 bg-rose-500/10";
-  if (status === "done")   return "text-zinc-400 border-zinc-600 bg-zinc-700";
+  if (status === "active") {return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";}
+  if (status === "busy")   {return "text-amber-400 border-amber-500/30 bg-amber-500/10";}
+  if (status === "error")  {return "text-rose-400 border-rose-500/30 bg-rose-500/10";}
+  if (status === "done")   {return "text-zinc-400 border-zinc-600 bg-zinc-700";}
   return "text-zinc-400 border-zinc-700 bg-zinc-800";
 }
 
 function statusText(status: AgentStatus): string {
-  if (status === "active") return "Active";
-  if (status === "busy")   return "Busy";
-  if (status === "error")  return "Error";
-  if (status === "done")   return "Done";
+  if (status === "active") {return "Active";}
+  if (status === "busy")   {return "Busy";}
+  if (status === "error")  {return "Error";}
+  if (status === "done")   {return "Done";}
   return "Idle";
 }
 
 function edgeLineColor(kind: EdgeKind): string {
-  if (kind === "spawn")    return "rgba(99,102,241,0.75)";
-  if (kind === "delegate") return "rgba(251,191,36,0.75)";
+  if (kind === "spawn")    {return "rgba(99,102,241,0.75)";}
+  if (kind === "delegate") {return "rgba(251,191,36,0.75)";}
   return "rgba(113,113,122,0.45)";
 }
 
 function edgePillClass(kind: EdgeKind): string {
-  if (kind === "spawn")    return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";
-  if (kind === "delegate") return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+  if (kind === "spawn")    {return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";}
+  if (kind === "delegate") {return "bg-amber-500/20 text-amber-400 border border-amber-500/30";}
   return "bg-zinc-700 text-zinc-400 border border-zinc-600";
 }
 
 function edgeText(kind: EdgeKind): string {
-  if (kind === "spawn")    return "Spawned";
-  if (kind === "delegate") return "Delegated";
+  if (kind === "spawn")    {return "Spawned";}
+  if (kind === "delegate") {return "Delegated";}
   return "Reports To";
 }
 
 function eventDotClass(kind: EventKind): string {
-  if (kind === "spawn")    return "bg-indigo-400";
-  if (kind === "delegate") return "bg-amber-400";
-  if (kind === "complete") return "bg-emerald-400";
-  if (kind === "error")    return "bg-rose-400";
+  if (kind === "spawn")    {return "bg-indigo-400";}
+  if (kind === "delegate") {return "bg-amber-400";}
+  if (kind === "complete") {return "bg-emerald-400";}
+  if (kind === "error")    {return "bg-rose-400";}
   return "bg-zinc-500";
 }
 
 function eventPillClass(kind: EventKind): string {
-  if (kind === "spawn")    return "bg-indigo-500/20 text-indigo-400";
-  if (kind === "delegate") return "bg-amber-500/20 text-amber-400";
-  if (kind === "complete") return "bg-emerald-500/20 text-emerald-400";
-  if (kind === "error")    return "bg-rose-500/20 text-rose-400";
+  if (kind === "spawn")    {return "bg-indigo-500/20 text-indigo-400";}
+  if (kind === "delegate") {return "bg-amber-500/20 text-amber-400";}
+  if (kind === "complete") {return "bg-emerald-500/20 text-emerald-400";}
+  if (kind === "error")    {return "bg-rose-500/20 text-rose-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 
 function eventText(kind: EventKind): string {
-  if (kind === "spawn")    return "Spawned";
-  if (kind === "delegate") return "Delegated";
-  if (kind === "complete") return "Completed";
-  if (kind === "error")    return "Error";
+  if (kind === "spawn")    {return "Spawned";}
+  if (kind === "delegate") {return "Delegated";}
+  if (kind === "complete") {return "Completed";}
+  if (kind === "error")    {return "Error";}
   return "Message";
 }
 
@@ -780,7 +780,7 @@ function TopologyMap() {
         {TOPO_EDGES.map((edge, i) => {
           const fp = MAP_POS[edge.fromId];
           const tp = MAP_POS[edge.toId];
-          if (!fp || !tp) return null;
+          if (!fp || !tp) {return null;}
           const isHighlighted =
             selected === null
               ? edge.active
@@ -802,7 +802,7 @@ function TopologyMap() {
           .map((edge, i) => {
             const fp = MAP_POS[edge.fromId];
             const tp = MAP_POS[edge.toId];
-            if (!fp || !tp) return null;
+            if (!fp || !tp) {return null;}
             const mx = (fp.x + tp.x) / 2;
             const my = (fp.y + tp.y) / 2;
             return (
@@ -819,7 +819,7 @@ function TopologyMap() {
         {/* Agent nodes */}
         {TOPO_AGENTS.map(agent => {
           const pos = MAP_POS[agent.id];
-          if (!pos) return null;
+          if (!pos) {return null;}
           return (
             <MapNode
               key={agent.id}
@@ -917,8 +917,8 @@ function SessionChains() {
                             <div className={cn("rounded-xl border p-3 text-center w-40 flex-shrink-0", cardBorder)}>
                               {/* Kind badge */}
                               {step.kind !== "root" && (
-                                <div className={cn("text-xs rounded px-1.5 py-0.5 mb-2 inline-block", edgePillClass(step.kind as EdgeKind))}>
-                                  {edgeText(step.kind as EdgeKind)}
+                                <div className={cn("text-xs rounded px-1.5 py-0.5 mb-2 inline-block", edgePillClass(step.kind))}>
+                                  {edgeText(step.kind)}
                                 </div>
                               )}
                               {step.kind === "root" && (
@@ -1001,8 +1001,8 @@ function EventStream() {
               )}
             >
               {f.label}
-              {f.value !== "all" && kindCounts[f.value as EventKind] != null && (
-                <span className="ml-1 opacity-60">({kindCounts[f.value as EventKind]})</span>
+              {f.value !== "all" && kindCounts[f.value] != null && (
+                <span className="ml-1 opacity-60">({kindCounts[f.value]})</span>
               )}
             </button>
           ))}

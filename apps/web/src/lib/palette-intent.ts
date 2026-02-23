@@ -6,7 +6,7 @@ export interface IntentResult {
   suggestion: string;
   to: string;
   params?: Record<string, string>;
-  search?: Record<string, any>;
+  search?: Record<string, unknown>;
   icon: React.ComponentType<{ className?: string }>;
 }
 

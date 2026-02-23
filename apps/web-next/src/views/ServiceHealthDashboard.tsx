@@ -267,55 +267,55 @@ const SLOS: SLO[] = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function statusTextColor(s: ServiceStatus): string {
-  if (s === "healthy") return "text-emerald-400";
-  if (s === "degraded") return "text-amber-400";
-  if (s === "down") return "text-rose-400";
+  if (s === "healthy") {return "text-emerald-400";}
+  if (s === "degraded") {return "text-amber-400";}
+  if (s === "down") {return "text-rose-400";}
   return "text-zinc-500";
 }
 
 function statusDotColor(s: ServiceStatus): string {
-  if (s === "healthy") return "bg-emerald-400";
-  if (s === "degraded") return "bg-amber-400";
-  if (s === "down") return "bg-rose-400";
+  if (s === "healthy") {return "bg-emerald-400";}
+  if (s === "degraded") {return "bg-amber-400";}
+  if (s === "down") {return "bg-rose-400";}
   return "bg-zinc-500";
 }
 
 function statusBadgeClass(s: ServiceStatus): string {
-  if (s === "healthy") return "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20";
-  if (s === "degraded") return "bg-amber-400/10 text-amber-400 border border-amber-400/20";
-  if (s === "down") return "bg-rose-400/10 text-rose-400 border border-rose-400/20";
+  if (s === "healthy") {return "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20";}
+  if (s === "degraded") {return "bg-amber-400/10 text-amber-400 border border-amber-400/20";}
+  if (s === "down") {return "bg-rose-400/10 text-rose-400 border border-rose-400/20";}
   return "bg-zinc-800 text-zinc-500 border border-zinc-700";
 }
 
 function severityBadgeClass(s: IncidentSeverity): string {
-  if (s === "critical") return "bg-rose-400/10 text-rose-400 border border-rose-400/20";
-  if (s === "major") return "bg-amber-400/10 text-amber-400 border border-amber-400/20";
+  if (s === "critical") {return "bg-rose-400/10 text-rose-400 border border-rose-400/20";}
+  if (s === "major") {return "bg-amber-400/10 text-amber-400 border border-amber-400/20";}
   return "bg-indigo-400/10 text-indigo-400 border border-indigo-400/20";
 }
 
 function incidentStatusTextColor(s: IncidentStatus): string {
-  if (s === "investigating") return "text-rose-400";
-  if (s === "identified") return "text-amber-400";
-  if (s === "monitoring") return "text-indigo-400";
+  if (s === "investigating") {return "text-rose-400";}
+  if (s === "identified") {return "text-amber-400";}
+  if (s === "monitoring") {return "text-indigo-400";}
   return "text-emerald-400";
 }
 
 function sloBurnTextColor(burnRate: number, errorBudgetDays: number): string {
-  if (errorBudgetDays === 0 || burnRate > 5) return "text-rose-400";
-  if (burnRate > 1.5 || errorBudgetDays < 7) return "text-amber-400";
+  if (errorBudgetDays === 0 || burnRate > 5) {return "text-rose-400";}
+  if (burnRate > 1.5 || errorBudgetDays < 7) {return "text-amber-400";}
   return "text-emerald-400";
 }
 
 function sloBurnBarColor(burnRate: number, errorBudgetDays: number): string {
-  if (errorBudgetDays === 0 || burnRate > 5) return "bg-rose-400";
-  if (burnRate > 1.5 || errorBudgetDays < 7) return "bg-amber-400";
+  if (errorBudgetDays === 0 || burnRate > 5) {return "bg-rose-400";}
+  if (burnRate > 1.5 || errorBudgetDays < 7) {return "bg-amber-400";}
   return "bg-emerald-400";
 }
 
 function sparklineHeight(s: ServiceStatus): string {
-  if (s === "healthy") return "100%";
-  if (s === "degraded") return "55%";
-  if (s === "down") return "25%";
+  if (s === "healthy") {return "100%";}
+  if (s === "degraded") {return "55%";}
+  if (s === "down") {return "25%";}
   return "15%";
 }
 
@@ -370,8 +370,8 @@ export default function ServiceHealthDashboard() {
   ];
 
   const filteredIncidents = INCIDENTS.filter((i) => {
-    if (incidentFilter === "active") return i.status !== "resolved";
-    if (incidentFilter === "resolved") return i.status === "resolved";
+    if (incidentFilter === "active") {return i.status !== "resolved";}
+    if (incidentFilter === "resolved") {return i.status === "resolved";}
     return true;
   });
 
@@ -665,7 +665,7 @@ export default function ServiceHealthDashboard() {
                   <div className="space-y-2">
                     {selectedSvc.incidents.map((incId) => {
                       const inc = INCIDENTS.find((i) => i.id === incId);
-                      if (!inc) return null;
+                      if (!inc) {return null;}
                       return (
                         <div key={incId} className="bg-zinc-800 rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-1.5">

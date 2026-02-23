@@ -80,7 +80,7 @@ export default function ChannelsPage() {
   const request = useGatewayStore((s) => s.request);
   const { isAtLeast } = useProficiency();
 
-  const [channelData, setChannelData] = React.useState<ChannelsStatusResult | null>(null);
+  const [channelData, setChannelData] = React.useState<ChannelsStatusResult>();
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -98,12 +98,12 @@ export default function ChannelsPage() {
   }, [connected, request]);
 
   React.useEffect(() => {
-    loadChannels();
+    void loadChannels();
   }, [loadChannels]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadChannels();
+    void loadChannels();
   };
 
   // Derive ordered channel list

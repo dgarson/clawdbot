@@ -465,7 +465,7 @@ function WorkstreamDAGInner({
   }, [applySelection, setNodes]);
 
   const handleResetView = useCallback(() => {
-    fitView({ padding: 0.2, duration: 300 });
+    void fitView({ padding: 0.2, duration: 300 });
   }, [fitView]);
 
   // Focus on active/in-progress tasks (zoom + center)
@@ -481,7 +481,7 @@ function WorkstreamDAGInner({
         (t) => t.status === "blocked" || t.status === "todo"
       );
       if (nextTasks.length > 0) {
-        fitView({
+        void fitView({
           nodes: nextTasks.map((t) => ({ id: t.id })),
           padding: 0.3,
           duration: 500,
@@ -493,7 +493,7 @@ function WorkstreamDAGInner({
     }
 
     // Focus on active tasks
-    fitView({
+    void fitView({
       nodes: activeTasks.map((t) => ({ id: t.id })),
       padding: 0.3,
       duration: 500,
@@ -575,7 +575,7 @@ function WorkstreamDAGInner({
 
     // Fit view after layout change
     setTimeout(() => {
-      fitView({ padding: 0.2, duration: 300 });
+      void fitView({ padding: 0.2, duration: 300 });
     }, 50);
   }, [layoutDirection, tasks, agents, selectedTaskId, applySelection, setNodes, setEdges, fitView]);
 
@@ -588,7 +588,7 @@ function WorkstreamDAGInner({
 
     // Fit view after reset
     setTimeout(() => {
-      fitView({ padding: 0.2, duration: 300 });
+      void fitView({ padding: 0.2, duration: 300 });
     }, 50);
   }, [tasks, agents, selectedTaskId, applySelection, setNodes, setEdges, fitView, setSelectedTask]);
 

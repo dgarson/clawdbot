@@ -195,40 +195,40 @@ const initialAlerts: CapacityAlert[] = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function utilizationTextColor(pct: number): string {
-  if (pct >= 80) return "text-rose-400"
-  if (pct >= 60) return "text-amber-400"
+  if (pct >= 80) {return "text-rose-400"}
+  if (pct >= 60) {return "text-amber-400"}
   return "text-emerald-400"
 }
 
 function utilizationBarColor(pct: number): string {
-  if (pct >= 80) return "bg-rose-400"
-  if (pct >= 60) return "bg-amber-400"
+  if (pct >= 80) {return "bg-rose-400"}
+  if (pct >= 60) {return "bg-amber-400"}
   return "bg-emerald-400"
 }
 
 function severityTextColor(severity: AlertSeverity): string {
-  if (severity === "critical") return "text-rose-400"
-  if (severity === "warning")  return "text-amber-400"
+  if (severity === "critical") {return "text-rose-400"}
+  if (severity === "warning")  {return "text-amber-400"}
   return "text-indigo-400"
 }
 
 function severityBadgeClass(severity: AlertSeverity): string {
-  if (severity === "critical") return "bg-rose-400/10 text-rose-400 border border-rose-400/20"
-  if (severity === "warning")  return "bg-amber-400/10 text-amber-400 border border-amber-400/20"
+  if (severity === "critical") {return "bg-rose-400/10 text-rose-400 border border-rose-400/20"}
+  if (severity === "warning")  {return "bg-amber-400/10 text-amber-400 border border-amber-400/20"}
   return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
 }
 
 function statusBadgeClass(status: ChangeStatus): string {
-  if (status === "completed") return "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"
-  if (status === "approved")  return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-  if (status === "scheduled") return "bg-amber-400/10 text-amber-400 border border-amber-400/20"
+  if (status === "completed") {return "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"}
+  if (status === "approved")  {return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"}
+  if (status === "scheduled") {return "bg-amber-400/10 text-amber-400 border border-amber-400/20"}
   return "bg-zinc-700/50 text-zinc-400 border border-zinc-700"
 }
 
 function actionLabel(action: ChangeAction): string {
-  if (action === "scale-up")   return "⬆ Scale Up"
-  if (action === "scale-down") return "⬇ Scale Down"
-  if (action === "add")        return "+ Add"
+  if (action === "scale-up")   {return "⬆ Scale Up"}
+  if (action === "scale-down") {return "⬇ Scale Down"}
+  if (action === "add")        {return "+ Add"}
   return "− Remove"
 }
 

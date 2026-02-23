@@ -267,7 +267,7 @@ const TRIGGER_CONFIG: Record<TriggerType, { label: string; icon: string }> = {
 };
 
 function formatDuration(ms: number): string {
-  if (ms < 60000) return `${Math.round(ms / 1000)}s`;
+  if (ms < 60000) {return `${Math.round(ms / 1000)}s`;}
   const mins = Math.floor(ms / 60000);
   const secs = Math.round((ms % 60000) / 1000);
   return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;

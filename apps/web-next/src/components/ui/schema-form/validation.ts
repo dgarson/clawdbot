@@ -26,7 +26,7 @@ export function validateField(field: SchemaField, value: unknown): string[] {
 
   switch (field.type) {
     case 'string': {
-      const strVal = String(value);
+      const strVal = typeof value === 'string' ? value : JSON.stringify(value);
       if (field.minLength !== undefined && strVal.length < field.minLength) {
         errors.push(`${field.label} must be at least ${field.minLength} characters`);
       }
@@ -59,7 +59,8 @@ export function validateField(field: SchemaField, value: unknown): string[] {
 
     case 'enum': {
       const allowedValues = (field.options ?? []).map(o => o.value);
-      if (!allowedValues.includes(String(value))) {
+      const enumValue = typeof value === 'string' ? value : JSON.stringify(value);
+      if (!allowedValues.includes(enumValue)) {
         errors.push(`${field.label} must be one of: ${allowedValues.join(', ')}`);
       }
       break;
