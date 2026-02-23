@@ -1,7 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../config/config.js";
 
-let backend: "builtin" | "qmd" = "builtin";
+type MemorySearchStatus = {
+  backend: "builtin" | "qmd";
+  files: number;
+  chunks: number;
+  dirty: boolean;
+  workspaceDir: string;
+  dbPath: string;
+  provider: string;
+  model: string;
+  requestedProvider: string;
+  sources: Array<"memory" | "sessions">;
+  sourceCounts: Array<{ source: "memory" | "sessions"; files: number; chunks: number }>;
+};
+
+type MemoryReadParams = { relPath: string; from?: number; lines?: number };
+type MemoryReadResult = { text: string; path: string };
+
 let searchImpl: () => Promise<unknown[]> = async () => [
   {
     path: "MEMORY.md",
@@ -12,29 +28,28 @@ let searchImpl: () => Promise<unknown[]> = async () => [
     source: "memory" as const,
   },
 ];
-type MemoryReadParams = { relPath: string; from?: number; lines?: number };
-type MemoryReadResult = { text: string; path: string };
 let readFileImpl: (params: MemoryReadParams) => Promise<MemoryReadResult> = async (params) => ({
   text: "",
   path: params.relPath,
 });
+let statusData: MemorySearchStatus = {
+  backend: "builtin",
+  files: 1,
+  chunks: 1,
+  dirty: false,
+  workspaceDir: "/workspace",
+  dbPath: "/workspace/.memory/index.sqlite",
+  provider: "openai",
+  model: "text-embedding-3-small",
+  requestedProvider: "openai",
+  sources: ["memory" as const],
+  sourceCounts: [{ source: "memory" as const, files: 1, chunks: 1 }],
+};
 
 const stubManager = {
   search: vi.fn(async () => await searchImpl()),
   readFile: vi.fn(async (params: MemoryReadParams) => await readFileImpl(params)),
-  status: () => ({
-    backend,
-    files: 1,
-    chunks: 1,
-    dirty: false,
-    workspaceDir: "/workspace",
-    dbPath: "/workspace/.memory/index.sqlite",
-    provider: "builtin",
-    model: "builtin",
-    requestedProvider: "builtin",
-    sources: ["memory" as const],
-    sourceCounts: [{ source: "memory" as const, files: 1, chunks: 1 }],
-  }),
+  status: () => statusData,
   sync: vi.fn(),
   probeVectorAvailability: vi.fn(async () => true),
   close: vi.fn(),
@@ -53,7 +68,6 @@ function asOpenClawConfig(config: Partial<OpenClawConfig>): OpenClawConfig {
 }
 
 beforeEach(() => {
-  backend = "builtin";
   searchImpl = async () => [
     {
       path: "MEMORY.md",
@@ -65,12 +79,24 @@ beforeEach(() => {
     },
   ];
   readFileImpl = async (params: MemoryReadParams) => ({ text: "", path: params.relPath });
+  statusData = {
+    backend: "builtin",
+    files: 1,
+    chunks: 1,
+    dirty: false,
+    workspaceDir: "/workspace",
+    dbPath: "/workspace/.memory/index.sqlite",
+    provider: "openai",
+    model: "text-embedding-3-small",
+    requestedProvider: "openai",
+    sources: ["memory" as const],
+    sourceCounts: [{ source: "memory" as const, files: 1, chunks: 1 }],
+  };
   vi.clearAllMocks();
 });
 
 describe("memory search citations", () => {
   it("appends source information when citations are enabled", async () => {
-    backend = "builtin";
     const cfg = asOpenClawConfig({
       memory: { citations: "on" },
       agents: { list: [{ id: "main", default: true }] },
@@ -86,7 +112,6 @@ describe("memory search citations", () => {
   });
 
   it("leaves snippet untouched when citations are off", async () => {
-    backend = "builtin";
     const cfg = asOpenClawConfig({
       memory: { citations: "off" },
       agents: { list: [{ id: "main", default: true }] },
@@ -102,7 +127,10 @@ describe("memory search citations", () => {
   });
 
   it("clamps decorated snippets to qmd injected budget", async () => {
-    backend = "qmd";
+    statusData = {
+      ...statusData,
+      backend: "qmd",
+    };
     const cfg = asOpenClawConfig({
       memory: { citations: "on", backend: "qmd", qmd: { limits: { maxInjectedChars: 20 } } },
       agents: { list: [{ id: "main", default: true }] },
@@ -117,7 +145,6 @@ describe("memory search citations", () => {
   });
 
   it("honors auto mode for direct chats", async () => {
-    backend = "builtin";
     const cfg = asOpenClawConfig({
       memory: { citations: "auto" },
       agents: { list: [{ id: "main", default: true }] },
@@ -135,7 +162,6 @@ describe("memory search citations", () => {
   });
 
   it("suppresses citations for auto mode in group chats", async () => {
-    backend = "builtin";
     const cfg = asOpenClawConfig({
       memory: { citations: "auto" },
       agents: { list: [{ id: "main", default: true }] },
@@ -150,6 +176,113 @@ describe("memory search citations", () => {
     const result = await tool.execute("auto_mode_group", { query: "notes" });
     const details = result.details as { results: Array<{ snippet: string }> };
     expect(details.results[0]?.snippet).not.toMatch(/Source:/);
+  });
+});
+
+describe("memory-search evaluation telemetry", () => {
+  it("includes relevance, latency, and cost guardrail telemetry", async () => {
+    const cfg = asOpenClawConfig({
+      memory: { citations: "on" },
+      agents: { list: [{ id: "main", default: true }] },
+      models: {
+        providers: {
+          openai: {
+            models: [
+              {
+                id: "text-embedding-3-small",
+                provider: "openai",
+                cost: { input: 0.02, output: 0, cacheRead: 0, cacheWrite: 0 },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const tool = createMemorySearchTool({ config: cfg });
+    if (!tool) {
+      throw new Error("tool missing");
+    }
+
+    const result = await tool.execute("call_eval_metadata", {
+      query: "release notes for 2026-02-20",
+    });
+    const details = result.details as {
+      evaluation: {
+        relevance: {
+          passing: boolean;
+          topScore: number;
+          resultCount: number;
+          minScoreThreshold: number;
+        };
+        latency: { passing: boolean; measuredMs: number; maxMs: number };
+        cost: {
+          passing: boolean;
+          estimatedCostUsd?: number;
+          maxCostUsd: number;
+          estimatedInputTokens: number;
+        };
+      };
+    };
+
+    expect(details.evaluation.relevance.passing).toBe(true);
+    expect(details.evaluation.relevance.resultCount).toBe(1);
+    expect(details.evaluation.latency.measuredMs).toBeGreaterThanOrEqual(0);
+    expect(details.evaluation.cost.estimatedInputTokens).toBeGreaterThan(0);
+    expect(details.evaluation.cost.estimatedCostUsd).toBeGreaterThan(0);
+    expect(details.evaluation.cost.maxCostUsd).toBeGreaterThan(0);
+  });
+
+  it("marks relevance and cost guardrails as failed when limits are violated", async () => {
+    searchImpl = async () => [
+      {
+        path: "MEMORY.md",
+        startLine: 1,
+        endLine: 1,
+        score: 0.2,
+        snippet: "A weak match",
+        source: "memory" as const,
+      },
+    ];
+
+    const cfg = asOpenClawConfig({
+      memory: { citations: "on", query: { minScore: 0.8 } },
+      agents: { list: [{ id: "main", default: true }] },
+      models: {
+        providers: {
+          openai: {
+            models: [
+              {
+                id: "text-embedding-3-small",
+                provider: "openai",
+                cost: { input: 10, output: 0, cacheRead: 0, cacheWrite: 0 },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const tool = createMemorySearchTool({ config: cfg });
+    if (!tool) {
+      throw new Error("tool missing");
+    }
+    const result = await tool.execute("call_eval_guardrails", {
+      query: "x".repeat(12_000),
+      minScore: 0.8,
+    });
+
+    const details = result.details as {
+      evaluation: {
+        relevance: { passing: boolean; topScore: number };
+        cost: { passing: boolean; estimatedCostUsd: number };
+      };
+    };
+
+    expect(details.evaluation.relevance.passing).toBe(false);
+    expect(details.evaluation.relevance.topScore).toBe(0.2);
+    expect(details.evaluation.cost.passing).toBe(false);
+    expect(details.evaluation.cost.estimatedCostUsd).toBeGreaterThan(0);
   });
 });
 
