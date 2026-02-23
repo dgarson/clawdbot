@@ -222,7 +222,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const result = listAgentsForGateway(cfg);
     respond(true, result, undefined);
   },
-  "agents.create": async ({ params, respond, client }) => {
+  "agents.create": async ({ params, respond }) => {
     if (!validateAgentsCreateParams(params)) {
       respond(
         false,
@@ -276,16 +276,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
     await ensureAgentWorkspace({ dir: workspaceDir, ensureBootstrapFiles: !skipBootstrap });
     await fs.mkdir(resolveSessionTranscriptsDirForAgent(agentId), { recursive: true });
 
-    const createActor = resolveControlPlaneActor(client);
-    await writeConfigFile(nextConfig, {
-      auditContext: {
-        actor: createActor.actor,
-        deviceId: createActor.deviceId,
-        clientIp: createActor.clientIp,
-        connId: createActor.connId,
-        agentId,
-      },
-    });
+    await writeConfigFile(nextConfig);
 
     // Always write Name to IDENTITY.md; optionally include emoji/avatar.
     const safeName = sanitizeIdentityLine(rawName);
@@ -303,7 +294,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
 
     respond(true, { ok: true, agentId, name: rawName, workspace: workspaceDir }, undefined);
   },
-  "agents.update": async ({ params, respond, client }) => {
+  "agents.update": async ({ params, respond }) => {
     if (!validateAgentsUpdateParams(params)) {
       respond(
         false,
@@ -346,16 +337,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
       ...(model ? { model } : {}),
     });
 
-    const updateActor = resolveControlPlaneActor(client);
-    await writeConfigFile(nextConfig, {
-      auditContext: {
-        actor: updateActor.actor,
-        deviceId: updateActor.deviceId,
-        clientIp: updateActor.clientIp,
-        connId: updateActor.connId,
-        agentId,
-      },
-    });
+    await writeConfigFile(nextConfig);
 
     if (workspaceDir) {
       const skipBootstrap = Boolean(nextConfig.agents?.defaults?.skipBootstrap);
@@ -371,7 +353,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
 
     respond(true, { ok: true, agentId }, undefined);
   },
-  "agents.delete": async ({ params, respond, client }) => {
+  "agents.delete": async ({ params, respond }) => {
     if (!validateAgentsDeleteParams(params)) {
       respond(
         false,
@@ -411,16 +393,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
 
     const result = pruneAgentConfig(cfg, agentId);
-    const deleteActor = resolveControlPlaneActor(client);
-    await writeConfigFile(result.config, {
-      auditContext: {
-        actor: deleteActor.actor,
-        deviceId: deleteActor.deviceId,
-        clientIp: deleteActor.clientIp,
-        connId: deleteActor.connId,
-        agentId,
-      },
-    });
+    await writeConfigFile(result.config);
 
     if (deleteFiles) {
       await Promise.all([

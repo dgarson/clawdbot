@@ -13,15 +13,9 @@ import {
   updateSessionStore,
 } from "../../config/sessions.js";
 import { resolveSessionFilePath } from "../../config/sessions/paths.js";
-import { unbindThreadBindingsBySessionKey } from "../../discord/monitor/thread-bindings.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { appendChangeAuditRecord } from "../../infra/change-audit.js";
-import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
-import {
-  isSubagentSessionKey,
-  normalizeAgentId,
-  parseAgentSessionKey,
-} from "../../routing/session-key.js";
+import { normalizeAgentId, parseAgentSessionKey } from "../../routing/session-key.js";
 import { formatControlPlaneActor, resolveControlPlaneActor } from "../control-plane-audit.js";
 import {
   ErrorCodes,
@@ -398,12 +392,6 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       agentId: target.agentId,
       reason: "reset",
     });
-    if (hadExistingEntry) {
-      await emitSessionUnboundLifecycleEvent({
-        targetSessionKey: target.canonicalKey ?? key,
-        reason: "session-reset",
-      });
-    }
     const resetActor = resolveControlPlaneActor(client);
     await appendChangeAuditRecord({
       source: "gateway.sessions",
@@ -478,6 +466,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
           reason: "deleted",
         })
       : [];
+    const deleted = existed;
 
     const deleteActor = resolveControlPlaneActor(client);
     await appendChangeAuditRecord({

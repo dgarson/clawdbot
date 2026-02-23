@@ -127,11 +127,17 @@ describe("web media loading", () => {
 
   beforeAll(() => {
     const realResolvePinnedHostnameWithPolicy = ssrf.resolvePinnedHostnameWithPolicy;
+    const lookupFn = (async (_hostname: string, options?: unknown) => {
+      const entry = { address: "93.184.216.34", family: 4 as const };
+      if (typeof options === "object" && options !== null && "all" in options && options.all) {
+        return [entry];
+      }
+      return entry;
+    }) as ssrf.LookupFn;
     vi.spyOn(ssrf, "resolvePinnedHostnameWithPolicy").mockImplementation((hostname, params) => {
-      const mockLookup = () => Promise.resolve([{ address: "93.184.216.34", family: 4 }]);
       return realResolvePinnedHostnameWithPolicy(hostname, {
         ...params,
-        lookupFn: mockLookup,
+        lookupFn,
       });
     });
   });

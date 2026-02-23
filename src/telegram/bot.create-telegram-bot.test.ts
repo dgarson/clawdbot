@@ -1899,12 +1899,19 @@ describe("createTelegramBot", () => {
         }),
     );
     const realResolvePinnedHostnameWithPolicy = ssrf.resolvePinnedHostnameWithPolicy;
+    const lookupFn = (async (_hostname: string, options?: unknown) => {
+      const entry = { address: "149.154.167.220", family: 4 as const };
+      if (typeof options === "object" && options !== null && "all" in options && options.all) {
+        return [entry];
+      }
+      return entry;
+    }) as ssrf.LookupFn;
     const ssrfSpy = vi
       .spyOn(ssrf, "resolvePinnedHostnameWithPolicy")
       .mockImplementation((hostname, params) =>
         realResolvePinnedHostnameWithPolicy(hostname, {
           ...params,
-          lookupFn: () => Promise.resolve([{ address: "149.154.167.220", family: 4 }]),
+          lookupFn,
         }),
       );
 

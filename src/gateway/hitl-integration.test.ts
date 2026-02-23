@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
-import { createHitlPolicyEngine, type HitlPolicyDefinition } from "./hitl-policy-engine.js";
-import { HitlRequestStore, type HitlRequestRow } from "./hitl-request-store.js";
+import { createHitlPolicyEngine } from "./hitl-policy-engine.js";
+import { HitlRequestStore } from "./hitl-request-store.js";
 
 describe("hitl-integration", () => {
   afterEach(() => {
@@ -208,7 +208,9 @@ describe("hitl-integration", () => {
         currentChainDepth: 0,
       });
       expect(authResult1.allowed).toBe(false);
-      expect(authResult1.reason).toBe("insufficient-role");
+      if (!authResult1.allowed) {
+        expect(authResult1.reason).toBe("insufficient-role");
+      }
 
       // Authorize with sufficient role but same actor (no-self-approval)
       const authResult2 = engine.authorize({
@@ -219,7 +221,9 @@ describe("hitl-integration", () => {
         currentChainDepth: 0,
       });
       expect(authResult2.allowed).toBe(false);
-      expect(authResult2.reason).toBe("same-actor-required-different");
+      if (!authResult2.allowed) {
+        expect(authResult2.reason).toBe("same-actor-required-different");
+      }
 
       // Authorize correctly
       const authResult3 = engine.authorize({
@@ -238,7 +242,9 @@ describe("hitl-integration", () => {
         currentEscalationCount: 0,
       });
       expect(escalateResult.shouldEscalate).toBe(true);
-      expect(escalateResult.escalateToRole).toBe("owner");
+      if (escalateResult.shouldEscalate) {
+        expect(escalateResult.escalateToRole).toBe("owner");
+      }
 
       // Test escalation exhausted
       const escalateExhausted = engine.shouldEscalate({
@@ -264,17 +270,15 @@ describe("hitl-integration", () => {
       expect(policy?.id).toBe("policy-depth");
 
       // Depth 0 and 1 should work
-      expect(
-        engine.authorize({ policy: policy!, currentChainDepth: 0 }).allowed,
-      ).toBe(true);
-      expect(
-        engine.authorize({ policy: policy!, currentChainDepth: 1 }).allowed,
-      ).toBe(true);
+      expect(engine.authorize({ policy: policy!, currentChainDepth: 0 }).allowed).toBe(true);
+      expect(engine.authorize({ policy: policy!, currentChainDepth: 1 }).allowed).toBe(true);
 
       // Depth 2 should fail
       const result = engine.authorize({ policy: policy!, currentChainDepth: 2 });
       expect(result.allowed).toBe(false);
-      expect(result.reason).toBe("approval-chain-exceeded");
+      if (!result.allowed) {
+        expect(result.reason).toBe("approval-chain-exceeded");
+      }
     });
   });
 
