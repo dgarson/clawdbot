@@ -6,6 +6,7 @@
 import crypto from "node:crypto";
 import type { VoiceCallConfig } from "./config.js";
 import { loadCoreAgentDeps, type CoreConfig } from "./core-bridge.js";
+import { type DelegationRequest, normalizeForegroundEnvelope } from "./subagent-normalization.js";
 
 export type VoiceResponseParams = {
   /** Voice call config */
@@ -24,6 +25,7 @@ export type VoiceResponseParams = {
 
 export type VoiceResponseResult = {
   text: string | null;
+  delegations?: DelegationRequest[];
   error?: string;
 };
 
@@ -101,18 +103,41 @@ export async function generateVoiceResponse(
   const identity = deps.resolveAgentIdentity(cfg, agentId);
   const agentName = identity?.name?.trim() || "assistant";
 
-  // Build system prompt with conversation history
+  // Build system prompt — envelope instruction is placed LAST so it stays
+  // near the end of the system prompt where LLM attention is strongest.
+  // Conversation history goes into a clearly delimited section in the middle.
   const basePrompt =
     voiceConfig.responseSystemPrompt ??
-    `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. You have access to tools - use them when helpful.`;
+    `You are ${agentName}, a helpful voice assistant on a phone call. Keep responses brief and conversational (1-2 sentences max). Be natural and friendly. The caller's phone number is ${from}. For simple questions, answer directly. For tasks requiring research, scheduling, or policy checks, delegate to a specialist.`;
 
-  let extraSystemPrompt = basePrompt;
-  if (transcript.length > 0) {
-    const history = transcript
-      .map((entry) => `${entry.speaker === "bot" ? "You" : "Caller"}: ${entry.text}`)
-      .join("\n");
-    extraSystemPrompt = `${basePrompt}\n\nConversation so far:\n${history}`;
-  }
+  const historyBlock =
+    transcript.length > 0
+      ? `\n\n<conversation_history>\n${transcript
+          .map((entry) => `${entry.speaker === "bot" ? "You" : "Caller"}: ${entry.text}`)
+          .join("\n")}\n</conversation_history>`
+      : "";
+
+  // Only inject the JSON-envelope format instruction when the async sub-agent broker
+  // is enabled.  When subagents are disabled the foreground agent speaks directly, so
+  // there is no envelope to parse — forcing JSON output would be a behavioural
+  // regression for callers that have not opted in to the delegation feature.
+  const envelopePrompt = voiceConfig.subagents?.enabled
+    ? [
+        "",
+        "## RESPONSE FORMAT (CRITICAL)",
+        "You MUST return ONLY a JSON object with these keys:",
+        '  action: "respond_now" | "delegate"',
+        "  immediate_text: short spoken response for the caller (1-2 sentences)",
+        '  delegations: array of delegation objects (only when action is "delegate")',
+        "",
+        'Use action="delegate" ONLY for tasks needing deep investigation, web search,',
+        'memory exploration, or tool-heavy work. For simple questions, use "respond_now".',
+        "Each delegation object: { specialist, goal, input?, deadline_ms? }",
+        'specialist: "research" | "scheduler" | "policy"',
+      ].join("\n")
+    : "";
+
+  const extraSystemPrompt = `${basePrompt}${historyBlock}${envelopePrompt}`;
 
   // Resolve timeout
   const timeoutMs = voiceConfig.responseTimeoutMs ?? deps.resolveAgentTimeoutMs({ cfg });
@@ -144,13 +169,27 @@ export async function generateVoiceResponse(
       .map((p) => p.text?.trim())
       .filter(Boolean);
 
-    const text = texts.join(" ") || null;
+    const rawText = texts.join(" ") || null;
 
-    if (!text && result.meta?.aborted) {
+    if (!rawText && result.meta?.aborted) {
       return { text: null, error: "Response generation was aborted" };
     }
 
-    return { text };
+    if (!rawText) {
+      return { text: null };
+    }
+
+    // When subagents are disabled the agent was never asked to produce JSON, so
+    // return the raw text directly without envelope parsing.
+    if (!voiceConfig.subagents?.enabled) {
+      return { text: rawText };
+    }
+
+    const envelope = normalizeForegroundEnvelope(rawText);
+    return {
+      text: envelope.immediate_text,
+      delegations: envelope.action === "delegate" ? envelope.delegations : [],
+    };
   } catch (err) {
     console.error(`[voice-call] Response generation failed:`, err);
     return { text: null, error: String(err) };
