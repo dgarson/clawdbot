@@ -27,6 +27,7 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     messages: [],
     claudeSdkSessionId: undefined,
     sdkResultError: undefined,
+    sdkResultErrorContext: undefined,
     lastStderr: undefined,
     streamingBlockTypes: new Map(),
     streamingPartialMessage: null,
@@ -140,6 +141,7 @@ describe("event translation — required event types", () => {
 
     // Error results must populate sdkResultError so prompt() can throw
     expect(state.sdkResultError).toBe("error_max_turns");
+    expect(state.sdkResultErrorContext?.source).toBe("subtype");
   });
 
   it("stores sdkResultError from errors array when present", () => {
@@ -157,6 +159,7 @@ describe("event translation — required event types", () => {
     );
 
     expect(state.sdkResultError).toBe("Tool execution timed out");
+    expect(state.sdkResultErrorContext?.source).toBe("errors");
   });
 
   it("prefers result text when is_error is true and subtype is success", () => {
@@ -174,6 +177,7 @@ describe("event translation — required event types", () => {
     );
 
     expect(state.sdkResultError).toBe("Prompt is too long");
+    expect(state.sdkResultErrorContext?.source).toBe("result_string");
   });
 
   it("does not set sdkResultError on successful result", () => {

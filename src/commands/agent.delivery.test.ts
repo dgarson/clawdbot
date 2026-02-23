@@ -191,7 +191,7 @@ describe("deliverAgentCommandResult", () => {
     );
   });
 
-  it("prefixes nested agent outputs with context", async () => {
+  it("prefixes agent reply logs with session/target context", async () => {
     const runtime = createRuntime();
     await runDelivery({
       runtime,
@@ -209,10 +209,8 @@ describe("deliverAgentCommandResult", () => {
 
     expect(runtime.log).toHaveBeenCalledTimes(1);
     const line = String((runtime.log as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]);
-    expect(line).toContain("[agent:nested]");
-    expect(line).toContain("session=agent:main:main");
-    expect(line).toContain("run=run-announce");
-    expect(line).toContain("channel=webchat");
+    expect(line).toContain("[agent:reply]");
+    expect(line).toContain("target=");
     expect(line).toContain("ANNOUNCE_SKIP");
   });
 });
