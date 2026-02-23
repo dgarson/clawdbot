@@ -96,7 +96,12 @@ node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sa
 node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello-cli\"}']);"
 ```
 
-This is the same flow used by package-level quickstart tests in CI and keeps the three packages aligned for local runtime debugging.
+For deterministic verification in both paths:
+
+- Local: `pnpm --dir packages/cli test` and `pnpm --dir packages/sandbox test`
+- CI-equivalent: `pnpm --dir packages/cli exec vitest run src/run.test.ts`
+
+This is the same flow used by package-level quickstart tests and keeps the three packages aligned for local runtime debugging.
 
 ## Optional checks and extras
 
