@@ -1,38 +1,55 @@
-/**
- * @openclaw/sdk - OpenClaw SDK
- *
- * Typed client library for interacting with OpenClaw gateways.
- */
-
-// Types
+export { createClient } from "./client.js";
+export type {
+  EnvValidatedClientConfig,
+  HealthResult,
+  LocalSandboxRuntime,
+  OpenClawClient,
+  OpenClawClientConfig,
+  OpenClawLogger,
+  OpenClawTransport,
+  OpenClawHttpRequest,
+  OpenClawHttpResponse,
+  ResourceClient,
+  ResourceRecord,
+  RetryOptions,
+  RuntimeExecRequest,
+  RuntimeExecResponse,
+  RuntimeStatus,
+  RuntimeState,
+  SandboxController,
+  SessionClient,
+  SessionCreateRequest,
+  SessionRecord,
+  ToolClient,
+  ToolInvocationRequest,
+  ToolInvocationResult,
+  ToolListRequest,
+  ToolListResult,
+  ToolStreamEvent,
+  ToolInvokeError,
+  ToolInvokeRequest,
+  ToolInvokeResponse,
+  ToolInvokeResult,
+  ResourceItem,
+  ResourceListRequest,
+  SessionResponse,
+} from "./types.js";
 export {
-  type OpenClawClientConfig,
-  type OpenClawLogger,
-  type HealthResult,
-  type ToolInvokeRequest,
-  type ToolInvokeResult,
-  type ToolInvokeError,
-  type ToolInvokeResponse,
-  type SessionCreateRequest,
-  type SessionResponse,
-  type ResourceListRequest,
-  type ResourceItem,
-  type OpenClawError,
-  ValidationError,
-  TransportError,
-  AuthError,
-  ToolRuntimeError,
-  SandboxUnavailableError,
+  DFLT_BASE_URL,
+  DEFAULT_TIMEOUT_MS,
+  DEFAULT_CLIENT_CONFIG,
   ok,
   err,
-  DEFAULT_CLIENT_CONFIG,
 } from "./types.js";
-
-// Client
 export {
-  OpenClawClient,
-  ToolClient,
-  SessionClient,
-  ResourceClient,
-  createClient,
-} from "./client.js";
+  AuthError,
+  SandboxUnavailableError,
+  ToolRuntimeError,
+  TransportError,
+  ValidationError,
+  OpenClawError,
+} from "./errors.js";
+export type { OpenClawErrorPayload, OpenClawErrorMetadata } from "./errors.js";
+export { FetchOpenClawTransport, buildAbsoluteUrl } from "./transport/index.js";
+export type { PluginModule, ToolPluginClient } from "./plugins/index.js";
+export { definePlugin } from "./plugins/index.js";
