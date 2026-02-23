@@ -1,3 +1,6 @@
+import { QdrantClient } from "@qdrant/js-client-rest";
+import OpenAI from "openai";
+
 export type MemoryScopeDecision = "allow" | "deny";
 
 export type MemoryScopeLevel = "session" | "project" | "role" | "org";
@@ -212,6 +215,15 @@ function normalizeMemoryConfig(config?: MemoryServiceOptions): Required<MemoryCo
       enabled: config?.shadowWrite?.enabled ?? false,
     },
   } as Required<MemoryConfig>;
+}
+
+async function embedText(text: string, config: MemoryServiceEmbeddingConfig): Promise<number[]> {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const response = await openai.embeddings.create({
+    model: config.model ?? "text-embedding-3-small",
+    input: text,
+  });
+  return response.data[0].embedding;
 }
 
 function defaultMemoryEmbedding(dimensions: number): number[] {
@@ -979,6 +991,221 @@ class InMemoryMemoryService implements IMemoryService {
   }
 }
 
+class QdrantMemoryService implements IMemoryService {
+  private readonly client: QdrantClient;
+  private readonly collection: string;
+  private readonly dimensions: number;
+
+  constructor(private readonly config: Required<MemoryConfig>) {
+    this.client = new QdrantClient({
+      url: config.vectorDb.endpoint,
+      apiKey: config.vectorDb.apiKey,
+    });
+    this.collection = config.vectorDb.collection ?? "openclaw-memory";
+    this.dimensions = config.embedding.dimensions ?? 512;
+    void this.initCollection();
+  }
+
+  private async initCollection() {
+    const collections = await this.client.getCollections();
+    if (!collections.collections.some((c) => c.name === this.collection)) {
+      await this.client.createCollection(this.collection, {
+        vectors: { size: this.dimensions, distance: "Cosine" },
+      });
+    }
+  }
+
+  async store(content: string, metadata: MemoryStoreMetadata): Promise<string> {
+    if (!governanceAllowsWrite(metadata, this.config.governance)) {
+      throw new Error("memory write denied by governance policy");
+    }
+
+    const now = Date.now();
+    const id = `m_${now.toString(16)}_${Math.random().toString(16).slice(2)}`;
+    const embedding = await embedText(content, this.config.embedding);
+
+    const node: MemoryNode = {
+      id,
+      content,
+      embedding,
+      metadata: toMemoryMetadata(metadata, now, this.config),
+      createdAt: now,
+      updatedAt: now,
+      version: NODE_VERSION,
+    };
+
+    await this.client.upsert(this.collection, {
+      points: [
+        {
+          id,
+          vector: embedding,
+          payload: node as unknown as Record<string, unknown>,
+        },
+      ],
+    });
+
+    return id;
+  }
+
+  async storeBatch(items: Array<MemoryStoreMetadata & { content: string }>): Promise<string[]> {
+    const points = [];
+    for (const item of items) {
+      const now = Date.now();
+      const id = `m_${now.toString(16)}_${Math.random().toString(16).slice(2)}`;
+      const embedding = await embedText(item.content, this.config.embedding);
+      const node: MemoryNode = {
+        id,
+        content: item.content,
+        embedding,
+        metadata: toMemoryMetadata(item, now, this.config),
+        createdAt: now,
+        updatedAt: now,
+        version: NODE_VERSION,
+      };
+      points.push({ id, vector: embedding, payload: node as unknown as Record<string, unknown> });
+    }
+    await this.client.upsert(this.collection, { points });
+    return points.map((p) => p.id);
+  }
+
+  async retrieve(
+    query: string,
+    filters?: Partial<MemoryMetadata>,
+    limit = this.config.retrieval.defaultLimit ?? 5,
+  ): Promise<MemoryNode[]> {
+    const queryEmbedding = await embedText(query, this.config.embedding);
+    const searchResult = await this.client.search(this.collection, {
+      vector: queryEmbedding,
+      limit,
+      filter: this.buildFilter(filters),
+    });
+    return searchResult
+      .map((result) => result.payload as unknown as MemoryNode)
+      .filter((node) => !isExpired(node.metadata, Date.now()));
+  }
+
+  async retrieveScoped(
+    query: string,
+    scope: MemoryScopePath,
+    options?: MemoryScopedRetrieveOptions,
+  ): Promise<MemoryNode[]> {
+    // For simplicity, query each level separately and combine
+    const levels = orderedScopeLevels(scope);
+    const queryEmbedding = await embedText(query, this.config.embedding);
+    const out: MemoryNode[] = [];
+    const seen = new Set<string>();
+    const limit = options?.limit ?? this.config.retrieval.defaultLimit ?? 5;
+
+    for (const level of levels) {
+      const levelFilter = this.buildScopedFilter(level, scope, options?.filters);
+      const searchResult = await this.client.search(this.collection, {
+        vector: queryEmbedding,
+        limit: limit - out.length,
+        filter: levelFilter,
+      });
+      for (const result of searchResult) {
+        const node = result.payload as unknown as MemoryNode;
+        if (
+          seen.has(node.id) ||
+          isExpired(node.metadata, Date.now()) ||
+          !canRead(node.metadata, options?.requester)
+        ) {
+          continue;
+        }
+        seen.add(node.id);
+        out.push(node);
+        if (out.length >= limit) {
+          return out;
+        }
+      }
+    }
+    return out;
+  }
+
+  private buildFilter(
+    filters?: Partial<MemoryMetadata>,
+  ): { must: Array<{ key: string; match: { value: unknown } }> } | undefined {
+    // Implement Qdrant filter based on filters
+    // This is placeholder; expand as needed
+    return filters
+      ? { must: Object.entries(filters).map(([key, value]) => ({ key, match: { value } })) }
+      : undefined;
+  }
+
+  private buildScopedFilter(
+    level: MemoryScopeLevel,
+    scope: MemoryScopePath,
+    filters?: Partial<MemoryMetadata>,
+  ): { must: Array<{ key: string; match: { value: unknown } }> } {
+    const scopeFilter: Array<{ key: string; match: { value: unknown } }> = [];
+    if (level === "session" && scope.session) {
+      scopeFilter.push({ key: "metadata.scope.session", match: { value: scope.session } });
+    }
+    if (scope.project) {
+      scopeFilter.push({ key: "metadata.scope.project", match: { value: scope.project } });
+    }
+    if (scope.role) {
+      scopeFilter.push({ key: "metadata.scope.role", match: { value: scope.role } });
+    }
+    if (scope.org) {
+      scopeFilter.push({ key: "metadata.scope.org", match: { value: scope.org } });
+    }
+    const allFilters = [...scopeFilter, ...(this.buildFilter(filters)?.must || [])];
+    return { must: allFilters };
+  }
+
+  async forget(nodeId: string): Promise<boolean> {
+    await this.client.delete(this.collection, { points: [nodeId] });
+    return true;
+  }
+
+  async forgetUser(userId: string): Promise<number> {
+    const filter = { must: [{ key: "metadata.userId", match: { value: userId } }] };
+    const points = await this.client.scroll(this.collection, { filter, limit: 1000 });
+    const ids = points.points.map((p) => p.id);
+    if (ids.length > 0) {
+      await this.client.delete(this.collection, { points: ids });
+    }
+    return ids.length;
+  }
+
+  async deleteByScope(
+    scope: MemoryScopePath,
+    _options?: MemoryDeleteByScopeOptions,
+  ): Promise<number> {
+    // Implement using filter on scope
+    // For cascade, may need multiple queries or complex filter
+    // Placeholder: delete all matching scope
+    const filter = this.buildFilter({ scope });
+    const points = await this.client.scroll(this.collection, { filter, limit: 1000 });
+    const ids = points.points.map((p) => p.id);
+    if (ids.length > 0) {
+      await this.client.delete(this.collection, { points: ids });
+    }
+    return ids.length;
+  }
+
+  async compact(_userId?: string): Promise<number> {
+    // Implement compaction logic using Qdrant
+    // For now, stub
+    return 0;
+  }
+
+  async searchKeywords(
+    _keywords: string[],
+    _filters?: Partial<MemoryMetadata>,
+    _limit = this.config.retrieval.defaultLimit ?? 5,
+  ): Promise<MemoryNode[]> {
+    // Qdrant doesn't have keyword search, so perhaps hybrid or stub
+    // For now, stub
+    return [];
+  }
+}
+
 export function createMemoryService(config?: MemoryServiceOptions): IMemoryService {
-  return new InMemoryMemoryService(normalizeMemoryConfig(config));
+  const normalized = normalizeMemoryConfig(config);
+  if (normalized.vectorDb.provider === "qdrant") {
+    return new QdrantMemoryService(normalized);
+  }
+  return new InMemoryMemoryService(normalized);
 }

@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { createMemoryService, migrateLegacyMemoryNode } from "./architecture.js";
 
+const inMemoryConfig = {
+  vectorDb: { provider: "in-memory" as const },
+  governance: { default: "allow" as const },
+  shadowWrite: { enabled: false },
+};
+
 describe("Memory architecture scope isolation", () => {
   it("filters retrieve by agent and user scope", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     const aUserNode = await service.store("User A prefers Python", {
       domain: "user_pref",
@@ -36,10 +39,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("supports keyword filters with scope", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("Enable strict tenant isolation", {
       domain: "system_fact",
@@ -63,10 +63,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("retrieves memories in hierarchy order session → project → role → org", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("deploy checklist for this session", {
       domain: "session_summary",
@@ -121,10 +118,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("stores provenance metadata for each memory node", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("service x has 30s timeout", {
       domain: "system_fact",
@@ -171,10 +165,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("deletes by scope with cascade semantics", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("org-wide memory", {
       domain: "system_fact",
@@ -211,10 +202,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("deletes only the target scope level when cascade is false", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("role memory", {
       domain: "system_fact",
@@ -236,10 +224,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("keeps session deletion constrained by parent scope when provided", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("session memory in proj-1", {
       domain: "session_summary",
@@ -272,10 +257,7 @@ describe("Memory architecture scope isolation", () => {
   });
 
   it("keeps project deletion constrained by role/org when provided", async () => {
-    const service = createMemoryService({
-      governance: { default: "allow" },
-      shadowWrite: { enabled: false },
-    });
+    const service = createMemoryService(inMemoryConfig);
 
     await service.store("project memory in reliability", {
       domain: "system_fact",
@@ -312,8 +294,8 @@ describe("Memory architecture scope isolation", () => {
 describe("Memory architecture governance", () => {
   it("defaults writes to deny when no allow policy exists", async () => {
     const service = createMemoryService({
+      ...inMemoryConfig,
       governance: { default: "deny" },
-      shadowWrite: { enabled: false },
     });
 
     await expect(
@@ -326,6 +308,7 @@ describe("Memory architecture governance", () => {
 
   it("allows a scoped write when matching allow rule exists", async () => {
     const service = createMemoryService({
+      ...inMemoryConfig,
       governance: {
         default: "deny",
         rules: [
@@ -337,7 +320,6 @@ describe("Memory architecture governance", () => {
           },
         ],
       },
-      shadowWrite: { enabled: false },
     });
 
     const allowedId = await service.store("Allowed fact", {

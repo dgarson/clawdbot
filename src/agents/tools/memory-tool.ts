@@ -227,7 +227,8 @@ export function createMemorySearchTool(options: {
         const status = manager.status();
 
         const resolved = resolveMemorySearchConfig(cfg, agentId);
-        const effectiveMinScore = typeof minScore === "number" ? minScore : resolved.query.minScore;
+        const effectiveMinScore =
+          typeof minScore === "number" ? minScore : (resolved?.query.minScore ?? 0);
 
         const decorated = decorateCitations(rawResults, includeCitations);
         const resolvedBackend = resolveMemoryBackendConfig({ cfg, agentId });
