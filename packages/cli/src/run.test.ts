@@ -1,7 +1,8 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { LocalSandboxRuntime, RuntimeStatus } from "@openclaw/sandbox";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { run } from "./run.js";
 
 describe("CLI run command", () => {
@@ -70,7 +71,7 @@ describe("CLI run command", () => {
     expect(result.output).toContain('"hello-cli"');
   });
 
-  it("returns an error for invalid sandbox timeout arguments", async () => {
+  it("returns an error for invalid timeout arguments", async () => {
     const result = await run([
       "sandbox",
       "start",
@@ -84,7 +85,104 @@ describe("CLI run command", () => {
     expect(result.output).toContain("Invalid --timeout-ms value");
   });
 
+  it("rejects empty --root values", async () => {
+    const result = await run(["sandbox", "status", "--root", "   "]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain("--root value cannot be empty");
+  });
+
+  it("cleans up sandbox after sandbox verify", async () => {
+    const stop = vi.fn().mockResolvedValue(undefined);
+    const runtime = createMockRuntime({
+      stop,
+    });
+
+    const result = await run(["sandbox", "verify", "--root", sandboxRoot], {
+      createClient: vi.fn(),
+      createLocalSandbox: vi.fn(() => runtime),
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(stop).toHaveBeenCalledTimes(1);
+    expect(stop).toHaveBeenCalledWith({ force: true });
+  });
+
+  it("cleans up sandbox even when execution fails", async () => {
+    const stop = vi.fn().mockResolvedValue(undefined);
+    const runtime = createMockRuntime({
+      exec: vi.fn().mockRejectedValue(new Error("exec failed")),
+      stop,
+    });
+
+    const result = await run(
+      ["sandbox", "exec", "--root", sandboxRoot, "--input", '{"value":"bad"}'],
+      {
+        createClient: vi.fn(),
+        createLocalSandbox: vi.fn(() => runtime),
+      },
+    );
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain("exec failed");
+    expect(stop).toHaveBeenCalledWith({ force: true });
+  });
+
+  it("returns cleanup error when sandbox stop fails after a successful command", async () => {
+    const stop = vi.fn().mockRejectedValue(new Error("cleanup failed"));
+    const runtime = createMockRuntime({
+      stop,
+    });
+
+    const result = await run(["sandbox", "verify", "--root", sandboxRoot], {
+      createClient: vi.fn(),
+      createLocalSandbox: vi.fn(() => runtime),
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain("sandbox cleanup failed: cleanup failed");
+  });
+
   afterEach(async () => {
     await rm(sandboxRoot, { recursive: true, force: true });
   });
 });
+
+type ExecResult = { output: unknown; elapsedMs: number };
+
+const createMockRuntime = (
+  overrides: Partial<{
+    status: Mock<() => Promise<RuntimeStatus>>;
+    start: Mock<() => Promise<void>>;
+    stop: Mock<() => Promise<void>>;
+    exec: Mock<(input: { input: unknown }) => Promise<ExecResult>>;
+    streamEvents: Mock<() => () => void>;
+  }> = {},
+): LocalSandboxRuntime => {
+  const status =
+    overrides.status ??
+    vi.fn().mockResolvedValue({
+      state: "ready",
+      rootDir: "/tmp/test-root",
+      command: "openclaw-runtime",
+      mode: "memory",
+    } satisfies RuntimeStatus);
+
+  const start = overrides.start ?? vi.fn().mockResolvedValue(undefined);
+  const stop = overrides.stop ?? vi.fn().mockResolvedValue(undefined);
+  const exec =
+    overrides.exec ??
+    vi.fn().mockImplementation(async (payload: { input: unknown }) => ({
+      output: payload.input,
+      elapsedMs: 0,
+    }));
+  const streamEvents = overrides.streamEvents ?? vi.fn().mockReturnValue(() => undefined);
+
+  return {
+    start,
+    stop,
+    status,
+    exec,
+    streamEvents,
+  };
+};

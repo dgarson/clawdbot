@@ -11,6 +11,11 @@ interface ParsedArgs {
   [key: string]: string | boolean | string[] | undefined;
 }
 
+interface RunDependencies {
+  createClient: typeof createClient;
+  createLocalSandbox: typeof createLocalSandbox;
+}
+
 const parseArgs = (argv: string[]): ParsedArgs => {
   const out: ParsedArgs = { _: [] };
 
@@ -63,9 +68,14 @@ const parseTimeoutMs = (value: string | undefined, flag = "--timeout-ms"): numbe
 };
 
 const readRootArg = (parsed: ParsedArgs): string => {
-  const root = readStringArg(parsed.root)?.trim();
-  if (root === undefined || root.length === 0) {
+  const root = readStringArg(parsed.root);
+  if (root === undefined) {
     return process.cwd();
+  }
+
+  const trimmedRoot = root.trim();
+  if (trimmedRoot.length === 0) {
+    throw new Error("--root value cannot be empty");
   }
 
   return root;
@@ -92,35 +102,83 @@ const parseInputPayload = (raw: string): unknown => {
   }
 };
 
-const runSandboxVerification = async (sandbox: LocalSandboxRuntime): Promise<RunResult> => {
+const withSandboxLifecycle = async <T>(
+  sandbox: LocalSandboxRuntime,
+  command: () => Promise<T>,
+): Promise<T> => {
+  let result: T | undefined;
+
   try {
-    await sandbox.start();
-    const startedStatus = await sandbox.status();
-    if (startedStatus.state !== "ready") {
-      return {
-        exitCode: 1,
-        output: `sandbox verify failed: expected ready state, received ${startedStatus.state}`,
-      };
-    }
-
-    await sandbox.exec({ input: { value: "local-sandbox-verification" } });
-
-    return {
-      exitCode: 0,
-      output: "sandbox verify passed",
-    };
-  } finally {
-    await sandbox.stop({ force: true });
+    result = await command();
+  } catch (error) {
+    await sandbox.stop({ force: true }).catch(() => {
+      return;
+    });
+    throw error;
   }
+
+  try {
+    await sandbox.stop({ force: true });
+  } catch (error) {
+    throw new Error(
+      `sandbox cleanup failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      {
+        cause: error,
+      },
+    );
+  }
+
+  return result;
 };
 
-export const run = async (argv: string[] = []): Promise<RunResult> => {
+const runSandboxVerification = async (sandbox: LocalSandboxRuntime): Promise<RunResult> => {
+  await sandbox.start();
+  const startedStatus = await sandbox.status();
+  if (startedStatus.state !== "ready") {
+    return {
+      exitCode: 1,
+      output: `sandbox verify failed: expected ready state, received ${startedStatus.state}`,
+    };
+  }
+
+  await sandbox.exec({ input: { value: "local-sandbox-verification" } });
+
+  return {
+    exitCode: 0,
+    output: "sandbox verify passed",
+  };
+};
+
+const runSandboxExecution = async (
+  sandbox: LocalSandboxRuntime,
+  rawInput: string,
+): Promise<RunResult> => {
+  const input = parseInputPayload(rawInput);
+
+  await sandbox.start();
+  const result = await sandbox.exec<{ value?: unknown }, { value?: unknown }>({
+    input,
+  });
+
+  return {
+    exitCode: 0,
+    output: `sandbox exec: ${JSON.stringify(result.output)}`,
+  };
+};
+
+export const run = async (
+  argv: string[] = [],
+  dependencies: RunDependencies = {
+    createClient,
+    createLocalSandbox,
+  },
+): Promise<RunResult> => {
   const parsed = parseArgs(argv);
   const args = parsed._ ?? [];
   const top = args[0];
 
   try {
-    if (!top) {
+    if (!top || parsed.help === true) {
       const output = help();
       return { exitCode: 1, output };
     }
@@ -132,7 +190,7 @@ export const run = async (argv: string[] = []): Promise<RunResult> => {
         const timeoutMsArg = readStringArg(parsed["timeout-ms"]);
         const timeoutMs = timeoutMsArg === undefined ? undefined : parseTimeoutMs(timeoutMsArg);
 
-        const client = createClient({
+        const client = dependencies.createClient({
           baseUrl,
           timeoutMs,
         });
@@ -159,7 +217,7 @@ export const run = async (argv: string[] = []): Promise<RunResult> => {
       const root = readRootArg(parsed);
       const timeoutMsArg = readStringArg(parsed["timeout-ms"]);
       const timeoutMs = timeoutMsArg === undefined ? undefined : parseTimeoutMs(timeoutMsArg);
-      const sandbox = createLocalSandbox({
+      const sandbox = dependencies.createLocalSandbox({
         rootDir: root,
         timeoutMs,
       });
@@ -188,17 +246,11 @@ export const run = async (argv: string[] = []): Promise<RunResult> => {
 
       if (command === "exec") {
         const rawInput = readInputArg(readStringArg(parsed.input) ?? false);
-        const input = parseInputPayload(rawInput);
-        await sandbox.start();
-        const result = await sandbox.exec({ input });
-        return {
-          exitCode: 0,
-          output: `sandbox exec: ${JSON.stringify(result.output)}`,
-        };
+        return await withSandboxLifecycle(sandbox, () => runSandboxExecution(sandbox, rawInput));
       }
 
       if (command === "verify") {
-        return runSandboxVerification(sandbox);
+        return await withSandboxLifecycle(sandbox, () => runSandboxVerification(sandbox));
       }
 
       return { exitCode: 2, output: `unknown sandbox command: ${command}` };
