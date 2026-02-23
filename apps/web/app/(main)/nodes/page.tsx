@@ -267,7 +267,7 @@ export default function NodesPage() {
   }, [connected, request]);
 
   React.useEffect(() => {
-    fetchNodes();
+    void fetchNodes();
   }, [fetchNodes]);
 
   // Describe a single node

@@ -144,8 +144,8 @@ export default function AgentDetailPage() {
 
   // State
   const [tab, setTab] = React.useState<DetailTab>("overview");
-  const [identity, setIdentity] = React.useState<AgentIdentityResult | null>(null);
-  const [files, setFiles] = React.useState<AgentsFilesListResult | null>(null);
+  const [identity, setIdentity] = React.useState<AgentIdentityResult>();
+  const [files, setFiles] = React.useState<AgentsFilesListResult>();
   const [sessions, setSessions] = React.useState<SessionEntry[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [activeFile, setActiveFile] = React.useState<string | null>(null);

@@ -99,7 +99,7 @@ If the user is vague ("text my mom"), ask for the recipient handle or chat guid 
   "action": "sendAttachment",
   "channel": "bluebubbles",
   "target": "+15551234567",
-  "path": "/tmp/photo.jpg",
+  "path": "/tmp/openclaw/photo.jpg",
   "caption": "here you go"
 }
 ```

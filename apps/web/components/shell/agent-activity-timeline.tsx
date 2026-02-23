@@ -254,14 +254,16 @@ function mapGatewayEvent(
         status: "error",
       };
 
-    case "exec.pending":
+    case "exec.pending": {
+      const toolName = payload.tool;
       return {
         ...base,
         type: "approval_pending",
-        summary: `Approval needed: ${String(payload.tool ?? "exec")}`,
+        summary: `Approval needed: ${typeof toolName === "string" ? toolName : "exec"}`,
         detail: payload.command as string | undefined,
         status: "pending",
       };
+    }
 
     case "exec.resolved":
       return {
