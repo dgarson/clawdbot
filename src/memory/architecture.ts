@@ -231,32 +231,103 @@ function governanceAllowsWrite(
 }
 
 function scoreByText(match: string, nodeText: string): number {
-  if (!match) {
+  const normalizedQuery = match.toLowerCase().trim();
+  if (!normalizedQuery) {
     return 1;
   }
 
-  const normalizedQuery = match.toLowerCase();
   const normalizedContent = nodeText.toLowerCase();
-
-  if (!normalizedContent.includes(normalizedQuery)) {
-    return 0;
+  const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+  if (queryWords.length === 0) {
+    return normalizedContent.includes(normalizedQuery) ? 1 : 0;
   }
 
-  const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
-  let score = 0;
+  let matchedWords = 0;
   for (const word of queryWords) {
     if (normalizedContent.includes(word)) {
-      score += 1;
+      matchedWords += 1;
     }
   }
 
-  return score + 1;
+  if (matchedWords === 0) {
+    return 0;
+  }
+
+  const phraseBoost = normalizedContent.includes(normalizedQuery) ? 1 : 0;
+  const coverage = matchedWords / queryWords.length;
+
+  // [0,1] coverage + phrase bonus scaled into a bounded lexical score.
+  return Math.min(1, coverage + phraseBoost * 0.25);
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function resolveHybridWeights(retrieval: Required<MemoryConfig>["retrieval"]): {
+  vectorWeight: number;
+  keywordWeight: number;
+} {
+  const vectorWeight = clamp01(retrieval.vectorWeight ?? 0.7);
+  const keywordWeight = clamp01(retrieval.keywordWeight ?? 0.3);
+  const total = vectorWeight + keywordWeight;
+
+  if (total <= 0) {
+    return { vectorWeight: 0.5, keywordWeight: 0.5 };
+  }
+
+  return {
+    vectorWeight: vectorWeight / total,
+    keywordWeight: keywordWeight / total,
+  };
+}
+
+function scoreRecency(updatedAt: number): number {
+  const ageMs = Math.max(0, Date.now() - updatedAt);
+  const halfLifeMs = 1000 * 60 * 60 * 24 * 7; // 7 days
+  return Math.exp((-Math.log(2) * ageMs) / halfLifeMs);
+}
+
+function isNodeExpired(
+  node: MemoryNode,
+  config: Required<MemoryConfig>,
+  now = Date.now(),
+): boolean {
+  const ttlSecondsFromNode = node.metadata.ttlSec;
+  if (ttlSecondsFromNode !== undefined) {
+    if (ttlSecondsFromNode <= 0) {
+      return true;
+    }
+    return node.createdAt + ttlSecondsFromNode * 1_000 <= now;
+  }
+
+  const defaultTtlDays = config.retention.defaultTtlDays;
+  if (defaultTtlDays === undefined || defaultTtlDays <= 0) {
+    return false;
+  }
+  return node.createdAt + defaultTtlDays * 24 * 60 * 60 * 1_000 <= now;
 }
 
 class InMemoryMemoryService implements IMemoryService {
   private readonly nodes = new Map<string, MemoryNode>();
 
   constructor(private readonly config: Required<MemoryConfig>) {}
+
+  private pruneExpired(userId?: string): number {
+    const now = Date.now();
+    let removed = 0;
+    for (const [id, node] of this.nodes.entries()) {
+      if (userId !== undefined && node.metadata.userId !== userId) {
+        continue;
+      }
+      if (!isNodeExpired(node, this.config, now)) {
+        continue;
+      }
+      this.nodes.delete(id);
+      removed += 1;
+    }
+    return removed;
+  }
 
   async store(
     content: string,
@@ -302,8 +373,11 @@ class InMemoryMemoryService implements IMemoryService {
     filters?: Partial<MemoryMetadata>,
     limit = this.config.retrieval.defaultLimit ?? 5,
   ): Promise<MemoryNode[]> {
+    this.pruneExpired(filters?.userId);
+
     const normalizedLimit = Math.max(1, Math.min(1_000, limit));
     const normalizedQuery = query.trim();
+    const { vectorWeight, keywordWeight } = resolveHybridWeights(this.config.retrieval);
 
     const nodes = Array.from(this.nodes.values()).filter((node) => {
       if (!metadataMatchesFilter(node.metadata, filters)) {
@@ -313,13 +387,27 @@ class InMemoryMemoryService implements IMemoryService {
     });
 
     return nodes
-      .map((node) => ({
-        node,
-        score: scoreByText(normalizedQuery, node.content),
-      }))
+      .map((node) => {
+        const lexicalScore = scoreByText(normalizedQuery, node.content);
+        const confidenceScore = clamp01(node.metadata.confidenceScore ?? 1);
+        const recencyScore = scoreRecency(node.updatedAt);
+
+        const hybridScore =
+          lexicalScore * keywordWeight + lexicalScore * confidenceScore * vectorWeight;
+        const qualityScore = hybridScore * 0.85 + recencyScore * 0.15;
+
+        return {
+          node,
+          score: qualityScore,
+          lexicalScore,
+        };
+      })
       .toSorted((a, b) => {
         if (b.score !== a.score) {
           return b.score - a.score;
+        }
+        if (b.lexicalScore !== a.lexicalScore) {
+          return b.lexicalScore - a.lexicalScore;
         }
         return b.node.updatedAt - a.node.updatedAt;
       })
@@ -332,6 +420,8 @@ class InMemoryMemoryService implements IMemoryService {
     filters?: Partial<MemoryMetadata>,
     limit = this.config.retrieval.defaultLimit ?? 5,
   ): Promise<MemoryNode[]> {
+    this.pruneExpired(filters?.userId);
+
     const normalized = Array.from(
       new Set(keywords.map((keyword) => keyword.toLowerCase().trim())),
     ).filter(Boolean);
@@ -345,7 +435,16 @@ class InMemoryMemoryService implements IMemoryService {
       return normalized.every((keyword) => content.includes(keyword));
     });
 
-    return nodes.toSorted((a, b) => b.updatedAt - a.updatedAt).slice(0, normalizedLimit);
+    return nodes
+      .toSorted((a, b) => {
+        const confidenceDelta =
+          (b.metadata.confidenceScore ?? 1) - (a.metadata.confidenceScore ?? 1);
+        if (confidenceDelta !== 0) {
+          return confidenceDelta;
+        }
+        return b.updatedAt - a.updatedAt;
+      })
+      .slice(0, normalizedLimit);
   }
 
   async forget(nodeId: string): Promise<boolean> {
@@ -364,6 +463,8 @@ class InMemoryMemoryService implements IMemoryService {
   }
 
   async compact(userId?: string): Promise<number> {
+    const expiredRemoved = this.pruneExpired(userId);
+
     const seen = new Map<string, MemoryNode>();
     for (const node of this.nodes.values()) {
       if (userId !== undefined && node.metadata.userId !== userId) {
@@ -386,7 +487,7 @@ class InMemoryMemoryService implements IMemoryService {
     }
 
     const kept = new Set(Array.from(seen.values()).map((node) => node.id));
-    let removed = 0;
+    let dedupeRemoved = 0;
     for (const [id] of this.nodes.entries()) {
       if (kept.has(id)) {
         continue;
@@ -395,10 +496,10 @@ class InMemoryMemoryService implements IMemoryService {
         continue;
       }
       this.nodes.delete(id);
-      removed += 1;
+      dedupeRemoved += 1;
     }
 
-    return removed;
+    return expiredRemoved + dedupeRemoved;
   }
 }
 

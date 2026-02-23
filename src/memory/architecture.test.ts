@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createMemoryService } from "./architecture.js";
 
 describe("Memory architecture scope isolation", () => {
@@ -109,5 +109,72 @@ describe("Memory architecture governance", () => {
     await expect(denied).rejects.toMatchObject({
       message: "memory write denied by governance policy",
     });
+  });
+});
+
+describe("Memory architecture relevance and lifecycle", () => {
+  it("ranks higher-confidence memories above weaker matches", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+      retrieval: {
+        vectorWeight: 0.7,
+        keywordWeight: 0.3,
+      },
+    });
+
+    await service.store("David prefers the nightly release pipeline", {
+      domain: "user_pref",
+      sourceId: "pref-weak",
+      userId: "user-1",
+      confidenceScore: 0.2,
+    });
+    await service.store("David prefers the nightly release pipeline", {
+      domain: "user_pref",
+      sourceId: "pref-strong",
+      userId: "user-1",
+      confidenceScore: 0.95,
+    });
+
+    const results = await service.retrieve("nightly release pipeline", { userId: "user-1" }, 10);
+    expect(results).toHaveLength(2);
+    expect(results[0]?.metadata.sourceId).toBe("pref-strong");
+  });
+
+  it("excludes expired memories from retrieval and compaction keeps only live records", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-02-23T10:00:00.000Z"));
+
+      const service = createMemoryService({
+        governance: { default: "allow" },
+        shadowWrite: { enabled: false },
+        retention: { defaultTtlDays: 1 },
+      });
+
+      await service.store("expired memo", {
+        domain: "session_summary",
+        sourceId: "memo-expired",
+        userId: "user-1",
+        ttlSec: 60,
+      });
+
+      vi.advanceTimersByTime(2 * 60 * 1000);
+
+      await service.store("fresh memo", {
+        domain: "session_summary",
+        sourceId: "memo-fresh",
+        userId: "user-1",
+      });
+
+      const results = await service.retrieve("memo", { userId: "user-1" }, 10);
+      expect(results).toHaveLength(1);
+      expect(results[0]?.metadata.sourceId).toBe("memo-fresh");
+
+      const removed = await service.compact("user-1");
+      expect(removed).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
