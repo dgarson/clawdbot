@@ -18,6 +18,15 @@ node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sa
 node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello\"}']);"
 ```
 
+### Example quickstart scenario
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'plugin', 'quickstart-plugin', '--root', process.cwd(), '--description', 'Demo plugin']);"
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'agent', 'quickstart-agent', '--root', process.cwd(), '--description', 'Demo agent']);"
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'verify', '--root', process.cwd()]);"
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello-cli\"}']);"
+```
+
 ## Local templates and one-command scaffolding
 
 Scaffold local plugin or agent skeletons in one command:

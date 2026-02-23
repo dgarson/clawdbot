@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { createClient as createSdkClient } from "@openclaw/sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { run } from "./run.js";
 import {
@@ -168,6 +169,78 @@ describe("CLI run command", () => {
     expect(await readFile(join(agentDir, "openclaw.agent.json"), "utf8")).toContain(
       '"kind": "agent"',
     );
+  });
+
+  it("supports a full SDK + sandbox quickstart flow", async () => {
+    const createClient = vi.fn().mockReturnValue({
+      health: vi.fn().mockResolvedValue({
+        ok: true,
+        data: { ok: true, status: "ready", version: "0.0.0", now: "test" },
+      }),
+    } as unknown as ReturnType<typeof createSdkClient>);
+
+    const sandbox = createMockRuntime();
+    const createLocalSandbox = vi.fn().mockReturnValue(sandbox);
+
+    const plugin = await run(
+      [
+        "new",
+        "plugin",
+        "quickstart-plugin",
+        "--root",
+        sandboxRoot,
+        "--description",
+        "SDK sandbox quickstart plugin",
+      ],
+      {
+        createClient,
+        createLocalSandbox,
+      },
+    );
+    expect(plugin.exitCode).toBe(0);
+
+    const agent = await run(
+      [
+        "new",
+        "agent",
+        "quickstart-agent",
+        "--root",
+        sandboxRoot,
+        "--description",
+        "SDK sandbox quickstart agent",
+      ],
+      {
+        createClient,
+        createLocalSandbox,
+      },
+    );
+    expect(agent.exitCode).toBe(0);
+
+    const doctor = await run(["sdk", "doctor"], {
+      createClient,
+      createLocalSandbox,
+    });
+    expect(doctor.exitCode).toBe(0);
+    expect(doctor.output).toContain("sdk doctor: ready 0.0.0");
+
+    const verify = await run(["sandbox", "verify", "--root", sandboxRoot], {
+      createClient,
+      createLocalSandbox,
+    });
+    expect(verify.exitCode).toBe(0);
+    expect(verify.output).toBe("sandbox verify passed");
+
+    const exec = await run(
+      ["sandbox", "exec", "--root", sandboxRoot, "--input", '{"value":"from quickstart"}'],
+      {
+        createClient,
+        createLocalSandbox,
+      },
+    );
+    expect(exec.exitCode).toBe(0);
+    expect(exec.output).toContain('{"value":"from quickstart"}');
+    expect(createClient).toHaveBeenCalledTimes(1);
+    expect(createLocalSandbox).toHaveBeenCalledTimes(2);
   });
 
   it("returns fixture-ready session and tool collections", () => {

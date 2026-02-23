@@ -103,6 +103,8 @@ For deterministic verification in both paths:
 
 This is the same flow used by package-level quickstart tests and keeps the three packages aligned for local runtime debugging.
 
+For a one-page scaffold + verify + exec workflow, see the [SDK + Sandbox development quickstart](/start/sdk-dev-sandbox).
+
 ## Local development workflow
 
 - Scaffold new plugin templates quickly:
