@@ -6,6 +6,12 @@ import { describe, it, expect } from "vitest";
 import { hitlEscalationCase, hitlTimeoutCase } from "./cases/hitl-escalation.js";
 import { memoryRecallCase, memoryPathTraversalCase } from "./cases/memory-recall.js";
 import {
+  toolDispatchCase,
+  toolTimeoutCase,
+  toolFailureRecoveryCase,
+  toolResultValidationCase,
+} from "./cases/tool-reliability.js";
+import {
   buildScenarioCatalog,
   filterCatalog,
   validateScenarioMetadata,
@@ -21,15 +27,20 @@ describe("catalog", () => {
         hitlTimeoutCase,
         memoryRecallCase,
         memoryPathTraversalCase,
+        toolDispatchCase,
+        toolTimeoutCase,
+        toolFailureRecoveryCase,
+        toolResultValidationCase,
       ];
 
       const catalog = buildScenarioCatalog(cases, "1.0.0");
 
       expect(catalog.version).toBe("1.0.0");
-      expect(catalog.cases).toHaveLength(4);
+      expect(catalog.cases).toHaveLength(8);
       expect(catalog.byCategory.hitl).toHaveLength(2);
       expect(catalog.byCategory.memory).toHaveLength(2);
-      expect(catalog.byDifficulty.integration).toHaveLength(4);
+      expect(catalog.byCategory["tool-reliability"]).toHaveLength(4);
+      expect(catalog.byDifficulty.integration).toHaveLength(8);
     });
 
     it("should set updatedAt timestamp", () => {
@@ -49,6 +60,10 @@ describe("catalog", () => {
       hitlTimeoutCase,
       memoryRecallCase,
       memoryPathTraversalCase,
+      toolDispatchCase,
+      toolTimeoutCase,
+      toolFailureRecoveryCase,
+      toolResultValidationCase,
     ]);
 
     it("should filter by category", () => {
@@ -61,7 +76,7 @@ describe("catalog", () => {
       const integrationCases = filterCatalog(catalog, {
         difficulty: "integration",
       });
-      expect(integrationCases).toHaveLength(4);
+      expect(integrationCases).toHaveLength(8);
     });
 
     it("should filter by suite", () => {
@@ -71,8 +86,9 @@ describe("catalog", () => {
 
     it("should filter by tags", () => {
       const smokeCases = filterCatalog(catalog, { tags: ["smoke"] });
-      expect(smokeCases).toHaveLength(1);
-      expect(smokeCases[0]?.id).toBe("hitl.escalation-smoke");
+      expect(smokeCases).toHaveLength(2);
+      expect(smokeCases.some((c) => c.id === "hitl.escalation-smoke")).toBe(true);
+      expect(smokeCases.some((c) => c.id === "tool-reliability.dispatch-smoke")).toBe(true);
     });
 
     it("should combine multiple filters", () => {
@@ -189,6 +205,40 @@ describe("catalog cases", () => {
 
     it("memory.path-traversal should pass", async () => {
       const result = await memoryPathTraversalCase.run({
+        runId: "test-run",
+        startedAt: new Date().toISOString(),
+      });
+      expect(result.pass).toBe(true);
+    });
+  });
+
+  describe("Tool reliability scenarios", () => {
+    it("tool-reliability.dispatch-smoke should pass", async () => {
+      const result = await toolDispatchCase.run({
+        runId: "test-run",
+        startedAt: new Date().toISOString(),
+      });
+      expect(result.pass).toBe(true);
+    });
+
+    it("tool-reliability.timeout-handling should pass", async () => {
+      const result = await toolTimeoutCase.run({
+        runId: "test-run",
+        startedAt: new Date().toISOString(),
+      });
+      expect(result.pass).toBe(true);
+    });
+
+    it("tool-reliability.failure-recovery should pass", async () => {
+      const result = await toolFailureRecoveryCase.run({
+        runId: "test-run",
+        startedAt: new Date().toISOString(),
+      });
+      expect(result.pass).toBe(true);
+    });
+
+    it("tool-reliability.result-validation should pass", async () => {
+      const result = await toolResultValidationCase.run({
         runId: "test-run",
         startedAt: new Date().toISOString(),
       });

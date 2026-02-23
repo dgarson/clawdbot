@@ -10,6 +10,12 @@ import { resolve } from "node:path";
 import { hitlEscalationCase, hitlTimeoutCase } from "./cases/hitl-escalation.js";
 import { memoryRecallCase, memoryPathTraversalCase } from "./cases/memory-recall.js";
 import {
+  toolDispatchCase,
+  toolTimeoutCase,
+  toolFailureRecoveryCase,
+  toolResultValidationCase,
+} from "./cases/tool-reliability.js";
+import {
   buildScenarioCatalog,
   filterCatalog,
   validateScenarioMetadata,
@@ -45,6 +51,11 @@ const DEFAULT_SCENARIOS: CataloguedEvaluationCase[] = [
   // Memory scenarios
   memoryRecallCase,
   memoryPathTraversalCase,
+  // Tool reliability scenarios
+  toolDispatchCase,
+  toolTimeoutCase,
+  toolFailureRecoveryCase,
+  toolResultValidationCase,
 ];
 
 /**
