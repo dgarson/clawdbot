@@ -18,6 +18,8 @@
 
 set -euo pipefail
 
+command -v python3 >/dev/null 2>&1 || { echo "agent-mail: error: python3 is required but not found" >&2; exit 1; }
+
 WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
 MAILBOXES="$WORKSPACE/_shared/mailboxes"
 
@@ -92,19 +94,24 @@ cmd_send() {
   ts="$(_iso8601)"
   filename="$(_filename_ts)-${from}-${id}.json"
 
-  cat > "$dir/$filename" <<EOF
-{
-  "id": "$id",
-  "from": "$from",
-  "to": "$to",
-  "subject": "$subject",
-  "body": $(printf '%s' "$body" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$body"),
-  "timestamp": "$ts",
-  "priority": "$priority",
-  "thread_id": $thread_id,
-  "read": false
+  python3 - "$dir/$filename" "$id" "$from" "$to" "$subject" "$body" "$ts" "$priority" "$thread_id" <<'PYEOF'
+import json, sys
+path, mid, frm, to, subj, body, ts, pri, tid = sys.argv[1:]
+msg = {
+    "id": mid,
+    "from": frm,
+    "to": to,
+    "subject": subj,
+    "body": body,
+    "timestamp": ts,
+    "priority": pri,
+    "thread_id": None if tid == "null" else tid,
+    "read": False,
 }
-EOF
+with open(path, "w") as fh:
+    json.dump(msg, fh, indent=2)
+    fh.write("\n")
+PYEOF
 
   echo "✉️  Sent to $to/$filename"
 }
@@ -139,18 +146,36 @@ cmd_read() {
   echo "────────────────────────────────────────"
 
   for f in "${files[@]}"; do
-    if $unread_only; then
-      local is_read
-      is_read=$(python3 -c "import json,sys; d=json.load(open('$f')); print(d.get('read',False))" 2>/dev/null || echo "false")
-      [[ "$is_read" == "True" ]] && continue
-    fi
+    # Read all fields and mark as read in a single python3 invocation
+    local fields
+    fields=$(python3 - "$f" "$unread_only" <<'PYEOF'
+import json, sys
+path = sys.argv[1]
+unread_only = sys.argv[2] == "true"
+with open(path) as fh:
+    d = json.load(fh)
+if unread_only and d.get("read", False):
+    sys.exit(1)  # signal skip
+print(d.get("from", "?"))
+print(d.get("subject", "?"))
+print(d.get("timestamp", "?"))
+print(d.get("priority", "normal"))
+print(d.get("body", ""))
+d["read"] = True
+with open(path, "w") as fh:
+    json.dump(d, fh, indent=2)
+    fh.write("\n")
+PYEOF
+    ) 2>/dev/null || { echo "  (error reading $(basename "$f"))"; continue; }
+    # exit(1) from python means skip (already read + unread_only mode)
+    [[ -z "$fields" ]] && continue
 
     local from subject ts priority body
-    from=$(python3 -c "import json,sys; d=json.load(open('$f')); print(d.get('from','?'))" 2>/dev/null || echo "?")
-    subject=$(python3 -c "import json,sys; d=json.load(open('$f')); print(d.get('subject','?'))" 2>/dev/null || echo "?")
-    ts=$(python3 -c "import json,sys; d=json.load(open('$f')); print(d.get('timestamp','?'))" 2>/dev/null || echo "?")
-    priority=$(python3 -c "import json,sys; d=json.load(open('$f')); print(d.get('priority','normal'))" 2>/dev/null || echo "normal")
-    body=$(python3 -c "import json,sys; d=json.load(open('$f')); print(d.get('body',''))" 2>/dev/null || echo "")
+    from=$(echo "$fields" | sed -n '1p')
+    subject=$(echo "$fields" | sed -n '2p')
+    ts=$(echo "$fields" | sed -n '3p')
+    priority=$(echo "$fields" | sed -n '4p')
+    body=$(echo "$fields" | sed -n '5,$p')
 
     local badge=""
     [[ "$priority" == "high" ]]   && badge="🔶 "
@@ -160,17 +185,6 @@ cmd_read() {
     echo "$body"
     echo "  [file: $(basename "$f")]"
     echo "────────────────────────────────────────"
-
-    # Mark as read (update in place)
-    python3 - "$f" <<'PYEOF' 2>/dev/null || true
-import json, sys
-path = sys.argv[1]
-with open(path) as fh:
-    d = json.load(fh)
-d['read'] = True
-with open(path, 'w') as fh:
-    json.dump(d, fh, indent=2)
-PYEOF
   done
 }
 
@@ -200,21 +214,60 @@ cmd_drain() {
   local dir
   dir="$(_mailbox_dir "$agent")"
 
-  cmd_read --agent "$agent"
-
+  # Collect file list ONCE, then read and archive the same set.
+  # This avoids a race where a message arriving between read and archive
+  # would be silently archived without being displayed.
   local files=()
   while IFS= read -r -d '' f; do
     files+=("$f")
-  done < <(find "$dir" -maxdepth 1 -name "*.json" -print0)
+  done < <(find "$dir" -maxdepth 1 -name "*.json" -print0 | sort -z)
 
-  if [[ ${#files[@]} -gt 0 ]]; then
-    local processed="$dir/processed"
-    mkdir -p "$processed"
-    for f in "${files[@]}"; do
-      mv "$f" "$processed/"
-    done
-    echo "📁  Archived ${#files[@]} message(s)."
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo "📭  No messages in $agent's inbox."
+    return 0
   fi
+
+  echo "📬  Inbox for $agent (${#files[@]} message(s)):"
+  echo "────────────────────────────────────────"
+
+  for f in "${files[@]}"; do
+    local fields
+    fields=$(python3 - "$f" <<'PYEOF'
+import json, sys
+path = sys.argv[1]
+with open(path) as fh:
+    d = json.load(fh)
+print(d.get("from", "?"))
+print(d.get("subject", "?"))
+print(d.get("timestamp", "?"))
+print(d.get("priority", "normal"))
+print(d.get("body", ""))
+PYEOF
+    ) 2>/dev/null || { echo "  (error reading $(basename "$f"))"; continue; }
+
+    local from subject ts priority body
+    from=$(echo "$fields" | sed -n '1p')
+    subject=$(echo "$fields" | sed -n '2p')
+    ts=$(echo "$fields" | sed -n '3p')
+    priority=$(echo "$fields" | sed -n '4p')
+    body=$(echo "$fields" | sed -n '5,$p')
+
+    local badge=""
+    [[ "$priority" == "high" ]]   && badge="🔶 "
+    [[ "$priority" == "urgent" ]] && badge="🔴 "
+
+    echo "${badge}From: $from  |  $ts  |  $subject"
+    echo "$body"
+    echo "  [file: $(basename "$f")]"
+    echo "────────────────────────────────────────"
+  done
+
+  local processed="$dir/processed"
+  mkdir -p "$processed"
+  for f in "${files[@]}"; do
+    [[ -f "$f" ]] && mv "$f" "$processed/"
+  done
+  echo "📁  Archived ${#files[@]} message(s)."
 }
 
 cmd_list() {

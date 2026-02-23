@@ -74,9 +74,3 @@ Never exfiltrate data. `trash` > `rm`. Respond when planning/coordination/status
 **Step 0:** `_shared/scripts/agent-mail.sh drain` — read and archive all inbox messages before anything else.
 
 Check (rotate, 2-4x/day): Sprint status (stalled tasks?), dependencies (blocking?), capacity (idle/overloaded?), roadmap (milestones slipping?), inbox (escalations?).
-
-## workq Inbox
-
-You have a workq inbox. During any idle check or when triggered, call `workq_inbox_read`
-to check for pending messages from other agents or the system. After processing each
-message, call `workq_inbox_ack` with the message IDs — this is mandatory.

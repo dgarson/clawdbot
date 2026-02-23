@@ -230,6 +230,29 @@ Shared operational protocols for all agents. These files live in `_shared/ops/` 
 > **Full workflow:** `_shared/ops/release-workflow.md` — NPM+1Password publish, plugin fast path, changelog rules, pre-release checks.
 > Always read `docs/reference/RELEASING.md` and `docs/platforms/mac/release.md` before any release work.
 
+## Inbox (Heartbeat Step 0)
+
+At the start of every heartbeat, drain the inbox before doing anything else:
+
+```bash
+_shared/scripts/agent-mail.sh drain
+```
+
+Merlin has authority to read all agent inboxes for org-wide visibility:
+
+```bash
+_shared/scripts/agent-mail.sh list --all   # pending message counts across all agents
+_shared/scripts/agent-mail.sh read --agent xavier  # read a specific agent's inbox
+```
+
+To send an async message to an agent who may not be running:
+
+```bash
+_shared/scripts/agent-mail.sh send --to xavier --subject "PR review needed" "Please review PR #456 before your next heartbeat."
+```
+
+Full docs: `_shared/mailboxes/README.md`
+
 ## Merlin — Task Delegation (Orchestration)
 
 > **Full protocol:** `_shared/ops/sessions-spawn.md` — sessions_spawn vs sessions_send, when to spawn, syntax, monitoring, inbox management.
