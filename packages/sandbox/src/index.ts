@@ -1,11 +1,27 @@
-/**
- * @openclaw/sandbox - Local Sandbox Runtime
- *
- * A local development sandbox for OpenClaw that enables offline testing
- * and deterministic execution of tool workflows.
- */
-
-// State machine
+export {
+  createLocalSandbox,
+  type LocalSandboxOptions,
+  type LocalSandboxRuntime,
+  type MountPoint,
+} from "./runtime.js";
+export { ProcessManager } from "./process-manager.js";
+export type { LocalSandboxOptions as ProcessManagerOptions } from "./process-manager.js";
+export {
+  isWorkspaceReadable,
+  normalizeWorkspaceRoot,
+  describeWorkspace,
+  buildScratchPath,
+  getDefaultWorkspaceDir,
+} from "./workspace.js";
+export {
+  buildEvent,
+  isTerminalEvent,
+  toBootstrapConfig,
+  type SandboxEvent,
+  type RuntimeBootstrapConfig,
+  type SandboxEventKind,
+} from "./protocol.js";
+export { inspectHealth, type SandboxHealth } from "./health.js";
 export {
   type RuntimeState,
   type RuntimeStateTerminal,
@@ -13,10 +29,7 @@ export {
   isValidTransition,
   getStateDescription,
 } from "./state-machine.js";
-
-// Core types
 export {
-  type LocalSandboxOptions,
   type RuntimeStatus,
   type RuntimeExecRequest,
   type RuntimeExecResult,
@@ -30,6 +43,3 @@ export {
   DEFAULT_STARTUP_TIMEOUT_MS,
   DEFAULT_EXECUTION_TIMEOUT_MS,
 } from "./types.js";
-
-// Runtime implementation
-export { LocalSandboxRuntime, createLocalSandbox } from "./runtime.js";
