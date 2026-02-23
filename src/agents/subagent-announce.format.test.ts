@@ -910,6 +910,35 @@ describe("subagent announce formatting", () => {
     expect(params.accountId).toBe("kev");
   });
 
+  it("keeps queued announces internal when a deliverable channel has no target", async () => {
+    embeddedRunMock.isEmbeddedPiRunActive.mockReturnValue(true);
+    embeddedRunMock.isEmbeddedPiRunStreaming.mockReturnValue(false);
+    sessionStore = {
+      "agent:main:main": {
+        sessionId: "session-slack-no-target",
+        lastChannel: "slack",
+        queueMode: "collect",
+        queueDebounceMs: 0,
+      },
+    };
+
+    const didAnnounce = await runSubagentAnnounceFlow({
+      childSessionKey: "agent:main:subagent:test",
+      childRunId: "run-slack-no-target",
+      requesterSessionKey: "main",
+      requesterDisplayKey: "main",
+      requesterOrigin: { channel: "slack", accountId: "default" },
+      ...defaultOutcomeAnnounce,
+    });
+
+    expect(didAnnounce).toBe(true);
+    const params = await getSingleAgentCallParams();
+    expect(params.deliver).toBe(false);
+    expect(params.channel).toBeUndefined();
+    expect(params.to).toBeUndefined();
+    expect(params.accountId).toBeUndefined();
+  });
+
   it("keeps queued idempotency unique for same-ms distinct child runs", async () => {
     embeddedRunMock.isEmbeddedPiRunActive.mockReturnValue(true);
     embeddedRunMock.isEmbeddedPiRunStreaming.mockReturnValue(false);

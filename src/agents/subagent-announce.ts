@@ -11,6 +11,7 @@ import {
 import { callGateway } from "../gateway/call.js";
 import { createBoundDeliveryRouter } from "../infra/outbound/bound-delivery-router.js";
 import type { ConversationRef } from "../infra/outbound/session-binding-service.js";
+import { resolveOutboundTarget } from "../infra/outbound/targets.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { normalizeAccountId, normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
@@ -481,6 +482,20 @@ async function sendAnnounce(item: AnnounceQueueItem) {
   const requesterDepth = getSubagentDepthFromSessionStore(item.sessionKey);
   const requesterIsSubagent = requesterDepth >= 1;
   const origin = item.origin;
+  const resolvedDelivery =
+    requesterIsSubagent || !origin
+      ? { deliver: false as const }
+      : resolveAnnounceDeliveryTarget(origin);
+  if (
+    !requesterIsSubagent &&
+    origin?.channel &&
+    isDeliverableMessageChannel(origin.channel) &&
+    !resolvedDelivery.deliver
+  ) {
+    defaultRuntime.warn?.(
+      `Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
+    );
+  }
   const threadId =
     origin?.threadId != null && origin.threadId !== "" ? String(origin.threadId) : undefined;
   // Share one announce identity across direct and queued delivery paths so
@@ -497,15 +512,43 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     params: {
       sessionKey: item.sessionKey,
       message: item.prompt,
-      channel: requesterIsSubagent ? undefined : origin?.channel,
-      accountId: requesterIsSubagent ? undefined : origin?.accountId,
-      to: requesterIsSubagent ? undefined : origin?.to,
-      threadId: requesterIsSubagent ? undefined : threadId,
-      deliver: !requesterIsSubagent,
+      channel: resolvedDelivery.deliver ? resolvedDelivery.channel : undefined,
+      accountId: resolvedDelivery.deliver ? resolvedDelivery.accountId : undefined,
+      to: resolvedDelivery.deliver ? resolvedDelivery.to : undefined,
+      threadId: resolvedDelivery.deliver ? threadId : undefined,
+      deliver: resolvedDelivery.deliver,
       idempotencyKey,
     },
     timeoutMs: 15_000,
   });
+}
+
+function resolveAnnounceDeliveryTarget(origin: DeliveryContext): {
+  deliver: boolean;
+  channel?: string;
+  accountId?: string;
+  to?: string;
+} {
+  if (!origin.channel || !isDeliverableMessageChannel(origin.channel)) {
+    return { deliver: false };
+  }
+  const mode = origin.to?.trim() ? "explicit" : "implicit";
+  const resolvedTarget = resolveOutboundTarget({
+    channel: origin.channel,
+    to: origin.to,
+    cfg: loadConfig(),
+    accountId: origin.accountId,
+    mode,
+  });
+  if (!resolvedTarget.ok) {
+    return { deliver: false };
+  }
+  return {
+    deliver: true,
+    channel: origin.channel,
+    accountId: origin.accountId,
+    to: resolvedTarget.to,
+  };
 }
 
 function resolveRequesterStoreKey(
