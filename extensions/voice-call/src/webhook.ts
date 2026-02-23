@@ -51,12 +51,26 @@ export class VoiceCallWebhookServer {
         voiceConfig: this.config,
         coreConfig: this.coreConfig,
         isCallActive: (callId) => Boolean(this.manager.getCall(callId)),
-        onSummaryReady: async ({ callId, summary }) => {
+        onSummaryReady: async ({ callId, summary, result }) => {
           const call = this.manager.getCall(callId);
           if (!call) {
             return;
           }
-          await this.manager.speak(callId, summary);
+          // Append the follow-up question when the specialist signals one is needed.
+          const spokenText =
+            result.needs_followup && result.followup_question
+              ? `${summary} ${result.followup_question}`
+              : summary;
+          // Swallow speak errors so they do not propagate back into the broker's
+          // catch block and trigger a redundant fallback delivery.
+          try {
+            await this.manager.speak(callId, spokenText);
+          } catch (err) {
+            console.warn(
+              `[voice-call] Failed to speak sub-agent summary for ${callId}:`,
+              err,
+            );
+          }
         },
       });
     }
@@ -367,12 +381,16 @@ export class VoiceCallWebhookServer {
           : undefined);
       try {
         this.manager.processEvent(event);
+        // Cancel pending sub-agent jobs when a call terminates.  callForEvent is
+        // captured before processEvent so the call is still in the manager's map;
+        // we guard on it being non-null to avoid canceling jobs for an event whose
+        // callId was never registered with the manager.
         if (
           this.subagentBroker &&
+          callForEvent &&
           (event.type === "call.ended" || (event.type === "call.error" && !event.retryable))
         ) {
-          const endedCallId = callForEvent?.callId ?? event.callId;
-          this.subagentBroker.cancelCallJobs(endedCallId);
+          this.subagentBroker.cancelCallJobs(callForEvent.callId);
         }
       } catch (err) {
         console.error(`[voice-call] Error processing event ${event.type}:`, err);
@@ -444,7 +462,16 @@ export class VoiceCallWebhookServer {
       }
 
       if (this.subagentBroker && result.delegations?.length) {
+        // Deduplicate by specialist+goal so a confused LLM that emits the same
+        // delegation twice doesn't cause redundant sub-agent jobs.
+        const seen = new Set<string>();
         for (const delegation of result.delegations) {
+          const key = `${delegation.specialist}:${delegation.goal}`;
+          if (seen.has(key)) {
+            console.warn(`[voice-call] Dropping duplicate delegation (${key}) for ${callId}`);
+            continue;
+          }
+          seen.add(key);
           this.subagentBroker.enqueue({
             callId,
             from: call.from,

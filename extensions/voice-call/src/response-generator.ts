@@ -117,19 +117,25 @@ export async function generateVoiceResponse(
           .join("\n")}\n</conversation_history>`
       : "";
 
-  const envelopePrompt = [
-    "",
-    "## RESPONSE FORMAT (CRITICAL)",
-    "You MUST return ONLY a JSON object with these keys:",
-    '  action: "respond_now" | "delegate"',
-    "  immediate_text: short spoken response for the caller (1-2 sentences)",
-    '  delegations: array of delegation objects (only when action is "delegate")',
-    "",
-    'Use action="delegate" ONLY for tasks needing deep investigation, web search,',
-    'memory exploration, or tool-heavy work. For simple questions, use "respond_now".',
-    "Each delegation object: { specialist, goal, input?, deadline_ms? }",
-    'specialist: "research" | "scheduler" | "policy"',
-  ].join("\n");
+  // Only inject the JSON-envelope format instruction when the async sub-agent broker
+  // is enabled.  When subagents are disabled the foreground agent speaks directly, so
+  // there is no envelope to parse — forcing JSON output would be a behavioural
+  // regression for callers that have not opted in to the delegation feature.
+  const envelopePrompt = voiceConfig.subagents?.enabled
+    ? [
+        "",
+        "## RESPONSE FORMAT (CRITICAL)",
+        "You MUST return ONLY a JSON object with these keys:",
+        '  action: "respond_now" | "delegate"',
+        "  immediate_text: short spoken response for the caller (1-2 sentences)",
+        '  delegations: array of delegation objects (only when action is "delegate")',
+        "",
+        'Use action="delegate" ONLY for tasks needing deep investigation, web search,',
+        'memory exploration, or tool-heavy work. For simple questions, use "respond_now".',
+        "Each delegation object: { specialist, goal, input?, deadline_ms? }",
+        'specialist: "research" | "scheduler" | "policy"',
+      ].join("\n")
+    : "";
 
   const extraSystemPrompt = `${basePrompt}${historyBlock}${envelopePrompt}`;
 
@@ -171,6 +177,12 @@ export async function generateVoiceResponse(
 
     if (!rawText) {
       return { text: null };
+    }
+
+    // When subagents are disabled the agent was never asked to produce JSON, so
+    // return the raw text directly without envelope parsing.
+    if (!voiceConfig.subagents?.enabled) {
+      return { text: rawText };
     }
 
     const envelope = normalizeForegroundEnvelope(rawText);

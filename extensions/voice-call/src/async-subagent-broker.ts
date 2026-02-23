@@ -37,7 +37,8 @@ export interface SubagentJobStore {
   markDone(jobId: string): void;
   markFailed(jobId: string, reason?: string): void;
   markExpired(jobId: string, reason?: string): void;
-  cancelByCall(callId: string): void;
+  /** Cancel all queued jobs for a call. Returns the number actually canceled. */
+  cancelByCall(callId: string): number;
   listByCall(callId: string): SubagentJob[];
 }
 
@@ -110,17 +111,20 @@ export class InMemorySubagentJobStore implements SubagentJobStore {
     this.maybePrune();
   }
 
-  cancelByCall(callId: string): void {
+  cancelByCall(callId: string): number {
     const now = Date.now();
+    let count = 0;
     for (const job of this.jobsById.values()) {
       if (job.callId !== callId) continue;
       if (job.state === "queued") {
         job.state = "canceled";
         job.updatedAt = now;
         this.terminalCount += 1;
+        count += 1;
       }
     }
     this.maybePrune();
+    return count;
   }
 
   listByCall(callId: string): SubagentJob[] {
@@ -235,6 +239,21 @@ export class AsyncSubagentBroker {
       return;
     }
 
+    // Enforce per-call queue depth limit: count queued + running jobs for this call.
+    // This provides backpressure so a fast-speaking caller cannot build an unbounded
+    // queue of sub-agent jobs that would all arrive (and be canceled) long after the
+    // call ends.
+    const existingForCall = this.store.listByCall(params.callId);
+    const activeForCall = existingForCall.filter(
+      (j) => j.state === "queued" || j.state === "running",
+    ).length;
+    if (activeForCall >= this.maxPerCall) {
+      console.warn(
+        `[voice-call] Dropping delegation for ${params.callId}: already at maxPerCall (${this.maxPerCall}) active jobs`,
+      );
+      return;
+    }
+
     const now = Date.now();
     const defaultDeadlineMs = this.opts.voiceConfig.subagents?.defaultDeadlineMs ?? 15_000;
     const deadlineMs = Math.max(
@@ -260,8 +279,7 @@ export class AsyncSubagentBroker {
   }
 
   cancelCallJobs(callId: string): void {
-    this.store.cancelByCall(callId);
-    this._metrics.canceled += 1;
+    this._metrics.canceled += this.store.cancelByCall(callId);
   }
 
   shutdown(): void {
@@ -356,8 +374,7 @@ export class AsyncSubagentBroker {
     const jobStartMs = Date.now();
 
     if (!this.opts.isCallActive(job.callId)) {
-      this.store.cancelByCall(job.callId);
-      this._metrics.canceled += 1;
+      this._metrics.canceled += this.store.cancelByCall(job.callId);
       return;
     }
 
@@ -373,6 +390,10 @@ export class AsyncSubagentBroker {
     // even if the try block fails after writing it.
     const sessionKey = `voice-subagent:${job.callId}:${job.jobId}`;
     let storePath: string | undefined;
+    // Set to true once onSummaryReady has been called successfully.  Used in the
+    // catch block to prevent a double-speak: if the summary was already delivered
+    // we must not also deliver the fallback.
+    let summaryDelivered = false;
 
     try {
       const deps = await loadCoreAgentDeps();
@@ -382,6 +403,12 @@ export class AsyncSubagentBroker {
       const workspaceDir = deps.resolveAgentWorkspaceDir(this.opts.coreConfig, agentId);
       await deps.ensureAgentWorkspace({ dir: workspaceDir });
 
+      // NOTE: When maxConcurrency > 1, multiple runJob calls execute concurrently
+      // and each performs a read-modify-write on the session store.  Because there
+      // is no mutex, concurrent writes are last-writer-wins — a job that finishes
+      // first may have its cleanup overwritten by a job that read the store before
+      // the first write.  In practice the worst outcome is an orphaned session entry
+      // that the startup reaper will eventually clean up.
       const sessionStore = deps.loadSessionStore(storePath);
       const sessionEntry = {
         sessionId: crypto.randomUUID(),
@@ -473,8 +500,12 @@ export class AsyncSubagentBroker {
       // Try local normalization first (handles fences, aliases, trailing commas, etc.)
       let normalized = normalizeSubagentResult(raw);
 
-      // If local normalization failed, attempt a lightweight LLM repair.
-      if (!normalized && raw.trim()) {
+      // If local normalization failed, attempt a lightweight LLM repair — but only
+      // when the raw output has enough content to be worth re-parsing.  Single-word
+      // or very short outputs (e.g. "done", "ok") will never produce valid JSON; skipping
+      // the repair avoids a wasted LLM call and keeps the error path fast.
+      const looksRepairable = raw.trim().length > 20 && (raw.includes("{") || raw.includes('"'));
+      if (!normalized && looksRepairable) {
         this._metrics.repairAttempts += 1;
         const repaired = await this.repairPayload(raw, {
           deps,
@@ -509,8 +540,7 @@ export class AsyncSubagentBroker {
       }
 
       if (!this.opts.isCallActive(job.callId)) {
-        this.store.cancelByCall(job.callId);
-        this._metrics.canceled += 1;
+        this._metrics.canceled += this.store.cancelByCall(job.callId);
         return;
       }
 
@@ -519,6 +549,7 @@ export class AsyncSubagentBroker {
         summary: safeSummary,
         result: normalized,
       });
+      summaryDelivered = true;
       this.store.markDone(job.jobId);
       this._metrics.completed += 1;
       this._metrics.totalExecutionMs += Date.now() - jobStartMs;
@@ -528,10 +559,15 @@ export class AsyncSubagentBroker {
       this.store.markFailed(job.jobId, reason);
       this._metrics.failed += 1;
       this._metrics.totalExecutionMs += Date.now() - jobStartMs;
-      try {
-        await this.speakFallbackIfActive(job.callId);
-      } catch (fallbackErr) {
-        console.warn("[voice-call] Fallback speech also failed:", fallbackErr);
+      // Only speak fallback if we haven't already delivered a summary.  If
+      // onSummaryReady succeeded before something else threw (e.g. markDone),
+      // summaryDelivered is true and we skip the fallback to prevent double-speak.
+      if (!summaryDelivered) {
+        try {
+          await this.speakFallbackIfActive(job.callId);
+        } catch (fallbackErr) {
+          console.warn("[voice-call] Fallback speech also failed:", fallbackErr);
+        }
       }
     } finally {
       // Clean up temp session files.
@@ -621,7 +657,9 @@ export class AsyncSubagentBroker {
       result: {
         summary: FALLBACK_SPOKEN_SUMMARY,
         confidence: 0,
-        needs_followup: true,
+        // needs_followup is false for the fallback: no specialist result is coming,
+        // so there is no follow-up question to ask.
+        needs_followup: false,
         followup_question: null,
         artifacts: [],
       },

@@ -65,7 +65,8 @@ describe("InMemorySubagentJobStore", () => {
     expect(claimed).toBeNull();
 
     store.enqueue(makeJob({ jobId: "queued", callId: "call-2" }));
-    store.cancelByCall("call-2");
+    const canceledCount = store.cancelByCall("call-2");
+    expect(canceledCount).toBe(1);
     // With lazy pruning, canceled jobs may remain in the store until
     // enough terminal jobs accumulate to trigger a prune pass.
     const remaining = store.listByCall("call-2");
@@ -160,7 +161,9 @@ describe("InMemorySubagentJobStore", () => {
     // Claim the first job (it becomes "running")
     store.claimNext({ now: Date.now(), runningByCall: new Map(), maxPerCall: 5 });
     // Cancel all queued jobs for c1
-    store.cancelByCall("c1");
+    const canceledCount = store.cancelByCall("c1");
+    // Only the queued job should be canceled; the running one is untouched
+    expect(canceledCount).toBe(1);
 
     const jobs = store.listByCall("c1");
     const runningJobs = jobs.filter((j) => j.state === "running");
@@ -317,7 +320,7 @@ describe("AsyncSubagentBroker", () => {
       markDone: () => {},
       markFailed: () => {},
       markExpired: () => {},
-      cancelByCall: () => {},
+      cancelByCall: () => 0,
       listByCall: () => [],
     };
     const broker = new AsyncSubagentBroker({
@@ -339,15 +342,17 @@ describe("AsyncSubagentBroker", () => {
     expect(broker.metrics.enqueued).toBe(1);
   });
 
-  it("cancelCallJobs increments canceled metric", () => {
+  it("cancelCallJobs reflects the actual count returned by the store", () => {
     const config = makeMinimalVoiceConfig();
-    const noOpStore: SubagentJobStore = {
+
+    // Store that reports 3 jobs canceled.
+    const countingStore: SubagentJobStore = {
       enqueue: () => {},
       claimNext: () => null,
       markDone: () => {},
       markFailed: () => {},
       markExpired: () => {},
-      cancelByCall: () => {},
+      cancelByCall: () => 3,
       listByCall: () => [],
     };
     const broker = new AsyncSubagentBroker({
@@ -355,11 +360,31 @@ describe("AsyncSubagentBroker", () => {
       coreConfig: {} as CoreConfig,
       onSummaryReady: async () => {},
       isCallActive: () => true,
-      store: noOpStore,
+      store: countingStore,
     });
 
     broker.cancelCallJobs("call-1");
-    expect(broker.metrics.canceled).toBe(1);
+    expect(broker.metrics.canceled).toBe(3);
+
+    // Calling again (0 jobs left) should not increment.
+    const zeroStore: SubagentJobStore = {
+      enqueue: () => {},
+      claimNext: () => null,
+      markDone: () => {},
+      markFailed: () => {},
+      markExpired: () => {},
+      cancelByCall: () => 0,
+      listByCall: () => [],
+    };
+    const broker2 = new AsyncSubagentBroker({
+      voiceConfig: config,
+      coreConfig: {} as CoreConfig,
+      onSummaryReady: async () => {},
+      isCallActive: () => true,
+      store: zeroStore,
+    });
+    broker2.cancelCallJobs("call-1");
+    expect(broker2.metrics.canceled).toBe(0);
   });
 
   it("metrics snapshot is read-only", () => {
@@ -392,7 +417,7 @@ describe("AsyncSubagentBroker", () => {
       markDone: () => {},
       markFailed: () => {},
       markExpired: () => {},
-      cancelByCall: () => {},
+      cancelByCall: () => 0,
       listByCall: () => [],
     };
     const broker = new AsyncSubagentBroker({
@@ -426,5 +451,56 @@ describe("AsyncSubagentBroker", () => {
     const deadline2 = enqueued[1].expiresAt - enqueued[1].createdAt;
     expect(deadline1).toBe(5000);
     expect(deadline2).toBe(20000);
+  });
+
+  it("drops delegation when per-call active job count reaches maxPerCall", () => {
+    // Config: maxPerCall = 1 (one active job per call at a time)
+    const config = makeMinimalVoiceConfig({
+      subagents: { enabled: true, maxConcurrency: 4, maxPerCall: 1, defaultDeadlineMs: 15000 },
+    });
+    const enqueued: SubagentJob[] = [];
+
+    // Simulate one queued and one running job for "call-bp"
+    const existingJobs: SubagentJob[] = [
+      makeJob({ jobId: "existing-queued", callId: "call-bp", state: "queued" }),
+    ];
+    const backpressureStore: SubagentJobStore = {
+      enqueue: (job) => enqueued.push(job),
+      claimNext: () => null,
+      markDone: () => {},
+      markFailed: () => {},
+      markExpired: () => {},
+      cancelByCall: () => 0,
+      listByCall: (callId) => (callId === "call-bp" ? existingJobs : []),
+    };
+    const broker = new AsyncSubagentBroker({
+      voiceConfig: config,
+      coreConfig: {} as CoreConfig,
+      onSummaryReady: async () => {},
+      isCallActive: () => true,
+      store: backpressureStore,
+    });
+
+    // This should be dropped because the call already has maxPerCall (1) active jobs.
+    broker.enqueue({
+      callId: "call-bp",
+      from: "+1555",
+      userMessage: "hi",
+      transcript: [],
+      delegation: { specialist: "research", goal: "overflow" },
+    });
+
+    expect(enqueued).toHaveLength(0);
+    expect(broker.metrics.enqueued).toBe(0);
+
+    // A different call should still be accepted.
+    broker.enqueue({
+      callId: "call-other",
+      from: "+1556",
+      userMessage: "hi",
+      transcript: [],
+      delegation: { specialist: "research", goal: "allowed" },
+    });
+    expect(broker.metrics.enqueued).toBe(1);
   });
 });
