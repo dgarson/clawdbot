@@ -1,3 +1,4 @@
+import { isFailoverError } from "../agents/failover-error.js";
 import { diagnosticLogger as diag, logLaneDequeue, logLaneEnqueue } from "../logging/diagnostic.js";
 import { CommandLane } from "./lanes.js";
 /**
@@ -24,6 +25,7 @@ type QueueEntry = {
   enqueuedAt: number;
   warnAfterMs: number;
   onWait?: (waitMs: number, queuedAhead: number) => void;
+  getDiagnosticSuffix?: (result: unknown) => string | undefined;
 };
 
 type LaneState = {
@@ -90,8 +92,9 @@ function drainLane(lane: string) {
           const result = await entry.task();
           const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
           if (completedCurrentGeneration) {
+            const diagSuffix = entry.getDiagnosticSuffix?.(result);
             diag.debug(
-              `lane task done: lane=${lane} durationMs=${Date.now() - startTime} active=${state.activeTaskIds.size} queued=${state.queue.length}`,
+              `lane task done: lane=${lane} durationMs=${Date.now() - startTime} active=${state.activeTaskIds.size} queued=${state.queue.length}${diagSuffix ? ` ${diagSuffix}` : ""}`,
             );
             pump();
           }
@@ -100,8 +103,11 @@ function drainLane(lane: string) {
           const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
           const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
           if (!isProbeLane) {
+            const errSuffix = isFailoverError(err)
+              ? ` provider=${err.provider ?? "unknown"} model=${err.model ?? "unknown"}${err.profileId ? ` profileId=${err.profileId}` : ""}`
+              : "";
             diag.error(
-              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"`,
+              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"${errSuffix}`,
             );
           }
           if (completedCurrentGeneration) {
@@ -130,6 +136,7 @@ export function enqueueCommandInLane<T>(
   opts?: {
     warnAfterMs?: number;
     onWait?: (waitMs: number, queuedAhead: number) => void;
+    getDiagnosticSuffix?: (result: T) => string | undefined;
   },
 ): Promise<T> {
   const cleaned = lane.trim() || CommandLane.Main;
@@ -143,6 +150,9 @@ export function enqueueCommandInLane<T>(
       enqueuedAt: Date.now(),
       warnAfterMs,
       onWait: opts?.onWait,
+      getDiagnosticSuffix: opts?.getDiagnosticSuffix
+        ? (result) => opts.getDiagnosticSuffix!(result as T)
+        : undefined,
     });
     logLaneEnqueue(cleaned, state.queue.length + state.activeTaskIds.size);
     drainLane(cleaned);
@@ -154,6 +164,7 @@ export function enqueueCommand<T>(
   opts?: {
     warnAfterMs?: number;
     onWait?: (waitMs: number, queuedAhead: number) => void;
+    getDiagnosticSuffix?: (result: T) => string | undefined;
   },
 ): Promise<T> {
   return enqueueCommandInLane(CommandLane.Main, task, opts);
@@ -230,6 +241,20 @@ export function getActiveTaskCount(): number {
     total += s.activeTaskIds.size;
   }
   return total;
+}
+
+/**
+ * Returns a map of lane name → active task count for lanes with at least one
+ * actively executing task. Useful for diagnostics on drain/restart.
+ */
+export function getActiveLanes(): Map<string, number> {
+  const result = new Map<string, number>();
+  for (const [name, s] of lanes.entries()) {
+    if (s.activeTaskIds.size > 0) {
+      result.set(name, s.activeTaskIds.size);
+    }
+  }
+  return result;
 }
 
 /**

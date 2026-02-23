@@ -312,7 +312,7 @@ export async function runEmbeddedAttempt(
   const runAbortController = new AbortController();
 
   log.debug(
-    `embedded run start: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}`,
+    `embedded run start: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}${params.trigger ? ` trigger=${params.trigger}` : ""}`,
   );
 
   const runtime = resolveAgentRuntime(params);
@@ -666,6 +666,7 @@ export async function runEmbeddedAttempt(
       const { builtInTools, customTools } = splitSdkTools({
         tools,
         sandboxEnabled: !!sandbox?.enabled,
+        sessionKey: params.sessionKey,
       });
 
       // Add client tools (OpenResponses hosted tools) to customTools
@@ -1020,7 +1021,7 @@ export async function runEmbeddedAttempt(
             }
             if (!isProbeSession) {
               log.warn(
-                `embedded run timeout: runId=${params.runId} sessionId=${params.sessionId} timeoutMs=${params.timeoutMs}`,
+                `embedded run timeout: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} timeoutMs=${params.timeoutMs}`,
               );
             }
             if (
@@ -1350,6 +1351,7 @@ export async function runEmbeddedAttempt(
                 sessionId: params.sessionId,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
+                model: params.modelId,
               },
             )
             .catch((err) => {

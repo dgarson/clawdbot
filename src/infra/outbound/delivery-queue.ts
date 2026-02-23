@@ -221,7 +221,10 @@ export async function recoverPendingDeliveries(opts: {
   // Process oldest first.
   pending.sort((a, b) => a.enqueuedAt - b.enqueuedAt);
 
-  opts.log.info(`Found ${pending.length} pending delivery entries — starting recovery`);
+  const oldestAgeMs = Date.now() - pending[0].enqueuedAt;
+  opts.log.info(
+    `Found ${pending.length} pending delivery entries — starting recovery (oldestAgeMs=${oldestAgeMs})`,
+  );
 
   const delayFn = opts.delay ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const deadline = Date.now() + (opts.maxRecoveryMs ?? 60_000);
@@ -293,7 +296,7 @@ export async function recoverPendingDeliveries(opts: {
       }
       failed += 1;
       opts.log.warn(
-        `Retry failed for delivery ${entry.id}: ${err instanceof Error ? err.message : String(err)}`,
+        `Retry failed for delivery ${entry.id} (channel=${entry.channel} to=${entry.to}): ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

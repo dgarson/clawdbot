@@ -5,6 +5,7 @@
 Preserve existing payload shaping, verbosity policy, and error classification across runtime implementations.
 
 Baseline references:
+
 - `agent-runtime/review/codex/08-callbacks-errors-and-payloads.md`
 - `src/agents/pi-embedded-runner/run.ts`
 - `src/agents/pi-embedded-runner/run/payloads.ts`
@@ -12,6 +13,7 @@ Baseline references:
 ## Terminal result mapping
 
 CSDK terminal result must map into existing attempt result fields:
+
 - `promptError`
 - `lastAssistant`
 - `assistantTexts`
@@ -20,6 +22,7 @@ CSDK terminal result must map into existing attempt result fields:
 - messaging telemetry
 
 Map SDK stop reasons to existing behavior classes:
+
 - normal end turn
 - tool use required
 - refusal/safety stop
@@ -29,6 +32,7 @@ Map SDK stop reasons to existing behavior classes:
 ## User-facing error parity
 
 Retain current shaped responses for:
+
 - context overflow
 - compaction failure
 - role ordering conflicts
@@ -39,6 +43,7 @@ Retain current shaped responses for:
 ## Payload policy parity
 
 Reuse existing payload builder:
+
 - do not add runtime-specific formatting branch unless required.
 - preserve suppression rules for mutating tool error warnings.
 - preserve reasoning formatting behavior.

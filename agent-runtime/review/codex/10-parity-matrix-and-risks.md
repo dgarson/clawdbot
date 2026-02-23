@@ -2,15 +2,15 @@
 
 ## High-level parity matrix
 
-| Area | Pi path | `csdk` target | Risk |
-|---|---|---|---|
-| Run orchestration | `runEmbeddedPiAgent` | keep orchestrator unchanged | Low |
-| Hooks | `before_model_resolve` through `after_tool_call` | keep full ordering | Medium |
-| Streaming callbacks | `subscribeEmbeddedPiSession` and message handlers | adapter must preserve ordering | High |
-| Tool approval / sandbox behavior | tool execution handler chain | verify with existing test fixtures | High |
-| Compaction | before/after compaction hooks + retry loop | requires event mapping | Medium |
-| Abort/queue/wait | run control plane | reuse existing APIs | Low |
-| Payload shaping | `run/payloads.ts` | reuse existing shaping | Medium |
+| Area                             | Pi path                                           | `csdk` target                      | Risk   |
+| -------------------------------- | ------------------------------------------------- | ---------------------------------- | ------ |
+| Run orchestration                | `runEmbeddedPiAgent`                              | keep orchestrator unchanged        | Low    |
+| Hooks                            | `before_model_resolve` through `after_tool_call`  | keep full ordering                 | Medium |
+| Streaming callbacks              | `subscribeEmbeddedPiSession` and message handlers | adapter must preserve ordering     | High   |
+| Tool approval / sandbox behavior | tool execution handler chain                      | verify with existing test fixtures | High   |
+| Compaction                       | before/after compaction hooks + retry loop        | requires event mapping             | Medium |
+| Abort/queue/wait                 | run control plane                                 | reuse existing APIs                | Low    |
+| Payload shaping                  | `run/payloads.ts`                                 | reuse existing shaping             | Medium |
 
 ## Callback surface dependency map
 

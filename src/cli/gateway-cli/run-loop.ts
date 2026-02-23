@@ -1,4 +1,6 @@
+import { loadConfig } from "../../config/config.js";
 import type { startGatewayServer } from "../../gateway/server.js";
+import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { acquireGatewayLock } from "../../infra/gateway-lock.js";
 import { restartGatewayProcessWithFreshPid } from "../../infra/process-respawn.js";
 import {
@@ -9,6 +11,7 @@ import {
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   getActiveTaskCount,
+  getActiveLanes,
   resetAllLanes,
   waitForActiveTasks,
 } from "../../process/command-queue.js";
@@ -112,14 +115,25 @@ export async function runGatewayLoop(params: {
         if (isRestart) {
           const activeTasks = getActiveTaskCount();
           if (activeTasks > 0) {
+            const cfg = loadConfig();
+            const laneDetail = isDiagnosticsEnabled(cfg)
+              ? ` lanes=[${[...getActiveLanes().entries()].map(([l, n]) => `${l}:${n}`).join(",")}]`
+              : "";
             gatewayLog.info(
-              `draining ${activeTasks} active task(s) before restart (timeout ${DRAIN_TIMEOUT_MS}ms)`,
+              `draining ${activeTasks} active task(s) before restart (timeout ${DRAIN_TIMEOUT_MS}ms)${laneDetail}`,
             );
             const { drained } = await waitForActiveTasks(DRAIN_TIMEOUT_MS);
             if (drained) {
               gatewayLog.info("all active tasks drained");
             } else {
-              gatewayLog.warn("drain timeout reached; proceeding with restart");
+              const abandoned = getActiveTaskCount();
+              const cfg = loadConfig();
+              const laneDetail = isDiagnosticsEnabled(cfg)
+                ? ` lanes=[${[...getActiveLanes().entries()].map(([l, n]) => `${l}:${n}`).join(",")}]`
+                : "";
+              gatewayLog.warn(
+                `drain timeout reached; proceeding with restart (abandonedTasks=${abandoned})${laneDetail}`,
+              );
             }
           }
         }

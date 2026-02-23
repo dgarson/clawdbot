@@ -2,9 +2,9 @@ import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { WorkItem, WorkqDatabaseApi } from "./types.js";
 import { WorkqDatabase } from "./database.js";
 import { registerWorkqTools } from "./tools.js";
+import type { WorkItem, WorkqDatabaseApi } from "./types.js";
 
 type ToolDef = {
   name: string;

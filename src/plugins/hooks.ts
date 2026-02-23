@@ -172,6 +172,25 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return next;
   };
 
+  const str = (v: unknown): string | undefined =>
+    typeof v === "string" ? v : typeof v === "number" ? String(v) : undefined;
+
+  const buildHookContextHint = (ctx: unknown, event?: unknown): string => {
+    const c = ctx && typeof ctx === "object" ? (ctx as Record<string, unknown>) : null;
+    const e = event && typeof event === "object" ? (event as Record<string, unknown>) : null;
+    if (!c) {
+      return "";
+    }
+    const parts = [
+      str(c["agentId"]) ? `agent=${str(c["agentId"])}` : null,
+      str(c["sessionKey"]) ? `session=${str(c["sessionKey"])}` : null,
+      str(c["messageProvider"]) ? `provider=${str(c["messageProvider"])}` : null,
+      str(c["model"]) ? `model=${str(c["model"])}` : null,
+      typeof e?.["durationMs"] === "number" ? `durationMs=${e["durationMs"]}` : null,
+    ].filter(Boolean);
+    return parts.length ? parts.join(" ") : "";
+  };
+
   /**
    * Run a hook that doesn't return a value (fire-and-forget style).
    * All handlers are executed in parallel for performance.
@@ -186,7 +205,10 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return;
     }
 
-    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers)`);
+    const agentHint = buildHookContextHint(ctx, event);
+    logger?.debug?.(
+      `[hooks] running ${hookName} (${hooks.length} handlers)${agentHint ? ` ${agentHint}` : ""}`,
+    );
 
     const promises = hooks.map(async (hook) => {
       try {
@@ -219,7 +241,10 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return undefined;
     }
 
-    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers, sequential)`);
+    const agentHint = buildHookContextHint(ctx);
+    logger?.debug?.(
+      `[hooks] running ${hookName} (${hooks.length} handlers, sequential)${agentHint ? ` ${agentHint}` : ""}`,
+    );
 
     let result: TResult | undefined;
 

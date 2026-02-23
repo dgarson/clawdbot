@@ -73,8 +73,17 @@ function logAnnounceGiveUp(entry: SubagentRunRecord, reason: "retry-limit" | "ex
   const endedAgoMs =
     typeof entry.endedAt === "number" ? Math.max(0, Date.now() - entry.endedAt) : undefined;
   const endedAgoLabel = endedAgoMs != null ? `${Math.round(endedAgoMs / 1000)}s` : "n/a";
+  const extras = [
+    entry.model ? `model=${entry.model}` : null,
+    entry.endedReason ? `endedReason=${entry.endedReason}` : null,
+    entry.outcome?.status && entry.outcome.status !== "ok"
+      ? `outcomeStatus=${entry.outcome.status}${entry.outcome.error ? ` outcomeError=${entry.outcome.error}` : ""}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
   defaultRuntime.log(
-    `[warn] Subagent announce give up (${reason}) run=${entry.runId} child=${entry.childSessionKey} requester=${entry.requesterSessionKey} retries=${retryCount} endedAgo=${endedAgoLabel}`,
+    `[warn] Subagent announce give up (${reason}) run=${entry.runId} child=${entry.childSessionKey} requester=${entry.requesterSessionKey} retries=${retryCount} endedAgo=${endedAgoLabel}${extras ? ` ${extras}` : ""}`,
   );
 }
 
