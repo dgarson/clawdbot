@@ -5,6 +5,7 @@ import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import JSON5 from "json5";
 import { ensureOwnerDisplaySecret } from "../agents/owner-display.js";
+import { appendChangeAuditRecord } from "../infra/change-audit.js";
 import { loadDotEnv } from "../infra/dotenv.js";
 import { normalizeSafeBinProfileFixtures } from "../infra/exec-safe-bin-policy.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
@@ -121,6 +122,20 @@ export type ConfigWriteOptions = {
    * even if schema/default normalization reintroduces them.
    */
   unsetPaths?: string[][];
+  /**
+   * Optional gateway/control-plane attribution context for change auditing.
+   */
+  auditContext?: {
+    actor?: string;
+    deviceId?: string;
+    clientIp?: string;
+    connId?: string;
+    agentId?: string;
+    sessionId?: string;
+    sessionKey?: string;
+    sessionLogPath?: string;
+    runId?: string;
+  };
 };
 
 export type ReadConfigFileSnapshotForWriteResult = {
@@ -1149,6 +1164,37 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         errorCode,
         errorMessage,
       });
+      await appendChangeAuditRecord({
+        source: "config-io",
+        eventType: "config.write",
+        op: "write",
+        targetPath: configPath,
+        beforeHash: auditRecordBase.previousHash,
+        afterHash: result === "failed" ? null : auditRecordBase.nextHash,
+        beforeBytes: auditRecordBase.previousBytes,
+        afterBytes: result === "failed" ? null : auditRecordBase.nextBytes,
+        agentId: options.auditContext?.agentId,
+        sessionId: options.auditContext?.sessionId,
+        sessionKey: options.auditContext?.sessionKey,
+        runId: options.auditContext?.runId,
+        sessionLogPath: options.auditContext?.sessionLogPath,
+        actor: options.auditContext
+          ? {
+              actor: options.auditContext.actor,
+              deviceId: options.auditContext.deviceId,
+              clientIp: options.auditContext.clientIp,
+              connId: options.auditContext.connId,
+            }
+          : undefined,
+        changedPaths:
+          changedPaths && changedPaths.size > 0 ? [...changedPaths].slice(0, 64) : undefined,
+        result: result === "failed" ? "error" : "ok",
+        error: errorMessage,
+        details: {
+          writeMode: result,
+          suspicious: suspiciousReasons,
+        },
+      });
     };
 
     const tmp = path.join(
@@ -1291,5 +1337,6 @@ export async function writeConfigFile(
   await io.writeConfigFile(cfg, {
     envSnapshotForRestore: sameConfigPath ? options.envSnapshotForRestore : undefined,
     unsetPaths: options.unsetPaths,
+    auditContext: options.auditContext,
   });
 }

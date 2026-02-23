@@ -27,8 +27,10 @@ import {
 } from "../../commands/agents.config.js";
 import { loadConfig, writeConfigFile } from "../../config/config.js";
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
+import { appendChangeAuditRecord, readFileAuditSnapshot } from "../../infra/change-audit.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
 import { resolveUserPath } from "../../utils.js";
+import { formatControlPlaneActor, resolveControlPlaneActor } from "../control-plane-audit.js";
 import {
   ErrorCodes,
   errorShape,
@@ -220,7 +222,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const result = listAgentsForGateway(cfg);
     respond(true, result, undefined);
   },
-  "agents.create": async ({ params, respond }) => {
+  "agents.create": async ({ params, respond, client }) => {
     if (!validateAgentsCreateParams(params)) {
       respond(
         false,
@@ -274,7 +276,16 @@ export const agentsHandlers: GatewayRequestHandlers = {
     await ensureAgentWorkspace({ dir: workspaceDir, ensureBootstrapFiles: !skipBootstrap });
     await fs.mkdir(resolveSessionTranscriptsDirForAgent(agentId), { recursive: true });
 
-    await writeConfigFile(nextConfig);
+    const createActor = resolveControlPlaneActor(client);
+    await writeConfigFile(nextConfig, {
+      auditContext: {
+        actor: createActor.actor,
+        deviceId: createActor.deviceId,
+        clientIp: createActor.clientIp,
+        connId: createActor.connId,
+        agentId,
+      },
+    });
 
     // Always write Name to IDENTITY.md; optionally include emoji/avatar.
     const safeName = sanitizeIdentityLine(rawName);
@@ -292,7 +303,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
 
     respond(true, { ok: true, agentId, name: rawName, workspace: workspaceDir }, undefined);
   },
-  "agents.update": async ({ params, respond }) => {
+  "agents.update": async ({ params, respond, client }) => {
     if (!validateAgentsUpdateParams(params)) {
       respond(
         false,
@@ -335,7 +346,16 @@ export const agentsHandlers: GatewayRequestHandlers = {
       ...(model ? { model } : {}),
     });
 
-    await writeConfigFile(nextConfig);
+    const updateActor = resolveControlPlaneActor(client);
+    await writeConfigFile(nextConfig, {
+      auditContext: {
+        actor: updateActor.actor,
+        deviceId: updateActor.deviceId,
+        clientIp: updateActor.clientIp,
+        connId: updateActor.connId,
+        agentId,
+      },
+    });
 
     if (workspaceDir) {
       const skipBootstrap = Boolean(nextConfig.agents?.defaults?.skipBootstrap);
@@ -351,7 +371,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
 
     respond(true, { ok: true, agentId }, undefined);
   },
-  "agents.delete": async ({ params, respond }) => {
+  "agents.delete": async ({ params, respond, client }) => {
     if (!validateAgentsDeleteParams(params)) {
       respond(
         false,
@@ -391,7 +411,16 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
 
     const result = pruneAgentConfig(cfg, agentId);
-    await writeConfigFile(result.config);
+    const deleteActor = resolveControlPlaneActor(client);
+    await writeConfigFile(result.config, {
+      auditContext: {
+        actor: deleteActor.actor,
+        deviceId: deleteActor.deviceId,
+        clientIp: deleteActor.clientIp,
+        connId: deleteActor.connId,
+        agentId,
+      },
+    });
 
     if (deleteFiles) {
       await Promise.all([
@@ -484,7 +513,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
-  "agents.files.set": async ({ params, respond }) => {
+  "agents.files.set": async ({ params, respond, client }) => {
     if (!validateAgentsFilesSetParams(params)) {
       respond(
         false,
@@ -506,7 +535,50 @@ export const agentsHandlers: GatewayRequestHandlers = {
     await fs.mkdir(workspaceDir, { recursive: true });
     const filePath = path.join(workspaceDir, name);
     const content = String(params.content ?? "");
-    await fs.writeFile(filePath, content, "utf-8");
+    const before = await readFileAuditSnapshot(filePath);
+    const actor = resolveControlPlaneActor(client);
+    try {
+      await fs.writeFile(filePath, content, "utf-8");
+      const after = await readFileAuditSnapshot(filePath);
+      await appendChangeAuditRecord({
+        source: "gateway.agents",
+        eventType: "agents.files.set",
+        op: "write",
+        targetPath: filePath,
+        beforeHash: before.hash,
+        afterHash: after.hash,
+        beforeBytes: before.bytes,
+        afterBytes: after.bytes,
+        agentId,
+        actor,
+        result: "ok",
+        details: {
+          workspace: workspaceDir,
+          fileName: name,
+        },
+      });
+    } catch (error) {
+      await appendChangeAuditRecord({
+        source: "gateway.agents",
+        eventType: "agents.files.set",
+        op: "write",
+        targetPath: filePath,
+        beforeHash: before.hash,
+        afterHash: null,
+        beforeBytes: before.bytes,
+        afterBytes: null,
+        agentId,
+        actor,
+        result: "error",
+        error: error instanceof Error ? error.message : String(error),
+        details: {
+          workspace: workspaceDir,
+          fileName: name,
+          actorSummary: formatControlPlaneActor(actor),
+        },
+      });
+      throw error;
+    }
     const meta = await statFile(filePath);
     respond(
       true,
