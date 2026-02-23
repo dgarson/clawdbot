@@ -85,6 +85,7 @@ const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
 const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
+const CommandPaletteV2     = React.lazy(() => import("./views/CommandPaletteV2"));
 const SupportCenter        = React.lazy(() => import("./views/SupportCenter"));
 const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"));
 const AgentMemoryViewer    = React.lazy(() => import("./views/AgentMemoryViewer"));
@@ -359,6 +360,7 @@ export const navItems = [
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
   { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
   { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
+  { id: "commands-v2",     label: "Commands V2",    emoji: "🔮", shortcut: null },
   { id: "support",         label: "Support",        emoji: "🎫", shortcut: null },
   { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
   { id: "memory",          label: "Agent Memory",   emoji: "🧠", shortcut: null },
@@ -627,6 +629,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "permissions":    <TableSkeleton rows={8} />,
   "activity":       <ContentSkeleton />,
   "commands":       <ContentSkeleton />,
+  "commands-v2":    <ContentSkeleton />,
   "support":        <ContentSkeleton />,
   "releases":       <DashboardSkeleton />,
   "memory":         <ContentSkeleton />,
@@ -1126,6 +1129,7 @@ function AppContent() {
       case "permissions":     return <PermissionsManager />;
       case "activity":        return <ActivityFeed />;
       case "commands":        return <CommandPalette />;
+      case "commands-v2":     return <CommandPaletteV2 />;
       case "support":         return <SupportCenter />;
       case "releases":        return <ReleasePipeline />;
       case "memory":          return <AgentMemoryViewer />;
