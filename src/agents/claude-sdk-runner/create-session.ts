@@ -18,7 +18,6 @@
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
@@ -74,54 +73,6 @@ const SDK_BLOCKED_EXTRA_PARAMS = new Set([
   "env",
 ]);
 const log = createSubsystemLogger("agent/claude-sdk");
-
-function toSingleLine(value: string, maxLen = 280): string {
-  const compact = value.replace(/\s+/g, " ").trim();
-  if (compact.length <= maxLen) {
-    return compact;
-  }
-  return `${compact.slice(0, maxLen - 3)}...`;
-}
-
-function emitClaudeSdkRuntimeWarning(params: {
-  level: "warning" | "error";
-  source: string;
-  message: string;
-  sessionId: string;
-  claudeSdkSessionId?: string;
-  provider: string;
-  model: string;
-  subtype?: string;
-}) {
-  const message = toSingleLine(params.message);
-  const detailParts = [
-    `sessionId=${params.sessionId}`,
-    `claudeSessionId=${params.claudeSdkSessionId ?? "unknown"}`,
-    `provider=${params.provider}`,
-    `model=${params.model}`,
-    `source=${params.source}`,
-    `subtype=${params.subtype ?? "unknown"}`,
-    `message="${message}"`,
-  ];
-  const line = `runtime warning: runtime=claude-sdk ${detailParts.join(" ")}`;
-  if (params.level === "error") {
-    log.error(line);
-  } else {
-    log.warn(line);
-  }
-  emitDiagnosticEvent({
-    type: "runtime.warning",
-    runtime: "claude-sdk",
-    source: params.source,
-    level: params.level,
-    sessionId: params.sessionId,
-    provider: params.provider,
-    model: params.model,
-    code: params.subtype,
-    message,
-    details: `claudeSessionId=${params.claudeSdkSessionId ?? "unknown"}`,
-  });
-}
 
 function buildQueryOptions(
   params: ClaudeSdkSessionParams,
@@ -266,7 +217,6 @@ export async function createClaudeSdkSession(
     messages: [],
     claudeSdkSessionId: params.claudeSdkResumeSessionId,
     sdkResultError: undefined,
-    sdkResultErrorContext: undefined,
     lastStderr: undefined,
     streamingBlockTypes: new Map(),
     streamingPartialMessage: null,
@@ -330,8 +280,6 @@ export async function createClaudeSdkSession(
     // prompt — runs the Agent SDK query() loop for one turn
     // -------------------------------------------------------------------------
     async prompt(text, options) {
-      state.sdkResultError = undefined;
-      state.sdkResultErrorContext = undefined;
       // Drain any pending steer text by prepending to the current prompt
       const steerText = state.pendingSteer.splice(0).join("\n");
       let effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
@@ -434,21 +382,7 @@ export async function createClaudeSdkSession(
         // Throwing here ensures prompt() rejects rather than resolving silently.
         if (state.sdkResultError) {
           const errMsg = state.sdkResultError;
-          const errContext = state.sdkResultErrorContext as
-            | { source?: string; subtype?: string }
-            | undefined;
-          emitClaudeSdkRuntimeWarning({
-            level: "warning",
-            source: `sdk_result.${errContext?.source ?? "fallback"}`,
-            message: errMsg,
-            sessionId: params.sessionId,
-            claudeSdkSessionId: state.claudeSdkSessionId,
-            provider: params.claudeSdkConfig?.provider ?? "claude-code",
-            model: params.modelId,
-            subtype: errContext?.subtype,
-          });
           state.sdkResultError = undefined;
-          state.sdkResultErrorContext = undefined;
           throw new Error(errMsg);
         }
       } catch (err) {
@@ -460,21 +394,7 @@ export async function createClaudeSdkSession(
         // when the subprocess exits with a generic code-1 transport error.
         if (state.sdkResultError) {
           const errMsg = state.sdkResultError;
-          const errContext = state.sdkResultErrorContext as
-            | { source?: string; subtype?: string }
-            | undefined;
-          emitClaudeSdkRuntimeWarning({
-            level: "error",
-            source: `sdk_result.${errContext?.source ?? "fallback"}`,
-            message: errMsg,
-            sessionId: params.sessionId,
-            claudeSdkSessionId: state.claudeSdkSessionId,
-            provider: params.claudeSdkConfig?.provider ?? "claude-code",
-            model: params.modelId,
-            subtype: errContext?.subtype,
-          });
           state.sdkResultError = undefined;
-          state.sdkResultErrorContext = undefined;
           throw mapSdkError(new Error(errMsg, { cause: err }));
         }
         // Enrich process-exit errors with captured stderr for actionable diagnostics.

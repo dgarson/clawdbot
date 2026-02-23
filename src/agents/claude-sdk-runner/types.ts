@@ -97,14 +97,6 @@ export type ClaudeSdkEventAdapterState = {
    *  prompt() method throws this after the for-await loop so callers receive
    *  a proper rejection rather than a silent successful resolution. */
   sdkResultError: string | undefined;
-  /** Source metadata for sdkResultError to improve attribution in logs/diagnostics. */
-  sdkResultErrorContext:
-    | {
-        subtype?: string;
-        source?: "errors" | "result_string" | "result_object_message" | "subtype" | "fallback";
-        isError?: boolean;
-      }
-    | undefined;
   /** Last stderr output captured from the Claude Code subprocess.
    *  Attached to process-exit errors for actionable diagnostics. */
   lastStderr: string | undefined;

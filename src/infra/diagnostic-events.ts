@@ -37,26 +37,24 @@ export type DiagnosticUsageEvent = DiagnosticBaseEvent & {
   durationMs?: number;
 };
 
-export type DiagnosticRuntimeWarningEvent = DiagnosticBaseEvent & {
-  type: "runtime.warning";
-  runtime: string;
+export type DiagnosticApiUsageEvent = DiagnosticBaseEvent & {
+  type: "api.usage";
   source: string;
-  level: "warning" | "error";
-  sessionKey?: string;
-  sessionId?: string;
+  apiKind: string;
+  channel?: string;
   provider?: string;
   model?: string;
-  code?: string;
-  message: string;
-  details?: string;
+  requestCount?: number;
+  inputChars?: number;
+  success?: boolean;
+  latencyMs?: number;
+  error?: string;
 };
 
 export type DiagnosticTtsUsageEvent = DiagnosticBaseEvent & {
   type: "tts.usage";
   source: string;
   mode: "media" | "telephony";
-  sessionKey?: string;
-  sessionId?: string;
   channel?: string;
   provider?: string;
   model?: string;
@@ -69,29 +67,6 @@ export type DiagnosticTtsUsageEvent = DiagnosticBaseEvent & {
   voiceCompatible?: boolean;
   attempts?: number;
   fallbackUsed?: boolean;
-  error?: string;
-};
-
-export type DiagnosticApiUsageEvent = DiagnosticBaseEvent & {
-  type: "api.usage";
-  source: string;
-  apiKind: "tts" | "tts.summary";
-  sessionKey?: string;
-  sessionId?: string;
-  channel?: string;
-  provider: string;
-  model?: string;
-  requestCount: number;
-  inputChars?: number;
-  success: boolean;
-  latencyMs?: number;
-  usage?: {
-    input?: number;
-    output?: number;
-    cacheRead?: number;
-    cacheWrite?: number;
-    total?: number;
-  };
   error?: string;
 };
 
@@ -225,9 +200,8 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
 
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
-  | DiagnosticRuntimeWarningEvent
-  | DiagnosticTtsUsageEvent
   | DiagnosticApiUsageEvent
+  | DiagnosticTtsUsageEvent
   | DiagnosticWebhookReceivedEvent
   | DiagnosticWebhookProcessedEvent
   | DiagnosticWebhookErrorEvent

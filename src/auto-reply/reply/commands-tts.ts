@@ -122,7 +122,6 @@ export const handleTtsCommands: CommandHandler = async (params, allowTextCommand
       cfg: params.cfg,
       channel: params.command.channel,
       prefsPath,
-      source: "command.tts.audio",
     });
 
     if (result.success && result.audioPath) {

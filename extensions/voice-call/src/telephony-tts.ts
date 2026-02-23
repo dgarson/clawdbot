@@ -7,7 +7,6 @@ export type TelephonyTtsRuntime = {
     text: string;
     cfg: CoreConfig;
     prefsPath?: string;
-    source?: string;
   }) => Promise<{
     success: boolean;
     audioBuffer?: Buffer;
@@ -36,7 +35,6 @@ export function createTelephonyTtsProvider(params: {
       const result = await runtime.textToSpeechTelephony({
         text,
         cfg: mergedConfig,
-        source: "voice-call.telephony",
       });
 
       if (!result.success || !result.audioBuffer || !result.sampleRate) {

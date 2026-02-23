@@ -73,11 +73,6 @@ type SdkResultErrorMessage = {
   result?: unknown;
 };
 
-type SdkResultErrorDetails = {
-  message: string;
-  source: "errors" | "result_string" | "result_object_message" | "subtype" | "fallback";
-};
-
 // ---------------------------------------------------------------------------
 // Stream event types (Anthropic streaming API events via includePartialMessages)
 // ---------------------------------------------------------------------------
@@ -219,20 +214,15 @@ export function translateSdkMessageToEvents(
     const resultMsg = message as SdkResultErrorMessage;
     // Detect error results: SDK sets subtype to "error_*" or is_error: true.
     if (resultMsg.subtype?.startsWith("error_") || resultMsg.is_error) {
-      const details = extractSdkResultErrorMessage(resultMsg);
+      const firstErrorMsg = extractSdkResultErrorMessage(resultMsg);
       // Store error message so prompt() throws after the for-await loop.
       // This prevents SDK failures from resolving successfully.
-      state.sdkResultError = details.message;
-      state.sdkResultErrorContext = {
-        subtype: resultMsg.subtype,
-        source: details.source,
-        isError: resultMsg.is_error === true,
-      };
+      state.sdkResultError = firstErrorMsg;
       // Also include error details on the agent_end event so subscribers
       // (e.g. hooks, monitoring) can inspect the failure without awaiting prompt().
       emit({
         type: "agent_end",
-        error: { subtype: resultMsg.subtype, message: details.message },
+        error: { subtype: resultMsg.subtype, message: firstErrorMsg },
       } as EmbeddedPiSubscribeEvent);
     } else {
       emit({ type: "agent_end" } as EmbeddedPiSubscribeEvent);
@@ -243,35 +233,35 @@ export function translateSdkMessageToEvents(
   // Unknown message types are ignored
 }
 
-function extractSdkResultErrorMessage(resultMsg: SdkResultErrorMessage): SdkResultErrorDetails {
+function extractSdkResultErrorMessage(resultMsg: SdkResultErrorMessage): string {
   if (Array.isArray(resultMsg.errors) && resultMsg.errors.length > 0) {
     const first = resultMsg.errors[0];
     if (typeof first === "string" && first.trim().length > 0) {
-      return { message: first.trim(), source: "errors" };
+      return first.trim();
     }
     if (first && typeof first === "object") {
       const nestedMessage = (first as { message?: unknown }).message;
       if (typeof nestedMessage === "string" && nestedMessage.trim().length > 0) {
-        return { message: nestedMessage.trim(), source: "errors" };
+        return nestedMessage.trim();
       }
     }
-    return { message: String(first), source: "errors" };
+    return String(first);
   }
 
   if (typeof resultMsg.result === "string" && resultMsg.result.trim().length > 0) {
-    return { message: resultMsg.result.trim(), source: "result_string" };
+    return resultMsg.result.trim();
   }
   if (resultMsg.result && typeof resultMsg.result === "object") {
     const nestedMessage = (resultMsg.result as { message?: unknown }).message;
     if (typeof nestedMessage === "string" && nestedMessage.trim().length > 0) {
-      return { message: nestedMessage.trim(), source: "result_object_message" };
+      return nestedMessage.trim();
     }
   }
 
   if (typeof resultMsg.subtype === "string" && resultMsg.subtype.startsWith("error_")) {
-    return { message: resultMsg.subtype, source: "subtype" };
+    return resultMsg.subtype;
   }
-  return { message: "SDK execution error", source: "fallback" };
+  return "SDK execution error";
 }
 
 // ---------------------------------------------------------------------------
