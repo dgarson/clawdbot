@@ -16,6 +16,6 @@ export function splitSdkTools(options: {
   const { tools, sessionKey } = options;
   return {
     builtInTools: [],
-    customTools: toToolDefinitions(tools, sessionKey),
+    customTools: toToolDefinitions(tools, sessionKey ? { sessionKey } : undefined),
   };
 }
