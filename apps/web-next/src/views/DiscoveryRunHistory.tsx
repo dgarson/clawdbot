@@ -1,1188 +1,780 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { cn } from "../lib/utils";
 import {
+  Search,
+  Filter,
+  ChevronUp,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
   Users,
-  AlertTriangle,
+  FileSearch,
+  DollarSign,
   CheckCircle2,
   XCircle,
-  Ban,
-  ChevronDown,
-  ChevronUp,
-  Play,
-  Search,
-  Calendar,
-  Filter,
+  AlertCircle,
+  Expand,
+  X,
 } from "lucide-react";
-import { cn } from "../lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type RunStatus = "Completed" | "Failed" | "Cancelled";
-type DateRangeFilter = "Today" | "Last 7 days" | "Last 30 days";
-type StatusFilter = "All" | "Completed" | "Failed" | "Cancelled";
-type FindingSeverity = "Critical" | "High" | "Medium" | "Low" | "Info";
+type RunStatus = "completed" | "failed" | "partial";
 
-interface AgentEntry {
+interface AgentSummary {
+  id: string;
   name: string;
-  role: string;
+  domain: string;
+  status: "completed" | "failed" | "partial";
+  findingsCount: number;
+  tokensUsed: number;
+  cost: number;
+  duration: number; // seconds
 }
 
-interface FindingSummary {
-  severity: FindingSeverity;
-  count: number;
+interface Finding {
+  id: string;
+  title: string;
+  severity: "critical" | "high" | "medium" | "low";
+  agent: string;
+  timestamp: string;
 }
 
 interface DiscoveryRun {
   id: string;
+  startTime: string; // ISO
+  endTime: string; // ISO
+  duration: number; // seconds
   status: RunStatus;
-  startedAt: string;
-  endedAt: string;
-  durationMin: number;
   agentCount: number;
-  findingCount: number;
-  agents: AgentEntry[];
-  findings: FindingSummary[];
-  config: Record<string, unknown>;
+  agents: AgentSummary[];
+  findingsCount: number;
+  findings: Finding[];
+  totalCost: number;
+  waveBreakdown: {
+    wave: 1 | 2 | 3;
+    agents: number;
+    findings: number;
+    cost: number;
+  }[];
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const MOCK_RUNS: DiscoveryRun[] = [
-  {
-    id: "run-7f3a2b",
-    status: "Completed",
-    startedAt: "2026-02-23T14:00:00Z",
-    endedAt: "2026-02-23T14:47:00Z",
-    durationMin: 47,
-    agentCount: 5,
-    findingCount: 12,
-    agents: [
-      { name: "Atlas", role: "AI Infrastructure" },
-      { name: "Beacon", role: "Developer Tooling" },
-      { name: "Carta", role: "Workflow Automation" },
-      { name: "Delphi", role: "Observability" },
-      { name: "Echo", role: "Security & Compliance" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 3 },
-      { severity: "Medium", count: 4 },
-      { severity: "Low", count: 3 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["AI Infrastructure", "Developer Tooling", "Workflow Automation", "Observability", "Security"],
-    },
-  },
-  {
-    id: "run-a1c9e4",
-    status: "Failed",
-    startedAt: "2026-02-23T10:00:00Z",
-    endedAt: "2026-02-23T10:18:00Z",
-    durationMin: 18,
-    agentCount: 3,
-    findingCount: 2,
-    agents: [
-      { name: "Fenix", role: "Data Platforms" },
-      { name: "Gust", role: "Cost Optimization" },
-      { name: "Helix", role: "ML/AI Platform" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 1 },
-      { severity: "Medium", count: 1 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "partial",
-      maxAgents: 3,
-      waveCount: 1,
-      timeoutMin: 30,
-      domains: ["Data Platforms", "Cost Optimization", "ML/AI Platform"],
-      error: "Agent timeout — Gust exceeded 30m limit",
-    },
-  },
-  {
-    id: "run-b82d1f",
-    status: "Completed",
-    startedAt: "2026-02-22T18:30:00Z",
-    endedAt: "2026-02-22T19:24:00Z",
-    durationMin: 54,
-    agentCount: 6,
-    findingCount: 19,
-    agents: [
-      { name: "Iris", role: "Product Analytics" },
-      { name: "Jade", role: "API Design" },
-      { name: "Kestrel", role: "Frontend Platform" },
-      { name: "Luna", role: "Auth & Identity" },
-      { name: "Mira", role: "Notifications" },
-      { name: "Nova", role: "Search & Discovery" },
-    ],
-    findings: [
-      { severity: "Critical", count: 2 },
-      { severity: "High", count: 5 },
-      { severity: "Medium", count: 7 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 6,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Product Analytics", "API Design", "Frontend Platform", "Auth & Identity", "Notifications", "Search"],
-    },
-  },
-  {
-    id: "run-c34f78",
-    status: "Cancelled",
-    startedAt: "2026-02-22T09:00:00Z",
-    endedAt: "2026-02-22T09:11:00Z",
-    durationMin: 11,
-    agentCount: 4,
-    findingCount: 0,
-    agents: [
-      { name: "Orion", role: "Billing & Payments" },
-      { name: "Pulse", role: "Infrastructure" },
-      { name: "Quest", role: "Onboarding" },
-      { name: "Raze", role: "Experiments" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 0 },
-      { severity: "Medium", count: 0 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "targeted",
-      maxAgents: 4,
-      waveCount: 2,
-      timeoutMin: 45,
-      domains: ["Billing & Payments", "Infrastructure", "Onboarding", "Experiments"],
-      cancelledBy: "david@example.com",
-      cancelReason: "Manual stop — config error detected",
-    },
-  },
-  {
-    id: "run-d5e912",
-    status: "Completed",
-    startedAt: "2026-02-21T20:00:00Z",
-    endedAt: "2026-02-21T21:02:00Z",
-    durationMin: 62,
-    agentCount: 7,
-    findingCount: 24,
-    agents: [
-      { name: "Sigma", role: "Storage & Databases" },
-      { name: "Terra", role: "Compute" },
-      { name: "Umbra", role: "Networking" },
-      { name: "Vega", role: "Logging & Tracing" },
-      { name: "Wren", role: "CDN & Caching" },
-      { name: "Xero", role: "Rate Limiting" },
-      { name: "Yarn", role: "Queue Systems" },
-    ],
-    findings: [
-      { severity: "Critical", count: 3 },
-      { severity: "High", count: 6 },
-      { severity: "Medium", count: 8 },
-      { severity: "Low", count: 5 },
-      { severity: "Info", count: 2 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 7,
-      waveCount: 3,
-      timeoutMin: 90,
-      domains: ["Storage & Databases", "Compute", "Networking", "Logging & Tracing", "CDN & Caching", "Rate Limiting", "Queue Systems"],
-    },
-  },
-  {
-    id: "run-e7a031",
-    status: "Completed",
-    startedAt: "2026-02-21T14:15:00Z",
-    endedAt: "2026-02-21T14:58:00Z",
-    durationMin: 43,
-    agentCount: 5,
-    findingCount: 9,
-    agents: [
-      { name: "Atlas", role: "AI Infrastructure" },
-      { name: "Beacon", role: "Developer Tooling" },
-      { name: "Carta", role: "Workflow Automation" },
-      { name: "Delphi", role: "Observability" },
-      { name: "Echo", role: "Security & Compliance" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 2 },
-      { severity: "Medium", count: 4 },
-      { severity: "Low", count: 2 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "incremental",
-      maxAgents: 5,
-      waveCount: 2,
-      timeoutMin: 60,
-      domains: ["AI Infrastructure", "Developer Tooling", "Workflow Automation"],
-    },
-  },
-  {
-    id: "run-f1b563",
-    status: "Failed",
-    startedAt: "2026-02-20T16:00:00Z",
-    endedAt: "2026-02-20T16:09:00Z",
-    durationMin: 9,
-    agentCount: 2,
-    findingCount: 0,
-    agents: [
-      { name: "Fenix", role: "Data Platforms" },
-      { name: "Gust", role: "Cost Optimization" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 0 },
-      { severity: "Medium", count: 0 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "partial",
-      maxAgents: 2,
-      waveCount: 1,
-      timeoutMin: 20,
-      domains: ["Data Platforms", "Cost Optimization"],
-      error: "Auth token expired mid-run",
-    },
-  },
-  {
-    id: "run-g3d847",
-    status: "Completed",
-    startedAt: "2026-02-20T10:30:00Z",
-    endedAt: "2026-02-20T11:22:00Z",
-    durationMin: 52,
-    agentCount: 5,
-    findingCount: 16,
-    agents: [
-      { name: "Helix", role: "ML/AI Platform" },
-      { name: "Iris", role: "Product Analytics" },
-      { name: "Jade", role: "API Design" },
-      { name: "Kestrel", role: "Frontend Platform" },
-      { name: "Luna", role: "Auth & Identity" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 4 },
-      { severity: "Medium", count: 6 },
-      { severity: "Low", count: 3 },
-      { severity: "Info", count: 2 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["ML/AI Platform", "Product Analytics", "API Design", "Frontend Platform", "Auth & Identity"],
-    },
-  },
-  // Page 2
-  {
-    id: "run-h9f213",
-    status: "Completed",
-    startedAt: "2026-02-19T19:00:00Z",
-    endedAt: "2026-02-19T19:55:00Z",
-    durationMin: 55,
-    agentCount: 6,
-    findingCount: 21,
-    agents: [
-      { name: "Mira", role: "Notifications" },
-      { name: "Nova", role: "Search & Discovery" },
-      { name: "Orion", role: "Billing & Payments" },
-      { name: "Pulse", role: "Infrastructure" },
-      { name: "Quest", role: "Onboarding" },
-      { name: "Raze", role: "Experiments" },
-    ],
-    findings: [
-      { severity: "Critical", count: 2 },
-      { severity: "High", count: 5 },
-      { severity: "Medium", count: 8 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 2 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 6,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Notifications", "Search & Discovery", "Billing & Payments", "Infrastructure", "Onboarding", "Experiments"],
-    },
-  },
-  {
-    id: "run-i2c590",
-    status: "Cancelled",
-    startedAt: "2026-02-19T09:45:00Z",
-    endedAt: "2026-02-19T09:52:00Z",
-    durationMin: 7,
-    agentCount: 3,
-    findingCount: 0,
-    agents: [
-      { name: "Sigma", role: "Storage & Databases" },
-      { name: "Terra", role: "Compute" },
-      { name: "Umbra", role: "Networking" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 0 },
-      { severity: "Medium", count: 0 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "targeted",
-      maxAgents: 3,
-      waveCount: 2,
-      timeoutMin: 30,
-      domains: ["Storage & Databases", "Compute", "Networking"],
-      cancelledBy: "ops-bot",
-      cancelReason: "Scheduled maintenance window",
-    },
-  },
-  {
-    id: "run-j4e876",
-    status: "Completed",
-    startedAt: "2026-02-18T17:00:00Z",
-    endedAt: "2026-02-18T17:49:00Z",
-    durationMin: 49,
-    agentCount: 5,
-    findingCount: 13,
-    agents: [
-      { name: "Vega", role: "Logging & Tracing" },
-      { name: "Wren", role: "CDN & Caching" },
-      { name: "Xero", role: "Rate Limiting" },
-      { name: "Yarn", role: "Queue Systems" },
-      { name: "Zeta", role: "Event Streaming" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 3 },
-      { severity: "Medium", count: 5 },
-      { severity: "Low", count: 3 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Logging & Tracing", "CDN & Caching", "Rate Limiting", "Queue Systems", "Event Streaming"],
-    },
-  },
-  {
-    id: "run-k6b142",
-    status: "Failed",
-    startedAt: "2026-02-17T11:00:00Z",
-    endedAt: "2026-02-17T11:23:00Z",
-    durationMin: 23,
-    agentCount: 4,
-    findingCount: 3,
-    agents: [
-      { name: "Atlas", role: "AI Infrastructure" },
-      { name: "Beacon", role: "Developer Tooling" },
-      { name: "Carta", role: "Workflow Automation" },
-      { name: "Delphi", role: "Observability" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 1 },
-      { severity: "Medium", count: 2 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "incremental",
-      maxAgents: 4,
-      waveCount: 2,
-      timeoutMin: 45,
-      domains: ["AI Infrastructure", "Developer Tooling", "Workflow Automation", "Observability"],
-      error: "Carta agent crashed — unhandled exception in wave 2",
-    },
-  },
-  {
-    id: "run-l8f304",
-    status: "Completed",
-    startedAt: "2026-02-16T20:30:00Z",
-    endedAt: "2026-02-16T21:27:00Z",
-    durationMin: 57,
-    agentCount: 6,
-    findingCount: 18,
-    agents: [
-      { name: "Echo", role: "Security & Compliance" },
-      { name: "Fenix", role: "Data Platforms" },
-      { name: "Gust", role: "Cost Optimization" },
-      { name: "Helix", role: "ML/AI Platform" },
-      { name: "Iris", role: "Product Analytics" },
-      { name: "Jade", role: "API Design" },
-    ],
-    findings: [
-      { severity: "Critical", count: 2 },
-      { severity: "High", count: 4 },
-      { severity: "Medium", count: 7 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 6,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Security & Compliance", "Data Platforms", "Cost Optimization", "ML/AI Platform", "Product Analytics", "API Design"],
-    },
-  },
-  {
-    id: "run-m0a561",
-    status: "Completed",
-    startedAt: "2026-02-15T14:00:00Z",
-    endedAt: "2026-02-15T14:44:00Z",
-    durationMin: 44,
-    agentCount: 4,
-    findingCount: 10,
-    agents: [
-      { name: "Kestrel", role: "Frontend Platform" },
-      { name: "Luna", role: "Auth & Identity" },
-      { name: "Mira", role: "Notifications" },
-      { name: "Nova", role: "Search & Discovery" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 2 },
-      { severity: "Medium", count: 5 },
-      { severity: "Low", count: 2 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "targeted",
-      maxAgents: 4,
-      waveCount: 2,
-      timeoutMin: 60,
-      domains: ["Frontend Platform", "Auth & Identity", "Notifications", "Search & Discovery"],
-    },
-  },
-  {
-    id: "run-n2d789",
-    status: "Cancelled",
-    startedAt: "2026-02-14T09:00:00Z",
-    endedAt: "2026-02-14T09:06:00Z",
-    durationMin: 6,
-    agentCount: 5,
-    findingCount: 0,
-    agents: [
-      { name: "Orion", role: "Billing & Payments" },
-      { name: "Pulse", role: "Infrastructure" },
-      { name: "Quest", role: "Onboarding" },
-      { name: "Raze", role: "Experiments" },
-      { name: "Sigma", role: "Storage & Databases" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 0 },
-      { severity: "Medium", count: 0 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Billing & Payments", "Infrastructure", "Onboarding", "Experiments", "Storage & Databases"],
-      cancelledBy: "david@example.com",
-      cancelReason: "Replacing with updated config",
-    },
-  },
-  // Page 3
-  {
-    id: "run-o4c012",
-    status: "Completed",
-    startedAt: "2026-02-13T17:30:00Z",
-    endedAt: "2026-02-13T18:22:00Z",
-    durationMin: 52,
-    agentCount: 5,
-    findingCount: 15,
-    agents: [
-      { name: "Terra", role: "Compute" },
-      { name: "Umbra", role: "Networking" },
-      { name: "Vega", role: "Logging & Tracing" },
-      { name: "Wren", role: "CDN & Caching" },
-      { name: "Xero", role: "Rate Limiting" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 3 },
-      { severity: "Medium", count: 6 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Compute", "Networking", "Logging & Tracing", "CDN & Caching", "Rate Limiting"],
-    },
-  },
-  {
-    id: "run-p6e234",
-    status: "Completed",
-    startedAt: "2026-02-12T11:00:00Z",
-    endedAt: "2026-02-12T11:51:00Z",
-    durationMin: 51,
-    agentCount: 6,
-    findingCount: 20,
-    agents: [
-      { name: "Yarn", role: "Queue Systems" },
-      { name: "Zeta", role: "Event Streaming" },
-      { name: "Atlas", role: "AI Infrastructure" },
-      { name: "Beacon", role: "Developer Tooling" },
-      { name: "Carta", role: "Workflow Automation" },
-      { name: "Delphi", role: "Observability" },
-    ],
-    findings: [
-      { severity: "Critical", count: 2 },
-      { severity: "High", count: 6 },
-      { severity: "Medium", count: 7 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 6,
-      waveCount: 3,
-      timeoutMin: 75,
-      domains: ["Queue Systems", "Event Streaming", "AI Infrastructure", "Developer Tooling", "Workflow Automation", "Observability"],
-    },
-  },
-  {
-    id: "run-q8a456",
-    status: "Failed",
-    startedAt: "2026-02-11T14:30:00Z",
-    endedAt: "2026-02-11T14:41:00Z",
-    durationMin: 11,
-    agentCount: 3,
-    findingCount: 1,
-    agents: [
-      { name: "Echo", role: "Security & Compliance" },
-      { name: "Fenix", role: "Data Platforms" },
-      { name: "Gust", role: "Cost Optimization" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 1 },
-      { severity: "Medium", count: 0 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "targeted",
-      maxAgents: 3,
-      waveCount: 1,
-      timeoutMin: 30,
-      domains: ["Security & Compliance", "Data Platforms", "Cost Optimization"],
-      error: "Network partition — agents lost coordination",
-    },
-  },
-  {
-    id: "run-r0b678",
-    status: "Completed",
-    startedAt: "2026-02-10T09:00:00Z",
-    endedAt: "2026-02-10T09:58:00Z",
-    durationMin: 58,
-    agentCount: 5,
-    findingCount: 17,
-    agents: [
-      { name: "Helix", role: "ML/AI Platform" },
-      { name: "Iris", role: "Product Analytics" },
-      { name: "Jade", role: "API Design" },
-      { name: "Kestrel", role: "Frontend Platform" },
-      { name: "Luna", role: "Auth & Identity" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 4 },
-      { severity: "Medium", count: 7 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["ML/AI Platform", "Product Analytics", "API Design", "Frontend Platform", "Auth & Identity"],
-    },
-  },
-  {
-    id: "run-s2d901",
-    status: "Completed",
-    startedAt: "2026-02-09T18:00:00Z",
-    endedAt: "2026-02-09T18:46:00Z",
-    durationMin: 46,
-    agentCount: 4,
-    findingCount: 11,
-    agents: [
-      { name: "Mira", role: "Notifications" },
-      { name: "Nova", role: "Search & Discovery" },
-      { name: "Orion", role: "Billing & Payments" },
-      { name: "Pulse", role: "Infrastructure" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 3 },
-      { severity: "Medium", count: 5 },
-      { severity: "Low", count: 2 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "incremental",
-      maxAgents: 4,
-      waveCount: 2,
-      timeoutMin: 60,
-      domains: ["Notifications", "Search & Discovery", "Billing & Payments", "Infrastructure"],
-    },
-  },
-  {
-    id: "run-t4f123",
-    status: "Cancelled",
-    startedAt: "2026-02-08T10:15:00Z",
-    endedAt: "2026-02-08T10:20:00Z",
-    durationMin: 5,
-    agentCount: 6,
-    findingCount: 0,
-    agents: [
-      { name: "Quest", role: "Onboarding" },
-      { name: "Raze", role: "Experiments" },
-      { name: "Sigma", role: "Storage & Databases" },
-      { name: "Terra", role: "Compute" },
-      { name: "Umbra", role: "Networking" },
-      { name: "Vega", role: "Logging & Tracing" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 0 },
-      { severity: "Medium", count: 0 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 6,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Onboarding", "Experiments", "Storage & Databases", "Compute", "Networking", "Logging & Tracing"],
-      cancelledBy: "ops-bot",
-      cancelReason: "Emergency config rollback",
-    },
-  },
-  {
-    id: "run-u6a345",
-    status: "Completed",
-    startedAt: "2026-02-07T14:00:00Z",
-    endedAt: "2026-02-07T14:53:00Z",
-    durationMin: 53,
-    agentCount: 5,
-    findingCount: 14,
-    agents: [
-      { name: "Wren", role: "CDN & Caching" },
-      { name: "Xero", role: "Rate Limiting" },
-      { name: "Yarn", role: "Queue Systems" },
-      { name: "Zeta", role: "Event Streaming" },
-      { name: "Atlas", role: "AI Infrastructure" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 3 },
-      { severity: "Medium", count: 6 },
-      { severity: "Low", count: 3 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["CDN & Caching", "Rate Limiting", "Queue Systems", "Event Streaming", "AI Infrastructure"],
-    },
-  },
-  {
-    id: "run-v8c567",
-    status: "Failed",
-    startedAt: "2026-02-06T09:30:00Z",
-    endedAt: "2026-02-06T09:47:00Z",
-    durationMin: 17,
-    agentCount: 3,
-    findingCount: 2,
-    agents: [
-      { name: "Beacon", role: "Developer Tooling" },
-      { name: "Carta", role: "Workflow Automation" },
-      { name: "Delphi", role: "Observability" },
-    ],
-    findings: [
-      { severity: "Critical", count: 0 },
-      { severity: "High", count: 1 },
-      { severity: "Medium", count: 1 },
-      { severity: "Low", count: 0 },
-      { severity: "Info", count: 0 },
-    ],
-    config: {
-      mode: "partial",
-      maxAgents: 3,
-      waveCount: 1,
-      timeoutMin: 30,
-      domains: ["Developer Tooling", "Workflow Automation", "Observability"],
-      error: "Delphi agent OOM — exceeded 8GB memory limit",
-    },
-  },
-  {
-    id: "run-w0e789",
-    status: "Completed",
-    startedAt: "2026-02-05T16:30:00Z",
-    endedAt: "2026-02-05T17:21:00Z",
-    durationMin: 51,
-    agentCount: 5,
-    findingCount: 16,
-    agents: [
-      { name: "Echo", role: "Security & Compliance" },
-      { name: "Fenix", role: "Data Platforms" },
-      { name: "Gust", role: "Cost Optimization" },
-      { name: "Helix", role: "ML/AI Platform" },
-      { name: "Iris", role: "Product Analytics" },
-    ],
-    findings: [
-      { severity: "Critical", count: 1 },
-      { severity: "High", count: 4 },
-      { severity: "Medium", count: 6 },
-      { severity: "Low", count: 4 },
-      { severity: "Info", count: 1 },
-    ],
-    config: {
-      mode: "full",
-      maxAgents: 5,
-      waveCount: 3,
-      timeoutMin: 60,
-      domains: ["Security & Compliance", "Data Platforms", "Cost Optimization", "ML/AI Platform", "Product Analytics"],
-    },
-  },
-];
+const generateMockRuns = (): DiscoveryRun[] => {
+  const runs: DiscoveryRun[] = [];
+  const statuses: RunStatus[] = ["completed", "completed", "completed", "partial", "failed", "completed"];
+  const domains = [
+    "AI Infrastructure",
+    "Developer Tooling",
+    "Workflow Automation",
+    "Observability & Monitoring",
+    "Security & Compliance",
+    "Data Platforms",
+    "Cost Optimization",
+    "ML/AI Platform",
+    "Product Analytics",
+    "API Design",
+  ];
+  const agentNames = [
+    "Atlas",
+    "Beacon",
+    "Carta",
+    "Delphi",
+    "Echo",
+    "Fenix",
+    "Gust",
+    "Helix",
+    "Iris",
+    "Jade",
+    "Kilo",
+    "Luna",
+    "Mosaic",
+    "Nova",
+    "Orbit",
+  ];
 
-const RUNS_PER_PAGE = 8;
-const TOTAL_PAGES = 3;
+  // Generate 18 runs over the past 6 weeks
+  const now = new Date();
+  for (let i = 0; i < 18; i++) {
+    const daysAgo = Math.floor(i * 2.3 + Math.random() * 2); // Spaced out over ~6 weeks
+    const startTime = new Date(now);
+    startTime.setDate(startTime.getDate() - daysAgo);
+    startTime.setHours(10 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60), 0, 0);
+
+    const duration = 1800 + Math.floor(Math.random() * 7200); // 30 min to 2.5 hours
+    const endTime = new Date(startTime.getTime() + duration * 1000);
+
+    const status = statuses[i % statuses.length];
+    const agentCount = 10 + Math.floor(Math.random() * 6); // 10-15 agents
+
+    const agents: AgentSummary[] = [];
+    const findings: Finding[] = [];
+    let totalCost = 0;
+
+    for (let j = 0; j < agentCount; j++) {
+      const agentStatus = status === "completed"
+        ? "completed"
+        : status === "failed"
+        ? "failed"
+        : Math.random() > 0.3
+        ? "completed"
+        : "failed";
+
+      const findingsCount = agentStatus === "completed" ? Math.floor(Math.random() * 15) + 1 : 0;
+      const tokensUsed = Math.floor(50000 + Math.random() * 150000);
+      const cost = (tokensUsed / 1_000_000) * 15; // Approximate cost
+      const agentDuration = Math.floor(duration / agentCount) + Math.floor(Math.random() * 300);
+
+      agents.push({
+        id: `disc-${String(j + 1).padStart(2, "0")}`,
+        name: agentNames[j % agentNames.length],
+        domain: domains[j % domains.length],
+        status: agentStatus,
+        findingsCount,
+        tokensUsed,
+        cost,
+        duration: agentDuration,
+      });
+
+      totalCost += cost;
+
+      // Generate findings for this agent
+      if (findingsCount > 0) {
+        const severities: Finding["severity"][] = ["critical", "high", "medium", "low"];
+        for (let k = 0; k < Math.min(findingsCount, 5); k++) {
+          findings.push({
+            id: `finding-${i}-${j}-${k}`,
+            title: `${domains[j % domains.length]} ${["optimization", "issue", "recommendation", "risk", "improvement"][k]}`,
+            severity: severities[Math.floor(Math.random() * severities.length)],
+            agent: agentNames[j % agentNames.length],
+            timestamp: startTime.toISOString(),
+          });
+        }
+      }
+    }
+
+    // Wave breakdown
+    const waveBreakdown = [
+      {
+        wave: 1 as const,
+        agents: Math.floor(agentCount * 0.4),
+        findings: Math.floor(findings.length * 0.4),
+        cost: totalCost * 0.4,
+      },
+      {
+        wave: 2 as const,
+        agents: Math.floor(agentCount * 0.35),
+        findings: Math.floor(findings.length * 0.35),
+        cost: totalCost * 0.35,
+      },
+      {
+        wave: 3 as const,
+        agents: agentCount - Math.floor(agentCount * 0.4) - Math.floor(agentCount * 0.35),
+        findings: findings.length - Math.floor(findings.length * 0.4) - Math.floor(findings.length * 0.35),
+        cost: totalCost * 0.25,
+      },
+    ];
+
+    runs.push({
+      id: `run-${String(18 - i).padStart(4, "0")}`,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration,
+      status,
+      agentCount,
+      agents,
+      findingsCount: findings.length,
+      findings,
+      totalCost,
+      waveBreakdown,
+    });
+  }
+
+  return runs;
+};
+
+const MOCK_RUNS = generateMockRuns();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("en-US", {
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) {
+    return `${h}h ${m}m`;
+  }
+  return `${m}m ${s}s`;
+}
+
+function formatTime(iso: string): string {
+  const date = new Date(iso);
+  return date.toLocaleString("en-US", {
+    timeZone: "America/Denver",
     month: "short",
     day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
+    hour12: true,
     timeZoneName: "short",
   });
 }
 
-function formatDuration(min: number): string {
-  if (min < 60) return `${min}m`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+function statusBadge(status: RunStatus): { bg: string; text: string; icon: React.ReactNode } {
+  switch (status) {
+    case "completed":
+      return {
+        bg: "bg-emerald-900/50 border-emerald-700",
+        text: "text-emerald-400",
+        icon: <CheckCircle2 className="w-3 h-3" />,
+      };
+    case "failed":
+      return {
+        bg: "bg-red-900/50 border-red-700",
+        text: "text-red-400",
+        icon: <XCircle className="w-3 h-3" />,
+      };
+    case "partial":
+      return {
+        bg: "bg-amber-900/50 border-amber-700",
+        text: "text-amber-400",
+        icon: <AlertCircle className="w-3 h-3" />,
+      };
+  }
 }
 
-function formatShortTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function severityBadge(severity: Finding["severity"]): string {
+  switch (severity) {
+    case "critical":
+      return "text-red-400 bg-red-950";
+    case "high":
+      return "text-orange-400 bg-orange-950";
+    case "medium":
+      return "text-amber-400 bg-amber-950";
+    case "low":
+      return "text-zinc-400 bg-zinc-800";
+  }
 }
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: RunStatus }) {
-  const cfg: Record<RunStatus, { cls: string; Icon: React.ElementType; label: string }> = {
-    Completed: { cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", Icon: CheckCircle2, label: "Completed" },
-    Failed: { cls: "bg-red-500/15 text-red-400 border-red-500/30", Icon: XCircle, label: "Failed" },
-    Cancelled: { cls: "bg-amber-500/15 text-amber-400 border-amber-500/30", Icon: Ban, label: "Cancelled" },
+type SortField = "startTime" | "duration" | "totalCost" | "findingsCount";
+type SortDirection = "asc" | "desc";
+
+const DiscoveryRunHistory: React.FC = () => {
+  const [runs] = useState<DiscoveryRun[]>(MOCK_RUNS);
+
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<RunStatus | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [costMin, setCostMin] = useState<string>("");
+  const [costMax, setCostMax] = useState<string>("");
+
+  // Sorting
+  const [sortField, setSortField] = useState<SortField>("startTime");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const runsPerPage = 10;
+
+  // Expanded row
+  const [expandedRun, setExpandedRun] = useState<string | null>(null);
+
+  // Filtered and sorted runs
+  const filteredRuns = useMemo(() => {
+    let result = runs;
+
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter((r) => r.status === statusFilter);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.id.toLowerCase().includes(query) ||
+          r.agents.some((a) => a.name.toLowerCase().includes(query) || a.domain.toLowerCase().includes(query))
+      );
+    }
+
+    // Cost range filter
+    if (costMin) {
+      const min = parseFloat(costMin);
+      result = result.filter((r) => r.totalCost >= min);
+    }
+    if (costMax) {
+      const max = parseFloat(costMax);
+      result = result.filter((r) => r.totalCost <= max);
+    }
+
+    // Sort
+    result = [...result].sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "startTime":
+          comparison = new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+          break;
+        case "duration":
+          comparison = a.duration - b.duration;
+          break;
+        case "totalCost":
+          comparison = a.totalCost - b.totalCost;
+          break;
+        case "findingsCount":
+          comparison = a.findingsCount - b.findingsCount;
+          break;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [runs, statusFilter, searchQuery, costMin, costMax, sortField, sortDirection]);
+
+  // Paginated runs
+  const totalPages = Math.ceil(filteredRuns.length / runsPerPage);
+  const paginatedRuns = useMemo(() => {
+    const start = (currentPage - 1) * runsPerPage;
+    return filteredRuns.slice(start, start + runsPerPage);
+  }, [filteredRuns, currentPage]);
+
+  // Reset page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchQuery, costMin, costMax, sortField, sortDirection]);
+
+  // Summary stats
+  const totalRuns = runs.length;
+  const avgCost = runs.reduce((acc, r) => acc + r.totalCost, 0) / runs.length;
+  const totalFindings = runs.reduce((acc, r) => acc + r.findingsCount, 0);
+
+  // Sort handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("desc");
+    }
   };
-  const { cls, Icon, label } = cfg[status];
-  return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium", cls)}>
-      <Icon className="h-3 w-3" />
-      {label}
-    </span>
-  );
-}
 
-// ─── Severity Badge ───────────────────────────────────────────────────────────
-
-function SeverityBadge({ severity, count }: { severity: FindingSeverity; count: number }) {
-  const cfg: Record<FindingSeverity, string> = {
-    Critical: "bg-red-500/15 text-red-400 border-red-500/30",
-    High: "bg-orange-500/15 text-orange-400 border-orange-500/30",
-    Medium: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
-    Low: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    Info: "bg-zinc-700/60 text-zinc-400 border-zinc-600",
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return null;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="w-3 h-3 ml-1 inline" />
+    ) : (
+      <ChevronDown className="w-3 h-3 ml-1 inline" />
+    );
   };
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-zinc-400">{severity}</span>
-      <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums", cfg[severity])}>
-        {count}
-      </span>
-    </div>
-  );
-}
-
-// ─── Run List Row ─────────────────────────────────────────────────────────────
-
-function RunRow({
-  run,
-  selected,
-  onClick,
-}: {
-  run: DiscoveryRun;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full text-left px-4 py-3 border-b border-zinc-800 transition-colors",
-        selected
-          ? "bg-violet-600/10 border-l-2 border-l-violet-500"
-          : "hover:bg-zinc-800/50 border-l-2 border-l-transparent"
-      )}
-    >
-      <div className="flex items-center justify-between gap-2 mb-1.5">
-        <span className="font-mono text-sm text-white font-medium">{run.id}</span>
-        <StatusBadge status={run.status} />
-      </div>
-      <div className="flex items-center gap-3 text-xs text-zinc-400">
-        <span className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          {formatShortTime(run.startedAt)}
-        </span>
-        <span className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {formatDuration(run.durationMin)}
-        </span>
-        <span className="flex items-center gap-1">
-          <Users className="h-3 w-3" />
-          {run.agentCount}
-        </span>
-        <span className="flex items-center gap-1">
-          <AlertTriangle className="h-3 w-3" />
-          {run.findingCount} findings
-        </span>
-      </div>
-    </button>
-  );
-}
-
-// ─── Run Detail Panel ─────────────────────────────────────────────────────────
-
-function RunDetailPanel({ run }: { run: DiscoveryRun }) {
-  const [configOpen, setConfigOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      {/* Header */}
-      <div className="p-6 border-b border-zinc-800">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <h2 className="font-mono text-lg font-semibold text-white mb-1">{run.id}</h2>
-            <StatusBadge status={run.status} />
-          </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <button
-              className="px-3 py-1.5 rounded-md bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors"
-              onClick={() => {/* nav to DiscoveryFindings */}}
-            >
-              View Findings
-            </button>
-            <div className="relative group">
-              <button
-                disabled
-                className="px-3 py-1.5 rounded-md bg-zinc-700 text-zinc-500 text-sm font-medium cursor-not-allowed flex items-center gap-1.5"
-              >
-                <Play className="h-3.5 w-3.5" />
-                Replay This Run
-              </button>
-              <div className="absolute right-0 top-full mt-1.5 z-10 hidden group-hover:block w-64 rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-xs text-zinc-300 shadow-xl">
-                Replay requires active discovery configuration
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-6 font-mono">
+      {/* ── Header ── */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-1">
+          <span className="text-2xl">📋</span>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Discovery Run History</h1>
         </div>
-
-        {/* Timestamps + Duration */}
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <p className="text-xs text-zinc-500 mb-0.5">Started</p>
-            <p className="text-sm text-zinc-300">{formatTimestamp(run.startedAt)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-zinc-500 mb-0.5">Ended</p>
-            <p className="text-sm text-zinc-300">{formatTimestamp(run.endedAt)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-zinc-500 mb-0.5">Duration</p>
-            <p className="text-sm text-zinc-300">{formatDuration(run.durationMin)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Agents */}
-      <div className="p-6 border-b border-zinc-800">
-        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <Users className="h-4 w-4 text-zinc-400" />
-          Agents ({run.agentCount})
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {run.agents.map((agent) => (
-            <div key={agent.name} className="flex items-center gap-2 rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2">
-              <div className="h-2 w-2 rounded-full bg-violet-400 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm text-white font-medium truncate">{agent.name}</p>
-                <p className="text-xs text-zinc-400 truncate">{agent.role}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Finding Summary */}
-      <div className="p-6 border-b border-zinc-800">
-        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-zinc-400" />
-          Findings by Severity
-        </h3>
-        <div className="rounded-md bg-zinc-800 border border-zinc-700 divide-y divide-zinc-700/60 overflow-hidden">
-          {run.findings.map((f) => (
-            <div key={f.severity} className="px-4 py-2.5">
-              <SeverityBadge severity={f.severity} count={f.count} />
-            </div>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          Total: {run.findingCount} finding{run.findingCount !== 1 ? "s" : ""}
+        <p className="text-sm text-gray-400 ml-12">
+          Past discovery runs · {totalRuns} total runs
         </p>
       </div>
 
-      {/* Raw Config */}
-      <div className="p-6">
-        <button
-          onClick={() => setConfigOpen((o) => !o)}
-          className="flex w-full items-center justify-between text-sm font-semibold text-white mb-3 hover:text-zinc-300 transition-colors"
-        >
-          <span>Raw Configuration</span>
-          {configOpen ? <ChevronUp className="h-4 w-4 text-zinc-400" /> : <ChevronDown className="h-4 w-4 text-zinc-400" />}
-        </button>
-        {configOpen && (
-          <pre className="rounded-md bg-zinc-950 border border-zinc-700 p-4 text-xs text-zinc-300 overflow-x-auto leading-relaxed">
-            {JSON.stringify(run.config, null, 2)}
-          </pre>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Empty State ──────────────────────────────────────────────────────────────
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full text-center px-8">
-      <div className="h-12 w-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-4">
-        <Search className="h-6 w-6 text-zinc-500" />
-      </div>
-      <p className="text-white font-medium mb-1">Select a run</p>
-      <p className="text-sm text-zinc-500">Click any run in the list to view its details</p>
-    </div>
-  );
-}
-
-// ─── Main View ────────────────────────────────────────────────────────────────
-
-export default function DiscoveryRunHistory() {
-  const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
-  const [dateFilter, setDateFilter] = useState<DateRangeFilter>("Last 30 days");
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-
-  // Filter
-  const filtered = MOCK_RUNS.filter((r) => {
-    if (statusFilter !== "All" && r.status !== statusFilter) return false;
-    if (dateFilter === "Today") {
-      const today = new Date("2026-02-23");
-      const start = new Date(r.startedAt);
-      return start.toDateString() === today.toDateString();
-    }
-    if (dateFilter === "Last 7 days") {
-      const cutoff = new Date("2026-02-16T00:00:00Z");
-      return new Date(r.startedAt) >= cutoff;
-    }
-    return true;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / RUNS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const pageRuns = filtered.slice((safePage - 1) * RUNS_PER_PAGE, safePage * RUNS_PER_PAGE);
-  const selectedRun = MOCK_RUNS.find((r) => r.id === selectedRunId) ?? null;
-
-  // Reset page when filter changes
-  const handleStatusFilter = (f: StatusFilter) => {
-    setStatusFilter(f);
-    setPage(1);
-    setSelectedRunId(null);
-  };
-
-  const handleDateFilter = (f: DateRangeFilter) => {
-    setDateFilter(f);
-    setPage(1);
-    setSelectedRunId(null);
-  };
-
-  const statusOptions: StatusFilter[] = ["All", "Completed", "Failed", "Cancelled"];
-  const dateOptions: DateRangeFilter[] = ["Today", "Last 7 days", "Last 30 days"];
-
-  return (
-    <div className="flex flex-col h-full bg-zinc-950">
-      {/* Page Header */}
-      <div className="px-6 py-5 border-b border-zinc-800 flex-shrink-0">
-        <h1 className="text-xl font-semibold text-white">Discovery Run History</h1>
-        <p className="text-sm text-zinc-400 mt-0.5">
-          Audit, compare, and replay past discovery runs — {MOCK_RUNS.length} runs total
-        </p>
-      </div>
-
-      {/* Body: master-detail */}
-      <div className="flex flex-1 min-h-0">
-        {/* ── Left Panel ── */}
-        <div className="w-[380px] flex-shrink-0 flex flex-col border-r border-zinc-800">
-          {/* Filter bar */}
-          <div className="px-4 py-3 border-b border-zinc-800 space-y-2 flex-shrink-0">
-            {/* Status filter */}
-            <div className="flex items-center gap-1.5">
-              <Filter className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0" />
-              <div className="flex gap-1 flex-wrap">
-                {statusOptions.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => handleStatusFilter(opt)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                      statusFilter === opt
-                        ? "bg-violet-600 text-white"
-                        : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
-                    )}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* Date range filter */}
-            <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0" />
-              <div className="flex gap-1 flex-wrap">
-                {dateOptions.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => handleDateFilter(opt)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                      dateFilter === opt
-                        ? "bg-violet-600 text-white"
-                        : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
-                    )}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Run list */}
-          <div className="flex-1 overflow-y-auto">
-            {pageRuns.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 text-center px-6">
-                <p className="text-sm text-zinc-500">No runs match your filters</p>
-              </div>
-            ) : (
-              pageRuns.map((run) => (
-                <RunRow
-                  key={run.id}
-                  run={run}
-                  selected={run.id === selectedRunId}
-                  onClick={() => setSelectedRunId(run.id)}
-                />
-              ))
-            )}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800 flex-shrink-0">
-            <button
-              disabled={safePage <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className={cn(
-                "flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                safePage <= 1
-                  ? "text-zinc-600 cursor-not-allowed"
-                  : "text-zinc-300 hover:text-white hover:bg-zinc-800"
-              )}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </button>
-            <span className="text-xs text-zinc-500">
-              Page {safePage} of {totalPages}
-            </span>
-            <button
-              disabled={safePage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className={cn(
-                "flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                safePage >= totalPages
-                  ? "text-zinc-600 cursor-not-allowed"
-                  : "text-zinc-300 hover:text-white hover:bg-zinc-800"
-              )}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+      {/* ── Summary Stats ── */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Total Runs</div>
+          <div className="text-3xl font-bold tabular-nums text-white">{totalRuns}</div>
+          <div className="text-xs text-gray-500 mt-1">past 6 weeks</div>
         </div>
+        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Avg Cost</div>
+          <div className="text-3xl font-bold tabular-nums text-emerald-400">${avgCost.toFixed(2)}</div>
+          <div className="text-xs text-gray-500 mt-1">per run</div>
+        </div>
+        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Total Findings</div>
+          <div className="text-3xl font-bold tabular-nums text-amber-400">{totalFindings}</div>
+          <div className="text-xs text-gray-500 mt-1">across all runs</div>
+        </div>
+      </div>
 
-        {/* ── Right Panel ── */}
-        <div className="flex-1 min-w-0">
-          {selectedRun ? (
-            <RunDetailPanel run={selectedRun} />
-          ) : (
-            <EmptyState />
+      {/* ── Filter Bar ── */}
+      <div className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search runs, agents, domains..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-colors"
+            />
+          </div>
+
+          {/* Status filter */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as RunStatus | "all")}
+              className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 cursor-pointer"
+            >
+              <option value="all">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="partial">Partial</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+
+          {/* Cost range */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 uppercase tracking-wider">Cost:</span>
+            <input
+              type="number"
+              placeholder="Min"
+              value={costMin}
+              onChange={(e) => setCostMin(e.target.value)}
+              className="w-20 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30"
+            />
+            <span className="text-gray-500">—</span>
+            <input
+              type="number"
+              placeholder="Max"
+              value={costMax}
+              onChange={(e) => setCostMax(e.target.value)}
+              className="w-20 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30"
+            />
+          </div>
+
+          {/* Clear filters */}
+          {(statusFilter !== "all" || searchQuery || costMin || costMax) && (
+            <button
+              onClick={() => {
+                setStatusFilter("all");
+                setSearchQuery("");
+                setCostMin("");
+                setCostMax("");
+              }}
+              className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
+            >
+              <X className="w-3 h-3" />
+              Clear
+            </button>
           )}
         </div>
       </div>
+
+      {/* ── Results Count ── */}
+      <div className="text-xs text-gray-500 mb-3">
+        Showing {paginatedRuns.length} of {filteredRuns.length} runs
+        {filteredRuns.length !== runs.length && ` (filtered from ${runs.length} total)`}
+      </div>
+
+      {/* ── Table ── */}
+      <div className="bg-gray-800/30 border border-gray-700/50 rounded-xl overflow-hidden">
+        {/* Table Header */}
+        <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-800/50 border-b border-gray-700/50 text-xs uppercase tracking-widest text-gray-500 font-medium">
+          <button
+            onClick={() => handleSort("startTime")}
+            className="col-span-3 text-left hover:text-gray-300 transition-colors flex items-center"
+          >
+            Run <SortIcon field="startTime" />
+          </button>
+          <button
+            onClick={() => handleSort("duration")}
+            className="col-span-2 text-left hover:text-gray-300 transition-colors flex items-center"
+          >
+            Duration <SortIcon field="duration" />
+          </button>
+          <div className="col-span-2 text-left">Status</div>
+          <div className="col-span-1 text-center">Agents</div>
+          <button
+            onClick={() => handleSort("findingsCount")}
+            className="col-span-2 text-right hover:text-gray-300 transition-colors flex items-center justify-end"
+          >
+            Findings <SortIcon field="findingsCount" />
+          </button>
+          <button
+            onClick={() => handleSort("totalCost")}
+            className="col-span-2 text-right hover:text-gray-300 transition-colors flex items-center justify-end"
+          >
+            Cost <SortIcon field="totalCost" />
+          </button>
+          <div className="col-span-1 text-center"></div>
+        </div>
+
+        {/* Table Body */}
+        {paginatedRuns.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="text-4xl mb-4">🔍</div>
+            <div className="text-gray-400 mb-2">No runs found</div>
+            <div className="text-sm text-gray-600">
+              Try adjusting your filters or search query
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-700/30">
+            {paginatedRuns.map((run) => {
+              const badge = statusBadge(run.status);
+              const isExpanded = expandedRun === run.id;
+
+              return (
+                <div key={run.id}>
+                  {/* Row */}
+                  <div
+                    className={cn(
+                      "grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-gray-800/30 transition-colors cursor-pointer",
+                      isExpanded && "bg-gray-800/50"
+                    )}
+                    onClick={() => setExpandedRun(isExpanded ? null : run.id)}
+                  >
+                    {/* Run ID + Time */}
+                    <div className="col-span-3">
+                      <div className="font-semibold text-sm text-white">{run.id}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">{formatTime(run.startTime)}</div>
+                    </div>
+
+                    {/* Duration */}
+                    <div className="col-span-2 flex items-center gap-1.5 text-sm text-gray-300">
+                      <Clock className="w-3.5 h-3.5 text-gray-500" />
+                      {formatDuration(run.duration)}
+                    </div>
+
+                    {/* Status */}
+                    <div className="col-span-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border",
+                          badge.bg,
+                          badge.text
+                        )}
+                      >
+                        {badge.icon}
+                        {run.status.charAt(0).toUpperCase() + run.status.slice(1)}
+                      </span>
+                    </div>
+
+                    {/* Agents */}
+                    <div className="col-span-1 text-center">
+                      <div className="inline-flex items-center gap-1 text-sm text-gray-300">
+                        <Users className="w-3.5 h-3.5 text-gray-500" />
+                        {run.agentCount}
+                      </div>
+                    </div>
+
+                    {/* Findings */}
+                    <div className="col-span-2 text-right">
+                      <div className="inline-flex items-center gap-1.5 text-sm text-amber-400">
+                        <FileSearch className="w-3.5 h-3.5" />
+                        {run.findingsCount}
+                      </div>
+                    </div>
+
+                    {/* Cost */}
+                    <div className="col-span-2 text-right">
+                      <div className="inline-flex items-center gap-1.5 text-sm text-emerald-400">
+                        <DollarSign className="w-3.5 h-3.5" />
+                        {run.totalCost.toFixed(2)}
+                      </div>
+                    </div>
+
+                    {/* Expand */}
+                    <div className="col-span-1 text-center">
+                      <Expand
+                        className={cn(
+                          "w-4 h-4 text-gray-500 mx-auto transition-transform",
+                          isExpanded && "rotate-180"
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Expanded Detail Panel */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-700/50 bg-gray-800/20 p-4">
+                      {/* Wave Breakdown */}
+                      <div className="mb-4">
+                        <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Wave Breakdown</div>
+                        <div className="grid grid-cols-3 gap-3">
+                          {run.waveBreakdown.map((wave) => (
+                            <div
+                              key={wave.wave}
+                              className="bg-gray-900/50 border border-gray-700/30 rounded-lg p-3"
+                            >
+                              <div className="text-xs font-medium text-gray-300 mb-1">Wave {wave.wave}</div>
+                              <div className="grid grid-cols-3 gap-2 text-xs">
+                                <div>
+                                  <div className="text-gray-600">Agents</div>
+                                  <div className="text-gray-300">{wave.agents}</div>
+                                </div>
+                                <div>
+                                  <div className="text-gray-600">Findings</div>
+                                  <div className="text-amber-400">{wave.findings}</div>
+                                </div>
+                                <div>
+                                  <div className="text-gray-600">Cost</div>
+                                  <div className="text-emerald-400">${wave.cost.toFixed(2)}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Agent Summary */}
+                      <div className="mb-4">
+                        <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Agent Summary</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                          {run.agents.map((agent) => (
+                            <div
+                              key={agent.id}
+                              className={cn(
+                                "bg-gray-900/50 border rounded-lg p-2 text-xs",
+                                agent.status === "completed"
+                                  ? "border-emerald-800/50"
+                                  : agent.status === "failed"
+                                  ? "border-red-800/50"
+                                  : "border-amber-800/50"
+                              )}
+                            >
+                              <div className="font-medium text-gray-200 truncate">{agent.name}</div>
+                              <div className="text-gray-500 truncate">{agent.domain}</div>
+                              <div className="mt-1 flex justify-between">
+                                <span
+                                  className={cn(
+                                    "text-xs",
+                                    agent.status === "completed"
+                                      ? "text-emerald-400"
+                                      : agent.status === "failed"
+                                      ? "text-red-400"
+                                      : "text-amber-400"
+                                  )}
+                                >
+                                  {agent.findingsCount} findings
+                                </span>
+                                <span className="text-gray-600">${agent.cost.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Top Findings */}
+                      {run.findings.length > 0 && (
+                        <div>
+                          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+                            Top Findings ({run.findings.length})
+                          </div>
+                          <div className="space-y-2">
+                            {run.findings.slice(0, 8).map((finding) => (
+                              <div
+                                key={finding.id}
+                                className="flex items-center justify-between bg-gray-900/30 border border-gray-700/30 rounded-lg px-3 py-2 text-xs"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <span
+                                    className={cn(
+                                      "px-1.5 py-0.5 rounded text-[10px] font-medium uppercase flex-shrink-0",
+                                      severityBadge(finding.severity)
+                                    )}
+                                  >
+                                    {finding.severity}
+                                  </span>
+                                  <span className="text-gray-300 truncate">{finding.title}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-gray-500 flex-shrink-0 ml-4">
+                                  <span>{finding.agent}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {run.findings.length > 8 && (
+                              <div className="text-xs text-gray-500 text-center py-1">
+                                +{run.findings.length - 8} more findings
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-xs text-gray-500">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={cn(
+                "p-2 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
+                currentPage === 1 ? "cursor-not-allowed" : "cursor-pointer"
+              )}
+            >
+              <ChevronLeft className="w-4 h-4 text-gray-400" />
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={cn(
+                    "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
+                    currentPage === pageNum
+                      ? "bg-sky-600 text-white"
+                      : "text-gray-400 hover:bg-gray-800"
+                  )}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className={cn(
+                "p-2 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
+                currentPage === totalPages ? "cursor-not-allowed" : "cursor-pointer"
+              )}
+            >
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Footer ── */}
+      <div className="mt-8 pt-4 border-t border-gray-700/50 text-xs text-gray-600 flex justify-between">
+        <span>DiscoveryRunHistory v1.0 — OpenClaw Horizon UI</span>
+        <span className="tabular-nums">Last updated: {formatTime(new Date().toISOString())}</span>
+      </div>
     </div>
   );
-}
+};
+
+export default DiscoveryRunHistory;
