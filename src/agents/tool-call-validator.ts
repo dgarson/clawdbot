@@ -1,3 +1,8 @@
+import AjvPkg from "ajv";
+
+import { repairToolCallArguments } from "./tool-call-repair.js";
+import { logDebug, logWarn } from "../logger.js";
+
 /**
  * Tool-call validation layer for non-Anthropic models.
  *
@@ -307,4 +312,191 @@ export function validateToolCall(params: {
   const repairable = unrepairableIndices.size === 0;
 
   return { valid, issues, repairable };
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+export type ToolCallValidationResult = {
+  valid: boolean;
+  args: unknown;
+  repaired: boolean;
+  skipped: boolean;
+  reason?: string;
+  diagnostics: string[];
+};
+
+type ValidationTelemetry = {
+  attempts: number;
+  repaired: number;
+  successful: number;
+  failed: number;
+};
+
+const ajv = new AjvPkg({
+  allErrors: true,
+  strict: false,
+  coerceTypes: false,
+  allowUnionTypes: true,
+});
+
+const validatorCache = new WeakMap<object, AjvPkg.ValidateFunction>();
+const telemetry = new Map<string, ValidationTelemetry>();
+
+export function isNonAnthropicProvider(provider?: string): boolean {
+  const value = (provider ?? "").trim().toLowerCase();
+  return value !== "anthropic";
+}
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function getValidator(schema: unknown): AjvPkg.ValidateFunction | undefined {
+  if (!isRecord(schema)) return undefined;
+  const cached = validatorCache.get(schema);
+  if (cached) return cached;
+
+  try {
+    const compiled = ajv.compile(schema);
+    validatorCache.set(schema, compiled);
+    return compiled;
+  } catch (err) {
+    logWarn(
+      `tools: skipping validation because tool schema compilation failed: ${String(
+        err instanceof Error ? err.message : err,
+      )}`,
+    );
+    return undefined;
+  }
+}
+
+function describeAjvErrors(errors: unknown): string {
+  if (!Array.isArray(errors) || errors.length === 0) return "schema mismatch";
+  return errors
+    .map((entry) => {
+      if (!isRecord(entry)) return "schema mismatch";
+      const path = String((entry as UnknownRecord).instancePath ?? entry.path ?? "");
+      const reason = String((entry as UnknownRecord).message ?? "schema mismatch");
+      const allowedValues = (entry as UnknownRecord).allowedValues;
+      const isEnum = (entry as UnknownRecord).keyword === "enum";
+      const allowed =
+        isEnum && Array.isArray(allowedValues)
+          ? ` allowed: ${allowedValues.map((value) => JSON.stringify(value)).join(", ")}`
+          : "";
+      return `${path || "value"} ${reason}${allowed}`.trim();
+    })
+    .join("; ");
+}
+
+function keyFor(provider: string | undefined, model: string | undefined): string {
+  return `${(provider ?? "unknown").toLowerCase() || "provider"}/${
+    (model ?? "model").toLowerCase() || "default"
+  }`;
+}
+
+function bumpStats(key: string, delta: Partial<ValidationTelemetry>): void {
+  const current = telemetry.get(key) ?? {
+    attempts: 0,
+    repaired: 0,
+    successful: 0,
+    failed: 0,
+  };
+  current.attempts += delta.attempts ?? 0;
+  current.repaired += delta.repaired ?? 0;
+  current.successful += delta.successful ?? 0;
+  current.failed += delta.failed ?? 0;
+  telemetry.set(key, current);
+}
+
+export function resetToolCallValidationTelemetry(): void {
+  telemetry.clear();
+}
+
+export function getToolCallValidationTelemetry(): ReadonlyMap<
+  string,
+  Readonly<ValidationTelemetry>
+> {
+  return new Map(telemetry);
+}
+
+export function validateAndRepairToolCall(params: {
+  toolName: string;
+  args: unknown;
+  schema: unknown;
+  provider: string;
+  model?: string;
+  toolCallId?: string;
+}): ToolCallValidationResult {
+  if (!isNonAnthropicProvider(params.provider)) {
+    return {
+      valid: true,
+      args: params.args,
+      repaired: false,
+      skipped: true,
+      diagnostics: ["provider is anthropic"],
+    };
+  }
+
+  if (!isRecord(params.schema)) {
+    return {
+      valid: true,
+      args: params.args,
+      repaired: false,
+      skipped: true,
+      diagnostics: ["tool schema unavailable"],
+    };
+  }
+
+  const key = keyFor(params.provider, params.model);
+  bumpStats(key, { attempts: 1 });
+
+  const repair = repairToolCallArguments({ rawArgs: params.args, schema: params.schema });
+  const validate = getValidator(params.schema);
+  if (!validate) {
+    return {
+      valid: true,
+      args: repair.args,
+      repaired: repair.repaired,
+      skipped: false,
+      diagnostics: repair.diagnostics,
+    };
+  }
+
+  const valid = Boolean(validate(repair.args));
+  if (repair.repaired) {
+    bumpStats(key, { repaired: 1 });
+  }
+
+  if (valid) {
+    bumpStats(key, { successful: 1 });
+    if (repair.repaired) {
+      logDebug(
+        `tools: repaired tool call args tool=${params.toolName} provider=${params.provider} model=${params.model ?? ""} id=${params.toolCallId ?? ""}`,
+      );
+    }
+    return {
+      valid: true,
+      args: repair.args,
+      repaired: repair.repaired,
+      skipped: false,
+      diagnostics: repair.diagnostics,
+    };
+  }
+
+  const validationError = describeAjvErrors(validate.errors);
+  const reason = `${params.toolName}: ${validationError}`;
+  bumpStats(key, { failed: 1 });
+
+  logWarn(
+    `tools: tool call validation failed tool=${params.toolName} provider=${params.provider} model=${params.model ?? ""} id=${params.toolCallId ?? ""} reason=${reason}`,
+  );
+
+  return {
+    valid: false,
+    args: repair.args,
+    repaired: repair.repaired,
+    skipped: false,
+    reason,
+    diagnostics: [...repair.diagnostics, validationError],
+  };
 }

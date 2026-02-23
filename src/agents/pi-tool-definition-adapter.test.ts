@@ -46,4 +46,113 @@ describe("pi tool definition adapter", () => {
       error: "nope",
     });
   });
+
+  it("repairs malformed JSON arguments for non-anthropic providers", async () => {
+    let capturedArgs: unknown;
+    const tool = {
+      name: "read",
+      label: "Read",
+      description: "reads",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string" },
+          limit: { type: "number" },
+        },
+        required: ["path"],
+      },
+      execute: async (_id: string, args: unknown) => {
+        capturedArgs = args;
+        return {
+          content: [{ type: "text", text: "ok" }] as const,
+          details: args,
+        };
+      },
+    } satisfies AgentTool;
+
+    const defs = toToolDefinitions([tool], {
+      provider: "openai",
+      model: "gpt-4.1",
+    });
+
+    const result = await defs[0].execute(
+      "call-1",
+      '{"paht":"/tmp/file.txt", "limit":"3"}',
+      undefined,
+      undefined,
+      extensionContext,
+    );
+
+    expect(capturedArgs).toMatchObject({
+      path: "/tmp/file.txt",
+      limit: 3,
+    });
+    expect(result).toMatchObject({
+      content: [{ type: "text", text: "ok" }],
+    });
+  });
+
+  it("skips validation/repair for Anthropic provider", async () => {
+    let capturedArgs: unknown;
+    const tool = {
+      name: "read",
+      label: "Read",
+      description: "reads",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string" },
+        },
+        required: ["path"],
+      },
+      execute: async (_id: string, args: unknown) => {
+        capturedArgs = args;
+        return {
+          content: [{ type: "text", text: "ok" }] as const,
+          details: { received: args },
+        };
+      },
+    } satisfies AgentTool;
+
+    const defs = toToolDefinitions([tool], {
+      provider: "anthropic",
+      model: "claude-4-opus",
+    });
+
+    const malformed = '{"paht":"/tmp/file.txt"';
+    const result = await defs[0].execute(
+      "call-2",
+      malformed,
+      undefined,
+      undefined,
+      extensionContext,
+    );
+
+    expect(capturedArgs).toBe(malformed);
+    expect(result.content).toEqual([{ type: "text", text: "ok" }]);
+  });
+
+  it("deduplicates duplicate tool call ids", async () => {
+    const ids: string[] = [];
+    const tool = {
+      name: "noop",
+      label: "Noop",
+      description: "noop",
+      parameters: {},
+      execute: async (id: string) => {
+        ids.push(id);
+        return {
+          content: [{ type: "text", text: "ok" }] as const,
+          details: { id },
+        };
+      },
+    } satisfies AgentTool;
+
+    const defs = toToolDefinitions([tool], { provider: "openai" });
+
+    await defs[0].execute("same-id", {}, undefined, undefined, extensionContext);
+    await defs[0].execute("same-id", {}, undefined, undefined, extensionContext);
+
+    expect(ids).toEqual(["sameid", "sameid_2"]);
+  });
 });
