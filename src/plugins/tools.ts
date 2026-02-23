@@ -88,9 +88,7 @@ export function resolvePluginTools(params: {
     try {
       resolved = entry.factory(params.context);
     } catch (err) {
-      log.error(
-        `[${params.context.sessionKey ?? "?"}] plugin tool failed (${entry.pluginId}): ${String(err)}`,
-      );
+      log.error(`plugin tool failed (${entry.pluginId}): ${String(err)}`);
       continue;
     }
     if (!resolved) {

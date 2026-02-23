@@ -1,5 +1,6 @@
 import type { AgentEvent } from "@mariozechner/pi-agent-core";
 import { emitAgentEvent } from "../infra/agent-events.js";
+import { appendChangeAuditRecord } from "../infra/change-audit.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import type { PluginHookAfterToolCallEvent } from "../plugins/types.js";
 import { normalizeTextForComparison } from "./pi-embedded-helpers.js";
@@ -292,14 +293,32 @@ function buildToolDiagnosticInfo(params: {
 
 export async function handleToolExecutionStart(
   ctx: ToolHandlerContext,
-  evt: AgentEvent & { toolName: string; toolCallId: string; args: unknown },
-) {
-  // Flush pending block replies to preserve message boundaries before tool execution.
-  ctx.flushBlockReplyBuffer();
-  if (ctx.params.onBlockReplyFlush) {
-    void ctx.params.onBlockReplyFlush();
-  }
-
+      readString(params.startArgs.agentId)
+        ? `targetAgent=${readString(params.startArgs.agentId)}`
+        : undefined,
+      typeof params.startArgs.thread === "boolean"
+        ? `thread=${String(params.startArgs.thread)}`
+        : undefined,
+      readString(params.startArgs.cleanup)
+        ? `cleanup=${readString(params.startArgs.cleanup)}`
+        : undefined,
+      readString(params.startArgs.agentId)
+        ? `targetAgent=${readString(params.startArgs.agentId)}`
+        : undefined,
+      readString(jobArgs?.id)
+        ? `job=${readString(jobArgs?.id)}`
+        : readString(params.startArgs.jobId)
+          ? `job=${readString(params.startArgs.jobId)}`
+          : undefined,
+      targetChannel || targetTo
+        ? `target=${[targetChannel, targetTo].filter(Boolean).join(":")}`
+        : undefined,
+      readString(jobArgs?.sessionTarget)
+        ? `sessionTarget=${readString(jobArgs?.sessionTarget)}`
+        : undefined,
+      readNumber(scheduleArgs?.everyMs) != null
+        ? `everyMs=${readNumber(scheduleArgs?.everyMs)}`
+        : undefined,
   const rawToolName = String(evt.toolName);
   const toolName = normalizeToolName(rawToolName);
   const toolCallId = String(evt.toolCallId);
@@ -583,9 +602,24 @@ export async function handleToolExecutionEnd(
         sessionKey: undefined,
       })
       .catch((err) => {
-        ctx.log.warn(
-          `[${ctx.params.sessionKey ?? "?"}] after_tool_call hook failed: tool=${toolName} error=${String(err)}`,
-        );
+        ctx.log.warn(`after_tool_call hook failed: tool=${toolName} error=${String(err)}`);
       });
   }
 }
+  if (callSummary?.mutatingAction) {
+    await appendChangeAuditRecord({
+      source: "embedded-pi.tool",
+      eventType: "tool.call",
+      op: `tool.${toolName}`,
+      sessionKey: ctx.params.sessionKey,
+      runId: ctx.params.runId,
+      result: isToolError ? "error" : "ok",
+      error: isToolError ? extractToolErrorMessage(sanitizedResult) : undefined,
+      details: {
+        toolCallId,
+        actionFingerprint: callSummary.actionFingerprint,
+        meta,
+      },
+    });
+  }
+

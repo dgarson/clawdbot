@@ -74,5 +74,5 @@ Deliveroo (WIP, not working yet)
 
 Notes
 
-- Use `--config /tmp/ordercli.json` for testing.
+- Use `--config /tmp/openclaw/ordercli.json` for testing.
 - Confirm before any reorder or cart-changing action.
