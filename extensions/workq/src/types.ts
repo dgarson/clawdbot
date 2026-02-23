@@ -42,12 +42,14 @@ export interface WorkItemRow {
   issue_ref: string;
   title: string | null;
   agent_id: string;
+  session_key: string | null;
   squad: string | null;
   status: WorkItemStatus;
   branch: string | null;
   worktree_path: string | null;
   pr_url: string | null;
   blocked_reason: string | null;
+  dropped_reason: string | null;
   priority: WorkItemPriority;
   scope_json: string;
   tags_json: string;
@@ -60,12 +62,14 @@ export interface WorkItem {
   issueRef: string;
   title: string | null;
   agentId: string;
+  sessionKey: string | null;
   squad: string | null;
   status: WorkItemStatus;
   branch: string | null;
   worktreePath: string | null;
   prUrl: string | null;
   blockedReason: string | null;
+  droppedReason: string | null;
   priority: WorkItemPriority;
   scope: string[];
   tags: string[];
@@ -87,6 +91,7 @@ export interface WorkLogEntry {
 export interface ClaimInput {
   issueRef: string;
   agentId: string;
+  sessionKey?: string;
   title?: string;
   squad?: string;
   files?: string[];
@@ -96,6 +101,8 @@ export interface ClaimInput {
   scope?: string[];
   tags?: string[];
   reopen?: boolean;
+  /** Max active items per session key. Default 1. Pass 0 to disable the check. */
+  maxConcurrentPerSession?: number;
 }
 
 export type ClaimResult =
@@ -107,6 +114,13 @@ export type ClaimResult =
       claimedBy: string;
       claimedAt: string;
       currentStatus: WorkItemStatus;
+    }
+  | {
+      status: "limit_exceeded";
+      activeIssueRef: string;
+      sessionKey: string;
+      activeCount: number;
+      maxAllowed: number;
     };
 
 export interface ReleaseInput {
@@ -183,6 +197,12 @@ export interface QueryResult {
   total: number;
 }
 
+export interface AutoReleaseBySessionInput {
+  sessionKey: string;
+  actorId: string;
+  reason: string;
+}
+
 export interface WorkqDatabaseApi {
   claim(input: ClaimInput): ClaimResult;
   release(input: ReleaseInput): { status: "dropped"; issueRef: string };
@@ -198,4 +218,5 @@ export interface WorkqDatabaseApi {
   done(input: DoneInput): { status: "done"; issueRef: string; prUrl: string };
   get(issueRef: string, staleThresholdHours?: number): WorkItem | null;
   getLog(issueRef: string, limit?: number): WorkLogEntry[];
+  autoReleaseBySession(input: AutoReleaseBySessionInput): { released: number; issueRefs: string[] };
 }

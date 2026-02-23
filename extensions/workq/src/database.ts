@@ -14,6 +14,7 @@ import {
   WORK_ITEM_PRIORITIES,
   WORK_ITEM_STATUSES,
   WORK_LOG_ACTIONS,
+  type AutoReleaseBySessionInput,
   type ClaimInput,
   type ClaimResult,
   type DoneInput,
@@ -131,6 +132,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
   claim(input: ClaimInput): ClaimResult {
     const issueRef = normalizeText(input.issueRef);
     const agentId = normalizeText(input.agentId);
+    const sessionKey = normalizeText(input.sessionKey);
 
     if (!issueRef) {
       throw new Error("issueRef is required");
@@ -138,6 +140,12 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     if (!agentId) {
       throw new Error("agentId is required");
     }
+
+    // Default: 1 active item per session key. Pass 0 to disable.
+    const maxAllowed =
+      typeof input.maxConcurrentPerSession === "number" && input.maxConcurrentPerSession >= 0
+        ? Math.floor(input.maxConcurrentPerSession)
+        : 1;
 
     const priority = this.normalizePriority(input.priority);
     const scope = normalizeStringArray(input.scope);
@@ -149,18 +157,57 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     return this.withWriteTransaction(() => {
       const existing = this.getRow(issueRef);
 
+      // Per-session limit check: skip if no sessionKey or limit is disabled (0).
+      // Bypass only when reclaiming the same item (already_yours path handled below).
+      if (sessionKey && maxAllowed > 0) {
+        const isAlreadyYours =
+          existing &&
+          existing.session_key === sessionKey &&
+          existing.issue_ref === issueRef &&
+          this.isActiveStatus(existing.status);
+
+        if (!isAlreadyYours) {
+          const activeRow = this.db
+            .prepare(
+              `SELECT issue_ref FROM work_items
+               WHERE session_key = ? AND status IN (${WORK_ITEM_ACTIVE_STATUSES.map(() => "?").join(", ")})
+               LIMIT 1`,
+            )
+            .get(sessionKey, ...WORK_ITEM_ACTIVE_STATUSES) as { issue_ref: string } | undefined;
+
+          if (activeRow) {
+            // Count total active items for this session (for the response).
+            const countRow = this.db
+              .prepare(
+                `SELECT COUNT(*) as n FROM work_items
+                 WHERE session_key = ? AND status IN (${WORK_ITEM_ACTIVE_STATUSES.map(() => "?").join(", ")})`,
+              )
+              .get(sessionKey, ...WORK_ITEM_ACTIVE_STATUSES) as { n: number };
+
+            return {
+              status: "limit_exceeded",
+              activeIssueRef: activeRow.issue_ref,
+              sessionKey,
+              activeCount: Number(countRow.n),
+              maxAllowed,
+            };
+          }
+        }
+      }
+
       if (!existing) {
         this.db
           .prepare(
             `INSERT INTO work_items (
-              issue_ref, title, agent_id, squad, status, branch, worktree_path,
+              issue_ref, title, agent_id, session_key, squad, status, branch, worktree_path,
               blocked_reason, priority, scope_json, tags_json
-            ) VALUES (?, ?, ?, ?, 'claimed', ?, ?, NULL, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, 'claimed', ?, ?, NULL, ?, ?, ?)`,
           )
           .run(
             issueRef,
             toNullable(input.title),
             agentId,
+            sessionKey,
             toNullable(input.squad),
             toNullable(input.branch),
             toNullable(input.worktreePath),
@@ -189,6 +236,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
              SET title = COALESCE(?, title),
                  squad = COALESCE(?, squad),
                  agent_id = ?,
+                 session_key = ?,
                  status = 'claimed',
                  branch = COALESCE(?, branch),
                  worktree_path = COALESCE(?, worktree_path),
@@ -204,6 +252,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
             toNullable(input.title),
             toNullable(input.squad),
             agentId,
+            sessionKey,
             toNullable(input.branch),
             toNullable(input.worktreePath),
             existing.status === "done" ? 1 : 0,
@@ -256,6 +305,54 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     });
   }
 
+  autoReleaseBySession(input: AutoReleaseBySessionInput): {
+    released: number;
+    issueRefs: string[];
+  } {
+    const sessionKey = normalizeText(input.sessionKey);
+    const actorId = normalizeText(input.actorId) ?? "system";
+    const reason = normalizeText(input.reason) ?? "auto-released: session ended";
+
+    if (!sessionKey) {
+      return { released: 0, issueRefs: [] };
+    }
+
+    return this.withWriteTransaction(() => {
+      const activeRows = this.db
+        .prepare(
+          `SELECT issue_ref, agent_id FROM work_items
+           WHERE session_key = ? AND status IN (${WORK_ITEM_ACTIVE_STATUSES.map(() => "?").join(", ")})`,
+        )
+        .all(sessionKey, ...WORK_ITEM_ACTIVE_STATUSES) as Array<{
+        issue_ref: string;
+        agent_id: string;
+      }>;
+
+      if (!activeRows.length) {
+        return { released: 0, issueRefs: [] };
+      }
+
+      const issueRefs: string[] = [];
+      for (const row of activeRows) {
+        this.db
+          .prepare(
+            `UPDATE work_items
+             SET status = 'dropped',
+                 blocked_reason = NULL,
+                 dropped_reason = ?,
+                 updated_at = datetime('now', 'utc')
+             WHERE issue_ref = ?`,
+          )
+          .run(reason, row.issue_ref);
+
+        this.insertLog(row.issue_ref, actorId, "dropped", reason);
+        issueRefs.push(row.issue_ref);
+      }
+
+      return { released: issueRefs.length, issueRefs };
+    });
+  }
+
   release(input: ReleaseInput): { status: "dropped"; issueRef: string } {
     const issueRef = normalizeText(input.issueRef);
     const agentId = normalizeText(input.agentId);
@@ -277,10 +374,11 @@ export class WorkqDatabase implements WorkqDatabaseApi {
           `UPDATE work_items
            SET status = 'dropped',
                blocked_reason = NULL,
+               dropped_reason = ?,
                updated_at = datetime('now', 'utc')
            WHERE issue_ref = ?`,
         )
-        .run(issueRef);
+        .run(toNullable(input.reason), issueRef);
 
       this.insertLog(issueRef, agentId, "dropped", toNullable(input.reason));
 
@@ -552,7 +650,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       .prepare(
         `SELECT w.* FROM work_items w ${whereSql} ORDER BY w.updated_at DESC LIMIT ? OFFSET ?`,
       )
-      .all(...params, limit, offset) as WorkItemRow[];
+      .all(...params, limit, offset) as unknown as WorkItemRow[];
 
     const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
     const staleThresholdHours = Math.max(1, Math.floor(filters.staleThresholdHours ?? 24));
@@ -637,6 +735,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
         worktree_path TEXT,
         pr_url        TEXT,
         blocked_reason TEXT,
+        dropped_reason TEXT,
         priority      TEXT NOT NULL DEFAULT 'medium' CHECK(priority IN (${priorityCheck})),
         scope_json    TEXT NOT NULL DEFAULT '[]',
         tags_json     TEXT NOT NULL DEFAULT '[]',
@@ -687,6 +786,23 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       this.db.exec("PRAGMA wal_checkpoint(PASSIVE);");
     } catch {
       // no-op: checkpoint is best-effort
+    }
+
+    // Schema evolution: add dropped_reason column for existing databases that pre-date it.
+    try {
+      this.db.exec(`ALTER TABLE work_items ADD COLUMN dropped_reason TEXT`);
+    } catch {
+      // column already exists — safe to continue
+    }
+
+    // Schema evolution: add session_key column to track the claiming agent session.
+    try {
+      this.db.exec(`ALTER TABLE work_items ADD COLUMN session_key TEXT`);
+      this.db.exec(
+        `CREATE INDEX IF NOT EXISTS idx_work_items_session_key ON work_items(session_key)`,
+      );
+    } catch {
+      // column already exists — safe to continue
     }
   }
 
@@ -744,7 +860,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     return (
       (this.db
         .prepare(`SELECT * FROM work_items WHERE issue_ref = ?`)
-        .get(issueRef) as WorkItemRow) ?? null
+        .get(issueRef) as unknown as WorkItemRow) ?? null
     );
   }
 
@@ -925,12 +1041,14 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       issueRef: row.issue_ref,
       title: row.title,
       agentId: row.agent_id,
+      sessionKey: row.session_key,
       squad: row.squad,
       status: row.status,
       branch: row.branch,
       worktreePath: row.worktree_path,
       prUrl: row.pr_url,
       blockedReason: row.blocked_reason,
+      droppedReason: row.dropped_reason,
       priority: row.priority,
       scope: parseJsonStringArray(row.scope_json),
       tags: parseJsonStringArray(row.tags_json),

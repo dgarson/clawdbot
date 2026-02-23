@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkqDatabase } from "./database.js";
 import { registerWorkqTools } from "./tools.js";
-import type { WorkItem, WorkqDatabaseApi } from "./types.js";
+import type { ClaimResult, FilesResult, WorkItem, WorkqDatabaseApi } from "./types.js";
 
 type ToolDef = {
   name: string;
@@ -79,12 +79,14 @@ function makeItem(issueRef: string, agentId: string): WorkItem {
     issueRef,
     title: "title",
     agentId,
+    sessionKey: null,
     squad: "platform",
     status: "claimed",
     branch: null,
     worktreePath: null,
     prUrl: null,
     blockedReason: null,
+    droppedReason: null,
     priority: "medium",
     scope: [],
     tags: [],
@@ -102,11 +104,12 @@ describe("registerWorkqTools", () => {
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false }) as FilesResult),
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => null),
       getLog: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(),
     };
 
     const { factory, options } = makeApiCapture(db);
@@ -141,21 +144,25 @@ describe("registerWorkqTools", () => {
 
   it("binds ownership to ctx.agentId and ignores spoofed params", async () => {
     const db: WorkqDatabaseApi = {
-      claim: vi.fn(() => ({
-        status: "conflict",
-        issueRef: "ISS-AGENT",
-        claimedBy: "owner",
-        claimedAt: "2026-01-01 00:00:00",
-        currentStatus: "claimed",
-      })),
+      claim: vi.fn(
+        () =>
+          ({
+            status: "conflict",
+            issueRef: "ISS-AGENT",
+            claimedBy: "owner",
+            claimedAt: "2026-01-01 00:00:00",
+            currentStatus: "claimed",
+          }) as ClaimResult,
+      ),
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false }) as FilesResult),
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => null),
       getLog: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(),
     };
 
     const { factory } = makeApiCapture(db);
@@ -176,21 +183,25 @@ describe("registerWorkqTools", () => {
 
   it("returns claim conflict payload with expected shape", async () => {
     const db: WorkqDatabaseApi = {
-      claim: vi.fn(() => ({
-        status: "conflict",
-        issueRef: "ISS-CONFLICT",
-        claimedBy: "agent-1",
-        claimedAt: "2026-01-01 00:00:00",
-        currentStatus: "in-progress",
-      })),
+      claim: vi.fn(
+        () =>
+          ({
+            status: "conflict",
+            issueRef: "ISS-CONFLICT",
+            claimedBy: "agent-1",
+            claimedAt: "2026-01-01 00:00:00",
+            currentStatus: "in-progress",
+          }) as ClaimResult,
+      ),
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false }) as FilesResult),
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => null),
       getLog: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(),
     };
 
     const { factory } = makeApiCapture(db);
@@ -214,7 +225,7 @@ describe("registerWorkqTools", () => {
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn((input) => {
+      files: vi.fn((input): FilesResult => {
         if (input.mode === "check") {
           return {
             mode: "check",
@@ -265,6 +276,7 @@ describe("registerWorkqTools", () => {
       done: vi.fn(),
       get: vi.fn(() => makeItem("ISS-FILES", "ctx-agent")),
       getLog: vi.fn(() => []),
+      autoReleaseBySession: vi.fn(),
     };
 
     const { factory } = makeApiCapture(db);
