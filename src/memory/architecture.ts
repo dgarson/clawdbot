@@ -1,5 +1,14 @@
 export type MemoryScopeDecision = "allow" | "deny";
 
+export type MemoryScopeLevel = "session" | "project" | "role" | "org";
+
+export interface MemoryScopePath {
+  session?: string;
+  project?: string;
+  role?: string;
+  org?: string;
+}
+
 export type MemoryDomain =
   | "user_pref"
   | "system_fact"
@@ -50,15 +59,43 @@ export type MemoryServiceRetentionConfig = {
   compactionCron?: string;
 };
 
+export interface MemoryProvenance {
+  source: string;
+  timestamp: number;
+  confidence: number;
+}
+
+export interface MemoryAccessControl {
+  read?: {
+    agentIds?: string[];
+    userIds?: string[];
+  };
+}
+
+export interface MemoryRetentionMetadata {
+  ttlSec?: number;
+  expiresAt?: number;
+}
+
 export interface MemoryMetadata {
   domain: MemoryDomain;
   sourceId: string;
   agentId?: string;
   userId?: string;
+  tags?: string[];
+  scope?: MemoryScopePath;
+  scopeLevel?: MemoryScopeLevel;
+  access?: MemoryAccessControl;
+  retention?: MemoryRetentionMetadata;
   ttlSec?: number;
   confidenceScore: number;
-  tags?: string[];
+  provenance: MemoryProvenance;
 }
+
+export type MemoryStoreMetadata = Omit<MemoryMetadata, "provenance" | "confidenceScore"> & {
+  confidenceScore?: number;
+  provenance?: Partial<MemoryProvenance>;
+};
 
 export interface MemoryNode {
   id: string;
@@ -70,19 +107,31 @@ export interface MemoryNode {
   version: number;
 }
 
+export type MemoryScopedRetrieveOptions = {
+  limit?: number;
+  filters?: Partial<MemoryMetadata>;
+  requester?: {
+    agentId?: string;
+    userId?: string;
+  };
+};
+
+export type MemoryDeleteByScopeOptions = {
+  cascade?: boolean;
+};
+
 export interface IMemoryService {
-  store(
-    content: string,
-    metadata: Omit<MemoryMetadata, "confidenceScore"> & { confidenceScore?: number },
-  ): Promise<string>;
-  storeBatch(
-    items: Array<
-      Omit<MemoryMetadata, "confidenceScore"> & { content: string; confidenceScore?: number }
-    >,
-  ): Promise<string[]>;
+  store(content: string, metadata: MemoryStoreMetadata): Promise<string>;
+  storeBatch(items: Array<MemoryStoreMetadata & { content: string }>): Promise<string[]>;
   retrieve(query: string, filters?: Partial<MemoryMetadata>, limit?: number): Promise<MemoryNode[]>;
+  retrieveScoped(
+    query: string,
+    scope: MemoryScopePath,
+    options?: MemoryScopedRetrieveOptions,
+  ): Promise<MemoryNode[]>;
   forget(nodeId: string): Promise<boolean>;
   forgetUser(userId: string): Promise<number>;
+  deleteByScope(scope: MemoryScopePath, options?: MemoryDeleteByScopeOptions): Promise<number>;
   compact(userId?: string): Promise<number>;
   searchKeywords(
     keywords: string[],
@@ -128,7 +177,7 @@ const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
   },
 };
 
-const NODE_VERSION = 1;
+const NODE_VERSION = 2;
 
 function normalizeMemoryConfig(config?: MemoryServiceOptions): Required<MemoryConfig> {
   return {
@@ -164,6 +213,85 @@ function defaultMemoryEmbedding(dimensions: number): number[] {
   return Array.from({ length: dimensions }, () => 0);
 }
 
+function clampConfidence(confidence: number): number {
+  if (Number.isNaN(confidence)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(1, confidence));
+}
+
+function inferScopeLevel(scope?: MemoryScopePath): MemoryScopeLevel | undefined {
+  if (!scope) {
+    return undefined;
+  }
+  if (scope.session) {
+    return "session";
+  }
+  if (scope.project) {
+    return "project";
+  }
+  if (scope.role) {
+    return "role";
+  }
+  if (scope.org) {
+    return "org";
+  }
+  return undefined;
+}
+
+function resolveRetention(
+  metadata: MemoryStoreMetadata,
+  now: number,
+  config: Required<MemoryConfig>,
+): MemoryRetentionMetadata | undefined {
+  const ttlSec =
+    metadata.retention?.ttlSec ??
+    metadata.ttlSec ??
+    Math.max(0, (config.retention.defaultTtlDays ?? 0) * 24 * 60 * 60);
+
+  const expiresAt =
+    metadata.retention?.expiresAt ?? (ttlSec > 0 ? now + ttlSec * 1_000 : undefined);
+
+  if (ttlSec <= 0 && expiresAt === undefined) {
+    return undefined;
+  }
+
+  return {
+    ttlSec,
+    expiresAt,
+  };
+}
+
+function toMemoryMetadata(
+  metadata: MemoryStoreMetadata,
+  now: number,
+  config: Required<MemoryConfig>,
+) {
+  const provenanceSource = metadata.provenance?.source ?? metadata.sourceId ?? "unknown";
+  const provenanceTimestamp = metadata.provenance?.timestamp ?? now;
+  const confidence = clampConfidence(
+    metadata.provenance?.confidence ?? metadata.confidenceScore ?? 1,
+  );
+  const scopeLevel = metadata.scopeLevel ?? inferScopeLevel(metadata.scope);
+  const retention = resolveRetention(metadata, now, config);
+
+  const normalized: MemoryMetadata = {
+    ...metadata,
+    sourceId: provenanceSource,
+    confidenceScore: confidence,
+    provenance: {
+      source: provenanceSource,
+      timestamp: provenanceTimestamp,
+      confidence,
+    },
+    scopeLevel,
+    retention,
+    ttlSec: retention?.ttlSec,
+  };
+
+  return normalized;
+}
+
 function metadataMatchesFilter(
   metadata: MemoryMetadata,
   filters?: Partial<MemoryMetadata>,
@@ -184,6 +312,12 @@ function metadataMatchesFilter(
   if (filters.sourceId !== undefined && metadata.sourceId !== filters.sourceId) {
     return false;
   }
+  if (filters.scopeLevel !== undefined && metadata.scopeLevel !== filters.scopeLevel) {
+    return false;
+  }
+  if (filters.scope !== undefined && !scopeIncludes(metadata.scope, filters.scope)) {
+    return false;
+  }
   if (filters.tags !== undefined) {
     const nodeTags = new Set(metadata.tags ?? []);
     if (!filters.tags.every((tag) => nodeTags.has(tag))) {
@@ -194,8 +328,30 @@ function metadataMatchesFilter(
   return true;
 }
 
+function scopeIncludes(actual?: MemoryScopePath, expected?: MemoryScopePath): boolean {
+  if (!expected) {
+    return true;
+  }
+  if (!actual) {
+    return false;
+  }
+  if (expected.session !== undefined && actual.session !== expected.session) {
+    return false;
+  }
+  if (expected.project !== undefined && actual.project !== expected.project) {
+    return false;
+  }
+  if (expected.role !== undefined && actual.role !== expected.role) {
+    return false;
+  }
+  if (expected.org !== undefined && actual.org !== expected.org) {
+    return false;
+  }
+  return true;
+}
+
 function governanceAllowsWrite(
-  metadata: Omit<MemoryMetadata, "confidenceScore">,
+  metadata: MemoryStoreMetadata,
   policy: MemoryGovernanceConfig,
 ): boolean {
   const defaultAction = policy.default ?? "deny";
@@ -253,15 +409,181 @@ function scoreByText(match: string, nodeText: string): number {
   return score + 1;
 }
 
+function isExpired(metadata: MemoryMetadata, now: number): boolean {
+  const expiresAt = metadata.retention?.expiresAt;
+  if (expiresAt === undefined) {
+    return false;
+  }
+  return expiresAt <= now;
+}
+
+function canRead(
+  metadata: MemoryMetadata,
+  requester?: {
+    agentId?: string;
+    userId?: string;
+  },
+): boolean {
+  const readAcl = metadata.access?.read;
+  if (!readAcl) {
+    return true;
+  }
+
+  if (readAcl.agentIds && readAcl.agentIds.length > 0) {
+    if (!requester?.agentId || !readAcl.agentIds.includes(requester.agentId)) {
+      return false;
+    }
+  }
+
+  if (readAcl.userIds && readAcl.userIds.length > 0) {
+    if (!requester?.userId || !readAcl.userIds.includes(requester.userId)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function orderedScopeLevels(scope: MemoryScopePath): MemoryScopeLevel[] {
+  const levels: MemoryScopeLevel[] = [];
+  if (scope.session) {
+    levels.push("session");
+  }
+  if (scope.project) {
+    levels.push("project");
+  }
+  if (scope.role) {
+    levels.push("role");
+  }
+  if (scope.org) {
+    levels.push("org");
+  }
+  return levels;
+}
+
+function matchesScopedLevel(
+  node: MemoryNode,
+  level: MemoryScopeLevel,
+  requested: MemoryScopePath,
+): boolean {
+  const scope = node.metadata.scope;
+  if (!scope) {
+    return false;
+  }
+
+  if (level === "session") {
+    if (!requested.session || scope.session !== requested.session) {
+      return false;
+    }
+    if (requested.project && scope.project !== requested.project) {
+      return false;
+    }
+    if (requested.role && scope.role !== requested.role) {
+      return false;
+    }
+    if (requested.org && scope.org !== requested.org) {
+      return false;
+    }
+    return true;
+  }
+
+  if (level === "project") {
+    if (!requested.project || scope.project !== requested.project) {
+      return false;
+    }
+    if (requested.role && scope.role !== requested.role) {
+      return false;
+    }
+    if (requested.org && scope.org !== requested.org) {
+      return false;
+    }
+    return true;
+  }
+
+  if (level === "role") {
+    if (!requested.role || scope.role !== requested.role) {
+      return false;
+    }
+    if (requested.org && scope.org !== requested.org) {
+      return false;
+    }
+    return true;
+  }
+
+  if (!requested.org || scope.org !== requested.org) {
+    return false;
+  }
+  return true;
+}
+
+function mostSpecificRequestedLevel(scope: MemoryScopePath): MemoryScopeLevel | undefined {
+  if (scope.session) {
+    return "session";
+  }
+  if (scope.project) {
+    return "project";
+  }
+  if (scope.role) {
+    return "role";
+  }
+  if (scope.org) {
+    return "org";
+  }
+  return undefined;
+}
+
+function shouldDeleteNodeByScope(
+  node: MemoryNode,
+  requestedScope: MemoryScopePath,
+  targetLevel: MemoryScopeLevel,
+  cascade: boolean,
+): boolean {
+  const scope = node.metadata.scope;
+  if (!scope) {
+    return false;
+  }
+
+  const nodeLevel = node.metadata.scopeLevel ?? inferScopeLevel(scope);
+
+  if (targetLevel === "session") {
+    return requestedScope.session !== undefined && scope.session === requestedScope.session;
+  }
+
+  if (targetLevel === "project") {
+    if (requestedScope.project === undefined || scope.project !== requestedScope.project) {
+      return false;
+    }
+    if (cascade) {
+      return true;
+    }
+    return nodeLevel === "project";
+  }
+
+  if (targetLevel === "role") {
+    if (requestedScope.role === undefined || scope.role !== requestedScope.role) {
+      return false;
+    }
+    if (cascade) {
+      return true;
+    }
+    return nodeLevel === "role";
+  }
+
+  if (requestedScope.org === undefined || scope.org !== requestedScope.org) {
+    return false;
+  }
+  if (cascade) {
+    return true;
+  }
+  return nodeLevel === "org";
+}
+
 class InMemoryMemoryService implements IMemoryService {
   private readonly nodes = new Map<string, MemoryNode>();
 
   constructor(private readonly config: Required<MemoryConfig>) {}
 
-  async store(
-    content: string,
-    metadata: Omit<MemoryMetadata, "confidenceScore"> & { confidenceScore?: number },
-  ): Promise<string> {
+  async store(content: string, metadata: MemoryStoreMetadata): Promise<string> {
     if (!governanceAllowsWrite(metadata, this.config.governance)) {
       throw new Error("memory write denied by governance policy");
     }
@@ -271,10 +593,7 @@ class InMemoryMemoryService implements IMemoryService {
       id: `m_${now.toString(16)}_${Math.random().toString(16).slice(2)}`,
       content,
       embedding: defaultMemoryEmbedding(this.config.embedding.dimensions ?? 512),
-      metadata: {
-        ...metadata,
-        confidenceScore: metadata.confidenceScore ?? 1,
-      },
+      metadata: toMemoryMetadata(metadata, now, this.config),
       createdAt: now,
       updatedAt: now,
       version: NODE_VERSION,
@@ -284,11 +603,7 @@ class InMemoryMemoryService implements IMemoryService {
     return node.id;
   }
 
-  async storeBatch(
-    items: Array<
-      Omit<MemoryMetadata, "confidenceScore"> & { content: string; confidenceScore?: number }
-    >,
-  ): Promise<string[]> {
+  async storeBatch(items: Array<MemoryStoreMetadata & { content: string }>): Promise<string[]> {
     const ids: string[] = [];
     for (const item of items) {
       const id = await this.store(item.content, item);
@@ -304,8 +619,12 @@ class InMemoryMemoryService implements IMemoryService {
   ): Promise<MemoryNode[]> {
     const normalizedLimit = Math.max(1, Math.min(1_000, limit));
     const normalizedQuery = query.trim();
+    const now = Date.now();
 
     const nodes = Array.from(this.nodes.values()).filter((node) => {
+      if (isExpired(node.metadata, now)) {
+        return false;
+      }
       if (!metadataMatchesFilter(node.metadata, filters)) {
         return false;
       }
@@ -327,6 +646,64 @@ class InMemoryMemoryService implements IMemoryService {
       .map((entry) => entry.node);
   }
 
+  async retrieveScoped(
+    query: string,
+    scope: MemoryScopePath,
+    options?: MemoryScopedRetrieveOptions,
+  ): Promise<MemoryNode[]> {
+    const normalizedLimit = Math.max(
+      1,
+      Math.min(1_000, options?.limit ?? this.config.retrieval.defaultLimit ?? 5),
+    );
+    const levels = orderedScopeLevels(scope);
+    const normalizedQuery = query.trim();
+    const now = Date.now();
+    const seen = new Set<string>();
+    const out: MemoryNode[] = [];
+
+    for (const level of levels) {
+      const candidates = Array.from(this.nodes.values())
+        .filter((node) => {
+          if (seen.has(node.id)) {
+            return false;
+          }
+          if (isExpired(node.metadata, now)) {
+            return false;
+          }
+          if (!canRead(node.metadata, options?.requester)) {
+            return false;
+          }
+          if (!metadataMatchesFilter(node.metadata, options?.filters)) {
+            return false;
+          }
+          if (!matchesScopedLevel(node, level, scope)) {
+            return false;
+          }
+          return !normalizedQuery || scoreByText(normalizedQuery, node.content) > 0;
+        })
+        .map((node) => ({
+          node,
+          score: scoreByText(normalizedQuery, node.content),
+        }))
+        .toSorted((a, b) => {
+          if (b.score !== a.score) {
+            return b.score - a.score;
+          }
+          return b.node.updatedAt - a.node.updatedAt;
+        });
+
+      for (const candidate of candidates) {
+        if (out.length >= normalizedLimit) {
+          return out;
+        }
+        seen.add(candidate.node.id);
+        out.push(candidate.node);
+      }
+    }
+
+    return out;
+  }
+
   async searchKeywords(
     keywords: string[],
     filters?: Partial<MemoryMetadata>,
@@ -336,8 +713,12 @@ class InMemoryMemoryService implements IMemoryService {
       new Set(keywords.map((keyword) => keyword.toLowerCase().trim())),
     ).filter(Boolean);
     const normalizedLimit = Math.max(1, Math.min(1_000, limit));
+    const now = Date.now();
 
     const nodes = Array.from(this.nodes.values()).filter((node) => {
+      if (isExpired(node.metadata, now)) {
+        return false;
+      }
       if (!metadataMatchesFilter(node.metadata, filters)) {
         return false;
       }
@@ -363,9 +744,37 @@ class InMemoryMemoryService implements IMemoryService {
     return removed;
   }
 
+  async deleteByScope(
+    scope: MemoryScopePath,
+    options?: MemoryDeleteByScopeOptions,
+  ): Promise<number> {
+    const targetLevel = mostSpecificRequestedLevel(scope);
+    if (!targetLevel) {
+      return 0;
+    }
+
+    const cascade = options?.cascade ?? true;
+    let removed = 0;
+
+    for (const [id, node] of this.nodes.entries()) {
+      if (!shouldDeleteNodeByScope(node, scope, targetLevel, cascade)) {
+        continue;
+      }
+      this.nodes.delete(id);
+      removed += 1;
+    }
+
+    return removed;
+  }
+
   async compact(userId?: string): Promise<number> {
     const seen = new Map<string, MemoryNode>();
+    const now = Date.now();
+
     for (const node of this.nodes.values()) {
+      if (isExpired(node.metadata, now)) {
+        continue;
+      }
       if (userId !== undefined && node.metadata.userId !== userId) {
         continue;
       }
@@ -375,6 +784,10 @@ class InMemoryMemoryService implements IMemoryService {
         node.metadata.userId ?? "",
         node.metadata.sourceId,
         node.metadata.domain,
+        node.metadata.scope?.session ?? "",
+        node.metadata.scope?.project ?? "",
+        node.metadata.scope?.role ?? "",
+        node.metadata.scope?.org ?? "",
         [...(node.metadata.tags ?? [])].toSorted().join("|"),
         node.content.toLowerCase(),
       ].join("\0");
@@ -387,13 +800,21 @@ class InMemoryMemoryService implements IMemoryService {
 
     const kept = new Set(Array.from(seen.values()).map((node) => node.id));
     let removed = 0;
-    for (const [id] of this.nodes.entries()) {
+    for (const [id, node] of this.nodes.entries()) {
+      if (userId !== undefined && node.metadata.userId !== userId) {
+        continue;
+      }
+
+      if (isExpired(node.metadata, now)) {
+        this.nodes.delete(id);
+        removed += 1;
+        continue;
+      }
+
       if (kept.has(id)) {
         continue;
       }
-      if (userId !== undefined && (this.nodes.get(id)?.metadata.userId ?? "") !== userId) {
-        continue;
-      }
+
       this.nodes.delete(id);
       removed += 1;
     }

@@ -61,6 +61,129 @@ describe("Memory architecture scope isolation", () => {
     expect(tenant1).toHaveLength(1);
     expect(tenant1[0]?.metadata.agentId).toBe("tenant-1");
   });
+
+  it("retrieves memories in hierarchy order session → project → role → org", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+    });
+
+    await service.store("deploy checklist for this session", {
+      domain: "session_summary",
+      sourceId: "session-note",
+      scope: {
+        session: "sess-1",
+        project: "proj-1",
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    await service.store("deploy checklist for this project", {
+      domain: "system_fact",
+      sourceId: "project-note",
+      scope: {
+        project: "proj-1",
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    await service.store("deploy checklist for this role", {
+      domain: "system_fact",
+      sourceId: "role-note",
+      scope: {
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    await service.store("deploy checklist for this org", {
+      domain: "system_fact",
+      sourceId: "org-note",
+      scope: {
+        org: "openclaw",
+      },
+    });
+
+    const results = await service.retrieveScoped("deploy checklist", {
+      session: "sess-1",
+      project: "proj-1",
+      role: "reliability",
+      org: "openclaw",
+    });
+
+    expect(results).toHaveLength(4);
+    expect(results[0]?.metadata.scopeLevel).toBe("session");
+    expect(results[1]?.metadata.scopeLevel).toBe("project");
+    expect(results[2]?.metadata.scopeLevel).toBe("role");
+    expect(results[3]?.metadata.scopeLevel).toBe("org");
+  });
+
+  it("stores provenance metadata for each memory node", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+    });
+
+    await service.store("service x has 30s timeout", {
+      domain: "system_fact",
+      sourceId: "incident-123",
+      confidenceScore: 0.7,
+      provenance: {
+        timestamp: 1_706_000_000_000,
+      },
+      scope: {
+        project: "proj-1",
+      },
+    });
+
+    const [result] = await service.retrieve("service x", undefined, 1);
+    expect(result).toBeDefined();
+    expect(result?.metadata.provenance.source).toBe("incident-123");
+    expect(result?.metadata.provenance.timestamp).toBe(1_706_000_000_000);
+    expect(result?.metadata.provenance.confidence).toBe(0.7);
+  });
+
+  it("deletes by scope with cascade semantics", async () => {
+    const service = createMemoryService({
+      governance: { default: "allow" },
+      shadowWrite: { enabled: false },
+    });
+
+    await service.store("org-wide memory", {
+      domain: "system_fact",
+      sourceId: "org",
+      scope: { org: "openclaw" },
+    });
+    await service.store("role memory", {
+      domain: "system_fact",
+      sourceId: "role",
+      scope: { role: "reliability", org: "openclaw" },
+    });
+    await service.store("project memory", {
+      domain: "system_fact",
+      sourceId: "project",
+      scope: { project: "proj-1", role: "reliability", org: "openclaw" },
+    });
+    await service.store("session memory", {
+      domain: "session_summary",
+      sourceId: "session",
+      scope: {
+        session: "sess-1",
+        project: "proj-1",
+        role: "reliability",
+        org: "openclaw",
+      },
+    });
+
+    const removed = await service.deleteByScope({ role: "reliability" }, { cascade: true });
+    expect(removed).toBe(3);
+
+    const remaining = await service.retrieve("memory", undefined, 10);
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.metadata.scopeLevel).toBe("org");
+  });
 });
 
 describe("Memory architecture governance", () => {
