@@ -495,8 +495,8 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     isDeliverableMessageChannel(origin.channel) &&
     !resolvedDelivery.deliver
   ) {
-    defaultRuntime.warn?.(
-      `Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
+    defaultRuntime.log(
+      `[warn] Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
     );
   }
   const threadId =
