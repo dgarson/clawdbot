@@ -98,6 +98,23 @@ describe("CLI run command", () => {
     expect(result.output).toContain("--root value cannot be empty");
   });
 
+  it("trims whitespace from --root and normalizes workspace lookup", async () => {
+    const runtime = createMockRuntime();
+    const createLocalSandbox = vi.fn().mockReturnValue(runtime);
+
+    const result = await run(["sandbox", "status", "--root", ` ${sandboxRoot} `], {
+      createClient: vi.fn(),
+      createLocalSandbox,
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(createLocalSandbox).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rootDir: sandboxRoot,
+      }),
+    );
+  });
+
   it("enables watch flag during sandbox start", async () => {
     const runtime = createMockRuntime();
     const createLocalSandbox = vi.fn().mockReturnValue(runtime);
@@ -265,6 +282,39 @@ describe("CLI run command", () => {
     expect(stop).toHaveBeenCalledWith({ force: true });
   });
 
+  it("skips cleanup when keep-alive is requested for verify", async () => {
+    const stop = vi.fn().mockResolvedValue(undefined);
+    const runtime = createMockRuntime({
+      stop,
+    });
+
+    const result = await run(["sandbox", "verify", "--root", sandboxRoot, "--keep-alive"], {
+      createClient: vi.fn(),
+      createLocalSandbox: vi.fn(() => runtime),
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(stop).toHaveBeenCalledTimes(0);
+  });
+
+  it("skips cleanup when keep-alive is requested for exec", async () => {
+    const stop = vi.fn().mockResolvedValue(undefined);
+    const runtime = createMockRuntime({
+      stop,
+    });
+
+    const result = await run(
+      ["sandbox", "exec", "--root", sandboxRoot, "--input", '{"value":"hot"}', "--keep-alive"],
+      {
+        createClient: vi.fn(),
+        createLocalSandbox: vi.fn(() => runtime),
+      },
+    );
+
+    expect(result.exitCode).toBe(0);
+    expect(stop).toHaveBeenCalledTimes(0);
+  });
+
   it("cleans up sandbox even when execution fails", async () => {
     const stop = vi.fn().mockResolvedValue(undefined);
     const runtime = createMockRuntime({
@@ -283,6 +333,26 @@ describe("CLI run command", () => {
     expect(result.exitCode).toBe(1);
     expect(result.output).toContain("exec failed");
     expect(stop).toHaveBeenCalledWith({ force: true });
+  });
+
+  it("lets keep-alive override cleanup even when execution fails", async () => {
+    const stop = vi.fn().mockResolvedValue(undefined);
+    const runtime = createMockRuntime({
+      exec: vi.fn().mockRejectedValue(new Error("exec failed")),
+      stop,
+    });
+
+    const result = await run(
+      ["sandbox", "exec", "--root", sandboxRoot, "--input", '{"value":"bad"}', "--keep-alive"],
+      {
+        createClient: vi.fn(),
+        createLocalSandbox: vi.fn(() => runtime),
+      },
+    );
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain("exec failed");
+    expect(stop).toHaveBeenCalledTimes(0);
   });
 
   it("returns cleanup error when sandbox stop fails after a successful command", async () => {

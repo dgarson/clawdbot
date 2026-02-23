@@ -53,8 +53,8 @@ const help = (): string =>
   "  openclaw-cli sandbox start --root ... [--timeout-ms ...] [--watch]\n" +
   "  openclaw-cli sandbox status --root ...\n" +
   "  openclaw-cli sandbox stop --root ... [--force]\n" +
-  "  openclaw-cli sandbox exec --root ... --input ...\n" +
-  "  openclaw-cli sandbox verify --root ... [--timeout-ms ...]\n" +
+  "  openclaw-cli sandbox exec --root ... --input ... [--keep-alive]\n" +
+  "  openclaw-cli sandbox verify --root ... [--timeout-ms ...] [--keep-alive]\n" +
   "  openclaw-cli new plugin|agent [name] --root ... [--description ...]\n";
 
 const readStringArg = (value: string | boolean | string[] | undefined): string | undefined => {
@@ -85,7 +85,7 @@ const readRootArg = (parsed: ParsedArgs): string => {
     throw new Error("--root value cannot be empty");
   }
 
-  return root;
+  return trimmedRoot;
 };
 
 const readInputArg = (raw: string | boolean | string[]): string => {
@@ -121,16 +121,27 @@ const parseWatchMs = (parsed: ParsedArgs): number | undefined => {
 const withSandboxLifecycle = async <T>(
   sandbox: LocalSandboxRuntime,
   command: () => Promise<T>,
+  options: {
+    keepRuntime?: boolean;
+  } = {},
 ): Promise<T> => {
   let result: T | undefined;
+  const keepRuntime = options.keepRuntime === true;
 
   try {
     result = await command();
   } catch (error) {
-    await sandbox.stop({ force: true }).catch(() => {
-      return;
-    });
+    if (!keepRuntime) {
+      await sandbox.stop({ force: true }).catch(() => {
+        return;
+      });
+    }
+
     throw error;
+  }
+
+  if (keepRuntime) {
+    return result;
   }
 
   try {
@@ -294,11 +305,15 @@ export const run = async (
 
       if (command === "exec") {
         const rawInput = readInputArg(readStringArg(parsed.input) ?? false);
-        return await withSandboxLifecycle(sandbox, () => runSandboxExecution(sandbox, rawInput));
+        return await withSandboxLifecycle(sandbox, () => runSandboxExecution(sandbox, rawInput), {
+          keepRuntime: parsed["keep-alive"] === true,
+        });
       }
 
       if (command === "verify") {
-        return await withSandboxLifecycle(sandbox, () => runSandboxVerification(sandbox));
+        return await withSandboxLifecycle(sandbox, () => runSandboxVerification(sandbox), {
+          keepRuntime: parsed["keep-alive"] === true,
+        });
       }
 
       return { exitCode: 2, output: `unknown sandbox command: ${command}` };

@@ -16,7 +16,10 @@ node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sa
 
 ```bash
 node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello\"}']);"
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"keep-alive\"}', '--keep-alive']);"
 ```
+
+`--keep-alive` skips sandbox teardown for `exec` and `verify`, useful when chaining multiple local checks.
 
 ### Example quickstart scenario
 

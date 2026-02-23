@@ -31,7 +31,10 @@ Use this flow to validate a local sandbox project without touching production ga
     node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'verify', '--root', process.cwd()]);"
 
     node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello-world\"}']);"
+    node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello-world\"}', '--keep-alive']);"
     ```
+
+    `--keep-alive` keeps the runtime alive after verify/exec when you want to run several local checks in one session.
 
     `sandbox verify` checks lifecycle readiness and executes a single probe input.
 
