@@ -452,12 +452,13 @@ export default function AgentSkillHeatmap() {
         }
       });
       
-      if (best) {
+      const resolvedBest = best as { agent: AgentSkillData; rate: number } | null;
+      if (resolvedBest) {
         performers.push({
           category: category.name,
-          agentName: best.agent.agentName,
-          successRate: best.rate,
-          model: best.agent.model,
+          agentName: resolvedBest.agent.agentName,
+          successRate: resolvedBest.rate,
+          model: resolvedBest.agent.model,
         });
       }
     });
