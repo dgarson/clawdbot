@@ -6,6 +6,10 @@ export interface WorkspaceConfig {
 }
 
 export const isWorkspaceReadable = (rootDir: string): boolean => {
+  if (typeof rootDir !== "string" || rootDir.trim().length === 0) {
+    return false;
+  }
+
   const resolved = normalize(rootDir);
   return resolved.length > 0;
 };

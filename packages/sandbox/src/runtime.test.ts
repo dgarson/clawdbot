@@ -1,13 +1,23 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { SandboxUnavailableError } from "@openclaw/sdk";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createLocalSandbox } from "./index.js";
+import { isWorkspaceReadable } from "./workspace.js";
+
+const createWorkspace = async (): Promise<string> => {
+  return mkdtemp(join(tmpdir(), "openclaw-sandbox-"));
+};
 
 describe("Local sandbox runtime", () => {
-  it("starts, reports status, and executes payload", async () => {
-    const baseDir = await mkdtemp(join(tmpdir(), "openclaw-sandbox-"));
+  let baseDir: string;
 
+  beforeEach(async () => {
+    baseDir = await createWorkspace();
+  });
+
+  it("starts, reports status, and executes payload", async () => {
     const runtime = createLocalSandbox({
       rootDir: baseDir,
       command: "node",
@@ -26,8 +36,51 @@ describe("Local sandbox runtime", () => {
 
     await runtime.stop();
     const stopped = await runtime.status();
-    expect(["idle", "terminating", "stopped"]).toContain(stopped.state);
+    expect(stopped.state).toBe("idle");
+  });
 
+  it("prevents execution before startup", async () => {
+    const runtime = createLocalSandbox({
+      rootDir: baseDir,
+      command: "node",
+    });
+
+    const result = runtime.exec<{ value: string }, { value: string }>({
+      input: { value: "early" },
+    });
+
+    await expect(result).rejects.toBeInstanceOf(SandboxUnavailableError);
+  });
+
+  it("emits lifecycle events while executing", async () => {
+    const runtime = createLocalSandbox({
+      rootDir: baseDir,
+      command: "node",
+    });
+
+    const events: string[] = [];
+    const unsubscribe = runtime.streamEvents((event) => {
+      events.push(event.kind);
+    });
+
+    await runtime.start();
+    await runtime.exec({ input: { value: "hello" } });
+    await runtime.stop();
+
+    expect(events).toContain("started");
+    expect(events).toContain("busy");
+    expect(events).toContain("idle");
+    expect(events).toContain("stopped");
+
+    unsubscribe();
+  });
+
+  it("rejects invalid workspace roots", () => {
+    expect(isWorkspaceReadable("")).toBe(false);
+    expect(isWorkspaceReadable("   ")).toBe(false);
+  });
+
+  afterEach(async () => {
     await rm(baseDir, { recursive: true, force: true });
   });
 });
