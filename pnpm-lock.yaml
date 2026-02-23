@@ -547,6 +547,12 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  extensions/cost-tracker:
+    devDependencies:
+      openclaw:
+        specifier: workspace:*
+        version: link:../..
+
   extensions/diagnostics-otel:
     dependencies:
       '@opentelemetry/api':
