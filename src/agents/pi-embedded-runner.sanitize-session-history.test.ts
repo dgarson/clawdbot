@@ -284,7 +284,7 @@ describe("sanitizeSessionHistory", () => {
     expect(result[1]?.role).toBe("assistant");
   });
 
-  it("does not synthesize tool results for openai-responses", async () => {
+  it("synthesizes missing tool results for openai-responses to prevent orphaned function_call_output", async () => {
     const messages = [
       {
         role: "assistant",
@@ -300,8 +300,12 @@ describe("sanitizeSessionHistory", () => {
       sessionId: TEST_SESSION_ID,
     });
 
-    expect(result).toHaveLength(1);
+    // repairToolUseResultPairing inserts a synthetic error result for the
+    // unmatched tool call so the OpenAI API never receives a function_call
+    // without a corresponding function_call_output (or vice-versa).
+    expect(result).toHaveLength(2);
     expect(result[0]?.role).toBe("assistant");
+    expect(result[1]?.role).toBe("toolResult");
   });
 
   it("drops malformed tool calls missing input or arguments", async () => {
