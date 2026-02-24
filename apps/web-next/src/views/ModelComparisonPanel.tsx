@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Activity,
+  AlertCircle,
   ArrowUpRight,
   BarChart as BarChartIcon,
   CheckCircle,

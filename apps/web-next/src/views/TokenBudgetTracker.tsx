@@ -13,6 +13,7 @@ import {
   PieChart,
   Settings,
   TrendingUp,
+  Users,
   XCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -314,12 +315,12 @@ function RateLimitPanel({ limit }: { limit: RateLimit }) {
 
 function AlertEntry({ alert }: { alert: BudgetAlert }) {
   const severity: AlertSeverity = alert.threshold >= 90 ? 'critical' : alert.threshold >= 75 ? 'warning' : 'info';
-  const icon = severity === 'critical' ? XCircle : severity === 'warning' ? AlertTriangle : Info;
+  const Icon = severity === 'critical' ? XCircle : severity === 'warning' ? AlertTriangle : Info;
   const color = severity === 'critical' ? 'text-red-400' : severity === 'warning' ? 'text-amber-400' : 'text-sky-400';
 
   return (
     <div className="flex items-center gap-2 py-2 border-b border-zinc-800 last:border-0">
-      <icon className={cn('w-4 h-4', color)} />
+      <Icon className={cn('w-4 h-4', color)} />
       <div className="flex-1">
         <p className="text-xs text-zinc-300">{alert.message}</p>
         <p className="text-xs text-zinc-500">{alert.timestamp.toLocaleTimeString()}</p>

@@ -543,7 +543,8 @@ export default function ChannelBroadcastCenter({ isLoading = false }: { isLoadin
 
   const handleSchedule = (data: { message: string; channels: string[]; schedule: Date }) => {
     console.log('Scheduling broadcast:', data);
-    setScheduled((prev) => [...prev, { ...data, id: `sc${prev.length + 1}`, timestamp: new Date(), status: {} }]);
+    const { schedule: scheduledTime, ...rest } = data;
+    setScheduled((prev) => [...prev, { ...rest, scheduledTime, id: `sc${prev.length + 1}`, timestamp: new Date(), status: {} as { [channelId: string]: BroadcastStatus } }]);
   };
 
   const handleCancel = (id: string) => {

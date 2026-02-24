@@ -9,7 +9,7 @@ import {
   DollarSign,
   Layers,
   Zap,
-  Tool,
+  Wrench as Tool,
   BarChart,
   PieChart,
   Users,
