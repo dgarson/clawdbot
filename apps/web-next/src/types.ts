@@ -408,3 +408,108 @@ export interface TimeSeriesChartProps {
   showAxis?: boolean;
   animated?: boolean;
 }
+
+// ============================================================================
+// Mission Control Dashboard Types
+// ============================================================================
+
+/**
+ * Session types for Mission Control
+ */
+export type MissionControlSessionType = 'main' | 'subagent' | 'cron';
+
+/**
+ * Session status for Mission Control
+ */
+export type MissionControlSessionStatus = 'RUNNING' | 'WAITING' | 'ERROR';
+
+/**
+ * Tool call status for Mission Control
+ */
+export type MissionControlToolCallStatus = 'running' | 'complete' | 'error';
+
+/**
+ * Tool types for Mission Control
+ */
+export type MissionControlToolType = 'exec' | 'read' | 'write' | 'sessions_spawn' | 'message' | 'browser' | 'other';
+
+/**
+ * Risk level for approvals
+ */
+export type RiskLevel = 'Low' | 'Medium' | 'High';
+
+/**
+ * Alert severity levels
+ */
+export type AlertSeverity = 'critical' | 'error' | 'warning' | 'info';
+
+/**
+ * Alert filter options
+ */
+export type AlertFilter = 'all' | 'error' | 'warning' | 'info';
+
+/**
+ * Active session in Mission Control
+ */
+export interface ActiveSession {
+  id: string;
+  agentName: string;
+  agentEmoji: string;
+  sessionType: MissionControlSessionType;
+  currentTool?: string;
+  tokenInput: number;
+  tokenOutput: number;
+  durationSeconds: number;
+  status: MissionControlSessionStatus;
+}
+
+/**
+ * Tool call event for Mission Control
+ */
+export interface MissionControlToolCall {
+  id: string;
+  toolName: string;
+  toolType: MissionControlToolType;
+  agentName: string;
+  elapsedMs: number;
+  status: MissionControlToolCallStatus;
+  completedAt?: number;
+}
+
+/**
+ * Pending approval request
+ */
+export interface PendingApproval {
+  id: string;
+  agentName: string;
+  agentEmoji: string;
+  actionDescription: string;
+  riskLevel: RiskLevel;
+  waitingSeconds: number;
+}
+
+/**
+ * Alert entry
+ */
+export interface AlertEntry {
+  id: string;
+  timestamp: string;
+  severity: AlertSeverity;
+  agentName: string;
+  message: string;
+}
+
+/**
+ * WebSocket event types for Mission Control
+ */
+export interface MissionControlEvents {
+  'session.start': ActiveSession;
+  'session.end': { id: string };
+  'session.update': Partial<ActiveSession> & { id: string };
+  'tool.call': MissionControlToolCall;
+  'tool.complete': MissionControlToolCall;
+  'approval.request': PendingApproval;
+  'approval.resolve': { id: string; decision: 'approved' | 'denied' };
+  'alert.new': AlertEntry;
+  'alert.dismiss': { id: string };
+}

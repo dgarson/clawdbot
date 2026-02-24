@@ -84,6 +84,7 @@ const RateLimitDashboard = React.lazy(() => import("./views/RateLimitDashboard")
 const TaskQueue       = React.lazy(() => import("./views/TaskQueue"));
 const StorageExplorer = React.lazy(() => import("./views/StorageExplorer"));
 const AlertCenter          = React.lazy(() => import("./views/AlertCenter"));
+const MissionControlDashboard = React.lazy(() => import("./views/MissionControlDashboard"));
 const WebhookManager       = React.lazy(() => import("./views/WebhookManager"));
 const ConversationHistory  = React.lazy(() => import("./views/ConversationHistory"));
 const AgentScheduler       = React.lazy(() => import("./views/AgentScheduler"));
@@ -363,6 +364,7 @@ export const navItems = [
   { id: "task-queue",      label: "Task Queue",     emoji: "📬", shortcut: null },
   { id: "storage",         label: "Storage",        emoji: "💾", shortcut: null },
   { id: "alerts",          label: "Alert Center",   emoji: "🚨", shortcut: null },
+  { id: "mission-control", label: "Mission Control", emoji: "🎯", shortcut: null },
   { id: "webhooks",        label: "Webhooks",       emoji: "🔗", shortcut: null },
   { id: "history",         label: "Session History", emoji: "🕐", shortcut: null },
   { id: "scheduler",       label: "Scheduler",      emoji: "⏰", shortcut: null },
@@ -635,6 +637,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "task-queue":     <TableSkeleton rows={10} />,
   "storage":        <ContentSkeleton />,
   "alerts":         <DashboardSkeleton />,
+  "mission-control": <DashboardSkeleton />,
   "webhooks":       <TableSkeleton rows={6} />,
   "history":        <ContentSkeleton />,
   "scheduler":      <DashboardSkeleton />,
@@ -1240,6 +1243,7 @@ function AppContent() {
       case "task-queue":      return <TaskQueue />;
       case "storage":         return <StorageExplorer />;
       case "alerts":          return <AlertCenter />;
+      case "mission-control": return <MissionControlDashboard />;
       case "webhooks":        return <WebhookManager />;
       case "history":         return <ConversationHistory />;
       case "scheduler":       return <AgentScheduler />;
