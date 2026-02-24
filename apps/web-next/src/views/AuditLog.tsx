@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import { FileSearch } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -637,11 +639,11 @@ export default function AuditLog() {
           className={cn("flex flex-col overflow-y-auto", selectedEvent ? "w-1/2" : "w-full")}
         >
           {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center px-8">
-              <span className="text-4xl">🔍</span>
-              <p className="text-sm font-medium text-zinc-300">No events match your filters</p>
-              <p className="text-xs text-zinc-600">Try adjusting your search or clearing filters</p>
-            </div>
+            <ContextualEmptyState
+              icon={FileSearch}
+              title="No audit events found"
+              description="Try adjusting your search or clearing filters to see activity."
+            />
           )}
 
           {filtered.map((event) => {

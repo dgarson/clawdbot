@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { ScrollText } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type Category = "security" | "privacy" | "compliance" | "access" | "data-retention" | "model-usage";
 type Status = "active" | "draft" | "deprecated";
@@ -265,7 +267,12 @@ export default function PolicyManager() {
             );
           })}
           {filtered.length === 0 && (
-            <div className="text-zinc-500 text-center py-12">No policies in this category.</div>
+            <ContextualEmptyState
+              icon={ScrollText}
+              title="No policies in this category"
+              description="Create a policy to define governance rules for your organization."
+              size="sm"
+            />
           )}
         </div>
 

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Flag, History } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type FlagStatus = "enabled" | "disabled" | "partial";
 
@@ -669,9 +671,12 @@ function FlagsTab() {
 
         <div className="flex-1 overflow-y-auto space-y-2">
           {filteredFlags.length === 0 ? (
-            <div className="flex items-center justify-center h-40 text-zinc-500">
-              No flags found matching your criteria
-            </div>
+            <ContextualEmptyState
+              icon={Flag}
+              title="No feature flags found"
+              description="No flags match your criteria. Create a new flag to get started."
+              size="sm"
+            />
           ) : (
             filteredFlags.map((flag) => (
               <div
@@ -934,9 +939,12 @@ function AuditTab() {
 
       <div className="space-y-2 overflow-y-auto">
         {filteredEntries.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-zinc-500">
-            No audit entries found
-          </div>
+          <ContextualEmptyState
+            icon={History}
+            title="No audit entries yet"
+            description="Flag changes will appear here once modifications are made."
+            size="sm"
+          />
         ) : (
           filteredEntries.map((entry) => (
             <div key={entry.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
