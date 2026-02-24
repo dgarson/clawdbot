@@ -98,10 +98,14 @@ export class InMemoryReplayRecorder implements ReplayRecorder {
 
   emit(event: ReplayEventInput): ReplayEvent {
     if (!this.#active) {
-      return {
+      const emitted: ReplayEvent = {
         seq: this.#nextSeq,
         ts: this.#options.now ? this.#options.now() : new Date().toISOString(),
         ...event,
+      };
+      this.#nextSeq += 1;
+      return {
+        ...emitted,
       };
     }
 
@@ -134,7 +138,7 @@ export class InMemoryReplayRecorder implements ReplayRecorder {
   }
 
   getEvents() {
-    return this.#events;
+    return this.#events.slice();
   }
 
   finalize(): ReplayManifest {

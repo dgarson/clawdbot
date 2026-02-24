@@ -10,7 +10,13 @@ export interface DeterministicClockOptions {
 }
 
 export function createDeterministicClock(options: DeterministicClockOptions = {}): ReplayClock {
-  let cursor = Date.parse(options.start ?? new Date(0).toISOString());
+  const start = options.start ?? new Date(0).toISOString();
+  const parsedStart = Date.parse(start);
+  if (Number.isNaN(parsedStart)) {
+    throw new Error(`Invalid deterministic clock start timestamp: ${start}`);
+  }
+
+  let cursor = parsedStart;
   const stepMs = Math.max(0, options.stepMs ?? 0);
 
   return () => {
