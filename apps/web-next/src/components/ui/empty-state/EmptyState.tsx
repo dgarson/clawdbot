@@ -40,31 +40,31 @@ function getVariantContent(variant: EmptyStateVariant): { icon: React.ComponentT
       return {
         icon: Bot,
         title: 'No agents yet',
-        description: 'Your agents are waiting. Create one to start automating tasks and handling conversations on autopilot.',
+        description: 'Time to create your first one. Agents are your AI workforce—handling tasks, conversations, and automations on your terms.',
       };
     case 'no-sessions':
       return {
         icon: MessageSquare,
         title: 'No conversations yet',
-        description: 'Sessions appear here once you start chatting with an agent. Each conversation is saved for easy reference.',
+        description: 'Start chatting with an agent and your sessions will show up here. Every conversation is saved for reference.',
       };
     case 'no-skills':
       return {
         icon: Sparkles,
         title: 'Skills await',
-        description: 'Supercharge your agents with skills from the marketplace. Calendar integration, code review, and more.',
+        description: 'Supercharge your agents with skills from the marketplace. Calendar sync, code review, data analysis—your agents get smarter with each one.',
       };
     case 'no-results':
       return {
         icon: Search,
         title: 'Nothing matches that',
-        description: 'Try a different search term or adjust your filters. Or maybe you\'ve just discovered a gap we should fill?',
+        description: 'Try a different search term or adjust your filters. Or you\'ve found a gap—let us know what you needed.',
       };
     case 'first-run':
       return {
         icon: Inbox,
         title: 'Welcome to OpenClaw',
-        description: 'Your personal AI assistant, ready to work. Create your first agent or browse skills to get started.',
+        description: 'Your personal AI assistant is ready to go. Create your first agent or browse skills to start customizing.',
       };
     case 'generic':
     default:
