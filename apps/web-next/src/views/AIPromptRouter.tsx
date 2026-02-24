@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Route } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -203,38 +205,46 @@ function RoutesTab() {
 
   return (
     <div className="space-y-3">
+      {routes.length === 0 && (
+        <ContextualEmptyState
+          icon={Route}
+          title="No routes configured"
+          description="Set up your first routing rule to intelligently distribute prompts across models."
+          size="md"
+        />
+      )}
       {routes.map((route) => (
         <div
           key={route.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
             !route.enabled && "opacity-50",
-            selected?.id === route.id ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+            selected?.id === route.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
           onClick={() => setSelected(selected?.id === route.id ? null : route)}
         >
           <div className="flex items-center gap-3">
-            <div className={cn("w-2 h-2 rounded-full shrink-0", route.enabled ? "bg-emerald-400" : "bg-zinc-600")} />
-            <span className="font-medium text-white">{route.name}</span>
+            <div className={cn("w-2 h-2 rounded-full shrink-0", route.enabled ? "bg-emerald-400" : "bg-surface-3")} />
+            <span className="font-medium text-fg-primary">{route.name}</span>
             <span className={cn("text-xs px-1.5 py-0.5 rounded border capitalize", actionColor(route.action))}>
               {route.action}
             </span>
-            <span className="text-xs text-zinc-500 ml-auto">{(route.requestCount24h / 1000).toFixed(0)}K req/24h</span>
+            <span className="text-xs text-fg-muted ml-auto">{(route.requestCount24h / 1000).toFixed(0)}K req/24h</span>
             <span className="text-xs text-emerald-400">${route.avgCostPer1k.toFixed(2)}/1K</span>
             <span className="text-xs text-indigo-400">{route.avgLatencyMs}ms avg</span>
           </div>
-          <p className="text-xs text-zinc-500 mt-1 ml-5">{route.description}</p>
+          <p className="text-xs text-fg-muted mt-1 ml-5">{route.description}</p>
 
           {selected?.id === route.id && (
-            <div className="mt-4 ml-5 border-t border-zinc-800 pt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="mt-4 ml-5 border-t border-tok-border pt-4 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <div className="text-zinc-500 mb-1">Models in pool</div>
+                  <div className="text-fg-muted mb-1">Models in pool</div>
                   <div className="flex flex-wrap gap-1">
                     {route.modelIds.map((mid) => {
                       const m = models.find((mo) => mo.id === mid);
                       return (
-                        <span key={mid} className="bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded text-xs">
+                        <span key={mid} className="bg-surface-2 text-fg-primary px-2 py-0.5 rounded text-xs">
                           {m?.name ?? mid}
                         </span>
                       );
@@ -242,30 +252,30 @@ function RoutesTab() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-zinc-500 mb-1">Conditions</div>
+                  <div className="text-fg-muted mb-1">Conditions</div>
                   <div className="space-y-0.5">
                     {route.conditions.map((c, i) => (
-                      <div key={i} className="text-zinc-400 font-mono">{c}</div>
+                      <div key={i} className="text-fg-secondary font-mono">{c}</div>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 <div>
-                  <div className="text-zinc-500">Priority</div>
+                  <div className="text-fg-muted">Priority</div>
                   <div className="text-indigo-400">{route.priority}</div>
                 </div>
                 <div>
-                  <div className="text-zinc-500">Requests (24h)</div>
-                  <div className="text-white">{route.requestCount24h.toLocaleString()}</div>
+                  <div className="text-fg-muted">Requests (24h)</div>
+                  <div className="text-fg-primary">{route.requestCount24h.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-zinc-500">Error rate</div>
+                  <div className="text-fg-muted">Error rate</div>
                   <div className={route.errorRate > 2 ? "text-rose-400" : "text-emerald-400"}>{route.errorRate}%</div>
                 </div>
                 <div>
-                  <div className="text-zinc-500">Avg latency</div>
-                  <div className="text-zinc-300">{route.avgLatencyMs}ms</div>
+                  <div className="text-fg-muted">Avg latency</div>
+                  <div className="text-fg-primary">{route.avgLatencyMs}ms</div>
                 </div>
               </div>
             </div>
@@ -287,7 +297,7 @@ function ModelsTab() {
           key={m.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
-            selected?.id === m.id ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+            selected?.id === m.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
           onClick={() => setSelected(selected?.id === m.id ? null : m)}
         >
@@ -295,14 +305,14 @@ function ModelsTab() {
             <span className={cn("w-2 h-2 rounded-full shrink-0", statusColor(m.status))} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-white">{m.name}</span>
-                <span className="text-xs text-zinc-500">{m.provider}</span>
+                <span className="font-medium text-fg-primary">{m.name}</span>
+                <span className="text-xs text-fg-muted">{m.provider}</span>
               </div>
-              <div className="text-xs text-zinc-500 mt-0.5">ctx {fmtCtx(m.contextWindow)}</div>
+              <div className="text-xs text-fg-muted mt-0.5">ctx {fmtCtx(m.contextWindow)}</div>
             </div>
             <div className="text-right text-xs">
-              <div className="text-zinc-300">in ${m.inputCostPer1k}/1K · out ${m.outputCostPer1k}/1K</div>
-              <div className="text-zinc-500 mt-0.5">{m.avgLatencyMs}ms avg</div>
+              <div className="text-fg-primary">in ${m.inputCostPer1k}/1K · out ${m.outputCostPer1k}/1K</div>
+              <div className="text-fg-muted mt-0.5">{m.avgLatencyMs}ms avg</div>
             </div>
             <div className={cn("text-xs font-semibold capitalize", statusText(m.status))}>{m.status}</div>
           </div>
@@ -310,34 +320,34 @@ function ModelsTab() {
           {/* Latency bar */}
           {m.status !== "down" && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-xs text-zinc-500 w-14">Latency</span>
-              <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+              <span className="text-xs text-fg-muted w-14">Latency</span>
+              <div className="flex-1 bg-surface-2 rounded-full h-1.5">
                 <div
                   className={cn("h-1.5 rounded-full", m.status === "degraded" ? "bg-amber-500" : "bg-emerald-500")}
                   style={{ width: (m.avgLatencyMs / maxLatency * 100) + "%" }}
                 />
               </div>
-              <span className="text-xs text-zinc-400 w-16 text-right">{m.avgLatencyMs}ms</span>
+              <span className="text-xs text-fg-secondary w-16 text-right">{m.avgLatencyMs}ms</span>
             </div>
           )}
 
           {selected?.id === m.id && (
-            <div className="mt-4 border-t border-zinc-800 pt-4 grid grid-cols-4 gap-4 text-xs">
+            <div className="mt-4 border-t border-tok-border pt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
               <div>
-                <div className="text-zinc-500">p99 Latency</div>
-                <div className="text-zinc-300">{m.status === "down" ? "—" : m.p99LatencyMs + "ms"}</div>
+                <div className="text-fg-muted">p99 Latency</div>
+                <div className="text-fg-primary">{m.status === "down" ? "—" : m.p99LatencyMs + "ms"}</div>
               </div>
               <div>
-                <div className="text-zinc-500">Error Rate</div>
+                <div className="text-fg-muted">Error Rate</div>
                 <div className={m.errorRate > 2 ? "text-rose-400" : "text-emerald-400"}>{m.errorRate}%</div>
               </div>
               <div>
-                <div className="text-zinc-500">Success Rate</div>
+                <div className="text-fg-muted">Success Rate</div>
                 <div className={m.successRate > 99 ? "text-emerald-400" : "text-amber-400"}>{m.successRate}%</div>
               </div>
               <div>
-                <div className="text-zinc-500">Context Window</div>
-                <div className="text-zinc-300">{fmtCtx(m.contextWindow)} tokens</div>
+                <div className="text-fg-muted">Context Window</div>
+                <div className="text-fg-primary">{fmtCtx(m.contextWindow)} tokens</div>
               </div>
             </div>
           )}
@@ -361,7 +371,7 @@ function EventsTab() {
             onClick={() => setFilter(f)}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
-              filter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+              filter === f ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
             )}
           >
             {f}
@@ -369,29 +379,29 @@ function EventsTab() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="rounded-xl border border-tok-border overflow-hidden">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900">
-              <th className="text-left px-3 py-2 text-zinc-400">Time</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Route</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Model</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Reason</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Tokens</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Latency</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Cost</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Status</th>
+            <tr className="border-b border-tok-border bg-surface-1">
+              <th className="text-left px-3 py-2 text-fg-secondary">Time</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Route</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Model</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Reason</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Tokens</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Latency</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Cost</th>
+              <th className="text-left px-3 py-2 text-fg-secondary">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-tok-border">
             {filtered.map((ev) => (
-              <tr key={ev.id} className="bg-zinc-950 hover:bg-zinc-900 transition-colors">
-                <td className="px-3 py-2 font-mono text-zinc-500">{ev.timestamp}</td>
-                <td className="px-3 py-2 text-zinc-300">{ev.routeName}</td>
+              <tr key={ev.id} className="bg-surface-0 hover:bg-surface-1 transition-colors">
+                <td className="px-3 py-2 font-mono text-fg-muted">{ev.timestamp}</td>
+                <td className="px-3 py-2 text-fg-primary">{ev.routeName}</td>
                 <td className="px-3 py-2 text-indigo-400">{ev.selectedModel}</td>
-                <td className="px-3 py-2 text-zinc-500 max-w-xs truncate">{ev.reason}</td>
-                <td className="px-3 py-2 text-zinc-400">{ev.inputTokens}/{ev.outputTokens}</td>
-                <td className="px-3 py-2 text-zinc-300">{ev.latencyMs}ms</td>
+                <td className="px-3 py-2 text-fg-muted max-w-xs truncate">{ev.reason}</td>
+                <td className="px-3 py-2 text-fg-secondary">{ev.inputTokens}/{ev.outputTokens}</td>
+                <td className="px-3 py-2 text-fg-primary">{ev.latencyMs}ms</td>
                 <td className="px-3 py-2 text-emerald-400">${ev.cost.toFixed(5)}</td>
                 <td className={cn("px-3 py-2 capitalize font-medium", eventStatusColor(ev.status))}>{ev.status}</td>
               </tr>
@@ -418,57 +428,57 @@ function AnalyticsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total Requests (24h)", value: (totalReqs / 1000).toFixed(0) + "K" },
           { label: "Active Routes", value: routes.filter((r) => r.enabled).length.toString() },
           { label: "Models Available", value: models.filter((m) => m.status === "healthy").length.toString() },
           { label: "Avg Error Rate", value: (routeReqs.reduce((a, r) => a + r.errorRate, 0) / routeReqs.length).toFixed(1) + "%" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-            <div className="text-2xl font-bold text-white">{s.value}</div>
-            <div className="text-sm text-zinc-400 mt-1">{s.label}</div>
+          <div key={s.label} className="rounded-xl border border-tok-border bg-surface-1 p-4">
+            <div className="text-2xl font-bold text-fg-primary">{s.value}</div>
+            <div className="text-sm text-fg-secondary mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Requests by Route (24h)</h3>
+      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Requests by Route (24h)</h3>
         <div className="space-y-3">
           {routeReqs.toSorted((a, b) => b.requestCount24h - a.requestCount24h).map((r) => (
             <div key={r.id} className="flex items-center gap-3">
-              <span className="text-xs text-zinc-300 w-40 truncate">{r.name}</span>
-              <div className="flex-1 bg-zinc-800 rounded-full h-2">
+              <span className="text-xs text-fg-primary w-40 truncate">{r.name}</span>
+              <div className="flex-1 bg-surface-2 rounded-full h-2">
                 <div
                   className="h-2 rounded-full bg-indigo-500"
                   style={{ width: (r.requestCount24h / (routeReqs[0]?.requestCount24h ?? 1) * 100) + "%" }}
                 />
               </div>
-              <span className="text-xs text-zinc-300 w-16 text-right">{(r.requestCount24h / 1000).toFixed(0)}K</span>
-              <span className="text-xs text-zinc-500 w-10 text-right">{(r.requestCount24h / totalReqs * 100).toFixed(0)}%</span>
+              <span className="text-xs text-fg-primary w-16 text-right">{(r.requestCount24h / 1000).toFixed(0)}K</span>
+              <span className="text-xs text-fg-muted w-10 text-right">{(r.requestCount24h / totalReqs * 100).toFixed(0)}%</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Model Utilization</h3>
+      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Model Utilization</h3>
         <div className="space-y-3">
           {sortedModels.map(([mid, count]) => {
             const m = models.find((mo) => mo.id === mid);
             return (
               <div key={mid} className="flex items-center gap-3">
                 <div className="flex items-center gap-2 w-40">
-                  <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", m ? statusColor(m.status) : "bg-zinc-500")} />
-                  <span className="text-xs text-zinc-300 truncate">{m?.name ?? mid}</span>
+                  <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", m ? statusColor(m.status) : "bg-surface-3")} />
+                  <span className="text-xs text-fg-primary truncate">{m?.name ?? mid}</span>
                 </div>
-                <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                <div className="flex-1 bg-surface-2 rounded-full h-2">
                   <div
                     className="h-2 rounded-full bg-emerald-500"
                     style={{ width: (count / maxModelReqs * 100) + "%" }}
                   />
                 </div>
-                <span className="text-xs text-zinc-300 w-16 text-right">{(count / 1000).toFixed(0)}K</span>
+                <span className="text-xs text-fg-primary w-16 text-right">{(count / 1000).toFixed(0)}K</span>
               </div>
             );
           })}
@@ -491,9 +501,9 @@ export default function AIPromptRouter() {
   const totalReqs = routes.filter((r) => r.enabled).reduce((a, r) => a + r.requestCount24h, 0);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
           <h1 className="text-2xl font-bold">AI Prompt Router</h1>
           {downModels > 0 && (
             <span className="text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-full px-3 py-1">
@@ -501,12 +511,12 @@ export default function AIPromptRouter() {
             </span>
           )}
         </div>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-fg-secondary text-sm">
           Intelligent routing across {models.length} models · {routes.filter((r) => r.enabled).length} active routes · {(totalReqs / 1000).toFixed(0)}K requests today · {healthyModels}/{models.length} healthy
         </p>
       </div>
 
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-tok-border">
         {TABS.map((t) => (
           <button
             key={t}
@@ -515,7 +525,7 @@ export default function AIPromptRouter() {
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-white"
+                : "border-transparent text-fg-secondary hover:text-fg-primary"
             )}
           >
             {t}

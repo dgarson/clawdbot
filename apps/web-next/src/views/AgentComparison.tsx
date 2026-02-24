@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeftRight, ChevronDown, Check, X, Clock, Activity, Zap, Calendar } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, Check, X, Clock, Activity, Zap, Calendar, Users } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ============================================================================
 // Types
@@ -249,7 +250,7 @@ function AgentSelector({ value, onChange, agents, label, 'aria-label': ariaLabel
   
   return (
     <div className="relative">
-      <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-2">
+      <label className="block text-xs text-fg-muted uppercase tracking-wider mb-2">
         {label}
       </label>
       <button
@@ -260,20 +261,20 @@ function AgentSelector({ value, onChange, agents, label, 'aria-label': ariaLabel
         aria-label={ariaLabel}
         className={cn(
           "w-full flex items-center gap-3 px-4 py-3 rounded-xl",
-          "bg-zinc-900 border border-zinc-800 hover:border-zinc-700",
+          "bg-surface-1 border border-tok-border hover:border-tok-border",
           "transition-colors duration-200 text-left min-w-[200px]"
         )}
       >
         <span className="text-2xl">{value.emoji}</span>
-        <span className="flex-1 font-medium text-white">{value.name}</span>
-        <ChevronDown className={cn("w-4 h-4 text-zinc-500 transition-transform", isOpen && "rotate-180")} />
+        <span className="flex-1 font-medium text-fg-primary">{value.name}</span>
+        <ChevronDown className={cn("w-4 h-4 text-fg-muted transition-transform", isOpen && "rotate-180")} />
       </button>
       
       {isOpen && (
         <div 
           role="listbox"
           aria-label={`Select ${label}`}
-          className="absolute z-50 top-full left-0 right-0 mt-2 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden"
+          className="absolute z-50 top-full left-0 right-0 mt-2 bg-surface-1 border border-tok-border rounded-xl shadow-xl overflow-hidden"
         >
           {agents.map((agent) => (
             <button
@@ -285,14 +286,14 @@ function AgentSelector({ value, onChange, agents, label, 'aria-label': ariaLabel
                 setIsOpen(false);
               }}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800 transition-colors",
-                agent.id === value.id && "bg-zinc-800"
+                "w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-2 transition-colors",
+                agent.id === value.id && "bg-surface-2"
               )}
             >
               <span className="text-xl">{agent.emoji}</span>
               <div className="flex-1 text-left">
-                <div className="font-medium text-white">{agent.name}</div>
-                <div className="text-xs text-zinc-500">{agent.role}</div>
+                <div className="font-medium text-fg-primary">{agent.name}</div>
+                <div className="text-xs text-fg-muted">{agent.role}</div>
               </div>
               {agent.id === value.id && <Check className="w-4 h-4 text-indigo-500" />}
             </button>
@@ -314,14 +315,14 @@ function ComparisonCell({ label, valueA, valueB, isDifferent }: ComparisonCellPr
   return (
     <div className={cn("flex items-center py-3", isDifferent && "bg-amber-500/5 -mx-2 px-2 rounded-lg")}>
       <div className="flex-1">
-        <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">{label}</div>
-        <div className={cn("text-sm text-zinc-300", isDifferent && "ring-1 ring-amber-500/50 rounded px-2 py-0.5")}>
+        <div className="text-xs text-fg-muted uppercase tracking-wider mb-1">{label}</div>
+        <div className={cn("text-sm text-fg-primary", isDifferent && "ring-1 ring-amber-500/50 rounded px-2 py-0.5")}>
           {valueA}
         </div>
       </div>
       <div className="flex-1 text-right">
-        <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">→</div>
-        <div className={cn("text-sm text-zinc-300", isDifferent && "ring-1 ring-amber-500/50 rounded px-2 py-0.5")}>
+        <div className="text-xs text-fg-muted uppercase tracking-wider mb-1">→</div>
+        <div className={cn("text-sm text-fg-primary", isDifferent && "ring-1 ring-amber-500/50 rounded px-2 py-0.5")}>
           {valueB}
         </div>
       </div>
@@ -336,9 +337,9 @@ interface SectionHeaderProps {
 
 function SectionHeader({ icon, title }: SectionHeaderProps) {
   return (
-    <div className="flex items-center gap-2 pb-3 border-b border-zinc-800 mb-4">
+    <div className="flex items-center gap-2 pb-3 border-b border-tok-border mb-4">
       <span className="text-indigo-500">{icon}</span>
-      <h3 className="text-sm font-semibold text-white uppercase tracking-wider">{title}</h3>
+      <h3 className="text-sm font-semibold text-fg-primary uppercase tracking-wider">{title}</h3>
     </div>
   );
 }
@@ -360,12 +361,12 @@ export default function AgentComparison() {
   const differenceCount = useMemo(() => getAllDifferences(agentA, agentB), [agentA, agentB]);
   
   return (
-    <div className="h-full p-6 bg-zinc-950 overflow-y-auto custom-scrollbar">
+    <div className="h-full p-3 sm:p-4 md:p-6 bg-surface-0 overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Agent Comparison</h1>
-          <p className="text-sm text-zinc-500">Compare agent configurations side-by-side</p>
+          <h1 className="text-2xl font-bold text-fg-primary mb-1">Agent Comparison</h1>
+          <p className="text-sm text-fg-muted">Compare agent configurations side-by-side</p>
         </div>
         
         {/* Difference Badge */}
@@ -373,7 +374,7 @@ export default function AgentComparison() {
           "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium",
           differenceCount > 0 
             ? "bg-amber-500/10 text-amber-400 border border-amber-500/30" 
-            : "bg-zinc-900 text-zinc-500 border border-zinc-800"
+            : "bg-surface-1 text-fg-muted border border-tok-border"
         )}>
           <Zap className="w-4 h-4" />
           Differences: {differenceCount}
@@ -397,9 +398,9 @@ export default function AgentComparison() {
           onClick={handleSwap}
           aria-label="Swap agents"
           className={cn(
-            "p-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-indigo-500",
-            "text-zinc-400 hover:text-indigo-500 transition-all duration-200",
-            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
+            "p-3 rounded-xl bg-surface-1 border border-tok-border hover:border-indigo-500",
+            "text-fg-secondary hover:text-indigo-500 transition-all duration-200",
+            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-surface-0"
           )}
         >
           <ArrowLeftRight className="w-5 h-5" />
@@ -417,14 +418,22 @@ export default function AgentComparison() {
       </div>
       
       {/* Comparison Grid */}
+      {AGENTS.length === 0 && (
+        <ContextualEmptyState
+          icon={Users}
+          title="No agents available"
+          description="Register at least two agents to start comparing configurations side-by-side."
+          size="lg"
+        />
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column - Agent A */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
+        <div className="bg-surface-1 border border-tok-border rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-tok-border">
             <span className="text-3xl">{agentA.emoji}</span>
             <div>
-              <h2 className="text-lg font-bold text-white">{agentA.name}</h2>
-              <p className="text-sm text-zinc-500">{agentA.role}</p>
+              <h2 className="text-lg font-bold text-fg-primary">{agentA.name}</h2>
+              <p className="text-sm text-fg-muted">{agentA.role}</p>
             </div>
           </div>
           
@@ -509,17 +518,17 @@ export default function AgentComparison() {
               "grid grid-cols-2 gap-2 p-3 rounded-lg",
               JSON.stringify([...agentA.tools].toSorted()) !== JSON.stringify([...agentB.tools].toSorted()) 
                 ? "bg-amber-500/5 ring-1 ring-amber-500/30" 
-                : "bg-zinc-800/50"
+                : "bg-surface-2/50"
             )}>
               {ALL_TOOLS.map((tool) => {
                 const hasToolA = agentA.tools.includes(tool);
                 const hasToolB = agentB.tools.includes(tool);
                 return (
                   <div key={tool} className="flex items-center gap-2">
-                    <span className={hasToolA ? "text-green-500" : "text-zinc-600"}>
+                    <span className={hasToolA ? "text-green-500" : "text-fg-muted"}>
                       {hasToolA ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     </span>
-                    <span className="text-sm text-zinc-300 font-mono">{tool}</span>
+                    <span className="text-sm text-fg-primary font-mono">{tool}</span>
                   </div>
                 );
               })}
@@ -541,7 +550,7 @@ export default function AgentComparison() {
                 JSON.stringify(agentA.personality.communicationStyle) !== JSON.stringify(agentB.personality.communicationStyle) 
                   && "bg-amber-500/5 -mx-2 px-2 rounded-lg"
               )}>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Communication Style</div>
+                <div className="text-xs text-fg-muted uppercase tracking-wider mb-2">Communication Style</div>
                 <div className="flex flex-wrap gap-2">
                   {agentA.personality.communicationStyle.map((style) => (
                     <span key={style} className="px-2 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs">
@@ -605,12 +614,12 @@ export default function AgentComparison() {
         </div>
         
         {/* Right Column - Agent B */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
+        <div className="bg-surface-1 border border-tok-border rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-tok-border">
             <span className="text-3xl">{agentB.emoji}</span>
             <div>
-              <h2 className="text-lg font-bold text-white">{agentB.name}</h2>
-              <p className="text-sm text-zinc-500">{agentB.role}</p>
+              <h2 className="text-lg font-bold text-fg-primary">{agentB.name}</h2>
+              <p className="text-sm text-fg-muted">{agentB.role}</p>
             </div>
           </div>
           
@@ -695,17 +704,17 @@ export default function AgentComparison() {
               "grid grid-cols-2 gap-2 p-3 rounded-lg",
               JSON.stringify([...agentB.tools].toSorted()) !== JSON.stringify([...agentA.tools].toSorted()) 
                 ? "bg-amber-500/5 ring-1 ring-amber-500/30" 
-                : "bg-zinc-800/50"
+                : "bg-surface-2/50"
             )}>
               {ALL_TOOLS.map((tool) => {
                 const hasToolA = agentB.tools.includes(tool);
                 const hasToolB = agentA.tools.includes(tool);
                 return (
                   <div key={tool} className="flex items-center gap-2">
-                    <span className={hasToolA ? "text-green-500" : "text-zinc-600"}>
+                    <span className={hasToolA ? "text-green-500" : "text-fg-muted"}>
                       {hasToolA ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     </span>
-                    <span className="text-sm text-zinc-300 font-mono">{tool}</span>
+                    <span className="text-sm text-fg-primary font-mono">{tool}</span>
                   </div>
                 );
               })}
@@ -727,7 +736,7 @@ export default function AgentComparison() {
                 JSON.stringify(agentB.personality.communicationStyle) !== JSON.stringify(agentA.personality.communicationStyle) 
                   && "bg-amber-500/5 -mx-2 px-2 rounded-lg"
               )}>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Communication Style</div>
+                <div className="text-xs text-fg-muted uppercase tracking-wider mb-2">Communication Style</div>
                 <div className="flex flex-wrap gap-2">
                   {agentB.personality.communicationStyle.map((style) => (
                     <span key={style} className="px-2 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs">

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Activity } from "lucide-react";
 
 type RouteStatus = "active" | "deprecated" | "disabled" | "beta";
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -70,7 +72,7 @@ const methodColor: Record<HttpMethod, string> = {
 const routeStatusBadge: Record<RouteStatus, string> = {
   active:     "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   deprecated: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-  disabled:   "bg-zinc-600/30 text-zinc-400 border border-zinc-600/30",
+  disabled:   "bg-surface-3/30 text-fg-secondary border border-tok-border/30",
   beta:       "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
 };
 
@@ -187,38 +189,38 @@ export default function APIGatewayMonitor() {
   const avgError = (ROUTES.reduce((s, r) => s + r.metrics.errorRate, 0) / ROUTES.length).toFixed(1);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">API Gateway Monitor</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Routes · Upstreams · Traffic · Rate Limiting</p>
+          <p className="text-sm text-fg-secondary mt-0.5">Routes · Upstreams · Traffic · Rate Limiting</p>
         </div>
         <div className="flex items-center gap-6 text-sm">
           <div className="text-center">
-            <div className="text-lg font-bold font-mono text-white">{totalRpm.toLocaleString()}</div>
-            <div className="text-xs text-zinc-500">req/min</div>
+            <div className="text-lg font-bold font-mono text-fg-primary">{totalRpm.toLocaleString()}</div>
+            <div className="text-xs text-fg-muted">req/min</div>
           </div>
           <div className="text-center">
             <div className={cn("text-lg font-bold font-mono", parseFloat(avgError) > 2 ? "text-amber-400" : "text-emerald-400")}>{avgError}%</div>
-            <div className="text-xs text-zinc-500">error rate</div>
+            <div className="text-xs text-fg-muted">error rate</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold font-mono text-white">{ROUTES.filter(r => r.status === "active").length}</div>
-            <div className="text-xs text-zinc-500">active routes</div>
+            <div className="text-lg font-bold font-mono text-fg-primary">{ROUTES.filter(r => r.status === "active").length}</div>
+            <div className="text-xs text-fg-muted">active routes</div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-tok-border px-6">
         {(["routes", "upstreams", "traffic", "ratelimits"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+              tab === t ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
             )}
           >
             {t === "ratelimits" ? "Rate Limits" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -230,8 +232,8 @@ export default function APIGatewayMonitor() {
       {tab === "routes" && (
         <div className="flex flex-1 overflow-hidden">
           {/* Route List */}
-          <div className="w-80 border-r border-zinc-800 flex flex-col">
-            <div className="p-3 border-b border-zinc-800 flex gap-1.5 flex-wrap">
+          <div className="w-80 border-r border-tok-border flex flex-col">
+            <div className="p-3 border-b border-tok-border flex gap-1.5 flex-wrap">
               {(["ALL", "GET", "POST", "PUT", "PATCH", "DELETE"] as const).map(m => (
                 <button
                   key={m}
@@ -239,8 +241,8 @@ export default function APIGatewayMonitor() {
                   className={cn(
                     "text-xs px-2 py-0.5 rounded border transition-colors font-mono",
                     methodFilter === m
-                      ? m === "ALL" ? "bg-zinc-600 border-zinc-500 text-white" : methodColor[m as HttpMethod]
-                      : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                      ? m === "ALL" ? "bg-surface-3 border-tok-border text-fg-primary" : methodColor[m as HttpMethod]
+                      : "border-tok-border text-fg-secondary hover:border-tok-border"
                   )}
                 >
                   {m}
@@ -248,13 +250,21 @@ export default function APIGatewayMonitor() {
               ))}
             </div>
             <div className="flex-1 overflow-y-auto">
+              {filteredRoutes.length === 0 && (
+                <ContextualEmptyState
+                  icon={Activity}
+                  title="No routes match filter"
+                  description="Try a different HTTP method filter to see matching routes."
+                  size="sm"
+                />
+              )}
               {filteredRoutes.map(route => (
                 <button
                   key={route.id}
                   onClick={() => setSelectedRoute(route)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                    selectedRoute.id === route.id && "bg-zinc-800/60"
+                    "w-full text-left px-4 py-3 border-b border-tok-border/60 hover:bg-surface-2/40 transition-colors",
+                    selectedRoute.id === route.id && "bg-surface-2/60"
                   )}
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -265,10 +275,10 @@ export default function APIGatewayMonitor() {
                       {route.status}
                     </span>
                   </div>
-                  <div className="font-mono text-xs text-zinc-300 mb-1.5 truncate">{route.path}</div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
+                  <div className="font-mono text-xs text-fg-primary mb-1.5 truncate">{route.path}</div>
+                  <div className="flex items-center gap-3 text-xs text-fg-muted">
                     <span className="font-mono">{route.metrics.requestsPerMin} rpm</span>
-                    <span className={route.metrics.errorRate > 2 ? "text-amber-400" : "text-zinc-500"}>{route.metrics.errorRate}% err</span>
+                    <span className={route.metrics.errorRate > 2 ? "text-amber-400" : "text-fg-muted"}>{route.metrics.errorRate}% err</span>
                     <span>p95:{route.metrics.p95Ms}ms</span>
                   </div>
                 </button>
@@ -284,45 +294,45 @@ export default function APIGatewayMonitor() {
                   <span className={cn("text-sm px-2 py-1 rounded font-mono font-bold", methodColor[selectedRoute.method])}>
                     {selectedRoute.method}
                   </span>
-                  <span className="font-mono text-lg text-white">{selectedRoute.path}</span>
+                  <span className="font-mono text-lg text-fg-primary">{selectedRoute.path}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded-full", routeStatusBadge[selectedRoute.status])}>{selectedRoute.status}</span>
-                  <span className="text-xs text-zinc-500">→ {selectedRoute.upstream}</span>
-                  <span className="text-xs text-zinc-500">· {selectedRoute.version}</span>
+                  <span className="text-xs text-fg-muted">→ {selectedRoute.upstream}</span>
+                  <span className="text-xs text-fg-muted">· {selectedRoute.version}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-zinc-400">{authIcon[selectedRoute.auth]}</span>
-                <span className="text-zinc-400">{selectedRoute.auth.replace("_", " ")}</span>
+                <span className="text-fg-secondary">{authIcon[selectedRoute.auth]}</span>
+                <span className="text-fg-secondary">{selectedRoute.auth.replace("_", " ")}</span>
               </div>
             </div>
 
             {/* Metrics grid */}
-            <div className="grid grid-cols-4 gap-3 mb-6">
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold font-mono text-white mb-1">{selectedRoute.metrics.requestsPerMin}</div>
-                <div className="text-xs text-zinc-500">req/min</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold font-mono text-fg-primary mb-1">{selectedRoute.metrics.requestsPerMin}</div>
+                <div className="text-xs text-fg-muted">req/min</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
                 <div className={cn("text-xl font-bold font-mono mb-1", selectedRoute.metrics.errorRate > 2 ? "text-amber-400" : "text-emerald-400")}>
                   {selectedRoute.metrics.errorRate}%
                 </div>
-                <div className="text-xs text-zinc-500">error rate</div>
+                <div className="text-xs text-fg-muted">error rate</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold font-mono text-white mb-1">{selectedRoute.metrics.p95Ms}ms</div>
-                <div className="text-xs text-zinc-500">p95 latency</div>
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold font-mono text-fg-primary mb-1">{selectedRoute.metrics.p95Ms}ms</div>
+                <div className="text-xs text-fg-muted">p95 latency</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
                 <div className="text-xl font-bold font-mono text-amber-400 mb-1">{selectedRoute.rateLimit}</div>
-                <div className="text-xs text-zinc-500">rate limit/min</div>
+                <div className="text-xs text-fg-muted">rate limit/min</div>
               </div>
             </div>
 
             {/* Latency percentiles */}
-            <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-              <div className="text-sm font-medium mb-3 text-zinc-300">Latency Percentiles</div>
+            <div className="bg-surface-1 rounded-lg p-4 mb-4">
+              <div className="text-sm font-medium mb-3 text-fg-primary">Latency Percentiles</div>
               <div className="space-y-2">
                 {[
                   { label: "p50", value: selectedRoute.metrics.p50Ms },
@@ -332,11 +342,11 @@ export default function APIGatewayMonitor() {
                   const max = selectedRoute.metrics.p99Ms;
                   return (
                     <div key={label} className="flex items-center gap-3">
-                      <span className="text-xs font-mono text-zinc-400 w-6">{label}</span>
-                      <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+                      <span className="text-xs font-mono text-fg-secondary w-6">{label}</span>
+                      <div className="flex-1 bg-surface-2 rounded-full h-1.5">
                         <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(value / max) * 100}%` }} />
                       </div>
-                      <span className="text-xs font-mono text-white w-14 text-right">{value}ms</span>
+                      <span className="text-xs font-mono text-fg-primary w-14 text-right">{value}ms</span>
                     </div>
                   );
                 })}
@@ -344,16 +354,16 @@ export default function APIGatewayMonitor() {
             </div>
 
             {/* Tags */}
-            <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-              <div className="text-sm font-medium mb-2 text-zinc-300">Tags</div>
+            <div className="bg-surface-1 rounded-lg p-4 mb-4">
+              <div className="text-sm font-medium mb-2 text-fg-primary">Tags</div>
               <div className="flex flex-wrap gap-1.5">
                 {selectedRoute.tags.map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">{tag}</span>
+                  <span key={tag} className="text-xs px-2 py-0.5 rounded bg-surface-2 text-fg-primary border border-tok-border">{tag}</span>
                 ))}
               </div>
             </div>
 
-            <div className="text-xs text-zinc-500">Created {selectedRoute.createdAt} · Upstream latency {selectedRoute.metrics.upstreamLatency}ms</div>
+            <div className="text-xs text-fg-muted">Created {selectedRoute.createdAt} · Upstream latency {selectedRoute.metrics.upstreamLatency}ms</div>
           </div>
         </div>
       )}
@@ -361,24 +371,24 @@ export default function APIGatewayMonitor() {
       {/* Upstreams Tab */}
       {tab === "upstreams" && (
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-72 border-r border-zinc-800 overflow-y-auto">
+          <div className="w-72 border-r border-tok-border overflow-y-auto">
             {UPSTREAMS.map(up => (
               <button
                 key={up.id}
                 onClick={() => setSelectedUpstream(up)}
                 className={cn(
-                  "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                  selectedUpstream.id === up.id && "bg-zinc-800/60"
+                  "w-full text-left px-4 py-3 border-b border-tok-border/60 hover:bg-surface-2/40 transition-colors",
+                  selectedUpstream.id === up.id && "bg-surface-2/60"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className={cn("w-2 h-2 rounded-full flex-shrink-0", healthDot[up.health])} />
                   <span className="text-sm font-medium">{up.name}</span>
                 </div>
-                <div className="text-xs font-mono text-zinc-500 mb-1.5">{up.url}</div>
-                <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <div className="text-xs font-mono text-fg-muted mb-1.5">{up.url}</div>
+                <div className="flex items-center gap-3 text-xs text-fg-muted">
                   <span>{up.requestsPerMin} rpm</span>
-                  <span className={up.errorRate > 2 ? "text-amber-400" : "text-zinc-500"}>{up.errorRate}% err</span>
+                  <span className={up.errorRate > 2 ? "text-amber-400" : "text-fg-muted"}>{up.errorRate}% err</span>
                   <span>{up.latencyMs}ms</span>
                 </div>
               </button>
@@ -393,43 +403,43 @@ export default function APIGatewayMonitor() {
                     <span className={cn("w-2 h-2 rounded-full", healthDot[selectedUpstream.health])} />
                     {selectedUpstream.health}
                   </span>
-                  <span className="font-mono text-sm text-zinc-400">{selectedUpstream.url}</span>
+                  <span className="font-mono text-sm text-fg-secondary">{selectedUpstream.url}</span>
                 </div>
               </div>
               <div className="text-right text-sm">
-                <div className="text-zinc-400">Last check</div>
-                <div className="text-white">{selectedUpstream.lastCheck}</div>
+                <div className="text-fg-secondary">Last check</div>
+                <div className="text-fg-primary">{selectedUpstream.lastCheck}</div>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-zinc-900 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold font-mono text-white mb-1">{selectedUpstream.requestsPerMin}</div>
-                <div className="text-xs text-zinc-500">req/min</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-surface-1 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold font-mono text-fg-primary mb-1">{selectedUpstream.requestsPerMin}</div>
+                <div className="text-xs text-fg-muted">req/min</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-4 text-center">
+              <div className="bg-surface-1 rounded-lg p-4 text-center">
                 <div className={cn("text-2xl font-bold font-mono mb-1", selectedUpstream.errorRate > 5 ? "text-rose-400" : selectedUpstream.errorRate > 2 ? "text-amber-400" : "text-emerald-400")}>
                   {selectedUpstream.errorRate}%
                 </div>
-                <div className="text-xs text-zinc-500">error rate</div>
+                <div className="text-xs text-fg-muted">error rate</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-4 text-center">
-                <div className={cn("text-2xl font-bold font-mono mb-1", selectedUpstream.latencyMs > 1000 ? "text-amber-400" : "text-white")}>
+              <div className="bg-surface-1 rounded-lg p-4 text-center">
+                <div className={cn("text-2xl font-bold font-mono mb-1", selectedUpstream.latencyMs > 1000 ? "text-amber-400" : "text-fg-primary")}>
                   {selectedUpstream.latencyMs}ms
                 </div>
-                <div className="text-xs text-zinc-500">avg latency</div>
+                <div className="text-xs text-fg-muted">avg latency</div>
               </div>
             </div>
-            <div className="bg-zinc-900 rounded-lg p-4">
-              <div className="text-sm font-medium mb-2 text-zinc-300">Routes ({selectedUpstream.routes})</div>
+            <div className="bg-surface-1 rounded-lg p-4">
+              <div className="text-sm font-medium mb-2 text-fg-primary">Routes ({selectedUpstream.routes})</div>
               {ROUTES.filter(r => r.upstream === selectedUpstream.name).map(r => (
-                <div key={r.id} className="flex items-center gap-3 py-2 border-b border-zinc-800/40 last:border-0">
+                <div key={r.id} className="flex items-center gap-3 py-2 border-b border-tok-border/40 last:border-0">
                   <span className={cn("text-xs px-1.5 py-0.5 rounded font-mono font-bold", methodColor[r.method])}>{r.method}</span>
-                  <span className="font-mono text-xs text-zinc-300">{r.path}</span>
-                  <span className="ml-auto text-xs text-zinc-500">{r.metrics.requestsPerMin} rpm</span>
+                  <span className="font-mono text-xs text-fg-primary">{r.path}</span>
+                  <span className="ml-auto text-xs text-fg-muted">{r.metrics.requestsPerMin} rpm</span>
                 </div>
               ))}
               {ROUTES.filter(r => r.upstream === selectedUpstream.name).length === 0 && (
-                <div className="text-sm text-zinc-500">No routes for this upstream</div>
+                <div className="text-sm text-fg-muted">No routes for this upstream</div>
               )}
             </div>
           </div>
@@ -440,12 +450,12 @@ export default function APIGatewayMonitor() {
       {tab === "traffic" && (
         <div className="flex-1 overflow-y-auto p-6">
           <h2 className="text-base font-semibold mb-1">Traffic Overview</h2>
-          <p className="text-sm text-zinc-400 mb-6">Requests and errors over the last hour</p>
+          <p className="text-sm text-fg-secondary mb-6">Requests and errors over the last hour</p>
 
-          <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+          <div className="bg-surface-1 rounded-lg p-6 mb-6">
             <div className="flex items-center gap-4 mb-4 text-xs">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" /><span className="text-zinc-400">Requests</span></span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-zinc-400">Errors</span></span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" /><span className="text-fg-secondary">Requests</span></span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-fg-secondary">Errors</span></span>
             </div>
             <div className="flex items-end gap-1.5 h-40 mb-2">
               {TRAFFIC.map(pt => (
@@ -464,20 +474,20 @@ export default function APIGatewayMonitor() {
             </div>
             <div className="flex items-center gap-1.5">
               {TRAFFIC.map(pt => (
-                <div key={pt.time} className="flex-1 text-center text-xs text-zinc-600">{pt.time.replace("09:", "")}</div>
+                <div key={pt.time} className="flex-1 text-center text-xs text-fg-muted">{pt.time.replace("09:", "")}</div>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {TRAFFIC.slice(-4).map(pt => (
-              <div key={pt.time} className="bg-zinc-900 rounded-lg p-4">
-                <div className="text-xs text-zinc-500 mb-2">{pt.time}</div>
-                <div className="text-lg font-bold font-mono text-white mb-1">{pt.requests.toLocaleString()}</div>
-                <div className="text-xs text-zinc-400 mb-2">requests</div>
+              <div key={pt.time} className="bg-surface-1 rounded-lg p-4">
+                <div className="text-xs text-fg-muted mb-2">{pt.time}</div>
+                <div className="text-lg font-bold font-mono text-fg-primary mb-1">{pt.requests.toLocaleString()}</div>
+                <div className="text-xs text-fg-secondary mb-2">requests</div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-rose-400">{pt.errors} err</span>
-                  <span className="text-zinc-400">p95:{pt.p95}ms</span>
+                  <span className="text-fg-secondary">p95:{pt.p95}ms</span>
                 </div>
               </div>
             ))}
@@ -491,29 +501,29 @@ export default function APIGatewayMonitor() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-semibold">Rate Limit Events</h2>
-              <p className="text-sm text-zinc-400 mt-0.5">Blocked requests in the last hour</p>
+              <p className="text-sm text-fg-secondary mt-0.5">Blocked requests in the last hour</p>
             </div>
             <span className="text-sm text-rose-400 font-medium">{RATELIMIT_EVENTS.length} events</span>
           </div>
           <div className="space-y-3">
             {RATELIMIT_EVENTS.map(evt => (
-              <div key={evt.id} className="bg-zinc-900 rounded-lg p-4">
+              <div key={evt.id} className="bg-surface-1 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <div className="font-mono text-sm text-white">{evt.route}</div>
-                  <div className="text-xs text-zinc-500">{evt.blockedAt}</div>
+                  <div className="font-mono text-sm text-fg-primary">{evt.route}</div>
+                  <div className="text-xs text-fg-muted">{evt.blockedAt}</div>
                 </div>
                 <div className="flex items-center gap-4 text-sm mb-3">
-                  <span className="font-mono text-zinc-300">{evt.ip}</span>
+                  <span className="font-mono text-fg-primary">{evt.ip}</span>
                   <span className="text-rose-400 font-medium">{evt.count} / {evt.limit} rpm</span>
-                  <span className="text-zinc-500">{evt.windowSec}s window</span>
+                  <span className="text-fg-muted">{evt.windowSec}s window</span>
                 </div>
-                <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                <div className="w-full bg-surface-2 rounded-full h-1.5">
                   <div
                     className="bg-rose-500 h-1.5 rounded-full"
                     style={{ width: `${Math.min((evt.count / evt.limit) * 100, 100)}%` }}
                   />
                 </div>
-                <div className="text-xs text-zinc-500 mt-1 text-right">{((evt.count / evt.limit) * 100).toFixed(0)}% of limit</div>
+                <div className="text-xs text-fg-muted mt-1 text-right">{((evt.count / evt.limit) * 100).toFixed(0)}% of limit</div>
               </div>
             ))}
           </div>

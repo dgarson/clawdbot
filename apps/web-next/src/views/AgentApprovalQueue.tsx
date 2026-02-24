@@ -25,6 +25,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ============================================================================
 // Types
@@ -292,7 +293,7 @@ function RiskBadge({ level }: { level: RiskLevel }) {
 
 function ToolBadge({ toolName }: { toolName: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-zinc-800 text-zinc-300">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-surface-2 text-fg-primary">
       <Terminal className="w-3 h-3" />
       {toolName}
     </span>
@@ -305,7 +306,7 @@ function StatusBadge({ status }: { status: ApprovalStatus }) {
     approved: 'bg-green-500/15 text-green-400',
     denied: 'bg-red-500/15 text-red-400',
     escalated: 'bg-violet-500/15 text-violet-400',
-    timed_out: 'bg-zinc-500/15 text-zinc-400',
+    timed_out: 'bg-surface-3/15 text-fg-secondary',
   };
   const icons: Record<ApprovalStatus, React.ElementType> = {
     pending: Clock,
@@ -346,9 +347,9 @@ function ApprovalCard({
   return (
     <div
       className={cn(
-        'bg-zinc-900 border border-zinc-800 rounded-xl p-4 transition-all',
+        'bg-surface-1 border border-tok-border rounded-xl p-4 transition-all',
         timedOut && 'border-red-500/50 animate-pulse',
-        isSelected && 'ring-2 ring-violet-500 ring-offset-2 ring-offset-zinc-950',
+        isSelected && 'ring-2 ring-violet-500 ring-offset-2 ring-offset-surface-0',
       )}
     >
       <div className="flex items-start justify-between gap-4">
@@ -357,17 +358,17 @@ function ApprovalCard({
             type="checkbox"
             checked={isSelected}
             onChange={() => onSelect(item.id)}
-            className="mt-1 w-4 h-4 rounded bg-zinc-800 border-zinc-700 text-violet-500 focus:ring-violet-500"
+            className="mt-1 w-4 h-4 rounded bg-surface-2 border-tok-border text-violet-500 focus:ring-violet-500"
           />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">{item.agentEmoji}</span>
-              <span className="font-medium text-white">{item.agentName}</span>
+              <span className="font-medium text-fg-primary">{item.agentName}</span>
               <SessionTypeBadge type={item.sessionType} />
               <RiskBadge level={item.riskLevel} />
             </div>
-            <p className="text-sm text-zinc-300 mb-2">{item.actionDescription}</p>
-            <div className="space-y-2 text-xs text-zinc-400">
+            <p className="text-sm text-fg-primary mb-2">{item.actionDescription}</p>
+            <div className="space-y-2 text-xs text-fg-secondary">
               <div className="flex items-center gap-2">
                 <ToolBadge toolName={item.toolName} />
                 <span className="flex items-center gap-1">
@@ -380,7 +381,7 @@ function ApprovalCard({
               <p>Reason: {item.reason}</p>
             </div>
             {isExpanded && (
-              <div className="mt-3 p-3 bg-zinc-800 rounded-lg text-xs font-mono text-zinc-300">
+              <div className="mt-3 p-3 bg-surface-2 rounded-lg text-xs font-mono text-fg-primary">
                 <pre>{JSON.stringify(item.parameters, null, 2)}</pre>
               </div>
             )}
@@ -389,9 +390,9 @@ function ApprovalCard({
         <div className="flex flex-col items-end gap-2">
           <button
             onClick={() => onExpand(item.id)}
-            className="p-1 hover:bg-zinc-800 rounded"
+            className="p-1 hover:bg-surface-2 rounded"
           >
-            {isExpanded ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+            {isExpanded ? <ChevronUp className="w-4 h-4 text-fg-secondary" /> : <ChevronDown className="w-4 h-4 text-fg-secondary" />}
           </button>
           <div className="flex gap-2">
             <button
@@ -424,15 +425,15 @@ function ApprovalCard({
 
 function HistoryPanel({ items }: { items: ApprovalItem[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-        <RotateCcw className="w-4 h-4 text-zinc-400" />
-        <span className="text-sm font-semibold text-white">Recent Decisions</span>
-        <span className="ml-auto text-xs text-zinc-500">{items.length} entries</span>
+    <div className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
+        <RotateCcw className="w-4 h-4 text-fg-secondary" />
+        <span className="text-sm font-semibold text-fg-primary">Recent Decisions</span>
+        <span className="ml-auto text-xs text-fg-muted">{items.length} entries</span>
       </div>
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
+          <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
             <RotateCcw className="w-8 h-8 mb-2 opacity-40" />
             <p className="text-sm">No recent decisions</p>
           </div>
@@ -442,11 +443,11 @@ function HistoryPanel({ items }: { items: ApprovalItem[] }) {
               <StatusBadge status={item.status} />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-white">{item.agentName}</span>
+                  <span className="text-sm font-medium text-fg-primary">{item.agentName}</span>
                   <RiskBadge level={item.riskLevel} />
                 </div>
-                <p className="text-xs text-zinc-400">{item.actionDescription}</p>
-                <div className="mt-1 text-xs text-zinc-500">
+                <p className="text-xs text-fg-secondary">{item.actionDescription}</p>
+                <div className="mt-1 text-xs text-fg-muted">
                   {item.decidedBy && `By ${item.decidedBy} · `}
                   {item.decidedAt && formatTimestamp(item.decidedAt)}
                   {item.outcome && ` · ${item.outcome}`}
@@ -589,44 +590,44 @@ export default function AgentApprovalQueue() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-white">Agent Approval Queue</h1>
+          <h1 className="text-2xl font-bold text-fg-primary">Agent Approval Queue</h1>
           {pendingCount > 0 && (
-            <span className="px-2 py-1 rounded-full bg-violet-600 text-white text-sm font-bold leading-none">
+            <span className="px-2 py-1 rounded-full bg-violet-600 text-fg-primary text-sm font-bold leading-none">
               {pendingCount} pending
             </span>
           )}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-zinc-400">Auto-approve low-risk</span>
+            <span className="text-sm text-fg-secondary">Auto-approve low-risk</span>
             <button onClick={() => setAutoApprove(!autoApprove)}>
               {autoApprove ? (
                 <ToggleRight className="w-6 h-6 text-green-500" />
               ) : (
-                <ToggleLeft className="w-6 h-6 text-zinc-600" />
+                <ToggleLeft className="w-6 h-6 text-fg-muted" />
               )}
             </button>
           </div>
-          <button className="p-2 hover:bg-zinc-800 rounded">
-            <Settings className="w-5 h-5 text-zinc-400" />
+          <button className="p-2 hover:bg-surface-2 rounded">
+            <Settings className="w-5 h-5 text-fg-secondary" />
           </button>
         </div>
       </div>
 
       {/* Filter Bar */}
       <div className="flex items-center justify-between">
-        <div className="flex gap-1 bg-zinc-800 rounded-lg p-0.5">
+        <div className="flex gap-1 bg-surface-2 rounded-lg p-0.5">
           {filters.map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
                 'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                filter === f ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300',
+                filter === f ? 'bg-surface-3 text-fg-primary' : 'text-fg-secondary hover:text-fg-primary',
               )}
             >
               {f}
@@ -636,7 +637,7 @@ export default function AgentApprovalQueue() {
         <div className="flex gap-2">
           <button
             onClick={toggleSelectAll}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-primary text-sm transition-colors"
           >
             <input type="checkbox" checked={isAllSelected} readOnly className="pointer-events-none" />
             Select All
@@ -661,14 +662,15 @@ export default function AgentApprovalQueue() {
       </div>
 
       {/* Main Queue */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">
           {filteredApprovals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-500">
-              <CheckCircle className="w-12 h-12 mb-3 opacity-40" />
-              <p className="text-lg font-medium">No {filter.toLowerCase()} approvals</p>
-              <p className="text-sm">The queue is clear for now.</p>
-            </div>
+            <ContextualEmptyState
+              icon={CheckCircle}
+              title={`No ${filter.toLowerCase()} approvals`}
+              description="The queue is clear for now. New approval requests will appear here."
+              size="md"
+            />
           ) : (
             filteredApprovals.map((item) => (
               <ApprovalCard

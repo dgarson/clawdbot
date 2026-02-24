@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { FileText } from "lucide-react";
 
 type ChangeType = "breaking" | "feature" | "fix" | "deprecation" | "security";
 type ChangeStatus = "draft" | "published" | "archived";
@@ -85,7 +87,7 @@ const versionStatusBadge: Record<string, string> = {
   current: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
   supported: "bg-sky-500/10 border-sky-500/30 text-sky-400",
   deprecated: "bg-amber-500/10 border-amber-500/30 text-amber-400",
-  sunset: "bg-zinc-700/30 border-zinc-600 text-zinc-500",
+  sunset: "bg-surface-3/30 border-tok-border text-fg-muted",
 };
 
 const methodColor: Record<string, string> = {
@@ -118,12 +120,12 @@ export default function APIChangelogManager() {
   const breakingAhead = SUBSCRIBERS.filter(s => s.breakingChangesAhead > 0).length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">API Changelog Manager</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Track API changes, versions, and subscriber impact</p>
+          <p className="text-xs text-fg-muted mt-0.5">Track API changes, versions, and subscriber impact</p>
         </div>
         <div className="flex items-center gap-2">
           {breakingAhead > 0 && (
@@ -131,37 +133,37 @@ export default function APIChangelogManager() {
               <span className="text-xs text-amber-400 font-medium">⚠️ {breakingAhead} clients on deprecated APIs</span>
             </div>
           )}
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-fg-primary transition-colors">
             + New Change
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-0 border-b border-zinc-800">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-b border-tok-border">
         {[
           { label: "Current Version", value: "v3", sub: "released Jan 2026" },
           { label: "Active Subscribers", value: String(SUBSCRIBERS.length), sub: "across 3 API versions" },
           { label: "Breaking Changes (v3)", value: "0", sub: "since v3 launch" },
           { label: "At-Risk Clients", value: String(SUBSCRIBERS.filter(s => s.apiVersion === "v1").length), sub: "on deprecated v1" },
         ].map((stat, i) => (
-          <div key={i} className="px-6 py-3 border-r border-zinc-800 last:border-r-0">
-            <div className="text-xl font-bold text-white">{stat.value}</div>
-            <div className="text-xs font-medium text-zinc-400 mt-0.5">{stat.label}</div>
-            <div className="text-xs text-zinc-600 mt-0.5">{stat.sub}</div>
+          <div key={i} className="px-6 py-3 border-r border-tok-border last:border-r-0">
+            <div className="text-xl font-bold text-fg-primary">{stat.value}</div>
+            <div className="text-xs font-medium text-fg-secondary mt-0.5">{stat.label}</div>
+            <div className="text-xs text-fg-muted mt-0.5">{stat.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-tok-border px-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              tab === t.id ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-muted hover:text-fg-primary"
             )}
           >
             <span>{t.emoji}</span>
@@ -175,13 +177,13 @@ export default function APIChangelogManager() {
         {tab === "changelog" && (
           <div className="flex h-full">
             {/* List */}
-            <div className="w-96 border-r border-zinc-800 flex flex-col">
-              <div className="p-3 space-y-2 border-b border-zinc-800">
+            <div className="w-96 border-r border-tok-border flex flex-col">
+              <div className="p-3 space-y-2 border-b border-tok-border">
                 <div className="flex gap-2">
                   <select
                     value={typeFilter}
                     onChange={e => setTypeFilter(e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                    className="flex-1 bg-surface-1 border border-tok-border rounded px-2 py-1 text-xs text-fg-primary"
                   >
                     <option value="all">All types</option>
                     <option value="breaking">💥 Breaking</option>
@@ -193,7 +195,7 @@ export default function APIChangelogManager() {
                   <select
                     value={versionFilter}
                     onChange={e => setVersionFilter(e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                    className="flex-1 bg-surface-1 border border-tok-border rounded px-2 py-1 text-xs text-fg-primary"
                   >
                     <option value="all">All versions</option>
                     <option value="v3">v3 (current)</option>
@@ -203,13 +205,21 @@ export default function APIChangelogManager() {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto">
+                {filteredChanges.length === 0 && (
+                  <ContextualEmptyState
+                    icon={FileText}
+                    title="No changelog entries"
+                    description="No changes match the current filter. Try adjusting the version or type filter."
+                    size="sm"
+                  />
+                )}
                 {filteredChanges.map(change => (
                   <button
                     key={change.id}
                     onClick={() => setSelectedChange(change)}
                     className={cn(
-                      "w-full text-left px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                      selectedChange?.id === change.id && "bg-zinc-800",
+                      "w-full text-left px-4 py-3 border-b border-tok-border/50 hover:bg-surface-1 transition-colors",
+                      selectedChange?.id === change.id && "bg-surface-2",
                       change.status === "draft" && "opacity-60"
                     )}
                   >
@@ -218,16 +228,16 @@ export default function APIChangelogManager() {
                         {changeTypeIcon[change.type]} {change.type}
                       </span>
                       {change.status === "draft" && (
-                        <span className="text-xs px-1 py-0.5 bg-zinc-700/40 text-zinc-500 rounded shrink-0">draft</span>
+                        <span className="text-xs px-1 py-0.5 bg-surface-3/40 text-fg-muted rounded shrink-0">draft</span>
                       )}
                     </div>
-                    <div className="text-sm font-medium text-zinc-200 line-clamp-1">{change.title}</div>
+                    <div className="text-sm font-medium text-fg-primary line-clamp-1">{change.title}</div>
                     <div className="flex items-center gap-2 mt-1 text-xs font-mono">
-                      <span className={cn("font-medium", methodColor[change.method] || "text-zinc-400")}>{change.method}</span>
-                      <span className="text-zinc-500 truncate">{change.endpoint}</span>
+                      <span className={cn("font-medium", methodColor[change.method] || "text-fg-secondary")}>{change.method}</span>
+                      <span className="text-fg-muted truncate">{change.endpoint}</span>
                     </div>
-                    <div className="flex items-center justify-between mt-1 text-xs text-zinc-600">
-                      <span className="bg-zinc-800 px-1.5 rounded">{change.version}</span>
+                    <div className="flex items-center justify-between mt-1 text-xs text-fg-muted">
+                      <span className="bg-surface-2 px-1.5 rounded">{change.version}</span>
                       <span>{change.publishedAt}</span>
                     </div>
                   </button>
@@ -238,33 +248,33 @@ export default function APIChangelogManager() {
             {/* Detail */}
             <div className="flex-1 overflow-y-auto">
               {selectedChange ? (
-                <div className="p-6 space-y-6">
+                <div className="p-3 sm:p-4 md:p-6 space-y-6">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <span className={cn("text-xs px-2 py-0.5 rounded border", changeTypeBadge[selectedChange.type])}>
                         {changeTypeIcon[selectedChange.type]} {selectedChange.type}
                       </span>
-                      <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{selectedChange.version}</span>
+                      <span className="text-xs bg-surface-2 px-2 py-0.5 rounded text-fg-secondary">{selectedChange.version}</span>
                       {selectedChange.status === "draft" && (
                         <span className="text-xs bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-amber-400">DRAFT</span>
                       )}
-                      <span className="ml-auto text-xs text-zinc-600">{selectedChange.publishedAt}</span>
+                      <span className="ml-auto text-xs text-fg-muted">{selectedChange.publishedAt}</span>
                     </div>
-                    <h2 className="text-lg font-semibold text-white">{selectedChange.title}</h2>
+                    <h2 className="text-lg font-semibold text-fg-primary">{selectedChange.title}</h2>
                   </div>
 
                   {/* Endpoint */}
-                  <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 font-mono text-sm">
-                    <span className={cn("font-bold mr-2", methodColor[selectedChange.method] || "text-zinc-400")}>
+                  <div className="bg-surface-1 rounded-lg border border-tok-border p-4 font-mono text-sm">
+                    <span className={cn("font-bold mr-2", methodColor[selectedChange.method] || "text-fg-secondary")}>
                       {selectedChange.method}
                     </span>
-                    <span className="text-zinc-200">{selectedChange.endpoint}</span>
+                    <span className="text-fg-primary">{selectedChange.endpoint}</span>
                   </div>
 
                   {/* Description */}
                   <div>
-                    <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Description</div>
-                    <p className="text-sm text-zinc-300 leading-relaxed">{selectedChange.description}</p>
+                    <div className="text-xs text-fg-muted mb-2 uppercase tracking-wider">Description</div>
+                    <p className="text-sm text-fg-primary leading-relaxed">{selectedChange.description}</p>
                   </div>
 
                   {/* Migration guide */}
@@ -285,12 +295,12 @@ export default function APIChangelogManager() {
                   {/* Affected clients */}
                   {selectedChange.affectedClients > 0 && (
                     <div>
-                      <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Impact</div>
-                      <div className="bg-zinc-900 rounded p-3 flex items-center gap-3">
+                      <div className="text-xs text-fg-muted mb-2 uppercase tracking-wider">Impact</div>
+                      <div className="bg-surface-1 rounded p-3 flex items-center gap-3">
                         <div className="text-2xl font-bold text-amber-400">{selectedChange.affectedClients}</div>
                         <div>
-                          <div className="text-sm text-zinc-300">API clients affected</div>
-                          <div className="text-xs text-zinc-600">currently using this endpoint</div>
+                          <div className="text-sm text-fg-primary">API clients affected</div>
+                          <div className="text-xs text-fg-muted">currently using this endpoint</div>
                         </div>
                       </div>
                     </div>
@@ -298,16 +308,16 @@ export default function APIChangelogManager() {
 
                   <div className="flex gap-2">
                     {selectedChange.status === "draft" && (
-                      <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">Publish</button>
+                      <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-fg-primary transition-colors">Publish</button>
                     )}
-                    <button className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Edit</button>
+                    <button className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-surface-3 border border-tok-border rounded text-fg-primary transition-colors">Edit</button>
                     {selectedChange.affectedClients > 0 && (
-                      <button className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Notify Clients</button>
+                      <button className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-surface-3 border border-tok-border rounded text-fg-primary transition-colors">Notify Clients</button>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">Select a change to view details</div>
+                <div className="flex items-center justify-center h-full text-fg-muted text-sm">Select a change to view details</div>
               )}
             </div>
           </div>
@@ -315,38 +325,38 @@ export default function APIChangelogManager() {
 
         {/* VERSIONS TAB */}
         {tab === "versions" && (
-          <div className="p-6 space-y-4">
+          <div className="p-3 sm:p-4 md:p-6 space-y-4">
             {API_VERSIONS.map(version => (
               <div key={version.id} className={cn(
-                "bg-zinc-900 rounded-lg border p-5",
-                version.status === "deprecated" ? "border-amber-500/20" : "border-zinc-800"
+                "bg-surface-1 rounded-lg border p-5",
+                version.status === "deprecated" ? "border-amber-500/20" : "border-tok-border"
               )}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-white font-mono">{version.version}</span>
+                    <span className="text-2xl font-bold text-fg-primary font-mono">{version.version}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded border", versionStatusBadge[version.status])}>
                       {version.status}
                     </span>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-zinc-500">Released {version.releaseDate}</div>
+                    <div className="text-xs text-fg-muted">Released {version.releaseDate}</div>
                     {version.sunsetDate && (
                       <div className="text-xs text-amber-400 mt-0.5">Sunset: {version.sunsetDate}</div>
                     )}
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-zinc-800/50 rounded p-3">
-                    <div className="text-lg font-bold text-white">{version.changeCount}</div>
-                    <div className="text-xs text-zinc-500">total changes</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-surface-2/50 rounded p-3">
+                    <div className="text-lg font-bold text-fg-primary">{version.changeCount}</div>
+                    <div className="text-xs text-fg-muted">total changes</div>
                   </div>
-                  <div className={cn("rounded p-3", version.breakingCount > 0 ? "bg-rose-500/5" : "bg-zinc-800/50")}>
-                    <div className={cn("text-lg font-bold", version.breakingCount > 0 ? "text-rose-400" : "text-white")}>{version.breakingCount}</div>
-                    <div className="text-xs text-zinc-500">breaking changes</div>
+                  <div className={cn("rounded p-3", version.breakingCount > 0 ? "bg-rose-500/5" : "bg-surface-2/50")}>
+                    <div className={cn("text-lg font-bold", version.breakingCount > 0 ? "text-rose-400" : "text-fg-primary")}>{version.breakingCount}</div>
+                    <div className="text-xs text-fg-muted">breaking changes</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-3">
-                    <div className="text-lg font-bold text-white">{SUBSCRIBERS.filter(s => s.apiVersion === version.version).length}</div>
-                    <div className="text-xs text-zinc-500">active subscribers</div>
+                  <div className="bg-surface-2/50 rounded p-3">
+                    <div className="text-lg font-bold text-fg-primary">{SUBSCRIBERS.filter(s => s.apiVersion === version.version).length}</div>
+                    <div className="text-xs text-fg-muted">active subscribers</div>
                   </div>
                 </div>
                 {version.status === "deprecated" && (
@@ -361,19 +371,19 @@ export default function APIChangelogManager() {
 
         {/* DIFFS TAB */}
         {tab === "diffs" && (
-          <div className="p-6 space-y-4">
+          <div className="p-3 sm:p-4 md:p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500">From:</span>
-                <select className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-300">
+                <span className="text-xs text-fg-muted">From:</span>
+                <select className="bg-surface-1 border border-tok-border rounded px-2 py-1 text-sm text-fg-primary">
                   <option>v2</option>
                   <option>v1</option>
                 </select>
               </div>
-              <span className="text-zinc-600">→</span>
+              <span className="text-fg-muted">→</span>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500">To:</span>
-                <select className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-300">
+                <span className="text-xs text-fg-muted">To:</span>
+                <select className="bg-surface-1 border border-tok-border rounded px-2 py-1 text-sm text-fg-primary">
                   <option>v3</option>
                   <option>v2</option>
                 </select>
@@ -403,8 +413,8 @@ export default function APIChangelogManager() {
                     {diff.type === "added" ? "+" : diff.type === "removed" ? "-" : "~"}
                   </span>
                   <div>
-                    <div className="text-zinc-200">{diff.endpoint}</div>
-                    <div className="text-zinc-500 font-sans mt-0.5">{diff.desc}</div>
+                    <div className="text-fg-primary">{diff.endpoint}</div>
+                    <div className="text-fg-muted font-sans mt-0.5">{diff.desc}</div>
                   </div>
                 </div>
               ))}
@@ -414,24 +424,24 @@ export default function APIChangelogManager() {
 
         {/* SUBSCRIBERS TAB */}
         {tab === "subscribers" && (
-          <div className="p-6 space-y-3">
+          <div className="p-3 sm:p-4 md:p-6 space-y-3">
             {SUBSCRIBERS.toSorted((a, b) => b.breakingChangesAhead - a.breakingChangesAhead).map(sub => (
               <div key={sub.id} className={cn(
-                "bg-zinc-900 rounded-lg border px-5 py-4",
-                sub.breakingChangesAhead > 0 ? "border-amber-500/20" : "border-zinc-800"
+                "bg-surface-1 rounded-lg border px-5 py-4",
+                sub.breakingChangesAhead > 0 ? "border-amber-500/20" : "border-tok-border"
               )}>
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="font-medium text-sm text-zinc-200">{sub.name}</span>
-                    <span className="text-xs text-zinc-500 ml-2">{sub.email}</span>
+                    <span className="font-medium text-sm text-fg-primary">{sub.name}</span>
+                    <span className="text-xs text-fg-muted ml-2">{sub.email}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-zinc-500">{sub.lastActivity}</span>
-                    <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded font-mono text-zinc-400">{sub.apiVersion}</span>
+                    <span className="text-xs text-fg-muted">{sub.lastActivity}</span>
+                    <span className="text-xs bg-surface-2 px-2 py-0.5 rounded font-mono text-fg-secondary">{sub.apiVersion}</span>
                     <span className={cn(
                       "text-xs px-2 py-0.5 rounded",
                       sub.plan === "Enterprise" ? "bg-indigo-500/10 text-indigo-400" :
-                      sub.plan === "Pro" ? "bg-sky-500/10 text-sky-400" : "bg-zinc-700/30 text-zinc-500"
+                      sub.plan === "Pro" ? "bg-sky-500/10 text-sky-400" : "bg-surface-3/30 text-fg-muted"
                     )}>{sub.plan}</span>
                   </div>
                 </div>
