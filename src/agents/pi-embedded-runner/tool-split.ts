@@ -8,14 +8,16 @@ type AnyAgentTool = AgentTool;
 export function splitSdkTools(options: {
   tools: AnyAgentTool[];
   sandboxEnabled: boolean;
+  provider: string;
+  model: string;
   sessionKey?: string;
 }): {
   builtInTools: AnyAgentTool[];
   customTools: ReturnType<typeof toToolDefinitions>;
 } {
-  const { tools, sessionKey } = options;
+  const { tools, provider, model, sessionKey } = options;
   return {
     builtInTools: [],
-    customTools: toToolDefinitions(tools, sessionKey ? { sessionKey } : undefined),
+    customTools: toToolDefinitions(tools, { provider, model, sessionKey }),
   };
 }

@@ -26,6 +26,8 @@ describe("splitSdkTools", () => {
     const { builtInTools, customTools } = splitSdkTools({
       tools,
       sandboxEnabled: true,
+      provider: "openai",
+      model: "gpt-4.1",
     });
     expect(builtInTools).toEqual([]);
     expect(customTools.map((tool) => tool.name)).toEqual([
@@ -41,6 +43,8 @@ describe("splitSdkTools", () => {
     const { builtInTools, customTools } = splitSdkTools({
       tools,
       sandboxEnabled: false,
+      provider: "anthropic",
+      model: "claude-sonnet-4",
     });
     expect(builtInTools).toEqual([]);
     expect(customTools.map((tool) => tool.name)).toEqual([
