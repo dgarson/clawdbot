@@ -146,7 +146,7 @@ export function GatewayAuthModal({ authError, onConnect, onDismiss }: GatewayAut
               </button>
             </div>
             <p className="mt-1.5 text-xs text-fg-muted">
-              Set on the gateway host:{' '}
+              Set on the gateway host with{' '}
               <code className="font-mono text-fg-secondary">openclaw config set gateway.auth.token &lt;value&gt;</code>
             </p>
           </div>

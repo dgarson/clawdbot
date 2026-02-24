@@ -231,11 +231,15 @@ export function useGateway(): UseGatewayReturn {
         const id = getNextId();
         connectCallIdRef.current = id;
         const token = resolveGatewayToken();
+        // Use 'gateway-client' rather than 'openclaw-control-ui' so the gateway
+        // doesn't require device identity (Web Crypto / secure context). The
+        // control-ui client ID forces device pairing which only works over HTTPS
+        // or localhost; token auth via gateway-client works over plain HTTP too.
         const connectParams = {
           minProtocol: PROTOCOL_VERSION,
           maxProtocol: PROTOCOL_VERSION,
           client: {
-            id: 'openclaw-control-ui',
+            id: 'gateway-client',
             mode: 'ui',
             version: '1.0.0',
             platform: 'web',
