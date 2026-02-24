@@ -13,7 +13,7 @@ import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
 import ThemeToggle from "./components/ui/ThemeToggle";
-import { useGateway } from "./hooks/useGateway";
+import { useGateway, GatewayProvider } from "./hooks/useGateway";
 import { GatewayAuthModal } from "./components/GatewayAuthModal";
 
 // Operator-mode types
@@ -1101,7 +1101,9 @@ export default function App() {
   return (
     <ProficiencyProvider>
       <ToastProvider>
-        <AppContent />
+        <GatewayProvider>
+          <AppContent />
+        </GatewayProvider>
       </ToastProvider>
     </ProficiencyProvider>
   );
