@@ -247,7 +247,14 @@ function buildReactionSchema() {
     messageId: Type.Optional(
       Type.String({
         description:
-          "Target message ID. Format varies by channel: Slack message ts (epoch decimal), Discord snowflake, Telegram message_id integer.",
+          "Target message ID. Format varies by channel: Slack message ts (epoch decimal), Discord snowflake, Telegram message_id integer. For Telegram, if omitted, defaults to the current inbound message id when available.",
+      }),
+    ),
+    message_id: Type.Optional(
+      Type.String({
+        // Intentional duplicate alias for tool-schema discoverability in LLMs.
+        description:
+          "snake_case alias of messageId. For Telegram, if omitted, defaults to the current inbound message id when available.",
       }),
     ),
     emoji: Type.Optional(
@@ -659,6 +666,7 @@ type MessageToolOptions = {
   currentChannelId?: string;
   currentChannelProvider?: string;
   currentThreadTs?: string;
+  currentMessageId?: string | number;
   replyToMode?: "off" | "first" | "all";
   hasRepliedRef?: { value: boolean };
   sandboxRoot?: string;
@@ -869,17 +877,23 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
         clientDisplayName: "agent",
         mode: GATEWAY_CLIENT_MODES.BACKEND,
       };
+      const hasCurrentMessageId =
+        typeof options?.currentMessageId === "number" ||
+        (typeof options?.currentMessageId === "string" &&
+          options.currentMessageId.trim().length > 0);
 
       const toolContext =
         options?.currentChannelId ||
         options?.currentChannelProvider ||
         options?.currentThreadTs ||
+        hasCurrentMessageId ||
         options?.replyToMode ||
         options?.hasRepliedRef
           ? {
               currentChannelId: options?.currentChannelId,
               currentChannelProvider: options?.currentChannelProvider,
               currentThreadTs: options?.currentThreadTs,
+              currentMessageId: options?.currentMessageId,
               replyToMode: options?.replyToMode,
               hasRepliedRef: options?.hasRepliedRef,
               // Direct tool invocations should not add cross-context decoration.

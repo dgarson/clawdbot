@@ -791,6 +791,7 @@ export async function runEmbeddedAttempt(
           params.modelId,
           params.streamParams,
           params.thinkLevel,
+          sessionAgentId,
         );
 
         // Inject X-OpenClaw-Session-Id and X-OpenClaw-Agent-Id headers for cost attribution.

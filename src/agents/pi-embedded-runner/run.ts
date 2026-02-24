@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
+import { resolveAgentModelFallbackValues } from "../../config/model-input.js";
 import { emitAgentEvent } from "../../infra/agent-events.js";
 // eslint-disable-next-line no-unused-vars -- used inside nested closure; linter cannot trace through callback indirection
 import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
@@ -402,7 +403,7 @@ export async function runEmbeddedPiAgent(
         let modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
         const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
         const fallbackConfigured =
-          (params.config?.agents?.defaults?.model?.fallbacks?.length ?? 0) > 0;
+          resolveAgentModelFallbackValues(params.config?.agents?.defaults?.model).length > 0;
         await ensureOpenClawModelsJson(params.config, agentDir);
 
         // Run before_model_resolve hooks early so plugins can override the

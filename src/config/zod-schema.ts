@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { parseByteSize } from "../cli/parse-bytes.js";
+import { parseDurationMs } from "../cli/parse-duration.js";
 import { ToolsSchema } from "./zod-schema.agent-runtime.js";
 import { AgentsSchema, AudioSchema, BindingsSchema, BroadcastSchema } from "./zod-schema.agents.js";
 import { ApprovalsSchema } from "./zod-schema.approvals.js";
@@ -79,6 +81,16 @@ const MemoryQmdMcporterSchema = z
     startDaemon: z.boolean().optional(),
   })
   .strict();
+
+const LoggingLevelSchema = z.union([
+  z.literal("silent"),
+  z.literal("fatal"),
+  z.literal("error"),
+  z.literal("warn"),
+  z.literal("info"),
+  z.literal("debug"),
+  z.literal("trace"),
+]);
 
 const MemoryQmdSchema = z
   .object({
@@ -178,30 +190,10 @@ export const OpenClawSchema = z
       .optional(),
     logging: z
       .object({
-        level: z
-          .union([
-            z.literal("silent"),
-            z.literal("fatal"),
-            z.literal("error"),
-            z.literal("warn"),
-            z.literal("info"),
-            z.literal("debug"),
-            z.literal("trace"),
-          ])
-          .optional(),
+        level: LoggingLevelSchema.optional(),
         file: z.string().optional(),
         maxFileBytes: z.number().int().positive().optional(),
-        consoleLevel: z
-          .union([
-            z.literal("silent"),
-            z.literal("fatal"),
-            z.literal("error"),
-            z.literal("warn"),
-            z.literal("info"),
-            z.literal("debug"),
-            z.literal("trace"),
-          ])
-          .optional(),
+        consoleLevel: LoggingLevelSchema.optional(),
         consoleStyle: z
           .union([z.literal("pretty"), z.literal("compact"), z.literal("json")])
           .optional(),
@@ -243,6 +235,7 @@ export const OpenClawSchema = z
         ssrfPolicy: z
           .object({
             allowPrivateNetwork: z.boolean().optional(),
+            dangerouslyAllowPrivateNetwork: z.boolean().optional(),
             allowedHostnames: z.array(z.string()).optional(),
             hostnameAllowlist: z.array(z.string()).optional(),
           })
@@ -334,8 +327,39 @@ export const OpenClawSchema = z
         webhook: HttpUrlSchema.optional(),
         webhookToken: z.string().optional().register(sensitive),
         sessionRetention: z.union([z.string(), z.literal(false)]).optional(),
+        runLog: z
+          .object({
+            maxBytes: z.union([z.string(), z.number()]).optional(),
+            keepLines: z.number().int().positive().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
+      .superRefine((val, ctx) => {
+        if (val.sessionRetention !== undefined && val.sessionRetention !== false) {
+          try {
+            parseDurationMs(String(val.sessionRetention).trim(), { defaultUnit: "h" });
+          } catch {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["sessionRetention"],
+              message: "invalid duration (use ms, s, m, h, d)",
+            });
+          }
+        }
+        if (val.runLog?.maxBytes !== undefined) {
+          try {
+            parseByteSize(String(val.runLog.maxBytes).trim(), { defaultUnit: "b" });
+          } catch {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["runLog", "maxBytes"],
+              message: "invalid size (use b, kb, mb, gb, tb)",
+            });
+          }
+        }
+      })
       .optional(),
     hooks: z
       .object({
@@ -430,6 +454,7 @@ export const OpenClawSchema = z
             basePath: z.string().optional(),
             root: z.string().optional(),
             allowedOrigins: z.array(z.string()).optional(),
+            dangerouslyAllowHostHeaderOriginFallback: z.boolean().optional(),
             allowInsecureAuth: z.boolean().optional(),
             dangerouslyDisableDeviceAuth: z.boolean().optional(),
           })
@@ -569,6 +594,12 @@ export const OpenClawSchema = z
                   })
                   .strict()
                   .optional(),
+              })
+              .strict()
+              .optional(),
+            securityHeaders: z
+              .object({
+                strictTransportSecurity: z.union([z.string(), z.literal(false)]).optional(),
               })
               .strict()
               .optional(),

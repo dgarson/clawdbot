@@ -9,23 +9,19 @@ import {
   makeModelSnapshotEntry,
   makeReasoningAssistantMessages,
   makeSimpleUserMessages,
-  makeSnapshotChangedOpenAIReasoningScenario,
+  sanitizeSnapshotChangedOpenAIReasoning,
   type SanitizeSessionHistoryFn,
   sanitizeWithOpenAIResponses,
   TEST_SESSION_ID,
 } from "./pi-embedded-runner.sanitize-session-history.test-harness.js";
 
-let sanitizeSessionHistory: SanitizeSessionHistoryFn;
+vi.mock("./pi-embedded-helpers.js", async () => ({
+  ...(await vi.importActual("./pi-embedded-helpers.js")),
+  isGoogleModelApi: vi.fn(),
+  sanitizeSessionMessagesImages: vi.fn(async (msgs) => msgs),
+}));
 
-// Mock dependencies
-vi.mock("./pi-embedded-helpers.js", async () => {
-  const actual = await vi.importActual("./pi-embedded-helpers.js");
-  return {
-    ...actual,
-    isGoogleModelApi: vi.fn(),
-    sanitizeSessionMessagesImages: vi.fn().mockImplementation(async (msgs) => msgs),
-  };
-});
+let sanitizeSessionHistory: SanitizeSessionHistoryFn;
 
 // We don't mock session-transcript-repair.js as it is a pure function and complicates mocking.
 // We rely on the real implementation which should pass through our simple messages.
@@ -58,6 +54,24 @@ describe("sanitizeSessionHistory", () => {
 
   const getAssistantContentTypes = (messages: AgentMessage[]) =>
     getAssistantMessage(messages).content.map((block: { type: string }) => block.type);
+
+  const makeThinkingAndTextAssistantMessages = (
+    thinkingSignature: string = "some_sig",
+  ): AgentMessage[] =>
+    [
+      { role: "user", content: "hello" },
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "thinking",
+            thinking: "internal",
+            thinkingSignature,
+          },
+          { type: "text", text: "hi" },
+        ],
+      },
+    ] as unknown as AgentMessage[];
 
   beforeEach(async () => {
     sanitizeSessionHistory = await loadSanitizeSessionHistoryWithCleanMocks();
@@ -284,7 +298,7 @@ describe("sanitizeSessionHistory", () => {
     expect(result[1]?.role).toBe("assistant");
   });
 
-  it("does not synthesize tool results for openai-responses", async () => {
+  it("synthesizes missing tool results for openai-responses after repair", async () => {
     const messages = [
       {
         role: "assistant",
@@ -300,8 +314,11 @@ describe("sanitizeSessionHistory", () => {
       sessionId: TEST_SESSION_ID,
     });
 
-    expect(result).toHaveLength(1);
+    // repairToolUseResultPairing now runs for all providers (including OpenAI)
+    // to fix orphaned function_call_output items that OpenAI would reject.
+    expect(result).toHaveLength(2);
     expect(result[0]?.role).toBe("assistant");
+    expect(result[1]?.role).toBe("toolResult");
   });
 
   it("drops malformed tool calls missing input or arguments", async () => {
@@ -394,13 +411,8 @@ describe("sanitizeSessionHistory", () => {
   });
 
   it("downgrades orphaned openai reasoning when the model changes too", async () => {
-    const { sessionManager, messages, modelId } = makeSnapshotChangedOpenAIReasoningScenario();
-
-    const result = await sanitizeWithOpenAIResponses({
+    const result = await sanitizeSnapshotChangedOpenAIReasoning({
       sanitizeSessionHistory,
-      messages,
-      modelId,
-      sessionManager,
     });
 
     expect(result).toEqual([]);
@@ -457,20 +469,7 @@ describe("sanitizeSessionHistory", () => {
   it("drops assistant thinking blocks for github-copilot models", async () => {
     setNonGoogleModelApi();
 
-    const messages = [
-      { role: "user", content: "hello" },
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "thinking",
-            thinking: "internal",
-            thinkingSignature: "reasoning_text",
-          },
-          { type: "text", text: "hi" },
-        ],
-      },
-    ] as unknown as AgentMessage[];
+    const messages = makeThinkingAndTextAssistantMessages("reasoning_text");
 
     const result = await sanitizeGithubCopilotHistory({ messages });
     const assistant = getAssistantMessage(result);
@@ -532,20 +531,7 @@ describe("sanitizeSessionHistory", () => {
   it("does not drop thinking blocks for non-copilot providers", async () => {
     setNonGoogleModelApi();
 
-    const messages = [
-      { role: "user", content: "hello" },
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "thinking",
-            thinking: "internal",
-            thinkingSignature: "some_sig",
-          },
-          { type: "text", text: "hi" },
-        ],
-      },
-    ] as unknown as AgentMessage[];
+    const messages = makeThinkingAndTextAssistantMessages();
 
     const result = await sanitizeSessionHistory({
       messages,
@@ -563,20 +549,7 @@ describe("sanitizeSessionHistory", () => {
   it("does not drop thinking blocks for non-claude copilot models", async () => {
     setNonGoogleModelApi();
 
-    const messages = [
-      { role: "user", content: "hello" },
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "thinking",
-            thinking: "internal",
-            thinkingSignature: "some_sig",
-          },
-          { type: "text", text: "hi" },
-        ],
-      },
-    ] as unknown as AgentMessage[];
+    const messages = makeThinkingAndTextAssistantMessages();
 
     const result = await sanitizeGithubCopilotHistory({ messages, modelId: "gpt-5.2" });
     const types = getAssistantContentTypes(result);
