@@ -57,7 +57,7 @@ export class CircuitBreaker {
     if (this.failures >= this.config.maxFailures) {
       this.state = "OPEN";
       this.nextAttemptMs = Date.now() + this.config.resetTimeoutMs;
-      log.warn("Circuit breaker opened", { circuit: this.name, failures: this.failures });
+      log.warn({ circuit: this.name, failures: this.failures }, "Circuit breaker opened");
     }
   }
 }
@@ -78,7 +78,7 @@ export class IdempotencyGuard {
     this.cleanup();
     const cached = this.cache.get(key);
     if (cached) {
-      log.debug("Idempotency cache hit", { key });
+      log.debug({ key }, "Idempotency cache hit");
       return cached.value as T;
     }
 
