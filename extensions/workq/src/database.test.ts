@@ -341,6 +341,28 @@ describe("WorkqDatabase", () => {
     ).toThrow(/Not your work item/);
   });
 
+  it("repairs legacy rows where status was incorrectly written as system:unclaimed", () => {
+    const fixture = makeFixture();
+    const db = addDb(fixture);
+
+    db.claim({ issueRef: "ISS-UNCLAIMED", agentId: "agent-alpha" });
+
+    const internal = db as unknown as { db: { exec: (sql: string) => void } };
+    internal.db.exec("PRAGMA ignore_check_constraints = ON;");
+    internal.db.exec(
+      "UPDATE work_items SET status = 'system:unclaimed', agent_id = 'claimed' WHERE issue_ref = 'ISS-UNCLAIMED'",
+    );
+    internal.db.exec("PRAGMA ignore_check_constraints = OFF;");
+
+    db.close();
+
+    const reopened = addDb(fixture);
+    const repaired = reopened.get("ISS-UNCLAIMED");
+
+    expect(repaired?.status).toBe("claimed");
+    expect(repaired?.agentId).toBe("system:unclaimed");
+  });
+
   it("handles write contention on file-backed WAL DBs and keeps state atomic", () => {
     const base = makeFixture();
     const db1 = addDb(base);

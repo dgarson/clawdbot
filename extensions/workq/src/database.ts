@@ -957,12 +957,28 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     `);
 
     this.runMigrations();
+    this.repairSystemUnclaimedStatusRows();
 
     try {
       this.db.exec("PRAGMA wal_checkpoint(PASSIVE);");
     } catch {
       // no-op: checkpoint is best-effort
     }
+  }
+
+  private repairSystemUnclaimedStatusRows(): void {
+    this.db
+      .prepare(
+        `UPDATE work_items
+         SET status = 'claimed',
+             agent_id = CASE
+               WHEN agent_id = 'claimed' THEN ?
+               ELSE agent_id
+             END,
+             updated_at = datetime('now', 'utc')
+         WHERE status = ?`,
+      )
+      .run(SYSTEM_UNCLAIMED_AGENT_ID, SYSTEM_UNCLAIMED_AGENT_ID);
   }
 
   /**
