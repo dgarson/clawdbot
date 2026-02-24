@@ -7,8 +7,7 @@
  * Spec: /Users/openclaw/.openclaw/workspace/_shared/specs/a2a-communication-protocol.md
  */
 
-import type { ErrorObject } from "ajv";
-import Ajv from "ajv";
+import AjvPkg, { type ErrorObject } from "ajv";
 import { agentRefSchema, payloadSchemas } from "./schema.js";
 import {
   A2A_PROTOCOL_VERSION,
@@ -35,7 +34,7 @@ export type ValidationResult =
 
 // ─── Validator ───────────────────────────────────────────────────────────────
 
-const ajv = new Ajv({
+const ajv = new (AjvPkg as unknown as new (opts?: object) => import("ajv").default)({
   allErrors: true,
   verbose: true,
   strict: false,

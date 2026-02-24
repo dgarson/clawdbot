@@ -8,16 +8,7 @@
  * Spec: /Users/openclaw/.openclaw/workspace/_shared/specs/a2a-communication-protocol.md
  */
 
-import type { JSONSchemaType } from "ajv";
-import type {
-  TaskRequestPayload,
-  TaskResponsePayload,
-  ReviewRequestPayload,
-  ReviewResponsePayload,
-  StatusUpdatePayload,
-  KnowledgeSharePayload,
-  BroadcastPayload,
-} from "./types.js";
+type JsonSchema = Record<string, unknown>;
 
 // ─── Shared Sub-Schemas ──────────────────────────────────────────────────────
 
@@ -49,7 +40,7 @@ export const taskContextSchema = {
 
 // ─── Payload Schemas ─────────────────────────────────────────────────────────
 
-export const taskRequestPayloadSchema: JSONSchemaType<TaskRequestPayload> = {
+export const taskRequestPayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     taskId: { type: "string", minLength: 1 },
@@ -61,9 +52,7 @@ export const taskRequestPayloadSchema: JSONSchemaType<TaskRequestPayload> = {
     },
     complexity: { type: "string", enum: ["trivial", "low", "medium", "high", "expert"] },
     deadline: { type: "string", nullable: true },
-    context: { ...taskContextSchema, nullable: true } as JSONSchemaType<
-      TaskRequestPayload["context"]
-    >,
+    context: { ...taskContextSchema, nullable: true },
     acceptanceCriteria: {
       type: "array",
       items: { type: "string" },
@@ -95,21 +84,19 @@ export const taskResultSchema = {
   additionalProperties: false,
 };
 
-export const taskResponsePayloadSchema: JSONSchemaType<TaskResponsePayload> = {
+export const taskResponsePayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     taskId: { type: "string", minLength: 1 },
     action: { type: "string", enum: ["accepted", "declined", "completed", "failed", "blocked"] },
     reason: { type: "string", nullable: true },
-    result: { ...taskResultSchema, nullable: true } as JSONSchemaType<
-      TaskResponsePayload["result"]
-    >,
+    result: { ...taskResultSchema, nullable: true },
   },
   required: ["taskId", "action"],
   additionalProperties: false,
 };
 
-export const reviewRequestPayloadSchema: JSONSchemaType<ReviewRequestPayload> = {
+export const reviewRequestPayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     taskId: { type: "string", minLength: 1 },
@@ -172,7 +159,7 @@ export const nextTaskSchema = {
   additionalProperties: false,
 };
 
-export const reviewResponsePayloadSchema: JSONSchemaType<ReviewResponsePayload> = {
+export const reviewResponsePayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     taskId: { type: "string", minLength: 1 },
@@ -181,31 +168,29 @@ export const reviewResponsePayloadSchema: JSONSchemaType<ReviewResponsePayload> 
     worktree: { type: "string", minLength: 1 },
     reviewerFixes: {
       type: "array",
-      items: reviewerFixSchema as JSONSchemaType<ReviewResponsePayload["reviewerFixes"]>[number],
+      items: reviewerFixSchema,
       nullable: true,
-    } as JSONSchemaType<ReviewResponsePayload["reviewerFixes"]>,
+    },
     unresolvedConcerns: {
       type: "array",
-      items: unresolvedConcernSchema as JSONSchemaType<
-        ReviewResponsePayload["unresolvedConcerns"]
-      >[number],
+      items: unresolvedConcernSchema,
       nullable: true,
-    } as JSONSchemaType<ReviewResponsePayload["unresolvedConcerns"]>,
+    },
     nextAction: {
       type: "string",
       enum: ["send_back_to_worker", "push_and_close", "escalate_to_senior"],
     },
     nextTasks: {
       type: "array",
-      items: nextTaskSchema as JSONSchemaType<ReviewResponsePayload["nextTasks"]>[number],
+      items: nextTaskSchema,
       nullable: true,
-    } as JSONSchemaType<ReviewResponsePayload["nextTasks"]>,
+    },
   },
   required: ["taskId", "verdict", "branch", "worktree", "nextAction"],
   additionalProperties: false,
 };
 
-export const statusUpdatePayloadSchema: JSONSchemaType<StatusUpdatePayload> = {
+export const statusUpdatePayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     taskId: { type: "string", nullable: true },
@@ -218,7 +203,7 @@ export const statusUpdatePayloadSchema: JSONSchemaType<StatusUpdatePayload> = {
   additionalProperties: false,
 };
 
-export const knowledgeSharePayloadSchema: JSONSchemaType<KnowledgeSharePayload> = {
+export const knowledgeSharePayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     topic: { type: "string", minLength: 1 },
@@ -236,7 +221,7 @@ export const knowledgeSharePayloadSchema: JSONSchemaType<KnowledgeSharePayload> 
   additionalProperties: false,
 };
 
-export const broadcastPayloadSchema: JSONSchemaType<BroadcastPayload> = {
+export const broadcastPayloadSchema: JsonSchema = {
   type: "object",
   properties: {
     scope: { type: "string", enum: ["squad", "org", "c-suite"] },
