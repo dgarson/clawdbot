@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { Server } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -380,7 +381,62 @@ function TrafficTab() {
 const TABS = ["Gateways", "Routes", "Plugins", "Traffic"] as const;
 type Tab = typeof TABS[number];
 
-export default function APIGatewayManager() {
+function APIGatewayManagerSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Skeleton className="h-8 w-52 mb-2" />
+        <Skeleton variant="text" className="w-72 h-3" />
+      </div>
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-4">
+            <Skeleton className="h-9 w-16 mb-2" />
+            <Skeleton variant="text" className="w-28 h-3" />
+          </div>
+        ))}
+      </div>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 border-b border-tok-border">
+        {[80, 64, 64, 64].map((w, i) => (
+          <Skeleton key={i} className="h-9 mb-px" style={{ width: w }} />
+        ))}
+      </div>
+      {/* Gateway cards */}
+      <div className="space-y-3">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton variant="circle" className="w-2.5 h-2.5" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Skeleton variant="text" className="w-40 h-4" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton variant="text" className="w-14 h-3" />
+                </div>
+                <Skeleton variant="text" className="w-64 h-3" />
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                {[0, 1, 2].map(j => (
+                  <div key={j}>
+                    <Skeleton className="h-5 w-10 mx-auto mb-1" />
+                    <Skeleton variant="text" className="w-8 h-3 mx-auto" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function APIGatewayManager({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <APIGatewayManagerSkeleton />;
+
   const [tab, setTab] = useState<Tab>("Gateways");
 
   const activeGateways = gateways.filter((g) => g.status === "active").length;

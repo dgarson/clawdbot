@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { Shield } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 /**
  * AccessControlManager.tsx
@@ -178,7 +179,60 @@ const RoleBadge = ({ role, className }: { role: RoleName; className?: string }) 
   );
 };
 
-export default function AccessControlManager() {
+function AccessControlManagerSkeleton() {
+  return (
+    <div className="flex flex-col min-h-screen bg-surface-0 text-fg-primary font-sans">
+      {/* Header */}
+      <header className="px-3 sm:px-4 md:px-8 py-4 md:py-6 border-b border-tok-border bg-surface-0/50 sticky top-0 z-20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <div>
+            <Skeleton className="h-8 w-40 mb-2" />
+            <Skeleton variant="text" className="w-72 h-3" />
+          </div>
+          <div className="flex gap-3">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+        <nav className="flex gap-8">
+          {[56, 88, 48, 44].map((w, i) => (
+            <Skeleton key={i} className="h-4" style={{ width: w }} />
+          ))}
+        </nav>
+      </header>
+      {/* Role cards grid */}
+      <main className="flex-1 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="text-left p-6 rounded-xl border border-tok-border bg-surface-1">
+                <div className="flex justify-between items-start mb-4">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton variant="text" className="w-12 h-3" />
+                </div>
+                <Skeleton className="h-5 w-24 mb-2" />
+                <Skeleton variant="text" className="w-full h-3 mb-1" />
+                <Skeleton variant="text" className="w-3/4 h-3 mb-6" />
+                <div className="flex items-center justify-between pt-4 border-t border-tok-border/50">
+                  <Skeleton variant="text" className="w-24 h-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+      {/* Footer */}
+      <footer className="p-8 border-t border-tok-border bg-surface-0 flex justify-between items-center">
+        <Skeleton variant="text" className="w-48 h-3" />
+        <Skeleton variant="text" className="w-40 h-3" />
+      </footer>
+    </div>
+  );
+}
+
+export default function AccessControlManager({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AccessControlManagerSkeleton />;
+
   const [activeTab, setActiveTab] = useState<TabID>("roles");
   const [selectedRole, setSelectedRole] = useState<RoleName | null>(null);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);

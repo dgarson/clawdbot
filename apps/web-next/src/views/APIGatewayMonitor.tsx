@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { Activity } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 type RouteStatus = "active" | "deprecated" | "disabled" | "beta";
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -178,7 +179,109 @@ const RATELIMIT_EVENTS: RateLimitEvent[] = [
 
 const maxRequests = Math.max(...TRAFFIC.map(p => p.requests));
 
-export default function APIGatewayMonitor() {
+function APIGatewayMonitorSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
+      {/* Header */}
+      <div className="px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton variant="text" className="w-56 h-3" />
+        </div>
+        <div className="flex items-center gap-6">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="text-center">
+              <Skeleton className="h-6 w-16 mx-auto mb-1" />
+              <Skeleton variant="text" className="w-12 h-3 mx-auto" />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Tabs */}
+      <div className="flex border-b border-tok-border px-6">
+        {[64, 88, 64, 88].map((w, i) => (
+          <Skeleton key={i} className="h-10 my-1 mr-1" style={{ width: w }} />
+        ))}
+      </div>
+      {/* Split layout: route list + detail */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Route list */}
+        <div className="w-80 border-r border-tok-border flex flex-col">
+          <div className="p-3 border-b border-tok-border flex gap-1.5 flex-wrap">
+            {[40, 40, 48, 40, 56, 60].map((w, i) => (
+              <Skeleton key={i} className="h-5" style={{ width: w }} />
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+              <div key={i} className="px-4 py-3 border-b border-tok-border/60">
+                <div className="flex items-center gap-2 mb-1">
+                  <Skeleton className="h-5 w-12" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton variant="text" className="w-48 h-3 mb-1.5" />
+                <div className="flex items-center gap-3">
+                  <Skeleton variant="text" className="w-16 h-3" />
+                  <Skeleton variant="text" className="w-12 h-3" />
+                  <Skeleton variant="text" className="w-12 h-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Detail */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <Skeleton className="h-8 w-14" />
+                <Skeleton variant="text" className="w-52 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton variant="text" className="w-24 h-3" />
+                <Skeleton variant="text" className="w-10 h-3" />
+              </div>
+            </div>
+          </div>
+          {/* Metrics grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="bg-surface-1 rounded-lg p-3 text-center">
+                <Skeleton className="h-7 w-16 mx-auto mb-1" />
+                <Skeleton variant="text" className="w-14 h-3 mx-auto" />
+              </div>
+            ))}
+          </div>
+          {/* Latency percentiles */}
+          <div className="bg-surface-1 rounded-lg p-4 mb-4">
+            <Skeleton variant="text" className="w-36 h-4 mb-3" />
+            {["p50", "p95", "p99"].map(p => (
+              <div key={p} className="flex items-center gap-3 mb-2">
+                <Skeleton className="w-6 h-3" />
+                <div className="flex-1"><Skeleton className="h-1.5 rounded-full" /></div>
+                <Skeleton className="w-14 h-3" />
+              </div>
+            ))}
+          </div>
+          {/* Tags */}
+          <div className="bg-surface-1 rounded-lg p-4">
+            <Skeleton variant="text" className="w-10 h-4 mb-2" />
+            <div className="flex flex-wrap gap-1.5">
+              {[0, 1, 2].map(i => (
+                <Skeleton key={i} className="h-5 w-16" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function APIGatewayMonitor({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <APIGatewayMonitorSkeleton />;
+
   const [tab, setTab] = useState<"routes" | "upstreams" | "traffic" | "ratelimits">("routes");
   const [selectedRoute, setSelectedRoute] = useState<APIRoute>(ROUTES[0]);
   const [selectedUpstream, setSelectedUpstream] = useState<UpstreamService>(UPSTREAMS[0]);

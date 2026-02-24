@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { ShieldAlert } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 type RiskLevel = "critical" | "high" | "medium" | "low";
 type ModelStatus = "approved" | "pending" | "rejected" | "deprecated" | "review";
@@ -306,7 +307,112 @@ function policyStatusBg(s: PolicyStatus) {
   return "bg-surface-3 text-fg-secondary";
 }
 
-export default function AIGovernanceDashboard() {
+function AIGovernanceDashboardSkeleton() {
+  return (
+    <div className="h-full flex flex-col bg-surface-0 text-fg-primary">
+      {/* Header */}
+      <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <Skeleton className="h-6 w-56 mb-2" />
+          <Skeleton variant="text" className="w-80 h-3" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-7 w-28" />
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-8 w-32" />
+        </div>
+      </div>
+      {/* Stat bar */}
+      <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="text-center">
+            <Skeleton className="h-7 w-10 mx-auto mb-1" />
+            <Skeleton variant="text" className="w-24 h-3 mx-auto" />
+          </div>
+        ))}
+      </div>
+      {/* Tabs */}
+      <div className="border-b border-tok-border px-6">
+        <div className="flex gap-6">
+          {[70, 80, 72, 60].map((w, i) => (
+            <Skeleton key={i} className="h-10 my-1" style={{ width: w }} />
+          ))}
+        </div>
+      </div>
+      {/* Split layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Model list */}
+        <div className="w-96 border-r border-tok-border flex flex-col">
+          <div className="p-4 border-b border-tok-border space-y-3">
+            <Skeleton className="h-9 w-full" />
+            <div className="flex gap-2">
+              <Skeleton className="h-8 flex-1" />
+              <Skeleton className="h-8 flex-1" />
+            </div>
+          </div>
+          <div className="overflow-y-auto flex-1">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className="px-4 py-3 border-b border-tok-border">
+                <div className="flex items-center justify-between mb-1">
+                  <Skeleton variant="text" className="w-36 h-4" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton variant="text" className="w-20 h-3" />
+                </div>
+                <Skeleton variant="text" className="w-40 h-3" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Detail panel */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <Skeleton className="h-7 w-56 mb-2" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-16" />
+            </div>
+          </div>
+          {/* Score cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="bg-surface-1 rounded-xl p-4">
+                <Skeleton className="h-8 w-16 mb-1" />
+                <Skeleton variant="text" className="w-28 h-3" />
+              </div>
+            ))}
+          </div>
+          {/* Bias metrics */}
+          <div className="bg-surface-1 rounded-xl p-5 mb-4">
+            <Skeleton variant="text" className="w-32 h-4 mb-4" />
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="mb-3">
+                <div className="flex justify-between mb-1">
+                  <Skeleton variant="text" className="w-36 h-3" />
+                  <Skeleton className="w-10 h-3" />
+                </div>
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AIGovernanceDashboard({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AIGovernanceDashboardSkeleton />;
+
   const [tab, setTab] = useState<"models" | "incidents" | "policies" | "audits">("models");
   const [riskFilter, setRiskFilter] = useState<RiskLevel | "all">("all");
   const [statusFilter, setStatusFilter] = useState<ModelStatus | "all">("all");

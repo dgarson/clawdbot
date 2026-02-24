@@ -1,8 +1,10 @@
+import React from 'react';
 import { cn } from '../../lib/utils';
 
 export interface SkeletonProps {
   className?: string;
   variant?: 'text' | 'rect' | 'circle';
+  style?: React.CSSProperties;
 }
 
 /**
@@ -13,7 +15,7 @@ export interface SkeletonProps {
  *  - `text`   — narrower, single-line text height
  *  - `circle` — perfectly circular
  */
-export function Skeleton({ className, variant = 'rect' }: SkeletonProps) {
+export function Skeleton({ className, variant = 'rect', style }: SkeletonProps) {
   return (
     <div
       className={cn(
@@ -23,6 +25,7 @@ export function Skeleton({ className, variant = 'rect' }: SkeletonProps) {
         variant === 'circle' && 'rounded-full aspect-square',
         className,
       )}
+      style={style}
       aria-hidden="true"
     />
   );

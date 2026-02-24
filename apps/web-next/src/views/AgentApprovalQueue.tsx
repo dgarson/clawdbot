@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -465,7 +466,105 @@ function HistoryPanel({ items }: { items: ApprovalItem[] }) {
 // Main Component
 // ============================================================================
 
-export default function AgentApprovalQueue() {
+function AgentApprovalQueueSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-52" />
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton variant="text" className="w-36 h-4" />
+          <Skeleton variant="circle" className="w-9 h-9" />
+        </div>
+      </div>
+      {/* Filter bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 bg-surface-2 rounded-lg p-0.5">
+          {[36, 64, 68, 48, 72, 76].map((w, i) => (
+            <Skeleton key={i} className="h-8 rounded-md" style={{ width: w }} />
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-28" />
+        </div>
+      </div>
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Queue cards */}
+        <div className="col-span-2 space-y-4">
+          {[0, 1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 flex-1">
+                  <Skeleton variant="circle" className="w-4 h-4 mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Skeleton variant="circle" className="w-6 h-6" />
+                      <Skeleton variant="text" className="w-16 h-4" />
+                      <Skeleton className="h-4 w-14" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                    <Skeleton variant="text" className="w-64 h-4 mb-2" />
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton variant="text" className="w-10 h-3" />
+                      </div>
+                      <Skeleton variant="text" className="w-80 h-3" />
+                      <Skeleton variant="text" className="w-64 h-3" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Skeleton variant="circle" className="w-6 h-6" />
+                  <div className="flex gap-2">
+                    <Skeleton variant="circle" className="w-8 h-8" />
+                    <Skeleton variant="circle" className="w-8 h-8" />
+                    <Skeleton variant="circle" className="w-8 h-8" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* History panel */}
+        <div className="col-span-1">
+          <div className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
+            <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
+              <Skeleton variant="circle" className="w-4 h-4" />
+              <Skeleton variant="text" className="w-32 h-4" />
+              <div className="ml-auto"><Skeleton variant="text" className="w-16 h-3" /></div>
+            </div>
+            <div className="flex-1 divide-y divide-tok-border/60">
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className="px-4 py-3 flex items-start gap-3">
+                  <Skeleton className="h-5 w-20" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Skeleton variant="text" className="w-20 h-4" />
+                      <Skeleton className="h-4 w-14" />
+                    </div>
+                    <Skeleton variant="text" className="w-40 h-3 mb-1" />
+                    <Skeleton variant="text" className="w-32 h-3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AgentApprovalQueue({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AgentApprovalQueueSkeleton />;
+
   const [approvals, setApprovals] = useState<ApprovalItem[]>(MOCK_APPROVALS);
   const [filter, setFilter] = useState<string>('All');
   const [selected, setSelected] = useState<string[]>([]);
