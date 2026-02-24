@@ -335,7 +335,7 @@ const CATEGORY_CONFIG: Record<NotifCategory, { label: string; icon: string }> = 
 const CONNECTION_CONFIG: Record<ConnectionStatus, { dot: string; label: string }> = {
   live:         { dot: "bg-emerald-500", label: "Live updates active" },
   reconnecting: { dot: "bg-amber-400",   label: "Reconnecting..." },
-  offline:      { dot: "bg-zinc-500",    label: "Offline" },
+  offline:      { dot: "bg-surface-3",    label: "Offline" },
 };
 
 function relativeTime(date: Date): string {
@@ -384,13 +384,13 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
       <div
         role="dialog"
         aria-label="Notification settings"
-        className="relative w-80 bg-zinc-900 border-l border-zinc-800 h-full overflow-y-auto shadow-2xl animate-slide-in"
+        className="relative w-80 bg-surface-1 border-l border-tok-border h-full overflow-y-auto shadow-2xl animate-slide-in"
       >
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h2 className="text-lg font-bold text-white">Notification Settings</h2>
+        <div className="flex items-center justify-between p-4 border-b border-tok-border">
+          <h2 className="text-lg font-bold text-fg-primary">Notification Settings</h2>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-white transition-colors"
+            className="text-fg-secondary hover:text-fg-primary transition-colors"
             aria-label="Close settings"
           >
             ✕
@@ -400,7 +400,7 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
         <div className="p-4 space-y-6">
           {/* Categories */}
           <div>
-            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-3">
+            <h3 className="text-xs uppercase tracking-wider font-semibold text-fg-muted mb-3">
               Categories
             </h3>
             <div className="space-y-2">
@@ -410,16 +410,16 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
                 return (
                   <label
                     key={cat}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-2/50 hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={enabled}
                       onChange={() => toggleCategory(cat)}
-                      className="w-4 h-4 rounded border-zinc-600 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                      className="w-4 h-4 rounded border-tok-border text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
                     />
                     <span className="text-sm">{cfg.icon}</span>
-                    <span className={cn("text-sm", enabled ? "text-zinc-200" : "text-zinc-500")}>
+                    <span className={cn("text-sm", enabled ? "text-fg-primary" : "text-fg-muted")}>
                       {cfg.label}
                     </span>
                   </label>
@@ -430,19 +430,19 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
 
           {/* Severities */}
           <div>
-            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-3">
+            <h3 className="text-xs uppercase tracking-wider font-semibold text-fg-muted mb-3">
               Severity Levels
             </h3>
             <div className="space-y-2">
-              <label className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-not-allowed opacity-50">
+              <label className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-2/50 hover:bg-surface-2 cursor-not-allowed opacity-50">
                 <input
                   type="checkbox"
                   checked={true}
                   disabled
-                  className="w-4 h-4 rounded border-zinc-600 text-red-500"
+                  className="w-4 h-4 rounded border-tok-border text-red-500"
                 />
                 <span className="text-sm">🚨</span>
-                <span className="text-sm text-zinc-400">Critical (always on)</span>
+                <span className="text-sm text-fg-secondary">Critical (always on)</span>
               </label>
               {(["warning", "info", "success"] as const).map((sev) => {
                 const cfg = SEVERITY_CONFIG[sev];
@@ -450,16 +450,16 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
                 return (
                   <label
                     key={sev}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-2/50 hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={enabled}
                       onChange={() => toggleSeverity(sev)}
-                      className="w-4 h-4 rounded border-zinc-600 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                      className="w-4 h-4 rounded border-tok-border text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
                     />
                     <span className="text-sm">{cfg.icon}</span>
-                    <span className={cn("text-sm", enabled ? "text-zinc-200" : "text-zinc-500")}>
+                    <span className={cn("text-sm", enabled ? "text-fg-primary" : "text-fg-muted")}>
                       {cfg.label}
                     </span>
                   </label>
@@ -470,10 +470,10 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
 
           {/* Behavior */}
           <div>
-            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-3">
+            <h3 className="text-xs uppercase tracking-wider font-semibold text-fg-muted mb-3">
               Behavior
             </h3>
-            <label className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-pointer transition-colors">
+            <label className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-2/50 hover:bg-surface-2 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={settings.markAllReadOnOpen}
@@ -483,17 +483,17 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
                     markAllReadOnOpen: !settings.markAllReadOnOpen,
                   })
                 }
-                className="w-4 h-4 rounded border-zinc-600 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                className="w-4 h-4 rounded border-tok-border text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
               />
-              <span className="text-sm text-zinc-200">Mark all read on open</span>
+              <span className="text-sm text-fg-primary">Mark all read on open</span>
             </label>
           </div>
         </div>
 
-        <div className="p-4 border-t border-zinc-800">
+        <div className="p-4 border-t border-tok-border">
           <button
             onClick={onClose}
-            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors"
+            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-semibold transition-colors"
           >
             Done
           </button>
@@ -544,10 +544,10 @@ function NotifCard({
           type="button"
           onClick={() => onExpandGroup?.(notif.agentName)}
           className={cn(
-            "w-full text-left px-4 py-3 border-b border-zinc-800/60 transition-colors",
-            "hover:bg-zinc-800/40 focus-visible:outline-none focus-visible:bg-zinc-800/60",
+            "w-full text-left px-4 py-3 border-b border-tok-border/60 transition-colors",
+            "hover:bg-surface-2/40 focus-visible:outline-none focus-visible:bg-surface-2/60",
             focused && "ring-2 ring-inset ring-violet-500",
-            selected && "bg-zinc-800/60"
+            selected && "bg-surface-2/60"
           )}
           aria-expanded={isExpanded}
           aria-label={`${notif.agentName}: ${notif.count} notifications`}
@@ -558,17 +558,17 @@ function NotifCard({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-xs text-zinc-400">{notif.agentEmoji} {notif.agentName}</span>
+                <span className="text-xs text-fg-secondary">{notif.agentEmoji} {notif.agentName}</span>
                 <span className="text-xs bg-blue-500/20 text-blue-400 rounded-full px-2 py-0.5 font-medium">
                   {notif.count} notifications
                 </span>
-                <span className="ml-auto text-xs text-zinc-500 flex-shrink-0">
+                <span className="ml-auto text-xs text-fg-muted flex-shrink-0">
                   {relativeTime(notif.latestTimestamp)}
                 </span>
               </div>
-              <p className="text-sm text-zinc-300">
+              <p className="text-sm text-fg-secondary">
                 {isExpanded ? "Hide" : "Show"} {notif.count} notifications from {notif.agentName}
-                <span className="text-zinc-500 ml-1">[{isExpanded ? "−" : "+"}{notif.count - 1} more]</span>
+                <span className="text-fg-muted ml-1">[{isExpanded ? "−" : "+"}{notif.count - 1} more]</span>
               </p>
             </div>
           </div>
@@ -604,11 +604,11 @@ function NotifCard({
         if (!notif.read) {onRead(notif.id);}
       }}
       className={cn(
-        "w-full text-left px-4 py-3 border-b border-zinc-800/60 transition-colors",
-        "hover:bg-zinc-800/40 focus-visible:outline-none focus-visible:bg-zinc-800/60",
+        "w-full text-left px-4 py-3 border-b border-tok-border/60 transition-colors",
+        "hover:bg-surface-2/40 focus-visible:outline-none focus-visible:bg-surface-2/60",
         focused && "ring-2 ring-inset ring-violet-500",
-        selected && "bg-zinc-800/60",
-        !notif.read && "bg-zinc-900",
+        selected && "bg-surface-2/60",
+        !notif.read && "bg-surface-1",
         sc.ring
       )}
       aria-selected={selected}
@@ -630,27 +630,27 @@ function NotifCard({
             <span className={cn("text-xs rounded-full px-2 py-0.5 font-medium leading-none", sc.badge)}>
               {sc.label}
             </span>
-            <span className="text-xs text-zinc-500">{cc.icon} {cc.label}</span>
+            <span className="text-xs text-fg-muted">{cc.icon} {cc.label}</span>
             {notif.agentName && (
-              <span className="text-xs text-zinc-400">{notif.agentEmoji} {notif.agentName}</span>
+              <span className="text-xs text-fg-secondary">{notif.agentEmoji} {notif.agentName}</span>
             )}
             {notif.pinned && (
               <span className="text-xs text-amber-400" aria-label="Pinned">📌</span>
             )}
-            <span className="ml-auto text-xs text-zinc-500 flex-shrink-0">{relativeTime(notif.timestamp)}</span>
+            <span className="ml-auto text-xs text-fg-muted flex-shrink-0">{relativeTime(notif.timestamp)}</span>
           </div>
 
           {/* Title */}
-          <p className={cn("text-sm font-semibold leading-snug", notif.read ? "text-zinc-300" : "text-white")}>
+          <p className={cn("text-sm font-semibold leading-snug", notif.read ? "text-fg-secondary" : "text-fg-primary")}>
             {notif.title}
           </p>
 
           {/* Body preview */}
-          <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2 leading-relaxed">{notif.body}</p>
+          <p className="text-xs text-fg-muted mt-0.5 line-clamp-2 leading-relaxed">{notif.body}</p>
 
           {/* Meta */}
           {notif.meta && (
-            <p className="text-xs text-zinc-600 mt-1 font-mono">{notif.meta}</p>
+            <p className="text-xs text-fg-muted mt-1 font-mono">{notif.meta}</p>
           )}
         </div>
       </div>
@@ -673,8 +673,8 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl mb-3">🔔</div>
-          <p className="text-zinc-400 text-sm font-medium">Select a notification</p>
-          <p className="text-zinc-600 text-xs mt-1">Click any item to see details and actions</p>
+          <p className="text-fg-secondary text-sm font-medium">Select a notification</p>
+          <p className="text-fg-muted text-xs mt-1">Click any item to see details and actions</p>
         </div>
       </div>
     );
@@ -686,60 +686,60 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-zinc-800">
+      <div className="px-6 pt-6 pb-4 border-b border-tok-border">
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span className={cn("text-xs rounded-full px-2.5 py-1 font-semibold", sc.badge)}>
             {sc.icon} {sc.label}
           </span>
-          <span className="text-sm text-zinc-400">{cc.icon} {cc.label}</span>
+          <span className="text-sm text-fg-secondary">{cc.icon} {cc.label}</span>
           {notif.pinned && <span className="text-sm text-amber-400">📌 Pinned</span>}
         </div>
-        <h2 className="text-lg font-bold text-white leading-snug">{notif.title}</h2>
-        <p className="text-xs text-zinc-500 mt-1">{notif.timestamp.toLocaleString()}</p>
+        <h2 className="text-lg font-bold text-fg-primary leading-snug">{notif.title}</h2>
+        <p className="text-xs text-fg-muted mt-1">{notif.timestamp.toLocaleString()}</p>
       </div>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {/* Agent info */}
         {notif.agentName && (
-          <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-zinc-800/50">
+          <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-surface-2/50">
             <span className="text-2xl" aria-hidden>{notif.agentEmoji}</span>
             <div>
-              <p className="text-sm font-semibold text-zinc-200">{notif.agentName}</p>
-              <p className="text-xs text-zinc-500">Source agent</p>
+              <p className="text-sm font-semibold text-fg-primary">{notif.agentName}</p>
+              <p className="text-xs text-fg-muted">Source agent</p>
             </div>
           </div>
         )}
 
         {/* Body text */}
-        <p className="text-sm text-zinc-300 leading-relaxed mb-4">{notif.body}</p>
+        <p className="text-sm text-fg-secondary leading-relaxed mb-4">{notif.body}</p>
 
         {/* Meta */}
         {notif.meta && (
-          <div className="p-3 rounded-lg bg-zinc-800/40 mb-4">
-            <p className="text-xs text-zinc-500 font-medium mb-1 uppercase tracking-wide">Identifier</p>
-            <code className="text-xs text-zinc-300 font-mono">{notif.meta}</code>
+          <div className="p-3 rounded-lg bg-surface-2/40 mb-4">
+            <p className="text-xs text-fg-muted font-medium mb-1 uppercase tracking-wide">Identifier</p>
+            <code className="text-xs text-fg-secondary font-mono">{notif.meta}</code>
           </div>
         )}
 
         {/* Timeline context */}
-        <div className="p-3 rounded-lg bg-zinc-800/40">
-          <p className="text-xs text-zinc-500 font-medium mb-2 uppercase tracking-wide">Event Details</p>
+        <div className="p-3 rounded-lg bg-surface-2/40">
+          <p className="text-xs text-fg-muted font-medium mb-2 uppercase tracking-wide">Event Details</p>
           <dl className="space-y-2">
             <div className="flex justify-between text-xs">
-              <dt className="text-zinc-500">Fired</dt>
-              <dd className="text-zinc-300">{notif.timestamp.toLocaleTimeString()}</dd>
+              <dt className="text-fg-muted">Fired</dt>
+              <dd className="text-fg-secondary">{notif.timestamp.toLocaleTimeString()}</dd>
             </div>
             <div className="flex justify-between text-xs">
-              <dt className="text-zinc-500">Relative</dt>
-              <dd className="text-zinc-300">{relativeTime(notif.timestamp)}</dd>
+              <dt className="text-fg-muted">Relative</dt>
+              <dd className="text-fg-secondary">{relativeTime(notif.timestamp)}</dd>
             </div>
             <div className="flex justify-between text-xs">
-              <dt className="text-zinc-500">Category</dt>
-              <dd className="text-zinc-300">{cc.label}</dd>
+              <dt className="text-fg-muted">Category</dt>
+              <dd className="text-fg-secondary">{cc.label}</dd>
             </div>
             <div className="flex justify-between text-xs">
-              <dt className="text-zinc-500">Read</dt>
+              <dt className="text-fg-muted">Read</dt>
               <dd className={notif.read ? "text-emerald-400" : "text-amber-400"}>
                 {notif.read ? "Yes" : "Unread"}
               </dd>
@@ -749,11 +749,11 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
       </div>
 
       {/* Actions */}
-      <div className="px-6 pb-6 pt-2 border-t border-zinc-800 flex flex-col gap-2">
+      <div className="px-6 pb-6 pt-2 border-t border-tok-border flex flex-col gap-2">
         {notif.action && (
           <button
             type="button"
-            className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-95 text-fg-primary text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           >
             {notif.action.label}
           </button>
@@ -763,7 +763,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
             <button
               type="button"
               onClick={() => onRead(notif.id)}
-              className="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+              className="flex-1 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
             >
               Mark read
             </button>
@@ -775,7 +775,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
               "flex-1 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2",
               notif.pinned
                 ? "bg-amber-400/20 text-amber-400 hover:bg-amber-400/30 focus-visible:ring-amber-400"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 focus-visible:ring-zinc-500"
+                : "bg-surface-2 hover:bg-surface-3 text-fg-secondary focus-visible:ring-zinc-500"
             )}
           >
             {notif.pinned ? "Unpin" : "Pin"}
@@ -783,7 +783,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
           <button
             type="button"
             onClick={() => onDismiss(notif.id)}
-            className="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            className="flex-1 py-2 rounded-lg bg-surface-2 hover:bg-red-500/20 text-fg-secondary hover:text-red-400 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
           >
             Dismiss
           </button>
@@ -810,9 +810,9 @@ export function useNotificationUnreadCount(): number {
 
 function NotificationCenterSkeleton() {
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
       {/* Top bar skeleton */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 flex-shrink-0">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-tok-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <Skeleton variant="rect" className="h-6 w-44" />
           <Skeleton variant="rect" className="h-5 w-8 rounded-full" />
@@ -824,7 +824,7 @@ function NotificationCenterSkeleton() {
         </div>
       </header>
       {/* Stats skeleton */}
-      <div className="flex gap-4 px-6 py-3 border-b border-zinc-800 flex-shrink-0">
+      <div className="flex gap-4 px-6 py-3 border-b border-tok-border flex-shrink-0">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center gap-1.5">
             <Skeleton variant="circle" className="w-2 h-2" />
@@ -836,16 +836,16 @@ function NotificationCenterSkeleton() {
       {/* Body skeleton */}
       <div className="flex flex-1 min-h-0">
         {/* List skeleton */}
-        <div className="w-96 flex-shrink-0 border-r border-zinc-800 overflow-hidden">
-          <div className="px-3 pt-3 pb-2 border-b border-zinc-800/60">
+        <div className="w-96 flex-shrink-0 border-r border-tok-border overflow-hidden">
+          <div className="px-3 pt-3 pb-2 border-b border-tok-border/60">
             <Skeleton variant="rect" className="h-9 w-full rounded-lg" />
           </div>
-          <div className="flex gap-1 px-3 py-2 border-b border-zinc-800/60">
+          <div className="flex gap-1 px-3 py-2 border-b border-tok-border/60">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} variant="rect" className="h-6 w-16 rounded-full" />
             ))}
           </div>
-          <div className="divide-y divide-zinc-800/60">
+          <div className="divide-y divide-tok-border/60">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="px-4 py-3 space-y-2">
                 <div className="flex items-center gap-2">
@@ -1099,7 +1099,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
   }, [focusedIndex]);
 
   const SEVERITY_FILTERS: { value: FilterSeverity; label: string; color: string }[] = [
-    { value: "all",      label: "All",      color: "text-zinc-400" },
+    { value: "all",      label: "All",      color: "text-fg-secondary" },
     { value: "critical", label: "Critical", color: "text-red-400"   },
     { value: "warning",  label: "Warning",  color: "text-amber-400" },
     { value: "success",  label: "Success",  color: "text-emerald-400" },
@@ -1109,13 +1109,13 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
   if (isLoading) return <NotificationCenterSkeleton />;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
       {/* ── Top Bar ── */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 flex-shrink-0">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-tok-border flex-shrink-0 gap-2">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-white">Notification Center</h1>
+          <h1 className="text-xl font-bold text-fg-primary">Notification Center</h1>
           {unreadCount > 0 && (
-            <span className="text-xs bg-violet-600 text-white rounded-full px-2 py-0.5 font-bold" aria-label={`${unreadCount} unread`}>
+            <span className="text-xs bg-violet-600 text-fg-primary rounded-full px-2 py-0.5 font-bold" aria-label={`${unreadCount} unread`}>
               {unreadCount}
             </span>
           )}
@@ -1126,7 +1126,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
             aria-label={connConfig.label}
           >
             <span className={cn("w-2 h-2 rounded-full", connConfig.dot)} aria-hidden />
-            <span className="text-xs text-zinc-500">{connConfig.label}</span>
+            <span className="text-xs text-fg-muted">{connConfig.label}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1134,7 +1134,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
             <button
               type="button"
               onClick={markAllRead}
-              className="text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+              className="text-xs text-fg-secondary hover:text-fg-primary px-3 py-1.5 rounded-lg hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
             >
               Mark all read
             </button>
@@ -1142,7 +1142,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
           <button
             type="button"
             onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned || !n.read))}
-            className="text-xs text-zinc-400 hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+            className="text-xs text-fg-secondary hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
           >
             Clear read
           </button>
@@ -1150,7 +1150,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
-            className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            className="p-2 rounded-lg text-fg-secondary hover:text-fg-primary hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             aria-label="Open notification settings"
             title="Notification settings"
           >
@@ -1160,32 +1160,32 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
       </header>
 
       {/* ── Stats row ── */}
-      <div className="flex gap-4 px-6 py-3 border-b border-zinc-800 flex-shrink-0 overflow-x-auto">
+      <div className="flex gap-4 px-6 py-3 border-b border-tok-border flex-shrink-0 overflow-x-auto">
         {(["critical", "warning", "success", "info"] as NotifSeverity[]).map((sev) => {
           const count = notifs.filter((n) => n.severity === sev).length;
           const cfg = SEVERITY_CONFIG[sev];
           return (
             <div key={sev} className="flex items-center gap-1.5 flex-shrink-0">
               <span className={cn("w-2 h-2 rounded-full flex-shrink-0", cfg.dot)} aria-hidden />
-              <span className="text-xs font-semibold text-zinc-300">{count}</span>
-              <span className="text-xs text-zinc-500">{cfg.label}</span>
+              <span className="text-xs font-semibold text-fg-secondary">{count}</span>
+              <span className="text-xs text-fg-muted">{cfg.label}</span>
             </div>
           );
         })}
         <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-xs text-zinc-500">Total:</span>
-          <span className="text-xs font-semibold text-zinc-300">{notifs.length}</span>
+          <span className="text-xs text-fg-muted">Total:</span>
+          <span className="text-xs font-semibold text-fg-secondary">{notifs.length}</span>
         </div>
       </div>
 
       {/* ── Body: List + Detail ── */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0">
         {/* Left pane: filters + list */}
-        <div className="w-96 flex-shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+        <div className="md:w-96 flex-shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-tok-border overflow-hidden">
           {/* Search */}
-          <div className="px-3 pt-3 pb-2 border-b border-zinc-800/60 flex-shrink-0">
+          <div className="px-3 pt-3 pb-2 border-b border-tok-border/60 flex-shrink-0">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm select-none" aria-hidden>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted text-sm select-none" aria-hidden>
                 🔍
               </span>
               <input
@@ -1194,14 +1194,14 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search notifications… (⌘F)"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full bg-surface-2 border border-tok-border rounded-lg pl-9 pr-3 py-2 text-sm text-fg-primary placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-violet-500"
                 aria-label="Search notifications"
               />
             </div>
           </div>
 
           {/* Severity filter chips */}
-          <div className="flex gap-1 px-3 py-2 border-b border-zinc-800/60 overflow-x-auto flex-shrink-0">
+          <div className="flex gap-1 px-3 py-2 border-b border-tok-border/60 overflow-x-auto flex-shrink-0">
             {SEVERITY_FILTERS.map((f) => (
               <button
                 key={f.value}
@@ -1210,8 +1210,8 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
                 className={cn(
                   "flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                   filterSeverity === f.value
-                    ? "bg-violet-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                    ? "bg-violet-600 text-fg-primary"
+                    : "bg-surface-2 text-fg-secondary hover:bg-surface-3"
                 )}
                 aria-pressed={filterSeverity === f.value}
               >
@@ -1221,7 +1221,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
           </div>
 
           {/* Read / Category filters */}
-          <div className="flex gap-2 px-3 py-2 border-b border-zinc-800/60 overflow-x-auto flex-shrink-0">
+          <div className="flex gap-2 px-3 py-2 border-b border-tok-border/60 overflow-x-auto flex-shrink-0">
             {(["all", "unread", "read"] as FilterRead[]).map((v) => (
               <button
                 key={v}
@@ -1229,18 +1229,18 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
                 onClick={() => setFilterRead(v)}
                 className={cn(
                   "flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 capitalize",
-                  filterRead === v ? "bg-zinc-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  filterRead === v ? "bg-surface-3 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:bg-surface-3"
                 )}
                 aria-pressed={filterRead === v}
               >
                 {v}
               </button>
             ))}
-            <div className="w-px bg-zinc-700 mx-1 flex-shrink-0" aria-hidden />
+            <div className="w-px bg-surface-3 mx-1 flex-shrink-0" aria-hidden />
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value as NotifCategory | "all")}
-              className="flex-shrink-0 text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="flex-shrink-0 text-xs bg-surface-2 text-fg-secondary border border-tok-border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500"
               aria-label="Filter by category"
             >
               <option value="all">All categories</option>
@@ -1289,7 +1289,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
           </div>
 
           {/* Keyboard nav hint */}
-          <div className="px-3 py-2 border-t border-zinc-800/60 text-[10px] text-zinc-600 flex gap-3 flex-shrink-0">
+          <div className="px-3 py-2 border-t border-tok-border/60 text-[10px] text-fg-muted flex gap-3 flex-shrink-0">
             <span>↑↓ navigate</span>
             <span>m mark read</span>
             <span>d dismiss</span>

@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from "react";
+import { Activity } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -222,7 +224,7 @@ const KIND_LABELS: Record<ActivityKind, string> = {
 
 const KIND_COLORS: Record<ActivityKind, string> = {
   "agent-session": "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-  "code-push":     "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  "code-push":     "bg-surface-3/10 text-fg-secondary border-tok-border/20",
   "pr-merged":     "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   "pr-opened":     "bg-blue-500/10 text-blue-400 border-blue-500/20",
   "view-shipped":  "bg-violet-500/10 text-violet-400 border-violet-500/20",
@@ -233,7 +235,7 @@ const KIND_COLORS: Record<ActivityKind, string> = {
   "deploy":        "bg-violet-500/10 text-violet-400 border-violet-500/20",
   "member-joined": "bg-green-500/10 text-green-400 border-green-500/20",
   "feature-flag":  "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  "comment":       "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  "comment":       "bg-surface-3/10 text-fg-secondary border-tok-border/20",
   "mention":       "bg-pink-500/10 text-pink-400 border-pink-500/20",
   "build":         "bg-slate-500/10 text-slate-400 border-slate-500/20",
 };
@@ -263,9 +265,9 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "w-full text-left px-4 py-3.5 border-b border-zinc-800 last:border-b-0 transition-colors",
+        "w-full text-left px-4 py-3.5 border-b border-tok-border last:border-b-0 transition-colors",
         "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none",
-        selected ? "bg-indigo-950/30" : "hover:bg-zinc-800/30",
+        selected ? "bg-indigo-950/30" : "hover:bg-surface-2/30",
         event.important && !selected && "border-l-2 border-l-indigo-500"
       )}
     >
@@ -273,7 +275,7 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
         {/* Actor avatar */}
         <div className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm",
-          event.actor.kind === "system" ? "bg-zinc-800" : "bg-indigo-950"
+          event.actor.kind === "system" ? "bg-surface-2" : "bg-indigo-950"
         )}>
           {event.actor.emoji}
         </div>
@@ -283,7 +285,7 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                <span className="text-xs font-medium text-zinc-300">{event.actor.name}</span>
+                <span className="text-xs font-medium text-fg-secondary">{event.actor.name}</span>
                 <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", KIND_COLORS[event.kind])}>
                   {KIND_LABELS[event.kind]}
                 </span>
@@ -291,12 +293,12 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
                   <span className="text-[10px] text-indigo-400">★</span>
                 )}
               </div>
-              <p className="text-sm text-white truncate">{event.title}</p>
+              <p className="text-sm text-fg-primary truncate">{event.title}</p>
               {event.body && (
-                <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">{event.body}</p>
+                <p className="text-xs text-fg-muted mt-0.5 line-clamp-2">{event.body}</p>
               )}
             </div>
-            <span className="text-xs text-zinc-600 shrink-0 whitespace-nowrap">{relTime(event.timestamp)}</span>
+            <span className="text-xs text-fg-muted shrink-0 whitespace-nowrap">{relTime(event.timestamp)}</span>
           </div>
         </div>
       </div>
@@ -355,13 +357,13 @@ export default function ActivityFeed() {
   ];
 
   return (
-    <main className="flex h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Activity Feed">
+    <main className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Activity Feed">
       {/* Left: Feed */}
-      <div className="w-96 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+      <div className="md:w-96 shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-tok-border overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
+        <div className="p-4 border-b border-tok-border">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold text-white">Activity</h1>
+            <h1 className="text-lg font-bold text-fg-primary">Activity</h1>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setImportantOnly(v => !v)}
@@ -371,12 +373,12 @@ export default function ActivityFeed() {
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   importantOnly
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-white"
+                    : "border-tok-border text-fg-secondary hover:text-fg-primary"
                 )}
               >
                 ★ Important
               </button>
-              <span className="text-xs text-zinc-600">{filtered.length}</span>
+              <span className="text-xs text-fg-muted">{filtered.length}</span>
             </div>
           </div>
 
@@ -388,7 +390,7 @@ export default function ActivityFeed() {
             placeholder="Search activity…"
             aria-label="Search activity"
             className={cn(
-              "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-zinc-500 mb-2",
+              "w-full bg-surface-2 border border-tok-border rounded-lg px-3 py-1.5 text-sm text-fg-primary placeholder:text-fg-muted mb-2",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           />
@@ -405,7 +407,7 @@ export default function ActivityFeed() {
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   kindFilter === opt.value
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-800 text-zinc-500 hover:text-white"
+                    : "border-tok-border text-fg-muted hover:text-fg-primary"
                 )}
               >
                 {opt.label}
@@ -415,13 +417,13 @@ export default function ActivityFeed() {
         </div>
 
         {/* Actor filter */}
-        <div className="px-3 py-2 border-b border-zinc-800">
+        <div className="px-3 py-2 border-b border-tok-border">
           <select
             value={actorFilter}
             onChange={e => setActorFilter(e.target.value)}
             aria-label="Filter by actor"
             className={cn(
-              "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white",
+              "w-full bg-surface-2 border border-tok-border rounded-lg px-2 py-1 text-xs text-fg-primary",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           >
@@ -435,10 +437,12 @@ export default function ActivityFeed() {
         {/* Feed */}
         <div className="flex-1 overflow-y-auto" role="feed" aria-label="Activity events" aria-live="polite">
           {filtered.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-3xl mb-2">📭</p>
-              <p className="text-sm text-zinc-400">No activity matches filters</p>
-            </div>
+            <ContextualEmptyState
+              icon={Activity}
+              title="No activity found"
+              description="No events match your current filters. Try adjusting your search or filter criteria."
+              size="sm"
+            />
           ) : (
             filtered.map(ev => (
               <ActivityItem
@@ -453,20 +457,20 @@ export default function ActivityFeed() {
       </div>
 
       {/* Right: Detail */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {selected ? (
           <div className="max-w-xl space-y-5">
             {/* Header */}
             <div className="flex items-start gap-4">
               <div className={cn(
                 "w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0",
-                selected.actor.kind === "system" ? "bg-zinc-800" : "bg-indigo-950"
+                selected.actor.kind === "system" ? "bg-surface-2" : "bg-indigo-950"
               )}>
                 {selected.actor.emoji}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-semibold text-white">{selected.actor.name}</span>
+                  <span className="font-semibold text-fg-primary">{selected.actor.name}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", KIND_COLORS[selected.kind])}>
                     {KIND_EMOJIS[selected.kind]} {KIND_LABELS[selected.kind]}
                   </span>
@@ -476,27 +480,27 @@ export default function ActivityFeed() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-zinc-500">{new Date(selected.timestamp).toLocaleString()}</p>
+                <p className="text-xs text-fg-muted">{new Date(selected.timestamp).toLocaleString()}</p>
               </div>
             </div>
 
             {/* Title + body */}
             <div>
-              <h2 className="text-lg font-bold text-white mb-2">{selected.title}</h2>
+              <h2 className="text-lg font-bold text-fg-primary mb-2">{selected.title}</h2>
               {selected.body && (
-                <p className="text-sm text-zinc-400 leading-relaxed">{selected.body}</p>
+                <p className="text-sm text-fg-secondary leading-relaxed">{selected.body}</p>
               )}
             </div>
 
             {/* Metadata */}
             {selected.metadata && Object.keys(selected.metadata).length > 0 && (
-              <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Metadata</h3>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-surface-1 border border-tok-border p-4">
+                <h3 className="text-xs font-semibold text-fg-muted uppercase tracking-wide mb-3">Metadata</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(selected.metadata).map(([k, v]) => (
                     <div key={k}>
-                      <p className="text-xs text-zinc-500 capitalize">{k.replace(/-/g, " ")}</p>
-                      <p className="text-sm font-mono text-white">{v}</p>
+                      <p className="text-xs text-fg-muted capitalize">{k.replace(/-/g, " ")}</p>
+                      <p className="text-sm font-mono text-fg-primary">{v}</p>
                     </div>
                   ))}
                 </div>
@@ -504,17 +508,17 @@ export default function ActivityFeed() {
             )}
 
             {/* Related events (same actor) */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-800">
-                <h3 className="text-sm font-semibold text-white">More from {selected.actor.name}</h3>
+            <div className="rounded-xl bg-surface-1 border border-tok-border overflow-hidden">
+              <div className="px-4 py-3 border-b border-tok-border">
+                <h3 className="text-sm font-semibold text-fg-primary">More from {selected.actor.name}</h3>
               </div>
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-tok-border">
                 {EVENTS.filter(e => e.actor.id === selected.actor.id && e.id !== selected.id).slice(0, 3).map(ev => (
                   <button
                     key={ev.id}
                     onClick={() => setSelectedId(ev.id)}
                     className={cn(
-                      "w-full text-left px-4 py-3 hover:bg-zinc-800/40 transition-colors flex items-start gap-3",
+                      "w-full text-left px-4 py-3 hover:bg-surface-2/40 transition-colors flex items-start gap-3",
                       "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none"
                     )}
                   >
@@ -522,13 +526,13 @@ export default function ActivityFeed() {
                       {KIND_LABELS[ev.kind]}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm text-white truncate">{ev.title}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5">{relTime(ev.timestamp)}</p>
+                      <p className="text-sm text-fg-primary truncate">{ev.title}</p>
+                      <p className="text-xs text-fg-muted mt-0.5">{relTime(ev.timestamp)}</p>
                     </div>
                   </button>
                 ))}
                 {EVENTS.filter(e => e.actor.id === selected.actor.id && e.id !== selected.id).length === 0 && (
-                  <p className="px-4 py-3 text-xs text-zinc-600">No other events from this actor</p>
+                  <p className="px-4 py-3 text-xs text-fg-muted">No other events from this actor</p>
                 )}
               </div>
             </div>
@@ -536,8 +540,8 @@ export default function ActivityFeed() {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <p className="text-5xl mb-4">📋</p>
-            <p className="text-lg font-semibold text-white">Select an event</p>
-            <p className="text-sm text-zinc-500 mt-1">Choose an activity from the feed to view details</p>
+            <p className="text-lg font-semibold text-fg-primary">Select an event</p>
+            <p className="text-sm text-fg-muted mt-1">Choose an activity from the feed to view details</p>
           </div>
         )}
       </div>

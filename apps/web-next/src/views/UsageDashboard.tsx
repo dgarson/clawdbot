@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Calendar, TrendingUp, DollarSign, Activity, BarChart3, Clock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MOCK_USAGE, MOCK_SESSIONS, MOCK_AGENTS, formatRelativeTime } from '../mock-data';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 type DateRange = 'today' | '7days' | '30days' | 'custom';
 
@@ -39,13 +40,13 @@ export default function UsageDashboard() {
   }, []);
 
   return (
-    <div className="bg-gray-950 min-h-screen p-6 text-white">
+    <div className="bg-surface-0 min-h-screen p-3 sm:p-4 md:p-6 text-fg-primary">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold">Usage & Costs</h1>
 
         {/* Date Range Selector */}
-        <div className="flex bg-gray-900 rounded-lg p-1">
+        <div className="flex bg-surface-1 rounded-lg p-1">
           {(['today', '7days', '30days', 'custom'] as DateRange[]).map(range => (
             <button
               key={range}
@@ -53,8 +54,8 @@ export default function UsageDashboard() {
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors',
                 dateRange === range
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-surface-2 text-fg-primary'
+                  : 'text-fg-secondary hover:text-fg-primary'
               )}
             >
               {range === 'custom' && <Calendar className="w-3.5 h-3.5" />}
@@ -93,12 +94,19 @@ export default function UsageDashboard() {
       </div>
 
       {/* Daily Usage Chart */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-3 sm:p-4 md:p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Daily Usage</h2>
 
+        {usage.dailyUsage.length === 0 ? (
+          <ContextualEmptyState
+            icon={BarChart3}
+            title="No usage data yet"
+            description="Usage metrics will appear here once agents start processing requests."
+          />
+        ) : (
         <div className="relative">
           {/* Y-axis labels */}
-          <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-xs text-gray-500">
+          <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-xs text-fg-muted">
             <span>{formatTokens(maxTokens)}</span>
             <span>{formatTokens(maxTokens / 2)}</span>
             <span>0</span>
@@ -119,9 +127,9 @@ export default function UsageDashboard() {
                 >
                   {/* Tooltip */}
                   {(isHovered || hoveredBar === index) && (
-                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 z-10 whitespace-nowrap text-xs">
+                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-surface-2 border border-tok-border rounded-lg px-2 py-1 z-10 whitespace-nowrap text-xs">
                       <div className="font-medium">{formatDate(day.date)}</div>
-                      <div className="text-gray-400">{formatTokens(day.tokens)} tokens</div>
+                      <div className="text-fg-secondary">{formatTokens(day.tokens)} tokens</div>
                       <div className="text-green-400">${day.cost.toFixed(2)}</div>
                     </div>
                   )}
@@ -144,18 +152,19 @@ export default function UsageDashboard() {
             {usage.dailyUsage.map((day, index) => (
               <div key={day.date} className="flex-1 text-center">
                 {index % 5 === 0 && (
-                  <span className="text-xs text-gray-500">{formatDate(day.date)}</span>
+                  <span className="text-xs text-fg-muted">{formatDate(day.date)}</span>
                 )}
               </div>
             ))}
           </div>
         </div>
+        )}
       </div>
 
       {/* Breakdown Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* By Model */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-3 sm:p-4 md:p-6">
           <h2 className="text-lg font-semibold mb-4">By Model</h2>
           <div className="space-y-4">
             {Object.entries(usage.byModel).map(([model, data]) => {
@@ -165,12 +174,12 @@ export default function UsageDashboard() {
               return (
                 <div key={model}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-300 font-mono text-xs">{model}</span>
-                    <span className="text-gray-400">
+                    <span className="text-fg-secondary font-mono text-xs">{model}</span>
+                    <span className="text-fg-secondary">
                       {formatTokens(data.tokens)} · ${data.cost.toFixed(2)}
                     </span>
                   </div>
-                  <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-surface-2 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all"
                       style={{ width: `${barWidth}%` }}
@@ -183,7 +192,7 @@ export default function UsageDashboard() {
         </div>
 
         {/* By Agent */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-3 sm:p-4 md:p-6">
           <h2 className="text-lg font-semibold mb-4">By Agent</h2>
           <div className="space-y-4">
             {Object.entries(usage.byAgent).map(([agent, data]) => {
@@ -194,14 +203,14 @@ export default function UsageDashboard() {
               return (
                 <div key={agent}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-300 flex items-center gap-2">
+                    <span className="text-fg-secondary flex items-center gap-2">
                       {agentInfo?.emoji} {agent}
                     </span>
-                    <span className="text-gray-400">
+                    <span className="text-fg-secondary">
                       {formatTokens(data.tokens)} · ${data.cost.toFixed(2)}
                     </span>
                   </div>
-                  <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-surface-2 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all"
                       style={{ width: `${barWidth}%` }}
@@ -215,14 +224,14 @@ export default function UsageDashboard() {
       </div>
 
       {/* Top Sessions Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-gray-800">
+      <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-tok-border">
           <h2 className="text-lg font-semibold">Top Sessions by Cost</h2>
         </div>
 
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-800 text-left text-sm text-gray-400">
+            <tr className="border-b border-tok-border text-left text-sm text-fg-secondary">
               <th className="px-4 py-3 font-medium">Session</th>
               <th className="px-4 py-3 font-medium">Agent</th>
               <th className="px-4 py-3 font-medium text-right">Tokens</th>
@@ -237,13 +246,13 @@ export default function UsageDashboard() {
                 : 0;
 
               return (
-                <tr key={session.key} className="border-b border-gray-800/50">
+                <tr key={session.key} className="border-b border-tok-border/50">
                   <td className="px-4 py-3">
                     <span className="font-mono text-xs text-violet-400">
                       {session.key.length > 24 ? `${session.key.slice(0, 18)}...` : session.key}
                     </span>
                     {session.label && (
-                      <div className="text-xs text-gray-500 mt-0.5">{session.label}</div>
+                      <div className="text-xs text-fg-muted mt-0.5">{session.label}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -258,7 +267,7 @@ export default function UsageDashboard() {
                   <td className="px-4 py-3 text-right text-sm text-green-400">
                     ${session.cost?.toFixed(2) || '0.00'}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-gray-400">
+                  <td className="px-4 py-3 text-right text-sm text-fg-secondary">
                     <span className="flex items-center justify-end gap-1">
                       <Clock className="w-3 h-3" />
                       {formatDuration(duration)}
@@ -269,8 +278,8 @@ export default function UsageDashboard() {
             })}
 
             {/* Total Row */}
-            <tr className="bg-gray-800/30 font-medium">
-              <td className="px-4 py-3 text-gray-300">Total (Top 5)</td>
+            <tr className="bg-surface-2/30 font-medium">
+              <td className="px-4 py-3 text-fg-secondary">Total (Top 5)</td>
               <td className="px-4 py-3">—</td>
               <td className="px-4 py-3 text-right">
                 {formatTokens(topSessions.reduce((sum, s) => sum + (s.tokenUsage?.total || 0), 0))}
@@ -278,7 +287,7 @@ export default function UsageDashboard() {
               <td className="px-4 py-3 text-right text-green-400">
                 ${topSessions.reduce((sum, s) => sum + (s.cost || 0), 0).toFixed(2)}
               </td>
-              <td className="px-4 py-3 text-right text-gray-400">—</td>
+              <td className="px-4 py-3 text-right text-fg-secondary">—</td>
             </tr>
           </tbody>
         </table>
@@ -303,12 +312,12 @@ function SummaryCard({ icon, label, value, color }: SummaryCardProps) {
   };
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center gap-3 mb-2">
         <div className={cn('p-2 rounded-lg border', colorClasses[color])}>
           {icon}
         </div>
-        <span className="text-sm text-gray-400">{label}</span>
+        <span className="text-sm text-fg-secondary">{label}</span>
       </div>
       <div className="text-2xl font-bold">{value}</div>
     </div>
