@@ -1,16 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Activity,
   AlertCircle,
   AlertTriangle,
   ArrowDown,
   ArrowUp,
-  Battery,
   Bolt,
   CheckCircle,
   Clock,
-  Cpu,
-  Database,
   Gauge,
   Layers,
   Minus,
@@ -18,10 +15,7 @@ import {
   RefreshCcw,
   Server,
   ShieldAlert,
-  TrendingDown,
-  TrendingUp,
   XCircle,
-  Zap,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -297,11 +291,11 @@ function formatTimestamp(date: Date): string {
   const diff = now.getTime() - date.getTime();
   const minutes = Math.floor(diff / 60000);
   
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) {return 'just now';}
+  if (minutes < 60) {return `${minutes}m ago`;}
   
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {return `${hours}h ago`;}
   
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
@@ -312,11 +306,11 @@ function formatHeartbeat(date: Date): string {
   const diff = now.getTime() - date.getTime();
   const seconds = Math.floor(diff / 1000);
   
-  if (seconds < 10) return `${seconds}s`;
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 10) {return `${seconds}s`;}
+  if (seconds < 60) {return `${seconds}s`;}
   
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) {return `${minutes}m`;}
   
   const hours = Math.floor(minutes / 60);
   return `${hours}h`;
@@ -352,9 +346,9 @@ function getErrorTypeColor(type: ErrorLogEntry['type']): string {
 
 function getSeverityIcon(severity: ErrorLogEntry['severity']): React.ReactNode {
   switch (severity) {
-    case 'warning': return <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />;
-    case 'error': return <AlertCircle className="w-3.5 h-3.5 text-orange-400" />;
-    case 'critical': return <XCircle className="w-3.5 h-3.5 text-red-400" />;
+    case 'warning': return <AlertTriangle aria-hidden="true" className="w-3.5 h-3.5 text-amber-400" />;
+    case 'error': return <AlertCircle aria-hidden="true" className="w-3.5 h-3.5 text-orange-400" />;
+    case 'critical': return <XCircle aria-hidden="true" className="w-3.5 h-3.5 text-red-400" />;
   }
 }
 
@@ -410,13 +404,13 @@ function StatCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-zinc-800 rounded-lg">
-            <Icon className={cn('w-4 h-4', colorMap[accentColor])} />
+            <Icon aria-hidden="true" className={cn('w-4 h-4', colorMap[accentColor])} />
           </div>
           <span className="text-xs text-zinc-400 font-medium uppercase tracking-wide">{label}</span>
         </div>
         {trend && (
           <div className={cn('flex items-center gap-1 text-xs', trendColors[trend])}>
-            <TrendIcon className="w-3 h-3" />
+            <TrendIcon aria-hidden="true" className="w-3 h-3" />
             <span>{trendValue}</span>
           </div>
         )}
@@ -435,7 +429,7 @@ function StatusBadge({ status }: { status: PluginStatus }) {
 
   return (
     <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border', color)}>
-      <span className={cn('w-1.5 h-1.5 rounded-full', dotColor)} />
+      <span aria-hidden="true" className={cn('w-1.5 h-1.5 rounded-full', dotColor)} />
       {status}
     </span>
   );
@@ -447,14 +441,14 @@ function RequestRateSparkline({ data }: { data: number[] }) {
   const range = max - min || 1;
   const height = 48;
   const width = 100;
-  const barWidth = (width / data.length) * 0.7;
-  const gap = (width / data.length) * 0.3;
+  const _barWidth = (width / data.length) * 0.7;
+  const _gap = (width / data.length) * 0.3;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4" aria-live="polite">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-violet-400" />
+          <Activity aria-hidden="true" className="w-4 h-4 text-violet-400" />
           <span className="text-sm font-semibold text-white">Request Rate</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
@@ -505,7 +499,7 @@ function PluginHealthTable({ plugins }: { plugins: PluginHealth[] }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Plug className="w-4 h-4 text-emerald-400" />
+          <Plug aria-hidden="true" className="w-4 h-4 text-emerald-400" />
           <span className="text-sm font-semibold text-white">Plugin Health</span>
         </div>
         <span className="text-xs text-zinc-500">
@@ -584,22 +578,22 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-sky-400" />
+          <Layers aria-hidden="true" className="w-4 h-4 text-sky-400" />
           <span className="text-sm font-semibold text-white">Session Load by Agent</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="text-zinc-400">Active:</span>
             <span className="text-white font-medium">{totalActive}</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-zinc-500" />
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-zinc-500" />
             <span className="text-zinc-400">Idle:</span>
             <span className="text-white font-medium">{totalIdle}</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-amber-500" />
             <span className="text-zinc-400">Queued:</span>
             <span className="text-white font-medium">{totalQueued}</span>
           </div>
@@ -662,16 +656,16 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
 }
 
 function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
-  const budgetUsed = 100 - budget.budgetRemaining;
+  const _budgetUsed = 100 - budget.budgetRemaining;
   const isHealthy = budget.budgetRemaining > 50;
   const isWarning = budget.budgetRemaining > 20 && budget.budgetRemaining <= 50;
-  const isCritical = budget.budgetRemaining <= 20;
+  const _isCritical = budget.budgetRemaining <= 20;
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-violet-400" />
+          <ShieldAlert aria-hidden="true" className="w-4 h-4 text-violet-400" />
           <span className="text-sm font-semibold text-white">Error Budget</span>
           <span className="text-xs text-zinc-500">SLO: {budget.sloTarget}%</span>
         </div>
@@ -753,17 +747,17 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
             )}>
               {isHealthy ? (
                 <>
-                  <CheckCircle className="w-3 h-3" />
+                  <CheckCircle aria-hidden="true" className="w-3 h-3" />
                   Healthy
                 </>
               ) : isWarning ? (
                 <>
-                  <AlertTriangle className="w-3 h-3" />
+                  <AlertTriangle aria-hidden="true" className="w-3 h-3" />
                   Warning
                 </>
               ) : (
                 <>
-                  <AlertCircle className="w-3 h-3" />
+                  <AlertCircle aria-hidden="true" className="w-3 h-3" />
                   Critical
                 </>
               )}
@@ -780,7 +774,7 @@ function ErrorLogPanel({ errors }: { errors: ErrorLogEntry[] }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400" />
+          <AlertCircle aria-hidden="true" className="w-4 h-4 text-red-400" />
           <span className="text-sm font-semibold text-white">Recent Errors</span>
         </div>
         <span className="text-xs text-zinc-500">Last 10 entries</span>
@@ -820,9 +814,9 @@ function ErrorLogPanel({ errors }: { errors: ErrorLogEntry[] }) {
 
 function GatewayInfoPanel({ stats }: { stats: GatewayStats }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4" aria-live="polite">
       <div className="flex items-center gap-2 mb-4">
-        <Server className="w-4 h-4 text-zinc-400" />
+        <Server aria-hidden="true" className="w-4 h-4 text-zinc-400" />
         <span className="text-sm font-semibold text-white">Gateway Info</span>
       </div>
       <div className="space-y-3">
@@ -876,7 +870,7 @@ export default function GatewayMetricsDashboard() {
       
       // Update sparkline data
       setSparklineData(prev => {
-        const newData = [...prev.slice(1)];
+        const newData = prev.slice(1);
         const lastValue = prev[prev.length - 1] || 25;
         const change = (Math.random() - 0.5) * 8;
         newData.push(Math.max(5, Math.min(50, lastValue + change)));
@@ -906,12 +900,14 @@ export default function GatewayMetricsDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <>
+      <a href="#gmd-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
+      <main id="gmd-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-violet-500/15 rounded-lg">
-            <Gauge className="w-5 h-5 text-violet-400" />
+            <Gauge aria-hidden="true" className="w-5 h-5 text-violet-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">Mission Control</h1>
@@ -919,19 +915,19 @@ export default function GatewayMetricsDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            <Clock className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-sm text-zinc-400" aria-live="polite">
+            <Clock aria-hidden="true" className="w-4 h-4" />
             <span>Last updated: {formatLastUpdated(lastUpdated)}</span>
           </div>
-          <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center gap-2">
-            <RefreshCcw className="w-4 h-4" />
+          <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <RefreshCcw aria-hidden="true" className="w-4 h-4" />
             Refresh
           </button>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4" role="status" aria-label="Live gateway statistics">
         <StatCard
           label="Requests/sec"
           value={stats.reqPerSec.toFixed(1)}
@@ -993,13 +989,14 @@ export default function GatewayMetricsDashboard() {
 
       {/* Footer */}
       <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 pt-4 border-t border-zinc-800/50">
-        <Activity className="w-3 h-3" />
+        <Activity aria-hidden="true" className="w-3 h-3" />
         <span>Gateway Metrics Dashboard</span>
         <span>•</span>
         <span>Real-time monitoring</span>
         <span>•</span>
         <span>Auto-refresh: 2s</span>
       </div>
-    </div>
+      </main>
+    </>
   );
 }

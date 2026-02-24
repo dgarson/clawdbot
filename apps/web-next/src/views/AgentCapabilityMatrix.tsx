@@ -7,7 +7,6 @@ import {
   CheckCircle,
   XCircle,
   Search,
-  Filter,
   ChevronDown,
   ChevronUp,
   X,
@@ -23,10 +22,7 @@ import {
   Activity,
   Clock,
   Lock,
-  Unlock,
-  Settings,
   RefreshCw,
-  Plus,
   Minus,
   AlertCircle,
 } from 'lucide-react';
@@ -239,10 +235,10 @@ const PERMISSION_TYPES = [
 
 function formatTimeAgo(date: Date): string {
   const minutes = Math.floor((Date.now() - date.getTime()) / (1000 * 60));
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) {return 'Just now';}
+  if (minutes < 60) {return `${minutes}m ago`;}
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {return `${hours}h ago`;}
   return `${Math.floor(hours / 24)}d ago`;
 }
 
@@ -256,7 +252,7 @@ function getStatusColor(status: Agent['status']): string {
 }
 
 function getCapabilityStatus(toolId: string, agentTools: string[]): CapabilityStatus {
-  if (agentTools.includes(toolId)) return 'enabled';
+  if (agentTools.includes(toolId)) {return 'enabled';}
   return 'disabled';
 }
 
@@ -280,7 +276,7 @@ function StatCard({
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
       <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
-        <Icon className={cn('w-4 h-4', color)} />
+        <Icon className={cn('w-4 h-4', color)} aria-hidden="true" />
       </div>
       <div>
         <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
@@ -307,10 +303,10 @@ function CapabilityCell({
   toolName: string;
 }) {
   const icons = {
-    enabled: <CheckCircle className="w-3 h-3 text-green-400" />,
-    disabled: <XCircle className="w-3 h-3 text-zinc-600" />,
-    degraded: <AlertTriangle className="w-3 h-3 text-amber-400" />,
-    unavailable: <Minus className="w-3 h-3 text-red-400" />,
+    enabled: <CheckCircle className="w-3 h-3 text-green-400" aria-hidden="true" />,
+    disabled: <XCircle className="w-3 h-3 text-zinc-600" aria-hidden="true" />,
+    degraded: <AlertTriangle className="w-3 h-3 text-amber-400" aria-hidden="true" />,
+    unavailable: <Minus className="w-3 h-3 text-red-400" aria-hidden="true" />,
   };
   
   const bgColors = {
@@ -360,7 +356,7 @@ function AgentCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-violet-400" />
+              <Bot className="w-5 h-5 text-violet-400" aria-hidden="true" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -376,20 +372,20 @@ function AgentCard({
               <p>{enabledSkills} skills</p>
             </div>
             {isExpanded ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400" />
+              <ChevronUp className="w-4 h-4 text-zinc-400" aria-hidden="true" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
+              <ChevronDown className="w-4 h-4 text-zinc-400" aria-hidden="true" />
             )}
           </div>
         </div>
         
         <div className="mt-3 flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <Cpu className="w-3 h-3 text-zinc-500" />
+            <Cpu className="w-3 h-3 text-zinc-500" aria-hidden="true" />
             <span className="text-zinc-400">{agent.model}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-zinc-500" />
+            <Clock className="w-3 h-3 text-zinc-500" aria-hidden="true" />
             <span className="text-zinc-400">{formatTimeAgo(agent.lastActive)}</span>
           </div>
         </div>
@@ -451,7 +447,7 @@ function PermissionBadge({ level }: { level: PermissionLevel }) {
   
   return (
     <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium border flex items-center gap-1', styles[level])}>
-      <Icon className="w-3 h-3" />
+      <Icon className="w-3 h-3" aria-hidden="true" />
       {level.charAt(0).toUpperCase() + level.slice(1)}
     </span>
   );
@@ -465,7 +461,7 @@ function PermissionPanel({
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Shield className="w-4 h-4 text-violet-400" />
+        <Shield className="w-4 h-4 text-violet-400" aria-hidden="true" />
         <span className="text-sm font-semibold text-white">Permission Grants</span>
       </div>
       <div className="overflow-x-auto">
@@ -476,7 +472,7 @@ function PermissionPanel({
               {PERMISSION_TYPES.map((perm) => (
                 <th key={perm.id} className="text-center py-2 px-2 text-zinc-500 font-medium">
                   <div className="flex items-center justify-center gap-1">
-                    <perm.icon className="w-3 h-3" />
+                    <perm.icon className="w-3 h-3" aria-hidden="true" />
                     {perm.name}
                   </div>
                 </th>
@@ -535,7 +531,7 @@ function HealthAlertsPanel({
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
-        <AlertTriangle className="w-4 h-4 text-amber-400" />
+        <AlertTriangle className="w-4 h-4 text-amber-400" aria-hidden="true" />
         <span className="text-sm font-semibold text-white">Capability Health</span>
         {alerts.length > 0 && (
           <span className="ml-auto px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs">
@@ -546,7 +542,7 @@ function HealthAlertsPanel({
       
       {alerts.length === 0 ? (
         <div className="text-center py-4 text-zinc-500">
-          <CheckCircle className="w-6 h-6 mx-auto mb-1 text-green-400" />
+          <CheckCircle className="w-6 h-6 mx-auto mb-1 text-green-400" aria-hidden="true" />
           <p className="text-sm">All capabilities healthy</p>
         </div>
       ) : (
@@ -562,7 +558,7 @@ function HealthAlertsPanel({
                   getSeverityStyles(alert.severity)
                 )}
               >
-                <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <div>
                   <p className="text-xs font-medium">{agent?.name || alert.agentId}</p>
                   <p className="text-xs opacity-80">{alert.message}</p>
@@ -586,7 +582,7 @@ function CapabilityMatrix({
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto">
       <div className="flex items-center gap-2 mb-4">
-        <Wrench className="w-4 h-4 text-violet-400" />
+        <Wrench className="w-4 h-4 text-violet-400" aria-hidden="true" />
         <span className="text-sm font-semibold text-white">Capability Matrix</span>
       </div>
       
@@ -629,15 +625,15 @@ function CapabilityMatrix({
       
       <div className="mt-4 flex items-center gap-4 text-xs text-zinc-500">
         <div className="flex items-center gap-1.5">
-          <CheckCircle className="w-3 h-3 text-green-400" />
+          <CheckCircle className="w-3 h-3 text-green-400" aria-hidden="true" />
           <span>Enabled</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <XCircle className="w-3 h-3 text-zinc-600" />
+          <XCircle className="w-3 h-3 text-zinc-600" aria-hidden="true" />
           <span>Disabled</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <AlertTriangle className="w-3 h-3 text-amber-400" />
+          <AlertTriangle className="w-3 h-3 text-amber-400" aria-hidden="true" />
           <span>Degraded</span>
         </div>
       </div>
@@ -653,14 +649,14 @@ function SkillMatrix({
   skills: Skill[];
 }) {
   const getSkillStatus = (skillId: string, agentSkills: string[]): CapabilityStatus => {
-    if (agentSkills.includes(skillId)) return 'enabled';
+    if (agentSkills.includes(skillId)) {return 'enabled';}
     return 'disabled';
   };
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto">
       <div className="flex items-center gap-2 mb-4">
-        <Brain className="w-4 h-4 text-violet-400" />
+        <Brain className="w-4 h-4 text-violet-400" aria-hidden="true" />
         <span className="text-sm font-semibold text-white">Skill Coverage</span>
       </div>
       
@@ -732,19 +728,19 @@ function FilterBar({
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4 flex-wrap">
       <div className="flex-1 min-w-[200px] relative">
-        <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search agents, tools, skills..."
-          className="w-full bg-zinc-800 border border-zinc-700 rounded px-9 py-2 text-sm text-white placeholder-zinc-500"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded px-9 py-2 text-sm text-white placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         />
       </div>
       
       <select
         value={filterAgent}
         onChange={(e) => setFilterAgent(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px]"
+        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         <option value="">All Agents</option>
         {agents.map((a) => (
@@ -755,7 +751,7 @@ function FilterBar({
       <select
         value={filterCategory}
         onChange={(e) => setFilterCategory(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px]"
+        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         <option value="">All Categories</option>
         {categories.map((cat) => (
@@ -766,7 +762,7 @@ function FilterBar({
       <select
         value={filterPermission}
         onChange={(e) => setFilterPermission(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px]"
+        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         <option value="">All Permissions</option>
         <option value="admin">Admin</option>
@@ -783,9 +779,9 @@ function FilterBar({
             setFilterCategory('');
             setFilterPermission('');
           }}
-          className="flex items-center gap-1 px-3 py-2 rounded text-sm text-zinc-400 hover:text-white hover:bg-zinc-700"
+          className="flex items-center gap-1 px-3 py-2 rounded text-sm text-zinc-400 hover:text-white hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
           Clear
         </button>
       )}
@@ -814,8 +810,8 @@ export default function AgentCapabilityMatrix() {
   const toggleExpanded = (agentId: AgentId) => {
     setExpandedAgents((prev) => {
       const next = new Set(prev);
-      if (next.has(agentId)) next.delete(agentId);
-      else next.add(agentId);
+      if (next.has(agentId)) {next.delete(agentId);}
+      else {next.add(agentId);}
       return next;
     });
   };
@@ -849,12 +845,14 @@ export default function AgentCapabilityMatrix() {
   const criticalAlerts = healthAlerts.filter((a) => a.severity === 'critical').length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <>
+      <a href="#acm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
+      <main id="acm-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Bot className="w-6 h-6 text-violet-400" />
+            <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
             Agent Capability Matrix
           </h1>
           <p className="text-sm text-zinc-400 mt-0.5">
@@ -862,11 +860,11 @@ export default function AgentCapabilityMatrix() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium">
+          <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium" role="status">
             {filteredAgents.length} / {totalAgents} agents
           </span>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium">
-            <RefreshCw className="w-4 h-4" />
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
             Refresh
           </button>
         </div>
@@ -935,13 +933,13 @@ export default function AgentCapabilityMatrix() {
         {/* Agent Roster */}
         <div className="col-span-1 space-y-3">
           <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Users className="w-4 h-4 text-violet-400" />
+            <Users className="w-4 h-4 text-violet-400" aria-hidden="true" />
             Agent Roster
             <span className="ml-auto text-xs text-zinc-500">{filteredAgents.length} shown</span>
           </h2>
           {filteredAgents.length === 0 ? (
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500">
-              <Bot className="w-12 h-12 mx-auto mb-2 opacity-40" />
+              <Bot className="w-12 h-12 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No agents match your filters</p>
             </div>
           ) : (
@@ -966,25 +964,25 @@ export default function AgentCapabilityMatrix() {
             <button
               onClick={() => setActiveTab('matrix')}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 activeTab === 'matrix'
                   ? 'bg-violet-600 text-white'
                   : 'bg-zinc-800 text-zinc-400 hover:text-white'
               )}
             >
-              <Wrench className="w-4 h-4 inline mr-2" />
+              <Wrench className="w-4 h-4 inline mr-2" aria-hidden="true" />
               Tool Matrix
             </button>
             <button
               onClick={() => setActiveTab('skills')}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 activeTab === 'skills'
                   ? 'bg-violet-600 text-white'
                   : 'bg-zinc-800 text-zinc-400 hover:text-white'
               )}
             >
-              <Brain className="w-4 h-4 inline mr-2" />
+              <Brain className="w-4 h-4 inline mr-2" aria-hidden="true" />
               Skill Coverage
             </button>
           </div>
@@ -1003,6 +1001,7 @@ export default function AgentCapabilityMatrix() {
           <HealthAlertsPanel alerts={healthAlerts} agents={agents} />
         </div>
       </div>
-    </div>
+      </main>
+    </>
   );
 }

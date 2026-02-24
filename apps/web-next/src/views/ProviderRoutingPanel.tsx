@@ -226,7 +226,7 @@ const generateFailoverEvents = (): FailoverEvent[] => {
     })
   }
 
-  return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  return events.toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 }
 
 // Status Badge Component
@@ -256,7 +256,7 @@ const StatusBadge = ({ status }: { status: 'active' | 'degraded' | 'offline' }) 
 
   return (
     <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium', bg, text)}>
-      <Icon className="w-3 h-3" />
+      <Icon className="w-3 h-3" aria-hidden="true" />
       {label}
     </span>
   )
@@ -317,13 +317,13 @@ const StatCard = ({
         {subtitle && <p className="text-zinc-500 text-xs mt-1">{subtitle}</p>}
         {trend && (
           <p className={cn('text-xs mt-2 flex items-center gap-1', trend.up ? 'text-green-400' : 'text-red-400')}>
-            <TrendingUp className={cn('w-3 h-3', !trend.up && 'rotate-180')} />
+            <TrendingUp className={cn('w-3 h-3', !trend.up && 'rotate-180')} aria-hidden="true" />
             {trend.value}% from yesterday
           </p>
         )}
       </div>
       <div className={cn('p-2.5 rounded-lg', accent ? 'bg-violet-500/20' : 'bg-zinc-800')}>
-        <Icon className={cn('w-5 h-5', accent ? 'text-violet-400' : 'text-zinc-400')} />
+        <Icon className={cn('w-5 h-5', accent ? 'text-violet-400' : 'text-zinc-400')} aria-hidden="true" />
       </div>
     </div>
   </div>
@@ -335,7 +335,7 @@ const ProviderCard = ({ provider }: { provider: Provider }) => (
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', provider.color)}>
-          <Server className="w-5 h-5 text-white" />
+          <Server className="w-5 h-5 text-white" aria-hidden="true" />
         </div>
         <div>
           <h3 className="text-white font-semibold">{provider.name}</h3>
@@ -398,7 +398,7 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-semibold flex items-center gap-2">
-          <Network className="w-5 h-5 text-violet-400" />
+          <Network className="w-5 h-5 text-violet-400" aria-hidden="true" />
           Traffic Distribution
         </h3>
         <span className="text-zinc-500 text-sm">Last 24 hours</span>
@@ -410,6 +410,7 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
             key={provider.id}
             className={cn('h-full transition-all relative group', provider.color)}
             style={{ width: `${(provider.trafficShare / totalShare) * 100}%` }}
+            aria-label={`${provider.name}: ${provider.trafficShare}%`}
           >
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
@@ -423,7 +424,7 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
       <div className="mt-4 flex flex-wrap gap-4">
         {providers.map((provider) => (
           <div key={provider.id} className="flex items-center gap-2">
-            <div className={cn('w-3 h-3 rounded', provider.color)} />
+            <div className={cn('w-3 h-3 rounded', provider.color)} aria-hidden="true" />
             <span className="text-zinc-400 text-sm">{provider.name}</span>
             <span className="text-zinc-500 text-xs">({provider.trafficShare}%)</span>
           </div>
@@ -482,30 +483,32 @@ export default function ProviderRoutingPanel() {
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / 60000)
     
-    if (minutes < 1) return 'Just now'
-    if (minutes < 60) return `${minutes}m ago`
-    if (minutes < 1440) return `${Math.floor(minutes / 60)}h ${minutes % 60}m ago`
+    if (minutes < 1) {return 'Just now'}
+    if (minutes < 60) {return `${minutes}m ago`}
+    if (minutes < 1440) {return `${Math.floor(minutes / 60)}h ${minutes % 60}m ago`}
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
   return (
-    <div className="bg-zinc-950 min-h-screen p-6 space-y-6">
+    <>
+      <a href="#prp-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
+      <main id="prp-main" className="bg-zinc-950 min-h-screen p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <GitBranch className="w-7 h-7 text-violet-400" />
+            <GitBranch className="w-7 h-7 text-violet-400" aria-hidden="true" />
             Provider Routing
           </h1>
           <p className="text-zinc-500 mt-1">Manage AI model routing and failover configuration</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-            <Shield className="w-4 h-4" />
+          <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <Shield className="w-4 h-4" aria-hidden="true" />
             Health Check
           </button>
-          <button className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-            <Zap className="w-4 h-4" />
+          <button className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <Zap className="w-4 h-4" aria-hidden="true" />
             Configure Routes
           </button>
         </div>
@@ -545,7 +548,7 @@ export default function ProviderRoutingPanel() {
       {/* Provider Cards Grid */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <Cpu className="w-5 h-5 text-violet-400" />
+          <Cpu className="w-5 h-5 text-violet-400" aria-hidden="true" />
           Provider Status
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -562,10 +565,10 @@ export default function ProviderRoutingPanel() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
         <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
           <h3 className="text-white font-semibold flex items-center gap-2">
-            <GitBranch className="w-5 h-5 text-violet-400" />
+            <GitBranch className="w-5 h-5 text-violet-400" aria-hidden="true" />
             Routing Rules
           </h3>
-          <span className="text-zinc-500 text-sm">
+          <span className="text-zinc-500 text-sm" role="status">
             {routingRules.filter(r => r.isActive).length} of {routingRules.length} active
           </span>
         </div>
@@ -605,7 +608,7 @@ export default function ProviderRoutingPanel() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <ArrowRight className="w-3 h-3 text-zinc-600" />
+                      <ArrowRight className="w-3 h-3 text-zinc-600" aria-hidden="true" />
                       <span className="text-zinc-400">{rule.fallbackProvider}</span>
                     </div>
                   </td>
@@ -622,8 +625,10 @@ export default function ProviderRoutingPanel() {
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => toggleRule(rule.id)}
+                      aria-label={`${rule.isActive ? 'Disable' : 'Enable'} routing rule for ${rule.modelName}`}
+                      aria-pressed={rule.isActive}
                       className={cn(
-                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                         rule.isActive ? 'bg-violet-600' : 'bg-zinc-700'
                       )}
                     >
@@ -646,20 +651,20 @@ export default function ProviderRoutingPanel() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
         <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
           <h3 className="text-white font-semibold flex items-center gap-2">
-            <Activity className="w-5 h-5 text-violet-400" />
+            <Activity className="w-5 h-5 text-violet-400" aria-hidden="true" />
             Failover Log
           </h3>
           <button
             onClick={refreshFailoverLog}
             disabled={isRefreshing}
-            className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 disabled:opacity-50 transition-colors"
+            className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
-            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} aria-hidden="true" />
             Refresh
           </button>
         </div>
 
-        <div className="divide-y divide-zinc-800">
+        <div className="divide-y divide-zinc-800" aria-live="polite" aria-atomic="false">
           {failoverEvents.map((event) => (
             <div key={event.id} className="px-4 py-3 hover:bg-zinc-800/30 transition-colors">
               <div className="flex items-center justify-between">
@@ -672,7 +677,7 @@ export default function ProviderRoutingPanel() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-zinc-400">{event.fromProvider}</span>
-                    <ArrowRight className="w-3 h-3 text-violet-400" />
+                    <ArrowRight className="w-3 h-3 text-violet-400" aria-hidden="true" />
                     <span className="text-violet-400">{event.toProvider}</span>
                   </div>
                 </div>
@@ -684,7 +689,7 @@ export default function ProviderRoutingPanel() {
 
         {failoverEvents.length === 0 && (
           <div className="p-8 text-center">
-            <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" />
+            <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" aria-hidden="true" />
             <p className="text-zinc-400">No failover events recorded</p>
             <p className="text-zinc-500 text-sm mt-1">All providers operating normally</p>
           </div>
@@ -697,15 +702,16 @@ export default function ProviderRoutingPanel() {
           Last updated: {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </p>
         <div className="flex items-center gap-3">
-          <button className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors">
-            <Activity className="w-4 h-4" />
+          <button className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <Activity className="w-4 h-4" aria-hidden="true" />
             View Metrics
           </button>
-          <button className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors">
+          <button className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             Export Logs
           </button>
         </div>
       </div>
-    </div>
+      </main>
+    </>
   )
 }
