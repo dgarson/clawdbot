@@ -9,6 +9,7 @@ const BASE_METHODS = [
   "status",
   "usage.status",
   "usage.cost",
+  "usage.billable",
   "tts.status",
   "tts.providers",
   "tts.enable",

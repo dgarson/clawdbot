@@ -160,6 +160,23 @@ export function registerGatewayCli(program: Command) {
 
   gatewayCallOpts(
     gateway
+      .command("usage-billable")
+      .description("Fetch normalized billable API usage summary")
+      .option("--days <days>", "Number of days to include", "30")
+      .option("--limits-json <json>", "Optional billable limits JSON array", "[]")
+      .action(async (opts, command) => {
+        await runGatewayCommand(async () => {
+          const rpcOpts = resolveGatewayRpcOptions(opts, command);
+          const days = parseDaysOption(opts.days);
+          const limits = JSON.parse(String(opts.limitsJson ?? "[]"));
+          const result = await callGatewayCli("usage.billable", rpcOpts, { days, limits });
+          defaultRuntime.log(JSON.stringify(result, null, 2));
+        }, "Gateway billable usage failed");
+      }),
+  );
+
+  gatewayCallOpts(
+    gateway
       .command("health")
       .description("Fetch Gateway health")
       .action(async (opts, command) => {

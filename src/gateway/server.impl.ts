@@ -19,6 +19,7 @@ import {
 } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
+import { startBillableUsageMonitor } from "../infra/billable-usage-store.js";
 import {
   ensureControlUiAssetsBuilt,
   resolveControlUiRootOverrideSync,
@@ -257,6 +258,7 @@ export async function startGatewayServer(
   if (diagnosticsEnabled) {
     startDiagnosticHeartbeat();
   }
+  const stopBillableUsageMonitor = diagnosticsEnabled ? startBillableUsageMonitor() : null;
   setGatewaySigusr1RestartPolicy({ allowExternal: isRestartEnabled(cfgAtStart) });
   setPreRestartDeferralCheck(
     () => getTotalQueueSize() + getTotalPendingReplies() + getActiveEmbeddedRunCount(),
@@ -758,6 +760,7 @@ export async function startGatewayServer(
       if (diagnosticsEnabled) {
         stopDiagnosticHeartbeat();
       }
+      stopBillableUsageMonitor?.();
       if (skillsRefreshTimer) {
         clearTimeout(skillsRefreshTimer);
         skillsRefreshTimer = null;
