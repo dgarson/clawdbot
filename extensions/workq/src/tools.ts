@@ -72,6 +72,7 @@ export function registerWorkqTools(
       return [
         {
           name: "workq_claim",
+          label: "WorkQ Claim",
           description: "Claim a work item for the current agent.",
           parameters: Type.Object(
             {
@@ -150,6 +151,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_release",
+          label: "WorkQ Release",
           description: "Drop a claimed work item.",
           parameters: Type.Object(
             {
@@ -179,6 +181,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_status",
+          label: "WorkQ Status",
           description: "Update work item status.",
           parameters: Type.Object(
             {
@@ -221,6 +224,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_query",
+          label: "WorkQ Query",
           description: "Query work queue items.",
           parameters: Type.Object(
             {
@@ -299,6 +303,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_files",
+          label: "WorkQ Files",
           description: "Check or mutate tracked work item files.",
           parameters: Type.Object(
             {
@@ -364,6 +369,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_log",
+          label: "WorkQ Log",
           description: "Append a decision note to a work item.",
           parameters: Type.Object(
             {
@@ -395,6 +401,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_done",
+          label: "WorkQ Done",
           description: "Mark a work item as done and attach a PR URL.",
           parameters: Type.Object(
             {
@@ -431,6 +438,7 @@ export function registerWorkqTools(
 
         {
           name: "workq_export",
+          label: "WorkQ Export",
           description: "Export work queue state as markdown or JSON.",
           parameters: Type.Object(
             {

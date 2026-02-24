@@ -1,8 +1,10 @@
 import { createHmac, createHash } from "node:crypto";
 import type { ReasoningLevel, ThinkLevel } from "../auto-reply/thinking.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import type { OpenClawConfig } from "../config/config.js";
 import type { SessionClassification } from "../config/sessions/types.js";
 import type { MemoryCitationsMode } from "../config/types.memory.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import {
@@ -134,6 +136,8 @@ export function buildAgentSystemPrompt(params: {
     channel: string;
   };
   memoryCitationsMode?: MemoryCitationsMode;
+  /** Optional config used for diagnostics-only prompt build telemetry. */
+  cfg?: OpenClawConfig;
 }) {
   const coreToolSummaries: Record<string, string> = {
     read: "Read file contents",
@@ -304,7 +308,39 @@ export function buildAgentSystemPrompt(params: {
   for (const contributor of globalRegistry.resolve(contributorCtx)) {
     localRegistry.register(contributor, "plugin");
   }
-  const contributorSections = localRegistry.assemble(contributorCtx);
+  const { text: contributorSections, trace: contributorTrace } =
+    localRegistry.assembleWithTrace(contributorCtx);
+
+  if (isDiagnosticsEnabled(params.cfg)) {
+    emitDiagnosticEvent({
+      type: "prompt.build",
+      stage: "contributors",
+      sessionKey: contributorCtx.sessionKey,
+      channel: contributorCtx.channel,
+      classification: params.classification
+        ? {
+            topic: params.classification.topic,
+            complexity: params.classification.complexity,
+            domain: params.classification.domain,
+            flags: params.classification.flags,
+          }
+        : undefined,
+      details: {
+        contributorCount: contributorTrace.decisions.length,
+        selectedContributorIds: contributorTrace.selectedIds,
+        assembledChars: contributorTrace.assembledChars,
+        contributors: contributorTrace.decisions.map((decision) => ({
+          id: decision.id,
+          source: decision.source,
+          priority: decision.priority,
+          selected: decision.selected,
+          reason: decision.reason,
+          sectionChars: decision.sectionChars,
+          error: decision.error,
+        })),
+      },
+    });
+  }
 
   const sandboxContainerWorkspace = params.sandboxInfo?.containerWorkspaceDir?.trim();
   const sanitizedWorkspaceDir = sanitizeForPromptLiteral(params.workspaceDir);
@@ -563,7 +599,30 @@ export function buildAgentSystemPrompt(params: {
     `Reasoning: ${reasoningLevel} (hidden unless on/stream). Toggle /reasoning; /status shows Reasoning when enabled.`,
   );
 
-  return lines.filter(Boolean).join("\n");
+  const finalPrompt = lines.filter(Boolean).join("\n");
+  if (isDiagnosticsEnabled(params.cfg)) {
+    emitDiagnosticEvent({
+      type: "prompt.build",
+      stage: "final",
+      sessionKey: contributorCtx.sessionKey,
+      channel: contributorCtx.channel,
+      classification: params.classification
+        ? {
+            topic: params.classification.topic,
+            complexity: params.classification.complexity,
+            domain: params.classification.domain,
+            flags: params.classification.flags,
+          }
+        : undefined,
+      details: {
+        finalPromptChars: finalPrompt.length,
+        promptMode,
+        tools: [...availableTools].toSorted(),
+      },
+    });
+  }
+
+  return finalPrompt;
 }
 
 export function buildRuntimeLine(

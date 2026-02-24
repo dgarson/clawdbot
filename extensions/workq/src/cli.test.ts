@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { registerWorkqCli } from "./cli.js";
-import type { WorkItem } from "./types.js";
+import type { FilesResult, WorkItem, WorkqDatabaseApi } from "./types.js";
 
 function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
   return {
@@ -28,24 +28,25 @@ function makeItem(overrides: Partial<WorkItem> = {}): WorkItem {
 }
 
 function createDbMock() {
-  return {
-    claim: vi.fn(() => ({ status: "claimed", item: makeItem() })),
-    release: vi.fn(() => ({ status: "dropped", issueRef: "acme/repo#1" })),
+  const db = {
+    claim: vi.fn(() => ({ status: "claimed" as const, item: makeItem() })),
+    release: vi.fn(() => ({ status: "dropped" as const, issueRef: "acme/repo#1" })),
     status: vi.fn(() => ({
-      status: "updated",
+      status: "updated" as const,
       issueRef: "acme/repo#1",
-      from: "claimed",
-      to: "blocked",
+      from: "claimed" as const,
+      to: "blocked" as const,
     })),
     query: vi.fn(() => ({ items: [], total: 0 })),
-    files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
-    log: vi.fn(() => ({ status: "logged", issueRef: "acme/repo#1", logId: 1 })),
+    files: vi.fn((): FilesResult => ({ mode: "check", conflicts: [], hasConflicts: false })),
+    log: vi.fn(() => ({ status: "logged" as const, issueRef: "acme/repo#1", logId: 1 })),
     done: vi.fn(() => ({
-      status: "done",
+      status: "done" as const,
       issueRef: "acme/repo#1",
       prUrl: "https://example.com/pr/1",
     })),
     get: vi.fn(() => null),
+    getById: vi.fn(() => null),
     getLog: vi.fn(() => []),
     findStaleActiveItems: vi.fn(() => []),
     autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
@@ -53,7 +54,8 @@ function createDbMock() {
     systemMarkDone: vi.fn(),
     systemReleaseToUnclaimed: vi.fn(),
     systemAnnotate: vi.fn(),
-  };
+  } satisfies WorkqDatabaseApi;
+  return db;
 }
 
 function setup(staleThresholdHours = 24) {

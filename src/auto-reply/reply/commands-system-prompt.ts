@@ -108,6 +108,7 @@ export async function resolveCommandsSystemPromptBundle(
   const ttsHint = params.cfg ? buildTtsSystemPromptHint(params.cfg) : undefined;
 
   const systemPrompt = buildAgentSystemPrompt({
+    cfg: params.cfg,
     workspaceDir,
     defaultThinkLevel: params.resolvedThinkLevel,
     reasoningLevel: params.resolvedReasoningLevel,

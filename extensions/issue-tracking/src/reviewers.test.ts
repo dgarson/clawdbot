@@ -12,7 +12,6 @@ function makeTicket(overrides: Partial<IssueTicket> = {}): IssueTicket {
     classifications: [],
     references: [],
     relationships: [],
-    reviewers: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,

@@ -53,14 +53,13 @@ describe("pi tool definition adapter", () => {
       name: "read",
       label: "Read",
       description: "reads",
-      parameters: {
-        type: "object",
-        properties: {
-          path: { type: "string" },
-          limit: { type: "number" },
+      parameters: Type.Object(
+        {
+          path: Type.String(),
+          limit: Type.Optional(Type.Number()),
         },
-        required: ["path"],
-      },
+        { additionalProperties: false },
+      ),
       execute: async (_id: string, args: unknown) => {
         capturedArgs = args;
         return {
@@ -98,13 +97,12 @@ describe("pi tool definition adapter", () => {
       name: "read",
       label: "Read",
       description: "reads",
-      parameters: {
-        type: "object",
-        properties: {
-          path: { type: "string" },
+      parameters: Type.Object(
+        {
+          path: Type.String(),
         },
-        required: ["path"],
-      },
+        { additionalProperties: false },
+      ),
       execute: async (_id: string, args: unknown) => {
         capturedArgs = args;
         return {
@@ -138,7 +136,7 @@ describe("pi tool definition adapter", () => {
       name: "noop",
       label: "Noop",
       description: "noop",
-      parameters: {},
+      parameters: Type.Object({}, { additionalProperties: false }),
       execute: async (id: string) => {
         ids.push(id);
         return {

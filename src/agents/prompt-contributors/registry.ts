@@ -9,6 +9,28 @@ import type {
 
 const log = createSubsystemLogger("prompt-contributors");
 
+export type PromptContributorDecision = {
+  id: string;
+  source: RegisteredContributor["source"];
+  priority: number;
+  selected: boolean;
+  reason:
+    | "included"
+    | "tag-miss"
+    | "shouldContribute-veto"
+    | "shouldContribute-error"
+    | "contribute-error"
+    | "empty-section";
+  error?: string;
+  sectionChars?: number;
+};
+
+export type PromptContributorAssemblyTrace = {
+  decisions: PromptContributorDecision[];
+  selectedIds: string[];
+  assembledChars: number;
+};
+
 // =============================================================================
 // Tag matching
 // =============================================================================
@@ -150,12 +172,61 @@ export class PromptContributorRegistry {
       .toSorted((a, b) => (a.priority ?? 100) - (b.priority ?? 100));
   }
 
+  resolveWithTrace(ctx: ContributorContext): {
+    contributors: PromptContributor[];
+    decisions: PromptContributorDecision[];
+  } {
+    const ordered = this._contributors.toSorted(
+      (a, b) => (a.contributor.priority ?? 100) - (b.contributor.priority ?? 100),
+    );
+    const contributors: PromptContributor[] = [];
+    const decisions: PromptContributorDecision[] = [];
+    for (const entry of ordered) {
+      const contributor = entry.contributor;
+      const base: Omit<PromptContributorDecision, "selected" | "reason"> = {
+        id: contributor.id,
+        source: entry.source,
+        priority: contributor.priority ?? 100,
+      };
+      try {
+        const tags = contributor.tags;
+        const anyTagMatches = tags.length === 0 || tags.some((tag) => tagMatches(tag, ctx));
+        if (!anyTagMatches) {
+          decisions.push({ ...base, selected: false, reason: "tag-miss" });
+          continue;
+        }
+        const veto = contributor.shouldContribute?.(ctx);
+        if (veto === false) {
+          decisions.push({ ...base, selected: false, reason: "shouldContribute-veto" });
+          continue;
+        }
+        contributors.push(contributor);
+        decisions.push({ ...base, selected: true, reason: "included" });
+      } catch (err) {
+        decisions.push({
+          ...base,
+          selected: false,
+          reason: "shouldContribute-error",
+          error: String(err),
+        });
+      }
+    }
+    return { contributors, decisions };
+  }
+
   /**
    * Assemble all matching contributor sections into a single prompt string.
    * Sections are separated by blank lines; empty sections are omitted.
    */
   assemble(ctx: ContributorContext): string {
-    const contributors = this.resolve(ctx);
+    return this.assembleWithTrace(ctx).text;
+  }
+
+  assembleWithTrace(ctx: ContributorContext): {
+    text: string;
+    trace: PromptContributorAssemblyTrace;
+  } {
+    const { contributors, decisions } = this.resolveWithTrace(ctx);
     const lines: string[] = [];
 
     for (const contributor of contributors) {
@@ -164,16 +235,38 @@ export class PromptContributorRegistry {
         section = contributor.contribute(ctx);
       } catch (err) {
         log.warn(`contributor "${contributor.id}" contribute() threw: ${String(err)}`);
+        const decision = decisions.find((d) => d.id === contributor.id && d.selected);
+        if (decision) {
+          decision.selected = false;
+          decision.reason = "contribute-error";
+          decision.error = String(err);
+        }
         continue;
       }
       if (!section || (!section.content.trim() && !section.heading?.trim())) {
+        const decision = decisions.find((d) => d.id === contributor.id && d.selected);
+        if (decision) {
+          decision.selected = false;
+          decision.reason = "empty-section";
+        }
         continue;
       }
       const bounded = applyMaxChars(section);
+      const decision = decisions.find((d) => d.id === contributor.id && d.selected);
+      if (decision) {
+        decision.sectionChars = bounded.content.length;
+      }
       lines.push(...sectionToLines(bounded));
     }
-
-    return lines.join("\n").trimEnd();
+    const text = lines.join("\n").trimEnd();
+    return {
+      text,
+      trace: {
+        decisions,
+        selectedIds: decisions.filter((d) => d.selected).map((d) => d.id),
+        assembledChars: text.length,
+      },
+    };
   }
 
   get size(): number {
