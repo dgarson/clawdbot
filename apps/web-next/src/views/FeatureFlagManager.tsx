@@ -571,7 +571,7 @@ function ExperimentStatusBadge({ status }: { status: Experiment["status"] }) {
   const styles = {
     running: "bg-emerald-400/20 text-emerald-400 border-emerald-400/30",
     paused: "bg-amber-400/20 text-amber-400 border-amber-400/30",
-    completed: "bg-zinc-400/20 text-zinc-400 border-zinc-400/30"
+    completed: "bg-surface-3/40 text-fg-secondary border-tok-border"
   };
   const labels = {
     running: "Running",
@@ -606,7 +606,7 @@ function SyncStatusBadge({ status }: { status: Environment["syncStatus"] }) {
 
 function ProgressBar({ percentage, className }: { percentage: number; className?: string }) {
   return (
-    <div className={cn("w-full h-2 bg-zinc-800 rounded-full overflow-hidden", className)}>
+    <div className={cn("w-full h-2 bg-surface-2 rounded-full overflow-hidden", className)}>
       <div
         className="h-full bg-indigo-500 rounded-full transition-all duration-300"
         style={{ width: `${percentage}%` }}
@@ -620,14 +620,14 @@ function BarChart({ data, maxValue }: { data: { label: string; value: number; co
     <div className="flex flex-col gap-2">
       {data.map((item, index) => (
         <div key={index} className="flex items-center gap-3">
-          <span className="text-xs text-zinc-400 w-20 truncate">{item.label}</span>
-          <div className="flex-1 h-4 bg-zinc-800 rounded overflow-hidden">
+          <span className="text-xs text-fg-secondary w-20 truncate">{item.label}</span>
+          <div className="flex-1 h-4 bg-surface-2 rounded overflow-hidden">
             <div
               className="h-full rounded transition-all duration-300"
               style={{ width: `${(item.value / maxValue) * 100}%`, backgroundColor: item.color }}
             />
           </div>
-          <span className="text-xs text-zinc-300 w-12 text-right">{item.value}%</span>
+          <span className="text-xs text-fg-primary w-12 text-right">{item.value}%</span>
         </div>
       ))}
     </div>
@@ -655,12 +655,12 @@ function FlagsTab() {
             placeholder="Search flags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+            className="flex-1 px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary placeholder-fg-muted focus:outline-none focus:border-indigo-500"
           />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as FlagStatus | "all")}
-            className="px-3 py-2 bg-zinc-900 border border-zinc-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500"
+            className="px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Status</option>
             <option value="enabled">Enabled</option>
@@ -683,24 +683,24 @@ function FlagsTab() {
                 key={flag.id}
                 onClick={() => setSelectedFlag(flag)}
                 className={cn(
-                  "p-4 bg-zinc-900 border rounded-lg cursor-pointer transition-all duration-150",
-                  selectedFlag?.id === flag.id ? "border-indigo-500" : "border-zinc-800 hover:border-zinc-700"
+                  "p-4 bg-surface-1 border rounded-lg cursor-pointer transition-all duration-150",
+                  selectedFlag?.id === flag.id ? "border-indigo-500" : "border-tok-border hover:border-tok-border"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <h3 className="text-sm font-medium text-white">{flag.name}</h3>
-                    <p className="text-xs text-zinc-500 font-mono">{flag.key}</p>
+                    <h3 className="text-sm font-medium text-fg-primary">{flag.name}</h3>
+                    <p className="text-xs text-fg-muted font-mono">{flag.key}</p>
                   </div>
                   <StatusBadge status={flag.status} />
                 </div>
-                <p className="text-xs text-zinc-400 mb-3 line-clamp-2">{flag.description}</p>
+                <p className="text-xs text-fg-secondary mb-3 line-clamp-2">{flag.description}</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500">Rollout:</span>
+                  <span className="text-xs text-fg-muted">Rollout:</span>
                   <div className="flex-1">
                     <ProgressBar percentage={flag.rolloutPercentage} />
                   </div>
-                  <span className="text-xs text-zinc-400">{flag.rolloutPercentage}%</span>
+                  <span className="text-xs text-fg-secondary">{flag.rolloutPercentage}%</span>
                 </div>
               </div>
             ))
@@ -709,47 +709,47 @@ function FlagsTab() {
       </div>
 
       {selectedFlag && (
-        <div className="w-80 bg-zinc-900 border border-zinc-800 rounded-lg p-4 overflow-y-auto">
+        <div className="w-80 bg-surface-1 border border-tok-border rounded-lg p-4 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">{selectedFlag.name}</h2>
+            <h2 className="text-lg font-semibold text-fg-primary">{selectedFlag.name}</h2>
             <button
               onClick={() => setSelectedFlag(null)}
-              className="text-zinc-500 hover:text-white"
+              className="text-fg-muted hover:text-fg-primary"
             >
               ✕
             </button>
           </div>
 
           <div className="mb-4">
-            <p className="text-xs text-zinc-500 mb-1">Key</p>
-            <p className="text-sm text-zinc-300 font-mono">{selectedFlag.key}</p>
+            <p className="text-xs text-fg-muted mb-1">Key</p>
+            <p className="text-sm text-fg-primary font-mono">{selectedFlag.key}</p>
           </div>
 
           <div className="mb-4">
-            <p className="text-xs text-zinc-500 mb-1">Description</p>
-            <p className="text-sm text-zinc-300">{selectedFlag.description}</p>
+            <p className="text-xs text-fg-muted mb-1">Description</p>
+            <p className="text-sm text-fg-primary">{selectedFlag.description}</p>
           </div>
 
           <div className="mb-4">
-            <p className="text-xs text-zinc-500 mb-2">Status</p>
+            <p className="text-xs text-fg-muted mb-2">Status</p>
             <StatusBadge status={selectedFlag.status} />
           </div>
 
           <div className="mb-4">
-            <p className="text-xs text-zinc-500 mb-2">Rollout Percentage</p>
+            <p className="text-xs text-fg-muted mb-2">Rollout Percentage</p>
             <div className="flex items-center gap-2">
               <ProgressBar percentage={selectedFlag.rolloutPercentage} className="flex-1" />
-              <span className="text-sm text-white">{selectedFlag.rolloutPercentage}%</span>
+              <span className="text-sm text-fg-primary">{selectedFlag.rolloutPercentage}%</span>
             </div>
           </div>
 
           {selectedFlag.targetingRules.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs text-zinc-500 mb-2">Targeting Rules</p>
+              <p className="text-xs text-fg-muted mb-2">Targeting Rules</p>
               <div className="space-y-2">
                 {selectedFlag.targetingRules.map((rule, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-zinc-800 rounded">
-                    <span className="text-sm text-zinc-300 capitalize">{rule.segment}</span>
+                  <div key={index} className="flex items-center justify-between p-2 bg-surface-2 rounded">
+                    <span className="text-sm text-fg-primary capitalize">{rule.segment}</span>
                     <span className="text-sm text-indigo-400">{rule.percentage}%</span>
                   </div>
                 ))}
@@ -759,26 +759,26 @@ function FlagsTab() {
 
           {selectedFlag.overrides.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs text-zinc-500 mb-2">Overrides</p>
+              <p className="text-xs text-fg-muted mb-2">Overrides</p>
               <div className="space-y-2">
                 {selectedFlag.overrides.map((override) => (
-                  <div key={override.id} className="p-2 bg-zinc-800 rounded">
+                  <div key={override.id} className="p-2 bg-surface-2 rounded">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-zinc-400">{override.userId}</span>
+                      <span className="text-xs text-fg-secondary">{override.userId}</span>
                       <span className={cn("text-xs", override.value ? "text-emerald-400" : "text-rose-400")}>
                         {override.value ? "Enabled" : "Disabled"}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-500">by {override.createdBy}</p>
+                    <p className="text-xs text-fg-muted">by {override.createdBy}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="pt-4 border-t border-zinc-800">
-            <p className="text-xs text-zinc-500">Created by {selectedFlag.createdBy}</p>
-            <p className="text-xs text-zinc-600">
+          <div className="pt-4 border-t border-tok-border">
+            <p className="text-xs text-fg-muted">Created by {selectedFlag.createdBy}</p>
+            <p className="text-xs text-fg-muted">
               Updated {new Date(selectedFlag.updatedAt).toLocaleDateString()}
             </p>
           </div>
@@ -795,13 +795,13 @@ function EnvironmentsTab() {
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-zinc-800">
-            <th className="text-left p-3 text-xs font-medium text-zinc-500">Flag</th>
+          <tr className="border-b border-tok-border">
+            <th className="text-left p-3 text-xs font-medium text-fg-muted">Flag</th>
             {mockEnvironments.map((env) => (
               <th key={env.id} className="text-left p-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: env.color }} />
-                  <span className="text-xs font-medium text-zinc-400">{env.name}</span>
+                  <span className="text-xs font-medium text-fg-secondary">{env.name}</span>
                 </div>
               </th>
             ))}
@@ -811,10 +811,10 @@ function EnvironmentsTab() {
           {flagKeys.map((flagKey) => {
             const flag = mockFlags.find((f) => f.key === flagKey);
             return (
-              <tr key={flagKey} className="border-b border-zinc-800/50 hover:bg-zinc-900/50">
+              <tr key={flagKey} className="border-b border-tok-border/50 hover:bg-surface-1/50">
                 <td className="p-3">
-                  <p className="text-sm text-white">{flag?.name}</p>
-                  <p className="text-xs text-zinc-500 font-mono">{flagKey}</p>
+                  <p className="text-sm text-fg-primary">{flag?.name}</p>
+                  <p className="text-xs text-fg-muted font-mono">{flagKey}</p>
                 </td>
                 {mockEnvironments.map((env) => {
                   const envFlag = env.flags[flagKey];
@@ -827,13 +827,13 @@ function EnvironmentsTab() {
                               {envFlag.enabled ? "Enabled" : "Disabled"}
                             </span>
                             {envFlag.enabled && (
-                              <span className="text-xs text-zinc-500">{envFlag.rolloutPercentage}%</span>
+                              <span className="text-xs text-fg-muted">{envFlag.rolloutPercentage}%</span>
                             )}
                           </div>
                           <SyncStatusBadge status={env.syncStatus} />
                         </div>
                       ) : (
-                        <span className="text-xs text-zinc-600">—</span>
+                        <span className="text-xs text-fg-muted">—</span>
                       )}
                     </td>
                   );
@@ -853,16 +853,16 @@ function ExperimentsTab() {
   return (
     <div className="space-y-4 overflow-y-auto">
       {mockExperiments.map((experiment) => (
-        <div key={experiment.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+        <div key={experiment.id} className="bg-surface-1 border border-tok-border rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-medium text-white">{experiment.name}</h3>
-              <p className="text-xs text-zinc-500 font-mono">{experiment.flagKey}</p>
+              <h3 className="text-sm font-medium text-fg-primary">{experiment.name}</h3>
+              <p className="text-xs text-fg-muted font-mono">{experiment.flagKey}</p>
             </div>
             <ExperimentStatusBadge status={experiment.status} />
           </div>
 
-          <div className="flex items-center gap-4 mb-4 text-xs text-zinc-500">
+          <div className="flex items-center gap-4 mb-4 text-xs text-fg-muted">
             <span>{new Date(experiment.startDate).toLocaleDateString()}</span>
             {experiment.endDate && (
               <>
@@ -875,10 +875,10 @@ function ExperimentsTab() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {experiment.variants.map((variant, index) => (
-              <div key={index} className="bg-zinc-800 rounded p-3">
+              <div key={index} className="bg-surface-2 rounded p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-zinc-300">{variant.name}</span>
-                  <span className="text-xs text-zinc-500">{variant.traffic}% traffic</span>
+                  <span className="text-sm text-fg-primary">{variant.name}</span>
+                  <span className="text-xs text-fg-muted">{variant.traffic}% traffic</span>
                 </div>
                 <div className="mb-2">
                   <BarChart
@@ -889,7 +889,7 @@ function ExperimentsTab() {
                   />
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">{variant.conversions} conversions</span>
+                  <span className="text-fg-muted">{variant.conversions} conversions</span>
                   <span className="text-indigo-400 font-medium">{variant.conversionRate.toFixed(2)}%</span>
                 </div>
               </div>
@@ -917,7 +917,7 @@ function AuditTab() {
     enabled: "text-emerald-400",
     disabled: "text-rose-400",
     override_added: "text-amber-400",
-    override_removed: "text-zinc-400"
+    override_removed: "text-fg-secondary"
   };
 
   return (
@@ -926,7 +926,7 @@ function AuditTab() {
         <select
           value={flagFilter}
           onChange={(e) => setFlagFilter(e.target.value)}
-          className="px-3 py-2 bg-zinc-900 border border-zinc-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary focus:outline-none focus:border-indigo-500"
         >
           <option value="all">All Flags</option>
           {uniqueFlagKeys.map((key) => (
@@ -947,24 +947,24 @@ function AuditTab() {
           />
         ) : (
           filteredEntries.map((entry) => (
-            <div key={entry.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div key={entry.id} className="bg-surface-1 border border-tok-border rounded-lg p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs font-medium capitalize", actionColors[entry.action])}>
                     {entry.action.split("_").join(" ")}
                   </span>
-                  <span className="text-xs text-zinc-500">•</span>
-                  <span className="text-xs text-zinc-400 font-mono">{entry.flagKey}</span>
+                  <span className="text-xs text-fg-muted">•</span>
+                  <span className="text-xs text-fg-secondary font-mono">{entry.flagKey}</span>
                 </div>
-                <span className="text-xs text-zinc-600">
+                <span className="text-xs text-fg-muted">
                   {new Date(entry.timestamp).toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm text-zinc-300 mb-2">{entry.details}</p>
+              <p className="text-sm text-fg-primary mb-2">{entry.details}</p>
               <div className="flex items-center gap-4 text-xs">
-                <span className="text-zinc-500">by {entry.user}</span>
+                <span className="text-fg-muted">by {entry.user}</span>
                 {entry.previousValue !== "null" && entry.newValue !== "null" && (
-                  <span className="text-zinc-600">
+                  <span className="text-fg-muted">
                     {entry.previousValue} → {entry.newValue}
                   </span>
                 )}
@@ -988,13 +988,13 @@ export default function FeatureFlagManager() {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950">
-      <div className="p-4 border-b border-zinc-800">
-        <h1 className="text-xl font-semibold text-white mb-1">Feature Flags</h1>
-        <p className="text-sm text-zinc-500">Manage feature rollouts and experiments</p>
+    <div className="h-full flex flex-col bg-surface-0">
+      <div className="p-4 border-b border-tok-border">
+        <h1 className="text-xl font-semibold text-fg-primary mb-1">Feature Flags</h1>
+        <p className="text-sm text-fg-muted">Manage feature rollouts and experiments</p>
       </div>
 
-      <div className="flex border-b border-zinc-800 px-4">
+      <div className="flex border-b border-tok-border px-4">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -1003,7 +1003,7 @@ export default function FeatureFlagManager() {
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-150",
               activeTab === tab.id
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-500 border-transparent hover:text-zinc-300"
+                : "text-fg-muted border-transparent hover:text-fg-primary"
             )}
           >
             {tab.label}

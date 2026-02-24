@@ -26,6 +26,7 @@ import {
   HeartPulse as Heartbeat,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ============================================================================
 // Types
@@ -281,52 +282,52 @@ function JobCard({
   onDelete: () => void;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
+    <div className="bg-surface-1 border border-tok-border rounded-xl">
       <div className="px-4 py-3 flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-white">{job.name}</span>
+            <span className="text-sm font-medium text-fg-primary">{job.name}</span>
             <StatusBadge status={job.status} />
           </div>
-          <div className="text-xs text-zinc-400">{job.schedule.human}</div>
-          <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+          <div className="text-xs text-fg-secondary">{job.schedule.human}</div>
+          <div className="text-xs text-fg-muted mt-1 flex items-center gap-1">
             <Clock className="w-3 h-3" />
             Next: {formatCountdown(job.nextRun)}
           </div>
           {job.lastRun && (
-            <div className="text-xs text-zinc-500 mt-0.5 flex items-center gap-1">
+            <div className="text-xs text-fg-muted mt-0.5 flex items-center gap-1">
               <History className="w-3 h-3" />
               Last: {formatTime(job.lastRun.time)} ({formatDuration(job.lastRun.duration)}) {job.lastRun.success ? 'Success' : 'Failed'}
             </div>
           )}
-          <div className="text-xs text-zinc-400 mt-1">{job.payloadPreview}</div>
+          <div className="text-xs text-fg-secondary mt-1">{job.payloadPreview}</div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={onRunNow} className="p-1 hover:bg-zinc-800 rounded"><Play className="w-4 h-4 text-green-400" /></button>
-          <button onClick={onPause} className="p-1 hover:bg-zinc-800 rounded"><Pause className="w-4 h-4 text-amber-400" /></button>
-          <button onClick={onEdit} className="p-1 hover:bg-zinc-800 rounded"><Edit className="w-4 h-4 text-blue-400" /></button>
-          <button onClick={onDelete} className="p-1 hover:bg-zinc-800 rounded"><Trash className="w-4 h-4 text-red-400" /></button>
-          <button onClick={onToggleExpand} className="p-1 hover:bg-zinc-800 rounded">
-            {expanded ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+          <button onClick={onRunNow} className="p-1 hover:bg-surface-2 rounded"><Play className="w-4 h-4 text-green-400" /></button>
+          <button onClick={onPause} className="p-1 hover:bg-surface-2 rounded"><Pause className="w-4 h-4 text-amber-400" /></button>
+          <button onClick={onEdit} className="p-1 hover:bg-surface-2 rounded"><Edit className="w-4 h-4 text-blue-400" /></button>
+          <button onClick={onDelete} className="p-1 hover:bg-surface-2 rounded"><Trash className="w-4 h-4 text-red-400" /></button>
+          <button onClick={onToggleExpand} className="p-1 hover:bg-surface-2 rounded">
+            {expanded ? <ChevronUp className="w-4 h-4 text-fg-secondary" /> : <ChevronDown className="w-4 h-4 text-fg-secondary" />}
           </button>
         </div>
       </div>
       {expanded && (
-        <div className="px-4 py-3 border-t border-zinc-800">
-          <div className="grid grid-cols-3 gap-4">
+        <div className="px-4 py-3 border-t border-tok-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <h4 className="text-xs font-medium text-zinc-400 mb-1">Full Payload</h4>
-              <pre className="text-xs text-zinc-300 bg-zinc-800 p-2 rounded">{job.fullPayload}</pre>
+              <h4 className="text-xs font-medium text-fg-secondary mb-1">Full Payload</h4>
+              <pre className="text-xs text-fg-primary bg-surface-2 p-2 rounded">{job.fullPayload}</pre>
             </div>
             <div>
-              <h4 className="text-xs font-medium text-zinc-400 mb-1">Delivery Config</h4>
-              <pre className="text-xs text-zinc-300 bg-zinc-800 p-2 rounded">{job.deliveryConfig}</pre>
+              <h4 className="text-xs font-medium text-fg-secondary mb-1">Delivery Config</h4>
+              <pre className="text-xs text-fg-primary bg-surface-2 p-2 rounded">{job.deliveryConfig}</pre>
             </div>
             <div>
-              <h4 className="text-xs font-medium text-zinc-400 mb-1">Recent Runs (last 5)</h4>
+              <h4 className="text-xs font-medium text-fg-secondary mb-1">Recent Runs (last 5)</h4>
               <div className="space-y-1">
                 {job.history.slice(0, 5).map(run => (
-                  <div key={run.id} className="flex items-center gap-2 text-xs text-zinc-400">
+                  <div key={run.id} className="flex items-center gap-2 text-xs text-fg-secondary">
                     <OutcomeIcon success={run.success} />
                     {formatTime(run.time)} - {formatDuration(run.duration)} - {run.outcome}
                   </div>
@@ -347,16 +348,16 @@ function ScheduleTimeline({ jobs }: { jobs: CronJob[] }) {
   const totalMs = end.getTime() - start.getTime();
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <BarChart className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">24h Schedule Timeline</span>
+        <span className="text-sm font-semibold text-fg-primary">24h Schedule Timeline</span>
       </div>
       <div className="relative h-32 overflow-hidden">
         <div className="absolute inset-0 flex flex-col gap-1">
           {jobs.map((job, idx) => (
             <div key={job.id} className="relative flex-1">
-              <div className="absolute left-0 top-1/2 h-1 w-full bg-zinc-800" />
+              <div className="absolute left-0 top-1/2 h-1 w-full bg-surface-2" />
               {/* Mock firings: for simplicity, place one bar per job */}
               <div
                 className="absolute top-1/2 h-1 bg-violet-500"
@@ -375,29 +376,29 @@ function ScheduleTimeline({ jobs }: { jobs: CronJob[] }) {
 
 function RunHistoryTable({ runs }: { runs: RunHistory[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <History className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Run History (last 20)</span>
+        <span className="text-sm font-semibold text-fg-primary">Run History (last 20)</span>
       </div>
       <table className="w-full text-xs">
-        <thead className="bg-zinc-800/50">
+        <thead className="bg-surface-2/50">
           <tr>
-            <th className="px-4 py-2 text-left text-zinc-400">Time</th>
-            <th className="px-4 py-2 text-left text-zinc-400">Duration</th>
-            <th className="px-4 py-2 text-left text-zinc-400">Status</th>
-            <th className="px-4 py-2 text-left text-zinc-400">Outcome</th>
+            <th className="px-4 py-2 text-left text-fg-secondary">Time</th>
+            <th className="px-4 py-2 text-left text-fg-secondary">Duration</th>
+            <th className="px-4 py-2 text-left text-fg-secondary">Status</th>
+            <th className="px-4 py-2 text-left text-fg-secondary">Outcome</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-800">
+        <tbody className="divide-y divide-tok-border">
           {runs.map(run => (
             <tr key={run.id}>
-              <td className="px-4 py-2 text-zinc-300">{formatTime(run.time)}</td>
-              <td className="px-4 py-2 text-zinc-300">{formatDuration(run.duration)}</td>
+              <td className="px-4 py-2 text-fg-primary">{formatTime(run.time)}</td>
+              <td className="px-4 py-2 text-fg-primary">{formatDuration(run.duration)}</td>
               <td className="px-4 py-2">
                 <OutcomeIcon success={run.success} />
               </td>
-              <td className="px-4 py-2 text-zinc-300">{run.outcome}</td>
+              <td className="px-4 py-2 text-fg-primary">{run.outcome}</td>
             </tr>
           ))}
         </tbody>
@@ -408,22 +409,22 @@ function RunHistoryTable({ runs }: { runs: RunHistory[] }) {
 
 function StatsRow({ total, active, failed24h, avgTime }: { total: number; active: number; failed24h: number; avgTime: number }) {
   return (
-    <div className="grid grid-cols-4 gap-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Total Jobs</div>
-        <div className="text-xl font-bold text-white">{total}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Total Jobs</div>
+        <div className="text-xl font-bold text-fg-primary">{total}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Active</div>
-        <div className="text-xl font-bold text-white">{active}</div>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Active</div>
+        <div className="text-xl font-bold text-fg-primary">{active}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Failed (24h)</div>
-        <div className="text-xl font-bold text-white">{failed24h}</div>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Failed (24h)</div>
+        <div className="text-xl font-bold text-fg-primary">{failed24h}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Avg Run Time</div>
-        <div className="text-xl font-bold text-white">{formatDuration(avgTime)}</div>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Avg Run Time</div>
+        <div className="text-xl font-bold text-fg-primary">{formatDuration(avgTime)}</div>
       </div>
     </div>
   );
@@ -433,21 +434,21 @@ function AddJobModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   if (!open) return null;
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-96">
-        <h2 className="text-lg font-bold text-white mb-4">Add New Job</h2>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-6 w-96">
+        <h2 className="text-lg font-bold text-fg-primary mb-4">Add New Job</h2>
         <form className="space-y-4">
-          <input placeholder="Job Name" className="w-full bg-zinc-800 p-2 rounded text-white" />
-          <select className="w-full bg-zinc-800 p-2 rounded text-white">
+          <input placeholder="Job Name" className="w-full bg-surface-2 p-2 rounded text-fg-primary" />
+          <select className="w-full bg-surface-2 p-2 rounded text-fg-primary">
             <option>Schedule Type</option>
             <option>at</option>
             <option>every</option>
             <option>cron</option>
           </select>
-          <input placeholder="Payload Kind" className="w-full bg-zinc-800 p-2 rounded text-white" />
-          <input placeholder="Session Target" className="w-full bg-zinc-800 p-2 rounded text-white" />
+          <input placeholder="Payload Kind" className="w-full bg-surface-2 p-2 rounded text-fg-primary" />
+          <input placeholder="Session Target" className="w-full bg-surface-2 p-2 rounded text-fg-primary" />
           <div className="flex gap-2">
-            <button type="submit" className="flex-1 bg-violet-600 text-white py-2 rounded">Add</button>
-            <button onClick={onClose} className="flex-1 bg-zinc-700 text-white py-2 rounded">Cancel</button>
+            <button type="submit" className="flex-1 bg-violet-600 text-fg-primary py-2 rounded">Add</button>
+            <button onClick={onClose} className="flex-1 bg-surface-3 text-fg-primary py-2 rounded">Cancel</button>
           </div>
         </form>
       </div>
@@ -486,23 +487,23 @@ export default function CronJobManager() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <Calendar className="w-6 h-6 text-violet-400" />
             Cron Jobs
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Manage scheduled tasks and heartbeats</p>
+          <p className="text-sm text-fg-secondary mt-0.5">Manage scheduled tasks and heartbeats</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-white flex items-center gap-2">
+          <span className="text-sm text-fg-primary flex items-center gap-2">
             Active: <span className="font-bold">{activeJobs}</span>
           </span>
-          <button onClick={() => setModalOpen(true)} className="flex items-center gap-1 bg-violet-600 px-3 py-1.5 rounded text-sm text-white">
+          <button onClick={() => setModalOpen(true)} className="flex items-center gap-1 bg-violet-600 px-3 py-1.5 rounded text-sm text-fg-primary">
             <Plus className="w-4 h-4" /> Add Job
           </button>
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <div className="flex items-center gap-2 text-sm text-fg-secondary">
             Pause All
             {pauseAll ? <ToggleRight onClick={() => setPauseAll(false)} className="w-5 h-5 text-green-400 cursor-pointer" /> : <ToggleLeft onClick={() => setPauseAll(true)} className="w-5 h-5 cursor-pointer" />}
           </div>
@@ -515,10 +516,7 @@ export default function CronJobManager() {
 
       <div className="space-y-4">
         {jobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
-            <Calendar className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">No cron jobs configured</p>
-          </div>
+          <ContextualEmptyState icon={Clock} title="No cron jobs configured" description="Add a job to start scheduling tasks." />
         ) : (
           jobs.map(job => (
             <JobCard
