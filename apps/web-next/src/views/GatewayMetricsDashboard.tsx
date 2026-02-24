@@ -180,12 +180,18 @@ function MetricCard({
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <div className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2">{label}</div>
-      <div className={cn('text-2xl font-bold mb-1', statusColor)}>
+      <div className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2" id={`metric-${label.replace(/\s+/g, '-').toLowerCase()}`}>{label}</div>
+      {/* aria-atomic="true" + aria-label ensure the full value (number + unit) is announced atomically — WCAG 4.1.3 */}
+      <div
+        className={cn('text-2xl font-bold mb-1', statusColor)}
+        aria-atomic="true"
+        aria-label={`${label}: ${value}${unit ? ' ' + unit : ''}`}
+      >
         {value}{unit && <span className="text-base font-normal text-zinc-400 ml-0.5">{unit}</span>}
       </div>
       <div className="flex items-center gap-1 text-xs mb-3">
         <TrendIcon className={cn('w-3 h-3', trendColor)} aria-hidden="true" />
+        {/* trendValue conveys direction in text (e.g. "+42 req/s", "▲ vs prev") — color is supplemental */}
         <span className={trendColor}>{trendValue}</span>
       </div>
       <SparkBar values={sparkValues} max={sparkMax} label={label} />

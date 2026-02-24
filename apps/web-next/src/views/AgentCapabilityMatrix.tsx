@@ -386,7 +386,8 @@ export default function AgentCapabilityMatrix() {
                         const score = getCapabilityScore(cap.id);
                         return (
                           <tr key={cap.id} className="hover:bg-zinc-800/20 transition-colors">
-                            <td className="px-4 py-3 sticky left-0 bg-zinc-900 hover:bg-zinc-800/20 z-10">
+                            {/* th scope="row" — capability name is the row header for AT navigation (WCAG 1.3.1) */}
+                            <th scope="row" className="px-4 py-3 sticky left-0 bg-zinc-900 hover:bg-zinc-800/20 z-10 font-normal text-left">
                               <div className="flex items-center gap-2">
                                 <CapIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" aria-hidden="true" />
                                 <div>
@@ -394,7 +395,7 @@ export default function AgentCapabilityMatrix() {
                                   <div className="text-zinc-500 text-[10px] hidden md:block">{cap.description}</div>
                                 </div>
                               </div>
-                            </td>
+                            </th>
                             <td className="px-3 py-3 hidden md:table-cell">
                               <span className="text-xs text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">{cap.category}</span>
                             </td>
