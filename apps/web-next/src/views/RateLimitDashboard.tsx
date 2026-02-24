@@ -427,8 +427,8 @@ export default function RateLimitDashboard() {
             {filteredLimits.length === 0 ? (
               <ContextualEmptyState
                 icon={Gauge}
-                title="No rate limits match filters"
-                description="Try a different scope or status filter to see limits."
+                title="Nothing matches those filters"
+                description="Try a different scope or status — your limits are in there somewhere."
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

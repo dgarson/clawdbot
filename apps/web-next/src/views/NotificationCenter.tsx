@@ -1262,7 +1262,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
               <ContextualEmptyState
                 icon={BellOff}
                 title="All caught up"
-                description="No notifications match your current filters."
+                description="No notifications match that filter. Try broadening your selection."
                 size="sm"
               />
             ) : (

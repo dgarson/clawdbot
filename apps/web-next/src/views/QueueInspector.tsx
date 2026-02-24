@@ -773,8 +773,8 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
             {queueConsumers.length === 0 && (
               <ContextualEmptyState
                 icon={Users}
-                title="No consumers connected"
-                description="No active consumers are listening on this queue."
+                title="No one's listening yet"
+                description="No active consumers are connected. Attach a consumer to start processing messages."
                 size="sm"
               />
             )}
@@ -855,8 +855,8 @@ function MessagesTab() {
           {filtered.length === 0 && (
             <ContextualEmptyState
               icon={Inbox}
-              title="Queue is empty"
-              description="No messages match your filters. The queue may be fully consumed."
+              title="Queue cleared"
+              description="No messages match your filters — or the queue's been fully consumed. Nice work."
               size="sm"
             />
           )}
