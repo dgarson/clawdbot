@@ -2,9 +2,11 @@ import { Type } from "@sinclair/typebox";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { MemoryCitationsMode } from "../../config/types.memory.js";
 import { resolveMemoryBackendConfig } from "../../memory/backend-config.js";
+import { estimateUtf8Bytes } from "../../memory/embedding-input-limits.js";
 import { getMemorySearchManager } from "../../memory/index.js";
 import type { MemorySearchResult } from "../../memory/types.js";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
+import { estimateUsageCost, resolveModelCostConfig } from "../../utils/usage-format.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
 import { resolveMemorySearchConfig } from "../memory-search.js";
 import type { AnyAgentTool } from "./common.js";
@@ -38,6 +40,38 @@ const MemoryGetSchema = Type.Object({
   ),
 });
 
+const MEMORY_RELEVANCE_MIN_RESULT_COUNT = 1;
+const MEMORY_SEARCH_LATENCY_BUDGET_MS = 1_000;
+const MEMORY_SEARCH_COST_GUARD_USD = 0.001;
+
+type MemorySearchEvaluation = {
+  relevance: {
+    enabled: true;
+    passing: boolean;
+    minScoreThreshold: number;
+    minResultCount: number;
+    resultCount: number;
+    topScore: number;
+    avgScore: number;
+  };
+  latency: {
+    enabled: true;
+    passing: boolean;
+    measuredMs: number;
+    maxMs: number;
+  };
+  cost: {
+    enabled: true;
+    passing: boolean;
+    estimatedInputTokens: number;
+    estimatedCostUsd?: number;
+    maxCostUsd: number;
+    provider?: string;
+    model?: string;
+    unavailable: boolean;
+  };
+};
+
 function resolveMemoryToolContext(options: { config?: OpenClawConfig; agentSessionKey?: string }) {
   const cfg = options.config;
   if (!cfg) {
@@ -51,6 +85,104 @@ function resolveMemoryToolContext(options: { config?: OpenClawConfig; agentSessi
     return null;
   }
   return { cfg, agentId };
+}
+
+function estimateQueryInputTokens(query: string): number {
+  return Math.max(1, Math.ceil(estimateUtf8Bytes(query) / 4));
+}
+
+function evaluateRelevanceGuardrail(
+  rawResults: MemorySearchResult[],
+  minScore: number,
+): MemorySearchEvaluation["relevance"] {
+  const resultCount = rawResults.length;
+  if (resultCount === 0) {
+    return {
+      enabled: true,
+      passing: false,
+      minScoreThreshold: minScore,
+      minResultCount: MEMORY_RELEVANCE_MIN_RESULT_COUNT,
+      resultCount: 0,
+      topScore: 0,
+      avgScore: 0,
+    };
+  }
+
+  const scores = rawResults.map((r) => r.score).filter((score) => Number.isFinite(score));
+
+  if (scores.length === 0) {
+    return {
+      enabled: true,
+      passing: false,
+      minScoreThreshold: minScore,
+      minResultCount: MEMORY_RELEVANCE_MIN_RESULT_COUNT,
+      resultCount,
+      topScore: 0,
+      avgScore: 0,
+    };
+  }
+
+  const topScore = Math.max(...scores);
+  const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const passing = scores.length >= MEMORY_RELEVANCE_MIN_RESULT_COUNT && topScore >= minScore;
+
+  return {
+    enabled: true,
+    passing,
+    minScoreThreshold: minScore,
+    minResultCount: MEMORY_RELEVANCE_MIN_RESULT_COUNT,
+    resultCount,
+    topScore: Number(topScore.toFixed(4)),
+    avgScore: Number(avgScore.toFixed(4)),
+  };
+}
+
+function evaluateLatencyGuardrail(measuredMs: number): MemorySearchEvaluation["latency"] {
+  return {
+    enabled: true,
+    passing: measuredMs <= MEMORY_SEARCH_LATENCY_BUDGET_MS,
+    measuredMs,
+    maxMs: MEMORY_SEARCH_LATENCY_BUDGET_MS,
+  };
+}
+
+function evaluateCostGuardrail(params: {
+  query: string;
+  provider?: string;
+  model?: string;
+  config?: OpenClawConfig;
+}): MemorySearchEvaluation["cost"] {
+  const provider = params.provider?.trim();
+  const model = params.model?.trim();
+  const estimatedInputTokens = estimateQueryInputTokens(params.query);
+  const costConfig = resolveModelCostConfig({
+    provider,
+    model,
+    config: params.config,
+  });
+  const estimatedCostUsd = estimateUsageCost({
+    usage: {
+      input: estimatedInputTokens,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+    },
+    cost: costConfig,
+  });
+
+  const unavailable = estimatedCostUsd === undefined;
+  const passing = unavailable ? true : estimatedCostUsd <= MEMORY_SEARCH_COST_GUARD_USD;
+
+  return {
+    enabled: true,
+    passing,
+    estimatedInputTokens,
+    estimatedCostUsd,
+    maxCostUsd: MEMORY_SEARCH_COST_GUARD_USD,
+    provider,
+    model,
+    unavailable,
+  };
 }
 
 export function createMemorySearchTool(options: {
@@ -69,6 +201,7 @@ export function createMemorySearchTool(options: {
       "Mandatory recall step: semantically search MEMORY.md + memory/*.md (and optional session transcripts) before answering questions about prior work, decisions, dates, people, preferences, or todos; returns top snippets with path + lines. If response has disabled=true, memory retrieval is unavailable and should be surfaced to the user.",
     parameters: MemorySearchSchema,
     execute: async (_toolCallId, params) => {
+      const startedAt = performance.now();
       const query = readStringParam(params, "query", { required: true });
       const maxResults = readNumberParam(params, "maxResults");
       const minScore = readNumberParam(params, "minScore");
@@ -90,14 +223,32 @@ export function createMemorySearchTool(options: {
           minScore,
           sessionKey: options.agentSessionKey,
         });
+        const searchTimingMs = Math.max(0, Math.round(performance.now() - startedAt));
         const status = manager.status();
+
+        const resolved = resolveMemorySearchConfig(cfg, agentId);
+        const effectiveMinScore =
+          typeof minScore === "number" ? minScore : (resolved?.query.minScore ?? 0);
+
         const decorated = decorateCitations(rawResults, includeCitations);
-        const resolved = resolveMemoryBackendConfig({ cfg, agentId });
+        const resolvedBackend = resolveMemoryBackendConfig({ cfg, agentId });
         const results =
           status.backend === "qmd"
-            ? clampResultsByInjectedChars(decorated, resolved.qmd?.limits.maxInjectedChars)
+            ? clampResultsByInjectedChars(decorated, resolvedBackend.qmd?.limits.maxInjectedChars)
             : decorated;
+
         const searchMode = (status.custom as { searchMode?: string } | undefined)?.searchMode;
+        const evaluation: MemorySearchEvaluation = {
+          relevance: evaluateRelevanceGuardrail(results, effectiveMinScore),
+          latency: evaluateLatencyGuardrail(searchTimingMs),
+          cost: evaluateCostGuardrail({
+            query,
+            provider: status.requestedProvider ?? status.provider,
+            model: status.model,
+            config: cfg,
+          }),
+        };
+
         return jsonResult({
           results,
           provider: status.provider,
@@ -105,6 +256,7 @@ export function createMemorySearchTool(options: {
           fallback: status.fallback,
           citations: citationsMode,
           mode: searchMode,
+          evaluation,
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

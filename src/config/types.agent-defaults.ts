@@ -163,6 +163,8 @@ export type AgentDefaultsConfig = {
   memorySearch?: MemorySearchConfig;
   /** Default thinking level when no /think directive is present. */
   thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  /** Default reasoning visibility when no /reasoning directive is present. */
+  reasoningDefault?: "off" | "on" | "stream";
   /** Default verbose level when no /verbose directive is present. */
   verboseDefault?: "off" | "on" | "full";
   /** Default elevated level when no /elevated directive is present. */

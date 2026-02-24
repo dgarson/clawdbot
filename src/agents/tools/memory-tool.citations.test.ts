@@ -115,6 +115,113 @@ describe("memory search citations", () => {
   });
 });
 
+describe("memory-search evaluation telemetry", () => {
+  it("includes relevance, latency, and cost guardrail telemetry", async () => {
+    const cfg = asOpenClawConfig({
+      memory: { citations: "on" },
+      agents: { list: [{ id: "main", default: true }] },
+      models: {
+        providers: {
+          openai: {
+            models: [
+              {
+                id: "text-embedding-3-small",
+                provider: "openai",
+                cost: { input: 0.02, output: 0, cacheRead: 0, cacheWrite: 0 },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const tool = createMemorySearchTool({ config: cfg });
+    if (!tool) {
+      throw new Error("tool missing");
+    }
+
+    const result = await tool.execute("call_eval_metadata", {
+      query: "release notes for 2026-02-20",
+    });
+    const details = result.details as {
+      evaluation: {
+        relevance: {
+          passing: boolean;
+          topScore: number;
+          resultCount: number;
+          minScoreThreshold: number;
+        };
+        latency: { passing: boolean; measuredMs: number; maxMs: number };
+        cost: {
+          passing: boolean;
+          estimatedCostUsd?: number;
+          maxCostUsd: number;
+          estimatedInputTokens: number;
+        };
+      };
+    };
+
+    expect(details.evaluation.relevance.passing).toBe(true);
+    expect(details.evaluation.relevance.resultCount).toBe(1);
+    expect(details.evaluation.latency.measuredMs).toBeGreaterThanOrEqual(0);
+    expect(details.evaluation.cost.estimatedInputTokens).toBeGreaterThan(0);
+    expect(details.evaluation.cost.estimatedCostUsd).toBeGreaterThan(0);
+    expect(details.evaluation.cost.maxCostUsd).toBeGreaterThan(0);
+  });
+
+  it("marks relevance and cost guardrails as failed when limits are violated", async () => {
+    setMemorySearchImpl(async () => [
+      {
+        path: "MEMORY.md",
+        startLine: 1,
+        endLine: 1,
+        score: 0.2,
+        snippet: "A weak match",
+        source: "memory" as const,
+      },
+    ]);
+
+    const cfg = asOpenClawConfig({
+      memory: { citations: "on", query: { minScore: 0.8 } },
+      agents: { list: [{ id: "main", default: true }] },
+      models: {
+        providers: {
+          openai: {
+            models: [
+              {
+                id: "text-embedding-3-small",
+                provider: "openai",
+                cost: { input: 10, output: 0, cacheRead: 0, cacheWrite: 0 },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const tool = createMemorySearchTool({ config: cfg });
+    if (!tool) {
+      throw new Error("tool missing");
+    }
+    const result = await tool.execute("call_eval_guardrails", {
+      query: "x".repeat(12_000),
+      minScore: 0.8,
+    });
+
+    const details = result.details as {
+      evaluation: {
+        relevance: { passing: boolean; topScore: number };
+        cost: { passing: boolean; estimatedCostUsd: number };
+      };
+    };
+
+    expect(details.evaluation.relevance.passing).toBe(false);
+    expect(details.evaluation.relevance.topScore).toBe(0.2);
+    expect(details.evaluation.cost.passing).toBe(false);
+    expect(details.evaluation.cost.estimatedCostUsd).toBeGreaterThan(0);
+  });
+});
+
 describe("memory tools", () => {
   it("does not throw when memory_search fails (e.g. embeddings 429)", async () => {
     setMemorySearchImpl(async () => {

@@ -63,6 +63,101 @@ const MemoryQmdUpdateSchema = z
   })
   .strict();
 
+const MemoryGovernanceMatchSchema = z
+  .object({
+    agentId: z.string().optional(),
+    userId: z.string().optional(),
+    sourceId: z.string().optional(),
+    domain: z
+      .union([
+        z.literal("user_pref"),
+        z.literal("system_fact"),
+        z.literal("session_summary"),
+        z.literal("agent_eval"),
+        z.literal("code_context"),
+      ])
+      .optional(),
+    tag: z.string().optional(),
+  })
+  .partial()
+  .strict();
+
+const MemoryGovernanceRuleSchema = z
+  .object({
+    action: z.union([z.literal("allow"), z.literal("deny")]),
+    match: MemoryGovernanceMatchSchema.optional(),
+  })
+  .strict();
+
+const MemoryGovernanceSchema = z
+  .object({
+    default: z.union([z.literal("allow"), z.literal("deny")]).optional(),
+    rules: z.array(MemoryGovernanceRuleSchema).optional(),
+  })
+  .strict();
+
+const MemoryArchitectureVectorSchema = z
+  .object({
+    provider: z
+      .union([z.literal("qdrant"), z.literal("pinecone"), z.literal("pgvector")])
+      .optional(),
+    endpoint: z.string().optional(),
+    apiKey: z.string().optional(),
+    collection: z.string().optional(),
+  })
+  .partial()
+  .strict()
+  .optional();
+
+const MemoryArchitectureEmbeddingSchema = z
+  .object({
+    model: z.literal("text-embedding-3-small").optional(),
+    dimensions: z.number().int().positive().optional(),
+    batchSize: z.number().int().positive().optional(),
+  })
+  .partial()
+  .strict()
+  .optional();
+
+const MemoryArchitectureRetrievalSchema = z
+  .object({
+    defaultLimit: z.number().int().positive().optional(),
+    maxTokensBudget: z.number().int().positive().optional(),
+    vectorWeight: z.number().min(0).max(1).optional(),
+    keywordWeight: z.number().min(0).max(1).optional(),
+  })
+  .partial()
+  .strict()
+  .optional();
+
+const MemoryArchitectureRetentionSchema = z
+  .object({
+    defaultTtlDays: z.number().int().nonnegative().optional(),
+    compactionCron: z.string().optional(),
+  })
+  .partial()
+  .strict()
+  .optional();
+
+const MemoryArchitectureSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    shadowWrite: z
+      .object({
+        enabled: z.boolean().optional(),
+      })
+      .partial()
+      .strict()
+      .optional(),
+    vectorDb: MemoryArchitectureVectorSchema,
+    embedding: MemoryArchitectureEmbeddingSchema,
+    retrieval: MemoryArchitectureRetrievalSchema,
+    retention: MemoryArchitectureRetentionSchema,
+    governance: MemoryGovernanceSchema.optional(),
+  })
+  .partial()
+  .strict();
+
 const MemoryQmdLimitsSchema = z
   .object({
     maxResults: z.number().int().positive().optional(),
@@ -98,6 +193,7 @@ const MemorySchema = z
   .object({
     backend: z.union([z.literal("builtin"), z.literal("qmd")]).optional(),
     citations: z.union([z.literal("auto"), z.literal("on"), z.literal("off")]).optional(),
+    architecture: MemoryArchitectureSchema.optional(),
     qmd: MemoryQmdSchema.optional(),
   })
   .strict()
