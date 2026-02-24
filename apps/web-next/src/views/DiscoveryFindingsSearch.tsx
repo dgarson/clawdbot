@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { SearchX } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { FINDINGS, type Severity, type Wave } from "./DiscoveryFindings.data";
 
 // Constants
@@ -429,22 +431,12 @@ export default function DiscoveryFindingsSearch() {
 
             {/* Results List */}
             {filteredFindings.length === 0 ? (
-              <div className="text-center py-16 bg-gray-900/30 border border-gray-800 rounded-lg">
-                <svg className="mx-auto h-12 w-12 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-300 mb-2">No findings match your search</h3>
-                <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    clearAllFilters();
-                  }}
-                  className="text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Clear search and filters
-                </button>
-              </div>
+              <ContextualEmptyState
+                icon={SearchX}
+                title="No findings match your search"
+                description="Try adjusting your filters or search terms to surface results."
+                primaryAction={{ label: "Clear filters", onClick: () => { setSearchQuery(""); clearAllFilters(); } }}
+              />
             ) : (
               <div className="space-y-4">
                 {filteredFindings.map((finding) => (
