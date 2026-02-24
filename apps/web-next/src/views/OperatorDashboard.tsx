@@ -1,468 +1,1206 @@
-import { useMemo, useState } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { cn } from "../lib/utils";
+import {
+  Activity,
+  AlertTriangle,
+  Bell,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  FileText,
+  Flame,
+  Globe,
+  Hash,
+  Layers,
+  Monitor,
+  Pause,
+  Play,
+  Power,
+  RefreshCw,
+  Shield,
+  Users,
+  VolumeX,
+  Zap,
+} from "lucide-react";
 
-type TailMode = "routing" | "tools" | "self-eval";
-type LogSeverity = "info" | "warn" | "error";
-type RunbookStatus = "healthy" | "watch" | "critical";
-type RiskLevel = "low" | "medium" | "high";
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface JournalEvent {
-  id: string;
-  mode: TailMode;
-  at: string;
-  severity: LogSeverity;
-  agent: string;
-  summary: string;
-  details: string;
+interface OperatorDashboardProps {
+  onNavigate?: (viewId: string) => void;
 }
 
-interface RunbookAction {
+type SessionStatus = "RUNNING" | "WAITING" | "ERROR";
+
+interface AgentSession {
   id: string;
-  title: string;
-  owner: string;
-  eta: string;
-  status: RunbookStatus;
+  agentName: string;
+  agentEmoji: string;
+  status: SessionStatus;
+  currentTool: string;
+  tokensIn: number;
+  tokensOut: number;
+  startedAt: number; // timestamp ms
+  model: string;
+  task: string;
 }
 
-interface SelfEvalRecommendation {
+type ToolCallStatus = "running" | "complete" | "error";
+type ToolType = "exec" | "read" | "write" | "message" | "browser";
+
+interface ToolCall {
   id: string;
-  title: string;
-  confidence: number;
-  expectedGain: string;
-  risk: RiskLevel;
+  toolName: string;
+  toolType: ToolType;
+  agentName: string;
+  agentEmoji: string;
+  status: ToolCallStatus;
+  elapsedMs: number;
+  maxMs: number;
+  timestamp: number;
 }
 
-interface IncidentTimelineItem {
+type AlertSeverity = "critical" | "error" | "warning" | "info";
+
+interface Alert {
   id: string;
-  startedAt: string;
-  service: string;
-  title: string;
-  summary: string;
-  impact: string;
-  actions: string[];
+  severity: AlertSeverity;
+  agentName: string;
+  agentEmoji: string;
+  message: string;
+  timestamp: number;
+  acknowledged: boolean;
+  muted: boolean;
 }
 
-const modelStats = [
-  { model: "gpt-5.2-codex", provider: "openai", req: 1288, p95: 840, cost: 188.22, errorRate: 0.8 },
-  { model: "claude-sonnet-4.5", provider: "anthropic", req: 963, p95: 1210, cost: 224.41, errorRate: 1.3 },
-  { model: "gemini-2.0-pro", provider: "google", req: 514, p95: 998, cost: 71.6, errorRate: 0.6 },
-];
+type ProviderHealth = "healthy" | "degraded" | "down";
 
-const toolStats = [
-  { name: "exec_command", calls: 744, success: 97.9, avgMs: 460, reason: "Stateful shell ops + deterministic retries" },
-  { name: "read_mcp_resource", calls: 429, success: 99.1, avgMs: 180, reason: "Low-risk retrieval + grounded references" },
-  { name: "run_playwright_script", calls: 88, success: 93.4, avgMs: 3900, reason: "UI validation + screenshot evidence" },
-  { name: "make_pr", calls: 116, success: 100, avgMs: 210, reason: "Atomic PR metadata handoff" },
-];
+interface ModelProvider {
+  name: string;
+  icon: string;
+  requestsPerMin: number;
+  avgLatencyMs: number;
+  errorRate: number;
+  quotaUsed: number;
+  quotaTotal: number;
+  health: ProviderHealth;
+  rateLimitProximity: number; // 0-100
+}
 
-const journalEvents: JournalEvent[] = [
-  { id: "j1", mode: "routing", at: "11:42:16", severity: "info", agent: "router", summary: "Escalated ticket to multi-agent mode", details: "confidence=0.94 · rationale: high fan-out dependency graph" },
-  { id: "j2", mode: "tools", at: "11:42:34", severity: "warn", agent: "operator", summary: "write_stdin retry loop hit threshold", details: "session=1902 · fallback=restart sandbox shell" },
-  { id: "j3", mode: "self-eval", at: "11:43:03", severity: "info", agent: "evaluator", summary: "Routing prompt patch proposed", details: "expected win: -14% tool over-calls in observability flows" },
-  { id: "j4", mode: "tools", at: "11:43:21", severity: "error", agent: "builder", summary: "Playwright screenshot failed", details: "browser context crashed · auto-opened recovery action" },
-  { id: "j5", mode: "routing", at: "11:44:03", severity: "warn", agent: "router", summary: "Fallback provider selected", details: "route=openai->anthropic · cause=latency spike p95 +18%" },
-  { id: "j6", mode: "self-eval", at: "11:44:55", severity: "info", agent: "evaluator", summary: "Prompt rubric update queued", details: "reduces over-calling browser tools in diagnostics flows" },
-];
+interface NavCard {
+  id: string;
+  label: string;
+  stat: string;
+  icon: React.ReactNode;
+}
 
-const smartActions = [
-  "Generate incident summary from the last 30 minutes",
-  "Propose budget guardrails for over-spending models",
-  "Autofix route drift by applying top self-eval recommendation",
-  "Draft operator handoff with risks and unresolved alerts",
-];
+// ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const runbookActions: RunbookAction[] = [
-  { id: "r1", title: "Gateway queue saturation watch", owner: "Ops", eta: "Now", status: "watch" },
-  { id: "r2", title: "Provider failover policy check", owner: "Routing", eta: "15m", status: "healthy" },
-  { id: "r3", title: "Tool timeout triage", owner: "Platform", eta: "5m", status: "critical" },
-];
-
-const selfEvalRecommendations: SelfEvalRecommendation[] = [
-  { id: "s1", title: "Lower browser-tool trigger sensitivity on health-only probes", confidence: 0.93, expectedGain: "-11% tool calls", risk: "low" },
-  { id: "s2", title: "Prefer cached routing memory for recurring budget alerts", confidence: 0.89, expectedGain: "-180ms p95", risk: "low" },
-  { id: "s3", title: "Raise escalation threshold for low-blast-radius incidents", confidence: 0.74, expectedGain: "-22% false escalations", risk: "medium" },
-];
-
-const incidentTimeline: IncidentTimelineItem[] = [
+const INITIAL_SESSIONS: AgentSession[] = [
   {
-    id: "inc-1",
-    startedAt: "11:43",
-    service: "routing",
-    title: "Provider latency spike",
-    summary: "p95 crossed failover threshold for 4 minutes",
-    impact: "5% of requests delayed >2s",
-    actions: ["Shift 30% traffic to anthropic", "Raise queue timeout from 4s to 6s", "Page on-call if p95 > 1500ms for 3m"],
+    id: "s1",
+    agentName: "Luis",
+    agentEmoji: "\u{1F3A8}",
+    status: "RUNNING",
+    currentTool: "write_file",
+    tokensIn: 24800,
+    tokensOut: 18200,
+    startedAt: Date.now() - 1_423_000,
+    model: "claude-sonnet-4-6",
+    task: "Building OperatorDashboard view with live metrics",
   },
   {
-    id: "inc-2",
-    startedAt: "10:18",
-    service: "tools",
-    title: "Browser task instability",
-    summary: "Intermittent playwright context teardown",
-    impact: "Screenshot checks retried 2x on average",
-    actions: ["Warm pool browser contexts", "Throttle concurrent browser tool invocations", "Enable fallback screenshot capture"],
+    id: "s2",
+    agentName: "Quinn",
+    agentEmoji: "\u{1F30A}",
+    status: "RUNNING",
+    currentTool: "exec_command",
+    tokensIn: 12400,
+    tokensOut: 8900,
+    startedAt: Date.now() - 842_000,
+    model: "claude-sonnet-4-6",
+    task: "Running integration test suite for Toast component",
   },
   {
-    id: "inc-3",
-    startedAt: "09:52",
-    service: "self-eval",
-    title: "Policy drift flagged",
-    summary: "Suggestion confidence dipped below baseline",
-    impact: "1 recommendation suppressed",
-    actions: ["Re-score rubric on latest sessions", "Backtest against last 72h incidents", "Review manual overrides"],
+    id: "s3",
+    agentName: "Xavier",
+    agentEmoji: "\u{1F3AF}",
+    status: "WAITING",
+    currentTool: "—",
+    tokensIn: 68200,
+    tokensOut: 42100,
+    startedAt: Date.now() - 3_612_000,
+    model: "claude-opus-4-6",
+    task: "Awaiting architecture review approval",
+  },
+  {
+    id: "s4",
+    agentName: "Stephan",
+    agentEmoji: "\u{1F6E0}\u{FE0F}",
+    status: "RUNNING",
+    currentTool: "read_file",
+    tokensIn: 9100,
+    tokensOut: 6200,
+    startedAt: Date.now() - 512_000,
+    model: "claude-haiku-4-6",
+    task: "Scanning codebase for deprecated API usage",
+  },
+  {
+    id: "s5",
+    agentName: "Reed",
+    agentEmoji: "\u267F",
+    status: "ERROR",
+    currentTool: "browser_navigate",
+    tokensIn: 4200,
+    tokensOut: 1800,
+    startedAt: Date.now() - 298_000,
+    model: "gemini-flash-3",
+    task: "A11y audit failed — lighthouse timeout",
+  },
+  {
+    id: "s6",
+    agentName: "Piper",
+    agentEmoji: "\u{1F9E9}",
+    status: "RUNNING",
+    currentTool: "write_file",
+    tokensIn: 15600,
+    tokensOut: 11400,
+    startedAt: Date.now() - 1_080_000,
+    model: "claude-sonnet-4-6",
+    task: "Generating component variants for design system",
+  },
+  {
+    id: "s7",
+    agentName: "Wes",
+    agentEmoji: "\u{1F4E1}",
+    status: "RUNNING",
+    currentTool: "exec_command",
+    tokensIn: 7800,
+    tokensOut: 5500,
+    startedAt: Date.now() - 620_000,
+    model: "claude-haiku-4-6",
+    task: "Deploying staging environment to fly.io",
   },
 ];
 
-function SeverityBadge({ level }: { level: LogSeverity }) {
-  const tone =
-    level === "error"
-      ? "bg-red-500/15 text-red-300 border-red-500/40"
-      : level === "warn"
-        ? "bg-amber-500/15 text-amber-200 border-amber-400/40"
-        : "bg-emerald-500/15 text-emerald-200 border-emerald-500/40";
+const TOOL_TYPES: ToolType[] = ["exec", "read", "write", "message", "browser"];
+const TOOL_NAMES: Record<ToolType, string[]> = {
+  exec: ["exec_command", "run_tests", "build_project", "lint_check"],
+  read: ["read_file", "glob_search", "grep_search", "list_dir"],
+  write: ["write_file", "edit_file", "create_file", "patch_file"],
+  message: ["send_message", "agent_reply", "broadcast", "request_approval"],
+  browser: ["browser_navigate", "browser_click", "browser_screenshot", "browser_eval"],
+};
 
-  return <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${tone}`}>{level}</span>;
-}
+function makeToolCall(id: string, timestamp: number): ToolCall {
+  const agent = INITIAL_SESSIONS[Math.floor(Math.random() * INITIAL_SESSIONS.length)];
+  const toolType = TOOL_TYPES[Math.floor(Math.random() * TOOL_TYPES.length)];
+  const names = TOOL_NAMES[toolType];
+  const toolName = names[Math.floor(Math.random() * names.length)];
+  const maxMs = 500 + Math.floor(Math.random() * 4500);
+  const statuses: ToolCallStatus[] = ["complete", "complete", "complete", "complete", "running", "error"];
+  const status = statuses[Math.floor(Math.random() * statuses.length)];
+  const elapsedMs = status === "running" ? Math.floor(Math.random() * maxMs) : status === "error" ? maxMs : Math.floor(Math.random() * maxMs * 0.9);
 
-function RunbookStatusPill({ status }: { status: RunbookStatus }) {
-  const styles: Record<RunbookStatus, string> = {
-    healthy: "bg-emerald-500/15 text-emerald-200 border-emerald-500/40",
-    watch: "bg-amber-500/15 text-amber-200 border-amber-400/40",
-    critical: "bg-red-500/15 text-red-200 border-red-500/40",
+  return {
+    id,
+    toolName,
+    toolType,
+    agentName: agent.agentName,
+    agentEmoji: agent.agentEmoji,
+    status,
+    elapsedMs,
+    maxMs,
+    timestamp,
   };
-
-  return <span className={`rounded-full border px-2 py-0.5 text-xs capitalize ${styles[status]}`}>{status}</span>;
 }
 
-export default function OperatorDashboard() {
-  const [tailMode, setTailMode] = useState<TailMode>("routing");
-  const [selectedAction, setSelectedAction] = useState(smartActions[0]);
-  const [temperature, setTemperature] = useState(0.3);
-  const [autoRemediate, setAutoRemediate] = useState(false);
-  const [providerFailover, setProviderFailover] = useState(true);
-  const [pauseTail, setPauseTail] = useState(false);
-  const [tailQuery, setTailQuery] = useState("");
-  const [selectedRisk, setSelectedRisk] = useState<"all" | RiskLevel>("all");
-  const [selectedIncident, setSelectedIncident] = useState<IncidentTimelineItem | null>(null);
-  const [simPrimary, setSimPrimary] = useState("openai");
-  const [simSecondary, setSimSecondary] = useState("anthropic");
-  const [simTrafficShift, setSimTrafficShift] = useState(35);
-  const [simLatencyThreshold, setSimLatencyThreshold] = useState(1200);
+const INITIAL_TOOL_CALLS: ToolCall[] = Array.from({ length: 12 }, (_, i) =>
+  makeToolCall(`tc-init-${i}`, Date.now() - (12 - i) * 2800)
+);
 
-  const filteredEvents = useMemo(() => {
-    const byMode = journalEvents.filter((event) => event.mode === tailMode);
-    return byMode.filter((event) => {
-      if (!tailQuery) {
-        return true;
-      }
-      const search = tailQuery.toLowerCase();
-      return `${event.summary} ${event.details} ${event.agent}`.toLowerCase().includes(search);
-    });
-  }, [tailMode, tailQuery]);
+const INITIAL_ALERTS: Alert[] = [
+  {
+    id: "a1",
+    severity: "critical",
+    agentName: "Reed",
+    agentEmoji: "\u267F",
+    message: "Agent crashed: browser_navigate timeout after 30s — session terminated",
+    timestamp: Date.now() - 45_000,
+    acknowledged: false,
+    muted: false,
+  },
+  {
+    id: "a2",
+    severity: "error",
+    agentName: "Quinn",
+    agentEmoji: "\u{1F30A}",
+    message: "Test suite failed: 3 of 48 assertions failed in Toast.test.tsx",
+    timestamp: Date.now() - 120_000,
+    acknowledged: false,
+    muted: false,
+  },
+  {
+    id: "a3",
+    severity: "warning",
+    agentName: "Xavier",
+    agentEmoji: "\u{1F3AF}",
+    message: "Token budget at 82% — approaching daily limit ($82.40 of $100.00)",
+    timestamp: Date.now() - 300_000,
+    acknowledged: false,
+    muted: false,
+  },
+  {
+    id: "a4",
+    severity: "warning",
+    agentName: "Stephan",
+    agentEmoji: "\u{1F6E0}\u{FE0F}",
+    message: "Deprecated API calls detected in 14 files — migration recommended",
+    timestamp: Date.now() - 480_000,
+    acknowledged: true,
+    muted: false,
+  },
+  {
+    id: "a5",
+    severity: "info",
+    agentName: "Luis",
+    agentEmoji: "\u{1F3A8}",
+    message: "OperatorDashboard.tsx build succeeded — 0 TypeScript errors",
+    timestamp: Date.now() - 60_000,
+    acknowledged: false,
+    muted: false,
+  },
+  {
+    id: "a6",
+    severity: "info",
+    agentName: "Piper",
+    agentEmoji: "\u{1F9E9}",
+    message: "Design tokens synced — 42 new variants generated",
+    timestamp: Date.now() - 180_000,
+    acknowledged: false,
+    muted: false,
+  },
+  {
+    id: "a7",
+    severity: "error",
+    agentName: "Wes",
+    agentEmoji: "\u{1F4E1}",
+    message: "Staging deploy failed: health check timeout on /api/health endpoint",
+    timestamp: Date.now() - 90_000,
+    acknowledged: false,
+    muted: false,
+  },
+  {
+    id: "a8",
+    severity: "warning",
+    agentName: "Luis",
+    agentEmoji: "\u{1F3A8}",
+    message: "Anthropic API latency spike: avg 2.4s (threshold: 1.5s)",
+    timestamp: Date.now() - 600_000,
+    acknowledged: true,
+    muted: false,
+  },
+];
 
-  const filteredRecommendations = useMemo(() => {
-    if (selectedRisk === "all") {
-      return selfEvalRecommendations;
-    }
-    return selfEvalRecommendations.filter((item) => item.risk === selectedRisk);
-  }, [selectedRisk]);
+const INITIAL_PROVIDERS: ModelProvider[] = [
+  {
+    name: "Anthropic",
+    icon: "\u{1F7E3}",
+    requestsPerMin: 34,
+    avgLatencyMs: 1240,
+    errorRate: 0.8,
+    quotaUsed: 72,
+    quotaTotal: 100,
+    health: "healthy",
+    rateLimitProximity: 68,
+  },
+  {
+    name: "OpenAI",
+    icon: "\u{1F7E2}",
+    requestsPerMin: 12,
+    avgLatencyMs: 890,
+    errorRate: 0.2,
+    quotaUsed: 31,
+    quotaTotal: 100,
+    health: "healthy",
+    rateLimitProximity: 24,
+  },
+  {
+    name: "Google",
+    icon: "\u{1F535}",
+    requestsPerMin: 8,
+    avgLatencyMs: 1680,
+    errorRate: 3.2,
+    quotaUsed: 45,
+    quotaTotal: 100,
+    health: "degraded",
+    rateLimitProximity: 42,
+  },
+  {
+    name: "Local",
+    icon: "\u{1F7E0}",
+    requestsPerMin: 2,
+    avgLatencyMs: 320,
+    errorRate: 0,
+    quotaUsed: 8,
+    quotaTotal: 100,
+    health: "healthy",
+    rateLimitProximity: 5,
+  },
+];
 
-  const totalModelSpend = modelStats.reduce((sum, item) => sum + item.cost, 0);
-  const avgToolSuccess = toolStats.reduce((sum, item) => sum + item.success, 0) / toolStats.length;
-  const totalRequests = modelStats.reduce((sum, item) => sum + item.req, 0);
-  const budgetThreshold = 650;
-  const projectedSpend = totalModelSpend * 1.38;
-  const budgetUsage = Math.min((totalModelSpend / budgetThreshold) * 100, 100);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-  const avgP95 = modelStats.reduce((sum, item) => sum + item.p95, 0) / modelStats.length;
-  const shiftedRequests = Math.round((totalRequests * simTrafficShift) / 100);
-  const failoverTrigger = avgP95 > simLatencyThreshold;
+function formatDuration(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m`;
+  if (m > 0) return `${m}m ${s.toString().padStart(2, "0")}s`;
+  return `${s}s`;
+}
 
-  const topModel = modelStats.toSorted((a, b) => b.cost - a.cost)[0];
-  const anomalyState = projectedSpend > budgetThreshold ? "anomaly" : "stable";
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
 
-  const dependencyEdges = [
-    "Ingress API → Router",
-    "Router → Model Provider",
-    "Router → Tool Executor",
-    "Self-eval → Routing Memory",
-    "Routing Memory → Router",
-  ];
+function formatTimestamp(ts: number): string {
+  const diff = (Date.now() - ts) / 1000;
+  if (diff < 60) return `${Math.floor(diff)}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
+}
 
-  const handoffText = [
-    `Operator handoff @ 11:45`,
-    `- Incident focus: ${incidentTimeline[0]?.title ?? "N/A"}`,
-    `- Budget status: ${anomalyState === "anomaly" ? "Projected overrun risk" : "Within threshold"}`,
-    `- Tail mode in focus: ${tailMode}`,
-    `- Recommended next step: ${selectedAction}`,
-  ].join("\n");
+function formatClock(d: Date): string {
+  return d.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function formatCurrency(n: number): string {
+  return `$${n.toFixed(2)}`;
+}
+
+const SESSION_STATUS_CONFIG: Record<SessionStatus, { label: string; dotClass: string; textClass: string }> = {
+  RUNNING: { label: "RUNNING", dotClass: "bg-emerald-400", textClass: "text-emerald-400" },
+  WAITING: { label: "WAITING", dotClass: "bg-amber-400", textClass: "text-amber-400" },
+  ERROR: { label: "ERROR", dotClass: "bg-red-400", textClass: "text-red-400" },
+};
+
+const TOOL_TYPE_COLORS: Record<ToolType, { bar: string; text: string; label: string }> = {
+  exec: { bar: "bg-amber-500", text: "text-amber-400", label: "Exec" },
+  read: { bar: "bg-blue-500", text: "text-blue-400", label: "Read" },
+  write: { bar: "bg-emerald-500", text: "text-emerald-400", label: "Write" },
+  message: { bar: "bg-violet-500", text: "text-violet-400", label: "Message" },
+  browser: { bar: "bg-cyan-500", text: "text-cyan-400", label: "Browser" },
+};
+
+const SEVERITY_CONFIG: Record<AlertSeverity, { badge: string; border: string; bg: string; label: string }> = {
+  critical: { badge: "bg-red-600 text-white", border: "border-red-500/40", bg: "bg-red-500/5", label: "CRITICAL" },
+  error: { badge: "bg-orange-600 text-white", border: "border-orange-500/40", bg: "bg-orange-500/5", label: "ERROR" },
+  warning: { badge: "bg-yellow-600 text-white", border: "border-yellow-500/40", bg: "bg-yellow-500/5", label: "WARN" },
+  info: { badge: "bg-blue-600 text-white", border: "border-blue-500/40", bg: "bg-blue-500/5", label: "INFO" },
+};
+
+const HEALTH_CONFIG: Record<ProviderHealth, { dot: string; text: string; label: string }> = {
+  healthy: { dot: "bg-emerald-400", text: "text-emerald-400", label: "Healthy" },
+  degraded: { dot: "bg-amber-400", text: "text-amber-400", label: "Degraded" },
+  down: { dot: "bg-red-400", text: "text-red-400", label: "Down" },
+};
+
+// ─── Sub-Components ───────────────────────────────────────────────────────────
+
+function SectionCard({
+  title,
+  icon,
+  children,
+  className,
+  headerRight,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  headerRight?: React.ReactNode;
+}) {
+  return (
+    <div className={cn("rounded-xl border border-zinc-800 bg-zinc-900/80 overflow-hidden flex flex-col", className)}>
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest">{title}</h3>
+        </div>
+        {headerRight}
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+/** Circular gauge for budget usage */
+function BudgetGauge({ spent, total }: { spent: number; total: number }) {
+  const pct = Math.min((spent / total) * 100, 100);
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (pct / 100) * circumference;
+
+  const gaugeColor = pct >= 85 ? "stroke-red-500" : pct >= 60 ? "stroke-amber-500" : "stroke-emerald-500";
+  const textColor = pct >= 85 ? "text-red-400" : pct >= 60 ? "text-amber-400" : "text-emerald-400";
 
   return (
-    <div className="min-h-full rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-950 to-zinc-900 p-4 text-zinc-100 shadow-2xl sm:p-6">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-zinc-800 pb-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-zinc-400">Horizon command center</p>
-          <h1 className="mt-1 text-2xl font-semibold">Operator Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-400">Single place to monitor agent activity, tool reliability, routing decisions, and cost controls.</p>
+    <div className="flex flex-col items-center">
+      <div className="relative w-32 h-32">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            className="text-zinc-800"
+            strokeWidth="8"
+          />
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            fill="none"
+            className={gaugeColor}
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            style={{ transition: "stroke-dashoffset 0.6s ease" }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={cn("text-lg font-bold font-mono", textColor)}>{pct.toFixed(0)}%</span>
+          <span className="text-[10px] text-zinc-500">used</span>
         </div>
-        <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">Live mode · refresh 5s · unified operator surface</div>
-      </header>
+      </div>
+      <div className="mt-2 text-center">
+        <div className="text-sm font-mono text-zinc-200">{formatCurrency(spent)}</div>
+        <div className="text-[10px] text-zinc-500">of {formatCurrency(total)}</div>
+      </div>
+    </div>
+  );
+}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
-          <p className="text-xs uppercase tracking-wide text-zinc-400">Daily spend</p>
-          <p className="mt-2 text-3xl font-semibold">${totalModelSpend.toFixed(2)}</p>
-          <p className="mt-1 text-xs text-zinc-400">Budget usage {budgetUsage.toFixed(0)}% of threshold</p>
-        </article>
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
-          <p className="text-xs uppercase tracking-wide text-zinc-400">Tool success</p>
-          <p className="mt-2 text-3xl font-semibold">{avgToolSuccess.toFixed(1)}%</p>
-          <p className="mt-1 text-xs text-zinc-400">Across {totalRequests.toLocaleString()} model requests today</p>
-        </article>
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
-          <p className="text-xs uppercase tracking-wide text-zinc-400">Self-eval queue</p>
-          <p className="mt-2 text-3xl font-semibold">{selfEvalRecommendations.length} pending</p>
-          <p className="mt-1 text-xs text-zinc-400">2 auto-applicable with guardrails</p>
-        </article>
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
-          <p className="text-xs uppercase tracking-wide text-zinc-400">Active incidents</p>
-          <p className="mt-2 text-3xl font-semibold text-amber-300">{incidentTimeline.length} tracked</p>
-          <p className="mt-1 text-xs text-zinc-400">Top: {incidentTimeline[0]?.title}</p>
-        </article>
-      </section>
-
-      <section className="mt-6 grid gap-4 xl:grid-cols-[1.2fr,1fr]">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Model provider utilization</h2>
-            <span className="text-xs text-zinc-400">Latency + cost + errors</span>
-          </div>
-          <div className="space-y-3">
-            {modelStats.map((item) => (
-              <div key={item.model} className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium">{item.model}</p>
-                    <p className="text-xs text-zinc-400">{item.provider}</p>
-                  </div>
-                  <div className="text-xs text-zinc-300">{item.req} req</div>
-                </div>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-zinc-300">
-                  <p>p95 {item.p95}ms</p>
-                  <p>${item.cost.toFixed(2)}</p>
-                  <p>{item.errorRate}% errors</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Budget guardrail forecast</h2>
-          <p className="mb-2 text-xs text-zinc-400">Current run-rate projection and suggested controls before budget breach.</p>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
-            <div className="h-full bg-gradient-to-r from-cyan-500 to-violet-500" style={{ width: `${budgetUsage}%` }} />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-zinc-300">
-            <p>Threshold: ${budgetThreshold.toFixed(0)}</p>
-            <p>Projected: ${projectedSpend.toFixed(2)}</p>
-            <p>Current: ${totalModelSpend.toFixed(2)}</p>
-            <p className={projectedSpend > budgetThreshold ? "text-red-300" : "text-emerald-300"}>{projectedSpend > budgetThreshold ? "Overrun risk" : "Within guardrail"}</p>
-          </div>
-          <button className="mt-3 w-full rounded-lg border border-cyan-500/40 px-3 py-2 text-sm text-cyan-200 hover:bg-cyan-500/10">Suggest budget policy adjustment</button>
-        </article>
-      </section>
-
-      <section className="mt-6 grid gap-4 xl:grid-cols-[1.2fr,1fr]">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Operator knobs</h2>
-          <div className="space-y-4 text-sm">
-            <label className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2">Provider failover<input type="checkbox" checked={providerFailover} onChange={(e) => setProviderFailover(e.target.checked)} /></label>
-            <label className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2">Auto-remediate safe fixes<input type="checkbox" checked={autoRemediate} onChange={(e) => setAutoRemediate(e.target.checked)} /></label>
-            <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-3">
-              <div className="mb-2 flex items-center justify-between text-xs text-zinc-400"><span>Assistant temperature</span><span>{temperature.toFixed(1)}</span></div>
-              <input className="w-full" type="range" min={0} max={1} step={0.1} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} />
+/** Text-based bar chart for spend by model */
+function ModelSpendChart({ data }: { data: { model: string; spend: number }[] }) {
+  const maxSpend = Math.max(...data.map((d) => d.spend), 1);
+  return (
+    <div className="space-y-2">
+      {data.map((d) => {
+        const pct = (d.spend / maxSpend) * 100;
+        return (
+          <div key={d.model} className="flex items-center gap-2 text-xs">
+            <span className="w-20 text-zinc-400 truncate font-mono text-[11px]">{d.model}</span>
+            <div className="flex-1 h-3 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-violet-500 rounded-full transition-all"
+                style={{ width: `${pct}%` }}
+              />
             </div>
-            <button className="w-full rounded-lg bg-cyan-500 px-3 py-2 font-medium text-zinc-950 hover:bg-cyan-400">Apply knobs to gateway</button>
+            <span className="w-14 text-right text-zinc-300 font-mono text-[11px]">{formatCurrency(d.spend)}</span>
           </div>
-        </article>
+        );
+      })}
+    </div>
+  );
+}
 
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Runbook quick actions</h2>
-          <div className="space-y-2">
-            {runbookActions.map((runbook) => (
-              <div key={runbook.id} className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-                <div className="flex items-center justify-between gap-2"><p className="text-sm font-medium">{runbook.title}</p><RunbookStatusPill status={runbook.status} /></div>
-                <p className="mt-1 text-xs text-zinc-400">Owner: {runbook.owner} · ETA: {runbook.eta}</p>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-[1.2fr,1fr]">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Specialized event viewers (tail)</h2>
-            <div className="flex gap-1 rounded-lg border border-zinc-800 bg-zinc-950/50 p-1">
-              {(["routing", "tools", "self-eval"] as TailMode[]).map((mode) => (
-                <button key={mode} onClick={() => setTailMode(mode)} className={`rounded-md px-2 py-1 text-xs capitalize ${tailMode === mode ? "bg-cyan-500 text-zinc-950" : "text-zinc-300 hover:bg-zinc-800"}`}>{mode}</button>
-              ))}
+export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps) {
+  // State
+  const [sessions, setSessions] = useState<AgentSession[]>(INITIAL_SESSIONS);
+  const [toolCalls, setToolCalls] = useState<ToolCall[]>(INITIAL_TOOL_CALLS);
+  const [alerts, setAlerts] = useState<Alert[]>(INITIAL_ALERTS);
+  const [providers] = useState<ModelProvider[]>(INITIAL_PROVIDERS);
+  const [now, setNow] = useState(Date.now());
+  const [clockTime, setClockTime] = useState(new Date());
+  const [paused, setPaused] = useState(false);
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [alertFilter, setAlertFilter] = useState<"all" | "errors" | "warnings">("all");
+  const toolCallRef = useRef<HTMLDivElement>(null);
+  const toolCallCounter = useRef(INITIAL_TOOL_CALLS.length);
+
+  // Derived metrics
+  const activeSessions = sessions.filter((s) => s.status === "RUNNING").length;
+  const activeAgents = new Set(sessions.map((s) => s.agentName)).size;
+  const errorCount = sessions.filter((s) => s.status === "ERROR").length + alerts.filter((a) => a.severity === "critical" || a.severity === "error").length;
+  const totalTokensToday = sessions.reduce((sum, s) => sum + s.tokensIn + s.tokensOut, 0);
+
+  const budgetSpent = 42.18;
+  const budgetTotal = 100.0;
+  const budgetPct = (budgetSpent / budgetTotal) * 100;
+
+  const modelSpendData = useMemo(
+    () => [
+      { model: "opus-4", spend: 18.42 },
+      { model: "sonnet-4", spend: 14.86 },
+      { model: "haiku-4", spend: 5.90 },
+      { model: "gemini-fl", spend: 2.14 },
+      { model: "local", spend: 0.86 },
+    ],
+    []
+  );
+
+  const tokensPerMin = useMemo(() => {
+    const totalTok = sessions.reduce((s, sess) => s + sess.tokensIn + sess.tokensOut, 0);
+    const avgDurationMin = sessions.reduce((s, sess) => s + (now - sess.startedAt), 0) / sessions.length / 60_000;
+    return avgDurationMin > 0 ? Math.round(totalTok / avgDurationMin) : 0;
+  }, [sessions, now]);
+
+  const dollarsPerHour = ((budgetSpent / ((now - Math.min(...sessions.map((s) => s.startedAt))) / 3_600_000)) || 0).toFixed(2);
+
+  const navCards: NavCard[] = useMemo(
+    () => [
+      { id: "logs", label: "Logs", stat: "2.4K entries", icon: <FileText className="w-4 h-4 text-zinc-400" /> },
+      { id: "sessions", label: "Sessions", stat: `${sessions.length} active`, icon: <Layers className="w-4 h-4 text-violet-400" /> },
+      { id: "approvals", label: "Approvals", stat: "3 pending", icon: <CheckCircle2 className="w-4 h-4 text-amber-400" /> },
+      { id: "alerts", label: "Alerts", stat: `${alerts.filter((a) => !a.acknowledged).length} unread`, icon: <Bell className="w-4 h-4 text-red-400" /> },
+      { id: "budget", label: "Token Budget", stat: `${budgetPct.toFixed(0)}% used`, icon: <DollarSign className="w-4 h-4 text-emerald-400" /> },
+      { id: "health", label: "System Health", stat: "All nominal", icon: <Shield className="w-4 h-4 text-cyan-400" /> },
+    ],
+    [sessions.length, alerts, budgetPct]
+  );
+
+  // Filtered alerts
+  const filteredAlerts = useMemo(() => {
+    let list = alerts.filter((a) => !a.muted);
+    if (alertFilter === "errors") list = list.filter((a) => a.severity === "critical" || a.severity === "error");
+    if (alertFilter === "warnings") list = list.filter((a) => a.severity === "warning");
+    return list.sort((a, b) => b.timestamp - a.timestamp);
+  }, [alerts, alertFilter]);
+
+  // Real-time clock tick (1s)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClockTime(new Date());
+      setNow(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Simulated tool call arrivals (every 2.5s)
+  useEffect(() => {
+    if (paused) return;
+    const interval = setInterval(() => {
+      toolCallCounter.current += 1;
+      const newCall = makeToolCall(`tc-live-${toolCallCounter.current}`, Date.now());
+      // Force some of the new calls to be "running" for visual effect
+      if (toolCallCounter.current % 3 === 0) {
+        newCall.status = "running";
+        newCall.elapsedMs = Math.floor(Math.random() * newCall.maxMs * 0.5);
+      }
+      setToolCalls((prev) => [...prev.slice(-19), newCall]);
+
+      // Auto-scroll waterfall
+      if (toolCallRef.current) {
+        requestAnimationFrame(() => {
+          if (toolCallRef.current) {
+            toolCallRef.current.scrollTop = toolCallRef.current.scrollHeight;
+          }
+        });
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [paused]);
+
+  // Simulated session duration update and token increment (every 2s)
+  useEffect(() => {
+    if (paused) return;
+    const interval = setInterval(() => {
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.status !== "RUNNING") return s;
+          const tokInDelta = Math.floor(Math.random() * 200);
+          const tokOutDelta = Math.floor(Math.random() * 150);
+          return { ...s, tokensIn: s.tokensIn + tokInDelta, tokensOut: s.tokensOut + tokOutDelta };
+        })
+      );
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [paused]);
+
+  // Simulated running tool call elapsed tick (every 500ms)
+  useEffect(() => {
+    if (paused) return;
+    const interval = setInterval(() => {
+      setToolCalls((prev) =>
+        prev.map((tc) => {
+          if (tc.status !== "running") return tc;
+          const newElapsed = tc.elapsedMs + 500;
+          if (newElapsed >= tc.maxMs) {
+            return { ...tc, elapsedMs: tc.maxMs, status: Math.random() > 0.15 ? "complete" : "error" };
+          }
+          return { ...tc, elapsedMs: newElapsed };
+        })
+      );
+    }, 500);
+    return () => clearInterval(interval);
+  }, [paused]);
+
+  // Simulated new alerts (every 15s)
+  useEffect(() => {
+    if (paused) return;
+    const alertMessages: { severity: AlertSeverity; msg: string; agent: AgentSession }[] = [
+      { severity: "info", msg: "Build completed in 4.2s — no errors", agent: INITIAL_SESSIONS[0] },
+      { severity: "warning", msg: "Anthropic rate limit at 78% — throttle recommended", agent: INITIAL_SESSIONS[2] },
+      { severity: "info", msg: "Session checkpoint saved successfully", agent: INITIAL_SESSIONS[5] },
+      { severity: "warning", msg: "Memory usage above 80% for agent process", agent: INITIAL_SESSIONS[6] },
+      { severity: "error", msg: "Failed to write output file — permission denied", agent: INITIAL_SESSIONS[3] },
+    ];
+
+    const interval = setInterval(() => {
+      const pick = alertMessages[Math.floor(Math.random() * alertMessages.length)];
+      const newAlert: Alert = {
+        id: `alert-live-${Date.now()}`,
+        severity: pick.severity,
+        agentName: pick.agent.agentName,
+        agentEmoji: pick.agent.agentEmoji,
+        message: pick.msg,
+        timestamp: Date.now(),
+        acknowledged: false,
+        muted: false,
+      };
+      setAlerts((prev) => [newAlert, ...prev].slice(0, 50));
+    }, 15_000);
+    return () => clearInterval(interval);
+  }, [paused]);
+
+  // Handlers
+  const handleAcknowledge = useCallback((id: string) => {
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
+  }, []);
+
+  const handleMute = useCallback((id: string) => {
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, muted: true } : a)));
+  }, []);
+
+  const handlePauseAll = useCallback(() => {
+    setPaused(true);
+    setSessions((prev) =>
+      prev.map((s) => (s.status === "RUNNING" ? { ...s, status: "WAITING" as SessionStatus, currentTool: "—" } : s))
+    );
+  }, []);
+
+  const handleResumeAll = useCallback(() => {
+    setPaused(false);
+    setSessions((prev) =>
+      prev.map((s, i) => {
+        if (s.status === "WAITING" && INITIAL_SESSIONS[i]?.status === "RUNNING") {
+          return { ...s, status: "RUNNING" as SessionStatus, currentTool: INITIAL_SESSIONS[i].currentTool };
+        }
+        return s;
+      })
+    );
+  }, []);
+
+  const handleEmergencyStop = useCallback(() => {
+    setPaused(true);
+    setSessions((prev) => prev.map((s) => ({ ...s, status: "ERROR" as SessionStatus, currentTool: "—" })));
+    const stopAlert: Alert = {
+      id: `alert-stop-${Date.now()}`,
+      severity: "critical",
+      agentName: "System",
+      agentEmoji: "\u{1F6A8}",
+      message: "EMERGENCY STOP triggered — all agent sessions terminated by operator",
+      timestamp: Date.now(),
+      acknowledged: false,
+      muted: false,
+    };
+    setAlerts((prev) => [stopAlert, ...prev]);
+  }, []);
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+      {/* ═══ Top Status Bar ═══ */}
+      <div className="flex-shrink-0 px-4 py-3 border-b border-zinc-800 bg-zinc-900/60">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          {/* Left: Metrics */}
+          <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-2 mr-3">
+              <Monitor className="w-5 h-5 text-violet-400" aria-hidden="true" />
+              <h1 className="text-sm font-bold tracking-tight whitespace-nowrap">Operator Command Center</h1>
+            </div>
+
+            {/* Status pills */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <StatusPill
+                icon={<Layers className="w-3 h-3" />}
+                label="Sessions"
+                value={String(activeSessions)}
+                colorClass="text-emerald-400"
+              />
+              <StatusPill
+                icon={<Users className="w-3 h-3" />}
+                label="Agents"
+                value={String(activeAgents)}
+                colorClass="text-violet-400"
+              />
+              <StatusPill
+                icon={<AlertTriangle className="w-3 h-3" />}
+                label="Errors"
+                value={String(errorCount)}
+                colorClass={errorCount > 0 ? "text-red-400" : "text-zinc-500"}
+              />
+              <StatusPill
+                icon={<Hash className="w-3 h-3" />}
+                label="Tokens"
+                value={formatTokens(totalTokensToday)}
+                colorClass="text-blue-400"
+              />
+              <StatusPill
+                icon={<Flame className="w-3 h-3" />}
+                label="Burn"
+                value={`${budgetPct.toFixed(0)}%`}
+                colorClass={budgetPct >= 85 ? "text-red-400" : budgetPct >= 60 ? "text-amber-400" : "text-emerald-400"}
+              />
             </div>
           </div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <input className="flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs" placeholder="Filter tail by agent / summary / details" value={tailQuery} onChange={(e) => setTailQuery(e.target.value)} />
-            <button onClick={() => setPauseTail((prev) => !prev)} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs hover:bg-zinc-800">{pauseTail ? "Resume tail" : "Pause tail"}</button>
-          </div>
-          {!filteredEvents.length && <p className="text-xs text-zinc-500">No events match this filter.</p>}
-          <div className="space-y-2">
-            {filteredEvents.map((event) => (
-              <div key={event.id} className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-                <div className="mb-1 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-medium">{event.summary}</p><SeverityBadge level={event.severity} /></div>
-                <p className="text-xs text-zinc-400">{event.at} · {event.agent}</p>
-                <p className="mt-1 text-xs text-zinc-300">{event.details}</p>
-              </div>
-            ))}
-          </div>
-        </article>
 
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">AI copilot smart actions</h2>
-          <p className="mb-3 text-xs text-zinc-400">Use LLM assistance for summaries, suggested remediations, and one-click operator actions.</p>
-          <select className="mb-3 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm" value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)}>
-            {smartActions.map((action) => <option key={action} value={action}>{action}</option>)}
-          </select>
-          <textarea className="h-28 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm" value={`Execute: ${selectedAction}\n\nContext:\n- include current ${tailMode} stream\n- include top 3 spend drivers\n- include suggested risk score`} readOnly />
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800">Preview plan</button>
-            <button className="rounded-lg bg-violet-500 px-3 py-2 text-sm font-medium text-white hover:bg-violet-400">Run action</button>
-          </div>
-        </article>
-      </section>
+          {/* Right: Clock + Actions */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+              <Clock className="w-3 h-3" aria-hidden="true" />
+              <span className="font-mono">{formatClock(clockTime)}</span>
+            </div>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-[1.2fr,1fr]">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="text-sm font-semibold">Tool reliability and decision provenance</h2>
-          <p className="mb-3 text-xs text-zinc-400">Correlates tool outcomes with routing rationale and confidence.</p>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-zinc-400"><tr><th className="px-2 py-2">Tool</th><th className="px-2 py-2">Calls</th><th className="px-2 py-2">Success</th><th className="px-2 py-2">Avg duration</th><th className="px-2 py-2">Top routing reason</th></tr></thead>
-              <tbody>
-                {toolStats.map((tool) => (
-                  <tr key={tool.name} className="border-t border-zinc-800/90"><td className="px-2 py-2 font-medium">{tool.name}</td><td className="px-2 py-2">{tool.calls}</td><td className="px-2 py-2">{tool.success}%</td><td className="px-2 py-2">{tool.avgMs}ms</td><td className="px-2 py-2 text-zinc-400">{tool.reason}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Self-eval recommendation queue</h2>
-            <select className="rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs" value={selectedRisk} onChange={(e) => setSelectedRisk(e.target.value as "all" | RiskLevel)}>
-              <option value="all">All risks</option><option value="low">Low risk</option><option value="medium">Medium risk</option><option value="high">High risk</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            {filteredRecommendations.map((rec) => (
-              <div key={rec.id} className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-                <p className="text-sm font-medium">{rec.title}</p>
-                <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-400"><span>Confidence {(rec.confidence * 100).toFixed(0)}%</span><span>Expected gain {rec.expectedGain}</span><span className="capitalize">Risk {rec.risk}</span></div>
-                <div className="mt-2 flex gap-2"><button className="rounded-md border border-emerald-500/40 px-2 py-1 text-xs text-emerald-200 hover:bg-emerald-500/10">Apply</button><button className="rounded-md border border-zinc-700 px-2 py-1 text-xs hover:bg-zinc-800">Inspect</button><button className="rounded-md border border-zinc-700 px-2 py-1 text-xs hover:bg-zinc-800">Dismiss</button></div>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section className="mt-6 grid gap-4 xl:grid-cols-2">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Incident timeline drilldown</h2>
-            <span className="text-xs text-zinc-500">Click a row for context</span>
-          </div>
-          <div className="space-y-2">
-            {incidentTimeline.map((incident) => (
-              <button key={incident.id} onClick={() => setSelectedIncident(incident)} className="w-full rounded-lg border border-zinc-800 bg-zinc-950/60 p-3 text-left hover:border-cyan-500/50">
-                <p className="text-xs text-zinc-500">{incident.startedAt} · {incident.service}</p>
-                <p className="text-sm font-medium">{incident.title}</p>
-                <p className="text-xs text-zinc-400">{incident.summary}</p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handlePauseAll}
+                disabled={paused}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all",
+                  paused
+                    ? "border-zinc-700 text-zinc-600 cursor-not-allowed"
+                    : "border-amber-500/40 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+                )}
+              >
+                <Pause className="w-3 h-3" aria-hidden="true" />
+                Pause All
               </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Provider failover simulator</h2>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <label className="text-zinc-400">Primary<select className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-200" value={simPrimary} onChange={(e) => setSimPrimary(e.target.value)}><option>openai</option><option>anthropic</option><option>google</option></select></label>
-            <label className="text-zinc-400">Secondary<select className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-200" value={simSecondary} onChange={(e) => setSimSecondary(e.target.value)}><option>anthropic</option><option>openai</option><option>google</option></select></label>
-          </div>
-          <div className="mt-3 space-y-3 text-xs text-zinc-300">
-            <div>
-              <div className="mb-1 flex justify-between"><span>Traffic shift</span><span>{simTrafficShift}%</span></div>
-              <input className="w-full" type="range" min={0} max={100} step={5} value={simTrafficShift} onChange={(e) => setSimTrafficShift(Number(e.target.value))} />
+              <button
+                type="button"
+                onClick={handleResumeAll}
+                disabled={!paused}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all",
+                  !paused
+                    ? "border-zinc-700 text-zinc-600 cursor-not-allowed"
+                    : "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                )}
+              >
+                <Play className="w-3 h-3" aria-hidden="true" />
+                Resume
+              </button>
+              <button
+                type="button"
+                onClick={handleEmergencyStop}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-red-500/40 text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all"
+              >
+                <Power className="w-3 h-3" aria-hidden="true" />
+                Emergency Stop
+              </button>
             </div>
-            <div>
-              <div className="mb-1 flex justify-between"><span>Latency trigger</span><span>{simLatencyThreshold}ms</span></div>
-              <input className="w-full" type="range" min={700} max={1800} step={50} value={simLatencyThreshold} onChange={(e) => setSimLatencyThreshold(Number(e.target.value))} />
-            </div>
-            <div className="rounded border border-zinc-700 bg-zinc-950 p-2">
-              <p>Current avg p95: {avgP95.toFixed(0)}ms</p>
-              <p>Shifted requests: {shiftedRequests}</p>
-              <p className={failoverTrigger ? "text-amber-300" : "text-emerald-300"}>{failoverTrigger ? "Failover would trigger" : "Failover remains idle"}</p>
-            </div>
           </div>
-        </article>
-      </section>
+        </div>
+      </div>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-3">
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Cost anomaly mini-view</h2>
-          <p className="text-xs text-zinc-400">Fast glance at likely budget anomalies.</p>
-          <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3 text-xs">
-            <p>Top model spend: {topModel.model} (${topModel.cost.toFixed(2)})</p>
-            <p>Projected daily: ${projectedSpend.toFixed(2)}</p>
-            <p className={anomalyState === "anomaly" ? "text-red-300" : "text-emerald-300"}>{anomalyState === "anomaly" ? "Anomaly risk elevated" : "Spend trend stable"}</p>
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Operator handoff generator</h2>
-          <textarea className="h-32 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs" value={handoffText} readOnly />
-          <button className="mt-3 w-full rounded-lg border border-zinc-700 px-3 py-2 text-xs hover:bg-zinc-800">Copy handoff draft</button>
-        </article>
-
-        <article className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <h2 className="mb-3 text-sm font-semibold">Routing dependency graph</h2>
-          <p className="text-xs text-zinc-400">Compact view of control-plane relationships.</p>
-          <ul className="mt-2 space-y-1 text-xs text-zinc-300">
-            {dependencyEdges.map((edge) => (
-              <li key={edge} className="rounded border border-zinc-800 bg-zinc-950/60 px-2 py-1">{edge}</li>
-            ))}
-          </ul>
-        </article>
-      </section>
-
-      {selectedIncident && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-2xl rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
-            <div className="mb-2 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs text-zinc-500">{selectedIncident.startedAt} · {selectedIncident.service}</p>
-                <h3 className="text-lg font-semibold">{selectedIncident.title}</h3>
+      {/* ═══ Main Grid ═══ */}
+      <div className="flex-1 min-h-0 overflow-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full" style={{ gridAutoRows: "min-content" }}>
+          {/* ─── Left Column, Top: Live Sessions Panel ─── */}
+          <SectionCard
+            title="Live Sessions"
+            icon={<Activity className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />}
+            className="lg:row-span-1"
+            headerRight={
+              <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <span className={cn("w-1.5 h-1.5 bg-emerald-400 rounded-full", !paused && "animate-pulse")} />
+                {paused ? "PAUSED" : "LIVE"}
+              </span>
+            }
+          >
+            <div className="overflow-auto max-h-[340px]">
+              {/* Table header */}
+              <div className="grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2 border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-widest font-semibold sticky top-0 bg-zinc-900/95 z-10">
+                <span>Agent</span>
+                <span>Status</span>
+                <span>Current Tool</span>
+                <span>Tokens (I/O)</span>
+                <span>Duration</span>
               </div>
-              <button onClick={() => setSelectedIncident(null)} className="rounded border border-zinc-700 px-2 py-1 text-xs hover:bg-zinc-800">Close</button>
+              {/* Rows */}
+              {sessions.map((session) => {
+                const statusCfg = SESSION_STATUS_CONFIG[session.status];
+                const duration = now - session.startedAt;
+                const isExpanded = expandedSession === session.id;
+
+                return (
+                  <div key={session.id} className="border-b border-zinc-800/50 last:border-b-0">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedSession(isExpanded ? null : session.id)}
+                      className="w-full grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2.5 text-xs hover:bg-zinc-800/40 transition-colors text-left items-center"
+                    >
+                      <span className="flex items-center gap-2 truncate">
+                        <span className="text-base" aria-hidden="true">{session.agentEmoji}</span>
+                        <span className="font-medium text-zinc-200 truncate">{session.agentName}</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className={cn("w-2 h-2 rounded-full flex-shrink-0", statusCfg.dotClass, session.status === "RUNNING" && !paused && "animate-pulse")} />
+                        <span className={cn("font-mono text-[10px] font-semibold", statusCfg.textClass)}>{statusCfg.label}</span>
+                      </span>
+                      <span className="font-mono text-zinc-400 truncate text-[11px]">{session.currentTool}</span>
+                      <span className="font-mono text-zinc-400 text-[11px]">
+                        {formatTokens(session.tokensIn)}/{formatTokens(session.tokensOut)}
+                      </span>
+                      <span className="font-mono text-zinc-400 text-[11px]">{formatDuration(duration)}</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="px-4 pb-3 pt-1">
+                        <div className="bg-zinc-800/60 rounded-lg p-3 space-y-1.5 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-500 w-14">Model:</span>
+                            <span className="font-mono text-violet-300">{session.model}</span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-zinc-500 w-14">Task:</span>
+                            <span className="text-zinc-300">{session.task}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-500 w-14">Started:</span>
+                            <span className="text-zinc-400 font-mono">{formatTimestamp(session.startedAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <p className="text-sm text-zinc-300">{selectedIncident.summary}</p>
-            <p className="mt-1 text-xs text-zinc-400">Impact: {selectedIncident.impact}</p>
-            <div className="mt-3 space-y-1">
-              {selectedIncident.actions.map((action) => (
-                <p key={action} className="rounded border border-zinc-800 bg-zinc-950/70 px-2 py-1 text-xs">• {action}</p>
+          </SectionCard>
+
+          {/* ─── Right Column, Top: Budget & Cost Panel ─── */}
+          <SectionCard
+            title="Budget & Cost"
+            icon={<DollarSign className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />}
+            className="lg:row-span-1"
+          >
+            <div className="p-4 space-y-5 overflow-auto max-h-[340px]">
+              <div className="flex items-start gap-6">
+                {/* Gauge */}
+                <BudgetGauge spent={budgetSpent} total={budgetTotal} />
+                {/* Spend by model */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-2">Spend by Model</div>
+                  <ModelSpendChart data={modelSpendData} />
+                </div>
+              </div>
+
+              {/* Burn rate */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Tokens/min</div>
+                  <div className="text-lg font-bold font-mono text-zinc-100">{tokensPerMin.toLocaleString()}</div>
+                </div>
+                <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">$/hr</div>
+                  <div className="text-lg font-bold font-mono text-zinc-100">${dollarsPerHour}</div>
+                </div>
+              </div>
+
+              {/* Threshold bar */}
+              <div>
+                <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-2">Daily Budget Threshold</div>
+                <div className="relative h-4 bg-zinc-800 rounded-full overflow-hidden">
+                  {/* Green zone < 60% */}
+                  <div className="absolute inset-y-0 left-0 w-[60%] bg-emerald-900/40 border-r border-emerald-500/30" />
+                  {/* Yellow zone 60-85% */}
+                  <div className="absolute inset-y-0 left-[60%] w-[25%] bg-amber-900/30 border-r border-amber-500/30" />
+                  {/* Red zone > 85% */}
+                  <div className="absolute inset-y-0 left-[85%] w-[15%] bg-red-900/30" />
+                  {/* Current position */}
+                  <div
+                    className={cn(
+                      "absolute inset-y-0 left-0 rounded-full transition-all",
+                      budgetPct >= 85 ? "bg-red-500" : budgetPct >= 60 ? "bg-amber-500" : "bg-emerald-500"
+                    )}
+                    style={{ width: `${Math.min(budgetPct, 100)}%`, opacity: 0.7 }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1 text-[9px] text-zinc-600 font-mono">
+                  <span>$0</span>
+                  <span className="text-emerald-600">60%</span>
+                  <span className="text-amber-600">85%</span>
+                  <span>${budgetTotal.toFixed(0)}</span>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* ─── Left Column, Bottom: Tool Call Waterfall ─── */}
+          <SectionCard
+            title="Tool Call Waterfall"
+            icon={<Zap className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />}
+            className="lg:row-span-1"
+            headerRight={
+              <div className="flex items-center gap-2">
+                {TOOL_TYPES.map((t) => (
+                  <span key={t} className={cn("text-[9px] font-mono flex items-center gap-1", TOOL_TYPE_COLORS[t].text)}>
+                    <span className={cn("w-1.5 h-1.5 rounded-sm", TOOL_TYPE_COLORS[t].bar)} />
+                    {TOOL_TYPE_COLORS[t].label}
+                  </span>
+                ))}
+              </div>
+            }
+          >
+            <div ref={toolCallRef} className="overflow-auto max-h-[280px] p-3 space-y-1.5">
+              {toolCalls.map((tc) => {
+                const typeConfig = TOOL_TYPE_COLORS[tc.toolType];
+                const pct = tc.maxMs > 0 ? (tc.elapsedMs / tc.maxMs) * 100 : 0;
+                return (
+                  <div key={tc.id} className="flex items-center gap-2 text-[11px]">
+                    <span className="w-4 text-base flex-shrink-0" aria-hidden="true">{tc.agentEmoji}</span>
+                    <span className="w-16 text-zinc-500 truncate">{tc.agentName}</span>
+                    <span className={cn("w-28 font-mono truncate", typeConfig.text)}>{tc.toolName}</span>
+                    <div className="flex-1 h-4 bg-zinc-800 rounded overflow-hidden relative">
+                      <div
+                        className={cn(
+                          "h-full rounded transition-all",
+                          tc.status === "error" ? "bg-red-500" : typeConfig.bar,
+                          tc.status === "running" && "animate-pulse"
+                        )}
+                        style={{ width: `${Math.min(pct, 100)}%`, opacity: tc.status === "complete" ? 0.6 : 0.9 }}
+                      />
+                      {tc.status === "running" && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-[9px] text-white font-mono font-bold drop-shadow">{tc.elapsedMs}ms</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="w-12 text-right font-mono text-zinc-500 text-[10px]">{tc.elapsedMs}ms</span>
+                    <span className="w-4 flex-shrink-0">
+                      {tc.status === "complete" && <CheckCircle2 className="w-3 h-3 text-emerald-500" aria-hidden="true" />}
+                      {tc.status === "error" && <AlertTriangle className="w-3 h-3 text-red-500" aria-hidden="true" />}
+                      {tc.status === "running" && <RefreshCw className="w-3 h-3 text-amber-400 animate-spin" aria-hidden="true" />}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </SectionCard>
+
+          {/* ─── Right Column, Middle: Alert Feed ─── */}
+          <SectionCard
+            title="Alert Feed"
+            icon={<Bell className="w-3.5 h-3.5 text-red-400" aria-hidden="true" />}
+            className="lg:row-span-1"
+            headerRight={
+              <div className="flex items-center gap-1">
+                {(["all", "errors", "warnings"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setAlertFilter(f)}
+                    className={cn(
+                      "px-2 py-0.5 text-[10px] font-semibold rounded transition-all uppercase tracking-wider",
+                      alertFilter === f
+                        ? "bg-zinc-700 text-zinc-100"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            }
+          >
+            <div className="overflow-auto max-h-[280px]" role="log" aria-label="Alert feed" aria-live="polite">
+              {filteredAlerts.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-8 text-zinc-600 text-xs">
+                  <CheckCircle2 className="w-6 h-6 mb-2 opacity-40" />
+                  No alerts matching filter
+                </div>
+              )}
+              {filteredAlerts.map((alert) => {
+                const sevCfg = SEVERITY_CONFIG[alert.severity];
+                return (
+                  <div
+                    key={alert.id}
+                    className={cn(
+                      "flex items-start gap-3 px-4 py-2.5 border-b border-zinc-800/50 transition-colors",
+                      alert.acknowledged ? "opacity-50" : sevCfg.bg
+                    )}
+                  >
+                    <span className="text-base flex-shrink-0 mt-0.5" aria-hidden="true">{alert.agentEmoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <span className={cn("px-1.5 py-0.5 text-[9px] font-bold rounded", sevCfg.badge)}>{sevCfg.label}</span>
+                        <span className="text-xs font-medium text-zinc-300">{alert.agentName}</span>
+                        <span className="text-[10px] text-zinc-600 font-mono">{formatTimestamp(alert.timestamp)}</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed">{alert.message}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                      {!alert.acknowledged && (
+                        <button
+                          type="button"
+                          onClick={() => handleAcknowledge(alert.id)}
+                          className="px-1.5 py-0.5 text-[9px] font-semibold text-zinc-400 border border-zinc-700 rounded hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                          title="Acknowledge"
+                        >
+                          ACK
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleMute(alert.id)}
+                        className="p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                        title="Mute"
+                      >
+                        <VolumeX className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </SectionCard>
+
+          {/* ─── Full Width: Model Provider Utilization ─── */}
+          <SectionCard
+            title="Model Provider Utilization"
+            icon={<Globe className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />}
+            className="lg:col-span-2"
+          >
+            <div className="overflow-auto">
+              <div className="grid grid-cols-[repeat(4,1fr)] divide-x divide-zinc-800 min-w-[640px]">
+                {providers.map((provider) => {
+                  const healthCfg = HEALTH_CONFIG[provider.health];
+                  const quotaPct = provider.quotaTotal > 0 ? (provider.quotaUsed / provider.quotaTotal) * 100 : 0;
+                  const rlColor =
+                    provider.rateLimitProximity >= 80
+                      ? "text-red-400"
+                      : provider.rateLimitProximity >= 50
+                        ? "text-amber-400"
+                        : "text-emerald-400";
+
+                  return (
+                    <div key={provider.name} className="p-4 space-y-3">
+                      {/* Provider header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{provider.icon}</span>
+                          <span className="text-sm font-semibold text-zinc-200">{provider.name}</span>
+                        </div>
+                        <span className="flex items-center gap-1">
+                          <span className={cn("w-2 h-2 rounded-full", healthCfg.dot)} />
+                          <span className={cn("text-[10px] font-semibold", healthCfg.text)}>{healthCfg.label}</span>
+                        </span>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-zinc-500">Requests/min</span>
+                          <span className="font-mono text-zinc-300">{provider.requestsPerMin}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-zinc-500">Avg Latency</span>
+                          <span className="font-mono text-zinc-300">{provider.avgLatencyMs}ms</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-zinc-500">Error Rate</span>
+                          <span className={cn("font-mono", provider.errorRate > 2 ? "text-red-400" : provider.errorRate > 0 ? "text-amber-400" : "text-emerald-400")}>
+                            {provider.errorRate}%
+                          </span>
+                        </div>
+
+                        {/* Quota bar */}
+                        <div>
+                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                            <span>Quota</span>
+                            <span className="font-mono">{quotaPct.toFixed(0)}%</span>
+                          </div>
+                          <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all",
+                                quotaPct >= 85 ? "bg-red-500" : quotaPct >= 60 ? "bg-amber-500" : "bg-emerald-500"
+                              )}
+                              style={{ width: `${quotaPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Rate limit proximity */}
+                        {provider.rateLimitProximity >= 40 && (
+                          <div className={cn("flex items-center gap-1.5 text-[10px] font-semibold", rlColor)}>
+                            <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+                            Rate limit: {provider.rateLimitProximity}% proximity
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* ─── Full Width: Quick Navigation Cards ─── */}
+          <div className="lg:col-span-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {navCards.map((card) => (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() => onNavigate?.(card.id)}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-zinc-700 transition-all group text-center"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                    {card.icon}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-zinc-300 group-hover:text-white transition-colors">{card.label}</div>
+                    <div className="text-[10px] text-zinc-600 font-mono mt-0.5">{card.stat}</div>
+                  </div>
+                </button>
               ))}
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Inline Helper Components ─────────────────────────────────────────────────
+
+function StatusPill({
+  icon,
+  label,
+  value,
+  colorClass,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  colorClass: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 text-[11px]">
+      <span className={cn("opacity-70", colorClass)}>{icon}</span>
+      <span className="text-zinc-500">{label}</span>
+      <span className={cn("font-mono font-bold", colorClass)}>{value}</span>
     </div>
   );
 }

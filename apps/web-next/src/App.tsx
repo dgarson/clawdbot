@@ -14,6 +14,16 @@ import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
 import ThemeToggle from "./components/ui/ThemeToggle";
 
+// Operator-mode types
+interface OperatorDashboardProps {
+  onNavigate?: (viewId: string) => void;
+}
+interface OperatorAICopilotProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onNavigate?: (viewId: string) => void;
+}
+
 // Component prop types
 interface ChatInterfaceProps {
   agentId?: string;
@@ -314,7 +324,107 @@ const QueueInspector                 = React.lazy(() => import("./views/QueueIns
 const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
 
+// Operator Dashboard views
+const OperatorDashboard    = React.lazy<React.ComponentType<OperatorDashboardProps>>(() => import("./views/OperatorDashboard"));
+const OperatorAICopilot    = React.lazy<React.ComponentType<OperatorAICopilotProps>>(() => import("./views/OperatorAICopilot"));
+const LiveLogTail          = React.lazy(() => import("./views/LiveLogTail"));
+const DecisionProvenance   = React.lazy(() => import("./views/DecisionProvenance"));
+
+// ============================================================================
+// Navigation Groups — Operator vs Standard mode
+// ============================================================================
+
+interface NavItem {
+  id: string;
+  label: string;
+  emoji: string;
+  shortcut: string | null;
+}
+
+interface NavGroup {
+  id: string;
+  label: string;
+  items: NavItem[];
+}
+
+const operatorNavGroups: NavGroup[] = [
+  {
+    id: "ops-command",
+    label: "Command Center",
+    items: [
+      { id: "operator-dashboard", label: "Operator Dashboard", emoji: "🖥️", shortcut: "1" },
+      { id: "live-logs",          label: "Live Log Tail",      emoji: "📜", shortcut: "2" },
+      { id: "decision-provenance", label: "Decision Provenance", emoji: "🧠", shortcut: "3" },
+    ],
+  },
+  {
+    id: "ops-monitoring",
+    label: "Monitoring",
+    items: [
+      { id: "pulse",              label: "Agent Pulse",        emoji: "📡", shortcut: null },
+      { id: "system-health",      label: "System Health",      emoji: "🩺", shortcut: null },
+      { id: "alerts",             label: "Alert Center",       emoji: "🚨", shortcut: null },
+      { id: "telemetry",          label: "Telemetry",          emoji: "📡", shortcut: null },
+      { id: "model-health",       label: "Model Health",       emoji: "💚", shortcut: null },
+      { id: "logs",               label: "Log Viewer",         emoji: "📜", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-sessions",
+    label: "Sessions & Agents",
+    items: [
+      { id: "sessions",           label: "Sessions",           emoji: "🌳", shortcut: null },
+      { id: "tracer",             label: "Agent Tracer",       emoji: "🔭", shortcut: null },
+      { id: "workload",           label: "Agent Workload",     emoji: "👥", shortcut: null },
+      { id: "agent-insights",     label: "Agent Insights",     emoji: "📊", shortcut: null },
+      { id: "history",            label: "Session History",    emoji: "🕐", shortcut: null },
+      { id: "session-replay",     label: "Session Replay",     emoji: "▶️", shortcut: null },
+      { id: "mcp",                label: "MCP Inspector",      emoji: "🔧", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-cost",
+    label: "Budget & Cost",
+    items: [
+      { id: "usage",              label: "Usage & Costs",      emoji: "📈", shortcut: null },
+      { id: "token-ledger",       label: "Token Ledger",       emoji: "🪙", shortcut: null },
+      { id: "budget-tracker",     label: "Budget Tracker",     emoji: "💵", shortcut: null },
+      { id: "cost",               label: "Cost Optimizer",     emoji: "💰", shortcut: null },
+      { id: "rate-limits",        label: "Rate Limits",        emoji: "⚡", shortcut: null },
+      { id: "quotas",             label: "Quotas",             emoji: "📏", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-models",
+    label: "Models & Routing",
+    items: [
+      { id: "models",             label: "Models",             emoji: "🤖", shortcut: null },
+      { id: "model-router",       label: "Model Router",       emoji: "🔀", shortcut: null },
+      { id: "benchmark",          label: "Model Benchmark",    emoji: "📈", shortcut: null },
+      { id: "model-compare",      label: "Model Comparator",   emoji: "⚖️", shortcut: null },
+      { id: "providers",          label: "Providers",          emoji: "🔐", shortcut: null },
+      { id: "llm-playground",     label: "LLM Playground",     emoji: "🎮", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-config",
+    label: "Configuration",
+    items: [
+      { id: "settings",           label: "Settings",           emoji: "⚙️", shortcut: null },
+      { id: "config-review",      label: "Config Review",      emoji: "🔍", shortcut: null },
+      { id: "cron",               label: "Schedules",          emoji: "⏰", shortcut: null },
+      { id: "feature-flags",      label: "Feature Flags",      emoji: "🚩", shortcut: null },
+      { id: "permissions",        label: "Permissions",        emoji: "🔐", shortcut: null },
+      { id: "env-vars",           label: "Environment",        emoji: "🔑", shortcut: null },
+      { id: "rules",              label: "Rule Engine",        emoji: "📋", shortcut: null },
+    ],
+  },
+];
+
 export const navItems = [
+  { id: "operator-dashboard",    label: "Operator Dashboard",   emoji: "🖥️", shortcut: null },
+  { id: "live-logs",             label: "Live Log Tail",        emoji: "📜", shortcut: null },
+  { id: "decision-provenance",   label: "Decision Provenance",  emoji: "🧠", shortcut: null },
   { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: null },
   { id: "today-command",         label: "Today Command Center", emoji: "🧭", shortcut: null },
   { id: "action-inbox",          label: "Action Inbox",         emoji: "📥", shortcut: null },
@@ -603,6 +713,9 @@ export const navItems = [
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
+  "operator-dashboard": <DashboardSkeleton />,
+  "live-logs":          <ContentSkeleton />,
+  "decision-provenance": <ContentSkeleton />,
   dashboard:     <DashboardSkeleton />,
   "today-command": <DashboardSkeleton />,
   "action-inbox": <TableSkeleton rows={8} />,
@@ -1025,6 +1138,34 @@ function AppContent() {
   const { visitView, recordInteraction } = useProficiency();
   const notificationUnreadCount = useNotificationUnreadCount();
 
+  // Operator mode state
+  const [operatorMode, setOperatorMode] = useState(() => {
+    try { return localStorage.getItem("oc_operator_mode") === "true"; } catch { return false; }
+  });
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  const toggleOperatorMode = useCallback(() => {
+    setOperatorMode(prev => {
+      const next = !prev;
+      try { localStorage.setItem("oc_operator_mode", String(next)); } catch {}
+      if (next) {
+        setActiveView("operator-dashboard");
+      } else {
+        setActiveView("dashboard");
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleGroup = useCallback((groupId: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
+      return next;
+    });
+  }, []);
+
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
   const currentCategory = getNavCategory(currentNav);
   const canGoBack = historyIndex > 0;
@@ -1131,9 +1272,24 @@ function AppContent() {
         return;
       }
 
+      // Cmd+J / Ctrl+J — AI Copilot (operator mode)
+      if ((e.metaKey || e.ctrlKey) && e.key === "j" && operatorMode) {
+        e.preventDefault();
+        setCopilotOpen((prev) => !prev);
+        return;
+      }
+
+      // Cmd+Shift+O — toggle operator mode
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "O") {
+        e.preventDefault();
+        toggleOperatorMode();
+        return;
+      }
+
       // Escape — close in priority order
       if (e.key === "Escape") {
         if (cmdPaletteOpen) { setCmdPaletteOpen(false); return; }
+        if (copilotOpen) { setCopilotOpen(false); return; }
         if (shortcutsOpen) { setShortcutsOpen(false); return; }
         if (mobileSidebarOpen) { setMobileSidebarOpen(false); return; }
       }
@@ -1173,7 +1329,7 @@ function AppContent() {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, navigate, goBack, goForward, openCommandPalette]);
+  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, copilotOpen, operatorMode, navigate, goBack, goForward, openCommandPalette, toggleOperatorMode]);
 
   // Focus search when palette opens
   useEffect(() => {
@@ -1245,6 +1401,9 @@ function AppContent() {
 
   const renderView = () => {
     switch (activeView) {
+      case "operator-dashboard": return <OperatorDashboard onNavigate={navigate} />;
+      case "live-logs":          return <LiveLogTail />;
+      case "decision-provenance": return <DecisionProvenance onNavigate={navigate} />;
       case "morning-packet": return <MorningPacket />;
       case "today-command": return <TodayCommandCenter />;
       case "action-inbox": return <ActionInboxView />;
@@ -1558,7 +1717,7 @@ function AppContent() {
           mobileSidebarOpen && "flex fixed inset-y-0 left-0 w-64 shadow-2xl"
         )}
       >
-        {/* Logo */}
+        {/* Logo + Operator Mode Toggle */}
         <div className="flex items-center gap-3 p-4 border-b border-border">
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -1571,9 +1730,22 @@ function AppContent() {
           {!sidebarCollapsed && (
             <span className="font-bold text-lg text-foreground" data-tour="brand">OpenClaw</span>
           )}
+          {!sidebarCollapsed && (
+            <button
+              onClick={toggleOperatorMode}
+              className={cn(
+                "ml-auto text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border transition-colors",
+                operatorMode
+                  ? "bg-violet-600/20 text-violet-400 border-violet-500/30 hover:bg-violet-600/30"
+                  : "bg-secondary/50 text-muted-foreground border-border hover:text-foreground hover:bg-secondary"
+              )}
+              title={operatorMode ? "Switch to Standard mode" : "Switch to Operator mode"}
+            >
+              {operatorMode ? "OPS" : "STD"}
+            </button>
+          )}
         </div>
 
-        {/* Nav */}
         {!sidebarCollapsed && (
           <div className="p-2 border-b border-border space-y-2">
             <input
@@ -1604,47 +1776,92 @@ function AppContent() {
             </div>
           </div>
         )}
+        {/* Nav — Operator Mode: Grouped | Standard Mode: Flat */}
         <nav className="flex-1 overflow-y-auto py-2" data-tour="sidebar">
-          {visibleNavItems.map((item) => (
-            <button
-              key={item.id}
-              data-tour={`nav-${item.id}`}
-              onClick={() => navigate(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                activeView === item.id
-                  ? "bg-primary/10 text-primary border-r-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+          {operatorMode ? (
+            <>
+              {operatorNavGroups.map((group) => {
+                const isCollapsed = collapsedGroups.has(group.id);
+                return (
+                  <div key={group.id}>
+                    {!sidebarCollapsed && (
+                      <button
+                        onClick={() => toggleGroup(group.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                      >
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" className={cn("transition-transform", isCollapsed ? "" : "rotate-90")}>
+                          <path d="M2 1l4 3-4 3z" />
+                        </svg>
+                        {group.label}
+                      </button>
+                    )}
+                    {!isCollapsed && group.items.map((item) => (
+                      <button
+                        key={item.id}
+                        data-tour={`nav-${item.id}`}
+                        onClick={() => navigate(item.id)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                          activeView === item.id ? "bg-primary/10 text-primary border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                        )}
+                        aria-current={activeView === item.id ? "page" : undefined}
+                        title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
+                      >
+                        <span className="text-base" aria-hidden="true">{item.emoji}</span>
+                        {!sidebarCollapsed && <span>{item.label}</span>}
+                        {!sidebarCollapsed && item.shortcut && <span className="ml-auto text-xs text-muted-foreground/50 font-mono">⌥{item.shortcut}</span>}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+              {!sidebarCollapsed && (
+                <div className="px-3 pt-3 pb-1 border-t border-border mt-2">
+                  <button
+                    onClick={() => setCopilotOpen(true)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg bg-violet-600/10 text-violet-400 border border-violet-500/20 hover:bg-violet-600/20 transition-colors"
+                  >
+                    <span className="text-base">✨</span>
+                    <span>AI Copilot</span>
+                    <span className="ml-auto text-[9px] bg-violet-600/30 px-1.5 py-0.5 rounded font-mono">⌘J</span>
+                  </button>
+                </div>
               )}
-              aria-current={activeView === item.id ? "page" : undefined}
-              title={
-                item.shortcut
-                  ? `${item.label} (Alt+${item.shortcut})`
-                  : item.label
-              }
-            >
-              <span className="text-base relative" aria-hidden="true">
-                {item.emoji}
-                {item.id === "notifications" && notificationUnreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+            </>
+          ) : (
+            visibleNavItems.map((item) => (
+              <button
+                key={item.id}
+                data-tour={`nav-${item.id}`}
+                onClick={() => navigate(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                  activeView === item.id ? "bg-primary/10 text-primary border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                )}
+                aria-current={activeView === item.id ? "page" : undefined}
+                title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
+              >
+                <span className="text-base relative" aria-hidden="true">
+                  {item.emoji}
+                  {item.id === "notifications" && notificationUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                    </span>
+                  )}
+                </span>
+                {!sidebarCollapsed && <span>{item.label}</span>}
+                {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                    {notificationUnreadCount}
                   </span>
                 )}
-              </span>
-              {!sidebarCollapsed && <span>{item.label}</span>}
-              {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
-                <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
-                  {notificationUnreadCount}
-                </span>
-              )}
-              {!sidebarCollapsed && item.shortcut && item.id !== "notifications" && (
-                <span className="ml-auto text-xs text-muted-foreground/50 font-mono">
-                  ⌥{item.shortcut}
-                </span>
-              )}
-            </button>
-          ))}
-          {visibleNavItems.length === 0 && (
+                {!sidebarCollapsed && item.shortcut && item.id !== "notifications" && (
+                  <span className="ml-auto text-xs text-muted-foreground/50 font-mono">⌥{item.shortcut}</span>
+                )}
+              </button>
+            ))
+          )}
+          {!operatorMode && visibleNavItems.length === 0 && (
             <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
           )}
         </nav>
@@ -1734,6 +1951,17 @@ function AppContent() {
             <span className="text-xl">🐾</span>
             <span className="font-bold text-lg text-foreground">OpenClaw</span>
             <button
+              onClick={toggleOperatorMode}
+              className={cn(
+                "text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border transition-colors",
+                operatorMode
+                  ? "bg-violet-600/20 text-violet-400 border-violet-500/30"
+                  : "bg-secondary/50 text-muted-foreground border-border"
+              )}
+            >
+              {operatorMode ? "OPS" : "STD"}
+            </button>
+            <button
               onClick={() => setMobileSidebarOpen(false)}
               className="ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label="Close menu"
@@ -1770,35 +1998,61 @@ function AppContent() {
             </div>
           </div>
           <nav className="flex-1 overflow-y-auto py-2">
-            {visibleNavItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => navigate(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
-                  activeView === item.id
-                    ? "bg-primary/10 text-primary border-r-2 border-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                )}
-                aria-current={activeView === item.id ? "page" : undefined}
-              >
-                <span className="text-base relative" aria-hidden="true">
-                  {item.emoji}
+            {operatorMode ? (
+              operatorNavGroups.map((group) => (
+                <div key={group.id}>
+                  <div className="px-4 py-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">
+                    {group.label}
+                  </div>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => navigate(item.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
+                        activeView === item.id
+                          ? "bg-primary/10 text-primary border-r-2 border-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                      )}
+                      aria-current={activeView === item.id ? "page" : undefined}
+                    >
+                      <span className="text-base" aria-hidden="true">{item.emoji}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              ))
+            ) : (
+              navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
+                    activeView === item.id
+                      ? "bg-primary/10 text-primary border-r-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  )}
+                  aria-current={activeView === item.id ? "page" : undefined}
+                >
+                  <span className="text-base relative" aria-hidden="true">
+                    {item.emoji}
+                    {item.id === "notifications" && notificationUnreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                        {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                      </span>
+                    )}
+                  </span>
+                  <span>{item.label}</span>
                   {item.id === "notifications" && notificationUnreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                      {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                    <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                      {notificationUnreadCount}
                     </span>
                   )}
-                </span>
-                <span>{item.label}</span>
-                {item.id === "notifications" && notificationUnreadCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
-                    {notificationUnreadCount}
-                  </span>
-                )}
-              </button>
-            ))}
-            {visibleNavItems.length === 0 && (
+                </button>
+              ))
+            )}
+            {!operatorMode && visibleNavItems.length === 0 && (
               <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
             )}
           </nav>
@@ -1909,6 +2163,28 @@ function AppContent() {
               Save preset
             </button>
           </div>
+          {/* Operator Mode indicator */}
+          {operatorMode && (
+            <div className="hidden md:flex items-center gap-3 text-xs">
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 text-green-400 border border-green-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                5 active
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                2 errors
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                $42.18 today
+              </span>
+              <button
+                onClick={() => setCopilotOpen(true)}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
+                title="Open AI Copilot (⌘J)"
+              >
+                ✨ Copilot
+              </button>
+            </div>
+          )}
 
           {/* Theme toggle */}
           <ThemeToggle />
@@ -1954,6 +2230,17 @@ function AppContent() {
           </ViewErrorBoundary>
         </main>
       </div>
+
+      {/* AI Copilot Panel — Operator Mode */}
+      {operatorMode && (
+        <React.Suspense fallback={null}>
+          <OperatorAICopilot
+            isOpen={copilotOpen}
+            onClose={() => setCopilotOpen(false)}
+            onNavigate={navigate}
+          />
+        </React.Suspense>
+      )}
 
       {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
