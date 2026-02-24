@@ -17,8 +17,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import {
-  Bar,
-  BarChart,
   Cell,
   Legend,
   Line,
@@ -32,8 +30,6 @@ import {
   RadarChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from 'recharts';
 import { cn } from '../lib/utils';
 
@@ -178,8 +174,8 @@ function formatCost(input: number, output: number): string {
 }
 
 function formatTokens(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}k`;
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`;}
+  if (n >= 1000) {return `${(n / 1000).toFixed(0)}k`;}
   return n.toString();
 }
 

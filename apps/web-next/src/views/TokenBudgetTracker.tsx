@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import {
-  AlertCircle,
   AlertTriangle,
-  BarChart2,
   Bell,
-  Calendar,
   ChevronDown,
   DollarSign,
   Gauge,
@@ -120,7 +117,7 @@ function generateMockData(range: TimeRange): {
   }
 
   // Generate agent spend
-  const agents: AgentSpend[] = AGENTS.map((agent, i) => {
+  const agents: AgentSpend[] = AGENTS.map((agent) => {
     const cost = Math.random() * (currentSpend / 3) + (currentSpend / 10);
     const tokensIn = Math.floor(Math.random() * 100000) + 50000;
     const tokensOut = Math.floor(tokensIn * 0.3);
@@ -192,14 +189,14 @@ function formatPercentage(value: number): string {
 }
 
 function formatTokens(value: number): string {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+  if (value >= 1000000) {return `${(value / 1000000).toFixed(1)}M`;}
+  if (value >= 1000) {return `${(value / 1000).toFixed(1)}k`;}
   return value.toString();
 }
 
 function getGaugeColor(percentage: number): string {
-  if (percentage < 50) return 'bg-green-500';
-  if (percentage < 75) return 'bg-amber-500';
+  if (percentage < 50) {return 'bg-green-500';}
+  if (percentage < 75) {return 'bg-amber-500';}
   return 'bg-red-500';
 }
 
@@ -478,7 +475,7 @@ function AlertsSection({ alerts }: { alerts: BudgetAlert[] }) {
 }
 
 function EfficiencyTable({ agents }: { agents: AgentSpend[] }) {
-  const sorted = [...agents].sort((a, b) => b.costPerTask - a.costPerTask);
+  const sorted = [...agents].toSorted((a, b) => b.costPerTask - a.costPerTask);
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
