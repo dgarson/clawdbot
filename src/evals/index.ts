@@ -16,7 +16,12 @@ export {
 export type { JsonlExportOptions, EvaluationJsonlRecord } from "./export-jsonl.js";
 
 // Catalog schema & metadata
-export { buildScenarioCatalog, filterCatalog, validateScenarioMetadata } from "./catalog.js";
+export {
+  buildScenarioCatalog,
+  filterCatalog,
+  validateScenarioMetadata,
+  createDefaultCatalog,
+} from "./catalog.js";
 
 // Catalog types
 export type {
@@ -30,14 +35,13 @@ export type {
 
 // Fixture / CI loading
 export {
-  createDefaultCatalog,
-  getCatalogStats,
   loadScenarios,
   loadScenariosByCategory,
   loadScenariosByDifficulty,
   loadScenariosBySuite,
   loadScenariosFromFixture,
   validateCatalog,
+  getCatalogStats,
 } from "./fixtures.js";
 
 // Benchmark scenarios — HITL

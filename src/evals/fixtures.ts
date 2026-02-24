@@ -132,6 +132,8 @@ export function loadScenariosByDifficulty(
 
 /**
  * Load scenarios by suite name.
+ *
+ * @param suite - Suite name to filter by
  */
 export function loadScenariosBySuite(suite: string): CataloguedEvaluationCase[] {
   return loadScenarios({ suite });
