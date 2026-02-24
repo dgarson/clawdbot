@@ -155,8 +155,8 @@ const STATUS_BG: Record<SpanStatus, string> = {
 };
 
 function formatMs(ms: number): string {
-  if (ms >= 60000) return `${(ms / 60000).toFixed(1)}m`;
-  if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
+  if (ms >= 60000) {return `${(ms / 60000).toFixed(1)}m`;}
+  if (ms >= 1000) {return `${(ms / 1000).toFixed(2)}s`;}
   return `${ms}ms`;
 }
 
@@ -227,8 +227,8 @@ export default function AgentTracer() {
   const agents = Array.from(new Set(TRACES.map((t) => t.agent)));
 
   const filtered = TRACES.filter((t) => {
-    if (agentFilter !== "all" && t.agent !== agentFilter) return false;
-    if (statusFilter !== "all" && t.status !== statusFilter) return false;
+    if (agentFilter !== "all" && t.agent !== agentFilter) {return false;}
+    if (statusFilter !== "all" && t.status !== statusFilter) {return false;}
     return true;
   });
 

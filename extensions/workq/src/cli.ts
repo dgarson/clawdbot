@@ -1,6 +1,6 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { exportWorkqState } from "./export.js";
 import { runWorkqSweep } from "./sweep.js";
 import {
@@ -92,6 +92,16 @@ type SweepOptions = JsonOutput & {
   staleAfter?: string;
   autoDone?: boolean;
   autoRelease?: boolean;
+};
+
+type InboxReadOptions = JsonOutput & {
+  agent?: string;
+  all?: boolean;
+};
+
+type InboxAckOptions = JsonOutput & {
+  agent?: string;
+  reason?: string;
 };
 
 export function registerWorkqCli(
@@ -613,6 +623,69 @@ export function registerWorkqCli(
                 `- ${action.issueRef} ${action.from} -> ${action.action} (${action.reason})${evidence}`,
               );
             }
+          }),
+        );
+
+      const inbox = workq.command("inbox").description("Inbox review commands");
+
+      inbox
+        .command("read")
+        .description("List pending inbox items for the current agent")
+        .option("--agent <id>", "Agent id (default: inferred from env)")
+        .option("--all", "Show items for all agents")
+        .option("--json", "Output as JSON")
+        .action(
+          withCliErrors((options: InboxReadOptions) => {
+            const agentId = options.all
+              ? undefined
+              : resolveAgentId(options.agent, { required: false });
+            const result = db.query({
+              agentId,
+              activeOnly: true,
+              staleThresholdHours,
+            });
+
+            if (options.json) {
+              printJson(result);
+              return;
+            }
+
+            printListHuman(result.items, result.total);
+          }),
+        );
+
+      inbox
+        .command("ack")
+        .description("Acknowledge (release) a work item by numeric ID")
+        .argument("<id>", "Numeric work item ID")
+        .option("--agent <id>", "Agent id (default: inferred from env or item owner)")
+        .option("--reason <text>", "Reason for acknowledging")
+        .option("--json", "Output as JSON")
+        .action(
+          withCliErrors((idStr: string, options: InboxAckOptions) => {
+            const numericId = parseInt(idStr, 10);
+            if (!Number.isInteger(numericId) || numericId < 1) {
+              throw new Error("id must be a positive integer");
+            }
+
+            const item = db.getById(numericId, staleThresholdHours);
+            if (!item) {
+              throw new Error(`Work item not found: id=${numericId}`);
+            }
+
+            const agentId = resolveAgentId(options.agent, { required: false }) ?? item.agentId;
+            const result = db.release({
+              issueRef: item.issueRef,
+              agentId,
+              reason: normalizeOptional(options.reason),
+            });
+
+            if (options.json) {
+              printJson({ ...result, id: numericId });
+              return;
+            }
+
+            console.log(`Acknowledged: ${result.issueRef} (id=${numericId}, status=dropped).`);
           }),
         );
     },

@@ -838,54 +838,54 @@ const QUALITY_HISTORY: QualityPoint[] = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatNumber(n: number): string {
-  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + "B"
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M"
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K"
+  if (n >= 1_000_000_000) {return (n / 1_000_000_000).toFixed(1) + "B"}
+  if (n >= 1_000_000) {return (n / 1_000_000).toFixed(1) + "M"}
+  if (n >= 1_000) {return (n / 1_000).toFixed(1) + "K"}
   return n.toString()
 }
 
 function qualityColor(score: number): string {
-  if (score >= 90) return "text-emerald-400"
-  if (score >= 75) return "text-amber-400"
+  if (score >= 90) {return "text-emerald-400"}
+  if (score >= 75) {return "text-amber-400"}
   return "text-red-400"
 }
 
 function qualityBg(score: number): string {
-  if (score >= 90) return "bg-emerald-500"
-  if (score >= 75) return "bg-amber-500"
+  if (score >= 90) {return "bg-emerald-500"}
+  if (score >= 75) {return "bg-amber-500"}
   return "bg-red-500"
 }
 
 function heatmapColor(score: number): string {
-  if (score >= 95) return "bg-emerald-600"
-  if (score >= 85) return "bg-emerald-700"
-  if (score >= 75) return "bg-amber-700"
-  if (score >= 60) return "bg-orange-700"
+  if (score >= 95) {return "bg-emerald-600"}
+  if (score >= 85) {return "bg-emerald-700"}
+  if (score >= 75) {return "bg-amber-700"}
+  if (score >= 60) {return "bg-orange-700"}
   return "bg-red-800"
 }
 
 function freshnessColor(status: Dataset["freshnessStatus"]): string {
-  if (status === "fresh") return "text-emerald-400"
-  if (status === "stale") return "text-amber-400"
+  if (status === "fresh") {return "text-emerald-400"}
+  if (status === "stale") {return "text-amber-400"}
   return "text-red-400"
 }
 
 function freshnessDot(status: Dataset["freshnessStatus"]): string {
-  if (status === "fresh") return "bg-emerald-400"
-  if (status === "stale") return "bg-amber-400"
+  if (status === "fresh") {return "bg-emerald-400"}
+  if (status === "stale") {return "bg-amber-400"}
   return "bg-red-400"
 }
 
 function accessBadgeColor(level: AccessLevel): string {
-  if (level === "public") return "bg-emerald-900 text-emerald-300 border-emerald-700"
-  if (level === "restricted") return "bg-amber-900 text-amber-300 border-amber-700"
+  if (level === "public") {return "bg-emerald-900 text-emerald-300 border-emerald-700"}
+  if (level === "restricted") {return "bg-amber-900 text-amber-300 border-amber-700"}
   return "bg-red-900 text-red-300 border-red-700"
 }
 
 function typeBadgeColor(type: DatasetType): string {
-  if (type === "table") return "bg-indigo-900 text-indigo-300"
-  if (type === "view") return "bg-violet-900 text-violet-300"
-  if (type === "file") return "bg-zinc-700 text-zinc-300"
+  if (type === "table") {return "bg-indigo-900 text-indigo-300"}
+  if (type === "view") {return "bg-violet-900 text-violet-300"}
+  if (type === "file") {return "bg-zinc-700 text-zinc-300"}
   return "bg-sky-900 text-sky-300"
 }
 
@@ -1337,7 +1337,7 @@ function GlossaryTab() {
   const [categoryFilter, setCategoryFilter] = useState("")
   const [expandedTerm, setExpandedTerm] = useState<string | null>(null)
 
-  const categories = Array.from(new Set(GLOSSARY_TERMS.map((t) => t.category))).sort()
+  const categories = Array.from(new Set(GLOSSARY_TERMS.map((t) => t.category))).toSorted()
 
   const filtered = GLOSSARY_TERMS.filter((term) => {
     const q = search.toLowerCase()
@@ -1508,8 +1508,8 @@ function QualityTab() {
   ]
 
   const getFreshnessScore = (ds: Dataset): number => {
-    if (ds.freshnessStatus === "fresh") return 95
-    if (ds.freshnessStatus === "stale") return 60
+    if (ds.freshnessStatus === "fresh") {return 95}
+    if (ds.freshnessStatus === "stale") {return 60}
     return 20
   }
 
@@ -1699,7 +1699,7 @@ function QualityTab() {
         <h3 className="text-sm font-semibold text-white mb-1">Quality by Domain</h3>
         <p className="text-xs text-zinc-500 mb-5">Average quality scores per data domain</p>
         <div className="space-y-3">
-          {DATA_DOMAINS.sort((a, b) => b.qualityScore - a.qualityScore).map((domain) => (
+          {DATA_DOMAINS.toSorted((a, b) => b.qualityScore - a.qualityScore).map((domain) => (
             <div key={domain.id} className="flex items-center gap-4">
               <div className="w-28 text-sm text-zinc-300 flex-shrink-0">{domain.label}</div>
               <div className="flex-1 h-4 bg-zinc-800 rounded-full overflow-hidden">

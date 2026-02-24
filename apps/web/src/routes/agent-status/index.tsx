@@ -84,7 +84,7 @@ function AgentStatusDashboardPage() {
 
   // ── Sync health filter from URL (external navigation only) ────────
   // Only depend on searchHealth — not healthFilter — to avoid a race where
-  // setHealthFilter("all") + navigate() causes the effect to fire with stale
+  // setHealthFilter("all") + void navigate() causes the effect to fire with stale
   // searchHealth and immediately reset the state back to the old value.
   React.useEffect(() => {
     setHealthFilter(searchHealth ?? "all");
@@ -176,6 +176,7 @@ function AgentStatusDashboardPage() {
   // ── Auto-refresh "last activity" timestamps ─────────────────────
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
   React.useEffect(() => {
+    // eslint-disable-next-line typescript-eslint/no-implied-eval
     const timer = setInterval(forceUpdate, 5_000);
     return () => clearInterval(timer);
   }, []);

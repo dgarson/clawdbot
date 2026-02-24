@@ -1,4 +1,6 @@
 import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
+// eslint-disable-next-line no-unused-vars
+import { isSubagentSessionKey } from "../sessions/session-key-utils.js";
 import {
   diagnosticSessionStates,
   getDiagnosticSessionState,
@@ -166,6 +168,17 @@ export function logMessageProcessed(params: {
   markActivity();
 }
 
+/**
+ * Mark a session as active due to a tool call starting or ending.
+ * Keeps `lastActivity` fresh so the stuck-session heuristic doesn't
+ * fire false positives during long agentic turns with many tool calls.
+ */
+export function logToolActivity(params: SessionRef) {
+  const state = getDiagnosticSessionState(params);
+  state.lastActivity = Date.now();
+  markActivity();
+}
+
 export function logSessionStateChange(
   params: SessionRef & {
     state: SessionStateValue;
@@ -176,7 +189,13 @@ export function logSessionStateChange(
   const isProbeSession = state.sessionId?.startsWith("probe-") ?? false;
   const prevState = state.state;
   state.state = params.state;
-  state.lastActivity = Date.now();
+  const now = Date.now();
+  state.lastActivity = now;
+  if (params.state === "processing" && prevState !== "processing") {
+    state.processingStartedAt = now;
+  } else if (params.state !== "processing") {
+    state.processingStartedAt = undefined;
+  }
   if (params.state === "idle") {
     state.queueDepth = Math.max(0, state.queueDepth - 1);
   }
@@ -201,12 +220,55 @@ export function logSessionStateChange(
   markActivity();
 }
 
+/** Derive the parent session key for a subagent, e.g. "agent:main:subagent:<uuid>" → "agent:main". */
+function resolveSubagentParentKey(sessionKey: string | undefined): string | null {
+  if (!sessionKey) {
+    return null;
+  }
+  const idx = sessionKey.toLowerCase().lastIndexOf(":subagent:");
+  if (idx <= 0) {
+    return null;
+  }
+  return sessionKey.slice(0, idx);
+}
+
 export function logSessionStuck(params: SessionRef & { state: SessionStateValue; ageMs: number }) {
+  const now = Date.now();
   const state = getDiagnosticSessionState(params);
+  const sessionKey = state.sessionKey ?? "unknown";
+  const sessionId = state.sessionId ?? "unknown";
+
+  // processingAge uses the precise timestamp when state entered "processing".
+  // Falls back to ageMs from the heartbeat (time since lastActivity) if not set.
+  const processingAge =
+    state.processingStartedAt != null
+      ? Math.round((now - state.processingStartedAt) / 1000)
+      : Math.round(params.ageMs / 1000);
+
+  // Tool call context: total count + most-recent tool name and recency.
+  const history = state.toolCallHistory ?? [];
+  const totalToolCalls = history.length;
+  const lastToolEntry = history[history.length - 1];
+  const lastToolParts = lastToolEntry
+    ? ` lastTool=${lastToolEntry.toolName} toolAge=${Math.round((now - lastToolEntry.timestamp) / 1000)}s`
+    : " lastTool=(none)";
+
+  // Subagent orphan check: if this is a subagent session and the parent is idle/absent,
+  // the stuck state is likely a cleanup miss rather than a real hang.
+  let parentNote = "";
+  if (isSubagentSessionKey(sessionKey)) {
+    const parentKey = resolveSubagentParentKey(sessionKey);
+    if (parentKey) {
+      const parentState = diagnosticSessionStates.get(parentKey);
+      if (!parentState || parentState.state === "idle") {
+        const parentStatus = parentState ? `state=${parentState.state}` : "not-tracked";
+        parentNote = ` parentKey=${parentKey} parentStatus=${parentStatus} (likely orphaned cleanup-miss)`;
+      }
+    }
+  }
+
   diag.warn(
-    `stuck session: sessionId=${state.sessionId ?? "unknown"} sessionKey=${
-      state.sessionKey ?? "unknown"
-    } state=${params.state} age=${Math.round(params.ageMs / 1000)}s queueDepth=${state.queueDepth}`,
+    `stuck session: sessionId=${sessionId} sessionKey=${sessionKey} state=${params.state} processingAge=${processingAge}s queueDepth=${state.queueDepth} totalToolCalls=${totalToolCalls}${lastToolParts}${parentNote}`,
   );
   emitDiagnosticEvent({
     type: "session.stuck",

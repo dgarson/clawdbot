@@ -4,13 +4,15 @@ import { registerDiscordComponentEntries } from "./components-registry.js";
 import { sendDiscordComponentMessage } from "./send.components.js";
 import { makeDiscordRest } from "./send.test-harness.js";
 
-const loadConfigMock = vi.hoisted(() => vi.fn(() => ({ session: { dmScope: "main" } })));
+const loadConfigMock = vi.hoisted(() =>
+  vi.fn<typeof import("../config/config.js").loadConfig>(() => ({ session: { dmScope: "main" } })),
+);
 
 vi.mock("../config/config.js", async () => {
   const actual = await vi.importActual<typeof import("../config/config.js")>("../config/config.js");
   return {
     ...actual,
-    loadConfig: () => loadConfigMock(),
+    loadConfig: (...args: Parameters<typeof actual.loadConfig>) => loadConfigMock(...args),
   };
 });
 
@@ -25,7 +27,7 @@ describe("sendDiscordComponentMessage", () => {
     vi.clearAllMocks();
   });
 
-  it("maps DM channel targets to direct-session component entries", async () => {
+  it("keeps direct-channel DM session keys on component entries", async () => {
     const { rest, postMock, getMock } = makeDiscordRest();
     getMock.mockResolvedValueOnce({
       type: ChannelType.DM,
@@ -48,6 +50,6 @@ describe("sendDiscordComponentMessage", () => {
 
     expect(registerMock).toHaveBeenCalledTimes(1);
     const args = registerMock.mock.calls[0]?.[0];
-    expect(args?.entries[0]?.sessionKey).toBe("agent:main:main");
+    expect(args?.entries[0]?.sessionKey).toBe("agent:main:discord:channel:dm-1");
   });
 });

@@ -235,8 +235,8 @@ const CATEGORY_LABELS: Record<ServiceCheck["category"], string> = {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 60_000) {return `${Math.floor(diff / 1000)}s ago`;}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
   return `${Math.floor(diff / 3_600_000)}h ago`;
 }
 
@@ -273,8 +273,8 @@ function UptimeBar({ uptime }: { uptime: number }) {
   const segments = Array.from({ length: 30 }, (_, i) => {
     const chance = (100 - uptime) / 100;
     const seed = Math.sin(i * 13.7 + uptime) * 0.5 + 0.5;
-    if (seed < chance * 3) return "degraded";
-    if (seed < chance * 1.5) return "down";
+    if (seed < chance * 3) {return "degraded";}
+    if (seed < chance * 1.5) {return "down";}
     return "healthy";
   });
   return (
@@ -466,7 +466,7 @@ function IncidentCard({ incident }: { incident: Incident }) {
       {expanded && (
         <div className="px-4 pb-4 pt-0 border-t border-zinc-800">
           <div className="pt-3 space-y-3">
-            {[...incident.updates].reverse().map((u, i) => (
+            {[...incident.updates].toReversed().map((u, i) => (
               <div key={i} className="flex gap-3">
                 <div className="flex-none flex flex-col items-center">
                   <div className="h-1.5 w-1.5 rounded-full bg-zinc-600 mt-1.5" />
@@ -627,7 +627,7 @@ export default function SystemHealth() {
                       : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
                   )}
                 >
-                  {cat === "all" ? "All" : CATEGORY_LABELS[cat as ServiceCheck["category"]]}
+                  {cat === "all" ? "All" : CATEGORY_LABELS[cat]}
                 </button>
               ))}
             </div>

@@ -73,9 +73,9 @@ export default function TechRadar() {
   const [activeView, setActiveView] = useState<"radar" | "list" | "quadrant">("radar");
 
   const filteredItems = ITEMS.filter(item => {
-    if (filterQuadrant !== "all" && item.quadrant !== filterQuadrant) return false;
-    if (filterRing      !== "all" && item.ring      !== filterRing)      return false;
-    if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (filterQuadrant !== "all" && item.quadrant !== filterQuadrant) {return false;}
+    if (filterRing      !== "all" && item.ring      !== filterRing)      {return false;}
+    if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {return false;}
     return true;
   });
 
@@ -376,7 +376,7 @@ export default function TechRadar() {
               </div>
               {RINGS.map(ring => {
                 const items = ITEMS.filter(i => i.quadrant === quad && i.ring === ring);
-                if (items.length === 0) return null;
+                if (items.length === 0) {return null;}
                 return (
                   <div key={ring} className="mb-3">
                     <div className={cn("text-xs font-medium mb-1.5", RING_CONFIG[ring].color)}>{RING_CONFIG[ring].label}</div>

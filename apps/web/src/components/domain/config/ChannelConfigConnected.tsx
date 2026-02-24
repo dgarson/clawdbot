@@ -118,7 +118,7 @@ export function ChannelConfigConnected({
     const cfg = configSnapshot?.config?.channels?.telegram;
     if (cfg?.botToken) {
       return {
-        botToken: cfg.botToken as string,
+        botToken: cfg.botToken,
         mode: cfg.mode as "polling" | "webhook" | undefined,
         webhookUrl: cfg.webhookUrl as string | undefined,
         allowFrom: cfg.allowFrom as string[] | undefined,
@@ -132,7 +132,7 @@ export function ChannelConfigConnected({
     const cfg = configSnapshot?.config?.channels?.discord;
     if (cfg?.botToken) {
       return {
-        botToken: cfg.botToken as string,
+        botToken: cfg.botToken,
         applicationId: cfg.applicationId as string | undefined,
         allowFrom: cfg.allowFrom as string[] | undefined,
         dmPolicy: cfg.dmPolicy as "disabled" | "allow" | "mentions" | undefined,
@@ -145,7 +145,7 @@ export function ChannelConfigConnected({
     const cfg = configSnapshot?.config?.channels?.slack;
     if (cfg?.workspaceId) {
       return {
-        workspaceId: cfg.workspaceId as string,
+        workspaceId: cfg.workspaceId,
         workspaceName: cfg.workspaceName as string | undefined,
         mode: cfg.mode as "token" | "oauth" | undefined,
         defaultChannel: cfg.defaultChannel as string | undefined,
@@ -179,7 +179,7 @@ export function ChannelConfigConnected({
     const cfg = configSnapshot?.config?.channels?.signal;
     if (cfg?.phoneNumber) {
       return {
-        phoneNumber: cfg.phoneNumber as string,
+        phoneNumber: cfg.phoneNumber,
         baseUrl: cfg.baseUrl as string | undefined,
         deviceName: cfg.deviceName as string | undefined,
       };

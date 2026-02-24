@@ -3,9 +3,11 @@
 This folder is a new, TypeScript-SDK-specific implementation review set for adding a `csdk` runtime with Pi parity and minimal churn.
 
 Canonical baseline docs remain in:
+
 - `agent-runtime/review/codex/*.md`
 
 This set extends that baseline with SDK-specific guidance and implementation guardrails:
+
 - `00-scope-and-principles.md`
 - `01-runtime-dispatch-and-compatibility.md`
 - `02-typescript-sdk-mode-selection.md`
@@ -20,6 +22,7 @@ This set extends that baseline with SDK-specific guidance and implementation gua
 - `11-handoff-implementation-prompt.md`
 
 External references used during this review:
+
 - https://platform.claude.com/docs/en/agent-sdk/typescript
 - https://platform.claude.com/docs/en/agent-sdk/streaming-vs-single-mode
 - https://platform.claude.com/docs/en/agent-sdk/streaming-output

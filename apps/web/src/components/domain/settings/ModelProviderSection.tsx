@@ -619,7 +619,7 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
     if (!configSnapshot?.hash) {return;}
     const currentAgents = isPlainObject(config?.agents) ? (config?.agents as Record<string, unknown>) : {};
     const currentDefaults = isPlainObject(currentAgents.defaults)
-      ? (currentAgents.defaults as Record<string, unknown>)
+      ? (currentAgents.defaults)
       : {};
     const patch = {
       agents: {
@@ -642,10 +642,10 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
     if (!configSnapshot?.hash) {return;}
     const currentAgents = isPlainObject(config?.agents) ? (config?.agents as Record<string, unknown>) : {};
     const currentMain = isPlainObject(currentAgents.main)
-      ? (currentAgents.main as Record<string, unknown>)
+      ? (currentAgents.main)
       : {};
     const currentSdk = isPlainObject(currentMain.sdk)
-      ? (currentMain.sdk as Record<string, unknown>)
+      ? (currentMain.sdk)
       : {};
     const nextSdk = isPlainObject(nextMain.sdk)
       ? { ...currentSdk, ...nextMain.sdk }
@@ -749,10 +749,10 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
       ? (currentDefaults?.models as Record<string, unknown>)
       : {};
     const existingEntry = isPlainObject(currentModels[defaultTextModel])
-      ? (currentModels[defaultTextModel] as Record<string, unknown>)
+      ? (currentModels[defaultTextModel])
       : {};
     const existingParams = isPlainObject(existingEntry.params)
-      ? (existingEntry.params as Record<string, unknown>)
+      ? (existingEntry.params)
       : {};
     const nextParams = {
       ...existingParams,
@@ -807,10 +807,10 @@ export function ModelProviderSection({ className }: ModelProviderSectionProps) {
       ? (currentDefaults?.models as Record<string, unknown>)
       : {};
     const existingEntry = isPlainObject(currentModels[defaultTextModel])
-      ? (currentModels[defaultTextModel] as Record<string, unknown>)
+      ? (currentModels[defaultTextModel])
       : {};
     const existingParams = isPlainObject(existingEntry.params)
-      ? (existingEntry.params as Record<string, unknown>)
+      ? (existingEntry.params)
       : {};
     const nextParams = { ...existingParams };
     delete nextParams.temperature;

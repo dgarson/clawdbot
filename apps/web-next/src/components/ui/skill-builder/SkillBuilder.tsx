@@ -106,7 +106,7 @@ actions:
   }, [metadata.tags, handleMetadataChange]);
 
   const handleRunTest = useCallback(async () => {
-    if (!onTest) return;
+    if (!onTest) {return;}
     
     setIsTesting(true);
     setTestResult(null);

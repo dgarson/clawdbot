@@ -68,7 +68,7 @@ function HomePage() {
   const handleQuickChatSend = (message: string, agentId: string) => {
     // Navigate to new session with agent, passing the message
     const sessionKey = `session-${Date.now()}`;
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId, sessionKey },
       search: { newSession: true, initialMessage: message },
@@ -77,7 +77,7 @@ function HomePage() {
 
   const handleChatWithAgent = (agentId: string) => {
     // Navigate to the current session for the agent
-    navigate({
+    void navigate({
       to: "/agents/$agentId/session/$sessionKey",
       params: { agentId, sessionKey: "current" },
       search: { newSession: false },

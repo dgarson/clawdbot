@@ -666,7 +666,7 @@ export default function EmailCampaignManager() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/50">
-                    {campaigns.filter(c => c.status === 'sent').sort((a,b) => b.openRate - a.openRate).slice(0, 4).map((cp) => (
+                    {campaigns.filter(c => c.status === 'sent').toSorted((a,b) => b.openRate - a.openRate).slice(0, 4).map((cp) => (
                       <tr key={cp.id} className="hover:bg-zinc-800/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-sm">{cp.name}</div>

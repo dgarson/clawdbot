@@ -427,14 +427,14 @@ const formatTimestamp = (date: Date): string => {
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
   
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) {return "Just now";}
+  if (diffMins < 60) {return `${diffMins}m ago`;}
   
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) {return `${diffHours}h ago`;}
   
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 7) {return `${diffDays}d ago`;}
   
   return date.toLocaleDateString();
 };
@@ -992,8 +992,8 @@ const EventsTab: React.FC<EventsTabProps> = ({ events, geofences }) => {
   const [eventTypeFilter, setEventTypeFilter] = useState<string>("all");
 
   const filteredEvents = events.filter((event) => {
-    if (geofenceFilter !== "all" && event.geofenceId !== geofenceFilter) return false;
-    if (eventTypeFilter !== "all" && event.eventType !== eventTypeFilter) return false;
+    if (geofenceFilter !== "all" && event.geofenceId !== geofenceFilter) {return false;}
+    if (eventTypeFilter !== "all" && event.eventType !== eventTypeFilter) {return false;}
     return true;
   });
 

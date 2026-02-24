@@ -13,9 +13,9 @@ import { generateId } from 'ai';
 export interface ToolCall {
   toolCallId: string;
   toolName: string;
-  args: Record<string, any>;
+  args: Record<string, unknown>;
   status: 'pending' | 'approved' | 'rejected' | 'executing' | 'complete' | 'error';
-  result?: any;
+  result?: unknown;
   error?: string;
   createdAt: Date;
   completedAt?: Date;
@@ -30,7 +30,7 @@ export interface Question {
   placeholder?: string;
   multiline?: boolean;
   status: 'pending' | 'answered';
-  answer?: any;
+  answer?: unknown;
   createdAt: Date;
   answeredAt?: Date;
 }
@@ -38,7 +38,7 @@ export interface Question {
 export interface WorkflowStep {
   id: string;
   type: 'message' | 'tool' | 'question' | 'thinking' | 'error';
-  data: any;
+  data: unknown;
   timestamp: Date;
 }
 

@@ -66,35 +66,53 @@ describe("claudeSdk config schema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts thinkingLevel values on any provider", () => {
-    for (const thinkingLevel of ["none", "low", "medium", "high"] as const) {
+  it("accepts thinkingDefault values on any provider", () => {
+    for (const thinkingDefault of ["none", "low", "medium", "high"] as const) {
       const result = OpenClawSchema.safeParse({
-        agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingLevel } } },
+        agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingDefault } } },
       });
-      expect(result.success, `thinkingLevel=${thinkingLevel}`).toBe(true);
+      expect(result.success, `thinkingDefault=${thinkingDefault}`).toBe(true);
     }
   });
 
-  it("rejects invalid thinkingLevel value", () => {
+  it("accepts legacy thinkingLevel key for compatibility", () => {
     const result = OpenClawSchema.safeParse({
-      agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingLevel: "extreme" } } },
+      agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingLevel: "medium" } } },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid thinkingDefault value", () => {
+    const result = OpenClawSchema.safeParse({
+      agents: { defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "extreme" } } },
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts thinkingLevel on custom provider", () => {
+  it("accepts thinkingDefault on custom provider", () => {
     const result = OpenClawSchema.safeParse({
       agents: {
         defaults: {
           claudeSdk: {
             provider: "custom",
             baseUrl: "https://my-gateway.internal/v1",
-            thinkingLevel: "high",
+            thinkingDefault: "high",
           },
         },
       },
     });
     expect(result.success).toBe(true);
+  });
+
+  it("rejects mismatched thinkingDefault and thinkingLevel when both are set", () => {
+    const result = OpenClawSchema.safeParse({
+      agents: {
+        defaults: {
+          claudeSdk: { provider: "anthropic", thinkingDefault: "low", thinkingLevel: "high" },
+        },
+      },
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects unknown provider in agents.list entry", () => {

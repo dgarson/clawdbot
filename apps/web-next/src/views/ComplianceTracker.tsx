@@ -135,40 +135,40 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 function statusColor(s: ControlStatus): string {
-  if (s === "passing") return "text-emerald-400";
-  if (s === "failing") return "text-rose-400";
+  if (s === "passing") {return "text-emerald-400";}
+  if (s === "failing") {return "text-rose-400";}
   return "text-zinc-400";
 }
 
 function statusBg(s: ControlStatus): string {
-  if (s === "passing") return "bg-emerald-400/15 text-emerald-400";
-  if (s === "failing") return "bg-rose-400/15 text-rose-400";
+  if (s === "passing") {return "bg-emerald-400/15 text-emerald-400";}
+  if (s === "failing") {return "bg-rose-400/15 text-rose-400";}
   return "bg-zinc-700/40 text-zinc-400";
 }
 
 function evidenceStatusBg(s: EvidenceStatus): string {
-  if (s === "approved") return "bg-emerald-400/15 text-emerald-400";
-  if (s === "pending") return "bg-amber-400/15 text-amber-400";
+  if (s === "approved") {return "bg-emerald-400/15 text-emerald-400";}
+  if (s === "pending") {return "bg-amber-400/15 text-amber-400";}
   return "bg-rose-400/15 text-rose-400";
 }
 
 function severityColor(s: RiskLevel): string {
-  if (s === "critical") return "bg-rose-500";
-  if (s === "high") return "bg-amber-500";
-  if (s === "medium") return "bg-amber-300";
+  if (s === "critical") {return "bg-rose-500";}
+  if (s === "high") {return "bg-amber-500";}
+  if (s === "medium") {return "bg-amber-300";}
   return "bg-emerald-400";
 }
 
 function severityText(s: RiskLevel): string {
-  if (s === "critical") return "text-rose-400";
-  if (s === "high") return "text-amber-400";
-  if (s === "medium") return "text-amber-300";
+  if (s === "critical") {return "text-rose-400";}
+  if (s === "high") {return "text-amber-400";}
+  if (s === "medium") {return "text-amber-300";}
   return "text-emerald-400";
 }
 
 function certBadge(status: string): string {
-  if (status === "Certified") return "bg-emerald-400/15 text-emerald-400";
-  if (status === "Compliant") return "bg-indigo-400/15 text-indigo-400";
+  if (status === "Certified") {return "bg-emerald-400/15 text-emerald-400";}
+  if (status === "Compliant") {return "bg-indigo-400/15 text-indigo-400";}
   return "bg-amber-400/15 text-amber-400";
 }
 

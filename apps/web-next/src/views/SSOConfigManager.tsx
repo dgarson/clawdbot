@@ -426,7 +426,7 @@ export default function SSOConfigManager() {
           { label: "Active Connections", value: active, color: "text-emerald-400" },
           { label: "Total SSO Users", value: totalUsers.toLocaleString(), color: "text-white" },
           { label: "Active Sessions", value: activeSessions, color: "text-indigo-400" },
-          { label: "Domains Protected", value: [...new Set(connections.flatMap((c) => c.domains))].length, color: "text-white" },
+          { label: "Domains Protected", value: new Set(connections.flatMap((c) => c.domains)).size, color: "text-white" },
         ].map((kpi) => (
           <div key={kpi.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
             <div className={cn("text-3xl font-bold", kpi.color)}>{kpi.value}</div>

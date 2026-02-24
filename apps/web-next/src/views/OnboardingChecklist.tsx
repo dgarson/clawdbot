@@ -72,7 +72,7 @@ export default function OnboardingChecklist() {
   const toggleStep = useCallback((id: string) => {
     setSteps((current) => {
       const step = current.find((s) => s.id === id);
-      if (!step) return current;
+      if (!step) {return current;}
 
       const newStatus: StepStatus = step.status === "completed" ? "not-started" : "completed";
       

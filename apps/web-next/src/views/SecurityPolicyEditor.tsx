@@ -799,13 +799,13 @@ function RulesTab({
     action: "deny",
   });
 
-  const sorted = [...rules].sort((a, b) => a.priority - b.priority);
+  const sorted = [...rules].toSorted((a, b) => a.priority - b.priority);
 
   const policyName = (id: string) =>
     policies.find((p) => p.id === id)?.name ?? "Unknown";
 
   const handleSubmit = () => {
-    if (!formData.name.trim() || !formData.eventType.trim()) return;
+    if (!formData.name.trim() || !formData.eventType.trim()) {return;}
     const newRule: Rule = {
       id: `rule-${Date.now()}`,
       name: formData.name,

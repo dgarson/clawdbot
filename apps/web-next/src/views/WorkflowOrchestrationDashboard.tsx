@@ -208,26 +208,26 @@ const THROUGHPUT: ThroughputPoint[] = [
 ];
 
 function wfStatusColor(s: WorkflowStatus) {
-  if (s === "completed") return "text-emerald-400";
-  if (s === "running") return "text-indigo-400";
-  if (s === "paused") return "text-amber-400";
-  if (s === "scheduled") return "text-cyan-400";
-  if (s === "failed") return "text-rose-400";
+  if (s === "completed") {return "text-emerald-400";}
+  if (s === "running") {return "text-indigo-400";}
+  if (s === "paused") {return "text-amber-400";}
+  if (s === "scheduled") {return "text-cyan-400";}
+  if (s === "failed") {return "text-rose-400";}
   return "text-zinc-400";
 }
 function wfStatusBg(s: WorkflowStatus) {
-  if (s === "completed") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "running") return "bg-indigo-400/10 text-indigo-400 animate-pulse";
-  if (s === "paused") return "bg-amber-400/10 text-amber-400";
-  if (s === "scheduled") return "bg-cyan-400/10 text-cyan-400";
-  if (s === "failed") return "bg-rose-400/10 text-rose-400";
+  if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "running") {return "bg-indigo-400/10 text-indigo-400 animate-pulse";}
+  if (s === "paused") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "scheduled") {return "bg-cyan-400/10 text-cyan-400";}
+  if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 function stepStatusColor(s: StepStatus) {
-  if (s === "completed") return "bg-emerald-500";
-  if (s === "running") return "bg-indigo-500 animate-pulse";
-  if (s === "failed") return "bg-rose-500";
-  if (s === "skipped") return "bg-zinc-600";
+  if (s === "completed") {return "bg-emerald-500";}
+  if (s === "running") {return "bg-indigo-500 animate-pulse";}
+  if (s === "failed") {return "bg-rose-500";}
+  if (s === "skipped") {return "bg-zinc-600";}
   return "bg-zinc-700";
 }
 function stepTypeEmoji(t: StepType) {
@@ -235,15 +235,15 @@ function stepTypeEmoji(t: StepType) {
   return m[t];
 }
 function triggerBg(t: TriggerType) {
-  if (t === "schedule") return "bg-purple-500/10 text-purple-400";
-  if (t === "webhook") return "bg-cyan-500/10 text-cyan-400";
-  if (t === "event") return "bg-indigo-500/10 text-indigo-400";
-  if (t === "condition") return "bg-amber-500/10 text-amber-400";
+  if (t === "schedule") {return "bg-purple-500/10 text-purple-400";}
+  if (t === "webhook") {return "bg-cyan-500/10 text-cyan-400";}
+  if (t === "event") {return "bg-indigo-500/10 text-indigo-400";}
+  if (t === "condition") {return "bg-amber-500/10 text-amber-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 function fmtDuration(s: number | null) {
-  if (s === null) return "—";
-  if (s < 60) return `${s}s`;
+  if (s === null) {return "—";}
+  if (s < 60) {return `${s}s`;}
   return `${Math.floor(s / 60)}m ${s % 60}s`;
 }
 
@@ -277,9 +277,9 @@ export default function WorkflowOrchestrationDashboard() {
   const [selectedRun, setSelectedRun] = useState<WorkflowRun | null>(null);
 
   const filteredWf = WORKFLOWS.filter(wf => {
-    if (triggerFilter !== "all" && wf.triggerType !== triggerFilter) return false;
-    if (statusFilter !== "all" && wf.lastRunStatus !== statusFilter) return false;
-    if (search && !wf.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (triggerFilter !== "all" && wf.triggerType !== triggerFilter) {return false;}
+    if (statusFilter !== "all" && wf.lastRunStatus !== statusFilter) {return false;}
+    if (search && !wf.name.toLowerCase().includes(search.toLowerCase())) {return false;}
     return true;
   });
 
@@ -614,7 +614,7 @@ export default function WorkflowOrchestrationDashboard() {
             <div className="bg-zinc-900 rounded-xl p-5">
               <h3 className="text-sm font-medium text-zinc-300 mb-4">Workflow Performance</h3>
               <div className="space-y-3">
-                {WORKFLOWS.filter(w => w.totalRuns > 0).sort((a, b) => b.totalRuns - a.totalRuns).map(wf => (
+                {WORKFLOWS.filter(w => w.totalRuns > 0).toSorted((a, b) => b.totalRuns - a.totalRuns).map(wf => (
                   <div key={wf.id} className="flex items-center gap-4">
                     <div className="w-40 text-sm text-zinc-300 truncate">{wf.name}</div>
                     <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">

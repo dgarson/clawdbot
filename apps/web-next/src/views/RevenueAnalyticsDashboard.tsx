@@ -98,16 +98,16 @@ const planColor: Record<PlanTier, string> = {
 }
 
 function fmtMoney(n: number): string {
-  if (n >= 1000000) return `$${(n / 1000000).toFixed(2)}M`
-  if (n >= 1000) return `$${(n / 1000).toFixed(0)}K`
+  if (n >= 1000000) {return `$${(n / 1000000).toFixed(2)}M`}
+  if (n >= 1000) {return `$${(n / 1000).toFixed(0)}K`}
   return `$${n}`
 }
 
 function retentionColor(pct: number): string {
-  if (pct === 0) return "bg-zinc-800 text-zinc-600"
-  if (pct >= 80) return "bg-emerald-500/80 text-white"
-  if (pct >= 70) return "bg-emerald-600/60 text-emerald-100"
-  if (pct >= 60) return "bg-amber-500/60 text-amber-100"
+  if (pct === 0) {return "bg-zinc-800 text-zinc-600"}
+  if (pct >= 80) {return "bg-emerald-500/80 text-white"}
+  if (pct >= 70) {return "bg-emerald-600/60 text-emerald-100"}
+  if (pct >= 60) {return "bg-amber-500/60 text-amber-100"}
   return "bg-rose-500/60 text-rose-100"
 }
 
@@ -268,7 +268,7 @@ export default function RevenueAnalyticsDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {[...MONTHLY_METRICS].reverse().map(m => (
+                {[...MONTHLY_METRICS].toReversed().map(m => (
                   <tr key={m.month} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
                     <td className="p-3 text-zinc-300">{m.month}</td>
                     <td className="p-3 text-right font-mono text-indigo-400">{fmtMoney(m.mrr)}</td>

@@ -167,14 +167,14 @@ function severityBadge(severity: RiskSeverity): React.ReactNode {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 90) return "text-emerald-400";
-  if (score >= 75) return "text-amber-400";
+  if (score >= 90) {return "text-emerald-400";}
+  if (score >= 75) {return "text-amber-400";}
   return "text-rose-400";
 }
 
 function scoreRingColor(score: number): string {
-  if (score >= 90) return "#34d399";
-  if (score >= 75) return "#fbbf24";
+  if (score >= 90) {return "#34d399";}
+  if (score >= 75) {return "#fbbf24";}
   return "#fb7185";
 }
 
@@ -274,8 +274,8 @@ function ControlsTable() {
   const toggle = (id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {next.delete(id);}
+      else {next.add(id);}
       return next;
     });
   };
@@ -283,8 +283,8 @@ function ControlsTable() {
   const uniqueFrameworks = Array.from(new Set(controls.map((c) => c.framework)));
 
   const filtered = controls.filter((c) => {
-    if (filterFramework !== "all" && c.framework !== filterFramework) return false;
-    if (filterStatus !== "all" && c.status !== filterStatus) return false;
+    if (filterFramework !== "all" && c.framework !== filterFramework) {return false;}
+    if (filterStatus !== "all" && c.status !== filterStatus) {return false;}
     return true;
   });
 

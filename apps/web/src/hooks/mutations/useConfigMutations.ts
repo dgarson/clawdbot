@@ -33,11 +33,11 @@ export function usePatchConfig() {
     mutationFn: (params: ConfigPatchParams) => patchConfig(params),
     onSuccess: (result) => {
       // Invalidate config queries to refetch
-      queryClient.invalidateQueries({ queryKey: configKeys.all });
+      void queryClient.invalidateQueries({ queryKey: configKeys.all });
       // Also invalidate related queries that might be affected
-      queryClient.invalidateQueries({ queryKey: channelKeys.all });
-      queryClient.invalidateQueries({ queryKey: modelKeys.all });
-      queryClient.invalidateQueries({ queryKey: gatewayKeys.all });
+      void queryClient.invalidateQueries({ queryKey: channelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: modelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: gatewayKeys.all });
 
       if (result.restart?.scheduled) {
         toast.info("Configuration saved. Gateway will restart shortly.");
@@ -70,10 +70,10 @@ export function useApplyConfig() {
       options?: { sessionKey?: string; note?: string; restartDelayMs?: number };
     }) => applyConfig(baseHash, config, options),
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: configKeys.all });
-      queryClient.invalidateQueries({ queryKey: channelKeys.all });
-      queryClient.invalidateQueries({ queryKey: modelKeys.all });
-      queryClient.invalidateQueries({ queryKey: gatewayKeys.all });
+      void queryClient.invalidateQueries({ queryKey: configKeys.all });
+      void queryClient.invalidateQueries({ queryKey: channelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: modelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: gatewayKeys.all });
 
       if (result.restart?.scheduled) {
         toast.info("Configuration applied. Gateway will restart shortly.");
@@ -126,8 +126,8 @@ export function useSaveProviderApiKey() {
       currentConfig: ConfigSnapshot;
     }) => saveProviderApiKey(provider, apiKey, currentConfig),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: configKeys.all });
-      queryClient.invalidateQueries({ queryKey: modelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: configKeys.all });
+      void queryClient.invalidateQueries({ queryKey: modelKeys.all });
       toast.success(`${variables.provider} API key configured`);
     },
     onError: (error) => {
@@ -153,8 +153,8 @@ export function useRemoveProviderApiKey() {
       currentConfig: ConfigSnapshot;
     }) => removeProviderApiKey(provider, currentConfig),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: configKeys.all });
-      queryClient.invalidateQueries({ queryKey: modelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: configKeys.all });
+      void queryClient.invalidateQueries({ queryKey: modelKeys.all });
       toast.success(`${variables.provider} API key removed`);
     },
     onError: (error) => {
@@ -175,7 +175,7 @@ export function useLogoutChannel() {
     mutationFn: ({ channel, accountId }: { channel: string; accountId?: string }) =>
       logoutChannel(channel, accountId),
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: channelKeys.all });
+      void queryClient.invalidateQueries({ queryKey: channelKeys.all });
       toast.success(`Logged out from ${result.channel}`);
     },
     onError: (error) => {

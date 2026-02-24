@@ -114,8 +114,8 @@ export default function GanttChartView() {
   const [showMilestones, setShowMilestones] = useState(true);
 
   const filteredTasks = TASKS.filter(t => {
-    if (groupFilter !== "all" && t.group !== groupFilter) return false;
-    if (statusFilter !== "all" && t.status !== statusFilter) return false;
+    if (groupFilter !== "all" && t.group !== groupFilter) {return false;}
+    if (statusFilter !== "all" && t.status !== statusFilter) {return false;}
     return true;
   });
 
@@ -537,7 +537,7 @@ export default function GanttChartView() {
             <div className="text-sm font-semibold text-zinc-300 mb-4">By Assignee</div>
             {Object.keys(ASSIGNEE_COLORS).map(assignee => {
               const assigneeTasks = TASKS.filter(t => t.assignee === assignee);
-              if (assigneeTasks.length === 0) return null;
+              if (assigneeTasks.length === 0) {return null;}
               const progress = Math.round(assigneeTasks.reduce((a, t) => a + t.progress, 0) / assigneeTasks.length);
               return (
                 <div key={assignee} className="flex items-center gap-3 mb-3">

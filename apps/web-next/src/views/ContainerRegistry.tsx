@@ -141,7 +141,7 @@ function SeverityDonut({ counts }: { counts: { critical: number; high: number; m
   let offset = 0;
   const colorMap: Record<string, string> = { critical: "#fb7185", high: "#fbbf24", medium: "#fde047", low: "#71717a" };
   for (const seg of segments) {
-    if (seg.count === 0) continue;
+    if (seg.count === 0) {continue;}
     gradientStops.push(`${colorMap[seg.severity]} ${offset}deg ${offset + seg.deg}deg`);
     offset += seg.deg;
   }
@@ -295,7 +295,7 @@ function ImagesTab() {
 function VulnerabilitiesTab() {
   const [expandedCve, setExpandedCve] = useState<string | null>(null);
   const counts = { critical: 0, high: 0, medium: 0, low: 0 };
-  for (const c of cves) counts[c.severity]++;
+  for (const c of cves) {counts[c.severity]++;}
 
   return (
     <div className="space-y-6">

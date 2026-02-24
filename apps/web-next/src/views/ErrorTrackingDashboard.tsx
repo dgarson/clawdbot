@@ -165,8 +165,8 @@ function IssuesTab() {
   const [selected, setSelected] = useState<ErrorEvent | null>(null);
 
   const visible = errors.filter((e) => {
-    if (filter !== "all" && e.severity !== filter) return false;
-    if (statusFilter !== "all" && e.status !== statusFilter) return false;
+    if (filter !== "all" && e.severity !== filter) {return false;}
+    if (statusFilter !== "all" && e.status !== statusFilter) {return false;}
     return true;
   });
 

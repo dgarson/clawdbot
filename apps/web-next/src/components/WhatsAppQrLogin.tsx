@@ -155,7 +155,7 @@ export default function WhatsAppQrLogin({
       }, 25000);
 
       // Start polling for connection
-      pollForConnection();
+      void pollForConnection();
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start login');
@@ -168,7 +168,7 @@ export default function WhatsAppQrLogin({
    */
   const pollForConnection = useCallback(async () => {
     try {
-      if (mockMode) return; // Handled in startLogin
+      if (mockMode) {return;} // Handled in startLogin
 
       const result = await gateway.call<WebLoginWaitResponse>('web.login.wait', {
         timeoutMs: 120000,
@@ -221,7 +221,7 @@ export default function WhatsAppQrLogin({
    */
   useEffect(() => {
     if (status === 'idle') {
-      startLogin();
+      void startLogin();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -36,9 +36,9 @@ export function AgentFileEditor({
   fileName,
   title,
   description,
-  placeholder,
+  placeholder: _placeholder,
 }: AgentFileEditorProps) {
-  const { file, content, isLoading, error: loadError, refetch } = useAgentFile(agentId, fileName);
+  const { file: _file, content, isLoading, error: loadError, refetch } = useAgentFile(agentId, fileName);
   const { save, isSaving, error: saveError, reset: resetSave } = useAgentFileSave();
 
   const [localContent, setLocalContent] = React.useState("");

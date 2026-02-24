@@ -102,7 +102,7 @@ function formatCountdown(targetIso: string): string {
   const now = Date.now();
   const target = new Date(targetIso).getTime();
   const diff = target - now;
-  if (diff <= 0) return "NOW";
+  if (diff <= 0) {return "NOW";}
   const h = Math.floor(diff / 3_600_000);
   const m = Math.floor((diff % 3_600_000) / 60_000);
   const s = Math.floor((diff % 60_000) / 1_000);
@@ -169,7 +169,7 @@ const DiscoveryRunMonitor: React.FC = () => {
   }, []);
 
   const filteredAgents = useCallback(() => {
-    if (selectedWave === "all") return agents;
+    if (selectedWave === "all") {return agents;}
     return agents.filter((a) => a.wave === selectedWave);
   }, [agents, selectedWave]);
 

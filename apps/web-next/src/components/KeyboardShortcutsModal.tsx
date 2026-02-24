@@ -37,15 +37,15 @@ const SHORTCUT_GROUPS = [
 export default function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModalProps) {
   // Close on Escape
   useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {onClose();}
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open) {return null;}
 
   return (
     <>

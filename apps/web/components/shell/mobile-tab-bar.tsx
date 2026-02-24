@@ -11,7 +11,6 @@ import {
   MessageSquare,
   Zap,
   Settings,
-  MoreHorizontal,
 } from "lucide-react";
 
 type TabItem = {

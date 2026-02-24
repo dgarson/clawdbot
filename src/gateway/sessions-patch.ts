@@ -18,6 +18,7 @@ import {
 } from "../auto-reply/thinking.js";
 import type { OpenClawConfig } from "../config/config.js";
 import type { SessionEntry } from "../config/sessions.js";
+import { diagnosticLogger as diag } from "../logging/diagnostic.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
@@ -308,6 +309,9 @@ export async function applySessionsPatchToStore(params: {
         defaultModel: subagentModelHint ?? resolvedDefault.model,
       });
       if ("error" in resolved) {
+        diag.warn(
+          `model not allowed: sessionKey=${storeKey} agentId=${sessionAgentId} requestedModel=${trimmed} reason=${resolved.error}`,
+        );
         return invalid(resolved.error);
       }
       const isDefault =

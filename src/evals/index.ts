@@ -35,13 +35,14 @@ export type {
 
 // Fixture / CI loading
 export {
+  createDefaultCatalog,
+  getCatalogStats,
   loadScenarios,
   loadScenariosByCategory,
   loadScenariosByDifficulty,
   loadScenariosBySuite,
   loadScenariosFromFixture,
   validateCatalog,
-  getCatalogStats,
 } from "./fixtures.js";
 
 // Benchmark scenarios — HITL
@@ -68,6 +69,40 @@ export {
   agentParallelCompletionCase,
   agentResultRoutingCase,
 } from "./cases/agent-spawning.js";
+
+// Scoring, baselines, regression policy
+export {
+  DEFAULT_MIN_CONFIDENCE_SAMPLES,
+  DEFAULT_QUALITY_FLOOR,
+  clampUnit,
+  evaluateRegression,
+  scoreOutput,
+} from "./scoring.js";
+export type {
+  BaselineSnapshot,
+  RegressionAssessment,
+  RegressionStatus,
+  RegressionThresholds,
+  RubricDimension,
+  ScoreFlag,
+  ScoreInput,
+  ScoreResult,
+  ScoringRubric,
+} from "./scoring.js";
+
+// Benchmark matrix + reporting format
+export {
+  buildBenchmarkMatrix,
+  buildBenchmarkReport,
+  buildBenchmarkRunSummary,
+} from "./benchmark-report.js";
+export type {
+  BenchmarkCell,
+  BenchmarkMatrix,
+  BenchmarkRecord,
+  BenchmarkReport,
+  BenchmarkRunSummary,
+} from "./benchmark-report.js";
 
 // Core types
 export type {

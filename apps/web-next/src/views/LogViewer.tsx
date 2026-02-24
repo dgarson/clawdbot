@@ -78,9 +78,9 @@ const SEED_LOGS: LogEntry[] = [
 ];
 
 function highlight(text: string, query: string): React.ReactNode {
-  if (!query) return text;
+  if (!query) {return text;}
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx === -1) return text;
+  if (idx === -1) {return text;}
   return (
     <>
       {text.slice(0, idx)}
@@ -101,16 +101,16 @@ export default function LogViewer() {
 
   const agents = useMemo(() => {
     const s = new Set<string>();
-    SEED_LOGS.forEach((l) => { if (l.agent) s.add(l.agent); });
-    return Array.from(s).sort();
+    SEED_LOGS.forEach((l) => { if (l.agent) {s.add(l.agent);} });
+    return Array.from(s).toSorted();
   }, []);
 
   const filtered = useMemo(() => {
     return SEED_LOGS.filter((log) => {
-      if (!levelFilters.has(log.level)) return false;
-      if (sourceFilter !== "all" && log.source !== sourceFilter) return false;
-      if (agentFilter !== "all" && log.agent !== agentFilter) return false;
-      if (search && !log.message.toLowerCase().includes(search.toLowerCase())) return false;
+      if (!levelFilters.has(log.level)) {return false;}
+      if (sourceFilter !== "all" && log.source !== sourceFilter) {return false;}
+      if (agentFilter !== "all" && log.agent !== agentFilter) {return false;}
+      if (search && !log.message.toLowerCase().includes(search.toLowerCase())) {return false;}
       return true;
     });
   }, [levelFilters, sourceFilter, agentFilter, search]);
@@ -126,8 +126,8 @@ export default function LogViewer() {
   function toggleLevel(level: LogLevel) {
     setLevelFilters((prev) => {
       const next = new Set(prev);
-      if (next.has(level)) next.delete(level);
-      else next.add(level);
+      if (next.has(level)) {next.delete(level);}
+      else {next.add(level);}
       return next;
     });
   }

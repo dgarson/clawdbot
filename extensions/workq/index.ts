@@ -1,4 +1,9 @@
+import path from "node:path";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { registerWorkqCli } from "./src/cli.js";
+import { WorkqDatabase } from "./src/database.js";
+import { runWorkqSweep } from "./src/sweep.js";
+import { registerWorkqTools } from "./src/tools.js";
 import type {
   ClaimInput,
   DoneInput,
@@ -9,10 +14,42 @@ import type {
   ReleaseInput,
   StatusInput,
 } from "./src/types.js";
-import { registerWorkqCli } from "./src/cli.js";
-import { WorkqDatabase } from "./src/database.js";
-import { runWorkqSweep } from "./src/sweep.js";
-import { registerWorkqTools } from "./src/tools.js";
+
+// Process-level DB registry so multiple loadOpenClawPlugins calls (per-workspaceDir)
+// share a single WorkqDatabase connection rather than opening one per cache miss.
+// Symbol.for() keys survive jiti's per-call module isolation.
+const _WORKQ_DB_KEY = Symbol.for("openclaw.workq.db.v1");
+
+type _WorkqDbMap = Map<string, WorkqDatabase>;
+
+function _getWorkqDbMap(): _WorkqDbMap {
+  const g = globalThis as unknown as { [k: symbol]: unknown };
+  if (!g[_WORKQ_DB_KEY]) {
+    g[_WORKQ_DB_KEY] = new Map<string, WorkqDatabase>();
+  }
+  return g[_WORKQ_DB_KEY] as _WorkqDbMap;
+}
+
+function _acquireDb(resolvedPath: string): WorkqDatabase {
+  const map = _getWorkqDbMap();
+  const existing = map.get(resolvedPath);
+  if (existing) {
+    return existing;
+  }
+  const db = new WorkqDatabase(resolvedPath);
+  map.set(resolvedPath, db);
+  return db;
+}
+
+function _releaseDb(resolvedPath: string): void {
+  const map = _getWorkqDbMap();
+  const db = map.get(resolvedPath);
+  if (!db) {
+    return;
+  }
+  db.close();
+  map.delete(resolvedPath);
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
@@ -76,13 +113,17 @@ export default function register(api: OpenClawPluginApi) {
   }
 
   const dbPath = api.resolvePath(config.dbPath ?? "~/.openclaw/workq/workq.db");
+  const resolvedDbPath = path.resolve(dbPath);
   const staleHours = Math.max(1, Math.floor(config.staleThresholdHours ?? 24));
   const sweepIntervalMinutes = Math.max(1, Math.floor(config.sweepIntervalMinutes ?? 60));
   const sweepStaleAfterMinutes = Math.max(1, Math.floor(config.sweepStaleAfterMinutes ?? 120));
   const sweepAutoDone = config.sweepAutoDone === true;
   const sweepAutoRelease = config.sweepAutoRelease !== false;
 
-  const db = new WorkqDatabase(dbPath);
+  // Reuse the process-level shared connection for this dbPath (see _acquireDb above).
+  // This prevents multiple DatabaseSync connections when loadOpenClawPlugins is called
+  // for different workspaceDirs (each would otherwise call register() and open a new DB).
+  const db = _acquireDb(resolvedDbPath);
   registerWorkqTools(api, db, staleHours);
   registerWorkqCli(api, db, staleHours);
 
@@ -129,8 +170,8 @@ export default function register(api: OpenClawPluginApi) {
       const payload: QueryFilters = {
         squad: asString(input.squad),
         agentId: asString(input.agent_id),
-        status: asStringOrList(input.status),
-        priority: asStringOrList(input.priority),
+        status: asStringOrList(input.status) as QueryFilters["status"],
+        priority: asStringOrList(input.priority) as QueryFilters["priority"],
         scope: asString(input.scope),
         issueRef: asString(input.issue_ref),
         activeOnly: asBoolean(input.active_only),
@@ -283,7 +324,7 @@ export default function register(api: OpenClawPluginApi) {
         clearInterval(sweepTimer);
         sweepTimer = null;
       }
-      db.close();
+      _releaseDb(resolvedDbPath);
     },
   });
 }

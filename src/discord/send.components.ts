@@ -4,11 +4,9 @@ import {
   type MessagePayloadObject,
   type RequestClient,
 } from "@buape/carbon";
-import type { APIChannel } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
 import { loadConfig } from "../config/config.js";
 import { recordChannelActivity } from "../infra/channel-activity.js";
-import { buildAgentSessionKey } from "../routing/resolve-route.js";
 import { loadWebMedia } from "../web/media.js";
 import { resolveDiscordAccount } from "./accounts.js";
 import { registerDiscordComponentEntries } from "./components-registry.js";
@@ -23,56 +21,14 @@ import {
   createDiscordClient,
   parseAndResolveRecipient,
   resolveChannelId,
+  resolveDiscordChannelType,
+  toDiscordFileBlob,
   stripUndefinedFields,
   SUPPRESS_NOTIFICATIONS_FLAG,
 } from "./send.shared.js";
 import type { DiscordSendResult } from "./send.types.js";
 
 const DISCORD_FORUM_LIKE_TYPES = new Set<number>([ChannelType.GuildForum, ChannelType.GuildMedia]);
-
-type DiscordRecipient = Awaited<ReturnType<typeof parseAndResolveRecipient>>;
-
-function resolveDiscordDmRecipientId(channel?: APIChannel): string | undefined {
-  if (!channel || channel.type !== ChannelType.DM) {
-    return undefined;
-  }
-  const recipients = (channel as { recipients?: Array<{ id?: string }> }).recipients;
-  const recipientId = recipients?.[0]?.id;
-  if (typeof recipientId !== "string") {
-    return undefined;
-  }
-  const trimmed = recipientId.trim();
-  return trimmed ? trimmed : undefined;
-}
-
-function resolveDiscordComponentSessionKey(params: {
-  cfg: ReturnType<typeof loadConfig>;
-  accountId: string;
-  agentId?: string;
-  sessionKey?: string;
-  recipient: DiscordRecipient;
-  channel?: APIChannel;
-}): string | undefined {
-  if (!params.sessionKey || !params.agentId) {
-    return params.sessionKey;
-  }
-  if (params.recipient.kind !== "channel") {
-    return params.sessionKey;
-  }
-  const recipientId = resolveDiscordDmRecipientId(params.channel);
-  if (!recipientId) {
-    return params.sessionKey;
-  }
-  // DM channel IDs should map back to the user session for component interactions.
-  return buildAgentSessionKey({
-    agentId: params.agentId,
-    channel: "discord",
-    accountId: params.accountId,
-    peer: { kind: "direct", id: recipientId },
-    dmScope: params.cfg.session?.dmScope,
-    identityLinks: params.cfg.session?.identityLinks,
-  });
-}
 
 function extractComponentAttachmentNames(spec: DiscordComponentMessageSpec): string[] {
   const names: string[] = [];
@@ -108,31 +64,15 @@ export async function sendDiscordComponentMessage(
   const recipient = await parseAndResolveRecipient(to, opts.accountId);
   const { channelId } = await resolveChannelId(rest, recipient, request);
 
-  let channel: APIChannel | undefined;
-  let channelType: number | undefined;
-  try {
-    channel = (await rest.get(Routes.channel(channelId))) as APIChannel | undefined;
-    channelType = channel?.type;
-  } catch {
-    channelType = undefined;
-  }
+  const channelType = await resolveDiscordChannelType(rest, channelId);
 
   if (channelType && DISCORD_FORUM_LIKE_TYPES.has(channelType)) {
     throw new Error("Discord components are not supported in forum-style channels");
   }
 
-  const componentSessionKey = resolveDiscordComponentSessionKey({
-    cfg,
-    accountId: accountInfo.accountId,
-    agentId: opts.agentId,
-    sessionKey: opts.sessionKey,
-    recipient,
-    channel,
-  });
-
   const buildResult = buildDiscordComponentMessage({
     spec,
-    sessionKey: componentSessionKey,
+    sessionKey: opts.sessionKey,
     agentId: opts.agentId,
     accountId: accountInfo.accountId,
   });
@@ -162,14 +102,7 @@ export async function sendDiscordComponentMessage(
         `Component file block expects attachment "${expectedAttachmentName}", but the uploaded file is "${fileName}". Update components.blocks[].file or provide a matching filename.`,
       );
     }
-    let fileData: Blob;
-    if (media.buffer instanceof Blob) {
-      fileData = media.buffer;
-    } else {
-      const arrayBuffer = new ArrayBuffer(media.buffer.byteLength);
-      new Uint8Array(arrayBuffer).set(media.buffer);
-      fileData = new Blob([arrayBuffer]);
-    }
+    const fileData = toDiscordFileBlob(media.buffer);
     files = [{ data: fileData, name: fileName }];
   } else if (expectedAttachmentName) {
     throw new Error(

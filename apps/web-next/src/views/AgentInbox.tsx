@@ -241,9 +241,9 @@ const AgentInbox: React.FC = () => {
 
   // Filter Logic
   const filteredByFolder = items.filter(item => {
-    if (currentFolder === 'unread') return item.status === 'unread';
-    if (currentFolder === 'action-required') return item.actionRequired && item.status !== 'archived';
-    if (currentFolder === 'archived') return item.status === 'archived';
+    if (currentFolder === 'unread') {return item.status === 'unread';}
+    if (currentFolder === 'action-required') {return item.actionRequired && item.status !== 'archived';}
+    if (currentFolder === 'archived') {return item.status === 'archived';}
     return item.status !== 'archived';
   });
 
@@ -251,7 +251,7 @@ const AgentInbox: React.FC = () => {
     ? filteredByFolder.filter(i => i.from === fromFilter)
     : filteredByFolder;
 
-  const uniqueSenders = Array.from(new Set(items.map(i => i.from))).sort();
+  const uniqueSenders = Array.from(new Set(items.map(i => i.from))).toSorted();
 
   // Styling Helpers
   const getPriorityColor = (p: InboxPriority) => {
@@ -275,7 +275,7 @@ const AgentInbox: React.FC = () => {
   };
 
   const getInitials = (name: string) => {
-    if (name === "system") return "SYS";
+    if (name === "system") {return "SYS";}
     return name.slice(0, 2).toUpperCase();
   };
 
@@ -284,7 +284,7 @@ const AgentInbox: React.FC = () => {
       'bg-indigo-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500', 
       'bg-purple-500', 'bg-cyan-500', 'bg-pink-500'
     ];
-    if (name === 'system') return 'bg-zinc-700';
+    if (name === 'system') {return 'bg-zinc-700';}
     const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[charCodeSum % colors.length];
   };
@@ -371,7 +371,7 @@ const AgentInbox: React.FC = () => {
                 key={item.id}
                 onClick={() => {
                   setSelectedId(item.id);
-                  if (item.status === 'unread') updateItemStatus(item.id, 'read');
+                  if (item.status === 'unread') {updateItemStatus(item.id, 'read');}
                 }}
                 className={cn(
                   "w-full text-left p-4 flex gap-3 transition-colors hover:bg-zinc-900/40",

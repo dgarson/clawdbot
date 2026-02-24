@@ -19,14 +19,14 @@ export function UnlockScreen() {
   // If already unlocked, redirect to home
   React.useEffect(() => {
     if (state.isUnlocked) {
-      navigate({ to: "/" });
+      void navigate({ to: "/" });
     }
   }, [state.isUnlocked, navigate]);
 
   const handlePasswordSuccess = () => {
     // If 2FA is enabled, we'll get a requires2fa response
     // which triggers onRequires2fa callback
-    navigate({ to: "/" });
+    void navigate({ to: "/" });
   };
 
   const handleRequires2fa = () => {
@@ -34,7 +34,7 @@ export function UnlockScreen() {
   };
 
   const handle2faSuccess = () => {
-    navigate({ to: "/" });
+    void navigate({ to: "/" });
   };
 
   return (

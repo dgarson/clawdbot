@@ -125,7 +125,7 @@ export default function FeatureRequestBoard() {
 
   const filtered = FEATURES
     .filter(f => statusFilter === "all" || f.status === statusFilter)
-    .sort((a, b) => b.votes - a.votes);
+    .toSorted((a, b) => b.votes - a.votes);
 
   const inProgress = FEATURES.filter(f => f.status === "in-progress");
   const planned = FEATURES.filter(f => f.status === "planned");
@@ -366,7 +366,7 @@ export default function FeatureRequestBoard() {
             <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-4">
               <div className="text-sm font-medium text-zinc-300 mb-4">Votes by Category</div>
               <div className="space-y-3">
-                {VOTE_BREAKDOWN.sort((a, b) => b.count - a.count).map(vb => (
+                {VOTE_BREAKDOWN.toSorted((a, b) => b.count - a.count).map(vb => (
                   <div key={vb.category}>
                     <div className="flex items-center justify-between text-xs mb-1">
                       <div className="flex items-center gap-1.5">
@@ -388,7 +388,7 @@ export default function FeatureRequestBoard() {
             <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
               <div className="text-sm font-medium text-zinc-300 mb-4">Top by MRR Impact</div>
               <div className="space-y-2">
-                {FEATURES.filter(f => f.mrr > 0).sort((a, b) => b.mrr - a.mrr).slice(0, 5).map((f, idx) => (
+                {FEATURES.filter(f => f.mrr > 0).toSorted((a, b) => b.mrr - a.mrr).slice(0, 5).map((f, idx) => (
                   <div key={f.id} className="flex items-center gap-3">
                     <span className="text-xs text-zinc-600 w-4">{idx + 1}.</span>
                     <span className="text-xs text-zinc-300 flex-1 truncate">{f.title}</span>

@@ -3,7 +3,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useGatewayStore } from "@/lib/stores/gateway";
 import { useProficiency } from "@/lib/stores/proficiency";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -11,25 +11,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
 import { GuidedTooltip } from "@/components/adaptive/guided-tooltip";
-import type { ModelsListResult, ModelChoice, AgentsCreateResult } from "@/lib/gateway/types";
+import type { ModelChoice, AgentsCreateResult } from "@/lib/gateway/types";
 import {
-  Bot,
   Sparkles,
-  User,
   Brain,
-  Zap,
-  Shield,
-  MessageSquare,
   Check,
   ChevronLeft,
   ChevronRight,
   Wand2,
   Eye,
   AlertCircle,
-  Palette,
-  Settings2,
   FileText,
-  ArrowRight,
   Loader2,
 } from "lucide-react";
 
@@ -227,7 +219,7 @@ function StepProgress({
 // === Main Component ===
 export default function AgentBuilderPage() {
   const router = useRouter();
-  const { level, isAtLeast } = useProficiency();
+  const { isAtLeast } = useProficiency();
   const connected = useGatewayStore((s) => s.connected);
   const request = useGatewayStore((s) => s.request);
 
@@ -323,7 +315,7 @@ export default function AgentBuilderPage() {
       const configSummary = `Agent Name: ${form.name}\nEmoji: ${form.emoji}\nModel: ${form.modelId ?? "default"}\n\nSOUL.md:\n${form.soulContent || generateSoulFromSliders()}`;
 
       // Use a chat send to get AI feedback on the config
-      const response = await request<{ message?: { content?: string } }>("chat.send", {
+      const _response = await request<{ message?: { content?: string } }>("chat.send", {
         sessionKey: `__builder-review-${Date.now()}`,
         message: `Please review this OpenClaw agent configuration and provide feedback. Be specific about what's good and what could be improved:\n\n${configSummary}`,
         idempotencyKey: crypto.randomUUID(),
@@ -331,7 +323,7 @@ export default function AgentBuilderPage() {
 
       // The actual response comes via event stream, so we'll show a placeholder
       setReviewFeedback("Review submitted. Check the response in your chat for detailed feedback.");
-    } catch (err) {
+    } catch {
       setReviewFeedback("Could not run auto-review. Please check your connection.");
     } finally {
       setReviewing(false);

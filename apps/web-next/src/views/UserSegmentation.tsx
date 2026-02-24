@@ -123,9 +123,9 @@ export default function UserSegmentation() {
     { id: "overlap",  label: "Overlap Matrix", emoji: "⚡" },
   ];
 
-  const sortedSegments = [...SEGMENTS].sort((a, b) => {
-    if (sortBy === "count") return b.userCount - a.userCount;
-    if (sortBy === "pct")   return b.percentage - a.percentage;
+  const sortedSegments = [...SEGMENTS].toSorted((a, b) => {
+    if (sortBy === "count") {return b.userCount - a.userCount;}
+    if (sortBy === "pct")   {return b.percentage - a.percentage;}
     return Math.abs(b.trend) - Math.abs(a.trend);
   });
 
@@ -163,7 +163,7 @@ export default function UserSegmentation() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Segments",    value: SEGMENTS.length,                                          color: "text-indigo-400" },
-          { label: "Largest Segment",   value: `${SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name}`, color: "text-white"     },
+          { label: "Largest Segment",   value: SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name, color: "text-white"     },
           { label: "Users Segmented",   value: `${Math.round((SEGMENTS.reduce((a,s)=>a+s.userCount,0)/totalUsers)*100)}%`, color: "text-emerald-400" },
           { label: "Avg Segment Size",  value: Math.round(SEGMENTS.reduce((a,s)=>a+s.userCount,0)/SEGMENTS.length).toLocaleString(), color: "text-amber-400" },
         ].map(card => (
@@ -427,7 +427,7 @@ export default function UserSegmentation() {
                     <div className="flex flex-wrap gap-1">
                       {u.segments.map(sid => {
                         const seg = SEGMENTS.find(s => s.id === sid);
-                        if (!seg) return null;
+                        if (!seg) {return null;}
                         return (
                           <span key={sid} className={cn("text-xs text-white px-2 py-0.5 rounded", seg.color)}>
                             {seg.name}
@@ -473,11 +473,11 @@ export default function UserSegmentation() {
                         </div>
                       </td>
                       {SEGMENTS.map((colSeg, ci) => {
-                        if (ri === ci) return (
+                        if (ri === ci) {return (
                           <td key={colSeg.id} className="px-2 py-2 text-center">
                             <div className="bg-zinc-700 rounded text-zinc-300 py-1 px-2">—</div>
                           </td>
-                        );
+                        );}
                         // simulate overlap
                         const overlap = ri < ci
                           ? Math.round((rowSeg.userCount * colSeg.userCount) / (totalUsers * 3))

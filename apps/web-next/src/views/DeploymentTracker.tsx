@@ -142,8 +142,8 @@ export default function DeploymentTracker() {
   ];
 
   const filteredDeployments = DEPLOYMENTS.filter(d => {
-    if (filterEnv    !== "all" && d.environment !== filterEnv)    return false;
-    if (filterStatus !== "all" && d.status      !== filterStatus) return false;
+    if (filterEnv    !== "all" && d.environment !== filterEnv)    {return false;}
+    if (filterStatus !== "all" && d.status      !== filterStatus) {return false;}
     return true;
   });
 
@@ -152,7 +152,7 @@ export default function DeploymentTracker() {
   const services = Array.from(new Set(DEPLOYMENTS.map(d => d.service)));
   const envSummary = ["production","staging","dev"].map(env => ({
     env,
-    recent: DEPLOYMENTS.filter(d => d.environment === env).sort((a,b) => b.startTime.localeCompare(a.startTime))[0],
+    recent: DEPLOYMENTS.filter(d => d.environment === env).toSorted((a,b) => b.startTime.localeCompare(a.startTime))[0],
     count:  DEPLOYMENTS.filter(d => d.environment === env).length,
   }));
 
@@ -359,7 +359,7 @@ export default function DeploymentTracker() {
         <div className="grid grid-cols-3 gap-4">
           {services.map(svc => {
             const svcDeps = DEPLOYMENTS.filter(d => d.service === svc);
-            const latest = svcDeps.sort((a,b) => b.startTime.localeCompare(a.startTime))[0];
+            const latest = svcDeps.toSorted((a,b) => b.startTime.localeCompare(a.startTime))[0];
             const successRate = Math.round((svcDeps.filter(d=>d.status==="success").length / svcDeps.length) * 100);
             return (
               <div key={svc} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">

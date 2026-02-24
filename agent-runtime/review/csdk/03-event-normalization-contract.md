@@ -3,6 +3,7 @@
 ## Goal
 
 Normalize CSDK output into the event shape already consumed by:
+
 - `src/agents/pi-embedded-subscribe.handlers.ts`
 
 This allows reuse of current message/tool/lifecycle/compaction handlers with minimal churn.
@@ -10,6 +11,7 @@ This allows reuse of current message/tool/lifecycle/compaction handlers with min
 ## Normalized event target
 
 Adapter emits only existing internal event types:
+
 - `agent_start`
 - `message_start`
 - `message_update`
@@ -26,6 +28,7 @@ Adapter emits only existing internal event types:
 ### Assistant stream
 
 CSDK partial assistant events should map to `message_update` with `assistantMessageEvent` payloads:
+
 - text begin -> `text_start`
 - text delta -> `text_delta`
 - text complete -> `text_end`
@@ -37,11 +40,13 @@ Emit `message_end` once when full assistant turn content is finalized.
 ### Tool lifecycle
 
 CSDK tool use events map to:
+
 - tool start -> `tool_execution_start`
 - tool progress -> `tool_execution_update`
 - tool finish -> `tool_execution_end`
 
 Required fields preserved:
+
 - `toolName`
 - `toolCallId`
 - `args` / `partialResult` / `result`
@@ -50,6 +55,7 @@ Required fields preserved:
 ### Compaction lifecycle
 
 CSDK compact boundary signals map to:
+
 - boundary start or pre-compact signal -> `auto_compaction_start`
 - compact completion -> `auto_compaction_end` with `willRetry` bool
 

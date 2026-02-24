@@ -112,8 +112,8 @@ function fmtTime(iso: string): string {
 }
 
 function fmtDuration(secs?: number): string {
-  if (!secs) return "—"
-  if (secs < 60) return `${secs}s`
+  if (!secs) {return "—"}
+  if (secs < 60) {return `${secs}s`}
   return `${Math.floor(secs / 60)}m ${secs % 60}s`
 }
 
@@ -132,9 +132,9 @@ export default function SecurityScanDashboard() {
   ]
 
   const filteredFindings = FINDINGS.filter(f => {
-    if (severityFilter !== "all" && f.severity !== severityFilter) return false
-    if (typeFilter !== "all" && f.scanType !== typeFilter) return false
-    if (statusFilter !== "all" && f.status !== statusFilter) return false
+    if (severityFilter !== "all" && f.severity !== severityFilter) {return false}
+    if (typeFilter !== "all" && f.scanType !== typeFilter) {return false}
+    if (statusFilter !== "all" && f.status !== statusFilter) {return false}
     return true
   })
 

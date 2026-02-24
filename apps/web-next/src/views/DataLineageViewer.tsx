@@ -296,8 +296,8 @@ function statusDot(status: LineageRun["status"]): string {
 }
 
 function fmt(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + "K";
+  if (n >= 1_000_000) {return (n / 1_000_000).toFixed(1) + "M";}
+  if (n >= 1_000) {return (n / 1_000).toFixed(0) + "K";}
   return String(n);
 }
 
@@ -341,7 +341,7 @@ function GraphTab() {
         <div className="flex gap-4 overflow-x-auto pb-2">
           {(["source", "transform", "storage", "sink"] as const).map((col) => {
             const colNodes = groups[col].filter((n) => filterKind === "all" || n.kind === filterKind);
-            if (colNodes.length === 0) return null;
+            if (colNodes.length === 0) {return null;}
             return (
               <div key={col} className="shrink-0 w-44 space-y-2">
                 <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-center mb-3">
@@ -497,7 +497,7 @@ function RunsTab() {
 }
 
 function ImpactTab() {
-  const sorted = [...impacts].sort((a, b) => b.downstreamCount - a.downstreamCount);
+  const sorted = [...impacts].toSorted((a, b) => b.downstreamCount - a.downstreamCount);
   const maxDown = Math.max(...sorted.map((i) => i.downstreamCount));
 
   return (

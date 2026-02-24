@@ -1036,31 +1036,31 @@ function getTierClasses(tier: SLATier): string {
 }
 
 function getSLAUrgencyClass(minutes: number): string {
-  if (minutes < 0) return "text-red-400"
-  if (minutes < 60) return "text-red-400"
-  if (minutes < 240) return "text-amber-400"
+  if (minutes < 0) {return "text-red-400"}
+  if (minutes < 60) {return "text-red-400"}
+  if (minutes < 240) {return "text-amber-400"}
   return "text-emerald-400"
 }
 
 function getComplianceClass(rate: number): string {
-  if (rate >= 95) return "text-emerald-400"
-  if (rate >= 90) return "text-amber-400"
+  if (rate >= 95) {return "text-emerald-400"}
+  if (rate >= 90) {return "text-amber-400"}
   return "text-red-400"
 }
 
 function getComplianceBarClass(rate: number): string {
-  if (rate >= 95) return "bg-emerald-500"
-  if (rate >= 90) return "bg-amber-500"
+  if (rate >= 95) {return "bg-emerald-500"}
+  if (rate >= 90) {return "bg-amber-500"}
   return "bg-red-500"
 }
 
 function formatSLATime(minutes: number): string {
   if (minutes < 0) {
     const abs = Math.abs(minutes)
-    if (abs < 60) return `-${abs}m`
+    if (abs < 60) {return `-${abs}m`}
     return `-${Math.floor(abs / 60)}h ${abs % 60}m`
   }
-  if (minutes < 60) return `${minutes}m`
+  if (minutes < 60) {return `${minutes}m`}
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
 }
 
@@ -1079,7 +1079,7 @@ function capitalize(s: string): string {
 }
 
 function statusLabel(status: TicketStatus): string {
-  if (status === "in-progress") return "In Progress"
+  if (status === "in-progress") {return "In Progress"}
   return capitalize(status)
 }
 
@@ -1153,13 +1153,13 @@ function QueueTab({ tickets }: QueueTabProps) {
 
   const filtered = tickets
     .filter((t) => {
-      if (filterStatus !== "all" && t.status !== filterStatus) return false
+      if (filterStatus !== "all" && t.status !== filterStatus) {return false}
       if (filterPriority !== "all" && t.priority !== filterPriority)
-        return false
+        {return false}
       return true
     })
     .slice()
-    .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
+    .toSorted((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
 
   const selected = tickets.find((t) => t.id === selectedId) ?? null
 

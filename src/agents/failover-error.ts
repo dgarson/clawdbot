@@ -11,6 +11,7 @@ export class FailoverError extends Error {
   readonly profileId?: string;
   readonly status?: number;
   readonly code?: string;
+  readonly runtime?: string;
 
   constructor(
     message: string,
@@ -22,6 +23,7 @@ export class FailoverError extends Error {
       status?: number;
       code?: string;
       cause?: unknown;
+      runtime?: string;
     },
   ) {
     super(message, { cause: params.cause });
@@ -32,6 +34,7 @@ export class FailoverError extends Error {
     this.profileId = params.profileId;
     this.status = params.status;
     this.code = params.code;
+    this.runtime = params.runtime;
   }
 }
 

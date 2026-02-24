@@ -206,7 +206,7 @@ export default function CostOptimizer() {
     costEntries.forEach((e) =>
       map.set(e.category, (map.get(e.category) ?? 0) + e.cost)
     );
-    const entries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    const entries = Array.from(map.entries()).toSorted((a, b) => b[1] - a[1]);
     return entries.map(([cat, cost]) => ({
       category: cat,
       cost,
@@ -251,15 +251,15 @@ export default function CostOptimizer() {
         ...data,
         pct: pct(data.cost, totalCostCents),
       }))
-      .sort((a, b) => b.cost - a.cost);
+      .toSorted((a, b) => b.cost - a.cost);
   }, [costEntries, totalCostCents]);
 
   // Filtered optimizations
   const filteredOptimizations = useMemo(
     () =>
       optimizations.filter((o) => {
-        if (statusFilter !== "all" && o.status !== statusFilter) return false;
-        if (effortFilter !== "all" && o.effort !== effortFilter) return false;
+        if (statusFilter !== "all" && o.status !== statusFilter) {return false;}
+        if (effortFilter !== "all" && o.effort !== effortFilter) {return false;}
         return true;
       }),
     [optimizations, statusFilter, effortFilter]

@@ -101,8 +101,8 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
   ) => {
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const terminalRef = React.useRef<XtermTerminal | null>(null);
-    const fitRef = React.useRef<FitAddonLike | null>(null);
-    const searchRef = React.useRef<SearchAddonLike | null>(null);
+    const fitRef = React.useRef<FitAddonLike | undefined>(undefined);
+    const searchRef = React.useRef<unknown>(null);
     const resizeObserverRef = React.useRef<ResizeObserver | null>(null);
     const [loadError, setLoadError] = React.useState<string | null>(null);
 
@@ -158,7 +158,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
           terminal.loadAddon(searchAddon);
           terminal.loadAddon(new ClipboardAddon());
 
-          terminal.open(containerRef.current!);
+          terminal.open(containerRef.current);
 
           terminalRef.current = terminal;
           fitRef.current = fitAddon;
@@ -172,7 +172,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
           });
 
           resizeObserverRef.current = new ResizeObserver(() => fit());
-          resizeObserverRef.current.observe(containerRef.current!);
+          resizeObserverRef.current.observe(containerRef.current);
           fit();
 
           if (welcomeMessage) {

@@ -147,9 +147,9 @@ export default function CustomerFeedbackDashboard() {
   const totalUpvotes = FEEDBACK.reduce((a, f) => a + f.upvotes, 0);
 
   const filteredFeedback = FEEDBACK.filter(f => {
-    if (sentimentFilter !== "all" && f.sentiment !== sentimentFilter) return false;
-    if (categoryFilter !== "all" && f.category !== categoryFilter) return false;
-    if (planFilter !== "all" && f.plan !== planFilter) return false;
+    if (sentimentFilter !== "all" && f.sentiment !== sentimentFilter) {return false;}
+    if (categoryFilter !== "all" && f.category !== categoryFilter) {return false;}
+    if (planFilter !== "all" && f.plan !== planFilter) {return false;}
     return true;
   });
 
@@ -325,7 +325,7 @@ export default function CustomerFeedbackDashboard() {
 
           {/* Feed */}
           <div className="flex-1 space-y-3">
-            {filteredFeedback.sort((a, b) => b.upvotes - a.upvotes).map(item => (
+            {filteredFeedback.toSorted((a, b) => b.upvotes - a.upvotes).map(item => (
               <div
                 key={item.id}
                 onClick={() => setSelectedFeedback(selectedFeedback?.id === item.id ? null : item)}
@@ -442,7 +442,7 @@ export default function CustomerFeedbackDashboard() {
           {/* Top themes */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
             <div className="text-sm font-semibold text-zinc-300 mb-4">🔥 Most Upvoted Feedback</div>
-            {FEEDBACK.sort((a, b) => b.upvotes - a.upvotes).slice(0, 5).map((item, i) => (
+            {FEEDBACK.toSorted((a, b) => b.upvotes - a.upvotes).slice(0, 5).map((item, i) => (
               <div key={item.id} className="flex items-start gap-3 mb-4 pb-4 border-b border-zinc-800/50 last:border-0 last:mb-0 last:pb-0">
                 <div className="text-zinc-600 font-bold text-lg w-6 shrink-0">#{i + 1}</div>
                 <div className="text-2xl shrink-0">{SENTIMENT_CONFIG[item.sentiment].emoji}</div>

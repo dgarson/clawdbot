@@ -42,7 +42,7 @@ const RECENT_SEARCHES: RecentSearch[] = [
 ];
 
 function makeResults(query: string): SearchResult[] {
-  if (!query.trim()) return [];
+  if (!query.trim()) {return [];}
   return [
     {
       id: "r1",
@@ -176,7 +176,7 @@ export default function SearchResultsView() {
   const filtered = allResults
     .filter((r) => filterKind === "all" || r.kind === filterKind)
     .filter((r) => filterRelevance === "all" || r.relevance === filterRelevance)
-    .sort((a, b) => sortBy === "relevance" ? b.score - a.score : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    .toSorted((a, b) => sortBy === "relevance" ? b.score - a.score : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const facets: SearchFacet[] = [
     { id: "all", label: "All Results", count: allResults.length },
@@ -198,7 +198,7 @@ export default function SearchResultsView() {
   }
 
   function highlight(text: string, phrases: string[]): React.ReactNode {
-    if (!phrases.length) return text;
+    if (!phrases.length) {return text;}
     const regex = new RegExp(`(${phrases.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
     const parts = text.split(regex);
     return parts.map((part, i) =>

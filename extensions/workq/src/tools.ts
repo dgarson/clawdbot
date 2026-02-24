@@ -1,5 +1,5 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { exportWorkqState } from "./export.js";
 import { getValidTransitions } from "./state-machine.js";
 import {
@@ -64,8 +64,9 @@ export function registerWorkqTools(
 ): void {
   const staleHours = Math.max(1, Math.floor(staleThresholdHours || 24));
 
+  // Cast needed: ToolContextLike is a subset of OpenClawPluginToolContext used for type narrowing.
   api.registerTool(
-    (ctx: ToolContextLike) => {
+    ((ctx: ToolContextLike) => {
       const boundAgentId = normalizeText(ctx?.agentId) ?? null;
       const boundSessionKey = normalizeText(ctx?.sessionKey) ?? undefined;
 
@@ -476,7 +477,7 @@ export function registerWorkqTools(
           },
         },
       ];
-    },
+    }) as never,
     {
       optional: true,
       names: [...TOOL_NAMES],

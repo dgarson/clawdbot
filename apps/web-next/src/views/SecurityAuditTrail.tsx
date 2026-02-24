@@ -606,22 +606,22 @@ function anomalyStatusLabel(status: AnomalyStatus): string {
 }
 
 function confidenceBarBg(confidence: number): string {
-  if (confidence >= 90) return "bg-rose-400";
-  if (confidence >= 75) return "bg-amber-400";
-  if (confidence >= 60) return "bg-yellow-300";
+  if (confidence >= 90) {return "bg-rose-400";}
+  if (confidence >= 75) {return "bg-amber-400";}
+  if (confidence >= 60) {return "bg-yellow-300";}
   return "bg-sky-400";
 }
 
 function confidenceText(confidence: number): string {
-  if (confidence >= 90) return "text-rose-400";
-  if (confidence >= 75) return "text-amber-400";
-  if (confidence >= 60) return "text-yellow-300";
+  if (confidence >= 90) {return "text-rose-400";}
+  if (confidence >= 75) {return "text-amber-400";}
+  if (confidence >= 60) {return "text-yellow-300";}
   return "text-sky-400";
 }
 
 function coverageBarBg(coverage: number): string {
-  if (coverage >= 90) return "bg-emerald-400";
-  if (coverage >= 70) return "bg-amber-400";
+  if (coverage >= 90) {return "bg-emerald-400";}
+  if (coverage >= 70) {return "bg-amber-400";}
   return "bg-rose-400";
 }
 
@@ -786,9 +786,9 @@ function EventsTab({
 }: EventsTabProps) {
   const filtered = events.filter((e) => {
     if (filters.severity !== "all" && e.severity !== filters.severity)
-      return false;
+      {return false;}
     if (filters.category !== "all" && e.category !== filters.category)
-      return false;
+      {return false;}
     return true;
   });
 

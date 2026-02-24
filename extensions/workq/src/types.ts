@@ -235,4 +235,5 @@ export interface WorkqDatabaseApi {
     issueRef: string;
     annotated: true;
   };
+  getById(id: number, staleThresholdHours?: number): WorkItem | null;
 }

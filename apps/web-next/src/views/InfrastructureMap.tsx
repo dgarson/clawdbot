@@ -90,7 +90,7 @@ const CARD_H = 80
 const FILTERS: FilterOption[] = ["all", "healthy", "degraded", "offline"]
 
 function formatNumber(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
+  if (n >= 1000) {return `${(n / 1000).toFixed(1)}k`}
   return String(n)
 }
 
@@ -135,7 +135,7 @@ function NodeCard({
 function ConnectionLine({ conn, nodes }: { conn: Connection; nodes: InfraNode[] }) {
   const fromNode = nodes.find((n) => n.id === conn.from)
   const toNode = nodes.find((n) => n.id === conn.to)
-  if (!fromNode || !toNode) return null
+  if (!fromNode || !toNode) {return null}
 
   // Resolve absolute positions from region offsets
   const regionOffsets: Record<Region, { x: number; y: number }> = {
@@ -152,7 +152,7 @@ function ConnectionLine({ conn, nodes }: { conn: Connection; nodes: InfraNode[] 
   const toCy = toNode.y + tOff.y + CARD_H / 2
 
   // Cross-region? skip for simplicity when regions differ — use a dashed marker instead
-  if (fromNode.region !== toNode.region) return null
+  if (fromNode.region !== toNode.region) {return null}
 
   const left = Math.min(fromCx, toCx)
   const top = Math.min(fromCy, toCy)
@@ -282,7 +282,7 @@ export default function InfrastructureMap() {
 
   // Tick the "last updated" counter every second when auto-refresh is on
   React.useEffect(() => {
-    if (!autoRefresh) return
+    if (!autoRefresh) {return}
     setLastUpdated(0)
     const id = setInterval(() => setLastUpdated((s) => s + 1), 1000)
     return () => clearInterval(id)
@@ -348,7 +348,7 @@ export default function InfrastructureMap() {
                 : "border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-white",
             )}
           >
-            {f === "all" ? `All (${NODES.length})` : `${f} (${statusCount(f as NodeStatus)})`}
+            {f === "all" ? `All (${NODES.length})` : `${f} (${statusCount(f)})`}
           </button>
         ))}
       </div>

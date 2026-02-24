@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { useProficiency } from "@/lib/stores/proficiency";
 import {
   Card,
   CardContent,
@@ -249,7 +248,7 @@ export default function NodesPage() {
     string,
     unknown
   > | null>(null);
-  const [describingId, setDescribingId] = React.useState<string | null>(null);
+  const [_describingId, setDescribingId] = React.useState<string | null>(null);
 
   // Fetch node list
   const fetchNodes = React.useCallback(async () => {
@@ -267,7 +266,7 @@ export default function NodesPage() {
   }, [connected, request]);
 
   React.useEffect(() => {
-    fetchNodes();
+    void fetchNodes();
   }, [fetchNodes]);
 
   // Describe a single node

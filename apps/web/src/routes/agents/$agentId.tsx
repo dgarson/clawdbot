@@ -15,7 +15,6 @@ import {
   AgentChatTab,
   AgentConfigureTab,
   AgentActivityTab,
-  AgentVisualConfigurator,
   NewSessionDialog,
 } from "@/components/domain/agents";
 import type { ConfigureSubTab } from "@/components/domain/agents/AgentConfigureTab";
@@ -194,7 +193,7 @@ function AgentDetailPage() {
               <p className="text-muted-foreground mb-4">
                 The agent you're looking for doesn't exist or has been removed.
               </p>
-              <Button variant="outline" onClick={() => navigate({ to: "/agents" })}>
+              <Button variant="outline" onClick={() => void navigate({ to: "/agents" })}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Agents
               </Button>
@@ -218,7 +217,7 @@ function AgentDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: "/agents" })}
+            onClick={() => void navigate({ to: "/agents" })}
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />

@@ -182,13 +182,13 @@ export default function VectorDatabaseViewer(): React.ReactElement {
   };
 
   const filteredEmbeddings = sampleEmbeddings.filter((emb) => {
-    if (embeddingCollectionFilter !== "all" && emb.collectionId !== embeddingCollectionFilter) return false;
-    if (embeddingModelFilter !== "all" && emb.model !== embeddingModelFilter) return false;
+    if (embeddingCollectionFilter !== "all" && emb.collectionId !== embeddingCollectionFilter) {return false;}
+    if (embeddingModelFilter !== "all" && emb.model !== embeddingModelFilter) {return false;}
     return true;
   });
 
   const handleSearch = (): void => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {return;}
     setIsSearching(true);
     
     // Simulate search

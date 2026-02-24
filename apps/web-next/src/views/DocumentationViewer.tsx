@@ -544,13 +544,13 @@ function NavTree({
   const lowerSearch = search.toLowerCase();
   const filtered = sections
     .map((section) => {
-      if (!search) return section;
+      if (!search) {return section;}
       const matchingSubs = section.subsections.filter(
         (sub) =>
           sub.label.toLowerCase().includes(lowerSearch) ||
           section.label.toLowerCase().includes(lowerSearch)
       );
-      if (matchingSubs.length === 0) return null;
+      if (matchingSubs.length === 0) {return null;}
       return { ...section, subsections: matchingSubs };
     })
     .filter((s): s is NavSection => s !== null);

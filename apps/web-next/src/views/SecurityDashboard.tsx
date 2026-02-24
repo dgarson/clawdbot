@@ -187,19 +187,19 @@ const BLOCKED_STATUS_CONFIG: Record<BlockedStatus, { label: string; badge: strin
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 0) return "in future";
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 0) {return "in future";}
+  if (diff < 60_000) {return "just now";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
 function fmtExpiry(d: Date | undefined): string {
-  if (!d) return "Never";
+  if (!d) {return "Never";}
   const diff = d.getTime() - Date.now();
-  if (diff < 0) return "Expired";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m remaining`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h remaining`;
+  if (diff < 0) {return "Expired";}
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m remaining`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h remaining`;}
   return `${Math.floor(diff / 86_400_000)}d remaining`;
 }
 
@@ -279,8 +279,8 @@ export default function SecurityDashboard() {
   const [events, setEvents] = useState<SecurityEvent[]>(SECURITY_EVENTS);
 
   const filteredEvents = events.filter((e) => {
-    if (eventFilter === "unresolved") return !e.resolved;
-    if (eventFilter === "all") return true;
+    if (eventFilter === "unresolved") {return !e.resolved;}
+    if (eventFilter === "all") {return true;}
     return e.threatLevel === eventFilter;
   });
 
@@ -467,7 +467,7 @@ export default function SecurityDashboard() {
                     eventFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200"
                   )}
                 >
-                  {f === "all" ? "All" : f === "unresolved" ? "Unresolved" : THREAT_CONFIG[f as ThreatLevel].label}
+                  {f === "all" ? "All" : f === "unresolved" ? "Unresolved" : THREAT_CONFIG[f].label}
                 </button>
               ))}
             </div>

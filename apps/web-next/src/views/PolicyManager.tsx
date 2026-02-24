@@ -148,7 +148,7 @@ const ALL_CATEGORIES: Category[] = ["security", "privacy", "compliance", "access
 
 function complianceForCategory(category: Category): number {
   const catPolicies = POLICIES.filter((p) => p.category === category && p.status === "active");
-  if (catPolicies.length === 0) return 100;
+  if (catPolicies.length === 0) {return 100;}
   const totalViolations = catPolicies.reduce((sum, p) => sum + p.violations, 0);
   const maxExpected = catPolicies.length * 5;
   return Math.max(0, Math.round(100 - (totalViolations / maxExpected) * 100));

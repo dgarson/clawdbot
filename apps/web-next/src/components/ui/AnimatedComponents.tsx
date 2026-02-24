@@ -27,7 +27,7 @@ export function animateCount(
   let cancelled = false;
 
   function tick(currentTime: number) {
-    if (cancelled) return;
+    if (cancelled) {return;}
     
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
@@ -64,7 +64,7 @@ export function AnimatedCounter({
   const previousValueRef = useRef(value);
 
   useEffect(() => {
-    if (value === previousValueRef.current) return;
+    if (value === previousValueRef.current) {return;}
     
     const cancel = animateCount(
       previousValueRef.current,
@@ -203,13 +203,13 @@ export function SparklineChart({
   const [animatedWidth, setAnimatedWidth] = useState(animated ? 0 : 100);
   
   useEffect(() => {
-    if (!animated) return;
+    if (!animated) {return;}
     const timeout = setTimeout(() => setAnimatedWidth(100), 50);
     return () => clearTimeout(timeout);
   }, [animated, data]);
 
   const { pathD, areaD } = useMemo(() => {
-    if (data.length === 0) return { pathD: '', areaD: '' };
+    if (data.length === 0) {return { pathD: '', areaD: '' };}
     
     const min = Math.min(...data);
     const max = Math.max(...data);
@@ -294,14 +294,14 @@ export function TimeSeriesChart({
   const [width, setWidth] = useState(400);
   
   useEffect(() => {
-    if (!animated) return;
+    if (!animated) {return;}
     const timeout = setTimeout(() => setAnimatedProgress(100), 100);
     return () => clearTimeout(timeout);
   }, [animated, data]);
   
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
     
     const observer = new ResizeObserver((entries) => {
       setWidth(entries[0].contentRect.width);
@@ -312,7 +312,7 @@ export function TimeSeriesChart({
   }, []);
 
   const { bars, maxValue, minTime, maxTime } = useMemo(() => {
-    if (data.length === 0) return { bars: [], maxValue: 0, minTime: 0, maxTime: 0 };
+    if (data.length === 0) {return { bars: [], maxValue: 0, minTime: 0, maxTime: 0 };}
     
     const values = data.map(d => d.value);
     const max = Math.max(...values, 1);

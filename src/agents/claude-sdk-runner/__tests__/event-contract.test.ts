@@ -159,6 +159,23 @@ describe("event translation — required event types", () => {
     expect(state.sdkResultError).toBe("Tool execution timed out");
   });
 
+  it("prefers result text when is_error is true and subtype is success", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "result",
+        subtype: "success",
+        is_error: true,
+        result: "Prompt is too long",
+      } as never,
+      state,
+    );
+
+    expect(state.sdkResultError).toBe("Prompt is too long");
+  });
+
   it("does not set sdkResultError on successful result", () => {
     const state = makeState();
     captureEvents(state);

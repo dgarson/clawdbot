@@ -12,9 +12,9 @@ type GatewayState = {
   connected: boolean;
   connecting: boolean;
   error: string | null;
-  client: GatewayClient | null;
-  hello: GatewayHelloOk | null;
-  snapshot: GatewaySnapshot | null;
+  client?: GatewayClient;
+  hello?: GatewayHelloOk;
+  snapshot?: GatewaySnapshot;
 
   // Event listeners
   eventListeners: Map<string, Set<(payload: unknown) => void>>;
@@ -30,9 +30,9 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
   connected: false,
   connecting: false,
   error: null,
-  client: null,
-  hello: null,
-  snapshot: null,
+  client: undefined,
+  hello: undefined,
+  snapshot: undefined,
   eventListeners: new Map(),
 
   connect: (url, opts) => {
@@ -51,7 +51,7 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
           connected: true,
           connecting: false,
           hello,
-          snapshot: hello.snapshot ?? null,
+          snapshot: hello.snapshot,
           error: null,
         });
       },
@@ -95,11 +95,11 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
     if (client) {
       client.stop();
       set({
-        client: null,
+        client: undefined,
         connected: false,
         connecting: false,
-        hello: null,
-        snapshot: null,
+        hello: undefined,
+        snapshot: undefined,
       });
     }
   },

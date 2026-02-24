@@ -113,16 +113,16 @@ const PLAN_OPTIONS: PlanType[] = ["starter", "pro", "enterprise"];
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function retentionColor(value: number): string {
-  if (value > 60) return "bg-emerald-500/80 text-emerald-50";
-  if (value >= 40) return "bg-indigo-500/80 text-indigo-50";
-  if (value >= 20) return "bg-amber-500/80 text-amber-50";
+  if (value > 60) {return "bg-emerald-500/80 text-emerald-50";}
+  if (value >= 40) {return "bg-indigo-500/80 text-indigo-50";}
+  if (value >= 20) {return "bg-amber-500/80 text-amber-50";}
   return "bg-rose-500/80 text-rose-50";
 }
 
 function retentionBgClass(value: number): string {
-  if (value > 60) return "bg-emerald-500";
-  if (value >= 40) return "bg-indigo-500";
-  if (value >= 20) return "bg-amber-500";
+  if (value > 60) {return "bg-emerald-500";}
+  if (value >= 40) {return "bg-indigo-500";}
+  if (value >= 20) {return "bg-amber-500";}
   return "bg-rose-500";
 }
 
@@ -146,7 +146,7 @@ function planColor(p: PlanType): string {
 }
 
 function formatNumber(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  if (n >= 1000) {return `${(n / 1000).toFixed(1)}k`;}
   return String(n);
 }
 
@@ -156,8 +156,8 @@ function filterCohorts(
   planFilter: PlanType | "all"
 ): CohortData[] {
   return cohorts.filter((c) => {
-    if (channelFilter !== "all" && c.channels[channelFilter] < 15) return false;
-    if (planFilter !== "all" && c.plans[planFilter] < 10) return false;
+    if (channelFilter !== "all" && c.channels[channelFilter] < 15) {return false;}
+    if (planFilter !== "all" && c.plans[planFilter] < 10) {return false;}
     return true;
   });
 }
@@ -502,7 +502,7 @@ export default function CohortAnalysisDashboard() {
   let bestCohort = "";
   let worstCohort = "";
   if (filtered.length > 0) {
-    const sorted = [...filtered].sort(
+    const sorted = [...filtered].toSorted(
       (a, b) => b.retention[4] - a.retention[4]
     );
     bestCohort = sorted[0].label;

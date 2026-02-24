@@ -264,8 +264,8 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
   const [selectedEntry, setSelectedEntry] = useState<SentimentEntry | null>(null);
 
   const filteredEntries = ENTRIES.filter((e) => {
-    if (feedFilter !== "all" && e.sentiment !== feedFilter) return false;
-    if (sourceFilter !== "all" && e.source !== sourceFilter) return false;
+    if (feedFilter !== "all" && e.sentiment !== feedFilter) {return false;}
+    if (sourceFilter !== "all" && e.source !== sourceFilter) {return false;}
     return true;
   });
 
@@ -546,7 +546,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
                 <p className="text-xs text-zinc-500 mt-0.5">Average sentiment score per product entity (-1 very negative → +1 very positive)</p>
               </div>
               <div className="divide-y divide-zinc-800">
-                {ENTITY_SCORES.sort((a, b) => b.avgScore - a.avgScore).map((es) => (
+                {ENTITY_SCORES.toSorted((a, b) => b.avgScore - a.avgScore).map((es) => (
                   <div key={es.entity} className="px-5 py-4 flex items-center gap-4">
                     <div className="w-36 shrink-0">
                       <div className="text-sm font-medium">{es.entity}</div>

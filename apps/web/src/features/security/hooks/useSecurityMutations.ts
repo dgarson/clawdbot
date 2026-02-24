@@ -45,7 +45,7 @@ export function useSetupPassword() {
         setUnlocked(result.session);
         toast.success("Password protection enabled");
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to set up password: ${error.message}`);
@@ -65,7 +65,7 @@ export function useChangePassword() {
       if (result.success) {
         toast.success("Password changed successfully");
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to change password: ${error.message}`);
@@ -86,7 +86,7 @@ export function useUnlock() {
       if (result.success && result.session) {
         setUnlocked(result.session);
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to unlock: ${error.message}`);
@@ -108,7 +108,7 @@ export function useLock() {
         setLocked();
         toast.info("App locked");
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to lock: ${error.message}`);
@@ -128,7 +128,7 @@ export function useDisableLock() {
       if (result.success) {
         toast.success("Password protection disabled");
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to disable lock: ${error.message}`);
@@ -164,7 +164,7 @@ export function useVerify2fa() {
       if (result.success) {
         toast.success("Two-factor authentication enabled");
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to verify 2FA: ${error.message}`);
@@ -184,7 +184,7 @@ export function useDisable2fa() {
       if (result.success) {
         toast.success("Two-factor authentication disabled");
       }
-      queryClient.invalidateQueries({ queryKey: securityKeys.all });
+      void queryClient.invalidateQueries({ queryKey: securityKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to disable 2FA: ${error.message}`);

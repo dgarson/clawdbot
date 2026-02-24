@@ -50,14 +50,14 @@ export type StatusReactionController = {
 
 export const DEFAULT_EMOJIS: Required<StatusReactionEmojis> = {
   queued: "👀",
-  thinking: "🧠",
-  tool: "🛠️",
-  coding: "💻",
-  web: "🌐",
-  done: "✅",
-  error: "❌",
-  stallSoft: "⏳",
-  stallHard: "⚠️",
+  thinking: "🤔",
+  tool: "🔥",
+  coding: "👨‍💻",
+  web: "⚡",
+  done: "👍",
+  error: "😱",
+  stallSoft: "🥱",
+  stallHard: "😨",
 };
 
 export const DEFAULT_TIMING: Required<StatusReactionTiming> = {
@@ -306,7 +306,7 @@ export function createStatusReactionController(params: {
     scheduleEmoji(emoji);
   }
 
-  function setDone(): Promise<void> {
+  function finishWithEmoji(emoji: string): Promise<void> {
     if (!enabled) {
       return Promise.resolve();
     }
@@ -316,24 +316,17 @@ export function createStatusReactionController(params: {
 
     // Directly enqueue to ensure we return the updated promise
     return enqueue(async () => {
-      await applyEmoji(emojis.done);
+      await applyEmoji(emoji);
       pendingEmoji = "";
     });
   }
 
+  function setDone(): Promise<void> {
+    return finishWithEmoji(emojis.done);
+  }
+
   function setError(): Promise<void> {
-    if (!enabled) {
-      return Promise.resolve();
-    }
-
-    finished = true;
-    clearAllTimers();
-
-    // Directly enqueue to ensure we return the updated promise
-    return enqueue(async () => {
-      await applyEmoji(emojis.error);
-      pendingEmoji = "";
-    });
+    return finishWithEmoji(emojis.error);
   }
 
   async function clear(): Promise<void> {

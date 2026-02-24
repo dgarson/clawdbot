@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { ReagraphView } from "@/integrations/graph";
@@ -72,8 +71,8 @@ type AgentEdgeData = {
  */
 function parseSessionKeyParent(sessionKey: string): string | null {
   const parts = sessionKey.split(":");
-  if (parts.length < 4) return null;
-  if (parts[0] !== "agent") return null;
+  if (parts.length < 4) {return null;}
+  if (parts[0] !== "agent") {return null;}
   if (parts[2] === "subagent") {
     return parts[1]; // parent agent ID
   }
@@ -84,8 +83,8 @@ function parseSessionKeyParent(sessionKey: string): string | null {
  * Extract edge kind from session key.
  */
 function parseEdgeKind(sessionKey: string): AgentEdgeData["kind"] {
-  if (sessionKey.includes(":subagent:")) return "spawn";
-  if (sessionKey.includes(":channel:")) return "channel";
+  if (sessionKey.includes(":subagent:")) {return "spawn";}
+  if (sessionKey.includes(":channel:")) {return "channel";}
   return "delegation";
 }
 
@@ -117,14 +116,14 @@ function buildAgentGraph(
   const seenEdges = new Set<string>();
 
   for (const agent of agents) {
-    if (!agent.sessionKey) continue;
+    if (!agent.sessionKey) {continue;}
 
     const parentId = parseSessionKeyParent(agent.sessionKey);
-    if (!parentId || !agentMap.has(parentId)) continue;
+    if (!parentId || !agentMap.has(parentId)) {continue;}
 
     // Avoid duplicate edges
     const edgeId = `${parentId}→${agent.id}`;
-    if (seenEdges.has(edgeId)) continue;
+    if (seenEdges.has(edgeId)) {continue;}
     seenEdges.add(edgeId);
 
     edges.push({
@@ -177,8 +176,8 @@ function healthBadgeVariant(
 }
 
 function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}k`;}
   return String(n);
 }
 
@@ -188,9 +187,9 @@ function formatCost(cost: number): string {
 
 function timeAgo(ts: number): string {
   const secs = Math.floor((Date.now() - ts) / 1000);
-  if (secs < 60) return `${secs}s ago`;
+  if (secs < 60) {return `${secs}s ago`;}
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
   return `${hrs}h ago`;
 }
@@ -204,7 +203,7 @@ type AgentDetailPanelProps = {
 };
 
 function AgentDetailPanel({ node, agents, onClose }: AgentDetailPanelProps) {
-  if (!node) return null;
+  if (!node) {return null;}
 
   const data = node.data;
   const agent = agents.find((a) => a.id === node.id);
@@ -458,14 +457,12 @@ function GraphStatsBar({ agents }: { agents: AgentStatusEntry[] }) {
 
 type FallbackGraphProps = {
   graph: GraphData<AgentNodeData, AgentEdgeData>;
-  agents: AgentStatusEntry[];
   selectedNodeId: string | null;
   onNodeClick: (nodeId: string) => void;
 };
 
 function FallbackAgentGraph({
   graph,
-  agents,
   selectedNodeId,
   onNodeClick,
 }: FallbackGraphProps) {
@@ -558,7 +555,6 @@ function FallbackAgentGraph({
 
 type GraphCanvasWrapperProps = {
   graph: GraphData<AgentNodeData, AgentEdgeData>;
-  agents: AgentStatusEntry[];
   selectedNodeId: string | null;
   onNodeClick: (nodeId: string) => void;
   onCanvasClick: () => void;
@@ -566,19 +562,17 @@ type GraphCanvasWrapperProps = {
 
 function GraphCanvasWrapper({
   graph,
-  agents,
   selectedNodeId,
   onNodeClick,
   onCanvasClick,
 }: GraphCanvasWrapperProps) {
   // Try reagraph first; fall back to CSS tree on load error
-  const [reagraphFailed, setReagraphFailed] = React.useState(false);
+  const [reagraphFailed, _setReagraphFailed] = React.useState(false);
 
   if (reagraphFailed) {
     return (
       <FallbackAgentGraph
         graph={graph}
-        agents={agents}
         selectedNodeId={selectedNodeId}
         onNodeClick={onNodeClick}
       />
@@ -733,11 +727,10 @@ function AgentGraphPage() {
             </div>
           ) : (
             <GraphCanvasWrapper
-              graph={graph}
-              agents={agents}
-              selectedNodeId={selectedNodeId}
-              onNodeClick={handleNodeClick}
-              onCanvasClick={handleCanvasClick}
+                graph={graph}
+                selectedNodeId={selectedNodeId}
+                onNodeClick={handleNodeClick}
+                onCanvasClick={handleCanvasClick}
             />
           )}
         </motion.div>

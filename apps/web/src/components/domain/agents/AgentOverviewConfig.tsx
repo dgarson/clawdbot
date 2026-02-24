@@ -1,13 +1,11 @@
 
 import * as React from "react";
-import { motion } from "framer-motion";
 import {
   User,
   Brain,
   FileText,
   Sparkles,
   Hash,
-  Palette,
   Tag,
   Globe,
   Shield,
@@ -19,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import type { Agent } from "@/stores/useAgentStore";
 import type { AgentIdentityResult } from "@/lib/api/gateway-hooks";
 import type { AgentFileEntry } from "@/hooks/queries/useAgentFiles";
-import { AGENT_FILES, getFileLabel } from "@/hooks/queries/useAgentFiles";
+import { getFileLabel } from "@/hooks/queries/useAgentFiles";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -55,7 +53,7 @@ export function AgentOverviewConfig({
 
   const agentName = identity?.name ?? agent?.name ?? agentId;
   const agentEmoji = identity?.emoji ?? "🤖";
-  const agentAvatar = identity?.avatar ?? agent?.avatar;
+  const _agentAvatar = identity?.avatar ?? agent?.avatar;
   const agentModel = agent?.model;
   const agentRuntime = agent?.runtime ?? "pi";
 

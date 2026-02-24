@@ -172,24 +172,24 @@ const EVAL_HISTORY: EvalPoint[] = [
 ];
 
 function stateColor(s: RuleState) {
-  if (s === "firing") return "text-rose-400";
-  if (s === "ok") return "text-emerald-400";
-  if (s === "pending") return "text-amber-400";
-  if (s === "error") return "text-rose-400";
+  if (s === "firing") {return "text-rose-400";}
+  if (s === "ok") {return "text-emerald-400";}
+  if (s === "pending") {return "text-amber-400";}
+  if (s === "error") {return "text-rose-400";}
   return "text-zinc-400";
 }
 function stateBg(s: RuleState) {
-  if (s === "firing") return "bg-rose-400/10 text-rose-400";
-  if (s === "ok") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "pending") return "bg-amber-400/10 text-amber-400";
-  if (s === "error") return "bg-rose-400/10 text-rose-400";
+  if (s === "firing") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "ok") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "error") {return "bg-rose-400/10 text-rose-400";}
   return "bg-zinc-600 text-zinc-400";
 }
 function severityColor(s: RuleSeverity) {
-  if (s === "critical") return "bg-rose-500/10 text-rose-400";
-  if (s === "high") return "bg-orange-500/10 text-orange-400";
-  if (s === "medium") return "bg-amber-500/10 text-amber-400";
-  if (s === "low") return "bg-blue-500/10 text-blue-400";
+  if (s === "critical") {return "bg-rose-500/10 text-rose-400";}
+  if (s === "high") {return "bg-orange-500/10 text-orange-400";}
+  if (s === "medium") {return "bg-amber-500/10 text-amber-400";}
+  if (s === "low") {return "bg-blue-500/10 text-blue-400";}
   return "bg-zinc-500/10 text-zinc-400";
 }
 function typeBadge(t: RuleType) {
@@ -219,9 +219,9 @@ export default function ObservabilityRulesEngine() {
   const [filterType, setFilterType] = useState<RuleType | "all">("all");
 
   const filteredRules = RULES.filter(r => {
-    if (filterState !== "all" && r.state !== filterState) return false;
-    if (filterSeverity !== "all" && r.severity !== filterSeverity) return false;
-    if (filterType !== "all" && r.type !== filterType) return false;
+    if (filterState !== "all" && r.state !== filterState) {return false;}
+    if (filterSeverity !== "all" && r.severity !== filterSeverity) {return false;}
+    if (filterType !== "all" && r.type !== filterType) {return false;}
     return true;
   });
 
@@ -540,7 +540,7 @@ export default function ObservabilityRulesEngine() {
           <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-300 mb-4">Most Active Rules</h3>
             <div className="space-y-3">
-              {[...RULES].sort((a, b) => b.firingCount - a.firingCount).slice(0, 5).map(rule => {
+              {[...RULES].toSorted((a, b) => b.firingCount - a.firingCount).slice(0, 5).map(rule => {
                 const maxFire = Math.max(...RULES.map(r => r.firingCount), 1);
                 const pct = (rule.firingCount / maxFire) * 100;
                 return (

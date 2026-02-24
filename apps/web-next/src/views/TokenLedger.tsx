@@ -49,7 +49,7 @@ const ENTRIES: TokenEntry[] = [
 ];
 
 const DAILY_SUMMARIES: DailySummary[] = [
-  { date: "2026-02-22", totalInputTokens: 399900, totalOutputTokens: 59300, totalCacheRead: 480000, totalCost: 0.693,
+  { date: "2026-02-22", totalInputTokens: 399900, totalOutputTokens: 59300, totalCacheRead: 480000, totalCost: 0.6935,
     byAgent: { luis: 0.469, piper: 0.064, reed: 0.026, wes: 0.019, xavier: 0.231, quinn: 0.033, tim: 0.074 },
     byModel: { "claude-sonnet-4-6": 0.470, "claude-opus-4-6": 0.231, "gemini-3-flash": 0.059, "minimax-m2-5": 0.064, "glm-5": 0.019 },
   },
@@ -86,18 +86,18 @@ function fmtCost(usd: number): string {
 }
 
 function fmtTokens(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(2)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(2)}M`;}
+  if (n >= 1000) {return `${(n / 1000).toFixed(0)}K`;}
   return String(n);
 }
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -122,7 +122,7 @@ function CostBarChart({ summaries }: { summaries: DailySummary[] }) {
     <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
       <h3 className="text-sm font-semibold text-white mb-4">Daily Cost — Last 7 Days</h3>
       <div className="flex items-end gap-2 h-20">
-        {[...summaries].reverse().map(day => (
+        {[...summaries].toReversed().map(day => (
           <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
             <span className="text-[9px] text-zinc-500 font-mono">${day.totalCost.toFixed(2)}</span>
             <div
@@ -173,8 +173,8 @@ export default function TokenLedger() {
 
   const filteredEntries = useMemo(() => {
     return ENTRIES.filter(e => {
-      if (agentFilter !== "all" && e.agentId !== agentFilter) return false;
-      if (modelFilter !== "all" && e.modelId !== modelFilter) return false;
+      if (agentFilter !== "all" && e.agentId !== agentFilter) {return false;}
+      if (modelFilter !== "all" && e.modelId !== modelFilter) {return false;}
       return true;
     });
   }, [agentFilter, modelFilter]);
@@ -348,7 +348,7 @@ export default function TokenLedger() {
               <h3 className="text-sm font-semibold text-white mb-4">Cost by Agent (Today)</h3>
               <div className="space-y-3">
                 {Object.entries(today.byAgent)
-                  .sort(([, a], [, b]) => b - a)
+                  .toSorted(([, a], [, b]) => b - a)
                   .map(([agentId, cost]) => {
                     const maxCost = Math.max(...Object.values(today.byAgent));
                     return (
@@ -375,7 +375,7 @@ export default function TokenLedger() {
               <h3 className="text-sm font-semibold text-white mb-4">Cost by Model (Today)</h3>
               <div className="space-y-3">
                 {Object.entries(today.byModel)
-                  .sort(([, a], [, b]) => b - a)
+                  .toSorted(([, a], [, b]) => b - a)
                   .map(([modelId, cost]) => {
                     const maxCost = Math.max(...Object.values(today.byModel));
                     return (

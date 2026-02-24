@@ -27,7 +27,7 @@ export default function ProficiencyBadge() {
 
   // Close on outside click
   useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
@@ -39,9 +39,9 @@ export default function ProficiencyBadge() {
 
   // Close on Escape
   useEffect(() => {
-    if (!open) return;
+    if (!open) {return;}
     function handler(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {setOpen(false);}
     }
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -180,7 +180,7 @@ export default function ProficiencyBadge() {
 
 function getNextThreshold(level: ProficiencyLevel): number {
   const idx = PROFICIENCY_LEVELS.indexOf(level);
-  if (idx >= PROFICIENCY_LEVELS.length - 1) return Infinity;
+  if (idx >= PROFICIENCY_LEVELS.length - 1) {return Infinity;}
   const next = PROFICIENCY_LEVELS[idx + 1];
   return PROMOTION_THRESHOLDS[next];
 }

@@ -63,7 +63,7 @@ export function useCreateConversation() {
         conversationKeys.lists(),
         (old) => (old ? [newConversation, ...old] : [newConversation])
       );
-      queryClient.invalidateQueries({ queryKey: conversationKeys.all });
+      void queryClient.invalidateQueries({ queryKey: conversationKeys.all });
       toast.success("Conversation created");
     },
     onError: (error) => {
@@ -96,10 +96,10 @@ export function useUpdateConversation() {
       return { previousConversation };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: conversationKeys.detail(variables.id),
       });
-      queryClient.invalidateQueries({ queryKey: conversationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: conversationKeys.lists() });
       toast.success("Conversation updated");
     },
     onError: (_error, variables, context) => {
@@ -134,7 +134,7 @@ export function useDeleteConversation() {
       return { previousConversations };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: conversationKeys.all });
+      void queryClient.invalidateQueries({ queryKey: conversationKeys.all });
       toast.success("Conversation deleted");
     },
     onError: (_error, _, context) => {

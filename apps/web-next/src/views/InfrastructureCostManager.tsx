@@ -378,32 +378,32 @@ function formatCurrencyFull(amount: number): string {
 
 function getBudgetStatus(spent: number, allocated: number, threshold: number): "safe" | "warning" | "danger" {
   const pct = (spent / allocated) * 100;
-  if (pct >= 100) return "danger";
-  if (pct >= threshold) return "warning";
+  if (pct >= 100) {return "danger";}
+  if (pct >= threshold) {return "warning";}
   return "safe";
 }
 
 function getBudgetStatusColor(status: "safe" | "warning" | "danger"): string {
-  if (status === "danger") return "bg-rose-500";
-  if (status === "warning") return "bg-amber-400";
+  if (status === "danger") {return "bg-rose-500";}
+  if (status === "warning") {return "bg-amber-400";}
   return "bg-emerald-500";
 }
 
 function getBudgetTextColor(status: "safe" | "warning" | "danger"): string {
-  if (status === "danger") return "text-rose-400";
-  if (status === "warning") return "text-amber-400";
+  if (status === "danger") {return "text-rose-400";}
+  if (status === "warning") {return "text-amber-400";}
   return "text-emerald-400";
 }
 
 function getEffortColor(effort: EffortLevel): string {
-  if (effort === "low") return "text-emerald-400 bg-emerald-400/10";
-  if (effort === "medium") return "text-amber-400 bg-amber-400/10";
+  if (effort === "low") {return "text-emerald-400 bg-emerald-400/10";}
+  if (effort === "medium") {return "text-amber-400 bg-amber-400/10";}
   return "text-rose-400 bg-rose-400/10";
 }
 
 function getProviderColor(provider: Provider): string {
-  if (provider === "AWS") return "text-amber-400 bg-amber-400/10";
-  if (provider === "GCP") return "text-blue-400 bg-blue-400/10";
+  if (provider === "AWS") {return "text-amber-400 bg-amber-400/10";}
+  if (provider === "GCP") {return "text-blue-400 bg-blue-400/10";}
   return "text-indigo-400 bg-indigo-400/10";
 }
 
@@ -500,7 +500,7 @@ function OverviewTab() {
   const budgetTotal = BUDGETS.reduce((s, b) => s + b.allocated, 0);
   const spentTotal = BUDGETS.reduce((s, b) => s + b.spent, 0);
 
-  const topResources = [...RESOURCES].sort((a, b) => b.monthlyCost - a.monthlyCost).slice(0, 6);
+  const topResources = [...RESOURCES].toSorted((a, b) => b.monthlyCost - a.monthlyCost).slice(0, 6);
 
   const summaryCards = [
     { label: "Compute", value: totalCompute, color: "text-violet-400", bg: "bg-violet-400/10", pct: (totalCompute / grandTotal) * 100 },

@@ -1,29 +1,21 @@
 "use client";
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
-import type { AgentsListResult, AgentIdentityResult, SessionEntry, ChatMessage } from "@/lib/gateway/types";
+import type { AgentIdentityResult, SessionEntry, ChatMessage } from "@/lib/gateway/types";
 import {
   Send,
   Square,
-  Bot,
   User,
   Loader2,
   Plus,
   MessageSquare,
-  RotateCcw,
   Copy,
   Check,
-  Paperclip,
-  ChevronLeft,
   Settings2,
 } from "lucide-react";
 
@@ -48,7 +40,7 @@ function MessageBubble({
   const isUser = message.role === "user";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(message.content);
+    void navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -174,9 +166,9 @@ export default function ChatPage() {
   const [currentRunId, setCurrentRunId] = React.useState<string | null>(null);
   const [sessions, setSessions] = React.useState<SessionEntry[]>([]);
   const [activeSessionKey, setActiveSessionKey] = React.useState<string | null>(null);
-  const [identities, setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
-  const [agentName, setAgentName] = React.useState("Assistant");
-  const [agentEmoji, setAgentEmoji] = React.useState("🤖");
+  const [identities, _setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
+  const [agentName, _setAgentName] = React.useState("Assistant");
+  const [agentEmoji, _setAgentEmoji] = React.useState("🤖");
   const [showSidebar, setShowSidebar] = React.useState(true);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -193,7 +185,7 @@ export default function ChatPage() {
   // Load sessions & history
   React.useEffect(() => {
     if (!connected) {return;}
-    (async () => {
+    void (async () => {
       try {
         const result = await request<{ sessions: SessionEntry[] }>("sessions.list", {
           limit: 50,
@@ -208,7 +200,7 @@ export default function ChatPage() {
   // Load chat history when session changes
   React.useEffect(() => {
     if (!connected || !sessionKey) {return;}
-    (async () => {
+    void (async () => {
       try {
         const history = await request<{ messages: ChatMessage[] }>("chat.history", {
           sessionKey,
@@ -245,13 +237,18 @@ export default function ChatPage() {
           typeof evt.message === "object" && evt.message
             ? (evt.message as Record<string, unknown>).delta ?? (evt.message as Record<string, unknown>).content ?? ""
             : "";
-        setStreamContent((prev) => prev + String(delta));
+        setStreamContent((prev) =>
+          prev + (typeof delta === "string" ? delta : JSON.stringify(delta))
+        );
         setStreaming(true);
         setCurrentRunId(evt.runId);
       } else if (evt.state === "final") {
         const content =
           typeof evt.message === "object" && evt.message
-            ? String((evt.message as Record<string, unknown>).content ?? "")
+            ? (() => {
+                const raw = (evt.message as Record<string, unknown>).content ?? "";
+                return typeof raw === "string" ? raw : JSON.stringify(raw);
+              })()
             : streamContent;
         setMessages((prev) => [
           ...prev,
@@ -339,7 +336,7 @@ export default function ChatPage() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 

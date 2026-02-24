@@ -171,19 +171,19 @@ function sensitivityBadge(s: DataSensitivity) {
   return map[s];
 }
 function statusBadge(s: RuleStatus) {
-  if (s === "active") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "inactive") return "bg-zinc-600 text-zinc-400";
+  if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "inactive") {return "bg-zinc-600 text-zinc-400";}
   return "bg-amber-400/10 text-amber-400";
 }
 function scanStatusBadge(s: ScanStatus) {
-  if (s === "completed") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "running") return "bg-indigo-400/10 text-indigo-400";
-  if (s === "failed") return "bg-rose-400/10 text-rose-400";
+  if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "running") {return "bg-indigo-400/10 text-indigo-400";}
+  if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
   return "bg-zinc-500/10 text-zinc-400";
 }
 function violationStatusBadge(s: PolicyViolation["status"]) {
-  if (s === "open") return "bg-rose-400/10 text-rose-400";
-  if (s === "remediated") return "bg-emerald-400/10 text-emerald-400";
+  if (s === "open") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "remediated") {return "bg-emerald-400/10 text-emerald-400";}
   return "bg-zinc-600 text-zinc-400";
 }
 
@@ -194,8 +194,8 @@ export default function DataMaskingManager() {
   const [filterSensitivity, setFilterSensitivity] = useState<DataSensitivity | "all">("all");
 
   const filteredRules = RULES.filter(r => {
-    if (filterStatus !== "all" && r.status !== filterStatus) return false;
-    if (filterSensitivity !== "all" && r.sensitivity !== filterSensitivity) return false;
+    if (filterStatus !== "all" && r.status !== filterStatus) {return false;}
+    if (filterSensitivity !== "all" && r.sensitivity !== filterSensitivity) {return false;}
     return true;
   });
 

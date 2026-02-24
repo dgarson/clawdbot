@@ -235,7 +235,7 @@ export default function AnalyticsPage() {
   const [endDate, setEndDate] = React.useState(() => toISODate(new Date()));
 
   // Data
-  const [usage, setUsage] = React.useState<UsageStatus | null>(null);
+  const [usage, setUsage] = React.useState<UsageStatus>();
   const [sessions, setSessions] = React.useState<SessionUsageRow[]>([]);
   const [dailyUsage, setDailyUsage] = React.useState<DailyUsagePoint[]>([]);
   const [loading, setLoading] = React.useState(true);

@@ -834,8 +834,8 @@ function QueriesTab() {
 function ZeroResultsTab() {
   const [sortBy, setSortBy] = useState<"count" | "recent">("count");
 
-  const sorted = [...ZERO_RESULT_ENTRIES].sort((a, b) => {
-    if (sortBy === "count") return b.count - a.count;
+  const sorted = [...ZERO_RESULT_ENTRIES].toSorted((a, b) => {
+    if (sortBy === "count") {return b.count - a.count;}
     return a.lastSearched.localeCompare(b.lastSearched);
   });
 

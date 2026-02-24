@@ -48,7 +48,7 @@ export function useCreateToken() {
   return useMutation({
     mutationFn: (params: TokensCreateParams) => createToken(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tokenKeys.all });
+      void queryClient.invalidateQueries({ queryKey: tokenKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to create token: ${error.message}`);
@@ -66,7 +66,7 @@ export function useRevokeToken() {
     mutationFn: (params: TokensRevokeParams) => revokeToken(params),
     onSuccess: () => {
       toast.success("Token revoked");
-      queryClient.invalidateQueries({ queryKey: tokenKeys.all });
+      void queryClient.invalidateQueries({ queryKey: tokenKeys.all });
     },
     onError: (error) => {
       toast.error(`Failed to revoke token: ${error.message}`);

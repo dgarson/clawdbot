@@ -585,7 +585,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       .prepare(
         `SELECT w.* FROM work_items w ${whereSql} ORDER BY w.updated_at DESC LIMIT ? OFFSET ?`,
       )
-      .all(...params, limit, offset) as WorkItemRow[];
+      .all(...params, limit, offset) as unknown as WorkItemRow[];
 
     const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
     const staleThresholdHours = Math.max(1, Math.floor(filters.staleThresholdHours ?? 24));
@@ -610,6 +610,18 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     }
 
     const files = this.listIssueFiles(normalizedIssueRef);
+    return this.toItem(row, files, staleThresholdHours);
+  }
+
+  getById(id: number, staleThresholdHours = 24): WorkItem | null {
+    const row =
+      (this.db
+        .prepare(`SELECT * FROM work_items WHERE id = ?`)
+        .get(id) as unknown as WorkItemRow) ?? null;
+    if (!row) {
+      return null;
+    }
+    const files = this.listIssueFiles(row.issue_ref);
     return this.toItem(row, files, staleThresholdHours);
   }
 
@@ -658,7 +670,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
            AND w.updated_at <= datetime('now', 'utc', '-' || ? || ' minutes')
          ORDER BY w.updated_at ASC`,
       )
-      .all(thresholdMinutes) as WorkItemRow[];
+      .all(thresholdMinutes) as unknown as WorkItemRow[];
 
     const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
 
@@ -928,7 +940,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
         value TEXT NOT NULL
       );
 
-      INSERT OR IGNORE INTO workq_meta (key, value) VALUES ('schema_version', '1');
+      INSERT OR IGNORE INTO workq_meta (key, value) VALUES ('schema_version', '0');
 
       CREATE INDEX IF NOT EXISTS idx_work_items_agent ON work_items(agent_id);
       CREATE INDEX IF NOT EXISTS idx_work_items_squad ON work_items(squad);
@@ -938,14 +950,13 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       CREATE INDEX IF NOT EXISTS idx_work_items_status_updated ON work_items(status, updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_work_items_squad_status_updated
         ON work_items(squad, status, updated_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_work_items_claimed_session_key ON work_items(claimed_session_key);
       CREATE INDEX IF NOT EXISTS idx_work_item_files_path ON work_item_files(file_path);
       CREATE INDEX IF NOT EXISTS idx_work_log_issue ON work_log(issue_ref);
       CREATE INDEX IF NOT EXISTS idx_work_log_agent ON work_log(agent_id);
       CREATE INDEX IF NOT EXISTS idx_work_log_created ON work_log(created_at);
     `);
 
-    this.tryMigrateClaimedSessionKey();
+    this.runMigrations();
 
     try {
       this.db.exec("PRAGMA wal_checkpoint(PASSIVE);");
@@ -954,19 +965,61 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     }
   }
 
-  private tryMigrateClaimedSessionKey(): void {
-    try {
-      this.db.exec(`ALTER TABLE work_items ADD COLUMN claimed_session_key TEXT`);
-    } catch {
-      // no-op: column already exists on existing databases
-    }
+  /**
+   * Versioned schema migrations, applied in order on startup.
+   *
+   * Rules:
+   * - Each migration MUST be idempotent (use IF NOT EXISTS / try-catch for DDL that may already be applied).
+   * - Append new migrations; never edit existing ones.
+   * - schema_version in workq_meta tracks the highest applied version.
+   * - Existing databases that were created before the migration system had schema_version='1' set by the
+   *   old initializer, so the first migration that needs to run on those databases must use version >= 2.
+   */
+  private static readonly MIGRATIONS: Array<{
+    version: number;
+    description: string;
+    up: (db: DatabaseSync) => void;
+  }> = [
+    {
+      version: 2,
+      description: "add claimed_session_key column and index",
+      up(db) {
+        // ALTER TABLE is not idempotent natively; suppress the "duplicate column" error.
+        try {
+          db.exec(`ALTER TABLE work_items ADD COLUMN claimed_session_key TEXT`);
+        } catch {
+          // column already exists — safe to continue
+        }
+        db.exec(
+          `CREATE INDEX IF NOT EXISTS idx_work_items_claimed_session_key ON work_items(claimed_session_key)`,
+        );
+      },
+    },
+  ];
 
-    try {
-      this.db.exec(
-        `CREATE INDEX IF NOT EXISTS idx_work_items_claimed_session_key ON work_items(claimed_session_key)`,
-      );
-    } catch {
-      // no-op: best-effort migration index
+  private runMigrations(): void {
+    const row = this.db
+      .prepare(`SELECT value FROM workq_meta WHERE key = 'schema_version'`)
+      .get() as { value: string } | undefined;
+    const currentVersion = row ? parseInt(row.value, 10) : 0;
+
+    for (const migration of WorkqDatabase.MIGRATIONS) {
+      if (migration.version <= currentVersion) continue;
+
+      this.db.exec("BEGIN");
+      try {
+        migration.up(this.db);
+        this.db
+          .prepare(`INSERT OR REPLACE INTO workq_meta (key, value) VALUES ('schema_version', ?)`)
+          .run(String(migration.version));
+        this.db.exec("COMMIT");
+      } catch (err) {
+        this.db.exec("ROLLBACK");
+        throw new Error(
+          `Schema migration v${migration.version} (${migration.description}) failed: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err },
+        );
+      }
     }
   }
 
@@ -1024,7 +1077,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     return (
       (this.db
         .prepare(`SELECT * FROM work_items WHERE issue_ref = ?`)
-        .get(issueRef) as WorkItemRow) ?? null
+        .get(issueRef) as unknown as WorkItemRow) ?? null
     );
   }
 

@@ -173,7 +173,7 @@ const MODELS: ModelResult[] = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtMs(ms: number): string {
-  if (ms === 0) return "N/A";
+  if (ms === 0) {return "N/A";}
   return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
 }
 
@@ -182,18 +182,18 @@ function fmtCtx(tokens: number): string {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 90) return "text-emerald-400";
-  if (score >= 80) return "text-indigo-400";
-  if (score >= 70) return "text-amber-400";
-  if (score === 0) return "text-zinc-600";
+  if (score >= 90) {return "text-emerald-400";}
+  if (score >= 80) {return "text-indigo-400";}
+  if (score >= 70) {return "text-amber-400";}
+  if (score === 0) {return "text-zinc-600";}
   return "text-rose-400";
 }
 
 function scoreBg(score: number): string {
-  if (score >= 90) return "bg-emerald-400";
-  if (score >= 80) return "bg-indigo-400";
-  if (score >= 70) return "bg-amber-400";
-  if (score === 0) return "bg-zinc-700";
+  if (score >= 90) {return "bg-emerald-400";}
+  if (score >= 80) {return "bg-indigo-400";}
+  if (score >= 70) {return "bg-amber-400";}
+  if (score === 0) {return "bg-zinc-700";}
   return "bg-rose-400";
 }
 
@@ -298,11 +298,11 @@ export default function ModelBenchmark() {
 
   const sorted = useMemo(() => {
     let list = [...MODELS];
-    if (providerFilter !== "all") list = list.filter(m => m.provider === providerFilter);
+    if (providerFilter !== "all") {list = list.filter(m => m.provider === providerFilter);}
     list.sort((a, b) => {
       const va = a[sortKey];
       const vb = b[sortKey];
-      return sortAsc ? (va as number) - (vb as number) : (vb as number) - (va as number);
+      return sortAsc ? (va) - (vb) : (vb) - (va);
     });
     return list;
   }, [sortKey, sortAsc, providerFilter]);
@@ -313,7 +313,7 @@ export default function ModelBenchmark() {
   );
 
   function toggleSort(key: SortKey) {
-    if (sortKey === key) setsSortAsc(v => !v);
+    if (sortKey === key) {setsSortAsc(v => !v);}
     else { setSortKey(key); setSortAsc(key === "avgLatencyMs" || key === "avgCostPer1k"); }
   }
 
@@ -323,15 +323,15 @@ export default function ModelBenchmark() {
 
   // Score for leaderboard: filter by category if selected
   function displayScore(model: ModelResult): number {
-    if (selectedCategory === "all") return model.avgScore;
+    if (selectedCategory === "all") {return model.avgScore;}
     const s = model.scores.find(sc => sc.category === selectedCategory);
     return s?.score ?? 0;
   }
 
   const leaderboard = useMemo(() => {
     let list = [...MODELS];
-    if (providerFilter !== "all") list = list.filter(m => m.provider === providerFilter);
-    return [...list].sort((a, b) => displayScore(b) - displayScore(a));
+    if (providerFilter !== "all") {list = list.filter(m => m.provider === providerFilter);}
+    return [...list].toSorted((a, b) => displayScore(b) - displayScore(a));
   }, [providerFilter, selectedCategory]);
 
   return (

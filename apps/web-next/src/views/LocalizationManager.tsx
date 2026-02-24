@@ -159,10 +159,10 @@ export default function LocalizationManager() {
   const namespaces = Array.from(new Set(TRANSLATION_KEYS.map(k => k.namespace)));
 
   const filteredKeys = TRANSLATION_KEYS.filter(k => {
-    if (nsFilter !== "all" && k.namespace !== nsFilter) return false;
+    if (nsFilter !== "all" && k.namespace !== nsFilter) {return false;}
     if (statusFilter !== "all" && selectedLocale) {
       const t = k.translations[selectedLocale.code];
-      if (!t || t.status !== statusFilter) return false;
+      if (!t || t.status !== statusFilter) {return false;}
     }
     return true;
   });

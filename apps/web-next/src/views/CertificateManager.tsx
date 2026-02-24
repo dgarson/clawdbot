@@ -155,8 +155,8 @@ export default function CertificateManager(): React.ReactElement {
   const [statusFilter, setStatusFilter] = useState<CertStatus | "all">("all");
 
   const filteredCerts = CERTIFICATES.filter((c) => {
-    if (envFilter !== "all" && c.environment !== envFilter) return false;
-    if (statusFilter !== "all" && c.status !== statusFilter) return false;
+    if (envFilter !== "all" && c.environment !== envFilter) {return false;}
+    if (statusFilter !== "all" && c.status !== statusFilter) {return false;}
     return true;
   });
 

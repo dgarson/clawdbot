@@ -160,5 +160,5 @@ export function useGoalsByStatus(status: GoalStatus) {
  */
 export function useInvalidateGoals() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: goalKeys.all });
+  return () => void queryClient.invalidateQueries({ queryKey: goalKeys.all });
 }

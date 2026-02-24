@@ -46,7 +46,7 @@ export function ApprovalsQueue({
     mode === "compact"
       ? approvals
           .filter((a) => a.toolCall.risk === "high" || a.toolCall.risk === "medium")
-          .sort((a, b) => a.createdAtMs - b.createdAtMs)
+          .toSorted((a, b) => a.createdAtMs - b.createdAtMs)
           .slice(0, COMPACT_MAX)
       : filter === "all"
         ? approvals

@@ -123,19 +123,19 @@ I care deeply about user experience, accessibility, and beautiful interfaces. I 
 };
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  if (bytes < 1024) {return `${bytes}B`;}
+  if (bytes < 1024 * 1024) {return `${(bytes / 1024).toFixed(1)}KB`;}
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
 function getFileIcon(node: FileNode) {
-  if (node.type === 'directory') return null;
+  if (node.type === 'directory') {return null;}
   const ext = node.name.split('.').pop()?.toLowerCase();
   const codeExts = ['ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'yml'];
   const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
-  if (codeExts.includes(ext ?? '')) return Code;
-  if (imgExts.includes(ext ?? '')) return FileText;
-  if (node.name.endsWith('.md')) return FileText;
+  if (codeExts.includes(ext ?? '')) {return Code;}
+  if (imgExts.includes(ext ?? '')) {return FileText;}
+  if (node.name.endsWith('.md')) {return FileText;}
   return File;
 }
 

@@ -140,8 +140,8 @@ const SCOPE_CONFIG: Record<EnvScope, { label: string; color: string }> = {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime();
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)}m ago`;}
+  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)}h ago`;}
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
@@ -158,7 +158,7 @@ function EditModal({ envVar, onSave, onClose }: EditModalProps) {
   const [description, setDescription] = useState(envVar.description ?? "");
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") {onClose();} };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
@@ -362,11 +362,11 @@ export default function EnvironmentManager() {
   }, []);
 
   const filtered = vars.filter((v) => {
-    if (scopeFilter !== "all" && v.scope !== scopeFilter) return false;
-    if (typeFilter !== "all" && v.type !== typeFilter) return false;
+    if (scopeFilter !== "all" && v.scope !== scopeFilter) {return false;}
+    if (typeFilter !== "all" && v.type !== typeFilter) {return false;}
     if (agentFilter !== "all") {
-      if (agentFilter === "global" && v.scope !== "global") return false;
-      if (agentFilter !== "global" && v.agentId !== agentFilter) return false;
+      if (agentFilter === "global" && v.scope !== "global") {return false;}
+      if (agentFilter !== "global" && v.agentId !== agentFilter) {return false;}
     }
     if (search.trim()) {
       const q = search.toLowerCase();

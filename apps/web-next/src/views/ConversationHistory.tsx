@@ -205,10 +205,10 @@ export default function ConversationHistory() {
         const matchesFilter = filter === "all" || s.status === filter;
         return matchesSearch && matchesFilter;
       })
-      .sort((a, b) => {
-        if (sortBy === "recent") return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
-        if (sortBy === "messages") return b.messageCount - a.messageCount;
-        if (sortBy === "tokens") return b.totalTokens - a.totalTokens;
+      .toSorted((a, b) => {
+        if (sortBy === "recent") {return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();}
+        if (sortBy === "messages") {return b.messageCount - a.messageCount;}
+        if (sortBy === "tokens") {return b.totalTokens - a.totalTokens;}
         return 0;
       });
   }, [searchQuery, filter, sortBy]);
@@ -217,9 +217,9 @@ export default function ConversationHistory() {
     SEED_SESSIONS.find(s => s.id === selectedId), [selectedId]);
 
   const handleExport = useCallback(() => {
-    if (!selectedSession) return;
+    if (!selectedSession) {return;}
     const json = JSON.stringify(selectedSession, null, 2);
-    navigator.clipboard.writeText(json);
+    void navigator.clipboard.writeText(json);
     alert("Session data copied to clipboard!");
   }, [selectedSession]);
 
@@ -264,10 +264,10 @@ export default function ConversationHistory() {
 
           <div className="flex items-center justify-between">
              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Sort By</span>
-             <select 
+              <select 
               className="bg-transparent text-[11px] text-zinc-400 font-medium hover:text-zinc-200 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 rounded px-1"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as "recent" | "messages" | "tokens")}
               aria-label="Sort sessions"
              >
                <option value="recent">Recent</option>
