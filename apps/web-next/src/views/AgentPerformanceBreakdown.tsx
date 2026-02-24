@@ -5,16 +5,13 @@ import {
   Download,
   AlertTriangle,
   CheckCircle,
-  Clock,
   DollarSign,
-  Layers,
   Zap,
-  Tool,
+  Wrench,
   BarChart,
   PieChart,
   Users,
   Activity,
-  XCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -298,7 +295,7 @@ export default function AgentPerformanceBreakdown() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
 
-  const sortedAgents = [...MOCK_AGENTS].sort((a, b) => {
+  const sortedAgents = [...MOCK_AGENTS].toSorted((a, b) => {
     const aVal = a[sortColumn];
     const bVal = b[sortColumn];
     if (typeof aVal === 'number' && typeof bVal === 'number') {
@@ -444,7 +441,7 @@ export default function AgentPerformanceBreakdown() {
       {/* Tool Usage Heatmap */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Tool className="w-4 h-4 text-blue-400" />
+          <Wrench className="w-4 h-4 text-blue-400" />
           <span className="text-sm font-semibold text-white">Tool Usage Heatmap</span>
         </div>
         <div className="overflow-x-auto">
@@ -491,7 +488,7 @@ export default function AgentPerformanceBreakdown() {
                 <div className="text-sm font-medium mb-1">{agent.name} ({total} errors)</div>
                 <div className="h-4 bg-zinc-800 rounded overflow-hidden flex">
                   {Object.entries(agent.errorBreakdown).map(([type, count]) => {
-                    if (count === 0) return null;
+                    if (count === 0) {return null;}
                     const width = (count / total) * 100;
                     cumulative += width;
                     return (

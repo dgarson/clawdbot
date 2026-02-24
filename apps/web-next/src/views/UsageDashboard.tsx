@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Calendar, TrendingUp, DollarSign, Activity, BarChart3, Clock } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { MOCK_USAGE, MOCK_SESSIONS, MOCK_AGENTS, formatRelativeTime } from '../mock-data';
+import { MOCK_USAGE, MOCK_SESSIONS, MOCK_AGENTS } from '../mock-data';
 
 type DateRange = 'today' | '7days' | '30days' | 'custom';
 
 function formatTokens(tokens: number): string {
-  if (tokens >= 1000000) return `${(tokens / 1000000).toFixed(1)}M`;
-  if (tokens >= 1000) return `${Math.floor(tokens / 1000)}K`;
+  if (tokens >= 1000000) {return `${(tokens / 1000000).toFixed(1)}M`;}
+  if (tokens >= 1000) {return `${Math.floor(tokens / 1000)}K`;}
   return tokens.toString();
 }
 
@@ -34,7 +34,7 @@ export default function UsageDashboard() {
   const topSessions = useMemo(() => {
     return [...MOCK_SESSIONS]
       .filter(s => s.cost !== undefined)
-      .sort((a, b) => (b.cost || 0) - (a.cost || 0))
+      .toSorted((a, b) => (b.cost || 0) - (a.cost || 0))
       .slice(0, 5);
   }, []);
 
@@ -62,6 +62,13 @@ export default function UsageDashboard() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3">
+        <p className="text-xs uppercase tracking-wide text-cyan-200">Operator workflow</p>
+        <p className="mt-1 text-sm text-cyan-100">
+          Need deeper route, tool, and journal tail context? Open <span className="font-semibold">Operator Dashboard</span> from the left navigation.
+        </p>
       </div>
 
       {/* Summary Cards */}
@@ -316,9 +323,9 @@ function SummaryCard({ icon, label, value, color }: SummaryCardProps) {
 }
 
 function formatDuration(ms: number): string {
-  if (ms <= 0) return '—';
+  if (ms <= 0) {return '—';}
   const hours = Math.floor(ms / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) {return `${hours}h ${minutes}m`;}
   return `${minutes}m`;
 }

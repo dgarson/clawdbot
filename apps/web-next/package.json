@@ -13,6 +13,7 @@
     "lucide-react": "^0.460.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^2.15.4",
     "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {

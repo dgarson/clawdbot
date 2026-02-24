@@ -3,8 +3,6 @@ import {
   Activity,
   AlertCircle,
   AlertTriangle,
-  BadgeCheck,
-  BadgeX,
   CheckCircle,
   Clock,
   Gauge,
@@ -13,20 +11,15 @@ import {
   PlayCircle,
   RefreshCw,
   RotateCcw,
-  Sparkles,
   Trash2,
   TrendingUp,
   Users,
   XCircle,
+  X,
   Zap,
-  ChevronDown,
-  ChevronUp,
   Eye,
-  MoreHorizontal,
-  BarChart,
   Archive,
   Rotate3d,
-  Badge,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -50,7 +43,7 @@ interface Job {
   progress: number; // 0-100
   elapsedSeconds: number;
   errorMessage?: string;
-  inputParams?: Record<string, any>;
+  inputParams?: Record<string, unknown>;
   outputPreview?: string;
   timingBreakdown?: { phase: string; durationMs: number }[];
 }
@@ -332,7 +325,7 @@ const MOCK_THROUGHPUT: number[] = [0, 1, 0, 2, 1, 3, 2, 1, 0, 2, 1, 3, 4, 2, 1, 
 // ============================================================================
 
 function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) {return `${seconds}s`;}
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}m ${s}s`;
@@ -343,7 +336,7 @@ function formatTimestamp(date: Date): string {
 }
 
 function formatEstimated(date: Date | null): string {
-  if (!date) return 'N/A';
+  if (!date) {return 'N/A';}
   const diff = Math.floor((date.getTime() - Date.now()) / 1000 / 60);
   return `~${diff} min`;
 }
@@ -426,7 +419,7 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 function RetryBadge({ count }: { count: number }) {
-  if (count === 0) return null;
+  if (count === 0) {return null;}
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-purple-500/15 text-purple-400 border border-purple-500/30">
       <RotateCcw className="w-3 h-3" />
@@ -487,7 +480,7 @@ function JobCard({ job, onViewDetails }: { job: Job; onViewDetails: (job: Job) =
 }
 
 function JobDetailDrawer({ job, onClose }: { job: Job | null; onClose: () => void }) {
-  if (!job) return null;
+  if (!job) {return null;}
   return (
     <div className="fixed inset-0 bg-black/80 flex justify-end z-50">
       <div className="w-96 bg-zinc-900 border-l border-zinc-800 p-6 overflow-y-auto">
@@ -564,8 +557,8 @@ function Sparkline({ data }: { data: number[] }) {
 
 export default function WorkqueueDashboard() {
   const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
-  const [workers, setWorkers] = useState<Worker[]>(MOCK_WORKERS);
-  const [stats, setStats] = useState<QueueStats>(MOCK_STATS);
+  const [workers] = useState<Worker[]>(MOCK_WORKERS);
+  const [stats] = useState<QueueStats>(MOCK_STATS);
   const [isPaused, setIsPaused] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 

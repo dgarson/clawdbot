@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import { cn } from '../lib/utils';
 import { formatRelativeTime } from '../mock-data';
 import { useGateway } from '../hooks/useGateway';
 import { MOCK_AGENTS, MOCK_SESSIONS } from '../mock-data';
-import type { AgentStatus, AgentHealth } from '../types';
+import type { AgentStatus } from '../types';
 
 // ============================================================================
 // Types (local for component)
@@ -90,7 +89,6 @@ function ActivityItemComponent({ item }: { item: ActivityItem }) {
 
 export default function AgentDashboard() {
   const { connectionState, isConnected } = useGateway();
-  const [isLoading] = useState(false);
 
   // Get current date
   const now = new Date();
@@ -179,20 +177,6 @@ export default function AgentDashboard() {
     }
   };
 
-  // Get health color helper
-  const getHealthColor = (health: AgentHealth) => {
-    switch (health) {
-      case 'healthy':
-        return 'text-green-500';
-      case 'degraded':
-        return 'text-amber-500';
-      case 'unhealthy':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
@@ -212,6 +196,13 @@ export default function AgentDashboard() {
       </header>
 
       <main className="p-6 space-y-6">
+        <section className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-cyan-200">Operations mode</p>
+          <p className="mt-1 text-sm text-cyan-100">
+            For real-time routing diagnostics, model budget controls, and journal tails, use <span className="font-semibold">Operator Dashboard</span>.
+          </p>
+        </section>
+
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Active Agents */}

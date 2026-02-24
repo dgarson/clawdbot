@@ -12,6 +12,7 @@ import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
 import ThemeToggle from "./components/ui/ThemeToggle";
+import OperatorDashboard from "./views/OperatorDashboard";
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -311,6 +312,7 @@ const FeatureFlagManager             = React.lazy(() => import("./views/FeatureF
 
 export const navItems = [
   { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
+  { id: "operator-dashboard",    label: "Operator Dashboard",   emoji: "🧭", shortcut: "2" },
   { id: "discovery-run-monitor",   label: "Discovery Monitor",    emoji: "🔭", shortcut: null },
   { id: "brave-api-wizard",        label: "Brave API Setup",      emoji: "🔑", shortcut: null },
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
@@ -320,8 +322,8 @@ export const navItems = [
   { id: "run-summary",           label: "Run Summary",          emoji: "📋", shortcut: null },
   { id: "agent-health-grid",     label: "Agent Health Grid",    emoji: "❤️", shortcut: null },
   { id: "wave-transition",       label: "Wave Transition",      emoji: "🌊", shortcut: null },
-  { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
-  { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
+  { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: null },
+  { id: "chat",          label: "Chat",           emoji: "💬", shortcut: null },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
   { id: "soul-editor",   label: "Soul Editor",    emoji: "✨", shortcut: "4" },
   { id: "identity",      label: "Identity Cards", emoji: "🪪", shortcut: "5" },
@@ -913,8 +915,8 @@ export default function App() {
 }
 
 function AppContent() {
-  const [activeView, setActiveView] = useState("dashboard");
-  const [navHistory, setNavHistory] = useState<string[]>(["dashboard"]);
+  const [activeView, setActiveView] = useState("operator-dashboard");
+  const [navHistory, setNavHistory] = useState<string[]>(["operator-dashboard"]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -1081,6 +1083,7 @@ function AppContent() {
   const renderView = () => {
     switch (activeView) {
       case "morning-packet": return <MorningPacket />;
+      case "operator-dashboard": return <OperatorDashboard />;
       case "discovery-run-monitor":   return <DiscoveryRunMonitor />;
       case "brave-api-wizard":        return <BraveAPIKeySetupWizard />;
       case "discovery-wave-results":  return <DiscoveryWaveResults />;

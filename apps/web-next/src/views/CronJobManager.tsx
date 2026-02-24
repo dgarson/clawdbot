@@ -10,20 +10,11 @@ import {
   ToggleRight,
   ChevronDown,
   ChevronUp,
-  AlertTriangle,
   CheckCircle,
   XCircle,
   Calendar,
   History,
   BarChart,
-  Activity,
-  FileText,
-  Zap,
-  RotateCcw,
-  Bell,
-  Database,
-  Trash2,
-  Heartbeat,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -214,7 +205,7 @@ const MOCK_JOBS: CronJob[] = [
 
 // Flatten for global history (last 20)
 const ALL_RUNS: RunHistory[] = MOCK_JOBS.flatMap(j => j.history)
-  .sort((a, b) => b.time.getTime() - a.time.getTime())
+  .toSorted((a, b) => b.time.getTime() - a.time.getTime())
   .slice(0, 20);
 
 // ============================================================================
@@ -223,7 +214,7 @@ const ALL_RUNS: RunHistory[] = MOCK_JOBS.flatMap(j => j.history)
 
 function formatCountdown(next: Date): string {
   const diff = next.getTime() - Date.now();
-  if (diff < 0) return 'Overdue';
+  if (diff < 0) {return 'Overdue';}
   const hours = Math.floor(diff / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
   const secs = Math.floor((diff % 60000) / 1000);
@@ -354,7 +345,7 @@ function ScheduleTimeline({ jobs }: { jobs: CronJob[] }) {
       </div>
       <div className="relative h-32 overflow-hidden">
         <div className="absolute inset-0 flex flex-col gap-1">
-          {jobs.map((job, idx) => (
+          {jobs.map((job, _idx) => (
             <div key={job.id} className="relative flex-1">
               <div className="absolute left-0 top-1/2 h-1 w-full bg-zinc-800" />
               {/* Mock firings: for simplicity, place one bar per job */}
@@ -430,7 +421,7 @@ function StatsRow({ total, active, failed24h, avgTime }: { total: number; active
 }
 
 function AddJobModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!open) return null;
+  if (!open) {return null;}
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-96">
