@@ -40,6 +40,9 @@ const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryF
 const TodayCommandCenter            = React.lazy(() => import("./views/TodayCommandCenter"));
 const ActionInboxView               = React.lazy(() => import("./views/ActionInboxView"));
 const AgentCapacityPlanner          = React.lazy(() => import("./views/AgentCapacityPlanner"));
+const AgentHandoffPlanner           = React.lazy(() => import("./views/AgentHandoffPlanner"));
+const CompareModesDiffView          = React.lazy(() => import("./views/CompareModesDiffView"));
+const ContextBudgetInspector        = React.lazy(() => import("./views/ContextBudgetInspector"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -316,6 +319,9 @@ export const navItems = [
   { id: "today-command",         label: "Today Command Center", emoji: "🧭", shortcut: null },
   { id: "action-inbox",          label: "Action Inbox",         emoji: "📥", shortcut: null },
   { id: "capacity-planner",      label: "Capacity Planner",     emoji: "📐", shortcut: null },
+  { id: "handoff-planner",       label: "Handoff Planner",      emoji: "🤝", shortcut: null },
+  { id: "compare-modes",         label: "Compare Modes",        emoji: "🪞", shortcut: null },
+  { id: "context-budget",        label: "Context Budget",       emoji: "🧠", shortcut: null },
   { id: "discovery-run-monitor",   label: "Discovery Monitor",    emoji: "🔭", shortcut: null },
   { id: "brave-api-wizard",        label: "Brave API Setup",      emoji: "🔑", shortcut: null },
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
@@ -601,6 +607,9 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "today-command": <DashboardSkeleton />,
   "action-inbox": <TableSkeleton rows={8} />,
   "capacity-planner": <DashboardSkeleton />,
+  "handoff-planner": <ContentSkeleton />,
+  "compare-modes": <ContentSkeleton />,
+  "context-budget": <ContentSkeleton />,
   "model-comparison": <ContentSkeleton />,
   "wave-scheduler": <ContentSkeleton />,
   "preflight-checklist": <ContentSkeleton />,
@@ -1240,6 +1249,9 @@ function AppContent() {
       case "today-command": return <TodayCommandCenter />;
       case "action-inbox": return <ActionInboxView />;
       case "capacity-planner": return <AgentCapacityPlanner />;
+      case "handoff-planner": return <AgentHandoffPlanner />;
+      case "compare-modes": return <CompareModesDiffView />;
+      case "context-budget": return <ContextBudgetInspector />;
       case "discovery-run-monitor":   return <DiscoveryRunMonitor />;
       case "brave-api-wizard":        return <BraveAPIKeySetupWizard />;
       case "discovery-wave-results":  return <DiscoveryWaveResults />;
