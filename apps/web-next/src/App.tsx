@@ -11,6 +11,7 @@ import {
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
+import ThemeToggle from "./components/ui/ThemeToggle";
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -1607,6 +1608,9 @@ function AppContent() {
 
           {/* Spacer */}
           <div className="flex-1" />
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* Search trigger */}
           <button

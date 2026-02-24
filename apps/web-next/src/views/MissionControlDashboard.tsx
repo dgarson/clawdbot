@@ -336,18 +336,18 @@ function StatCard({
   pulseColor?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-surface-2 rounded-lg">
         {/* WCAG fix: decorative icon — label text below provides the meaning */}
-        <Icon aria-hidden="true" className="w-4 h-4 text-zinc-400" />
+        <Icon aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
+        <p className="text-xs text-fg-secondary font-medium uppercase tracking-wide mb-1">{label}</p>
         <div className="flex items-center gap-2">
           {pulse && <PulseDot color={pulseColor} />}
-          <span className="text-xl font-bold text-white">{value}</span>
+          <span className="text-xl font-bold text-fg-primary">{value}</span>
         </div>
-        {sub && <div className="text-xs text-zinc-500 mt-0.5">{sub}</div>}
+        {sub && <div className="text-xs text-fg-muted mt-0.5">{sub}</div>}
       </div>
     </div>
   );
@@ -398,7 +398,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
     sessions_spawn: 'bg-violet-500/15 text-violet-400 border-violet-500/25',
     message: 'bg-green-500/15 text-green-400 border-green-500/25',
     browser: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
-    other: 'bg-zinc-700/50 text-zinc-400 border-zinc-600/25',
+    other: 'bg-surface-3/50 text-fg-secondary border-tok-border/30',
   };
   const icons: Record<ToolType, React.ElementType> = {
     exec: Terminal,
@@ -512,40 +512,40 @@ function LiveStatusBar({
 
 function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
   return (
-    <section aria-label="Active Sessions" className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+    <section aria-label="Active Sessions" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* WCAG fix: decorative header icon */}
           <Activity aria-hidden="true" className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-white">Active Sessions</span>
+          <span className="text-sm font-semibold text-fg-primary">Active Sessions</span>
         </div>
-        <span className="text-xs text-zinc-500">{sessions.length} / 10</span>
+        <span className="text-xs text-fg-muted">{sessions.length} / 10</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
+          <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
             {/* WCAG fix: decorative empty-state icon */}
             <Layers aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
             <p className="text-sm">No active sessions. Agents are idle.</p>
           </div>
         ) : (
           sessions.map((session) => (
-            <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/40 transition-colors">
+            <div key={session.id} className="px-4 py-3 hover:bg-surface-2/40 transition-colors">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   {/* WCAG fix: emoji is decorative — name follows */}
                   <span aria-hidden="true" className="text-lg leading-none">{session.agentEmoji}</span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-medium text-white">{session.agentName}</span>
+                      <span className="text-sm font-medium text-fg-primary">{session.agentName}</span>
                       <SessionTypeBadge type={session.sessionType} />
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-500">
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-fg-muted">
                       {/* WCAG fix: decorative clock icon */}
                       <Clock aria-hidden="true" className="w-3 h-3" />
                       running {formatDuration(session.durationSeconds)}
-                      <span aria-hidden="true" className="text-zinc-700">·</span>
+                      <span aria-hidden="true" className="text-tok-border">·</span>
                       <span>{formatTokens(session.tokenInput)}↑ {formatTokens(session.tokenOutput)}↓</span>
                     </div>
                   </div>
@@ -554,7 +554,7 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
               </div>
               {session.currentTool && (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-xs text-zinc-500">calling</span>
+                  <span className="text-xs text-fg-muted">calling</span>
                   <ToolBadge
                     toolName={session.currentTool}
                     toolType={
@@ -581,17 +581,17 @@ function ToolCallsPanel({ toolCalls }: { toolCalls: ToolCall[] }) {
   const now = Date.now();
 
   return (
-    <section aria-label="Tool Calls In-Flight" className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <section aria-label="Tool Calls In-Flight" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         {/* WCAG fix: decorative header icon */}
         <Terminal aria-hidden="true" className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Tool Calls</span>
-        <span className="ml-auto text-xs text-zinc-500">
+        <span className="text-sm font-semibold text-fg-primary">Tool Calls</span>
+        <span className="ml-auto text-xs text-fg-muted">
           {toolCalls.filter((t) => t.status === 'running').length} running
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60">
         {toolCalls.map((tc) => {
           const age = tc.completedAt ? now - tc.completedAt : 0;
           const fadingOut = tc.status !== 'running' && age > 3000;
@@ -621,9 +621,9 @@ function ToolCallsPanel({ toolCalls }: { toolCalls: ToolCall[] }) {
                   <XCircle role="img" aria-label="Error" className="w-3.5 h-3.5 text-red-500" />
                 )}
               </div>
-              <div className="text-xs text-zinc-500 flex items-center gap-1.5">
-                <span className="text-zinc-400">{tc.agentName}</span>
-                <span aria-hidden="true" className="text-zinc-700">·</span>
+              <div className="text-xs text-fg-muted flex items-center gap-1.5">
+                <span className="text-fg-secondary">{tc.agentName}</span>
+                <span aria-hidden="true" className="text-tok-border">·</span>
                 {/* WCAG fix: decorative clock icon */}
                 <Clock aria-hidden="true" className="w-3 h-3" />
                 {formatElapsed(tc.elapsedMs)}
@@ -650,11 +650,11 @@ function PendingApprovalsPanel({
   onDeny: (id: string) => void;
 }) {
   return (
-    <section aria-label="Pending Approvals" className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <section aria-label="Pending Approvals" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         {/* WCAG fix: decorative header icon */}
         <CheckCircle aria-hidden="true" className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">Pending Approvals</span>
+        <span className="text-sm font-semibold text-fg-primary">Pending Approvals</span>
         {approvals.length > 0 && (
           <span
             aria-label={`${approvals.length} pending`}
@@ -667,27 +667,27 @@ function PendingApprovalsPanel({
 
       <div className="flex-1 overflow-y-auto">
         {approvals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
+          <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
             {/* WCAG fix: decorative empty-state icon */}
             <CheckCircle aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
             <p className="text-sm">No pending approvals</p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/60">
+          <div className="divide-y divide-tok-border/60">
             {approvals.map((ap) => (
               <div key={ap.id} className="px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
                   {/* WCAG fix: decorative emoji */}
                   <span aria-hidden="true" className="text-base">{ap.agentEmoji}</span>
-                  <span className="text-sm font-medium text-white">{ap.agentName}</span>
+                  <span className="text-sm font-medium text-fg-primary">{ap.agentName}</span>
                   <RiskBadge level={ap.riskLevel} />
-                  <span className="ml-auto text-xs text-zinc-500 flex items-center gap-1">
+                  <span className="ml-auto text-xs text-fg-muted flex items-center gap-1">
                     {/* WCAG fix: decorative clock icon */}
                     <Clock aria-hidden="true" className="w-3 h-3" />
                     {formatWaiting(ap.waitingSeconds)}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">{ap.actionDescription}</p>
+                <p className="text-xs text-fg-secondary mb-3 leading-relaxed">{ap.actionDescription}</p>
                 <div className="flex gap-2">
                   {/* WCAG fix: focus-visible ring on interactive buttons; icons are decorative */}
                   <button
@@ -701,7 +701,7 @@ function PendingApprovalsPanel({
                   <button
                     onClick={() => onDeny(ap.id)}
                     aria-label={`Deny: ${ap.actionDescription}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors border border-zinc-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-primary text-xs font-medium transition-colors border border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                   >
                     <X aria-hidden="true" className="w-3.5 h-3.5" />
                     Deny
@@ -746,16 +746,16 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
   };
 
   return (
-    <section aria-label="System Event Feed" className="bg-zinc-900 border border-zinc-800 rounded-xl">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+    <section aria-label="System Event Feed" className="bg-surface-1 border border-tok-border rounded-xl">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* WCAG fix: decorative header icon */}
           <AlertTriangle aria-hidden="true" className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-white">System Event Feed</span>
-          <span className="text-xs text-zinc-500">last {Math.min(alerts.length, 20)} events</span>
+          <span className="text-sm font-semibold text-fg-primary">System Event Feed</span>
+          <span className="text-xs text-fg-muted">last {Math.min(alerts.length, 20)} events</span>
         </div>
         {/* WCAG fix: filter buttons have aria-pressed to convey selected state to AT */}
-        <div role="group" aria-label="Filter events" className="flex items-center gap-1 bg-zinc-800 rounded-lg p-0.5">
+        <div role="group" aria-label="Filter events" className="flex items-center gap-1 bg-surface-2 rounded-lg p-0.5">
           {filters.map((f) => (
             <button
               key={f.key}
@@ -764,8 +764,8 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
               className={cn(
                 'px-3 py-1 rounded-md text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 filter === f.key
-                  ? 'bg-zinc-700 text-white'
-                  : 'text-zinc-400 hover:text-zinc-300',
+                  ? 'bg-surface-3 text-fg-primary'
+                  : 'text-fg-secondary hover:text-fg-primary',
               )}
             >
               {f.label}
@@ -779,10 +779,10 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
         role="log"
         aria-live="polite"
         aria-label="System events"
-        className="divide-y divide-zinc-800/40 max-h-64 overflow-y-auto"
+        className="divide-y divide-tok-border/40 max-h-64 overflow-y-auto"
       >
         {filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-20 text-zinc-500 text-sm">
+          <div className="flex items-center justify-center h-20 text-fg-muted text-sm">
             No entries for this filter.
           </div>
         ) : (
@@ -791,12 +791,12 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
               key={alert.id}
               className={cn('flex items-start gap-3 px-4 py-2.5 text-xs', severityRowStyle[alert.severity])}
             >
-              <span className="text-zinc-500 font-mono whitespace-nowrap mt-0.5 text-[11px]">
+              <span className="text-fg-muted font-mono whitespace-nowrap mt-0.5 text-[11px]">
                 {formatTimestamp(alert.timestamp)}
               </span>
               <SeverityIcon severity={alert.severity} />
-              <span className="font-medium text-zinc-300 shrink-0">{alert.agentName}</span>
-              <span className="text-zinc-400 leading-relaxed">{alert.message}</span>
+              <span className="font-medium text-fg-primary shrink-0">{alert.agentName}</span>
+              <span className="text-fg-secondary leading-relaxed">{alert.message}</span>
             </div>
           ))
         )}
@@ -869,22 +869,22 @@ export default function MissionControlDashboard() {
       </a>
 
       {/* WCAG fix: <main> landmark identifies the primary content region */}
-      <main id="mcd-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <main id="mcd-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
               {/* WCAG fix: decorative icon — heading text carries the label */}
               <Radio aria-hidden="true" className="w-6 h-6 text-violet-400" />
               Mission Control
             </h1>
-            <p className="text-sm text-zinc-400 mt-0.5">Real-time operator hub — live system state</p>
+            <p className="text-sm text-fg-secondary mt-0.5">Real-time operator hub — live system state</p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 text-xs text-fg-secondary">
             {/* PulseDot is already aria-hidden="true" internally */}
             <PulseDot color="bg-green-500" />
             <span>Live</span>
-            <span aria-hidden="true" className="text-zinc-700">·</span>
+            <span aria-hidden="true" className="text-tok-border">·</span>
             <span>Updated every 3s</span>
           </div>
         </div>
