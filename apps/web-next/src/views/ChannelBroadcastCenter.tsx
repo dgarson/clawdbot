@@ -15,6 +15,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -298,9 +300,9 @@ function BroadcastComposer({
       {/* Target Selector */}
       <div className="space-y-2">
         <label className="text-sm text-fg-secondary">Target Channels</label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {channels.map((ch) => (
-            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300 min-h-[44px]">
+            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300">
               <input
                 type="checkbox"
                 checked={selectedChannels.includes(ch.id)}
@@ -498,7 +500,7 @@ function StatsRow({
   deliveryRate: number;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-4 gap-4">
       <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
         <div className="text-xs text-fg-secondary uppercase">Messages Today</div>
         <div role="status" className="text-xl font-bold text-fg-primary mt-1">{messagesToday}</div>
@@ -523,7 +525,7 @@ function StatsRow({
 // Main Component
 // ============================================================================
 
-export default function ChannelBroadcastCenter() {
+export default function ChannelBroadcastCenter({ isLoading = false }: { isLoading?: boolean }) {
   const [channels] = useState(MOCK_CHANNELS);
   const [history] = useState(MOCK_HISTORY);
   const [scheduled, setScheduled] = useState(MOCK_SCHEDULED);
@@ -561,9 +563,9 @@ export default function ChannelBroadcastCenter() {
   return (
     <>
       <a href="#cbc-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="cbc-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <main id="cbc-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <MessageSquare aria-hidden="true" className="w-6 h-6 text-violet-400" />
@@ -571,7 +573,7 @@ export default function ChannelBroadcastCenter() {
           </h1>
           <p className="text-sm text-fg-secondary mt-0.5">Unified channel management & messaging</p>
         </div>
-        <button className="flex items-center gap-2 bg-violet-600 text-fg-primary px-4 py-2 min-h-[44px] rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none self-start sm:self-auto">
+        <button className="flex items-center gap-2 bg-violet-600 text-fg-primary px-4 py-2 rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
           <Plus aria-hidden="true" className="w-4 h-4" />
           New Broadcast
         </button>
@@ -586,25 +588,53 @@ export default function ChannelBroadcastCenter() {
       />
 
       {/* Channel Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="circle" className="w-5 h-5" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <Skeleton className="h-6 w-24" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Skeleton className="h-10" />
+                <Skeleton className="h-10" />
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+      ) : channels.length === 0 ? (
+        <ContextualEmptyState
+          icon={MessageSquare}
+          title="No broadcast channels configured"
+          description="Connect a channel to start reaching your audience across platforms."
+          primaryAction={{ label: 'Add a channel', onClick: () => console.log('Add channel') }}
+        />
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
+        </div>
+      )}
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {/* Composer */}
-        <div>
+        <div className="col-span-1">
           <BroadcastComposer channels={channels} onSend={handleSend} onSchedule={handleSchedule} />
         </div>
 
         {/* History */}
-        <div className="md:col-span-2">
+        <div className="col-span-2">
           <HistoryTable history={history} />
         </div>
       </div>
 
       {/* Pending & Failed */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <PendingBroadcasts scheduled={scheduled} onCancel={handleCancel} onEdit={handleEdit} />
         <FailedLog failed={failed} onRetry={handleRetry} />
       </div>

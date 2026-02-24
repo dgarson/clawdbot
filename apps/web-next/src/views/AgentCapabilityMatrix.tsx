@@ -27,6 +27,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -311,7 +313,7 @@ function CapabilityCell({
   
   const bgColors = {
     enabled: 'bg-green-500/10',
-    disabled: 'bg-zinc-800/50',
+    disabled: 'bg-surface-2/50',
     degraded: 'bg-amber-500/10',
     unavailable: 'bg-red-500/10',
   };
@@ -350,7 +352,7 @@ function AgentCard({
   return (
     <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
       <div
-        className="p-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+        className="p-4 cursor-pointer hover:bg-surface-2/50 transition-colors"
         onClick={onToggle}
       >
         <div className="flex items-start justify-between gap-3">
@@ -392,7 +394,7 @@ function AgentCard({
       </div>
       
       {isExpanded && (
-        <div className="border-t border-tok-border p-4 bg-zinc-800/30 space-y-4">
+        <div className="border-t border-tok-border p-4 bg-surface-2/30 space-y-4">
           <div>
             <p className="text-xs text-fg-muted uppercase tracking-wide mb-2">Tools Enabled</p>
             <div className="flex flex-wrap gap-1.5">
@@ -430,7 +432,7 @@ function AgentCard({
 
 function PermissionBadge({ level }: { level: PermissionLevel }) {
   const styles: Record<PermissionLevel, string> = {
-    none: 'bg-zinc-700/50 text-fg-secondary',
+    none: 'bg-surface-3/50 text-fg-secondary',
     read: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
     write: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
     admin: 'bg-red-500/15 text-red-400 border-red-500/30',
@@ -481,7 +483,7 @@ function PermissionPanel({
           </thead>
           <tbody>
             {agents.map((agent) => (
-              <tr key={agent.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <tr key={agent.id} className="border-b border-tok-border/50 hover:bg-surface-2/30">
                 <td className="py-2 px-2">
                   <span className="text-fg-primary font-medium">{agent.name}</span>
                 </td>
@@ -601,7 +603,7 @@ function CapabilityMatrix({
         </thead>
         <tbody>
           {agents.map((agent) => (
-            <tr key={agent.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <tr key={agent.id} className="border-b border-tok-border/50 hover:bg-surface-2/30">
               <td className="py-2 px-2">
                 <div className="flex items-center gap-2">
                   <StatusBadge status={agent.status} />
@@ -675,7 +677,7 @@ function SkillMatrix({
         </thead>
         <tbody>
           {agents.map((agent) => (
-            <tr key={agent.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <tr key={agent.id} className="border-b border-tok-border/50 hover:bg-surface-2/30">
               <td className="py-2 px-2">
                 <div className="flex items-center gap-2">
                   <StatusBadge status={agent.status} />
@@ -793,7 +795,7 @@ function FilterBar({
 // Main Component
 // ============================================================================
 
-export default function AgentCapabilityMatrix() {
+export default function AgentCapabilityMatrix({ isLoading = false }: { isLoading?: boolean }) {
   const [agents] = useState<Agent[]>(MOCK_AGENTS);
   const [tools] = useState<Tool[]>(MOCK_TOOLS);
   const [skills] = useState<Skill[]>(MOCK_SKILLS);
@@ -847,9 +849,9 @@ export default function AgentCapabilityMatrix() {
   return (
     <>
       <a href="#acm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="acm-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <main id="acm-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
@@ -859,11 +861,11 @@ export default function AgentCapabilityMatrix() {
             Tools, skills, and permission overview for all agents
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-3">
           <span className="px-3 py-1.5 rounded-lg bg-surface-2 text-zinc-300 text-sm font-medium" role="status">
             {filteredAgents.length} / {totalAgents} agents
           </span>
-          <button className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
             Refresh
           </button>
@@ -871,7 +873,7 @@ export default function AgentCapabilityMatrix() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-6 gap-4">
         <StatCard 
           label="Total Agents" 
           value={totalAgents} 
@@ -929,15 +931,22 @@ export default function AgentCapabilityMatrix() {
       />
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {/* Agent Roster */}
-        <div className="space-y-3">
+        <div className="col-span-1 space-y-3">
           <h2 className="text-sm font-semibold text-fg-primary flex items-center gap-2">
             <Users className="w-4 h-4 text-violet-400" aria-hidden="true" />
             Agent Roster
             <span className="ml-auto text-xs text-fg-muted">{filteredAgents.length} shown</span>
           </h2>
-          {filteredAgents.length === 0 ? (
+          {agents.length === 0 ? (
+            <ContextualEmptyState
+              icon={Bot}
+              title="No agents registered"
+              description="Agents added to the system will appear here with their capabilities."
+              size="sm"
+            />
+          ) : filteredAgents.length === 0 ? (
             <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center text-fg-muted">
               <Bot className="w-12 h-12 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No agents match your filters</p>
@@ -958,13 +967,13 @@ export default function AgentCapabilityMatrix() {
         </div>
 
         {/* Right Column: Matrix/Permissions/Health */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="col-span-2 space-y-6">
           {/* Tab Switcher */}
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('matrix')}
               className={cn(
-                'px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 activeTab === 'matrix'
                   ? 'bg-violet-600 text-fg-primary'
                   : 'bg-surface-2 text-fg-secondary hover:text-fg-primary'
@@ -976,7 +985,7 @@ export default function AgentCapabilityMatrix() {
             <button
               onClick={() => setActiveTab('skills')}
               className={cn(
-                'px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 activeTab === 'skills'
                   ? 'bg-violet-600 text-fg-primary'
                   : 'bg-surface-2 text-fg-secondary hover:text-fg-primary'
@@ -988,7 +997,34 @@ export default function AgentCapabilityMatrix() {
           </div>
 
           {/* Matrix or Skills View */}
-          {activeTab === 'matrix' ? (
+          {isLoading ? (
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4 overflow-x-auto">
+              <div className="flex items-center gap-2 mb-4">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="space-y-2">
+                {/* Header row */}
+                <div className="flex gap-2 pb-2 border-b border-tok-border">
+                  <Skeleton className="h-3 w-24 flex-shrink-0" />
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <Skeleton key={j} className="h-3 w-12 flex-1" />
+                  ))}
+                </div>
+                {/* 3 data rows × 4 columns */}
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-2 py-1">
+                    <Skeleton className="h-6 w-24 flex-shrink-0" />
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <div key={j} className="flex-1 flex justify-center">
+                        <Skeleton className="h-8 w-8" />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : activeTab === 'matrix' ? (
             <CapabilityMatrix agents={filteredAgents} tools={tools} />
           ) : (
             <SkillMatrix agents={filteredAgents} skills={skills} />

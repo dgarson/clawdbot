@@ -20,6 +20,8 @@ import {
   History,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -283,7 +285,7 @@ function ExpiryBadge({ days }: { days: number | null }) {
 
 function UsageBadge({ count }: { count: number }) {
   return (
-    <span className="px-2 py-0.5 rounded-md text-xs bg-zinc-700/50 text-zinc-300">
+    <span className="px-2 py-0.5 rounded-md text-xs bg-surface-3/50 text-zinc-300">
       {count} uses
     </span>
   );
@@ -361,7 +363,7 @@ function SecretCard({
       <div className="flex items-center justify-between gap-2">
         <ExpiryBadge days={daysLeft} />
         <div className="flex gap-1">
-          <button onClick={onToggleReveal} aria-label={revealed ? "Hide secret value" : "Show secret value"} className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button onClick={onToggleReveal} aria-label={revealed ? "Hide secret value" : "Show secret value"} className="p-1 rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             {revealed ? <EyeOff aria-hidden="true" className="w-4 h-4 text-fg-secondary" /> : <Eye aria-hidden="true" className="w-4 h-4 text-fg-secondary" />}
           </button>
         </div>
@@ -446,7 +448,7 @@ function AuditLogDrawer({
           <History aria-hidden="true" className="w-4 h-4 text-violet-400" />
           <span className="text-sm font-semibold text-fg-primary">Audit Log</span>
         </div>
-        <button onClick={onClose} aria-label="Close audit log" className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+        <button onClick={onClose} aria-label="Close audit log" className="p-1 rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
           <X aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
         </button>
       </div>
@@ -573,7 +575,7 @@ function AddSecretModal({
 // Main Component
 // ============================================================================
 
-export default function SecretVaultManager() {
+export default function SecretVaultManager({ isLoading = false }: { isLoading?: boolean }) {
   const [secrets, setSecrets] = useState<Secret[]>(MOCK_SECRETS);
   const [auditEvents] = useState<AuditEvent[]>(MOCK_AUDIT_EVENTS);
   const [search, setSearch] = useState('');
@@ -650,9 +652,9 @@ export default function SecretVaultManager() {
   return (
     <>
       <a href="#svm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="svm-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <main id="svm-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <FileLock aria-hidden="true" className="w-6 h-6 text-violet-400" />
@@ -660,20 +662,20 @@ export default function SecretVaultManager() {
           </h1>
           <p className="text-sm text-fg-secondary mt-0.5">Credentials & secrets management</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-3">
           <span role="status" className="px-3 py-1.5 rounded-lg bg-surface-2 text-zinc-300 text-sm font-medium">
             {totalSecrets} secrets
           </span>
           <button
             onClick={() => setAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <Plus aria-hidden="true" className="w-4 h-4" />
             Add Secret
           </button>
           <button
             onClick={() => setAuditDrawerOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-surface-2 hover:bg-surface-3 text-zinc-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 text-zinc-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <History aria-hidden="true" className="w-4 h-4" />
             Audit Log
@@ -682,7 +684,7 @@ export default function SecretVaultManager() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <StatCard label="Total Secrets" value={totalSecrets} icon={Shield} color="text-violet-400" />
         <StatCard label="Expiring Soon" value={expiringSoon} icon={AlertTriangle} color="text-amber-400" />
         <StatCard label="Rotated This Month" value={rotatedThisMonth} icon={RotateCcw} color="text-green-400" />
@@ -690,8 +692,8 @@ export default function SecretVaultManager() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
-        <div className="flex-1 min-w-[180px] relative">
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-center gap-4">
+        <div className="flex-1 relative">
           <Search aria-hidden="true" className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={search}
@@ -724,9 +726,41 @@ export default function SecretVaultManager() {
       </div>
 
       {/* Main Content: Secrets List + Rotation Panel */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          {filteredSecrets.length === 0 ? (
+      <div className="grid grid-cols-3 gap-6">
+        <div className="col-span-2">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton variant="text" className="w-1/2" />
+                    </div>
+                    <Skeleton className="h-5 w-14" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton className="h-10" />
+                    <Skeleton className="h-10" />
+                  </div>
+                  <Skeleton className="h-8 w-full" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-6 w-14" />
+                    <Skeleton className="h-6 w-10" />
+                    <Skeleton className="h-6 w-14" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : secrets.length === 0 ? (
+            <ContextualEmptyState
+              icon={FileLock}
+              title="No secrets stored"
+              description="Credentials and API keys you add will appear here."
+              primaryAction={{ label: 'Add your first secret', onClick: () => setAddModalOpen(true) }}
+            />
+          ) : filteredSecrets.length === 0 ? (
             <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center text-fg-muted">
               <Shield aria-hidden="true" className="w-12 h-12 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No secrets match your filters</p>
@@ -748,7 +782,7 @@ export default function SecretVaultManager() {
             </div>
           )}
         </div>
-        <div>
+        <div className="col-span-1">
           <RotationPanel dueSecrets={dueForRotation} onBulkRotate={handleBulkRotate} />
         </div>
       </div>

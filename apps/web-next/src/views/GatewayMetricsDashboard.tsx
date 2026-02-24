@@ -18,6 +18,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -522,7 +524,7 @@ function PluginHealthTable({ plugins }: { plugins: PluginHealth[] }) {
             {plugins.map((plugin) => (
               <tr
                 key={plugin.name}
-                className="border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/30 transition-colors"
+                className="border-b border-tok-border/50 last:border-0 hover:bg-surface-2/30 transition-colors"
               >
                 <td className="py-3 px-4">
                   <span className="text-sm font-medium text-fg-primary">{plugin.name}</span>
@@ -599,7 +601,7 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
           </div>
         </div>
       </div>
-      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+      <div className="p-4 grid grid-cols-5 gap-3">
         {sessions.map((session) => {
           const total = session.active + session.idle + session.queued;
           const activePct = (session.active / total) * 100;
@@ -607,7 +609,7 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
           const queuedPct = (session.queued / total) * 100;
 
           return (
-            <div key={session.agent} className="bg-zinc-800/50 rounded-lg p-3 space-y-2">
+            <div key={session.agent} className="bg-surface-2/50 rounded-lg p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <div className={cn(
                   'w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-xs font-bold text-fg-primary',
@@ -708,20 +710,20 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
+          <div className="bg-surface-2/50 rounded-lg p-3 text-center">
             <div className="text-lg font-bold text-fg-primary">
               {budget.currentBurnRate.toFixed(2)}
             </div>
             <div className="text-xs text-fg-secondary">Burn Rate</div>
             <div className="text-xs text-fg-muted">per hour</div>
           </div>
-          <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
+          <div className="bg-surface-2/50 rounded-lg p-3 text-center">
             <div className="text-lg font-bold text-fg-primary">
               {budget.requestsTotal.toLocaleString()}
             </div>
             <div className="text-xs text-fg-secondary">Total Requests</div>
           </div>
-          <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
+          <div className="bg-surface-2/50 rounded-lg p-3 text-center">
             <div className={cn(
               'text-lg font-bold',
               budget.requestsFailed > 1000 ? 'text-amber-400' : 'text-fg-primary'
@@ -779,11 +781,11 @@ function ErrorLogPanel({ errors }: { errors: ErrorLogEntry[] }) {
         </div>
         <span className="text-xs text-fg-muted">Last 10 entries</span>
       </div>
-      <div className="divide-y divide-zinc-800/50">
+      <div className="divide-y divide-tok-border/50">
         {errors.map((error) => (
           <div 
             key={error.id} 
-            className="px-4 py-3 hover:bg-zinc-800/30 transition-colors"
+            className="px-4 py-3 hover:bg-surface-2/30 transition-colors"
           >
             <div className="flex items-start gap-3">
               {getSeverityIcon(error.severity)}
@@ -858,7 +860,7 @@ function GatewayInfoPanel({ stats }: { stats: GatewayStats }) {
 // Main Component
 // ============================================================================
 
-export default function GatewayMetricsDashboard() {
+export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = false }: { isLoading?: boolean; isEmpty?: boolean }) {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [sparklineData, setSparklineData] = useState(SPARKLINE_DATA);
   const [stats, setStats] = useState(MOCK_GATEWAY_STATS);
@@ -902,9 +904,9 @@ export default function GatewayMetricsDashboard() {
   return (
     <>
       <a href="#gmd-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="gmd-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <main id="gmd-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-violet-500/15 rounded-lg">
             <Gauge aria-hidden="true" className="w-5 h-5 text-violet-400" />
@@ -914,63 +916,111 @@ export default function GatewayMetricsDashboard() {
             <p className="text-sm text-fg-secondary">Gateway health and throughput monitoring</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-fg-secondary" aria-live="polite">
             <Clock aria-hidden="true" className="w-4 h-4" />
             <span>Last updated: {formatLastUpdated(lastUpdated)}</span>
           </div>
-          <button className="px-4 py-2 min-h-[44px] bg-surface-2 hover:bg-surface-3 border border-tok-border rounded-lg text-sm font-medium text-fg-primary transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="px-4 py-2 bg-surface-2 hover:bg-surface-3 border border-tok-border rounded-lg text-sm font-medium text-fg-primary transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <RefreshCcw aria-hidden="true" className="w-4 h-4" />
             Refresh
           </button>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" role="status" aria-label="Live gateway statistics">
-        <StatCard
-          label="Requests/sec"
-          value={stats.reqPerSec.toFixed(1)}
-          icon={Bolt}
-          trend="up"
-          trendValue="+2.3%"
-          accentColor="violet"
+      {/* Empty state — no gateway connected */}
+      {isEmpty ? (
+        <ContextualEmptyState
+          icon={Gauge}
+          title="No metrics available yet"
+          description="Connect your gateway to start seeing live health and throughput data."
+          size="lg"
         />
-        <StatCard
-          label="Error Rate"
-          value={stats.errorRate.toFixed(2)}
-          unit="%"
-          icon={AlertTriangle}
-          trend="down"
-          trendValue="-0.01%"
-          accentColor="emerald"
-        />
-        <StatCard
-          label="P99 Latency"
-          value={stats.p99Latency}
-          unit="ms"
-          icon={Clock}
-          trend="neutral"
-          trendValue="stable"
-          accentColor="amber"
-        />
-        <StatCard
-          label="Active Sessions"
-          value={stats.activeSessions}
-          icon={Layers}
-          trend="up"
-          trendValue="+3"
-          accentColor="sky"
-        />
-      </div>
+      ) : isLoading ? (
+        <>
+          {/* Skeleton: 4 stat cards */}
+          <div className="grid grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton variant="text" className="w-24" />
+                  </div>
+                </div>
+                <Skeleton className="h-8 w-20" />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton: chart */}
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <div className="flex items-center gap-4">
+                <Skeleton variant="text" className="w-20" />
+                <Skeleton variant="text" className="w-16" />
+                <Skeleton variant="text" className="w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-12 w-full" />
+            <div className="mt-2 flex justify-between">
+              <Skeleton variant="text" className="w-12" />
+              <Skeleton variant="text" className="w-8" />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Stats Row */}
+          <div className="grid grid-cols-4 gap-4" role="status" aria-label="Live gateway statistics">
+            <StatCard
+              label="Requests/sec"
+              value={stats.reqPerSec.toFixed(1)}
+              icon={Bolt}
+              trend="up"
+              trendValue="+2.3%"
+              accentColor="violet"
+            />
+            <StatCard
+              label="Error Rate"
+              value={stats.errorRate.toFixed(2)}
+              unit="%"
+              icon={AlertTriangle}
+              trend="down"
+              trendValue="-0.01%"
+              accentColor="emerald"
+            />
+            <StatCard
+              label="P99 Latency"
+              value={stats.p99Latency}
+              unit="ms"
+              icon={Clock}
+              trend="neutral"
+              trendValue="stable"
+              accentColor="amber"
+            />
+            <StatCard
+              label="Active Sessions"
+              value={stats.activeSessions}
+              icon={Layers}
+              trend="up"
+              trendValue="+3"
+              accentColor="sky"
+            />
+          </div>
 
-      {/* Request Rate Sparkline */}
-      <RequestRateSparkline data={sparklineData} />
+          {/* Request Rate Sparkline */}
+          <RequestRateSparkline data={sparklineData} />
+        </>
+      )}
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {/* Plugin Health Table - spans 2 columns */}
-        <div className="md:col-span-2">
+        <div className="col-span-2">
           <PluginHealthTable plugins={MOCK_PLUGINS} />
         </div>
         
@@ -988,7 +1038,7 @@ export default function GatewayMetricsDashboard() {
       <ErrorLogPanel errors={MOCK_ERROR_LOG} />
 
       {/* Footer */}
-      <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 pt-4 border-t border-zinc-800/50">
+      <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 pt-4 border-t border-tok-border/50">
         <Activity aria-hidden="true" className="w-3 h-3" />
         <span>Gateway Metrics Dashboard</span>
         <span>•</span>
