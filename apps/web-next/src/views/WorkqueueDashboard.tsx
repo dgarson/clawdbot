@@ -27,6 +27,7 @@ import {
   Archive,
   Rotate3d,
   Badge,
+  X,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 

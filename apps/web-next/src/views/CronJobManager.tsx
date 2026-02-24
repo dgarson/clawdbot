@@ -23,7 +23,7 @@ import {
   Bell,
   Database,
   Trash2,
-  Heartbeat,
+  HeartPulse as Heartbeat,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
