@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 import { cn } from '../lib/utils';
 import {
   Users, Shield, Mail, Search, Plus, ChevronDown,
@@ -75,7 +76,7 @@ const ROLES: RoleInfo[] = [
     id: 'viewer',
     name: 'Viewer',
     description: 'Read-only access to view agents and sessions',
-    badgeColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+    badgeColor: 'bg-surface-2 text-fg-secondary border-tok-border',
     permissions: ['View agents', 'View sessions'],
     canChangeRole: true,
   },
@@ -110,7 +111,7 @@ function getInitials(name: string): string {
 
 function getRoleBadgeStyles(role: MemberRole): string {
   const roleInfo = ROLES.find((r) => r.id === role);
-  return roleInfo?.badgeColor ?? 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+  return roleInfo?.badgeColor ?? 'bg-surface-2 text-fg-secondary border-tok-border';
 }
 
 function getStatusStyles(status: MemberStatus): { dot: string; text: string; label: string } {
@@ -163,7 +164,7 @@ function Avatar({ name, color, size = 'md' }: AvatarProps) {
   return (
     <div
       className={cn(
-        'rounded-full flex items-center justify-center font-medium text-white',
+        'rounded-full flex items-center justify-center font-medium text-fg-primary',
         sizeClasses[size],
         color
       )}
@@ -255,19 +256,19 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
         aria-hidden="true"
       />
       <div
-        className="relative z-10 w-full max-w-md p-6 mx-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl"
+        className="relative z-10 w-full max-w-md p-6 mx-4 bg-surface-1 border border-tok-border rounded-2xl shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="invite-modal-title"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 id="invite-modal-title" className="text-lg font-semibold text-white">
+          <h2 id="invite-modal-title" className="text-lg font-semibold text-fg-primary">
             Invite Team Member
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="p-1 text-fg-secondary hover:text-fg-primary transition-colors rounded-lg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-indigo-500"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -276,11 +277,11 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="invite-email" className="block mb-2 text-sm font-medium text-zinc-300">
+            <label htmlFor="invite-email" className="block mb-2 text-sm font-medium text-fg-secondary">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" />
               <input
                 id="invite-email"
                 type="email"
@@ -291,10 +292,10 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
                 }}
                 placeholder="colleague@company.com"
                 className={cn(
-                  'w-full pl-10 pr-4 py-2.5 bg-zinc-950 border rounded-lg text-white placeholder-zinc-500',
+                  'w-full pl-10 pr-4 py-2.5 bg-surface-0 border rounded-lg text-fg-primary placeholder:text-fg-muted',
                   'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
                   'transition-colors',
-                  error ? 'border-rose-500' : 'border-zinc-800'
+                  error ? 'border-rose-500' : 'border-tok-border'
                 )}
               />
             </div>
@@ -302,17 +303,17 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
           </div>
 
           <div className="mb-6">
-            <label htmlFor="invite-role" className="block mb-2 text-sm font-medium text-zinc-300">
+            <label htmlFor="invite-role" className="block mb-2 text-sm font-medium text-fg-secondary">
               Role
             </label>
             <div className="relative">
-              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" />
               <select
                 id="invite-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as MemberRole)}
                 className={cn(
-                  'w-full pl-10 pr-10 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-white',
+                  'w-full pl-10 pr-10 py-2.5 bg-surface-0 border border-tok-border rounded-lg text-fg-primary',
                   'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
                   'appearance-none cursor-pointer transition-colors'
                 )}
@@ -323,7 +324,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted pointer-events-none" />
             </div>
           </div>
 
@@ -331,13 +332,13 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-300 bg-zinc-800 rounded-lg hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-secondary bg-surface-2 rounded-lg hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
             >
               Send Invite
             </button>
@@ -381,7 +382,7 @@ function ConfirmDialog({
         aria-hidden="true"
       />
       <div
-        className="relative z-10 w-full max-w-sm p-6 mx-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl"
+        className="relative z-10 w-full max-w-sm p-6 mx-4 bg-surface-1 border border-tok-border rounded-2xl shadow-2xl"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
@@ -392,10 +393,10 @@ function ConfirmDialog({
             <AlertTriangle className={cn('w-5 h-5', confirmVariant === 'danger' ? 'text-rose-400' : 'text-amber-400')} />
           </div>
           <div className="flex-1">
-            <h3 id="confirm-dialog-title" className="text-base font-semibold text-white">
+            <h3 id="confirm-dialog-title" className="text-base font-semibold text-fg-primary">
               {title}
             </h3>
-            <p id="confirm-dialog-description" className="mt-1 text-sm text-zinc-400">
+            <p id="confirm-dialog-description" className="mt-1 text-sm text-fg-secondary">
               {message}
             </p>
           </div>
@@ -405,7 +406,7 @@ function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-300 bg-zinc-800 rounded-lg hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-secondary bg-surface-2 rounded-lg hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
           >
             Cancel
           </button>
@@ -413,7 +414,7 @@ function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             className={cn(
-              'flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors',
+              'flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary rounded-lg focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors',
               confirmVariant === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'
             )}
           >
@@ -450,8 +451,8 @@ function RoleDropdown({ currentRole, onChange, disabled = false }: RoleDropdownP
         className={cn(
           'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-colors',
           disabled
-            ? 'bg-zinc-800/50 border-zinc-700 text-zinc-500 cursor-not-allowed'
-            : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-600 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500'
+            ? 'bg-surface-2/50 border-tok-border text-fg-muted cursor-not-allowed'
+            : 'bg-surface-2 border-tok-border text-fg-secondary hover:border-tok-border cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500'
         )}
         aria-label={`Change role, currently ${currentRoleInfo?.name}`}
         aria-haspopup="listbox"
@@ -470,7 +471,7 @@ function RoleDropdown({ currentRole, onChange, disabled = false }: RoleDropdownP
             aria-hidden="true"
           />
           <ul
-            className="absolute right-0 z-20 mt-1 w-36 py-1 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg"
+            className="absolute right-0 z-20 mt-1 w-36 py-1 bg-surface-2 border border-tok-border rounded-lg shadow-lg"
             role="listbox"
             aria-label="Select role"
           >
@@ -486,7 +487,7 @@ function RoleDropdown({ currentRole, onChange, disabled = false }: RoleDropdownP
                     'w-full px-3 py-2 text-xs text-left flex items-center gap-2 transition-colors',
                     currentRole === role.id
                       ? 'bg-indigo-600/20 text-indigo-400'
-                      : 'text-zinc-300 hover:bg-zinc-700'
+                      : 'text-fg-secondary hover:bg-surface-3'
                   )}
                   role="option"
                   aria-selected={currentRole === role.id}
@@ -554,15 +555,15 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-white">Team Members</h2>
-          <span className="px-2 py-0.5 text-xs font-medium text-zinc-400 bg-zinc-800 rounded-full">
+          <h2 className="text-lg font-semibold text-fg-primary">Team Members</h2>
+          <span className="px-2 py-0.5 text-xs font-medium text-fg-secondary bg-surface-2 rounded-full">
             {members.length} {members.length === 1 ? 'member' : 'members'}
           </span>
         </div>
         <button
           type="button"
           onClick={() => setIsInviteModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Invite Member
@@ -571,13 +572,13 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search members..."
-          className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+          className="w-full pl-10 pr-4 py-2.5 bg-surface-0 border border-tok-border rounded-lg text-fg-primary placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
           aria-label="Search members"
         />
       </div>
@@ -585,26 +586,36 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
       {/* Members List */}
       <div className="space-y-2">
         {filteredMembers.length === 0 ? (
-          <div className="py-12 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-zinc-600" />
-            <p className="text-zinc-400">No members found</p>
-          </div>
+          <ContextualEmptyState
+            icon={Users}
+            title={searchQuery.trim() ? 'No members match your search' : 'No team members'}
+            description={
+              searchQuery.trim()
+                ? 'Try a different name or email to find team members.'
+                : 'Invite your first team member to start collaborating.'
+            }
+            primaryAction={
+              !searchQuery.trim()
+                ? { label: 'Invite Member', onClick: () => setIsInviteModalOpen(true) }
+                : undefined
+            }
+          />
         ) : (
           filteredMembers.map((member) => (
             <div
               key={member.id}
-              className="flex items-center gap-4 p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-colors"
+              className="flex items-center gap-4 p-4 bg-surface-1/50 border border-tok-border rounded-xl hover:border-tok-border transition-colors"
             >
               <Avatar name={member.name} color={member.avatarColor} />
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="text-sm font-medium text-white truncate">{member.name}</h3>
+                  <h3 className="text-sm font-medium text-fg-primary truncate">{member.name}</h3>
                   {member.status === 'suspended' && (
                     <span className="text-xs text-rose-400">(Suspended)</span>
                   )}
                 </div>
-                <p className="text-xs text-zinc-500 truncate">{member.email}</p>
+                <p className="text-xs text-fg-muted truncate">{member.email}</p>
               </div>
 
               <div className="hidden sm:flex items-center gap-3">
@@ -622,7 +633,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                 <button
                   type="button"
                   onClick={() => setOpenMenuId(openMenuId === member.id ? null : member.id)}
-                  className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                  className="p-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2 rounded-lg focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
                   aria-label={`Actions for ${member.name}`}
                   aria-haspopup="menu"
                   aria-expanded={openMenuId === member.id}
@@ -637,7 +648,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                       onClick={() => setOpenMenuId(null)}
                       aria-hidden="true"
                     />
-                    <div className="absolute right-0 z-20 mt-1 w-40 py-1 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg">
+                    <div className="absolute right-0 z-20 mt-1 w-40 py-1 bg-surface-2 border border-tok-border rounded-lg shadow-lg">
                       {member.role !== 'owner' && (
                         <>
                           <RoleDropdown
@@ -651,7 +662,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                                 setOpenMenuId(null);
                                 setConfirmDialog({ type: 'suspend', memberId: member.id });
                               }}
-                              className="w-full px-3 py-2 text-xs text-left text-amber-400 hover:bg-zinc-700 transition-colors flex items-center gap-2"
+                              className="w-full px-3 py-2 text-xs text-left text-amber-400 hover:bg-surface-3 transition-colors flex items-center gap-2"
                             >
                               <Clock className="w-3 h-3" />
                               Suspend
@@ -663,7 +674,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                                 setOpenMenuId(null);
                                 onRoleChange(member.id, 'viewer');
                               }}
-                              className="w-full px-3 py-2 text-xs text-left text-emerald-400 hover:bg-zinc-700 transition-colors flex items-center gap-2"
+                              className="w-full px-3 py-2 text-xs text-left text-emerald-400 hover:bg-surface-3 transition-colors flex items-center gap-2"
                             >
                               <Check className="w-3 h-3" />
                               Reactivate
@@ -675,7 +686,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                               setOpenMenuId(null);
                               setConfirmDialog({ type: 'remove', memberId: member.id });
                             }}
-                            className="w-full px-3 py-2 text-xs text-left text-rose-400 hover:bg-zinc-700 transition-colors flex items-center gap-2"
+                            className="w-full px-3 py-2 text-xs text-left text-rose-400 hover:bg-surface-3 transition-colors flex items-center gap-2"
                           >
                             <X className="w-3 h-3" />
                             Remove
@@ -683,7 +694,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                         </>
                       )}
                       {member.role === 'owner' && (
-                        <p className="px-3 py-2 text-xs text-zinc-500">
+                        <p className="px-3 py-2 text-xs text-fg-muted">
                           Owner cannot be modified
                         </p>
                       )}
@@ -729,8 +740,8 @@ function RolesTab() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-white mb-2">Roles & Permissions</h2>
-        <p className="text-sm text-zinc-400">
+        <h2 className="text-lg font-semibold text-fg-primary mb-2">Roles & Permissions</h2>
+        <p className="text-sm text-fg-secondary">
           Each role has different permissions. Owner and Admin roles can manage team members.
         </p>
       </div>
@@ -739,7 +750,7 @@ function RolesTab() {
         {ROLES.map((role) => (
           <div
             key={role.id}
-            className="p-5 bg-zinc-900/50 border border-zinc-800 rounded-xl"
+            className="p-5 bg-surface-1/50 border border-tok-border rounded-xl"
           >
             <div className="flex items-start gap-3 mb-4">
               <div className={cn('p-2 rounded-lg', role.badgeColor.split(' ')[0])}>
@@ -750,12 +761,12 @@ function RolesTab() {
                 ) : role.id === 'member' ? (
                   <User className="w-5 h-5 text-blue-400" />
                 ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
+                  <Eye className="w-5 h-5 text-fg-secondary" />
                 )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base font-semibold text-white">{role.name}</h3>
+                  <h3 className="text-base font-semibold text-fg-primary">{role.name}</h3>
                   <span
                     className={cn(
                       'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border',
@@ -765,17 +776,17 @@ function RolesTab() {
                     {role.name}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500">{role.description}</p>
+                <p className="text-xs text-fg-muted">{role.description}</p>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-zinc-800">
-              <h4 className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
+            <div className="pt-4 border-t border-tok-border">
+              <h4 className="text-xs font-medium text-fg-secondary uppercase tracking-wider mb-3">
                 Permissions
               </h4>
               <ul className="space-y-2">
                 {role.permissions.map((permission) => (
-                  <li key={permission} className="flex items-center gap-2 text-sm text-zinc-300">
+                  <li key={permission} className="flex items-center gap-2 text-sm text-fg-secondary">
                     <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                     {permission}
                   </li>
@@ -786,14 +797,14 @@ function RolesTab() {
         ))}
 
         {/* Custom Role Teaser */}
-        <div className="p-5 bg-zinc-900/30 border border-zinc-800 border-dashed rounded-xl relative overflow-hidden">
+        <div className="p-5 bg-surface-1/30 border border-tok-border border-dashed rounded-xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-violet-600/5" />
           <div className="relative flex flex-col items-center justify-center py-6 text-center">
-            <div className="p-3 rounded-full bg-zinc-800 mb-4">
-              <Lock className="w-6 h-6 text-zinc-500" />
+            <div className="p-3 rounded-full bg-surface-2 mb-4">
+              <Lock className="w-6 h-6 text-fg-muted" />
             </div>
-            <h3 className="text-base font-semibold text-white mb-2">Custom Roles</h3>
-            <p className="text-xs text-zinc-500 mb-4 max-w-[200px]">
+            <h3 className="text-base font-semibold text-fg-primary mb-2">Custom Roles</h3>
+            <p className="text-xs text-fg-muted mb-4 max-w-[200px]">
               Create custom roles with specific permissions for your team
             </p>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-300 bg-indigo-500/20 rounded-full">
@@ -821,17 +832,17 @@ function InvitesTab({ invites, onCancel, onResend }: InvitesTabProps) {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-white mb-2">Pending Invitations</h2>
-        <p className="text-sm text-zinc-400">
+        <h2 className="text-lg font-semibold text-fg-primary mb-2">Pending Invitations</h2>
+        <p className="text-sm text-fg-secondary">
           Invitations that have been sent but not yet accepted.
         </p>
       </div>
 
       {invites.length === 0 ? (
-        <div className="py-16 text-center bg-zinc-900/30 border border-zinc-800 rounded-xl">
-          <Mail className="w-12 h-12 mx-auto mb-4 text-zinc-600" />
-          <p className="text-zinc-400 mb-2">No pending invitations</p>
-          <p className="text-xs text-zinc-500">
+        <div className="py-16 text-center bg-surface-1/30 border border-tok-border rounded-xl">
+          <Mail className="w-12 h-12 mx-auto mb-4 text-fg-muted" />
+          <p className="text-fg-secondary mb-2">No pending invitations</p>
+          <p className="text-xs text-fg-muted">
             Invite team members from the Members tab
           </p>
         </div>
@@ -840,17 +851,17 @@ function InvitesTab({ invites, onCancel, onResend }: InvitesTabProps) {
           {invites.map((invite) => (
             <div
               key={invite.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-colors"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-surface-1/50 border border-tok-border rounded-xl hover:border-tok-border transition-colors"
             >
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-amber-500/10">
                   <Mail className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">{invite.email}</p>
+                  <p className="text-sm font-medium text-fg-primary">{invite.email}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <RoleBadge role={invite.role} />
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-fg-muted">
                       Invited by {invite.invitedBy}
                     </span>
                   </div>
@@ -858,14 +869,14 @@ function InvitesTab({ invites, onCancel, onResend }: InvitesTabProps) {
               </div>
 
               <div className="flex items-center justify-between sm:justify-end gap-3 ml-11 sm:ml-0">
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-fg-muted">
                   Expires {formatRelativeDate(invite.expiresAt)}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => onResend(invite.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 rounded-md hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg-secondary bg-surface-2 rounded-md hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
                     aria-label={`Resend invitation to ${invite.email}`}
                   >
                     <RefreshCw className="w-3 h-3" />
@@ -975,19 +986,19 @@ export default function TeamManagement() {
   const pendingInvitesCount = invites.length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-surface-0 p-4 sm:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Team Management</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="text-2xl font-bold text-fg-primary mb-2">Team Management</h1>
+          <p className="text-sm text-fg-secondary">
             Manage your team members, roles, and invitations
           </p>
         </div>
 
         {/* Tabs */}
         <div
-          className="mb-6 border-b border-zinc-800"
+          className="mb-6 border-b border-tok-border"
           role="tablist"
           aria-label="Team management sections"
         >
@@ -1010,7 +1021,7 @@ export default function TeamManagement() {
                     'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
                     isActive
                       ? 'border-indigo-500 text-indigo-400'
-                      : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                      : 'border-transparent text-fg-secondary hover:text-fg-primary hover:border-tok-border'
                   )}
                 >
                   <Icon className="w-4 h-4" />
