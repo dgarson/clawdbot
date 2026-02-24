@@ -1,13 +1,12 @@
 import type { ChannelId } from "../../channels/plugins/types.js";
-import { DEFAULT_CHAT_CHANNEL } from "../../channels/registry.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import type { OutboundChannel } from "../../infra/outbound/targets.js";
 import {
   loadSessionStore,
   resolveAgentMainSessionKey,
   resolveStorePath,
 } from "../../config/sessions.js";
 import { resolveMessageChannelSelection } from "../../infra/outbound/channel-selection.js";
-import type { OutboundChannel } from "../../infra/outbound/targets.js";
 import {
   resolveOutboundTarget,
   resolveSessionDeliveryTarget,
@@ -34,7 +33,7 @@ export async function resolveDeliveryTarget(
     stripSessionThreadId?: boolean;
   },
 ): Promise<{
-  channel: Exclude<OutboundChannel, "none">;
+  channel?: Exclude<OutboundChannel, "none">;
   to?: string;
   accountId?: string;
   threadId?: string | number;
@@ -64,12 +63,20 @@ export async function resolveDeliveryTarget(
   });
 
   let fallbackChannel: Exclude<OutboundChannel, "none"> | undefined;
+  let channelResolutionError: Error | undefined;
   if (!preliminary.channel) {
-    try {
-      const selection = await resolveMessageChannelSelection({ cfg });
-      fallbackChannel = selection.channel;
-    } catch {
-      fallbackChannel = preliminary.lastChannel ?? DEFAULT_CHAT_CHANNEL;
+    if (preliminary.lastChannel) {
+      fallbackChannel = preliminary.lastChannel;
+    } else {
+      try {
+        const selection = await resolveMessageChannelSelection({ cfg });
+        fallbackChannel = selection.channel;
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        channelResolutionError = new Error(
+          `${detail} Set delivery.channel explicitly or use a main session with a previous channel.`,
+        );
+      }
     }
   }
 
@@ -84,7 +91,7 @@ export async function resolveDeliveryTarget(
       })
     : preliminary;
 
-  const channel = resolved.channel ?? fallbackChannel ?? DEFAULT_CHAT_CHANNEL;
+  const channel = resolved.channel ?? fallbackChannel;
   const mode = resolved.mode as "explicit" | "implicit";
   let toCandidate = resolved.to;
 
@@ -127,6 +134,17 @@ export async function resolveDeliveryTarget(
     return undefined;
   })();
 
+  if (!channel) {
+    return {
+      channel: undefined,
+      to: undefined,
+      accountId,
+      threadId,
+      mode,
+      error: channelResolutionError,
+    };
+  }
+
   if (!toCandidate) {
     return {
       channel,
@@ -134,6 +152,7 @@ export async function resolveDeliveryTarget(
       accountId,
       threadId,
       mode,
+      error: channelResolutionError,
     };
   }
 
@@ -166,12 +185,19 @@ export async function resolveDeliveryTarget(
     mode,
     allowFrom: allowFromOverride,
   });
+  const actorSessionKey = threadSessionKey || mainSessionKey;
+  const resolvedError =
+    docked.ok || !docked.error
+      ? undefined
+      : new Error(
+          `${docked.error.message} (requestedBy=agent:${agentId} session=${actorSessionKey})`,
+        );
   return {
     channel,
     to: docked.ok ? docked.to : undefined,
     accountId,
     threadId,
     mode,
-    error: docked.ok ? undefined : docked.error,
+    error: resolvedError,
   };
 }

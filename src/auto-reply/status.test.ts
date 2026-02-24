@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { OpenClawConfig } from "../config/config.js";
 import { normalizeTestText } from "../../test/helpers/normalize-text.js";
 import { withTempHome } from "../../test/helpers/temp-home.js";
-import type { OpenClawConfig } from "../config/config.js";
 import { createSuccessfulImageMediaDecision } from "./media-understanding.test-fixtures.js";
 import {
   buildCommandsMessage,
@@ -88,6 +88,36 @@ describe("buildStatusMessage", () => {
     expect(normalized).not.toContain("verbose");
     expect(normalized).toContain("elevated");
     expect(normalized).toContain("Queue: collect");
+  });
+
+  it("notes channel model overrides in status output", () => {
+    const text = buildStatusMessage({
+      config: {
+        channels: {
+          modelByChannel: {
+            discord: {
+              "123": "openai/gpt-4.1",
+            },
+          },
+        },
+      } as unknown as OpenClawConfig,
+      agent: {
+        model: "openai/gpt-4.1",
+      },
+      sessionEntry: {
+        sessionId: "abc",
+        updatedAt: 0,
+        channel: "discord",
+        groupId: "123",
+      },
+      sessionKey: "agent:main:discord:channel:123",
+      sessionScope: "per-sender",
+      queue: { mode: "collect", depth: 0 },
+    });
+    const normalized = normalizeTestText(text);
+
+    expect(normalized).toContain("Model: openai/gpt-4.1");
+    expect(normalized).toContain("channel override");
   });
 
   it("uses per-agent sandbox config when config and session key are provided", () => {

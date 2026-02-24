@@ -35,6 +35,7 @@ function CommandDialog({
   className,
   showCloseButton = true,
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<typeof Dialog> & {
   title?: string
   description?: string

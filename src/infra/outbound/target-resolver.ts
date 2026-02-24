@@ -1,10 +1,10 @@
-import { getChannelPlugin } from "../../channels/plugins/index.js";
 import type {
   ChannelDirectoryEntry,
   ChannelDirectoryEntryKind,
   ChannelId,
 } from "../../channels/plugins/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import { getChannelPlugin } from "../../channels/plugins/index.js";
 import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
 import { buildDirectoryCacheKey, DirectoryCache } from "./directory-cache.js";
 import { ambiguousTargetError, unknownTargetError } from "./target-errors.js";
@@ -342,8 +342,12 @@ export async function resolveMessagingTarget(params: {
   const normalized = normalizeTargetForProvider(params.channel, raw) ?? raw;
   const looksLikeTargetId = (): boolean => {
     const trimmed = raw.trim();
+    const normalizedTrimmed = normalized.trim();
     if (!trimmed) {
       return false;
+    }
+    if (/^(channel|group|user|conversation):/i.test(normalizedTrimmed)) {
+      return true;
     }
     const lookup = plugin?.messaging?.targetResolver?.looksLikeId;
     if (lookup) {

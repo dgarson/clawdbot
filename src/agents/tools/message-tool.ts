@@ -1,4 +1,6 @@
 import { Type } from "@sinclair/typebox";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { AnyAgentTool } from "./common.js";
 import { BLUEBUBBLES_GROUP_ACTIONS } from "../../channels/plugins/bluebubbles-actions.js";
 import {
   listChannelMessageActions,
@@ -11,10 +13,10 @@ import {
   CHANNEL_MESSAGE_ACTION_NAMES,
   type ChannelMessageActionName,
 } from "../../channels/plugins/types.js";
-import type { OpenClawConfig } from "../../config/config.js";
 import { loadConfig } from "../../config/config.js";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "../../gateway/protocol/client-info.js";
 import { getToolResult, runMessageAction } from "../../infra/outbound/message-action-runner.js";
+import { actionRequiresTarget } from "../../infra/outbound/message-action-spec.js";
 import { normalizeTargetForProvider } from "../../infra/outbound/target-normalization.js";
 import { normalizeAccountId } from "../../routing/session-key.js";
 import { stripReasoningTagsFromText } from "../../shared/text/reasoning-tags.js";
@@ -22,9 +24,13 @@ import { normalizeMessageChannel } from "../../utils/message-channel.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
 import { listChannelSupportedActions } from "../channel-tools.js";
 import { channelTargetSchema, channelTargetsSchema, stringEnum } from "../schema/typebox.js";
-import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 import { resolveGatewayOptions } from "./gateway.js";
+import {
+  deliverMessageToParentSession,
+  extractMessageContent,
+  resolveParentSessionKey,
+} from "./message-parent-fallback.js";
 
 const AllMessageActions = CHANNEL_MESSAGE_ACTION_NAMES;
 const EXPLICIT_TARGET_ACTIONS = new Set<ChannelMessageActionName>([
@@ -238,12 +244,40 @@ function buildSendSchema(options: {
 
 function buildReactionSchema() {
   return {
-    messageId: Type.Optional(Type.String()),
-    emoji: Type.Optional(Type.String()),
-    remove: Type.Optional(Type.Boolean()),
-    targetAuthor: Type.Optional(Type.String()),
-    targetAuthorUuid: Type.Optional(Type.String()),
-    groupId: Type.Optional(Type.String()),
+    messageId: Type.Optional(
+      Type.String({
+        description:
+          "Target message ID. Format varies by channel: Slack message ts (epoch decimal), Discord snowflake, Telegram message_id integer.",
+      }),
+    ),
+    emoji: Type.Optional(
+      Type.String({
+        description:
+          "Emoji to react with. Slack: shortcode without colons (e.g. 'eyes'); Discord/Telegram: unicode or shortcode.",
+      }),
+    ),
+    remove: Type.Optional(
+      Type.Boolean({
+        description:
+          "If true, remove the reaction. If emoji is unset and remove=true, removes all of the agent's own reactions from the message.",
+      }),
+    ),
+    targetAuthor: Type.Optional(
+      Type.String({
+        description: "Author username or ID to filter reactions by (iMessage/BlueBubbles only).",
+      }),
+    ),
+    targetAuthorUuid: Type.Optional(
+      Type.String({
+        description: "Author UUID to filter reactions by (iMessage/BlueBubbles only).",
+      }),
+    ),
+    groupId: Type.Optional(
+      Type.String({
+        description:
+          "Group/chat ID for reaction targeting (iMessage/BlueBubbles group chats only).",
+      }),
+    ),
   };
 }
 
@@ -255,20 +289,69 @@ function buildFetchSchema() {
           "Number of messages to return (default: 20). Use smaller values for a quick scan, larger for deep context.",
       }),
     ),
-    before: Type.Optional(Type.String()),
-    after: Type.Optional(Type.String()),
-    around: Type.Optional(Type.String()),
-    fromMe: Type.Optional(Type.Boolean()),
-    includeArchived: Type.Optional(Type.Boolean()),
+    before: Type.Optional(
+      Type.String({
+        description:
+          "Message timestamp (ts) to fetch messages before this point. For Slack: epoch decimal (e.g. '1234567890.123456'); for Discord: snowflake ID.",
+      }),
+    ),
+    after: Type.Optional(
+      Type.String({
+        description:
+          "Message timestamp (ts) to fetch messages after this point. For Slack: epoch decimal; for Discord: snowflake ID.",
+      }),
+    ),
+    around: Type.Optional(
+      Type.String({
+        description:
+          "Message timestamp to fetch messages around this point (returns a window before and after). Slack/Discord format varies.",
+      }),
+    ),
+    fromMe: Type.Optional(
+      Type.Boolean({
+        description: "If true, filter to only messages sent by the agent itself.",
+      }),
+    ),
+    includeArchived: Type.Optional(
+      Type.Boolean({
+        description:
+          "If true, include archived channels/threads in results (e.g. Slack archived channels, Discord archived threads).",
+      }),
+    ),
+    threadId: Type.Optional(
+      Type.String({
+        description:
+          "Thread root message ID/timestamp to fetch thread replies (Slack: thread root ts; Discord: use threadId for thread channels).",
+      }),
+    ),
   };
 }
 
 function buildPollSchema() {
   return {
-    pollQuestion: Type.Optional(Type.String()),
-    pollOption: Type.Optional(Type.Array(Type.String())),
-    pollDurationHours: Type.Optional(Type.Number()),
-    pollMulti: Type.Optional(Type.Boolean()),
+    pollQuestion: Type.Optional(
+      Type.String({
+        description: "Poll question/prompt text (required for poll creation).",
+      }),
+    ),
+    pollOption: Type.Optional(
+      Type.Array(Type.String(), {
+        description:
+          "Poll answer options (2-10 items depending on channel; required for poll creation).",
+      }),
+    ),
+    pollDurationHours: Type.Optional(
+      Type.Number({
+        description:
+          "Poll duration in hours (Discord: 1-168; Telegram: defaults to 1 day if unset).",
+      }),
+    ),
+    pollMulti: Type.Optional(
+      Type.Boolean({
+        description:
+          "Allow multiple selections per voter (Discord only; Telegram/Slack support single-choice only).",
+      }),
+    ),
   };
 }
 
@@ -280,59 +363,171 @@ function buildChannelTargetSchema() {
     channelIds: Type.Optional(
       Type.Array(Type.String({ description: "Channel id filter (repeatable)." })),
     ),
-    guildId: Type.Optional(Type.String()),
-    userId: Type.Optional(Type.String()),
-    authorId: Type.Optional(Type.String()),
-    authorIds: Type.Optional(Type.Array(Type.String())),
-    roleId: Type.Optional(Type.String()),
-    roleIds: Type.Optional(Type.Array(Type.String())),
-    participant: Type.Optional(Type.String()),
+    guildId: Type.Optional(Type.String({ description: "Discord guild/server ID." })),
+    userId: Type.Optional(
+      Type.String({
+        description: "User ID to filter by (Discord member, Telegram user, Slack user).",
+      }),
+    ),
+    authorId: Type.Optional(
+      Type.String({
+        description: "Filter results to messages authored by this user ID.",
+      }),
+    ),
+    authorIds: Type.Optional(
+      Type.Array(Type.String(), {
+        description: "Filter results to messages authored by any of these user IDs.",
+      }),
+    ),
+    roleId: Type.Optional(
+      Type.String({
+        description: "Discord role ID (for roleInfo and role mutations).",
+      }),
+    ),
+    roleIds: Type.Optional(
+      Type.Array(Type.String(), {
+        description: "Discord role IDs filter (for member list queries by role).",
+      }),
+    ),
+    participant: Type.Optional(
+      Type.String({
+        description: "Participant JID/identifier in group message (BlueBubbles/iMessage groups).",
+      }),
+    ),
   };
 }
 
 function buildStickerSchema() {
   return {
-    emojiName: Type.Optional(Type.String()),
-    stickerId: Type.Optional(Type.Array(Type.String())),
-    stickerName: Type.Optional(Type.String()),
-    stickerDesc: Type.Optional(Type.String()),
-    stickerTags: Type.Optional(Type.String()),
+    emojiName: Type.Optional(
+      Type.String({
+        description: "Emoji name for sticker search (e.g. 'smile', 'fire').",
+      }),
+    ),
+    stickerId: Type.Optional(
+      Type.Array(Type.String(), {
+        description: "Discord sticker ID(s) to send.",
+      }),
+    ),
+    stickerName: Type.Optional(
+      Type.String({
+        description: "Sticker pack or name filter for search.",
+      }),
+    ),
+    stickerDesc: Type.Optional(
+      Type.String({
+        description: "Sticker description filter for search.",
+      }),
+    ),
+    stickerTags: Type.Optional(
+      Type.String({
+        description: "Comma-separated tags for sticker search.",
+      }),
+    ),
   };
 }
 
 function buildThreadSchema() {
   return {
-    threadName: Type.Optional(Type.String()),
-    autoArchiveMin: Type.Optional(Type.Number()),
+    threadName: Type.Optional(
+      Type.String({
+        description: "Name/topic for the new thread (Discord, Slack, Telegram forum threads).",
+      }),
+    ),
+    autoArchiveMin: Type.Optional(
+      Type.Number({
+        description:
+          "Auto-archive timeout in minutes after inactivity (Discord: 60/1440/4320/10080; Slack: 3600).",
+      }),
+    ),
   };
 }
 
 function buildEventSchema() {
   return {
-    query: Type.Optional(Type.String()),
-    eventName: Type.Optional(Type.String()),
-    eventType: Type.Optional(Type.String()),
-    startTime: Type.Optional(Type.String()),
-    endTime: Type.Optional(Type.String()),
-    desc: Type.Optional(Type.String()),
-    location: Type.Optional(Type.String()),
-    durationMin: Type.Optional(Type.Number()),
-    until: Type.Optional(Type.String()),
+    query: Type.Optional(
+      Type.String({
+        description: "Search query for event lookup (Discord scheduled event search).",
+      }),
+    ),
+    eventName: Type.Optional(
+      Type.String({
+        description: "Event name/title (required for event creation).",
+      }),
+    ),
+    eventType: Type.Optional(
+      Type.String({
+        description:
+          "Event type: Discord uses 'STAGE_INSTANCE', 'VOICE', or 'EXTERNAL'; Telegram uses 'event'.",
+      }),
+    ),
+    startTime: Type.Optional(
+      Type.String({
+        description: "Event start time in ISO 8601 format (e.g. '2025-02-21T10:00:00Z').",
+      }),
+    ),
+    endTime: Type.Optional(
+      Type.String({
+        description: "Event end time in ISO 8601 format.",
+      }),
+    ),
+    desc: Type.Optional(
+      Type.String({
+        description: "Event description/details text.",
+      }),
+    ),
+    location: Type.Optional(
+      Type.String({
+        description: "Event location string (Discord EXTERNAL events only).",
+      }),
+    ),
+    durationMin: Type.Optional(
+      Type.Number({
+        description: "Event duration in minutes (Telegram only; defaults to 60 if unset).",
+      }),
+    ),
+    until: Type.Optional(
+      Type.String({
+        description: "Recurrence end date in ISO 8601 format (Telegram recurring events only).",
+      }),
+    ),
   };
 }
 
 function buildModerationSchema() {
   return {
-    reason: Type.Optional(Type.String()),
-    deleteDays: Type.Optional(Type.Number()),
+    reason: Type.Optional(
+      Type.String({
+        description:
+          "Moderation reason logged to audit trail (Discord timeout/kick/ban; max 512 chars).",
+      }),
+    ),
+    deleteDays: Type.Optional(
+      Type.Number({
+        description:
+          "Days of message history to delete when banning (Discord ban only; 0-7, default 0).",
+      }),
+    ),
   };
 }
 
 function buildGatewaySchema() {
   return {
-    gatewayUrl: Type.Optional(Type.String()),
-    gatewayToken: Type.Optional(Type.String()),
-    timeoutMs: Type.Optional(Type.Number()),
+    gatewayUrl: Type.Optional(
+      Type.String({
+        description: "Custom gateway URL override for this request.",
+      }),
+    ),
+    gatewayToken: Type.Optional(
+      Type.String({
+        description: "Custom gateway authentication token override for this request.",
+      }),
+    ),
+    timeoutMs: Type.Optional(
+      Type.Number({
+        description: "Request timeout in milliseconds (default: 30000).",
+      }),
+    ),
   };
 }
 
@@ -368,14 +563,48 @@ function buildPresenceSchema() {
 
 function buildChannelManagementSchema() {
   return {
-    name: Type.Optional(Type.String()),
-    type: Type.Optional(Type.Number()),
-    parentId: Type.Optional(Type.String()),
-    topic: Type.Optional(Type.String()),
-    position: Type.Optional(Type.Number()),
-    nsfw: Type.Optional(Type.Boolean()),
-    rateLimitPerUser: Type.Optional(Type.Number()),
-    categoryId: Type.Optional(Type.String()),
+    name: Type.Optional(
+      Type.String({
+        description: "Channel or group name (for create/edit operations).",
+      }),
+    ),
+    type: Type.Optional(
+      Type.Number({
+        description:
+          "Discord channel type integer (0=text, 2=voice, 4=category, 13=stage, 15=forum).",
+      }),
+    ),
+    parentId: Type.Optional(
+      Type.String({
+        description: "Discord parent category ID (organises channel under a category).",
+      }),
+    ),
+    topic: Type.Optional(
+      Type.String({
+        description:
+          "Channel topic/description shown in channel header (Discord text channels, Slack).",
+      }),
+    ),
+    position: Type.Optional(
+      Type.Number({
+        description: "Channel sort position in channel list (Discord only; 0-indexed).",
+      }),
+    ),
+    nsfw: Type.Optional(
+      Type.Boolean({
+        description: "Mark channel as NSFW/age-restricted (Discord text/voice channels only).",
+      }),
+    ),
+    rateLimitPerUser: Type.Optional(
+      Type.Number({
+        description: "Slowmode: seconds required between each user's messages (Discord; 0-21600).",
+      }),
+    ),
+    categoryId: Type.Optional(
+      Type.String({
+        description: "Discord category ID (alias for parentId).",
+      }),
+    ),
     clearParent: Type.Optional(
       Type.Boolean({
         description: "Clear the parent/category when supported by the provider.",
@@ -435,6 +664,8 @@ type MessageToolOptions = {
   sandboxRoot?: string;
   requireExplicitTarget?: boolean;
   requesterSenderId?: string;
+  modelProvider?: string;
+  modelId?: string;
 };
 
 function resolveMessageToolSchemaActions(params: {
@@ -657,21 +888,58 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
             }
           : undefined;
 
-      const result = await runMessageAction({
-        cfg,
-        action,
-        params,
-        defaultAccountId: accountId ?? undefined,
-        requesterSenderId: options?.requesterSenderId,
-        gateway,
-        toolContext,
-        sessionKey: options?.agentSessionKey,
-        agentId: options?.agentSessionKey
-          ? resolveSessionAgentId({ sessionKey: options.agentSessionKey, config: cfg })
-          : undefined,
-        sandboxRoot: options?.sandboxRoot,
-        abortSignal: signal,
-      });
+      let result;
+      try {
+        result = await runMessageAction({
+          cfg,
+          action,
+          params,
+          defaultAccountId: accountId ?? undefined,
+          requesterSenderId: options?.requesterSenderId,
+          modelProvider: options?.modelProvider,
+          modelId: options?.modelId,
+          gateway,
+          toolContext,
+          sessionKey: options?.agentSessionKey,
+          agentId: options?.agentSessionKey
+            ? resolveSessionAgentId({ sessionKey: options.agentSessionKey, config: cfg })
+            : undefined,
+          sandboxRoot: options?.sandboxRoot,
+          abortSignal: signal,
+        });
+      } catch (err) {
+        // If the send had no target and this session is a sub-agent, forward the
+        // message content to the parent session rather than surfacing an error.
+        // The parent's next agent turn will receive it as a [System Message] and
+        // can deliver or relay it as appropriate.
+        if (
+          err instanceof Error &&
+          err.message.endsWith("requires a target.") &&
+          actionRequiresTarget(action) &&
+          options?.agentSessionKey
+        ) {
+          const parentSessionKey = resolveParentSessionKey(options.agentSessionKey);
+          if (parentSessionKey) {
+            const messageContent = extractMessageContent(params);
+            if (messageContent) {
+              const forwarded = deliverMessageToParentSession({
+                parentSessionKey,
+                childSessionKey: options.agentSessionKey,
+                messageContent,
+                action,
+              });
+              if (forwarded) {
+                return jsonResult({
+                  status: "forwarded_to_parent",
+                  parent_session: parentSessionKey,
+                  note: "No delivery target was specified. Message content has been forwarded to the parent session as a system event.",
+                });
+              }
+            }
+          }
+        }
+        throw err;
+      }
 
       const toolResult = getToolResult(result);
       if (toolResult) {

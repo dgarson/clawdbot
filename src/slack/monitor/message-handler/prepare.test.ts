@@ -1,16 +1,16 @@
+import type { App } from "@slack/bolt";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { App } from "@slack/bolt";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { expectInboundContextContract } from "../../../../test/helpers/inbound-contract.js";
 import type { OpenClawConfig } from "../../../config/config.js";
-import { resolveAgentRoute } from "../../../routing/resolve-route.js";
-import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import type { RuntimeEnv } from "../../../runtime.js";
 import type { ResolvedSlackAccount } from "../../accounts.js";
 import type { SlackMessageEvent } from "../../types.js";
 import type { SlackMonitorContext } from "../context.js";
+import { expectInboundContextContract } from "../../../../test/helpers/inbound-contract.js";
+import { resolveAgentRoute } from "../../../routing/resolve-route.js";
+import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import { createSlackMonitorContext } from "../context.js";
 import { prepareSlackMessage } from "./prepare.js";
 
@@ -168,6 +168,19 @@ describe("slack prepareSlackMessage inbound contract", () => {
     };
   }
 
+  function createThreadReplyMessage(overrides: Partial<SlackMessageEvent>): SlackMessageEvent {
+    return createSlackMessage({
+      channel: "C123",
+      channel_type: "channel",
+      thread_ts: "100.000",
+      ...overrides,
+    });
+  }
+
+  function prepareThreadMessage(ctx: SlackMonitorContext, overrides: Partial<SlackMessageEvent>) {
+    return prepareMessageWith(ctx, createThreadAccount(), createThreadReplyMessage(overrides));
+  }
+
   it("produces a finalized MsgContext", async () => {
     const message: SlackMessageEvent = {
       channel: "D123",
@@ -298,17 +311,10 @@ describe("slack prepareSlackMessage inbound contract", () => {
     });
     slackCtx.resolveChannelName = async () => ({ name: "general", type: "channel" });
 
-    const prepared = await prepareMessageWith(
-      slackCtx,
-      createThreadAccount(),
-      createSlackMessage({
-        channel: "C123",
-        channel_type: "channel",
-        text: "current message",
-        ts: "101.000",
-        thread_ts: "100.000",
-      }),
-    );
+    const prepared = await prepareThreadMessage(slackCtx, {
+      text: "current message",
+      ts: "101.000",
+    });
 
     expect(prepared).toBeTruthy();
     expect(prepared!.ctxPayload.IsFirstThreadTurn).toBe(true);
@@ -347,17 +353,11 @@ describe("slack prepareSlackMessage inbound contract", () => {
     slackCtx.resolveUserName = async () => ({ name: "Alice" });
     slackCtx.resolveChannelName = async () => ({ name: "general", type: "channel" });
 
-    const prepared = await prepareMessageWith(
-      slackCtx,
-      createThreadAccount(),
-      createSlackMessage({
-        channel: "C123",
-        channel_type: "channel",
-        text: "reply in old thread",
-        ts: "201.000",
-        thread_ts: "200.000",
-      }),
-    );
+    const prepared = await prepareThreadMessage(slackCtx, {
+      text: "reply in old thread",
+      ts: "201.000",
+      thread_ts: "200.000",
+    });
 
     expect(prepared).toBeTruthy();
     expect(prepared!.ctxPayload.IsFirstThreadTurn).toBeUndefined();

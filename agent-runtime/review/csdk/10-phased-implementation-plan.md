@@ -3,43 +3,51 @@
 ## Milestone 0: Preparation and guardrails
 
 Deliverables:
+
 - runtime feature gate strategy (default Pi)
 - trace format for callback ordering in test mode
 - no-op scaffolding files for CSDK adapter and attempt
 
 Key checks:
+
 - zero behavior change on Pi path
 
 ## Milestone 1: Dispatch and attempt shell
 
 Changes:
+
 - `src/agents/pi-embedded-runner/run.ts`
   - add runtime branch at attempt call site
 - `src/agents/pi-embedded-runner/run/attempt-csdk.ts` (new)
   - implement attempt lifecycle shell with active run registration/cleanup
 
 Deliverables:
+
 - CSDK attempt returns shape-compatible `EmbeddedRunAttemptResult`
 - no stream parity yet, but controlled terminal flow works
 
 ## Milestone 2: Streaming event normalization
 
 Changes:
+
 - `src/agents/csdk-adapter.ts` (new)
   - map SDK stream messages to normalized Pi-like events
 - optional split file for mapping tables/state machine
 
 Deliverables:
+
 - adapter emits deterministic event sequence
 - existing subscribe handlers can process normalized events
 
 ## Milestone 3: Tool and approval parity
 
 Changes:
+
 - complete tool event mapping and correlation ids
 - bridge SDK permission model with existing OpenClaw tool policy semantics
 
 Deliverables:
+
 - tool summary/output parity
 - after_tool_call parity
 - messaging telemetry parity
@@ -47,11 +55,13 @@ Deliverables:
 ## Milestone 4: Compaction and error parity
 
 Changes:
+
 - map compact boundary signals
 - preserve compaction retry wait semantics
 - normalize SDK terminal errors/stop reasons into existing payload shaping
 
 Deliverables:
+
 - compaction callback parity
 - error shaping parity
 - timeout during compaction parity
@@ -59,10 +69,12 @@ Deliverables:
 ## Milestone 5: Rollout and fallback hardening
 
 Changes:
+
 - fallback policy for pre-stream CSDK initialization failures
 - observability and diagnostics for runtime selection and fallback
 
 Deliverables:
+
 - controlled canary rollout
 - documented rollback switch
 

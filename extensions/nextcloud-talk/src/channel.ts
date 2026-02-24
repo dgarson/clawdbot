@@ -5,11 +5,14 @@ import {
   deleteAccountFromConfigSection,
   formatPairingApproveHint,
   normalizeAccountId,
+  resolveAllowlistProviderRuntimeGroupPolicy,
+  resolveDefaultGroupPolicy,
   setAccountEnabledInConfigSection,
   type ChannelPlugin,
   type OpenClawConfig,
   type ChannelSetupInput,
 } from "openclaw/plugin-sdk";
+import type { CoreConfig } from "./types.js";
 import {
   listNextcloudTalkAccountIds,
   resolveDefaultNextcloudTalkAccountId,
@@ -26,7 +29,6 @@ import { nextcloudTalkOnboardingAdapter } from "./onboarding.js";
 import { resolveNextcloudTalkGroupToolPolicy } from "./policy.js";
 import { getNextcloudTalkRuntime } from "./runtime.js";
 import { sendMessageNextcloudTalk } from "./send.js";
-import type { CoreConfig } from "./types.js";
 
 const meta = {
   id: "nextcloud-talk",
@@ -128,8 +130,13 @@ export const nextcloudTalkPlugin: ChannelPlugin<ResolvedNextcloudTalkAccount> = 
       };
     },
     collectWarnings: ({ account, cfg }) => {
-      const defaultGroupPolicy = cfg.channels?.defaults?.groupPolicy;
-      const groupPolicy = account.config.groupPolicy ?? defaultGroupPolicy ?? "allowlist";
+      const defaultGroupPolicy = resolveDefaultGroupPolicy(cfg);
+      const { groupPolicy } = resolveAllowlistProviderRuntimeGroupPolicy({
+        providerConfigPresent:
+          (cfg.channels as Record<string, unknown> | undefined)?.["nextcloud-talk"] !== undefined,
+        groupPolicy: account.config.groupPolicy,
+        defaultGroupPolicy,
+      });
       if (groupPolicy !== "open") {
         return [];
       }

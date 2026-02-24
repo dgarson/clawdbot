@@ -1,14 +1,14 @@
+import type { OpenClawConfig } from "../config/config.js";
+import type { AnyAgentTool } from "./pi-tools.types.js";
+import type { SandboxToolPolicy } from "./sandbox.js";
 import { getChannelDock } from "../channels/dock.js";
 import { DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH } from "../config/agent-limits.js";
-import type { OpenClawConfig } from "../config/config.js";
 import { resolveChannelGroupToolsPolicy } from "../config/group-policy.js";
 import { resolveThreadParentSessionKey } from "../sessions/session-key-utils.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 import { resolveAgentConfig, resolveAgentIdFromSessionKey } from "./agent-scope.js";
 import { compileGlobPatterns, matchesAnyGlobPattern } from "./glob-pattern.js";
-import type { AnyAgentTool } from "./pi-tools.types.js";
 import { pickSandboxToolPolicy } from "./sandbox-tool-policy.js";
-import type { SandboxToolPolicy } from "./sandbox.js";
 import { expandToolGroups, normalizeToolName } from "./tool-policy.js";
 
 function makeToolPolicyMatcher(policy: SandboxToolPolicy) {
@@ -88,9 +88,17 @@ export function resolveSubagentToolPolicy(cfg?: OpenClawConfig, depth?: number):
     cfg?.agents?.defaults?.subagents?.maxSpawnDepth ?? DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH;
   const effectiveDepth = typeof depth === "number" && depth >= 0 ? depth : 1;
   const baseDeny = resolveSubagentDenyList(effectiveDepth, maxSpawnDepth);
-  const deny = [...baseDeny, ...(Array.isArray(configured?.deny) ? configured.deny : [])];
   const allow = Array.isArray(configured?.allow) ? configured.allow : undefined;
-  return { allow, deny };
+  const alsoAllow = Array.isArray(configured?.alsoAllow) ? configured.alsoAllow : undefined;
+  const explicitAllow = new Set(
+    [...(allow ?? []), ...(alsoAllow ?? [])].map((toolName) => normalizeToolName(toolName)),
+  );
+  const deny = [
+    ...baseDeny.filter((toolName) => !explicitAllow.has(normalizeToolName(toolName))),
+    ...(Array.isArray(configured?.deny) ? configured.deny : []),
+  ];
+  const mergedAllow = allow && alsoAllow ? Array.from(new Set([...allow, ...alsoAllow])) : allow;
+  return { allow: mergedAllow, deny };
 }
 
 export function isToolAllowedByPolicyName(name: string, policy?: SandboxToolPolicy): boolean {

@@ -1,14 +1,15 @@
 import type { ExecToolDefaults } from "../../agents/bash-tools.js";
 import type { ModelAliasIndex } from "../../agents/model-selection.js";
-import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
 import type { SkillCommandSpec } from "../../agents/skills.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import { listChatCommands, shouldHandleTextCommands } from "../commands-registry.js";
-import { listSkillCommandsForWorkspace } from "../skill-commands.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
+import type { TypingController } from "./typing.js";
+import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
+import { listChatCommands, shouldHandleTextCommands } from "../commands-registry.js";
+import { listSkillCommandsForWorkspace } from "../skill-commands.js";
 import { resolveBlockStreamingChunking } from "./block-streaming.js";
 import { buildCommandContext } from "./commands.js";
 import { type InlineDirectives, parseInlineDirectives } from "./directive-handling.js";
@@ -19,7 +20,6 @@ import { CURRENT_MESSAGE_MARKER, stripMentions, stripStructuralPrefixes } from "
 import { createModelSelectionState, resolveContextTokens } from "./model-selection.js";
 import { formatElevatedUnavailableMessage, resolveElevatedPermissions } from "./reply-elevated.js";
 import { stripInlineStatus } from "./reply-inline.js";
-import type { TypingController } from "./typing.js";
 
 type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
@@ -345,9 +345,12 @@ export async function resolveReplyDirectives(params: {
     directives.verboseLevel ??
     (sessionEntry?.verboseLevel as VerboseLevel | undefined) ??
     (agentCfg?.verboseDefault as VerboseLevel | undefined);
-  const resolvedReasoningLevel: ReasoningLevel =
+  const configuredReasoningDefault =
+    (agentCfg?.reasoningDefault as ReasoningLevel | undefined) ?? undefined;
+  let resolvedReasoningLevel: ReasoningLevel =
     directives.reasoningLevel ??
     (sessionEntry?.reasoningLevel as ReasoningLevel | undefined) ??
+    configuredReasoningDefault ??
     "off";
   const resolvedElevatedLevel = elevatedAllowed
     ? (directives.elevatedLevel ??
@@ -388,6 +391,20 @@ export async function resolveReplyDirectives(params: {
   });
   provider = modelState.provider;
   model = modelState.model;
+
+  // When directives/session/config do not set reasoning, fall back to model capability
+  // (e.g. OpenRouter with reasoning: true).
+  const reasoningExplicitlySet =
+    directives.reasoningLevel !== undefined ||
+    (sessionEntry?.reasoningLevel !== undefined && sessionEntry?.reasoningLevel !== null);
+  const hasConfiguredReasoningDefault = Object.hasOwn(agentCfg ?? {}, "reasoningDefault");
+  if (
+    !reasoningExplicitlySet &&
+    !hasConfiguredReasoningDefault &&
+    resolvedReasoningLevel === "off"
+  ) {
+    resolvedReasoningLevel = await modelState.resolveDefaultReasoningLevel();
+  }
 
   let contextTokens = resolveContextTokens({
     agentCfg,

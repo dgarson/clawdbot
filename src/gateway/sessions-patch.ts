@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import type { ModelCatalogEntry } from "../agents/model-catalog.js";
+import type { OpenClawConfig } from "../config/config.js";
+import type { SessionEntry } from "../config/sessions.js";
+import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import {
   resolveAllowedModelRef,
   resolveDefaultModelForAgent,
@@ -16,8 +18,7 @@ import {
   normalizeUsageDisplay,
   supportsXHighThinking,
 } from "../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../config/config.js";
-import type { SessionEntry } from "../config/sessions.js";
+import { diagnosticLogger as diag } from "../logging/diagnostic.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
@@ -308,6 +309,9 @@ export async function applySessionsPatchToStore(params: {
         defaultModel: subagentModelHint ?? resolvedDefault.model,
       });
       if ("error" in resolved) {
+        diag.warn(
+          `model not allowed: sessionKey=${storeKey} agentId=${sessionAgentId} requestedModel=${trimmed} reason=${resolved.error}`,
+        );
         return invalid(resolved.error);
       }
       const isDefault =

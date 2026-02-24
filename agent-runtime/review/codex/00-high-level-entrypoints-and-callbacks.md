@@ -18,12 +18,15 @@ These files re-export the same canonical run APIs used across CLI, auto-reply, c
 Implemented in `src/agents/pi-embedded-runner/run.ts`.
 
 Input:
+
 - `RunEmbeddedPiAgentParams` from `src/agents/pi-embedded-runner/run/types.ts`
 
 Output:
+
 - `EmbeddedPiRunResult` (payloads, meta, messaging-tool telemetry, cron metadata).
 
 Execution role:
+
 - orchestrates prompt/model/agent selection
 - drives attempt loop (retries, auth/profile rotation, compaction triggers)
 - invokes attempt worker for streaming and tool execution
@@ -33,9 +36,11 @@ Execution role:
 Implemented in `src/agents/pi-embedded-subscribe.ts`.
 
 Input:
+
 - session context and callback map.
 
 Execution role:
+
 - attaches to provider stream/session callbacks
 - turns provider events into OpenClaw assistant/tool/lifecycle events
 - emits block-level and assistant stream callbacks
@@ -45,6 +50,7 @@ Execution role:
 Implemented in `src/agents/pi-embedded-runner/runs.ts`.
 
 API surface:
+
 - `setActiveEmbeddedRun`
 - `clearActiveEmbeddedRun`
 - `queueEmbeddedPiMessage`
@@ -53,6 +59,7 @@ API surface:
 - `waitForEmbeddedPiRunEnd`
 
 Execution role:
+
 - keeps per-session run handles so callers can push messages, interrupt, and wait.
 
 ### 4) Runtime payload shaping + hooks and tools
@@ -60,6 +67,7 @@ Execution role:
 Implemented via `run/payloads.ts`, `run/attempt.ts`, and `pi-embedded-subscribe.handlers.*`.
 
 Execution role:
+
 - transforms wire outputs into canonical payload objects
 - applies verbosity/error/tool-redaction/suppression rules
 - coordinates pre/post hook execution and tool approval behavior.

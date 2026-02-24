@@ -1,12 +1,10 @@
 "use client";
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
-import { GuidedTooltip } from "@/components/adaptive/guided-tooltip";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
 import type {
   AgentsListResult,
@@ -17,7 +15,6 @@ import {
   Bot,
   MessageSquare,
   Clock,
-  DollarSign,
   Plus,
   Wifi,
   WifiOff,
@@ -128,7 +125,7 @@ export default function DashboardPage() {
   const request = useGatewayStore((s) => s.request);
   const snapshot = useGatewayStore((s) => s.snapshot);
 
-  const [agents, setAgents] = React.useState<AgentsListResult | null>(null);
+  const [agents, setAgents] = React.useState<AgentsListResult>();
   const [identities, setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
   const [sessions, setSessions] = React.useState<SessionEntry[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -171,7 +168,7 @@ export default function DashboardPage() {
   }, [connected, request]);
 
   React.useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
   const handleRefresh = async () => {

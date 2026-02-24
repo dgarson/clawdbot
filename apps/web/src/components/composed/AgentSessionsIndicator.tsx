@@ -241,7 +241,7 @@ export function AgentSessionsIndicator({
                             onClick={(event) => {
                               event.preventDefault();
                               event.stopPropagation();
-                              navigate({
+                              void navigate({
                                 to: "/agents/$agentId",
                                 params: { agentId: agent.id },
                                 search: { tab: "activity" },

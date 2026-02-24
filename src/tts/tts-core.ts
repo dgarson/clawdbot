@@ -1,6 +1,13 @@
-import { rmSync } from "node:fs";
 import { completeSimple, type TextContent } from "@mariozechner/pi-ai";
 import { EdgeTTS } from "node-edge-tts";
+import { rmSync } from "node:fs";
+import type { OpenClawConfig } from "../config/config.js";
+import type {
+  ResolvedTtsConfig,
+  ResolvedTtsModelOverrides,
+  TtsDirectiveOverrides,
+  TtsDirectiveParseResult,
+} from "./tts.js";
 import { getApiKeyForModel, requireApiKey } from "../agents/model-auth.js";
 import {
   buildModelAliasIndex,
@@ -9,13 +16,8 @@ import {
   type ModelRef,
 } from "../agents/model-selection.js";
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
-import type { OpenClawConfig } from "../config/config.js";
-import type {
-  ResolvedTtsConfig,
-  ResolvedTtsModelOverrides,
-  TtsDirectiveOverrides,
-  TtsDirectiveParseResult,
-} from "./tts.js";
+import { normalizeUsage } from "../agents/usage.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 
 const DEFAULT_ELEVENLABS_BASE_URL = "https://api.elevenlabs.io";
 const TEMP_FILE_CLEANUP_DELAY_MS = 5 * 60 * 1000; // 5 minutes
@@ -430,6 +432,7 @@ export async function summarizeText(params: {
   }
 
   const startTime = Date.now();
+  const diagnosticsEnabled = isDiagnosticsEnabled(cfg);
   const { ref } = resolveSummaryModelRef(cfg, config);
   const resolved = resolveModel(ref.provider, ref.model, undefined, cfg);
   if (!resolved.model) {
@@ -467,6 +470,22 @@ export async function summarizeText(params: {
           signal: controller.signal,
         },
       );
+      const latencyMs = Date.now() - startTime;
+      if (diagnosticsEnabled) {
+        const usage = normalizeUsage(res.usage);
+        emitDiagnosticEvent({
+          type: "api.usage",
+          source: "tts.summarize",
+          apiKind: "tts.summary",
+          provider: ref.provider,
+          model: ref.model,
+          requestCount: 1,
+          inputChars: text.length,
+          success: true,
+          latencyMs,
+          usage,
+        });
+      }
 
       const summary = res.content
         .filter(isTextContentBlock)
@@ -481,7 +500,7 @@ export async function summarizeText(params: {
 
       return {
         summary,
-        latencyMs: Date.now() - startTime,
+        latencyMs,
         inputLength: text.length,
         outputLength: summary.length,
       };
@@ -490,6 +509,20 @@ export async function summarizeText(params: {
     }
   } catch (err) {
     const error = err as Error;
+    if (diagnosticsEnabled) {
+      emitDiagnosticEvent({
+        type: "api.usage",
+        source: "tts.summarize",
+        apiKind: "tts.summary",
+        provider: ref.provider,
+        model: ref.model,
+        requestCount: 1,
+        inputChars: text.length,
+        success: false,
+        latencyMs: Date.now() - startTime,
+        error: error.message,
+      });
+    }
     if (error.name === "AbortError") {
       throw new Error("Summarization timed out", { cause: err });
     }

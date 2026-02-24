@@ -1,3 +1,4 @@
+import type { ChannelAccountSnapshot, ChannelStatusIssue } from "../types.js";
 import { isRecord } from "../../../utils.js";
 export { isRecord };
 
@@ -40,4 +41,23 @@ export function resolveEnabledConfiguredAccountId(account: {
   const enabled = account.enabled !== false;
   const configured = account.configured === true;
   return enabled && configured ? accountId : null;
+}
+
+export function collectIssuesForEnabledAccounts<
+  T extends { accountId?: unknown; enabled?: unknown },
+>(params: {
+  accounts: ChannelAccountSnapshot[];
+  readAccount: (value: ChannelAccountSnapshot) => T | null;
+  collectIssues: (params: { account: T; accountId: string; issues: ChannelStatusIssue[] }) => void;
+}): ChannelStatusIssue[] {
+  const issues: ChannelStatusIssue[] = [];
+  for (const entry of params.accounts) {
+    const account = params.readAccount(entry);
+    if (!account || account.enabled === false) {
+      continue;
+    }
+    const accountId = asString(account.accountId) ?? "default";
+    params.collectIssues({ account, accountId, issues });
+  }
+  return issues;
 }

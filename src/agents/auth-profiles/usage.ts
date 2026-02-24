@@ -1,7 +1,7 @@
 import type { OpenClawConfig } from "../../config/config.js";
+import type { AuthProfileFailureReason, AuthProfileStore, ProfileUsageStats } from "./types.js";
 import { normalizeProviderId } from "../model-selection.js";
 import { saveAuthProfileStore, updateAuthProfileStoreWithLock } from "./store.js";
-import type { AuthProfileFailureReason, AuthProfileStore, ProfileUsageStats } from "./types.js";
 
 export function resolveProfileUnusableUntil(
   stats: Pick<ProfileUsageStats, "cooldownUntil" | "disabledUntil">,
@@ -256,6 +256,17 @@ export function resolveProfileUnusableUntilForDisplay(
   return resolveProfileUnusableUntil(stats);
 }
 
+function keepActiveWindowOrRecompute(params: {
+  existingUntil: number | undefined;
+  now: number;
+  recomputedUntil: number;
+}): number {
+  const { existingUntil, now, recomputedUntil } = params;
+  const hasActiveWindow =
+    typeof existingUntil === "number" && Number.isFinite(existingUntil) && existingUntil > now;
+  return hasActiveWindow ? existingUntil : recomputedUntil;
+}
+
 function computeNextProfileUsageStats(params: {
   existing: ProfileUsageStats;
   now: number;
@@ -287,11 +298,23 @@ function computeNextProfileUsageStats(params: {
       baseMs: params.cfgResolved.billingBackoffMs,
       maxMs: params.cfgResolved.billingMaxMs,
     });
-    updatedStats.disabledUntil = params.now + backoffMs;
+    // Keep active disable windows immutable so retries within the window cannot
+    // extend recovery time indefinitely.
+    updatedStats.disabledUntil = keepActiveWindowOrRecompute({
+      existingUntil: params.existing.disabledUntil,
+      now: params.now,
+      recomputedUntil: params.now + backoffMs,
+    });
     updatedStats.disabledReason = "billing";
   } else {
     const backoffMs = calculateAuthProfileCooldownMs(nextErrorCount);
-    updatedStats.cooldownUntil = params.now + backoffMs;
+    // Keep active cooldown windows immutable so retries within the window
+    // cannot push recovery further out.
+    updatedStats.cooldownUntil = keepActiveWindowOrRecompute({
+      existingUntil: params.existing.cooldownUntil,
+      now: params.now,
+      recomputedUntil: params.now + backoffMs,
+    });
   }
 
   return updatedStats;

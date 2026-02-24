@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { NodeEvent, NodeEventContext } from "./server-node-events-types.js";
 import { resolveSessionAgentId } from "../agents/agent-scope.js";
 import { normalizeChannelId } from "../channels/plugins/index.js";
 import { createOutboundSendDeps } from "../cli/outbound-send-deps.js";
@@ -14,7 +15,6 @@ import { normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 import { parseMessageWithAttachments } from "./chat-attachments.js";
 import { normalizeRpcAttachmentsToChatAttachments } from "./server-methods/attachment-normalize.js";
-import type { NodeEvent, NodeEventContext } from "./server-node-events-types.js";
 import {
   loadSessionEntry,
   pruneLegacyStoreKeys,
@@ -471,6 +471,15 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
       if (!sessionKey) {
         return;
       }
+
+      // Respect tools.exec.notifyOnExit setting (default: true)
+      // When false, skip system event notifications for node exec events.
+      const cfg = loadConfig();
+      const notifyOnExit = cfg.tools?.exec?.notifyOnExit !== false;
+      if (!notifyOnExit) {
+        return;
+      }
+
       const runId = typeof obj.runId === "string" ? obj.runId.trim() : "";
       const command = typeof obj.command === "string" ? obj.command.trim() : "";
       const exitCode =

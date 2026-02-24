@@ -48,10 +48,16 @@ export function QuestionCard({ question, className, onSubmit }: QuestionCardProp
 
   const answeredDisplay =
     question.type === "text"
-      ? String(question.answer ?? "")
+      ? typeof question.answer === "string"
+        ? question.answer
+        : question.answer == null
+          ? ""
+          : JSON.stringify(question.answer)
       : Array.isArray(question.answer)
         ? question.answer.join(", ")
-        : String(question.answer ?? "");
+        : question.answer == null
+          ? ""
+          : JSON.stringify(question.answer);
 
   return (
     <Card className={cn("p-4", className)}>

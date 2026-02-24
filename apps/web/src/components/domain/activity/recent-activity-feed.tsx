@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type IconType =
-  | React.ElementType
-  | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
+type IconType = React.ElementType | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
 export interface ActivityItem {
   id: string;

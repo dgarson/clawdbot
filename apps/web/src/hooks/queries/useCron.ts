@@ -148,7 +148,7 @@ export function useCronRunHistory(jobId?: string) {
  */
 export function useInvalidateCron() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: cronKeys.all });
+  return () => void queryClient.invalidateQueries({ queryKey: cronKeys.all });
 }
 
 // Re-export types

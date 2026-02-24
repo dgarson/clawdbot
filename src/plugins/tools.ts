@@ -1,10 +1,10 @@
-import { normalizeToolName } from "../agents/tool-policy.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
+import type { OpenClawPluginToolContext } from "./types.js";
+import { normalizeToolName } from "../agents/tool-policy.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { applyTestPluginDefaults, normalizePluginsConfig } from "./config-state.js";
 import { loadOpenClawPlugins } from "./loader.js";
 import { createPluginLoaderLogger } from "./logger.js";
-import type { OpenClawPluginToolContext } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
 
@@ -88,7 +88,9 @@ export function resolvePluginTools(params: {
     try {
       resolved = entry.factory(params.context);
     } catch (err) {
-      log.error(`plugin tool failed (${entry.pluginId}): ${String(err)}`);
+      log.error(
+        `[${params.context.sessionKey ?? "?"}] plugin tool failed (${entry.pluginId}): ${String(err)}`,
+      );
       continue;
     }
     if (!resolved) {

@@ -124,7 +124,7 @@ export default function CronPage() {
   }, [connected, request]);
 
   React.useEffect(() => {
-    loadJobs();
+    void loadJobs();
   }, [loadJobs]);
 
   // Actions

@@ -11,21 +11,17 @@ import {
   Plus,
   Moon,
   Sun,
-  Settings,
   Zap,
   Keyboard,
   PanelLeftClose,
   AlertCircle,
   Clock,
-  LayoutDashboard,
   Activity,
   FileText,
   LineChart,
-  HardDrive,
   User,
   GitBranch,
   Network,
-  Calendar,
   Wrench,
   Search,
 } from "lucide-react";
@@ -84,7 +80,7 @@ export function CommandPalette({
 
   // Action handlers
   const handleNewConversation = React.useCallback(() => {
-    navigate({ to: "/conversations" });
+    void navigate({ to: "/conversations" });
   }, [navigate]);
 
   const handleToggleTheme = React.useCallback(() => {
@@ -102,7 +98,7 @@ export function CommandPalette({
 
   const handleGoToAgent = React.useCallback(
     (agentId: string) => {
-      navigate({ to: "/agents/$agentId", params: { agentId } });
+      void navigate({ to: "/agents/$agentId", params: { agentId } });
     },
     [navigate]
   );
@@ -112,7 +108,7 @@ export function CommandPalette({
       // Conversations are now sessions - navigate to agent session view
       // The conversationId format might be "agent-{agentId}-{sessionKey}" or similar
       // For now, navigate to the conversations list which will redirect appropriately
-      navigate({ to: "/conversations/$id", params: { id: conversationId } });
+      void navigate({ to: "/conversations/$id", params: { id: conversationId } });
     },
     [navigate]
   );
@@ -130,7 +126,7 @@ export function CommandPalette({
 
   const handleChatWithAgent = React.useCallback(
     (agentId: string) => {
-      navigate({
+      void navigate({
         to: "/agents/$agentId/session/$sessionKey",
         params: { agentId, sessionKey: "current" },
         search: { newSession: false },
@@ -171,10 +167,10 @@ export function CommandPalette({
             <CommandItem
               onSelect={() =>
                 handleSelect(() =>
-                  navigate({
-                    to: intent.to as any,
-                    params: intent.params as any,
-                    search: intent.search as any,
+                  void navigate({
+                    to: intent.to as unknown,
+                    params: intent.params as unknown,
+                    search: intent.search as unknown,
                   })
                 )
               }
@@ -230,15 +226,15 @@ export function CommandPalette({
 
         {/* New Groups */}
         <CommandGroup heading="Agents">
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/agents/new" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/agents/new" }))}>
             <Plus className="mr-2 h-4 w-4" />
             <span>Create Agent</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/agents/graph" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/agents/graph" }))}>
             <GitBranch className="mr-2 h-4 w-4" />
             <span>Agent Graph</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/agent-status" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/agent-status" }))}>
             <Activity className="mr-2 h-4 w-4" />
             <span>Agent Status</span>
           </CommandItem>
@@ -247,11 +243,11 @@ export function CommandPalette({
         <CommandSeparator />
 
         <CommandGroup heading="Sessions">
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/conversations" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/conversations" }))}>
             <MessageCircle className="mr-2 h-4 w-4" />
             <span>New Conversation</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/analytics", search: { tab: "sessions" } }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/analytics", search: { tab: "sessions" } }))}>
             <Search className="mr-2 h-4 w-4" />
             <span>Session Inspector</span>
           </CommandItem>
@@ -260,11 +256,11 @@ export function CommandPalette({
         <CommandSeparator />
 
         <CommandGroup heading="Gateway">
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/logs" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/logs" }))}>
             <FileText className="mr-2 h-4 w-4" />
             <span>View Logs</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/analytics" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/analytics" }))}>
             <LineChart className="mr-2 h-4 w-4" />
             <span>View Analytics</span>
           </CommandItem>
@@ -277,7 +273,7 @@ export function CommandPalette({
         <CommandSeparator />
 
         <CommandGroup heading="Cron">
-          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/jobs" }))}>
+          <CommandItem onSelect={() => handleSelect(() => void navigate({ to: "/jobs" }))}>
             <Clock className="mr-2 h-4 w-4" />
             <span>View Jobs</span>
           </CommandItem>
@@ -296,7 +292,7 @@ export function CommandPalette({
               <CommandItem
                 onSelect={() =>
                   handleSelect(() =>
-                    navigate({ to: "/agents", search: { status: "waiting" } })
+                    void navigate({ to: "/agents", search: { status: "waiting" } })
                   )
                 }
               >
@@ -308,7 +304,7 @@ export function CommandPalette({
                 <CommandItem
                   onSelect={() =>
                     handleSelect(() =>
-                      navigate({
+                      void navigate({
                         to: "/agents/$agentId",
                         params: { agentId: approvals.nextAgentId! },
                         search: { tab: "activity" },
@@ -344,7 +340,7 @@ export function CommandPalette({
             <CommandItem
               key={item.to}
               onSelect={() =>
-                handleSelect(() => navigate({ to: item.to }))
+                handleSelect(() => void navigate({ to: item.to }))
               }
             >
               <item.icon className="mr-2 h-4 w-4" />

@@ -1,11 +1,4 @@
 import crypto from "node:crypto";
-import { parseAbsoluteTimeMs } from "../parse.js";
-import { computeNextRunAtMs } from "../schedule.js";
-import {
-  normalizeCronStaggerMs,
-  resolveCronStaggerMs,
-  resolveDefaultCronStaggerMs,
-} from "../stagger.js";
 import type {
   CronDelivery,
   CronDeliveryPatch,
@@ -15,6 +8,14 @@ import type {
   CronPayload,
   CronPayloadPatch,
 } from "../types.js";
+import type { CronServiceState } from "./state.js";
+import { parseAbsoluteTimeMs } from "../parse.js";
+import { computeNextRunAtMs } from "../schedule.js";
+import {
+  normalizeCronStaggerMs,
+  resolveCronStaggerMs,
+  resolveDefaultCronStaggerMs,
+} from "../stagger.js";
 import { normalizeHttpWebhookUrl } from "../webhook-url.js";
 import {
   normalizeOptionalAgentId,
@@ -23,7 +24,6 @@ import {
   normalizePayloadToSystemText,
   normalizeRequiredName,
 } from "./normalize.js";
-import type { CronServiceState } from "./state.js";
 
 const STUCK_RUN_MS = 2 * 60 * 60 * 1000;
 
@@ -113,11 +113,19 @@ export function computeJobNextRunAtMs(job: CronJob, nowMs: number): number | und
     return undefined;
   }
   if (job.schedule.kind === "every") {
+    const everyMs = Math.max(1, Math.floor(job.schedule.everyMs));
+    const lastRunAtMs = job.state.lastRunAtMs;
+    if (typeof lastRunAtMs === "number" && Number.isFinite(lastRunAtMs)) {
+      const nextFromLastRun = Math.floor(lastRunAtMs) + everyMs;
+      if (nextFromLastRun > nowMs) {
+        return nextFromLastRun;
+      }
+    }
     const anchorMs = resolveEveryAnchorMs({
       schedule: job.schedule,
       fallbackAnchorMs: job.createdAtMs,
     });
-    return computeNextRunAtMs({ ...job.schedule, anchorMs }, nowMs);
+    return computeNextRunAtMs({ ...job.schedule, everyMs, anchorMs }, nowMs);
   }
   if (job.schedule.kind === "at") {
     // One-shot jobs stay due until they successfully finish.

@@ -1,5 +1,8 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
+import type { TypingMode } from "../../config/types.js";
+import type { OriginatingChannelType, TemplateContext } from "../templating.js";
+import type { GetReplyOptions, ReplyPayload } from "../types.js";
+import type { TypingController } from "./typing.js";
 import { lookupContextTokens } from "../../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
 import { resolveModelAuthMode } from "../../agents/model-auth.js";
@@ -9,14 +12,15 @@ import { hasNonzeroUsage } from "../../agents/usage.js";
 import {
   resolveAgentIdFromSessionKey,
   resolveSessionFilePath,
+  resolveSessionFilePathOptions,
   resolveSessionTranscriptPath,
   type SessionEntry,
   updateSessionStore,
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
-import type { TypingMode } from "../../config/types.js";
 import { emitAgentEvent } from "../../infra/agent-events.js";
 import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
+import { generateSecureUuid } from "../../infra/secure-random.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { defaultRuntime } from "../../runtime.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../../utils/usage-format.js";
@@ -25,9 +29,7 @@ import {
   buildFallbackNotice,
   resolveFallbackTransition,
 } from "../fallback-state.js";
-import type { OriginatingChannelType, TemplateContext } from "../templating.js";
 import { resolveResponseUsageMode, type VerboseLevel } from "../thinking.js";
-import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { runAgentTurnWithFallback } from "./agent-runner-execution.js";
 import {
   createShouldEmitToolOutput,
@@ -53,7 +55,6 @@ import { enqueueFollowupRun, type FollowupRun, type QueueSettings } from "./queu
 import { createReplyToModeFilterForChannel, resolveReplyToMode } from "./reply-threading.js";
 import { incrementRunCompactionCount, persistRunSessionUsage } from "./session-run-accounting.js";
 import { createTypingSignaler } from "./typing-mode.js";
-import type { TypingController } from "./typing.js";
 
 const BLOCK_REPLY_SEND_TIMEOUT_MS = 15_000;
 const UNSCHEDULED_REMINDER_NOTE =
@@ -289,7 +290,7 @@ export async function runReplyAgent(params: {
       return false;
     }
     const prevSessionId = cleanupTranscripts ? prevEntry.sessionId : undefined;
-    const nextSessionId = crypto.randomUUID();
+    const nextSessionId = generateSecureUuid();
     const nextEntry: SessionEntry = {
       ...prevEntry,
       sessionId: nextSessionId,
@@ -324,7 +325,11 @@ export async function runReplyAgent(params: {
     defaultRuntime.error(buildLogMessage(nextSessionId));
     if (cleanupTranscripts && prevSessionId) {
       const transcriptCandidates = new Set<string>();
-      const resolved = resolveSessionFilePath(prevSessionId, prevEntry, { agentId });
+      const resolved = resolveSessionFilePath(
+        prevSessionId,
+        prevEntry,
+        resolveSessionFilePathOptions({ agentId, storePath }),
+      );
       if (resolved) {
         transcriptCandidates.add(resolved);
       }

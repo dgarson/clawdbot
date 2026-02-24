@@ -51,8 +51,8 @@ function AgenticConversationPage() {
     { id: "session-2", name: "Scratch" },
   ];
 
-  const [selectedModelId, setSelectedModelId] = React.useState(models[1]!.id);
-  const [selectedSessionId, setSelectedSessionId] = React.useState(sessions[0]!.id);
+  const [selectedModelId, setSelectedModelId] = React.useState(models[1].id);
+  const [selectedSessionId, setSelectedSessionId] = React.useState(sessions[0].id);
   const [status, setStatus] = React.useState<WorkflowStatus>("idle");
   const [autoApprove, setAutoApprove] = React.useState(false);
 

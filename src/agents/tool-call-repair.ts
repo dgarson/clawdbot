@@ -94,6 +94,10 @@ export function snakeToCamel(s: string): string {
   return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
 }
 
+function canonicalizeParamName(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 /**
  * Given an argument key and a list of known schema keys, return the canonical
  * key name, or null if no mapping is found.
@@ -118,6 +122,25 @@ export function normalizeParamName(argKey: string, knownKeys: string[]): string 
   const ciMatch = knownKeys.find((k) => k.toLowerCase() === lower);
   if (ciMatch !== undefined) {
     return ciMatch;
+  }
+
+  const canonical = canonicalizeParamName(argKey);
+  const canonicalMatch = knownKeys.find((known) => canonicalizeParamName(known) === canonical);
+  if (canonicalMatch !== undefined) {
+    return canonicalMatch;
+  }
+
+  let fuzzyBest: string | null = null;
+  let fuzzyDist = 3;
+  for (const known of knownKeys) {
+    const dist = levenshtein(canonical, canonicalizeParamName(known));
+    if (dist < fuzzyDist) {
+      fuzzyDist = dist;
+      fuzzyBest = known;
+    }
+  }
+  if (fuzzyBest !== null) {
+    return fuzzyBest;
   }
 
   // Try camelCase / snake_case of known keys
@@ -742,5 +765,36 @@ export function repairToolCall(params: {
     toolCallId,
     arguments: args,
     repairs,
+  };
+}
+
+export type ToolCallRepairResult = {
+  args: unknown;
+  repaired: boolean;
+  diagnostics: string[];
+};
+
+export function repairToolCallArguments(params: {
+  rawArgs: unknown;
+  schema: unknown;
+}): ToolCallRepairResult {
+  const schema = (
+    params.schema && typeof params.schema === "object" && !Array.isArray(params.schema)
+      ? params.schema
+      : {}
+  ) as Record<string, unknown>;
+
+  const repaired = repairToolCall({
+    toolName: "__tool__",
+    toolCallId: "call",
+    rawArguments: params.rawArgs,
+    schema,
+    availableTools: ["__tool__"],
+  });
+
+  return {
+    args: repaired.arguments,
+    repaired: repaired.repaired,
+    diagnostics: repaired.repairs,
   };
 }

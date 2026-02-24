@@ -1,7 +1,7 @@
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
-import { createClaudeSdkSession } from "./index.js";
 import type { ClaudeSdkCompatibleTool, ClaudeSdkSession } from "./types.js";
+import { createClaudeSdkSession } from "./index.js";
 
 /**
  * Validates credentials and creates a ClaudeSdk session from attempt params.
@@ -56,12 +56,12 @@ export async function prepareClaudeSdkSession(
     customTools: allCustomTools,
     systemPrompt: systemPromptText,
     // Explicit user directive (anything other than the "off" default) takes precedence
-    // over the config-level thinkingLevel. If no directive was given, the config acts
+    // over the config-level thinkingDefault. If no directive was given, the config acts
     // as the agent-level default, falling back to the runtime "off" if unset.
     thinkLevel:
       params.thinkLevel !== "off"
         ? params.thinkLevel
-        : (claudeSdkConfig.thinkingLevel ?? params.thinkLevel),
+        : (claudeSdkConfig.thinkingDefault ?? claudeSdkConfig.thinkingLevel ?? params.thinkLevel),
     extraParams: params.streamParams as Record<string, unknown> | undefined,
     sessionManager,
     claudeSdkResumeSessionId,

@@ -1,5 +1,7 @@
-import crypto from "node:crypto";
 import { Type } from "@sinclair/typebox";
+import crypto from "node:crypto";
+import type { SessionEntry } from "../../config/sessions.js";
+import type { AnyAgentTool } from "./common.js";
 import { clearSessionQueues } from "../../auto-reply/reply/queue.js";
 import {
   resolveSubagentLabel,
@@ -9,7 +11,6 @@ import {
 } from "../../auto-reply/reply/subagents-utils.js";
 import { DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH } from "../../config/agent-limits.js";
 import { loadConfig } from "../../config/config.js";
-import type { SessionEntry } from "../../config/sessions.js";
 import { loadSessionStore, resolveStorePath, updateSessionStore } from "../../config/sessions.js";
 import { callGateway } from "../../gateway/call.js";
 import { logVerbose } from "../../globals.js";
@@ -37,7 +38,6 @@ import {
   replaceSubagentRunAfterSteer,
   type SubagentRunRecord,
 } from "../subagent-registry.js";
-import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 import { resolveInternalSessionKey, resolveMainSessionAlias } from "./sessions-helpers.js";
 
@@ -53,10 +53,26 @@ const STEER_ABORT_SETTLE_TIMEOUT_MS = 5_000;
 const steerRateLimit = new Map<string, number>();
 
 const SubagentsToolSchema = Type.Object({
-  action: optionalStringEnum(SUBAGENT_ACTIONS),
-  target: Type.Optional(Type.String()),
-  message: Type.Optional(Type.String()),
-  recentMinutes: Type.Optional(Type.Number({ minimum: 1 })),
+  action: optionalStringEnum(SUBAGENT_ACTIONS, {
+    description:
+      "'list' (list spawned subagents), 'kill' (terminate), 'steer' (send message to subagent).",
+  }),
+  target: Type.Optional(
+    Type.String({
+      description: "Target subagent session key or label (required for 'kill'/'steer').",
+    }),
+  ),
+  message: Type.Optional(
+    Type.String({
+      description: "Message to send to subagent (action='steer'; interrupts current execution).",
+    }),
+  ),
+  recentMinutes: Type.Optional(
+    Type.Number({
+      minimum: 1,
+      description: "Only show subagents active in the last N minutes (action='list'; default: 30).",
+    }),
+  ),
 });
 
 type SessionEntryResolution = {
@@ -152,7 +168,7 @@ function resolveSubagentTarget(
 
 function resolveStorePathForKey(
   cfg: ReturnType<typeof loadConfig>,
-  key: string,
+  _key: string,
   parsed?: ParsedAgentSessionKey | null,
 ) {
   return resolveStorePath(cfg.session?.store, {

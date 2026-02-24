@@ -6,12 +6,12 @@ export interface IntentResult {
   suggestion: string;
   to: string;
   params?: Record<string, string>;
-  search?: Record<string, any>;
+  search?: Record<string, unknown>;
   icon: React.ComponentType<{ className?: string }>;
 }
 
 export function getPaletteIntent(query: string): IntentResult | null {
-  if (query.length <= 3) return null;
+  if (query.length <= 3) {return null;}
 
   const q = query.toLowerCase();
 

@@ -124,14 +124,14 @@ interface CostSummary {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`;}
   return n.toLocaleString();
 }
 
 function formatCost(n: number): string {
-  if (n === 0) return "$0.00";
-  if (n < 0.01) return `$${n.toFixed(4)}`;
+  if (n === 0) {return "$0.00";}
+  if (n < 0.01) {return `$${n.toFixed(4)}`;}
   return `$${n.toFixed(2)}`;
 }
 
@@ -245,11 +245,11 @@ function DailyChart({
         {/* X-axis labels — show first, middle, last */}
         {data.length > 0 && (
           <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
-            <span>{formatDate(data[0]!.date)}</span>
+            <span>{formatDate(data[0].date)}</span>
             {data.length > 2 && (
-              <span>{formatDate(data[Math.floor(data.length / 2)]!.date)}</span>
+              <span>{formatDate(data[Math.floor(data.length / 2)].date)}</span>
             )}
-            <span>{formatDate(data[data.length - 1]!.date)}</span>
+            <span>{formatDate(data[data.length - 1].date)}</span>
           </div>
         )}
       </CardContent>
@@ -260,7 +260,7 @@ function DailyChart({
 // ─── Model Breakdown ─────────────────────────────────────────────────────────
 
 function ModelBreakdown({ models }: { models: ModelEntry[] }) {
-  const sorted = [...models].sort(
+  const sorted = [...models].toSorted(
     (a, b) => b.totals.totalCost - a.totals.totalCost
   );
   const totalCost = sorted.reduce((s, m) => s + m.totals.totalCost, 0);
@@ -300,7 +300,7 @@ function ModelBreakdown({ models }: { models: ModelEntry[] }) {
 // ─── Agent Breakdown ─────────────────────────────────────────────────────────
 
 function AgentBreakdown({ agents }: { agents: AgentEntry[] }) {
-  const sorted = [...agents].sort(
+  const sorted = [...agents].toSorted(
     (a, b) => b.totals.totalCost - a.totals.totalCost
   );
   const totalCost = sorted.reduce((s, a) => s + a.totals.totalCost, 0);
@@ -339,7 +339,7 @@ function AgentBreakdown({ agents }: { agents: AgentEntry[] }) {
 // ─── Top Tools ───────────────────────────────────────────────────────────────
 
 function TopTools({ tools }: { tools: ToolUsage }) {
-  const sorted = [...tools.tools].sort((a, b) => b.count - a.count);
+  const sorted = [...tools.tools].toSorted((a, b) => b.count - a.count);
 
   return (
     <Card>
@@ -387,7 +387,7 @@ function SessionTable({
   const [expanded, setExpanded] = React.useState(false);
   const sorted = [...sessions]
     .filter((s) => s.usage)
-    .sort((a, b) => (b.usage?.totalCost ?? 0) - (a.usage?.totalCost ?? 0));
+    .toSorted((a, b) => (b.usage?.totalCost ?? 0) - (a.usage?.totalCost ?? 0));
   const display = expanded ? sorted : sorted.slice(0, 10);
 
   return (
@@ -511,7 +511,7 @@ function AnalyticsPage() {
   const [costData, setCostData] = React.useState<CostSummary | null>(null);
 
   const fetchData = React.useCallback(async () => {
-    if (!client) return;
+    if (!client) {return;}
     setLoading(true);
     setError(null);
     try {
@@ -524,8 +524,8 @@ function AnalyticsPage() {
         }),
         client.request("usage.cost", { startDate, endDate }),
       ]);
-      if (sessionsRes) setUsageData(sessionsRes as UsageResult);
-      if (costRes) setCostData(costRes as CostSummary);
+      if (sessionsRes) {setUsageData(sessionsRes as UsageResult);}
+      if (costRes) {setCostData(costRes as CostSummary);}
     } catch (err) {
       setError(String(err));
     } finally {
@@ -534,7 +534,7 @@ function AnalyticsPage() {
   }, [client, startDate, endDate]);
 
   React.useEffect(() => {
-    if (client) void fetchData();
+    if (client) {void fetchData();}
   }, [client, fetchData]);
 
   const totals = usageData?.totals;

@@ -190,12 +190,12 @@ export function ApprovalAttentionNudgeConnected(props: ApprovalAttentionNudgeCon
   }, [summary.pendingApprovals, snoozeUntilMs, clearSnooze]);
 
   const onReview = React.useCallback(() => {
-    navigate({ to: "/agents", search: { status: "waiting" } });
+    void navigate({ to: "/agents", search: { status: "waiting" } });
   }, [navigate]);
 
   const onOpenNext = React.useCallback(() => {
     if (!summary.nextAgentId) {return;}
-    navigate({
+    void navigate({
       to: "/agents/$agentId",
       params: { agentId: summary.nextAgentId },
       search: { tab: "activity" },

@@ -48,7 +48,7 @@ function ConversationDetailPage() {
   const deleteConversation = useDeleteConversation();
 
   const handleBack = () => {
-    navigate({ to: "/conversations" });
+    void navigate({ to: "/conversations" });
   };
 
   const handleSubmit = async (value: string) => {
@@ -85,7 +85,7 @@ function ConversationDetailPage() {
   const handleDeleteConversation = async () => {
     try {
       await deleteConversation.mutateAsync(id);
-      navigate({ to: "/conversations" });
+      void navigate({ to: "/conversations" });
     } catch {
       toast.error("Failed to delete conversation");
     }

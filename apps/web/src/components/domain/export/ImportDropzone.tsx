@@ -19,6 +19,7 @@ export function ImportDropzone({
   disabled = false,
 }: ImportDropzoneProps) {
   const [isDragging, setIsDragging] = React.useState(false);
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);

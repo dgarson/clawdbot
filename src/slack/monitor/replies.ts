@@ -1,10 +1,10 @@
 import type { ChunkMode } from "../../auto-reply/chunk.js";
-import { chunkMarkdownTextWithMode } from "../../auto-reply/chunk.js";
-import { createReplyReferencePlanner } from "../../auto-reply/reply/reply-reference.js";
-import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { MarkdownTableMode } from "../../config/types.base.js";
 import type { RuntimeEnv } from "../../runtime.js";
+import { chunkMarkdownTextWithMode } from "../../auto-reply/chunk.js";
+import { createReplyReferencePlanner } from "../../auto-reply/reply/reply-reference.js";
+import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
 import { markdownToSlackMrkdwnChunks } from "../format.js";
 import { sendMessageSlack } from "../send.js";
 
@@ -88,10 +88,19 @@ function createSlackReplyReferencePlanner(params: {
   incomingThreadTs: string | undefined;
   messageTs: string | undefined;
   hasReplied?: boolean;
+  chatType?: "direct" | "channel" | "group";
+  isThreadReply?: boolean;
 }) {
-  // When already inside a Slack thread, always stay in it regardless of
-  // replyToMode — thread_ts is required to keep messages in the thread.
-  const effectiveMode = params.incomingThreadTs ? "all" : params.replyToMode;
+  // When already inside a Slack thread, stay in it — but for DMs where the
+  // "thread" was created by the typing indicator (not a real thread reply),
+  // respect the user's replyToMode setting.
+  // See: https://github.com/openclaw/openclaw/issues/16868
+  const effectiveMode =
+    params.chatType === "direct" && !params.isThreadReply
+      ? params.replyToMode
+      : params.incomingThreadTs
+        ? "all"
+        : params.replyToMode;
   return createReplyReferencePlanner({
     replyToMode: effectiveMode,
     existingId: params.incomingThreadTs,
@@ -105,12 +114,16 @@ export function createSlackReplyDeliveryPlan(params: {
   incomingThreadTs: string | undefined;
   messageTs: string | undefined;
   hasRepliedRef: { value: boolean };
+  chatType?: "direct" | "channel" | "group";
+  isThreadReply?: boolean;
 }): SlackReplyDeliveryPlan {
   const replyReference = createSlackReplyReferencePlanner({
     replyToMode: params.replyToMode,
     incomingThreadTs: params.incomingThreadTs,
     messageTs: params.messageTs,
     hasReplied: params.hasRepliedRef.value,
+    chatType: params.chatType,
+    isThreadReply: params.isThreadReply,
   });
   return {
     nextThreadTs: () => replyReference.use(),

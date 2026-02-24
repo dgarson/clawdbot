@@ -1,10 +1,10 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
-import { resolveStateDir } from "../../config/paths.js";
 import type { OutboundChannel } from "./targets.js";
+import { resolveStateDir } from "../../config/paths.js";
+import { generateSecureUuid } from "../secure-random.js";
 
 const QUEUE_DIRNAME = "delivery-queue";
 const FAILED_DIRNAME = "failed";
@@ -25,9 +25,7 @@ type DeliveryMirrorPayload = {
   mediaUrls?: string[];
 };
 
-export interface QueuedDelivery {
-  id: string;
-  enqueuedAt: number;
+type QueuedDeliveryPayload = {
   channel: Exclude<OutboundChannel, "none">;
   to: string;
   accountId?: string;
@@ -43,6 +41,11 @@ export interface QueuedDelivery {
   gifPlayback?: boolean;
   silent?: boolean;
   mirror?: DeliveryMirrorPayload;
+};
+
+export interface QueuedDelivery extends QueuedDeliveryPayload {
+  id: string;
+  enqueuedAt: number;
   retryCount: number;
   lastError?: string;
 }
@@ -65,25 +68,14 @@ export async function ensureQueueDir(stateDir?: string): Promise<string> {
 }
 
 /** Persist a delivery entry to disk before attempting send. Returns the entry ID. */
-type QueuedDeliveryParams = {
-  channel: Exclude<OutboundChannel, "none">;
-  to: string;
-  accountId?: string;
-  payloads: ReplyPayload[];
-  threadId?: string | number | null;
-  replyToId?: string | null;
-  bestEffort?: boolean;
-  gifPlayback?: boolean;
-  silent?: boolean;
-  mirror?: DeliveryMirrorPayload;
-};
+type QueuedDeliveryParams = QueuedDeliveryPayload;
 
 export async function enqueueDelivery(
   params: QueuedDeliveryParams,
   stateDir?: string,
 ): Promise<string> {
   const queueDir = await ensureQueueDir(stateDir);
-  const id = crypto.randomUUID();
+  const id = generateSecureUuid();
   const entry: QueuedDelivery = {
     id,
     enqueuedAt: Date.now(),
@@ -202,6 +194,7 @@ export type DeliverFn = (
 ) => Promise<unknown>;
 
 export interface RecoveryLogger {
+  debug?(msg: string): void;
   info(msg: string): void;
   warn(msg: string): void;
   error(msg: string): void;
@@ -229,7 +222,10 @@ export async function recoverPendingDeliveries(opts: {
   // Process oldest first.
   pending.sort((a, b) => a.enqueuedAt - b.enqueuedAt);
 
-  opts.log.info(`Found ${pending.length} pending delivery entries — starting recovery`);
+  const oldestAgeMs = Date.now() - pending[0].enqueuedAt;
+  opts.log.info(
+    `Found ${pending.length} pending delivery entries — starting recovery (oldestAgeMs=${oldestAgeMs})`,
+  );
 
   const delayFn = opts.delay ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const deadline = Date.now() + (opts.maxRecoveryMs ?? 60_000);
@@ -238,11 +234,24 @@ export async function recoverPendingDeliveries(opts: {
   let failed = 0;
   let skipped = 0;
 
+  const logDeferredEntries = (fromIndex: number) => {
+    if (!opts.log.debug) {
+      return;
+    }
+    for (const e of pending.slice(fromIndex)) {
+      opts.log.debug(
+        `Deferred delivery entry: id=${e.id} channel=${e.channel} to=${e.to} retryCount=${e.retryCount} enqueuedAt=${e.enqueuedAt}${e.lastError ? ` lastError=${e.lastError}` : ""}`,
+      );
+    }
+  };
+
   for (const entry of pending) {
     const now = Date.now();
     if (now >= deadline) {
-      const deferred = pending.length - recovered - failed - skipped;
+      const processedCount = recovered + failed + skipped;
+      const deferred = pending.length - processedCount;
       opts.log.warn(`Recovery time budget exceeded — ${deferred} entries deferred to next restart`);
+      logDeferredEntries(processedCount);
       break;
     }
     if (entry.retryCount >= MAX_RETRIES) {
@@ -261,10 +270,12 @@ export async function recoverPendingDeliveries(opts: {
     const backoff = computeBackoffMs(entry.retryCount + 1);
     if (backoff > 0) {
       if (now + backoff >= deadline) {
-        const deferred = pending.length - recovered - failed - skipped;
+        const processedCount = recovered + failed + skipped;
+        const deferred = pending.length - processedCount;
         opts.log.warn(
           `Recovery time budget exceeded — ${deferred} entries deferred to next restart`,
         );
+        logDeferredEntries(processedCount);
         break;
       }
       opts.log.info(`Waiting ${backoff}ms before retrying delivery ${entry.id}`);
@@ -301,7 +312,7 @@ export async function recoverPendingDeliveries(opts: {
       }
       failed += 1;
       opts.log.warn(
-        `Retry failed for delivery ${entry.id}: ${err instanceof Error ? err.message : String(err)}`,
+        `Retry failed for delivery ${entry.id} (channel=${entry.channel} to=${entry.to}): ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

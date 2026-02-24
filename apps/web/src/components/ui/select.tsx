@@ -28,6 +28,7 @@ function SelectTrigger({
   size = "default",
   children,
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
 }) {

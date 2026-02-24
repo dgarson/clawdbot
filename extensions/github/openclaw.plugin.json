@@ -1,0 +1,42 @@
+{
+  "id": "github",
+  "name": "GitHub",
+  "description": "Granular GitHub tools for commit inspection, diffs, PR workflows, comments, and merge operations.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "allowedRepos": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Optional global allowlist for all GitHub operations (owner/repo)."
+      },
+      "writeAllowedRepos": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Optional allowlist for write operations (comments, PR create/edit/close/update)."
+      },
+      "mergeAllowedRepos": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Optional allowlist for merge operations only."
+      },
+      "timeoutMs": {
+        "type": "number",
+        "minimum": 1000,
+        "description": "Timeout in milliseconds for each gh command."
+      },
+      "maxFiles": {
+        "type": "number",
+        "minimum": 1,
+        "maximum": 300,
+        "description": "Default max changed files included in commit/diff/PR file responses."
+      },
+      "maxPatchChars": {
+        "type": "number",
+        "minimum": 200,
+        "description": "Default max characters returned for per-file patch text before truncation."
+      }
+    }
+  }
+}

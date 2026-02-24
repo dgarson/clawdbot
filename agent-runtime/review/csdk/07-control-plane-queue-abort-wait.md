@@ -5,6 +5,7 @@
 Reuse existing control plane APIs unchanged while backing CSDK runs with equivalent mechanics.
 
 Current API source:
+
 - `src/agents/pi-embedded-runner/runs.ts`
 
 ## Existing behavior to preserve
@@ -37,6 +38,7 @@ Current API source:
 ## Handle shape parity
 
 Continue to register a handle implementing:
+
 - `queueMessage(text): Promise<void>`
 - `isStreaming(): boolean`
 - `isCompacting(): boolean`

@@ -19,6 +19,7 @@ openclaw system event --text "Check for urgent follow-ups" --mode now
 openclaw system heartbeat enable
 openclaw system heartbeat last
 openclaw system presence
+openclaw system watchdog run --config ~/.openclaw/watchdog.json
 ```
 
 ## `system event`
@@ -53,6 +54,67 @@ instances, and similar status lines).
 Flags:
 
 - `--json`: machine-readable output.
+
+## `system watchdog run`
+
+Run a lightweight watchdog loop that:
+
+- checks whether the gateway service is healthy
+- scans recent gateway logs for configured error patterns and extracts a PID to kill
+- restores `openclaw.json` from backups when config parsing is invalid
+- tracks branch drift in the deployment checkout and publishes system-status alerts
+- runs fallback git repair + rebuild + restart when normal recovery fails
+
+Flags:
+
+- `--config <path>`: watchdog config path (JSON/JSON5, default `~/.openclaw/watchdog.json`).
+- `--once`: run one cycle and exit.
+- `--interval <ms>`: override polling interval.
+- `--branch-interval <ms>`: override branch-check interval.
+- `--json`: print one JSON object per cycle.
+
+Example config:
+
+```json
+{
+  "intervalMs": 30000,
+  "branchCheckIntervalMs": 3600000,
+  "deploymentDir": "~/openclaw",
+  "expectedBranch": "dgarson/fork",
+  "gitRemote": "origin",
+  "gitRemoteBranch": "dgarson/fork",
+  "logPaths": [
+    "~/.openclaw/logs/gateway.log",
+    "~/.openclaw/logs/gateway.err.log",
+    "/tmp/openclaw-gateway.log"
+  ],
+  "errorKillRules": [
+    {
+      "name": "duplicate gateway port bind",
+      "match": "address already in use|EADDRINUSE|duplicate gateway",
+      "pid": "pid[:= ]\\s*(\\d+)"
+    }
+  ],
+  "systemStatus": {
+    "channel": "slack",
+    "targets": ["channel:C1234567890"],
+    "notifyOnHealthy": false,
+    "llmSummary": {
+      "enabled": false,
+      "model": "gpt-4.1-mini"
+    },
+    "tts": {
+      "enabled": false,
+      "model": "gpt-4o-mini-tts",
+      "voice": "alloy"
+    }
+  },
+  "recovery": {
+    "enabled": true,
+    "stashBeforeRepair": true
+  }
+}
+```
 
 ## Notes
 

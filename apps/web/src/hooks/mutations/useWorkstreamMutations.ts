@@ -112,7 +112,7 @@ export function useCreateWorkstream() {
       queryClient.setQueryData<Workstream[]>(workstreamKeys.lists(), (old) =>
         old ? [newWorkstream, ...old] : [newWorkstream]
       );
-      queryClient.invalidateQueries({ queryKey: workstreamKeys.all });
+      void queryClient.invalidateQueries({ queryKey: workstreamKeys.all });
       toast.success("Workstream created successfully");
     },
     onError: (error) => {
@@ -145,10 +145,10 @@ export function useUpdateWorkstream() {
       return { previousWorkstream };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: workstreamKeys.detail(variables.id),
       });
-      queryClient.invalidateQueries({ queryKey: workstreamKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: workstreamKeys.lists() });
       toast.success("Workstream updated successfully");
     },
     onError: (_error, variables, context) => {
@@ -182,7 +182,7 @@ export function useDeleteWorkstream() {
       return { previousWorkstreams };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: workstreamKeys.all });
+      void queryClient.invalidateQueries({ queryKey: workstreamKeys.all });
       toast.success("Workstream deleted successfully");
     },
     onError: (_error, _, context) => {
@@ -223,7 +223,7 @@ export function useUpdateWorkstreamStatus() {
       return { previousWorkstream };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: workstreamKeys.detail(variables.id),
       });
       toast.success(`Workstream marked as ${variables.status}`);
@@ -257,7 +257,7 @@ export function useCreateTask() {
         (old) =>
           old ? { ...old, tasks: [...old.tasks, newTask] } : undefined
       );
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: workstreamKeys.tasks(workstreamId),
       });
       toast.success("Task created successfully");
@@ -304,7 +304,7 @@ export function useUpdateTask() {
       return { previousWorkstream };
     },
     onSuccess: (_, { workstreamId }) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: workstreamKeys.detail(workstreamId),
       });
       toast.success("Task updated successfully");

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { GatewayRequestHandlers, RespondFn } from "./types.js";
 import {
   listAgentIds,
   resolveAgentDir,
@@ -27,8 +28,10 @@ import {
 } from "../../commands/agents.config.js";
 import { loadConfig, writeConfigFile } from "../../config/config.js";
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
+import { appendChangeAuditRecord, readFileAuditSnapshot } from "../../infra/change-audit.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
 import { resolveUserPath } from "../../utils.js";
+import { formatControlPlaneActor, resolveControlPlaneActor } from "../control-plane-audit.js";
 import {
   ErrorCodes,
   errorShape,
@@ -42,7 +45,6 @@ import {
   validateAgentsUpdateParams,
 } from "../protocol/index.js";
 import { listAgentsForGateway } from "../session-utils.js";
-import type { GatewayRequestHandlers, RespondFn } from "./types.js";
 
 const BOOTSTRAP_FILE_NAMES = [
   DEFAULT_AGENTS_FILENAME,
@@ -484,7 +486,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
-  "agents.files.set": async ({ params, respond }) => {
+  "agents.files.set": async ({ params, respond, client }) => {
     if (!validateAgentsFilesSetParams(params)) {
       respond(
         false,
@@ -506,7 +508,50 @@ export const agentsHandlers: GatewayRequestHandlers = {
     await fs.mkdir(workspaceDir, { recursive: true });
     const filePath = path.join(workspaceDir, name);
     const content = String(params.content ?? "");
-    await fs.writeFile(filePath, content, "utf-8");
+    const before = await readFileAuditSnapshot(filePath);
+    const actor = resolveControlPlaneActor(client);
+    try {
+      await fs.writeFile(filePath, content, "utf-8");
+      const after = await readFileAuditSnapshot(filePath);
+      await appendChangeAuditRecord({
+        source: "gateway.agents",
+        eventType: "agents.files.set",
+        op: "write",
+        targetPath: filePath,
+        beforeHash: before.hash,
+        afterHash: after.hash,
+        beforeBytes: before.bytes,
+        afterBytes: after.bytes,
+        agentId,
+        actor,
+        result: "ok",
+        details: {
+          workspace: workspaceDir,
+          fileName: name,
+        },
+      });
+    } catch (error) {
+      await appendChangeAuditRecord({
+        source: "gateway.agents",
+        eventType: "agents.files.set",
+        op: "write",
+        targetPath: filePath,
+        beforeHash: before.hash,
+        afterHash: null,
+        beforeBytes: before.bytes,
+        afterBytes: null,
+        agentId,
+        actor,
+        result: "error",
+        error: error instanceof Error ? error.message : String(error),
+        details: {
+          workspace: workspaceDir,
+          fileName: name,
+          actorSummary: formatControlPlaneActor(actor),
+        },
+      });
+      throw error;
+    }
     const meta = await statFile(filePath);
     respond(
       true,

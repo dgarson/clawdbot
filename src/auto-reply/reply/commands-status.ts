@@ -1,3 +1,9 @@
+import type { OpenClawConfig } from "../../config/config.js";
+import type { SessionEntry, SessionScope } from "../../config/sessions.js";
+import type { MediaUnderstandingDecision } from "../../media-understanding/types.js";
+import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../thinking.js";
+import type { ReplyPayload } from "../types.js";
+import type { CommandContext } from "./commands-types.js";
 import {
   resolveAgentDir,
   resolveDefaultAgentId,
@@ -9,21 +15,15 @@ import {
   resolveInternalSessionKey,
   resolveMainSessionAlias,
 } from "../../agents/tools/sessions-helpers.js";
-import type { OpenClawConfig } from "../../config/config.js";
-import type { SessionEntry, SessionScope } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import {
   formatUsageWindowSummary,
   loadProviderUsageSummary,
   resolveUsageProviderId,
 } from "../../infra/provider-usage.js";
-import type { MediaUnderstandingDecision } from "../../media-understanding/types.js";
 import { normalizeGroupActivation } from "../group-activation.js";
 import { resolveSelectedAndActiveModel } from "../model-runtime.js";
 import { buildStatusMessage } from "../status.js";
-import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../thinking.js";
-import type { ReplyPayload } from "../types.js";
-import type { CommandContext } from "./commands-types.js";
 import { getFollowupQueueDepth, resolveQueueSettings } from "./queue.js";
 import { resolveSubagentLabel } from "./subagents-utils.js";
 
@@ -32,6 +32,7 @@ export async function buildStatusReply(params: {
   command: CommandContext;
   sessionEntry?: SessionEntry;
   sessionKey: string;
+  parentSessionKey?: string;
   sessionScope?: SessionScope;
   storePath?: string;
   provider: string;
@@ -51,6 +52,7 @@ export async function buildStatusReply(params: {
     command,
     sessionEntry,
     sessionKey,
+    parentSessionKey,
     sessionScope,
     storePath,
     provider,
@@ -173,6 +175,7 @@ export async function buildStatusReply(params: {
     agentId: statusAgentId,
     sessionEntry,
     sessionKey,
+    parentSessionKey,
     sessionScope,
     sessionStorePath: storePath,
     groupActivation,

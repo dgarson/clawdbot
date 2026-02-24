@@ -44,7 +44,9 @@ function Button({
   size = "default",
   asChild = false,
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<"button"> &
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {

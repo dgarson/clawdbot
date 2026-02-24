@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils/cn";
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & {
     indicatorClassName?: string;
   }

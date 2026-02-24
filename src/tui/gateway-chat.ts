@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { ResponseUsageMode, SessionInfo, SessionScope } from "./tui-types.js";
 import { loadConfig } from "../config/config.js";
 import {
   buildGatewayConnectionDetails,
@@ -47,40 +48,44 @@ export type GatewaySessionList = {
     modelProvider?: string | null;
     contextTokens?: number | null;
   };
-  sessions: Array<{
-    key: string;
-    sessionId?: string;
-    updatedAt?: number | null;
-    thinkingLevel?: string;
-    verboseLevel?: string;
-    reasoningLevel?: string;
-    sendPolicy?: string;
-    model?: string;
-    contextTokens?: number | null;
-    inputTokens?: number | null;
-    outputTokens?: number | null;
-    totalTokens?: number | null;
-    responseUsage?: "on" | "off" | "tokens" | "full";
-    modelProvider?: string;
-    label?: string;
-    displayName?: string;
-    provider?: string;
-    groupChannel?: string;
-    space?: string;
-    subject?: string;
-    chatType?: string;
-    lastProvider?: string;
-    lastTo?: string;
-    lastAccountId?: string;
-    derivedTitle?: string;
-    lastMessagePreview?: string;
-  }>;
+  sessions: Array<
+    Pick<
+      SessionInfo,
+      | "thinkingLevel"
+      | "verboseLevel"
+      | "reasoningLevel"
+      | "model"
+      | "contextTokens"
+      | "inputTokens"
+      | "outputTokens"
+      | "totalTokens"
+      | "modelProvider"
+      | "displayName"
+    > & {
+      key: string;
+      sessionId?: string;
+      updatedAt?: number | null;
+      sendPolicy?: string;
+      responseUsage?: ResponseUsageMode;
+      label?: string;
+      provider?: string;
+      groupChannel?: string;
+      space?: string;
+      subject?: string;
+      chatType?: string;
+      lastProvider?: string;
+      lastTo?: string;
+      lastAccountId?: string;
+      derivedTitle?: string;
+      lastMessagePreview?: string;
+    }
+  >;
 };
 
 export type GatewayAgentsList = {
   defaultId: string;
   mainKey: string;
-  scope: "per-sender" | "global";
+  scope: SessionScope;
   agents: Array<{
     id: string;
     name?: string;

@@ -2,18 +2,14 @@
 
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
 import { cn } from "@/lib/utils/cn";
 import {
-  RefreshCw,
   Search,
-  Filter,
   ArrowDown,
   Pause,
   Play,

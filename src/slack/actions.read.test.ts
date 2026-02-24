@@ -33,7 +33,7 @@ describe("readSlackMessages", () => {
     expect(client.conversations.replies).toHaveBeenCalledWith({
       channel: "C1",
       ts: "171234.567",
-      limit: undefined,
+      limit: 20,
       latest: undefined,
       oldest: undefined,
     });

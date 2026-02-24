@@ -1,5 +1,6 @@
-import crypto from "node:crypto";
 import { Type } from "@sinclair/typebox";
+import crypto from "node:crypto";
+import type { AnyAgentTool } from "./common.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
 import { normalizeAgentId, resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
@@ -9,7 +10,6 @@ import {
   INTERNAL_MESSAGE_CHANNEL,
 } from "../../utils/message-channel.js";
 import { AGENT_LANE_NESTED } from "../lanes.js";
-import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readStringParam } from "./common.js";
 import {
   createSessionVisibilityGuard,
@@ -25,11 +25,36 @@ import { buildAgentToAgentMessageContext, resolvePingPongTurns } from "./session
 import { runSessionsSendA2AFlow } from "./sessions-send-tool.a2a.js";
 
 const SessionsSendToolSchema = Type.Object({
-  sessionKey: Type.Optional(Type.String()),
-  label: Type.Optional(Type.String({ minLength: 1, maxLength: SESSION_LABEL_MAX_LENGTH })),
-  agentId: Type.Optional(Type.String({ minLength: 1, maxLength: 64 })),
-  message: Type.String(),
-  timeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
+  sessionKey: Type.Optional(
+    Type.String({
+      description:
+        "Target session key (internal identifier; alternative: use 'label' + 'agentId').",
+    }),
+  ),
+  label: Type.Optional(
+    Type.String({
+      minLength: 1,
+      maxLength: SESSION_LABEL_MAX_LENGTH,
+      description:
+        "User-friendly session label for lookup (combine with 'agentId' for cross-agent resolution).",
+    }),
+  ),
+  agentId: Type.Optional(
+    Type.String({
+      minLength: 1,
+      maxLength: 64,
+      description: "Agent ID for label-based session lookup (used with 'label').",
+    }),
+  ),
+  message: Type.String({
+    description: "Message text to inject into the target session as user input.",
+  }),
+  timeoutSeconds: Type.Optional(
+    Type.Number({
+      minimum: 0,
+      description: "Response timeout in seconds (0=fire-and-forget; default: 60).",
+    }),
+  ),
 });
 
 export function createSessionsSendTool(opts?: {
@@ -130,6 +155,7 @@ export function createSessionsSendTool(opts?: {
             runId: crypto.randomUUID(),
             status: "error",
             error: msg || `No session found with label: ${labelParam}`,
+            requester: effectiveRequesterKey,
           });
         }
 
@@ -145,6 +171,7 @@ export function createSessionsSendTool(opts?: {
             runId: crypto.randomUUID(),
             status: "error",
             error: `No session found with label: ${labelParam}`,
+            requester: effectiveRequesterKey,
           });
         }
         sessionKey = resolvedKey;
@@ -194,7 +221,7 @@ export function createSessionsSendTool(opts?: {
         typeof cfg.tools?.sessions?.sendTimeoutSeconds === "number" &&
         Number.isFinite(cfg.tools.sessions.sendTimeoutSeconds)
           ? Math.max(0, Math.floor(cfg.tools.sessions.sendTimeoutSeconds))
-          : 120;
+          : 900;
       const timeoutSeconds =
         typeof params.timeoutSeconds === "number" && Number.isFinite(params.timeoutSeconds)
           ? Math.max(0, Math.floor(params.timeoutSeconds))

@@ -121,7 +121,7 @@ export function GatewayProvider({
   const value = React.useMemo<GatewayContextValue>(
     () => ({
       client,
-      status: state.status as GatewayStatus,
+      status: state.status,
       isConnected: state.status === "connected",
       hello,
       connect,

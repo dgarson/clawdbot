@@ -1,10 +1,15 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { InlineCodeState } from "../markdown/code-spans.js";
+import type {
+  EmbeddedPiSubscribeContext,
+  EmbeddedPiSubscribeState,
+} from "./pi-embedded-subscribe.handlers.types.js";
+import type { SubscribeEmbeddedPiSessionParams } from "./pi-embedded-subscribe.types.js";
 import { parseReplyDirectives } from "../auto-reply/reply/reply-directives.js";
 import { createStreamingDirectiveAccumulator } from "../auto-reply/reply/streaming-directives.js";
 import { formatToolAggregate } from "../auto-reply/tool-meta.js";
 import { emitAgentEvent } from "../infra/agent-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import type { InlineCodeState } from "../markdown/code-spans.js";
 import { buildCodeSpanIndex, createInlineCodeState } from "../markdown/code-spans.js";
 import { EmbeddedBlockChunker } from "./pi-embedded-block-chunker.js";
 import {
@@ -12,18 +17,14 @@ import {
   normalizeTextForComparison,
 } from "./pi-embedded-helpers.js";
 import { createEmbeddedPiSessionEventHandler } from "./pi-embedded-subscribe.handlers.js";
-import type {
-  EmbeddedPiSubscribeContext,
-  EmbeddedPiSubscribeState,
-} from "./pi-embedded-subscribe.handlers.types.js";
 import { filterToolResultMediaUrls } from "./pi-embedded-subscribe.tools.js";
-import type { SubscribeEmbeddedPiSessionParams } from "./pi-embedded-subscribe.types.js";
 import { formatReasoningMessage, stripDowngradedToolCallText } from "./pi-embedded-utils.js";
 import { hasNonzeroUsage, normalizeUsage, type UsageLike } from "./usage.js";
 
 const THINKING_TAG_SCAN_RE = /<\s*(\/?)\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
 const FINAL_TAG_SCAN_RE = /<\s*(\/?)\s*final\s*>/gi;
 const log = createSubsystemLogger("agent/embedded");
+const MAX_TOOL_DIAGNOSTIC_INFOS = 24;
 
 export type {
   BlockReplyChunking,
@@ -78,6 +79,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     pendingMessagingTargets: new Map(),
     successfulCronAdds: 0,
     pendingMessagingMediaUrls: new Map(),
+    toolDiagnosticExtraInfos: [],
+    toolDiagnosticDebugInfos: [],
   };
   const usageTotals = {
     input: 0,
@@ -98,6 +101,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   const messagingToolSentMediaUrls = state.messagingToolSentMediaUrls;
   const pendingMessagingTexts = state.pendingMessagingTexts;
   const pendingMessagingTargets = state.pendingMessagingTargets;
+  const toolDiagnosticExtraInfos = state.toolDiagnosticExtraInfos;
+  const toolDiagnosticDebugInfos = state.toolDiagnosticDebugInfos;
   const replyDirectiveAccumulator = createStreamingDirectiveAccumulator();
   const partialReplyDirectiveAccumulator = createStreamingDirectiveAccumulator();
 
@@ -212,6 +217,16 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (messagingToolSentMediaUrls.length > MAX_MESSAGING_SENT_MEDIA_URLS) {
       const overflow = messagingToolSentMediaUrls.length - MAX_MESSAGING_SENT_MEDIA_URLS;
       messagingToolSentMediaUrls.splice(0, overflow);
+    }
+  };
+  const trimToolDiagnosticInfos = () => {
+    if (toolDiagnosticExtraInfos.length > MAX_TOOL_DIAGNOSTIC_INFOS) {
+      const overflow = toolDiagnosticExtraInfos.length - MAX_TOOL_DIAGNOSTIC_INFOS;
+      toolDiagnosticExtraInfos.splice(0, overflow);
+    }
+    if (toolDiagnosticDebugInfos.length > MAX_TOOL_DIAGNOSTIC_INFOS) {
+      const overflow = toolDiagnosticDebugInfos.length - MAX_TOOL_DIAGNOSTIC_INFOS;
+      toolDiagnosticDebugInfos.splice(0, overflow);
     }
   };
 
@@ -600,6 +615,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     pendingMessagingTargets.clear();
     state.successfulCronAdds = 0;
     state.pendingMessagingMediaUrls.clear();
+    toolDiagnosticExtraInfos.length = 0;
+    toolDiagnosticDebugInfos.length = 0;
     resetAssistantMessageState(0);
   };
 
@@ -631,6 +648,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     resetForCompactionRetry,
     finalizeAssistantTexts,
     trimMessagingToolSent,
+    trimToolDiagnosticInfos,
     ensureCompactionPromise,
     noteCompactionRetry,
     resolveCompactionRetry,
@@ -691,6 +709,9 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     getMessagingToolSentMediaUrls: () => messagingToolSentMediaUrls.slice(),
     getMessagingToolSentTargets: () => messagingToolSentTargets.slice(),
     getSuccessfulCronAdds: () => state.successfulCronAdds,
+    getToolDiagnosticExtraInfos: () => toolDiagnosticExtraInfos.slice(),
+    getToolDiagnosticDebugInfos: () => toolDiagnosticDebugInfos.slice(),
+    trimToolDiagnosticInfos,
     // Returns true if any messaging tool successfully sent a message.
     // Used to suppress agent's confirmation text (e.g., "Respondi no Telegram!")
     // which is generated AFTER the tool sends the actual answer.

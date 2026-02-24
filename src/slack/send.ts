@@ -4,6 +4,7 @@ import {
   type KnownBlock,
   type WebClient,
 } from "@slack/web-api";
+import type { SlackTokenSource } from "./accounts.js";
 import {
   chunkMarkdownTextWithMode,
   resolveChunkMode,
@@ -13,7 +14,6 @@ import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
 import { logVerbose } from "../globals.js";
 import { loadWebMedia } from "../web/media.js";
-import type { SlackTokenSource } from "./accounts.js";
 import { resolveSlackAccount } from "./accounts.js";
 import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
 import { validateSlackBlocksArray } from "./blocks-input.js";
@@ -169,6 +169,14 @@ async function resolveChannelId(
 ): Promise<{ channelId: string; isDm?: boolean }> {
   if (recipient.kind === "channel") {
     const id = recipient.id;
+    if (/^U[A-Z0-9]+$/i.test(id)) {
+      const response = await client.conversations.open({ users: id.toUpperCase() });
+      const channelId = response.channel?.id;
+      if (!channelId) {
+        throw new Error("Failed to open Slack DM channel");
+      }
+      return { channelId, isDm: true };
+    }
     // Slack channel IDs start with C/G/D/W and always contain at least one digit.
     // Uppercase them so lowercase inputs (e.g. "c123") are valid for the API.
     if (/^[CGDW][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(id)) {

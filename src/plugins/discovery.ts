@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { PluginDiagnostic, PluginOrigin } from "./types.js";
 import { isPathInsideWithRealpath } from "../security/scan-paths.js";
 import { resolveConfigDir, resolveUserPath } from "../utils.js";
 import { resolveBundledPluginsDir } from "./bundled-dir.js";
@@ -9,7 +10,6 @@ import {
   type PackageManifest,
 } from "./manifest.js";
 import { formatPosixMode, isPathInside, safeRealpathSync, safeStatSync } from "./path-safety.js";
-import type { PluginDiagnostic, PluginOrigin } from "./types.js";
 
 const EXTENSION_EXTS = new Set([".ts", ".js", ".mts", ".cts", ".mjs", ".cjs"]);
 
@@ -206,6 +206,23 @@ function isExtensionFile(filePath: string): boolean {
   return !filePath.endsWith(".d.ts");
 }
 
+function shouldIgnoreScannedDirectory(dirName: string): boolean {
+  const normalized = dirName.trim().toLowerCase();
+  if (!normalized) {
+    return true;
+  }
+  if (normalized.endsWith(".bak")) {
+    return true;
+  }
+  if (normalized.includes(".backup-")) {
+    return true;
+  }
+  if (normalized.includes(".disabled")) {
+    return true;
+  }
+  return false;
+}
+
 function readPackageManifest(dir: string): PackageManifest | null {
   const manifestPath = path.join(dir, "package.json");
   if (!fs.existsSync(manifestPath)) {
@@ -360,6 +377,9 @@ function discoverInDirectory(params: {
       });
     }
     if (!entry.isDirectory()) {
+      continue;
+    }
+    if (shouldIgnoreScannedDirectory(entry.name)) {
       continue;
     }
 

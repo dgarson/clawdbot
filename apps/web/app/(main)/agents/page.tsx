@@ -8,18 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
-import { GuidedTooltip } from "@/components/adaptive/guided-tooltip";
-import type { AgentsListResult, AgentIdentityResult } from "@/lib/gateway/types";
+import type { AgentIdentityResult } from "@/lib/gateway/types";
 import {
   Bot,
   Plus,
   Search,
   Grid3X3,
   List,
-  MoreVertical,
-  Settings2,
   MessageSquare,
-  Trash2,
   FileText,
 } from "lucide-react";
 
@@ -29,7 +25,7 @@ export default function AgentsPage() {
   const connected = useGatewayStore((s) => s.connected);
   const request = useGatewayStore((s) => s.request);
 
-  const [agents, setAgents] = React.useState<AgentsListResult | null>(null);
+  const [agents, setAgents] = React.useState<AgentsListResult>();
   const [identities, setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -37,7 +33,7 @@ export default function AgentsPage() {
 
   React.useEffect(() => {
     if (!connected) {return;}
-    (async () => {
+    void (async () => {
       try {
         const result = await request<AgentsListResult>("agents.list", {});
         setAgents(result);

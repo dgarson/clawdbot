@@ -4,9 +4,9 @@ import path from "node:path";
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import type { MockFn } from "../test-utils/vitest-mock-fn.js";
 import type { CronEvent } from "./service.js";
+import type { CronJob } from "./types.js";
 import { CronService } from "./service.js";
 import { createCronServiceState } from "./service/state.js";
-import type { CronJob } from "./types.js";
 
 export type NoopLogger = {
   debug: MockFn;
@@ -49,6 +49,22 @@ export function createCronStoreHarness(options?: { prefix?: string }) {
   }
 
   return { makeStorePath };
+}
+
+export async function writeCronStoreSnapshot(params: { storePath: string; jobs: CronJob[] }) {
+  await fs.mkdir(path.dirname(params.storePath), { recursive: true });
+  await fs.writeFile(
+    params.storePath,
+    JSON.stringify(
+      {
+        version: 1,
+        jobs: params.jobs,
+      },
+      null,
+      2,
+    ),
+    "utf-8",
+  );
 }
 
 export function installCronTestHooks(options: {

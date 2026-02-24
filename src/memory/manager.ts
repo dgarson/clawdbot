@@ -1,11 +1,19 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { type FSWatcher } from "chokidar";
-import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
+import fs from "node:fs/promises";
+import path from "node:path";
 import type { ResolvedMemorySearchConfig } from "../agents/memory-search.js";
-import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import type { OpenClawConfig } from "../config/config.js";
+import type {
+  MemoryEmbeddingProbeResult,
+  MemoryProviderStatus,
+  MemorySearchManager,
+  MemorySearchResult,
+  MemorySource,
+  MemorySyncProgressUpdate,
+} from "./types.js";
+import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
+import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
   createEmbeddingProvider,
@@ -21,14 +29,6 @@ import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
 import { MemoryManagerEmbeddingOps } from "./manager-embedding-ops.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
 import { extractKeywords } from "./query-expansion.js";
-import type {
-  MemoryEmbeddingProbeResult,
-  MemoryProviderStatus,
-  MemorySearchManager,
-  MemorySearchResult,
-  MemorySource,
-  MemorySyncProgressUpdate,
-} from "./types.js";
 const SNIPPET_MAX_CHARS = 700;
 const VECTOR_TABLE = "chunks_vec";
 const FTS_TABLE = "chunks_fts";
@@ -379,6 +379,9 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     force?: boolean;
     progress?: (update: MemorySyncProgressUpdate) => void;
   }): Promise<void> {
+    if (this.closed) {
+      return;
+    }
     if (this.syncing) {
       return this.syncing;
     }
@@ -602,6 +605,7 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       return;
     }
     this.closed = true;
+    const pendingSync = this.syncing;
     if (this.watchTimer) {
       clearTimeout(this.watchTimer);
       this.watchTimer = null;
@@ -621,6 +625,11 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     if (this.sessionUnsubscribe) {
       this.sessionUnsubscribe();
       this.sessionUnsubscribe = null;
+    }
+    if (pendingSync) {
+      try {
+        await pendingSync;
+      } catch {}
     }
     this.db.close();
     INDEX_CACHE.delete(this.cacheKey);

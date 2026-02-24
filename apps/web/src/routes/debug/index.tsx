@@ -758,7 +758,7 @@ function LogsTab() {
                     {log.timestamp.toLocaleTimeString()}
                   </span>
                   <Badge
-                    variant={getLevelBadge(log.level) as "secondary" | "success" | "warning" | "error"}
+                    variant={getLevelBadge(log.level)}
                     className="text-xs uppercase"
                   >
                     {log.level}

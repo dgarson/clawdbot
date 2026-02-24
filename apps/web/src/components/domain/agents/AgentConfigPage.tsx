@@ -236,7 +236,7 @@ export function AgentConfigPage({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate({ to: "/agents/$agentId", params: { agentId } })}
+                  onClick={() => void navigate({ to: "/agents/$agentId", params: { agentId } })}
                   className="gap-1.5"
                 >
                   <ChevronLeft className="size-4" />

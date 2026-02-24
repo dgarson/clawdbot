@@ -1,8 +1,8 @@
 import { html, nothing } from "lit";
+import type { GatewaySessionRow, SessionsListResult } from "../types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { pathForTab } from "../navigation.ts";
 import { formatSessionTokens } from "../presenter.ts";
-import type { GatewaySessionRow, SessionsListResult } from "../types.ts";
 
 export type SessionsProps = {
   loading: boolean;
@@ -40,7 +40,45 @@ const VERBOSE_LEVELS = [
   { value: "on", label: "on" },
   { value: "full", label: "full" },
 ] as const;
-const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
+
+/** Returns a CSS class that color-codes the model pill by rough cost/intelligence tier. */
+function modelChipClass(model?: string | null): string {
+  if (!model) {
+    return "chip";
+  }
+  const m = model.toLowerCase();
+  // High-cost / frontier models → amber
+  if (
+    m.includes("opus") ||
+    m.includes("gpt-5.2") ||
+    (m.includes("gpt-5.3") && !m.endsWith("spark")) ||
+    m.includes("gpt-oss-120b") ||
+    m.includes("gemini-3.1-pro") ||
+    m.includes("gemini-3.0-pro") ||
+    m.includes("gemini-2.5-pro") ||
+    m.includes("deepseek-r1") ||
+    m.includes("r1-0528")
+  ) {
+    return "chip chip-warn";
+  }
+  // Small / cheap models → green
+  if (
+    m.includes("haiku") ||
+    (m.includes("mini") && !m.includes("minimax")) ||
+    m.includes("nano") ||
+    (m.includes("flash") && !m.includes("glm-4.7-flash")) ||
+    m.includes("spark") ||
+    m.includes("small") ||
+    m.includes("instant") ||
+    m.includes("lite") ||
+    m.includes("lightning") ||
+    m.includes("glm-4.7-flash")
+  ) {
+    return "chip chip-ok";
+  }
+  // Mid-tier (sonnet, codex, deepseek-v3, gpt-5.1, etc.) → default
+  return "chip";
+}
 
 function normalizeProviderId(provider?: string | null): string {
   if (!provider) {
@@ -197,7 +235,7 @@ export function renderSessions(props: SessionsProps) {
           <div>Tokens</div>
           <div>Thinking</div>
           <div>Verbose</div>
-          <div>Reasoning</div>
+          <div>Model</div>
           <div>Actions</div>
         </div>
         ${
@@ -228,13 +266,13 @@ function renderRow(
   const thinkLevels = withCurrentOption(resolveThinkLevelOptions(row.modelProvider), thinking);
   const verbose = row.verboseLevel ?? "";
   const verboseLevels = withCurrentLabeledOption(VERBOSE_LEVELS, verbose);
-  const reasoning = row.reasoningLevel ?? "";
   const inheritedThinkingLabel = `⤴ ${row.resolvedThinkingLevel ?? "off"}`;
   const inheritedVerboseLabel = row.resolvedVerboseLevel
     ? `⤴ ${row.resolvedVerboseLevel}`
     : "⤴ inherit";
-  const inheritedReasoningLabel = "⤴ off";
-  const reasoningLevels = withCurrentOption(REASONING_LEVELS, reasoning);
+  const modelName = row.model ?? null;
+  const modelLabel = modelName ?? "—";
+  const chipClass = modelChipClass(modelName);
   const displayName =
     typeof row.displayName === "string" && row.displayName.trim().length > 0
       ? row.displayName.trim()
@@ -301,20 +339,7 @@ function renderRow(
         </select>
       </div>
       <div>
-        <select
-          ?disabled=${disabled}
-          @change=${(e: Event) => {
-            const value = (e.target as HTMLSelectElement).value;
-            onPatch(row.key, { reasoningLevel: value || null });
-          }}
-        >
-          ${reasoningLevels.map(
-            (level) =>
-              html`<option value=${level} ?selected=${reasoning === level}>
-                ${level || inheritedReasoningLabel}
-              </option>`,
-          )}
-        </select>
+        <span class=${chipClass}>${modelLabel}</span>
       </div>
       <div>
         <button class="btn danger" ?disabled=${disabled} @click=${() => onDelete(row.key)}>

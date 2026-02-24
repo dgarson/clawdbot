@@ -57,7 +57,7 @@ function mergeModelConfig(existing: unknown, nextModel?: string): AgentModelConf
   if (!nextModel) {return (existing as AgentModelConfig | undefined) ?? undefined;}
   if (isPlainObject(existing)) {
     return {
-      ...(existing as Record<string, unknown>),
+      ...(existing),
       primary: nextModel,
     } as AgentModelConfig;
   }

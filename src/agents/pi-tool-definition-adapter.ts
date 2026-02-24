@@ -4,20 +4,29 @@ import type {
   AgentToolUpdateCallback,
 } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
-import { logDebug, logError } from "../logger.js";
-import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
-import { isPlainObject } from "../utils.js";
 import type { ClientToolDefinition } from "./pi-embedded-runner/run/params.js";
 import type { HookContext } from "./pi-tools.before-tool-call.js";
+import { logDebug, logError, logWarn } from "../logger.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
+import { isPlainObject } from "../utils.js";
 import {
   consumeAdjustedParamsForToolCall,
   isToolWrappedWithBeforeToolCallHook,
   runBeforeToolCallHook,
 } from "./pi-tools.before-tool-call.js";
+import { sanitizeToolCallId } from "./tool-call-id.js";
+import { validateAndRepairToolCall } from "./tool-call-validator.js";
 import { normalizeToolName } from "./tool-policy.js";
 import { jsonResult } from "./tools/common.js";
 
 type AnyAgentTool = AgentTool;
+type UnknownRecord = Record<string, unknown>;
+
+type ToolCompatibilityOptions = {
+  provider?: string;
+  model?: string;
+  sessionKey?: string;
+};
 
 type ToolExecuteArgsCurrent = [
   string,
@@ -86,11 +95,56 @@ function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   };
 }
 
-export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
+function buildRepairFailureResult(params: {
+  toolName: string;
+  reason?: string;
+  diagnostics: string[];
+  originalError: string;
+}): AgentToolResult<unknown> {
+  return jsonResult({
+    status: "error",
+    tool: params.toolName,
+    stage: "tool-call-validation",
+    error: params.originalError,
+    note:
+      "Please retry with strict JSON matching the tool schema. " +
+      "Example fields: keep exact key names and valid JSON types.",
+    reason: params.reason,
+    diagnostics: params.diagnostics,
+  });
+}
+
+function toRecord(value: unknown): UnknownRecord | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  return value as UnknownRecord;
+}
+
+export function toToolDefinitions(
+  tools: AnyAgentTool[],
+  compatibility?: ToolCompatibilityOptions,
+): ToolDefinition[] {
+  const sessionPrefix = compatibility?.sessionKey ? `[${compatibility.sessionKey}] ` : "";
+  const toolCallIdSeen = new Map<string, number>();
+
+  const normalizeToolCallIdWithDupes = (
+    toolCallId: string,
+  ): { resolved: string; isDuplicate: boolean } => {
+    const sanitized = sanitizeToolCallId(toolCallId);
+    const next = (toolCallIdSeen.get(sanitized) ?? 0) + 1;
+    toolCallIdSeen.set(sanitized, next);
+    return {
+      resolved: next === 1 ? sanitized : `${sanitized}_${next}`,
+      isDuplicate: next > 1,
+    };
+  };
+
   return tools.map((tool) => {
     const name = tool.name || "tool";
     const normalizedName = normalizeToolName(name);
     const beforeHookWrapped = isToolWrappedWithBeforeToolCallHook(tool);
+    const schema = tool.parameters as UnknownRecord | undefined;
     return {
       name,
       label: tool.label ?? name,
@@ -98,22 +152,62 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
       parameters: tool.parameters,
       execute: async (...args: ToolExecuteArgs): Promise<AgentToolResult<unknown>> => {
         const { toolCallId, params, onUpdate, signal } = splitToolExecuteArgs(args);
+        const { resolved: resolvedToolCallId, isDuplicate } = normalizeToolCallIdWithDupes(
+          typeof toolCallId === "string" ? toolCallId : "",
+        );
+        if (isDuplicate) {
+          const sessionHint = compatibility?.sessionKey
+            ? ` session=${compatibility.sessionKey}`
+            : "";
+          logWarn(
+            `tools: duplicate toolCallId tool=${name} id=${String(toolCallId)} normalized=${resolvedToolCallId}${sessionHint}`,
+          );
+        }
         let executeParams = params;
         try {
           if (!beforeHookWrapped) {
             const hookOutcome = await runBeforeToolCallHook({
               toolName: name,
               params,
-              toolCallId,
+              toolCallId: resolvedToolCallId,
             });
             if (hookOutcome.blocked) {
               throw new Error(hookOutcome.reason);
             }
             executeParams = hookOutcome.params;
           }
-          const result = await tool.execute(toolCallId, executeParams, signal, onUpdate);
+
+          if (schema && compatibility?.provider) {
+            const validation = validateAndRepairToolCall({
+              toolName: name,
+              args: executeParams,
+              schema,
+              provider: compatibility.provider,
+              model: compatibility.model,
+              toolCallId: resolvedToolCallId,
+            });
+            if (!validation.valid) {
+              return buildRepairFailureResult({
+                toolName: normalizedName,
+                reason: validation.reason,
+                diagnostics: validation.diagnostics,
+                originalError: validation.reason ?? "Tool arguments failed validation",
+              });
+            }
+            executeParams = validation.args;
+            if (validation.repaired || !validation.skipped) {
+              const record = toRecord(executeParams);
+              logDebug(
+                `tools: tool args ${validation.repaired ? "repaired" : "validated"} ` +
+                  `tool=${name} provider=${compatibility.provider} ` +
+                  `model=${compatibility.model ?? ""} id=${resolvedToolCallId} params=${record ? Object.keys(record).join(",") : "(non-object)"}`,
+              );
+            }
+          }
+
+          const result = await tool.execute(resolvedToolCallId, executeParams, signal, onUpdate);
           const afterParams = beforeHookWrapped
-            ? (consumeAdjustedParamsForToolCall(toolCallId) ?? executeParams)
+            ? (consumeAdjustedParamsForToolCall(resolvedToolCallId) ?? executeParams)
             : executeParams;
 
           // Call after_tool_call hook
@@ -130,7 +224,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
               );
             } catch (hookErr) {
               logDebug(
-                `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
+                `${sessionPrefix}after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
               );
             }
           }
@@ -148,13 +242,13 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             throw err;
           }
           if (beforeHookWrapped) {
-            consumeAdjustedParamsForToolCall(toolCallId);
+            consumeAdjustedParamsForToolCall(resolvedToolCallId);
           }
           const described = describeToolExecutionError(err);
           if (described.stack && described.stack !== described.message) {
-            logDebug(`tools: ${normalizedName} failed stack:\n${described.stack}`);
+            logDebug(`${sessionPrefix}tools: ${normalizedName} failed stack:\n${described.stack}`);
           }
-          logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          logError(`${sessionPrefix}[tools] ${normalizedName} failed: ${described.message}`);
 
           const errorResult = jsonResult({
             status: "error",

@@ -77,6 +77,7 @@ export function ReagraphView<TNodeData = unknown, TEdgeData = unknown>({
   onEdgeClick,
   onCanvasClick,
 }: ReagraphViewProps<TNodeData, TEdgeData>) {
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
   const [GraphCanvas, setGraphCanvas] = React.useState<GraphCanvasModule["GraphCanvas"] | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
 

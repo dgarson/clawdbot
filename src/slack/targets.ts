@@ -16,13 +16,13 @@ export type SlackTarget = MessagingTarget;
 type SlackTargetParseOptions = MessagingTargetParseOptions;
 
 /**
- * Returns true if the value looks like a Slack channel/user ID (e.g. C01234ABCDE)
- * rather than a human-readable name (e.g. "general").
- *
- * Slack IDs start with C, G, D, or W and always contain at least one digit.
+ * Slack IDs (channel, user, DM, group) are always uppercase alphanumeric and start
+ * with a known prefix letter (C, D, G, U, W). Uppercase the id when it matches that
+ * shape so a lowercase id provided by the agent still succeeds. Name references
+ * (e.g. "general", "dev-team") do not match this pattern and are left untouched.
  */
-function isSlackId(candidate: string): boolean {
-  return /^[CGDW][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(candidate);
+function normalizeSlackId(id: string): string {
+  return /^[CUWGD][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(id) ? id.toUpperCase() : id;
 }
 
 export function parseSlackTarget(
@@ -39,7 +39,7 @@ export function parseSlackTarget(
     kind: "user",
   });
   if (mentionTarget) {
-    return mentionTarget;
+    return { ...mentionTarget, id: normalizeSlackId(mentionTarget.id) };
   }
   const prefixedTarget = parseTargetPrefixes({
     raw: trimmed,
@@ -50,7 +50,7 @@ export function parseSlackTarget(
     ],
   });
   if (prefixedTarget) {
-    return prefixedTarget;
+    return { ...prefixedTarget, id: normalizeSlackId(prefixedTarget.id) };
   }
   if (trimmed.startsWith("@")) {
     const candidate = trimmed.slice(1).trim();
@@ -59,29 +59,26 @@ export function parseSlackTarget(
       pattern: /^[A-Z0-9]+$/i,
       errorMessage: "Slack DMs require a user id (use user:<id> or <@id>)",
     });
-    return buildMessagingTarget("user", id, trimmed);
+    return buildMessagingTarget("user", normalizeSlackId(id), trimmed);
   }
   if (trimmed.startsWith("#")) {
     const candidate = trimmed.slice(1).trim();
-    if (!candidate) {
-      return undefined;
-    }
-    // If it looks like a Slack channel ID, uppercase and return directly.
-    // Otherwise treat as a channel name — the caller is responsible for async lookup.
-    if (isSlackId(candidate)) {
-      return buildMessagingTarget("channel", candidate.toUpperCase(), trimmed);
-    }
-    return buildMessagingTarget("channel", candidate, trimmed);
+    const id = ensureTargetId({
+      candidate,
+      pattern: /^[A-Z0-9_-]+$/i,
+      errorMessage: "Slack channels require a channel id (use channel:<id>)",
+    });
+    return buildMessagingTarget("channel", normalizeSlackId(id), trimmed);
   }
   if (options.defaultKind) {
-    return buildMessagingTarget(options.defaultKind, trimmed, trimmed);
+    return buildMessagingTarget(options.defaultKind, normalizeSlackId(trimmed), trimmed);
   }
-  return buildMessagingTarget("channel", trimmed, trimmed);
+  return buildMessagingTarget("channel", normalizeSlackId(trimmed), trimmed);
 }
 
 export function resolveSlackChannelId(raw: string): string {
   const target = parseSlackTarget(raw, { defaultKind: "channel" });
   const id = requireTargetKind({ platform: "Slack", target, kind: "channel" });
   // Uppercase if it looks like a Slack channel ID (e.g. c123 → C123).
-  return isSlackId(id) ? id.toUpperCase() : id;
+  return normalizeSlackId(id);
 }

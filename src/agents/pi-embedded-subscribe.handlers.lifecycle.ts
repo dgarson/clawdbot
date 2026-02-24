@@ -1,7 +1,7 @@
+import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handlers.types.js";
 import { emitAgentEvent } from "../infra/agent-events.js";
 import { createInlineCodeState } from "../markdown/code-spans.js";
 import { formatAssistantErrorText } from "./pi-embedded-helpers.js";
-import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handlers.types.js";
 import { isAssistantMessage } from "./pi-embedded-utils.js";
 
 export {
@@ -9,8 +9,21 @@ export {
   handleAutoCompactionStart,
 } from "./pi-embedded-subscribe.handlers.compaction.js";
 
+function formatLifecycleContext(ctx: EmbeddedPiSubscribeContext): string {
+  const details = [
+    `provider=${ctx.params.provider ?? "unknown"}`,
+    `model=${ctx.params.model ?? "unknown"}`,
+  ];
+  if (ctx.params.runtime === "claude-sdk") {
+    details.push(`runtime=${ctx.params.runtime}`);
+  }
+  return details.join(" ");
+}
+
 export function handleAgentStart(ctx: EmbeddedPiSubscribeContext) {
-  ctx.log.debug(`embedded run agent start: runId=${ctx.params.runId}`);
+  ctx.log.debug(
+    `embedded run agent start: runId=${ctx.params.runId} ${formatLifecycleContext(ctx)}`,
+  );
   emitAgentEvent({
     runId: ctx.params.runId,
     stream: "lifecycle",
@@ -29,7 +42,9 @@ export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
   const lastAssistant = ctx.state.lastAssistant;
   const isError = isAssistantMessage(lastAssistant) && lastAssistant.stopReason === "error";
 
-  ctx.log.debug(`embedded run agent end: runId=${ctx.params.runId} isError=${isError}`);
+  ctx.log.debug(
+    `embedded run agent end: runId=${ctx.params.runId} isError=${isError} ${formatLifecycleContext(ctx)}`,
+  );
 
   if (isError && lastAssistant) {
     const friendlyError = formatAssistantErrorText(lastAssistant, {
@@ -38,12 +53,16 @@ export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
       provider: lastAssistant.provider,
       model: lastAssistant.model,
     });
+    const errorText = (friendlyError || lastAssistant.errorMessage || "LLM request failed.").trim();
+    ctx.log.warn(
+      `embedded run agent end: runId=${ctx.params.runId} isError=true error=${errorText}`,
+    );
     emitAgentEvent({
       runId: ctx.params.runId,
       stream: "lifecycle",
       data: {
         phase: "error",
-        error: friendlyError || lastAssistant.errorMessage || "LLM request failed.",
+        error: errorText,
         endedAt: Date.now(),
       },
     });
@@ -51,10 +70,11 @@ export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
       stream: "lifecycle",
       data: {
         phase: "error",
-        error: friendlyError || lastAssistant.errorMessage || "LLM request failed.",
+        error: errorText,
       },
     });
   } else {
+    ctx.log.debug(`embedded run agent end: runId=${ctx.params.runId} isError=${isError}`);
     emitAgentEvent({
       runId: ctx.params.runId,
       stream: "lifecycle",

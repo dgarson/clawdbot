@@ -10,8 +10,8 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
-import { translateSdkMessageToEvents } from "../event-adapter.js";
 import type { ClaudeSdkEventAdapterState } from "../types.js";
+import { translateSdkMessageToEvents } from "../event-adapter.js";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -157,6 +157,23 @@ describe("event translation — required event types", () => {
     );
 
     expect(state.sdkResultError).toBe("Tool execution timed out");
+  });
+
+  it("prefers result text when is_error is true and subtype is success", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "result",
+        subtype: "success",
+        is_error: true,
+        result: "Prompt is too long",
+      } as never,
+      state,
+    );
+
+    expect(state.sdkResultError).toBe("Prompt is too long");
   });
 
   it("does not set sdkResultError on successful result", () => {

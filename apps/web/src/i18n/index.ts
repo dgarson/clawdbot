@@ -20,7 +20,7 @@ export const supportedLanguages = [
 
 export type SupportedLanguage = (typeof supportedLanguages)[number]["code"];
 
-i18n
+void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({

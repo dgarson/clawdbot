@@ -21,6 +21,7 @@ Prove CSDK parity against current Pi behavior at integration boundaries, without
 Target: CSDK event -> normalized event mapping.
 
 Cases:
+
 - assistant text stream sequencing
 - reasoning stream sequencing
 - tool start/update/end mapping
@@ -30,6 +31,7 @@ Cases:
 ### 2) Subscription parity tests (synthetic)
 
 Feed normalized adapter events into existing subscribe harness and assert:
+
 - callback order
 - dedupe behavior
 - block reply flush before tool start
@@ -38,6 +40,7 @@ Feed normalized adapter events into existing subscribe harness and assert:
 ### 3) Attempt integration tests
 
 Mock CSDK query stream and verify:
+
 - `EmbeddedRunAttemptResult` shape compatibility
 - usage aggregation
 - timeout/abort flags
@@ -46,6 +49,7 @@ Mock CSDK query stream and verify:
 ### 4) Run orchestration regression tests
 
 Exercise `runEmbeddedPiAgent` with runtime switched to CSDK and assert:
+
 - fallback loops
 - compaction decisions
 - payload shaping parity
