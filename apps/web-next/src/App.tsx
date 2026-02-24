@@ -36,6 +36,9 @@ const ModelComparisonMatrix        = React.lazy(() => import("./views/ModelCompa
 const AgentWaveScheduler           = React.lazy(() => import("./views/AgentWaveScheduler"));
 const DiscoveryPreflightChecklist  = React.lazy(() => import("./views/DiscoveryPreflightChecklist"));
 const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryFindingsSearch"));
+const TodayCommandCenter            = React.lazy(() => import("./views/TodayCommandCenter"));
+const ActionInboxView               = React.lazy(() => import("./views/ActionInboxView"));
+const AgentCapacityPlanner          = React.lazy(() => import("./views/AgentCapacityPlanner"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -307,6 +310,9 @@ const FeatureFlagManager             = React.lazy(() => import("./views/FeatureF
 
 export const navItems = [
   { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
+  { id: "today-command",         label: "Today Command Center", emoji: "🧭", shortcut: null },
+  { id: "action-inbox",          label: "Action Inbox",         emoji: "📥", shortcut: null },
+  { id: "capacity-planner",      label: "Capacity Planner",     emoji: "📐", shortcut: null },
   { id: "discovery-run-monitor",   label: "Discovery Monitor",    emoji: "🔭", shortcut: null },
   { id: "brave-api-wizard",        label: "Brave API Setup",      emoji: "🔑", shortcut: null },
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
@@ -582,6 +588,9 @@ export const navItems = [
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
   dashboard:     <DashboardSkeleton />,
+  "today-command": <DashboardSkeleton />,
+  "action-inbox": <TableSkeleton rows={8} />,
+  "capacity-planner": <DashboardSkeleton />,
   chat:          <ChatSkeleton />,
   sessions:      <TableSkeleton rows={8} />,
   nodes:         <TableSkeleton rows={6} />,
@@ -849,6 +858,46 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "session-debug-timeline":    <ContentSkeleton />,
 };
 
+type NavFilter = "all" | "core" | "builders" | "operations" | "analytics";
+
+type NavPreset = {
+  id: string;
+  name: string;
+  viewId: string;
+  navFilter: NavFilter;
+  navQuery: string;
+};
+
+const CORE_VIEW_IDS = new Set([
+  "dashboard",
+  "chat",
+  "builder",
+  "sessions",
+  "settings",
+  "notifications",
+  "search",
+  "system-health",
+]);
+
+function getNavCategory(item: { id: string; label: string }): Exclude<NavFilter, "all"> {
+  if (CORE_VIEW_IDS.has(item.id)) {return "core";}
+  const text = `${item.id} ${item.label}`.toLowerCase();
+  if (["builder", "wizard", "editor", "config", "setup", "flow", "onboarding"].some((k) => text.includes(k))) {
+    return "builders";
+  }
+  if (["dashboard", "analytics", "report", "metrics", "insight", "ledger", "forecast", "monitor"].some((k) => text.includes(k))) {
+    return "analytics";
+  }
+  return "operations";
+}
+
+function getAudienceLabel(category: Exclude<NavFilter, "all">): string {
+  if (category === "core") {return "All operators";}
+  if (category === "builders") {return "Builders and implementers";}
+  if (category === "analytics") {return "Leads tracking outcomes";}
+  return "Platform operators";
+}
+
 function LoadingFallback({ viewId }: { viewId: string }) {
   const skeleton = SKELETON_MAP[viewId];
   if (skeleton) {
@@ -913,6 +962,15 @@ function AppContent() {
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [navQuery, setNavQuery] = useState("");
+  const [navFilter, setNavFilter] = useState<NavFilter>("core");
+  const [savedPresets, setSavedPresets] = useState<NavPreset[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("oc_nav_presets") ?? "[]");
+    } catch {
+      return [];
+    }
+  });
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -920,6 +978,7 @@ function AppContent() {
   const notificationUnreadCount = useNotificationUnreadCount();
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
+  const currentCategory = getNavCategory(currentNav);
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < navHistory.length - 1;
 
@@ -955,6 +1014,28 @@ function AppContent() {
       // ignore
     }
   }, [historyIndex, navHistory, visitView, recordInteraction]);
+
+  const saveCurrentPreset = () => {
+    const name = window.prompt("Preset name", currentNav.label);
+    if (!name) {return;}
+    const preset: NavPreset = {
+      id: `preset-${Date.now()}`,
+      name,
+      viewId: activeView,
+      navFilter,
+      navQuery,
+    };
+    setSavedPresets((prev) => [preset, ...prev].slice(0, 8));
+    toast({ message: `Saved preset: ${name}`, type: 'success' });
+  };
+
+  const applyPreset = (presetId: string) => {
+    const preset = savedPresets.find((p) => p.id === presetId);
+    if (!preset) {return;}
+    setNavFilter(preset.navFilter);
+    setNavQuery(preset.navQuery);
+    navigate(preset.viewId);
+  };
 
   const goBack = useCallback(() => {
     if (!canGoBack) {return;}
@@ -1032,6 +1113,10 @@ function AppContent() {
     }
   }, [cmdPaletteOpen]);
 
+  useEffect(() => {
+    localStorage.setItem("oc_nav_presets", JSON.stringify(savedPresets));
+  }, [savedPresets]);
+
   // Filtered commands for palette
   const filteredNav = navItems.filter(
     (n) =>
@@ -1039,6 +1124,18 @@ function AppContent() {
       n.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       n.id.includes(searchQuery.toLowerCase())
   );
+
+  const visibleNavItems = navItems.filter((item) => {
+    const query = navQuery.trim().toLowerCase();
+    const matchesQuery = query.length === 0
+      ? true
+      : item.label.toLowerCase().includes(query) || item.id.toLowerCase().includes(query);
+    const category = getNavCategory(item);
+    const matchesFilter = navFilter === "all" ? true : category === navFilter;
+    return matchesQuery && matchesFilter;
+  });
+
+  const activeViewVisible = visibleNavItems.some((item) => item.id === activeView);
 
   const recentIds: string[] = (() => {
     try {
@@ -1073,6 +1170,9 @@ function AppContent() {
   const renderView = () => {
     switch (activeView) {
       case "morning-packet": return <MorningPacket />;
+      case "today-command": return <TodayCommandCenter />;
+      case "action-inbox": return <ActionInboxView />;
+      case "capacity-planner": return <AgentCapacityPlanner />;
       case "discovery-run-monitor":   return <DiscoveryRunMonitor />;
       case "brave-api-wizard":        return <BraveAPIKeySetupWizard />;
       case "discovery-wave-results":  return <DiscoveryWaveResults />;
@@ -1394,8 +1494,43 @@ function AppContent() {
         </div>
 
         {/* Nav */}
+        {!sidebarCollapsed && (
+          <div className="p-2 border-b border-border space-y-2">
+            <input
+              type="text"
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder="Filter views"
+              className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Filter navigation views"
+            />
+            <div className="grid grid-cols-2 gap-1" role="tablist" aria-label="Audience filter">
+              {([
+                ["core", "Core"],
+                ["builders", "Build"],
+                ["operations", "Ops"],
+                ["analytics", "Insights"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  role="tab"
+                  aria-selected={navFilter === value}
+                  onClick={() => setNavFilter(value)}
+                  className={cn(
+                    "px-2 py-1 text-[10px] rounded border transition-colors",
+                    navFilter === value
+                      ? "bg-primary/15 border-primary/40 text-primary"
+                      : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <nav className="flex-1 overflow-y-auto py-2">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <button
               key={item.id}
               onClick={() => navigate(item.id)}
@@ -1433,6 +1568,9 @@ function AppContent() {
               )}
             </button>
           ))}
+          {visibleNavItems.length === 0 && (
+            <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
+          )}
         </nav>
 
         {/* Footer */}
@@ -1489,6 +1627,11 @@ function AppContent() {
               </button>
             </div>
           )}
+          {!sidebarCollapsed && (
+            <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+              Audience: <span className="text-foreground/90">{getAudienceLabel(currentCategory)}</span>
+            </p>
+          )}
         </div>
       </aside>
 
@@ -1511,8 +1654,18 @@ function AppContent() {
               ✕
             </button>
           </div>
+          <div className="p-2 border-b border-border">
+            <input
+              type="text"
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder="Filter views"
+              className="w-full bg-secondary/40 border border-border rounded-md px-2 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Filter navigation views"
+            />
+          </div>
           <nav className="flex-1 overflow-y-auto py-2">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => navigate(item.id)}
@@ -1540,6 +1693,9 @@ function AppContent() {
                 )}
               </button>
             ))}
+            {visibleNavItems.length === 0 && (
+              <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
+            )}
           </nav>
         </aside>
       )}
@@ -1601,6 +1757,8 @@ function AppContent() {
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground/50">OpenClaw</span>
             <span className="text-muted-foreground/30">/</span>
+            <span className="hidden md:inline text-muted-foreground/50 capitalize">{currentCategory}</span>
+            <span className="hidden md:inline text-muted-foreground/30">/</span>
             <span className="text-foreground font-medium flex items-center gap-1.5">
               <span aria-hidden="true">{currentNav.emoji}</span>
               {currentNav.label}
@@ -1609,6 +1767,29 @@ function AppContent() {
 
           {/* Spacer */}
           <div className="flex-1" />
+
+          {/* Presets */}
+          <div className="hidden lg:flex items-center gap-2">
+            <select
+              className="bg-secondary/30 border border-border rounded-md px-2 py-1 text-xs text-foreground"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {applyPreset(e.target.value);}
+              }}
+              aria-label="Apply saved preset"
+            >
+              <option value="">Presets</option>
+              {savedPresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>{preset.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={saveCurrentPreset}
+              className="px-2 py-1 text-xs rounded-md border border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
+            >
+              Save preset
+            </button>
+          </div>
 
           {/* Theme toggle */}
           <ThemeToggle />
@@ -1638,6 +1819,11 @@ function AppContent() {
 
         {/* View content */}
         <main id="main-content" className="flex-1 overflow-y-auto" role="main">
+          {!activeViewVisible && (
+            <div className="mx-3 mt-3 sm:mx-4 md:mx-6 max-w-7xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              Current view is outside the active navigation filter.
+            </div>
+          )}
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
               {/* M9: responsive pass — reduce padding on mobile */}
