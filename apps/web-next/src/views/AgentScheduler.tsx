@@ -275,7 +275,120 @@ function CalendarStrip({ schedules }: { schedules: ScheduledTask[] }) {
 type ViewMode = "list" | "calendar";
 type StatusFilter = ScheduleStatus | "all";
 
-export default function AgentScheduler() {
+import { Skeleton } from '../components/Skeleton';
+
+function AgentSchedulerSkeleton() {
+  return (
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-tok-border shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-3 w-56" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-28 rounded-lg" />
+            <Skeleton className="h-8 w-32 rounded-lg" />
+          </div>
+        </div>
+        {/* Filter row */}
+        <div className="flex gap-2">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-7 w-16 rounded-lg" />
+          ))}
+          <Skeleton className="h-7 w-28 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Calendar strip */}
+      <div className="p-6 border-b border-tok-border shrink-0">
+        <div className="rounded-xl border border-tok-border overflow-hidden">
+          <div className="px-4 py-3 border-b border-tok-border">
+            <Skeleton className="h-4 w-52" />
+          </div>
+          <div className="grid grid-cols-7 divide-x divide-tok-border">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className="p-2 min-h-[80px] space-y-2">
+                <Skeleton className="h-3 w-6" />
+                <Skeleton className="h-4 w-4" />
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-full rounded" />
+                  <Skeleton className="h-4 w-4/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* List + detail split */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Schedule list */}
+        <div className="w-80 shrink-0 border-r border-tok-border p-3 space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="w-5 h-5 rounded-full" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="h-5 w-14 rounded" />
+              </div>
+              <Skeleton className="h-3 w-full" />
+              <div className="flex justify-between">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Detail panel */}
+        <div className="flex-1 p-6">
+          <div className="space-y-5 max-w-xl">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="w-8 h-8 rounded-full" />
+                  <Skeleton className="h-7 w-48" />
+                </div>
+                <Skeleton className="h-4 w-72" />
+              </div>
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="rounded-xl bg-surface-1 border border-tok-border p-3 space-y-1">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-3/4" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-4 w-12 rounded-full" />
+              <Skeleton className="h-4 w-14 rounded-full" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-24 rounded-xl" />
+              <Skeleton className="h-9 w-16 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function AgentScheduler({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AgentSchedulerSkeleton />;
+
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [agentFilter, setAgentFilter] = useState<string>("all");
@@ -315,11 +428,7 @@ export default function AgentScheduler() {
   ];
 
   return (
-    <>
-    <a href="#agent-scheduler-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
-    <main id="agent-scheduler-main" className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Agent Scheduler">
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Agent Scheduler">
       {/* Header */}
       <div className="px-3 py-3 sm:px-4 md:px-6 md:py-4 border-b border-tok-border shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -340,7 +449,7 @@ export default function AgentScheduler() {
                   aria-pressed={viewMode === mode}
                   className={cn(
                     "px-3 py-1 rounded text-xs capitalize transition-colors",
-                    "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                    "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                     viewMode === mode ? "bg-surface-3 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
                   )}
                 >
@@ -351,7 +460,7 @@ export default function AgentScheduler() {
             <button
               className={cn(
                 "px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-medium transition-colors",
-                "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
               )}
             >
               + New Schedule
@@ -370,7 +479,7 @@ export default function AgentScheduler() {
                 aria-pressed={statusFilter === s.value}
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
-                  "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   statusFilter === s.value
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
                     : "border-tok-border text-fg-secondary hover:text-fg-primary"
@@ -388,7 +497,7 @@ export default function AgentScheduler() {
             aria-label="Filter by agent"
             className={cn(
               "bg-surface-2 border border-tok-border rounded-lg px-3 py-1 text-xs text-fg-primary",
-              "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           >
             <option value="all">All agents</option>
@@ -428,7 +537,7 @@ export default function AgentScheduler() {
                     aria-pressed={selectedId === sched.id}
                     className={cn(
                       "w-full text-left rounded-xl border p-3 transition-all",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       selectedId === sched.id
                         ? "border-indigo-500 bg-indigo-950/30"
                         : "border-tok-border bg-surface-1 hover:border-tok-border"
@@ -482,7 +591,7 @@ export default function AgentScheduler() {
                     onClick={() => handleToggle(selected.id)}
                     className={cn(
                       "relative inline-flex h-6 w-11 rounded-full transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       selected.status === "active" ? "bg-indigo-600" : "bg-surface-3"
                     )}
                   >
@@ -534,7 +643,7 @@ export default function AgentScheduler() {
                   <button
                     className={cn(
                       "px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm font-medium transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                     )}
                   >
                     Run Now
@@ -542,7 +651,7 @@ export default function AgentScheduler() {
                   <button
                     className={cn(
                       "px-4 py-2 rounded-xl border border-tok-border text-fg-primary hover:text-fg-primary text-sm transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                     )}
                   >
                     Edit
@@ -568,6 +677,5 @@ export default function AgentScheduler() {
         </div>
       )}
     </main>
-    </>
   );
 }

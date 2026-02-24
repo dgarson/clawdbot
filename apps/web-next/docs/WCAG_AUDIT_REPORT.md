@@ -1260,3 +1260,5 @@ These 8 views were expanded by Wes with token migration, responsive layouts, and
 **Cumulative total (Batch 1 + 2 + 3): 257**  
 **New TypeScript errors introduced: 0**  
 **Build status:** ✅ Passing (0 new TS errors; pre-existing errors in AgentScheduler and AlertCenter are unchanged and unrelated to accessibility work)
+=======
+>>>>>>> feat/horizon-ui-complete

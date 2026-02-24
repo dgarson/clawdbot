@@ -299,7 +299,7 @@ function AlertCard({ alert, selected, onSelect }: AlertCardProps) {
       aria-label={`${alert.title} — ${alert.severity}`}
       className={cn(
         "w-full text-left rounded-xl border p-4 transition-all",
-        "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+        "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected
           ? "border-indigo-500 bg-indigo-950/30"
           : isFiring
@@ -310,7 +310,7 @@ function AlertCard({ alert, selected, onSelect }: AlertCardProps) {
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2">
           {isFiring && (
-            <span className="w-2 h-2 rounded-full bg-rose-400 motion-safe:animate-pulse shrink-0" aria-label="Firing" />
+            <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse shrink-0" aria-label="Firing" />
           )}
           <span className={cn("text-xs px-2 py-0.5 rounded-full border", SEVERITY_COLORS[alert.severity])}>
             {SEVERITY_LABELS[alert.severity]}
@@ -339,7 +339,122 @@ type TabId = "alerts" | "rules";
 type StatusFilter = AlertStatus | "all";
 type SeverityFilter = AlertSeverity | "all";
 
-export default function AlertCenter() {
+import { Skeleton } from '../components/Skeleton';
+
+function AlertCenterSkeleton() {
+  return (
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-tok-border shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+          {/* Stat counts */}
+          <div className="flex items-center gap-5">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="text-center space-y-1">
+                <Skeleton className="h-7 w-6 mx-auto" />
+                <Skeleton className="h-3 w-12" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Tabs */}
+        <div className="flex gap-1">
+          <Skeleton className="h-8 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-24 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Alert list + detail */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* List */}
+        <div className="w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
+          {/* Filters */}
+          <div className="p-3 border-b border-tok-border space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-14 rounded" />)}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-6 w-16 rounded" />)}
+            </div>
+          </div>
+          {/* Alert cards */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-12" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-3 w-2/3" />
+                <div className="flex items-center gap-2 mt-1">
+                  <Skeleton className="w-4 h-4 rounded" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Detail panel */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-5 max-w-2xl">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Skeleton className="h-7 w-20 rounded-full" />
+                <Skeleton className="h-7 w-20 rounded-full" />
+                <Skeleton className="h-7 w-28 rounded-full" />
+              </div>
+              <Skeleton className="h-7 w-80" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+            <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-3">
+              <Skeleton className="h-4 w-20" />
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="w-5 h-5" />
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-3">
+              <Skeleton className="h-4 w-16" />
+              <div className="flex flex-wrap gap-2">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-24 rounded" />)}
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Skeleton className="flex-1 h-10 rounded-xl" />
+              <Skeleton className="flex-1 h-10 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function AlertCenter({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AlertCenterSkeleton />;
+
   const [tab, setTab] = useState<TabId>("alerts");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("all");
@@ -394,11 +509,7 @@ export default function AlertCenter() {
   ];
 
   return (
-    <>
-    <a href="#alert-center-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
-    <main id="alert-center-main" className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Alert Center">
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Alert Center">
       {/* Header */}
       <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-tok-border shrink-0">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
@@ -421,18 +532,16 @@ export default function AlertCenter() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1" role="tablist" aria-label="Alert Center sections">
+        <div className="flex gap-1" role="tablist">
           {tabs.map(t => (
             <button
               key={t.id}
-              id={`tab-${t.id}`}
               role="tab"
               aria-selected={tab === t.id}
-              aria-controls={`tabpanel-${t.id}`}
               onClick={() => setTab(t.id)}
               className={cn(
                 "px-4 py-1.5 rounded-lg text-sm transition-colors",
-                "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                 tab === t.id ? "bg-surface-2 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
               )}
             >
@@ -444,7 +553,7 @@ export default function AlertCenter() {
 
       {/* Content */}
       {tab === "alerts" ? (
-        <div id="tabpanel-alerts" role="tabpanel" aria-labelledby="tab-alerts" className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
           {/* Alert list */}
           <div className="w-64 sm:w-72 md:w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
             {/* Filters */}
@@ -457,7 +566,7 @@ export default function AlertCenter() {
                     aria-pressed={statusFilter === s.value}
                     className={cn(
                       "text-xs px-2 py-1 rounded border transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       statusFilter === s.value
                         ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
                         : "border-tok-border text-fg-secondary hover:text-fg-primary"
@@ -475,7 +584,7 @@ export default function AlertCenter() {
                     aria-pressed={severityFilter === s.value}
                     className={cn(
                       "text-xs px-2 py-1 rounded border transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       severityFilter === s.value
                         ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
                         : "border-tok-border text-fg-secondary hover:text-fg-primary"
@@ -588,7 +697,7 @@ export default function AlertCenter() {
                       onClick={() => handleAcknowledge(selectedAlert.id)}
                       className={cn(
                         "flex-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-fg-primary text-sm font-medium transition-colors",
-                        "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                        "focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
                       )}
                     >
                       Acknowledge
@@ -597,7 +706,7 @@ export default function AlertCenter() {
                       onClick={() => handleResolve(selectedAlert.id)}
                       className={cn(
                         "flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-fg-primary text-sm font-medium transition-colors",
-                        "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                        "focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                       )}
                     >
                       Resolve
@@ -609,7 +718,7 @@ export default function AlertCenter() {
                     onClick={() => handleResolve(selectedAlert.id)}
                     className={cn(
                       "w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-fg-primary text-sm font-medium transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      "focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                     )}
                   >
                     Mark Resolved
@@ -627,7 +736,7 @@ export default function AlertCenter() {
         </div>
       ) : (
         /* Rules tab */
-        <div id="tabpanel-rules" role="tabpanel" aria-labelledby="tab-rules" className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           <div className="rounded-xl bg-surface-1 border border-tok-border overflow-hidden">
             <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
               <div>
@@ -653,7 +762,7 @@ export default function AlertCenter() {
                     aria-label={`${rule.name} ${rule.enabled ? "enabled" : "disabled"}`}
                     className={cn(
                       "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors mt-0.5",
-                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       rule.enabled ? "bg-indigo-600" : "bg-surface-3"
                     )}
                   >
@@ -694,6 +803,5 @@ export default function AlertCenter() {
         </div>
       )}
     </main>
-    </>
   );
 }

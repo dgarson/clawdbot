@@ -201,7 +201,117 @@ function barColor(ratio: number): string {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function BudgetTracker() {
+import { Skeleton } from '../components/Skeleton';
+
+function BudgetTrackerSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-6">
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 min-w-0 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-8 w-40" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-9 w-32 rounded" />
+              <Skeleton className="h-9 w-20 rounded" />
+            </div>
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-lg p-4 space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-6 w-28" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+
+          {/* Stacked spend bar */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 space-y-3">
+            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-6 w-full rounded" />
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <Skeleton className="w-2.5 h-2.5 rounded-sm" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Budget table */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden">
+            <div className="flex gap-2 px-4 py-2.5 border-b border-tok-border">
+              {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
+              <Skeleton className="w-8 h-3" />
+            </div>
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex gap-2 px-4 py-3 border-b border-tok-border last:border-b-0 items-center">
+                <div className="flex-[2] flex items-center gap-2">
+                  <Skeleton className="w-4 h-4 rounded" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="flex-1 h-3" />
+                <Skeleton className="flex-1 h-3" />
+                <div className="flex-[1.2] flex items-center gap-2">
+                  <Skeleton className="flex-1 h-2 rounded-full" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="flex-1 h-3" />
+                <Skeleton className="flex-1 h-3" />
+                <Skeleton className="flex-1 h-3" />
+                <Skeleton className="w-8 h-3" />
+              </div>
+            ))}
+          </div>
+
+          {/* Monthly trend chart */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 space-y-4">
+            <Skeleton className="h-4 w-56" />
+            <div className="flex items-end gap-3 h-40">
+              {[75,90,62,80,95,70,85,55,78,92,65,88].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="flex items-end gap-0.5 h-32 w-full justify-center">
+                    <div className="w-[40%] bg-secondary/70 rounded-t animate-pulse-soft" aria-hidden="true" style={{ height: `${h}%` }} />
+                    <div className="w-[40%] bg-secondary/70 rounded-t animate-pulse-soft" aria-hidden="true" style={{ height: `${Math.max(h - 5, 10)}%` }} />
+                  </div>
+                  <Skeleton className="h-3 w-6" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts sidebar */}
+        <div className="w-[200px] flex-shrink-0">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 sticky top-6 space-y-3">
+            <Skeleton className="h-4 w-28" />
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="rounded-lg p-3 border border-amber-500/30 bg-amber-500/10 space-y-1.5">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ))}
+            <div className="pt-3 border-t border-tok-border space-y-1.5">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-2 w-full rounded-full" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function BudgetTracker({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <BudgetTrackerSkeleton />;
+
   const [period, setPeriod] = useState<Period>("MTD");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -219,11 +329,7 @@ export default function BudgetTracker() {
   const maxTrend = Math.max(...MONTHLY_DATA.map((m) => Math.max(m.budget, m.actual)));
 
   return (
-    <>
-    <a href="#budget-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
-    <main id="budget-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       <div className="flex flex-col md:flex-row gap-6">
         {/* ── Main Content ─────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-6">
@@ -231,14 +337,13 @@ export default function BudgetTracker() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h1 className="text-2xl font-bold tracking-tight">Budget Tracker</h1>
             <div className="flex items-center gap-3">
-              <div className="flex bg-surface-2 rounded overflow-hidden border border-tok-border" role="group" aria-label="Time period">
+              <div className="flex bg-surface-2 rounded overflow-hidden border border-tok-border">
                 {(["MTD", "QTD", "YTD"] as Period[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
-                    aria-pressed={period === p}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      "px-3 py-1.5 text-sm font-medium transition-colors",
                       period === p
                         ? "bg-indigo-600 text-fg-primary"
                         : "text-fg-secondary hover:text-fg-primary"
@@ -248,7 +353,7 @@ export default function BudgetTracker() {
                   </button>
                 ))}
               </div>
-              <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-3 py-1.5 rounded text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+              <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-3 py-1.5 rounded text-sm">
                 Export
               </button>
             </div>
@@ -335,13 +440,8 @@ export default function BudgetTracker() {
               return (
                 <div key={c.id} className="border-b border-tok-border last:border-b-0">
                   <div
-                    className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] gap-2 px-4 py-3 items-center text-sm hover:bg-surface-2/40 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none focus-visible:ring-inset"
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={isExpanded}
-                    aria-label={`${c.name} — ${ratio}% of monthly budget. Press to ${isExpanded ? 'collapse' : 'expand'} transactions`}
+                    className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] gap-2 px-4 py-3 items-center text-sm hover:bg-surface-2/40 transition-colors cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : c.id)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(isExpanded ? null : c.id); } }}
                   >
                     <span className="flex items-center gap-2 font-medium">
                       <span>{c.emoji}</span>
@@ -504,7 +604,6 @@ export default function BudgetTracker() {
           </div>
         </div>
       </div>
-    </main>
-    </>
+    </div>
   );
 }

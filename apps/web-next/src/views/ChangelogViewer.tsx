@@ -188,7 +188,107 @@ function computeStats(releases: Release[]): { total: number; breaking: number; f
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function ChangelogViewer() {
+import { Skeleton } from '../components/Skeleton';
+
+function ChangelogViewerSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
+      {/* Header */}
+      <div className="border-b border-tok-border px-6 py-5">
+        <div className="mx-auto max-w-7xl space-y-1.5">
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="border-b border-tok-border bg-surface-1/50 px-6 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <Skeleton className="h-4 w-6" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Search + filter bar */}
+      <div className="border-b border-tok-border px-6 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
+          <Skeleton className="flex-1 min-w-[200px] h-9 rounded-lg" />
+          <div className="flex flex-wrap gap-1.5">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-7 w-20 rounded-full" />)}
+          </div>
+        </div>
+      </div>
+
+      {/* Main layout */}
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* Sidebar */}
+          <aside className="w-full shrink-0 lg:w-72">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-2 space-y-1">
+              <Skeleton className="h-3 w-28 px-3 py-2" />
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2.5">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-14" />
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <Skeleton className="h-5 w-6 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          {/* Main release detail */}
+          <main className="min-w-0 flex-1">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-6 space-y-6">
+              {/* Release header */}
+              <div className="border-b border-tok-border pb-5 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+              </div>
+
+              {/* Change items */}
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="rounded-lg border border-tok-border bg-surface-0/50 p-4">
+                    <div className="flex items-start gap-2">
+                      <Skeleton className="w-6 h-6 rounded shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Skeleton className="h-4 w-52" />
+                          <Skeleton className="h-5 w-24 rounded-full" />
+                          <Skeleton className="h-5 w-16 rounded" />
+                        </div>
+                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-3 w-4/5" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ChangelogViewer({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <ChangelogViewerSkeleton />;
+
   const [selectedVersion, setSelectedVersion] = useState<string>(RELEASES[0].version);
   const [filter, setFilter] = useState<ChangeType | "all">("all");
   const [search, setSearch] = useState("");
@@ -223,10 +323,6 @@ export default function ChangelogViewer() {
   const stats = computeStats(RELEASES);
 
   return (
-    <>
-    <a href="#changelog-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
     <div className="min-h-screen bg-surface-0 text-fg-primary">
       {/* Header */}
       <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-4 md:py-5">
@@ -263,20 +359,18 @@ export default function ChangelogViewer() {
             <input
               type="text"
               placeholder="Search releases..."
-              aria-label="Search releases"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-zinc-500 outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-zinc-500 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
           </div>
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by change type">
+          <div className="flex flex-wrap gap-1.5">
             {FILTER_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setFilter(opt.value)}
-                aria-pressed={filter === opt.value}
                 className={cn(
-                  "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                  "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                   filter === opt.value
                     ? "bg-indigo-500 text-fg-primary"
                     : "bg-surface-2 text-fg-secondary hover:bg-surface-3 hover:text-fg-primary"
@@ -290,7 +384,7 @@ export default function ChangelogViewer() {
       </div>
 
       {/* Main Layout */}
-      <div id="changelog-main" className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
         <div className="flex flex-col gap-6 lg:flex-row">
           {/* Sidebar — Releases List */}
           <aside className="w-full shrink-0 lg:w-72">
@@ -306,10 +400,8 @@ export default function ChangelogViewer() {
                     <button
                       key={r.version}
                       onClick={() => setSelectedVersion(r.version)}
-                      aria-pressed={isSelected}
-                      aria-label={`Version ${r.version} — ${r.releaseType} release, ${r.date}`}
                       className={cn(
-                        "flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                        "flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors",
                         isSelected
                           ? "bg-indigo-500/10 text-fg-primary"
                           : "text-fg-secondary hover:bg-surface-2 hover:text-fg-primary"
@@ -376,7 +468,7 @@ export default function ChangelogViewer() {
                           className="rounded-lg border border-tok-border bg-surface-0/50 p-4 transition-colors hover:border-tok-border"
                         >
                           <div className="flex flex-wrap items-start gap-2">
-                            <span className="mt-0.5 text-lg leading-none" aria-hidden="true">{meta.emoji}</span>
+                            <span className="mt-0.5 text-lg leading-none">{meta.emoji}</span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <h3 className="text-sm font-semibold text-fg-primary">{change.title}</h3>
@@ -432,6 +524,5 @@ export default function ChangelogViewer() {
         </div>
       </div>
     </div>
-    </>
   );
 }

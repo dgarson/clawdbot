@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ShieldCheck } from "lucide-react";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -129,7 +131,7 @@ function controlStatusBadge(status: ControlStatus): React.ReactNode {
     passed: { label: "Passed", emoji: "✓", cls: "text-emerald-400" },
     failed: { label: "Failed", emoji: "✕", cls: "text-rose-400" },
     partial: { label: "Partial", emoji: "◐", cls: "text-amber-400" },
-    "not-tested": { label: "Not Tested", emoji: "—", cls: "text-zinc-500" },
+    "not-tested": { label: "Not Tested", emoji: "—", cls: "text-fg-muted" },
   };
   const { label, emoji, cls } = map[status];
   return <span className={cn("flex items-center gap-1.5 text-sm font-medium", cls)}><span>{emoji}</span>{label}</span>;
@@ -160,7 +162,7 @@ function severityBadge(severity: RiskSeverity): React.ReactNode {
     critical: { cls: "bg-rose-500/20 text-rose-400 border-rose-500/30" },
     high: { cls: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
     medium: { cls: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
-    low: { cls: "bg-zinc-600/30 text-zinc-400 border-zinc-600/40" },
+    low: { cls: "bg-surface-3/40 text-fg-secondary border-tok-border" },
   };
   const { cls } = map[severity];
   return <span className={cn("text-xs font-semibold px-2 py-0.5 rounded border uppercase", cls)}>{severity}</span>;
@@ -228,11 +230,11 @@ function SummaryStats() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((s) => (
-        <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4">
+        <div key={s.label} className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-center gap-4">
           <span className="text-2xl">{s.emoji}</span>
           <div>
             <div className={cn("text-2xl font-bold", s.accent)}>{s.value}</div>
-            <div className="text-xs text-zinc-400 mt-0.5">{s.label}</div>
+            <div className="text-xs text-fg-secondary mt-0.5">{s.label}</div>
           </div>
         </div>
       ))}
@@ -248,14 +250,14 @@ function FrameworkCards() {
       {frameworks.map((fw) => (
         <div
           key={fw.shortName}
-          className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col items-center gap-3"
+          className="bg-surface-1 border border-tok-border rounded-xl p-5 flex flex-col items-center gap-3"
         >
           <CircularProgress score={fw.score} />
           <div className="text-center">
-            <div className="text-sm font-semibold text-white">{fw.name}</div>
+            <div className="text-sm font-semibold text-fg-primary">{fw.name}</div>
             <div className="mt-1">{statusBadge(fw.status)}</div>
           </div>
-          <div className="text-xs text-zinc-400 mt-auto pt-2 border-t border-zinc-800 w-full text-center">
+          <div className="text-xs text-fg-secondary mt-auto pt-2 border-t border-tok-border w-full text-center">
             {fw.controlsPassed}/{fw.controlsTotal} controls passed
           </div>
         </div>
@@ -294,7 +296,7 @@ function ControlsTable() {
         <select
           value={filterFramework}
           onChange={(e) => setFilterFramework(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="all">All Frameworks</option>
           {uniqueFrameworks.map((f) => (
@@ -304,7 +306,7 @@ function ControlsTable() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="all">All Statuses</option>
           <option value="passed">Passed</option>
@@ -312,12 +314,12 @@ function ControlsTable() {
           <option value="partial">Partial</option>
           <option value="not-tested">Not Tested</option>
         </select>
-        <span className="text-xs text-zinc-500 self-center ml-auto">{filtered.length} control{filtered.length !== 1 ? "s" : ""}</span>
+        <span className="text-xs text-fg-muted self-center ml-auto">{filtered.length} control{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[40px_100px_1fr_140px_110px_100px_110px_100px] text-xs text-zinc-500 font-medium px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/80">
+        <div className="grid grid-cols-[40px_100px_1fr_140px_110px_100px_110px_100px] text-xs text-fg-muted font-medium px-4 py-2.5 border-b border-tok-border bg-surface-1/80">
           <div />
           <div>ID</div>
           <div>Title</div>
@@ -331,22 +333,22 @@ function ControlsTable() {
         {filtered.map((ctrl) => {
           const isOpen = expanded.has(ctrl.id);
           return (
-            <div key={ctrl.id} className="border-b border-zinc-800/60 last:border-b-0">
+            <div key={ctrl.id} className="border-b border-tok-border/60 last:border-b-0">
               <button
                 onClick={() => toggle(ctrl.id)}
-                className="w-full grid grid-cols-[40px_100px_1fr_140px_110px_100px_110px_100px] items-center px-4 py-3 text-sm hover:bg-zinc-800/40 transition-colors text-left"
+                className="w-full grid grid-cols-[40px_100px_1fr_140px_110px_100px_110px_100px] items-center px-4 py-3 text-sm hover:bg-surface-2/40 transition-colors text-left"
               >
-                <span className="text-zinc-500 text-xs">{isOpen ? "▾" : "▸"}</span>
+                <span className="text-fg-muted text-xs">{isOpen ? "▾" : "▸"}</span>
                 <span className="text-indigo-400 font-mono text-xs">{ctrl.id}</span>
-                <span className="text-white truncate pr-2">{ctrl.title}</span>
-                <span className="text-zinc-400 text-xs truncate">{ctrl.framework}</span>
+                <span className="text-fg-primary truncate pr-2">{ctrl.title}</span>
+                <span className="text-fg-secondary text-xs truncate">{ctrl.framework}</span>
                 <span>{categoryBadge(ctrl.category)}</span>
                 <span>{controlStatusBadge(ctrl.status)}</span>
-                <span className="text-zinc-500 text-xs font-mono">{ctrl.lastTested}</span>
-                <span className="text-zinc-400 text-xs">{ctrl.owner}</span>
+                <span className="text-fg-muted text-xs font-mono">{ctrl.lastTested}</span>
+                <span className="text-fg-secondary text-xs">{ctrl.owner}</span>
               </button>
               {isOpen && (
-                <div className="px-12 pb-4 text-sm text-zinc-400 bg-zinc-800/20">
+                <div className="px-12 pb-4 text-sm text-fg-secondary bg-surface-2/20">
                   {ctrl.description}
                 </div>
               )}
@@ -355,7 +357,12 @@ function ControlsTable() {
         })}
 
         {filtered.length === 0 && (
-          <div className="px-4 py-8 text-center text-zinc-500 text-sm">No controls match the current filters.</div>
+          <ContextualEmptyState
+            icon={ShieldCheck}
+            title="No controls match"
+            description="Adjust the framework or status filter to see compliance controls."
+            size="sm"
+          />
         )}
       </div>
     </div>
@@ -366,8 +373,8 @@ function ControlsTable() {
 
 function EvidenceLocker() {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="grid grid-cols-[1fr_110px_110px_110px_90px_90px] text-xs text-zinc-500 font-medium px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/80">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="grid grid-cols-[1fr_110px_110px_110px_90px_90px] text-xs text-fg-muted font-medium px-4 py-2.5 border-b border-tok-border bg-surface-1/80">
         <div>Filename</div>
         <div>Control</div>
         <div>Uploaded</div>
@@ -378,16 +385,16 @@ function EvidenceLocker() {
       {evidenceItems.map((ev) => (
         <div
           key={ev.filename}
-          className="grid grid-cols-[1fr_110px_110px_110px_90px_90px] items-center px-4 py-3 text-sm border-b border-zinc-800/60 last:border-b-0 hover:bg-zinc-800/30 transition-colors"
+          className="grid grid-cols-[1fr_110px_110px_110px_90px_90px] items-center px-4 py-3 text-sm border-b border-tok-border/60 last:border-b-0 hover:bg-surface-2/30 transition-colors"
         >
-          <div className="flex items-center gap-2 text-white truncate">
-            <span className="text-zinc-500">📄</span>
+          <div className="flex items-center gap-2 text-fg-primary truncate">
+            <span className="text-fg-muted">📄</span>
             <span className="truncate">{ev.filename}</span>
           </div>
           <span className="text-indigo-400 font-mono text-xs">{ev.controlId}</span>
-          <span className="text-zinc-400 text-xs font-mono">{ev.uploadDate}</span>
-          <span className={cn("text-xs font-mono", ev.status === "expired" ? "text-rose-400" : ev.status === "expiring" ? "text-amber-400" : "text-zinc-400")}>{ev.expiryDate}</span>
-          <span className="text-zinc-500 text-xs">{ev.size}</span>
+          <span className="text-fg-secondary text-xs font-mono">{ev.uploadDate}</span>
+          <span className={cn("text-xs font-mono", ev.status === "expired" ? "text-rose-400" : ev.status === "expiring" ? "text-amber-400" : "text-fg-secondary")}>{ev.expiryDate}</span>
+          <span className="text-fg-muted text-xs">{ev.size}</span>
           <span>{evidenceStatusBadge(ev.status)}</span>
         </div>
       ))}
@@ -399,8 +406,8 @@ function EvidenceLocker() {
 
 function RiskRegister() {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="grid grid-cols-[1fr_130px_90px_80px_80px_1fr_100px] text-xs text-zinc-500 font-medium px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/80">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="grid grid-cols-[1fr_130px_90px_80px_80px_1fr_100px] text-xs text-fg-muted font-medium px-4 py-2.5 border-b border-tok-border bg-surface-1/80">
         <div>Risk</div>
         <div>Framework</div>
         <div>Severity</div>
@@ -412,27 +419,27 @@ function RiskRegister() {
       {risks.map((risk, i) => (
         <div
           key={i}
-          className="grid grid-cols-[1fr_130px_90px_80px_80px_1fr_100px] items-center px-4 py-3 text-sm border-b border-zinc-800/60 last:border-b-0 hover:bg-zinc-800/30 transition-colors"
+          className="grid grid-cols-[1fr_130px_90px_80px_80px_1fr_100px] items-center px-4 py-3 text-sm border-b border-tok-border/60 last:border-b-0 hover:bg-surface-2/30 transition-colors"
         >
-          <span className="text-white pr-2">{risk.name}</span>
-          <span className="text-zinc-400 text-xs truncate">{risk.framework}</span>
+          <span className="text-fg-primary pr-2">{risk.name}</span>
+          <span className="text-fg-secondary text-xs truncate">{risk.framework}</span>
           <span>{severityBadge(risk.severity)}</span>
           <span className="text-center">
             <span className="inline-flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, j) => (
-                <span key={j} className={cn("w-1.5 h-3 rounded-sm", j < risk.likelihood ? "bg-amber-400" : "bg-zinc-700")} />
+                <span key={j} className={cn("w-1.5 h-3 rounded-sm", j < risk.likelihood ? "bg-amber-400" : "bg-surface-3")} />
               ))}
             </span>
           </span>
           <span className="text-center">
             <span className="inline-flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, j) => (
-                <span key={j} className={cn("w-1.5 h-3 rounded-sm", j < risk.impact ? "bg-rose-400" : "bg-zinc-700")} />
+                <span key={j} className={cn("w-1.5 h-3 rounded-sm", j < risk.impact ? "bg-rose-400" : "bg-surface-3")} />
               ))}
             </span>
           </span>
-          <span className="text-zinc-400 text-xs pr-2">{risk.mitigations}</span>
-          <span className="text-zinc-400 text-xs">{risk.owner}</span>
+          <span className="text-fg-secondary text-xs pr-2">{risk.mitigations}</span>
+          <span className="text-fg-secondary text-xs">{risk.owner}</span>
         </div>
       ))}
     </div>
@@ -451,16 +458,16 @@ export default function ComplianceDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 lg:p-8">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Compliance Dashboard</h1>
-          <p className="text-sm text-zinc-400 mt-1">Governance, Risk & Compliance — Unified View</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Compliance Dashboard</h1>
+          <p className="text-sm text-fg-secondary mt-1">Governance, Risk & Compliance — Unified View</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-zinc-500">Last sync: Feb 22, 2026 02:45 MST</span>
-          <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+          <span className="text-xs text-fg-muted">Last sync: Feb 22, 2026 02:45 MST</span>
+          <button className="bg-indigo-500 hover:bg-indigo-600 text-fg-primary text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             Export Report
           </button>
         </div>
@@ -471,13 +478,13 @@ export default function ComplianceDashboard() {
 
       {/* Framework Cards */}
       <div className="mt-8">
-        <h2 className="text-lg font-semibold text-white mb-4">Frameworks</h2>
+        <h2 className="text-lg font-semibold text-fg-primary mb-4">Frameworks</h2>
         <FrameworkCards />
       </div>
 
       {/* Tabs */}
       <div className="mt-10">
-        <div className="flex items-center gap-1 border-b border-zinc-800 mb-6">
+        <div className="flex items-center gap-1 border-b border-tok-border mb-6">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -485,8 +492,8 @@ export default function ComplianceDashboard() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
                 activeTab === tab.key
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-zinc-300"
+                  ? "border-indigo-500 text-fg-primary"
+                  : "border-transparent text-fg-secondary hover:text-fg-primary"
               )}
             >
               <span>{tab.emoji}</span>

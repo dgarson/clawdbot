@@ -40,38 +40,38 @@ function getVariantContent(variant: EmptyStateVariant): { icon: React.ComponentT
       return {
         icon: Bot,
         title: 'No agents yet',
-        description: 'Create your first agent to get started. Agents can help automate tasks and handle conversations.',
+        description: 'Your agents are waiting. Create one to start automating tasks and handling conversations on autopilot.',
       };
     case 'no-sessions':
       return {
         icon: MessageSquare,
-        title: 'No active sessions',
-        description: 'Start a conversation with an agent to see sessions here. Sessions track your interactions over time.',
+        title: 'No conversations yet',
+        description: 'Sessions appear here once you start chatting with an agent. Each conversation is saved for easy reference.',
       };
     case 'no-skills':
       return {
         icon: Sparkles,
-        title: 'No skills installed',
-        description: 'Skills extend your agents with additional capabilities. Browse the marketplace to find skills.',
+        title: 'Skills await',
+        description: 'Supercharge your agents with skills from the marketplace. Calendar integration, code review, and more.',
       };
     case 'no-results':
       return {
         icon: Search,
-        title: 'No results found',
-        description: 'Try adjusting your search or filters to find what you\'re looking for.',
+        title: 'Nothing matches that',
+        description: 'Try a different search term or adjust your filters. Or maybe you\'ve just discovered a gap we should fill?',
       };
     case 'first-run':
       return {
         icon: Inbox,
         title: 'Welcome to OpenClaw',
-        description: 'Get started by creating your first agent or exploring the skills marketplace.',
+        description: 'Your personal AI assistant, ready to work. Create your first agent or browse skills to get started.',
       };
     case 'generic':
     default:
       return {
         icon: FileQuestion,
         title: 'Nothing here yet',
-        description: 'There\'s nothing to display. Take action to get started.',
+        description: 'This space is waiting for you to take action. Start something and it will appear here.',
       };
   }
 }

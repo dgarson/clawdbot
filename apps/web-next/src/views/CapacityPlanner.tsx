@@ -183,7 +183,128 @@ function computeForecastWithRate(resource: Resource, adjustedRate: number): { da
 
 // --- Component ---
 
-export default function CapacityPlanner() {
+import { Skeleton } from '../components/Skeleton';
+
+function CapacityPlannerSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-8 w-44" />
+        <Skeleton className="h-9 w-44 rounded" />
+      </div>
+
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* Summary cards */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-lg p-4 space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ))}
+          </div>
+
+          {/* Resource table */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden mb-6">
+            {/* Header row */}
+            <div className="flex gap-2 px-4 py-3 border-b border-tok-border">
+              {["Resource", "Current", "Capacity", "Usage %", "Headroom", "Trend", "Days to Cap", "Status"].map((_, i) => (
+                <Skeleton key={i} className="h-3 flex-1" />
+              ))}
+            </div>
+            {/* Data rows */}
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex gap-2 px-4 py-3 border-b border-tok-border last:border-b-0 items-center">
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <div className="flex-1 flex items-center gap-2">
+                  <Skeleton className="flex-1 h-2 rounded-full" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-5 flex-1 rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Detail panel (forecast) */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-52" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+            {/* Bar chart */}
+            <div className="flex items-end gap-1 h-40 w-full">
+              {[85,90,95,100,100,100,82,70,65,60,55,50].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                  <div className="w-full bg-secondary/70 rounded-t animate-pulse-soft" aria-hidden="true" style={{ height: `${h}%` }} />
+                  <Skeleton className="h-2 w-5" />
+                </div>
+              ))}
+            </div>
+            {/* Recs + what-if grid */}
+            <div className="grid grid-cols-2 gap-5 pt-2">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-44" />
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="bg-surface-2/50 rounded p-3 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-8 rounded" />
+                      <Skeleton className="h-4 w-44" />
+                    </div>
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-36" />
+                <div className="bg-surface-2/50 rounded p-4 space-y-3">
+                  <Skeleton className="h-3 w-48" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex justify-between">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recommendations sidebar */}
+        <div className="w-60 shrink-0">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 sticky top-6 space-y-3">
+            <Skeleton className="h-3 w-44" />
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded p-3 border border-tok-border bg-surface-2/30 space-y-1.5">
+                <Skeleton className="h-5 w-8 rounded" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+                <Skeleton className="h-3 w-3/5" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function CapacityPlanner({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <CapacityPlannerSkeleton />;
+
   const [period, setPeriod] = useState<PlanningPeriod>("12M");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [whatIfRate, setWhatIfRate] = useState<number | null>(null);
@@ -219,22 +340,17 @@ export default function CapacityPlanner() {
   const visibleMonths = Math.min(periodMonths, 12);
 
   return (
-    <>
-    <a href="#capacity-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
-    <main id="capacity-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Capacity Planner</h1>
-        <div className="flex items-center gap-1 bg-surface-1 border border-tok-border rounded p-1" role="group" aria-label="Planning period">
+        <div className="flex items-center gap-1 bg-surface-1 border border-tok-border rounded p-1">
           {(["3M", "6M", "12M", "24M"] as PlanningPeriod[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              aria-pressed={period === p}
               className={cn(
-                "px-3 py-1 rounded text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                "px-3 py-1 rounded text-sm font-medium transition-colors",
                 period === p ? "bg-indigo-600 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
               )}
             >
@@ -279,7 +395,7 @@ export default function CapacityPlanner() {
               <thead>
                 <tr className="border-b border-tok-border">
                   {["Resource", "Current", "Capacity", "Usage %", "Headroom", "Trend", "Days to Cap", "Status"].map((h) => (
-                    <th key={h} scope="col" className="text-left text-fg-muted text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    <th key={h} className="text-left text-fg-muted text-xs font-medium uppercase tracking-wider px-4 py-3">
                       {h}
                     </th>
                   ))}
@@ -295,13 +411,8 @@ export default function CapacityPlanner() {
                     <tr
                       key={r.id}
                       onClick={() => handleSelectRow(r.id)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectRow(r.id); } }}
-                      tabIndex={0}
-                      role="button"
-                      aria-pressed={isSelected}
-                      aria-label={`${r.name}: ${getUsagePercent(r.current, r.capacity)}% used, status ${getStatus(r.current, r.capacity, r.trend)}`}
                       className={cn(
-                        "border-b border-tok-border/50 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none focus-visible:ring-inset",
+                        "border-b border-tok-border/50 cursor-pointer transition-colors",
                         isSelected ? "bg-indigo-500/10" : "hover:bg-surface-2/50"
                       )}
                     >
@@ -418,21 +529,17 @@ export default function CapacityPlanner() {
                 <div>
                   <h3 className="text-sm font-medium text-fg-secondary mb-3">What-If Scenario</h3>
                   <div className="bg-surface-2/50 rounded p-4">
-                    <label htmlFor="whatif-rate" className="block text-xs text-fg-muted mb-2">
-                      Adjust monthly growth rate: <span className="text-fg-primary font-medium" aria-live="polite">{effectiveRate > 0 ? "+" : ""}{effectiveRate}%</span>
+                    <label className="block text-xs text-fg-muted mb-2">
+                      Adjust monthly growth rate: <span className="text-fg-primary font-medium">{effectiveRate > 0 ? "+" : ""}{effectiveRate}%</span>
                     </label>
                     <input
-                      id="whatif-rate"
                       type="range"
                       min={-20}
                       max={30}
                       step={1}
                       value={effectiveRate}
-                      aria-valuenow={effectiveRate}
-                      aria-valuemin={-20}
-                      aria-valuemax={30}
                       onChange={(e) => setWhatIfRate(parseInt(e.target.value, 10))}
-                      className="w-full accent-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      className="w-full accent-indigo-500"
                     />
                     <div className="flex justify-between text-[10px] text-fg-muted mt-1">
                       <span>-20%</span>
@@ -466,7 +573,7 @@ export default function CapacityPlanner() {
                     {whatIfRate !== null && (
                       <button
                         onClick={() => setWhatIfRate(null)}
-                        className="mt-3 text-xs text-fg-muted hover:text-fg-primary underline focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded"
+                        className="mt-3 text-xs text-fg-muted hover:text-fg-primary underline"
                       >
                         Reset to baseline
                       </button>
@@ -487,18 +594,13 @@ export default function CapacityPlanner() {
                 <div
                   key={rec.id}
                   className={cn(
-                    "rounded p-3 border transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                    "rounded p-3 border transition-colors cursor-pointer",
                     selectedId === rec.resourceId ? "border-indigo-500/40 bg-indigo-500/5" : "border-tok-border bg-surface-2/30 hover:border-tok-border"
                   )}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${rec.priority}: ${rec.title}`}
-                  aria-pressed={selectedId === rec.resourceId}
                   onClick={() => {
                     setSelectedId(rec.resourceId);
                     setWhatIfRate(null);
                   }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(rec.resourceId); setWhatIfRate(null); } }}
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", getPriorityColor(rec.priority))}>
@@ -514,7 +616,6 @@ export default function CapacityPlanner() {
           </div>
         </div>
       </div>
-    </main>
-    </>
+    </div>
   );
 }

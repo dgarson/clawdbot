@@ -237,11 +237,11 @@ function SortableHeader({
 }) {
   const active = currentKey === sortKey;
   return (
-    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary whitespace-nowrap">
+    <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary whitespace-nowrap">
       <button
         type="button"
         className={cn(
-          "inline-flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded px-1 -mx-1",
+          "inline-flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded px-1 -mx-1",
           active && "text-fg-primary"
         )}
         onClick={() => onSort(sortKey)}
@@ -297,8 +297,8 @@ function TopAgentsTable({ agents }: { agents: AgentRow[] }) {
             <tr className="border-b border-tok-border">
               <SortableHeader label="Agent" sortKey="agent" {...headerProps} />
               <SortableHeader label="Sessions" sortKey="sessions" {...headerProps} />
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Tokens</th>
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Avg Duration</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Tokens</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Avg Duration</th>
               <SortableHeader label="Cost" sortKey="cost" {...headerProps} />
               <SortableHeader label="Success" sortKey="successRate" {...headerProps} />
             </tr>
@@ -420,11 +420,11 @@ function RecentSessionsTable({ sessions }: { sessions: RecentSession[] }) {
         <table className="w-full text-sm" aria-label="Recent sessions">
           <thead>
             <tr className="border-b border-tok-border">
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Agent</th>
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Status</th>
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Tokens</th>
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Duration</th>
-              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Time</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Agent</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Status</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Tokens</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Duration</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Time</th>
             </tr>
           </thead>
           <tbody>
@@ -456,7 +456,117 @@ function RecentSessionsTable({ sessions }: { sessions: RecentSession[] }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function AnalyticsOverview() {
+import { Skeleton } from '../components/Skeleton';
+
+function AnalyticsOverviewSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8 space-y-1.5">
+          <Skeleton className="h-7 w-52" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+
+        {/* KPI row */}
+        <section className="mb-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Session volume chart */}
+        <section className="mb-6">
+          <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-52" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            {/* Chart area */}
+            <div className="flex items-end gap-1 h-44 w-full">
+              {[60,45,75,90,70,55,85,95,65,80,75,88,72,60].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+                  <div
+                    className="w-full bg-secondary/70 rounded-t animate-pulse-soft"
+                    aria-hidden="true"
+                    style={{ height: `${h}%` }}
+                  />
+                  <Skeleton className="h-2 w-3" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Two-column: Top agents + Funnel */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 mb-6">
+          <div className="lg:col-span-3">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
+              <Skeleton className="h-4 w-32" />
+              {/* Table header */}
+              <div className="flex gap-4 pb-2 border-b border-tok-border">
+                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
+              </div>
+              {/* Table rows */}
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-1">
+                  {[...Array(6)].map((_, j) => <Skeleton key={j} className="h-3 flex-1" />)}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="lg:col-span-2">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
+              <Skeleton className="h-4 w-36" />
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-6 w-full rounded" />
+                </div>
+              ))}
+              <div className="pt-3 border-t border-tok-border flex justify-between">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-3 w-10" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Recent sessions table */}
+        <section>
+          <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
+            <Skeleton className="h-4 w-36" />
+            <div className="flex gap-4 pb-2 border-b border-tok-border">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4 items-center py-1">
+                {[...Array(5)].map((_, j) => <Skeleton key={j} className="h-3 flex-1" />)}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export default function AnalyticsOverview({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AnalyticsOverviewSkeleton />;
+
   // Derived KPIs from seed data
   const weekSessions = useMemo(
     () => DAILY_SESSIONS.slice(-7).reduce((sum, d) => sum + d.ai + d.human, 0),
@@ -470,11 +580,7 @@ export default function AnalyticsOverview() {
   const hasData = DAILY_SESSIONS.length > 0 && AGENTS_DATA.length > 0;
 
   return (
-    <>
-    <a href="#analytics-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
-    <main id="analytics-main" className="min-h-screen bg-surface-0 text-fg-primary">
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 md:py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -546,7 +652,6 @@ export default function AnalyticsOverview() {
           </>
         )}
       </div>
-    </main>
-    </>
+    </div>
   );
 }

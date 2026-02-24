@@ -19,7 +19,96 @@ interface Plan {
   cta: string;
 }
 
-const BillingSubscription: React.FC = () => {
+import { Skeleton } from '../components/Skeleton';
+
+function BillingSubscriptionSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 p-6 md:p-12 text-fg-primary">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-10 space-y-2">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+
+        {/* Tabs */}
+        <div className="flex space-x-1 border-b border-tok-border mb-8">
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8 w-20 mb-0.5" />)}
+        </div>
+
+        {/* Plan overview: 2-col */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="md:col-span-2 bg-surface-1 border border-tok-border rounded-xl p-6 space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1.5">
+                <Skeleton className="h-7 w-24" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="space-y-1.5 text-right">
+                <Skeleton className="h-7 w-16 ml-auto" />
+                <Skeleton className="h-3 w-36 ml-auto" />
+              </div>
+            </div>
+            <Skeleton className="h-8 w-40 rounded-lg" />
+            <div className="grid grid-cols-2 gap-4 border-t border-tok-border pt-6">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Skeleton className="w-5 h-5 rounded-full" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-6 space-y-4">
+            <Skeleton className="h-5 w-36" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-12 rounded" />
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-9 w-full rounded-lg" />
+            <div className="pt-6 border-t border-tok-border space-y-2">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-36" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+          </div>
+        </div>
+
+        {/* Plan comparison cards */}
+        <div className="space-y-3 mb-2">
+          <Skeleton className="h-6 w-40" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-6 space-y-4">
+              <div className="space-y-1.5">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-3 w-36" />
+                <Skeleton className="h-9 w-20 mt-2" />
+              </div>
+              <div className="space-y-2 flex-grow">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="flex items-center gap-2">
+                    <Skeleton className="w-4 h-4 rounded" />
+                    <Skeleton className="h-3 flex-1" />
+                  </div>
+                ))}
+              </div>
+              <Skeleton className="h-10 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) => {
+  if (isLoading) return <BillingSubscriptionSkeleton />;
+
   const [activeTab, setActiveTab] = useState<Tab>("plan");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
 
@@ -66,19 +155,17 @@ const BillingSubscription: React.FC = () => {
   ];
 
   const renderTabs = () => (
-    <div role="tablist" aria-label="Billing sections" className="flex space-x-1 border-b border-tok-border mb-8">
+    <div role="tablist" className="flex space-x-1 border-b border-tok-border mb-8">
       {(["plan", "usage", "invoices"] as Tab[]).map((tab) => (
         <button
           key={tab}
-          id={`billing-tab-${tab}`}
           role="tab"
           aria-selected={activeTab === tab}
-          aria-controls={`billing-tabpanel-${tab}`}
           onClick={() => setActiveTab(tab)}
           className={cn(
-            "px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none outline-none capitalize",
-            activeTab === tab
-              ? "text-fg-primary border-b-2 border-indigo-500"
+            "px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none capitalize",
+            activeTab === tab 
+              ? "text-fg-primary border-b-2 border-indigo-500" 
               : "text-fg-secondary hover:text-fg-primary"
           )}
         >
@@ -104,30 +191,20 @@ const BillingSubscription: React.FC = () => {
                 <div className="text-xs text-indigo-400 font-medium">Next renewal: June 1, 2024</div>
               </div>
             </div>
-            <div className="flex items-center space-x-3 mb-6 bg-surface-0/50 p-2 rounded-lg w-fit" role="group" aria-label="Billing cycle">
-              <button
-                role="radio"
-                aria-checked={billingCycle === 'monthly'}
-                onClick={() => setBillingCycle('monthly')}
-                className={cn("text-xs font-medium px-2 py-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none", billingCycle === 'monthly' ? 'bg-indigo-500 text-fg-primary' : 'text-fg-secondary hover:text-fg-primary')}
-              >Monthly</button>
-              <button
-                role="radio"
-                aria-checked={billingCycle === 'annual'}
-                onClick={() => setBillingCycle('annual')}
-                className={cn("text-xs font-medium px-2 py-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none", billingCycle === 'annual' ? 'bg-indigo-500 text-fg-primary' : 'text-fg-secondary hover:text-fg-primary')}
-              >Annual (Save 20%)</button>
+            <div className="flex items-center space-x-3 mb-6 bg-surface-0/50 p-2 rounded-lg w-fit">
+              <span className={cn("text-xs font-medium px-2 py-1 rounded", billingCycle === 'monthly' ? 'bg-indigo-500 text-fg-primary' : 'text-fg-secondary cursor-pointer')} onClick={() => setBillingCycle('monthly')}>Monthly</span>
+              <span className={cn("text-xs font-medium px-2 py-1 rounded", billingCycle === 'annual' ? 'bg-indigo-500 text-fg-primary' : 'text-fg-secondary cursor-pointer')} onClick={() => setBillingCycle('annual')}>Annual (Save 20%)</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 border-t border-tok-border pt-6">
             <div className="flex items-center space-x-2">
-              <svg aria-hidden="true" className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span className="text-sm text-fg-primary">Unlimited Agents</span>
             </div>
             <div className="flex items-center space-x-2">
-              <svg aria-hidden="true" className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span className="text-sm text-fg-primary">10M Monthly Tokens</span>
@@ -146,7 +223,7 @@ const BillingSubscription: React.FC = () => {
               </div>
             </div>
           </div>
-          <button className="w-full py-2 bg-surface-2 hover:bg-surface-3 text-fg-primary text-sm font-medium rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 outline-none">
+          <button className="w-full py-2 bg-surface-2 hover:bg-surface-3 text-fg-primary text-sm font-medium rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none">
             Update Card
           </button>
           <div className="mt-6 pt-6 border-t border-tok-border">
@@ -186,7 +263,7 @@ const BillingSubscription: React.FC = () => {
               <ul className="space-y-3 mb-8 flex-grow">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start space-x-3 text-sm text-fg-secondary">
-                    <svg aria-hidden="true" className="w-4 h-4 text-fg-muted mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 text-fg-muted mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{feature}</span>
@@ -195,7 +272,7 @@ const BillingSubscription: React.FC = () => {
               </ul>
               <button 
                 className={cn(
-                  "w-full py-2.5 rounded-lg text-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-violet-500 outline-none",
+                  "w-full py-2.5 rounded-lg text-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none",
                   plan.current 
                     ? "bg-surface-2 text-fg-secondary cursor-default" 
                     : plan.name === "Enterprise"
@@ -231,7 +308,7 @@ const BillingSubscription: React.FC = () => {
         {isNearLimit && (
           <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-center space-x-4">
             <div className="bg-amber-500/20 p-2 rounded-lg">
-              <svg aria-hidden="true" className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15.682c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
@@ -313,8 +390,8 @@ const BillingSubscription: React.FC = () => {
           <h2 className="text-2xl font-bold text-fg-primary mb-1">Billing History</h2>
           <p className="text-fg-secondary text-sm">View and download your past invoices.</p>
         </div>
-        <button className="flex items-center space-x-2 px-4 py-2 bg-surface-1 border border-tok-border hover:bg-surface-2 text-fg-primary text-sm font-medium rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 outline-none self-start sm:self-auto">
-          <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button className="flex items-center space-x-2 px-4 py-2 bg-surface-1 border border-tok-border hover:bg-surface-2 text-fg-primary text-sm font-medium rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none self-start sm:self-auto">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           <span>Download all (CSV)</span>
@@ -333,10 +410,10 @@ const BillingSubscription: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-tok-border bg-surface-0/50">
-                  <th scope="col" className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Invoice #</th>
-                  <th scope="col" className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Period</th>
-                  <th scope="col" className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Amount</th>
-                  <th scope="col" className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Invoice #</th>
+                  <th className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Period</th>
+                  <th className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-4 text-xs font-bold text-fg-muted uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-fg-muted uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -358,11 +435,11 @@ const BillingSubscription: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       {invoice.status === "Failed" ? (
-                        <button className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-violet-500 outline-none p-1 rounded">
+                        <button className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none p-1 rounded">
                           Retry Payment
                         </button>
                       ) : (
-                        <button className="text-xs font-bold text-fg-muted hover:text-fg-primary transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 outline-none p-1 rounded">
+                        <button className="text-xs font-bold text-fg-muted hover:text-fg-primary transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none p-1 rounded">
                           Download PDF
                         </button>
                       )}
@@ -378,10 +455,6 @@ const BillingSubscription: React.FC = () => {
   );
 
   return (
-    <>
-    <a href="#billing-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-      Skip to main content
-    </a>
     <div className="min-h-screen bg-surface-0 p-3 sm:p-6 md:p-12 text-fg-primary">
       <div className="max-w-6xl mx-auto">
         <header className="mb-10">
@@ -391,20 +464,13 @@ const BillingSubscription: React.FC = () => {
 
         {renderTabs()}
 
-        <main id="billing-main" className="mt-8">
-          <div id="billing-tabpanel-plan" role="tabpanel" aria-labelledby="billing-tab-plan" hidden={activeTab !== "plan"}>
-            {renderPlanTab()}
-          </div>
-          <div id="billing-tabpanel-usage" role="tabpanel" aria-labelledby="billing-tab-usage" hidden={activeTab !== "usage"}>
-            {renderUsageTab()}
-          </div>
-          <div id="billing-tabpanel-invoices" role="tabpanel" aria-labelledby="billing-tab-invoices" hidden={activeTab !== "invoices"}>
-            {renderInvoicesTab()}
-          </div>
+        <main className="mt-8">
+          {activeTab === "plan" && renderPlanTab()}
+          {activeTab === "usage" && renderUsageTab()}
+          {activeTab === "invoices" && renderInvoicesTab()}
         </main>
       </div>
     </div>
-    </>
   );
 };
 

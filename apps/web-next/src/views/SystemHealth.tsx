@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { HeartPulse } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -210,7 +213,7 @@ const STATUS_CONFIG: Record<ServiceStatus, {
   healthy:  { label: "Healthy",  dot: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/25", text: "text-emerald-400", ring: "ring-emerald-500/30" },
   degraded: { label: "Degraded", dot: "bg-amber-500",   badge: "bg-amber-500/15 text-amber-300 ring-amber-500/25",     text: "text-amber-400",  ring: "ring-amber-500/30" },
   down:     { label: "Down",     dot: "bg-rose-500",    badge: "bg-rose-500/15 text-rose-300 ring-rose-500/25",         text: "text-rose-400",   ring: "ring-rose-500/30" },
-  unknown:  { label: "Unknown",  dot: "bg-zinc-500",    badge: "bg-zinc-500/15 text-zinc-400 ring-zinc-500/25",         text: "text-zinc-400",   ring: "ring-zinc-500/30" },
+  unknown:  { label: "Unknown",  dot: "bg-fg-muted",    badge: "bg-fg-muted/15 text-fg-secondary ring-zinc-500/25",         text: "text-fg-secondary",   ring: "ring-zinc-500/30" },
 };
 
 const INCIDENT_SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; badge: string }> = {
@@ -344,12 +347,12 @@ function ServiceCard({ service }: { service: ServiceCheck }) {
   const cfg = STATUS_CONFIG[service.status];
 
   return (
-    <div className={cn("rounded-xl bg-zinc-900 border transition-colors", cfg.ring, "border-zinc-800")}>
+    <div className={cn("rounded-xl bg-surface-1 border transition-colors", cfg.ring, "border-tok-border")}>
       <button
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-label={`${service.name} — ${cfg.label}. Click to ${expanded ? "collapse" : "expand"}`}
-        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl"
+        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded-xl"
       >
         {/* Status dot */}
         <div className="flex-none mt-1">
@@ -359,11 +362,11 @@ function ServiceCard({ service }: { service: ServiceCheck }) {
         {/* Main */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-white">{service.name}</span>
+            <span className="text-sm font-semibold text-fg-primary">{service.name}</span>
             <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full ring-1", cfg.badge)}>{cfg.label}</span>
-            <span className="text-xs text-zinc-600">{CATEGORY_LABELS[service.category]}</span>
+            <span className="text-xs text-fg-muted">{CATEGORY_LABELS[service.category]}</span>
           </div>
-          <p className="mt-0.5 text-xs text-zinc-500 truncate">{service.description}</p>
+          <p className="mt-0.5 text-xs text-fg-muted truncate">{service.description}</p>
         </div>
 
         {/* Metrics */}
@@ -371,17 +374,17 @@ function ServiceCard({ service }: { service: ServiceCheck }) {
           {service.latencyMs !== null && (
             <div className="text-right hidden sm:block">
               <LatencySparkline baseLatency={service.latencyMs} color={service.status === "healthy" ? "#34d399" : service.status === "degraded" ? "#fbbf24" : "#f87171"} />
-              <p className="text-xs text-zinc-500 mt-0.5">{service.latencyMs}ms</p>
+              <p className="text-xs text-fg-muted mt-0.5">{service.latencyMs}ms</p>
             </div>
           )}
           <div className="text-right hidden md:block">
             <p className={cn("text-xs font-semibold tabular-nums", service.uptime99d >= 99.9 ? "text-emerald-400" : service.uptime99d >= 99 ? "text-amber-400" : "text-rose-400")}>
               {service.uptime99d.toFixed(2)}%
             </p>
-            <p className="text-xs text-zinc-600">30d uptime</p>
+            <p className="text-xs text-fg-muted">30d uptime</p>
           </div>
           <svg
-            className={cn("h-4 w-4 text-zinc-600 transition-transform flex-none", expanded && "rotate-180")}
+            className={cn("h-4 w-4 text-fg-muted transition-transform flex-none", expanded && "rotate-180")}
             viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6l4 4 4-4" />
@@ -391,32 +394,32 @@ function ServiceCard({ service }: { service: ServiceCheck }) {
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-zinc-800 mt-0">
+        <div className="px-4 pb-4 pt-0 border-t border-tok-border mt-0">
           <div className="pt-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
             <div>
-              <p className="text-xs text-zinc-500">Status</p>
+              <p className="text-xs text-fg-muted">Status</p>
               <p className={cn("text-xs font-medium mt-0.5", cfg.text)}>{cfg.label}</p>
             </div>
             {service.latencyMs !== null && (
               <div>
-                <p className="text-xs text-zinc-500">Latency</p>
-                <p className="text-xs font-mono font-medium text-zinc-200 mt-0.5">{service.latencyMs}ms</p>
+                <p className="text-xs text-fg-muted">Latency</p>
+                <p className="text-xs font-mono font-medium text-fg-primary mt-0.5">{service.latencyMs}ms</p>
               </div>
             )}
             <div>
-              <p className="text-xs text-zinc-500">30d Uptime</p>
-              <p className="text-xs font-mono font-medium text-zinc-200 mt-0.5">{service.uptime99d.toFixed(2)}%</p>
+              <p className="text-xs text-fg-muted">30d Uptime</p>
+              <p className="text-xs font-mono font-medium text-fg-primary mt-0.5">{service.uptime99d.toFixed(2)}%</p>
             </div>
             <div>
-              <p className="text-xs text-zinc-500">Last Checked</p>
-              <p className="text-xs text-zinc-400 mt-0.5">{relTime(service.lastChecked)}</p>
+              <p className="text-xs text-fg-muted">Last Checked</p>
+              <p className="text-xs text-fg-secondary mt-0.5">{relTime(service.lastChecked)}</p>
             </div>
           </div>
           {service.detail && (
-            <p className="mt-3 text-xs text-zinc-400 leading-relaxed bg-zinc-950 rounded-lg px-3 py-2 border border-zinc-800">{service.detail}</p>
+            <p className="mt-3 text-xs text-fg-secondary leading-relaxed bg-surface-0 rounded-lg px-3 py-2 border border-tok-border">{service.detail}</p>
           )}
           <div className="mt-3">
-            <p className="text-xs text-zinc-500 mb-1.5">30-day uptime history</p>
+            <p className="text-xs text-fg-muted mb-1.5">30-day uptime history</p>
             <UptimeBar uptime={service.uptime99d} />
           </div>
         </div>
@@ -433,12 +436,12 @@ function IncidentCard({ incident }: { incident: Incident }) {
   const statusCfg = INCIDENT_STATUS_CONFIG[incident.status];
 
   return (
-    <div className={cn("rounded-xl bg-zinc-900 border border-zinc-800", !incident.resolvedAt && "border-amber-500/20")}>
+    <div className={cn("rounded-xl bg-surface-1 border border-tok-border", !incident.resolvedAt && "border-amber-500/20")}>
       <button
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-label={`Incident: ${incident.title}`}
-        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl"
+        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded-xl"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -449,14 +452,14 @@ function IncidentCard({ incident }: { incident: Incident }) {
               {statusCfg.label}
             </span>
           </div>
-          <p className="mt-1 text-sm font-semibold text-white">{incident.title}</p>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <p className="mt-1 text-sm font-semibold text-fg-primary">{incident.title}</p>
+          <p className="mt-0.5 text-xs text-fg-muted">
             Started {relTime(incident.startedAt)}
             {incident.resolvedAt && ` · Resolved ${relTime(incident.resolvedAt)}`}
           </p>
         </div>
         <svg
-          className={cn("h-4 w-4 text-zinc-600 transition-transform flex-none mt-1", expanded && "rotate-180")}
+          className={cn("h-4 w-4 text-fg-muted transition-transform flex-none mt-1", expanded && "rotate-180")}
           viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6l4 4 4-4" />
@@ -464,17 +467,17 @@ function IncidentCard({ incident }: { incident: Incident }) {
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-zinc-800">
+        <div className="px-4 pb-4 pt-0 border-t border-tok-border">
           <div className="pt-3 space-y-3">
             {[...incident.updates].toReversed().map((u, i) => (
               <div key={i} className="flex gap-3">
                 <div className="flex-none flex flex-col items-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-zinc-600 mt-1.5" />
-                  {i < incident.updates.length - 1 && <div className="w-px flex-1 bg-zinc-800 mt-1" />}
+                  <div className="h-1.5 w-1.5 rounded-full bg-fg-muted mt-1.5" />
+                  {i < incident.updates.length - 1 && <div className="w-px flex-1 bg-surface-2 mt-1" />}
                 </div>
                 <div className="flex-1 pb-2">
-                  <p className="text-xs text-zinc-500">{fmtTime(u.timestamp)} · {relTime(u.timestamp)}</p>
-                  <p className="text-sm text-zinc-300 mt-0.5 leading-snug">{u.message}</p>
+                  <p className="text-xs text-fg-muted">{fmtTime(u.timestamp)} · {relTime(u.timestamp)}</p>
+                  <p className="text-sm text-fg-secondary mt-0.5 leading-snug">{u.message}</p>
                 </div>
               </div>
             ))}
@@ -489,11 +492,79 @@ function IncidentCard({ incident }: { incident: Incident }) {
 
 type CategoryFilter = ServiceCheck["category"] | "all";
 
-export default function SystemHealth() {
+function SystemHealthSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-surface-0 overflow-y-auto">
+      {/* Header */}
+      <div className="flex-none px-6 py-4 border-b border-tok-border">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton variant="text" className="h-5 w-32" />
+            <Skeleton variant="text" className="h-3.5 w-72" />
+          </div>
+          <Skeleton variant="rect" className="h-9 w-24 rounded-lg" />
+        </div>
+        {/* Status counts */}
+        <div className="flex items-center gap-5 mt-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <Skeleton variant="text" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-3 w-14" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 px-6 py-5 space-y-8">
+        {/* Overall banner */}
+        <Skeleton variant="rect" className="h-14 w-full rounded-xl" />
+        {/* Service stat cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-4 w-24" />
+                <Skeleton variant="circle" className="w-2 h-2" />
+              </div>
+              <Skeleton variant="text" className="h-7 w-16" />
+              <Skeleton variant="text" className="h-3 w-20" />
+            </div>
+          ))}
+        </div>
+        {/* Service list */}
+        <div>
+          <Skeleton variant="text" className="h-4 w-24 mb-3" />
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton variant="circle" className="w-2.5 h-2.5" />
+                    <div className="space-y-1">
+                      <Skeleton variant="text" className="h-4 w-32" />
+                      <Skeleton variant="text" className="h-3 w-48" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Skeleton variant="text" className="h-3 w-16" />
+                    <Skeleton variant="text" className="h-3 w-12" />
+                    <Skeleton variant="rect" className="h-6 w-16 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SystemHealth({ isLoading = false }: { isLoading?: boolean }) {
   const [services, setServices] = useState<ServiceCheck[]>(SERVICES);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [statusMessage, setStatusMessage] = useState("");
 
   // Simulated live refresh every 30s
   useEffect(() => {
@@ -516,6 +587,7 @@ export default function SystemHealth() {
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
+    setStatusMessage("Refreshing service status…");
     setTimeout(() => {
       setServices((prev) =>
         prev.map((s) => ({
@@ -526,6 +598,7 @@ export default function SystemHealth() {
       );
       setLastRefresh(new Date());
       setRefreshing(false);
+      setStatusMessage("Service status updated.");
     }, 600);
   }, []);
 
@@ -542,25 +615,38 @@ export default function SystemHealth() {
   const activeIncidents = INCIDENTS.filter((i) => !i.resolvedAt);
   const resolvedIncidents = INCIDENTS.filter((i) => !!i.resolvedAt);
 
+  if (isLoading) return <SystemHealthSkeleton />;
+
   return (
-    <div className="flex flex-col h-full bg-zinc-950 overflow-y-auto">
+    <>
+      {/* Skip link */}
+      <a
+        href="#system-health-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      {/* Live status announcer */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{statusMessage}</div>
+
+      <main id="system-health-main" className="flex flex-col h-full bg-surface-0 overflow-y-auto">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">System Health</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
+            <h1 className="text-lg font-semibold text-fg-primary">System Health</h1>
+            <p className="text-sm text-fg-muted mt-0.5">
               Real-time status of all OpenClaw services and integrations
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <p className="text-xs text-zinc-600">Updated {relTime(lastRefresh)}</p>
+            <p className="text-xs text-fg-muted">Updated {relTime(lastRefresh)}</p>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               aria-label="Refresh service status"
               className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors",
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-surface-2 text-fg-primary hover:bg-surface-3 hover:text-fg-primary border border-tok-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors",
                 refreshing && "opacity-50 cursor-not-allowed"
               )}
             >
@@ -577,26 +663,26 @@ export default function SystemHealth() {
         <div className="flex items-center gap-5 mt-3 flex-wrap">
           {[
             { label: "Healthy",  count: statusCounts.healthy,  color: "text-emerald-400" },
-            { label: "Degraded", count: statusCounts.degraded, color: statusCounts.degraded > 0 ? "text-amber-400" : "text-zinc-600" },
-            { label: "Down",     count: statusCounts.down,     color: statusCounts.down > 0 ? "text-rose-400" : "text-zinc-600" },
-            { label: "Unknown",  count: statusCounts.unknown,  color: "text-zinc-500" },
+            { label: "Degraded", count: statusCounts.degraded, color: statusCounts.degraded > 0 ? "text-amber-400" : "text-fg-muted" },
+            { label: "Down",     count: statusCounts.down,     color: statusCounts.down > 0 ? "text-rose-400" : "text-fg-muted" },
+            { label: "Unknown",  count: statusCounts.unknown,  color: "text-fg-muted" },
           ].map(({ label, count, color }) => (
             <div key={label} className="flex items-center gap-1.5">
               <span className={cn("text-sm font-semibold tabular-nums", color)}>{count}</span>
-              <span className="text-xs text-zinc-600">{label}</span>
+              <span className="text-xs text-fg-muted">{label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 px-6 py-5 space-y-8">
+      <div className="flex-1 px-3 sm:px-4 md:px-6 py-5 space-y-8">
         {/* Overall banner */}
         <OverallBanner services={services} />
 
         {/* Active Incidents */}
         {activeIncidents.length > 0 && (
           <section aria-labelledby="incidents-heading">
-            <h2 id="incidents-heading" className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h2 id="incidents-heading" className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-3 flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
               Active Incidents ({activeIncidents.length})
             </h2>
@@ -609,7 +695,7 @@ export default function SystemHealth() {
         {/* Services */}
         <section aria-labelledby="services-heading">
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-            <h2 id="services-heading" className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            <h2 id="services-heading" className="text-xs font-semibold text-fg-muted uppercase tracking-wider">
               Services ({filteredServices.length})
             </h2>
             {/* Category filter tabs */}
@@ -621,10 +707,10 @@ export default function SystemHealth() {
                   aria-selected={categoryFilter === cat}
                   onClick={() => setCategoryFilter(cat)}
                   className={cn(
-                    "px-2.5 py-1 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                     categoryFilter === cat
-                      ? "bg-indigo-600 text-white"
-                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                      ? "bg-violet-600 text-fg-primary"
+                      : "text-fg-secondary hover:text-fg-primary hover:bg-surface-2"
                   )}
                 >
                   {cat === "all" ? "All" : CATEGORY_LABELS[cat]}
@@ -632,15 +718,24 @@ export default function SystemHealth() {
               ))}
             </div>
           </div>
-          <div className="space-y-2">
-            {filteredServices.map((svc) => <ServiceCard key={svc.id} service={svc} />)}
+          <div className="space-y-2" aria-live="polite" aria-label="Service status list">
+            {filteredServices.length === 0 ? (
+              <ContextualEmptyState
+                icon={HeartPulse}
+                title="No services configured"
+                description="Add service checks to monitor your infrastructure health."
+                primaryAction={{ label: "Add Service", onClick: () => {} }}
+              />
+            ) : (
+              filteredServices.map((svc) => <ServiceCard key={svc.id} service={svc} />)
+            )}
           </div>
         </section>
 
         {/* Resolved Incidents */}
         {resolvedIncidents.length > 0 && (
           <section aria-labelledby="resolved-heading">
-            <h2 id="resolved-heading" className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+            <h2 id="resolved-heading" className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-3">
               Resolved Incidents
             </h2>
             <div className="space-y-2">
@@ -649,6 +744,7 @@ export default function SystemHealth() {
           </section>
         )}
       </div>
-    </div>
+    </main>
+    </>
   );
 }
