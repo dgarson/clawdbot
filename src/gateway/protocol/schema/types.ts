@@ -9,6 +9,10 @@ import type {
 } from "./agent.js";
 import type {
   AgentSummarySchema,
+  AgentsAvatarCapabilitiesParamsSchema,
+  AgentsAvatarCapabilitiesResultSchema,
+  AgentsAvatarGenerateParamsSchema,
+  AgentsAvatarGenerateResultSchema,
   AgentsFileEntrySchema,
   AgentsCreateParamsSchema,
   AgentsCreateResultSchema,
@@ -194,6 +198,10 @@ export type ChannelsLogoutParams = Static<typeof ChannelsLogoutParamsSchema>;
 export type WebLoginStartParams = Static<typeof WebLoginStartParamsSchema>;
 export type WebLoginWaitParams = Static<typeof WebLoginWaitParamsSchema>;
 export type AgentSummary = Static<typeof AgentSummarySchema>;
+export type AgentsAvatarCapabilitiesParams = Static<typeof AgentsAvatarCapabilitiesParamsSchema>;
+export type AgentsAvatarCapabilitiesResult = Static<typeof AgentsAvatarCapabilitiesResultSchema>;
+export type AgentsAvatarGenerateParams = Static<typeof AgentsAvatarGenerateParamsSchema>;
+export type AgentsAvatarGenerateResult = Static<typeof AgentsAvatarGenerateResultSchema>;
 export type AgentsFileEntry = Static<typeof AgentsFileEntrySchema>;
 export type AgentsCreateParams = Static<typeof AgentsCreateParamsSchema>;
 export type AgentsCreateResult = Static<typeof AgentsCreateResultSchema>;
