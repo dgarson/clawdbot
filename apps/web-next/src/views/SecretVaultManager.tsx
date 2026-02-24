@@ -233,7 +233,7 @@ function StatCard({
   label,
   value,
   icon: Icon,
-  color = 'text-zinc-400',
+  color = 'text-fg-secondary',
 }: {
   label: string;
   value: string | number;
@@ -241,13 +241,13 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-surface-2 rounded-lg">
         <Icon aria-hidden="true" className={cn('w-4 h-4', color)} />
       </div>
       <div>
-        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
-        <span className="text-xl font-bold text-white">{value}</span>
+        <p className="text-xs text-fg-secondary font-medium uppercase tracking-wide mb-1">{label}</p>
+        <span className="text-xl font-bold text-fg-primary">{value}</span>
       </div>
     </div>
   );
@@ -293,7 +293,7 @@ function ActionButton({
   icon: Icon,
   label,
   onClick,
-  color = 'text-zinc-400 hover:text-white',
+  color = 'text-fg-secondary hover:text-fg-primary',
 }: {
   icon: React.ElementType;
   label: string;
@@ -303,7 +303,7 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
-      className={cn('flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors bg-zinc-800 hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none', color)}
+      className={cn('flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors bg-surface-2 hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none', color)}
     >
       <Icon aria-hidden="true" className="w-3 h-3" />
       {label}
@@ -332,14 +332,14 @@ function SecretCard({
   const daysLeft = daysBetween(now, secret.expiry);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-white">{secret.name}</span>
+            <span className="text-sm font-medium text-fg-primary">{secret.name}</span>
             <TypeBadge type={secret.type} />
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-xs text-fg-muted">
             <Users aria-hidden="true" className="w-3 h-3" />
             {secret.agents.join(', ')}
           </div>
@@ -347,13 +347,13 @@ function SecretCard({
         <UsageBadge count={secret.usageCount} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-xs text-zinc-400">
+      <div className="grid grid-cols-2 gap-2 text-xs text-fg-secondary">
         <div>
-          <span className="block text-zinc-500 mb-0.5">Created</span>
+          <span className="block text-fg-muted mb-0.5">Created</span>
           {formatDate(secret.created)}
         </div>
         <div>
-          <span className="block text-zinc-500 mb-0.5">Last Used</span>
+          <span className="block text-fg-muted mb-0.5">Last Used</span>
           {formatDate(secret.lastUsed)}
         </div>
       </div>
@@ -361,13 +361,13 @@ function SecretCard({
       <div className="flex items-center justify-between gap-2">
         <ExpiryBadge days={daysLeft} />
         <div className="flex gap-1">
-          <button onClick={onToggleReveal} aria-label={revealed ? "Hide secret value" : "Show secret value"} className="p-1 rounded hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            {revealed ? <EyeOff aria-hidden="true" className="w-4 h-4 text-zinc-400" /> : <Eye aria-hidden="true" className="w-4 h-4 text-zinc-400" />}
+          <button onClick={onToggleReveal} aria-label={revealed ? "Hide secret value" : "Show secret value"} className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            {revealed ? <EyeOff aria-hidden="true" className="w-4 h-4 text-fg-secondary" /> : <Eye aria-hidden="true" className="w-4 h-4 text-fg-secondary" />}
           </button>
         </div>
       </div>
 
-      <div className="font-mono text-sm text-zinc-300 bg-zinc-800 rounded p-2 flex items-center justify-between">
+      <div className="font-mono text-sm text-zinc-300 bg-surface-2 rounded p-2 flex items-center justify-between">
         <span>{revealed ? maskValue(secret.value, true) : maskValue(secret.value)}</span>
       </div>
 
@@ -389,16 +389,16 @@ function RotationPanel({
   onBulkRotate: () => void;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <RotateCcw aria-hidden="true" className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Rotation Queue</span>
+        <span className="text-sm font-semibold text-fg-primary">Rotation Queue</span>
         <span className="ml-auto px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs">
           {dueSecrets.length} due
         </span>
       </div>
       {dueSecrets.length === 0 ? (
-        <div className="text-center text-zinc-500 py-4">
+        <div className="text-center text-fg-muted py-4">
           <CheckCircle aria-hidden="true" className="w-6 h-6 mx-auto mb-1 opacity-50" />
           <p className="text-sm">All secrets up to date</p>
         </div>
@@ -408,8 +408,8 @@ function RotationPanel({
             {dueSecrets.map((s) => (
               <div key={s.id} className="flex items-center gap-2 text-xs">
                 <TypeBadge type={s.type} />
-                <span className="text-white">{s.name}</span>
-                <span className="ml-auto text-zinc-500">
+                <span className="text-fg-primary">{s.name}</span>
+                <span className="ml-auto text-fg-muted">
                   {Math.floor((Date.now() - s.created.getTime()) / (1000 * 60 * 60 * 24))} days old
                 </span>
               </div>
@@ -417,7 +417,7 @@ function RotationPanel({
           </div>
           <button
             onClick={onBulkRotate}
-            className="w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-fg-primary text-sm font-medium flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <RotateCcw aria-hidden="true" className="w-4 h-4" />
             Rotate All
@@ -440,22 +440,22 @@ function AuditLogDrawer({
   if (!open) {return null;}
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-zinc-900 border-l border-zinc-800 shadow-2xl p-4 overflow-y-auto">
+    <div className="fixed inset-y-0 right-0 w-96 bg-surface-1 border-l border-tok-border shadow-2xl p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <History aria-hidden="true" className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-white">Audit Log</span>
+          <span className="text-sm font-semibold text-fg-primary">Audit Log</span>
         </div>
-        <button onClick={onClose} aria-label="Close audit log" className="p-1 rounded hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-          <X aria-hidden="true" className="w-4 h-4 text-zinc-400" />
+        <button onClick={onClose} aria-label="Close audit log" className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <X aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
         </button>
       </div>
       <div className="space-y-2">
         {events.map((evt) => (
-          <div key={evt.id} className="bg-zinc-800 rounded p-2 text-xs">
+          <div key={evt.id} className="bg-surface-2 rounded p-2 text-xs">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-zinc-500">{formatTimestamp(evt.timestamp)}</span>
-              <span className="text-white">{evt.agent}</span>
+              <span className="font-mono text-fg-muted">{formatTimestamp(evt.timestamp)}</span>
+              <span className="text-fg-primary">{evt.agent}</span>
               <span className={cn('px-1 rounded text-xs', 
                 evt.action === 'read' ? 'bg-blue-500/20 text-blue-400' :
                 evt.action === 'write' ? 'bg-green-500/20 text-green-400' :
@@ -501,28 +501,28 @@ function AddSecretModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-zinc-800 rounded-xl p-6 w-full max-w-md">
+      <div className="bg-surface-2 rounded-xl p-6 w-full max-w-md">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Add New Secret</h2>
-          <button onClick={onClose} aria-label="Close modal" className="p-1 rounded hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            <X aria-hidden="true" className="w-5 h-5 text-zinc-400" />
+          <h2 className="text-lg font-semibold text-fg-primary">Add New Secret</h2>
+          <button onClick={onClose} aria-label="Close modal" className="p-1 rounded hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <X aria-hidden="true" className="w-5 h-5 text-fg-secondary" />
           </button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Name</label>
+            <label className="block text-sm text-fg-secondary mb-1">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Type</label>
+            <label className="block text-sm text-fg-secondary mb-1">Type</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as SecretType)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             >
               <option>API Key</option>
               <option>OAuth</option>
@@ -532,34 +532,34 @@ function AddSecretModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Value</label>
+            <label className="block text-sm text-fg-secondary mb-1">Value</label>
             <textarea
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white font-mono text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary font-mono text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               rows={3}
             />
           </div>
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Expiry Date (optional)</label>
+            <label className="block text-sm text-fg-secondary mb-1">Expiry Date (optional)</label>
             <input
               type="date"
               value={expiry}
               onChange={(e) => setExpiry(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Agent Scope (comma-separated)</label>
+            <label className="block text-sm text-fg-secondary mb-1">Agent Scope (comma-separated)</label>
             <input
               value={agents.join(', ')}
               onChange={(e) => setAgents(e.target.value.split(', ').filter(Boolean))}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             />
           </div>
           <button
             onClick={handleSubmit}
-            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             Add Secret
           </button>
@@ -649,31 +649,31 @@ export default function SecretVaultManager() {
 
   return (
     <>
-      <a href="#svm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
-      <main id="svm-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <a href="#svm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
+      <main id="svm-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <FileLock aria-hidden="true" className="w-6 h-6 text-violet-400" />
             Secret Vault
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Credentials & secrets management</p>
+          <p className="text-sm text-fg-secondary mt-0.5">Credentials & secrets management</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span role="status" className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span role="status" className="px-3 py-1.5 rounded-lg bg-surface-2 text-zinc-300 text-sm font-medium">
             {totalSecrets} secrets
           </span>
           <button
             onClick={() => setAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <Plus aria-hidden="true" className="w-4 h-4" />
             Add Secret
           </button>
           <button
             onClick={() => setAuditDrawerOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-surface-2 hover:bg-surface-3 text-zinc-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <History aria-hidden="true" className="w-4 h-4" />
             Audit Log
@@ -682,7 +682,7 @@ export default function SecretVaultManager() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Secrets" value={totalSecrets} icon={Shield} color="text-violet-400" />
         <StatCard label="Expiring Soon" value={expiringSoon} icon={AlertTriangle} color="text-amber-400" />
         <StatCard label="Rotated This Month" value={rotatedThisMonth} icon={RotateCcw} color="text-green-400" />
@@ -690,20 +690,20 @@ export default function SecretVaultManager() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4">
-        <div className="flex-1 relative">
-          <Search aria-hidden="true" className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
+        <div className="flex-1 min-w-[180px] relative">
+          <Search aria-hidden="true" className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search secrets..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded px-9 py-2 text-sm text-white placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="w-full bg-surface-2 border border-tok-border rounded px-9 py-2 text-sm text-fg-primary placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           />
         </div>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as SecretType)}
-          className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <option value="">All Types</option>
           <option>API Key</option>
@@ -713,21 +713,21 @@ export default function SecretVaultManager() {
           <option>Password</option>
         </select>
         <div className="relative">
-          <Filter aria-hidden="true" className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Filter aria-hidden="true" className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={filterAgent}
             onChange={(e) => setFilterAgent(e.target.value)}
             placeholder="Filter by agent"
-            className="bg-zinc-800 border border-zinc-700 rounded px-9 py-2 text-sm text-white placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="bg-surface-2 border border-tok-border rounded px-9 py-2 text-sm text-fg-primary placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           />
         </div>
       </div>
 
       {/* Main Content: Secrets List + Rotation Panel */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
           {filteredSecrets.length === 0 ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500">
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center text-fg-muted">
               <Shield aria-hidden="true" className="w-12 h-12 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No secrets match your filters</p>
             </div>
@@ -748,7 +748,7 @@ export default function SecretVaultManager() {
             </div>
           )}
         </div>
-        <div className="col-span-1">
+        <div>
           <RotationPanel dueSecrets={dueForRotation} onBulkRotate={handleBulkRotate} />
         </div>
       </div>

@@ -247,7 +247,7 @@ function getStatusColor(status: Agent['status']): string {
     case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
     case 'idle': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
     case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
-    case 'offline': return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30';
+    case 'offline': return 'bg-zinc-500/20 text-fg-secondary border-zinc-500/30';
   }
 }
 
@@ -264,7 +264,7 @@ function StatCard({
   label,
   value,
   icon: Icon,
-  color = 'text-zinc-400',
+  color = 'text-fg-secondary',
   subtext,
 }: {
   label: string;
@@ -274,14 +274,14 @@ function StatCard({
   subtext?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-surface-2 rounded-lg">
         <Icon className={cn('w-4 h-4', color)} aria-hidden="true" />
       </div>
       <div>
-        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
-        <span className="text-xl font-bold text-white">{value}</span>
-        {subtext && <p className="text-xs text-zinc-500 mt-0.5">{subtext}</p>}
+        <p className="text-xs text-fg-secondary font-medium uppercase tracking-wide mb-1">{label}</p>
+        <span className="text-xl font-bold text-fg-primary">{value}</span>
+        {subtext && <p className="text-xs text-fg-muted mt-0.5">{subtext}</p>}
       </div>
     </div>
   );
@@ -324,7 +324,7 @@ function CapabilityCell({
         status === 'enabled' ? 'border-green-500/30' :
         status === 'degraded' ? 'border-amber-500/30' :
         status === 'unavailable' ? 'border-red-500/30' :
-        'border-zinc-700'
+        'border-tok-border'
       )}
       title={`${toolName}: ${status}`}
     >
@@ -348,7 +348,7 @@ function AgentCard({
   const enabledSkills = agent.skills.length;
   
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
       <div
         className="p-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
         onClick={onToggle}
@@ -360,48 +360,48 @@ function AgentCard({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-white">{agent.name}</span>
+                <span className="text-sm font-semibold text-fg-primary">{agent.name}</span>
                 <StatusBadge status={agent.status} />
               </div>
-              <p className="text-xs text-zinc-400">{agent.role}</p>
+              <p className="text-xs text-fg-secondary">{agent.role}</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-zinc-500">
+          <div className="flex items-center gap-4 text-xs text-fg-muted">
             <div className="text-right">
-              <p className="text-zinc-400 font-medium">{enabledTools} tools</p>
+              <p className="text-fg-secondary font-medium">{enabledTools} tools</p>
               <p>{enabledSkills} skills</p>
             </div>
             {isExpanded ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400" aria-hidden="true" />
+              <ChevronUp className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400" aria-hidden="true" />
+              <ChevronDown className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
             )}
           </div>
         </div>
         
         <div className="mt-3 flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <Cpu className="w-3 h-3 text-zinc-500" aria-hidden="true" />
-            <span className="text-zinc-400">{agent.model}</span>
+            <Cpu className="w-3 h-3 text-fg-muted" aria-hidden="true" />
+            <span className="text-fg-secondary">{agent.model}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-zinc-500" aria-hidden="true" />
-            <span className="text-zinc-400">{formatTimeAgo(agent.lastActive)}</span>
+            <Clock className="w-3 h-3 text-fg-muted" aria-hidden="true" />
+            <span className="text-fg-secondary">{formatTimeAgo(agent.lastActive)}</span>
           </div>
         </div>
       </div>
       
       {isExpanded && (
-        <div className="border-t border-zinc-800 p-4 bg-zinc-800/30 space-y-4">
+        <div className="border-t border-tok-border p-4 bg-zinc-800/30 space-y-4">
           <div>
-            <p className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Tools Enabled</p>
+            <p className="text-xs text-fg-muted uppercase tracking-wide mb-2">Tools Enabled</p>
             <div className="flex flex-wrap gap-1.5">
               {agent.tools.map((toolId) => {
                 const tool = tools.find((t) => t.id === toolId);
                 return (
                   <span
                     key={toolId}
-                    className="px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 text-xs"
+                    className="px-2 py-0.5 rounded bg-surface-3 text-zinc-300 text-xs"
                   >
                     {tool?.name || toolId}
                   </span>
@@ -410,7 +410,7 @@ function AgentCard({
             </div>
           </div>
           <div>
-            <p className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Skills</p>
+            <p className="text-xs text-fg-muted uppercase tracking-wide mb-2">Skills</p>
             <div className="flex flex-wrap gap-1.5">
               {agent.skills.map((skillId) => (
                 <span
@@ -430,7 +430,7 @@ function AgentCard({
 
 function PermissionBadge({ level }: { level: PermissionLevel }) {
   const styles: Record<PermissionLevel, string> = {
-    none: 'bg-zinc-700/50 text-zinc-400',
+    none: 'bg-zinc-700/50 text-fg-secondary',
     read: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
     write: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
     admin: 'bg-red-500/15 text-red-400 border-red-500/30',
@@ -459,18 +459,18 @@ function PermissionPanel({
   agents: Agent[];
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Shield className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Permission Grants</span>
+        <span className="text-sm font-semibold text-fg-primary">Permission Grants</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-zinc-800">
-              <th className="text-left py-2 px-2 text-zinc-500 font-medium">Agent</th>
+            <tr className="border-b border-tok-border">
+              <th className="text-left py-2 px-2 text-fg-muted font-medium">Agent</th>
               {PERMISSION_TYPES.map((perm) => (
-                <th key={perm.id} className="text-center py-2 px-2 text-zinc-500 font-medium">
+                <th key={perm.id} className="text-center py-2 px-2 text-fg-muted font-medium">
                   <div className="flex items-center justify-center gap-1">
                     <perm.icon className="w-3 h-3" aria-hidden="true" />
                     {perm.name}
@@ -483,7 +483,7 @@ function PermissionPanel({
             {agents.map((agent) => (
               <tr key={agent.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                 <td className="py-2 px-2">
-                  <span className="text-white font-medium">{agent.name}</span>
+                  <span className="text-fg-primary font-medium">{agent.name}</span>
                 </td>
                 {agent.permissions.map((perm, idx) => (
                   <td key={idx} className="py-2 px-2 text-center">
@@ -529,10 +529,10 @@ function HealthAlertsPanel({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className="w-4 h-4 text-amber-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Capability Health</span>
+        <span className="text-sm font-semibold text-fg-primary">Capability Health</span>
         {alerts.length > 0 && (
           <span className="ml-auto px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs">
             {alerts.length} issues
@@ -541,7 +541,7 @@ function HealthAlertsPanel({
       </div>
       
       {alerts.length === 0 ? (
-        <div className="text-center py-4 text-zinc-500">
+        <div className="text-center py-4 text-fg-muted">
           <CheckCircle className="w-6 h-6 mx-auto mb-1 text-green-400" aria-hidden="true" />
           <p className="text-sm">All capabilities healthy</p>
         </div>
@@ -580,20 +580,20 @@ function CapabilityMatrix({
   tools: Tool[];
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 overflow-x-auto">
       <div className="flex items-center gap-2 mb-4">
         <Wrench className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Capability Matrix</span>
+        <span className="text-sm font-semibold text-fg-primary">Capability Matrix</span>
       </div>
       
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-zinc-800">
-            <th className="text-left py-2 px-2 text-zinc-500 font-medium min-w-[120px]">Agent</th>
+          <tr className="border-b border-tok-border">
+            <th className="text-left py-2 px-2 text-fg-muted font-medium min-w-[120px]">Agent</th>
             {tools.map((tool) => (
               <th key={tool.id} className="text-center py-2 px-1" title={tool.description}>
                 <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-zinc-400 text-[10px]">{tool.name.split(' ')[0]}</span>
+                  <span className="text-fg-secondary text-[10px]">{tool.name.split(' ')[0]}</span>
                 </div>
               </th>
             ))}
@@ -605,7 +605,7 @@ function CapabilityMatrix({
               <td className="py-2 px-2">
                 <div className="flex items-center gap-2">
                   <StatusBadge status={agent.status} />
-                  <span className="text-white font-medium">{agent.name}</span>
+                  <span className="text-fg-primary font-medium">{agent.name}</span>
                 </div>
               </td>
               {tools.map((tool) => (
@@ -623,7 +623,7 @@ function CapabilityMatrix({
         </tbody>
       </table>
       
-      <div className="mt-4 flex items-center gap-4 text-xs text-zinc-500">
+      <div className="mt-4 flex items-center gap-4 text-xs text-fg-muted">
         <div className="flex items-center gap-1.5">
           <CheckCircle className="w-3 h-3 text-green-400" aria-hidden="true" />
           <span>Enabled</span>
@@ -654,19 +654,19 @@ function SkillMatrix({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 overflow-x-auto">
       <div className="flex items-center gap-2 mb-4">
         <Brain className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Skill Coverage</span>
+        <span className="text-sm font-semibold text-fg-primary">Skill Coverage</span>
       </div>
       
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-zinc-800">
-            <th className="text-left py-2 px-2 text-zinc-500 font-medium min-w-[120px]">Agent</th>
+          <tr className="border-b border-tok-border">
+            <th className="text-left py-2 px-2 text-fg-muted font-medium min-w-[120px]">Agent</th>
             {skills.map((skill) => (
               <th key={skill.id} className="text-center py-2 px-1">
-                <span className="text-zinc-400 text-[10px]" title={skill.category}>
+                <span className="text-fg-secondary text-[10px]" title={skill.category}>
                   {skill.name.length > 8 ? skill.name.slice(0, 8) + '..' : skill.name}
                 </span>
               </th>
@@ -679,7 +679,7 @@ function SkillMatrix({
               <td className="py-2 px-2">
                 <div className="flex items-center gap-2">
                   <StatusBadge status={agent.status} />
-                  <span className="text-white font-medium">{agent.name}</span>
+                  <span className="text-fg-primary font-medium">{agent.name}</span>
                 </div>
               </td>
               {skills.map((skill) => (
@@ -726,21 +726,21 @@ function FilterBar({
   const categories = [...new Set(tools.map((t) => t.category))];
   
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4 flex-wrap">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-center gap-4 flex-wrap">
       <div className="flex-1 min-w-[200px] relative">
-        <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+        <Search className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search agents, tools, skills..."
-          className="w-full bg-zinc-800 border border-zinc-700 rounded px-9 py-2 text-sm text-white placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="w-full bg-surface-2 border border-tok-border rounded px-9 py-2 text-sm text-fg-primary placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         />
       </div>
       
       <select
         value={filterAgent}
         onChange={(e) => setFilterAgent(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+        className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         <option value="">All Agents</option>
         {agents.map((a) => (
@@ -751,7 +751,7 @@ function FilterBar({
       <select
         value={filterCategory}
         onChange={(e) => setFilterCategory(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+        className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         <option value="">All Categories</option>
         {categories.map((cat) => (
@@ -762,7 +762,7 @@ function FilterBar({
       <select
         value={filterPermission}
         onChange={(e) => setFilterPermission(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+        className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         <option value="">All Permissions</option>
         <option value="admin">Admin</option>
@@ -779,7 +779,7 @@ function FilterBar({
             setFilterCategory('');
             setFilterPermission('');
           }}
-          className="flex items-center gap-1 px-3 py-2 rounded text-sm text-zinc-400 hover:text-white hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="flex items-center gap-1 px-3 py-2 rounded text-sm text-fg-secondary hover:text-fg-primary hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <X className="w-4 h-4" aria-hidden="true" />
           Clear
@@ -846,24 +846,24 @@ export default function AgentCapabilityMatrix() {
 
   return (
     <>
-      <a href="#acm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
-      <main id="acm-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <a href="#acm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
+      <main id="acm-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
             Agent Capability Matrix
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">
+          <p className="text-sm text-fg-secondary mt-0.5">
             Tools, skills, and permission overview for all agents
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium" role="status">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="px-3 py-1.5 rounded-lg bg-surface-2 text-zinc-300 text-sm font-medium" role="status">
             {filteredAgents.length} / {totalAgents} agents
           </span>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
             Refresh
           </button>
@@ -871,7 +871,7 @@ export default function AgentCapabilityMatrix() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
         <StatCard 
           label="Total Agents" 
           value={totalAgents} 
@@ -929,16 +929,16 @@ export default function AgentCapabilityMatrix() {
       />
 
       {/* Main Content */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Agent Roster */}
-        <div className="col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-fg-primary flex items-center gap-2">
             <Users className="w-4 h-4 text-violet-400" aria-hidden="true" />
             Agent Roster
-            <span className="ml-auto text-xs text-zinc-500">{filteredAgents.length} shown</span>
+            <span className="ml-auto text-xs text-fg-muted">{filteredAgents.length} shown</span>
           </h2>
           {filteredAgents.length === 0 ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500">
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center text-fg-muted">
               <Bot className="w-12 h-12 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No agents match your filters</p>
             </div>
@@ -958,16 +958,16 @@ export default function AgentCapabilityMatrix() {
         </div>
 
         {/* Right Column: Matrix/Permissions/Health */}
-        <div className="col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-6">
           {/* Tab Switcher */}
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('matrix')}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                'px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 activeTab === 'matrix'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                  ? 'bg-violet-600 text-fg-primary'
+                  : 'bg-surface-2 text-fg-secondary hover:text-fg-primary'
               )}
             >
               <Wrench className="w-4 h-4 inline mr-2" aria-hidden="true" />
@@ -976,10 +976,10 @@ export default function AgentCapabilityMatrix() {
             <button
               onClick={() => setActiveTab('skills')}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                'px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 activeTab === 'skills'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                  ? 'bg-violet-600 text-fg-primary'
+                  : 'bg-surface-2 text-fg-secondary hover:text-fg-primary'
               )}
             >
               <Brain className="w-4 h-4 inline mr-2" aria-hidden="true" />

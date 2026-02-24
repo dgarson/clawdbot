@@ -231,22 +231,22 @@ function LatencyBadge({ ms }: { ms: number }) {
 function ChannelCard({ channel }: { channel: Channel }) {
   const Icon = channel.icon;
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon aria-hidden="true" className="w-5 h-5 text-zinc-400" />
-          <span className="font-medium text-white">{channel.name}</span>
+          <Icon aria-hidden="true" className="w-5 h-5 text-fg-secondary" />
+          <span className="font-medium text-fg-primary">{channel.name}</span>
         </div>
         <StatusBadge status={channel.status} />
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="text-zinc-500">
+        <div className="text-fg-muted">
           Last Msg
-          <div className="text-white mt-0.5">{formatTimestamp(channel.lastMessage)}</div>
+          <div className="text-fg-primary mt-0.5">{formatTimestamp(channel.lastMessage)}</div>
         </div>
-        <div className="text-zinc-500">
+        <div className="text-fg-muted">
           Today
-          <div className="text-white mt-0.5">{channel.countToday} msgs</div>
+          <div className="text-fg-primary mt-0.5">{channel.countToday} msgs</div>
         </div>
       </div>
       <LatencyBadge ms={channel.latencyMs} />
@@ -287,25 +287,25 @@ function BroadcastComposer({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">New Broadcast</h3>
-        <button onClick={() => setShowPreview(!showPreview)} aria-label={showPreview ? "Hide preview" : "Show preview"} className="text-zinc-400 hover:text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
+        <h3 className="text-lg font-semibold text-fg-primary">New Broadcast</h3>
+        <button onClick={() => setShowPreview(!showPreview)} aria-label={showPreview ? "Hide preview" : "Show preview"} className="text-fg-secondary hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
           <Eye aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
       {/* Target Selector */}
       <div className="space-y-2">
-        <label className="text-sm text-zinc-400">Target Channels</label>
-        <div className="grid grid-cols-3 gap-2">
+        <label className="text-sm text-fg-secondary">Target Channels</label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {channels.map((ch) => (
-            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300">
+            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300 min-h-[44px]">
               <input
                 type="checkbox"
                 checked={selectedChannels.includes(ch.id)}
                 onChange={() => toggleChannel(ch.id)}
-                className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="rounded border-zinc-600 bg-surface-2 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               />
               {ch.name}
             </label>
@@ -315,25 +315,25 @@ function BroadcastComposer({
 
       {/* Message */}
       <div className="space-y-2">
-        <label className="text-sm text-zinc-400">Message</label>
+        <label className="text-sm text-fg-secondary">Message</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="w-full bg-surface-2 border border-tok-border rounded-lg p-2 text-fg-primary text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           placeholder="Type your broadcast message..."
         />
-        <div className="text-xs text-zinc-500 text-right">{message.length} characters</div>
+        <div className="text-xs text-fg-muted text-right">{message.length} characters</div>
       </div>
 
       {/* Schedule */}
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
+        <label className="flex items-center gap-2 text-sm text-fg-secondary">
           <input
             type="checkbox"
             checked={scheduleMode}
             onChange={(e) => setScheduleMode(e.target.checked)}
-            className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="rounded border-zinc-600 bg-surface-2 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           />
           Schedule for later
         </label>
@@ -341,7 +341,7 @@ function BroadcastComposer({
           <input
             type="datetime-local"
             onChange={(e) => setScheduleTime(e.target.value ? new Date(e.target.value) : null)}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="w-full bg-surface-2 border border-tok-border rounded-lg p-2 text-fg-primary text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           />
         )}
       </div>
@@ -349,12 +349,12 @@ function BroadcastComposer({
       {/* Preview */}
       {showPreview && (
         <div className="space-y-2">
-          <label className="text-sm text-zinc-400">Preview</label>
+          <label className="text-sm text-fg-secondary">Preview</label>
           <div className="grid grid-cols-2 gap-2">
             {selectedChannels.map((id) => {
               const ch = channels.find((c) => c.id === id);
               return (
-                <div key={id} className="bg-zinc-800 p-2 rounded-lg text-xs">
+                <div key={id} className="bg-surface-2 p-2 rounded-lg text-xs">
                   <div className="font-medium mb-1">{ch?.name} Preview</div>
                   <p className="text-zinc-300">{message} {ch?.id === 'twitter' ? '(truncated to 280 chars)' : ''}</p>
                 </div>
@@ -369,7 +369,7 @@ function BroadcastComposer({
         <button
           onClick={handleSubmit}
           disabled={!message || selectedChannels.length === 0}
-          className="flex-1 bg-violet-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="flex-1 bg-violet-600 text-fg-primary py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           {scheduleMode ? 'Schedule' : 'Send Now'}
         </button>
@@ -380,24 +380,24 @@ function BroadcastComposer({
 
 function HistoryTable({ history }: { history: Broadcast[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <BarChart aria-hidden="true" className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">Broadcast History</span>
+        <span className="text-sm font-semibold text-fg-primary">Broadcast History</span>
       </div>
       <div className="overflow-auto max-h-64">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-zinc-900">
-            <tr className="text-left text-zinc-400">
+          <thead className="sticky top-0 bg-surface-1">
+            <tr className="text-left text-fg-secondary">
               <th className="p-3">Time</th>
               <th className="p-3">Message</th>
               <th className="p-3">Channels</th>
               <th className="p-3">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-tok-border">
             {history.map((bc) => (
-              <tr key={bc.id} className="hover:bg-zinc-800">
+              <tr key={bc.id} className="hover:bg-surface-2">
                 <td className="p-3">{formatTimestamp(bc.timestamp)}</td>
                 <td className="p-3 truncate max-w-xs">{bc.message}</td>
                 <td className="p-3">{bc.channels.length}</td>
@@ -428,30 +428,30 @@ function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: Schedul
   }, []);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-surface-1 border border-tok-border rounded-xl flex flex-col">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <Clock aria-hidden="true" className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Pending Scheduled</span>
+        <span className="text-sm font-semibold text-fg-primary">Pending Scheduled</span>
       </div>
-      <div className="divide-y divide-zinc-800">
+      <div className="divide-y divide-tok-border">
         {scheduled.map((sc) => {
           const remaining = sc.scheduledTime.getTime() - now;
           return (
             <div key={sc.id} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span aria-live="polite" className="text-sm font-medium text-white">Send in {formatDuration(remaining)}</span>
+                <span aria-live="polite" className="text-sm font-medium text-fg-primary">Send in {formatDuration(remaining)}</span>
                 <div className="flex gap-2">
-                  <button onClick={() => onEdit(sc.id)} aria-label="Edit scheduled broadcast" className="text-zinc-400 hover:text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
+                  <button onClick={() => onEdit(sc.id)} aria-label="Edit scheduled broadcast" className="text-fg-secondary hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
                     <Edit aria-hidden="true" className="w-4 h-4" />
                   </button>
-                  <button onClick={() => onCancel(sc.id)} aria-label="Cancel scheduled broadcast" className="text-zinc-400 hover:text-red-400 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
+                  <button onClick={() => onCancel(sc.id)} aria-label="Cancel scheduled broadcast" className="text-fg-secondary hover:text-red-400 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
                     <Trash aria-hidden="true" className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-zinc-400">{sc.message}</p>
+              <p className="text-xs text-fg-secondary">{sc.message}</p>
               <div className="flex gap-1">
-                {sc.channels.map((ch) => <span key={ch} className="text-xs text-zinc-500">{ch}</span>)}
+                {sc.channels.map((ch) => <span key={ch} className="text-xs text-fg-muted">{ch}</span>)}
               </div>
             </div>
           );
@@ -463,22 +463,22 @@ function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: Schedul
 
 function FailedLog({ failed, onRetry }: { failed: FailedDelivery[]; onRetry: (id: string) => void }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-surface-1 border border-tok-border rounded-xl flex flex-col">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <AlertTriangle aria-hidden="true" className="w-4 h-4 text-red-400" />
-        <span className="text-sm font-semibold text-white">Failed Deliveries</span>
+        <span className="text-sm font-semibold text-fg-primary">Failed Deliveries</span>
       </div>
-      <div className="divide-y divide-zinc-800">
+      <div className="divide-y divide-tok-border">
         {failed.map((fd) => (
           <div key={fd.id} className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-white">{fd.channelId} (Broadcast {fd.broadcastId})</span>
-              <button onClick={() => onRetry(fd.id)} aria-label="Retry failed delivery" className="text-zinc-400 hover:text-green-400 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
+              <span className="text-sm text-fg-primary">{fd.channelId} (Broadcast {fd.broadcastId})</span>
+              <button onClick={() => onRetry(fd.id)} aria-label="Retry failed delivery" className="text-fg-secondary hover:text-green-400 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
                 <RefreshCcw aria-hidden="true" className="w-4 h-4" />
               </button>
             </div>
             <p className="text-xs text-red-400">{fd.error}</p>
-            <div className="text-xs text-zinc-500">Attempts: {fd.attempts} · Last: {formatTimestamp(fd.lastAttempt)}</div>
+            <div className="text-xs text-fg-muted">Attempts: {fd.attempts} · Last: {formatTimestamp(fd.lastAttempt)}</div>
           </div>
         ))}
       </div>
@@ -498,22 +498,22 @@ function StatsRow({
   deliveryRate: number;
 }) {
   return (
-    <div className="grid grid-cols-4 gap-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Messages Today</div>
-        <div role="status" className="text-xl font-bold text-white mt-1">{messagesToday}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Messages Today</div>
+        <div role="status" className="text-xl font-bold text-fg-primary mt-1">{messagesToday}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Active Channels</div>
-        <div role="status" className="text-xl font-bold text-white mt-1">{activeChannels}/6</div>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Active Channels</div>
+        <div role="status" className="text-xl font-bold text-fg-primary mt-1">{activeChannels}/6</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Scheduled</div>
-        <div role="status" className="text-xl font-bold text-white mt-1">{scheduled}</div>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Scheduled</div>
+        <div role="status" className="text-xl font-bold text-fg-primary mt-1">{scheduled}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Delivery Rate</div>
-        <div role="status" className="text-xl font-bold text-white mt-1">{deliveryRate}%</div>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+        <div className="text-xs text-fg-secondary uppercase">Delivery Rate</div>
+        <div role="status" className="text-xl font-bold text-fg-primary mt-1">{deliveryRate}%</div>
       </div>
     </div>
   );
@@ -560,18 +560,18 @@ export default function ChannelBroadcastCenter() {
 
   return (
     <>
-      <a href="#cbc-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
-      <main id="cbc-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <a href="#cbc-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
+      <main id="cbc-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
             <MessageSquare aria-hidden="true" className="w-6 h-6 text-violet-400" />
             Broadcast Center
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Unified channel management & messaging</p>
+          <p className="text-sm text-fg-secondary mt-0.5">Unified channel management & messaging</p>
         </div>
-        <button className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+        <button className="flex items-center gap-2 bg-violet-600 text-fg-primary px-4 py-2 min-h-[44px] rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none self-start sm:self-auto">
           <Plus aria-hidden="true" className="w-4 h-4" />
           New Broadcast
         </button>
@@ -586,25 +586,25 @@ export default function ChannelBroadcastCenter() {
       />
 
       {/* Channel Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Composer */}
-        <div className="col-span-1">
+        <div>
           <BroadcastComposer channels={channels} onSend={handleSend} onSchedule={handleSchedule} />
         </div>
 
         {/* History */}
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <HistoryTable history={history} />
         </div>
       </div>
 
       {/* Pending & Failed */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <PendingBroadcasts scheduled={scheduled} onCancel={handleCancel} onEdit={handleEdit} />
         <FailedLog failed={failed} onRetry={handleRetry} />
       </div>
