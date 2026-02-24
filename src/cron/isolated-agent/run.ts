@@ -21,10 +21,7 @@ import {
   resolveHooksGmailModel,
   resolveThinkingDefault,
 } from "../../agents/model-selection.js";
-import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.js";
 import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
-import { runSubagentAnnounceFlow } from "../../agents/subagent-announce.js";
-import { countActiveDescendantRuns } from "../../agents/subagent-registry.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { deriveSessionTotalTokens, hasNonzeroUsage } from "../../agents/usage.js";
 import { ensureAgentWorkspace } from "../../agents/workspace.js";
@@ -33,19 +30,11 @@ import {
   normalizeVerboseLevel,
   supportsXHighThinking,
 } from "../../auto-reply/thinking.js";
-import { SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
-import { createOutboundSendDeps, type CliDeps } from "../../cli/outbound-send-deps.js";
+import type { CliDeps } from "../../cli/outbound-send-deps.js";
 import type { OpenClawConfig } from "../../config/config.js";
-import {
-  resolveAgentMainSessionKey,
-  resolveSessionTranscriptPath,
-  updateSessionStore,
-} from "../../config/sessions.js";
+import { resolveSessionTranscriptPath, updateSessionStore } from "../../config/sessions.js";
 import type { AgentDefaultsConfig } from "../../config/types.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
-import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
-import { resolveAgentOutboundIdentity } from "../../infra/outbound/identity.js";
-import { resolveOutboundSessionRoute } from "../../infra/outbound/outbound-session.js";
 import { getChildLogger } from "../../logging/logger.js";
 import { buildAgentMainSessionKey, normalizeAgentId } from "../../routing/session-key.js";
 import {
@@ -56,6 +45,11 @@ import {
 } from "../../security/external-content.js";
 import { resolveCronDeliveryPlan } from "../delivery.js";
 import type { CronJob, CronRunOutcome, CronRunTelemetry } from "../types.js";
+import {
+  dispatchCronDelivery,
+  matchesMessagingToolDeliveryTarget,
+  resolveCronDeliveryBestEffort,
+} from "./delivery-dispatch.js";
 import { resolveDeliveryTarget } from "./delivery-target.js";
 import {
   isHeartbeatOnlyResponse,
@@ -67,74 +61,6 @@ import {
 } from "./helpers.js";
 import { resolveCronSession } from "./session.js";
 import { resolveCronSkillsSnapshot } from "./skills-snapshot.js";
-import {
-  expectsSubagentFollowup,
-  isLikelyInterimCronMessage,
-  readDescendantSubagentFallbackReply,
-  waitForDescendantSubagentSummary,
-} from "./subagent-followup.js";
-
-function matchesMessagingToolDeliveryTarget(
-  target: MessagingToolSend,
-  delivery: { channel?: string; to?: string; accountId?: string },
-): boolean {
-  if (!delivery.channel || !delivery.to || !target.to) {
-    return false;
-  }
-  const channel = delivery.channel.trim().toLowerCase();
-  const provider = target.provider?.trim().toLowerCase();
-  if (provider && provider !== "message" && provider !== channel) {
-    return false;
-  }
-  if (target.accountId && delivery.accountId && target.accountId !== delivery.accountId) {
-    return false;
-  }
-  return target.to === delivery.to;
-}
-
-function resolveCronDeliveryBestEffort(job: CronJob): boolean {
-  if (typeof job.delivery?.bestEffort === "boolean") {
-    return job.delivery.bestEffort;
-  }
-  if (job.payload.kind === "agentTurn" && typeof job.payload.bestEffortDeliver === "boolean") {
-    return job.payload.bestEffortDeliver;
-  }
-  return false;
-}
-
-async function resolveCronAnnounceSessionKey(params: {
-  cfg: OpenClawConfig;
-  agentId: string;
-  fallbackSessionKey: string;
-  delivery: {
-    channel: Parameters<typeof resolveOutboundSessionRoute>[0]["channel"];
-    to?: string;
-    accountId?: string;
-    threadId?: string | number;
-  };
-}): Promise<string> {
-  const to = params.delivery.to?.trim();
-  if (!to) {
-    return params.fallbackSessionKey;
-  }
-  try {
-    const route = await resolveOutboundSessionRoute({
-      cfg: params.cfg,
-      channel: params.delivery.channel,
-      agentId: params.agentId,
-      accountId: params.delivery.accountId,
-      target: to,
-      threadId: params.delivery.threadId,
-    });
-    const resolved = route?.sessionKey?.trim();
-    if (resolved) {
-      return resolved;
-    }
-  } catch {
-    // Fall back to main session routing if announce session resolution fails.
-  }
-  return params.fallbackSessionKey;
-}
 
 export type RunCronAgentTurnResult = {
   /** Last non-empty agent text output (not truncated). */
@@ -156,10 +82,19 @@ export async function runCronIsolatedAgentTurn(params: {
   job: CronJob;
   message: string;
   abortSignal?: AbortSignal;
+  signal?: AbortSignal;
   sessionKey: string;
   agentId?: string;
   lane?: string;
 }): Promise<RunCronAgentTurnResult> {
+  const abortSignal = params.abortSignal ?? params.signal;
+  const isAborted = () => abortSignal?.aborted === true;
+  const abortReason = () => {
+    const reason = abortSignal?.reason;
+    return typeof reason === "string" && reason.trim()
+      ? reason.trim()
+      : "cron: job execution timed out";
+  };
   const isFastTestEnv = process.env.OPENCLAW_TEST_FAST === "1";
   const defaultAgentId = resolveDefaultAgentId(params.cfg);
   const requestedAgentId =
@@ -479,8 +414,8 @@ export async function runCronIsolatedAgentTurn(params: {
       agentDir,
       fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
       run: (providerOverride, modelOverride) => {
-        if (params.abortSignal?.aborted) {
-          throw new Error("cron: isolated run aborted");
+        if (abortSignal?.aborted) {
+          throw new Error(abortReason());
         }
         if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {
           const cliSessionId = getCliSessionId(cronSession.sessionEntry, providerOverride);
@@ -507,6 +442,7 @@ export async function runCronIsolatedAgentTurn(params: {
           messageChannel,
           agentAccountId: resolvedDelivery.accountId,
           sessionFile,
+          agentDir,
           workspaceDir,
           config: cfgWithAgentDefaults,
           skillsSnapshot,
@@ -522,7 +458,7 @@ export async function runCronIsolatedAgentTurn(params: {
           runId: cronSession.sessionEntry.sessionId,
           requireExplicitMessageTarget: true,
           disableMessageTool: deliveryRequested,
-          abortSignal: params.abortSignal,
+          abortSignal,
         });
       },
     });
@@ -532,6 +468,10 @@ export async function runCronIsolatedAgentTurn(params: {
     runEndedAt = Date.now();
   } catch (err) {
     return withRunSession({ status: "error", error: String(err) });
+  }
+
+  if (isAborted()) {
+    return withRunSession({ status: "error", error: abortReason() });
   }
 
   const payloads = runResult.payloads ?? [];
@@ -589,6 +529,10 @@ export async function runCronIsolatedAgentTurn(params: {
     }
     await persistSessionEntry();
   }
+
+  if (isAborted()) {
+    return withRunSession({ status: "error", error: abortReason(), ...telemetry });
+  }
   const firstText = payloads[0]?.text ?? "";
   let summary = pickSummaryFromPayloads(payloads) ?? pickSummaryFromOutput(firstText);
   let outputText = pickLastNonEmptyTextFromPayloads(payloads);
@@ -605,6 +549,25 @@ export async function runCronIsolatedAgentTurn(params: {
     (deliveryPayload?.mediaUrls?.length ?? 0) > 0 ||
     Object.keys(deliveryPayload?.channelData ?? {}).length > 0;
   const deliveryBestEffort = resolveCronDeliveryBestEffort(params.job);
+  const hasErrorPayload = payloads.some((payload) => payload?.isError === true);
+  const lastErrorPayloadText = [...payloads]
+    .toReversed()
+    .find((payload) => payload?.isError === true && Boolean(payload?.text?.trim()))
+    ?.text?.trim();
+  const embeddedRunError = hasErrorPayload
+    ? (lastErrorPayloadText ?? "cron isolated run returned an error payload")
+    : undefined;
+  const resolveRunOutcome = (params?: { delivered?: boolean }) =>
+    withRunSession({
+      status: hasErrorPayload ? "error" : "ok",
+      ...(hasErrorPayload
+        ? { error: embeddedRunError ?? "cron isolated run returned an error payload" }
+        : {}),
+      summary,
+      outputText,
+      delivered: params?.delivered,
+      ...telemetry,
+    });
 
   // Skip delivery for heartbeat-only responses (HEARTBEAT_OK with no real content).
   const ackMaxChars = resolveHeartbeatAckMaxChars(agentCfg);
@@ -620,200 +583,42 @@ export async function runCronIsolatedAgentTurn(params: {
       }),
     );
 
-  // `true` means we confirmed at least one outbound send reached the target.
-  // Keep this strict so timer fallback can safely decide whether to wake main.
-  let delivered = skipMessagingToolDelivery;
-  if (deliveryRequested && !skipHeartbeatDelivery && !skipMessagingToolDelivery) {
-    if (resolvedDelivery.error) {
-      if (!deliveryBestEffort) {
-        return withRunSession({
-          status: "error",
-          error: resolvedDelivery.error.message,
-          summary,
-          outputText,
-          ...telemetry,
-        });
-      }
-      cronLogger.warn(`[cron:${params.job.id}] ${resolvedDelivery.error.message}`);
-      return withRunSession({ status: "ok", summary, outputText, ...telemetry });
+  const deliveryResult = await dispatchCronDelivery({
+    cfg: params.cfg,
+    cfgWithAgentDefaults,
+    deps: params.deps,
+    job: params.job,
+    agentId,
+    agentSessionKey,
+    runSessionId,
+    runStartedAt,
+    runEndedAt,
+    timeoutMs,
+    resolvedDelivery,
+    deliveryRequested,
+    skipHeartbeatDelivery,
+    skipMessagingToolDelivery,
+    deliveryBestEffort,
+    deliveryPayloadHasStructuredContent,
+    deliveryPayloads,
+    synthesizedText,
+    summary,
+    outputText,
+    telemetry,
+    abortSignal,
+    isAborted,
+    abortReason,
+    withRunSession,
+  });
+  if (deliveryResult.result) {
+    if (!hasErrorPayload || deliveryResult.result.status !== "ok") {
+      return deliveryResult.result;
     }
-    const failOrWarnMissingDeliveryField = (message: string) => {
-      if (!deliveryBestEffort) {
-        return withRunSession({
-          status: "error",
-          error: message,
-          summary,
-          outputText,
-          ...telemetry,
-        });
-      }
-      cronLogger.warn(`[cron:${params.job.id}] ${message}`);
-      return withRunSession({ status: "ok", summary, outputText, ...telemetry });
-    };
-    if (!resolvedDelivery.channel) {
-      return failOrWarnMissingDeliveryField("cron delivery channel is missing");
-    }
-    if (!resolvedDelivery.to) {
-      return failOrWarnMissingDeliveryField("cron delivery target is missing");
-    }
-    const identity = resolveAgentOutboundIdentity(cfgWithAgentDefaults, agentId);
-
-    // Route text-only cron announce output back through the main session so it
-    // follows the same system-message injection path as subagent completions.
-    // Keep direct outbound delivery only for structured payloads (media/channel
-    // data), which cannot be represented by the shared announce flow.
-    if (deliveryPayloadHasStructuredContent) {
-      try {
-        const payloadsForDelivery =
-          deliveryPayloads.length > 0
-            ? deliveryPayloads
-            : synthesizedText
-              ? [{ text: synthesizedText }]
-              : [];
-        if (payloadsForDelivery.length > 0) {
-          const deliveryResults = await deliverOutboundPayloads({
-            cfg: cfgWithAgentDefaults,
-            channel: resolvedDelivery.channel,
-            to: resolvedDelivery.to,
-            accountId: resolvedDelivery.accountId,
-            threadId: resolvedDelivery.threadId,
-            payloads: payloadsForDelivery,
-            agentId,
-            identity,
-            bestEffort: deliveryBestEffort,
-            deps: createOutboundSendDeps(params.deps),
-          });
-          delivered = deliveryResults.length > 0;
-        }
-      } catch (err) {
-        if (!deliveryBestEffort) {
-          return withRunSession({
-            status: "error",
-            summary,
-            outputText,
-            error: String(err),
-            ...telemetry,
-          });
-        }
-      }
-    } else if (synthesizedText) {
-      const announceMainSessionKey = resolveAgentMainSessionKey({
-        cfg: params.cfg,
-        agentId,
-      });
-      const announceSessionKey = await resolveCronAnnounceSessionKey({
-        cfg: cfgWithAgentDefaults,
-        agentId,
-        fallbackSessionKey: announceMainSessionKey,
-        delivery: {
-          channel: resolvedDelivery.channel,
-          to: resolvedDelivery.to,
-          accountId: resolvedDelivery.accountId,
-          threadId: resolvedDelivery.threadId,
-        },
-      });
-      const taskLabel =
-        typeof params.job.name === "string" && params.job.name.trim()
-          ? params.job.name.trim()
-          : `cron:${params.job.id}`;
-      const initialSynthesizedText = synthesizedText.trim();
-      let activeSubagentRuns = countActiveDescendantRuns(agentSessionKey);
-      const expectedSubagentFollowup = expectsSubagentFollowup(initialSynthesizedText);
-      const hadActiveDescendants = activeSubagentRuns > 0;
-      if (activeSubagentRuns > 0 || expectedSubagentFollowup) {
-        let finalReply = await waitForDescendantSubagentSummary({
-          sessionKey: agentSessionKey,
-          initialReply: initialSynthesizedText,
-          timeoutMs,
-          observedActiveDescendants: activeSubagentRuns > 0 || expectedSubagentFollowup,
-        });
-        activeSubagentRuns = countActiveDescendantRuns(agentSessionKey);
-        if (
-          !finalReply &&
-          activeSubagentRuns === 0 &&
-          (hadActiveDescendants || expectedSubagentFollowup)
-        ) {
-          finalReply = await readDescendantSubagentFallbackReply({
-            sessionKey: agentSessionKey,
-            runStartedAt,
-          });
-        }
-        if (finalReply && activeSubagentRuns === 0) {
-          outputText = finalReply;
-          summary = pickSummaryFromOutput(finalReply) ?? summary;
-          synthesizedText = finalReply;
-          deliveryPayloads = [{ text: finalReply }];
-        }
-      }
-      if (activeSubagentRuns > 0) {
-        // Parent orchestration is still in progress; avoid announcing a partial
-        // update to the main requester.
-        return withRunSession({ status: "ok", summary, outputText, ...telemetry });
-      }
-      if (
-        (hadActiveDescendants || expectedSubagentFollowup) &&
-        synthesizedText.trim() === initialSynthesizedText &&
-        isLikelyInterimCronMessage(initialSynthesizedText) &&
-        initialSynthesizedText.toUpperCase() !== SILENT_REPLY_TOKEN.toUpperCase()
-      ) {
-        // Descendants existed but no post-orchestration synthesis arrived, so
-        // suppress stale parent text like "on it, pulling everything together".
-        return withRunSession({ status: "ok", summary, outputText, ...telemetry });
-      }
-      if (synthesizedText.toUpperCase() === SILENT_REPLY_TOKEN.toUpperCase()) {
-        return withRunSession({ status: "ok", summary, outputText, delivered: true, ...telemetry });
-      }
-      try {
-        const didAnnounce = await runSubagentAnnounceFlow({
-          childSessionKey: agentSessionKey,
-          childRunId: `${params.job.id}:${runSessionId}`,
-          requesterSessionKey: announceSessionKey,
-          requesterOrigin: {
-            channel: resolvedDelivery.channel,
-            to: resolvedDelivery.to,
-            accountId: resolvedDelivery.accountId,
-            threadId: resolvedDelivery.threadId,
-          },
-          requesterDisplayKey: announceSessionKey,
-          task: taskLabel,
-          timeoutMs,
-          cleanup: params.job.deleteAfterRun ? "delete" : "keep",
-          roundOneReply: synthesizedText,
-          waitForCompletion: false,
-          startedAt: runStartedAt,
-          endedAt: runEndedAt,
-          outcome: { status: "ok" },
-          announceType: "cron job",
-        });
-        if (didAnnounce) {
-          delivered = true;
-        } else {
-          const message = "cron announce delivery failed";
-          if (!deliveryBestEffort) {
-            return withRunSession({
-              status: "error",
-              summary,
-              outputText,
-              error: message,
-              ...telemetry,
-            });
-          }
-          cronLogger.warn(`[cron:${params.job.id}] ${message}`);
-        }
-      } catch (err) {
-        if (!deliveryBestEffort) {
-          return withRunSession({
-            status: "error",
-            summary,
-            outputText,
-            error: String(err),
-            ...telemetry,
-          });
-        }
-        cronLogger.warn(`[cron:${params.job.id}] ${String(err)}`);
-      }
-    }
+    return resolveRunOutcome({ delivered: deliveryResult.result.delivered });
   }
+  const delivered = deliveryResult.delivered;
+  summary = deliveryResult.summary;
+  outputText = deliveryResult.outputText;
 
-  return withRunSession({ status: "ok", summary, outputText, delivered, ...telemetry });
+  return resolveRunOutcome({ delivered });
 }

@@ -7,6 +7,7 @@ import { isLoopbackAddress, isLoopbackHost } from "../gateway/net.js";
 import { rawDataToString } from "../infra/ws.js";
 import {
   probeAuthenticatedOpenClawRelay,
+  resolveRelayAcceptedTokensForPort,
   resolveRelayAuthTokenForPort,
 } from "./extension-relay-auth.js";
 
@@ -219,6 +220,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
   }
 
   const relayAuthToken = resolveRelayAuthTokenForPort(info.port);
+  const relayAuthTokens = new Set(resolveRelayAcceptedTokensForPort(info.port));
 
   let extensionWs: WebSocket | null = null;
   const cdpClients = new Set<WebSocket>();
@@ -365,8 +367,8 @@ export async function ensureChromeExtensionRelayServer(opts: {
     const path = url.pathname;
 
     if (path.startsWith("/json")) {
-      const token = getHeader(req, RELAY_AUTH_HEADER);
-      if (!token || token !== relayAuthToken) {
+      const token = getHeader(req, RELAY_AUTH_HEADER)?.trim();
+      if (!token || !relayAuthTokens.has(token)) {
         res.writeHead(401);
         res.end("Unauthorized");
         return;
@@ -428,20 +430,25 @@ export async function ensureChromeExtensionRelayServer(opts: {
       return;
     }
 
-    const activateMatch = path.match(/^\/json\/activate\/(.+)$/);
-    if (activateMatch && (req.method === "GET" || req.method === "PUT")) {
-      const targetId = decodeURIComponent(activateMatch[1] ?? "").trim();
+    const handleTargetActionRoute = (
+      match: RegExpMatchArray | null,
+      cdpMethod: "Target.activateTarget" | "Target.closeTarget",
+    ): boolean => {
+      if (!match || (req.method !== "GET" && req.method !== "PUT")) {
+        return false;
+      }
+      const targetId = decodeURIComponent(match[1] ?? "").trim();
       if (!targetId) {
         res.writeHead(400);
         res.end("targetId required");
-        return;
+        return true;
       }
       void (async () => {
         try {
           await sendToExtension({
             id: nextExtensionId++,
             method: "forwardCDPCommand",
-            params: { method: "Target.activateTarget", params: { targetId } },
+            params: { method: cdpMethod, params: { targetId } },
           });
         } catch {
           // ignore
@@ -449,30 +456,13 @@ export async function ensureChromeExtensionRelayServer(opts: {
       })();
       res.writeHead(200);
       res.end("OK");
+      return true;
+    };
+
+    if (handleTargetActionRoute(path.match(/^\/json\/activate\/(.+)$/), "Target.activateTarget")) {
       return;
     }
-
-    const closeMatch = path.match(/^\/json\/close\/(.+)$/);
-    if (closeMatch && (req.method === "GET" || req.method === "PUT")) {
-      const targetId = decodeURIComponent(closeMatch[1] ?? "").trim();
-      if (!targetId) {
-        res.writeHead(400);
-        res.end("targetId required");
-        return;
-      }
-      void (async () => {
-        try {
-          await sendToExtension({
-            id: nextExtensionId++,
-            method: "forwardCDPCommand",
-            params: { method: "Target.closeTarget", params: { targetId } },
-          });
-        } catch {
-          // ignore
-        }
-      })();
-      res.writeHead(200);
-      res.end("OK");
+    if (handleTargetActionRoute(path.match(/^\/json\/close\/(.+)$/), "Target.closeTarget")) {
       return;
     }
 
@@ -501,7 +491,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
 
     if (pathname === "/extension") {
       const token = getRelayAuthTokenFromRequest(req, url);
-      if (!token || token !== relayAuthToken) {
+      if (!token || !relayAuthTokens.has(token)) {
         rejectUpgrade(socket, 401, "Unauthorized");
         return;
       }
@@ -526,7 +516,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
 
     if (pathname === "/cdp") {
       const token = getRelayAuthTokenFromRequest(req, url);
-      if (!token || token !== relayAuthToken) {
+      if (!token || !relayAuthTokens.has(token)) {
         rejectUpgrade(socket, 401, "Unauthorized");
         return;
       }

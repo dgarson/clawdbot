@@ -48,6 +48,8 @@ type AnnounceQueueState = {
   droppedCount: number;
   summaryLines: string[];
   send: (item: AnnounceQueueItem) => Promise<void>;
+  /** Consecutive drain failures — drives exponential backoff on errors. */
+  consecutiveFailures: number;
 };
 
 const ANNOUNCE_QUEUES = new Map<string, AnnounceQueueState>();
@@ -89,6 +91,7 @@ function getAnnounceQueue(
     droppedCount: 0,
     summaryLines: [],
     send,
+    consecutiveFailures: 0,
   };
   applyQueueRuntimeSettings({
     target: created,
@@ -174,13 +177,18 @@ function scheduleAnnounceDrain(key: string) {
           break;
         }
       }
+      // Drain succeeded — reset failure counter.
+      queue.consecutiveFailures = 0;
     } catch (err) {
-      // Keep items in queue and retry after debounce; avoid hot-loop retries.
-      queue.lastEnqueuedAt = Date.now();
+      queue.consecutiveFailures++;
+      // Exponential backoff on consecutive failures: 2s, 4s, 8s, ... capped at 60s.
+      const errorBackoffMs = Math.min(1000 * Math.pow(2, queue.consecutiveFailures), 60_000);
+      const retryDelayMs = Math.max(errorBackoffMs, queue.debounceMs);
+      queue.lastEnqueuedAt = Date.now() + retryDelayMs - queue.debounceMs;
       const pendingItems = queue.items.length;
       const firstSessionKey = queue.items[0]?.sessionKey ?? "unknown";
       defaultRuntime.error?.(
-        `announce queue drain failed for ${key}: ${String(err)} (pendingItems=${pendingItems} firstSessionKey=${firstSessionKey})`,
+        `announce queue drain failed for ${key} (attempt ${queue.consecutiveFailures}, retry in ${Math.round(retryDelayMs / 1000)}s, pendingItems=${pendingItems}, firstSessionKey=${firstSessionKey}): ${String(err)}`,
       );
     } finally {
       queue.draining = false;
@@ -200,7 +208,8 @@ export function enqueueAnnounce(params: {
   send: (item: AnnounceQueueItem) => Promise<void>;
 }): boolean {
   const queue = getAnnounceQueue(params.key, params.settings, params.send);
-  queue.lastEnqueuedAt = Date.now();
+  // Preserve any retry backoff marker already encoded in lastEnqueuedAt.
+  queue.lastEnqueuedAt = Math.max(queue.lastEnqueuedAt, Date.now());
 
   const shouldEnqueue = applyQueueDropPolicy({
     queue,

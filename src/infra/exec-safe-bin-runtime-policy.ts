@@ -6,16 +6,18 @@ import {
   type SafeBinProfileFixture,
   type SafeBinProfileFixtures,
 } from "./exec-safe-bin-policy.js";
-import { getTrustedSafeBinDirs } from "./exec-safe-bin-trust.js";
+import { getTrustedSafeBinDirs, normalizeTrustedSafeBinDirs } from "./exec-safe-bin-trust.js";
 
 export type ExecSafeBinConfigScope = {
   safeBins?: string[] | null;
   safeBinProfiles?: SafeBinProfileFixtures | null;
+  safeBinTrustedDirs?: string[] | null;
 };
 
 const INTERPRETER_LIKE_SAFE_BINS = new Set([
   "ash",
   "bash",
+  "busybox",
   "bun",
   "cmd",
   "cmd.exe",
@@ -39,6 +41,7 @@ const INTERPRETER_LIKE_SAFE_BINS = new Set([
   "python3",
   "ruby",
   "sh",
+  "toybox",
   "wscript",
   "zsh",
 ]);
@@ -96,7 +99,6 @@ export function resolveMergedSafeBinProfileFixtures(params: {
 export function resolveExecSafeBinRuntimePolicy(params: {
   global?: ExecSafeBinConfigScope | null;
   local?: ExecSafeBinConfigScope | null;
-  pathEnv?: string | null;
 }): {
   safeBins: Set<string>;
   safeBinProfiles: Readonly<Record<string, SafeBinProfile>>;
@@ -114,9 +116,12 @@ export function resolveExecSafeBinRuntimePolicy(params: {
   const unprofiledSafeBins = Array.from(safeBins)
     .filter((entry) => !safeBinProfiles[entry])
     .toSorted();
-  const trustedSafeBinDirs = params.pathEnv
-    ? getTrustedSafeBinDirs({ pathEnv: params.pathEnv })
-    : getTrustedSafeBinDirs();
+  const trustedSafeBinDirs = getTrustedSafeBinDirs({
+    extraDirs: [
+      ...normalizeTrustedSafeBinDirs(params.global?.safeBinTrustedDirs),
+      ...normalizeTrustedSafeBinDirs(params.local?.safeBinTrustedDirs),
+    ],
+  });
   return {
     safeBins,
     safeBinProfiles,

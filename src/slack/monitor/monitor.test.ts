@@ -77,6 +77,7 @@ const baseParams = () => ({
   dmEnabled: true,
   dmPolicy: "open" as const,
   allowFrom: [],
+  allowNameMatching: false,
   groupDmEnabled: true,
   groupDmChannels: [],
   defaultRequireMention: true,
@@ -113,6 +114,16 @@ function createThreadStarterRepliesClient(
   return { replies, client };
 }
 
+function createListedChannelsContext(groupPolicy: "open" | "allowlist") {
+  return createSlackMonitorContext({
+    ...baseParams(),
+    groupPolicy,
+    channelsConfig: {
+      C_LISTED: { requireMention: true },
+    },
+  });
+}
+
 describe("normalizeSlackChannelType", () => {
   it("infers channel types from ids when missing", () => {
     expect(normalizeSlackChannelType(undefined, "C123")).toBe("channel");
@@ -138,13 +149,7 @@ describe("isChannelAllowed with groupPolicy and channelsConfig", () => {
   it("allows unlisted channels when groupPolicy is open even with channelsConfig entries", () => {
     // Bug fix: when groupPolicy="open" and channels has some entries,
     // unlisted channels should still be allowed (not blocked)
-    const ctx = createSlackMonitorContext({
-      ...baseParams(),
-      groupPolicy: "open",
-      channelsConfig: {
-        C_LISTED: { requireMention: true },
-      },
-    });
+    const ctx = createListedChannelsContext("open");
     // Listed channel should be allowed
     expect(ctx.isChannelAllowed({ channelId: "C_LISTED", channelType: "channel" })).toBe(true);
     // Unlisted channel should ALSO be allowed when policy is "open"
@@ -152,13 +157,7 @@ describe("isChannelAllowed with groupPolicy and channelsConfig", () => {
   });
 
   it("blocks unlisted channels when groupPolicy is allowlist", () => {
-    const ctx = createSlackMonitorContext({
-      ...baseParams(),
-      groupPolicy: "allowlist",
-      channelsConfig: {
-        C_LISTED: { requireMention: true },
-      },
-    });
+    const ctx = createListedChannelsContext("allowlist");
     // Listed channel should be allowed
     expect(ctx.isChannelAllowed({ channelId: "C_LISTED", channelType: "channel" })).toBe(true);
     // Unlisted channel should be blocked when policy is "allowlist"
