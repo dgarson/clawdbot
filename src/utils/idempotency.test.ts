@@ -63,4 +63,37 @@ describe("InMemoryIdempotencyStore", () => {
     expect(entry?.state).toBe(IDEMPOTENCY_STATE.COMPLETED);
     expect(entry?.value).toBe("cached");
   });
+
+  it("reruns work after failed entries expire", async () => {
+    let now = 10_000;
+    const store = new InMemoryIdempotencyStore<string>({
+      failedTtlMs: 100,
+      now: () => now,
+    });
+    const key = createIdempotencyKey({ prefix: "test", parts: ["failed-expiry"] });
+
+    let runs = 0;
+
+    await expect(
+      store.run(key, async () => {
+        runs += 1;
+        throw new Error("first failure");
+      }),
+    ).rejects.toThrow("first failure");
+
+    await expect(store.run(key, async () => "not-run")).rejects.toThrow("first failure");
+    expect(runs).toBe(1);
+
+    now += 101;
+
+    await expect(
+      store.run(key, async () => {
+        runs += 1;
+        return "recovered";
+      }),
+    ).resolves.toEqual({ value: "recovered", source: "executed" });
+
+    expect(runs).toBe(2);
+    expect(store.get(key)?.state).toBe(IDEMPOTENCY_STATE.COMPLETED);
+  });
 });
