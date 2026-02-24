@@ -176,17 +176,17 @@ function LatencyBadge({ ms }: { ms: number }) {
 function ChannelCard({ channel }: { channel: Channel }) {
   const Icon = channel.icon;
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-zinc-400" aria-hidden="true" />
-          <span className="font-medium text-white">{channel.name}</span>
+          <Icon className="w-5 h-5 text-fg-secondary" aria-hidden="true" />
+          <span className="font-medium text-fg-primary">{channel.name}</span>
         </div>
         <StatusBadge status={channel.status} />
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="text-zinc-500">Last Msg<div className="text-white mt-0.5">{formatTimestamp(channel.lastMessage)}</div></div>
-        <div className="text-zinc-500">Today<div className="text-white mt-0.5">{channel.countToday} msgs</div></div>
+        <div className="text-fg-muted">Last Msg<div className="text-fg-primary mt-0.5">{formatTimestamp(channel.lastMessage)}</div></div>
+        <div className="text-fg-muted">Today<div className="text-fg-primary mt-0.5">{channel.countToday} msgs</div></div>
       </div>
       <LatencyBadge ms={channel.latencyMs} />
     </div>
@@ -223,15 +223,15 @@ function BroadcastComposer({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">New Broadcast</h3>
+        <h3 className="text-lg font-semibold text-fg-primary">New Broadcast</h3>
         {/* Icon-only button — aria-label + aria-pressed. WCAG 1.1.1, 4.1.2 */}
         <button
           onClick={() => setShowPreview(!showPreview)}
           aria-label={showPreview ? 'Hide preview' : 'Show preview'}
           aria-pressed={showPreview}
-          className="text-zinc-400 hover:text-white rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="text-fg-secondary hover:text-fg-primary rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <Eye className="w-5 h-5" aria-hidden="true" />
         </button>
@@ -239,7 +239,7 @@ function BroadcastComposer({
 
       {/* Grouped channel checkboxes — fieldset/legend. WCAG 1.3.1 */}
       <fieldset>
-        <legend className="text-sm text-zinc-400 mb-2">Target Channels</legend>
+        <legend className="text-sm text-fg-secondary mb-2">Target Channels</legend>
         <div className="grid grid-cols-3 gap-2">
           {channels.map((ch) => (
             <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
@@ -247,7 +247,7 @@ function BroadcastComposer({
                 type="checkbox"
                 checked={selectedChannels.includes(ch.id)}
                 onChange={() => toggleChannel(ch.id)}
-                className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="rounded border-zinc-600 bg-surface-2 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               />
               {ch.name}
             </label>
@@ -257,17 +257,17 @@ function BroadcastComposer({
 
       {/* Message — labeled input. WCAG 1.3.1 */}
       <div className="space-y-2">
-        <label htmlFor="broadcast-message" className="block text-sm text-zinc-400">Message</label>
+        <label htmlFor="broadcast-message" className="block text-sm text-fg-secondary">Message</label>
         <textarea
           id="broadcast-message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="w-full bg-surface-2 border border-tok-border rounded-lg p-2 text-fg-primary text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           placeholder="Type your broadcast message…"
         />
         {/* Live character count. WCAG 4.1.3 */}
-        <div className="text-xs text-zinc-500 text-right" aria-live="polite" aria-atomic="true">
+        <div className="text-xs text-fg-muted text-right" aria-live="polite" aria-atomic="true">
           {message.length} characters
         </div>
       </div>
@@ -275,12 +275,12 @@ function BroadcastComposer({
       {/* Schedule — fieldset for grouped controls. WCAG 1.3.1 */}
       <fieldset className="space-y-2">
         <legend className="sr-only">Schedule options</legend>
-        <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-fg-secondary cursor-pointer">
           <input
             type="checkbox"
             checked={scheduleMode}
             onChange={(e) => setScheduleMode(e.target.checked)}
-            className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="rounded border-zinc-600 bg-surface-2 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           />
           Schedule for later
         </label>
@@ -291,7 +291,7 @@ function BroadcastComposer({
               id="broadcast-schedule-time"
               type="datetime-local"
               onChange={(e) => setScheduleTime(e.target.value ? new Date(e.target.value) : null)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="w-full bg-surface-2 border border-tok-border rounded-lg p-2 text-fg-primary text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             />
           </div>
         )}
@@ -300,12 +300,12 @@ function BroadcastComposer({
       {/* Preview panel */}
       {showPreview && (
         <section aria-label="Message preview">
-          <div className="text-sm text-zinc-400 mb-2">Preview</div>
+          <div className="text-sm text-fg-secondary mb-2">Preview</div>
           <div className="grid grid-cols-2 gap-2">
             {selectedChannels.map((id) => {
               const ch = channels.find((c) => c.id === id);
               return (
-                <div key={id} className="bg-zinc-800 p-2 rounded-lg text-xs">
+                <div key={id} className="bg-surface-2 p-2 rounded-lg text-xs">
                   <div className="font-medium mb-1">{ch?.name} Preview</div>
                   <p className="text-zinc-300">{message} {ch?.id === 'twitter' ? '(truncated to 280 chars)' : ''}</p>
                 </div>
@@ -319,7 +319,7 @@ function BroadcastComposer({
         <button
           onClick={handleSubmit}
           disabled={!message || selectedChannels.length === 0}
-          className="flex-1 bg-violet-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="flex-1 bg-violet-600 text-fg-primary py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           {scheduleMode ? 'Schedule' : 'Send Now'}
         </button>
@@ -330,16 +330,16 @@ function BroadcastComposer({
 
 function HistoryTable({ history }: { history: Broadcast[] }) {
   return (
-    <section aria-label="Broadcast history" className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <section aria-label="Broadcast history" className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <BarChart className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Broadcast History</span>
+        <span className="text-sm font-semibold text-fg-primary">Broadcast History</span>
       </div>
       <div className="overflow-auto max-h-64">
         <table className="w-full text-sm">
           <caption className="sr-only">Broadcast history — {history.length} entries</caption>
-          <thead className="sticky top-0 bg-zinc-900">
-            <tr className="text-left text-zinc-400">
+          <thead className="sticky top-0 bg-surface-1">
+            <tr className="text-left text-fg-secondary">
               {/* scope="col" on all th — WCAG 1.3.1 */}
               <th scope="col" className="p-3">Time</th>
               <th scope="col" className="p-3">Message</th>
@@ -347,9 +347,9 @@ function HistoryTable({ history }: { history: Broadcast[] }) {
               <th scope="col" className="p-3">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-tok-border">
             {history.map((bc) => (
-              <tr key={bc.id} className="hover:bg-zinc-800">
+              <tr key={bc.id} className="hover:bg-surface-2">
                 <td className="p-3">{formatTimestamp(bc.timestamp)}</td>
                 <td className="p-3 truncate max-w-xs">{bc.message}</td>
                 <td className="p-3">{bc.channels.length}</td>
@@ -361,7 +361,7 @@ function HistoryTable({ history }: { history: Broadcast[] }) {
                       return (
                         <span
                           key={ch}
-                          className={cn('text-xs', s ? getBroadcastStatusColor(s) : 'text-zinc-500')}
+                          className={cn('text-xs', s ? getBroadcastStatusColor(s) : 'text-fg-muted')}
                           aria-label={`${ch}: ${s ? getBroadcastStatusLabel(s) : 'unknown'}`}
                         >
                           {ch[0].toUpperCase()}
@@ -396,19 +396,19 @@ function PendingBroadcasts({
   }, []);
 
   return (
-    <section aria-label="Pending scheduled broadcasts" className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <section aria-label="Pending scheduled broadcasts" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <Clock className="w-4 h-4 text-amber-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Pending Scheduled</span>
+        <span className="text-sm font-semibold text-fg-primary">Pending Scheduled</span>
       </div>
       {/* Live region for countdown updates — WCAG 4.1.3 */}
-      <div aria-live="polite" aria-atomic="false" className="divide-y divide-zinc-800">
+      <div aria-live="polite" aria-atomic="false" className="divide-y divide-tok-border">
         {scheduled.map((sc) => {
           const remaining = sc.scheduledTime.getTime() - now;
           return (
             <div key={sc.id} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-fg-primary">
                   Send in <time dateTime={sc.scheduledTime.toISOString()}>{formatDuration(remaining)}</time>
                 </span>
                 <div className="flex gap-2">
@@ -416,22 +416,22 @@ function PendingBroadcasts({
                   <button
                     onClick={() => onEdit(sc.id)}
                     aria-label={`Edit scheduled broadcast: ${sc.message.slice(0, 40)}`}
-                    className="text-zinc-400 hover:text-white rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                    className="text-fg-secondary hover:text-fg-primary rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                   >
                     <Edit className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => onCancel(sc.id)}
                     aria-label={`Cancel scheduled broadcast: ${sc.message.slice(0, 40)}`}
-                    className="text-zinc-400 hover:text-red-400 rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                    className="text-fg-secondary hover:text-red-400 rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                   >
                     <Trash className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-zinc-400">{sc.message}</p>
+              <p className="text-xs text-fg-secondary">{sc.message}</p>
               <div className="flex gap-1 flex-wrap">
-                {sc.channels.map((ch) => <span key={ch} className="text-xs text-zinc-500">{ch}</span>)}
+                {sc.channels.map((ch) => <span key={ch} className="text-xs text-fg-muted">{ch}</span>)}
               </div>
             </div>
           );
@@ -443,28 +443,28 @@ function PendingBroadcasts({
 
 function FailedLog({ failed, onRetry }: { failed: FailedDelivery[]; onRetry: (id: string) => void }) {
   return (
-    <section aria-label="Failed deliveries" className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <section aria-label="Failed deliveries" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
         <AlertTriangle className="w-4 h-4 text-red-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-white">Failed Deliveries</span>
+        <span className="text-sm font-semibold text-fg-primary">Failed Deliveries</span>
       </div>
       {/* Live region for new failures — WCAG 4.1.3 */}
-      <div aria-live="polite" aria-relevant="additions" className="divide-y divide-zinc-800">
+      <div aria-live="polite" aria-relevant="additions" className="divide-y divide-tok-border">
         {failed.map((fd) => (
           <div key={fd.id} className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-white">{fd.channelId} (Broadcast {fd.broadcastId})</span>
+              <span className="text-sm text-fg-primary">{fd.channelId} (Broadcast {fd.broadcastId})</span>
               {/* Icon-only retry button — aria-label required. WCAG 4.1.2 */}
               <button
                 onClick={() => onRetry(fd.id)}
                 aria-label={`Retry delivery to ${fd.channelId} for broadcast ${fd.broadcastId}`}
-                className="text-zinc-400 hover:text-green-400 rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="text-fg-secondary hover:text-green-400 rounded p-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 <RefreshCcw className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
             <p className="text-xs text-red-400">{fd.error}</p>
-            <div className="text-xs text-zinc-500">Attempts: {fd.attempts} · Last: {formatTimestamp(fd.lastAttempt)}</div>
+            <div className="text-xs text-fg-muted">Attempts: {fd.attempts} · Last: {formatTimestamp(fd.lastAttempt)}</div>
           </div>
         ))}
       </div>
@@ -483,9 +483,9 @@ function StatsRow({ messagesToday, activeChannels, scheduled, deliveryRate }: {
         { label: 'Scheduled', value: scheduled },
         { label: 'Delivery Rate', value: `${deliveryRate}%` },
       ].map(({ label, value }) => (
-        <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <div className="text-xs text-zinc-400 uppercase">{label}</div>
-          <div className="text-xl font-bold text-white mt-1">{value}</div>
+        <div key={label} className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <div className="text-xs text-fg-secondary uppercase">{label}</div>
+          <div className="text-xl font-bold text-fg-primary mt-1">{value}</div>
         </div>
       ))}
     </div>
@@ -548,12 +548,12 @@ export default function ChannelBroadcastCenter() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#broadcast-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
 
-      <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="min-h-screen bg-surface-0 text-fg-primary">
         {/* Global live region for action feedback — WCAG 4.1.3 */}
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
           {statusMessage}
@@ -563,13 +563,13 @@ export default function ChannelBroadcastCenter() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
                 <MessageSquare className="w-6 h-6 text-violet-400" aria-hidden="true" />
                 Broadcast Center
               </h1>
-              <p className="text-sm text-zinc-400 mt-0.5">Unified channel management & messaging</p>
+              <p className="text-sm text-fg-secondary mt-0.5">Unified channel management & messaging</p>
             </div>
-            <button className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            <button className="flex items-center gap-2 bg-violet-600 text-fg-primary px-4 py-2 rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
               <Plus className="w-4 h-4" aria-hidden="true" />
               New Broadcast
             </button>
