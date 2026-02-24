@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 import { cn } from '../lib/utils';
 import {
   Users, Shield, Mail, Search, Plus, ChevronDown,
@@ -919,7 +920,57 @@ const TABS: Tab[] = [
   { id: 'invites', label: 'Invites', icon: Mail },
 ];
 
-export default function TeamManagement() {
+function TeamManagementSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="space-y-2">
+          <Skeleton variant="text" className="h-6 w-40" />
+          <Skeleton variant="text" className="h-3.5 w-56" />
+        </div>
+        <Skeleton variant="rect" className="h-9 w-28 rounded-lg" />
+      </div>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 border-b border-tok-border pb-0">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} variant="rect" className="h-9 w-24 rounded-t-lg" />
+        ))}
+      </div>
+      {/* Search + filter bar */}
+      <div className="flex gap-3 mb-6">
+        <Skeleton variant="rect" className="h-9 flex-1 rounded-lg" />
+        <Skeleton variant="rect" className="h-9 w-32 rounded-lg" />
+        <Skeleton variant="rect" className="h-9 w-32 rounded-lg" />
+      </div>
+      {/* User cards grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4">
+            <div className="flex items-start gap-3 mb-3">
+              <Skeleton variant="circle" className="w-10 h-10 shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton variant="text" className="h-4 w-32" />
+                <Skeleton variant="text" className="h-3 w-40" />
+              </div>
+              <Skeleton variant="circle" className="w-6 h-6" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton variant="rect" className="h-5 w-16 rounded-full" />
+              <Skeleton variant="rect" className="h-5 w-20 rounded-full" />
+            </div>
+            <div className="flex gap-2 mt-3 pt-3 border-t border-tok-border">
+              <Skeleton variant="rect" className="h-7 flex-1 rounded" />
+              <Skeleton variant="rect" className="h-7 flex-1 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function TeamManagement({ isLoading = false }: { isLoading?: boolean }) {
   const [activeTab, setActiveTab] = useState<TabId>('members');
   const [members, setMembers] = useState<Member[]>(SEED_MEMBERS);
   const [invites, setInvites] = useState<Invite[]>(SEED_INVITES);
@@ -984,6 +1035,8 @@ export default function TeamManagement() {
   };
 
   const pendingInvitesCount = invites.length;
+
+  if (isLoading) return <TeamManagementSkeleton />;
 
   return (
     <div className="min-h-screen bg-surface-0 p-4 sm:p-6 lg:p-8">

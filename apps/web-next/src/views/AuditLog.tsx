@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { FileSearch } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -450,7 +451,64 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 
-export default function AuditLog() {
+function AuditLogSkeleton() {
+  return (
+    <div className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden">
+      {/* Left: filter + list */}
+      <div className="md:w-[480px] flex-shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-tok-border overflow-hidden">
+        {/* Header bar */}
+        <div className="p-4 border-b border-tok-border flex items-center justify-between">
+          <Skeleton variant="text" className="h-5 w-20" />
+          <div className="flex gap-2">
+            <Skeleton variant="rect" className="h-7 w-16 rounded" />
+            <Skeleton variant="rect" className="h-7 w-16 rounded" />
+          </div>
+        </div>
+        {/* Filters */}
+        <div className="px-3 py-2 border-b border-tok-border space-y-2">
+          <Skeleton variant="rect" className="h-8 w-full rounded-lg" />
+          <div className="flex gap-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} variant="rect" className="h-6 w-16 rounded" />
+            ))}
+          </div>
+        </div>
+        {/* Log rows */}
+        <div className="flex-1 divide-y divide-tok-border overflow-hidden">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="px-4 py-3 flex items-start gap-3">
+              <Skeleton variant="circle" className="w-2 h-2 mt-1.5 shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="rect" className="h-4 w-14 rounded" />
+                  <Skeleton variant="text" className="h-3.5 w-32" />
+                  <div className="ml-auto">
+                    <Skeleton variant="text" className="h-3 w-16" />
+                  </div>
+                </div>
+                <Skeleton variant="text" className="h-3 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton variant="text" className="h-3 w-20" />
+                  <Skeleton variant="text" className="h-3 w-24" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Right: detail */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center space-y-3">
+          <Skeleton variant="circle" className="w-12 h-12 mx-auto" />
+          <Skeleton variant="text" className="h-4 w-32 mx-auto" />
+          <Skeleton variant="text" className="h-3 w-48 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AuditLog({ isLoading = false }: { isLoading?: boolean }) {
   const [events] = useState<AuditEvent[]>(SEED_EVENTS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -506,6 +564,8 @@ export default function AuditLog() {
     warnings: filtered.filter((e) => e.severity === "warning").length,
     failures: filtered.filter((e) => e.result === "failure").length,
   };
+
+  if (isLoading) return <AuditLogSkeleton />;
 
   return (
     <div className="flex flex-col h-full bg-surface-0">

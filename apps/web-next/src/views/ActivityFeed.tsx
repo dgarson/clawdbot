@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Activity } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -312,7 +313,82 @@ const ALL_KINDS = Array.from(new Set(EVENTS.map(e => e.kind)));
 type KindFilter = ActivityKind | "all";
 type ActorFilter = string; // agentId or "all"
 
-export default function ActivityFeed() {
+function ActivityFeedSkeleton() {
+  return (
+    <main className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden">
+      {/* Left: Feed skeleton */}
+      <div className="md:w-96 shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-tok-border overflow-hidden">
+        <div className="p-4 border-b border-tok-border space-y-3">
+          <div className="flex items-center justify-between">
+            <Skeleton variant="text" className="h-5 w-20" />
+            <div className="flex gap-2">
+              <Skeleton variant="rect" className="h-7 w-24 rounded" />
+              <Skeleton variant="text" className="h-3 w-6" />
+            </div>
+          </div>
+          <Skeleton variant="rect" className="h-9 w-full rounded-lg" />
+          <div className="flex flex-wrap gap-1">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} variant="rect" className="h-5 w-14 rounded" />
+            ))}
+          </div>
+        </div>
+        <div className="px-3 py-2 border-b border-tok-border">
+          <Skeleton variant="rect" className="h-7 w-full rounded-lg" />
+        </div>
+        <div className="flex-1 overflow-hidden">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="px-4 py-3.5 border-b border-tok-border">
+              <div className="flex items-start gap-3">
+                <Skeleton variant="circle" className="w-8 h-8 shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Skeleton variant="text" className="h-3 w-16" />
+                    <Skeleton variant="rect" className="h-4 w-12 rounded" />
+                  </div>
+                  <Skeleton variant="text" className="h-4 w-3/4" />
+                  <Skeleton variant="text" className="h-3 w-full" />
+                </div>
+                <Skeleton variant="text" className="h-3 w-10 shrink-0" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Right: Detail skeleton */}
+      <div className="flex-1 p-6 space-y-5">
+        <div className="flex items-start gap-4">
+          <Skeleton variant="circle" className="w-12 h-12 shrink-0" />
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Skeleton variant="text" className="h-4 w-20" />
+              <Skeleton variant="rect" className="h-5 w-16 rounded" />
+            </div>
+            <Skeleton variant="text" className="h-3 w-32" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Skeleton variant="text" className="h-5 w-2/3" />
+          <Skeleton variant="text" className="h-4 w-full" />
+          <Skeleton variant="text" className="h-4 w-5/6" />
+        </div>
+        <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-3">
+          <Skeleton variant="text" className="h-3 w-20" />
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton variant="text" className="h-3 w-16" />
+                <Skeleton variant="text" className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function ActivityFeed({ isLoading = false }: { isLoading?: boolean }) {
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<KindFilter>("all");
   const [actorFilter, setActorFilter] = useState<ActorFilter>("all");
@@ -355,6 +431,8 @@ export default function ActivityFeed() {
     { value: "cron-run", label: "Cron" },
     { value: "mention", label: "Mentions" },
   ];
+
+  if (isLoading) return <ActivityFeedSkeleton />;
 
   return (
     <main className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Activity Feed">

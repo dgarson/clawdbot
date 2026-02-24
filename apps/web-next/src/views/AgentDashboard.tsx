@@ -5,6 +5,7 @@ import { formatRelativeTime } from '../mock-data';
 import { useGateway } from '../hooks/useGateway';
 import { MOCK_AGENTS, MOCK_SESSIONS } from '../mock-data';
 import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { AgentStatus, AgentHealth } from '../types';
 
 // ============================================================================
@@ -90,9 +91,95 @@ function ActivityItemComponent({ item }: { item: ActivityItem }) {
 // Main Dashboard Component
 // ============================================================================
 
-export default function AgentDashboard() {
+function AgentDashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
+      {/* Header skeleton */}
+      <header className="border-b border-tok-border bg-surface-1/50 px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="space-y-2">
+            <Skeleton variant="text" className="h-7 w-48" />
+            <Skeleton variant="text" className="h-3 w-64" />
+          </div>
+          <Skeleton variant="rect" className="h-6 w-28 rounded-full" />
+        </div>
+      </header>
+      <main className="p-3 sm:p-4 md:p-6 space-y-6">
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-5">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton variant="text" className="h-3 w-24" />
+                  <Skeleton variant="text" className="h-8 w-16" />
+                </div>
+                <Skeleton variant="circle" className="w-12 h-12" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Quick action buttons */}
+        <div className="flex flex-wrap gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rect" className="h-10 w-32 rounded-xl" />
+          ))}
+        </div>
+        {/* Agent grid + activity feed */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton variant="text" className="h-5 w-16" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <Skeleton variant="circle" className="w-10 h-10" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton variant="text" className="h-4 w-3/4" />
+                      <Skeleton variant="text" className="h-3 w-1/2" />
+                      <Skeleton variant="text" className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <Skeleton variant="text" className="h-5 w-32" />
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-1">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex gap-3 py-3 border-b border-tok-border last:border-0">
+                  <Skeleton variant="circle" className="w-6 h-6" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton variant="text" className="h-3 w-3/4" />
+                    <Skeleton variant="text" className="h-2.5 w-full" />
+                  </div>
+                  <Skeleton variant="text" className="h-2.5 w-12" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* System health bar */}
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton variant="circle" className="w-3 h-3" />
+              <Skeleton variant="text" className="h-3.5 w-40" />
+            </div>
+            <div className="flex gap-4">
+              <Skeleton variant="text" className="h-3 w-20" />
+              <Skeleton variant="text" className="h-3 w-20" />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function AgentDashboard({ isLoading = false }: { isLoading?: boolean }) {
   const { connectionState, isConnected } = useGateway();
-  const [isLoading] = useState(false);
 
   // Get current date
   const now = new Date();
@@ -194,6 +281,8 @@ export default function AgentDashboard() {
         return 'text-fg-muted';
     }
   };
+
+  if (isLoading) return <AgentDashboardSkeleton />;
 
   return (
     <div className="min-h-screen bg-surface-0 text-fg-primary">
