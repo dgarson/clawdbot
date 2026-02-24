@@ -1096,3 +1096,169 @@ These 8 views were expanded by Wes with token migration, responsive layouts, and
 **Total issues remediated (Batch 2): 100**  
 **Cumulative total (Batch 1 + 2): 168**  
 **New TypeScript errors introduced: 0**
+
+---
+
+## Batch 3: WCAG 2.1 AA Pass
+
+**Auditor:** Reed (Accessibility Specialist, Product & UI Squad)  
+**Date:** 2026-02-24  
+**Branch:** `reed/batch3-wcag`  
+**PR target:** `feat/horizon-ui-complete`
+
+### Batch 3 Checklist Matrix
+
+| View | Skip Link + Main | Icon aria-hidden | Icon btn aria-label | Color indicators | Live regions | Section labels | focus-visible:ring-violet | Table scope | Form labels | Tabs ARIA | motion-safe animate-pulse |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| AgentBuilderWizard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A | ✅ |
+| AgentScheduler | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A | N/A |
+| AlertCenter | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ |
+| AnalyticsOverview | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | N/A |
+| ApiPlayground | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A | N/A |
+| BackupManager | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| BillingSubscription | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A |
+| BudgetTracker | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A | N/A |
+| CapacityPlanner | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | N/A |
+| ChangelogViewer | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A | N/A |
+
+### Batch 3 View Details
+
+#### `AgentBuilderWizard.tsx`
+**Violations found and fixed:**
+- ✅ Added `<a href="#abw-main">Skip to main content</a>` + `<main id="abw-main">` landmark
+- ✅ `aria-hidden="true"` on all decorative Lucide icons (`Check`, `ChevronRight`, `ChevronLeft`, `Shield`, `Bot`, `Rocket`, `MessageSquare`, template icons)
+- ✅ Emoji picker converted to `role="radiogroup"` with `role="radio"` + `aria-checked` + `aria-label` per button
+- ✅ Template card buttons: `aria-pressed` added
+- ✅ Model card buttons: `role="radio"` + `aria-checked`
+- ✅ Personality range inputs: `id` added, `label htmlFor` linked, `aria-valuemin/max/now` added
+- ✅ Sidebar steps: `<ol>` list with `aria-current="step"` and `<li>` items; `sr-only` step descriptions
+- ✅ Mobile step dots: `aria-label` on each dot with step name and state
+- ✅ Step progress text: `aria-live="polite"` on mobile indicator
+- ✅ Loading region: `role="status"` + `aria-live="polite"`, `motion-safe:animate-pulse` on loading text
+- ✅ Personality % readout: `aria-live="polite"` on live value display
+- ✅ Personality progress bars in review: `role="progressbar"` + `aria-valuenow/min/max`
+- ✅ `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none` on all interactive elements
+- ✅ Warning info box `Bot` icon: `aria-hidden="true"`
+- **Violations found:** 18 | **Fixed:** 18
+
+#### `AgentScheduler.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link + `id="agent-scheduler-main"` on existing `<main>` landmark
+- ✅ `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500` throughout (8 occurrences)
+- **Note:** View already had strong accessibility implementation from prior work (tablist, role="list", aria-pressed, aria-label, role="switch")
+- **Violations found:** 2 | **Fixed:** 2
+
+#### `AlertCenter.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link + `id="alert-center-main"` on existing `<main>` landmark
+- ✅ Firing alert pulse dot: `animate-pulse` → `motion-safe:animate-pulse`
+- ✅ Tab buttons: added `id="tab-{id}"` + `aria-controls="tabpanel-{id}"`
+- ✅ Alerts panel: `id="tabpanel-alerts" role="tabpanel" aria-labelledby="tab-alerts"`
+- ✅ Rules panel: `id="tabpanel-rules" role="tabpanel" aria-labelledby="tab-rules"`
+- ✅ `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500` throughout
+- **Violations found:** 6 | **Fixed:** 6
+
+#### `AnalyticsOverview.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link; outer `<div>` → `<main id="analytics-main">`
+- ✅ `SortableHeader` `<th>` → `<th scope="col">` (4 sortable columns)
+- ✅ Non-sortable `<th>` in TopAgentsTable → `<th scope="col">`
+- ✅ All `<th>` in `RecentSessionsTable` → `<th scope="col">`
+- ✅ `SortableHeader` sort button: `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500`
+- **Violations found:** 7 | **Fixed:** 7
+
+#### `ApiPlayground.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link; outer `<div>` → `<main id="api-playground-main">`
+- ✅ Response headers chevron `▶` span: `aria-hidden="true"`
+- ✅ `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500` throughout (10 occurrences)
+- **Violations found:** 3 | **Fixed:** 3
+
+#### `BackupManager.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link; `<main id="backup-manager-main">` on content area
+- ✅ Navigation tabs: `role="tablist"` + `id`, `role="tab"`, `aria-selected`, `aria-controls` on each tab button
+- ✅ Tab panels: `role="tabpanel"`, `id`, `aria-labelledby`, `hidden` prop for correct AT behavior
+- ✅ Backup table: `<th scope="col">` on all column headers; `aria-label` on table
+- ✅ Table rows: `tabIndex={0}`, `role="button"`, `aria-expanded`, `aria-label`, `onKeyDown` handler
+- ✅ Schedule table: `<th scope="col">`; toggle buttons → `role="switch"` + `aria-checked` + `aria-label` + `focus-visible`
+- ✅ New Schedule form: all inputs get `id` + `label htmlFor`; frequency/unit selects get `aria-label`
+- ✅ Restore step list: `role="list"` + `role="listitem"` on stepper; `aria-current="step"` on active step
+- ✅ Restore option rows: `role="listbox"` + `role="option"` + `aria-selected` + `tabIndex` + keyboard handler
+- ✅ Target environment: `role="radiogroup"` + `role="radio"` + `aria-checked` buttons
+- ✅ Warning box: `role="alert"` for destructive action
+- ✅ Execution state: `role="status"` + `aria-live="polite"` on progress container; `role="log"` + `aria-live="polite"` on log stream
+- ✅ Restore spinner: `aria-hidden="true"`; log `motion-safe:animate-pulse` on blinking cursor
+- ✅ Progress bar: `role="progressbar"` + `aria-valuenow/min/max` + `aria-label`
+- ✅ Encryption toggles: `role="switch"` + `aria-checked` + `aria-label` + `focus-visible`; `label htmlFor` linked
+- ✅ Notification rules: `role="list"` + `role="listitem"` + `sr-only "(enabled)"` companion text
+- ✅ Storage backends: status text ("connected"/"disconnected") already present as text companion
+- ✅ `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none` everywhere
+- **Violations found:** 22 | **Fixed:** 22
+
+#### `BillingSubscription.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link + `id="billing-main"` on `<main>` element
+- ✅ Tab buttons: added `id="billing-tab-{tab}"` + `aria-controls="billing-tabpanel-{tab}"`
+- ✅ Tab panels: wrapped in `<div id="billing-tabpanel-{tab}" role="tabpanel" aria-labelledby="billing-tab-{tab}" hidden>`
+- ✅ Billing cycle toggle: `<span onClick>` → `<button role="radio" aria-checked>` within `role="radiogroup"`
+- ✅ SVG checkmark icons in plan features: `aria-hidden="true"` (4 SVGs)
+- ✅ Warning triangle SVG in usage tab: `aria-hidden="true"`
+- ✅ Download CSV SVG icon: `aria-hidden="true"`
+- ✅ Invoice table headers: `<th scope="col">`
+- ✅ `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500` throughout
+- **Violations found:** 10 | **Fixed:** 10
+
+#### `BudgetTracker.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link; outer `<div>` → `<main id="budget-main">`
+- ✅ Period toggle buttons: `aria-pressed`, `focus-visible:ring-violet-500`, wrapped in `role="group" aria-label="Time period"`
+- ✅ Export button: `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`
+- ✅ Budget table rows (expandable divs): `role="button"`, `tabIndex={0}`, `aria-expanded`, `aria-label`, `onKeyDown`
+- **Violations found:** 5 | **Fixed:** 5
+
+#### `CapacityPlanner.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link; outer `<div>` → `<main id="capacity-main">`
+- ✅ Period buttons: `aria-pressed`, `focus-visible:ring-violet-500`, wrapped in `role="group" aria-label="Planning period"`
+- ✅ Resource table headers: `<th scope="col">` (8 columns, array-mapped)
+- ✅ Resource table rows: `tabIndex={0}`, `role="button"`, `aria-pressed`, `aria-label`, `onKeyDown`
+- ✅ What-if slider: `id="whatif-rate"` + `label htmlFor`, `aria-valuenow/min/max`, `focus-visible`
+- ✅ What-if rate value: `aria-live="polite"` on dynamic readout
+- ✅ Reset to baseline button: `focus-visible:ring-2 focus-visible:ring-violet-500`
+- ✅ Recommendation sidebar items: `role="button"`, `tabIndex={0}`, `aria-label`, `aria-pressed`, `onKeyDown`
+- **Violations found:** 10 | **Fixed:** 10
+
+#### `ChangelogViewer.tsx`
+**Violations found and fixed:**
+- ✅ Added skip link; `id="changelog-main"` on main content wrapper
+- ✅ Search input: `aria-label="Search releases"` added
+- ✅ Filter buttons: `aria-pressed={filter === opt.value}` on all filter options; wrapped in `role="group" aria-label="Filter by change type"`
+- ✅ Release sidebar buttons: `aria-pressed` + contextual `aria-label` with version, type, and date
+- ✅ `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none` on all interactive elements
+- ✅ Change-type emojis (`🔥`, `✨`, `💎`, `🐛`, `📦`) in change items: `aria-hidden="true"`
+- **Violations found:** 6 | **Fixed:** 6
+
+---
+
+### Batch 3 Summary
+
+| View | Issues Found | Issues Fixed | WCAG AA Status |
+|------|-------------|-------------|----------------|
+| AgentBuilderWizard | 18 | 18 | ✅ PASS |
+| AgentScheduler | 2 | 2 | ✅ PASS |
+| AlertCenter | 6 | 6 | ✅ PASS |
+| AnalyticsOverview | 7 | 7 | ✅ PASS |
+| ApiPlayground | 3 | 3 | ✅ PASS |
+| BackupManager | 22 | 22 | ✅ PASS |
+| BillingSubscription | 10 | 10 | ✅ PASS |
+| BudgetTracker | 5 | 5 | ✅ PASS |
+| CapacityPlanner | 10 | 10 | ✅ PASS |
+| ChangelogViewer | 6 | 6 | ✅ PASS |
+
+**Total issues remediated (Batch 3): 89**  
+**Cumulative total (Batch 1 + 2 + 3): 257**  
+**New TypeScript errors introduced: 0**  
+**Build status:** ✅ Passing (0 new TS errors; pre-existing errors in AgentScheduler and AlertCenter are unchanged and unrelated to accessibility work)
+=======
+>>>>>>> feat/horizon-ui-complete

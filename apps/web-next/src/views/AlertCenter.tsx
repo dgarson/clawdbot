@@ -343,9 +343,9 @@ import { Skeleton } from '../components/Skeleton';
 
 function AlertCenterSkeleton() {
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden">
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="px-6 py-4 border-b border-tok-border shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="space-y-1.5">
             <Skeleton className="h-5 w-28" />
@@ -371,9 +371,9 @@ function AlertCenterSkeleton() {
       {/* Alert list + detail */}
       <div className="flex flex-1 overflow-hidden">
         {/* List */}
-        <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+        <div className="w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
           {/* Filters */}
-          <div className="p-3 border-b border-zinc-800 space-y-2">
+          <div className="p-3 border-b border-tok-border space-y-2">
             <div className="flex flex-wrap gap-1">
               {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-14 rounded" />)}
             </div>
@@ -384,7 +384,7 @@ function AlertCenterSkeleton() {
           {/* Alert cards */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 space-y-2">
+              <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-5 w-16 rounded-full" />
@@ -417,7 +417,7 @@ function AlertCenterSkeleton() {
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-4/5" />
             </div>
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-3">
+            <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-3">
               <Skeleton className="h-4 w-20" />
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
@@ -429,13 +429,13 @@ function AlertCenterSkeleton() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[...Array(2)].map((_, i) => (
-                <div key={i} className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-2">
+                <div key={i} className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-2">
                   <Skeleton className="h-3 w-24" />
                   <Skeleton className="h-6 w-32" />
                 </div>
               ))}
             </div>
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-3">
+            <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-3">
               <Skeleton className="h-4 w-16" />
               <div className="flex flex-wrap gap-2">
                 {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-24 rounded" />)}

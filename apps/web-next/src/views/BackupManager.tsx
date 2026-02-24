@@ -257,7 +257,7 @@ import { Skeleton } from '../components/Skeleton';
 
 function BackupManagerSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -272,7 +272,7 @@ function BackupManagerSkeleton() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-zinc-800">
+        <div className="border-b border-tok-border">
           <div className="flex gap-8">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-4 w-16 mb-4" />
@@ -283,7 +283,7 @@ function BackupManagerSkeleton() {
         {/* Stat cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 space-y-3">
+            <div key={i} className="bg-surface-1 p-4 rounded-xl border border-tok-border space-y-3">
               <Skeleton className="h-3 w-32" />
               <Skeleton className="h-7 w-24" />
               <Skeleton className="h-1.5 w-full rounded-full" />
@@ -296,14 +296,14 @@ function BackupManagerSkeleton() {
         </div>
 
         {/* Table */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+        <div className="bg-surface-1 rounded-xl border border-tok-border overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-zinc-800">
+          <div className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-tok-border">
             {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-3 w-full" />)}
           </div>
           {/* Table rows */}
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-zinc-800 last:border-b-0 items-center">
+            <div key={i} className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-tok-border last:border-b-0 items-center">
               <div className="space-y-1">
                 <Skeleton className="h-3 w-12" />
                 <Skeleton className="h-4 w-40" />

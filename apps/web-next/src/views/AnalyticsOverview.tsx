@@ -460,7 +460,7 @@ import { Skeleton } from '../components/Skeleton';
 
 function AnalyticsOverviewSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 space-y-1.5">
@@ -472,7 +472,7 @@ function AnalyticsOverviewSkeleton() {
         <section className="mb-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-2">
+              <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-2">
                 <Skeleton className="h-4 w-36" />
                 <Skeleton className="h-8 w-24" />
                 <Skeleton className="h-3 w-28" />
@@ -483,7 +483,7 @@ function AnalyticsOverviewSkeleton() {
 
         {/* Session volume chart */}
         <section className="mb-6">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+          <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-52" />
               <Skeleton className="h-5 w-20 rounded-full" />
@@ -511,10 +511,10 @@ function AnalyticsOverviewSkeleton() {
         {/* Two-column: Top agents + Funnel */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 mb-6">
           <div className="lg:col-span-3">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
               <Skeleton className="h-4 w-32" />
               {/* Table header */}
-              <div className="flex gap-4 pb-2 border-b border-zinc-800">
+              <div className="flex gap-4 pb-2 border-b border-tok-border">
                 {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
               </div>
               {/* Table rows */}
@@ -526,7 +526,7 @@ function AnalyticsOverviewSkeleton() {
             </div>
           </div>
           <div className="lg:col-span-2">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
               <Skeleton className="h-4 w-36" />
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="space-y-1.5">
@@ -537,7 +537,7 @@ function AnalyticsOverviewSkeleton() {
                   <Skeleton className="h-6 w-full rounded" />
                 </div>
               ))}
-              <div className="pt-3 border-t border-zinc-800 flex justify-between">
+              <div className="pt-3 border-t border-tok-border flex justify-between">
                 <Skeleton className="h-3 w-28" />
                 <Skeleton className="h-3 w-10" />
               </div>
@@ -547,9 +547,9 @@ function AnalyticsOverviewSkeleton() {
 
         {/* Recent sessions table */}
         <section>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+          <div className="rounded-xl border border-tok-border bg-surface-1 p-5 space-y-4">
             <Skeleton className="h-4 w-36" />
-            <div className="flex gap-4 pb-2 border-b border-zinc-800">
+            <div className="flex gap-4 pb-2 border-b border-tok-border">
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
             </div>
             {[...Array(5)].map((_, i) => (

@@ -64,7 +64,7 @@ import { Skeleton } from '../components/Skeleton';
 
 function AgentBuilderWizardSkeleton() {
   return (
-    <div className="flex h-full bg-gray-950 text-white">
+    <div className="flex h-full bg-gray-950 text-fg-primary">
       {/* Sidebar skeleton */}
       <div className="w-64 border-r border-gray-800 p-8 flex flex-col">
         <Skeleton className="h-7 w-32 mb-8" />

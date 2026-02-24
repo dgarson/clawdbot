@@ -187,7 +187,7 @@ import { Skeleton } from '../components/Skeleton';
 
 function CapacityPlannerSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Skeleton className="h-8 w-44" />
@@ -200,7 +200,7 @@ function CapacityPlannerSkeleton() {
           {/* Summary cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-2">
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-lg p-4 space-y-2">
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="h-8 w-16" />
                 <Skeleton className="h-3 w-20" />
@@ -209,16 +209,16 @@ function CapacityPlannerSkeleton() {
           </div>
 
           {/* Resource table */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-6">
+          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden mb-6">
             {/* Header row */}
-            <div className="flex gap-2 px-4 py-3 border-b border-zinc-800">
+            <div className="flex gap-2 px-4 py-3 border-b border-tok-border">
               {["Resource", "Current", "Capacity", "Usage %", "Headroom", "Trend", "Days to Cap", "Status"].map((_, i) => (
                 <Skeleton key={i} className="h-3 flex-1" />
               ))}
             </div>
             {/* Data rows */}
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex gap-2 px-4 py-3 border-b border-zinc-800 last:border-b-0 items-center">
+              <div key={i} className="flex gap-2 px-4 py-3 border-b border-tok-border last:border-b-0 items-center">
                 <Skeleton className="h-4 flex-1" />
                 <Skeleton className="h-3 flex-1" />
                 <Skeleton className="h-3 flex-1" />
@@ -235,7 +235,7 @@ function CapacityPlannerSkeleton() {
           </div>
 
           {/* Detail panel (forecast) */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-5 space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-5 w-52" />
               <Skeleton className="h-4 w-40" />
@@ -254,7 +254,7 @@ function CapacityPlannerSkeleton() {
               <div className="space-y-3">
                 <Skeleton className="h-4 w-44" />
                 {[...Array(2)].map((_, i) => (
-                  <div key={i} className="bg-zinc-800/50 rounded p-3 space-y-1.5">
+                  <div key={i} className="bg-surface-2/50 rounded p-3 space-y-1.5">
                     <div className="flex items-center gap-2">
                       <Skeleton className="h-5 w-8 rounded" />
                       <Skeleton className="h-4 w-44" />
@@ -265,7 +265,7 @@ function CapacityPlannerSkeleton() {
               </div>
               <div className="space-y-3">
                 <Skeleton className="h-4 w-36" />
-                <div className="bg-zinc-800/50 rounded p-4 space-y-3">
+                <div className="bg-surface-2/50 rounded p-4 space-y-3">
                   <Skeleton className="h-3 w-48" />
                   <Skeleton className="h-4 w-full rounded" />
                   <div className="space-y-2">
@@ -284,10 +284,10 @@ function CapacityPlannerSkeleton() {
 
         {/* Recommendations sidebar */}
         <div className="w-60 shrink-0">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 sticky top-6 space-y-3">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 sticky top-6 space-y-3">
             <Skeleton className="h-3 w-44" />
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded p-3 border border-zinc-800 bg-zinc-800/30 space-y-1.5">
+              <div key={i} className="rounded p-3 border border-tok-border bg-surface-2/30 space-y-1.5">
                 <Skeleton className="h-5 w-8 rounded" />
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-4/5" />

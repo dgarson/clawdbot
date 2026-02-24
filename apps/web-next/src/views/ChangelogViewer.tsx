@@ -192,9 +192,9 @@ import { Skeleton } from '../components/Skeleton';
 
 function ChangelogViewerSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
       {/* Header */}
-      <div className="border-b border-zinc-800 px-6 py-5">
+      <div className="border-b border-tok-border px-6 py-5">
         <div className="mx-auto max-w-7xl space-y-1.5">
           <Skeleton className="h-8 w-36" />
           <Skeleton className="h-4 w-80" />
@@ -202,7 +202,7 @@ function ChangelogViewerSkeleton() {
       </div>
 
       {/* Stats bar */}
-      <div className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-3">
+      <div className="border-b border-tok-border bg-surface-1/50 px-6 py-3">
         <div className="mx-auto flex max-w-7xl flex-wrap gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex items-center gap-1.5">
@@ -214,7 +214,7 @@ function ChangelogViewerSkeleton() {
       </div>
 
       {/* Search + filter bar */}
-      <div className="border-b border-zinc-800 px-6 py-3">
+      <div className="border-b border-tok-border px-6 py-3">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
           <Skeleton className="flex-1 min-w-[200px] h-9 rounded-lg" />
           <div className="flex flex-wrap gap-1.5">
@@ -228,7 +228,7 @@ function ChangelogViewerSkeleton() {
         <div className="flex flex-col gap-6 lg:flex-row">
           {/* Sidebar */}
           <aside className="w-full shrink-0 lg:w-72">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-2 space-y-1">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-2 space-y-1">
               <Skeleton className="h-3 w-28 px-3 py-2" />
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2.5">
@@ -247,9 +247,9 @@ function ChangelogViewerSkeleton() {
 
           {/* Main release detail */}
           <main className="min-w-0 flex-1">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-6">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-6 space-y-6">
               {/* Release header */}
-              <div className="border-b border-zinc-800 pb-5 space-y-3">
+              <div className="border-b border-tok-border pb-5 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <Skeleton className="h-8 w-20" />
                   <Skeleton className="h-6 w-24 rounded-full" />
@@ -262,7 +262,7 @@ function ChangelogViewerSkeleton() {
               {/* Change items */}
               <div className="space-y-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-4">
+                  <div key={i} className="rounded-lg border border-tok-border bg-surface-0/50 p-4">
                     <div className="flex items-start gap-2">
                       <Skeleton className="w-6 h-6 rounded shrink-0" />
                       <div className="flex-1 min-w-0 space-y-2">

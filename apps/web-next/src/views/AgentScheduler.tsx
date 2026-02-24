@@ -279,9 +279,9 @@ import { Skeleton } from '../components/Skeleton';
 
 function AgentSchedulerSkeleton() {
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden">
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="px-6 py-4 border-b border-tok-border shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div className="space-y-1.5">
             <Skeleton className="h-5 w-36" />
@@ -302,12 +302,12 @@ function AgentSchedulerSkeleton() {
       </div>
 
       {/* Calendar strip */}
-      <div className="p-6 border-b border-zinc-800 shrink-0">
-        <div className="rounded-xl border border-zinc-800 overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-800">
+      <div className="p-6 border-b border-tok-border shrink-0">
+        <div className="rounded-xl border border-tok-border overflow-hidden">
+          <div className="px-4 py-3 border-b border-tok-border">
             <Skeleton className="h-4 w-52" />
           </div>
-          <div className="grid grid-cols-7 divide-x divide-zinc-800">
+          <div className="grid grid-cols-7 divide-x divide-tok-border">
             {[...Array(7)].map((_, i) => (
               <div key={i} className="p-2 min-h-[80px] space-y-2">
                 <Skeleton className="h-3 w-6" />
@@ -325,9 +325,9 @@ function AgentSchedulerSkeleton() {
       {/* List + detail split */}
       <div className="flex flex-1 overflow-hidden">
         {/* Schedule list */}
-        <div className="w-80 shrink-0 border-r border-zinc-800 p-3 space-y-2">
+        <div className="w-80 shrink-0 border-r border-tok-border p-3 space-y-2">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900 p-3 space-y-2">
+            <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5">
                   <Skeleton className="w-5 h-5 rounded-full" />
@@ -359,13 +359,13 @@ function AgentSchedulerSkeleton() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 space-y-1">
+                <div key={i} className="rounded-xl bg-surface-1 border border-tok-border p-3 space-y-1">
                   <Skeleton className="h-3 w-16" />
                   <Skeleton className="h-4 w-28" />
                 </div>
               ))}
             </div>
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-2">
+            <div className="rounded-xl bg-surface-1 border border-tok-border p-4 space-y-2">
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-3 w-full" />
               <Skeleton className="h-3 w-full" />

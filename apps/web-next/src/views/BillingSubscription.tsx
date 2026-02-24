@@ -23,7 +23,7 @@ import { Skeleton } from '../components/Skeleton';
 
 function BillingSubscriptionSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 p-6 md:p-12 text-white">
+    <div className="min-h-screen bg-surface-0 p-6 md:p-12 text-fg-primary">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10 space-y-2">
@@ -32,13 +32,13 @@ function BillingSubscriptionSkeleton() {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 border-b border-zinc-800 mb-8">
+        <div className="flex space-x-1 border-b border-tok-border mb-8">
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8 w-20 mb-0.5" />)}
         </div>
 
         {/* Plan overview: 2-col */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="md:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+          <div className="md:col-span-2 bg-surface-1 border border-tok-border rounded-xl p-6 space-y-4">
             <div className="flex justify-between items-start">
               <div className="space-y-1.5">
                 <Skeleton className="h-7 w-24" />
@@ -50,7 +50,7 @@ function BillingSubscriptionSkeleton() {
               </div>
             </div>
             <Skeleton className="h-8 w-40 rounded-lg" />
-            <div className="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-6">
+            <div className="grid grid-cols-2 gap-4 border-t border-tok-border pt-6">
               {[...Array(2)].map((_, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <Skeleton className="w-5 h-5 rounded-full" />
@@ -59,7 +59,7 @@ function BillingSubscriptionSkeleton() {
               ))}
             </div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-6 space-y-4">
             <Skeleton className="h-5 w-36" />
             <div className="flex items-center gap-3">
               <Skeleton className="h-8 w-12 rounded" />
@@ -69,7 +69,7 @@ function BillingSubscriptionSkeleton() {
               </div>
             </div>
             <Skeleton className="h-9 w-full rounded-lg" />
-            <div className="pt-6 border-t border-zinc-800 space-y-2">
+            <div className="pt-6 border-t border-tok-border space-y-2">
               <Skeleton className="h-3 w-28" />
               <Skeleton className="h-3 w-36" />
               <Skeleton className="h-3 w-28" />
@@ -83,7 +83,7 @@ function BillingSubscriptionSkeleton() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-6 space-y-4">
               <div className="space-y-1.5">
                 <Skeleton className="h-5 w-24" />
                 <Skeleton className="h-3 w-36" />

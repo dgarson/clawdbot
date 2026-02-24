@@ -191,7 +191,7 @@ import { Skeleton } from '../components/Skeleton';
 
 function ApiPlaygroundSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-surface-0 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 space-y-1.5">
@@ -201,7 +201,7 @@ function ApiPlaygroundSkeleton() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Request builder skeleton */}
-          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 space-y-5">
+          <div className="bg-surface-1 rounded-lg border border-tok-border p-4 space-y-5">
             {/* Endpoint selector */}
             <div className="space-y-2">
               <Skeleton className="h-3 w-20" />
@@ -239,7 +239,7 @@ function ApiPlaygroundSkeleton() {
           </div>
 
           {/* Response panel skeleton */}
-          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 space-y-4">
+          <div className="bg-surface-1 rounded-lg border border-tok-border p-4 space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-20" />
               <div className="flex items-center gap-2">
