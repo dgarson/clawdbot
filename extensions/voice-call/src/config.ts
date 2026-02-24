@@ -341,6 +341,12 @@ export const VoiceCallConfigSchema = z
     /** Store path for call logs */
     store: z.string().optional(),
 
+    /** Agent id used for foreground voice responses (runtime, workspace, identity). */
+    responseAgentId: z.string().min(1).default("main"),
+
+    /** Optional agent id override for async sub-agent work (defaults to responseAgentId). */
+    asyncAgentId: z.string().min(1).optional(),
+
     /** Model for generating voice responses (e.g., "anthropic/claude-sonnet-4", "openai/gpt-4o") */
     responseModel: z.string().default("openai/gpt-4o-mini"),
 

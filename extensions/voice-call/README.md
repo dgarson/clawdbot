@@ -165,6 +165,7 @@ Actions:
 
 - Uses webhook signature verification for Twilio/Telnyx/Plivo.
 - `responseModel` / `responseSystemPrompt` control AI auto-responses.
+- `responseAgentId` chooses the foreground voice agent; `asyncAgentId` (optional) overrides only async sub-agent runs. If `asyncAgentId` is unset, async runs use `responseAgentId`.
 - Media streaming requires `ws` and OpenAI Realtime API key.
 
 ## Proposal: async sub-agents for fast voice calls

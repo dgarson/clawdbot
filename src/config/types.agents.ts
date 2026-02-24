@@ -31,6 +31,8 @@ export type AgentConfig = {
   };
   /** Default thinking level when no /think directive is present for this agent. */
   thinkingDefault?: AgentDefaultsConfig["thinkingDefault"];
+  /** Default reasoning visibility when no /reasoning directive is present for this agent. */
+  reasoningDefault?: AgentDefaultsConfig["reasoningDefault"];
   /** Optional per-agent sandbox overrides. */
   sandbox?: AgentSandboxConfig;
   tools?: AgentToolsConfig;

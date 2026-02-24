@@ -67,6 +67,14 @@ describe("directive behavior", () => {
       expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
     });
   });
+  it("shows configured reasoning default when /reasoning has no argument", async () => {
+    await withTempHome(async (home) => {
+      const text = await runCommand(home, "/reasoning", { defaults: { reasoningDefault: "on" } });
+      expect(text).toContain("Current reasoning level: on");
+      expect(text).toContain("Options: on, off, stream.");
+      expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+    });
+  });
   it("shows current elevated level when /elevated has no argument", async () => {
     await withTempHome(async (home) => {
       const res = await runElevatedCommand(home, "/elevated");

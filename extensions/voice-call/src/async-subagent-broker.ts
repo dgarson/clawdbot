@@ -214,6 +214,19 @@ export type AsyncSubagentBrokerOptions = {
 
 const FALLBACK_SPOKEN_SUMMARY = "I am still checking that and will update you shortly.";
 
+function resolveResponseAgentId(config: VoiceCallConfig): string {
+  const candidate = config.responseAgentId.trim();
+  return candidate.length > 0 ? candidate : "main";
+}
+
+function resolveAsyncAgentId(config: VoiceCallConfig): string {
+  const candidate = config.asyncAgentId?.trim();
+  if (candidate && candidate.length > 0) {
+    return candidate;
+  }
+  return resolveResponseAgentId(config);
+}
+
 export class AsyncSubagentBroker {
   private readonly store: SubagentJobStore;
   private runningCount = 0;
@@ -296,7 +309,7 @@ export class AsyncSubagentBroker {
   async reapOrphanedSessions(maxAgeMs = 60_000): Promise<number> {
     try {
       const deps = await loadCoreAgentDeps();
-      const agentId = "main";
+      const agentId = resolveAsyncAgentId(this.opts.voiceConfig);
       const storePath = deps.resolveStorePath(this.opts.coreConfig.session?.store, { agentId });
       const sessionStore = deps.loadSessionStore(storePath);
 
@@ -397,7 +410,7 @@ export class AsyncSubagentBroker {
 
     try {
       const deps = await loadCoreAgentDeps();
-      const agentId = "main";
+      const agentId = resolveAsyncAgentId(this.opts.voiceConfig);
       storePath = deps.resolveStorePath(this.opts.coreConfig.session?.store, { agentId });
       const agentDir = deps.resolveAgentDir(this.opts.coreConfig, agentId);
       const workspaceDir = deps.resolveAgentWorkspaceDir(this.opts.coreConfig, agentId);
@@ -471,6 +484,7 @@ export class AsyncSubagentBroker {
 
       const result = await deps.runEmbeddedPiAgent({
         sessionId: sessionEntry.sessionId,
+        agentId,
         sessionKey,
         messageProvider: "voice",
         sessionFile,
@@ -511,6 +525,7 @@ export class AsyncSubagentBroker {
           deps,
           provider,
           model,
+          agentId,
           workspaceDir,
           tempFiles,
         });
@@ -607,6 +622,7 @@ export class AsyncSubagentBroker {
       deps: Awaited<ReturnType<typeof loadCoreAgentDeps>>;
       provider: string;
       model: string;
+      agentId: string;
       workspaceDir: string;
       tempFiles: string[];
     },
@@ -620,6 +636,7 @@ export class AsyncSubagentBroker {
 
     const response = await ctx.deps.runEmbeddedPiAgent({
       sessionId: crypto.randomUUID(),
+      agentId: ctx.agentId,
       sessionFile,
       workspaceDir: ctx.workspaceDir,
       config: this.opts.coreConfig,

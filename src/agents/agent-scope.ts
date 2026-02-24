@@ -29,6 +29,7 @@ type ResolvedAgentConfig = {
   groupChat?: AgentEntry["groupChat"];
   subagents?: AgentEntry["subagents"];
   thinkingDefault?: AgentEntry["thinkingDefault"];
+  reasoningDefault?: AgentEntry["reasoningDefault"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
 };
@@ -124,6 +125,8 @@ export function resolveAgentConfig(
     groupChat: entry.groupChat,
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
     thinkingDefault: typeof entry.thinkingDefault === "string" ? entry.thinkingDefault : undefined,
+    reasoningDefault:
+      typeof entry.reasoningDefault === "string" ? entry.reasoningDefault : undefined,
     sandbox: entry.sandbox,
     tools: entry.tools,
   };
@@ -141,6 +144,13 @@ export function resolveAgentThinkingDefault(
   agentId: string,
 ): AgentEntry["thinkingDefault"] {
   return resolveAgentConfig(cfg, agentId)?.thinkingDefault;
+}
+
+export function resolveAgentReasoningDefault(
+  cfg: OpenClawConfig,
+  agentId: string,
+): AgentEntry["reasoningDefault"] {
+  return resolveAgentConfig(cfg, agentId)?.reasoningDefault;
 }
 
 export function resolveAgentModelPrimary(cfg: OpenClawConfig, agentId: string): string | undefined {

@@ -359,6 +359,10 @@ function readExplicitTarget(params: Record<string, unknown>): string {
   return typeof params.target === "string" ? params.target.trim() : "";
 }
 
+function looksLikeSlackId(value: string): boolean {
+  return /^[CUWGD][A-Z0-9]{8,}$/i.test(value.trim());
+}
+
 function looksLikeDestinationHint(value: string): boolean {
   const trimmed = value.trim();
   if (!trimmed) {
