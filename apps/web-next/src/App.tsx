@@ -343,85 +343,163 @@ interface NavItem {
   shortcut: string | null;
 }
 
-interface NavGroup {
-  id: string;
+type OperatorHubId =
+  | "dashboard"
+  | "monitoring"
+  | "sessions"
+  | "budget"
+  | "models"
+  | "configuration";
+
+interface OperatorHub {
+  id: OperatorHubId;
   label: string;
+  emoji: string;
+  category: "core" | "builders" | "operations" | "analytics";
+  defaultViewId: string;
   items: NavItem[];
 }
 
-const operatorNavGroups: NavGroup[] = [
+const operatorHubs: OperatorHub[] = [
   {
-    id: "ops-command",
-    label: "Command Center",
+    id: "dashboard",
+    label: "Dashboard",
+    emoji: "🖥️",
+    category: "core",
+    defaultViewId: "operator-dashboard",
     items: [
       { id: "operator-dashboard", label: "Operator Dashboard", emoji: "🖥️", shortcut: "1" },
-      { id: "live-logs",          label: "Live Log Tail",      emoji: "📜", shortcut: "2" },
+      { id: "live-logs", label: "Live Log Tail", emoji: "📜", shortcut: "2" },
       { id: "decision-provenance", label: "Decision Provenance", emoji: "🧠", shortcut: "3" },
     ],
   },
   {
-    id: "ops-monitoring",
+    id: "monitoring",
     label: "Monitoring",
+    emoji: "🩺",
+    category: "operations",
+    defaultViewId: "pulse",
     items: [
-      { id: "pulse",              label: "Agent Pulse",        emoji: "📡", shortcut: null },
-      { id: "system-health",      label: "System Health",      emoji: "🩺", shortcut: null },
-      { id: "alerts",             label: "Alert Center",       emoji: "🚨", shortcut: null },
-      { id: "telemetry",          label: "Telemetry",          emoji: "📡", shortcut: null },
-      { id: "model-health",       label: "Model Health",       emoji: "💚", shortcut: null },
-      { id: "logs",               label: "Log Viewer",         emoji: "📜", shortcut: null },
+      { id: "pulse", label: "Agent Pulse", emoji: "📡", shortcut: null },
+      { id: "system-health", label: "System Health", emoji: "🩺", shortcut: null },
+      { id: "alerts", label: "Alert Center", emoji: "🚨", shortcut: null },
+      { id: "telemetry", label: "Telemetry", emoji: "📡", shortcut: null },
+      { id: "model-health", label: "Model Health", emoji: "💚", shortcut: null },
+      { id: "logs", label: "Log Viewer", emoji: "📜", shortcut: null },
     ],
   },
   {
-    id: "ops-sessions",
-    label: "Sessions & Agents",
+    id: "sessions",
+    label: "Sessions",
+    emoji: "🌳",
+    category: "operations",
+    defaultViewId: "sessions",
     items: [
-      { id: "sessions",           label: "Sessions",           emoji: "🌳", shortcut: null },
-      { id: "tracer",             label: "Agent Tracer",       emoji: "🔭", shortcut: null },
-      { id: "workload",           label: "Agent Workload",     emoji: "👥", shortcut: null },
-      { id: "agent-insights",     label: "Agent Insights",     emoji: "📊", shortcut: null },
-      { id: "history",            label: "Session History",    emoji: "🕐", shortcut: null },
-      { id: "session-replay",     label: "Session Replay",     emoji: "▶️", shortcut: null },
-      { id: "mcp",                label: "MCP Inspector",      emoji: "🔧", shortcut: null },
+      { id: "sessions", label: "Sessions", emoji: "🌳", shortcut: null },
+      { id: "tracer", label: "Agent Tracer", emoji: "🔭", shortcut: null },
+      { id: "workload", label: "Agent Workload", emoji: "👥", shortcut: null },
+      { id: "agent-insights", label: "Agent Insights", emoji: "📊", shortcut: null },
+      { id: "history", label: "Session History", emoji: "🕐", shortcut: null },
+      { id: "session-replay", label: "Session Replay", emoji: "▶️", shortcut: null },
+      { id: "mcp", label: "MCP Inspector", emoji: "🔧", shortcut: null },
     ],
   },
   {
-    id: "ops-cost",
-    label: "Budget & Cost",
+    id: "budget",
+    label: "Budget",
+    emoji: "💰",
+    category: "analytics",
+    defaultViewId: "usage",
     items: [
-      { id: "usage",              label: "Usage & Costs",      emoji: "📈", shortcut: null },
-      { id: "token-ledger",       label: "Token Ledger",       emoji: "🪙", shortcut: null },
-      { id: "budget-tracker",     label: "Budget Tracker",     emoji: "💵", shortcut: null },
-      { id: "cost",               label: "Cost Optimizer",     emoji: "💰", shortcut: null },
-      { id: "rate-limits",        label: "Rate Limits",        emoji: "⚡", shortcut: null },
-      { id: "quotas",             label: "Quotas",             emoji: "📏", shortcut: null },
+      { id: "usage", label: "Usage & Costs", emoji: "📈", shortcut: null },
+      { id: "token-ledger", label: "Token Ledger", emoji: "🪙", shortcut: null },
+      { id: "budget-tracker", label: "Budget Tracker", emoji: "💵", shortcut: null },
+      { id: "cost", label: "Cost Optimizer", emoji: "💰", shortcut: null },
+      { id: "rate-limits", label: "Rate Limits", emoji: "⚡", shortcut: null },
+      { id: "quotas", label: "Quotas", emoji: "📏", shortcut: null },
     ],
   },
   {
-    id: "ops-models",
-    label: "Models & Routing",
+    id: "models",
+    label: "Models",
+    emoji: "🤖",
+    category: "builders",
+    defaultViewId: "models",
     items: [
-      { id: "models",             label: "Models",             emoji: "🤖", shortcut: null },
-      { id: "model-router",       label: "Model Router",       emoji: "🔀", shortcut: null },
-      { id: "benchmark",          label: "Model Benchmark",    emoji: "📈", shortcut: null },
-      { id: "model-compare",      label: "Model Comparator",   emoji: "⚖️", shortcut: null },
-      { id: "providers",          label: "Providers",          emoji: "🔐", shortcut: null },
-      { id: "llm-playground",     label: "LLM Playground",     emoji: "🎮", shortcut: null },
+      { id: "models", label: "Models", emoji: "🤖", shortcut: null },
+      { id: "model-router", label: "Model Router", emoji: "🔀", shortcut: null },
+      { id: "benchmark", label: "Model Benchmark", emoji: "📈", shortcut: null },
+      { id: "model-compare", label: "Model Comparator", emoji: "⚖️", shortcut: null },
+      { id: "providers", label: "Providers", emoji: "🔐", shortcut: null },
+      { id: "llm-playground", label: "LLM Playground", emoji: "🎮", shortcut: null },
     ],
   },
   {
-    id: "ops-config",
-    label: "Configuration",
+    id: "configuration",
+    label: "Config",
+    emoji: "⚙️",
+    category: "builders",
+    defaultViewId: "settings",
     items: [
-      { id: "settings",           label: "Settings",           emoji: "⚙️", shortcut: null },
-      { id: "config-review",      label: "Config Review",      emoji: "🔍", shortcut: null },
-      { id: "cron",               label: "Schedules",          emoji: "⏰", shortcut: null },
-      { id: "feature-flags",      label: "Feature Flags",      emoji: "🚩", shortcut: null },
-      { id: "permissions",        label: "Permissions",        emoji: "🔐", shortcut: null },
-      { id: "env-vars",           label: "Environment",        emoji: "🔑", shortcut: null },
-      { id: "rules",              label: "Rule Engine",        emoji: "📋", shortcut: null },
+      { id: "settings", label: "Settings", emoji: "⚙️", shortcut: null },
+      { id: "config-review", label: "Config Review", emoji: "🔍", shortcut: null },
+      { id: "cron", label: "Schedules", emoji: "⏰", shortcut: null },
+      { id: "feature-flags", label: "Feature Flags", emoji: "🚩", shortcut: null },
+      { id: "permissions", label: "Permissions", emoji: "🔐", shortcut: null },
+      { id: "env-vars", label: "Environment", emoji: "🔑", shortcut: null },
+      { id: "rules", label: "Rule Engine", emoji: "📋", shortcut: null },
     ],
   },
 ];
+
+const OPERATOR_VIEW_TO_HUB = new Map<string, OperatorHubId>(
+  operatorHubs.flatMap((hub) => hub.items.map((item) => [item.id, hub.id] as const))
+);
+
+const OPERATOR_HUB_DEFAULT_LAST_VIEW: Record<OperatorHubId, string> = {
+  dashboard: "operator-dashboard",
+  monitoring: "pulse",
+  sessions: "sessions",
+  budget: "usage",
+  models: "models",
+  configuration: "settings",
+};
+
+const OPERATOR_HUB_IDS: OperatorHubId[] = operatorHubs.map((hub) => hub.id);
+const OPERATOR_HUB_PIN_LIMIT = 3;
+
+type HubDropPosition = "before" | "after";
+
+function sanitizeOperatorHubIds(rawIds: string[]): OperatorHubId[] {
+  const validSet = new Set(OPERATOR_HUB_IDS);
+  const deduped: OperatorHubId[] = [];
+  for (const rawId of rawIds) {
+    if (!validSet.has(rawId as OperatorHubId)) {continue;}
+    const id = rawId as OperatorHubId;
+    if (!deduped.includes(id)) {
+      deduped.push(id);
+    }
+  }
+  return deduped;
+}
+
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) {return false;}
+  return a.every((value, index) => value === b[index]);
+}
+
+function reorderHubList(list: OperatorHubId[], draggedId: OperatorHubId, targetId: OperatorHubId, position: HubDropPosition): OperatorHubId[] {
+  if (draggedId === targetId) {return list;}
+  if (!list.includes(draggedId) || !list.includes(targetId)) {return list;}
+
+  const withoutDragged = list.filter((id) => id !== draggedId);
+  const targetIndex = withoutDragged.indexOf(targetId);
+  if (targetIndex < 0) {return list;}
+  const insertionIndex = position === "before" ? targetIndex : targetIndex + 1;
+  const reordered = [...withoutDragged];
+  reordered.splice(insertionIndex, 0, draggedId);
+  return reordered;
+}
 
 export const navItems = [
   { id: "operator-dashboard",    label: "Operator Dashboard",   emoji: "🖥️", shortcut: null },
@@ -1012,8 +1090,8 @@ const NAV_FILTER_OPTIONS: Array<{ value: NavFilter; label: string }> = [
   { value: "all", label: "All" },
   { value: "core", label: "Core" },
   { value: "builders", label: "Build" },
-  { value: "operations", label: "Ops" },
-  { value: "analytics", label: "Insights" },
+  { value: "operations", label: "Operator" },
+  { value: "analytics", label: "Insight" },
 ];
 
 const NAV_SHORTCUT_MAP = new Map(
@@ -1121,7 +1199,7 @@ function AppContent() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [navQuery, setNavQuery] = useState("");
-  const [navFilter, setNavFilter] = useState<NavFilter>("core");
+  const [navFilter, setNavFilter] = useState<NavFilter>("all");
   const [savedPresets, setSavedPresets] = useState<NavPreset[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("oc_nav_presets") ?? "[]");
@@ -1159,7 +1237,45 @@ function AppContent() {
   });
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [presetsOpen, setPresetsOpen] = useState(false);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [operatorHubLastView, setOperatorHubLastView] = useState<Record<OperatorHubId, string>>(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("oc_operator_hub_last_view") ?? "{}") as Partial<Record<OperatorHubId, string>>;
+      return { ...OPERATOR_HUB_DEFAULT_LAST_VIEW, ...parsed };
+    } catch {
+      return { ...OPERATOR_HUB_DEFAULT_LAST_VIEW };
+    }
+  });
+  const [pinnedOperatorHubs, setPinnedOperatorHubs] = useState<OperatorHubId[]>(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("oc_operator_hub_pins") ?? "[]") as string[];
+      const valid = sanitizeOperatorHubIds(parsed);
+      return valid.length > 0 ? valid.slice(0, OPERATOR_HUB_PIN_LIMIT) : ["monitoring", "configuration"];
+    } catch {
+      return ["monitoring", "configuration"];
+    }
+  });
+  const [unpinnedOperatorHubs, setUnpinnedOperatorHubs] = useState<OperatorHubId[]>(() => {
+    const fallbackPinned: OperatorHubId[] = ["monitoring", "configuration"];
+    try {
+      const storedPins = JSON.parse(localStorage.getItem("oc_operator_hub_pins") ?? "[]") as string[];
+      const pinned = (() => {
+        const validPins = sanitizeOperatorHubIds(storedPins);
+        return validPins.length > 0 ? validPins.slice(0, OPERATOR_HUB_PIN_LIMIT) : fallbackPinned;
+      })();
+      const storedUnpinned = JSON.parse(localStorage.getItem("oc_operator_hub_unpinned_order") ?? "[]") as string[];
+      const normalizedUnpinned = sanitizeOperatorHubIds(storedUnpinned).filter((id) => !pinned.includes(id));
+      const missing = OPERATOR_HUB_IDS.filter((id) => !pinned.includes(id) && !normalizedUnpinned.includes(id));
+      return [...normalizedUnpinned, ...missing];
+    } catch {
+      return OPERATOR_HUB_IDS.filter((id) => !fallbackPinned.includes(id));
+    }
+  });
+  const [manualHubOrdering, setManualHubOrdering] = useState(() => {
+    try { return localStorage.getItem("oc_operator_hub_manual_order") === "true"; } catch { return false; }
+  });
+  const [draggedHubId, setDraggedHubId] = useState<OperatorHubId | null>(null);
+  const [dragOverHubId, setDragOverHubId] = useState<OperatorHubId | null>(null);
+  const [dragOverPosition, setDragOverPosition] = useState<HubDropPosition>("after");
 
   const toggleOperatorMode = useCallback(() => {
     setOperatorMode(prev => {
@@ -1174,16 +1290,28 @@ function AppContent() {
     });
   }, []);
 
-  const toggleGroup = useCallback((groupId: string) => {
-    setCollapsedGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
-      return next;
+  const togglePinnedHub = useCallback((hubId: OperatorHubId) => {
+    setPinnedOperatorHubs((prevPinned) => {
+      const isPinned = prevPinned.includes(hubId);
+      if (isPinned) {
+        setUnpinnedOperatorHubs((prevUnpinned) => [hubId, ...prevUnpinned.filter((id) => id !== hubId)]);
+        return prevPinned.filter((id) => id !== hubId);
+      }
+
+      const nextPinned = [hubId, ...prevPinned].slice(0, OPERATOR_HUB_PIN_LIMIT);
+      const overflowPinned = prevPinned.find((id) => !nextPinned.includes(id));
+      setUnpinnedOperatorHubs((prevUnpinned) => {
+        const nextUnpinned = prevUnpinned.filter((id) => id !== hubId && !nextPinned.includes(id));
+        return overflowPinned ? [overflowPinned, ...nextUnpinned] : nextUnpinned;
+      });
+      return nextPinned;
     });
   }, []);
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
   const currentCategory = getNavCategory(currentNav);
+  const activeOperatorHubId = OPERATOR_VIEW_TO_HUB.get(activeView) ?? "dashboard";
+  const activeOperatorHub = operatorHubs.find((hub) => hub.id === activeOperatorHubId) ?? operatorHubs[0];
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < navHistory.length - 1;
 
@@ -1218,6 +1346,11 @@ function AppContent() {
         setNavHistory(nextHistory);
         setHistoryIndex(nextHistory.length - 1);
       }
+    }
+
+    const operatorHubId = OPERATOR_VIEW_TO_HUB.get(viewId);
+    if (operatorHubId) {
+      setOperatorHubLastView((prev) => ({ ...prev, [operatorHubId]: viewId }));
     }
 
     // Track recents
@@ -1363,6 +1496,31 @@ function AppContent() {
     try { localStorage.setItem("oc_sidebar_collapsed", String(sidebarCollapsed)); } catch {}
   }, [sidebarCollapsed]);
 
+  useEffect(() => {
+    try { localStorage.setItem("oc_operator_hub_last_view", JSON.stringify(operatorHubLastView)); } catch {}
+  }, [operatorHubLastView]);
+
+  useEffect(() => {
+    try { localStorage.setItem("oc_operator_hub_pins", JSON.stringify(pinnedOperatorHubs)); } catch {}
+  }, [pinnedOperatorHubs]);
+
+  useEffect(() => {
+    setUnpinnedOperatorHubs((prev) => {
+      const withoutPinned = prev.filter((id) => !pinnedOperatorHubs.includes(id));
+      const missing = OPERATOR_HUB_IDS.filter((id) => !pinnedOperatorHubs.includes(id) && !withoutPinned.includes(id));
+      const next = [...withoutPinned, ...missing];
+      return arraysEqual(prev, next) ? prev : next;
+    });
+  }, [pinnedOperatorHubs]);
+
+  useEffect(() => {
+    try { localStorage.setItem("oc_operator_hub_unpinned_order", JSON.stringify(unpinnedOperatorHubs)); } catch {}
+  }, [unpinnedOperatorHubs]);
+
+  useEffect(() => {
+    try { localStorage.setItem("oc_operator_hub_manual_order", String(manualHubOrdering)); } catch {}
+  }, [manualHubOrdering]);
+
   // Filtered commands for palette
   const filteredNav = navItems.filter(
     (n) =>
@@ -1381,7 +1539,21 @@ function AppContent() {
     return matchesQuery && matchesFilter;
   });
 
-  const activeViewVisible = visibleNavItems.some((item) => item.id === activeView);
+  const visibleOperatorHubs = operatorHubs.filter((hub) => {
+    const query = navQuery.trim().toLowerCase();
+    const matchesQuery = query.length === 0
+      ? true
+      : hub.label.toLowerCase().includes(query) ||
+        hub.items.some((item) => item.label.toLowerCase().includes(query) || item.id.toLowerCase().includes(query));
+    const matchesFilter = navFilter === "all" ? true : hub.category === navFilter;
+    return matchesQuery && matchesFilter;
+  });
+
+  const activeViewVisible = operatorMode
+    ? visibleOperatorHubs.some((hub) => hub.id === activeOperatorHubId)
+    : visibleNavItems.some((item) => item.id === activeView);
+  const isNavigationFilterActive = navQuery.trim().length > 0 || navFilter !== "all";
+  const showNavigationFilterWarning = isNavigationFilterActive && !activeViewVisible;
 
   const recentIds: string[] = (() => {
     try {
@@ -1394,6 +1566,31 @@ function AppContent() {
     .map((id) => navItems.find((n) => n.id === id))
     .filter(Boolean)
     .slice(0, 3) as typeof navItems;
+  const recentOperatorItems = recentIds
+    .map((id) => navItems.find((n) => n.id === id))
+    .filter((item): item is (typeof navItems)[number] => {
+      if (!item) {return false;}
+      return OPERATOR_VIEW_TO_HUB.has(item.id);
+    })
+    .slice(0, 3);
+  const operatorHubById = new Map(operatorHubs.map((hub) => [hub.id, hub] as const));
+  const visibleOperatorHubIds = new Set(visibleOperatorHubs.map((hub) => hub.id));
+  const visiblePinnedOperatorHubs = pinnedOperatorHubs
+    .map((id) => operatorHubById.get(id))
+    .filter((hub): hub is OperatorHub => {
+      if (!hub) {return false;}
+      return visibleOperatorHubIds.has(hub.id);
+    });
+  const orderedVisibleUnpinned = unpinnedOperatorHubs
+    .map((id) => operatorHubById.get(id))
+    .filter((hub): hub is OperatorHub => {
+      if (!hub) {return false;}
+      return !pinnedOperatorHubs.includes(hub.id) && visibleOperatorHubIds.has(hub.id);
+    });
+  const missingVisibleUnpinned = visibleOperatorHubs.filter(
+    (hub) => !pinnedOperatorHubs.includes(hub.id) && !orderedVisibleUnpinned.some((orderedHub) => orderedHub.id === hub.id)
+  );
+  const visibleUnpinnedOperatorHubs = [...orderedVisibleUnpinned, ...missingVisibleUnpinned];
 
   const allPaletteItems = searchQuery
     ? filteredNav
@@ -1483,7 +1680,7 @@ function AppContent() {
       case "rate-limits":     return <RateLimitDashboard />;
       case "task-queue":      return <TaskQueue />;
       case "storage":         return <StorageExplorer />;
-      case "alerts":          return <AlertCenter />;
+      case "alerts":          return <AlertCenter onNavigate={navigate} />;
       case "mission-control": return <MissionControlDashboard />;
       case "webhooks":        return <WebhookManager />;
       case "history":         return <ConversationHistory />;
@@ -1714,6 +1911,136 @@ function AppContent() {
     }
   };
 
+  const navigateOperatorHub = (hub: OperatorHub) => {
+    navigate(operatorHubLastView[hub.id] ?? hub.defaultViewId);
+  };
+
+  const resetHubDragState = useCallback(() => {
+    setDraggedHubId(null);
+    setDragOverHubId(null);
+    setDragOverPosition("after");
+  }, []);
+
+  const handleHubDragStart = useCallback((event: React.DragEvent<HTMLElement>, hubId: OperatorHubId) => {
+    if (!manualHubOrdering || sidebarCollapsed) {return;}
+    setDraggedHubId(hubId);
+    setDragOverHubId(null);
+    setDragOverPosition("after");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", hubId);
+  }, [manualHubOrdering, sidebarCollapsed]);
+
+  const handleHubDragOver = useCallback((event: React.DragEvent<HTMLElement>, targetHubId: OperatorHubId) => {
+    if (!manualHubOrdering || !draggedHubId || draggedHubId === targetHubId) {return;}
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    const rect = event.currentTarget.getBoundingClientRect();
+    const nextPosition: HubDropPosition = event.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setDragOverHubId(targetHubId);
+    setDragOverPosition(nextPosition);
+  }, [manualHubOrdering, draggedHubId]);
+
+  const handleHubDrop = useCallback((event: React.DragEvent<HTMLElement>, targetHubId: OperatorHubId) => {
+    event.preventDefault();
+    if (!manualHubOrdering || !draggedHubId || draggedHubId === targetHubId) {
+      resetHubDragState();
+      return;
+    }
+
+    const draggedPinned = pinnedOperatorHubs.includes(draggedHubId);
+    const targetPinned = pinnedOperatorHubs.includes(targetHubId);
+    if (draggedPinned !== targetPinned) {
+      resetHubDragState();
+      return;
+    }
+
+    if (draggedPinned) {
+      setPinnedOperatorHubs((prev) => reorderHubList(prev, draggedHubId, targetHubId, dragOverPosition));
+    } else {
+      setUnpinnedOperatorHubs((prev) => reorderHubList(prev, draggedHubId, targetHubId, dragOverPosition));
+    }
+    resetHubDragState();
+  }, [manualHubOrdering, draggedHubId, pinnedOperatorHubs, dragOverPosition, resetHubDragState]);
+
+  const renderDesktopOperatorHubRow = (hub: OperatorHub) => {
+    const isPinned = pinnedOperatorHubs.includes(hub.id);
+    const isDropTarget = manualHubOrdering && draggedHubId !== null && draggedHubId !== hub.id && dragOverHubId === hub.id;
+    return (
+      <div
+        key={hub.id}
+        className="relative flex items-center gap-1"
+        onDragOver={(event) => handleHubDragOver(event, hub.id)}
+        onDrop={(event) => handleHubDrop(event, hub.id)}
+      >
+        {isDropTarget && (
+          <div
+            className={cn(
+              "absolute left-2 right-2 h-0.5 rounded bg-violet-500/80",
+              dragOverPosition === "before" ? "-top-1" : "-bottom-1"
+            )}
+            aria-hidden="true"
+          />
+        )}
+        <button
+          data-tour={`nav-${hub.id}`}
+          onClick={() => navigateOperatorHub(hub)}
+          draggable={manualHubOrdering && !sidebarCollapsed}
+          onDragStart={(event) => handleHubDragStart(event, hub.id)}
+          onDragEnd={resetHubDragState}
+          className={cn(
+            "flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-sm rounded-md transition-colors text-left",
+            manualHubOrdering && !sidebarCollapsed && "cursor-grab active:cursor-grabbing",
+            activeOperatorHubId === hub.id
+              ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border border-violet-500/35"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"
+          )}
+          aria-current={activeOperatorHubId === hub.id ? "page" : undefined}
+          title={hub.label}
+        >
+          {manualHubOrdering && !sidebarCollapsed && (
+            <span className="text-[11px] leading-none text-muted-foreground/70 cursor-grab active:cursor-grabbing" aria-hidden="true">
+              ⋮⋮
+            </span>
+          )}
+          <span className="text-base" aria-hidden="true">{hub.emoji}</span>
+          {!sidebarCollapsed && <span className="truncate whitespace-nowrap">{hub.label}</span>}
+        </button>
+        {!sidebarCollapsed && (
+          <button
+            onClick={() => togglePinnedHub(hub.id)}
+            className={cn(
+              "px-2 py-2 text-xs rounded-md border transition-colors",
+              isPinned
+                ? "border-violet-500/30 text-violet-400 bg-violet-600/10"
+                : "border-border text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+            )}
+            aria-label={isPinned ? `Unpin ${hub.label}` : `Pin ${hub.label}`}
+            title={isPinned ? `Unpin ${hub.label}` : `Pin ${hub.label}`}
+          >
+            {isPinned ? "★" : "☆"}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const renderMobileOperatorHubRow = (hub: OperatorHub) => (
+    <button
+      key={hub.id}
+      onClick={() => navigateOperatorHub(hub)}
+      className={cn(
+        "w-full min-w-0 flex items-center gap-3 px-3 py-3 min-h-[44px] text-sm rounded-md border transition-colors",
+        activeOperatorHubId === hub.id
+          ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-violet-500/35"
+          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent"
+      )}
+      aria-current={activeOperatorHubId === hub.id ? "page" : undefined}
+    >
+      <span className="text-base" aria-hidden="true">{hub.emoji}</span>
+      <span className="truncate whitespace-nowrap">{hub.label}</span>
+    </button>
+  );
+
   return (
     <div className="flex h-screen bg-background">
       {/* Mobile overlay backdrop */}
@@ -1768,32 +2095,41 @@ function AppContent() {
         </div>
 
         {!sidebarCollapsed && (
-          <div className="p-2 border-b border-border space-y-2">
-            <input
-              type="text"
-              value={navQuery}
-              onChange={(e) => setNavQuery(e.target.value)}
-              placeholder="Filter views"
-              className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
-              aria-label="Filter navigation views"
-            />
-            <div className="flex flex-wrap gap-1" role="tablist" aria-label="Audience filter">
-              {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+          <div className="p-2 border-b border-border">
+            <div className="flex items-center gap-2">
+              <label htmlFor="desktop-view-mode" className="sr-only">View mode</label>
+              <select
+                id="desktop-view-mode"
+                value={navFilter}
+                onChange={(event) => setNavFilter(event.target.value as NavFilter)}
+                className="min-w-0 flex-1 whitespace-nowrap rounded-md border border-border bg-secondary/30 px-2 py-1.5 text-xs text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
+                aria-label="View mode"
+              >
+                {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              {operatorMode && (
                 <button
-                  key={value}
-                  role="tab"
-                  aria-selected={navFilter === value}
-                  onClick={() => setNavFilter(value)}
+                  onClick={() => setManualHubOrdering((prev) => !prev)}
                   className={cn(
-                    "px-2 py-1 text-[10px] rounded border transition-colors",
-                    navFilter === value
-                      ? "bg-primary/15 border-primary/40 text-primary"
-                      : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                    "shrink-0 rounded-md border p-1.5 transition-colors",
+                    manualHubOrdering
+                      ? "border-violet-500/35 bg-violet-600/10 text-violet-300"
+                      : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   )}
+                  aria-pressed={manualHubOrdering}
+                  aria-label={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
+                  title={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
                 >
-                  {label}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
+                    <path d="M3 4.2h8M3 7h8M3 9.8h8" strokeLinecap="round" />
+                    <circle cx="4.5" cy="4.2" r="0.9" fill="currentColor" stroke="none" />
+                    <circle cx="9.5" cy="7" r="0.9" fill="currentColor" stroke="none" />
+                    <circle cx="6" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
+                  </svg>
                 </button>
-              ))}
+              )}
             </div>
           </div>
         )}
@@ -1801,41 +2137,33 @@ function AppContent() {
         <nav className="flex-1 overflow-y-auto py-2" data-tour="sidebar">
           {operatorMode ? (
             <>
-              {operatorNavGroups.map((group) => {
-                const isCollapsed = collapsedGroups.has(group.id);
-                return (
-                  <div key={group.id}>
-                    {!sidebarCollapsed && (
+              {!sidebarCollapsed && visiblePinnedOperatorHubs.length > 0 && (
+                <p className="px-3 pb-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Pinned</p>
+              )}
+              <div className="space-y-1 px-2">
+                {visiblePinnedOperatorHubs.map((hub) => renderDesktopOperatorHubRow(hub))}
+                {visiblePinnedOperatorHubs.length > 0 && visibleUnpinnedOperatorHubs.length > 0 && (
+                  <div className="my-2 border-t border-border/70" aria-hidden="true" />
+                )}
+                {visibleUnpinnedOperatorHubs.map((hub) => renderDesktopOperatorHubRow(hub))}
+              </div>
+              {!sidebarCollapsed && recentOperatorItems.length > 0 && (
+                <div className="px-3 pt-3 pb-1 border-t border-border mt-2">
+                  <p className="px-1 pb-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Recent</p>
+                  <div className="space-y-1">
+                    {recentOperatorItems.map((item) => (
                       <button
-                        onClick={() => toggleGroup(group.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-                      >
-                        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" className={cn("transition-transform", isCollapsed ? "" : "rotate-90")}>
-                          <path d="M2 1l4 3-4 3z" />
-                        </svg>
-                        {group.label}
-                      </button>
-                    )}
-                    {!isCollapsed && group.items.map((item) => (
-                      <button
-                        key={item.id}
-                        data-tour={`nav-${item.id}`}
+                        key={`recent-${item.id}`}
                         onClick={() => navigate(item.id)}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                          activeView === item.id ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                        )}
-                        aria-current={activeView === item.id ? "page" : undefined}
-                        title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
                       >
-                        <span className="text-base" aria-hidden="true">{item.emoji}</span>
-                        {!sidebarCollapsed && <span>{item.label}</span>}
-                        {!sidebarCollapsed && item.shortcut && <span className="ml-auto text-xs text-muted-foreground/50 font-mono">⌥{item.shortcut}</span>}
+                        <span aria-hidden="true">{item.emoji}</span>
+                        <span>{item.label}</span>
                       </button>
                     ))}
                   </div>
-                );
-              })}
+                </div>
+              )}
               {!sidebarCollapsed && (
                 <div className="px-3 pt-3 pb-1 border-t border-border mt-2">
                   <button
@@ -1881,6 +2209,9 @@ function AppContent() {
                 )}
               </button>
             ))
+          )}
+          {operatorMode && visibleOperatorHubs.length === 0 && (
+            <p className="px-4 py-6 text-xs text-muted-foreground text-center">No hubs match this filter.</p>
           )}
           {!operatorMode && visibleNavItems.length === 0 && (
             <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
@@ -1991,60 +2322,77 @@ function AppContent() {
             </button>
           </div>
           <div className="p-2 border-b border-border">
-            <input
-              type="text"
-              value={navQuery}
-              onChange={(e) => setNavQuery(e.target.value)}
-              placeholder="Filter views"
-              className="w-full bg-secondary/40 border border-border rounded-md px-2 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
-              aria-label="Filter navigation views"
-            />
-            <div className="mt-2 flex flex-wrap gap-1" role="tablist" aria-label="Audience filter">
-              {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+            <div className="flex items-center gap-2">
+              <label htmlFor="mobile-view-mode" className="sr-only">View mode</label>
+              <select
+                id="mobile-view-mode"
+                value={navFilter}
+                onChange={(event) => setNavFilter(event.target.value as NavFilter)}
+                className="min-w-0 flex-1 whitespace-nowrap rounded-md border border-border bg-secondary/30 px-2 py-2 text-xs text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
+                aria-label="View mode"
+              >
+                {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              {operatorMode && (
                 <button
-                  key={value}
-                  role="tab"
-                  aria-selected={navFilter === value}
-                  onClick={() => setNavFilter(value)}
+                  onClick={() => setManualHubOrdering((prev) => !prev)}
                   className={cn(
-                    "px-2 py-1 text-[10px] rounded border transition-colors",
-                    navFilter === value
-                      ? "bg-primary/15 border-primary/40 text-primary"
-                      : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                    "shrink-0 rounded-md border p-2 transition-colors",
+                    manualHubOrdering
+                      ? "border-violet-500/35 bg-violet-600/10 text-violet-300"
+                      : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   )}
+                  aria-pressed={manualHubOrdering}
+                  aria-label={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
+                  title={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
                 >
-                  {label}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
+                    <path d="M3 4.2h8M3 7h8M3 9.8h8" strokeLinecap="round" />
+                    <circle cx="4.5" cy="4.2" r="0.9" fill="currentColor" stroke="none" />
+                    <circle cx="9.5" cy="7" r="0.9" fill="currentColor" stroke="none" />
+                    <circle cx="6" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
+                  </svg>
                 </button>
-              ))}
+              )}
             </div>
           </div>
           <nav className="flex-1 overflow-y-auto py-2">
             {operatorMode ? (
-              operatorNavGroups.map((group) => (
-                <div key={group.id}>
-                  <div className="px-4 py-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">
-                    {group.label}
+              <>
+                {visiblePinnedOperatorHubs.length > 0 && (
+                  <div className="px-3 pb-2">
+                    <p className="px-1 pb-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Pinned</p>
                   </div>
-                  {group.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => navigate(item.id)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
-                        activeView === item.id
-                          ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                      )}
-                      aria-current={activeView === item.id ? "page" : undefined}
-                    >
-                      <span className="text-base" aria-hidden="true">{item.emoji}</span>
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
+                )}
+                <div className="space-y-1 px-2">
+                  {visiblePinnedOperatorHubs.map((hub) => renderMobileOperatorHubRow(hub))}
+                  {visiblePinnedOperatorHubs.length > 0 && visibleUnpinnedOperatorHubs.length > 0 && (
+                    <div className="my-2 border-t border-border/70" aria-hidden="true" />
+                  )}
+                  {visibleUnpinnedOperatorHubs.map((hub) => renderMobileOperatorHubRow(hub))}
                 </div>
-              ))
+                {recentOperatorItems.length > 0 && (
+                  <div className="px-3 pt-3 pb-1 border-t border-border mt-2">
+                    <p className="px-1 pb-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Recent</p>
+                    <div className="space-y-1">
+                      {recentOperatorItems.map((item) => (
+                        <button
+                          key={`mobile-recent-${item.id}`}
+                          onClick={() => navigate(item.id)}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                        >
+                          <span aria-hidden="true">{item.emoji}</span>
+                          <span>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
-              navItems.map((item) => (
+              visibleNavItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => navigate(item.id)}
@@ -2072,6 +2420,9 @@ function AppContent() {
                   )}
                 </button>
               ))
+            )}
+            {operatorMode && visibleOperatorHubs.length === 0 && (
+              <p className="px-4 py-6 text-xs text-muted-foreground text-center">No hubs match this filter.</p>
             )}
             {!operatorMode && visibleNavItems.length === 0 && (
               <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
@@ -2249,15 +2600,53 @@ function AppContent() {
 
         {/* View content */}
         <main id="main-content" className="flex-1 overflow-y-auto" role="main" data-tour="main-content">
-          {!activeViewVisible && (
-            <div className="mx-3 mt-3 sm:mx-4 md:mx-6 max-w-7xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-              Current view is outside the active navigation filter.
+          {showNavigationFilterWarning && (
+            <div className="mx-3 mt-3 sm:mx-4 md:mx-6 max-w-7xl rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3 py-2 text-xs text-[var(--color-text-primary)]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span>Current view is outside the active navigation filter.</span>
+                <button
+                  onClick={() => {
+                    setNavQuery("");
+                    setNavFilter("all");
+                  }}
+                  className="rounded-md border border-[var(--color-warning)]/45 bg-[var(--color-surface-1)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-surface-2)]"
+                >
+                  Clear filters
+                </button>
+              </div>
             </div>
           )}
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
               {/* M9: responsive pass — reduce padding on mobile */}
               <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
+                {operatorMode && (
+                  <section className="mb-3 rounded-xl border border-border bg-card/40 p-2.5" aria-label={`${activeOperatorHub.label} views`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2">
+                      <div className="text-sm font-semibold text-foreground">{activeOperatorHub.label}</div>
+                      <div className="text-[11px] text-muted-foreground">Use tabs to switch views</div>
+                    </div>
+                    <nav className="flex gap-1 overflow-x-auto pb-1" aria-label={`${activeOperatorHub.label} tabs`}>
+                      {activeOperatorHub.items.map((item) => (
+                        <button
+                          key={`hub-tab-${item.id}`}
+                          onClick={() => navigate(item.id)}
+                          className={cn(
+                            "shrink-0 flex items-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors",
+                            activeView === item.id
+                              ? "bg-violet-600/15 text-violet-300 border-violet-500/35"
+                              : "bg-secondary/30 text-muted-foreground border-border hover:text-foreground hover:bg-secondary/50"
+                          )}
+                          aria-current={activeView === item.id ? "page" : undefined}
+                          title={item.label}
+                        >
+                          <span aria-hidden="true">{item.emoji}</span>
+                          <span>{item.label}</span>
+                        </button>
+                      ))}
+                    </nav>
+                  </section>
+                )}
                 {renderView()}
               </div>
             </React.Suspense>

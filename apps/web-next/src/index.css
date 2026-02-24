@@ -13,6 +13,15 @@
     @apply bg-background text-foreground antialiased;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
+
+  /* Prevent blinking text caret on non-editable UI surfaces (for example in table cells). */
+  :where(*:not(input):not(textarea):not([contenteditable])) {
+    caret-color: transparent;
+  }
+
+  :where(input, textarea, [contenteditable]) {
+    caret-color: auto;
+  }
 }
 
 /* Custom scrollbar */

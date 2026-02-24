@@ -26,6 +26,13 @@ interface AgentPermProfile {
 const RESOURCE_TYPES: ResourceType[] = ["agent", "session", "file", "tool", "model", "webhook", "api-key", "config"];
 const ACTIONS: PermAction[] = ["read", "write", "execute", "admin", "delete"];
 
+const ROLE_STYLES: Record<AgentPermProfile["role"], string> = {
+  owner: "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 text-[var(--color-text-primary)]",
+  admin: "border-emerald-500/40 bg-emerald-500/12 text-[var(--color-text-primary)]",
+  member: "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
+  guest: "border-amber-500/40 bg-amber-500/12 text-[var(--color-text-primary)]",
+};
+
 const SEED_DATA: AgentPermProfile[] = [
   {
     agentId: "luis-01",
@@ -98,14 +105,8 @@ const SEED_DATA: AgentPermProfile[] = [
 ];
 
 const RoleBadge = ({ role }: { role: AgentPermProfile["role"] }) => {
-  const colors = {
-    owner: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
-    admin: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    member: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/30",
-    guest: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  };
   return (
-    <span className={cn("px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border", colors[role])}>
+    <span className={cn("inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]", ROLE_STYLES[role])}>
       {role}
     </span>
   );
@@ -179,47 +180,62 @@ export default function PermissionsManager() {
     };
   };
 
+  const currentPermissions = isEditing ? editBuffer : selectedAgent.permissions;
+  const grantedCount = currentPermissions.reduce((sum, permission) => sum + permission.actions.length, 0);
+  const inheritedCount = currentPermissions.filter((permission) => permission.inherited).length;
+
   return (
-    <div className="flex h-full w-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden font-sans">
+    <div className="flex h-full w-full overflow-hidden bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-0)]/50" role="navigation" aria-label="Agents List">
-        <div className="p-4 border-b border-[var(--color-border)]">
-          <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest">Agents</h2>
+      <aside className="flex w-72 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-1)]/70" role="navigation" aria-label="Agents List">
+        <div className="border-b border-[var(--color-border)] px-5 py-4">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">Agents</h2>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 space-y-1 overflow-y-auto p-2">
           {agents.map(agent => (
             <button
               key={agent.agentId}
               onClick={() => { setSelectedAgentId(agent.agentId); setIsEditing(false); }}
               className={cn(
-                "w-full flex items-center gap-3 p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                selectedAgentId === agent.agentId ? "bg-[var(--color-surface-1)] shadow-inner" : "hover:bg-[var(--color-surface-1)]/50"
+                "w-full rounded-xl border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/55",
+                selectedAgentId === agent.agentId
+                  ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 shadow-sm"
+                  : "border-transparent hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/40"
               )}
               aria-selected={selectedAgentId === agent.agentId}
               role="tab"
             >
-              <span className="text-2xl" aria-hidden="true">{agent.agentEmoji}</span>
-              <div className="flex flex-col min-w-0">
-                <span className="font-medium truncate">{agent.agentName}</span>
-                <RoleBadge role={agent.role} />
+              <div className="flex items-center gap-3">
+                <span className="text-2xl" aria-hidden="true">{agent.agentEmoji}</span>
+                <div className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-base font-semibold">{agent.agentName}</span>
+                  <RoleBadge role={agent.role} />
+                </div>
               </div>
+              <p className="mt-2 text-[11px] text-[var(--color-text-muted)]">
+                Updated {new Date(agent.lastModified).toLocaleDateString()}
+              </p>
             </button>
           ))}
         </div>
       </aside>
 
       {/* Main Panel */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface-0)]" role="tabpanel" aria-label={`Permissions for ${selectedAgent.agentName}`}>
+      <main className="flex min-w-0 flex-1 flex-col bg-[var(--color-surface-0)]" role="tabpanel" aria-label={`Permissions for ${selectedAgent.agentName}`}>
         {/* Header */}
-        <header className="h-16 border-b border-[var(--color-border)] flex items-center justify-between px-6 bg-[var(--color-surface-1)]/30">
+        <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/45 px-6 py-4">
           <div className="flex items-center gap-4">
             <span className="text-3xl" aria-hidden="true">{selectedAgent.agentEmoji}</span>
             <div>
-              <h1 className="text-lg font-bold flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-xl font-bold">
                 {selectedAgent.agentName}
                 <RoleBadge role={selectedAgent.role} />
               </h1>
-              <p className="text-xs text-[var(--color-text-muted)]">Last modified: {new Date(selectedAgent.lastModified).toLocaleString()}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+                <span>Last modified: {new Date(selectedAgent.lastModified).toLocaleString()}</span>
+                <span>{grantedCount} granted actions</span>
+                <span>{inheritedCount} inherited resources</span>
+              </div>
             </div>
           </div>
           
@@ -227,7 +243,7 @@ export default function PermissionsManager() {
             {!isEditing ? (
               <button 
                 onClick={startEditing}
-                className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none border border-[var(--color-border)]"
+                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-surface-3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/55"
               >
                 Edit Permissions
               </button>
@@ -235,13 +251,13 @@ export default function PermissionsManager() {
               <>
                 <button 
                   onClick={cancelEditing}
-                  className="px-4 py-2 bg-transparent hover:bg-[var(--color-surface-2)] rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none text-[var(--color-text-secondary)]"
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/55"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={saveEditing}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none shadow-lg shadow-indigo-500/20"
+                  className="rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/60"
                 >
                   Save Changes
                 </button>
@@ -252,20 +268,22 @@ export default function PermissionsManager() {
 
         {/* Matrix */}
         <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-5xl mx-auto">
-            <table className="w-full border-collapse text-left bg-[var(--color-surface-1)]/50 rounded-lg overflow-hidden border border-[var(--color-border)]">
+          <div className="mx-auto max-w-6xl">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] shadow-[0_10px_30px_rgba(0,0,0,0.12)]">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[780px] border-collapse text-left">
               <thead>
-                <tr className="bg-[var(--color-surface-1)] border-b border-[var(--color-border)]">
-                  <th scope="col" className="p-4 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Resource Type</th>
+                <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/70">
+                  <th scope="col" className="sticky left-0 z-10 bg-[var(--color-surface-2)]/90 p-4 text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-text-secondary)]">Resource Type</th>
                   {ACTIONS.map(action => (
-                    <th key={action} scope="col" className="p-4 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider text-center">{action}</th>
+                    <th key={action} scope="col" className="p-4 text-center text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-text-secondary)]">{action}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
                 {RESOURCE_TYPES.map(resType => (
-                  <tr key={resType} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
-                    <th scope="row" className="p-4 font-medium text-[var(--color-text-primary)] capitalize">
+                  <tr key={resType} className="transition-colors odd:bg-[var(--color-surface-1)] even:bg-[var(--color-surface-1)]/40 hover:bg-[var(--color-surface-2)]/35">
+                    <th scope="row" className="sticky left-0 bg-inherit p-4 text-sm font-semibold capitalize text-[var(--color-text-primary)]">
                       {resType.replace("-", " ")}
                     </th>
                     {ACTIONS.map(action => {
@@ -283,15 +301,20 @@ export default function PermissionsManager() {
                                 disabled={!isEditing || inherited}
                                 onChange={() => togglePermission(resType, action)}
                                 className={cn(
-                                  "h-5 w-5 rounded border-[var(--color-border)] bg-[var(--color-surface-2)] text-indigo-600 transition-all",
-                                  "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                                  inherited ? "opacity-40 cursor-not-allowed" : isEditing ? "cursor-pointer" : "cursor-default"
+                                  "h-5 w-5 rounded border-2 bg-[var(--color-surface-0)] accent-[var(--color-accent)] transition-all",
+                                  granted ? "border-[var(--color-accent)]" : "border-[var(--color-border)]",
+                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/60",
+                                  inherited
+                                    ? "cursor-not-allowed opacity-60"
+                                    : isEditing
+                                      ? "cursor-pointer"
+                                      : "cursor-default"
                                 )}
                                 aria-disabled={!isEditing || inherited}
                               />
                               {inherited && (
-                                <span className="absolute -top-1 -right-1 bg-[var(--color-surface-0)] rounded-full p-0.5" title="Inherited from role">
-                                  <svg className="w-2.5 h-2.5 text-[var(--color-text-muted)]" fill="currentColor" viewBox="0 0 20 20">
+                                <span className="absolute -right-1 -top-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-1)] p-0.5" title="Inherited from role">
+                                  <svg className="h-2.5 w-2.5 text-[var(--color-text-muted)]" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                   </svg>
                                 </span>
@@ -304,30 +327,32 @@ export default function PermissionsManager() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+                </table>
+              </div>
+            </div>
 
             {/* Legend / Status */}
-            <div className="mt-8 flex flex-wrap gap-6 text-xs text-[var(--color-text-muted)] border-t border-[var(--color-border)] pt-6">
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-indigo-600 border border-indigo-500"></div>
+            <div className="mt-6 flex flex-wrap gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/70 px-4 py-3 text-xs text-[var(--color-text-secondary)]">
+              <div className="flex items-center gap-2 rounded-md bg-[var(--color-surface-2)]/70 px-2 py-1">
+                <div className="h-3.5 w-3.5 rounded border border-[var(--color-accent)] bg-[var(--color-accent)]"></div>
                 <span>Granted Permission</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)]"></div>
+              <div className="flex items-center gap-2 rounded-md bg-[var(--color-surface-2)]/70 px-2 py-1">
+                <div className="h-3.5 w-3.5 rounded border border-[var(--color-border)] bg-[var(--color-surface-0)]"></div>
                 <span>Denied Permission</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 rounded-md bg-[var(--color-surface-2)]/70 px-2 py-1">
                 <div className="relative">
-                   <div className="h-4 w-4 rounded bg-indigo-600 opacity-40 border border-indigo-500"></div>
-                   <span className="absolute -top-1 -right-1 text-[8px]">🔒</span>
+                   <div className="h-3.5 w-3.5 rounded border border-[var(--color-accent)] bg-[var(--color-accent)] opacity-60"></div>
+                   <span className="absolute -right-1 -top-1 text-[8px]">🔒</span>
                 </div>
                 <span>Inherited (Read-only)</span>
               </div>
             </div>
             
             {isEditing && (
-              <div role="status" className="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-md text-indigo-400 text-sm flex items-center gap-2 animate-pulse">
-                <span>⚠️</span>
+              <div role="status" className="mt-4 flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10 px-3 py-2 text-sm text-[var(--color-text-primary)]">
+                <span aria-hidden="true">✏️</span>
                 <span>You are currently in edit mode. Changes will not be permanent until saved.</span>
               </div>
             )}

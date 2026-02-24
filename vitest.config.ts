@@ -37,6 +37,8 @@ export default defineConfig({
       "src/**/*.test.ts",
       "extensions/**/*.test.ts",
       "test/**/*.test.ts",
+      "apps/web-next/src/**/*.test.ts",
+      "apps/web-next/src/**/*.test.tsx",
       "ui/src/ui/views/usage-render-details.test.ts",
     ],
     setupFiles: ["test/setup.ts"],
