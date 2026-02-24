@@ -1,445 +1,418 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Info, MessageSquare, ShieldCheck, TerminalSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { Sparkles, ChevronRight, ChevronLeft, Check, Bot, Zap, Brain, Users, Settings } from 'lucide-react';
 
-type ProficiencyLevel = 'beginner' | 'standard' | 'expert';
+type GatewayMode = 'local' | 'remote';
+type AuthMode = 'token' | 'none';
+type StepId = 'welcome' | 'gateway' | 'permissions' | 'cli' | 'chat' | 'complete';
+type CliStatus = 'idle' | 'detected' | 'installing' | 'success' | 'failed';
+type OnboardingOutcome = 'in_progress' | 'completed' | 'skipped';
 
-interface QuizAnswer {
-  question: number;
-  value: number;
+type PermissionKey =
+  | 'automation'
+  | 'notifications'
+  | 'accessibility'
+  | 'screenRecording'
+  | 'microphone'
+  | 'location';
+
+interface PermissionState {
+  key: PermissionKey;
+  label: string;
+  helper: string;
+  optional: boolean;
+  enabled: boolean;
+  granted: boolean;
 }
 
-interface SetupStep {
-  id: number;
-  title: string;
-  description: string;
+interface OnboardingState {
+  step: StepId;
+  gatewayMode: GatewayMode;
+  authMode: AuthMode;
+  permissions: PermissionState[];
+  cliStatus: CliStatus;
+  packageManager: string | null;
+  selectedPrompt: string | null;
+  outcome: OnboardingOutcome;
 }
 
-const QUIZ_QUESTIONS = [
-  {
-    id: 0,
-    question: 'Have you used AI assistants before?',
-    options: [
-      { label: 'Not really', value: 0, emoji: '👋' },
-      { label: "Yes, I've used ChatGPT or similar", value: 2, emoji: '🤖' },
-      { label: "I've built or configured AI tools", value: 3, emoji: '⚙️' },
-    ],
-  },
-  {
-    id: 1,
-    question: 'How comfortable are you with configuration files?',
-    options: [
-      { label: "What's a config file?", value: 0, emoji: '😅' },
-      { label: "I can edit them if I need to", value: 2, emoji: '📝' },
-      { label: 'I write YAML and JSON daily', value: 3, emoji: '💻' },
-    ],
-  },
-  {
-    id: 2,
-    question: "What's your main goal with OpenClaw?",
-    options: [
-      { label: 'Personal assistant for everyday tasks', value: 0, emoji: '🧑‍💼' },
-      { label: 'Automate workflows and processes', value: 2, emoji: '⚡' },
-      { label: 'Build and manage a fleet of agents', value: 3, emoji: '🚀' },
-    ],
-  },
+const STORAGE_KEY = 'openclaw.web.onboarding.v1';
+
+const STEP_ORDER: StepId[] = ['welcome', 'gateway', 'permissions', 'cli', 'chat', 'complete'];
+
+const SUGGESTED_PROMPTS = [
+  'Connect Slack',
+  'Set up my first daily summary',
+  'Show what you can automate',
+  'Run a quick health check',
 ];
 
-const LEVEL_DESCRIPTIONS: Record<ProficiencyLevel, {
-  title: string;
-  subtitle: string;
-  emoji: string;
-  color: string;
-  features: string[];
-}> = {
-  beginner: {
-    title: 'Guided Mode',
-    subtitle: "We'll walk you through everything step by step",
-    emoji: '🌱',
-    color: 'text-green-400',
-    features: [
-      'Simple, friendly interface',
-      'Step-by-step agent creation',
-      'Helpful tooltips everywhere',
-      'Pre-configured templates',
-    ],
-  },
-  standard: {
-    title: 'Standard Mode',
-    subtitle: 'Balanced power and simplicity',
-    emoji: '⚡',
-    color: 'text-violet-400',
-    features: [
-      'Visual form-based agent builder',
-      'Schedule automations easily',
-      'Connect channels and skills',
-      'Usage analytics dashboard',
-    ],
-  },
-  expert: {
-    title: 'Expert Mode',
-    subtitle: 'Full control over everything',
-    emoji: '🔬',
-    color: 'text-blue-400',
-    features: [
-      'Direct file editing (SOUL.md, etc.)',
-      'Raw cron expressions',
-      'Config editor with JSON/YAML',
-      'Debug views and logs',
-    ],
-  },
-};
-
-const TEMPLATE_OPTIONS = [
-  { id: 'assistant', emoji: '🧑‍💼', name: 'Personal Assistant', description: 'Schedule, tasks, reminders' },
-  { id: 'coder', emoji: '💻', name: 'Code Reviewer', description: 'PR reviews, code analysis' },
-  { id: 'writer', emoji: '🎨', name: 'Creative Writer', description: 'Content creation, brainstorming' },
-  { id: 'analyst', emoji: '📊', name: 'Data Analyst', description: 'Data queries, reports' },
-  { id: 'email', emoji: '📧', name: 'Email Manager', description: 'Inbox triage, drafting' },
-  { id: 'blank', emoji: '⬜', name: 'Blank Agent', description: 'Start from scratch' },
+const DEFAULT_PERMISSIONS: PermissionState[] = [
+  { key: 'automation', label: 'Automation', helper: 'Control supported apps on your behalf', optional: false, enabled: true, granted: false },
+  { key: 'notifications', label: 'Notifications', helper: 'Send reminders and status updates', optional: false, enabled: true, granted: false },
+  { key: 'accessibility', label: 'Accessibility', helper: 'Read UI context to complete tasks', optional: false, enabled: true, granted: false },
+  { key: 'screenRecording', label: 'Screen Recording', helper: 'Capture or stream screen context when needed', optional: true, enabled: false, granted: false },
+  { key: 'microphone', label: 'Microphone', helper: 'Enable voice input and calls', optional: true, enabled: false, granted: false },
+  { key: 'location', label: 'Location', helper: 'Use location-aware automations', optional: true, enabled: false, granted: false },
 ];
 
-const SETUP_STEPS: SetupStep[] = [
-  { id: 1, title: 'Welcome', description: 'Quick setup quiz' },
-  { id: 2, title: 'Your Level', description: 'Interface mode' },
-  { id: 3, title: 'First Agent', description: 'Create your agent' },
-  { id: 4, title: "You're Ready!", description: 'Start exploring' },
-];
+function isStepId(value: unknown): value is StepId {
+  return typeof value === 'string' && STEP_ORDER.includes(value as StepId);
+}
+
+function isGatewayMode(value: unknown): value is GatewayMode {
+  return value === 'local' || value === 'remote';
+}
+
+function isAuthMode(value: unknown): value is AuthMode {
+  return value === 'token' || value === 'none';
+}
+
+function isCliStatus(value: unknown): value is CliStatus {
+  return value === 'idle' || value === 'detected' || value === 'installing' || value === 'success' || value === 'failed';
+}
+
+function isOnboardingOutcome(value: unknown): value is OnboardingOutcome {
+  return value === 'in_progress' || value === 'completed' || value === 'skipped';
+}
+
+function normalizePermissions(permissions: unknown): PermissionState[] {
+  if (!Array.isArray(permissions)) {
+    return DEFAULT_PERMISSIONS;
+  }
+
+  return DEFAULT_PERMISSIONS.map(defaultPermission => {
+    const savedPermission = permissions.find(candidate => (
+      typeof candidate === 'object'
+      && candidate !== null
+      && 'key' in candidate
+      && candidate.key === defaultPermission.key
+    )) as Partial<PermissionState> | undefined;
+
+    return {
+      ...defaultPermission,
+      enabled: typeof savedPermission?.enabled === 'boolean' ? savedPermission.enabled : defaultPermission.enabled,
+      granted: typeof savedPermission?.granted === 'boolean' ? savedPermission.granted : defaultPermission.granted,
+    };
+  });
+}
+
+function hydrateStoredState(parsed: Partial<OnboardingState>): OnboardingState {
+  const initial = createInitialState();
+  const inferredOutcome = parsed.step === 'complete' ? 'completed' : initial.outcome;
+
+  return {
+    step: isStepId(parsed.step) ? parsed.step : initial.step,
+    gatewayMode: isGatewayMode(parsed.gatewayMode) ? parsed.gatewayMode : initial.gatewayMode,
+    authMode: isAuthMode(parsed.authMode) ? parsed.authMode : initial.authMode,
+    permissions: normalizePermissions(parsed.permissions),
+    cliStatus: isCliStatus(parsed.cliStatus) ? parsed.cliStatus : initial.cliStatus,
+    packageManager: typeof parsed.packageManager === 'string' ? parsed.packageManager : detectPackageManager(),
+    selectedPrompt: typeof parsed.selectedPrompt === 'string' ? parsed.selectedPrompt : null,
+    outcome: isOnboardingOutcome(parsed.outcome) ? parsed.outcome : inferredOutcome,
+  };
+}
+
+function createInitialState(): OnboardingState {
+  return {
+    step: 'welcome',
+    gatewayMode: 'local',
+    authMode: 'token',
+    permissions: DEFAULT_PERMISSIONS,
+    cliStatus: 'idle',
+    packageManager: null,
+    selectedPrompt: null,
+    outcome: 'in_progress',
+  };
+}
+
+function detectPackageManager(): string | null {
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('macintosh')) {return 'pnpm';}
+  if (ua.includes('linux')) {return 'npm';}
+  return null;
+}
+
+function nextStep(step: StepId): StepId {
+  const idx = STEP_ORDER.indexOf(step);
+  return STEP_ORDER[Math.min(idx + 1, STEP_ORDER.length - 1)];
+}
+
+function prevStep(step: StepId): StepId {
+  const idx = STEP_ORDER.indexOf(step);
+  return STEP_ORDER[Math.max(idx - 1, 0)];
+}
 
 export default function OnboardingFlow() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [quizStep, setQuizStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
-  const [proficiency, setProficiency] = useState<ProficiencyLevel | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [agentName, setAgentName] = useState('');
-  const [complete, setComplete] = useState(false);
+  const [state, setState] = useState<OnboardingState>(createInitialState);
+  const [installError, setInstallError] = useState<string | null>(null);
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const [resumedFromStorage, setResumedFromStorage] = useState(false);
 
-  const totalScore = answers.reduce((sum, a) => sum + a.value, 0);
-
-  function scoreToLevel(score: number): ProficiencyLevel {
-    if (score <= 2) {return 'beginner';}
-    if (score <= 5) {return 'standard';}
-    return 'expert';
-  }
-
-  function handleQuizAnswer(value: number) {
-    const newAnswers = [...answers.filter(a => a.question !== quizStep), { question: quizStep, value }];
-    setAnswers(newAnswers);
-    if (quizStep < QUIZ_QUESTIONS.length - 1) {
-      setQuizStep(quizStep + 1);
-    } else {
-      const score = newAnswers.reduce((s, a) => s + a.value, 0);
-      setProficiency(scoreToLevel(score));
-      setCurrentStep(2);
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      setState(prev => ({ ...prev, packageManager: detectPackageManager() }));
+      setHasHydrated(true);
+      return;
     }
-  }
 
-  function handleNext() {
-    if (currentStep < 4) {setCurrentStep(currentStep + 1);}
-    else {setComplete(true);}
-  }
+    try {
+      const parsed = JSON.parse(stored) as Partial<OnboardingState>;
+      const hydratedState = hydrateStoredState(parsed);
+      setState(hydratedState);
+      setResumedFromStorage(true);
+    } catch {
+      setState(prev => ({ ...prev, packageManager: detectPackageManager() }));
+      setResumedFromStorage(false);
+    } finally {
+      setHasHydrated(true);
+    }
+  }, []);
 
-  function handleBack() {
-    if (currentStep > 1) {setCurrentStep(currentStep - 1);}
-  }
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [hasHydrated, state]);
 
-  if (complete) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-5xl mx-auto mb-6 shadow-2xl shadow-violet-900/50">
-            🎉
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-3">You're all set!</h1>
-          <p className="text-gray-400 mb-8">
-            Your workspace is ready. Your first agent is configured in{' '}
-            <span className="text-violet-400 font-medium">{LEVEL_DESCRIPTIONS[proficiency ?? 'standard'].title}</span>.
-          </p>
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              className="w-full py-3 px-6 bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-            >
-              <Bot className="w-5 h-5" />
-              Start chatting with your agent
-            </button>
-            <button
-              type="button"
-              className="w-full py-3 px-6 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl font-medium transition-colors"
-            >
-              Explore the dashboard
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const stepIndex = STEP_ORDER.indexOf(state.step);
+  const totalSteps = STEP_ORDER.length - 1;
+  const progressPct = Math.round((Math.min(stepIndex, totalSteps) / totalSteps) * 100);
+  const canContinue = useMemo(() => {
+    if (state.step === 'gateway') {
+      return !(state.gatewayMode === 'remote' && state.authMode === 'none');
+    }
+    if (state.step === 'chat') {
+      return Boolean(state.selectedPrompt);
+    }
+    if (state.step === 'cli') {
+      return state.cliStatus !== 'installing';
+    }
+    return true;
+  }, [state]);
+
+  const advance = () => setState(prev => {
+    const next = nextStep(prev.step);
+    return {
+      ...prev,
+      step: next,
+      outcome: next === 'complete' && prev.outcome === 'in_progress' ? 'completed' : prev.outcome,
+    };
+  });
+  const goBack = () => setState(prev => ({ ...prev, step: prevStep(prev.step) }));
+
+  const togglePermission = (key: PermissionKey) => {
+    setState(prev => ({
+      ...prev,
+      permissions: prev.permissions.map(permission => (
+        permission.key === key
+          ? { ...permission, enabled: !permission.enabled, granted: permission.enabled ? false : permission.granted }
+          : permission
+      )),
+    }));
+  };
+
+  const grantPermission = (key: PermissionKey) => {
+    setState(prev => ({
+      ...prev,
+      permissions: prev.permissions.map(permission => (
+        permission.key === key && permission.enabled ? { ...permission, granted: true } : permission
+      )),
+    }));
+  };
+
+  const installCli = async () => {
+    setInstallError(null);
+    setState(prev => ({ ...prev, cliStatus: 'installing' }));
+
+    await new Promise(resolve => setTimeout(resolve, 900));
+
+    if (!state.packageManager) {
+      setState(prev => ({ ...prev, cliStatus: 'failed' }));
+      setInstallError('No package manager detected. Continue and install later from docs.');
+      return;
+    }
+
+    setState(prev => ({ ...prev, cliStatus: 'success' }));
+  };
+
+  const skipSetup = () => {
+    setState(prev => ({ ...prev, step: 'complete', outcome: 'skipped' }));
+    setInstallError(null);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
-      {/* Left sidebar - progress */}
-      <div className="w-64 bg-gray-900 border-r border-gray-800 p-6 flex flex-col">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6 md:p-10">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <header className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-semibold">OpenClaw onboarding</h1>
+            <button type="button" className="text-sm text-zinc-400 hover:text-zinc-200" onClick={skipSetup}>Skip setup</button>
           </div>
-          <span className="text-white font-bold text-lg">OpenClaw</span>
-        </div>
-
-        <div className="space-y-4">
-          {SETUP_STEPS.map((step, idx) => {
-            const isCompleted = currentStep > step.id;
-            const isCurrent = currentStep === step.id;
-            return (
-              <div key={step.id} className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all',
-                    isCompleted ? 'bg-violet-600 text-white' :
-                    isCurrent ? 'bg-violet-600/20 border-2 border-violet-500 text-violet-400' :
-                    'bg-gray-800 border border-gray-700 text-gray-500'
-                  )}>
-                    {isCompleted ? <Check className="w-4 h-4" /> : step.id}
-                  </div>
-                  {idx < SETUP_STEPS.length - 1 && (
-                    <div className={cn('w-px flex-1 mt-1', isCompleted ? 'bg-violet-600/50' : 'bg-gray-800')} style={{ minHeight: '24px' }} />
-                  )}
-                </div>
-                <div className="pb-6">
-                  <p className={cn('text-sm font-medium', isCurrent ? 'text-white' : isCompleted ? 'text-gray-300' : 'text-gray-600')}>
-                    {step.title}
-                  </p>
-                  <p className="text-xs text-gray-500">{step.description}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-auto">
-          <div className="bg-gray-800/50 rounded-xl p-4">
-            <p className="text-xs text-gray-500 mb-2">Setup progress</p>
-            <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-violet-600 to-pink-500 rounded-full transition-all duration-500"
-                style={{ width: `${((currentStep - 1) / (SETUP_STEPS.length - 1)) * 100}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">{currentStep} of {SETUP_STEPS.length} steps</p>
+          <p className="mt-2 text-sm text-zinc-400">Step {Math.min(stepIndex + 1, totalSteps)} of {totalSteps}</p>
+          <div className="mt-3 h-2 w-full rounded-full bg-zinc-800">
+            <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${progressPct}%` }} />
           </div>
-        </div>
-      </div>
+        </header>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 flex items-center justify-center p-8">
-          {/* Step 1: Quiz */}
-          {currentStep === 1 && (
-            <div className="max-w-lg w-full">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Welcome to OpenClaw</h1>
-                <p className="text-gray-400">Let's personalize your experience. Just 3 quick questions.</p>
-              </div>
-
-              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  {QUIZ_QUESTIONS.map((q, i) => (
-                    <div key={q.id} className={cn(
-                      'flex-1 h-1 rounded-full transition-all duration-300',
-                      i < quizStep ? 'bg-violet-600' : i === quizStep ? 'bg-violet-500/50' : 'bg-gray-800'
-                    )} />
-                  ))}
-                </div>
-
-                <p className="text-xs text-gray-500 mb-2">Question {quizStep + 1} of {QUIZ_QUESTIONS.length}</p>
-                <h2 className="text-lg font-semibold text-white mb-6">
-                  {QUIZ_QUESTIONS[quizStep].question}
-                </h2>
-
-                <div className="space-y-3">
-                  {QUIZ_QUESTIONS[quizStep].options.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => handleQuizAnswer(opt.value)}
-                      className="w-full flex items-center gap-4 p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-violet-500/50 rounded-xl transition-all duration-200 text-left group"
-                    >
-                      <span className="text-2xl">{opt.emoji}</span>
-                      <span className="text-gray-200 group-hover:text-white font-medium">{opt.label}</span>
-                      <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-violet-400 ml-auto transition-colors" />
-                    </button>
-                  ))}
-                </div>
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 md:p-8">
+          {state.step === 'welcome' && (
+            <div className="space-y-4">
+              {resumedFromStorage && <p className="rounded-xl bg-indigo-500/10 p-3 text-sm text-indigo-200">Welcome back — we saved your progress.</p>}
+              <h2 className="text-3xl font-semibold">Welcome to OpenClaw</h2>
+              <p className="text-zinc-300">Setup takes about 3 minutes. OpenClaw runs locally so you stay in control of data, permissions, and automations.</p>
+              <div className="rounded-xl border border-zinc-700 p-4">
+                <p className="text-sm font-medium text-zinc-200">What we&apos;ll do now</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-zinc-400">
+                  <li>Choose where your Gateway runs</li>
+                  <li>Review permissions</li>
+                  <li>Optionally install the CLI</li>
+                  <li>Start your first onboarding chat</li>
+                </ul>
               </div>
             </div>
           )}
 
-          {/* Step 2: Level result */}
-          {currentStep === 2 && proficiency && (
-            <div className="max-w-lg w-full">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Your Interface Mode</h1>
-                <p className="text-gray-400">Based on your answers, we recommend:</p>
+          {state.step === 'gateway' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-semibold">Where should your Gateway run?</h2>
+                <p className="text-sm text-zinc-400">Pick the setup that matches how you work.</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <button type="button" onClick={() => setState(prev => ({ ...prev, gatewayMode: 'local' }))} className={cn('rounded-xl border p-4 text-left', state.gatewayMode === 'local' ? 'border-indigo-500 bg-indigo-500/10' : 'border-zinc-700')}>
+                  <p className="font-medium">This Mac (recommended)</p>
+                  <p className="mt-1 text-sm text-zinc-400">Best for first-time setup. OAuth and local app integrations work out of the box.</p>
+                </button>
+                <button type="button" onClick={() => setState(prev => ({ ...prev, gatewayMode: 'remote' }))} className={cn('rounded-xl border p-4 text-left', state.gatewayMode === 'remote' ? 'border-indigo-500 bg-indigo-500/10' : 'border-zinc-700')}>
+                  <p className="font-medium">Remote host</p>
+                  <p className="mt-1 text-sm text-zinc-400">Use SSH or tailnet when your Gateway runs elsewhere.</p>
+                </button>
               </div>
 
-              <div className="space-y-4">
-                {(Object.entries(LEVEL_DESCRIPTIONS) as [ProficiencyLevel, typeof LEVEL_DESCRIPTIONS[ProficiencyLevel]][]).map(([level, info]) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setProficiency(level)}
-                    className={cn(
-                      'w-full p-5 rounded-2xl border transition-all duration-200 text-left',
-                      proficiency === level
-                        ? 'bg-violet-600/10 border-violet-500 ring-2 ring-violet-500/30'
-                        : 'bg-gray-900 border-gray-800 hover:border-gray-600'
-                    )}
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="text-3xl">{info.emoji}</span>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className={cn('text-base font-bold text-white')}>{info.title}</h3>
-                          {level === proficiency && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 font-medium">Recommended</span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-400 mb-3">{info.subtitle}</p>
-                        <ul className="space-y-1">
-                          {info.features.map((f) => (
-                            <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                              <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <p className="text-xs text-gray-500 text-center mt-4">
-                You can always change this in Settings → Interface
-              </p>
-            </div>
-          )}
-
-          {/* Step 3: First agent */}
-          {currentStep === 3 && (
-            <div className="max-w-xl w-full">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Create Your First Agent</h1>
-                <p className="text-gray-400">Choose a template to get started quickly, or start blank.</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {TEMPLATE_OPTIONS.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setSelectedTemplate(t.id)}
-                    className={cn(
-                      'p-4 rounded-xl border text-left transition-all duration-200',
-                      selectedTemplate === t.id
-                        ? 'bg-violet-600/10 border-violet-500 ring-2 ring-violet-500/30'
-                        : 'bg-gray-900 border-gray-800 hover:border-gray-600'
-                    )}
-                  >
-                    <span className="text-3xl block mb-2">{t.emoji}</span>
-                    <p className="text-sm font-semibold text-white">{t.name}</p>
-                    <p className="text-xs text-gray-500">{t.description}</p>
-                  </button>
-                ))}
-              </div>
-
-              {selectedTemplate && (
-                <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-                  <label htmlFor="agent-name-input" className="block text-sm text-gray-400 mb-2">Agent Name</label>
-                  <input
-                    id="agent-name-input"
-                    type="text"
-                    value={agentName}
-                    onChange={(e) => setAgentName(e.target.value)}
-                    placeholder={TEMPLATE_OPTIONS.find(t => t.id === selectedTemplate)?.name ?? 'My Agent'}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 text-sm"
-                  />
+              <div className="rounded-xl border border-zinc-700 p-4">
+                <p className="text-sm font-medium">Authentication</p>
+                <div className="mt-3 space-y-2">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input checked={state.authMode === 'token'} onChange={() => setState(prev => ({ ...prev, authMode: 'token' }))} type="radio" name="auth-mode" />
+                    Generate a secure token (recommended)
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input checked={state.authMode === 'none'} onChange={() => setState(prev => ({ ...prev, authMode: 'none' }))} type="radio" name="auth-mode" />
+                    Disable auth (development only)
+                  </label>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 4: Done */}
-          {currentStep === 4 && proficiency && (
-            <div className="max-w-lg w-full text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-4xl mx-auto mb-6 shadow-2xl shadow-violet-900/30">
-                🎊
-              </div>
-              <h1 className="text-3xl font-bold text-white mb-3">You're ready!</h1>
-              <p className="text-gray-400 mb-8 text-lg">
-                OpenClaw is configured in{' '}
-                <span className={cn('font-semibold', LEVEL_DESCRIPTIONS[proficiency].color)}>
-                  {LEVEL_DESCRIPTIONS[proficiency].title}
-                </span>.
-                {agentName && (
-                  <> Your agent <span className="text-white font-semibold">"{agentName}"</span> is ready to chat.</>
+                {state.authMode === 'none' && (
+                  <p className="mt-3 flex items-start gap-2 rounded-lg bg-amber-500/10 p-3 text-sm text-amber-300"><AlertTriangle className="mt-0.5 h-4 w-4" />Anyone with network access to this Gateway can control it.</p>
                 )}
-              </p>
+                {state.authMode === 'none' && state.gatewayMode === 'remote' && (
+                  <p className="mt-2 text-xs text-rose-300">Remote mode requires token auth.</p>
+                )}
+              </div>
+            </div>
+          )}
 
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                {[
-                  { icon: Bot, label: 'Chat', desc: 'Talk to your agents', color: 'text-violet-400' },
-                  { icon: Zap, label: 'Automate', desc: 'Schedule tasks', color: 'text-amber-400' },
-                  { icon: Settings, label: 'Configure', desc: 'Customize everything', color: 'text-gray-400' },
-                ].map(({ icon: Icon, label, desc, color }) => (
-                  <div key={label} className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center">
-                    <Icon className={cn('w-6 h-6 mx-auto mb-2', color)} />
-                    <p className="text-sm font-medium text-white">{label}</p>
-                    <p className="text-xs text-gray-500">{desc}</p>
+          {state.step === 'permissions' && (
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-2xl font-semibold">Review permissions</h2>
+                <p className="text-sm text-zinc-400">OpenClaw only asks for what you enable. You can change these anytime in System Settings.</p>
+              </div>
+              <div className="space-y-3">
+                {state.permissions.map(permission => (
+                  <div key={permission.key} className="rounded-xl border border-zinc-700 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{permission.label} {permission.optional ? <span className="text-xs text-zinc-500">(optional)</span> : null}</p>
+                        <p className="text-sm text-zinc-400">{permission.helper}</p>
+                      </div>
+                      <label className="text-sm">
+                        <input type="checkbox" checked={permission.enabled} onChange={() => togglePermission(permission.key)} /> Enable
+                      </label>
+                    </div>
+                    {permission.enabled && (
+                      <button type="button" className="mt-3 rounded-lg border border-zinc-600 px-3 py-1.5 text-sm hover:border-zinc-400" onClick={() => grantPermission(permission.key)}>
+                        {permission.granted ? 'Granted' : 'Grant access'}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Footer navigation */}
-        {currentStep !== 1 && (
-          <div className="border-t border-gray-800 px-8 py-4 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-800"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </button>
-            <div className="flex items-center gap-2">
-              {SETUP_STEPS.map((s) => (
-                <div key={s.id} className={cn(
-                  'w-2 h-2 rounded-full transition-all',
-                  currentStep === s.id ? 'bg-violet-500 w-6' : currentStep > s.id ? 'bg-violet-600' : 'bg-gray-700'
-                )} />
-              ))}
+          {state.step === 'cli' && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">Install the CLI (optional)</h2>
+              <p className="text-sm text-zinc-400">Use terminal commands for automation, debugging, and scripts. You can skip this now and install later.</p>
+              <div className="rounded-xl border border-zinc-700 p-4 text-sm">
+                {state.packageManager ? (
+                  <p className="flex items-center gap-2 text-emerald-300"><TerminalSquare className="h-4 w-4" />Detected: {state.packageManager}</p>
+                ) : (
+                  <p className="text-amber-300">No package manager detected. We&apos;ll show manual install steps.</p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button type="button" onClick={installCli} disabled={state.cliStatus === 'installing'} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-50">
+                  {state.cliStatus === 'installing' ? 'Installing…' : 'Install with detected package manager'}
+                </button>
+                <button type="button" onClick={() => setState(prev => ({ ...prev, cliStatus: 'idle' }))} className="rounded-lg border border-zinc-600 px-4 py-2 text-sm">Skip for now</button>
+              </div>
+              {state.cliStatus === 'success' && <p className="flex items-center gap-2 text-sm text-emerald-300"><CheckCircle2 className="h-4 w-4" />CLI installed successfully.</p>}
+              {state.cliStatus === 'failed' && <p className="text-sm text-rose-300">{installError}</p>}
             </div>
-            <button
-              type="button"
-              onClick={currentStep === 4 ? () => setComplete(true) : handleNext}
-              disabled={currentStep === 3 && !selectedTemplate}
-              className={cn(
-                'flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all',
-                currentStep === 4
-                  ? 'bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:opacity-90'
-                  : 'bg-violet-600 text-white hover:bg-violet-500',
-                currentStep === 3 && !selectedTemplate && 'opacity-40 cursor-not-allowed'
-              )}
-            >
-              {currentStep === 4 ? 'Get Started' : 'Continue'}
-              <ChevronRight className="w-4 h-4" />
+          )}
+
+          {state.step === 'chat' && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">You&apos;re all set</h2>
+              <p className="text-sm text-zinc-300">Hey — I’m your OpenClaw assistant. Want to connect a channel, build an automation, or do a quick system check first?</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {SUGGESTED_PROMPTS.map(prompt => (
+                  <button key={prompt} type="button" onClick={() => setState(prev => ({ ...prev, selectedPrompt: prompt }))} className={cn('rounded-lg border p-3 text-left text-sm', state.selectedPrompt === prompt ? 'border-indigo-500 bg-indigo-500/10' : 'border-zinc-700')}>
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-xl border border-zinc-700 p-4 text-sm text-zinc-400">
+                <p className="flex items-center gap-2 text-zinc-300"><MessageSquare className="h-4 w-4" />Type a message…</p>
+                {state.selectedPrompt && <p className="mt-2 text-indigo-300">Selected: {state.selectedPrompt}</p>}
+              </div>
+            </div>
+          )}
+
+          {state.step === 'complete' && (
+            <div className="space-y-4 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
+                <ShieldCheck className="h-7 w-7" />
+              </div>
+              <h2 className="text-3xl font-semibold">{state.outcome === 'skipped' ? 'Setup skipped' : 'Setup complete'}</h2>
+              <p className="text-zinc-300">{state.outcome === 'skipped' ? 'You can run onboarding later from settings.' : 'Your OpenClaw workspace is ready.'}</p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button type="button" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500">Open dashboard</button>
+                <button type="button" className="rounded-lg border border-zinc-600 px-4 py-2 text-sm">Start chatting</button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {state.step !== 'complete' && (
+          <footer className="flex items-center justify-between">
+            <button type="button" onClick={goBack} disabled={state.step === 'welcome'} className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm disabled:opacity-40">
+              <ChevronLeft className="h-4 w-4" />Back
             </button>
-          </div>
+            <button type="button" onClick={advance} disabled={!canContinue} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-40">
+              {state.step === 'welcome' ? 'Get started' : state.step === 'chat' ? 'Finish setup' : 'Continue'}
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </footer>
         )}
+
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4 text-xs text-zinc-400">
+          <p className="flex items-center gap-2"><Info className="h-4 w-4" />This mock flow matches docs/start onboarding requirements and persists state in localStorage for resume behavior.</p>
+        </div>
       </div>
     </div>
   );
