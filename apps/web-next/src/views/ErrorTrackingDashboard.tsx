@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -132,7 +134,7 @@ function severityColor(s: Severity): string {
     critical: "bg-rose-500/20 text-rose-400 border-rose-500/30",
     error:    "bg-red-500/20 text-red-400 border-red-500/30",
     warning:  "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    info:     "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
+    info:     "bg-surface-3/40 text-fg-secondary border-tok-border",
   };
   return map[s];
 }
@@ -142,7 +144,7 @@ function severityDot(s: Severity): string {
     critical: "bg-rose-500",
     error:    "bg-red-500",
     warning:  "bg-amber-500",
-    info:     "bg-zinc-500",
+    info:     "bg-surface-3",
   };
   return map[s];
 }
@@ -151,7 +153,7 @@ function statusColor(s: ErrorStatus): string {
   const map: Record<ErrorStatus, string> = {
     unresolved: "text-rose-400",
     resolved:   "text-emerald-400",
-    ignored:    "text-zinc-500",
+    ignored:    "text-fg-muted",
     regressed:  "text-amber-400",
   };
   return map[s];
@@ -172,7 +174,7 @@ function IssuesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-2">
         <div className="flex gap-1">
           {(["all", "critical", "error", "warning", "info"] as const).map((f) => (
             <button
@@ -180,7 +182,7 @@ function IssuesTab() {
               onClick={() => setFilter(f)}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
-                filter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                filter === f ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
               )}
             >
               {f}
@@ -194,7 +196,7 @@ function IssuesTab() {
               onClick={() => setStatusFilter(s)}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
-                statusFilter === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                statusFilter === s ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
               )}
             >
               {s}
@@ -204,12 +206,19 @@ function IssuesTab() {
       </div>
 
       <div className="space-y-2">
-        {visible.map((err) => (
+        {visible.length === 0 ? (
+          <ContextualEmptyState
+            icon={AlertTriangle}
+            title="No errors match your filters"
+            description="Try adjusting the severity or status filters to see more results."
+            size="sm"
+          />
+        ) : visible.map((err) => (
           <div
             key={err.id}
             className={cn(
               "rounded-xl border p-4 cursor-pointer transition-all",
-              selected?.id === err.id ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+              selected?.id === err.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
             )}
             onClick={() => setSelected(selected?.id === err.id ? null : err)}
           >
@@ -217,46 +226,46 @@ function IssuesTab() {
               <span className={cn("w-2 h-2 rounded-full mt-1.5 shrink-0", severityDot(err.severity))} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-white text-sm">{err.title}</span>
+                  <span className="font-medium text-fg-primary text-sm">{err.title}</span>
                   <span className={cn("text-xs px-1.5 py-0.5 rounded border", severityColor(err.severity))}>{err.severity}</span>
                   <span className={cn("text-xs capitalize", statusColor(err.status))}>{err.status}</span>
                 </div>
-                <p className="text-xs text-zinc-500 mt-0.5 font-mono truncate">{err.message}</p>
-                <div className="flex gap-3 mt-1 text-xs text-zinc-500">
+                <p className="text-xs text-fg-muted mt-0.5 font-mono truncate">{err.message}</p>
+                <div className="flex gap-3 mt-1 text-xs text-fg-muted">
                   <span>{err.service}</span>
                   <span>{err.environment}</span>
                   <span>Last: {err.lastSeen.slice(0, 10)}</span>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-sm font-bold text-white">{err.count24h.toLocaleString()}</div>
-                <div className="text-xs text-zinc-500">24h events</div>
+                <div className="text-sm font-bold text-fg-primary">{err.count24h.toLocaleString()}</div>
+                <div className="text-xs text-fg-muted">24h events</div>
               </div>
             </div>
 
             {selected?.id === err.id && (
-              <div className="mt-4 border-t border-zinc-800 pt-4 space-y-3">
-                <div className="grid grid-cols-3 gap-4 text-xs">
+              <div className="mt-4 border-t border-tok-border pt-4 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   <div>
-                    <div className="text-zinc-500">First seen</div>
-                    <div className="text-zinc-300">{err.firstSeen}</div>
+                    <div className="text-fg-muted">First seen</div>
+                    <div className="text-fg-primary">{err.firstSeen}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-500">Total events</div>
-                    <div className="text-zinc-300">{err.countTotal.toLocaleString()}</div>
+                    <div className="text-fg-muted">Total events</div>
+                    <div className="text-fg-primary">{err.countTotal.toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-500">Assignee</div>
-                    <div className="text-zinc-300">{err.assignee ?? "unassigned"}</div>
+                    <div className="text-fg-muted">Assignee</div>
+                    <div className="text-fg-primary">{err.assignee ?? "unassigned"}</div>
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Stack trace</div>
-                  <pre className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-xs text-emerald-300 font-mono overflow-x-auto whitespace-pre-wrap">{err.stack}</pre>
+                  <div className="text-xs text-fg-muted mb-1">Stack trace</div>
+                  <pre className="bg-surface-0 border border-tok-border rounded px-3 py-2 text-xs text-emerald-300 font-mono overflow-x-auto whitespace-pre-wrap">{err.stack}</pre>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {err.tags.map((t) => (
-                    <span key={t} className="text-xs bg-zinc-800 text-zinc-400 rounded px-2 py-0.5">{t}</span>
+                    <span key={t} className="text-xs bg-surface-2 text-fg-secondary rounded px-2 py-0.5">{t}</span>
                   ))}
                 </div>
               </div>
@@ -273,8 +282,8 @@ function TrendsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Error Volume (last 8 days)</h3>
+      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Error Volume (last 8 days)</h3>
         <div className="flex items-end gap-2 h-40">
           {dailyCounts.map((d) => {
             const total = d.critical + d.error + d.warning;
@@ -291,25 +300,25 @@ function TrendsTab() {
                     <div className="bg-amber-400" style={{ height: pWarn + "%" }} />
                   </div>
                 </div>
-                <span className="text-xs text-zinc-500">{d.date.slice(4)}</span>
+                <span className="text-xs text-fg-muted">{d.date.slice(4)}</span>
               </div>
             );
           })}
         </div>
         <div className="flex gap-4 mt-3 text-xs">
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500" /><span className="text-zinc-400">Critical</span></div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-400" /><span className="text-zinc-400">Error</span></div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-400" /><span className="text-zinc-400">Warning</span></div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500" /><span className="text-fg-secondary">Critical</span></div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-400" /><span className="text-fg-secondary">Error</span></div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-400" /><span className="text-fg-secondary">Warning</span></div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Release Impact</h3>
+      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Release Impact</h3>
         <div className="space-y-3">
           {releases.map((r) => (
             <div key={r.version} className="flex items-center gap-4 text-sm">
               <span className="font-mono text-indigo-400 w-20">{r.version}</span>
-              <span className="text-zinc-500 text-xs">{r.deployedAt}</span>
+              <span className="text-fg-muted text-xs">{r.deployedAt}</span>
               <div className="flex items-center gap-2 ml-auto">
                 <span className="text-xs text-emerald-400">+{r.resolvedErrors} resolved</span>
                 <span className="text-xs text-rose-400">+{r.newErrors} new</span>
@@ -337,15 +346,15 @@ function AlertsTab() {
   return (
     <div className="space-y-3">
       {alertRules.map((rule) => (
-        <div key={rule.name} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 flex items-center gap-4">
-          <div className={cn("w-2 h-2 rounded-full shrink-0", rule.status === "active" ? "bg-emerald-400" : "bg-zinc-600")} />
+        <div key={rule.name} className="rounded-xl border border-tok-border bg-surface-1 p-4 flex items-center gap-4">
+          <div className={cn("w-2 h-2 rounded-full shrink-0", rule.status === "active" ? "bg-emerald-400" : "bg-surface-3")} />
           <div className="flex-1">
-            <div className="text-sm font-medium text-white">{rule.name}</div>
-            <div className="text-xs text-zinc-500 mt-0.5 font-mono">{rule.condition}</div>
+            <div className="text-sm font-medium text-fg-primary">{rule.name}</div>
+            <div className="text-xs text-fg-muted mt-0.5 font-mono">{rule.condition}</div>
           </div>
           <div className="text-right text-xs">
-            <div className={cn(rule.status === "active" ? "text-emerald-400" : "text-zinc-500")}>{rule.status}</div>
-            <div className="text-zinc-600 mt-0.5">Last: {rule.lastFired.slice(5, 16).replace("T", " ")}</div>
+            <div className={cn(rule.status === "active" ? "text-emerald-400" : "text-fg-muted")}>{rule.status}</div>
+            <div className="text-fg-muted mt-0.5">Last: {rule.lastFired.slice(5, 16).replace("T", " ")}</div>
           </div>
         </div>
       ))}
@@ -366,31 +375,31 @@ export default function ErrorTrackingDashboard() {
   const total24h = errors.reduce((a, e) => a + e.count24h, 0);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Error Tracking</h1>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-fg-secondary text-sm">
           Real-time error monitoring across all services
         </p>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Unresolved Issues", value: unresolved, color: "text-rose-400" },
           { label: "Critical (24h)", value: critical24h.toLocaleString(), color: "text-rose-400" },
-          { label: "Total Events (24h)", value: total24h.toLocaleString(), color: "text-white" },
+          { label: "Total Events (24h)", value: total24h.toLocaleString(), color: "text-fg-primary" },
           { label: "Services Affected", value: new Set(errors.filter((e) => e.status !== "resolved").map((e) => e.service)).size, color: "text-amber-400" },
         ].map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div key={kpi.label} className="rounded-xl border border-tok-border bg-surface-1 p-4">
             <div className={cn("text-3xl font-bold", kpi.color)}>{kpi.value}</div>
-            <div className="text-sm text-zinc-400 mt-1">{kpi.label}</div>
+            <div className="text-sm text-fg-secondary mt-1">{kpi.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-tok-border">
         {TABS.map((t) => (
           <button
             key={t}
@@ -399,7 +408,7 @@ export default function ErrorTrackingDashboard() {
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-white"
+                : "border-transparent text-fg-secondary hover:text-fg-primary"
             )}
           >
             {t}

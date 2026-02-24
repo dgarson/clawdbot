@@ -1,5 +1,7 @@
 import React, { useState } from "react"
 import { cn } from "../lib/utils"
+import { DollarSign } from "lucide-react"
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -628,7 +630,7 @@ function trendArrow(t: TrendDirection): string {
 function trendColor(t: TrendDirection): string {
   if (t === "up") {return "text-rose-400"}
   if (t === "down") {return "text-emerald-400"}
-  return "text-zinc-400"
+  return "text-fg-secondary"
 }
 
 function effortClasses(e: EffortLevel): string {
@@ -641,7 +643,7 @@ function statusClasses(s: RecommendationStatus): string {
   if (s === "new") {return "bg-indigo-900 text-indigo-300 border border-indigo-800"}
   if (s === "in-progress") {return "bg-amber-900 text-amber-300 border border-amber-800"}
   if (s === "implemented") {return "bg-emerald-900 text-emerald-300 border border-emerald-800"}
-  return "bg-zinc-800 text-zinc-400 border border-zinc-700"
+  return "bg-surface-2 text-fg-secondary border border-tok-border"
 }
 
 function severityClasses(s: PolicySeverity): string {
@@ -687,9 +689,9 @@ interface RecDetailProps {
 
 function RecDetail({ rec, onClose }: RecDetailProps) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-zinc-800">
+      <div className="p-3 sm:p-4 md:p-6 border-b border-tok-border">
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex flex-wrap gap-2">
             <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full", statusClasses(rec.status))}>
@@ -698,48 +700,48 @@ function RecDetail({ rec, onClose }: RecDetailProps) {
             <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full", effortClasses(rec.effort))}>
               {rec.effort.charAt(0).toUpperCase() + rec.effort.slice(1)} effort
             </span>
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-surface-2 text-fg-primary border border-tok-border">
               {rec.category}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="flex-none text-zinc-400 hover:text-white transition-colors text-sm font-medium px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700"
+            className="flex-none text-fg-secondary hover:text-fg-primary transition-colors text-sm font-medium px-3 py-1 rounded-lg bg-surface-2 hover:bg-surface-3"
           >
             ← Back
           </button>
         </div>
-        <h3 className="text-xl font-bold text-white leading-snug">{rec.title}</h3>
+        <h3 className="text-xl font-bold text-fg-primary leading-snug">{rec.title}</h3>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-4 md:p-6 space-y-6">
         {/* Savings summary */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-            <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Monthly Savings</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-surface-0 rounded-xl p-4 border border-tok-border">
+            <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Monthly Savings</p>
             <p className="text-3xl font-bold text-emerald-400">{fmtDollars(rec.estimatedSavings)}</p>
           </div>
-          <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-            <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Annual Potential</p>
-            <p className="text-3xl font-bold text-white">{fmtDollars(rec.estimatedSavings * 12)}</p>
+          <div className="bg-surface-0 rounded-xl p-4 border border-tok-border">
+            <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Annual Potential</p>
+            <p className="text-3xl font-bold text-fg-primary">{fmtDollars(rec.estimatedSavings * 12)}</p>
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{rec.description}</p>
+          <p className="text-sm text-fg-primary leading-relaxed">{rec.description}</p>
         </div>
 
         {/* Implementation steps */}
         <div>
-          <h4 className="text-sm font-semibold text-white mb-4">Implementation Steps</h4>
+          <h4 className="text-sm font-semibold text-fg-primary mb-4">Implementation Steps</h4>
           <ol className="space-y-3">
             {rec.implementationSteps.map((step, i) => (
               <li key={i} className="flex gap-3">
                 <span className="flex-none w-6 h-6 rounded-full bg-indigo-900 text-indigo-300 border border-indigo-800 text-xs flex items-center justify-center font-bold mt-0.5">
                   {i + 1}
                 </span>
-                <span className="text-sm text-zinc-300 leading-relaxed">{step}</span>
+                <span className="text-sm text-fg-primary leading-relaxed">{step}</span>
               </li>
             ))}
           </ol>
@@ -747,10 +749,10 @@ function RecDetail({ rec, onClose }: RecDetailProps) {
 
         {/* Affected resources */}
         <div>
-          <h4 className="text-sm font-semibold text-white mb-3">Affected Resources</h4>
+          <h4 className="text-sm font-semibold text-fg-primary mb-3">Affected Resources</h4>
           <div className="flex flex-wrap gap-2">
             {rec.affectedResources.map((r, i) => (
-              <code key={i} className="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1.5 rounded-lg font-mono border border-zinc-700">
+              <code key={i} className="text-xs bg-surface-2 text-fg-primary px-2.5 py-1.5 rounded-lg font-mono border border-tok-border">
                 {r}
               </code>
             ))}
@@ -758,11 +760,11 @@ function RecDetail({ rec, onClose }: RecDetailProps) {
         </div>
 
         {/* Risk */}
-        <div className="flex gap-3 items-start bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+        <div className="flex gap-3 items-start bg-surface-0 rounded-xl p-4 border border-tok-border">
           <span className="text-amber-400 text-base flex-none mt-0.5">⚠</span>
           <div>
-            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1">Risk Assessment</span>
-            <span className="text-sm text-zinc-300">{rec.risk}</span>
+            <span className="text-xs font-semibold text-fg-secondary uppercase tracking-wider block mb-1">Risk Assessment</span>
+            <span className="text-sm text-fg-primary">{rec.risk}</span>
           </div>
         </div>
       </div>
@@ -806,20 +808,20 @@ function RecommendationsTab({ recommendations }: RecommendationsTabProps) {
   }
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-3 sm:p-4 md:p-6 space-y-5">
       {/* Summary row */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Potential</p>
-          <p className="text-2xl font-bold text-white">{fmtDollars(totalPotential)}<span className="text-sm font-normal text-zinc-400">/mo</span></p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Total Potential</p>
+          <p className="text-2xl font-bold text-fg-primary">{fmtDollars(totalPotential)}<span className="text-sm font-normal text-fg-secondary">/mo</span></p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Implemented Savings</p>
-          <p className="text-2xl font-bold text-emerald-400">{fmtDollars(totalImplemented)}<span className="text-sm font-normal text-zinc-400">/mo</span></p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Implemented Savings</p>
+          <p className="text-2xl font-bold text-emerald-400">{fmtDollars(totalImplemented)}<span className="text-sm font-normal text-fg-secondary">/mo</span></p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Open Recommendations</p>
-          <p className="text-2xl font-bold text-indigo-400">{newCount} <span className="text-sm font-normal text-zinc-400">new</span></p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Open Recommendations</p>
+          <p className="text-2xl font-bold text-indigo-400">{newCount} <span className="text-sm font-normal text-fg-secondary">new</span></p>
         </div>
       </div>
 
@@ -832,8 +834,8 @@ function RecommendationsTab({ recommendations }: RecommendationsTabProps) {
             className={cn(
               "text-xs font-medium px-3 py-1.5 rounded-full border transition-colors",
               filterStatus === f.value
-                ? "bg-indigo-600 text-white border-indigo-500"
-                : "bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-zinc-500"
+                ? "bg-indigo-600 text-fg-primary border-indigo-500"
+                : "bg-surface-1 text-fg-secondary border-tok-border hover:text-fg-primary hover:border-tok-border"
             )}
           >
             {f.label}
@@ -843,11 +845,19 @@ function RecommendationsTab({ recommendations }: RecommendationsTabProps) {
 
       {/* Recommendation list */}
       <div className="space-y-3">
+        {filtered.length === 0 && (
+          <ContextualEmptyState
+            icon={DollarSign}
+            title="No recommendations match"
+            description="Try a different filter to see cost optimization recommendations."
+            size="sm"
+          />
+        )}
         {filtered.map((rec) => (
           <button
             key={rec.id}
             onClick={() => setSelected(rec)}
-            className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-indigo-700 hover:bg-zinc-800 transition-all group"
+            className="w-full text-left bg-surface-1 border border-tok-border rounded-xl p-5 hover:border-indigo-700 hover:bg-surface-2 transition-all group"
           >
             <div className="flex items-start gap-4">
               <div className="flex-1 min-w-0">
@@ -858,18 +868,18 @@ function RecommendationsTab({ recommendations }: RecommendationsTabProps) {
                   <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", effortClasses(rec.effort))}>
                     {rec.effort.charAt(0).toUpperCase() + rec.effort.slice(1)} effort
                   </span>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-surface-2 text-fg-secondary border border-tok-border">
                     {rec.category}
                   </span>
                 </div>
-                <h4 className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors leading-snug mb-1.5">
+                <h4 className="text-sm font-semibold text-fg-primary group-hover:text-indigo-300 transition-colors leading-snug mb-1.5">
                   {rec.title}
                 </h4>
-                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{rec.description}</p>
+                <p className="text-xs text-fg-secondary line-clamp-2 leading-relaxed">{rec.description}</p>
               </div>
               <div className="flex-none text-right">
                 <p className="text-lg font-bold text-emerald-400">{fmtDollarsShort(rec.estimatedSavings)}</p>
-                <p className="text-xs text-zinc-500">/month</p>
+                <p className="text-xs text-fg-muted">/month</p>
               </div>
             </div>
           </button>
@@ -891,20 +901,20 @@ function ResourcesTab({ resources }: ResourcesTabProps) {
   const totalWaste = resources.reduce((sum, r) => sum + r.costPerMonth * (r.wastePct / 100), 0)
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-3 sm:p-4 md:p-6 space-y-5">
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Monthly Cost</p>
-          <p className="text-2xl font-bold text-white">{fmtDollars(totalMonthly)}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Total Monthly Cost</p>
+          <p className="text-2xl font-bold text-fg-primary">{fmtDollars(totalMonthly)}</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Estimated Waste</p>
-          <p className="text-2xl font-bold text-rose-400">{fmtDollars(Math.round(totalWaste))}<span className="text-sm font-normal text-zinc-400">/mo</span></p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Estimated Waste</p>
+          <p className="text-2xl font-bold text-rose-400">{fmtDollars(Math.round(totalWaste))}<span className="text-sm font-normal text-fg-secondary">/mo</span></p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Over-provisioned</p>
-          <p className="text-2xl font-bold text-amber-400">{overProvisionedCount} <span className="text-sm font-normal text-zinc-400">resources</span></p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Over-provisioned</p>
+          <p className="text-2xl font-bold text-amber-400">{overProvisionedCount} <span className="text-sm font-normal text-fg-secondary">resources</span></p>
         </div>
       </div>
 
@@ -915,14 +925,14 @@ function ResourcesTab({ resources }: ResourcesTabProps) {
         const catTotal = catResources.reduce((sum, r) => sum + r.costPerMonth, 0)
 
         return (
-          <div key={cat} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800 bg-zinc-950">
-              <h3 className="text-sm font-semibold text-white">{CATEGORY_LABELS[cat]}</h3>
-              <span className="text-sm font-semibold text-zinc-300">{fmtDollars(catTotal)}/mo</span>
+          <div key={cat} className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-tok-border bg-surface-0">
+              <h3 className="text-sm font-semibold text-fg-primary">{CATEGORY_LABELS[cat]}</h3>
+              <span className="text-sm font-semibold text-fg-primary">{fmtDollars(catTotal)}/mo</span>
             </div>
 
             {/* Table header */}
-            <div className="grid grid-cols-12 gap-2 px-5 py-2.5 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">
+            <div className="grid grid-cols-12 gap-2 px-5 py-2.5 border-b border-tok-border text-xs text-fg-muted uppercase tracking-wider">
               <div className="col-span-3">Name</div>
               <div className="col-span-2">Type</div>
               <div className="col-span-1">Region</div>
@@ -937,7 +947,7 @@ function ResourcesTab({ resources }: ResourcesTabProps) {
               <div
                 key={res.id}
                 className={cn(
-                  "grid grid-cols-12 gap-2 px-5 py-3 border-b border-zinc-800 last:border-b-0 items-center text-sm",
+                  "grid grid-cols-12 gap-2 px-5 py-3 border-b border-tok-border last:border-b-0 items-center text-sm",
                   res.overProvisioned ? "bg-rose-950/20" : ""
                 )}
               >
@@ -946,28 +956,28 @@ function ResourcesTab({ resources }: ResourcesTabProps) {
                   {res.overProvisioned && (
                     <span className="flex-none w-1.5 h-1.5 rounded-full bg-rose-500" />
                   )}
-                  <span className="text-white font-medium truncate">{res.name}</span>
+                  <span className="text-fg-primary font-medium truncate">{res.name}</span>
                 </div>
                 {/* Type */}
-                <div className="col-span-2 text-zinc-400 text-xs font-mono truncate">{res.resourceType}</div>
+                <div className="col-span-2 text-fg-secondary text-xs font-mono truncate">{res.resourceType}</div>
                 {/* Region */}
-                <div className="col-span-1 text-zinc-500 text-xs">{res.region}</div>
+                <div className="col-span-1 text-fg-muted text-xs">{res.region}</div>
                 {/* Cost */}
-                <div className="col-span-2 text-right font-semibold text-white">{fmtDollars(res.costPerMonth)}</div>
+                <div className="col-span-2 text-right font-semibold text-fg-primary">{fmtDollars(res.costPerMonth)}</div>
                 {/* Utilization bar */}
                 <div className="col-span-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-surface-2 rounded-full overflow-hidden">
                       <div
                         className={cn("h-full rounded-full", utilizationBarColor(res.utilizationPct))}
                         style={{ width: res.utilizationPct + "%" }}
                       />
                     </div>
-                    <span className="text-xs text-zinc-400 w-8 text-right">{res.utilizationPct}%</span>
+                    <span className="text-xs text-fg-secondary w-8 text-right">{res.utilizationPct}%</span>
                   </div>
                 </div>
                 {/* Waste */}
-                <div className={cn("col-span-1 text-right text-sm font-semibold", res.wastePct > 60 ? "text-rose-400" : res.wastePct > 30 ? "text-amber-400" : "text-zinc-400")}>
+                <div className={cn("col-span-1 text-right text-sm font-semibold", res.wastePct > 60 ? "text-rose-400" : res.wastePct > 30 ? "text-amber-400" : "text-fg-secondary")}>
                   {res.wastePct}%
                 </div>
                 {/* Trend */}
@@ -981,7 +991,7 @@ function ResourcesTab({ resources }: ResourcesTabProps) {
       })}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-zinc-500">
+      <div className="flex items-center gap-4 text-xs text-fg-muted">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
           Over-provisioned (highlighted)
@@ -1016,23 +1026,23 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
   const chartHeight = 200
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-6">
       {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Implemented</p>
-          <p className="text-2xl font-bold text-emerald-400">{fmtDollars(totalImplemented)}<span className="text-sm font-normal text-zinc-400">/mo</span></p>
-          <p className="text-xs text-zinc-500 mt-1">Annual: {fmtDollars(totalImplemented * 12)}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Total Implemented</p>
+          <p className="text-2xl font-bold text-emerald-400">{fmtDollars(totalImplemented)}<span className="text-sm font-normal text-fg-secondary">/mo</span></p>
+          <p className="text-xs text-fg-muted mt-1">Annual: {fmtDollars(totalImplemented * 12)}</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Potential</p>
-          <p className="text-2xl font-bold text-white">{fmtDollars(totalPotential)}<span className="text-sm font-normal text-zinc-400">/mo</span></p>
-          <p className="text-xs text-zinc-500 mt-1">Annual: {fmtDollars(totalPotential * 12)}</p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Total Potential</p>
+          <p className="text-2xl font-bold text-fg-primary">{fmtDollars(totalPotential)}<span className="text-sm font-normal text-fg-secondary">/mo</span></p>
+          <p className="text-xs text-fg-muted mt-1">Annual: {fmtDollars(totalPotential * 12)}</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Savings Realized</p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Savings Realized</p>
           <p className="text-2xl font-bold text-indigo-400">{pctRealized}%</p>
-          <div className="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="mt-2 h-2 bg-surface-2 rounded-full overflow-hidden">
             <div
               className="h-full bg-indigo-500 rounded-full"
               style={{ width: pctRealized + "%" }}
@@ -1042,13 +1052,13 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
       </div>
 
       {/* Waterfall chart */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Cumulative Monthly Savings (12-month waterfall)</h3>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Cumulative Monthly Savings (12-month waterfall)</h3>
         <div className="flex gap-1 items-end" style={{ height: chartHeight + 32 + "px" }}>
           {/* Y-axis */}
           <div className="flex flex-col justify-between text-right pr-2 flex-none" style={{ height: chartHeight + "px" }}>
             {[100, 75, 50, 25, 0].map((pct) => (
-              <span key={pct} className="text-xs text-zinc-600 leading-none">
+              <span key={pct} className="text-xs text-fg-muted leading-none">
                 {fmtDollarsShort(Math.round((maxCumulative * pct) / 100))}
               </span>
             ))}
@@ -1067,7 +1077,7 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
                     {[25, 50, 75].map((pct) => (
                       <div
                         key={pct}
-                        className="absolute left-0 right-0 border-t border-dashed border-zinc-800"
+                        className="absolute left-0 right-0 border-t border-dashed border-tok-border"
                         style={{ bottom: (pct / 100) * chartHeight + "px" }}
                       />
                     ))}
@@ -1083,11 +1093,11 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
                         <div className="w-full h-full bg-indigo-500 rounded-t-sm group relative">
                           {/* Tooltip */}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:flex flex-col items-center z-10 pointer-events-none">
-                            <div className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-white whitespace-nowrap shadow-xl">
+                            <div className="bg-surface-2 border border-tok-border rounded px-2 py-1 text-xs text-fg-primary whitespace-nowrap shadow-xl">
                               <span className="font-semibold text-emerald-400">+{fmtDollarsShort(m.implemented)}</span>
-                              <span className="text-zinc-400 ml-1">this month</span>
+                              <span className="text-fg-secondary ml-1">this month</span>
                             </div>
-                            <div className="w-1.5 h-1.5 bg-zinc-800 border-r border-b border-zinc-700 rotate-45 -mt-0.5" />
+                            <div className="w-1.5 h-1.5 bg-surface-2 border-r border-b border-tok-border rotate-45 -mt-0.5" />
                           </div>
                         </div>
                         {/* Cumulative total line */}
@@ -1097,7 +1107,7 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
                   </div>
                   {/* Month label */}
                   <div className="text-center mt-1.5">
-                    <span className="text-xs text-zinc-500">{m.month}</span>
+                    <span className="text-xs text-fg-muted">{m.month}</span>
                   </div>
                 </div>
               )
@@ -1106,27 +1116,27 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
         </div>
 
         {/* X-axis label */}
-        <p className="text-xs text-zinc-600 text-center mt-1">Monthly incremental savings (bar height = new savings that month, position = cumulative base)</p>
+        <p className="text-xs text-fg-muted text-center mt-1">Monthly incremental savings (bar height = new savings that month, position = cumulative base)</p>
       </div>
 
       {/* Category savings bars */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Savings by Category</h3>
+      <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Savings by Category</h3>
         <div className="space-y-4">
           {categories.map((cat) => {
             const pct = Math.round((cat.implemented / cat.potential) * 100)
             return (
               <div key={cat.category}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-medium text-white">{cat.category}</span>
+                  <span className="text-sm font-medium text-fg-primary">{cat.category}</span>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="text-emerald-400 font-semibold">{fmtDollarsShort(cat.implemented)}</span>
-                    <span className="text-zinc-600">/</span>
-                    <span className="text-zinc-400">{fmtDollarsShort(cat.potential)}</span>
-                    <span className="text-xs text-zinc-500 w-10 text-right">{pct}%</span>
+                    <span className="text-fg-muted">/</span>
+                    <span className="text-fg-secondary">{fmtDollarsShort(cat.potential)}</span>
+                    <span className="text-xs text-fg-muted w-10 text-right">{pct}%</span>
                   </div>
                 </div>
-                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-3 bg-surface-2 rounded-full overflow-hidden">
                   <div
                     className={cn("h-full rounded-full transition-all", cat.color)}
                     style={{ width: pct + "%" }}
@@ -1137,13 +1147,13 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
           })}
         </div>
 
-        <div className="mt-5 pt-4 border-t border-zinc-800 flex justify-between items-center">
-          <span className="text-sm text-zinc-400">Total across all categories</span>
+        <div className="mt-5 pt-4 border-t border-tok-border flex justify-between items-center">
+          <span className="text-sm text-fg-secondary">Total across all categories</span>
           <div className="flex items-center gap-3 text-sm font-semibold">
             <span className="text-emerald-400">{fmtDollars(categories.reduce((s, c) => s + c.implemented, 0))}</span>
-            <span className="text-zinc-600">/</span>
-            <span className="text-white">{fmtDollars(categories.reduce((s, c) => s + c.potential, 0))}</span>
-            <span className="text-zinc-500 text-xs">per month</span>
+            <span className="text-fg-muted">/</span>
+            <span className="text-fg-primary">{fmtDollars(categories.reduce((s, c) => s + c.potential, 0))}</span>
+            <span className="text-fg-muted text-xs">per month</span>
           </div>
         </div>
       </div>
@@ -1163,19 +1173,19 @@ function PoliciesTab({ policies }: PoliciesTabProps) {
   const avgCompliance = Math.round(policies.reduce((sum, p) => sum + p.compliancePct, 0) / policies.length)
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-3 sm:p-4 md:p-6 space-y-5">
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Avg Compliance</p>
-          <p className="text-2xl font-bold text-white">{avgCompliance}%</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Avg Compliance</p>
+          <p className="text-2xl font-bold text-fg-primary">{avgCompliance}%</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Violations</p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Total Violations</p>
           <p className="text-2xl font-bold text-rose-400">{totalViolations}</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Critical Policies</p>
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Critical Policies</p>
           <p className="text-2xl font-bold text-amber-400">{criticalCount}</p>
         </div>
       </div>
@@ -1186,8 +1196,8 @@ function PoliciesTab({ policies }: PoliciesTabProps) {
           <div
             key={policy.id}
             className={cn(
-              "bg-zinc-900 border rounded-xl p-5",
-              policy.severity === "critical" ? "border-rose-900" : policy.severity === "warning" ? "border-amber-900/50" : "border-zinc-800"
+              "bg-surface-1 border rounded-xl p-5",
+              policy.severity === "critical" ? "border-rose-900" : policy.severity === "warning" ? "border-amber-900/50" : "border-tok-border"
             )}
           >
             <div className="flex items-start gap-4">
@@ -1195,7 +1205,7 @@ function PoliciesTab({ policies }: PoliciesTabProps) {
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="text-base font-semibold text-white">{policy.name}</h4>
+                    <h4 className="text-base font-semibold text-fg-primary">{policy.name}</h4>
                     <span className={cn("text-xs font-medium px-2.5 py-0.5 rounded-full", severityClasses(policy.severity))}>
                       {policy.severity.charAt(0).toUpperCase() + policy.severity.slice(1)}
                     </span>
@@ -1204,12 +1214,12 @@ function PoliciesTab({ policies }: PoliciesTabProps) {
                     <p className={cn("text-xl font-bold", complianceBarColor(policy.compliancePct).replace("bg-", "text-"))}>
                       {policy.compliancePct}%
                     </p>
-                    <p className="text-xs text-zinc-500">compliant</p>
+                    <p className="text-xs text-fg-muted">compliant</p>
                   </div>
                 </div>
 
                 {/* Compliance bar */}
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden mb-3">
+                <div className="h-2 bg-surface-2 rounded-full overflow-hidden mb-3">
                   <div
                     className={cn("h-full rounded-full", complianceBarColor(policy.compliancePct))}
                     style={{ width: policy.compliancePct + "%" }}
@@ -1217,18 +1227,18 @@ function PoliciesTab({ policies }: PoliciesTabProps) {
                 </div>
 
                 {/* Description */}
-                <p className="text-sm text-zinc-400 leading-relaxed mb-3">{policy.description}</p>
+                <p className="text-sm text-fg-secondary leading-relaxed mb-3">{policy.description}</p>
 
                 {/* Meta row */}
-                <div className="flex items-center gap-5 text-xs text-zinc-500">
+                <div className="flex items-center gap-5 text-xs text-fg-muted">
                   <span>
-                    <span className={cn("font-semibold", policy.violationCount > 0 ? "text-rose-400" : "text-zinc-300")}>
+                    <span className={cn("font-semibold", policy.violationCount > 0 ? "text-rose-400" : "text-fg-primary")}>
                       {policy.violationCount}
                     </span>{" "}
                     violation{policy.violationCount !== 1 ? "s" : ""}
                   </span>
                   <span>
-                    <span className="font-semibold text-zinc-300">{policy.affectedResources}</span> resource{policy.affectedResources !== 1 ? "s" : ""} affected
+                    <span className="font-semibold text-fg-primary">{policy.affectedResources}</span> resource{policy.affectedResources !== 1 ? "s" : ""} affected
                   </span>
                   <span>Checked {policy.lastChecked}</span>
                 </div>
@@ -1259,45 +1269,45 @@ export default function CloudCostOptimizer() {
   const overProvisionedCount = RESOURCES.filter((r) => r.overProvisioned).length
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
       {/* Page header */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-5">
+      <div className="border-b border-tok-border bg-surface-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Cloud Cost Optimizer</h1>
-              <p className="text-sm text-zinc-400 mt-1">Identify, track, and implement cloud infrastructure savings across all AWS accounts</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-fg-primary">Cloud Cost Optimizer</h1>
+              <p className="text-sm text-fg-secondary mt-1">Identify, track, and implement cloud infrastructure savings across all AWS accounts</p>
             </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-500 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 text-xs text-fg-muted bg-surface-1 border border-tok-border rounded-lg px-3 py-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
               Live — last refreshed 3 min ago
             </div>
           </div>
 
           {/* Global summary metrics */}
-          <div className="grid grid-cols-4 gap-4 mt-5">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Monthly Spend</p>
-              <p className="text-xl font-bold text-white">{fmtDollars(totalMonthlySpend)}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+              <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Monthly Spend</p>
+              <p className="text-xl font-bold text-fg-primary">{fmtDollars(totalMonthlySpend)}</p>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Savings Potential</p>
-              <p className="text-xl font-bold text-indigo-400">{fmtDollars(totalPotentialSavings)}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+              <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Savings Potential</p>
+              <p className="text-xl font-bold text-indigo-400">{fmtDollars(totalPotentialSavings)}<span className="text-sm font-normal text-fg-muted">/mo</span></p>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Savings Implemented</p>
-              <p className="text-xl font-bold text-emerald-400">{fmtDollars(implementedSavings)}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+              <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Savings Implemented</p>
+              <p className="text-xl font-bold text-emerald-400">{fmtDollars(implementedSavings)}<span className="text-sm font-normal text-fg-muted">/mo</span></p>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Over-provisioned</p>
-              <p className="text-xl font-bold text-amber-400">{overProvisionedCount} <span className="text-sm font-normal text-zinc-500">resources</span></p>
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
+              <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Over-provisioned</p>
+              <p className="text-xl font-bold text-amber-400">{overProvisionedCount} <span className="text-sm font-normal text-fg-muted">resources</span></p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+      <div className="border-b border-tok-border bg-surface-0 px-3 sm:px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex gap-0">
             {TABS.map((tab) => (
@@ -1308,7 +1318,7 @@ export default function CloudCostOptimizer() {
                   "px-5 py-3.5 text-sm font-medium border-b-2 transition-colors",
                   activeTab === tab.id
                     ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+                    : "border-transparent text-fg-secondary hover:text-fg-primary hover:border-tok-border"
                 )}
               >
                 {tab.label}
