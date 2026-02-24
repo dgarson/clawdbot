@@ -5,7 +5,7 @@ import {
   type ReplayRecorder,
   validateReplayConstraints,
 } from "./recorder.js";
-import type { ReplayEventInput } from "./types.js";
+import type { ReplayEvent, ReplayEventInput } from "./types.js";
 
 describe("replay recorder", () => {
   let recorder: ReplayRecorder;
@@ -76,6 +76,31 @@ describe("replay recorder", () => {
 
     expect(recorder.getEvents().length).toBe(0);
     expect(recorder.finalize().stats.totalEvents).toBe(0);
+  });
+
+  it("returns a defensive copy from getEvents", () => {
+    recorder.emit({ category: "state", type: "session_start", data: {} });
+
+    const events = recorder.getEvents() as ReplayEvent[];
+    events.push({ category: "state", type: "session_end", data: {} });
+
+    expect(recorder.getEvents()).toHaveLength(1);
+  });
+
+  it("increments synthetic sequence numbers when disabled", () => {
+    recorder = new InMemoryReplayRecorder({
+      replayId: "replay-disabled",
+      sessionId: "session-disabled",
+      agentId: "agent-1",
+      enabled: false,
+    });
+
+    const first = recorder.emit({ category: "state", type: "session_start", data: {} });
+    const second = recorder.emit({ category: "state", type: "session_end", data: {} });
+
+    expect(first.seq).toBe(0);
+    expect(second.seq).toBe(1);
+    expect(recorder.getEvents()).toHaveLength(0);
   });
 
   it("normalizes manifest categories in deterministic order", () => {
