@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { cn } from "../lib/utils";
+import {
+  initOptimizedPositions,
+  tickOptimizedPhysics,
+  renderToCanvas,
+  updateFps,
+  getPerformanceClass,
+  type ViewportState,
+} from "./AgentTopologyPhysics";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -109,189 +117,7 @@ const MOCK_EDGES: AgentEdge[] = [
   { source: "piper", target: "quinn", relationship: "collaborates", weight: 1 },
 ];
 
-// ─── Physics Engine ───────────────────────────────────────────────────────────
-
-function initPositions(agents: AgentNode[], w: number, h: number): PhysicsNode[] {
-  const cx = w / 2;
-  const cy = h / 2;
-  return agents.map((agent, i) => {
-    const angle = (i / agents.length) * Math.PI * 2;
-    const radius = agent.roleType === "orchestrator" ? 80
-      : agent.roleType === "gateway" ? 120
-      : agent.roleType === "monitor" ? 150
-      : 200;
-    return {
-      id: agent.id,
-      x: cx + Math.cos(angle) * radius + (Math.random() - 0.5) * 40,
-      y: cy + Math.sin(angle) * radius + (Math.random() - 0.5) * 40,
-      vx: 0,
-      vy: 0,
-      agent,
-    };
-  });
-}
-
-function tickPhysics(
-  nodes: PhysicsNode[],
-  edges: AgentEdge[],
-  w: number,
-  h: number
-): PhysicsNode[] {
-  const alpha = 0.08;
-  const repulsion = 9000;
-  const springLen = 160;
-  const springK = 0.04;
-  const damping = 0.85;
-  const centerPull = 0.012;
-
-  const next = nodes.map((n) => ({ ...n, vx: n.vx, vy: n.vy }));
-  const cx = w / 2;
-  const cy = h / 2;
-
-  // Repulsion
-  for (let i = 0; i < next.length; i++) {
-    for (let j = i + 1; j < next.length; j++) {
-      const dx = next[j].x - next[i].x;
-      const dy = next[j].y - next[i].y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const force = repulsion / (dist * dist);
-      const fx = (dx / dist) * force * alpha;
-      const fy = (dy / dist) * force * alpha;
-      next[i].vx -= fx;
-      next[i].vy -= fy;
-      next[j].vx += fx;
-      next[j].vy += fy;
-    }
-  }
-
-  // Spring (edges)
-  const nodeMap: Record<string, PhysicsNode> = {};
-  next.forEach((n) => { nodeMap[n.id] = n; });
-  edges.forEach((edge) => {
-    const src = nodeMap[edge.source];
-    const tgt = nodeMap[edge.target];
-    if (!src || !tgt) {return;}
-    const dx = tgt.x - src.x;
-    const dy = tgt.y - src.y;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-    const stretch = dist - springLen * (3 - edge.weight);
-    const fx = (dx / dist) * stretch * springK * alpha;
-    const fy = (dy / dist) * stretch * springK * alpha;
-    src.vx += fx;
-    src.vy += fy;
-    tgt.vx -= fx;
-    tgt.vy -= fy;
-  });
-
-  // Center gravity
-  next.forEach((n) => {
-    n.vx += (cx - n.x) * centerPull * alpha;
-    n.vy += (cy - n.y) * centerPull * alpha;
-  });
-
-  // Integrate + dampen + clamp
-  return next.map((n) => ({
-    ...n,
-    vx: n.vx * damping,
-    vy: n.vy * damping,
-    x: Math.max(60, Math.min(w - 60, n.x + n.vx)),
-    y: Math.max(60, Math.min(h - 60, n.y + n.vy)),
-  }));
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function EdgeLine({ edge, nodes }: { edge: AgentEdge; nodes: PhysicsNode[] }) {
-  const nodeMap: Record<string, PhysicsNode> = {};
-  nodes.forEach((n) => { nodeMap[n.id] = n; });
-  const src = nodeMap[edge.source];
-  const tgt = nodeMap[edge.target];
-  if (!src || !tgt) {return null;}
-
-  const midX = (src.x + tgt.x) / 2;
-  const midY = (src.y + tgt.y) / 2;
-  const color = EDGE_COLORS[edge.relationship];
-
-  return (
-    <g>
-      <line
-        x1={src.x} y1={src.y} x2={tgt.x} y2={tgt.y}
-        stroke={color}
-        strokeWidth={edge.weight}
-        strokeOpacity={0.35}
-        strokeDasharray={edge.relationship === "monitors" ? "4 4" : undefined}
-      />
-      <circle cx={midX} cy={midY} r={2} fill={color} opacity={0.6} />
-    </g>
-  );
-}
-
-function AgentCircle({
-  node,
-  selected,
-  onClick,
-}: {
-  node: PhysicsNode;
-  selected: boolean;
-  onClick: (id: string) => void;
-}) {
-  const size = ROLE_SIZES[node.agent.roleType];
-  const color = ROLE_COLORS[node.agent.roleType];
-  const ringColor = STATUS_RING[node.agent.status];
-  const isPulsing = node.agent.status === "active" || node.agent.status === "spawning";
-
-  return (
-    <g
-      transform={`translate(${node.x},${node.y})`}
-      style={{ cursor: "pointer" }}
-      onClick={() => onClick(node.id)}
-    >
-      {/* Pulse ring for active nodes */}
-      {isPulsing && (
-        <circle
-          r={size + 8}
-          fill="none"
-          stroke={ringColor}
-          strokeWidth={1}
-          opacity={0.25}
-          className="animate-ping"
-          style={{ transformOrigin: "center" }}
-        />
-      )}
-      {/* Selection halo */}
-      {selected && (
-        <circle r={size + 6} fill="none" stroke="#ffffff" strokeWidth={2} opacity={0.8} />
-      )}
-      {/* Main circle */}
-      <circle r={size} fill={color} fillOpacity={0.15} stroke={color} strokeWidth={2} />
-      {/* Status ring */}
-      <circle r={size + 3} fill="none" stroke={ringColor} strokeWidth={2} strokeDasharray="3 3" />
-      {/* Name label */}
-      <text
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={size > 30 ? 11 : 9}
-        fontWeight="700"
-        fill="#ffffff"
-        style={{ userSelect: "none", pointerEvents: "none" }}
-      >
-        {node.agent.name}
-      </text>
-      {/* Role sub-label */}
-      <text
-        textAnchor="middle"
-        y={size > 30 ? 14 : 11}
-        dominantBaseline="middle"
-        fontSize={8}
-        fill={color}
-        opacity={0.85}
-        style={{ userSelect: "none", pointerEvents: "none" }}
-      >
-        {node.agent.roleType}
-      </text>
-    </g>
-  );
-}
+// ─── Detail Panel ───────────────────────────────────────────────────────────
 
 function DetailPanel({ agent, onClose }: { agent: AgentNode; onClose: () => void }) {
   const color = ROLE_COLORS[agent.roleType];
@@ -358,8 +184,8 @@ function DetailPanel({ agent, onClose }: { agent: AgentNode; onClose: () => void
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AgentTopologyView() {
-  const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ w: 900, h: 600 });
   const [physicsNodes, setPhysicsNodes] = useState<PhysicsNode[]>([]);
@@ -368,6 +194,15 @@ export default function AgentTopologyView() {
   const [filterStatus, setFilterStatus] = useState<AgentStatus | "all">("all");
   const [filterRole, setFilterRole] = useState<RoleType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Viewport state for pan/zoom
+  const [viewport, setViewport] = useState<ViewportState>({
+    x: 0,
+    y: 0,
+    zoom: 1,
+    width: 900,
+    height: 600,
+  });
 
   const filteredAgents = useMemo(() => MOCK_AGENTS.filter((a) => {
     if (filterStatus !== "all" && a.status !== filterStatus) {return false;}
@@ -378,10 +213,15 @@ export default function AgentTopologyView() {
 
   const visibleIds = useMemo(() => new Set(filteredAgents.map((a) => a.id)), [filteredAgents]);
 
-  // Initialize positions
+  const visibleEdges = useMemo(() =>
+    MOCK_EDGES.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target)),
+    [visibleIds]
+  );
+
+  // Initialize positions with optimized algorithm
   useEffect(() => {
     const { w, h } = dimensions;
-    setPhysicsNodes(initPositions(filteredAgents, w, h));
+    setPhysicsNodes(initOptimizedPositions(filteredAgents, w, h));
   }, [filteredAgents, dimensions]);
 
   // Observe container size
@@ -397,23 +237,101 @@ export default function AgentTopologyView() {
     return () => ro.disconnect();
   }, []);
 
-  // Physics loop
+  // FPS tracking state
+  const [fps, setFps] = useState(60);
+  
+  // Physics loop with optimized engine
   useEffect(() => {
     if (!running) { cancelAnimationFrame(rafRef.current); return; }
     let frame = 0;
     const loop = () => {
       frame++;
-      if (frame % 2 === 0) { // run at ~30fps
-        setPhysicsNodes((prev) => tickPhysics(prev, MOCK_EDGES, dimensions.w, dimensions.h));
+      // Run physics every frame for smoother animation with optimized engine
+      setPhysicsNodes((prev) => tickOptimizedPhysics(prev, MOCK_EDGES, dimensions.w, dimensions.h));
+      
+      // Update FPS every 30 frames
+      if (frame % 30 === 0) {
+        setFps(updateFps());
       }
+      
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [running, dimensions]);
+  
+  // Update viewport dimensions when container changes
+  useEffect(() => {
+    setViewport(v => ({ ...v, width: dimensions.w, height: dimensions.h }));
+  }, [dimensions]);
+  
+  // Canvas rendering with LOD and viewport culling
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    // Set canvas size
+    canvas.width = dimensions.w;
+    canvas.height = dimensions.h;
+    
+    // Render
+    renderToCanvas(ctx, physicsNodes, visibleEdges, viewport, selectedId, {
+      roleSizes: ROLE_SIZES,
+      roleColors: ROLE_COLORS,
+      statusColors: STATUS_RING,
+      edgeColors: EDGE_COLORS,
+    });
+  }, [physicsNodes, visibleEdges, viewport, selectedId, dimensions]);
 
   const handleNodeClick = useCallback((id: string) => {
     setSelectedId((prev) => (prev === id ? null : id));
+  }, []);
+  
+  // Handle canvas click for node selection
+  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert screen coords to world coords
+    const worldX = x / viewport.zoom + viewport.x;
+    const worldY = y / viewport.zoom + viewport.y;
+    
+    // Find clicked node (simple distance check)
+    for (const node of physicsNodes) {
+      const size = ROLE_SIZES[node.agent.roleType];
+      const dx = node.x - worldX;
+      const dy = node.y - worldY;
+      if (dx * dx + dy * dy <= size * size) {
+        setSelectedId(prev => prev === node.id ? null : node.id);
+        return;
+      }
+    }
+    
+    // Click on empty space - deselect
+    setSelectedId(null);
+  }, [viewport, physicsNodes]);
+  
+  // Pan handling
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button !== 0) return; // Only left click for pan
+    // Could implement drag-to-pan here
+  }, []);
+  
+  // Zoom handling with wheel
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    setViewport(v => ({
+      ...v,
+      zoom: Math.max(0.2, Math.min(3, v.zoom * delta)),
+    }));
   }, []);
 
   const selectedAgent = useMemo(() => MOCK_AGENTS.find((a) => a.id === selectedId), [selectedId]);
@@ -425,11 +343,6 @@ export default function AgentTopologyView() {
     const totalTokens = MOCK_AGENTS.reduce((s, a) => s + a.activeTokens, 0);
     return { active, errored, totalTokens, total: MOCK_AGENTS.length };
   }, []);
-
-  const visibleEdges = useMemo(() =>
-    MOCK_EDGES.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target)),
-    [visibleIds]
-  );
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
@@ -508,44 +421,30 @@ export default function AgentTopologyView() {
         </div>
       </div>
 
-      {/* Graph canvas */}
+      {/* Graph canvas - using Canvas API for better performance with 100+ nodes */}
       <div ref={containerRef} className="flex-1 relative overflow-hidden">
-        <svg
-          ref={svgRef}
-          width="100%"
-          height="100%"
-          className="absolute inset-0"
-          style={{ background: "transparent" }}
-        >
-          {/* Grid pattern */}
-          <defs>
-            <pattern id="topo-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#27272a" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#topo-grid)" />
+        <canvas
+          ref={canvasRef}
+          width={dimensions.w}
+          height={dimensions.h}
+          className="absolute inset-0 cursor-crosshair"
+          onClick={handleCanvasClick}
+          onMouseDown={handleCanvasMouseDown}
+          onWheel={handleWheel}
+        />
 
-          {/* Edges */}
-          <g>
-            {visibleEdges.map((edge, i) => (
-              <EdgeLine key={i} edge={edge} nodes={physicsNodes} />
-            ))}
-          </g>
-
-          {/* Nodes */}
-          <g>
-            {physicsNodes
-              .filter((n) => visibleIds.has(n.id))
-              .map((node) => (
-                <AgentCircle
-                  key={node.id}
-                  node={node}
-                  selected={selectedId === node.id}
-                  onClick={handleNodeClick}
-                />
-              ))}
-          </g>
-        </svg>
+        {/* Performance stats overlay */}
+        <div className="absolute top-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-3">
+          <div className="flex flex-col">
+            <span className="text-[9px] text-zinc-500 uppercase font-bold">FPS</span>
+            <span className={cn("text-lg font-bold font-mono", getPerformanceClass(fps))}>{fps}</span>
+          </div>
+          <div className="w-px h-8 bg-zinc-700" />
+          <div className="flex flex-col">
+            <span className="text-[9px] text-zinc-500 uppercase font-bold">Zoom</span>
+            <span className="text-sm font-mono text-zinc-300">{Math.round(viewport.zoom * 100)}%</span>
+          </div>
+        </div>
 
         {/* Detail panel */}
         {selectedAgent && (
