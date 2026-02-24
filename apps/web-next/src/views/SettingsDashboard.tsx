@@ -5,7 +5,7 @@ import {
   Settings, User, Palette, Bell, Shield, Zap, Database,
   ChevronRight, Check, AlertTriangle, RefreshCw, Monitor,
   Moon, Sun, Globe, Key, Trash2, Download, Upload, ToggleLeft, ToggleRight,
-  Plug, ExternalLink,
+  Plug, ExternalLink, Eye, EyeOff,
 } from 'lucide-react';
 import { useGateway } from '../hooks/useGateway';
 import type { OpenClawConfig } from '../types';
@@ -109,28 +109,111 @@ function SelectInput({ options, value, onChange, 'aria-label': ariaLabel }: {
 // Section content components
 // ============================================================================
 
+const GATEWAY_URL_KEY = 'openclaw.gateway.wsUrl';
+const GATEWAY_TOKEN_KEY = 'openclaw.gateway.token';
+const DEFAULT_GATEWAY_HOST = 'localhost';
+const DEFAULT_GATEWAY_PORT = '18789';
+
+function readStorage(key: string, fallback = ''): string {
+  try { return window.localStorage.getItem(key)?.trim() || fallback; } catch { return fallback; }
+}
+function writeStorage(key: string, value: string): void {
+  try {
+    if (value) { window.localStorage.setItem(key, value); } else { window.localStorage.removeItem(key); }
+  } catch { /* ignore */ }
+}
+
+/** Parse stored ws(s)://host:port URL into host and port strings. */
+function parseGatewayUrl(url: string): { host: string; port: string } {
+  try {
+    const normalized = url.replace(/^wss?:\/\//, 'http://');
+    const parsed = new URL(normalized);
+    return {
+      host: parsed.hostname || DEFAULT_GATEWAY_HOST,
+      port: parsed.port || DEFAULT_GATEWAY_PORT,
+    };
+  } catch {
+    return { host: DEFAULT_GATEWAY_HOST, port: DEFAULT_GATEWAY_PORT };
+  }
+}
+
+/** Build ws(s)://host:port URL from parts. Uses wss when host is not local. */
+function buildGatewayUrl(host: string, port: string): string {
+  const h = host.trim() || DEFAULT_GATEWAY_HOST;
+  const p = port.trim() || DEFAULT_GATEWAY_PORT;
+  const proto = (h === 'localhost' || h === '127.0.0.1') ? 'ws' : 'ws';
+  return `${proto}://${h}:${p}`;
+}
+
 function GeneralSettings() {
-  const [gatewayUrl, setGatewayUrl] = useState('ws://localhost:18789');
+  const gateway = useGateway();
+  const [gatewayHost, setGatewayHost] = useState(() => {
+    const stored = readStorage(GATEWAY_URL_KEY);
+    return stored ? parseGatewayUrl(stored).host : DEFAULT_GATEWAY_HOST;
+  });
+  const [gatewayPort, setGatewayPort] = useState(() => {
+    const stored = readStorage(GATEWAY_URL_KEY);
+    return stored ? parseGatewayUrl(stored).port : DEFAULT_GATEWAY_PORT;
+  });
+  const [gatewayToken, setGatewayToken] = useState(() => readStorage(GATEWAY_TOKEN_KEY));
+  const [showToken, setShowToken] = useState(false);
   const [autoConnect, setAutoConnect] = useState(true);
   const [timezone, setTimezone] = useState('America/Denver');
   const [language, setLanguage] = useState('en');
   const [saved, setSaved] = useState(false);
 
   function handleSave() {
+    writeStorage(GATEWAY_URL_KEY, buildGatewayUrl(gatewayHost, gatewayPort));
+    writeStorage(GATEWAY_TOKEN_KEY, gatewayToken.trim());
+    gateway.reconnect();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
 
   return (
     <div>
-      <SettingRow label="Gateway URL" description="WebSocket URL for the OpenClaw Gateway">
+      <SettingRow label="Gateway Host" description="Hostname or IP of the OpenClaw Gateway (e.g. localhost or 192.168.1.x)">
         <input
           type="text"
-          aria-label="Gateway URL"
-          value={gatewayUrl}
-          onChange={(e) => setGatewayUrl(e.target.value)}
-          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none w-64 font-mono"
+          aria-label="Gateway host"
+          value={gatewayHost}
+          onChange={(e) => setGatewayHost(e.target.value)}
+          placeholder="localhost"
+          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none w-48 font-mono"
         />
+      </SettingRow>
+      <SettingRow label="Gateway Port" description="Port the gateway is listening on">
+        <input
+          type="text"
+          inputMode="numeric"
+          aria-label="Gateway port"
+          value={gatewayPort}
+          onChange={(e) => setGatewayPort(e.target.value.replace(/\D/g, ''))}
+          placeholder="18789"
+          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none w-28 font-mono"
+        />
+      </SettingRow>
+      <SettingRow label="Gateway Token" description="Auth token set on the gateway host (gateway.auth.token)">
+        <div className="relative">
+          <input
+            type={showToken ? 'text' : 'password'}
+            aria-label="Gateway auth token"
+            value={gatewayToken}
+            onChange={(e) => setGatewayToken(e.target.value)}
+            placeholder="Leave blank if no auth required"
+            className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 pr-8 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none w-64"
+          />
+          <button
+            type="button"
+            onClick={() => setShowToken(!showToken)}
+            aria-label={showToken ? 'Hide token' : 'Show token'}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-muted hover:text-fg-primary transition-colors focus-visible:outline-none"
+          >
+            {showToken
+              ? <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
+              : <Eye className="w-3.5 h-3.5" aria-hidden="true" />}
+          </button>
+        </div>
       </SettingRow>
       <SettingRow label="Auto-connect" description="Automatically connect to Gateway on startup">
         <Toggle value={autoConnect} onChange={setAutoConnect} label="Auto-connect to Gateway on startup" />

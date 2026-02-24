@@ -4,30 +4,50 @@
 
 export type GatewayConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
 
+/** Outgoing request frame (wire format: { type: 'req', id: string, method, params? }) */
 export interface GatewayRequest {
-  id: number;
+  type: 'req';
+  id: string;
   method: string;
   params?: Record<string, unknown>;
 }
 
-export interface GatewayResponse {
-  id: number;
-  ok: boolean;
-  result?: unknown;
-  error?: string;
+export interface GatewayErrorShape {
+  code: string;
+  message: string;
+  details?: unknown;
+  retryable?: boolean;
+  retryAfterMs?: number;
 }
 
-export interface GatewayHello {
-  type: 'hello';
-  version: string;
-  agentId?: string;
-  capabilities?: string[];
+/** Incoming response frame (wire format: { type: 'res', id: string, ok, payload?, error? }) */
+export interface GatewayResponse {
+  type: 'res';
+  id: string;
+  ok: boolean;
+  payload?: unknown;
+  error?: GatewayErrorShape;
 }
+
+/** hello-ok arrives as the payload of the connect RPC response */
+export interface GatewayHelloOk {
+  type: 'hello-ok';
+  protocol: number;
+  server: { version: string; connId: string };
+  features: { methods: string[]; events: string[] };
+}
+
+/** @deprecated Use GatewayHelloOk */
+export type GatewayHello = GatewayHelloOk;
 
 export interface UseGatewayReturn {
   connectionState: GatewayConnectionState;
   isConnected: boolean;
   lastError: string | null;
+  /** True when the gateway rejected our connect attempt due to auth (bad/missing token) */
+  authFailed: boolean;
+  /** The auth rejection message, if any */
+  authError: string | null;
   call: <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>;
   reconnect: () => void;
 }

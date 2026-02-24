@@ -4,19 +4,35 @@ import type {
   GatewayResponse,
   GatewayConnectionState,
   UseGatewayReturn,
-  GatewayHello,
+  GatewayHelloOk,
 } from '../types';
 
-const LOCAL_GATEWAY_PORT = '18789';
+const DEFAULT_GATEWAY_PORT = '18789';
 const GATEWAY_URL_OVERRIDE_KEY = 'openclaw.gateway.wsUrl';
+const GATEWAY_TOKEN_KEY = 'openclaw.gateway.token';
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
 const RECONNECT_DELAY_BASE = 1000;
 const RECONNECT_DELAY_MAX = 30000;
 const HELLO_TIMEOUT = 5000;
 
+// Protocol version must match the gateway server.
+const PROTOCOL_VERSION = 3;
+
+function resolveGatewayEnvConfig(): { host?: string; port: string } {
+  const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+  const host = env?.OPENCLAW_GATEWAY_HOST?.trim();
+  const port = env?.OPENCLAW_GATEWAY_PORT?.trim() || DEFAULT_GATEWAY_PORT;
+  return { host: host || undefined, port };
+}
+
 function resolveGatewayUrl(): string {
+  const { host: gatewayHost, port: gatewayPort } = resolveGatewayEnvConfig();
+  if (gatewayHost) {
+    return `ws://${gatewayHost}:${gatewayPort}`;
+  }
+
   if (typeof window === 'undefined') {
-    return `ws://localhost:${LOCAL_GATEWAY_PORT}`;
+    return `ws://localhost:${DEFAULT_GATEWAY_PORT}`;
   }
 
   try {
@@ -31,9 +47,17 @@ function resolveGatewayUrl(): string {
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const host = window.location.hostname;
   if (LOCAL_HOSTS.has(host)) {
-    return `${protocol}://${host}:${LOCAL_GATEWAY_PORT}`;
+    return `${protocol}://${host}:${gatewayPort}`;
   }
   return `${protocol}://${window.location.host}`;
+}
+
+function resolveGatewayToken(): string | null {
+  try {
+    return window.localStorage.getItem(GATEWAY_TOKEN_KEY)?.trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 interface PendingCall {
@@ -45,12 +69,14 @@ interface PendingCall {
 /**
  * React hook for Gateway WebSocket RPC communication.
  *
- * Handles connection lifecycle, hello handshake, reconnection with exponential backoff,
- * and pending call tracking for request/response correlation.
+ * Implements the full gateway handshake protocol:
+ *   1. On open, sends a `connect` req frame with auth token + protocol version
+ *   2. Gateway responds with a `res` frame whose payload is `{ type: 'hello-ok', ... }`
+ *   3. Subsequent calls use normal req/res frames
  *
  * @example
  * ```tsx
- * const { call, isConnected, connectionState } = useGateway();
+ * const { call, isConnected, connectionState, authFailed, reconnect } = useGateway();
  *
  * const result = await call('config.get', { path: 'auth.profiles' });
  * ```
@@ -58,10 +84,13 @@ interface PendingCall {
 export function useGateway(): UseGatewayReturn {
   const [connectionState, setConnectionState] = useState<GatewayConnectionState>('disconnected');
   const [lastError, setLastError] = useState<string | null>(null);
+  const [authFailed, setAuthFailed] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const gatewayUrlRef = useRef(resolveGatewayUrl());
   const wsRef = useRef<WebSocket | null>(null);
-  const pendingCallsRef = useRef<Map<number, PendingCall>>(new Map());
+  // String IDs to match the gateway wire protocol (req/res frames use string ids).
+  const pendingCallsRef = useRef<Map<string, PendingCall>>(new Map());
   const nextIdRef = useRef(1);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reconnectAttemptsRef = useRef(0);
@@ -70,12 +99,13 @@ export function useGateway(): UseGatewayReturn {
   const helloTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const manualCloseRef = useRef(false);
   const hasLoggedUnavailableRef = useRef(false);
+  // Tracks the in-flight connect RPC id so we can match its response.
+  const connectCallIdRef = useRef<string | null>(null);
+  // Sync ref so the close handler can suppress reconnect without a stale closure.
+  const authFailedRef = useRef(false);
 
-  /**
-   * Generate next request ID
-   */
-  const getNextId = useCallback(() => {
-    return nextIdRef.current++;
+  const getNextId = useCallback((): string => {
+    return String(nextIdRef.current++);
   }, []);
 
   const clearHelloTimeout = useCallback(() => {
@@ -85,10 +115,7 @@ export function useGateway(): UseGatewayReturn {
     }
   }, []);
 
-  /**
-   * Clear pending call timeout and remove from map
-   */
-  const clearPendingCall = useCallback((id: number) => {
+  const clearPendingCall = useCallback((id: string) => {
     const pending = pendingCallsRef.current.get(id);
     if (pending) {
       clearTimeout(pending.timeout);
@@ -97,40 +124,75 @@ export function useGateway(): UseGatewayReturn {
   }, []);
 
   /**
-   * Process incoming WebSocket message
+   * Process incoming WebSocket message.
+   *
+   * The gateway protocol uses three frame types:
+   *   { type: 'req', id, method, params? }  — client → server only
+   *   { type: 'res', id, ok, payload?, error? } — server response to a req
+   *   { type: 'event', event, payload?, seq? }  — server-initiated events
+   *
+   * The connect handshake flows as:
+   *   client → { type: 'req', id: '<n>', method: 'connect', params: ConnectParams }
+   *   server → { type: 'res', id: '<n>', ok: true, payload: { type: 'hello-ok', ... } }
+   *          OR { type: 'res', id: '<n>', ok: false, error: ErrorShape } then close
    */
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
 
-      // Handle hello handshake
-      if (data.type === 'hello') {
-        const hello = data as GatewayHello;
-        console.log('[Gateway] Received hello:', hello);
-        helloReceivedRef.current = true;
-        hasEverConnectedRef.current = true;
-        hasLoggedUnavailableRef.current = false;
-        clearHelloTimeout();
-        setConnectionState('connected');
-        setLastError(null);
-        reconnectAttemptsRef.current = 0;
-        return;
-      }
+      if (data.type === 'res') {
+        const response = data as GatewayResponse;
 
-      // Handle RPC response
-      const response = data as GatewayResponse;
-      if (typeof response.id === 'number') {
+        // Connect handshake response — hello-ok is in the payload.
+        if (connectCallIdRef.current !== null && response.id === connectCallIdRef.current) {
+          connectCallIdRef.current = null;
+          if (response.ok) {
+            const helloOk = response.payload as GatewayHelloOk | undefined;
+            if (helloOk?.type === 'hello-ok') {
+              helloReceivedRef.current = true;
+              hasEverConnectedRef.current = true;
+              hasLoggedUnavailableRef.current = false;
+              clearHelloTimeout();
+              setConnectionState('connected');
+              setLastError(null);
+              setAuthFailed(false);
+              setAuthError(null);
+              authFailedRef.current = false;
+              reconnectAttemptsRef.current = 0;
+            }
+          } else {
+            const errMsg = response.error?.message || 'Connection rejected by gateway';
+            // Detect auth errors to suppress reconnect and show the auth modal.
+            const isAuthErr = /unauthorized|auth|token|password|forbidden|not allowed/i.test(errMsg);
+            if (isAuthErr) {
+              authFailedRef.current = true;
+              setAuthFailed(true);
+              setAuthError(errMsg);
+            }
+            setLastError(errMsg);
+            console.warn('[Gateway] Connect rejected:', errMsg);
+          }
+          return;
+        }
+
+        // Regular RPC response.
         const pending = pendingCallsRef.current.get(response.id);
         if (pending) {
           clearPendingCall(response.id);
           if (response.ok) {
-            pending.resolve(response.result);
+            pending.resolve(response.payload);
           } else {
-            pending.reject(new Error(response.error || 'Unknown error'));
+            pending.reject(new Error(response.error?.message || 'Unknown error'));
           }
         } else {
           console.warn('[Gateway] Received response for unknown call ID:', response.id);
         }
+        return;
+      }
+
+      // Event frames (connect.challenge is informational; we send connect proactively on open).
+      if (data.type === 'event') {
+        return;
       }
     } catch (err) {
       console.error('[Gateway] Failed to parse message:', err);
@@ -138,7 +200,7 @@ export function useGateway(): UseGatewayReturn {
   }, [clearPendingCall, clearHelloTimeout]);
 
   /**
-   * Connect to Gateway WebSocket
+   * Connect to Gateway WebSocket and perform the connect handshake.
    */
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING) {
@@ -153,6 +215,7 @@ export function useGateway(): UseGatewayReturn {
     manualCloseRef.current = false;
     setConnectionState('connecting');
     helloReceivedRef.current = false;
+    connectCallIdRef.current = null;
 
     try {
       const ws = new WebSocket(gatewayUrlRef.current);
@@ -160,13 +223,45 @@ export function useGateway(): UseGatewayReturn {
 
       ws.addEventListener('open', () => {
         setLastError(null);
+
+        // Send the connect handshake immediately. The gateway sends connect.challenge
+        // first but doesn't require the client to echo the nonce back — the challenge
+        // is informational. We send connect proactively so the server's handshake
+        // timer doesn't fire.
+        const id = getNextId();
+        connectCallIdRef.current = id;
+        const token = resolveGatewayToken();
+        const connectParams = {
+          minProtocol: PROTOCOL_VERSION,
+          maxProtocol: PROTOCOL_VERSION,
+          client: {
+            id: 'openclaw-control-ui',
+            mode: 'ui',
+            version: '1.0.0',
+            platform: 'web',
+            displayName: 'OpenClaw Web',
+          },
+          role: 'operator',
+          scopes: [],
+          ...(token ? { auth: { token } } : {}),
+        };
+
         clearHelloTimeout();
+        // Fallback: if hello-ok never arrives (e.g., older gateway or auth bypass),
+        // proceed after HELLO_TIMEOUT so the UI doesn't stay stuck in connecting.
         helloTimeoutRef.current = setTimeout(() => {
           if (!helloReceivedRef.current) {
-            console.warn('[Gateway] Hello timeout, proceeding anyway');
+            console.warn('[Gateway] Hello timeout — proceeding without hello-ok');
             setConnectionState('connected');
           }
         }, HELLO_TIMEOUT);
+
+        try {
+          ws.send(JSON.stringify({ type: 'req', id, method: 'connect', params: connectParams } satisfies GatewayRequest));
+        } catch {
+          connectCallIdRef.current = null;
+          // Will fall through to hello timeout fallback.
+        }
       });
 
       ws.addEventListener('message', handleMessage);
@@ -186,6 +281,7 @@ export function useGateway(): UseGatewayReturn {
       ws.addEventListener('close', () => {
         clearHelloTimeout();
         wsRef.current = null;
+        connectCallIdRef.current = null;
 
         if (manualCloseRef.current) {
           return;
@@ -193,18 +289,22 @@ export function useGateway(): UseGatewayReturn {
 
         setConnectionState('disconnected');
 
-        // If the gateway has never connected, avoid endless retry loops and let user retry explicitly.
+        // Don't auto-reconnect when auth failed — the user needs to fix credentials.
+        if (authFailedRef.current) {
+          return;
+        }
+
+        // If the gateway has never connected, avoid endless retry loops.
         if (!hasEverConnectedRef.current && reconnectAttemptsRef.current >= 1) {
           return;
         }
 
-        // Schedule reconnect with exponential backoff
+        // Exponential backoff reconnect.
         const delay = Math.min(
           RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttemptsRef.current),
           RECONNECT_DELAY_MAX
         );
         reconnectAttemptsRef.current++;
-
         reconnectTimeoutRef.current = setTimeout(connect, delay);
       });
     } catch (err) {
@@ -212,19 +312,18 @@ export function useGateway(): UseGatewayReturn {
       setLastError(message);
       setConnectionState('error');
     }
-  }, [handleMessage, clearHelloTimeout]);
+  }, [handleMessage, clearHelloTimeout, getNextId]);
 
   /**
-   * Manual reconnect
+   * Manual reconnect — re-reads URL and token from localStorage so config
+   * changes (e.g., from the auth modal or settings) take effect immediately.
    */
   const reconnect = useCallback(() => {
-    // Clear any pending reconnect
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = undefined;
     }
 
-    // Close existing connection
     if (wsRef.current) {
       manualCloseRef.current = true;
       wsRef.current.close();
@@ -233,13 +332,18 @@ export function useGateway(): UseGatewayReturn {
 
     clearHelloTimeout();
     setLastError(null);
+    setAuthFailed(false);
+    setAuthError(null);
+    authFailedRef.current = false;
     reconnectAttemptsRef.current = 0;
     hasLoggedUnavailableRef.current = false;
+    // Re-read URL so settings/modal changes are picked up without a page reload.
+    gatewayUrlRef.current = resolveGatewayUrl();
     connect();
   }, [connect, clearHelloTimeout]);
 
   /**
-   * Make an RPC call
+   * Make an RPC call to the gateway.
    */
   const call = useCallback(async <T = unknown,>(
     method: string,
@@ -247,7 +351,6 @@ export function useGateway(): UseGatewayReturn {
   ): Promise<T> => {
     return new Promise((resolve, reject) => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        // If not connected, try to connect first
         if (connectionState !== 'connecting') {
           connect();
         }
@@ -256,22 +359,19 @@ export function useGateway(): UseGatewayReturn {
       }
 
       const id = getNextId();
-      const request: GatewayRequest = { id, method, params };
+      const request: GatewayRequest = { type: 'req', id, method, params };
 
-      // Set up timeout
       const timeout = setTimeout(() => {
         clearPendingCall(id);
         reject(new Error(`Call timeout: ${method}`));
       }, 30000);
 
-      // Track pending call
       pendingCallsRef.current.set(id, {
         resolve: (result) => resolve(result as T),
         reject,
         timeout,
       });
 
-      // Send request
       try {
         wsRef.current.send(JSON.stringify(request));
       } catch (err) {
@@ -281,9 +381,6 @@ export function useGateway(): UseGatewayReturn {
     });
   }, [connectionState, connect, getNextId, clearPendingCall]);
 
-  /**
-   * Cleanup on unmount
-   */
   useEffect(() => {
     connect();
 
@@ -296,7 +393,6 @@ export function useGateway(): UseGatewayReturn {
       if (wsRef.current) {
         wsRef.current.close();
       }
-      // Reject all pending calls
       pendingCallsRef.current.forEach((pending) => {
         clearTimeout(pending.timeout);
         pending.reject(new Error('Connection closed'));
@@ -311,6 +407,8 @@ export function useGateway(): UseGatewayReturn {
     isConnected: connectionState === 'connected',
     lastError,
     reconnect,
+    authFailed,
+    authError,
   };
 }
 
@@ -327,7 +425,6 @@ let gatewayInstance: {
  */
 export function getGatewaySingleton() {
   if (!gatewayInstance) {
-    // Create a simple singleton that will be initialized by the hook
     gatewayInstance = {
       call: async () => {
         throw new Error('Gateway not initialized. Use useGateway hook first.');

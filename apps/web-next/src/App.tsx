@@ -13,6 +13,8 @@ import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
 import ThemeToggle from "./components/ui/ThemeToggle";
+import { useGateway } from "./hooks/useGateway";
+import { GatewayAuthModal } from "./components/GatewayAuthModal";
 
 // Operator-mode types
 interface OperatorDashboardProps {
@@ -1135,6 +1137,15 @@ function AppContent() {
   const navHistoryRef = useRef(navHistory);
   const historyIndexRef = useRef(historyIndex);
   const { toast } = useToast();
+
+  // Gateway connection — monitor auth failures and surface the credentials modal.
+  const gateway = useGateway();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  useEffect(() => {
+    if (gateway.authFailed) {
+      setAuthModalOpen(true);
+    }
+  }, [gateway.authFailed]);
   const { visitView, recordInteraction } = useProficiency();
   const notificationUnreadCount = useNotificationUnreadCount();
 
@@ -2395,6 +2406,18 @@ function AppContent() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Gateway auth modal — shown when the gateway rejects our token */}
+      {authModalOpen && (
+        <GatewayAuthModal
+          authError={gateway.authError}
+          onConnect={() => {
+            setAuthModalOpen(false);
+            gateway.reconnect();
+          }}
+          onDismiss={() => setAuthModalOpen(false)}
+        />
       )}
     </div>
   );
