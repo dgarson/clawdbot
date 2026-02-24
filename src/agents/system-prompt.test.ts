@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../infra/diagnostic-events.js";
 import { typedCases } from "../test-utils/typed-cases.js";
+import { PromptContributorRegistry } from "./prompt-contributors/registry.js";
 import { buildSubagentSystemPrompt } from "./subagent-announce.js";
 import { buildAgentSystemPrompt, buildRuntimeLine } from "./system-prompt.js";
+
+afterEach(() => {
+  resetDiagnosticEventsForTest();
+});
 
 describe("buildAgentSystemPrompt", () => {
   it("formats owner section for plain, hash, and missing owner lists", () => {
@@ -562,6 +568,153 @@ describe("buildAgentSystemPrompt", () => {
 
     expect(prompt).toContain("## Reactions");
     expect(prompt).toContain("Reactions are enabled for Telegram in MINIMAL mode.");
+  });
+  it("emits prompt-build diagnostics only when diagnostics.enabled is true", () => {
+    const events: Array<{ type: string; stage?: string; details?: Record<string, unknown> }> = [];
+    const off = onDiagnosticEvent((event) => {
+      events.push(event as { type: string; stage?: string; details?: Record<string, unknown> });
+    });
+
+    const registry = new PromptContributorRegistry();
+    registry.register(
+      {
+        id: "ops-common",
+        tags: [{ dimension: "topic", value: "ops" }],
+        priority: 30,
+        contribute: () => ({ heading: "## Ops", content: "ops flow" }),
+      },
+      "plugin",
+    );
+    registry.register(
+      {
+        id: "all-flags",
+        tags: [{ dimension: "flag", value: "*" }],
+        priority: 20,
+        contribute: () => ({ heading: "## Common", content: "common section" }),
+      },
+      "config",
+    );
+
+    buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+      cfg: { diagnostics: { enabled: false } },
+      classification: {
+        topic: "ops",
+        complexity: "hard",
+        domain: ["k8s"],
+        flags: ["security-sensitive"],
+        classifiedAt: Date.now(),
+      },
+      contributorRegistry: registry,
+    });
+    expect(events.filter((event) => event.type === "prompt.build")).toHaveLength(0);
+
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+      cfg: { diagnostics: { enabled: true } },
+      classification: {
+        topic: "ops",
+        complexity: "hard",
+        domain: ["k8s"],
+        flags: ["security-sensitive"],
+        classifiedAt: Date.now(),
+      },
+      contributorRegistry: registry,
+    });
+
+    const promptEvents = events.filter((event) => event.type === "prompt.build");
+    expect(prompt).toContain("## Common");
+    expect(prompt).toContain("## Ops");
+    expect(promptEvents).toHaveLength(2);
+    expect(promptEvents[0]?.stage).toBe("contributors");
+    expect(promptEvents[1]?.stage).toBe("final");
+    expect(promptEvents[0]?.details?.selectedContributorIds).toEqual(
+      expect.arrayContaining(["all-flags", "ops-common"]),
+    );
+
+    off();
+  });
+
+  it("shows different contributor telemetry across multiple classifications", () => {
+    const events: Array<{ type: string; stage?: string; details?: Record<string, unknown> }> = [];
+    const off = onDiagnosticEvent((event) => {
+      events.push(event as { type: string; stage?: string; details?: Record<string, unknown> });
+    });
+
+    const registry = new PromptContributorRegistry();
+    registry.register(
+      {
+        id: "common-complexity",
+        tags: [{ dimension: "complexity", value: "*" }],
+        priority: 10,
+        contribute: () => ({ heading: "## Common Complexity", content: "complexity policy" }),
+      },
+      "plugin",
+    );
+    registry.register(
+      {
+        id: "coding-branch",
+        tags: [{ dimension: "topic", value: "coding" }],
+        priority: 11,
+        contribute: () => ({ heading: "## Coding", content: "coding-only" }),
+      },
+      "plugin",
+    );
+    registry.register(
+      {
+        id: "ops-branch",
+        tags: [{ dimension: "topic", value: "ops" }],
+        priority: 11,
+        contribute: () => ({ heading: "## Ops", content: "ops-only" }),
+      },
+      "plugin",
+    );
+
+    const base = {
+      workspaceDir: "/tmp/openclaw",
+      cfg: { diagnostics: { enabled: true } },
+      contributorRegistry: registry,
+    } as const;
+
+    const codingPrompt = buildAgentSystemPrompt({
+      ...base,
+      classification: {
+        topic: "coding",
+        complexity: "moderate",
+        domain: ["frontend"],
+        flags: [],
+        classifiedAt: Date.now(),
+      },
+    });
+    const opsPrompt = buildAgentSystemPrompt({
+      ...base,
+      classification: {
+        topic: "ops",
+        complexity: "hard",
+        domain: ["infra"],
+        flags: ["multi-file"],
+        classifiedAt: Date.now(),
+      },
+    });
+
+    expect(codingPrompt).toContain("## Common Complexity");
+    expect(codingPrompt).toContain("## Coding");
+    expect(codingPrompt).not.toContain("## Ops");
+    expect(opsPrompt).toContain("## Common Complexity");
+    expect(opsPrompt).toContain("## Ops");
+    expect(opsPrompt).not.toContain("## Coding");
+
+    const contributorEvents = events.filter(
+      (event) => event.type === "prompt.build" && event.stage === "contributors",
+    );
+    expect(contributorEvents).toHaveLength(2);
+    const firstSelected = contributorEvents[0]?.details?.selectedContributorIds as string[];
+    const secondSelected = contributorEvents[1]?.details?.selectedContributorIds as string[];
+    expect(firstSelected).toEqual(expect.arrayContaining(["common-complexity", "coding-branch"]));
+    expect(secondSelected).toEqual(expect.arrayContaining(["common-complexity", "ops-branch"]));
+    expect(firstSelected).not.toEqual(secondSelected);
+
+    off();
   });
 });
 

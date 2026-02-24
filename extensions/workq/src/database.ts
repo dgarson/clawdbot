@@ -585,7 +585,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       .prepare(
         `SELECT w.* FROM work_items w ${whereSql} ORDER BY w.updated_at DESC LIMIT ? OFFSET ?`,
       )
-      .all(...params, limit, offset) as WorkItemRow[];
+      .all(...params, limit, offset) as unknown as WorkItemRow[];
 
     const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
     const staleThresholdHours = Math.max(1, Math.floor(filters.staleThresholdHours ?? 24));
@@ -615,7 +615,9 @@ export class WorkqDatabase implements WorkqDatabaseApi {
 
   getById(id: number, staleThresholdHours = 24): WorkItem | null {
     const row =
-      (this.db.prepare(`SELECT * FROM work_items WHERE id = ?`).get(id) as WorkItemRow) ?? null;
+      (this.db
+        .prepare(`SELECT * FROM work_items WHERE id = ?`)
+        .get(id) as unknown as WorkItemRow) ?? null;
     if (!row) {
       return null;
     }
@@ -668,7 +670,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
            AND w.updated_at <= datetime('now', 'utc', '-' || ? || ' minutes')
          ORDER BY w.updated_at ASC`,
       )
-      .all(thresholdMinutes) as WorkItemRow[];
+      .all(thresholdMinutes) as unknown as WorkItemRow[];
 
     const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
 
@@ -1075,7 +1077,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     return (
       (this.db
         .prepare(`SELECT * FROM work_items WHERE issue_ref = ?`)
-        .get(issueRef) as WorkItemRow) ?? null
+        .get(issueRef) as unknown as WorkItemRow) ?? null
     );
   }
 

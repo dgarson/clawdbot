@@ -134,6 +134,42 @@ export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   queued: number;
 };
 
+export type DiagnosticPromptBuildEvent = DiagnosticBaseEvent & {
+  type: "prompt.build";
+  stage: "contributors" | "final";
+  sessionKey?: string;
+  channel?: string;
+  classification?: {
+    topic: string;
+    complexity: string;
+    domain: string[];
+    flags: string[];
+  };
+  details: {
+    contributorCount?: number;
+    selectedContributorIds?: string[];
+    assembledChars?: number;
+    contributors?: Array<{
+      id: string;
+      source: "builtin" | "plugin" | "config" | "workspace";
+      priority: number;
+      selected: boolean;
+      reason:
+        | "included"
+        | "tag-miss"
+        | "shouldContribute-veto"
+        | "shouldContribute-error"
+        | "contribute-error"
+        | "empty-section";
+      sectionChars?: number;
+      error?: string;
+    }>;
+    finalPromptChars?: number;
+    promptMode?: "full" | "minimal" | "none";
+    tools?: string[];
+  };
+};
+
 export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   type: "tool.loop";
   sessionKey?: string;
@@ -160,7 +196,8 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticPromptBuildEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

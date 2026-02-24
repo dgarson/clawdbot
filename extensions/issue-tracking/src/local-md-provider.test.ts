@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { LocalMarkdownIssueTrackerProvider } from "./local-md-provider.js";
+import type { TicketReference } from "./types.js";
 
 const tempDirs: string[] = [];
 
@@ -130,7 +131,7 @@ describe("LocalMarkdownIssueTrackerProvider", () => {
       status: "in_progress",
     });
 
-    const reference = {
+    const reference: TicketReference = {
       id: "alpha",
       kind: "ticket",
       title: "Alpha",
