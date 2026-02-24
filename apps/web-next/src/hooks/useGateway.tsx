@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import type {
   GatewayRequest,
   GatewayResponse,
@@ -6,6 +7,9 @@ import type {
   UseGatewayReturn,
   GatewayHelloOk,
 } from '../types';
+
+// Shared context so all components use a single WebSocket connection.
+const GatewayContext = createContext<UseGatewayReturn | null>(null);
 
 const DEFAULT_GATEWAY_PORT = '18789';
 const GATEWAY_URL_OVERRIDE_KEY = 'openclaw.gateway.wsUrl';
@@ -81,7 +85,7 @@ interface PendingCall {
  * const result = await call('config.get', { path: 'auth.profiles' });
  * ```
  */
-export function useGateway(): UseGatewayReturn {
+function useGatewayInternal(): UseGatewayReturn {
   const [connectionState, setConnectionState] = useState<GatewayConnectionState>('disconnected');
   const [lastError, setLastError] = useState<string | null>(null);
   const [authFailed, setAuthFailed] = useState(false);
@@ -103,6 +107,8 @@ export function useGateway(): UseGatewayReturn {
   const connectCallIdRef = useRef<string | null>(null);
   // Sync ref so the close handler can suppress reconnect without a stale closure.
   const authFailedRef = useRef(false);
+  // Monotonically increasing ID per connect() call; event handlers ignore stale connections.
+  const connectionIdRef = useRef(0);
 
   const getNextId = useCallback((): string => {
     return String(nextIdRef.current++);
@@ -218,10 +224,16 @@ export function useGateway(): UseGatewayReturn {
     connectCallIdRef.current = null;
 
     try {
+      const myId = ++connectionIdRef.current;
       const ws = new WebSocket(gatewayUrlRef.current);
       wsRef.current = ws;
 
       ws.addEventListener('open', () => {
+        // If superseded (e.g. StrictMode remount, reconnect while CONNECTING), close cleanly.
+        if (connectionIdRef.current !== myId) {
+          ws.close(1000);
+          return;
+        }
         setLastError(null);
 
         // Send the connect handshake immediately. The gateway sends connect.challenge
@@ -246,7 +258,7 @@ export function useGateway(): UseGatewayReturn {
             displayName: 'OpenClaw Web',
           },
           role: 'operator',
-          scopes: [],
+          scopes: ['operator.admin', 'operator.read', 'operator.write', 'operator.approvals', 'operator.pairing'],
           ...(token ? { auth: { token } } : {}),
         };
 
@@ -271,6 +283,7 @@ export function useGateway(): UseGatewayReturn {
       ws.addEventListener('message', handleMessage);
 
       ws.addEventListener('error', () => {
+        if (connectionIdRef.current !== myId) return; // superseded connection
         if (manualCloseRef.current) {
           return;
         }
@@ -283,6 +296,7 @@ export function useGateway(): UseGatewayReturn {
       });
 
       ws.addEventListener('close', () => {
+        if (connectionIdRef.current !== myId) return; // superseded connection
         clearHelloTimeout();
         wsRef.current = null;
         connectCallIdRef.current = null;
@@ -323,6 +337,7 @@ export function useGateway(): UseGatewayReturn {
    * changes (e.g., from the auth modal or settings) take effect immediately.
    */
   const reconnect = useCallback(() => {
+    connectionIdRef.current++; // invalidate any in-flight connection
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = undefined;
@@ -330,7 +345,10 @@ export function useGateway(): UseGatewayReturn {
 
     if (wsRef.current) {
       manualCloseRef.current = true;
-      wsRef.current.close();
+      // Don't close a CONNECTING socket — the open handler will close it via generation check.
+      if (wsRef.current.readyState !== WebSocket.CONNECTING) {
+        wsRef.current.close();
+      }
       wsRef.current = null;
     }
 
@@ -386,16 +404,25 @@ export function useGateway(): UseGatewayReturn {
   }, [connectionState, connect, getNextId, clearPendingCall]);
 
   useEffect(() => {
-    connect();
+    // Defer by one tick so React StrictMode's synchronous cleanup cancels this
+    // before the WebSocket is created, preventing spurious "closed before connect"
+    // server warnings in development.
+    const initTimer = setTimeout(connect, 0);
 
     return () => {
+      clearTimeout(initTimer);
+      connectionIdRef.current++; // invalidate any in-flight connection
       manualCloseRef.current = true;
       clearHelloTimeout();
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (wsRef.current) {
-        wsRef.current.close();
+        // Don't close a CONNECTING socket — the open handler will close it via generation check.
+        if (wsRef.current.readyState !== WebSocket.CONNECTING) {
+          wsRef.current.close(1000);
+        }
+        wsRef.current = null;
       }
       pendingCallsRef.current.forEach((pending) => {
         clearTimeout(pending.timeout);
@@ -414,6 +441,34 @@ export function useGateway(): UseGatewayReturn {
     authFailed,
     authError,
   };
+}
+
+/**
+ * Provides a single shared gateway WebSocket connection to all descendant components.
+ * Place this near the root of the app so every useGateway() call shares one socket.
+ */
+export function GatewayProvider({ children }: { children: ReactNode }) {
+  const value = useGatewayInternal();
+  return <GatewayContext.Provider value={value}>{children}</GatewayContext.Provider>;
+}
+
+/**
+ * React hook for Gateway WebSocket RPC communication.
+ * Must be called within a <GatewayProvider>.
+ *
+ * @example
+ * ```tsx
+ * const { call, isConnected, connectionState, authFailed, reconnect } = useGateway();
+ *
+ * const result = await call('config.get', { path: 'auth.profiles' });
+ * ```
+ */
+export function useGateway(): UseGatewayReturn {
+  const ctx = useContext(GatewayContext);
+  if (ctx === null) {
+    throw new Error('[Gateway] useGateway() must be called within a <GatewayProvider>');
+  }
+  return ctx;
 }
 
 /**
