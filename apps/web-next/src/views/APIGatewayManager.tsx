@@ -167,7 +167,7 @@ function GatewaysTab() {
   const [selected, setSelected] = useState<Gateway | null>(null);
 
   return (
-    <div className="space-y-3">
+    <section aria-label="Gateways" className="space-y-3">
       {gateways.length === 0 && (
         <ContextualEmptyState
           icon={Server}
@@ -179,14 +179,18 @@ function GatewaysTab() {
       {gateways.map((gw) => (
         <div
           key={gw.id}
+          role="button"
+          tabIndex={0}
+          aria-expanded={selected?.id === gw.id}
+          onClick={() => setSelected(selected?.id === gw.id ? null : gw)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected?.id === gw.id ? null : gw); } }}
           className={cn(
-            "rounded-xl border p-4 cursor-pointer transition-all",
+            "rounded-xl border p-4 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
             selected?.id === gw.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
-          onClick={() => setSelected(selected?.id === gw.id ? null : gw)}
         >
           <div className="flex items-center gap-3">
-            <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", gatewayStatusColor(gw.status))} />
+            <span aria-hidden="true" className={cn("w-2.5 h-2.5 rounded-full shrink-0", gatewayStatusColor(gw.status))} />
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-fg-primary">{gw.name}</span>
@@ -229,7 +233,7 @@ function GatewaysTab() {
           )}
         </div>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -240,14 +244,15 @@ function RoutesTab() {
   const visible = routes.filter((r) => r.gatewayId === gwFilter);
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
+    <section aria-label="Routes" className="space-y-4">
+      <div role="group" aria-label="Filter routes by gateway" className="flex gap-2">
         {gateways.map((gw) => (
           <button
             key={gw.id}
             onClick={() => setGwFilter(gw.id)}
+            aria-pressed={gwFilter === gw.id}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
               gwFilter === gw.id ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
             )}
           >
@@ -256,16 +261,20 @@ function RoutesTab() {
         ))}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2" aria-live="polite">
         {visible.map((route) => (
           <div
             key={route.id}
+            role="button"
+            tabIndex={0}
+            aria-expanded={selected?.id === route.id}
+            onClick={() => setSelected(selected?.id === route.id ? null : route)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected?.id === route.id ? null : route); } }}
             className={cn(
-              "rounded-xl border p-3 cursor-pointer transition-all",
+              "rounded-xl border p-3 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
               !route.enabled && "opacity-50",
               selected?.id === route.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
             )}
-            onClick={() => setSelected(selected?.id === route.id ? null : route)}
           >
             <div className="flex items-center gap-3">
               <span className={cn("inline-block px-2 py-0.5 rounded text-xs font-mono font-bold border", methodColor(route.method))}>
@@ -305,16 +314,16 @@ function RoutesTab() {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
 function PluginsTab() {
   return (
-    <div className="space-y-3">
+    <section aria-label="Plugins" className="space-y-3">
       {plugins.map((p) => (
         <div key={p.id} className="rounded-xl border border-tok-border bg-surface-1 p-4 flex items-center gap-4">
-          <div className={cn("w-2 h-2 rounded-full shrink-0", p.enabled ? "bg-emerald-400" : "bg-surface-3")} />
+          <span aria-hidden="true" className={cn("w-2 h-2 rounded-full shrink-0", p.enabled ? "bg-emerald-400" : "bg-surface-3")} />
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="font-medium text-fg-primary text-sm">{p.name}</span>
@@ -328,7 +337,7 @@ function PluginsTab() {
           </span>
         </div>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -336,25 +345,30 @@ function TrafficTab() {
   const maxReq = Math.max(...trafficMetrics.map((m) => m.requests));
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
-        <h3 className="text-sm font-semibold text-fg-primary mb-4">Traffic Volume (last 24h by 2h)</h3>
-        <div className="flex items-end gap-1.5 h-32">
+    <section aria-label="Traffic overview" className="space-y-6">
+      <section aria-label="Traffic volume chart" className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h2 className="text-sm font-semibold text-fg-primary mb-4">Traffic Volume (last 24h by 2h)</h2>
+        <div className="flex items-end gap-1.5 h-32" role="img" aria-label="Bar chart showing traffic volume over last 24 hours">
           {trafficMetrics.map((m) => (
             <div key={m.hour} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full flex flex-col justify-end" style={{ height: "100px" }}>
-                <div className="w-full rounded-t overflow-hidden" style={{ height: (m.requests / maxReq * 100) + "%" }}>
+                <div
+                  aria-hidden="true"
+                  className="w-full rounded-t overflow-hidden"
+                  style={{ height: (m.requests / maxReq * 100) + "%" }}
+                  title={`${m.hour}: ${m.requests.toLocaleString()} requests`}
+                >
                   <div className="h-full bg-indigo-500" />
                 </div>
               </div>
-              <span className="text-xs text-fg-muted">{m.hour}</span>
+              <span aria-hidden="true" className="text-xs text-fg-muted">{m.hour}</span>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
-        <h3 className="text-sm font-semibold text-fg-primary mb-3">Top Routes by Volume</h3>
+      <section aria-label="Top routes by volume" className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h2 className="text-sm font-semibold text-fg-primary mb-3">Top Routes by Volume</h2>
         <div className="space-y-2">
           {routes.filter((r) => r.gatewayId === "gw-prod").toSorted((a, b) => b.requestCount24h - a.requestCount24h).slice(0, 5).map((r) => {
             const totalReqs = routes.filter((rt) => rt.gatewayId === "gw-prod").reduce((a, rt) => a + rt.requestCount24h, 0);
@@ -362,16 +376,20 @@ function TrafficTab() {
               <div key={r.id} className="flex items-center gap-3">
                 <span className={cn("text-xs px-1.5 py-0.5 rounded border font-mono font-bold w-16 text-center", methodColor(r.method))}>{r.method}</span>
                 <span className="font-mono text-xs text-fg-primary flex-1 truncate">{r.path}</span>
-                <div className="w-32 bg-surface-2 rounded-full h-1.5">
+                <div
+                  className="w-32 bg-surface-2 rounded-full h-1.5"
+                  role="img"
+                  aria-label={`${r.path}: ${(r.requestCount24h / 1000).toFixed(0)}K requests`}
+                >
                   <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: (r.requestCount24h / totalReqs * 100) + "%" }} />
                 </div>
-                <span className="text-xs text-fg-secondary w-16 text-right">{(r.requestCount24h / 1000).toFixed(0)}K</span>
+                <span className="text-xs text-fg-secondary w-16 text-right" aria-hidden="true">{(r.requestCount24h / 1000).toFixed(0)}K</span>
               </div>
             );
           })}
         </div>
-      </div>
-    </div>
+      </section>
+    </section>
   );
 }
 
@@ -388,56 +406,69 @@ export default function APIGatewayManager() {
   const totalRps = gateways.reduce((a, g) => a + g.rps, 0);
 
   return (
-    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold">API Gateway Manager</h1>
-          {degraded > 0 && (
-            <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1">
-              {degraded} degraded
-            </span>
-          )}
-        </div>
-        <p className="text-fg-secondary text-sm">
-          {gateways.length} gateways · {activeGateways} active · {routes.length} routes · {totalRps.toFixed(0)} RPS total
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Active Gateways", value: activeGateways, color: "text-emerald-400" },
-          { label: "Total Routes", value: routes.length, color: "text-fg-primary" },
-          { label: "Active Plugins", value: plugins.filter((p) => p.enabled).length, color: "text-indigo-400" },
-          { label: "Total RPS", value: totalRps.toFixed(0), color: "text-fg-primary" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-tok-border bg-surface-1 p-4">
-            <div className={cn("text-3xl font-bold", kpi.color)}>{kpi.value}</div>
-            <div className="text-sm text-fg-secondary mt-1">{kpi.label}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-1 mb-6 border-b border-tok-border">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
-              tab === t
-                ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-fg-secondary hover:text-fg-primary"
+    <>
+      <a
+        href="#agm-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
+            <h1 className="text-2xl font-bold">API Gateway Manager</h1>
+            {degraded > 0 && (
+              <span role="status" className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1">
+                {degraded} degraded
+              </span>
             )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+          </div>
+          <p className="text-fg-secondary text-sm">
+            {gateways.length} gateways · {activeGateways} active · {routes.length} routes · {totalRps.toFixed(0)} RPS total
+          </p>
+        </div>
 
-      {tab === "Gateways" && <GatewaysTab />}
-      {tab === "Routes" && <RoutesTab />}
-      {tab === "Plugins" && <PluginsTab />}
-      {tab === "Traffic" && <TrafficTab />}
-    </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: "Active Gateways", value: activeGateways, color: "text-emerald-400" },
+            { label: "Total Routes", value: routes.length, color: "text-fg-primary" },
+            { label: "Active Plugins", value: plugins.filter((p) => p.enabled).length, color: "text-indigo-400" },
+            { label: "Total RPS", value: totalRps.toFixed(0), color: "text-fg-primary" },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-xl border border-tok-border bg-surface-1 p-4">
+              <div className={cn("text-3xl font-bold", kpi.color)}>{kpi.value}</div>
+              <div className="text-sm text-fg-secondary mt-1">{kpi.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div role="tablist" aria-label="Gateway sections" className="flex gap-1 mb-6 border-b border-tok-border">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={tab === t}
+              aria-controls={`agm-panel-${t.toLowerCase()}`}
+              onClick={() => setTab(t)}
+              className={cn(
+                "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                tab === t
+                  ? "border-indigo-500 text-indigo-400"
+                  : "border-transparent text-fg-secondary hover:text-fg-primary"
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        <main id="agm-main">
+          {tab === "Gateways" && <GatewaysTab />}
+          {tab === "Routes" && <RoutesTab />}
+          {tab === "Plugins" && <PluginsTab />}
+          {tab === "Traffic" && <TrafficTab />}
+        </main>
+      </div>
+    </>
   );
 }

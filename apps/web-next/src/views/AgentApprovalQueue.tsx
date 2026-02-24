@@ -43,7 +43,7 @@ interface ApprovalItem {
   actionDescription: string;
   riskLevel: RiskLevel;
   toolName: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   parametersPreview: string;
   reason: string;
   waitingSeconds: number;
@@ -294,7 +294,7 @@ function RiskBadge({ level }: { level: RiskLevel }) {
 function ToolBadge({ toolName }: { toolName: string }) {
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-surface-2 text-fg-primary">
-      <Terminal className="w-3 h-3" />
+      <Terminal aria-hidden="true" className="w-3 h-3" />
       {toolName}
     </span>
   );
@@ -318,7 +318,7 @@ function StatusBadge({ status }: { status: ApprovalStatus }) {
   const Icon = icons[status];
   return (
     <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium', styles[status])}>
-      <Icon className="w-3 h-3" />
+      <Icon aria-hidden="true" className="w-3 h-3" />
       {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
     </span>
   );
@@ -344,11 +344,13 @@ function ApprovalCard({
   onEscalate: (id: string) => void;
 }) {
   const timedOut = isTimedOut(item.waitingSeconds);
+  const cardId = `approval-card-${item.id}`;
   return (
     <div
+      id={cardId}
       className={cn(
         'bg-surface-1 border border-tok-border rounded-xl p-4 transition-all',
-        timedOut && 'border-red-500/50 animate-pulse',
+        timedOut && 'border-red-500/50 motion-safe:animate-pulse',
         isSelected && 'ring-2 ring-violet-500 ring-offset-2 ring-offset-surface-0',
       )}
     >
@@ -358,11 +360,12 @@ function ApprovalCard({
             type="checkbox"
             checked={isSelected}
             onChange={() => onSelect(item.id)}
-            className="mt-1 w-4 h-4 rounded bg-surface-2 border-tok-border text-violet-500 focus:ring-violet-500"
+            aria-label={`Select ${item.agentName} — ${item.actionDescription}`}
+            className="mt-1 w-4 h-4 rounded bg-surface-2 border-tok-border text-violet-500 focus:ring-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">{item.agentEmoji}</span>
+              <span aria-hidden="true" className="text-lg">{item.agentEmoji}</span>
               <span className="font-medium text-fg-primary">{item.agentName}</span>
               <SessionTypeBadge type={item.sessionType} />
               <RiskBadge level={item.riskLevel} />
@@ -372,16 +375,24 @@ function ApprovalCard({
               <div className="flex items-center gap-2">
                 <ToolBadge toolName={item.toolName} />
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {formatWaiting(item.waitingSeconds)}
+                  <Clock aria-hidden="true" className="w-3 h-3" />
+                  <span aria-live="polite">{formatWaiting(item.waitingSeconds)}</span>
                 </span>
-                {timedOut && <span className="text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Timeout warning</span>}
+                {timedOut && (
+                  <span className="text-red-400 flex items-center gap-1">
+                    <AlertCircle aria-hidden="true" className="w-3 h-3" />
+                    Timeout warning
+                  </span>
+                )}
               </div>
               <p>Context: {item.parametersPreview}</p>
               <p>Reason: {item.reason}</p>
             </div>
             {isExpanded && (
-              <div className="mt-3 p-3 bg-surface-2 rounded-lg text-xs font-mono text-fg-primary">
+              <div
+                id={`params-${item.id}`}
+                className="mt-3 p-3 bg-surface-2 rounded-lg text-xs font-mono text-fg-primary"
+              >
                 <pre>{JSON.stringify(item.parameters, null, 2)}</pre>
               </div>
             )}
@@ -390,31 +401,37 @@ function ApprovalCard({
         <div className="flex flex-col items-end gap-2">
           <button
             onClick={() => onExpand(item.id)}
-            className="p-1 hover:bg-surface-2 rounded"
+            aria-expanded={isExpanded}
+            aria-controls={`params-${item.id}`}
+            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} parameters for ${item.agentName} — ${item.actionDescription}`}
+            className="p-1 hover:bg-surface-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           >
-            {isExpanded ? <ChevronUp className="w-4 h-4 text-fg-secondary" /> : <ChevronDown className="w-4 h-4 text-fg-secondary" />}
+            {isExpanded
+              ? <ChevronUp aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
+              : <ChevronDown aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
+            }
           </button>
           <div className="flex gap-2">
             <button
               onClick={() => onApprove(item.id)}
-              className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
-              title="Approve"
+              aria-label={`Approve: ${item.agentName} — ${item.actionDescription}`}
+              className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
-              <Check className="w-4 h-4" />
+              <Check aria-hidden="true" className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDeny(item.id)}
-              className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
-              title="Deny"
+              aria-label={`Deny: ${item.agentName} — ${item.actionDescription}`}
+              className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
-              <X className="w-4 h-4" />
+              <X aria-hidden="true" className="w-4 h-4" />
             </button>
             <button
               onClick={() => onEscalate(item.id)}
-              className="p-2 bg-violet-500/20 text-violet-400 rounded-lg hover:bg-violet-500/30 transition-colors"
-              title="Escalate"
+              aria-label={`Escalate: ${item.agentName} — ${item.actionDescription}`}
+              className="p-2 bg-violet-500/20 text-violet-400 rounded-lg hover:bg-violet-500/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink aria-hidden="true" className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -425,16 +442,16 @@ function ApprovalCard({
 
 function HistoryPanel({ items }: { items: ApprovalItem[] }) {
   return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
+    <section aria-label="Recent decisions" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
       <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
-        <RotateCcw className="w-4 h-4 text-fg-secondary" />
+        <RotateCcw aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
         <span className="text-sm font-semibold text-fg-primary">Recent Decisions</span>
-        <span className="ml-auto text-xs text-fg-muted">{items.length} entries</span>
+        <span role="status" className="ml-auto text-xs text-fg-muted">{items.length} entries</span>
       </div>
-      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60" aria-live="polite">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
-            <RotateCcw className="w-8 h-8 mb-2 opacity-40" />
+            <RotateCcw aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
             <p className="text-sm">No recent decisions</p>
           </div>
         ) : (
@@ -457,7 +474,7 @@ function HistoryPanel({ items }: { items: ApprovalItem[] }) {
           ))
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -478,8 +495,8 @@ export default function AgentApprovalQueue() {
     const interval = setInterval(() => {
       setTick((t) => t + 1);
       setApprovals((prev) =>
-        prev.map((a) => 
-          a.status === 'pending' 
+        prev.map((a) =>
+          a.status === 'pending'
             ? { ...a, waitingSeconds: a.waitingSeconds + 1 }
             : a
         )
@@ -590,109 +607,153 @@ export default function AgentApprovalQueue() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-fg-primary">Agent Approval Queue</h1>
-          {pendingCount > 0 && (
-            <span className="px-2 py-1 rounded-full bg-violet-600 text-fg-primary text-sm font-bold leading-none">
-              {pendingCount} pending
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-fg-secondary">Auto-approve low-risk</span>
-            <button onClick={() => setAutoApprove(!autoApprove)}>
-              {autoApprove ? (
-                <ToggleRight className="w-6 h-6 text-green-500" />
-              ) : (
-                <ToggleLeft className="w-6 h-6 text-fg-muted" />
-              )}
+    <>
+      {/* WCAG 2.1 AA — Skip navigation */}
+      <a
+        href="#aaq-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
+      <main id="aaq-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-fg-primary">Agent Approval Queue</h1>
+            {pendingCount > 0 && (
+              <span
+                role="status"
+                aria-live="polite"
+                className="px-2 py-1 rounded-full bg-violet-600 text-fg-primary text-sm font-bold leading-none"
+              >
+                {pendingCount} pending
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span id="auto-approve-label" className="text-sm text-fg-secondary">
+                Auto-approve low-risk
+              </span>
+              <button
+                onClick={() => setAutoApprove(!autoApprove)}
+                aria-pressed={autoApprove}
+                aria-labelledby="auto-approve-label"
+                aria-label={`Auto-approve low-risk: ${autoApprove ? 'on' : 'off'}`}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+              >
+                {autoApprove ? (
+                  <ToggleRight aria-hidden="true" className="w-6 h-6 text-green-500" />
+                ) : (
+                  <ToggleLeft aria-hidden="true" className="w-6 h-6 text-fg-muted" />
+                )}
+              </button>
+            </div>
+            <button
+              aria-label="Queue settings"
+              className="p-2 hover:bg-surface-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              <Settings aria-hidden="true" className="w-5 h-5 text-fg-secondary" />
             </button>
           </div>
-          <button className="p-2 hover:bg-surface-2 rounded">
-            <Settings className="w-5 h-5 text-fg-secondary" />
-          </button>
         </div>
-      </div>
 
-      {/* Filter Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1 bg-surface-2 rounded-lg p-0.5">
-          {filters.map((f) => (
+        {/* Filter Bar */}
+        <div className="flex items-center justify-between">
+          <div
+            role="group"
+            aria-label="Filter approvals by status"
+            className="flex gap-1 bg-surface-2 rounded-lg p-0.5"
+          >
+            {filters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
+                  filter === f ? 'bg-surface-3 text-fg-primary' : 'text-fg-secondary hover:text-fg-primary',
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                filter === f ? 'bg-surface-3 text-fg-primary' : 'text-fg-secondary hover:text-fg-primary',
-              )}
+              onClick={toggleSelectAll}
+              aria-pressed={isAllSelected}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-primary text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
-              {f}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={toggleSelectAll}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-primary text-sm transition-colors"
-          >
-            <input type="checkbox" checked={isAllSelected} readOnly className="pointer-events-none" />
-            Select All
-          </button>
-          <button
-            onClick={bulkApproveLowRisk}
-            disabled={selected.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-          >
-            <Check className="w-4 h-4" />
-            Approve Low-Risk
-          </button>
-          <button
-            onClick={bulkDeny}
-            disabled={selected.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-          >
-            <Trash2 className="w-4 h-4" />
-            Deny Selected
-          </button>
-        </div>
-      </div>
-
-      {/* Main Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-4">
-          {filteredApprovals.length === 0 ? (
-            <ContextualEmptyState
-              icon={CheckCircle}
-              title={`No ${filter.toLowerCase()} approvals`}
-              description="The queue is clear for now. New approval requests will appear here."
-              size="md"
-            />
-          ) : (
-            filteredApprovals.map((item) => (
-              <ApprovalCard
-                key={item.id}
-                item={item}
-                isSelected={selected.includes(item.id)}
-                onSelect={toggleSelect}
-                isExpanded={expanded.includes(item.id)}
-                onExpand={toggleExpand}
-                onApprove={handleApprove}
-                onDeny={handleDeny}
-                onEscalate={handleEscalate}
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                readOnly
+                aria-hidden="true"
+                tabIndex={-1}
+                className="pointer-events-none"
               />
-            ))
-          )}
+              Select All
+            </button>
+            <button
+              onClick={bulkApproveLowRisk}
+              disabled={selected.length === 0}
+              aria-label="Bulk approve selected low-risk items"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              <Check aria-hidden="true" className="w-4 h-4" />
+              Approve Low-Risk
+            </button>
+            <button
+              onClick={bulkDeny}
+              disabled={selected.length === 0}
+              aria-label="Deny all selected items"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              <Trash2 aria-hidden="true" className="w-4 h-4" />
+              Deny Selected
+            </button>
+          </div>
         </div>
 
-        {/* History Panel */}
-        <div className="col-span-1">
-          <HistoryPanel items={historyItems} />
+        {/* Main Queue */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <section
+            aria-label="Pending approvals"
+            aria-live="polite"
+            className="col-span-2 space-y-4"
+          >
+            {filteredApprovals.length === 0 ? (
+              <ContextualEmptyState
+                icon={CheckCircle}
+                title={`No ${filter.toLowerCase()} approvals`}
+                description="The queue is clear for now. New approval requests will appear here."
+                size="md"
+              />
+            ) : (
+              filteredApprovals.map((item) => (
+                <ApprovalCard
+                  key={item.id}
+                  item={item}
+                  isSelected={selected.includes(item.id)}
+                  onSelect={toggleSelect}
+                  isExpanded={expanded.includes(item.id)}
+                  onExpand={toggleExpand}
+                  onApprove={handleApprove}
+                  onDeny={handleDeny}
+                  onEscalate={handleEscalate}
+                />
+              ))
+            )}
+          </section>
+
+          {/* History Panel */}
+          <div className="col-span-1">
+            <HistoryPanel items={historyItems} />
+          </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }
