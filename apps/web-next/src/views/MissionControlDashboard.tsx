@@ -280,15 +280,15 @@ const INITIAL_ALERTS: AlertEntry[] = [
 // ============================================================================
 
 function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) {return `${seconds}s`;}
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}m ${s}s`;
 }
 
 function formatElapsed(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 1000) {return `${ms}ms`;}
+  if (ms < 60000) {return `${(ms / 1000).toFixed(1)}s`;}
   return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
 }
 
@@ -297,12 +297,12 @@ function formatTimestamp(date: Date): string {
 }
 
 function formatWaiting(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) {return `${seconds}s`;}
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
 function formatTokens(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  if (n >= 1000) {return `${(n / 1000).toFixed(1)}k`;}
   return `${n}`;
 }
 
@@ -702,10 +702,10 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
   ];
 
   const filtered = alerts.filter((a) => {
-    if (filter === 'all') return true;
-    if (filter === 'error') return a.severity === 'critical' || a.severity === 'error';
-    if (filter === 'warning') return a.severity === 'warning';
-    if (filter === 'info') return a.severity === 'info';
+    if (filter === 'all') {return true;}
+    if (filter === 'error') {return a.severity === 'critical' || a.severity === 'error';}
+    if (filter === 'warning') {return a.severity === 'warning';}
+    if (filter === 'info') {return a.severity === 'info';}
     return true;
   });
 
@@ -785,7 +785,7 @@ export default function MissionControlDashboard() {
           // Rotate tools and statuses on a staggered cycle
           const cycle = Math.floor(Date.now() / 3000) + i;
           const tools = ['exec', 'read', 'write', 'sessions_spawn', 'message', 'browser', undefined];
-          const nextTool = tools[cycle % tools.length] as string | undefined;
+          const nextTool = tools[cycle % tools.length];
           const statuses: SessionStatus[] = ['RUNNING', 'RUNNING', 'WAITING', 'RUNNING', 'RUNNING'];
           const nextStatus = s.status === 'ERROR' ? 'ERROR' : statuses[cycle % statuses.length];
           return {

@@ -494,14 +494,14 @@ export default function FindingDetailModal() {
 
   // Skip-to-main-content: focus main content on activation
   const handleSkipToContent = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
-    if ('key' in e && e.key !== 'Enter' && e.key !== ' ') return;
+    if ('key' in e && e.key !== 'Enter' && e.key !== ' ') {return;}
     e.preventDefault();
     mainContentRef.current?.focus();
   }, []);
 
   // Mock "Mark as Resolved" — simulates async state
   const handleMarkResolved = useCallback(async () => {
-    if (resolved || resolving) return;
+    if (resolved || resolving) {return;}
     setResolving(true);
     await new Promise((r) => setTimeout(r, 1000));
     setResolving(false);

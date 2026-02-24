@@ -240,20 +240,20 @@ const INITIAL_MUTE_RULES: MuteRule[] = [
 
 function formatRelativeTime(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 60) {return `${seconds}s ago`;}
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) {return `${minutes}m ago`;}
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {return `${hours}h ago`;}
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
 
 function formatMuteExpiry(date: Date): string {
   const mins = Math.floor((date.getTime() - Date.now()) / 60000);
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) {return `${mins}m`;}
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) {return `${hours}h`;}
   return `${Math.floor(hours / 24)}d`;
 }
 
@@ -293,7 +293,7 @@ function SeverityBadge({ severity, count }: { severity: AlertSeverity; count: nu
     warning: 'Warning',
     info: 'Info',
   };
-  if (count === 0) return null;
+  if (count === 0) {return null;}
   return (
     <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border', styles[severity])}>
       {icons[severity]}
@@ -541,7 +541,7 @@ function MuteRulesDrawer({
   rules: MuteRule[];
   onRemove: (id: string) => void;
 }) {
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end">
@@ -687,12 +687,12 @@ export default function OperatorAlertFeed() {
       '6h': 6 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000,
     };
-    if (now - a.timestamp.getTime() > ranges[timeRange]) return false;
+    if (now - a.timestamp.getTime() > ranges[timeRange]) {return false;}
 
     // Status/severity filter
-    if (filter === 'all') return true;
-    if (filter === 'acknowledged') return a.status === 'acknowledged';
-    if (filter === 'resolved') return a.status === 'resolved';
+    if (filter === 'all') {return true;}
+    if (filter === 'acknowledged') {return a.status === 'acknowledged';}
+    if (filter === 'resolved') {return a.status === 'resolved';}
     return a.severity === filter;
   });
 

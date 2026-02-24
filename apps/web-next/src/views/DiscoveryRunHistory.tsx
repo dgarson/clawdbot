@@ -797,7 +797,7 @@ function formatTimestamp(iso: string): string {
 }
 
 function formatDuration(min: number): string {
-  if (min < 60) return `${min}m`;
+  if (min < 60) {return `${min}m`;}
   const h = Math.floor(min / 60);
   const m = min % 60;
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
@@ -1030,7 +1030,7 @@ export default function DiscoveryRunHistory() {
 
   // Filter
   const filtered = MOCK_RUNS.filter((r) => {
-    if (statusFilter !== "All" && r.status !== statusFilter) return false;
+    if (statusFilter !== "All" && r.status !== statusFilter) {return false;}
     if (dateFilter === "Today") {
       const today = new Date("2026-02-23");
       const start = new Date(r.startedAt);

@@ -565,7 +565,7 @@ export default function AgentTopologyMap() {
               {MOCK_EDGES.map((edge, i) => {
                 const src = NODE_POS[edge.source];
                 const tgt = NODE_POS[edge.target];
-                if (!src || !tgt) return null;
+                if (!src || !tgt) {return null;}
                 return (
                   <line
                     key={i}
@@ -586,7 +586,7 @@ export default function AgentTopologyMap() {
             <g>
               {MOCK_NODES.map((node) => {
                 const pos = NODE_POS[node.id];
-                if (!pos) return null;
+                if (!pos) {return null;}
                 return (
                   <NodeShape
                     key={node.id}
