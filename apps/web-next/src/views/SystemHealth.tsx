@@ -351,7 +351,7 @@ function ServiceCard({ service }: { service: ServiceCheck }) {
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-label={`${service.name} — ${cfg.label}. Click to ${expanded ? "collapse" : "expand"}`}
-        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl"
+        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded-xl"
       >
         {/* Status dot */}
         <div className="flex-none mt-1">
@@ -440,7 +440,7 @@ function IncidentCard({ incident }: { incident: Incident }) {
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-label={`Incident: ${incident.title}`}
-        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl"
+        className="w-full flex items-start gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded-xl"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -496,6 +496,7 @@ export default function SystemHealth() {
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [statusMessage, setStatusMessage] = useState("");
 
   // Simulated live refresh every 30s
   useEffect(() => {
@@ -518,6 +519,7 @@ export default function SystemHealth() {
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
+    setStatusMessage("Refreshing service status…");
     setTimeout(() => {
       setServices((prev) =>
         prev.map((s) => ({
@@ -528,6 +530,7 @@ export default function SystemHealth() {
       );
       setLastRefresh(new Date());
       setRefreshing(false);
+      setStatusMessage("Service status updated.");
     }, 600);
   }, []);
 
@@ -545,7 +548,18 @@ export default function SystemHealth() {
   const resolvedIncidents = INCIDENTS.filter((i) => !!i.resolvedAt);
 
   return (
-    <div className="flex flex-col h-full bg-surface-0 overflow-y-auto">
+    <>
+      {/* Skip link */}
+      <a
+        href="#system-health-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      {/* Live status announcer */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{statusMessage}</div>
+
+      <main id="system-health-main" className="flex flex-col h-full bg-surface-0 overflow-y-auto">
       {/* Header */}
       <div className="flex-none px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border">
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -562,7 +576,7 @@ export default function SystemHealth() {
               disabled={refreshing}
               aria-label="Refresh service status"
               className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-surface-2 text-fg-primary hover:bg-surface-3 hover:text-fg-primary border border-tok-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors",
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-surface-2 text-fg-primary hover:bg-surface-3 hover:text-fg-primary border border-tok-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors",
                 refreshing && "opacity-50 cursor-not-allowed"
               )}
             >
@@ -623,9 +637,9 @@ export default function SystemHealth() {
                   aria-selected={categoryFilter === cat}
                   onClick={() => setCategoryFilter(cat)}
                   className={cn(
-                    "px-2.5 py-1 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                     categoryFilter === cat
-                      ? "bg-indigo-600 text-fg-primary"
+                      ? "bg-violet-600 text-fg-primary"
                       : "text-fg-secondary hover:text-fg-primary hover:bg-surface-2"
                   )}
                 >
@@ -634,7 +648,7 @@ export default function SystemHealth() {
               ))}
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2" aria-live="polite" aria-label="Service status list">
             {filteredServices.length === 0 ? (
               <ContextualEmptyState
                 icon={HeartPulse}
@@ -660,6 +674,7 @@ export default function SystemHealth() {
           </section>
         )}
       </div>
-    </div>
+    </main>
+    </>
   );
 }
