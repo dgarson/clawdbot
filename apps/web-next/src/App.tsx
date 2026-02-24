@@ -1451,7 +1451,7 @@ function AppContent() {
       case "cron":          return <CronScheduleBuilder />;
       case "skills":        return <SkillsMarketplace />;
       case "skill-builder": return <SkillBuilderEditor />;
-      case "sessions":      return <SessionExplorer />;
+      case "sessions":      return <SessionExplorer navigate={navigate} />;
       case "config-review": return <AgentConfigReview />;
       case "settings":      return <SettingsDashboard />;
       case "nodes":         return <NodeManager />;
@@ -1823,7 +1823,7 @@ function AppContent() {
                         onClick={() => navigate(item.id)}
                         className={cn(
                           "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                          activeView === item.id ? "bg-primary/10 text-primary border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                          activeView === item.id ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                         )}
                         aria-current={activeView === item.id ? "page" : undefined}
                         title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
@@ -1857,7 +1857,7 @@ function AppContent() {
                 onClick={() => navigate(item.id)}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                  activeView === item.id ? "bg-primary/10 text-primary border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  activeView === item.id ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
                 aria-current={activeView === item.id ? "page" : undefined}
                 title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
@@ -2032,7 +2032,7 @@ function AppContent() {
                       className={cn(
                         "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
                         activeView === item.id
-                          ? "bg-primary/10 text-primary border-r-2 border-primary"
+                          ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                       )}
                       aria-current={activeView === item.id ? "page" : undefined}
@@ -2051,7 +2051,7 @@ function AppContent() {
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
                     activeView === item.id
-                      ? "bg-primary/10 text-primary border-r-2 border-primary"
+                      ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   )}
                   aria-current={activeView === item.id ? "page" : undefined}

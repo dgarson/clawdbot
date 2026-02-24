@@ -357,6 +357,24 @@ function formatCost(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
+function tokenColorClass(total: number): string {
+  if (total === 0) return 'text-red-400';
+  if (total >= 160000) return 'text-red-400';
+  if (total >= 100000) return 'text-orange-400';
+  if (total >= 50000) return 'text-amber-400';
+  if (total >= 10000) return 'text-blue-400';
+  return 'text-green-400';
+}
+
+function costColorClass(cost: number): string {
+  if (cost > 5) return 'text-red-400';
+  if (cost > 2) return 'text-orange-400';
+  if (cost > 1) return 'text-amber-400';
+  if (cost > 0.5) return 'text-blue-400';
+  if (cost > 0.2) return 'text-[var(--color-text-primary)]';
+  return 'text-green-400';
+}
+
 function formatPercent(n: number): string {
   return `${n.toFixed(1)}%`;
 }
@@ -424,7 +442,7 @@ function KpiCard({ title, value, sub, trendLabel, trendUp, valueClass = "text-[v
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-2">
       <span className="text-[var(--color-text-secondary)] text-sm font-medium">{title}</span>
-      <span className={cn("text-3xl font-bold tracking-tight", valueClass)}>{value}</span>
+      <span className={cn("text-3xl font-bold tracking-tight select-none", valueClass)}>{value}</span>
       {sub && <span className="text-[var(--color-text-muted)] text-xs">{sub}</span>}
       {trendLabel && (
         <span className={cn("text-xs font-medium", trendUp ? "text-emerald-400" : "text-rose-400")}>
@@ -534,6 +552,7 @@ function OverviewTab() {
           sub="Last 30 days"
           trendLabel="8.3% vs prior period"
           trendUp={true}
+          valueClass={tokenColorClass(totalTokens)}
         />
         <KpiCard
           title="Total Cost"
@@ -541,7 +560,7 @@ function OverviewTab() {
           sub={`${AGENTS.length} active agents`}
           trendLabel="5.1% vs prior period"
           trendUp={false}
-          valueClass="text-amber-400"
+          valueClass={costColorClass(totalCost)}
         />
         <KpiCard
           title="Avg Tokens / Session"
@@ -654,7 +673,7 @@ function OverviewTab() {
                 <div style={{ flex: 1 }}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[var(--color-text-primary)] text-sm font-medium">{agent.name}</span>
-                    <span className="text-[var(--color-text-secondary)] text-sm font-mono">{formatTokens(agent.totalTokens)}</span>
+                    <span className={cn("text-sm font-mono select-none", tokenColorClass(agent.totalTokens))}>{formatTokens(agent.totalTokens)}</span>
                   </div>
                   <div style={{ height: "4px", backgroundColor: "#27272a", borderRadius: "2px", overflow: "hidden" }}>
                     <div
@@ -667,7 +686,7 @@ function OverviewTab() {
                     />
                   </div>
                 </div>
-                <span className="text-[var(--color-text-muted)] text-xs font-mono" style={{ flexShrink: 0, width: "48px", textAlign: "right" }}>
+                <span className={cn("text-xs font-mono select-none", costColorClass(agent.cost))} style={{ flexShrink: 0, width: "48px", textAlign: "right" }}>
                   {formatCost(agent.cost)}
                 </span>
               </div>
@@ -835,11 +854,11 @@ function AnalysisTab() {
                     <span className="text-[var(--color-text-primary)] text-sm font-medium truncate">{agent.name}</span>
                   </div>
                   {/* Total Tokens */}
-                  <span className="text-[var(--color-text-primary)] text-sm font-mono">{formatTokens(agent.totalTokens)}</span>
+                  <span className={cn("text-sm font-mono select-none", tokenColorClass(agent.totalTokens))}>{formatTokens(agent.totalTokens)}</span>
                   {/* Sessions */}
                   <span className="text-[var(--color-text-secondary)] text-sm">{agent.sessions}</span>
                   {/* Avg / Session */}
-                  <span className="text-[var(--color-text-primary)] text-sm font-mono">{formatTokens(avgPS)}</span>
+                  <span className={cn("text-sm font-mono select-none", tokenColorClass(avgPS))}>{formatTokens(avgPS)}</span>
                   {/* Output Ratio */}
                   <div className="flex items-center gap-1.5">
                     <div style={{ width: "36px", height: "4px", backgroundColor: "#27272a", borderRadius: "2px", overflow: "hidden" }}>
@@ -864,7 +883,7 @@ function AnalysisTab() {
                     {formatPercent(agent.wastePercent)}
                   </span>
                   {/* Cost */}
-                  <span className="text-[var(--color-text-secondary)] text-sm font-mono">{formatCost(agent.cost)}</span>
+                  <span className={cn("text-sm font-mono select-none", costColorClass(agent.cost))}>{formatCost(agent.cost)}</span>
                   {/* Sparkline */}
                   <Sparkline data={agent.trend} barColor={getModelColor(agent.model)} height={24} />
                 </div>
@@ -881,11 +900,11 @@ function AnalysisTab() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
                       <div className="text-[var(--color-text-muted)] text-xs mb-1">Input Tokens</div>
-                      <div className="text-[var(--color-text-primary)] font-mono text-sm">{formatTokens(agent.inputTokens)}</div>
+                      <div className={cn("font-mono text-sm select-none", tokenColorClass(agent.inputTokens))}>{formatTokens(agent.inputTokens)}</div>
                     </div>
                     <div>
                       <div className="text-[var(--color-text-muted)] text-xs mb-1">Output Tokens</div>
-                      <div className="text-[var(--color-text-primary)] font-mono text-sm">{formatTokens(agent.outputTokens)}</div>
+                      <div className={cn("font-mono text-sm select-none", tokenColorClass(agent.outputTokens))}>{formatTokens(agent.outputTokens)}</div>
                     </div>
                     <div>
                       <div className="text-[var(--color-text-muted)] text-xs mb-1">Model</div>
@@ -1185,12 +1204,13 @@ function BudgetTab() {
           title="Total Budget"
           value={formatCost(totalBudget)}
           sub="All agents, current period"
+          valueClass={costColorClass(totalBudget)}
         />
         <KpiCard
           title="Total Actual Spend"
           value={formatCost(totalActual)}
           sub={`${formatPercent(budgetUtilPct)} of total budget utilized`}
-          valueClass={budgetUtilPct > 90 ? "text-rose-400" : budgetUtilPct > 75 ? "text-amber-400" : "text-emerald-400"}
+          valueClass={costColorClass(totalActual)}
         />
         <KpiCard
           title="Remaining Budget"

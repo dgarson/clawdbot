@@ -194,6 +194,24 @@ function formatTokens(value: number): string {
   return value.toString();
 }
 
+function tokenColorClass(total: number): string {
+  if (total === 0) return 'text-red-400';
+  if (total >= 160000) return 'text-red-400';
+  if (total >= 100000) return 'text-orange-400';
+  if (total >= 50000) return 'text-amber-400';
+  if (total >= 10000) return 'text-blue-400';
+  return 'text-green-400';
+}
+
+function costColorClass(cost: number): string {
+  if (cost > 5) return 'text-red-400';
+  if (cost > 2) return 'text-orange-400';
+  if (cost > 1) return 'text-amber-400';
+  if (cost > 0.5) return 'text-blue-400';
+  if (cost > 0.2) return 'text-[var(--color-text-primary)]';
+  return 'text-green-400';
+}
+
 function getGaugeColor(percentage: number): string {
   if (percentage < 50) {return 'bg-green-500';}
   if (percentage < 75) {return 'bg-amber-500';}
@@ -303,7 +321,7 @@ function RateLimitPanel({ limit }: { limit: RateLimit }) {
         <div className={cn('h-full', color)} style={{ width: `${percentage}%` }} />
       </div>
       <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
-        <span>{formatTokens(limit.quotaUsed)} / {formatTokens(limit.quotaTotal)}</span>
+        <span className="select-none"><span className={tokenColorClass(limit.quotaUsed)}>{formatTokens(limit.quotaUsed)}</span> / {formatTokens(limit.quotaTotal)}</span>
         <span>Reset {limit.resetTime}</span>
       </div>
     </div>
@@ -356,7 +374,7 @@ function HeaderSection({
       <div className="text-center">
         <BudgetGauge spend={budget.currentSpend} budget={budget.totalBudget} />
         <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-          {formatCurrency(budget.currentSpend)} / {formatCurrency(budget.totalBudget)}
+          <span className={cn('select-none', costColorClass(budget.currentSpend))}>{formatCurrency(budget.currentSpend)}</span> / {formatCurrency(budget.totalBudget)}
         </p>
         <p className="text-xs text-[var(--color-text-muted)]">{formatPercentage(percentage)} used</p>
       </div>
@@ -401,12 +419,12 @@ function BreakdownSection({
                 {'emoji' in item && <span>{item.emoji}</span>}
                 <span className="font-medium text-[var(--color-text-primary)]">{item.name}</span>
               </span>
-              <span className="text-[var(--color-text-secondary)]">{formatCurrency(item.cost)} ({formatPercentage(item.percentage)})</span>
+              <span className="select-none"><span className={costColorClass(item.cost)}>{formatCurrency(item.cost)}</span> <span className="text-[var(--color-text-secondary)]">({formatPercentage(item.percentage)})</span></span>
             </div>
             <SpendBar value={item.cost} max={maxCost} color="bg-violet-500" />
             <div className="text-xs text-[var(--color-text-muted)] flex justify-between">
-              <span>In: {formatTokens(item.tokensIn)}</span>
-              <span>Out: {formatTokens(item.tokensOut)}</span>
+              <span className={cn('select-none', tokenColorClass(item.tokensIn))}>In: {formatTokens(item.tokensIn)}</span>
+              <span className={cn('select-none', tokenColorClass(item.tokensOut))}>Out: {formatTokens(item.tokensOut)}</span>
               {isAgent && <span>Tasks: { (item as AgentSpend).tasks }</span>}
             </div>
           </div>
@@ -499,9 +517,9 @@ function EfficiencyTable({ agents }: { agents: AgentSpend[] }) {
                 <span>{agent.emoji}</span>
                 <span>{agent.name}</span>
               </td>
-              <td className="py-2">{formatCurrency(agent.costPerTask)}</td>
+              <td className={cn("py-2 select-none", costColorClass(agent.costPerTask))}>{formatCurrency(agent.costPerTask)}</td>
               <td className="py-2">{agent.tasks}</td>
-              <td className="py-2">{formatCurrency(agent.cost)}</td>
+              <td className={cn("py-2 select-none", costColorClass(agent.cost))}>{formatCurrency(agent.cost)}</td>
             </tr>
           ))}
         </tbody>

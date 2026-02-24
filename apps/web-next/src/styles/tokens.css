@@ -126,3 +126,15 @@
 .animate-slide-in {
   transition: none;
 }
+
+/* Prevent text-selection cursors on non-input elements */
+button,
+[role="button"],
+[role="tab"],
+[role="option"],
+[role="dialog"],
+[role="listbox"],
+summary,
+.select-none {
+  user-select: none;
+}

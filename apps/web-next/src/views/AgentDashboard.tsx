@@ -31,6 +31,24 @@ interface ActivityItem {
   actionable?: boolean;
 }
 
+function tokenColorClass(total: number): string {
+  if (total === 0) return 'text-red-400';
+  if (total >= 160000) return 'text-red-400';
+  if (total >= 100000) return 'text-orange-400';
+  if (total >= 50000) return 'text-amber-400';
+  if (total >= 10000) return 'text-blue-400';
+  return 'text-green-400';
+}
+
+function costColorClass(cost: number): string {
+  if (cost > 5) return 'text-red-400';
+  if (cost > 2) return 'text-orange-400';
+  if (cost > 1) return 'text-amber-400';
+  if (cost > 0.5) return 'text-blue-400';
+  if (cost > 0.2) return 'text-[var(--color-text-primary)]';
+  return 'text-green-400';
+}
+
 function StatusBadge({ variant, pulse }: { variant: StatusBadgeVariant; pulse?: boolean }) {
   const colors: Record<StatusBadgeVariant, string> = {
     active: 'bg-green-500',
@@ -99,6 +117,7 @@ function DetailCard({
   icon,
   onOpen,
   density,
+  valueClassName,
 }: {
   title: string;
   value: string;
@@ -106,6 +125,7 @@ function DetailCard({
   icon: string;
   onOpen: () => void;
   density: ViewDensity;
+  valueClassName?: string;
 }) {
   const isCompact = density === 'compact';
 
@@ -119,8 +139,8 @@ function DetailCard({
     >
       <div className={cn('flex items-center justify-between', isCompact ? 'gap-2' : 'gap-3')}>
         <div>
-          <p className={cn('uppercase tracking-wide text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>{title}</p>
-          <p className={cn('font-semibold text-foreground', isCompact ? 'text-lg' : 'mt-1 text-2xl')}>{value}</p>
+          <p className={cn('select-none uppercase tracking-wide text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>{title}</p>
+          <p className={cn('select-none font-semibold', valueClassName || 'text-foreground', isCompact ? 'text-lg' : 'mt-1 text-2xl')}>{value}</p>
           {!isCompact && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {!isCompact && (
@@ -317,7 +337,7 @@ export default function AgentDashboard() {
           <DetailCard title="Sessions Today" value={String(sessionsToday)} subtitle={showComparisons ? '↑ 14% from prior window' : 'Review active and recent conversations'} icon="💬" onOpen={() => setPanel('sessions')} density={viewDensity} />
           {/* Hide cost card in Builder lens */}
           {focusMode !== 'builder' && (
-            <DetailCard title="Daily Cost" value={`$${dailyCost.toFixed(2)}`} subtitle={showComparisons ? '↓ 6% with same output' : 'See spend breakdown and anomaly risk'} icon="💰" onOpen={() => setPanel('cost')} density={viewDensity} />
+            <DetailCard title="Daily Cost" value={`$${dailyCost.toFixed(2)}`} subtitle={showComparisons ? '↓ 6% with same output' : 'See spend breakdown and anomaly risk'} icon="💰" onOpen={() => setPanel('cost')} density={viewDensity} valueClassName={costColorClass(dailyCost)} />
           )}
           {/* Builder lens: code-related stats instead of cost */}
           {focusMode === 'builder' && (
@@ -330,20 +350,20 @@ export default function AgentDashboard() {
       {showOverview && focusMode === 'operator' && (
         <div className={cn('grid grid-cols-2 gap-2 rounded-lg border border-border bg-card sm:grid-cols-4', isCompact ? 'p-2' : 'p-3')}>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>{activeAgents}</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Active sessions</p>
+            <p className={cn('select-none font-mono font-bold text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>{activeAgents}</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Active sessions</p>
           </div>
           <div className="text-center">
-            <p className={cn('font-mono font-bold', errorCount > 0 ? 'text-red-400' : 'text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>{errorCount}</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Errors</p>
+            <p className={cn('select-none font-mono font-bold', errorCount > 0 ? 'text-red-400' : 'text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>{errorCount}</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Errors</p>
           </div>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{(totalTokensBurned / 1000).toFixed(0)}k</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tokens burned</p>
+            <p className={cn('select-none font-mono font-bold', tokenColorClass(totalTokensBurned), isCompact ? 'text-lg' : 'text-2xl')}>{(totalTokensBurned / 1000).toFixed(0)}k</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tokens burned</p>
           </div>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>12ms</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Gateway latency</p>
+            <p className={cn('select-none font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>12ms</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Gateway latency</p>
           </div>
         </div>
       )}
@@ -358,16 +378,16 @@ export default function AgentDashboard() {
             </div>
             <div className="flex gap-4">
               <div className="text-right">
-                <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-sm' : 'text-lg')}>${dailyCost.toFixed(2)}</p>
-                <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Today</p>
+                <p className={cn('select-none font-mono font-bold', costColorClass(dailyCost), isCompact ? 'text-sm' : 'text-lg')}>${dailyCost.toFixed(2)}</p>
+                <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Today</p>
               </div>
               <div className="text-right">
-                <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-sm' : 'text-lg')}>$47.82</p>
-                <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>This month</p>
+                <p className={cn('select-none font-mono font-bold', costColorClass(47.82), isCompact ? 'text-sm' : 'text-lg')}>$47.82</p>
+                <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>This month</p>
               </div>
               <div className="text-right">
-                <p className={cn('font-mono font-bold text-green-400', isCompact ? 'text-sm' : 'text-lg')}>62%</p>
-                <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Budget remaining</p>
+                <p className={cn('select-none font-mono font-bold text-green-400', isCompact ? 'text-sm' : 'text-lg')}>62%</p>
+                <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Budget remaining</p>
               </div>
             </div>
           </div>
@@ -378,20 +398,20 @@ export default function AgentDashboard() {
       {showOverview && focusMode === 'builder' && (
         <div className={cn('grid grid-cols-2 gap-2 rounded-lg border border-border bg-card sm:grid-cols-4', isCompact ? 'p-2' : 'p-3')}>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>47</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Files changed</p>
+            <p className={cn('select-none font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>47</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Files changed</p>
           </div>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>42/42</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tests passing</p>
+            <p className={cn('select-none font-mono font-bold text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>42/42</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tests passing</p>
           </div>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{toolCallCount}</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tool calls</p>
+            <p className={cn('select-none font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{toolCallCount}</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tool calls</p>
           </div>
           <div className="text-center">
-            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{runningAgents.length}</p>
-            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Active agents</p>
+            <p className={cn('select-none font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{runningAgents.length}</p>
+            <p className={cn('select-none text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Active agents</p>
           </div>
         </div>
       )}
@@ -698,7 +718,7 @@ export default function AgentDashboard() {
         {panel === 'cost' && MOCK_SESSIONS.slice(0, 8).map((session) => (
           <div key={session.key} className="rounded-lg border border-border bg-secondary/20 p-3">
             <p className="text-sm font-medium text-foreground">{session.label || session.key}</p>
-            <p className="text-xs text-muted-foreground">Cost ${session.cost?.toFixed(2) || '0.00'} · {(session.tokenUsage?.total || 0).toLocaleString()} tokens</p>
+            <p className="text-xs text-muted-foreground">Cost <span className={cn('select-none', costColorClass(session.cost ?? 0))}>${session.cost?.toFixed(2) || '0.00'}</span> · <span className={cn('select-none', tokenColorClass(session.tokenUsage?.total || 0))}>{(session.tokenUsage?.total || 0).toLocaleString()}</span> tokens</p>
           </div>
         ))}
         {panel === 'gateway' && (

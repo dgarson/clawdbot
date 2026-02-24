@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Eye, RotateCcw, Trash2, X, Clock, MessageSquare, Coins, Cpu } from 'lucide-react';
+import { Search, Eye, RotateCcw, Trash2, X, Clock, MessageSquare, Coins, Cpu, ExternalLink } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MOCK_SESSIONS, formatRelativeTime, MOCK_AGENTS } from '../mock-data';
 import type { Session, SessionStatus } from '../types';
@@ -17,7 +17,43 @@ function truncateKey(key: string): string {
   return `${key.slice(0, 12)}...${key.slice(-9)}`;
 }
 
-export default function SessionExplorer() {
+function TokenIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={cn('w-4 h-4', className)} aria-hidden="true">
+      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 4v8M6 6h4M6 10h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BurnRateIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={cn('w-4 h-4', className)} aria-hidden="true">
+      <path d="M8 2C8 2 3 7 3 10a5 5 0 0 0 10 0c0-3-5-8-5-8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8 7c0 0-2 2-2 3.5a2 2 0 0 0 4 0C10 9 8 7 8 7Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function tokenColorClass(total: number): string {
+  if (total === 0) return 'bg-red-600/15 text-red-400 border-red-600/30';
+  if (total >= 160000) return 'bg-red-600/15 text-red-400 border-red-600/30';
+  if (total >= 100000) return 'bg-orange-600/15 text-orange-400 border-orange-600/30';
+  if (total >= 50000) return 'bg-amber-600/15 text-amber-400 border-amber-600/30';
+  if (total >= 10000) return 'bg-blue-600/15 text-blue-400 border-blue-600/30';
+  return 'bg-green-600/15 text-green-400 border-green-600/30';
+}
+
+function costColorClass(cost: number): string {
+  if (cost > 5) return 'text-red-400';
+  if (cost > 2) return 'text-orange-400';
+  if (cost > 1) return 'text-amber-400';
+  if (cost > 0.5) return 'text-blue-400';
+  if (cost > 0.2) return 'text-[var(--color-text-primary)]';
+  return 'text-green-400';
+}
+
+export default function SessionExplorer({ navigate }: { navigate?: (viewId: string) => void }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,8 +84,10 @@ export default function SessionExplorer() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold">Sessions</h1>
-          <span className="text-[var(--color-text-secondary)]">{totalCount} total</span>
-          <span className="bg-green-600 text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded-full">
+          <span className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs px-2.5 py-0.5 rounded-full">
+            {totalCount} total
+          </span>
+          <span className="bg-green-600/15 text-green-400 text-xs px-2.5 py-0.5 rounded-full border border-green-600/30">
             {activeCount} active
           </span>
         </div>
@@ -146,20 +184,41 @@ export default function SessionExplorer() {
                     <td className="px-4 py-3">
                       <StatusBadge status={session.status} />
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-[var(--color-text-primary)]">
-                      {session.messageCount}
+                    <td className="px-4 py-3 text-right">
+                      <span className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-primary)]">
+                        <MessageSquare className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+                        {session.messageCount}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-[var(--color-text-primary)]">
-                      {session.tokenUsage ? formatTokens(session.tokenUsage.total) : '—'}
+                    <td className="px-4 py-3 text-right">
+                      {session.tokenUsage ? (
+                        <span className={cn('inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full border font-medium', tokenColorClass(session.tokenUsage.total))}>
+                          <TokenIcon className="w-3 h-3" />
+                          {formatTokens(session.tokenUsage.total)}
+                        </span>
+                      ) : <span className="text-sm text-[var(--color-text-muted)]">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-[var(--color-text-primary)]">
-                      {session.cost !== undefined ? `$${session.cost.toFixed(2)}` : '—'}
+                    <td className="px-4 py-3 text-right">
+                      {session.cost !== undefined ? (
+                        <span className={cn('text-sm font-medium', costColorClass(session.cost))}>
+                          ${session.cost.toFixed(2)}
+                        </span>
+                      ) : <span className="text-sm text-[var(--color-text-muted)]">—</span>}
                     </td>
                     <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">
                       {formatRelativeTime(session.lastActivity)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1">
+                        {navigate && (
+                          <button
+                            onClick={() => navigate(`agent-session:${session.agentId}:${session.key}`)}
+                            className="p-1.5 hover:bg-[var(--color-surface-3)] rounded-md text-[var(--color-text-secondary)] hover:text-violet-400 transition-colors"
+                            title="Open Agent Session"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => setSelectedSession(session)}
                           className="p-1.5 hover:bg-[var(--color-surface-3)] rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
@@ -200,6 +259,7 @@ export default function SessionExplorer() {
         <SessionDetailPanel
           session={selectedSession}
           onClose={() => setSelectedSession(null)}
+          navigate={navigate}
         />
       )}
     </div>
@@ -232,9 +292,10 @@ function StatusBadge({ status }: { status: SessionStatus }) {
 interface SessionDetailPanelProps {
   session: Session;
   onClose: () => void;
+  navigate?: (viewId: string) => void;
 }
 
-function SessionDetailPanel({ session, onClose }: SessionDetailPanelProps) {
+function SessionDetailPanel({ session, onClose, navigate }: SessionDetailPanelProps) {
   return (
     <>
       {/* Backdrop */}
@@ -312,8 +373,12 @@ function SessionDetailPanel({ session, onClose }: SessionDetailPanelProps) {
                   <span>{formatTokens(session.tokenUsage.output)}</span>
                 </div>
                 <div className="flex justify-between text-sm pt-2 border-t border-[var(--color-border)]">
-                  <span className="text-[var(--color-text-primary)]">Total</span>
-                  <span className="font-medium">{formatTokens(session.tokenUsage.total)}</span>
+                  <span className="text-[var(--color-text-primary)] flex items-center gap-2">
+                    <TokenIcon className="w-3 h-3" /> Total
+                  </span>
+                  <span className={cn('inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full border font-medium', tokenColorClass(session.tokenUsage.total))}>
+                    {formatTokens(session.tokenUsage.total)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -335,6 +400,17 @@ function SessionDetailPanel({ session, onClose }: SessionDetailPanelProps) {
               />
             </div>
           </div>
+
+          {/* Open Session */}
+          {navigate && (
+            <button
+              onClick={() => navigate(`agent-session:${session.agentId}:${session.key}`)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors mb-4 font-medium"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open Agent Session
+            </button>
+          )}
 
           {/* Danger Buttons */}
           <div className="pt-4 border-t border-[var(--color-border)] space-y-2">

@@ -920,6 +920,13 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
     }
   }, [settings.markAllReadOnOpen]);
 
+  // Auto-select first notification on mount
+  useEffect(() => {
+    if (selectedId === null && notifs.length > 0) {
+      setSelectedId(notifs[0].id);
+    }
+  }, []); // Only on mount
+
   // Keyboard: Cmd+K → focus search; Escape → clear search; ?-key handled by App
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -1041,6 +1048,19 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
 
     return result;
   }, [filtered, expandedGroups]);
+
+  // Auto-select first visible notification when filter changes remove current selection
+  useEffect(() => {
+    if (selectedId !== null) {
+      const stillVisible = listable.some(
+        (item) => !isGrouped(item) && (item as Notification).id === selectedId
+      );
+      if (!stillVisible && listable.length > 0) {
+        const firstNotif = listable.find((item) => !isGrouped(item)) as Notification | undefined;
+        if (firstNotif) setSelectedId(firstNotif.id);
+      }
+    }
+  }, [listable, selectedId]);
 
   const unreadCount = notifs.filter((n) => !n.read).length;
   const selected = notifs.find((n) => n.id === selectedId) ?? null;

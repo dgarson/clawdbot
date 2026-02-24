@@ -350,6 +350,24 @@ const INITIAL_PROVIDERS: ModelProvider[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function tokenColorClass(total: number): string {
+  if (total === 0) return 'text-red-400';
+  if (total >= 160000) return 'text-red-400';
+  if (total >= 100000) return 'text-orange-400';
+  if (total >= 50000) return 'text-amber-400';
+  if (total >= 10000) return 'text-blue-400';
+  return 'text-green-400';
+}
+
+function costColorClass(cost: number): string {
+  if (cost > 5) return 'text-red-400';
+  if (cost > 2) return 'text-orange-400';
+  if (cost > 1) return 'text-amber-400';
+  if (cost > 0.5) return 'text-blue-400';
+  if (cost > 0.2) return 'text-[var(--color-text-primary)]';
+  return 'text-green-400';
+}
+
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
@@ -479,7 +497,7 @@ function BudgetGauge({ spent, total }: { spent: number; total: number }) {
         </div>
       </div>
       <div className="mt-2 text-center">
-        <div className="text-sm font-mono text-[var(--color-text-primary)]">{formatCurrency(spent)}</div>
+        <div className={cn("text-sm font-mono select-none", costColorClass(spent))}>{formatCurrency(spent)}</div>
         <div className="text-[10px] text-[var(--color-text-muted)]">of {formatCurrency(total)}</div>
       </div>
     </div>
@@ -502,7 +520,7 @@ function ModelSpendChart({ data }: { data: { model: string; spend: number }[] })
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <span className="w-14 text-right text-[var(--color-text-primary)] font-mono text-[11px]">{formatCurrency(d.spend)}</span>
+            <span className={cn("w-14 text-right font-mono text-[11px] select-none", costColorClass(d.spend))}>{formatCurrency(d.spend)}</span>
           </div>
         );
       })}
@@ -753,7 +771,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 icon={<Hash className="w-3 h-3" />}
                 label="Tokens"
                 value={formatTokens(totalTokensToday)}
-                colorClass="text-blue-400"
+                colorClass={tokenColorClass(totalTokensToday)}
               />
               <StatusPill
                 icon={<Flame className="w-3 h-3" />}
@@ -859,7 +877,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                         <span className={cn("font-mono text-[10px] font-semibold", statusCfg.textClass)}>{statusCfg.label}</span>
                       </span>
                       <span className="font-mono text-[var(--color-text-secondary)] truncate text-[11px]">{session.currentTool}</span>
-                      <span className="font-mono text-[var(--color-text-secondary)] text-[11px]">
+                      <span className={cn("font-mono text-[11px] select-none", tokenColorClass(session.tokensIn + session.tokensOut))}>
                         {formatTokens(session.tokensIn)}/{formatTokens(session.tokensOut)}
                       </span>
                       <span className="font-mono text-[var(--color-text-secondary)] text-[11px]">{formatDuration(duration)}</span>
@@ -909,11 +927,11 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 border border-[var(--color-border)]">
                   <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">Tokens/min</div>
-                  <div className="text-lg font-bold font-mono text-[var(--color-text-primary)]">{tokensPerMin.toLocaleString()}</div>
+                  <div className={cn("text-lg font-bold font-mono select-none", tokenColorClass(tokensPerMin))}>{tokensPerMin.toLocaleString()}</div>
                 </div>
                 <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 border border-[var(--color-border)]">
                   <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">$/hr</div>
-                  <div className="text-lg font-bold font-mono text-[var(--color-text-primary)]">${dollarsPerHour}</div>
+                  <div className={cn("text-lg font-bold font-mono select-none", costColorClass(Number(dollarsPerHour)))}>${dollarsPerHour}</div>
                 </div>
               </div>
 

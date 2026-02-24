@@ -18,6 +18,24 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function tokenColorClass(total: number): string {
+  if (total === 0) return 'text-red-400';
+  if (total >= 160000) return 'text-red-400';
+  if (total >= 100000) return 'text-orange-400';
+  if (total >= 50000) return 'text-amber-400';
+  if (total >= 10000) return 'text-blue-400';
+  return 'text-green-400';
+}
+
+function costColorClass(cost: number): string {
+  if (cost > 5) return 'text-red-400';
+  if (cost > 2) return 'text-orange-400';
+  if (cost > 1) return 'text-amber-400';
+  if (cost > 0.5) return 'text-blue-400';
+  if (cost > 0.2) return 'text-[var(--color-text-primary)]';
+  return 'text-green-400';
+}
+
 function UsageDashboardSkeleton() {
   return (
     <div className="bg-surface-0 min-h-screen p-3 sm:p-4 md:p-6 text-fg-primary">
@@ -144,12 +162,14 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
             label="Total Tokens"
             value={formatTokens(usage.totalTokens)}
             color="violet"
+            valueClassName={tokenColorClass(usage.totalTokens)}
           />
           <SummaryCard
             icon={<DollarSign className="w-5 h-5" aria-hidden="true" />}
             label="Total Cost"
             value={`$${usage.totalCost.toFixed(2)}`}
             color="green"
+            valueClassName={costColorClass(usage.totalCost)}
           />
           <SummaryCard
             icon={<BarChart3 className="w-5 h-5" aria-hidden="true" />}
@@ -162,6 +182,7 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
             label="Avg Cost/Request"
             value={`$${avgCostPerRequest}`}
             color="yellow"
+            valueClassName={costColorClass(Number(avgCostPerRequest))}
           />
         </section>
 
@@ -201,8 +222,8 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
                     {isHovered && (
                       <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-surface-2 border border-tok-border rounded-lg px-2 py-1 z-10 whitespace-nowrap text-xs" role="tooltip">
                         <div className="font-medium">{formatDate(day.date)}</div>
-                        <div className="text-fg-secondary">{formatTokens(day.tokens)} tokens</div>
-                        <div className="text-green-400">${day.cost.toFixed(2)}</div>
+                        <div className={cn('select-none', tokenColorClass(day.tokens))}>{formatTokens(day.tokens)} tokens</div>
+                        <div className={cn('select-none', costColorClass(day.cost))}>${day.cost.toFixed(2)}</div>
                       </div>
                     )}
 
@@ -248,8 +269,8 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
                   <div key={model}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-fg-secondary font-mono text-xs">{model}</span>
-                      <span className="text-fg-secondary">
-                        {formatTokens(data.tokens)} · ${data.cost.toFixed(2)}
+                      <span className="text-fg-secondary select-none">
+                        <span className={tokenColorClass(data.tokens)}>{formatTokens(data.tokens)}</span> · <span className={costColorClass(data.cost)}>${data.cost.toFixed(2)}</span>
                       </span>
                     </div>
                     <div className="h-3 bg-surface-2 rounded-full overflow-hidden" role="img" aria-label={`${model}: ${Math.round(barWidth)}% of peak usage`}>
@@ -279,8 +300,8 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
                       <span className="text-fg-secondary flex items-center gap-2">
                         <span aria-hidden="true">{agentInfo?.emoji}</span> {agent}
                       </span>
-                      <span className="text-fg-secondary">
-                        {formatTokens(data.tokens)} · ${data.cost.toFixed(2)}
+                      <span className="text-fg-secondary select-none">
+                        <span className={tokenColorClass(data.tokens)}>{formatTokens(data.tokens)}</span> · <span className={costColorClass(data.cost)}>${data.cost.toFixed(2)}</span>
                       </span>
                     </div>
                     <div className="h-3 bg-surface-2 rounded-full overflow-hidden" role="img" aria-label={`${agent}: ${Math.round(barWidth)}% of peak usage`}>
@@ -335,10 +356,10 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
                         <span>{session.agentName}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm">
+                    <td className={cn('px-4 py-3 text-right text-sm select-none', session.tokenUsage ? tokenColorClass(session.tokenUsage.total) : '')}>
                       {session.tokenUsage ? formatTokens(session.tokenUsage.total) : '—'}
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-green-400">
+                    <td className={cn('px-4 py-3 text-right text-sm select-none', costColorClass(session.cost ?? 0))}>
                       ${session.cost?.toFixed(2) || '0.00'}
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-fg-secondary">
@@ -355,10 +376,10 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
               <tr className="bg-surface-2/30 font-medium">
                 <td className="px-4 py-3 text-fg-secondary">Total (Top 5)</td>
                 <td className="px-4 py-3">—</td>
-                <td className="px-4 py-3 text-right">
+                <td className={cn('px-4 py-3 text-right select-none', tokenColorClass(topSessions.reduce((sum, s) => sum + (s.tokenUsage?.total || 0), 0)))}>
                   {formatTokens(topSessions.reduce((sum, s) => sum + (s.tokenUsage?.total || 0), 0))}
                 </td>
-                <td className="px-4 py-3 text-right text-green-400">
+                <td className={cn('px-4 py-3 text-right select-none', costColorClass(topSessions.reduce((sum, s) => sum + (s.cost || 0), 0)))}>
                   ${topSessions.reduce((sum, s) => sum + (s.cost || 0), 0).toFixed(2)}
                 </td>
                 <td className="px-4 py-3 text-right text-fg-secondary">—</td>
@@ -376,9 +397,10 @@ interface SummaryCardProps {
   label: string;
   value: string;
   color: 'violet' | 'green' | 'blue' | 'yellow';
+  valueClassName?: string;
 }
 
-function SummaryCard({ icon, label, value, color }: SummaryCardProps) {
+function SummaryCard({ icon, label, value, color, valueClassName }: SummaryCardProps) {
   const colorClasses = {
     violet: 'bg-violet-600/10 text-violet-400 border-violet-600/30',
     green: 'bg-green-600/10 text-green-400 border-green-600/30',
@@ -394,7 +416,7 @@ function SummaryCard({ icon, label, value, color }: SummaryCardProps) {
         </div>
         <span className="text-sm text-fg-secondary">{label}</span>
       </div>
-      <div className="text-2xl font-bold">{value}</div>
+      <div className={cn('text-2xl font-bold select-none', valueClassName)}>{value}</div>
     </div>
   );
 }
