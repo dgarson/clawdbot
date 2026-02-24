@@ -301,9 +301,17 @@ const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeAp
 const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
 const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
+const OperatorCommandCenter         = React.lazy(() => import("./views/OperatorCommandCenter"));
+const RealtimeEventTail             = React.lazy(() => import("./views/RealtimeEventTail"));
+const BudgetGuardrailsCenter        = React.lazy(() => import("./views/BudgetGuardrailsCenter"));
+const RoutingSelfEvalWorkbench      = React.lazy(() => import("./views/RoutingSelfEvalWorkbench"));
 
 export const navItems = [
-  { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
+  { id: "operator-dashboard",  label: "Operator Command Center", emoji: "🧭", shortcut: "1" },
+  { id: "event-tail",          label: "Realtime Event Tail",     emoji: "🧵", shortcut: null },
+  { id: "budget-guardrails",   label: "Budget Guardrails",       emoji: "🛡️", shortcut: null },
+  { id: "routing-self-eval",   label: "Routing Self-Eval",       emoji: "🧠", shortcut: null },
+  { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: null },
   { id: "discovery-run-monitor",   label: "Discovery Monitor",    emoji: "🔭", shortcut: null },
   { id: "brave-api-wizard",        label: "Brave API Setup",      emoji: "🔑", shortcut: null },
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
@@ -577,6 +585,10 @@ export const navItems = [
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
+  "operator-dashboard": <DashboardSkeleton />,
+  "event-tail": <ContentSkeleton />,
+  "budget-guardrails": <DashboardSkeleton />,
+  "routing-self-eval": <ContentSkeleton />,
   dashboard:     <DashboardSkeleton />,
   chat:          <ChatSkeleton />,
   sessions:      <TableSkeleton rows={8} />,
@@ -900,8 +912,8 @@ export default function App() {
 }
 
 function AppContent() {
-  const [activeView, setActiveView] = useState("dashboard");
-  const [navHistory, setNavHistory] = useState<string[]>(["dashboard"]);
+  const [activeView, setActiveView] = useState("operator-dashboard");
+  const [navHistory, setNavHistory] = useState<string[]>(["operator-dashboard"]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -1066,6 +1078,10 @@ function AppContent() {
 
   const renderView = () => {
     switch (activeView) {
+      case "operator-dashboard": return <OperatorCommandCenter />;
+      case "event-tail": return <RealtimeEventTail />;
+      case "budget-guardrails": return <BudgetGuardrailsCenter />;
+      case "routing-self-eval": return <RoutingSelfEvalWorkbench />;
       case "morning-packet": return <MorningPacket />;
       case "discovery-run-monitor":   return <DiscoveryRunMonitor />;
       case "brave-api-wizard":        return <BraveAPIKeySetupWizard />;
