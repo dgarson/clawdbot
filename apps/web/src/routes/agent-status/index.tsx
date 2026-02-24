@@ -176,6 +176,7 @@ function AgentStatusDashboardPage() {
   // ── Auto-refresh "last activity" timestamps ─────────────────────
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
   React.useEffect(() => {
+    // eslint-disable-next-line typescript-eslint/no-implied-eval
     const timer = setInterval(forceUpdate, 5_000);
     return () => clearInterval(timer);
   }, []);

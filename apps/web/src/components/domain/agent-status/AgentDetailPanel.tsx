@@ -66,6 +66,7 @@ export function AgentDetailPanel({ agent, onClose, onNavigateToSession }: AgentD
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
   React.useEffect(() => {
     if (!agent) {return;}
+    // eslint-disable-next-line typescript-eslint/no-implied-eval
     const timer = setInterval(forceUpdate, 5_000);
     return () => clearInterval(timer);
   }, [agent]);

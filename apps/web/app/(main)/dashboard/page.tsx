@@ -1,12 +1,10 @@
 "use client";
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
-import { GuidedTooltip } from "@/components/adaptive/guided-tooltip";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
 import type {
   AgentsListResult,
@@ -17,7 +15,6 @@ import {
   Bot,
   MessageSquare,
   Clock,
-  DollarSign,
   Plus,
   Wifi,
   WifiOff,

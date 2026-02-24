@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-import { cn } from "@/lib/utils/cn";
 import { useGatewayStore } from "@/lib/stores/gateway";
 import { useProficiencyStore } from "@/lib/stores/proficiency";
 import { useUiStore } from "@/lib/stores/ui";

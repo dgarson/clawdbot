@@ -130,6 +130,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         action: () => {
           setWaitingForGoTo(true);
           // Clear after 1 second if no second key pressed
+          // eslint-disable-next-line typescript-eslint/no-implied-eval
           goToTimeoutRef.current = setTimeout(clearGoToState, 1000);
         },
         enabled: !waitingForGoTo,

@@ -23,6 +23,7 @@ function Alert({
   className,
   variant,
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   return (
     <div

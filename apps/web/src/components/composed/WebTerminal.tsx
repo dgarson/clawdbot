@@ -158,7 +158,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
           terminal.loadAddon(searchAddon);
           terminal.loadAddon(new ClipboardAddon());
 
-          terminal.open(containerRef.current!);
+          terminal.open(containerRef.current);
 
           terminalRef.current = terminal;
           fitRef.current = fitAddon;
@@ -172,7 +172,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
           });
 
           resizeObserverRef.current = new ResizeObserver(() => fit());
-          resizeObserverRef.current.observe(containerRef.current!);
+          resizeObserverRef.current.observe(containerRef.current);
           fit();
 
           if (welcomeMessage) {
