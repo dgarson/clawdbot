@@ -25,6 +25,7 @@ export type MsgContext = {
     sender: string;
     body: string;
     timestamp?: number;
+    messageId?: string;
   }>;
   /**
    * Raw message body without structural context (history, sender labels).
@@ -59,6 +60,13 @@ export type MsgContext = {
   ReplyToBody?: string;
   ReplyToSender?: string;
   ReplyToIsQuote?: boolean;
+  /** Forward origin from the reply target (when reply_to_message is a forwarded message). */
+  ReplyToForwardedFrom?: string;
+  ReplyToForwardedFromType?: string;
+  ReplyToForwardedFromId?: string;
+  ReplyToForwardedFromUsername?: string;
+  ReplyToForwardedFromTitle?: string;
+  ReplyToForwardedDate?: number;
   ForwardedFrom?: string;
   ForwardedFromType?: string;
   ForwardedFromId?: string;

@@ -94,7 +94,6 @@ export type DiagnosticApiUsageEvent = DiagnosticBaseEvent & {
   };
   error?: string;
 };
-
 export type DiagnosticWebhookReceivedEvent = DiagnosticBaseEvent & {
   type: "webhook.received";
   channel: string;

@@ -104,6 +104,17 @@ function makeRuntime() {
   };
 }
 
+function expectModelRegistryUnavailable(
+  runtime: ReturnType<typeof makeRuntime>,
+  expectedDetail: string,
+) {
+  expect(runtime.error).toHaveBeenCalledTimes(1);
+  expect(runtime.error.mock.calls[0]?.[0]).toContain("Model registry unavailable:");
+  expect(runtime.error.mock.calls[0]?.[0]).toContain(expectedDetail);
+  expect(runtime.log).not.toHaveBeenCalled();
+  expect(process.exitCode).toBe(1);
+}
+
 beforeEach(() => {
   previousExitCode = process.exitCode;
   process.exitCode = undefined;
@@ -260,6 +271,23 @@ describe("models list/status", () => {
     return parseJsonLog(runtime);
   }
 
+  const GOOGLE_ANTIGRAVITY_OPUS_46_CASES = [
+    {
+      name: "thinking",
+      configuredModelId: "claude-opus-4-6-thinking",
+      templateId: "claude-opus-4-5-thinking",
+      templateName: "Claude Opus 4.5 Thinking",
+      expectedKey: "google-antigravity/claude-opus-4-6-thinking",
+    },
+    {
+      name: "non-thinking",
+      configuredModelId: "claude-opus-4-6",
+      templateId: "claude-opus-4-5",
+      templateName: "Claude Opus 4.5",
+      expectedKey: "google-antigravity/claude-opus-4-6",
+    },
+  ] as const;
+
   function expectAntigravityModel(
     payload: Record<string, unknown>,
     params: { key: string; available: boolean; includesTags?: boolean },
@@ -329,22 +357,7 @@ describe("models list/status", () => {
     expect(payload.models[0]?.available).toBe(false);
   });
 
-  it.each([
-    {
-      name: "thinking",
-      configuredModelId: "claude-opus-4-6-thinking",
-      templateId: "claude-opus-4-5-thinking",
-      templateName: "Claude Opus 4.5 Thinking",
-      expectedKey: "google-antigravity/claude-opus-4-6-thinking",
-    },
-    {
-      name: "non-thinking",
-      configuredModelId: "claude-opus-4-6",
-      templateId: "claude-opus-4-5",
-      templateName: "Claude Opus 4.5",
-      expectedKey: "google-antigravity/claude-opus-4-6",
-    },
-  ] as const)(
+  it.each(GOOGLE_ANTIGRAVITY_OPUS_46_CASES)(
     "models list resolves antigravity opus 4.6 $name from 4.5 template",
     async ({ configuredModelId, templateId, templateName, expectedKey }) => {
       const payload = await runGoogleAntigravityListCase({
@@ -360,22 +373,7 @@ describe("models list/status", () => {
     },
   );
 
-  it.each([
-    {
-      name: "thinking",
-      configuredModelId: "claude-opus-4-6-thinking",
-      templateId: "claude-opus-4-5-thinking",
-      templateName: "Claude Opus 4.5 Thinking",
-      expectedKey: "google-antigravity/claude-opus-4-6-thinking",
-    },
-    {
-      name: "non-thinking",
-      configuredModelId: "claude-opus-4-6",
-      templateId: "claude-opus-4-5",
-      templateName: "Claude Opus 4.5",
-      expectedKey: "google-antigravity/claude-opus-4-6",
-    },
-  ] as const)(
+  it.each(GOOGLE_ANTIGRAVITY_OPUS_46_CASES)(
     "models list marks synthesized antigravity opus 4.6 $name as available when template is available",
     async ({ configuredModelId, templateId, templateName, expectedKey }) => {
       const payload = await runGoogleAntigravityListCase({
@@ -445,12 +443,8 @@ describe("models list/status", () => {
     const runtime = makeRuntime();
     await modelsListCommand({ json: true }, runtime);
 
-    expect(runtime.error).toHaveBeenCalledTimes(1);
-    expect(runtime.error.mock.calls[0]?.[0]).toContain("Model registry unavailable:");
-    expect(runtime.error.mock.calls[0]?.[0]).toContain("model discovery failed");
+    expectModelRegistryUnavailable(runtime, "model discovery failed");
     expect(runtime.error.mock.calls[0]?.[0]).not.toContain("configured models may appear missing");
-    expect(runtime.log).not.toHaveBeenCalled();
-    expect(process.exitCode).toBe(1);
   });
 
   it("models list fails fast when registry model discovery is unavailable", async () => {
@@ -465,11 +459,7 @@ describe("models list/status", () => {
     modelRegistryState.available = [];
     await modelsListCommand({ json: true }, runtime);
 
-    expect(runtime.error).toHaveBeenCalledTimes(1);
-    expect(runtime.error.mock.calls[0]?.[0]).toContain("Model registry unavailable:");
-    expect(runtime.error.mock.calls[0]?.[0]).toContain("model discovery unavailable");
-    expect(runtime.log).not.toHaveBeenCalled();
-    expect(process.exitCode).toBe(1);
+    expectModelRegistryUnavailable(runtime, "model discovery unavailable");
   });
 
   it("loadModelRegistry throws when model discovery is unavailable", async () => {

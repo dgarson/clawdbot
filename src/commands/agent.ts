@@ -160,11 +160,11 @@ function buildFallbackAttemptsForTrace(params: {
   fallbackModel: string;
 }): SessionModelSelectionTraceAttempt[] {
   const now = Date.now();
-  const mapped = params.attempts.map((attempt, index) => ({
+  const mapped: SessionModelSelectionTraceAttempt[] = params.attempts.map((attempt, index) => ({
     attempt: index + 1,
     provider: attempt.provider,
     model: attempt.model,
-    outcome: isCooldownSkipAttempt(attempt) ? "skipped" : ("failed" as const),
+    outcome: isCooldownSkipAttempt(attempt) ? "skipped" : "failed",
     reason: attempt.reason,
     status: attempt.status,
     code: attempt.code,
@@ -841,7 +841,8 @@ export async function agentCommand(
         ...modelSelectionTrace,
         active: { provider: fallbackProvider, model: fallbackModel },
         fallback: {
-          ...modelSelectionTrace.fallback,
+          enabled: modelSelectionTrace.fallback?.enabled ?? false,
+          configured: modelSelectionTrace.fallback?.configured,
           attempts: buildFallbackAttemptsForTrace({
             attempts: fallbackResult.attempts,
             fallbackProvider,

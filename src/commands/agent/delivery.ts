@@ -7,6 +7,7 @@ import {
   resolveAgentDeliveryPlan,
   resolveAgentOutboundTarget,
 } from "../../infra/outbound/agent-delivery.js";
+import { resolveMessageChannelSelection } from "../../infra/outbound/channel-selection.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { buildOutboundResultEnvelope } from "../../infra/outbound/envelope.js";
 import {
@@ -71,7 +72,23 @@ export async function deliverAgentCommandResult(params: {
     accountId: opts.replyAccountId ?? opts.accountId,
     wantsDelivery: deliver,
   });
-  const deliveryChannel = deliveryPlan.resolvedChannel;
+  let deliveryChannel = deliveryPlan.resolvedChannel;
+  const explicitChannelHint = (opts.replyChannel ?? opts.channel)?.trim();
+  if (deliver && isInternalMessageChannel(deliveryChannel) && !explicitChannelHint) {
+    try {
+      const selection = await resolveMessageChannelSelection({ cfg });
+      deliveryChannel = selection.channel;
+    } catch {
+      // Keep the internal channel marker; error handling below reports the failure.
+    }
+  }
+  const effectiveDeliveryPlan =
+    deliveryChannel === deliveryPlan.resolvedChannel
+      ? deliveryPlan
+      : {
+          ...deliveryPlan,
+          resolvedChannel: deliveryChannel,
+        };
   // Channel docking: delivery channels are resolved via plugin registry.
   const deliveryPlugin = !isInternalMessageChannel(deliveryChannel)
     ? getChannelPlugin(normalizeChannelId(deliveryChannel) ?? deliveryChannel)
@@ -82,20 +99,20 @@ export async function deliverAgentCommandResult(params: {
 
   const targetMode =
     opts.deliveryTargetMode ??
-    deliveryPlan.deliveryTargetMode ??
+    effectiveDeliveryPlan.deliveryTargetMode ??
     (opts.to ? "explicit" : "implicit");
-  const resolvedAccountId = deliveryPlan.resolvedAccountId;
+  const resolvedAccountId = effectiveDeliveryPlan.resolvedAccountId;
   const resolved =
     deliver && isDeliveryChannelKnown && deliveryChannel
       ? resolveAgentOutboundTarget({
           cfg,
-          plan: deliveryPlan,
+          plan: effectiveDeliveryPlan,
           targetMode,
           validateExplicitTarget: true,
         })
       : {
           resolvedTarget: null,
-          resolvedTo: deliveryPlan.resolvedTo,
+          resolvedTo: effectiveDeliveryPlan.resolvedTo,
           targetMode,
         };
   const resolvedTarget = resolved.resolvedTarget;
@@ -106,7 +123,10 @@ export async function deliverAgentCommandResult(params: {
   const resolvedThreadTarget = deliveryChannel === "slack" ? undefined : resolvedThreadId;
 
   const logDeliveryError = (err: unknown) => {
-    const message = `Delivery failed (${deliveryChannel}${deliveryTarget ? ` to ${deliveryTarget}` : ""}): ${String(err)}`;
+    const sessionCtx = opts.sessionKey ?? opts.sessionId;
+    const sessionHint = sessionCtx ? ` session=${sessionCtx}` : "";
+    const runHint = opts.runId ? ` run=${opts.runId}` : "";
+    const message = `Delivery failed (${deliveryChannel}${deliveryTarget ? ` to ${deliveryTarget}` : ""}${sessionHint}${runHint}): ${String(err)}`;
     runtime.error?.(message);
     if (!runtime.error) {
       runtime.log(message);
@@ -114,7 +134,15 @@ export async function deliverAgentCommandResult(params: {
   };
 
   if (deliver) {
-    if (!isDeliveryChannelKnown) {
+    if (isInternalMessageChannel(deliveryChannel)) {
+      const err = new Error(
+        "delivery channel is required: pass --channel/--reply-channel or use a main session with a previous channel",
+      );
+      if (!bestEffortDeliver) {
+        throw err;
+      }
+      logDeliveryError(err);
+    } else if (!isDeliveryChannelKnown) {
       const err = new Error(`Unknown channel: ${deliveryChannel}`);
       if (!bestEffortDeliver) {
         throw err;

@@ -205,12 +205,14 @@ export async function readSlackMessages(
 ): Promise<{ messages: SlackMessageSummary[]; hasMore: boolean }> {
   const client = await getClient(opts);
 
+  const limit = opts.limit ?? 20;
+
   // Use conversations.replies for thread messages, conversations.history for channel messages.
   if (opts.threadId) {
     const result = await client.conversations.replies({
       channel: channelId,
       ts: opts.threadId,
-      limit: opts.limit,
+      limit,
       latest: opts.before,
       oldest: opts.after,
     });
@@ -225,7 +227,7 @@ export async function readSlackMessages(
 
   const result = await client.conversations.history({
     channel: channelId,
-    limit: opts.limit,
+    limit,
     latest: opts.before,
     oldest: opts.after,
   });

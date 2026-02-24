@@ -51,3 +51,7 @@ openclaw agent --agent ops --message "Generate report" --deliver --reply-channel
 - `--verbose <on|full|off>`: persist verbose level
 - `--timeout <seconds>`: override agent timeout
 - `--json`: output structured JSON
+
+## Sessions vs sub-agent workflows
+
+`openclaw agent` runs the same runtime that `sessions_send` targets: you are replying to an existing session, so no new agent session starts. When you need a brand-new isolated helper/orchestrator run that announces back to the requester, call `sessions_spawn` instead. The [Sub-agents](/tools/subagents#when-to-use-what-quick-decision-table) guide now includes a decision table plus copy-paste workflows, and the [Tools index](/tools/index#sessions_list--sessions_history--sessions_send--sessions_spawn--session_status) links to it for quick reference.

@@ -184,6 +184,7 @@ export function buildInboundUserContextPrefix(ctx: TemplateContext): string {
             sender: entry.sender,
             timestamp_ms: entry.timestamp,
             body: entry.body,
+            ...(entry.messageId ? { message_id: entry.messageId } : {}),
           })),
           null,
           2,

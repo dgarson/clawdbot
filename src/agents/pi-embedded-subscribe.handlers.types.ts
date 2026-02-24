@@ -117,6 +117,7 @@ export type EmbeddedPiSubscribeContext = {
     chunkerHasBuffered: boolean;
   }) => void;
   trimMessagingToolSent: () => void;
+  trimToolDiagnosticInfos: () => void;
   ensureCompactionPromise: () => void;
   noteCompactionRetry: () => void;
   resolveCompactionRetry: () => void;
@@ -134,7 +135,7 @@ export type EmbeddedPiSubscribeContext = {
  */
 export type ToolHandlerParams = Pick<
   SubscribeEmbeddedPiSessionParams,
-  "runId" | "sessionKey" | "onBlockReplyFlush" | "onAgentEvent" | "onToolResult"
+  "runId" | "onBlockReplyFlush" | "onAgentEvent" | "onToolResult"
 >;
 
 export type ToolHandlerState = Pick<

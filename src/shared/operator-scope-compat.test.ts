@@ -26,12 +26,94 @@ describe("roleScopesAllow", () => {
     ).toBe(true);
   });
 
-  it("keeps non-read operator scopes explicit", () => {
+  it("treats operator.write as satisfied by write/admin scopes", () => {
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.write"],
+        allowedScopes: ["operator.write"],
+      }),
+    ).toBe(true);
     expect(
       roleScopesAllow({
         role: "operator",
         requestedScopes: ["operator.write"],
         allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(true);
+  });
+
+  it("treats operator.approvals/operator.pairing as satisfied by operator.admin", () => {
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.approvals"],
+        allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(true);
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.pairing"],
+        allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(true);
+  });
+
+  it("does not treat operator.admin as satisfying non-operator scopes", () => {
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["system.run"],
+        allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(false);
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.read"],
+        allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(true);
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.approvals"],
+        allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(true);
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.pairing"],
+        allowedScopes: ["operator.admin"],
+      }),
+    ).toBe(true);
+  });
+
+  it("does not let operator.write satisfy operator.admin", () => {
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.admin"],
+        allowedScopes: ["operator.write"],
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps non-hierarchical operator scopes explicit", () => {
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.approvals"],
+        allowedScopes: ["operator.write"],
+      }),
+    ).toBe(false);
+    expect(
+      roleScopesAllow({
+        role: "operator",
+        requestedScopes: ["operator.pairing"],
+        allowedScopes: ["operator.write"],
       }),
     ).toBe(false);
   });

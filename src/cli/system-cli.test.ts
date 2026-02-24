@@ -17,7 +17,6 @@ vi.mock("./gateway-rpc.js", () => ({
 vi.mock("../commands/system-watchdog.js", () => ({
   systemWatchdogCommand,
 }));
-
 vi.mock("../runtime.js", () => ({
   defaultRuntime,
 }));
@@ -94,7 +93,6 @@ describe("system-cli", () => {
     });
     expect(runtimeLogs).toEqual([JSON.stringify({ method }, null, 2)]);
   });
-
   it("runs watchdog command", async () => {
     await runCli(["system", "watchdog", "run", "--once", "--interval", "5000"]);
 
