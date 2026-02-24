@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { BellOff } from "lucide-react";
 import { cn } from "../lib/utils";
+import { Skeleton } from "../components/ui/Skeleton";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -752,7 +753,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
         {notif.action && (
           <button
             type="button"
-            className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           >
             {notif.action.label}
           </button>
@@ -807,7 +808,74 @@ export function useNotificationUnreadCount(): number {
   return count;
 }
 
-export default function NotificationCenter() {
+function NotificationCenterSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">
+      {/* Top bar skeleton */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <Skeleton variant="rect" className="h-6 w-44" />
+          <Skeleton variant="rect" className="h-5 w-8 rounded-full" />
+          <Skeleton variant="rect" className="h-3 w-28 rounded" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton variant="rect" className="h-7 w-24 rounded-lg" />
+          <Skeleton variant="rect" className="h-7 w-20 rounded-lg" />
+        </div>
+      </header>
+      {/* Stats skeleton */}
+      <div className="flex gap-4 px-6 py-3 border-b border-zinc-800 flex-shrink-0">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <Skeleton variant="circle" className="w-2 h-2" />
+            <Skeleton variant="text" className="h-3 w-8" />
+            <Skeleton variant="text" className="h-2.5 w-12" />
+          </div>
+        ))}
+      </div>
+      {/* Body skeleton */}
+      <div className="flex flex-1 min-h-0">
+        {/* List skeleton */}
+        <div className="w-96 flex-shrink-0 border-r border-zinc-800 overflow-hidden">
+          <div className="px-3 pt-3 pb-2 border-b border-zinc-800/60">
+            <Skeleton variant="rect" className="h-9 w-full rounded-lg" />
+          </div>
+          <div className="flex gap-1 px-3 py-2 border-b border-zinc-800/60">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} variant="rect" className="h-6 w-16 rounded-full" />
+            ))}
+          </div>
+          <div className="divide-y divide-zinc-800/60">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="px-4 py-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="circle" className="w-2 h-2" />
+                  <Skeleton variant="rect" className="h-4 w-14 rounded-full" />
+                  <Skeleton variant="text" className="h-2.5 w-16" />
+                  <div className="ml-auto">
+                    <Skeleton variant="text" className="h-2.5 w-10" />
+                  </div>
+                </div>
+                <Skeleton variant="text" className="h-3.5 w-3/4" />
+                <Skeleton variant="text" className="h-2.5 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Detail skeleton */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <Skeleton variant="circle" className="w-12 h-12 mx-auto" />
+            <Skeleton variant="text" className="h-3.5 w-36 mx-auto" />
+            <Skeleton variant="text" className="h-2.5 w-48 mx-auto" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function NotificationCenter({ isLoading = false }: { isLoading?: boolean }) {
   const [notifs, setNotifs] = useState<Notification[]>(makeNotifs);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterSeverity, setFilterSeverity] = useState<FilterSeverity>("all");
@@ -1037,6 +1105,8 @@ export default function NotificationCenter() {
     { value: "success",  label: "Success",  color: "text-emerald-400" },
     { value: "info",     label: "Info",     color: "text-blue-400"  },
   ];
+
+  if (isLoading) return <NotificationCenterSkeleton />;
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">

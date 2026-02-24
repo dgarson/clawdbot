@@ -1,5 +1,6 @@
 // M9: responsive pass
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Skeleton } from '../components/ui/Skeleton';
 import {
   Search,
   X,
@@ -389,7 +390,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
       onClick={onActivate}
       onMouseEnter={onHover}
       className={cn(
-        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors group',
+        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors duration-150 group focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
         isSelected
           ? 'bg-violet-600/20 text-white'
           : 'text-zinc-300 hover:bg-zinc-800/60 hover:text-white'
@@ -431,9 +432,77 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
   );
 }
 
+// ─── Skeleton Loading State ────────────────────────────────────────────────────
+
+function CommandPaletteSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
+      <div className="mb-6 text-center">
+        <Skeleton variant="text" className="h-3 w-52 mx-auto" />
+        <Skeleton variant="text" className="h-2.5 w-64 mx-auto mt-2" />
+      </div>
+      <div className="flex items-start gap-4 w-full max-w-[860px]">
+        <div className="flex-1 w-full max-w-full sm:max-w-[640px]">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+            {/* Search bar skeleton */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
+              <Skeleton variant="rect" className="w-4 h-4 rounded" />
+              <Skeleton variant="rect" className="flex-1 h-5 rounded" />
+              <Skeleton variant="rect" className="w-8 h-5 rounded" />
+            </div>
+            {/* Command rows skeleton */}
+            <div className="p-2 space-y-1">
+              {/* Group header */}
+              <Skeleton variant="text" className="h-2.5 w-14 ml-3 mt-2 mb-1" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={`r-${i}`} className="flex items-center gap-3 px-3 py-2">
+                  <Skeleton variant="rect" className="w-7 h-7 rounded-md" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton variant="text" className="h-3.5 w-28" />
+                    <Skeleton variant="text" className="h-2.5 w-40" />
+                  </div>
+                  <Skeleton variant="rect" className="h-4 w-8 rounded" />
+                </div>
+              ))}
+              <Skeleton variant="text" className="h-2.5 w-20 ml-3 mt-3 mb-1" />
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={`n-${i}`} className="flex items-center gap-3 px-3 py-2">
+                  <Skeleton variant="rect" className="w-7 h-7 rounded-md" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton variant="text" className="h-3.5 w-32" />
+                    <Skeleton variant="text" className="h-2.5 w-48" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Footer skeleton */}
+            <div className="border-t border-zinc-800 px-4 py-2 flex items-center gap-4">
+              <Skeleton variant="text" className="h-2.5 w-20" />
+              <Skeleton variant="text" className="h-2.5 w-16" />
+              <Skeleton variant="text" className="h-2.5 w-14" />
+              <div className="ml-auto">
+                <Skeleton variant="text" className="h-2.5 w-24" />
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Sidebar skeleton — hidden on mobile */}
+        <div className="shrink-0 w-48 hidden md:block space-y-3">
+          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-3">
+            <Skeleton variant="text" className="h-2.5 w-20" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} variant="text" className="h-3 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main View ────────────────────────────────────────────────────────────────
 
-export default function CommandPaletteV2() {
+export default function CommandPaletteV2({ isLoading = false }: { isLoading?: boolean }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isClosed, setIsClosed] = useState(false);
@@ -515,6 +584,8 @@ export default function CommandPaletteV2() {
   // Track flat index across groups for selectedIndex alignment
   let flatCounter = 0;
 
+  if (isLoading) return <CommandPaletteSkeleton />;
+
   // M9: responsive pass — full-screen on mobile, no floating modal
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
@@ -543,7 +614,7 @@ export default function CommandPaletteV2() {
               <p className="text-xs text-zinc-600 mb-5">Press ⌘K or click below to reopen</p>
               <button
                 onClick={() => setIsClosed(false)}
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm rounded-lg transition-colors font-medium"
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-sm rounded-lg transition-all duration-150 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 Reopen palette
               </button>
