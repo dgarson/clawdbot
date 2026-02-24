@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Inbox, Users } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -769,7 +771,12 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
               </div>
             ))}
             {queueConsumers.length === 0 && (
-              <div className="text-xs text-zinc-500 text-center py-4">No consumers connected</div>
+              <ContextualEmptyState
+                icon={Users}
+                title="No one's listening yet"
+                description="No active consumers are connected. Attach a consumer to start processing messages."
+                size="sm"
+              />
             )}
           </div>
         </div>
@@ -846,7 +853,12 @@ function MessagesTab() {
         {/* Message List */}
         <div className="flex-1 overflow-y-auto flex flex-col gap-1">
           {filtered.length === 0 && (
-            <div className="text-xs text-zinc-500 text-center py-8">No messages match filters</div>
+            <ContextualEmptyState
+              icon={Inbox}
+              title="Queue cleared"
+              description="No messages match your filters — or the queue's been fully consumed. Nice work."
+              size="sm"
+            />
           )}
           {filtered.map((m) => {
             const queue = QUEUES.find((q) => q.id === m.queueId);
