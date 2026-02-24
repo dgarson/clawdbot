@@ -253,7 +253,78 @@ const ProgressBar = ({ value, color = "bg-indigo-500" }: { value: number; color?
 
 // --- Main View ---
 
-export default function BackupManager() {
+import { Skeleton } from '../components/Skeleton';
+
+function BackupManagerSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <Skeleton className="h-9 w-56" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-28 rounded-lg" />
+            <Skeleton className="h-9 w-36 rounded-lg" />
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="border-b border-zinc-800">
+          <div className="flex gap-8">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-4 w-16 mb-4" />
+            ))}
+          </div>
+        </div>
+
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 space-y-3">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="h-7 w-24" />
+              <Skeleton className="h-1.5 w-full rounded-full" />
+              <div className="flex justify-between">
+                <Skeleton className="h-2.5 w-20" />
+                <Skeleton className="h-2.5 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          {/* Table header */}
+          <div className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-zinc-800">
+            {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-3 w-full" />)}
+          </div>
+          {/* Table rows */}
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-zinc-800 last:border-b-0 items-center">
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <Skeleton className="h-5 w-20 rounded" />
+              <Skeleton className="h-5 w-24 rounded" />
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function BackupManager({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <BackupManagerSkeleton />;
+
   const [activeTab, setActiveTab] = useState<"backups" | "schedule" | "restore" | "settings">("backups");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [backups] = useState<BackupJob[]>(INITIAL_BACKUPS);

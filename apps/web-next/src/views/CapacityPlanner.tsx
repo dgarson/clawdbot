@@ -183,7 +183,128 @@ function computeForecastWithRate(resource: Resource, adjustedRate: number): { da
 
 // --- Component ---
 
-export default function CapacityPlanner() {
+import { Skeleton } from '../components/Skeleton';
+
+function CapacityPlannerSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-8 w-44" />
+        <Skeleton className="h-9 w-44 rounded" />
+      </div>
+
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* Summary cards */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ))}
+          </div>
+
+          {/* Resource table */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-6">
+            {/* Header row */}
+            <div className="flex gap-2 px-4 py-3 border-b border-zinc-800">
+              {["Resource", "Current", "Capacity", "Usage %", "Headroom", "Trend", "Days to Cap", "Status"].map((_, i) => (
+                <Skeleton key={i} className="h-3 flex-1" />
+              ))}
+            </div>
+            {/* Data rows */}
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex gap-2 px-4 py-3 border-b border-zinc-800 last:border-b-0 items-center">
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <div className="flex-1 flex items-center gap-2">
+                  <Skeleton className="flex-1 h-2 rounded-full" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-5 flex-1 rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Detail panel (forecast) */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-52" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+            {/* Bar chart */}
+            <div className="flex items-end gap-1 h-40 w-full">
+              {[85,90,95,100,100,100,82,70,65,60,55,50].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                  <div className="w-full bg-secondary/70 rounded-t animate-pulse-soft" aria-hidden="true" style={{ height: `${h}%` }} />
+                  <Skeleton className="h-2 w-5" />
+                </div>
+              ))}
+            </div>
+            {/* Recs + what-if grid */}
+            <div className="grid grid-cols-2 gap-5 pt-2">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-44" />
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="bg-zinc-800/50 rounded p-3 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-8 rounded" />
+                      <Skeleton className="h-4 w-44" />
+                    </div>
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-36" />
+                <div className="bg-zinc-800/50 rounded p-4 space-y-3">
+                  <Skeleton className="h-3 w-48" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex justify-between">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recommendations sidebar */}
+        <div className="w-60 shrink-0">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 sticky top-6 space-y-3">
+            <Skeleton className="h-3 w-44" />
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded p-3 border border-zinc-800 bg-zinc-800/30 space-y-1.5">
+                <Skeleton className="h-5 w-8 rounded" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+                <Skeleton className="h-3 w-3/5" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function CapacityPlanner({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <CapacityPlannerSkeleton />;
+
   const [period, setPeriod] = useState<PlanningPeriod>("12M");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [whatIfRate, setWhatIfRate] = useState<number | null>(null);

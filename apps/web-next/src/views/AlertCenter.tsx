@@ -339,7 +339,122 @@ type TabId = "alerts" | "rules";
 type StatusFilter = AlertStatus | "all";
 type SeverityFilter = AlertSeverity | "all";
 
-export default function AlertCenter() {
+import { Skeleton } from '../components/Skeleton';
+
+function AlertCenterSkeleton() {
+  return (
+    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+          {/* Stat counts */}
+          <div className="flex items-center gap-5">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="text-center space-y-1">
+                <Skeleton className="h-7 w-6 mx-auto" />
+                <Skeleton className="h-3 w-12" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Tabs */}
+        <div className="flex gap-1">
+          <Skeleton className="h-8 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-24 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Alert list + detail */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* List */}
+        <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+          {/* Filters */}
+          <div className="p-3 border-b border-zinc-800 space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-14 rounded" />)}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-6 w-16 rounded" />)}
+            </div>
+          </div>
+          {/* Alert cards */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-12" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-3 w-2/3" />
+                <div className="flex items-center gap-2 mt-1">
+                  <Skeleton className="w-4 h-4 rounded" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Detail panel */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-5 max-w-2xl">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Skeleton className="h-7 w-20 rounded-full" />
+                <Skeleton className="h-7 w-20 rounded-full" />
+                <Skeleton className="h-7 w-28 rounded-full" />
+              </div>
+              <Skeleton className="h-7 w-80" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-3">
+              <Skeleton className="h-4 w-20" />
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="w-5 h-5" />
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 space-y-3">
+              <Skeleton className="h-4 w-16" />
+              <div className="flex flex-wrap gap-2">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-24 rounded" />)}
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Skeleton className="flex-1 h-10 rounded-xl" />
+              <Skeleton className="flex-1 h-10 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function AlertCenter({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AlertCenterSkeleton />;
+
   const [tab, setTab] = useState<TabId>("alerts");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("all");

@@ -60,7 +60,59 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'review', label: 'Review' },
 ];
 
-export default function AgentBuilderWizard() {
+import { Skeleton } from '../components/Skeleton';
+
+function AgentBuilderWizardSkeleton() {
+  return (
+    <div className="flex h-full bg-gray-950 text-white">
+      {/* Sidebar skeleton */}
+      <div className="w-64 border-r border-gray-800 p-8 flex flex-col">
+        <Skeleton className="h-7 w-32 mb-8" />
+        <div className="space-y-8 relative">
+          <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-800" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 relative z-10">
+              <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main content skeleton */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-12">
+          <div className="max-w-4xl space-y-8">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-72" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+            {/* Template grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="p-6 rounded-2xl border border-gray-800 bg-gray-900 space-y-3">
+                  <Skeleton className="w-12 h-12 rounded-xl" />
+                  <Skeleton className="h-5 w-36" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-3/4" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-800 bg-gray-900 flex justify-between items-center">
+          <Skeleton className="h-10 w-24 rounded-xl opacity-0" />
+          <Skeleton className="h-10 w-32 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AgentBuilderWizardSkeleton />;
+
   const [currentStep, setCurrentStep] = useState<Step>('template');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
