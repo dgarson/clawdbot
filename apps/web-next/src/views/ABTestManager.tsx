@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { FlaskConical } from "lucide-react";
 
 type ExperimentStatus = 'draft' | 'running' | 'paused' | 'complete' | 'archived';
 type MetricKind = 'conversion' | 'latency' | 'cost' | 'quality-score' | 'error-rate';
@@ -141,11 +143,11 @@ const SEED_EXPERIMENTS: Experiment[] = [
 
 const StatusBadge = ({ status }: { status: ExperimentStatus }) => {
   const styles: Record<ExperimentStatus, string> = {
-    draft: "bg-zinc-800 text-zinc-400 border-zinc-700",
+    draft: "bg-surface-2 text-fg-secondary border-tok-border",
     running: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 animate-pulse",
     paused: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     complete: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    archived: "bg-zinc-900 text-zinc-600 border-zinc-800"
+    archived: "bg-surface-1 text-fg-muted border-tok-border"
   };
 
   return (
@@ -159,11 +161,11 @@ const ProgressBar = ({ current, total, color = "bg-indigo-500" }: { current: num
   const percentage = Math.min(Math.round((current / total) * 100), 100);
   return (
     <div className="w-full">
-      <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+      <div className="flex justify-between text-[10px] text-fg-muted mb-1">
         <span>{percentage}% complete</span>
         <span>{current.toLocaleString()} / {total.toLocaleString()}</span>
       </div>
-      <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-surface-2 rounded-full overflow-hidden">
         <div 
           className={cn("h-full rounded-full transition-all duration-500", color)} 
           style={{ width: `${percentage}%` }}
@@ -190,16 +192,24 @@ export default function ABTestManager() {
   const uniqueMetrics = Array.from(new Set(selectedExp.metrics.map(m => m.metric)));
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30">
+    <div className="flex flex-col md:flex-row h-screen bg-surface-0 text-fg-primary font-sans selection:bg-indigo-500/30">
       {/* Sidebar List */}
-      <div className="w-80 border-r border-zinc-800 flex flex-col overflow-hidden bg-zinc-950">
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-          <h2 className="font-semibold text-zinc-100">Experiments</h2>
-          <button className="p-1.5 rounded-md hover:bg-zinc-900 text-zinc-400 transition-colors">
+      <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-tok-border flex flex-col overflow-hidden bg-surface-0 max-h-[40vh] md:max-h-none">
+        <div className="p-4 border-b border-tok-border flex items-center justify-between">
+          <h2 className="font-semibold text-fg-primary">Experiments</h2>
+          <button className="p-1.5 rounded-md hover:bg-surface-1 text-fg-secondary transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {SEED_EXPERIMENTS.length === 0 && (
+            <ContextualEmptyState
+              icon={FlaskConical}
+              title="No experiments yet"
+              description="Create your first A/B test to start optimizing agent performance."
+              size="sm"
+            />
+          )}
           {SEED_EXPERIMENTS.map((exp) => (
             <button
               key={exp.id}
@@ -207,27 +217,27 @@ export default function ABTestManager() {
               className={cn(
                 "w-full text-left p-3 rounded-lg border transition-all duration-200 group",
                 selectedId === exp.id 
-                  ? "bg-zinc-900 border-zinc-700 shadow-lg shadow-black/20" 
-                  : "bg-transparent border-transparent hover:bg-zinc-900/50 hover:border-zinc-800"
+                  ? "bg-surface-1 border-tok-border shadow-lg shadow-black/20" 
+                  : "bg-transparent border-transparent hover:bg-surface-1/50 hover:border-tok-border"
               )}
             >
               <div className="flex justify-between items-start mb-2">
                 <StatusBadge status={exp.status} />
-                <span className="text-[10px] text-zinc-500 font-medium">{getMetricLabel(exp.primaryMetric)}</span>
+                <span className="text-[10px] text-fg-muted font-medium">{getMetricLabel(exp.primaryMetric)}</span>
               </div>
               <h3 className={cn(
                 "text-sm font-medium mb-1 truncate",
-                selectedId === exp.id ? "text-white" : "text-zinc-400 group-hover:text-zinc-200"
+                selectedId === exp.id ? "text-fg-primary" : "text-fg-secondary group-hover:text-fg-primary"
               )}>
                 {exp.name}
               </h3>
-              <div className="flex items-center text-[10px] text-zinc-500 mb-3">
+              <div className="flex items-center text-[10px] text-fg-muted mb-3">
                 <span className="truncate">by {exp.createdBy}</span>
               </div>
               <ProgressBar 
                 current={exp.completedSessions} 
                 total={exp.targetSessions} 
-                color={selectedId === exp.id ? "bg-indigo-500" : "bg-zinc-700"}
+                color={selectedId === exp.id ? "bg-indigo-500" : "bg-surface-3"}
               />
             </button>
           ))}
@@ -235,19 +245,19 @@ export default function ABTestManager() {
       </div>
 
       {/* Detail Panel */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-zinc-950">
+      <div className="flex-1 flex flex-col overflow-hidden bg-surface-0">
         {/* Header */}
-        <div className="p-6 border-b border-zinc-800 bg-zinc-900/30">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-tok-border bg-surface-1/30">
           <div className="flex justify-between items-start mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold tracking-tight">{selectedExp.name}</h1>
                 <StatusBadge status={selectedExp.status} />
               </div>
-              <p className="text-zinc-400 max-w-2xl text-sm leading-relaxed">{selectedExp.description}</p>
+              <p className="text-fg-secondary max-w-2xl text-sm leading-relaxed">{selectedExp.description}</p>
             </div>
             <div className="flex gap-2">
-              <button className="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-medium transition-colors">
+              <button className="px-3 py-1.5 rounded bg-surface-2 hover:bg-surface-3 border border-tok-border text-xs font-medium transition-colors">
                 Duplicate
               </button>
               <button className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">
@@ -264,7 +274,7 @@ export default function ABTestManager() {
                 onClick={() => setActiveTab(tab)}
                 className={cn(
                   "pb-3 text-sm font-medium transition-all relative capitalize",
-                  activeTab === tab ? "text-indigo-400" : "text-zinc-500 hover:text-zinc-300"
+                  activeTab === tab ? "text-indigo-400" : "text-fg-muted hover:text-fg-primary"
                 )}
               >
                 {tab}
@@ -281,50 +291,50 @@ export default function ABTestManager() {
           <div className="max-w-5xl mx-auto">
             {activeTab === 'overview' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
-                    <h4 className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-4">Sessions Progress</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                  <div className="bg-surface-1 p-5 rounded-xl border border-tok-border">
+                    <h4 className="text-[10px] uppercase tracking-widest text-fg-muted font-bold mb-4">Sessions Progress</h4>
                     <ProgressBar current={selectedExp.completedSessions} total={selectedExp.targetSessions} color="bg-emerald-500" />
                   </div>
-                  <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
-                    <h4 className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Primary Metric</h4>
-                    <div className="text-xl font-semibold text-zinc-100">{getMetricLabel(selectedExp.primaryMetric)}</div>
-                    <div className="text-xs text-zinc-500 mt-2">Targeted for optimization</div>
+                  <div className="bg-surface-1 p-5 rounded-xl border border-tok-border">
+                    <h4 className="text-[10px] uppercase tracking-widest text-fg-muted font-bold mb-1">Primary Metric</h4>
+                    <div className="text-xl font-semibold text-fg-primary">{getMetricLabel(selectedExp.primaryMetric)}</div>
+                    <div className="text-xs text-fg-muted mt-2">Targeted for optimization</div>
                   </div>
-                  <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
-                    <h4 className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Created By</h4>
-                    <div className="text-xl font-semibold text-zinc-100">{selectedExp.createdBy}</div>
-                    <div className="text-xs text-zinc-500 mt-2">Started on {selectedExp.startedAt ? new Date(selectedExp.startedAt).toLocaleDateString() : 'N/A'}</div>
+                  <div className="bg-surface-1 p-5 rounded-xl border border-tok-border">
+                    <h4 className="text-[10px] uppercase tracking-widest text-fg-muted font-bold mb-1">Created By</h4>
+                    <div className="text-xl font-semibold text-fg-primary">{selectedExp.createdBy}</div>
+                    <div className="text-xs text-fg-muted mt-2">Started on {selectedExp.startedAt ? new Date(selectedExp.startedAt).toLocaleDateString() : 'N/A'}</div>
                   </div>
                 </div>
 
-                <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                  <div className="p-4 border-b border-zinc-800 bg-zinc-900/50">
+                <div className="bg-surface-1 rounded-xl border border-tok-border overflow-hidden">
+                  <div className="p-4 border-b border-tok-border bg-surface-1/50">
                     <h4 className="text-sm font-semibold">Status Management</h4>
                   </div>
                   <div className="p-6 flex flex-wrap gap-3">
                     {selectedExp.status === 'draft' && (
-                      <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded transition-colors uppercase tracking-wide">
+                      <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide">
                         Start Experiment
                       </button>
                     )}
                     {(selectedExp.status === 'running') && (
-                      <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded transition-colors uppercase tracking-wide">
+                      <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide">
                         Pause Experiment
                       </button>
                     )}
                     {selectedExp.status === 'paused' && (
-                      <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded transition-colors uppercase tracking-wide">
+                      <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide">
                         Resume Experiment
                       </button>
                     )}
                     {(selectedExp.status === 'running' || selectedExp.status === 'paused') && (
-                      <button className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold rounded transition-colors uppercase tracking-wide">
+                      <button className="px-4 py-2 bg-surface-3 hover:bg-surface-3 text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide">
                         Stop & Complete
                       </button>
                     )}
                     {selectedExp.status === 'complete' && (
-                      <button className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold rounded transition-colors uppercase tracking-wide">
+                      <button className="px-4 py-2 bg-surface-3 hover:bg-surface-3 text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide">
                         Archive Experiment
                       </button>
                     )}
@@ -335,27 +345,27 @@ export default function ABTestManager() {
 
             {activeTab === 'variants' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+                <div className="bg-surface-1 rounded-xl border border-tok-border overflow-hidden">
                   <table className="w-full text-left text-sm">
                     <thead>
-                      <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                        <th className="px-6 py-4 font-semibold text-zinc-400 uppercase text-[10px] tracking-widest">Variant</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-400 uppercase text-[10px] tracking-widest">Traffic Split</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-400 uppercase text-[10px] tracking-widest">Model / Config</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-400 uppercase text-[10px] tracking-widest">Prompt</th>
+                      <tr className="border-b border-tok-border bg-surface-1/50">
+                        <th className="px-6 py-4 font-semibold text-fg-secondary uppercase text-[10px] tracking-widest">Variant</th>
+                        <th className="px-6 py-4 font-semibold text-fg-secondary uppercase text-[10px] tracking-widest">Traffic Split</th>
+                        <th className="px-6 py-4 font-semibold text-fg-secondary uppercase text-[10px] tracking-widest">Model / Config</th>
+                        <th className="px-6 py-4 font-semibold text-fg-secondary uppercase text-[10px] tracking-widest">Prompt</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800">
+                    <tbody className="divide-y divide-tok-border">
                       {selectedExp.variants.map((v) => (
-                        <tr key={v.id} className="hover:bg-zinc-800/30 transition-colors">
+                        <tr key={v.id} className="hover:bg-surface-2/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-medium text-zinc-100">{v.name}</div>
-                            <div className="text-[10px] text-zinc-500">{v.description}</div>
+                            <div className="font-medium text-fg-primary">{v.name}</div>
+                            <div className="text-[10px] text-fg-muted">{v.description}</div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <span className="font-mono text-xs w-8 text-indigo-400">{v.trafficPct}%</span>
-                              <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                              <div className="w-24 h-1.5 bg-surface-2 rounded-full overflow-hidden">
                                 <div className="h-full bg-indigo-500" style={{ width: `${v.trafficPct}%` }} />
                               </div>
                             </div>
@@ -364,23 +374,23 @@ export default function ABTestManager() {
                             <div className="space-y-1">
                               {v.model && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[10px] text-zinc-500">Model:</span>
-                                  <code className="text-[10px] px-1.5 py-0.5 bg-zinc-800 rounded text-indigo-300 border border-zinc-700">{v.model}</code>
+                                  <span className="text-[10px] text-fg-muted">Model:</span>
+                                  <code className="text-[10px] px-1.5 py-0.5 bg-surface-2 rounded text-indigo-300 border border-tok-border">{v.model}</code>
                                 </div>
                               )}
                               {v.temperature !== undefined && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[10px] text-zinc-500">Temp:</span>
-                                  <span className="text-[10px] font-mono text-zinc-300">{v.temperature}</span>
+                                  <span className="text-[10px] text-fg-muted">Temp:</span>
+                                  <span className="text-[10px] font-mono text-fg-primary">{v.temperature}</span>
                                 </div>
                               )}
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             {v.prompt ? (
-                              <div className="text-[10px] text-zinc-400 line-clamp-2 italic font-serif">"{v.prompt}"</div>
+                              <div className="text-[10px] text-fg-secondary line-clamp-2 italic font-serif">"{v.prompt}"</div>
                             ) : (
-                              <span className="text-[10px] text-zinc-600 italic">No override</span>
+                              <span className="text-[10px] text-fg-muted italic">No override</span>
                             )}
                           </td>
                         </tr>
@@ -410,8 +420,8 @@ export default function ABTestManager() {
                 {uniqueMetrics.length > 0 ? (
                   <div className="grid grid-cols-1 gap-6">
                     {uniqueMetrics.map(metricKind => (
-                      <div key={metricKind} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
+                      <div key={metricKind} className="bg-surface-1 rounded-xl border border-tok-border overflow-hidden">
+                        <div className="px-6 py-4 border-b border-tok-border bg-surface-1/50 flex justify-between items-center">
                           <h4 className="text-sm font-semibold capitalize">{getMetricLabel(metricKind)}</h4>
                           {selectedExp.metrics.some(m => m.metric === metricKind && m.pValue !== undefined && m.pValue < 0.05) && (
                             <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
@@ -422,38 +432,38 @@ export default function ABTestManager() {
                         <div className="p-0">
                           <table className="w-full text-left text-sm">
                             <thead>
-                              <tr className="bg-zinc-950/30">
-                                <th className="px-6 py-3 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Variant</th>
-                                <th className="px-6 py-3 text-[10px] text-zinc-500 uppercase tracking-widest font-bold text-right">Value</th>
-                                <th className="px-6 py-3 text-[10px] text-zinc-500 uppercase tracking-widest font-bold text-right">Sample Size</th>
-                                <th className="px-6 py-3 text-[10px] text-zinc-500 uppercase tracking-widest font-bold text-right">p-Value</th>
+                              <tr className="bg-surface-0/30">
+                                <th className="px-6 py-3 text-[10px] text-fg-muted uppercase tracking-widest font-bold">Variant</th>
+                                <th className="px-6 py-3 text-[10px] text-fg-muted uppercase tracking-widest font-bold text-right">Value</th>
+                                <th className="px-6 py-3 text-[10px] text-fg-muted uppercase tracking-widest font-bold text-right">Sample Size</th>
+                                <th className="px-6 py-3 text-[10px] text-fg-muted uppercase tracking-widest font-bold text-right">p-Value</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-zinc-800">
+                            <tbody className="divide-y divide-tok-border">
                               {selectedExp.variants.map(v => {
                                 const result = getVariantMetric(v.id, metricKind);
                                 if (!result) {return null;}
                                 return (
                                   <tr key={v.id} className={cn("transition-colors", result.winner ? "bg-emerald-500/5" : "")}>
                                     <td className="px-6 py-4 flex items-center gap-3">
-                                      <span className="font-medium text-zinc-200">{v.name}</span>
+                                      <span className="font-medium text-fg-primary">{v.name}</span>
                                       {result.winner && (
                                         <span className="px-1.5 py-0.5 bg-emerald-500 text-black text-[9px] font-bold rounded">WINNER</span>
                                       )}
                                     </td>
-                                    <td className={cn("px-6 py-4 text-right font-mono font-semibold", result.winner ? "text-emerald-400" : "text-zinc-300")}>
+                                    <td className={cn("px-6 py-4 text-right font-mono font-semibold", result.winner ? "text-emerald-400" : "text-fg-primary")}>
                                       {metricKind === 'latency' ? `${result.value}ms` : metricKind === 'cost' ? `$${result.value.toFixed(2)}` : `${result.value}%`}
                                     </td>
-                                    <td className="px-6 py-4 text-right text-zinc-500 text-xs">
+                                    <td className="px-6 py-4 text-right text-fg-muted text-xs">
                                       {result.sampleSize.toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                       {result.pValue !== undefined ? (
-                                        <span className={cn("text-xs font-mono", result.pValue < 0.05 ? "text-emerald-400" : "text-zinc-500")}>
+                                        <span className={cn("text-xs font-mono", result.pValue < 0.05 ? "text-emerald-400" : "text-fg-muted")}>
                                           {result.pValue.toFixed(3)}
                                         </span>
                                       ) : (
-                                        <span className="text-zinc-600">—</span>
+                                        <span className="text-fg-muted">—</span>
                                       )}
                                     </td>
                                   </tr>
@@ -466,7 +476,7 @@ export default function ABTestManager() {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-zinc-600 bg-zinc-900 rounded-2xl border border-zinc-800 border-dashed">
+                  <div className="flex flex-col items-center justify-center py-20 text-fg-muted bg-surface-1 rounded-2xl border border-tok-border border-dashed">
                     <svg className="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                     <p className="text-sm font-medium">No metrics recorded yet</p>
                     <p className="text-[10px] mt-1">Start the experiment to begin gathering data</p>
