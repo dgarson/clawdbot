@@ -20,6 +20,7 @@ import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { loadOpenClawPlugins } from "../plugins/loader.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
+import { registerSessionAutoLabel } from "../sessions/session-auto-label.js";
 import { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import {
   scheduleRestartSentinelWake,
@@ -158,6 +159,9 @@ export async function startGatewaySidecars(params: {
   } catch (err) {
     params.log.warn(`plugin services failed to start: ${String(err)}`);
   }
+
+  // Register session auto-labeling service (no-op if not configured).
+  registerSessionAutoLabel();
 
   void startGatewayMemoryBackend({ cfg: params.cfg, log: params.log }).catch((err) => {
     params.log.warn(`qmd memory startup initialization failed: ${String(err)}`);

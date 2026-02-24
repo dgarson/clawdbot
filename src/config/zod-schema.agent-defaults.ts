@@ -4,6 +4,7 @@ import {
   AgentSandboxSchema,
   AgentModelSchema,
   MemorySearchSchema,
+  ClaudeSdkConfigSchema,
 } from "./zod-schema.agent-runtime.js";
 import {
   BlockStreamingChunkSchema,
@@ -117,6 +118,7 @@ export const AgentDefaultsSchema = z
         z.literal("xhigh"),
       ])
       .optional(),
+    reasoningDefault: z.union([z.literal("off"), z.literal("on"), z.literal("stream")]).optional(),
     verboseDefault: z.union([z.literal("off"), z.literal("on"), z.literal("full")]).optional(),
     elevatedDefault: z
       .union([z.literal("off"), z.literal("on"), z.literal("ask"), z.literal("full")])
@@ -150,7 +152,7 @@ export const AgentDefaultsSchema = z
           .max(5)
           .optional()
           .describe(
-            "Maximum nesting depth for sub-agent spawning. Default is 2 (sub-agents can spawn sub-sub-agents).",
+            "Maximum nesting depth for sub-agent spawning. 1 = no nesting (default), 2 = sub-agents can spawn sub-sub-agents.",
           ),
         maxChildrenPerAgent: z
           .number()
@@ -162,12 +164,29 @@ export const AgentDefaultsSchema = z
             "Maximum number of active children a single agent session can spawn (default: 5).",
           ),
         archiveAfterMinutes: z.number().int().positive().optional(),
+        timeoutSeconds: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Default timeout in seconds for spawned sub-agents. 0 or omitted = unlimited."),
         model: AgentModelSchema.optional(),
         thinking: z.string().optional(),
       })
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
+    runtime: z.enum(["pi", "claude-sdk"]).optional(),
+    claudeSdk: ClaudeSdkConfigSchema,
+    sessionLabels: z
+      .object({
+        enabled: z.boolean().optional(),
+        model: z.string().optional(),
+        maxLength: z.number().int().min(1).max(79).optional(),
+        prompt: z.string().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();

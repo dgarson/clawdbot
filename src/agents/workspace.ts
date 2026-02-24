@@ -503,7 +503,7 @@ export function filterBootstrapFilesForSession(
   if (!sessionKey || (!isSubagentSessionKey(sessionKey) && !isCronSessionKey(sessionKey))) {
     return files;
   }
-  return files.filter((file) => MINIMAL_BOOTSTRAP_ALLOWLIST.has(file.name));
+  return files.filter((file) => MINIMAL_BOOTSTRAP_ALLOWLIST.has(file.name) || !file.missing);
 }
 
 export async function loadExtraBootstrapFiles(

@@ -1,9 +1,27 @@
 import type { SlackEventMiddlewareArgs } from "@slack/bolt";
 import { danger } from "../../../globals.js";
+import { emitDiagnosticEvent } from "../../../infra/diagnostic-events.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
+import { getRouterFeedbackLoopStore } from "../../../routing/feedback-loop-store.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
 import type { SlackMonitorContext } from "../context.js";
 import type { SlackReactionEvent } from "../types.js";
+
+function mapReactionFeedback(
+  reaction?: string,
+): { expectedAction?: "handle" | "escalate"; expectedTier?: "T1" | "T2" | "T3" | "T4" } | null {
+  const normalized = (reaction ?? "").toLowerCase().trim();
+  if (!normalized) {
+    return null;
+  }
+  if (["x", "-1", "thumbsdown"].includes(normalized)) {
+    return { expectedAction: "handle" };
+  }
+  if (["rotating_light", "fire", "bangbang"].includes(normalized)) {
+    return { expectedAction: "escalate", expectedTier: "T3" };
+  }
+  return null;
+}
 
 export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }) {
   const { ctx } = params;
@@ -46,6 +64,31 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
         sessionKey,
         contextKey: `slack:reaction:${action}:${item.channel}:${item.ts}:${event.user}:${emojiLabel}`,
       });
+
+      const mapped = mapReactionFeedback(event.reaction);
+      if (action === "added" && mapped) {
+        const store = getRouterFeedbackLoopStore();
+        const feedback = store.captureFeedback({
+          source: "reaction",
+          actorId: event.user,
+          channelId: "slack",
+          conversationId: item.channel,
+          threadId: item.ts,
+          feedbackMessageId: item.ts,
+          expectedAction: mapped.expectedAction,
+          expectedTier: mapped.expectedTier,
+          reaction: event.reaction,
+        });
+        emitDiagnosticEvent({
+          type: "router.feedback.feedback_captured",
+          source: "reaction",
+          channelId: "slack",
+          feedbackId: feedback.feedbackId,
+          linkedDecisionId: feedback.linkedDecisionId,
+          needsReview: feedback.needsReview,
+          reaction: event.reaction,
+        });
+      }
     } catch (err) {
       ctx.runtime.error?.(danger(`slack reaction handler failed: ${String(err)}`));
     }

@@ -37,6 +37,7 @@ function createBaseConfig(provider: "telnyx" | "twilio" | "plivo" | "mock"): Voi
       provider: "openai",
       openai: { model: "gpt-4o-mini-tts", voice: "coral" },
     },
+    responseAgentId: "main",
     responseModel: "openai/gpt-4o-mini",
     responseTimeoutMs: 30000,
   };

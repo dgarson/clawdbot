@@ -91,4 +91,90 @@ describe("config schema regressions", () => {
       expect(res.issues[0]?.path).toBe("channels.imessage.attachmentRoots.0");
     }
   });
+
+  it("accepts sessionLabels config in agent defaults", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          sessionLabels: {
+            enabled: true,
+            model: "anthropic/claude-haiku-4-5",
+            maxLength: 79,
+            prompt: "Generate a short session title",
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("rejects sessionLabels.maxLength above schema limit", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          sessionLabels: {
+            enabled: true,
+            maxLength: 80,
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.issues[0]?.path).toBe("agents.defaults.sessionLabels.maxLength");
+    }
+  });
+
+  it("accepts approvals.hitl policy escalation and boundary settings", () => {
+    const res = validateConfigObject({
+      approvals: {
+        hitl: {
+          defaultPolicyId: "default",
+          approverRoleOrder: ["viewer", "operator", "admin", "owner"],
+          policies: [
+            {
+              id: "default",
+              pattern: "nodes.*",
+              minApproverRole: "admin",
+              requireDifferentActor: true,
+              maxApprovalChainDepth: 2,
+              escalation: {
+                onDeny: "owner",
+                onTimeout: "owner",
+                maxEscalations: 3,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("rejects approvals.hitl negative escalation limits", () => {
+    const res = validateConfigObject({
+      approvals: {
+        hitl: {
+          policies: [
+            {
+              id: "default",
+              tool: "nodes.run",
+              escalation: {
+                onDeny: "owner",
+                maxEscalations: -1,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.issues[0]?.path).toBe("approvals.hitl.policies.0.escalation.maxEscalations");
+    }
+  });
 });

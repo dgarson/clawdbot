@@ -1,5 +1,4 @@
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
-import { AGENT_LANE_NESTED } from "../../agents/lanes.js";
 import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
 import { createOutboundSendDeps, type CliDeps } from "../../cli/outbound-send-deps.js";
 import type { OpenClawConfig } from "../../config/config.js";
@@ -8,6 +7,7 @@ import {
   resolveAgentDeliveryPlan,
   resolveAgentOutboundTarget,
 } from "../../infra/outbound/agent-delivery.js";
+import { resolveMessageChannelSelection } from "../../infra/outbound/channel-selection.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { buildOutboundResultEnvelope } from "../../infra/outbound/envelope.js";
 import {
@@ -24,32 +24,30 @@ type RunResult = Awaited<
   ReturnType<(typeof import("../../agents/pi-embedded.js"))["runEmbeddedPiAgent"]>
 >;
 
-const NESTED_LOG_PREFIX = "[agent:nested]";
-
-function formatNestedLogPrefix(opts: AgentCommandOpts): string {
-  const parts = [NESTED_LOG_PREFIX];
-  const session = opts.sessionKey ?? opts.sessionId;
-  if (session) {
-    parts.push(`session=${session}`);
+function formatAgentReplyPrefix(params: {
+  sessionId?: string;
+  deliveryChannel?: string;
+  deliveryTarget?: string;
+}) {
+  // Fold channel:target into the bracket: [agent:reply:slack:channel:C0AAP72R7L5]
+  let bracket = "[agent:reply";
+  if (params.deliveryChannel || params.deliveryTarget) {
+    const channel = params.deliveryChannel ?? "unknown";
+    bracket += `:${channel}`;
+    if (params.deliveryTarget) {
+      bracket += `:${params.deliveryTarget}`;
+    }
   }
-  if (opts.runId) {
-    parts.push(`run=${opts.runId}`);
+  bracket += "]";
+  const parts = [bracket];
+  if (params.sessionId) {
+    parts.push(`sessionId=${params.sessionId}`);
   }
-  const channel = opts.messageChannel ?? opts.channel;
-  if (channel) {
-    parts.push(`channel=${channel}`);
-  }
-  if (opts.to) {
-    parts.push(`to=${opts.to}`);
-  }
-  if (opts.accountId) {
-    parts.push(`account=${opts.accountId}`);
-  }
+  parts.push("→");
   return parts.join(" ");
 }
 
-function logNestedOutput(runtime: RuntimeEnv, opts: AgentCommandOpts, output: string) {
-  const prefix = formatNestedLogPrefix(opts);
+function logAgentReplyOutput(runtime: RuntimeEnv, prefix: string, output: string) {
   for (const line of output.split(/\r?\n/)) {
     if (!line) {
       continue;
@@ -78,7 +76,23 @@ export async function deliverAgentCommandResult(params: {
     accountId: opts.replyAccountId ?? opts.accountId,
     wantsDelivery: deliver,
   });
-  const deliveryChannel = deliveryPlan.resolvedChannel;
+  let deliveryChannel = deliveryPlan.resolvedChannel;
+  const explicitChannelHint = (opts.replyChannel ?? opts.channel)?.trim();
+  if (deliver && isInternalMessageChannel(deliveryChannel) && !explicitChannelHint) {
+    try {
+      const selection = await resolveMessageChannelSelection({ cfg });
+      deliveryChannel = selection.channel;
+    } catch {
+      // Keep the internal channel marker; error handling below reports the failure.
+    }
+  }
+  const effectiveDeliveryPlan =
+    deliveryChannel === deliveryPlan.resolvedChannel
+      ? deliveryPlan
+      : {
+          ...deliveryPlan,
+          resolvedChannel: deliveryChannel,
+        };
   // Channel docking: delivery channels are resolved via plugin registry.
   const deliveryPlugin = !isInternalMessageChannel(deliveryChannel)
     ? getChannelPlugin(normalizeChannelId(deliveryChannel) ?? deliveryChannel)
@@ -89,20 +103,20 @@ export async function deliverAgentCommandResult(params: {
 
   const targetMode =
     opts.deliveryTargetMode ??
-    deliveryPlan.deliveryTargetMode ??
+    effectiveDeliveryPlan.deliveryTargetMode ??
     (opts.to ? "explicit" : "implicit");
-  const resolvedAccountId = deliveryPlan.resolvedAccountId;
+  const resolvedAccountId = effectiveDeliveryPlan.resolvedAccountId;
   const resolved =
     deliver && isDeliveryChannelKnown && deliveryChannel
       ? resolveAgentOutboundTarget({
           cfg,
-          plan: deliveryPlan,
+          plan: effectiveDeliveryPlan,
           targetMode,
           validateExplicitTarget: true,
         })
       : {
           resolvedTarget: null,
-          resolvedTo: deliveryPlan.resolvedTo,
+          resolvedTo: effectiveDeliveryPlan.resolvedTo,
           targetMode,
         };
   const resolvedTarget = resolved.resolvedTarget;
@@ -113,7 +127,10 @@ export async function deliverAgentCommandResult(params: {
   const resolvedThreadTarget = deliveryChannel === "slack" ? undefined : resolvedThreadId;
 
   const logDeliveryError = (err: unknown) => {
-    const message = `Delivery failed (${deliveryChannel}${deliveryTarget ? ` to ${deliveryTarget}` : ""}): ${String(err)}`;
+    const sessionCtx = opts.sessionKey ?? opts.sessionId;
+    const sessionHint = sessionCtx ? ` session=${sessionCtx}` : "";
+    const runHint = opts.runId ? ` run=${opts.runId}` : "";
+    const message = `Delivery failed (${deliveryChannel}${deliveryTarget ? ` to ${deliveryTarget}` : ""}${sessionHint}${runHint}): ${String(err)}`;
     runtime.error?.(message);
     if (!runtime.error) {
       runtime.log(message);
@@ -121,7 +138,15 @@ export async function deliverAgentCommandResult(params: {
   };
 
   if (deliver) {
-    if (!isDeliveryChannelKnown) {
+    if (isInternalMessageChannel(deliveryChannel)) {
+      const err = new Error(
+        "delivery channel is required: pass --channel/--reply-channel or use a main session with a previous channel",
+      );
+      if (!bestEffortDeliver) {
+        throw err;
+      }
+      logDeliveryError(err);
+    } else if (!isDeliveryChannelKnown) {
       const err = new Error(`Unknown channel: ${deliveryChannel}`);
       if (!bestEffortDeliver) {
         throw err;
@@ -136,6 +161,16 @@ export async function deliverAgentCommandResult(params: {
   }
 
   const normalizedPayloads = normalizeOutboundPayloadsForJson(payloads ?? []);
+  const sessionIdForLogs =
+    opts.sessionId?.trim() ||
+    (result.meta?.agentMeta && typeof result.meta.agentMeta.sessionId === "string"
+      ? result.meta.agentMeta.sessionId
+      : undefined);
+  const replyLogPrefix = formatAgentReplyPrefix({
+    sessionId: sessionIdForLogs,
+    deliveryChannel,
+    deliveryTarget,
+  });
   if (opts.json) {
     runtime.log(
       JSON.stringify(
@@ -166,11 +201,7 @@ export async function deliverAgentCommandResult(params: {
     if (!output) {
       return;
     }
-    if (opts.lane === AGENT_LANE_NESTED) {
-      logNestedOutput(runtime, opts, output);
-      return;
-    }
-    runtime.log(output);
+    logAgentReplyOutput(runtime, replyLogPrefix, output);
   };
   if (!deliver) {
     for (const payload of deliveryPayloads) {
