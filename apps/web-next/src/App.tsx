@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "./lib/utils";
 import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
+import { TourOverlay, useTour, DEFAULT_DASHBOARD_TOUR_STEPS } from "./components/Tour";
 import {
   DashboardSkeleton,
   TableSkeleton,
@@ -909,6 +910,18 @@ function AppContent() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  
+  // Tour state
+  const [tourOpen, setTourOpen] = useState(false);
+  
+  // Initialize tour with default steps
+  const tour = useTour({
+    tourId: 'dashboard-onboarding',
+    steps: DEFAULT_DASHBOARD_TOUR_STEPS,
+    onComplete: () => setTourOpen(false),
+    onSkip: () => setTourOpen(false),
+  });
+  
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { visitView, recordInteraction } = useProficiency();
@@ -1382,15 +1395,16 @@ function AppContent() {
             🐾
           </button>
           {!sidebarCollapsed && (
-            <span className="font-bold text-lg text-foreground">OpenClaw</span>
+            <span className="font-bold text-lg text-foreground" data-tour="brand">OpenClaw</span>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2">
+        <nav className="flex-1 overflow-y-auto py-2" data-tour="sidebar">
           {navItems.map((item) => (
             <button
               key={item.id}
+              data-tour={`nav-${item.id}`}
               onClick={() => navigate(item.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
@@ -1420,6 +1434,17 @@ function AppContent() {
         <div className="p-4 border-t border-border flex flex-col gap-2">
           {/* Proficiency Level Badge */}
           {!sidebarCollapsed && <ProficiencyBadge />}
+          {/* Start Tour Button */}
+          {!sidebarCollapsed && !tour.hasCompleted && (
+            <button
+              onClick={() => tour.startTour()}
+              className="flex items-center justify-center gap-2 px-3 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 transition-colors"
+              aria-label="Start guided tour"
+            >
+              <span>🎯</span>
+              <span>Start Tour</span>
+            </button>
+          )}
           {!sidebarCollapsed ? (
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">v0.1.0</span>
@@ -1602,7 +1627,7 @@ function AppContent() {
         </a>
 
         {/* View content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" role="main">
+        <main id="main-content" className="flex-1 overflow-y-auto" role="main" data-tour="main-content">
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
               <div key={activeView} className="p-6 max-w-7xl mx-auto animate-slide-in">
@@ -1615,6 +1640,18 @@ function AppContent() {
 
       {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+      {/* Guided Tour Overlay */}
+      <TourOverlay
+        isActive={tour.isActive}
+        steps={DEFAULT_DASHBOARD_TOUR_STEPS}
+        tourId="dashboard-onboarding"
+        onComplete={tour.stopTour}
+        onSkip={tour.skipTour}
+        onStepChange={tour.nextStep}
+        showProgress={true}
+        allowSkip={true}
+      />
 
       {/* Command Palette */}
       {cmdPaletteOpen && (
