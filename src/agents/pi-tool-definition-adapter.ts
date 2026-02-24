@@ -248,9 +248,6 @@ export function toToolDefinitions(
           if (described.stack && described.stack !== described.message) {
             logDebug(`${sessionPrefix}tools: ${normalizedName} failed stack:\n${described.stack}`);
           }
-          const sessionPrefix = compatibility?.sessionKey
-            ? `session=${compatibility.sessionKey} `
-            : "";
           logError(`${sessionPrefix}[tools] ${normalizedName} failed: ${described.message}`);
 
           const errorResult = jsonResult({

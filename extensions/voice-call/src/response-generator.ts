@@ -61,7 +61,8 @@ export async function generateVoiceResponse(
   // Build voice-specific session key based on phone number
   const normalizedPhone = from.replace(/\D/g, "");
   const sessionKey = `voice:${normalizedPhone}`;
-  const agentId = "main";
+  const responseAgentId = voiceConfig.responseAgentId.trim();
+  const agentId = responseAgentId.length > 0 ? responseAgentId : "main";
 
   // Resolve paths
   const storePath = deps.resolveStorePath(cfg.session?.store, { agentId });
@@ -146,6 +147,7 @@ export async function generateVoiceResponse(
   try {
     const result = await deps.runEmbeddedPiAgent({
       sessionId,
+      agentId,
       sessionKey,
       messageProvider: "voice",
       sessionFile,

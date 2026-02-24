@@ -246,6 +246,7 @@ function makeMinimalVoiceConfig(overrides: Partial<VoiceCallConfig> = {}): Voice
     skipSignatureVerification: false,
     stt: { provider: "openai", model: "whisper-1" },
     tts: { mode: "auto", auto: {} },
+    responseAgentId: "main",
     responseModel: "openai/gpt-4o-mini",
     responseTimeoutMs: 30000,
     subagents: { enabled: true, maxConcurrency: 2, maxPerCall: 1, defaultDeadlineMs: 15000 },
