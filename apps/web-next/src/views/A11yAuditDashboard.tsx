@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { ShieldCheck } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 type Severity = "critical" | "serious" | "moderate" | "minor";
 type WCAGLevel = "A" | "AA" | "AAA";
@@ -251,7 +252,62 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-export default function A11yAuditDashboard() {
+function A11yAuditDashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Skeleton className="h-7 w-56 mb-2" />
+        <Skeleton variant="text" className="w-80 h-3" />
+      </div>
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-tok-border mb-6">
+        {[80, 64, 56, 96].map((w, i) => (
+          <Skeleton key={i} className="h-9 rounded-t-lg rounded-b-none" style={{ width: w }} />
+        ))}
+      </div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="bg-surface-1 border border-tok-border rounded-lg p-5 text-center">
+            <Skeleton className="h-10 w-16 mx-auto mb-2" />
+            <Skeleton variant="text" className="w-24 h-3 mx-auto" />
+          </div>
+        ))}
+      </div>
+      {/* Issues by severity */}
+      <div className="bg-surface-1 border border-tok-border rounded-lg p-5 mb-6">
+        <Skeleton variant="text" className="w-36 h-4 mb-4" />
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="flex items-center gap-3 mb-3">
+            <Skeleton className="w-20 h-3" />
+            <div className="flex-1"><Skeleton className="h-2 w-full rounded-full" /></div>
+            <Skeleton className="w-6 h-3" />
+          </div>
+        ))}
+      </div>
+      {/* Two columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[0, 1].map(col => (
+          <div key={col} className="bg-surface-1 border border-tok-border rounded-lg p-5">
+            <Skeleton variant="text" className="w-40 h-4 mb-4" />
+            {[0, 1, 2].map(i => (
+              <div key={i} className="flex items-center gap-3 mb-3">
+                <Skeleton className="w-20 h-3" />
+                <div className="flex-1"><Skeleton className="h-2 w-full rounded-full" /></div>
+                <Skeleton className="w-6 h-3" />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <A11yAuditDashboardSkeleton />;
+
   const [tab, setTab] = useState<Tab>("overview");
   const [selectedPage, setSelectedPage] = useState<AuditedPage | null>(null);
   const [selectedViolation, setSelectedViolation] = useState<A11yViolation | null>(null);

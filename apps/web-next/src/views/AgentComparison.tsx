@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ArrowLeftRight, ChevronDown, Check, X, Clock, Activity, Zap, Calendar, Users } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -348,7 +349,86 @@ function SectionHeader({ icon, title }: SectionHeaderProps) {
 // Main Component
 // ============================================================================
 
-export default function AgentComparison() {
+function AgentComparisonSkeleton() {
+  // One column of comparison skeleton rows
+  const CompareColSkeleton = () => (
+    <div className="bg-surface-1 border border-tok-border rounded-2xl p-6">
+      {/* Agent header */}
+      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-tok-border">
+        <Skeleton variant="circle" className="w-10 h-10" />
+        <div>
+          <Skeleton className="h-5 w-24 mb-1" />
+          <Skeleton variant="text" className="w-36 h-3" />
+        </div>
+      </div>
+      {/* Sections */}
+      {["Identity", "Model", "Capabilities", "Personality", "Performance", "Working Hours"].map(section => (
+        <div key={section} className="mb-6">
+          <div className="flex items-center gap-2 pb-3 border-b border-tok-border mb-4">
+            <Skeleton variant="circle" className="w-4 h-4" />
+            <Skeleton variant="text" className="w-24 h-3" />
+          </div>
+          <div className="space-y-3">
+            {section === "Capabilities"
+              ? (
+                <div className="grid grid-cols-2 gap-2 p-3 rounded-lg bg-surface-2/50">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Skeleton variant="circle" className="w-4 h-4" />
+                      <Skeleton variant="text" className="w-20 h-3" />
+                    </div>
+                  ))}
+                </div>
+              )
+              : Array.from({ length: section === "Identity" ? 5 : section === "Model" ? 5 : section === "Working Hours" ? 2 : 4 }).map((_, i) => (
+                <div key={i} className="flex items-center py-1">
+                  <div className="flex-1">
+                    <Skeleton variant="text" className="w-16 h-2 mb-1" />
+                    <Skeleton variant="text" className="w-28 h-3" />
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="h-full p-3 sm:p-4 md:p-6 bg-surface-0 overflow-y-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton variant="text" className="w-56 h-3" />
+        </div>
+        <Skeleton className="h-8 w-32 rounded-full" />
+      </div>
+      {/* Agent selectors */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+        <div className="flex-1 w-full sm:max-w-xs">
+          <Skeleton variant="text" className="w-12 h-3 mb-2" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
+        <Skeleton variant="circle" className="w-11 h-11" />
+        <div className="flex-1 w-full sm:max-w-xs">
+          <Skeleton variant="text" className="w-12 h-3 mb-2" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
+      </div>
+      {/* Comparison grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <CompareColSkeleton />
+        <CompareColSkeleton />
+      </div>
+    </div>
+  );
+}
+
+export default function AgentComparison({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AgentComparisonSkeleton />;
+
   const [agentA, setAgentA] = useState<AgentConfig>(AGENTS[0]); // Luis
   const [agentB, setAgentB] = useState<AgentConfig>(AGENTS[1]); // Xavier
   

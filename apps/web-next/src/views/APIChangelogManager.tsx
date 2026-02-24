@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { FileText } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 type ChangeType = "breaking" | "feature" | "fix" | "deprecation" | "security";
 type ChangeStatus = "draft" | "published" | "archived";
@@ -98,7 +99,99 @@ const methodColor: Record<string, string> = {
   DELETE: "text-rose-400",
 };
 
-export default function APIChangelogManager() {
+function APIChangelogManagerSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border">
+        <div>
+          <Skeleton className="h-6 w-52 mb-2" />
+          <Skeleton variant="text" className="w-56 h-3" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-7 w-44" />
+          <Skeleton className="h-8 w-28" />
+        </div>
+      </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-b border-tok-border">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="px-6 py-3 border-r border-tok-border last:border-r-0">
+            <Skeleton className="h-7 w-12 mb-1" />
+            <Skeleton variant="text" className="w-28 h-3 mb-1" />
+            <Skeleton variant="text" className="w-36 h-3" />
+          </div>
+        ))}
+      </div>
+      {/* Tabs */}
+      <div className="flex border-b border-tok-border px-6">
+        {[88, 96, 64, 96].map((w, i) => (
+          <Skeleton key={i} className="h-10 my-1 mr-1" style={{ width: w }} />
+        ))}
+      </div>
+      {/* Split layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* List */}
+        <div className="w-96 border-r border-tok-border flex flex-col">
+          <div className="p-3 border-b border-tok-border">
+            <div className="flex gap-2">
+              <Skeleton className="h-8 flex-1" />
+              <Skeleton className="h-8 flex-1" />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {[0, 1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="px-4 py-3 border-b border-tok-border/50">
+                <div className="flex items-start gap-2 mb-1">
+                  <Skeleton className="h-5 w-20" />
+                </div>
+                <Skeleton variant="text" className="w-52 h-4 mb-1" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="w-10 h-3" />
+                  <Skeleton variant="text" className="w-32 h-3" />
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <Skeleton className="h-4 w-8" />
+                  <Skeleton variant="text" className="w-16 h-3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Detail */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-10" />
+            </div>
+            <Skeleton className="h-6 w-72" />
+          </div>
+          <Skeleton className="h-12 w-full" />
+          <div>
+            <Skeleton variant="text" className="w-24 h-3 mb-2" />
+            <Skeleton variant="text" className="w-full h-3 mb-1" />
+            <Skeleton variant="text" className="w-3/4 h-3" />
+          </div>
+          <div className="bg-surface-1 rounded-lg border border-tok-border p-4">
+            <Skeleton variant="text" className="w-32 h-4 mb-3" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10" />
+              <div>
+                <Skeleton variant="text" className="w-24 h-3 mb-1" />
+                <Skeleton variant="text" className="w-36 h-3" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function APIChangelogManager({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <APIChangelogManagerSkeleton />;
+
   const [tab, setTab] = useState<Tab>("changelog");
   const [selectedChange, setSelectedChange] = useState<ChangeEntry | null>(null);
   const [typeFilter, setTypeFilter] = useState<string>("all");

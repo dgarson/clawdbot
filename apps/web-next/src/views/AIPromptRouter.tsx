@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 import { Route } from "lucide-react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -493,7 +494,45 @@ function AnalyticsTab() {
 const TABS = ["Routes", "Models", "Events", "Analytics"] as const;
 type Tab = typeof TABS[number];
 
-export default function AIPromptRouter() {
+function AIPromptRouterSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton variant="text" className="w-96 h-3" />
+      </div>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 border-b border-tok-border">
+        {[64, 64, 60, 80].map((w, i) => (
+          <Skeleton key={i} className="h-9 mb-px" style={{ width: w }} />
+        ))}
+      </div>
+      {/* Route cards */}
+      <div className="space-y-3">
+        {[0, 1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="rounded-xl border border-tok-border bg-surface-1 p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton variant="circle" className="w-2 h-2" />
+              <Skeleton variant="text" className="w-36 h-4" />
+              <Skeleton className="h-5 w-16" />
+              <div className="ml-auto flex items-center gap-4">
+                <Skeleton variant="text" className="w-20 h-3" />
+                <Skeleton variant="text" className="w-14 h-3" />
+                <Skeleton variant="text" className="w-16 h-3" />
+              </div>
+            </div>
+            <Skeleton variant="text" className="w-64 h-3 mt-1 ml-5" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function AIPromptRouter({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AIPromptRouterSkeleton />;
+
   const [tab, setTab] = useState<Tab>("Routes");
 
   const healthyModels = models.filter((m) => m.status === "healthy").length;
