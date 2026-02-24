@@ -130,6 +130,106 @@ describe("agents_list", () => {
     expect(agents?.map((agent) => agent.id)).toEqual(["main", "coder", "research"]);
   });
 
+  it("marks requested model capability by matching each target agent subagent model", async () => {
+    configOverride = {
+      session: {
+        mainKey: "main",
+        scope: "per-sender",
+      },
+      agents: {
+        defaults: {
+          model: { primary: "anthropic/claude-opus-4-6" },
+        },
+        list: [
+          {
+            id: "main",
+            subagents: {
+              allowAgents: ["research", "writer"],
+            },
+          },
+          {
+            id: "research",
+            subagents: {
+              model: "minimax/minimax-m2.5",
+            },
+          },
+          {
+            id: "writer",
+            subagents: {
+              model: "anthropic/claude-sonnet-4-5",
+            },
+          },
+        ],
+      },
+    };
+
+    const tool = createOpenClawTools({
+      agentSessionKey: "main",
+    }).find((candidate) => candidate.name === "agents_list");
+    if (!tool) {
+      throw new Error("missing agents_list tool");
+    }
+
+    const result = await tool.execute("call5", { model: "minimax/minimax-m2.5" });
+    expect(result.details).toMatchObject({
+      requestedModel: {
+        provider: "minimax",
+        model: "minimax-m2.5",
+      },
+    });
+
+    const agents = (
+      result.details as { agents?: Array<{ id: string; capableForRequestedModel?: boolean }> }
+    ).agents;
+    expect(agents?.find((agent) => agent.id === "research")?.capableForRequestedModel).toBe(true);
+    expect(agents?.find((agent) => agent.id === "writer")?.capableForRequestedModel).toBe(false);
+  });
+
+  it("supports provider-only capability checks", async () => {
+    configOverride = {
+      session: {
+        mainKey: "main",
+        scope: "per-sender",
+      },
+      agents: {
+        list: [
+          {
+            id: "main",
+            subagents: {
+              allowAgents: ["research", "writer"],
+            },
+          },
+          {
+            id: "research",
+            subagents: {
+              model: "minimax/minimax-m2.5",
+            },
+          },
+          {
+            id: "writer",
+            subagents: {
+              model: "anthropic/claude-sonnet-4-5",
+            },
+          },
+        ],
+      },
+    };
+
+    const tool = createOpenClawTools({
+      agentSessionKey: "main",
+    }).find((candidate) => candidate.name === "agents_list");
+    if (!tool) {
+      throw new Error("missing agents_list tool");
+    }
+
+    const result = await tool.execute("call6", { model: "minimax" });
+    const agents = (
+      result.details as { agents?: Array<{ id: string; capableForRequestedModel?: boolean }> }
+    ).agents;
+    expect(agents?.find((agent) => agent.id === "research")?.capableForRequestedModel).toBe(true);
+    expect(agents?.find((agent) => agent.id === "writer")?.capableForRequestedModel).toBe(false);
+  });
+
   it("marks allowlisted-but-unconfigured agents", async () => {
     configOverride = {
       session: {
