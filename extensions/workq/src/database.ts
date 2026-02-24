@@ -112,6 +112,8 @@ function statusListSql(alias: string): string {
   return `${alias}.status IN (${placeholders})`;
 }
 
+// Sentinel used by old code to mark items as available for reassignment.
+// Kept only for the startup repair that migrates these rows to status='dropped'.
 const SYSTEM_UNCLAIMED_AGENT_ID = "system:unclaimed";
 
 export class WorkqDatabase implements WorkqDatabaseApi {
@@ -249,32 +251,6 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       if (existing.agent_id === agentId && this.isActiveStatus(existing.status)) {
         return {
           status: "already_yours",
-          item: this.getOrThrow(issueRef),
-        };
-      }
-
-      if (existing.agent_id === SYSTEM_UNCLAIMED_AGENT_ID && this.isActiveStatus(existing.status)) {
-        this.db
-          .prepare(
-            `UPDATE work_items
-             SET agent_id = ?,
-                 status = 'claimed',
-                 blocked_reason = NULL,
-                 claimed_session_key = ?,
-                 updated_at = datetime('now', 'utc')
-             WHERE issue_ref = ?`,
-          )
-          .run(agentId, toNullable(input.sessionKey), issueRef);
-
-        this.insertLog(
-          issueRef,
-          agentId,
-          "reassigned",
-          JSON.stringify({ reassignedFrom: SYSTEM_UNCLAIMED_AGENT_ID }),
-        );
-
-        return {
-          status: "claimed",
           item: this.getOrThrow(issueRef),
         };
       }
@@ -660,13 +636,31 @@ export class WorkqDatabase implements WorkqDatabaseApi {
     }));
   }
 
+  findSentinelAgentRows(): WorkItem[] {
+    // Returns active items whose agent_id is a system sentinel (not a real agent).
+    // These are anomalous and should not exist after the startup repair; used by the
+    // sweep cron to detect and warn about any that slip through.
+    const rows = this.db
+      .prepare(
+        `SELECT w.*
+         FROM work_items w
+         WHERE w.agent_id LIKE 'system:%'
+           AND w.status NOT IN ('done', 'dropped')
+         ORDER BY w.updated_at ASC`,
+      )
+      .all() as unknown as WorkItemRow[];
+
+    const filesByIssue = this.fetchFilesByIssue(rows.map((row) => row.issue_ref));
+    return rows.map((row) => this.toItem(row, filesByIssue.get(row.issue_ref) ?? [], 24));
+  }
+
   findStaleActiveItems(staleAfterMinutes: number): SweepCandidate[] {
     const thresholdMinutes = Math.max(1, Math.floor(staleAfterMinutes));
     const rows = this.db
       .prepare(
         `SELECT w.*
          FROM work_items w
-         WHERE w.status IN ('claimed', 'in-progress')
+         WHERE w.status IN ('claimed', 'in-progress', 'blocked')
            AND w.updated_at <= datetime('now', 'utc', '-' || ? || ' minutes')
          ORDER BY w.updated_at ASC`,
       )
@@ -710,19 +704,18 @@ export class WorkqDatabase implements WorkqDatabaseApi {
         this.db
           .prepare(
             `UPDATE work_items
-             SET status = 'claimed',
-                 agent_id = ?,
+             SET status = 'dropped',
                  blocked_reason = NULL,
                  claimed_session_key = NULL,
                  updated_at = datetime('now', 'utc')
              WHERE issue_ref = ?`,
           )
-          .run(SYSTEM_UNCLAIMED_AGENT_ID, row.issue_ref);
+          .run(row.issue_ref);
 
         this.insertLog(
           row.issue_ref,
           actorId,
-          "reassigned",
+          "dropped",
           JSON.stringify({
             reason,
             releasedFromAgentId: row.agent_id,
@@ -844,19 +837,18 @@ export class WorkqDatabase implements WorkqDatabaseApi {
       this.db
         .prepare(
           `UPDATE work_items
-           SET status = 'claimed',
-               agent_id = ?,
+           SET status = 'dropped',
                blocked_reason = NULL,
                claimed_session_key = NULL,
                updated_at = datetime('now', 'utc')
            WHERE issue_ref = ?`,
         )
-        .run(SYSTEM_UNCLAIMED_AGENT_ID, issueRef);
+        .run(issueRef);
 
       this.insertLog(
         issueRef,
         actorId,
-        "reassigned",
+        "dropped",
         JSON.stringify({
           reason,
           releasedFromAgentId: row.agent_id,
@@ -864,7 +856,7 @@ export class WorkqDatabase implements WorkqDatabaseApi {
         }),
       );
 
-      return { issueRef, from, to: "claimed" };
+      return { issueRef, from, to: "dropped" };
     });
   }
 
@@ -967,18 +959,29 @@ export class WorkqDatabase implements WorkqDatabaseApi {
   }
 
   private repairSystemUnclaimedStatusRows(): void {
+    // Fix legacy rows where status/agent_id values were accidentally swapped
+    // (status='system:unclaimed', agent_id='claimed'). The status value bypasses
+    // the CHECK constraint because it was inserted via raw SQL with constraints off.
     this.db
       .prepare(
         `UPDATE work_items
-         SET status = 'claimed',
-             agent_id = CASE
-               WHEN agent_id = 'claimed' THEN ?
-               ELSE agent_id
-             END,
+         SET status = 'dropped',
              updated_at = datetime('now', 'utc')
          WHERE status = ?`,
       )
-      .run(SYSTEM_UNCLAIMED_AGENT_ID, SYSTEM_UNCLAIMED_AGENT_ID);
+      .run(SYSTEM_UNCLAIMED_AGENT_ID);
+
+    // Fix sentinel rows written by old autoReleaseBySession/systemReleaseToUnclaimed
+    // (status='claimed', agent_id='system:unclaimed'). Going forward these operations
+    // set status='dropped' and preserve the real agent_id instead.
+    this.db
+      .prepare(
+        `UPDATE work_items
+         SET status = 'dropped',
+             updated_at = datetime('now', 'utc')
+         WHERE agent_id = ? AND status NOT IN ('done', 'dropped')`,
+      )
+      .run(SYSTEM_UNCLAIMED_AGENT_ID);
   }
 
   /**

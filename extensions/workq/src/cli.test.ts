@@ -48,6 +48,7 @@ function createDbMock() {
     get: vi.fn(() => null),
     getLog: vi.fn(() => []),
     findStaleActiveItems: vi.fn(() => []),
+    findSentinelAgentRows: vi.fn(() => []),
     autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
     systemMoveToInReview: vi.fn(),
     systemMarkDone: vi.fn(),
