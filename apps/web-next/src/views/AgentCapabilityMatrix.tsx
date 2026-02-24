@@ -1,792 +1,215 @@
 import { useState } from 'react';
 import {
   Bot,
-  Wrench,
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  X,
-  Users,
-  Key,
-  Terminal,
-  Globe,
-  MessageSquare,
-  Eye,
-  Cpu,
   Brain,
+  Search,
+  MessageSquare,
+  Code,
+  Globe,
+  Database,
+  Shield,
   Zap,
-  Activity,
-  Clock,
-  Lock,
-  RefreshCw,
-  Minus,
+  Filter,
+  CheckCircle2,
+  XCircle,
   AlertCircle,
+  Microscope,
+  BarChart2,
+  Download,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
-import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-type AgentId = 'luis' | 'quinn' | 'reed' | 'sam' | 'wes' | 'piper' | 'xavier' | 'stephan';
-
-type ToolCategory = 'exec' | 'browser' | 'messaging' | 'filesystem' | 'code' | 'ai' | 'data';
-
-type CapabilityStatus = 'enabled' | 'disabled' | 'degraded' | 'unavailable';
-
-type PermissionLevel = 'none' | 'read' | 'write' | 'admin';
+type CapabilityStatus = 'supported' | 'partial' | 'unsupported' | 'experimental';
+type AgentTier = 'core' | 'enterprise' | 'research';
 
 interface Agent {
-  id: AgentId;
-  name: string;
-  role: string;
-  status: 'active' | 'idle' | 'error' | 'offline';
-  model: string;
-  tools: string[];
-  skills: string[];
-  permissions: PermissionLevel[];
-  lastActive: Date;
-}
-
-interface Tool {
   id: string;
   name: string;
-  category: ToolCategory;
+  tier: AgentTier;
+  version: string;
   description: string;
 }
 
-interface Skill {
+interface Capability {
   id: string;
   name: string;
   category: string;
+  description: string;
+  icon: React.ElementType;
 }
 
-interface CapabilityHealth {
-  agentId: AgentId;
-  type: 'missing_tool' | 'conflict' | 'degraded' | 'expired_permission';
-  message: string;
-  severity: 'critical' | 'warning' | 'info';
+interface MatrixCell {
+  agentId: string;
+  capabilityId: string;
+  status: CapabilityStatus;
+  notes?: string;
 }
+
+// ============================================================================
+// Config
+// ============================================================================
+
+const TIER_CONFIG: Record<AgentTier, { label: string; color: string; bg: string }> = {
+  core: { label: 'Core', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+  enterprise: { label: 'Enterprise', color: 'text-violet-400', bg: 'bg-violet-400/10' },
+  research: { label: 'Research', color: 'text-amber-400', bg: 'bg-amber-400/10' },
+};
+
+const STATUS_CONFIG: Record<CapabilityStatus, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  supported: { label: 'Supported', icon: CheckCircle2, color: 'text-green-400', bg: 'bg-green-400/10' },
+  partial: { label: 'Partial', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+  unsupported: { label: 'Not supported', icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10' },
+  experimental: { label: 'Experimental', icon: Microscope, color: 'text-cyan-400', bg: 'bg-cyan-400/10' },
+};
 
 // ============================================================================
 // Mock Data
 // ============================================================================
 
-const MOCK_TOOLS: Tool[] = [
-  { id: 'exec', name: 'Shell Exec', category: 'exec', description: 'Execute shell commands' },
-  { id: 'browser', name: 'Browser Control', category: 'browser', description: 'Control web browser' },
-  { id: 'read', name: 'File Read', category: 'filesystem', description: 'Read files from disk' },
-  { id: 'write', name: 'File Write', category: 'filesystem', description: 'Write files to disk' },
-  { id: 'message', name: 'Send Message', category: 'messaging', description: 'Send messages to channels' },
-  { id: 'web_search', name: 'Web Search', category: 'ai', description: 'Search the web' },
-  { id: 'web_fetch', name: 'Web Fetch', category: 'ai', description: 'Fetch web content' },
-  { id: 'code', name: 'Code Execution', category: 'code', description: 'Run code snippets' },
-  { id: 'tts', name: 'Text-to-Speech', category: 'ai', description: 'Convert text to speech' },
-  { id: 'voice', name: 'Voice Call', category: 'messaging', description: 'Make voice calls' },
-  { id: 'subagent', name: 'Subagent Spawn', category: 'ai', description: 'Spawn sub-agents' },
-  { id: 'image', name: 'Image Analysis', category: 'ai', description: 'Analyze images' },
+const AGENTS: Agent[] = [
+  { id: 'a1', name: 'ClawdBot Base', tier: 'core', version: 'v3.2', description: 'Standard conversational agent' },
+  { id: 'a2', name: 'ClawdBot Pro', tier: 'enterprise', version: 'v3.2', description: 'Enhanced enterprise agent with tool use' },
+  { id: 'a3', name: 'ClawdBot Search', tier: 'core', version: 'v2.8', description: 'Search-optimized agent' },
+  { id: 'a4', name: 'ClawdBot Code', tier: 'enterprise', version: 'v3.1', description: 'Software engineering specialist' },
+  { id: 'a5', name: 'ClawdBot Research', tier: 'research', version: 'v0.9-beta', description: 'Experimental research assistant' },
+  { id: 'a6', name: 'ClawdBot Data', tier: 'enterprise', version: 'v3.0', description: 'Data analysis and SQL specialist' },
 ];
 
-const MOCK_SKILLS: Skill[] = [
-  { id: 'typescript', name: 'TypeScript', category: 'language' },
-  { id: 'react', name: 'React', category: 'framework' },
-  { id: 'tailwind', name: 'Tailwind CSS', category: 'framework' },
-  { id: 'node', name: 'Node.js', category: 'runtime' },
-  { id: 'python', name: 'Python', category: 'language' },
-  { id: 'git', name: 'Git', category: 'tool' },
-  { id: 'docker', name: 'Docker', category: 'tool' },
-  { id: 'aws', name: 'AWS', category: 'cloud' },
-  { id: 'sql', name: 'SQL', category: 'language' },
-  { id: 'api', name: 'API Design', category: 'skill' },
+const CAPABILITIES: Capability[] = [
+  { id: 'c1', name: 'Web Search', category: 'Tools', description: 'Search the internet in real time', icon: Globe },
+  { id: 'c2', name: 'Code Generation', category: 'Tools', description: 'Generate and explain code', icon: Code },
+  { id: 'c3', name: 'Database Query', category: 'Tools', description: 'Execute SQL and analyze schemas', icon: Database },
+  { id: 'c4', name: 'Multi-turn Memory', category: 'Reasoning', description: 'Remember context across turns', icon: Brain },
+  { id: 'c5', name: 'Tool Orchestration', category: 'Reasoning', description: 'Chain multiple tools in sequence', icon: Zap },
+  { id: 'c6', name: 'Document Analysis', category: 'Input', description: 'Parse and reason over documents', icon: Search },
+  { id: 'c7', name: 'Data Visualization', category: 'Output', description: 'Generate charts and reports', icon: BarChart2 },
+  { id: 'c8', name: 'PII Redaction', category: 'Safety', description: 'Automatically redact sensitive data', icon: Shield },
+  { id: 'c9', name: 'Multi-modal Input', category: 'Input', description: 'Process images and audio', icon: MessageSquare },
+  { id: 'c10', name: 'Streaming Output', category: 'Output', description: 'Stream tokens as they generate', icon: Bot },
 ];
 
-const MOCK_AGENTS: Agent[] = [
-  {
-    id: 'luis',
-    name: 'Luis',
-    role: 'Principal UX Engineer',
-    status: 'active',
-    model: 'claude-opus-4-5',
-    tools: ['exec', 'browser', 'read', 'write', 'message', 'web_search', 'web_fetch', 'subagent'],
-    skills: ['typescript', 'react', 'tailwind', 'node', 'git', 'api'],
-    permissions: ['admin', 'admin', 'admin', 'admin'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 5),
-  },
-  {
-    id: 'quinn',
-    name: 'Quinn',
-    role: 'State Management Specialist',
-    status: 'active',
-    model: 'minimax-portal/MiniMax-M2.5',
-    tools: ['exec', 'read', 'write', 'code', 'subagent'],
-    skills: ['typescript', 'react', 'tailwind', 'node', 'python'],
-    permissions: ['write', 'write', 'read', 'none'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 2),
-  },
-  {
-    id: 'reed',
-    name: 'Reed',
-    role: 'Accessibility Specialist',
-    status: 'idle',
-    model: 'claude-sonnet-4',
-    tools: ['read', 'code', 'web_fetch', 'image'],
-    skills: ['typescript', 'react', 'tailwind', 'accessibility'],
-    permissions: ['read', 'read', 'none', 'none'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 30),
-  },
-  {
-    id: 'sam',
-    name: 'Sam',
-    role: 'Animation Specialist',
-    status: 'active',
-    model: 'claude-sonnet-4',
-    tools: ['read', 'write', 'code', 'tts'],
-    skills: ['typescript', 'react', 'tailwind', 'animation'],
-    permissions: ['write', 'read', 'none', 'none'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 10),
-  },
-  {
-    id: 'wes',
-    name: 'Wes',
-    role: 'Props & State Engineer',
-    status: 'idle',
-    model: 'claude-3-5-sonnet',
-    tools: ['read', 'code'],
-    skills: ['typescript', 'react', 'node', 'api'],
-    permissions: ['read', 'none', 'none', 'none'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 60),
-  },
-  {
-    id: 'piper',
-    name: 'Piper',
-    role: 'Interaction Patterns',
-    status: 'active',
-    model: 'claude-opus-4',
-    tools: ['read', 'write', 'browser', 'web_search'],
-    skills: ['typescript', 'react', 'tailwind', 'design-systems'],
-    permissions: ['write', 'write', 'read', 'none'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 15),
-  },
-  {
-    id: 'xavier',
-    name: 'Xavier',
-    role: 'System Architect',
-    status: 'error',
-    model: 'claude-opus-4-5',
-    tools: ['exec', 'read', 'write', 'message', 'docker', 'aws'],
-    skills: ['typescript', 'python', 'docker', 'aws', 'sql', 'api'],
-    permissions: ['admin', 'admin', 'admin', 'admin'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 120),
-  },
-  {
-    id: 'stephan',
-    name: 'Stephan',
-    role: 'Memory & Context',
-    status: 'active',
-    model: 'claude-3-5-sonnet',
-    tools: ['read', 'write', 'message', 'subagent'],
-    skills: ['typescript', 'python', 'sql', 'memory'],
-    permissions: ['write', 'write', 'write', 'none'],
-    lastActive: new Date(Date.now() - 1000 * 60 * 8),
-  },
-];
-
-const MOCK_HEALTH_ALERTS: CapabilityHealth[] = [
-  {
-    agentId: 'xavier',
-    type: 'expired_permission',
-    message: 'AWS credentials expired 2 hours ago',
-    severity: 'critical',
-  },
-  {
-    agentId: 'reed',
-    type: 'missing_tool',
-    message: 'Missing browser tool - cannot perform visual testing',
-    severity: 'warning',
-  },
-  {
-    agentId: 'wes',
-    type: 'degraded',
-    message: 'Code execution throttled due to rate limits',
-    severity: 'warning',
-  },
-  {
-    agentId: 'quinn',
-    type: 'conflict',
-    message: 'Conflicting model versions with subagent tasks',
-    severity: 'info',
-  },
-];
-
-const PERMISSION_TYPES = [
-  { id: 'exec', name: 'Shell Exec', icon: Terminal },
-  { id: 'browser', name: 'Browser', icon: Globe },
-  { id: 'message', name: 'Messaging', icon: MessageSquare },
-  { id: 'data', name: 'Data Access', icon: Lock },
+const MATRIX: MatrixCell[] = [
+  // ClawdBot Base
+  { agentId: 'a1', capabilityId: 'c1', status: 'partial', notes: 'Rate limited to 5 req/min' },
+  { agentId: 'a1', capabilityId: 'c2', status: 'supported' },
+  { agentId: 'a1', capabilityId: 'c3', status: 'unsupported' },
+  { agentId: 'a1', capabilityId: 'c4', status: 'supported' },
+  { agentId: 'a1', capabilityId: 'c5', status: 'unsupported' },
+  { agentId: 'a1', capabilityId: 'c6', status: 'supported' },
+  { agentId: 'a1', capabilityId: 'c7', status: 'unsupported' },
+  { agentId: 'a1', capabilityId: 'c8', status: 'partial' },
+  { agentId: 'a1', capabilityId: 'c9', status: 'unsupported' },
+  { agentId: 'a1', capabilityId: 'c10', status: 'supported' },
+  // ClawdBot Pro
+  { agentId: 'a2', capabilityId: 'c1', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c2', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c3', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c4', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c5', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c6', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c7', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c8', status: 'supported' },
+  { agentId: 'a2', capabilityId: 'c9', status: 'partial', notes: 'Images only; no audio' },
+  { agentId: 'a2', capabilityId: 'c10', status: 'supported' },
+  // ClawdBot Search
+  { agentId: 'a3', capabilityId: 'c1', status: 'supported' },
+  { agentId: 'a3', capabilityId: 'c2', status: 'partial' },
+  { agentId: 'a3', capabilityId: 'c3', status: 'unsupported' },
+  { agentId: 'a3', capabilityId: 'c4', status: 'supported' },
+  { agentId: 'a3', capabilityId: 'c5', status: 'partial' },
+  { agentId: 'a3', capabilityId: 'c6', status: 'supported' },
+  { agentId: 'a3', capabilityId: 'c7', status: 'unsupported' },
+  { agentId: 'a3', capabilityId: 'c8', status: 'partial' },
+  { agentId: 'a3', capabilityId: 'c9', status: 'unsupported' },
+  { agentId: 'a3', capabilityId: 'c10', status: 'supported' },
+  // ClawdBot Code
+  { agentId: 'a4', capabilityId: 'c1', status: 'partial' },
+  { agentId: 'a4', capabilityId: 'c2', status: 'supported' },
+  { agentId: 'a4', capabilityId: 'c3', status: 'supported' },
+  { agentId: 'a4', capabilityId: 'c4', status: 'supported' },
+  { agentId: 'a4', capabilityId: 'c5', status: 'supported' },
+  { agentId: 'a4', capabilityId: 'c6', status: 'supported' },
+  { agentId: 'a4', capabilityId: 'c7', status: 'partial', notes: 'Chart generation only' },
+  { agentId: 'a4', capabilityId: 'c8', status: 'supported' },
+  { agentId: 'a4', capabilityId: 'c9', status: 'partial', notes: 'Images only' },
+  { agentId: 'a4', capabilityId: 'c10', status: 'supported' },
+  // ClawdBot Research
+  { agentId: 'a5', capabilityId: 'c1', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c2', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c3', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c4', status: 'supported' },
+  { agentId: 'a5', capabilityId: 'c5', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c6', status: 'supported' },
+  { agentId: 'a5', capabilityId: 'c7', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c8', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c9', status: 'experimental' },
+  { agentId: 'a5', capabilityId: 'c10', status: 'supported' },
+  // ClawdBot Data
+  { agentId: 'a6', capabilityId: 'c1', status: 'partial' },
+  { agentId: 'a6', capabilityId: 'c2', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c3', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c4', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c5', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c6', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c7', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c8', status: 'supported' },
+  { agentId: 'a6', capabilityId: 'c9', status: 'unsupported' },
+  { agentId: 'a6', capabilityId: 'c10', status: 'supported' },
 ];
 
 // ============================================================================
-// Helper Functions
+// Helpers
 // ============================================================================
 
-function formatTimeAgo(date: Date): string {
-  const minutes = Math.floor((Date.now() - date.getTime()) / (1000 * 60));
-  if (minutes < 1) {return 'Just now';}
-  if (minutes < 60) {return `${minutes}m ago`;}
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {return `${hours}h ago`;}
-  return `${Math.floor(hours / 24)}d ago`;
+function getCell(agentId: string, capabilityId: string): MatrixCell | undefined {
+  return MATRIX.find((m) => m.agentId === agentId && m.capabilityId === capabilityId);
 }
 
-function getStatusColor(status: Agent['status']): string {
-  switch (status) {
-    case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
-    case 'idle': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-    case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
-    case 'offline': return 'bg-zinc-500/20 text-fg-secondary border-zinc-500/30';
-  }
-}
-
-function getCapabilityStatus(toolId: string, agentTools: string[]): CapabilityStatus {
-  if (agentTools.includes(toolId)) {return 'enabled';}
-  return 'disabled';
+function getCapabilityScore(capabilityId: string): number {
+  const statuses = AGENTS.map((a) => getCell(a.id, capabilityId)?.status ?? 'unsupported');
+  const weights: Record<CapabilityStatus, number> = { supported: 1, experimental: 0.5, partial: 0.5, unsupported: 0 };
+  return Math.round((statuses.reduce((sum, s) => sum + weights[s], 0) / AGENTS.length) * 100);
 }
 
 // ============================================================================
-// Sub-components
+// StatusCell — text companion for the icon (not color-only)
 // ============================================================================
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color = 'text-fg-secondary',
-  subtext,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color?: string;
-  subtext?: string;
-}) {
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-surface-2 rounded-lg">
-        <Icon className={cn('w-4 h-4', color)} aria-hidden="true" />
-      </div>
-      <div>
-        <p className="text-xs text-fg-secondary font-medium uppercase tracking-wide mb-1">{label}</p>
-        <span className="text-xl font-bold text-fg-primary">{value}</span>
-        {subtext && <p className="text-xs text-fg-muted mt-0.5">{subtext}</p>}
-      </div>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: Agent['status'] }) {
-  return (
-    <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium border', getStatusColor(status))}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
-}
-
-function CapabilityCell({
-  status,
-  toolName,
-}: {
-  status: CapabilityStatus;
-  toolName: string;
-}) {
-  const icons = {
-    enabled: <CheckCircle className="w-3 h-3 text-green-400" aria-hidden="true" />,
-    disabled: <XCircle className="w-3 h-3 text-zinc-600" aria-hidden="true" />,
-    degraded: <AlertTriangle className="w-3 h-3 text-amber-400" aria-hidden="true" />,
-    unavailable: <Minus className="w-3 h-3 text-red-400" aria-hidden="true" />,
-  };
-  
-  const bgColors = {
-    enabled: 'bg-green-500/10',
-    disabled: 'bg-surface-2/50',
-    degraded: 'bg-amber-500/10',
-    unavailable: 'bg-red-500/10',
-  };
-  
+function StatusCell({ status, notes }: { status: CapabilityStatus; notes?: string }) {
+  const { label, icon: Icon, color, bg } = STATUS_CONFIG[status];
   return (
     <div
-      className={cn(
-        'w-8 h-8 rounded flex items-center justify-center border',
-        bgColors[status],
-        status === 'enabled' ? 'border-green-500/30' :
-        status === 'degraded' ? 'border-amber-500/30' :
-        status === 'unavailable' ? 'border-red-500/30' :
-        'border-tok-border'
-      )}
-      title={`${toolName}: ${status}`}
+      className={cn('inline-flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg w-full', bg)}
+      title={notes ? `${label}: ${notes}` : label}
     >
-      {icons[status]}
+      <Icon className={cn('w-4 h-4', color)} aria-hidden="true" />
+      <span className={cn('text-[10px] font-medium leading-tight', color)}>
+        {status === 'supported' ? '✓' : status === 'unsupported' ? '✗' : status === 'partial' ? '~' : 'β'}
+      </span>
+      <span className="sr-only">{label}{notes ? `: ${notes}` : ''}</span>
     </div>
   );
 }
 
-function AgentCard({
-  agent,
-  isExpanded,
-  onToggle,
-  tools,
-}: {
-  agent: Agent;
-  isExpanded: boolean;
-  onToggle: () => void;
-  tools: Tool[];
-}) {
-  const enabledTools = agent.tools.length;
-  const enabledSkills = agent.skills.length;
-  
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
-      <div
-        className="p-4 cursor-pointer hover:bg-surface-2/50 transition-colors"
-        onClick={onToggle}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-violet-400" aria-hidden="true" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-fg-primary">{agent.name}</span>
-                <StatusBadge status={agent.status} />
-              </div>
-              <p className="text-xs text-fg-secondary">{agent.role}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-fg-muted">
-            <div className="text-right">
-              <p className="text-fg-secondary font-medium">{enabledTools} tools</p>
-              <p>{enabledSkills} skills</p>
-            </div>
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
-            )}
-          </div>
-        </div>
-        
-        <div className="mt-3 flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <Cpu className="w-3 h-3 text-fg-muted" aria-hidden="true" />
-            <span className="text-fg-secondary">{agent.model}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-fg-muted" aria-hidden="true" />
-            <span className="text-fg-secondary">{formatTimeAgo(agent.lastActive)}</span>
-          </div>
-        </div>
-      </div>
-      
-      {isExpanded && (
-        <div className="border-t border-tok-border p-4 bg-surface-2/30 space-y-4">
-          <div>
-            <p className="text-xs text-fg-muted uppercase tracking-wide mb-2">Tools Enabled</p>
-            <div className="flex flex-wrap gap-1.5">
-              {agent.tools.map((toolId) => {
-                const tool = tools.find((t) => t.id === toolId);
-                return (
-                  <span
-                    key={toolId}
-                    className="px-2 py-0.5 rounded bg-surface-3 text-zinc-300 text-xs"
-                  >
-                    {tool?.name || toolId}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-fg-muted uppercase tracking-wide mb-2">Skills</p>
-            <div className="flex flex-wrap gap-1.5">
-              {agent.skills.map((skillId) => (
-                <span
-                  key={skillId}
-                  className="px-2 py-0.5 rounded bg-violet-500/15 text-violet-300 text-xs border border-violet-500/30"
-                >
-                  {skillId}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+// ============================================================================
+// Legend
+// ============================================================================
 
-function PermissionBadge({ level }: { level: PermissionLevel }) {
-  const styles: Record<PermissionLevel, string> = {
-    none: 'bg-surface-3/50 text-fg-secondary',
-    read: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    write: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    admin: 'bg-red-500/15 text-red-400 border-red-500/30',
-  };
-  
-  const icons: Record<PermissionLevel, React.ElementType> = {
-    none: X,
-    read: Eye,
-    write: Key,
-    admin: Shield,
-  };
-  
-  const Icon = icons[level];
-  
+function Legend() {
   return (
-    <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium border flex items-center gap-1', styles[level])}>
-      <Icon className="w-3 h-3" aria-hidden="true" />
-      {level.charAt(0).toUpperCase() + level.slice(1)}
-    </span>
-  );
-}
-
-function PermissionPanel({
-  agents,
-}: {
-  agents: Agent[];
-}) {
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Shield className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-fg-primary">Permission Grants</span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-tok-border">
-              <th className="text-left py-2 px-2 text-fg-muted font-medium">Agent</th>
-              {PERMISSION_TYPES.map((perm) => (
-                <th key={perm.id} className="text-center py-2 px-2 text-fg-muted font-medium">
-                  <div className="flex items-center justify-center gap-1">
-                    <perm.icon className="w-3 h-3" aria-hidden="true" />
-                    {perm.name}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {agents.map((agent) => (
-              <tr key={agent.id} className="border-b border-tok-border/50 hover:bg-surface-2/30">
-                <td className="py-2 px-2">
-                  <span className="text-fg-primary font-medium">{agent.name}</span>
-                </td>
-                {agent.permissions.map((perm, idx) => (
-                  <td key={idx} className="py-2 px-2 text-center">
-                    <PermissionBadge level={perm} />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function HealthAlertsPanel({
-  alerts,
-  agents,
-}: {
-  alerts: CapabilityHealth[];
-  agents: Agent[];
-}) {
-  const getSeverityStyles = (severity: CapabilityHealth['severity']) => {
-    switch (severity) {
-      case 'critical':
-        return 'bg-red-500/15 border-red-500/30 text-red-400';
-      case 'warning':
-        return 'bg-amber-500/15 border-amber-500/30 text-amber-400';
-      case 'info':
-        return 'bg-blue-500/15 border-blue-500/30 text-blue-400';
-    }
-  };
-  
-  const getSeverityIcon = (severity: CapabilityHealth['severity']) => {
-    switch (severity) {
-      case 'critical':
-        return AlertCircle;
-      case 'warning':
-        return AlertTriangle;
-      case 'info':
-        return Activity;
-    }
-  };
-
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <AlertTriangle className="w-4 h-4 text-amber-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-fg-primary">Capability Health</span>
-        {alerts.length > 0 && (
-          <span className="ml-auto px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs">
-            {alerts.length} issues
+    <div className="flex flex-wrap items-center gap-4">
+      {Object.entries(STATUS_CONFIG).map(([key, { label, icon: Icon, color, bg }]) => (
+        <div key={key} className="flex items-center gap-1.5 text-xs text-zinc-400">
+          <span className={cn('inline-flex items-center justify-center w-5 h-5 rounded', bg)}>
+            <Icon className={cn('w-3 h-3', color)} aria-hidden="true" />
           </span>
-        )}
-      </div>
-      
-      {alerts.length === 0 ? (
-        <div className="text-center py-4 text-fg-muted">
-          <CheckCircle className="w-6 h-6 mx-auto mb-1 text-green-400" aria-hidden="true" />
-          <p className="text-sm">All capabilities healthy</p>
+          {label}
         </div>
-      ) : (
-        <div className="space-y-2">
-          {alerts.map((alert, idx) => {
-            const Icon = getSeverityIcon(alert.severity);
-            const agent = agents.find((a) => a.id === alert.agentId);
-            return (
-              <div
-                key={idx}
-                className={cn(
-                  'p-3 rounded-lg border flex items-start gap-2',
-                  getSeverityStyles(alert.severity)
-                )}
-              >
-                <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                <div>
-                  <p className="text-xs font-medium">{agent?.name || alert.agentId}</p>
-                  <p className="text-xs opacity-80">{alert.message}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CapabilityMatrix({
-  agents,
-  tools,
-}: {
-  agents: Agent[];
-  tools: Tool[];
-}) {
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 overflow-x-auto">
-      <div className="flex items-center gap-2 mb-4">
-        <Wrench className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-fg-primary">Capability Matrix</span>
-      </div>
-      
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-tok-border">
-            <th className="text-left py-2 px-2 text-fg-muted font-medium min-w-[120px]">Agent</th>
-            {tools.map((tool) => (
-              <th key={tool.id} className="text-center py-2 px-1" title={tool.description}>
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-fg-secondary text-[10px]">{tool.name.split(' ')[0]}</span>
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {agents.map((agent) => (
-            <tr key={agent.id} className="border-b border-tok-border/50 hover:bg-surface-2/30">
-              <td className="py-2 px-2">
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={agent.status} />
-                  <span className="text-fg-primary font-medium">{agent.name}</span>
-                </div>
-              </td>
-              {tools.map((tool) => (
-                <td key={tool.id} className="py-1 px-1">
-                  <div className="flex justify-center">
-                    <CapabilityCell
-                      status={getCapabilityStatus(tool.id, agent.tools)}
-                      toolName={tool.name}
-                    />
-                  </div>
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      
-      <div className="mt-4 flex items-center gap-4 text-xs text-fg-muted">
-        <div className="flex items-center gap-1.5">
-          <CheckCircle className="w-3 h-3 text-green-400" aria-hidden="true" />
-          <span>Enabled</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <XCircle className="w-3 h-3 text-zinc-600" aria-hidden="true" />
-          <span>Disabled</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <AlertTriangle className="w-3 h-3 text-amber-400" aria-hidden="true" />
-          <span>Degraded</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SkillMatrix({
-  agents,
-  skills,
-}: {
-  agents: Agent[];
-  skills: Skill[];
-}) {
-  const getSkillStatus = (skillId: string, agentSkills: string[]): CapabilityStatus => {
-    if (agentSkills.includes(skillId)) {return 'enabled';}
-    return 'disabled';
-  };
-
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 overflow-x-auto">
-      <div className="flex items-center gap-2 mb-4">
-        <Brain className="w-4 h-4 text-violet-400" aria-hidden="true" />
-        <span className="text-sm font-semibold text-fg-primary">Skill Coverage</span>
-      </div>
-      
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-tok-border">
-            <th className="text-left py-2 px-2 text-fg-muted font-medium min-w-[120px]">Agent</th>
-            {skills.map((skill) => (
-              <th key={skill.id} className="text-center py-2 px-1">
-                <span className="text-fg-secondary text-[10px]" title={skill.category}>
-                  {skill.name.length > 8 ? skill.name.slice(0, 8) + '..' : skill.name}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {agents.map((agent) => (
-            <tr key={agent.id} className="border-b border-tok-border/50 hover:bg-surface-2/30">
-              <td className="py-2 px-2">
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={agent.status} />
-                  <span className="text-fg-primary font-medium">{agent.name}</span>
-                </div>
-              </td>
-              {skills.map((skill) => (
-                <td key={skill.id} className="py-1 px-1">
-                  <div className="flex justify-center">
-                    <CapabilityCell
-                      status={getSkillStatus(skill.id, agent.skills)}
-                      toolName={skill.name}
-                    />
-                  </div>
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function FilterBar({
-  search,
-  setSearch,
-  filterAgent,
-  setFilterAgent,
-  filterCategory,
-  setFilterCategory,
-  filterPermission,
-  setFilterPermission,
-  agents,
-  tools,
-}: {
-  search: string;
-  setSearch: (v: string) => void;
-  filterAgent: string;
-  setFilterAgent: (v: string) => void;
-  filterCategory: string;
-  setFilterCategory: (v: string) => void;
-  filterPermission: string;
-  setFilterPermission: (v: string) => void;
-  agents: Agent[];
-  tools: Tool[];
-}) {
-  const categories = [...new Set(tools.map((t) => t.category))];
-  
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-center gap-4 flex-wrap">
-      <div className="flex-1 min-w-[200px] relative">
-        <Search className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search agents, tools, skills..."
-          className="w-full bg-surface-2 border border-tok-border rounded px-9 py-2 text-sm text-fg-primary placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-        />
-      </div>
-      
-      <select
-        value={filterAgent}
-        onChange={(e) => setFilterAgent(e.target.value)}
-        className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-      >
-        <option value="">All Agents</option>
-        {agents.map((a) => (
-          <option key={a.id} value={a.id}>{a.name}</option>
-        ))}
-      </select>
-      
-      <select
-        value={filterCategory}
-        onChange={(e) => setFilterCategory(e.target.value)}
-        className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-      >
-        <option value="">All Categories</option>
-        {categories.map((cat) => (
-          <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-        ))}
-      </select>
-      
-      <select
-        value={filterPermission}
-        onChange={(e) => setFilterPermission(e.target.value)}
-        className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary min-w-[140px] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-      >
-        <option value="">All Permissions</option>
-        <option value="admin">Admin</option>
-        <option value="write">Write</option>
-        <option value="read">Read</option>
-        <option value="none">None</option>
-      </select>
-      
-      {(search || filterAgent || filterCategory || filterPermission) && (
-        <button
-          onClick={() => {
-            setSearch('');
-            setFilterAgent('');
-            setFilterCategory('');
-            setFilterPermission('');
-          }}
-          className="flex items-center gap-1 px-3 py-2 rounded text-sm text-fg-secondary hover:text-fg-primary hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-        >
-          <X className="w-4 h-4" aria-hidden="true" />
-          Clear
-        </button>
-      )}
+      ))}
     </div>
   );
 }
@@ -795,249 +218,260 @@ function FilterBar({
 // Main Component
 // ============================================================================
 
-export default function AgentCapabilityMatrix({ isLoading = false }: { isLoading?: boolean }) {
-  const [agents] = useState<Agent[]>(MOCK_AGENTS);
-  const [tools] = useState<Tool[]>(MOCK_TOOLS);
-  const [skills] = useState<Skill[]>(MOCK_SKILLS);
-  const [healthAlerts] = useState<CapabilityHealth[]>(MOCK_HEALTH_ALERTS);
-  
+export default function AgentCapabilityMatrix() {
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [tierFilter, setTierFilter] = useState<AgentTier | 'all'>('all');
   const [search, setSearch] = useState('');
-  const [filterAgent, setFilterAgent] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterPermission, setFilterPermission] = useState('');
-  
-  const [expandedAgents, setExpandedAgents] = useState<Set<AgentId>>(new Set());
-  const [activeTab, setActiveTab] = useState<'matrix' | 'skills'>('matrix');
 
-  const toggleExpanded = (agentId: AgentId) => {
-    setExpandedAgents((prev) => {
-      const next = new Set(prev);
-      if (next.has(agentId)) {next.delete(agentId);}
-      else {next.add(agentId);}
-      return next;
-    });
-  };
-
-  // Filter agents based on search and filters
-  const filteredAgents = agents.filter((agent) => {
-    const matchesSearch = !search || 
-      agent.name.toLowerCase().includes(search.toLowerCase()) ||
-      agent.role.toLowerCase().includes(search.toLowerCase()) ||
-      agent.tools.some((t) => tools.find((tool) => tool.id === t && tool.name.toLowerCase().includes(search.toLowerCase()))) ||
-      agent.skills.some((s) => s.toLowerCase().includes(search.toLowerCase()));
-    
-    const matchesAgent = !filterAgent || agent.id === filterAgent;
-    
-    const matchesCategory = !filterCategory || agent.tools.some((t) => {
-      const tool = tools.find((tool) => tool.id === t);
-      return tool?.category === filterCategory;
-    });
-    
-    const matchesPermission = !filterPermission || agent.permissions.some((p) => p === filterPermission);
-    
-    return matchesSearch && matchesAgent && matchesCategory && matchesPermission;
+  const categories = ['all', ...Array.from(new Set(CAPABILITIES.map((c) => c.category)))];
+  const filteredCapabilities = CAPABILITIES.filter((cap) => {
+    const matchCat = categoryFilter === 'all' || cap.category === categoryFilter;
+    const matchSearch = cap.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
   });
-
-  // Calculate stats
-  const totalAgents = agents.length;
-  const activeAgents = agents.filter((a) => a.status === 'active').length;
-  const totalTools = tools.length;
-  const totalSkills = skills.length;
-  const adminAgents = agents.filter((a) => a.permissions.includes('admin')).length;
-  const criticalAlerts = healthAlerts.filter((a) => a.severity === 'critical').length;
+  const filteredAgents = AGENTS.filter((a) => tierFilter === 'all' || a.tier === tierFilter);
 
   return (
     <>
-      <a href="#acm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="acm-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
-            <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
-            Agent Capability Matrix
-          </h1>
-          <p className="text-sm text-fg-secondary mt-0.5">
-            Tools, skills, and permission overview for all agents
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="px-3 py-1.5 rounded-lg bg-surface-2 text-zinc-300 text-sm font-medium" role="status">
-            {filteredAgents.length} / {totalAgents} agents
-          </span>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            <RefreshCw className="w-4 h-4" aria-hidden="true" />
-            Refresh
-          </button>
-        </div>
-      </div>
+      {/* Skip link — WCAG 2.4.1 */}
+      <a
+        href="#capability-matrix-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-6 gap-4">
-        <StatCard 
-          label="Total Agents" 
-          value={totalAgents} 
-          icon={Users} 
-          color="text-violet-400"
-          subtext={`${activeAgents} active`}
-        />
-        <StatCard 
-          label="Tools Tracked" 
-          value={totalTools} 
-          icon={Wrench} 
-          color="text-blue-400"
-        />
-        <StatCard 
-          label="Skills Loaded" 
-          value={totalSkills} 
-          icon={Brain} 
-          color="text-green-400"
-        />
-        <StatCard 
-          label="Admin Grants" 
-          value={adminAgents} 
-          icon={Shield} 
-          color="text-red-400"
-          subtext="elevated access"
-        />
-        <StatCard 
-          label="Health Alerts" 
-          value={criticalAlerts} 
-          icon={AlertTriangle} 
-          color={criticalAlerts > 0 ? "text-red-400" : "text-amber-400"}
-          subtext={`${healthAlerts.length} total issues`}
-        />
-        <StatCard 
-          label="Capability Score" 
-          value="94%" 
-          icon={Zap} 
-          color="text-amber-400"
-          subtext="system average"
-        />
-      </div>
+      <div className="min-h-screen bg-zinc-950 text-white">
+        <main id="capability-matrix-main" className="p-6 space-y-6 max-w-full">
 
-      {/* Filter Bar */}
-      <FilterBar
-        search={search}
-        setSearch={setSearch}
-        filterAgent={filterAgent}
-        setFilterAgent={setFilterAgent}
-        filterCategory={filterCategory}
-        setFilterCategory={setFilterCategory}
-        filterPermission={filterPermission}
-        setFilterPermission={setFilterPermission}
-        agents={agents}
-        tools={tools}
-      />
-
-      {/* Main Content */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* Agent Roster */}
-        <div className="col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-fg-primary flex items-center gap-2">
-            <Users className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            Agent Roster
-            <span className="ml-auto text-xs text-fg-muted">{filteredAgents.length} shown</span>
-          </h2>
-          {agents.length === 0 ? (
-            <ContextualEmptyState
-              icon={Bot}
-              title="No agents registered"
-              description="Agents added to the system will appear here with their capabilities."
-              size="sm"
-            />
-          ) : filteredAgents.length === 0 ? (
-            <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center text-fg-muted">
-              <Bot className="w-12 h-12 mx-auto mb-2 opacity-40" aria-hidden="true" />
-              <p className="text-sm">No agents match your filters</p>
+          {/* Header */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                Agent Capability Matrix
+              </h1>
+              <p className="text-sm text-zinc-400 mt-0.5">
+                Compare feature support across all agent variants
+              </p>
             </div>
-          ) : (
-            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
-              {filteredAgents.map((agent) => (
-                <AgentCard
-                  key={agent.id}
-                  agent={agent}
-                  isExpanded={expandedAgents.has(agent.id)}
-                  onToggle={() => toggleExpanded(agent.id)}
-                  tools={tools}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Matrix/Permissions/Health */}
-        <div className="col-span-2 space-y-6">
-          {/* Tab Switcher */}
-          <div className="flex gap-2">
             <button
-              onClick={() => setActiveTab('matrix')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-                activeTab === 'matrix'
-                  ? 'bg-violet-600 text-fg-primary'
-                  : 'bg-surface-2 text-fg-secondary hover:text-fg-primary'
-              )}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              onClick={() => window.print()}
             >
-              <Wrench className="w-4 h-4 inline mr-2" aria-hidden="true" />
-              Tool Matrix
-            </button>
-            <button
-              onClick={() => setActiveTab('skills')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-                activeTab === 'skills'
-                  ? 'bg-violet-600 text-fg-primary'
-                  : 'bg-surface-2 text-fg-secondary hover:text-fg-primary'
-              )}
-            >
-              <Brain className="w-4 h-4 inline mr-2" aria-hidden="true" />
-              Skill Coverage
+              <Download className="w-4 h-4" aria-hidden="true" />
+              Export
             </button>
           </div>
 
-          {/* Matrix or Skills View */}
-          {isLoading ? (
-            <div className="bg-surface-1 border border-tok-border rounded-xl p-4 overflow-x-auto">
-              <div className="flex items-center gap-2 mb-4">
-                <Skeleton className="h-4 w-4" />
-                <Skeleton className="h-4 w-32" />
+          {/* Summary stats */}
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: 'Total Agents', value: AGENTS.length, sub: `${AGENTS.filter((a) => a.tier === 'enterprise').length} enterprise` },
+              { label: 'Capabilities', value: CAPABILITIES.length, sub: `${categories.length - 1} categories` },
+              {
+                label: 'Full Coverage',
+                value: `${Math.round(MATRIX.filter((m) => m.status === 'supported').length / MATRIX.length * 100)}%`,
+                sub: 'of matrix cells',
+              },
+            ].map(({ label, value, sub }) => (
+              <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <div className="text-xs text-zinc-400 uppercase tracking-wide">{label}</div>
+                <div className="text-2xl font-bold text-white mt-1">{value}</div>
+                <div className="text-xs text-zinc-500 mt-0.5">{sub}</div>
               </div>
-              <div className="space-y-2">
-                {/* Header row */}
-                <div className="flex gap-2 pb-2 border-b border-tok-border">
-                  <Skeleton className="h-3 w-24 flex-shrink-0" />
-                  {Array.from({ length: 4 }).map((_, j) => (
-                    <Skeleton key={j} className="h-3 w-12 flex-1" />
-                  ))}
-                </div>
-                {/* 3 data rows × 4 columns */}
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1">
-                    <Skeleton className="h-6 w-24 flex-shrink-0" />
-                    {Array.from({ length: 4 }).map((_, j) => (
-                      <div key={j} className="flex-1 flex justify-center">
-                        <Skeleton className="h-8 w-8" />
-                      </div>
-                    ))}
-                  </div>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <section aria-label="Filter controls" className="flex flex-wrap items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <Filter className="w-4 h-4 text-zinc-400 flex-shrink-0" aria-hidden="true" />
+
+            <div>
+              <label htmlFor="capability-search" className="sr-only">Search capabilities</label>
+              <input
+                id="capability-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search capabilities…"
+                className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="category-filter" className="text-sm text-zinc-400 whitespace-nowrap">Category:</label>
+              <select
+                id="category-filter"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>
                 ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="tier-filter" className="text-sm text-zinc-400 whitespace-nowrap">Agent tier:</label>
+              <select
+                id="tier-filter"
+                value={tierFilter}
+                onChange={(e) => setTierFilter(e.target.value as AgentTier | 'all')}
+                className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              >
+                <option value="all">All Tiers</option>
+                {Object.entries(TIER_CONFIG).map(([key, { label }]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+          </section>
+
+          {/* Legend */}
+          <section aria-label="Status legend" className="flex items-center gap-3 flex-wrap">
+            <span className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Legend:</span>
+            <Legend />
+          </section>
+
+          {/* Matrix table */}
+          <section aria-label="Capability matrix table">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">
+                    Agent capability matrix — {filteredAgents.length} agents, {filteredCapabilities.length} capabilities shown
+                  </caption>
+                  <thead className="bg-zinc-800/60">
+                    <tr>
+                      {/* Capability column header */}
+                      <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3 min-w-[200px] sticky left-0 bg-zinc-800/60 z-10">
+                        Capability
+                      </th>
+                      <th scope="col" className="text-left text-zinc-400 font-medium px-3 py-3 w-20 hidden md:table-cell">
+                        Category
+                      </th>
+                      {/* Agent column headers */}
+                      {filteredAgents.map((agent) => {
+                        const tierCfg = TIER_CONFIG[agent.tier];
+                        return (
+                          <th key={agent.id} scope="col" className="text-center px-3 py-3 min-w-[110px]">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-white font-semibold text-xs leading-tight">{agent.name}</span>
+                              <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', tierCfg.bg, tierCfg.color)}>
+                                {tierCfg.label}
+                              </span>
+                              <span className="text-zinc-500 text-[10px]">{agent.version}</span>
+                            </div>
+                          </th>
+                        );
+                      })}
+                      {/* Coverage column */}
+                      <th scope="col" className="text-center text-zinc-400 font-medium px-3 py-3 min-w-[80px]">
+                        Coverage
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/50">
+                    {filteredCapabilities.length === 0 ? (
+                      <tr>
+                        <td colSpan={filteredAgents.length + 3} className="px-4 py-8 text-center text-zinc-500">
+                          No capabilities match your filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCapabilities.map((cap) => {
+                        const CapIcon = cap.icon;
+                        const score = getCapabilityScore(cap.id);
+                        return (
+                          <tr key={cap.id} className="hover:bg-zinc-800/20 transition-colors">
+                            <td className="px-4 py-3 sticky left-0 bg-zinc-900 hover:bg-zinc-800/20 z-10">
+                              <div className="flex items-center gap-2">
+                                <CapIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" aria-hidden="true" />
+                                <div>
+                                  <div className="text-white font-medium text-xs">{cap.name}</div>
+                                  <div className="text-zinc-500 text-[10px] hidden md:block">{cap.description}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 hidden md:table-cell">
+                              <span className="text-xs text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">{cap.category}</span>
+                            </td>
+                            {filteredAgents.map((agent) => {
+                              const cell = getCell(agent.id, cap.id);
+                              return (
+                                <td key={agent.id} className="px-3 py-2 text-center">
+                                  {cell ? (
+                                    <StatusCell status={cell.status} notes={cell.notes} />
+                                  ) : (
+                                    <span className="text-zinc-600 text-xs" aria-label="No data">—</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            {/* Coverage percentage — text + color */}
+                            <td className="px-3 py-3 text-center">
+                              <span
+                                className={cn(
+                                  'text-xs font-bold',
+                                  score >= 75 ? 'text-green-400' : score >= 40 ? 'text-amber-400' : 'text-red-400'
+                                )}
+                                aria-label={`${score}% coverage`}
+                              >
+                                {score}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-          ) : activeTab === 'matrix' ? (
-            <CapabilityMatrix agents={filteredAgents} tools={tools} />
-          ) : (
-            <SkillMatrix agents={filteredAgents} skills={skills} />
-          )}
+          </section>
 
-          {/* Permission Panel */}
-          <PermissionPanel agents={filteredAgents} />
-
-          {/* Health Alerts */}
-          <HealthAlertsPanel alerts={healthAlerts} agents={agents} />
-        </div>
+          {/* Per-agent summary */}
+          <section aria-label="Agent summary cards">
+            <h2 className="text-lg font-semibold text-white mb-4">Agent Summaries</h2>
+            <div className="grid grid-cols-3 gap-4">
+              {AGENTS.map((agent) => {
+                const cells = CAPABILITIES.map((cap) => getCell(agent.id, cap.id));
+                const supported = cells.filter((c) => c?.status === 'supported').length;
+                const partial = cells.filter((c) => c?.status === 'partial' || c?.status === 'experimental').length;
+                const unsupported = cells.filter((c) => c?.status === 'unsupported').length;
+                const tierCfg = TIER_CONFIG[agent.tier];
+                return (
+                  <div key={agent.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="text-white font-semibold text-sm">{agent.name}</div>
+                        <div className="text-zinc-500 text-xs mt-0.5">{agent.description}</div>
+                      </div>
+                      <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0', tierCfg.bg, tierCfg.color)}>
+                        {tierCfg.label}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      {[
+                        { label: 'Supported', value: supported, color: 'text-green-400' },
+                        { label: 'Partial', value: partial, color: 'text-amber-400' },
+                        { label: 'Not supported', value: unsupported, color: 'text-red-400' },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className="bg-zinc-800 rounded-lg py-2 px-1">
+                          <div className={cn('text-lg font-bold', color)}>{value}</div>
+                          <div className="text-[10px] text-zinc-500 mt-0.5">{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </main>
       </div>
-      </main>
     </>
   );
 }

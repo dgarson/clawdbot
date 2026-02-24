@@ -1,758 +1,412 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Activity,
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
-  Clock,
+  CircleDot,
   Cpu,
-  GitBranch,
   Network,
   RefreshCw,
   Server,
   Shield,
+  TrendingDown,
   TrendingUp,
-  XCircle,
   Zap,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { ContextualEmptyState } from '../components/ui/ContextualEmptyState'
-import { Skeleton } from '../components/ui/Skeleton'
 
-// Types
 interface Provider {
-  id: string
-  name: string
-  status: 'active' | 'degraded' | 'offline'
-  latency: number
-  requestsPerMinute: number
-  successRate: number
-  modelCount: number
-  trafficShare: number
-  color: string
+  id: string; name: string; status: 'active' | 'degraded' | 'offline';
+  latency: number; requestsPerMin: number; successRate: number; modelCount: number; color: string;
 }
 
 interface RoutingRule {
-  id: string
-  modelName: string
-  modelId: string
-  primaryProvider: string
-  fallbackProvider: string
-  priority: 1 | 2 | 3
-  isActive: boolean
+  id: string; model: string; primaryProvider: string; fallbackProvider: string; priority: number; active: boolean;
 }
 
 interface FailoverEvent {
-  id: string
-  timestamp: Date
-  model: string
-  fromProvider: string
-  toProvider: string
-  reason: 'rate_limit' | 'timeout' | 'error'
+  id: string; timestamp: string; model: string; fromProvider: string; toProvider: string; reason: string;
 }
 
-// Mock Data
 const mockProviders: Provider[] = [
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    status: 'active',
-    latency: 142,
-    requestsPerMinute: 2847,
-    successRate: 99.7,
-    modelCount: 12,
-    trafficShare: 38,
-    color: 'bg-emerald-500',
-  },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    status: 'active',
-    latency: 198,
-    requestsPerMinute: 1923,
-    successRate: 99.4,
-    modelCount: 8,
-    trafficShare: 28,
-    color: 'bg-orange-500',
-  },
-  {
-    id: 'xai',
-    name: 'xAI',
-    status: 'active',
-    latency: 167,
-    requestsPerMinute: 892,
-    successRate: 98.9,
-    modelCount: 4,
-    trafficShare: 14,
-    color: 'bg-blue-500',
-  },
-  {
-    id: 'zai',
-    name: 'ZAI',
-    status: 'degraded',
-    latency: 342,
-    requestsPerMinute: 456,
-    successRate: 94.2,
-    modelCount: 6,
-    trafficShare: 12,
-    color: 'bg-violet-500',
-  },
-  {
-    id: 'openrouter',
-    name: 'OpenRouter',
-    status: 'active',
-    latency: 223,
-    requestsPerMinute: 634,
-    successRate: 97.8,
-    modelCount: 45,
-    trafficShare: 8,
-    color: 'bg-cyan-500',
-  },
+  { id: 'openai', name: 'OpenAI', status: 'active', latency: 142, requestsPerMin: 847, successRate: 99.2, modelCount: 12, color: 'bg-emerald-500' },
+  { id: 'anthropic', name: 'Anthropic', status: 'active', latency: 189, requestsPerMin: 623, successRate: 99.7, modelCount: 8, color: 'bg-orange-500' },
+  { id: 'xai', name: 'xAI', status: 'active', latency: 156, requestsPerMin: 234, successRate: 98.4, modelCount: 3, color: 'bg-blue-500' },
+  { id: 'zai', name: 'ZAI', status: 'degraded', latency: 312, requestsPerMin: 156, successRate: 94.1, modelCount: 5, color: 'bg-violet-500' },
+  { id: 'openrouter', name: 'OpenRouter', status: 'active', latency: 198, requestsPerMin: 412, successRate: 97.8, modelCount: 45, color: 'bg-cyan-500' },
 ]
 
 const mockRoutingRules: RoutingRule[] = [
-  {
-    id: '1',
-    modelName: 'GPT-4o',
-    modelId: 'gpt-4o',
-    primaryProvider: 'OpenAI',
-    fallbackProvider: 'Anthropic',
-    priority: 1,
-    isActive: true,
-  },
-  {
-    id: '2',
-    modelName: 'GPT-4 Turbo',
-    modelId: 'gpt-4-turbo',
-    primaryProvider: 'OpenAI',
-    fallbackProvider: 'OpenRouter',
-    priority: 1,
-    isActive: true,
-  },
-  {
-    id: '3',
-    modelName: 'Claude 3.5 Sonnet',
-    modelId: 'claude-3-5-sonnet',
-    primaryProvider: 'Anthropic',
-    fallbackProvider: 'OpenAI',
-    priority: 2,
-    isActive: true,
-  },
-  {
-    id: '4',
-    modelName: 'Claude 3 Opus',
-    modelId: 'claude-3-opus',
-    primaryProvider: 'Anthropic',
-    fallbackProvider: 'OpenAI',
-    priority: 1,
-    isActive: true,
-  },
-  {
-    id: '5',
-    modelName: 'Grok-2',
-    modelId: 'grok-2',
-    primaryProvider: 'xAI',
-    fallbackProvider: 'OpenRouter',
-    priority: 2,
-    isActive: true,
-  },
-  {
-    id: '6',
-    modelName: 'GLM-4 Plus',
-    modelId: 'glm-4-plus',
-    primaryProvider: 'ZAI',
-    fallbackProvider: 'OpenAI',
-    priority: 3,
-    isActive: true,
-  },
-  {
-    id: '7',
-    modelName: 'Gemini 1.5 Pro',
-    modelId: 'gemini-1-5-pro',
-    primaryProvider: 'OpenRouter',
-    fallbackProvider: 'Anthropic',
-    priority: 2,
-    isActive: true,
-  },
-  {
-    id: '8',
-    modelName: 'Llama 3.1 405B',
-    modelId: 'llama-3-1-405b',
-    primaryProvider: 'OpenRouter',
-    fallbackProvider: 'xAI',
-    priority: 3,
-    isActive: false,
-  },
-  {
-    id: '9',
-    modelName: 'Mistral Large 2',
-    modelId: 'mistral-large-2',
-    primaryProvider: 'OpenRouter',
-    fallbackProvider: 'Anthropic',
-    priority: 2,
-    isActive: true,
-  },
-  {
-    id: '10',
-    modelName: 'DeepSeek V3',
-    modelId: 'deepseek-v3',
-    primaryProvider: 'ZAI',
-    fallbackProvider: 'OpenRouter',
-    priority: 3,
-    isActive: true,
-  },
+  { id: '1', model: 'gpt-4-turbo', primaryProvider: 'OpenAI', fallbackProvider: 'OpenRouter', priority: 1, active: true },
+  { id: '2', model: 'gpt-4', primaryProvider: 'OpenAI', fallbackProvider: 'Anthropic', priority: 2, active: true },
+  { id: '3', model: 'claude-3-opus', primaryProvider: 'Anthropic', fallbackProvider: 'OpenRouter', priority: 1, active: true },
+  { id: '4', model: 'claude-3-sonnet', primaryProvider: 'Anthropic', fallbackProvider: 'OpenAI', priority: 2, active: true },
+  { id: '5', model: 'grok-beta', primaryProvider: 'xAI', fallbackProvider: 'OpenRouter', priority: 1, active: true },
+  { id: '6', model: 'glm-4', primaryProvider: 'ZAI', fallbackProvider: 'OpenAI', priority: 1, active: false },
+  { id: '7', model: 'mixtral-8x7b', primaryProvider: 'OpenRouter', fallbackProvider: 'Anthropic', priority: 3, active: true },
+  { id: '8', model: 'gpt-3.5-turbo', primaryProvider: 'OpenAI', fallbackProvider: 'xAI', priority: 4, active: true },
+  { id: '9', model: 'claude-3-haiku', primaryProvider: 'Anthropic', fallbackProvider: 'OpenAI', priority: 3, active: true },
+  { id: '10', model: 'llama-2-70b', primaryProvider: 'OpenRouter', fallbackProvider: 'ZAI', priority: 2, active: true },
 ]
 
-const generateFailoverEvents = (): FailoverEvent[] => {
-  const events: FailoverEvent[] = []
-  const models = ['GPT-4o', 'Claude 3.5 Sonnet', 'Grok-2', 'GLM-4 Plus', 'Gemini 1.5 Pro']
-  const providers = ['OpenAI', 'Anthropic', 'xAI', 'ZAI', 'OpenRouter']
-  const reasons: ('rate_limit' | 'timeout' | 'error')[] = ['rate_limit', 'timeout', 'error']
+const mockFailoverEvents: FailoverEvent[] = [
+  { id: '1', timestamp: '2026-02-23 03:12:45', model: 'gpt-4-turbo', fromProvider: 'OpenAI', toProvider: 'OpenRouter', reason: 'Rate limit exceeded' },
+  { id: '2', timestamp: '2026-02-23 02:58:23', model: 'claude-3-opus', fromProvider: 'Anthropic', toProvider: 'OpenRouter', reason: 'High latency (>5s)' },
+  { id: '3', timestamp: '2026-02-23 02:34:11', model: 'glm-4', fromProvider: 'ZAI', toProvider: 'OpenAI', reason: 'Provider degraded' },
+  { id: '4', timestamp: '2026-02-23 02:15:08', model: 'gpt-4', fromProvider: 'OpenAI', toProvider: 'Anthropic', reason: 'Timeout exceeded' },
+  { id: '5', timestamp: '2026-02-23 01:52:33', model: 'grok-beta', fromProvider: 'xAI', toProvider: 'OpenRouter', reason: 'API error 503' },
+  { id: '6', timestamp: '2026-02-23 01:28:19', model: 'claude-3-sonnet', fromProvider: 'Anthropic', toProvider: 'OpenAI', reason: 'Quota reached' },
+  { id: '7', timestamp: '2026-02-23 01:05:42', model: 'mixtral-8x7b', fromProvider: 'OpenRouter', toProvider: 'Anthropic', reason: 'Connection reset' },
+  { id: '8', timestamp: '2026-02-23 00:41:56', model: 'gpt-3.5-turbo', fromProvider: 'OpenAI', toProvider: 'xAI', reason: 'Rate limit exceeded' },
+  { id: '9', timestamp: '2026-02-23 00:18:27', model: 'glm-4', fromProvider: 'ZAI', toProvider: 'OpenAI', reason: 'Provider offline' },
+  { id: '10', timestamp: '2026-02-22 23:55:14', model: 'claude-3-haiku', fromProvider: 'Anthropic', toProvider: 'OpenAI', reason: 'Model unavailable' },
+]
 
-  const now = new Date()
-  for (let i = 0; i < 10; i++) {
-    const fromIdx = Math.floor(Math.random() * providers.length)
-    let toIdx = Math.floor(Math.random() * providers.length)
-    while (toIdx === fromIdx) {
-      toIdx = Math.floor(Math.random() * providers.length)
-    }
+const trafficDistribution = [
+  { provider: 'OpenAI', percentage: 38, color: 'bg-emerald-500' },
+  { provider: 'Anthropic', percentage: 28, color: 'bg-orange-500' },
+  { provider: 'OpenRouter', percentage: 18, color: 'bg-cyan-500' },
+  { provider: 'xAI', percentage: 11, color: 'bg-blue-500' },
+  { provider: 'ZAI', percentage: 5, color: 'bg-violet-500' },
+]
 
-    const timestamp = new Date(now.getTime() - i * (Math.random() * 1800000 + 300000))
-    events.push({
-      id: `event-${i}`,
-      timestamp,
-      model: models[Math.floor(Math.random() * models.length)],
-      fromProvider: providers[fromIdx],
-      toProvider: providers[toIdx],
-      reason: reasons[Math.floor(Math.random() * reasons.length)],
+// ============================================================================
+// StatusBadge — text label + icon (not color-only). WCAG 1.4.1
+// ============================================================================
+
+function StatusBadge({ status }: { status: 'active' | 'degraded' | 'offline' }) {
+  const config = {
+    active: { color: 'text-green-400', bg: 'bg-green-400/10', icon: CheckCircle2, label: 'Active' },
+    degraded: { color: 'text-amber-400', bg: 'bg-amber-400/10', icon: AlertTriangle, label: 'Degraded' },
+    offline: { color: 'text-red-400', bg: 'bg-red-400/10', icon: CircleDot, label: 'Offline' },
+  }
+  const { color, bg, icon: Icon, label } = config[status]
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium', bg, color)}>
+      <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+      {label}
+    </span>
+  )
+}
+
+function StatCard({ title, value, subtitle, icon: Icon, trend }: {
+  title: string; value: string | number; subtitle?: string; icon: React.ElementType; trend?: 'up' | 'down' | 'neutral';
+}) {
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-zinc-400 text-sm font-medium">{title}</p>
+          <p className="text-2xl font-bold text-white mt-1">{value}</p>
+          {subtitle && (
+            <div className="flex items-center gap-1 mt-1">
+              {trend === 'up' && <TrendingUp className="w-3.5 h-3.5 text-green-400" aria-hidden="true" />}
+              {trend === 'down' && <TrendingDown className="w-3.5 h-3.5 text-red-400" aria-hidden="true" />}
+              <span className="text-zinc-500 text-xs">{subtitle}</span>
+            </div>
+          )}
+        </div>
+        <div className="p-2 bg-violet-600/10 rounded-lg">
+          <Icon className="w-5 h-5 text-violet-400" aria-hidden="true" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProviderCard({ provider }: { provider: Provider }) {
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', provider.color)}>
+            <Server className="w-5 h-5 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold">{provider.name}</h3>
+            <StatusBadge status={provider.status} />
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400 text-sm">Latency</span>
+          <div className="flex items-center gap-1.5">
+            <Zap className={cn('w-3.5 h-3.5', provider.latency < 150 ? 'text-green-400' : provider.latency < 250 ? 'text-amber-400' : 'text-red-400')} aria-hidden="true" />
+            <span className="text-white font-medium">{provider.latency}ms</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400 text-sm">Requests/min</span>
+          <span className="text-white font-medium">{provider.requestsPerMin.toLocaleString()}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400 text-sm">Success Rate</span>
+          <div className="flex items-center gap-2">
+            {/* Progress bar — role+aria attrs so it's not color-only. WCAG 1.4.1 */}
+            <div
+              className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={provider.successRate}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Success rate: ${provider.successRate}%`}
+            >
+              <div
+                className={cn('h-full rounded-full', provider.successRate >= 99 ? 'bg-green-400' : provider.successRate >= 95 ? 'bg-amber-400' : 'bg-red-400')}
+                style={{ width: `${provider.successRate}%` }}
+              />
+            </div>
+            <span className="text-white font-medium text-sm">{provider.successRate}%</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400 text-sm">Models</span>
+          <span className="text-white font-medium">{provider.modelCount}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TrafficBar() {
+  return (
+    <section aria-label="Traffic distribution across providers" className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <h3 className="text-white font-semibold mb-4">Traffic Distribution</h3>
+      {/* Segmented bar — role="img" + full aria-label. WCAG 1.4.1 */}
+      <div
+        className="h-4 bg-zinc-800 rounded-full overflow-hidden flex mb-4"
+        role="img"
+        aria-label={trafficDistribution.map((t) => `${t.provider}: ${t.percentage}%`).join(', ')}
+      >
+        {trafficDistribution.map((item) => (
+          <div key={item.provider} className={cn('h-full transition-all duration-300', item.color)} style={{ width: `${item.percentage}%` }} />
+        ))}
+      </div>
+      {/* Text labels below the bar — not color-only */}
+      <div className="grid grid-cols-5 gap-2">
+        {trafficDistribution.map((item) => (
+          <div key={item.provider} className="text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <div className={cn('w-2 h-2 rounded-full', item.color)} aria-hidden="true" />
+              <span className="text-zinc-400 text-xs truncate">{item.provider}</span>
+            </div>
+            <span className="text-white font-semibold text-sm">{item.percentage}%</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+export default function ProviderRoutingPanel() {
+  const [routingRules, setRoutingRules] = useState(mockRoutingRules)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [statusMessage, setStatusMessage] = useState('')
+
+  const handleToggleRule = (ruleId: string) => {
+    setRoutingRules((rules) => {
+      const updated = rules.map((rule) => rule.id === ruleId ? { ...rule, active: !rule.active } : rule)
+      const rule = updated.find((r) => r.id === ruleId)
+      setStatusMessage(`Routing rule for ${rule?.model} ${rule?.active ? 'enabled' : 'disabled'}`)
+      setTimeout(() => setStatusMessage(''), 3000)
+      return updated
     })
   }
 
-  return events.toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-}
-
-// Status Badge Component
-const StatusBadge = ({ status }: { status: 'active' | 'degraded' | 'offline' }) => {
-  const config = {
-    active: {
-      bg: 'bg-green-500/20',
-      text: 'text-green-400',
-      icon: CheckCircle2,
-      label: 'Active',
-    },
-    degraded: {
-      bg: 'bg-amber-500/20',
-      text: 'text-amber-400',
-      icon: AlertTriangle,
-      label: 'Degraded',
-    },
-    offline: {
-      bg: 'bg-red-500/20',
-      text: 'text-red-400',
-      icon: XCircle,
-      label: 'Offline',
-    },
-  }
-
-  const { bg, text, icon: Icon, label } = config[status]
-
-  return (
-    <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium', bg, text)}>
-      <Icon className="w-3 h-3" aria-hidden="true" />
-      {label}
-    </span>
-  )
-}
-
-// Reason Badge Component
-const ReasonBadge = ({ reason }: { reason: 'rate_limit' | 'timeout' | 'error' }) => {
-  const config = {
-    rate_limit: {
-      bg: 'bg-amber-500/20',
-      text: 'text-amber-400',
-      label: 'Rate Limit',
-    },
-    timeout: {
-      bg: 'bg-orange-500/20',
-      text: 'text-orange-400',
-      label: 'Timeout',
-    },
-    error: {
-      bg: 'bg-red-500/20',
-      text: 'text-red-400',
-      label: 'Error',
-    },
-  }
-
-  const { bg, text, label } = config[reason]
-
-  return (
-    <span className={cn('px-2 py-0.5 rounded text-xs font-medium', bg, text)}>
-      {label}
-    </span>
-  )
-}
-
-// Stat Card Component
-const StatCard = ({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  trend,
-  accent = false,
-}: {
-  title: string
-  value: string | number
-  subtitle?: string
-  icon: React.ElementType
-  trend?: { value: number; up: boolean }
-  accent?: boolean
-}) => (
-  <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-fg-muted text-sm font-medium">{title}</p>
-        <p className={cn('text-2xl font-bold mt-1', accent ? 'text-violet-400' : 'text-fg-primary')}>
-          {value}
-        </p>
-        {subtitle && <p className="text-fg-muted text-xs mt-1">{subtitle}</p>}
-        {trend && (
-          <p className={cn('text-xs mt-2 flex items-center gap-1', trend.up ? 'text-green-400' : 'text-red-400')}>
-            <TrendingUp className={cn('w-3 h-3', !trend.up && 'rotate-180')} aria-hidden="true" />
-            {trend.value}% from yesterday
-          </p>
-        )}
-      </div>
-      <div className={cn('p-2.5 rounded-lg', accent ? 'bg-violet-500/20' : 'bg-surface-2')}>
-        <Icon className={cn('w-5 h-5', accent ? 'text-violet-400' : 'text-fg-secondary')} aria-hidden="true" />
-      </div>
-    </div>
-  </div>
-)
-
-// Provider Card Component
-const ProviderCard = ({ provider }: { provider: Provider }) => (
-  <div className="bg-surface-1 border border-tok-border rounded-xl p-5 hover:border-tok-border transition-colors">
-    <div className="flex items-start justify-between mb-4">
-      <div className="flex items-center gap-3">
-        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', provider.color)}>
-          <Server className="w-5 h-5 text-fg-primary" aria-hidden="true" />
-        </div>
-        <div>
-          <h3 className="text-fg-primary font-semibold">{provider.name}</h3>
-          <StatusBadge status={provider.status} />
-        </div>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <p className="text-fg-muted text-xs mb-1">Latency</p>
-        <p className={cn(
-          'text-lg font-semibold',
-          provider.latency < 200 ? 'text-green-400' : provider.latency < 300 ? 'text-amber-400' : 'text-red-400'
-        )}>
-          {provider.latency}ms
-        </p>
-      </div>
-      <div>
-        <p className="text-fg-muted text-xs mb-1">Req/min</p>
-        <p className="text-lg font-semibold text-fg-primary">
-          {provider.requestsPerMinute.toLocaleString()}
-        </p>
-      </div>
-      <div>
-        <p className="text-fg-muted text-xs mb-1">Success Rate</p>
-        <p className={cn(
-          'text-lg font-semibold',
-          provider.successRate >= 99 ? 'text-green-400' : provider.successRate >= 95 ? 'text-amber-400' : 'text-red-400'
-        )}>
-          {provider.successRate}%
-        </p>
-      </div>
-      <div>
-        <p className="text-fg-muted text-xs mb-1">Models</p>
-        <p className="text-lg font-semibold text-fg-primary">{provider.modelCount}</p>
-      </div>
-    </div>
-
-    <div className="mt-4 pt-4 border-t border-tok-border">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-fg-muted">Traffic Share</span>
-        <span className="text-fg-secondary font-medium">{provider.trafficShare}%</span>
-      </div>
-      <div className="mt-2 h-1.5 bg-surface-2 rounded-full overflow-hidden">
-        <div
-          className={cn('h-full rounded-full transition-all', provider.color)}
-          style={{ width: `${provider.trafficShare}%` }}
-        />
-      </div>
-    </div>
-  </div>
-)
-
-// Traffic Distribution Bar Component
-const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
-  const totalShare = providers.reduce((sum, p) => sum + p.trafficShare, 0)
-  
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-fg-primary font-semibold flex items-center gap-2">
-          <Network className="w-5 h-5 text-violet-400" aria-hidden="true" />
-          Traffic Distribution
-        </h3>
-        <span className="text-fg-muted text-sm">Last 24 hours</span>
-      </div>
-
-      <div className="h-8 rounded-lg overflow-hidden flex">
-        {providers.map((provider) => (
-          <div
-            key={provider.id}
-            className={cn('h-full transition-all relative group', provider.color)}
-            style={{ width: `${(provider.trafficShare / totalShare) * 100}%` }}
-            aria-label={`${provider.name}: ${provider.trafficShare}%`}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-fg-primary text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {provider.trafficShare}%
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-4">
-        {providers.map((provider) => (
-          <div key={provider.id} className="flex items-center gap-2">
-            <div className={cn('w-3 h-3 rounded', provider.color)} aria-hidden="true" />
-            <span className="text-fg-secondary text-sm">{provider.name}</span>
-            <span className="text-fg-muted text-xs">({provider.trafficShare}%)</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Main Component
-export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?: boolean }) {
-  const [providers] = useState<Provider[]>(mockProviders)
-  const [routingRules, setRoutingRules] = useState<RoutingRule[]>(mockRoutingRules)
-  const [failoverEvents, setFailoverEvents] = useState<FailoverEvent[]>([])
-  const [isRefreshing, setIsRefreshing] = useState(false)
-
-  // Initialize failover events
-  useEffect(() => {
-    setFailoverEvents(generateFailoverEvents())
-  }, [])
-
-  // Calculate stats
-  const stats = {
-    totalProviders: providers.length,
-    activeRoutes: routingRules.filter(r => r.isActive).length,
-    failoversToday: failoverEvents.filter(e => {
-      const today = new Date()
-      return e.timestamp.toDateString() === today.toDateString()
-    }).length,
-    avgLatency: Math.round(
-      providers.reduce((sum, p) => sum + p.latency, 0) / providers.length
-    ),
-  }
-
-  // Toggle routing rule
-  const toggleRule = (ruleId: string) => {
-    setRoutingRules(rules =>
-      rules.map(r =>
-        r.id === ruleId ? { ...r, isActive: !r.isActive } : r
-      )
-    )
-  }
-
-  // Refresh failover log
-  const refreshFailoverLog = () => {
+  const handleRefresh = () => {
     setIsRefreshing(true)
     setTimeout(() => {
-      setFailoverEvents(generateFailoverEvents())
       setIsRefreshing(false)
-    }, 500)
+      setStatusMessage('Provider data refreshed')
+      setTimeout(() => setStatusMessage(''), 3000)
+    }, 1000)
   }
 
-  // Format timestamp
-  const formatTimestamp = (date: Date) => {
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const minutes = Math.floor(diff / 60000)
-    
-    if (minutes < 1) {return 'Just now'}
-    if (minutes < 60) {return `${minutes}m ago`}
-    if (minutes < 1440) {return `${Math.floor(minutes / 60)}h ${minutes % 60}m ago`}
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  }
+  const activeProviders = mockProviders.filter((p) => p.status === 'active').length
+  const activeRoutes = routingRules.filter((r) => r.active).length
+  const avgLatency = Math.round(mockProviders.reduce((sum, p) => sum + p.latency, 0) / mockProviders.length)
 
   return (
     <>
-      <a href="#prp-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="prp-main" className="bg-surface-0 min-h-screen p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-3">
-            <GitBranch className="w-7 h-7 text-violet-400" aria-hidden="true" />
-            Provider Routing
-          </h1>
-          <p className="text-fg-muted mt-1">Manage AI model routing and failover configuration</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="bg-surface-2 hover:bg-surface-3 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            <Shield className="w-4 h-4" aria-hidden="true" />
-            Health Check
-          </button>
-          <button className="bg-violet-600 hover:bg-violet-500 text-fg-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            <Zap className="w-4 h-4" aria-hidden="true" />
-            Configure Routes
-          </button>
-        </div>
-      </div>
+      {/* Skip link — WCAG 2.4.1 */}
+      <a
+        href="#provider-routing-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Providers"
-          value={stats.totalProviders}
-          subtitle="3 active, 1 degraded, 1 offline"
-          icon={Server}
-        />
-        <StatCard
-          title="Active Routes"
-          value={stats.activeRoutes}
-          subtitle={`${routingRules.length} total configured`}
-          icon={GitBranch}
-          trend={{ value: 8, up: true }}
-        />
-        <StatCard
-          title="Failovers Today"
-          value={stats.failoversToday}
-          subtitle="Auto-recovered"
-          icon={RefreshCw}
-          trend={{ value: 25, up: false }}
-        />
-        <StatCard
-          title="Avg Latency"
-          value={`${stats.avgLatency}ms`}
-          subtitle="Across all providers"
-          icon={Clock}
-          accent
-        />
-      </div>
-
-      {/* Provider Cards Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-fg-primary mb-4 flex items-center gap-2">
-          <Cpu className="w-5 h-5 text-violet-400" aria-hidden="true" />
-          Provider Status
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {providers.map(provider => (
-            <ProviderCard key={provider.id} provider={provider} />
-          ))}
-        </div>
-      </div>
-
-      {/* Traffic Distribution */}
-      <TrafficDistributionBar providers={providers} />
-
-      {/* Routing Rules Table */}
-      <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-tok-border flex items-center justify-between">
-          <h3 className="text-fg-primary font-semibold flex items-center gap-2">
-            <GitBranch className="w-5 h-5 text-violet-400" aria-hidden="true" />
-            Routing Rules
-          </h3>
-          <span className="text-fg-muted text-sm" role="status">
-            {routingRules.filter(r => r.isActive).length} of {routingRules.length} active
-          </span>
+      <div className="bg-zinc-950 min-h-screen">
+        {/* Live status region — WCAG 4.1.3 */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {statusMessage}
         </div>
 
-        {isLoading ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-surface-2/50">
-                <tr>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Model</th>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Primary Provider</th>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Fallback Provider</th>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Priority</th>
-                  <th className="text-center text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Active</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-tok-border">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td className="px-4 py-3 space-y-1">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton variant="text" className="w-24" />
-                    </td>
-                    <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                    <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                    <td className="px-4 py-3"><Skeleton variant="circle" className="h-6 w-6" /></td>
-                    <td className="px-4 py-3 flex justify-center"><Skeleton className="h-6 w-11" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : routingRules.length === 0 ? (
-          <div className="p-6">
-            <ContextualEmptyState
-              icon={GitBranch}
-              title="No routing rules defined"
-              description="Create routing rules to control how AI model requests are directed across providers."
-              primaryAction={{ label: 'Create a routing rule', onClick: () => console.log('Create routing rule') }}
-            />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-surface-2/50">
-                <tr>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
-                    Model
-                  </th>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
-                    Primary Provider
-                  </th>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
-                    Fallback Provider
-                  </th>
-                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
-                    Priority
-                  </th>
-                  <th className="text-center text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
-                    Active
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-tok-border">
-                {routingRules.map((rule) => (
-                  <tr key={rule.id} className="hover:bg-surface-2/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="text-fg-primary font-medium">{rule.modelName}</p>
-                        <p className="text-fg-muted text-xs font-mono">{rule.modelId}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-zinc-300">{rule.primaryProvider}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="w-3 h-3 text-zinc-600" aria-hidden="true" />
-                        <span className="text-fg-secondary">{rule.fallbackProvider}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={cn(
-                        'inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
-                        rule.priority === 1 ? 'bg-green-500/20 text-green-400' :
-                        rule.priority === 2 ? 'bg-amber-500/20 text-amber-400' :
-                        'bg-red-500/20 text-red-400'
-                      )}>
-                        {rule.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => toggleRule(rule.id)}
-                        aria-label={`${rule.isActive ? 'Disable' : 'Enable'} routing rule for ${rule.modelName}`}
-                        aria-pressed={rule.isActive}
-                        className={cn(
-                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-                          rule.isActive ? 'bg-violet-600' : 'bg-surface-3'
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                            rule.isActive ? 'translate-x-6' : 'translate-x-1'
-                          )}
-                        />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        <main id="provider-routing-main" className="p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
 
-      {/* Failover Log */}
-      <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-tok-border flex items-center justify-between">
-          <h3 className="text-fg-primary font-semibold flex items-center gap-2">
-            <Activity className="w-5 h-5 text-violet-400" aria-hidden="true" />
-            Failover Log
-          </h3>
-          <button
-            onClick={refreshFailoverLog}
-            disabled={isRefreshing}
-            className="text-fg-secondary hover:text-zinc-300 text-sm flex items-center gap-1.5 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          >
-            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} aria-hidden="true" />
-            Refresh
-          </button>
-        </div>
-
-        <div className="divide-y divide-tok-border" aria-live="polite" aria-atomic="false">
-          {failoverEvents.map((event) => (
-            <div key={event.id} className="px-4 py-3 hover:bg-surface-2/30 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-fg-muted text-sm w-24">
-                    {formatTimestamp(event.timestamp)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-fg-primary font-medium">{event.model}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-fg-secondary">{event.fromProvider}</span>
-                    <ArrowRight className="w-3 h-3 text-violet-400" aria-hidden="true" />
-                    <span className="text-violet-400">{event.toProvider}</span>
-                  </div>
-                </div>
-                <ReasonBadge reason={event.reason} />
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Network className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                  Provider Routing
+                </h1>
+                <p className="text-zinc-400 text-sm mt-1">AI model routing, load balancing, and failover management</p>
               </div>
+              <button
+                onClick={handleRefresh}
+                aria-label={isRefreshing ? 'Refreshing provider data…' : 'Refresh provider data'}
+                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              >
+                <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} aria-hidden="true" />
+                Refresh
+              </button>
             </div>
-          ))}
-        </div>
 
-        {failoverEvents.length === 0 && (
-          <div className="p-8 text-center">
-            <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-fg-secondary">No failover events recorded</p>
-            <p className="text-fg-muted text-sm mt-1">All providers operating normally</p>
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-4">
+              <StatCard title="Total Providers" value={mockProviders.length} subtitle={`${activeProviders} active`} icon={Server} trend="neutral" />
+              <StatCard title="Active Routes" value={activeRoutes} subtitle={`${routingRules.length} total configured`} icon={Network} trend="up" />
+              <StatCard title="Failovers Today" value={mockFailoverEvents.length} subtitle="Last 24 hours" icon={RefreshCw} trend="down" />
+              <StatCard title="Avg Latency" value={`${avgLatency}ms`} subtitle="Across all providers" icon={Zap} trend="neutral" />
+            </div>
+
+            {/* Provider Cards */}
+            <section aria-label="Provider status cards">
+              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                Providers
+              </h2>
+              <div className="grid grid-cols-5 gap-4">
+                {mockProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} />)}
+              </div>
+            </section>
+
+            {/* Routing Rules Table */}
+            <section aria-label="Routing rules configuration" className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-zinc-800">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                  Routing Rules
+                </h2>
+                <p className="text-zinc-500 text-sm mt-1">Configure primary and fallback providers for each model</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <caption className="sr-only">Routing rules — {routingRules.length} rules</caption>
+                  <thead>
+                    <tr className="border-b border-zinc-800">
+                      {/* scope="col" on all th — WCAG 1.3.1 */}
+                      <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Model</th>
+                      <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Primary Provider</th>
+                      <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Fallback Provider</th>
+                      <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Priority</th>
+                      <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Active</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {routingRules.map((rule) => (
+                      <tr key={rule.id} className={cn('border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors', !rule.active && 'opacity-50')}>
+                        <td className="px-4 py-3"><span className="text-white font-medium font-mono text-sm">{rule.model}</span></td>
+                        <td className="px-4 py-3"><span className="text-zinc-300">{rule.primaryProvider}</span></td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <ArrowRight className="w-3.5 h-3.5 text-zinc-600" aria-hidden="true" />
+                            <span className="text-zinc-400">{rule.fallbackProvider}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={cn('inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
+                            rule.priority === 1 ? 'bg-violet-600/20 text-violet-400' :
+                            rule.priority === 2 ? 'bg-blue-600/20 text-blue-400' :
+                            rule.priority === 3 ? 'bg-amber-600/20 text-amber-400' : 'bg-zinc-700/50 text-zinc-400'
+                          )}>
+                            {rule.priority}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {/* Toggle switch — role="switch", aria-checked, aria-label, focus ring. WCAG 4.1.2, 2.4.7 */}
+                          <button
+                            role="switch"
+                            aria-checked={rule.active}
+                            aria-label={`${rule.active ? 'Disable' : 'Enable'} routing rule for ${rule.model}`}
+                            onClick={() => handleToggleRule(rule.id)}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                              rule.active ? 'bg-violet-600' : 'bg-zinc-700'
+                            )}
+                          >
+                            <span className="sr-only">{rule.active ? 'Enabled' : 'Disabled'}</span>
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', rule.active ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Traffic Distribution */}
+            <TrafficBar />
+
+            {/* Failover Log */}
+            <section aria-label="Failover event log" className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-zinc-800">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                  Failover Log
+                </h2>
+                <p className="text-zinc-500 text-sm mt-1">Recent failover events and provider switches</p>
+              </div>
+              <div className="divide-y divide-zinc-800/50">
+                {mockFailoverEvents.map((event) => (
+                  <div key={event.id} className="px-4 py-3 hover:bg-zinc-800/30 transition-colors flex items-center gap-4">
+                    <div className="w-40 flex-shrink-0">
+                      <time className="text-zinc-500 text-sm font-mono" dateTime={event.timestamp}>{event.timestamp}</time>
+                    </div>
+                    <div className="w-36 flex-shrink-0">
+                      <span className="text-white font-medium font-mono text-sm">{event.model}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-zinc-300">{event.fromProvider}</span>
+                      <ArrowRight className="w-4 h-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
+                      <span className="text-violet-400 font-medium">{event.toProvider}</span>
+                    </div>
+                    <div className="w-40 flex-shrink-0 text-right">
+                      <span className="text-zinc-500 text-sm">{event.reason}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-800/20">
+                <p className="text-zinc-500 text-sm text-center">Showing {mockFailoverEvents.length} most recent failover events</p>
+              </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="flex items-center justify-between text-zinc-500 text-sm border-t border-zinc-800 pt-4">
+              <div className="flex items-center gap-4">
+                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                <span aria-hidden="true">•</span>
+                <span>Auto-refresh: 30s</span>
+              </div>
+              {/* Status dot — aria-hidden, text label conveys meaning. WCAG 1.4.1 */}
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" aria-hidden="true" />
+                <span>System healthy</span>
+              </div>
+            </footer>
           </div>
-        )}
+        </main>
       </div>
-
-      {/* Footer Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-tok-border">
-        <p className="text-fg-muted text-sm">
-          Last updated: {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-        </p>
-        <div className="flex items-center gap-3">
-          <button className="text-fg-secondary hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            <Activity className="w-4 h-4" aria-hidden="true" />
-            View Metrics
-          </button>
-          <button className="text-fg-secondary hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            Export Logs
-          </button>
-        </div>
-      </div>
-      </main>
     </>
   )
 }

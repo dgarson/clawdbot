@@ -1,54 +1,61 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Eye,
-  EyeOff,
-  RotateCcw,
-  Edit,
-  Trash2,
+  Lock,
   Plus,
   Search,
-  Filter,
-  Clock,
-  Users,
+  Eye,
+  EyeOff,
   Copy,
+  Trash2,
+  Edit2,
   Shield,
   AlertTriangle,
-  CheckCircle,
-  FileLock,
+  Key,
+  Tag,
   X,
-  BarChart2,
-  History,
+  Database,
+  CheckCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
-import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-type SecretType = 'API Key' | 'OAuth' | 'Webhook' | 'Certificate' | 'Password';
+type SecretCategory = 'api-key' | 'password' | 'certificate' | 'token' | 'database';
+type SecretStatus = 'active' | 'expiring-soon' | 'expired' | 'revoked';
 
 interface Secret {
   id: string;
   name: string;
-  type: SecretType;
-  agents: string[];
-  created: Date;
+  category: SecretCategory;
+  status: SecretStatus;
+  createdAt: Date;
+  expiresAt: Date | null;
   lastUsed: Date | null;
-  expiry: Date | null;
-  value: string;
-  usageCount: number;
+  tags: string[];
+  description: string;
+  masked: string;
 }
 
-type AuditEventAction = 'read' | 'write' | 'rotate';
+// ============================================================================
+// Config
+// ============================================================================
 
-interface AuditEvent {
-  id: string;
-  timestamp: Date;
-  agent: string;
-  action: AuditEventAction;
-}
+const CATEGORY_CONFIG: Record<SecretCategory, { label: string; icon: React.ElementType; color: string }> = {
+  'api-key': { label: 'API Key', icon: Key, color: 'text-violet-400' },
+  'password': { label: 'Password', icon: Lock, color: 'text-blue-400' },
+  'certificate': { label: 'Certificate', icon: Shield, color: 'text-green-400' },
+  'token': { label: 'Token', icon: Tag, color: 'text-amber-400' },
+  'database': { label: 'Database', icon: Database, color: 'text-orange-400' },
+};
+
+const STATUS_CONFIG: Record<SecretStatus, { label: string; color: string; bg: string; dot: string }> = {
+  'active': { label: 'Active', color: 'text-green-400', bg: 'bg-green-400/10', dot: 'bg-green-400' },
+  'expiring-soon': { label: 'Expiring Soon', color: 'text-amber-400', bg: 'bg-amber-400/10', dot: 'bg-amber-400' },
+  'expired': { label: 'Expired', color: 'text-red-400', bg: 'bg-red-400/10', dot: 'bg-red-400' },
+  'revoked': { label: 'Revoked', color: 'text-zinc-400', bg: 'bg-zinc-700/30', dot: 'bg-zinc-500' },
+};
 
 // ============================================================================
 // Mock Data
@@ -56,516 +63,265 @@ interface AuditEvent {
 
 const MOCK_SECRETS: Secret[] = [
   {
-    id: 'sec1',
-    name: 'OpenAI API Key',
-    type: 'API Key',
-    agents: ['Luis', 'Quinn'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45), // 45 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 25), // 25 days from now
-    value: 'sk-abc123def456ghi789',
-    usageCount: 142,
+    id: 's1', name: 'OpenAI Production Key', category: 'api-key', status: 'active',
+    createdAt: new Date('2025-01-15'), expiresAt: new Date('2027-01-15'),
+    lastUsed: new Date(Date.now() - 3600000), tags: ['production', 'ai'],
+    description: 'Primary OpenAI API key for production environment',
+    masked: 'sk-prod-****************************3f2a',
   },
   {
-    id: 'sec2',
-    name: 'GitHub OAuth Token',
-    type: 'OAuth',
-    agents: ['Xavier'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120), // 120 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-    expiry: null,
-    value: 'gho_zyx987wvu654tsr321',
-    usageCount: 89,
+    id: 's2', name: 'Anthropic API Token', category: 'token', status: 'active',
+    createdAt: new Date('2025-03-10'), expiresAt: null,
+    lastUsed: new Date(Date.now() - 7200000), tags: ['production', 'ai'],
+    description: 'Anthropic Claude API token',
+    masked: 'ant-****************************9b1c',
   },
   {
-    id: 'sec3',
-    name: 'Slack Webhook',
-    type: 'Webhook',
-    agents: ['Stephan'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 1), // 1 hour ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5), // 5 days from now
-    value: 'https://hooks.slack.com/services/T000/B000/XXX',
-    usageCount: 56,
+    id: 's3', name: 'PostgreSQL Main DB', category: 'database', status: 'active',
+    createdAt: new Date('2024-11-01'), expiresAt: null,
+    lastUsed: new Date(Date.now() - 1800000), tags: ['database', 'production'],
+    description: 'Main PostgreSQL production database credentials',
+    masked: 'postgres://admin:****@db.prod.internal:5432/main',
   },
   {
-    id: 'sec4',
-    name: 'SSL Certificate',
-    type: 'Certificate',
-    agents: ['Reed', 'Piper'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 200), // 200 days ago
-    lastUsed: null,
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 40), // 40 days from now
-    value: '-----BEGIN CERTIFICATE-----MII...',
-    usageCount: 12,
+    id: 's4', name: 'SSL Certificate (*.clawdbot.io)', category: 'certificate', status: 'expiring-soon',
+    createdAt: new Date('2025-01-01'), expiresAt: new Date('2026-04-01'),
+    lastUsed: null, tags: ['ssl', 'certificate'],
+    description: 'Wildcard SSL certificate for clawdbot.io',
+    masked: '-----BEGIN CERTIFICATE----- (expires Apr 1, 2026)',
   },
   {
-    id: 'sec5',
-    name: 'Database Password',
-    type: 'Password',
-    agents: ['Luis'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 95), // 95 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
-    expiry: null,
-    value: 'p@ssw0rd123!',
-    usageCount: 203,
+    id: 's5', name: 'GitHub Deploy Token', category: 'token', status: 'expired',
+    createdAt: new Date('2024-06-01'), expiresAt: new Date('2025-06-01'),
+    lastUsed: new Date('2025-05-30'), tags: ['github', 'deploy'],
+    description: 'GitHub personal access token for CI deployments',
+    masked: 'ghp_****************************7d9e',
   },
   {
-    id: 'sec6',
-    name: 'AWS Access Key',
-    type: 'API Key',
-    agents: ['Quinn', 'Xavier'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30), // 30 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 6), // 6 days from now
-    value: 'AKIAIOSFODNN7EXAMPLE',
-    usageCount: 78,
+    id: 's6', name: 'Stripe Webhook Secret', category: 'api-key', status: 'active',
+    createdAt: new Date('2025-02-01'), expiresAt: null,
+    lastUsed: new Date(Date.now() - 600000), tags: ['payments', 'webhook'],
+    description: 'Stripe webhook signing secret for payment events',
+    masked: 'whsec_****************************2a4f',
   },
   {
-    id: 'sec7',
-    name: 'Google OAuth',
-    type: 'OAuth',
-    agents: ['Stephan'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 150), // 150 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365), // 1 year
-    value: 'ya29.a0AfH6SMC...',
-    usageCount: 34,
+    id: 's7', name: 'Legacy Admin Password', category: 'password', status: 'revoked',
+    createdAt: new Date('2023-01-01'), expiresAt: null,
+    lastUsed: new Date('2024-01-01'), tags: ['legacy', 'admin'],
+    description: 'Legacy admin portal password – REVOKED',
+    masked: '********************',
   },
   {
-    id: 'sec8',
-    name: 'Discord Webhook',
-    type: 'Webhook',
-    agents: ['Reed'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 0.5), // 30 min ago
-    expiry: null,
-    value: 'https://discord.com/api/webhooks/123/abc',
-    usageCount: 112,
-  },
-  {
-    id: 'sec9',
-    name: 'Root CA Cert',
-    type: 'Certificate',
-    agents: ['Piper'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 300), // 300 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2), // 2 days from now
-    value: '-----BEGIN CERTIFICATE-----ABC...',
-    usageCount: 8,
-  },
-  {
-    id: 'sec10',
-    name: 'Admin Password',
-    type: 'Password',
-    agents: ['Luis', 'Quinn'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60), // 60 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 0.5), // 12 hours ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90), // 90 days
-    value: 'secureAdminPass456',
-    usageCount: 167,
-  },
-  {
-    id: 'sec11',
-    name: 'Stripe API Key',
-    type: 'API Key',
-    agents: ['Xavier'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 100), // 100 days ago
-    lastUsed: null,
-    expiry: null,
-    value: 'sk_test_12345',
-    usageCount: 0,
-  },
-  {
-    id: 'sec12',
-    name: 'Twitter OAuth',
-    type: 'OAuth',
-    agents: ['Stephan', 'Reed'],
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20), // 20 days ago
-    lastUsed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-    expiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 15), // 15 days
-    value: 'oauth_token=abc-oauth',
-    usageCount: 45,
+    id: 's8', name: 'Redis Cache Password', category: 'password', status: 'active',
+    createdAt: new Date('2025-04-01'), expiresAt: null,
+    lastUsed: new Date(Date.now() - 300000), tags: ['cache', 'redis'],
+    description: 'Redis cluster authentication password',
+    masked: '********************',
   },
 ];
-
-const MOCK_AUDIT_EVENTS: AuditEvent[] = Array.from({ length: 20 }, (_, i) => ({
-  id: `evt${i + 1}`,
-  timestamp: new Date(Date.now() - 1000 * 60 * (i * 5 + Math.random() * 30)),
-  agent: ['Luis', 'Quinn', 'Xavier', 'Stephan', 'Reed', 'Piper'][Math.floor(Math.random() * 6)],
-  action: ['read', 'write', 'rotate'][Math.floor(Math.random() * 3)] as AuditEventAction,
-}));
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
 function formatDate(date: Date | null): string {
-  if (!date) {return 'Never';}
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatTimestamp(date: Date): string {
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-}
-
-function daysBetween(now: Date, date: Date | null): number | null {
-  if (!date) {return null;}
-  const diff = date.getTime() - now.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function maskValue(value: string, partial: boolean = false): string {
-  if (partial) {
-    return '****' + value.slice(-4);
-  }
-  return '********************';
-}
-
-function isDueForRotation(created: Date): boolean {
-  const ageDays = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24);
-  return ageDays > 90;
+  if (!date) { return 'N/A'; }
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 // ============================================================================
-// Sub-components
+// StatusBadge — includes text label (not color-only)
 // ============================================================================
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color = 'text-fg-secondary',
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color?: string;
-}) {
+function StatusBadge({ status }: { status: SecretStatus }) {
+  const { label, color, bg, dot } = STATUS_CONFIG[status];
   return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-surface-2 rounded-lg">
-        <Icon aria-hidden="true" className={cn('w-4 h-4', color)} />
-      </div>
-      <div>
-        <p className="text-xs text-fg-secondary font-medium uppercase tracking-wide mb-1">{label}</p>
-        <span className="text-xl font-bold text-fg-primary">{value}</span>
-      </div>
-    </div>
-  );
-}
-
-function TypeBadge({ type }: { type: SecretType }) {
-  const styles: Record<SecretType, string> = {
-    'API Key': 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    'OAuth': 'bg-green-500/15 text-green-400 border-green-500/30',
-    'Webhook': 'bg-purple-500/15 text-purple-400 border-purple-500/30',
-    'Certificate': 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-    'Password': 'bg-red-500/15 text-red-400 border-red-500/30',
-  };
-  return (
-    <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium border', styles[type])}>
-      {type}
-    </span>
-  );
-}
-
-function ExpiryBadge({ days }: { days: number | null }) {
-  if (days === null) {return null;}
-  let color = 'bg-green-500/15 text-green-400';
-  if (days < 30) {color = 'bg-amber-500/15 text-amber-400';}
-  if (days < 7) {color = 'bg-red-500/15 text-red-400';}
-  return (
-    <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs', color)}>
-      <Clock aria-hidden="true" className="w-3 h-3" />
-      {days} days left
-    </span>
-  );
-}
-
-function UsageBadge({ count }: { count: number }) {
-  return (
-    <span className="px-2 py-0.5 rounded-md text-xs bg-surface-3/50 text-zinc-300">
-      {count} uses
-    </span>
-  );
-}
-
-function ActionButton({
-  icon: Icon,
-  label,
-  onClick,
-  color = 'text-fg-secondary hover:text-fg-primary',
-}: {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-  color?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn('flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors bg-surface-2 hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none', color)}
-    >
-      <Icon aria-hidden="true" className="w-3 h-3" />
+    <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium', bg, color)}>
+      <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', dot)} aria-hidden="true" />
       {label}
-    </button>
+    </span>
   );
 }
 
-function SecretCard({
-  secret,
-  revealed,
-  onToggleReveal,
-  onCopy,
-  onRotate,
-  onEdit,
-  onRevoke,
-}: {
-  secret: Secret;
-  revealed: boolean;
-  onToggleReveal: () => void;
-  onCopy: () => void;
-  onRotate: () => void;
-  onEdit: () => void;
-  onRevoke: () => void;
-}) {
-  const now = new Date();
-  const daysLeft = daysBetween(now, secret.expiry);
+// ============================================================================
+// SecretDialog — role="dialog", aria-labelledby, Escape key, focus trap
+// ============================================================================
 
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-3">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-fg-primary">{secret.name}</span>
-            <TypeBadge type={secret.type} />
-          </div>
-          <div className="flex items-center gap-2 text-xs text-fg-muted">
-            <Users aria-hidden="true" className="w-3 h-3" />
-            {secret.agents.join(', ')}
-          </div>
-        </div>
-        <UsageBadge count={secret.usageCount} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-xs text-fg-secondary">
-        <div>
-          <span className="block text-fg-muted mb-0.5">Created</span>
-          {formatDate(secret.created)}
-        </div>
-        <div>
-          <span className="block text-fg-muted mb-0.5">Last Used</span>
-          {formatDate(secret.lastUsed)}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <ExpiryBadge days={daysLeft} />
-        <div className="flex gap-1">
-          <button onClick={onToggleReveal} aria-label={revealed ? "Hide secret value" : "Show secret value"} className="p-1 rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            {revealed ? <EyeOff aria-hidden="true" className="w-4 h-4 text-fg-secondary" /> : <Eye aria-hidden="true" className="w-4 h-4 text-fg-secondary" />}
-          </button>
-        </div>
-      </div>
-
-      <div className="font-mono text-sm text-zinc-300 bg-surface-2 rounded p-2 flex items-center justify-between">
-        <span>{revealed ? maskValue(secret.value, true) : maskValue(secret.value)}</span>
-      </div>
-
-      <div className="flex gap-2">
-        <ActionButton icon={Copy} label="Copy" onClick={onCopy} />
-        <ActionButton icon={RotateCcw} label="Rotate" onClick={onRotate} color="text-blue-400 hover:text-blue-300" />
-        <ActionButton icon={Edit} label="Edit" onClick={onEdit} color="text-green-400 hover:text-green-300" />
-        <ActionButton icon={Trash2} label="Revoke" onClick={onRevoke} color="text-red-400 hover:text-red-300" />
-      </div>
-    </div>
-  );
-}
-
-function RotationPanel({
-  dueSecrets,
-  onBulkRotate,
-}: {
-  dueSecrets: Secret[];
-  onBulkRotate: () => void;
-}) {
-  return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <RotateCcw aria-hidden="true" className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-fg-primary">Rotation Queue</span>
-        <span className="ml-auto px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs">
-          {dueSecrets.length} due
-        </span>
-      </div>
-      {dueSecrets.length === 0 ? (
-        <div className="text-center text-fg-muted py-4">
-          <CheckCircle aria-hidden="true" className="w-6 h-6 mx-auto mb-1 opacity-50" />
-          <p className="text-sm">All secrets up to date</p>
-        </div>
-      ) : (
-        <>
-          <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
-            {dueSecrets.map((s) => (
-              <div key={s.id} className="flex items-center gap-2 text-xs">
-                <TypeBadge type={s.type} />
-                <span className="text-fg-primary">{s.name}</span>
-                <span className="ml-auto text-fg-muted">
-                  {Math.floor((Date.now() - s.created.getTime()) / (1000 * 60 * 60 * 24))} days old
-                </span>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={onBulkRotate}
-            className="w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-fg-primary text-sm font-medium flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          >
-            <RotateCcw aria-hidden="true" className="w-4 h-4" />
-            Rotate All
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
-
-function AuditLogDrawer({
-  events,
-  open,
-  onClose,
-}: {
-  events: AuditEvent[];
-  open: boolean;
+interface SecretDialogProps {
+  isOpen: boolean;
+  editingSecret: Secret | null;
   onClose: () => void;
-}) {
-  if (!open) {return null;}
-
-  return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-surface-1 border-l border-tok-border shadow-2xl p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <History aria-hidden="true" className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-fg-primary">Audit Log</span>
-        </div>
-        <button onClick={onClose} aria-label="Close audit log" className="p-1 rounded hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-          <X aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
-        </button>
-      </div>
-      <div className="space-y-2">
-        {events.map((evt) => (
-          <div key={evt.id} className="bg-surface-2 rounded p-2 text-xs">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-fg-muted">{formatTimestamp(evt.timestamp)}</span>
-              <span className="text-fg-primary">{evt.agent}</span>
-              <span className={cn('px-1 rounded text-xs', 
-                evt.action === 'read' ? 'bg-blue-500/20 text-blue-400' :
-                evt.action === 'write' ? 'bg-green-500/20 text-green-400' :
-                'bg-amber-500/20 text-amber-400'
-              )}>
-                {evt.action}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  onSave: (data: Partial<Secret>) => void;
 }
 
-function AddSecretModal({
-  open,
-  onClose,
-  onAdd,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (newSecret: Omit<Secret, 'id' | 'created' | 'lastUsed' | 'usageCount'>) => void;
-}) {
+function SecretDialog({ isOpen, editingSecret, onClose, onSave }: SecretDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = 'secret-dialog-title';
   const [name, setName] = useState('');
-  const [type, setType] = useState<SecretType>('API Key');
+  const [category, setCategory] = useState<SecretCategory>('api-key');
+  const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
-  const [expiry, setExpiry] = useState<string>('');
-  const [agents, setAgents] = useState<string[]>([]);
+  const [showValue, setShowValue] = useState(false);
 
-  const handleSubmit = () => {
-    onAdd({
-      name,
-      type,
-      agents,
-      expiry: expiry ? new Date(expiry) : null,
-      value,
-    });
+  useEffect(() => {
+    if (isOpen && editingSecret) {
+      setName(editingSecret.name);
+      setCategory(editingSecret.category);
+      setDescription(editingSecret.description);
+      setValue('');
+    } else if (isOpen) {
+      setName(''); setCategory('api-key'); setDescription(''); setValue('');
+    }
+  }, [isOpen, editingSecret]);
+
+  // Focus trap + Escape
+  useEffect(() => {
+    if (!isOpen) { return; }
+    const dialog = dialogRef.current;
+    if (!dialog) { return; }
+    const focusableSelector = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const getFocusable = () => Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector));
+    const first = getFocusable()[0];
+    first?.focus();
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Tab') {
+        const els = getFocusable();
+        const firstEl = els[0];
+        const lastEl = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === firstEl) {
+          e.preventDefault(); lastEl?.focus();
+        } else if (!e.shiftKey && document.activeElement === lastEl) {
+          e.preventDefault(); firstEl?.focus();
+        }
+      }
+    }
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) { return null; }
+
+  const handleSave = () => {
+    onSave({ name, category, description });
     onClose();
   };
 
-  if (!open) {return null;}
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-surface-2 rounded-xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-fg-primary">Add New Secret</h2>
-          <button onClick={onClose} aria-label="Close modal" className="p-1 rounded hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
-            <X aria-hidden="true" className="w-5 h-5 text-fg-secondary" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+      onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-lg mx-4 shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 id={titleId} className="text-lg font-semibold text-white">
+            {editingSecret ? 'Edit Secret' : 'Add New Secret'}
+          </h2>
+          <button
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          >
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
-        <div className="space-y-4">
+
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
           <div>
-            <label className="block text-sm text-fg-secondary mb-1">Name</label>
+            <label htmlFor="secret-name" className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Name <span aria-hidden="true" className="text-red-400">*</span>
+            </label>
             <input
+              id="secret-name"
+              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              placeholder="e.g. OpenAI Production Key"
+              required
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             />
           </div>
+
           <div>
-            <label className="block text-sm text-fg-secondary mb-1">Type</label>
+            <label htmlFor="secret-category" className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Category
+            </label>
             <select
-              value={type}
-              onChange={(e) => setType(e.target.value as SecretType)}
-              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              id="secret-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as SecretCategory)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             >
-              <option>API Key</option>
-              <option>OAuth</option>
-              <option>Webhook</option>
-              <option>Certificate</option>
-              <option>Password</option>
+              {Object.entries(CATEGORY_CONFIG).map(([key, { label }]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-sm text-fg-secondary mb-1">Value</label>
+            <label htmlFor="secret-value" className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Secret Value
+            </label>
+            <div className="relative">
+              <input
+                id="secret-value"
+                type={showValue ? 'text' : 'password'}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={editingSecret ? 'Leave blank to keep existing value' : 'Paste your secret here'}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 pr-10 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowValue(!showValue)}
+                aria-label={showValue ? 'Hide secret value' : 'Show secret value'}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              >
+                {showValue
+                  ? <EyeOff className="w-4 h-4" aria-hidden="true" />
+                  : <Eye className="w-4 h-4" aria-hidden="true" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="secret-description" className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Description
+            </label>
             <textarea
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary font-mono text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              id="secret-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={3}
+              placeholder="Brief description of this secret…"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none resize-none"
             />
           </div>
-          <div>
-            <label className="block text-sm text-fg-secondary mb-1">Expiry Date (optional)</label>
-            <input
-              type="date"
-              value={expiry}
-              onChange={(e) => setExpiry(e.target.value)}
-              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-            />
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!name.trim()}
+              className="flex-1 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            >
+              {editingSecret ? 'Save Changes' : 'Add Secret'}
+            </button>
           </div>
-          <div>
-            <label className="block text-sm text-fg-secondary mb-1">Agent Scope (comma-separated)</label>
-            <input
-              value={agents.join(', ')}
-              onChange={(e) => setAgents(e.target.value.split(', ').filter(Boolean))}
-              className="w-full bg-surface-1 border border-tok-border rounded px-3 py-2 text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-            />
-          </div>
-          <button
-            onClick={handleSubmit}
-            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          >
-            Add Secret
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );
@@ -575,222 +331,364 @@ function AddSecretModal({
 // Main Component
 // ============================================================================
 
-export default function SecretVaultManager({ isLoading = false }: { isLoading?: boolean }) {
-  const [secrets, setSecrets] = useState<Secret[]>(MOCK_SECRETS);
-  const [auditEvents] = useState<AuditEvent[]>(MOCK_AUDIT_EVENTS);
+export default function SecretVaultManager() {
+  const [secrets, setSecrets] = useState(MOCK_SECRETS);
   const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<SecretType | ''>('');
-  const [filterAgent, setFilterAgent] = useState('');
-  const [revealedSecrets, setRevealedSecrets] = useState<Set<string>>(new Set());
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [auditDrawerOpen, setAuditDrawerOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<SecretCategory | 'all'>('all');
+  const [activeStatus, setActiveStatus] = useState<SecretStatus | 'all'>('all');
+  const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingSecret, setEditingSecret] = useState<Secret | null>(null);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const toggleReveal = (id: string) => {
-    setRevealedSecrets((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {next.delete(id);}
-      else {next.add(id);}
-      return next;
-    });
-  };
-
-  const handleCopy = (value: string) => {
-    void navigator.clipboard.writeText(value);
-    // TODO: Toast notification
-  };
-
-  const handleRotate = (id: string) => {
-    console.log('Rotate', id);
-    // TODO: Implement rotation logic
-  };
-
-  const handleEdit = (id: string) => {
-    console.log('Edit', id);
-    // TODO: Open edit modal
-  };
-
-  const handleRevoke = (id: string) => {
-    setSecrets((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  const handleBulkRotate = () => {
-    console.log('Bulk rotate');
-    // TODO: Implement bulk rotation
-  };
-
-  const handleAdd = (newSecret: Omit<Secret, 'id' | 'created' | 'lastUsed' | 'usageCount'>) => {
-    const id = `sec${secrets.length + 1}`;
-    setSecrets((prev) => [
-      ...prev,
-      {
-        ...newSecret,
-        id,
-        created: new Date(),
-        lastUsed: null,
-        usageCount: 0,
-      },
-    ]);
-  };
-
-  const filteredSecrets = secrets.filter((s) => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesType = !filterType || s.type === filterType;
-    const matchesAgent = !filterAgent || s.agents.some((a) => a.toLowerCase().includes(filterAgent.toLowerCase()));
-    return matchesSearch && matchesType && matchesAgent;
+  const filtered = secrets.filter((s) => {
+    const matchSearch =
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.description.toLowerCase().includes(search.toLowerCase()) ||
+      s.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
+    const matchCat = activeCategory === 'all' || s.category === activeCategory;
+    const matchStatus = activeStatus === 'all' || s.status === activeStatus;
+    return matchSearch && matchCat && matchStatus;
   });
 
-  const dueForRotation = secrets.filter((s) => isDueForRotation(s.created));
+  const statusCounts = {
+    all: secrets.length,
+    active: secrets.filter((s) => s.status === 'active').length,
+    'expiring-soon': secrets.filter((s) => s.status === 'expiring-soon').length,
+    expired: secrets.filter((s) => s.status === 'expired').length,
+    revoked: secrets.filter((s) => s.status === 'revoked').length,
+  };
 
-  const totalSecrets = secrets.length;
-  const expiringSoon = secrets.filter((s) => {
-    const days = daysBetween(new Date(), s.expiry);
-    return days !== null && days < 30;
-  }).length;
-  const rotatedThisMonth = 5; // Mock
-  const accessToday = auditEvents.filter((e) => daysBetween(new Date(), e.timestamp) === 0).length;
+  const notify = (msg: string) => {
+    setStatusMessage(msg);
+    setTimeout(() => setStatusMessage(''), 3000);
+  };
+
+  const handleCopy = useCallback((secret: Secret) => {
+    navigator.clipboard.writeText(secret.masked).catch(() => {});
+    setCopiedId(secret.id);
+    notify(`Copied masked value for "${secret.name}"`);
+    setTimeout(() => setCopiedId(null), 2000);
+  }, []);
+
+  const handleToggleReveal = useCallback((id: string) => {
+    setRevealedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+  }, []);
+
+  const handleDelete = useCallback((secret: Secret) => {
+    setSecrets((prev) => prev.filter((s) => s.id !== secret.id));
+    notify(`Deleted secret "${secret.name}"`);
+  }, []);
+
+  const handleEdit = useCallback((secret: Secret) => {
+    setEditingSecret(secret);
+    setDialogOpen(true);
+  }, []);
+
+  const handleSave = useCallback((data: Partial<Secret>) => {
+    if (editingSecret) {
+      setSecrets((prev) => prev.map((s) => s.id === editingSecret.id ? { ...s, ...data } : s));
+      notify(`Updated secret "${data.name ?? editingSecret.name}"`);
+    } else {
+      const newSecret: Secret = {
+        id: `s${Date.now()}`,
+        name: data.name ?? 'Unnamed',
+        category: data.category ?? 'api-key',
+        status: 'active',
+        createdAt: new Date(),
+        expiresAt: null,
+        lastUsed: null,
+        tags: [],
+        description: data.description ?? '',
+        masked: '****************************',
+      };
+      setSecrets((prev) => [newSecret, ...prev]);
+      notify(`Added new secret "${newSecret.name}"`);
+    }
+    setEditingSecret(null);
+  }, [editingSecret]);
+
+  const expiringCount = statusCounts['expiring-soon'];
 
   return (
     <>
-      <a href="#svm-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
-      <main id="svm-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
-            <FileLock aria-hidden="true" className="w-6 h-6 text-violet-400" />
-            Secret Vault
-          </h1>
-          <p className="text-sm text-fg-secondary mt-0.5">Credentials & secrets management</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span role="status" className="px-3 py-1.5 rounded-lg bg-surface-2 text-zinc-300 text-sm font-medium">
-            {totalSecrets} secrets
-          </span>
-          <button
-            onClick={() => setAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          >
-            <Plus aria-hidden="true" className="w-4 h-4" />
-            Add Secret
-          </button>
-          <button
-            onClick={() => setAuditDrawerOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 text-zinc-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          >
-            <History aria-hidden="true" className="w-4 h-4" />
-            Audit Log
-          </button>
-        </div>
-      </div>
+      {/* Skip link — WCAG 2.4.1 */}
+      <a
+        href="#vault-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard label="Total Secrets" value={totalSecrets} icon={Shield} color="text-violet-400" />
-        <StatCard label="Expiring Soon" value={expiringSoon} icon={AlertTriangle} color="text-amber-400" />
-        <StatCard label="Rotated This Month" value={rotatedThisMonth} icon={RotateCcw} color="text-green-400" />
-        <StatCard label="Access Today" value={accessToday} icon={BarChart2} color="text-blue-400" />
-      </div>
+      <div className="min-h-screen bg-zinc-950 text-white">
+        <main id="vault-main" className="p-6 space-y-6 max-w-7xl mx-auto">
 
-      {/* Filter Bar */}
-      <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-center gap-4">
-        <div className="flex-1 relative">
-          <Search aria-hidden="true" className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search secrets..."
-            className="w-full bg-surface-2 border border-tok-border rounded px-9 py-2 text-sm text-fg-primary placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          />
-        </div>
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value as SecretType)}
-          className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-sm text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-        >
-          <option value="">All Types</option>
-          <option>API Key</option>
-          <option>OAuth</option>
-          <option>Webhook</option>
-          <option>Certificate</option>
-          <option>Password</option>
-        </select>
-        <div className="relative">
-          <Filter aria-hidden="true" className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            value={filterAgent}
-            onChange={(e) => setFilterAgent(e.target.value)}
-            placeholder="Filter by agent"
-            className="bg-surface-2 border border-tok-border rounded px-9 py-2 text-sm text-fg-primary placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          />
-        </div>
-      </div>
+          {/* Live status announcements — WCAG 4.1.3 */}
+          <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+            {statusMessage}
+          </div>
 
-      {/* Main Content: Secrets List + Rotation Panel */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-4 w-2/3" />
-                      <Skeleton variant="text" className="w-1/2" />
-                    </div>
-                    <Skeleton className="h-5 w-14" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Skeleton className="h-10" />
-                    <Skeleton className="h-10" />
-                  </div>
-                  <Skeleton className="h-8 w-full" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-12" />
-                    <Skeleton className="h-6 w-14" />
-                    <Skeleton className="h-6 w-10" />
-                    <Skeleton className="h-6 w-14" />
-                  </div>
-                </div>
-              ))}
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Lock className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                Secret Vault Manager
+              </h1>
+              <p className="text-sm text-zinc-400 mt-0.5">Manage credentials, API keys, and sensitive configuration</p>
             </div>
-          ) : secrets.length === 0 ? (
-            <ContextualEmptyState
-              icon={FileLock}
-              title="No secrets stored"
-              description="Credentials and API keys you add will appear here."
-              primaryAction={{ label: 'Add your first secret', onClick: () => setAddModalOpen(true) }}
-            />
-          ) : filteredSecrets.length === 0 ? (
-            <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center text-fg-muted">
-              <Shield aria-hidden="true" className="w-12 h-12 mx-auto mb-2 opacity-40" />
-              <p className="text-sm">No secrets match your filters</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredSecrets.map((s) => (
-                <SecretCard
-                  key={s.id}
-                  secret={s}
-                  revealed={revealedSecrets.has(s.id)}
-                  onToggleReveal={() => toggleReveal(s.id)}
-                  onCopy={() => handleCopy(s.value)}
-                  onRotate={() => handleRotate(s.id)}
-                  onEdit={() => handleEdit(s.id)}
-                  onRevoke={() => handleRevoke(s.id)}
-                />
-              ))}
+            <button
+              onClick={() => { setEditingSecret(null); setDialogOpen(true); }}
+              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-medium text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              Add Secret
+            </button>
+          </div>
+
+          {/* Expiring-soon alert */}
+          {expiringCount > 0 && (
+            <div role="alert" className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" aria-hidden="true" />
+              <p className="text-amber-300 text-sm">
+                <strong>{expiringCount} secret{expiringCount > 1 ? 's' : ''}</strong> expiring soon. Rotate them before they expire.
+              </p>
             </div>
           )}
-        </div>
-        <div className="col-span-1">
-          <RotationPanel dueSecrets={dueForRotation} onBulkRotate={handleBulkRotate} />
-        </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-4 gap-4">
+            {[
+              { label: 'Total Secrets', value: statusCounts.all, icon: Lock, color: 'text-violet-400' },
+              { label: 'Active', value: statusCounts.active, icon: CheckCircle, color: 'text-green-400' },
+              { label: 'Expiring Soon', value: statusCounts['expiring-soon'], icon: AlertTriangle, color: 'text-amber-400' },
+              { label: 'Expired / Revoked', value: statusCounts.expired + statusCounts.revoked, icon: Shield, color: 'text-red-400' },
+            ].map(({ label, value, icon: Icon, color }) => (
+              <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <div className="flex items-center gap-2">
+                  <Icon className={cn('w-4 h-4', color)} aria-hidden="true" />
+                  <span className="text-xs text-zinc-400 font-medium uppercase tracking-wide">{label}</span>
+                </div>
+                <div className="text-2xl font-bold text-white mt-2">{value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-4 gap-6">
+            {/* Sidebar filters */}
+            <aside>
+              <nav aria-label="Filter secrets by status and category">
+                {/* Status filter */}
+                <section aria-label="Filter by status" className="mb-6">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">Status</h2>
+                  <ul className="space-y-1" role="list">
+                    {(['all', 'active', 'expiring-soon', 'expired', 'revoked'] as const).map((s) => (
+                      <li key={s}>
+                        <button
+                          onClick={() => setActiveStatus(s)}
+                          aria-pressed={activeStatus === s}
+                          className={cn(
+                            'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                            activeStatus === s
+                              ? 'bg-violet-600/20 text-violet-300'
+                              : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                          )}
+                        >
+                          <span>{s === 'all' ? 'All Secrets' : STATUS_CONFIG[s].label}</span>
+                          <span className="text-xs bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">
+                            {s === 'all' ? statusCounts.all : statusCounts[s]}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                {/* Category filter */}
+                <section aria-label="Filter by category">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">Category</h2>
+                  <ul className="space-y-1" role="list">
+                    <li>
+                      <button
+                        onClick={() => setActiveCategory('all')}
+                        aria-pressed={activeCategory === 'all'}
+                        className={cn(
+                          'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                          activeCategory === 'all'
+                            ? 'bg-violet-600/20 text-violet-300'
+                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                        )}
+                      >
+                        All Categories
+                      </button>
+                    </li>
+                    {Object.entries(CATEGORY_CONFIG).map(([key, { label, icon: Icon, color }]) => (
+                      <li key={key}>
+                        <button
+                          onClick={() => setActiveCategory(key as SecretCategory)}
+                          aria-pressed={activeCategory === key}
+                          className={cn(
+                            'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                            activeCategory === key
+                              ? 'bg-violet-600/20 text-violet-300'
+                              : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                          )}
+                        >
+                          <Icon className={cn('w-4 h-4', color)} aria-hidden="true" />
+                          {label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+
+            {/* Main table area */}
+            <div className="col-span-3 space-y-4">
+              {/* Search */}
+              <div className="relative">
+                <label htmlFor="secret-search" className="sr-only">Search secrets</label>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" aria-hidden="true" />
+                <input
+                  id="secret-search"
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search secrets by name, description, or tag…"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm placeholder-zinc-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                />
+              </div>
+
+              {/* Secrets table */}
+              <section aria-label="Secrets list">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <caption className="sr-only">
+                        Secrets — {filtered.length} of {secrets.length} shown
+                      </caption>
+                      <thead className="bg-zinc-800/50">
+                        <tr>
+                          <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Name</th>
+                          <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Category</th>
+                          <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Status</th>
+                          <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Value</th>
+                          <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Last Used</th>
+                          <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Expires</th>
+                          <th scope="col" className="text-right text-zinc-400 font-medium px-4 py-3">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-800/60">
+                        {filtered.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
+                              No secrets match your current filters.
+                            </td>
+                          </tr>
+                        ) : (
+                          filtered.map((secret) => {
+                            const CategoryIcon = CATEGORY_CONFIG[secret.category].icon;
+                            const revealed = revealedIds.has(secret.id);
+                            return (
+                              <tr key={secret.id} className="hover:bg-zinc-800/30 transition-colors">
+                                <td className="px-4 py-3">
+                                  <div className="font-medium text-white">{secret.name}</div>
+                                  <div className="text-xs text-zinc-500 mt-0.5">{secret.description}</div>
+                                  {secret.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {secret.tags.map((tag) => (
+                                        <span key={tag} className="text-xs bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="flex items-center gap-1.5 text-zinc-300 text-xs">
+                                    <CategoryIcon
+                                      className={cn('w-4 h-4 flex-shrink-0', CATEGORY_CONFIG[secret.category].color)}
+                                      aria-hidden="true"
+                                    />
+                                    {CATEGORY_CONFIG[secret.category].label}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <StatusBadge status={secret.status} />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <code className="text-xs text-zinc-400 font-mono break-all">
+                                    {revealed ? secret.masked : '••••••••••••••••'}
+                                  </code>
+                                </td>
+                                <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">{formatDate(secret.lastUsed)}</td>
+                                <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">{formatDate(secret.expiresAt)}</td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <button
+                                      onClick={() => handleToggleReveal(secret.id)}
+                                      aria-label={revealed ? `Hide value for ${secret.name}` : `Reveal value for ${secret.name}`}
+                                      className="p-1.5 text-zinc-400 hover:text-white rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                                    >
+                                      {revealed
+                                        ? <EyeOff className="w-4 h-4" aria-hidden="true" />
+                                        : <Eye className="w-4 h-4" aria-hidden="true" />}
+                                    </button>
+                                    <button
+                                      onClick={() => handleCopy(secret)}
+                                      aria-label={copiedId === secret.id ? 'Copied!' : `Copy value for ${secret.name}`}
+                                      className="p-1.5 text-zinc-400 hover:text-white rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                                    >
+                                      <Copy className="w-4 h-4" aria-hidden="true" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEdit(secret)}
+                                      aria-label={`Edit ${secret.name}`}
+                                      className="p-1.5 text-zinc-400 hover:text-white rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                                    >
+                                      <Edit2 className="w-4 h-4" aria-hidden="true" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(secret)}
+                                      aria-label={`Delete ${secret.name}`}
+                                      className="p-1.5 text-zinc-400 hover:text-red-400 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                                    >
+                                      <Trash2 className="w-4 h-4" aria-hidden="true" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  {filtered.length > 0 && (
+                    <div className="px-4 py-3 border-t border-zinc-800 text-xs text-zinc-500">
+                      Showing {filtered.length} of {secrets.length} secrets
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
       </div>
 
-      {/* Modals and Drawers */}
-      <AddSecretModal open={addModalOpen} onClose={() => setAddModalOpen(false)} onAdd={handleAdd} />
-      <AuditLogDrawer events={auditEvents} open={auditDrawerOpen} onClose={() => setAuditDrawerOpen(false)} />
-      </main>
+      {/* Add/Edit dialog */}
+      <SecretDialog
+        isOpen={dialogOpen}
+        editingSecret={editingSecret}
+        onClose={() => { setDialogOpen(false); setEditingSecret(null); }}
+        onSave={handleSave}
+      />
     </>
   );
 }
