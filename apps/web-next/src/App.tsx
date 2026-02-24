@@ -43,6 +43,7 @@ const ModelSelector = React.lazy(() => import("./views/ModelSelector"));
 const ChatInterface = React.lazy<React.ComponentType<ChatInterfaceProps>>(() => import("./views/ChatInterface"));
 const CronScheduleBuilder = React.lazy(() => import("./views/CronScheduleBuilder"));
 const SkillsMarketplace = React.lazy(() => import("./views/SkillsMarketplace"));
+const SkillBuilderEditor = React.lazy(() => import("./views/SkillBuilderEditor"));
 const SessionExplorer = React.lazy(() => import("./views/SessionExplorer"));
 const OnboardingFlow = React.lazy(() => import("./views/OnboardingFlow"));
 const AgentConfigReview = React.lazy(() => import("./views/AgentConfigReview"));
@@ -318,6 +319,7 @@ export const navItems = [
   { id: "providers",     label: "Providers",      emoji: "🔐", shortcut: "7" },
   { id: "cron",          label: "Schedules",      emoji: "⏰", shortcut: "8" },
   { id: "skills",        label: "Skills",         emoji: "🧩", shortcut: "9" },
+  { id: "skill-builder", label: "Skill Builder",  emoji: "🔨", shortcut: null },
   { id: "sessions",      label: "Sessions",       emoji: "🌳", shortcut: null },
   { id: "config-review", label: "Config Review",  emoji: "🔍", shortcut: null },
   { id: "settings",      label: "Settings",       emoji: "⚙️", shortcut: null },
@@ -1085,6 +1087,7 @@ function AppContent() {
       case "providers":     return <ProviderAuthManager />;
       case "cron":          return <CronScheduleBuilder />;
       case "skills":        return <SkillsMarketplace />;
+      case "skill-builder": return <SkillBuilderEditor />;
       case "sessions":      return <SessionExplorer />;
       case "config-review": return <AgentConfigReview />;
       case "settings":      return <SettingsDashboard />;
