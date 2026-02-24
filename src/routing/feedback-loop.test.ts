@@ -72,7 +72,7 @@ describe("RouterFeedbackLoopStore", () => {
     });
 
     const queue = store.listReviewQueue();
-    expect(queue.length).toBe(2);
+    expect(queue.length).toBe(1);
     const updated = store.updateReviewStatus({
       reviewId: queue[0]?.reviewId ?? "",
       status: "resolved",
@@ -83,10 +83,29 @@ describe("RouterFeedbackLoopStore", () => {
     const summary = store.summarizeCalibrationWindow();
     expect(summary.totalDecisions).toBe(1);
     expect(summary.totalFeedback).toBe(2);
-    expect(summary.mismatchCount).toBe(2);
-    expect(summary.falseEscalationCount).toBe(2);
+    expect(summary.mismatchCount).toBe(1);
+    expect(summary.falseEscalationCount).toBe(1);
     expect(summary.duplicateFeedbackCount).toBe(1);
-    expect(summary.openReviewCount).toBe(1);
+    expect(summary.openReviewCount).toBe(0);
+  });
+
+  it("skips corrupted jsonl lines while reading persisted records", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "router-feedback-loop-corrupt-"));
+    const store = new RouterFeedbackLoopStore(tempDir);
+
+    store.logDecision({
+      channelId: "slack",
+      conversationId: "C777",
+      predictedTier: "T2",
+      predictedAction: "handle",
+      reasonTags: ["baseline"],
+    });
+
+    fs.appendFileSync(path.join(tempDir, "router-decisions.jsonl"), "{bad json\n", "utf8");
+
+    const decisions = store.listDecisions();
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0]?.conversationId).toBe("C777");
   });
 });
 
@@ -101,5 +120,15 @@ describe("parseImplicitFeedback", () => {
     const parsed = parseImplicitFeedback("Do not escalate this, should handle as T1.");
     expect(parsed.expectedTier).toBe("T1");
     expect(parsed.expectedAction).toBe("handle");
+  });
+
+  it("does not infer tier from generic mentions without correction cues", () => {
+    const parsed = parseImplicitFeedback("We have T2 tickets in this queue.");
+    expect(parsed.expectedTier).toBeUndefined();
+  });
+
+  it("does not infer tier from descriptive statements", () => {
+    const parsed = parseImplicitFeedback("This is T2 according to triage notes.");
+    expect(parsed.expectedTier).toBeUndefined();
   });
 });

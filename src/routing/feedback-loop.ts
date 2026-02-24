@@ -92,8 +92,10 @@ export function parseImplicitFeedback(text: string): Partial<FeedbackInput> {
     normalized.includes("no escalation");
   const expectedAction = escalationCue ? "escalate" : handlingCue ? "handle" : undefined;
 
-  const expectedTierMatch = normalized.match(/(?:expected|be|is|not)\s*t([1-4])\b|\bt([1-4])\b/);
-  const tierNumber = expectedTierMatch?.[1] ?? expectedTierMatch?.[2];
+  const expectedTierMatch = normalized.match(
+    /(?:expected|should\s+be|should\s+have\s+been|instead|as)\s*(?:at\s*)?t([1-4])\b/,
+  );
+  const tierNumber = expectedTierMatch?.[1];
   const expectedTier = tierNumber ? (`T${tierNumber}` as RouterTier) : undefined;
   return { expectedAction, expectedTier };
 }
@@ -111,11 +113,26 @@ function readJsonl<T>(filePath: string): T[] {
   if (!text.trim()) {
     return [];
   }
-  return text
+  const records: T[] = [];
+  const lines = text
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => JSON.parse(line) as T);
+    .filter((line) => line.length > 0);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    try {
+      records.push(JSON.parse(line) as T);
+    } catch {
+      // Preserve best-effort reads when one line is truncated or corrupted.
+      console.warn(`router-feedback: skipped invalid JSONL line ${index + 1} in ${filePath}`);
+    }
+  }
+  return records;
+}
+
+function normalizeReactionValue(reaction?: string): string | undefined {
+  const normalized = reaction?.trim().toLowerCase();
+  return normalized && normalized.length > 0 ? normalized : undefined;
 }
 
 function computeThreadKey(input: {
@@ -155,7 +172,7 @@ function fingerprintFeedback(input: FeedbackInput): string {
         feedbackMessageId: input.feedbackMessageId ?? null,
         expectedTier: input.expectedTier ?? null,
         expectedAction: input.expectedAction ?? null,
-        reaction: input.reaction?.toLowerCase().trim() ?? null,
+        reaction: normalizeReactionValue(input.reaction) ?? null,
         freeText: input.freeText?.trim().toLowerCase() ?? null,
       }),
     )
@@ -230,7 +247,7 @@ export class RouterFeedbackLoopStore {
 
     appendJsonl(this.feedbackPath, feedback);
 
-    if (linked && feedback.needsReview) {
+    if (linked && feedback.needsReview && !feedback.duplicateOfFeedbackId) {
       const review: RouterReviewItem = {
         reviewId: `rv_${crypto.randomUUID()}`,
         createdAt: new Date().toISOString(),
@@ -391,10 +408,11 @@ export class RouterFeedbackLoopStore {
     let duplicateFeedbackCount = 0;
 
     for (const item of feedback) {
-      feedbackBySource[item.source] += 1;
       if (item.duplicateOfFeedbackId) {
         duplicateFeedbackCount += 1;
+        continue;
       }
+      feedbackBySource[item.source] += 1;
       const linkedDecision = decisionById.get(item.linkedDecisionId ?? "");
       if (!linkedDecision) {
         continue;
@@ -500,7 +518,10 @@ export class RouterFeedbackLoopStore {
     if (input.expectedTier && input.expectedTier !== decision.predictedTier) {
       return true;
     }
-    if (input.source === "reaction" && ["thumbsdown", "-1", "x"].includes(input.reaction ?? "")) {
+    if (
+      input.source === "reaction" &&
+      ["thumbsdown", "-1", "x"].includes(normalizeReactionValue(input.reaction) ?? "")
+    ) {
       return true;
     }
     return false;
