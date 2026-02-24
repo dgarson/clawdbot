@@ -1,3 +1,4 @@
+// M9: responsive pass
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Search,
@@ -514,8 +515,9 @@ export default function CommandPaletteV2() {
   // Track flat index across groups for selectedIndex alignment
   let flatCounter = 0;
 
+  // M9: responsive pass — full-screen on mobile, no floating modal
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start pt-16 pb-16 px-4">
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
       {/* Page label */}
       <div className="mb-6 text-center">
         <p className="text-sm text-zinc-500 font-mono tracking-wide">
@@ -526,11 +528,11 @@ export default function CommandPaletteV2() {
         </p>
       </div>
 
-      {/* Main layout: palette + sidebar */}
-      <div className="flex items-start gap-4 w-full" style={{ maxWidth: '860px' }}>
+      {/* Main layout: palette + sidebar — M9: sidebar hidden on mobile */}
+      <div className="flex items-start gap-4 w-full max-w-[860px]">
 
-        {/* ── Palette panel ── */}
-        <div className="flex-1" style={{ maxWidth: '640px' }}>
+        {/* ── Palette panel ── M9: full-width on mobile */}
+        <div className="flex-1 w-full max-w-full sm:max-w-[640px]">
           {isClosed ? (
             /* Closed state */
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center shadow-2xl">
@@ -652,8 +654,8 @@ export default function CommandPaletteV2() {
           )}
         </div>
 
-        {/* ── NL examples sidebar ── */}
-        <div className="shrink-0 w-48">
+        {/* ── NL examples sidebar ── M9: responsive pass — hidden on mobile */}
+        <div className="shrink-0 w-48 hidden md:block">
           <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
             <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
               Try typing…

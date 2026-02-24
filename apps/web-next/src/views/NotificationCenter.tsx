@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { BellOff } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1187,11 +1189,12 @@ export default function NotificationCenter() {
             tabIndex={-1}
           >
             {listable.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                <div className="text-4xl mb-3">🎉</div>
-                <p className="text-zinc-400 text-sm font-medium">All clear</p>
-                <p className="text-zinc-600 text-xs mt-1">No notifications match your filters</p>
-              </div>
+              <ContextualEmptyState
+                icon={BellOff}
+                title="All caught up"
+                description="No notifications match your current filters."
+                size="sm"
+              />
             ) : (
               listable.map((n, idx) => (
                 <NotifCard

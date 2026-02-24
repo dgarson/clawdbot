@@ -1,3 +1,4 @@
+// M9: responsive pass
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import { RotateCcw, Wifi, WifiOff, Users, X, MessageSquare } from 'lucide-react';
@@ -385,11 +386,15 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
     <aside
       role="complementary"
       aria-label={`Details for ${node.name}`}
-      className="w-[280px] flex-shrink-0 bg-zinc-900 border-l border-zinc-800 flex flex-col overflow-hidden"
+      className="fixed inset-x-0 bottom-0 z-30 max-h-[70vh] md:static md:max-h-none md:z-auto md:inset-auto w-full md:w-[280px] flex-shrink-0 bg-zinc-900 border-t md:border-t-0 md:border-l border-zinc-800 flex flex-col overflow-hidden rounded-t-2xl md:rounded-none shadow-2xl md:shadow-none"
     >
+      {/* M9: responsive pass — drag handle for mobile bottom sheet */}
+      <div className="flex justify-center pt-2 pb-1 md:hidden" aria-hidden="true">
+        <div className="w-10 h-1 rounded-full bg-zinc-700" />
+      </div>
       {/* Header */}
       <div
-        className="flex items-center justify-between p-4 border-b border-zinc-800"
+        className="flex items-center justify-between p-3 sm:p-4 border-b border-zinc-800"
         style={{ borderLeftColor: stroke, borderLeftWidth: 3 }}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -438,7 +443,7 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
       </div>
 
       {/* Stats rows */}
-      <div className="p-4 flex flex-col gap-2.5">
+      <div className="p-3 sm:p-4 flex flex-col gap-2.5 overflow-y-auto">
         {stats.map(({ label, value }) => (
           <div key={label} className="flex items-start justify-between gap-3">
             <span className="text-[10px] uppercase font-bold text-zinc-500 flex-shrink-0 pt-px">
@@ -535,7 +540,8 @@ export default function AgentTopologyMap() {
       <main id="atm-main" className="min-h-screen bg-zinc-950 text-white flex flex-col">
 
         {/* ── Toolbar ──────────────────────────────────────────────────────── */}
-        <nav aria-label="Topology toolbar" className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-wrap shrink-0">
+        {/* M9: responsive pass — toolbar wraps and pads properly on mobile */}
+        <nav aria-label="Topology toolbar" className="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-wrap shrink-0">
           {/* Title */}
           <h1 className="text-base font-bold tracking-tight whitespace-nowrap">
             Agent <span className="text-violet-400">Topology</span>
@@ -684,7 +690,7 @@ export default function AgentTopologyMap() {
             {/* Node type count overlay (bottom-left) — decorative summary, aria-hidden; data conveyed in legend */}
             <div
               aria-hidden="true"
-              className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl px-3 py-2.5 flex flex-col gap-1.5"
+              className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl px-3 py-2.5 hidden sm:flex flex-col gap-1.5"
             >
               <span className="text-[9px] uppercase font-bold text-zinc-500 mb-0.5">Node Types</span>
               {([
@@ -712,6 +718,14 @@ export default function AgentTopologyMap() {
           </div>
 
           {/* ── Detail panel (conditionally rendered) ───────────────────── */}
+          {/* M9: responsive pass — backdrop overlay on mobile for bottom sheet */}
+          {selectedNode && (
+            <div
+              className="fixed inset-0 z-20 bg-black/40 md:hidden"
+              onClick={() => setSelectedId(null)}
+              aria-hidden="true"
+            />
+          )}
           {selectedNode && (
             <DetailPanel node={selectedNode} onClose={() => setSelectedId(null)} />
           )}

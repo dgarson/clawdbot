@@ -13,6 +13,7 @@ import {
   Eye,
   MoreHorizontal
 } from 'lucide-react';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // Types
 interface RemediationItem {
@@ -395,9 +396,12 @@ export default function FindingRemediationTracker() {
         </table>
 
         {filteredItems.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            No findings match your filters.
-          </div>
+          <ContextualEmptyState
+            icon={Shield}
+            title="No findings to remediate"
+            description="All findings have been addressed, or no items match your filters."
+            size="sm"
+          />
         )}
       </div>
 
