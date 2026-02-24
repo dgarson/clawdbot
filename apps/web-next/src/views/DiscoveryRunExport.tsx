@@ -282,7 +282,7 @@ export default function DiscoveryRunExport() {
 
         {/* ── Run Summary Card ── */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Run Summary</h2>
+          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-4">Run Summary</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: 'Run ID', value: MOCK_RUN.runId.slice(-8), mono: true },
@@ -304,7 +304,7 @@ export default function DiscoveryRunExport() {
 
         {/* ── Format Selector ── */}
         <section className="mb-6">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Export Format</h2>
+          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-3">Export Format</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <FormatCard
               id="json"
@@ -338,7 +338,7 @@ export default function DiscoveryRunExport() {
 
         {/* ── Export Options ── */}
         <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Export Options</h2>
+          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-4">Export Options</h2>
           <div className="space-y-3">
             <CheckboxOption
               id="opt-evidence"
