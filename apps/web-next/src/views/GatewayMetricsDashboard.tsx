@@ -18,6 +18,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -858,7 +860,7 @@ function GatewayInfoPanel({ stats }: { stats: GatewayStats }) {
 // Main Component
 // ============================================================================
 
-export default function GatewayMetricsDashboard() {
+export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = false }: { isLoading?: boolean; isEmpty?: boolean }) {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [sparklineData, setSparklineData] = useState(SPARKLINE_DATA);
   const [stats, setStats] = useState(MOCK_GATEWAY_STATS);
@@ -926,46 +928,94 @@ export default function GatewayMetricsDashboard() {
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4" role="status" aria-label="Live gateway statistics">
-        <StatCard
-          label="Requests/sec"
-          value={stats.reqPerSec.toFixed(1)}
-          icon={Bolt}
-          trend="up"
-          trendValue="+2.3%"
-          accentColor="violet"
+      {/* Empty state — no gateway connected */}
+      {isEmpty ? (
+        <ContextualEmptyState
+          icon={Gauge}
+          title="No metrics available yet"
+          description="Connect your gateway to start seeing live health and throughput data."
+          size="lg"
         />
-        <StatCard
-          label="Error Rate"
-          value={stats.errorRate.toFixed(2)}
-          unit="%"
-          icon={AlertTriangle}
-          trend="down"
-          trendValue="-0.01%"
-          accentColor="emerald"
-        />
-        <StatCard
-          label="P99 Latency"
-          value={stats.p99Latency}
-          unit="ms"
-          icon={Clock}
-          trend="neutral"
-          trendValue="stable"
-          accentColor="amber"
-        />
-        <StatCard
-          label="Active Sessions"
-          value={stats.activeSessions}
-          icon={Layers}
-          trend="up"
-          trendValue="+3"
-          accentColor="sky"
-        />
-      </div>
+      ) : isLoading ? (
+        <>
+          {/* Skeleton: 4 stat cards */}
+          <div className="grid grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton variant="text" className="w-24" />
+                  </div>
+                </div>
+                <Skeleton className="h-8 w-20" />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton: chart */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <div className="flex items-center gap-4">
+                <Skeleton variant="text" className="w-20" />
+                <Skeleton variant="text" className="w-16" />
+                <Skeleton variant="text" className="w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-12 w-full" />
+            <div className="mt-2 flex justify-between">
+              <Skeleton variant="text" className="w-12" />
+              <Skeleton variant="text" className="w-8" />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Stats Row */}
+          <div className="grid grid-cols-4 gap-4" role="status" aria-label="Live gateway statistics">
+            <StatCard
+              label="Requests/sec"
+              value={stats.reqPerSec.toFixed(1)}
+              icon={Bolt}
+              trend="up"
+              trendValue="+2.3%"
+              accentColor="violet"
+            />
+            <StatCard
+              label="Error Rate"
+              value={stats.errorRate.toFixed(2)}
+              unit="%"
+              icon={AlertTriangle}
+              trend="down"
+              trendValue="-0.01%"
+              accentColor="emerald"
+            />
+            <StatCard
+              label="P99 Latency"
+              value={stats.p99Latency}
+              unit="ms"
+              icon={Clock}
+              trend="neutral"
+              trendValue="stable"
+              accentColor="amber"
+            />
+            <StatCard
+              label="Active Sessions"
+              value={stats.activeSessions}
+              icon={Layers}
+              trend="up"
+              trendValue="+3"
+              accentColor="sky"
+            />
+          </div>
 
-      {/* Request Rate Sparkline */}
-      <RequestRateSparkline data={sparklineData} />
+          {/* Request Rate Sparkline */}
+          <RequestRateSparkline data={sparklineData} />
+        </>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-3 gap-6">

@@ -16,6 +16,8 @@ import {
   Zap,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState'
+import { Skeleton } from '../components/ui/Skeleton'
 
 // Types
 interface Provider {
@@ -435,7 +437,7 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
 }
 
 // Main Component
-export default function ProviderRoutingPanel() {
+export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?: boolean }) {
   const [providers] = useState<Provider[]>(mockProviders)
   const [routingRules, setRoutingRules] = useState<RoutingRule[]>(mockRoutingRules)
   const [failoverEvents, setFailoverEvents] = useState<FailoverEvent[]>([])
@@ -573,78 +575,117 @@ export default function ProviderRoutingPanel() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-zinc-800/50">
-              <tr>
-                <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
-                  Model
-                </th>
-                <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
-                  Primary Provider
-                </th>
-                <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
-                  Fallback Provider
-                </th>
-                <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
-                  Priority
-                </th>
-                <th className="text-center text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
-                  Active
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800">
-              {routingRules.map((rule) => (
-                <tr key={rule.id} className="hover:bg-zinc-800/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <div>
-                      <p className="text-white font-medium">{rule.modelName}</p>
-                      <p className="text-zinc-500 text-xs font-mono">{rule.modelId}</p>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-zinc-300">{rule.primaryProvider}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <ArrowRight className="w-3 h-3 text-zinc-600" aria-hidden="true" />
-                      <span className="text-zinc-400">{rule.fallbackProvider}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={cn(
-                      'inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
-                      rule.priority === 1 ? 'bg-green-500/20 text-green-400' :
-                      rule.priority === 2 ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-red-500/20 text-red-400'
-                    )}>
-                      {rule.priority}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleRule(rule.id)}
-                      aria-label={`${rule.isActive ? 'Disable' : 'Enable'} routing rule for ${rule.modelName}`}
-                      aria-pressed={rule.isActive}
-                      className={cn(
-                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-                        rule.isActive ? 'bg-violet-600' : 'bg-zinc-700'
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                          rule.isActive ? 'translate-x-6' : 'translate-x-1'
-                        )}
-                      />
-                    </button>
-                  </td>
+        {isLoading ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-zinc-800/50">
+                <tr>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Model</th>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Primary Provider</th>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Fallback Provider</th>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Priority</th>
+                  <th className="text-center text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Active</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-3 space-y-1">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton variant="text" className="w-24" />
+                    </td>
+                    <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-4 py-3"><Skeleton variant="circle" className="h-6 w-6" /></td>
+                    <td className="px-4 py-3 flex justify-center"><Skeleton className="h-6 w-11" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : routingRules.length === 0 ? (
+          <div className="p-6">
+            <ContextualEmptyState
+              icon={GitBranch}
+              title="No routing rules defined"
+              description="Create routing rules to control how AI model requests are directed across providers."
+              primaryAction={{ label: 'Create a routing rule', onClick: () => console.log('Create routing rule') }}
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-zinc-800/50">
+                <tr>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    Model
+                  </th>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    Primary Provider
+                  </th>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    Fallback Provider
+                  </th>
+                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    Priority
+                  </th>
+                  <th className="text-center text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    Active
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {routingRules.map((rule) => (
+                  <tr key={rule.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div>
+                        <p className="text-white font-medium">{rule.modelName}</p>
+                        <p className="text-zinc-500 text-xs font-mono">{rule.modelId}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-zinc-300">{rule.primaryProvider}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <ArrowRight className="w-3 h-3 text-zinc-600" aria-hidden="true" />
+                        <span className="text-zinc-400">{rule.fallbackProvider}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn(
+                        'inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
+                        rule.priority === 1 ? 'bg-green-500/20 text-green-400' :
+                        rule.priority === 2 ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-red-500/20 text-red-400'
+                      )}>
+                        {rule.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => toggleRule(rule.id)}
+                        aria-label={`${rule.isActive ? 'Disable' : 'Enable'} routing rule for ${rule.modelName}`}
+                        aria-pressed={rule.isActive}
+                        className={cn(
+                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                          rule.isActive ? 'bg-violet-600' : 'bg-zinc-700'
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                            rule.isActive ? 'translate-x-6' : 'translate-x-1'
+                          )}
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Failover Log */}

@@ -20,6 +20,8 @@ import {
   History,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -573,7 +575,7 @@ function AddSecretModal({
 // Main Component
 // ============================================================================
 
-export default function SecretVaultManager() {
+export default function SecretVaultManager({ isLoading = false }: { isLoading?: boolean }) {
   const [secrets, setSecrets] = useState<Secret[]>(MOCK_SECRETS);
   const [auditEvents] = useState<AuditEvent[]>(MOCK_AUDIT_EVENTS);
   const [search, setSearch] = useState('');
@@ -726,7 +728,39 @@ export default function SecretVaultManager() {
       {/* Main Content: Secrets List + Rotation Panel */}
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2">
-          {filteredSecrets.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton variant="text" className="w-1/2" />
+                    </div>
+                    <Skeleton className="h-5 w-14" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton className="h-10" />
+                    <Skeleton className="h-10" />
+                  </div>
+                  <Skeleton className="h-8 w-full" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-6 w-14" />
+                    <Skeleton className="h-6 w-10" />
+                    <Skeleton className="h-6 w-14" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : secrets.length === 0 ? (
+            <ContextualEmptyState
+              icon={FileLock}
+              title="No secrets stored"
+              description="Credentials and API keys you add will appear here."
+              primaryAction={{ label: 'Add your first secret', onClick: () => setAddModalOpen(true) }}
+            />
+          ) : filteredSecrets.length === 0 ? (
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500">
               <Shield aria-hidden="true" className="w-12 h-12 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No secrets match your filters</p>
