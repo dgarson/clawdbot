@@ -16,7 +16,12 @@ export {
 export type { JsonlExportOptions, EvaluationJsonlRecord } from "./export-jsonl.js";
 
 // Catalog schema & metadata
-export { buildScenarioCatalog, filterCatalog, validateScenarioMetadata } from "./catalog.js";
+export {
+  buildScenarioCatalog,
+  filterCatalog,
+  validateScenarioMetadata,
+  createDefaultCatalog,
+} from "./catalog.js";
 
 // Catalog types
 export type {

@@ -104,6 +104,8 @@ export function loadScenarios(filter?: CatalogFilter): CataloguedEvaluationCase[
 
 /**
  * Load scenarios by category for targeted CI runs.
+ *
+ * @param category - Category to filter by
  */
 export function loadScenariosByCategory(
   category:
@@ -119,6 +121,8 @@ export function loadScenariosByCategory(
 
 /**
  * Load scenarios by difficulty tier for tiered CI execution.
+ *
+ * @param difficulty - Difficulty tier to filter by
  */
 export function loadScenariosByDifficulty(
   difficulty: "smoke" | "unit" | "integration" | "e2e",
@@ -128,6 +132,8 @@ export function loadScenariosByDifficulty(
 
 /**
  * Load scenarios by suite name.
+ *
+ * @param suite - Suite name to filter by
  */
 export function loadScenariosBySuite(suite: string): CataloguedEvaluationCase[] {
   return loadScenarios({ suite });
