@@ -27,6 +27,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -793,7 +795,7 @@ function FilterBar({
 // Main Component
 // ============================================================================
 
-export default function AgentCapabilityMatrix() {
+export default function AgentCapabilityMatrix({ isLoading = false }: { isLoading?: boolean }) {
   const [agents] = useState<Agent[]>(MOCK_AGENTS);
   const [tools] = useState<Tool[]>(MOCK_TOOLS);
   const [skills] = useState<Skill[]>(MOCK_SKILLS);
@@ -937,7 +939,14 @@ export default function AgentCapabilityMatrix() {
             Agent Roster
             <span className="ml-auto text-xs text-zinc-500">{filteredAgents.length} shown</span>
           </h2>
-          {filteredAgents.length === 0 ? (
+          {agents.length === 0 ? (
+            <ContextualEmptyState
+              icon={Bot}
+              title="No agents registered"
+              description="Agents added to the system will appear here with their capabilities."
+              size="sm"
+            />
+          ) : filteredAgents.length === 0 ? (
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500">
               <Bot className="w-12 h-12 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No agents match your filters</p>
@@ -988,7 +997,34 @@ export default function AgentCapabilityMatrix() {
           </div>
 
           {/* Matrix or Skills View */}
-          {activeTab === 'matrix' ? (
+          {isLoading ? (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto">
+              <div className="flex items-center gap-2 mb-4">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="space-y-2">
+                {/* Header row */}
+                <div className="flex gap-2 pb-2 border-b border-zinc-800">
+                  <Skeleton className="h-3 w-24 flex-shrink-0" />
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <Skeleton key={j} className="h-3 w-12 flex-1" />
+                  ))}
+                </div>
+                {/* 3 data rows × 4 columns */}
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-2 py-1">
+                    <Skeleton className="h-6 w-24 flex-shrink-0" />
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <div key={j} className="flex-1 flex justify-center">
+                        <Skeleton className="h-8 w-8" />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : activeTab === 'matrix' ? (
             <CapabilityMatrix agents={filteredAgents} tools={tools} />
           ) : (
             <SkillMatrix agents={filteredAgents} skills={skills} />

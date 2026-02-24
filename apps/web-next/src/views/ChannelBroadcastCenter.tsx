@@ -15,6 +15,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 // ============================================================================
 // Types
@@ -523,7 +525,7 @@ function StatsRow({
 // Main Component
 // ============================================================================
 
-export default function ChannelBroadcastCenter() {
+export default function ChannelBroadcastCenter({ isLoading = false }: { isLoading?: boolean }) {
   const [channels] = useState(MOCK_CHANNELS);
   const [history] = useState(MOCK_HISTORY);
   const [scheduled, setScheduled] = useState(MOCK_SCHEDULED);
@@ -586,9 +588,37 @@ export default function ChannelBroadcastCenter() {
       />
 
       {/* Channel Grid */}
-      <div className="grid grid-cols-3 gap-4">
-        {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="circle" className="w-5 h-5" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <Skeleton className="h-6 w-24" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Skeleton className="h-10" />
+                <Skeleton className="h-10" />
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+      ) : channels.length === 0 ? (
+        <ContextualEmptyState
+          icon={MessageSquare}
+          title="No broadcast channels configured"
+          description="Connect a channel to start reaching your audience across platforms."
+          primaryAction={{ label: 'Add a channel', onClick: () => console.log('Add channel') }}
+        />
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
+        </div>
+      )}
 
       {/* Main Grid */}
       <div className="grid grid-cols-3 gap-4">
