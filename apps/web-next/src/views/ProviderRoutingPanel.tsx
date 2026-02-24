@@ -298,7 +298,8 @@ function StatusBadge({ status }: { status: 'active' | 'degraded' | 'offline' }) 
 
   return (
     <span className={cn('inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium', bg, color)}>
-      <Icon className="w-3.5 h-3.5" />
+      {/* Decorative icon — text label carries the meaning */}
+      <Icon aria-hidden="true" className="w-3.5 h-3.5" />
       {label}
     </span>
   )
@@ -325,14 +326,16 @@ function StatCard({
           <p className="text-2xl font-bold text-white mt-1">{value}</p>
           {subtitle && (
             <div className="flex items-center gap-1 mt-1">
-              {trend === 'up' && <TrendingUp className="w-3.5 h-3.5 text-green-400" />}
-              {trend === 'down' && <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
+              {/* Decorative trend icons — subtitle text carries the meaning */}
+              {trend === 'up' && <TrendingUp aria-hidden="true" className="w-3.5 h-3.5 text-green-400" />}
+              {trend === 'down' && <TrendingDown aria-hidden="true" className="w-3.5 h-3.5 text-red-400" />}
               <span className="text-zinc-500 text-xs">{subtitle}</span>
             </div>
           )}
         </div>
         <div className="p-2 bg-violet-600/10 rounded-lg">
-          <Icon className="w-5 h-5 text-violet-400" />
+          {/* Decorative stat icon */}
+          <Icon aria-hidden="true" className="w-5 h-5 text-violet-400" />
         </div>
       </div>
     </div>
@@ -345,7 +348,8 @@ function ProviderCard({ provider }: { provider: Provider }) {
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', provider.color)}>
-            <Server className="w-5 h-5 text-white" />
+            {/* Decorative server icon — provider name is adjacent text */}
+            <Server aria-hidden="true" className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="text-white font-semibold">{provider.name}</h3>
@@ -358,7 +362,9 @@ function ProviderCard({ provider }: { provider: Provider }) {
         <div className="flex items-center justify-between">
           <span className="text-zinc-400 text-sm">Latency</span>
           <div className="flex items-center gap-1.5">
+            {/* Decorative latency icon */}
             <Zap
+              aria-hidden="true"
               className={cn(
                 'w-3.5 h-3.5',
                 provider.latency < 150
@@ -381,7 +387,13 @@ function ProviderCard({ provider }: { provider: Provider }) {
           <span className="text-zinc-400 text-sm">Success Rate</span>
           <div className="flex items-center gap-2">
             <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              {/* progressbar with full ARIA value semantics */}
               <div
+                role="progressbar"
+                aria-valuenow={provider.successRate}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${provider.name} success rate: ${provider.successRate}%`}
                 className={cn(
                   'h-full rounded-full',
                   provider.successRate >= 99
@@ -407,26 +419,36 @@ function ProviderCard({ provider }: { provider: Provider }) {
 }
 
 function TrafficBar() {
+  /* Build a descriptive label listing each provider and its share */
+  const ariaLabel = `Traffic distribution: ${trafficDistribution
+    .map((item) => `${item.provider} ${item.percentage}%`)
+    .join(', ')}`
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
       <h3 className="text-white font-semibold mb-4">Traffic Distribution</h3>
-      
-      <div className="h-4 bg-zinc-800 rounded-full overflow-hidden flex mb-4">
+
+      {/* role="img" with descriptive aria-label — segments are decorative */}
+      <div
+        role="img"
+        aria-label={ariaLabel}
+        className="h-4 bg-zinc-800 rounded-full overflow-hidden flex mb-4"
+      >
         {trafficDistribution.map((item) => (
           <div
             key={item.provider}
             className={cn('h-full transition-all duration-300', item.color)}
             style={{ width: `${item.percentage}%` }}
-            title={`${item.provider}: ${item.percentage}%`}
           />
         ))}
       </div>
 
+      {/* Legend: colour dots are decorative; text carries meaning */}
       <div className="grid grid-cols-5 gap-2">
         {trafficDistribution.map((item) => (
           <div key={item.provider} className="text-center">
             <div className="flex items-center justify-center gap-1.5 mb-1">
-              <div className={cn('w-2 h-2 rounded-full', item.color)} />
+              <div aria-hidden="true" className={cn('w-2 h-2 rounded-full', item.color)} />
               <span className="text-zinc-400 text-xs truncate">{item.provider}</span>
             </div>
             <span className="text-white font-semibold text-sm">{item.percentage}%</span>
@@ -440,18 +462,30 @@ function TrafficBar() {
 export default function ProviderRoutingPanel() {
   const [routingRules, setRoutingRules] = useState(mockRoutingRules)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  /** Message surfaced to the sr-only live region after actions */
+  const [statusMessage, setStatusMessage] = useState('')
 
   const handleToggleRule = (ruleId: string) => {
+    const rule = routingRules.find((r) => r.id === ruleId)
     setRoutingRules((rules) =>
-      rules.map((rule) =>
-        rule.id === ruleId ? { ...rule, active: !rule.active } : rule
+      rules.map((r) =>
+        r.id === ruleId ? { ...r, active: !r.active } : r
       )
     )
+    if (rule) {
+      setStatusMessage(
+        `Routing rule for ${rule.model} ${rule.active ? 'disabled' : 'enabled'}`
+      )
+    }
   }
 
   const handleRefresh = () => {
     setIsRefreshing(true)
-    setTimeout(() => setIsRefreshing(false), 1000)
+    setStatusMessage('Refreshing routing data\u2026')
+    setTimeout(() => {
+      setIsRefreshing(false)
+      setStatusMessage('Routing data refreshed')
+    }, 1000)
   }
 
   const activeProviders = mockProviders.filter((p) => p.status === 'active').length
@@ -461,216 +495,246 @@ export default function ProviderRoutingPanel() {
   )
 
   return (
-    <div className="bg-zinc-950 min-h-screen p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Network className="w-6 h-6 text-violet-400" />
-              Provider Routing
-            </h1>
-            <p className="text-zinc-400 text-sm mt-1">
-              AI model routing, load balancing, and failover management
-            </p>
-          </div>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors"
-          >
-            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
-            Refresh
-          </button>
-        </div>
+    <>
+      {/* Skip navigation link */}
+      <a
+        href="#provider-routing-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:ring-2 focus:ring-violet-500 focus:outline-none"
+      >
+        Skip to main content
+      </a>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-4 gap-4">
-          <StatCard
-            title="Total Providers"
-            value={mockProviders.length}
-            subtitle={`${activeProviders} active`}
-            icon={Server}
-            trend="neutral"
-          />
-          <StatCard
-            title="Active Routes"
-            value={activeRoutes}
-            subtitle={`${routingRules.length} total configured`}
-            icon={Network}
-            trend="up"
-          />
-          <StatCard
-            title="Failovers Today"
-            value={mockFailoverEvents.length}
-            subtitle="Last 24 hours"
-            icon={RefreshCw}
-            trend="down"
-          />
-          <StatCard
-            title="Avg Latency"
-            value={`${avgLatency}ms`}
-            subtitle="Across all providers"
-            icon={Zap}
-            trend="neutral"
-          />
-        </div>
-
-        {/* Provider Cards */}
-        <div>
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-violet-400" />
-            Providers
-          </h2>
-          <div className="grid grid-cols-5 gap-4">
-            {mockProviders.map((provider) => (
-              <ProviderCard key={provider.id} provider={provider} />
-            ))}
-          </div>
-        </div>
-
-        {/* Routing Rules Table */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-zinc-800">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Shield className="w-5 h-5 text-violet-400" />
-              Routing Rules
-            </h2>
-            <p className="text-zinc-500 text-sm mt-1">
-              Configure primary and fallback providers for each model
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Model</th>
-                  <th className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Primary Provider</th>
-                  <th className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Fallback Provider</th>
-                  <th className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Priority</th>
-                  <th className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {routingRules.map((rule) => (
-                  <tr
-                    key={rule.id}
-                    className={cn(
-                      'border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors',
-                      !rule.active && 'opacity-50'
-                    )}
-                  >
-                    <td className="px-4 py-3">
-                      <span className="text-white font-medium font-mono text-sm">{rule.model}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-zinc-300">{rule.primaryProvider}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="w-3.5 h-3.5 text-zinc-600" />
-                        <span className="text-zinc-400">{rule.fallbackProvider}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={cn(
-                        'inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
-                        rule.priority === 1
-                          ? 'bg-violet-600/20 text-violet-400'
-                          : rule.priority === 2
-                            ? 'bg-blue-600/20 text-blue-400'
-                            : rule.priority === 3
-                              ? 'bg-amber-600/20 text-amber-400'
-                              : 'bg-zinc-700/50 text-zinc-400'
-                      )}>
-                        {rule.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleToggleRule(rule.id)}
-                        className={cn(
-                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-zinc-900',
-                          rule.active ? 'bg-violet-600' : 'bg-zinc-700'
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                            rule.active ? 'translate-x-6' : 'translate-x-1'
-                          )}
-                        />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Traffic Distribution */}
-        <TrafficBar />
-
-        {/* Failover Log */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-zinc-800">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-violet-400" />
-              Failover Log
-            </h2>
-            <p className="text-zinc-500 text-sm mt-1">
-              Recent failover events and provider switches
-            </p>
-          </div>
-
-          <div className="divide-y divide-zinc-800/50">
-            {mockFailoverEvents.map((event) => (
-              <div
-                key={event.id}
-                className="px-4 py-3 hover:bg-zinc-800/30 transition-colors flex items-center gap-4"
-              >
-                <div className="w-40 flex-shrink-0">
-                  <span className="text-zinc-500 text-sm font-mono">{event.timestamp}</span>
-                </div>
-
-                <div className="w-36 flex-shrink-0">
-                  <span className="text-white font-medium font-mono text-sm">{event.model}</span>
-                </div>
-
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="text-zinc-300">{event.fromProvider}</span>
-                  <ArrowRight className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="text-violet-400 font-medium">{event.toProvider}</span>
-                </div>
-
-                <div className="w-40 flex-shrink-0 text-right">
-                  <span className="text-zinc-500 text-sm">{event.reason}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-800/20">
-            <p className="text-zinc-500 text-sm text-center">
-              Showing {mockFailoverEvents.length} most recent failover events
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between text-zinc-500 text-sm border-t border-zinc-800 pt-4">
-          <div className="flex items-center gap-4">
-            <span>Last updated: {new Date().toLocaleTimeString()}</span>
-            <span>•</span>
-            <span>Auto-refresh: 30s</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>System healthy</span>
-          </div>
-        </div>
+      {/* Polite live region — announces toggle/refresh results to screen readers */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {statusMessage}
       </div>
-    </div>
+
+      <main id="provider-routing-main" className="bg-zinc-950 min-h-screen p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                {/* Decorative icon */}
+                <Network aria-hidden="true" className="w-6 h-6 text-violet-400" />
+                Provider Routing
+              </h1>
+              <p className="text-zinc-400 text-sm mt-1">
+                AI model routing, load balancing, and failover management
+              </p>
+            </div>
+            {/* Dynamic aria-label reflects refreshing state */}
+            <button
+              onClick={handleRefresh}
+              aria-label={isRefreshing ? 'Refreshing\u2026' : 'Refresh routing data'}
+              aria-busy={isRefreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            >
+              <RefreshCw aria-hidden="true" className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+              Refresh
+            </button>
+          </div>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard
+              title="Total Providers"
+              value={mockProviders.length}
+              subtitle={`${activeProviders} active`}
+              icon={Server}
+              trend="neutral"
+            />
+            <StatCard
+              title="Active Routes"
+              value={activeRoutes}
+              subtitle={`${routingRules.length} total configured`}
+              icon={Network}
+              trend="up"
+            />
+            <StatCard
+              title="Failovers Today"
+              value={mockFailoverEvents.length}
+              subtitle="Last 24 hours"
+              icon={RefreshCw}
+              trend="down"
+            />
+            <StatCard
+              title="Avg Latency"
+              value={`${avgLatency}ms`}
+              subtitle="Across all providers"
+              icon={Zap}
+              trend="neutral"
+            />
+          </div>
+
+          {/* Provider Cards */}
+          <section aria-label="Provider status">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              {/* Decorative icon */}
+              <Cpu aria-hidden="true" className="w-5 h-5 text-violet-400" />
+              Providers
+            </h2>
+            <div className="grid grid-cols-5 gap-4">
+              {mockProviders.map((provider) => (
+                <ProviderCard key={provider.id} provider={provider} />
+              ))}
+            </div>
+          </section>
+
+          {/* Routing Rules Table */}
+          <section aria-label="Routing rules" className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="p-4 border-b border-zinc-800">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                {/* Decorative icon */}
+                <Shield aria-hidden="true" className="w-5 h-5 text-violet-400" />
+                Routing Rules
+              </h2>
+              <p className="text-zinc-500 text-sm mt-1">
+                Configure primary and fallback providers for each model
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full" aria-label="Routing rules configuration">
+                <thead>
+                  <tr className="border-b border-zinc-800">
+                    {/* scope="col" on every column header */}
+                    <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Model</th>
+                    <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Primary Provider</th>
+                    <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Fallback Provider</th>
+                    <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Priority</th>
+                    <th scope="col" className="text-left text-zinc-400 text-sm font-medium px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {routingRules.map((rule) => (
+                    <tr
+                      key={rule.id}
+                      className={cn(
+                        'border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors',
+                        !rule.active && 'opacity-50'
+                      )}
+                    >
+                      <td className="px-4 py-3">
+                        <span className="text-white font-medium font-mono text-sm">{rule.model}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-zinc-300">{rule.primaryProvider}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {/* Decorative arrow icon */}
+                          <ArrowRight aria-hidden="true" className="w-3.5 h-3.5 text-zinc-600" />
+                          <span className="text-zinc-400">{rule.fallbackProvider}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={cn(
+                          'inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
+                          rule.priority === 1
+                            ? 'bg-violet-600/20 text-violet-400'
+                            : rule.priority === 2
+                              ? 'bg-blue-600/20 text-blue-400'
+                              : rule.priority === 3
+                                ? 'bg-amber-600/20 text-amber-400'
+                                : 'bg-zinc-700/50 text-zinc-400'
+                        )}>
+                          {rule.priority}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {/* Toggle switch: role="switch" + aria-checked + dynamic aria-label */}
+                        <button
+                          role="switch"
+                          aria-checked={rule.active}
+                          aria-label={`${rule.model} routing rule: ${rule.active ? 'enabled, click to disable' : 'disabled, click to enable'}`}
+                          onClick={() => handleToggleRule(rule.id)}
+                          className={cn(
+                            'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900',
+                            rule.active ? 'bg-violet-600' : 'bg-zinc-700'
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                              rule.active ? 'translate-x-6' : 'translate-x-1'
+                            )}
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Traffic Distribution */}
+          <TrafficBar />
+
+          {/* Failover Log */}
+          <section aria-label="Failover log" className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="p-4 border-b border-zinc-800">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                {/* Decorative icon */}
+                <Activity aria-hidden="true" className="w-5 h-5 text-violet-400" />
+                Failover Log
+              </h2>
+              <p className="text-zinc-500 text-sm mt-1">
+                Recent failover events and provider switches
+              </p>
+            </div>
+
+            <div className="divide-y divide-zinc-800/50">
+              {mockFailoverEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="px-4 py-3 hover:bg-zinc-800/30 transition-colors flex items-center gap-4"
+                >
+                  <div className="w-40 flex-shrink-0">
+                    <span className="text-zinc-500 text-sm font-mono">{event.timestamp}</span>
+                  </div>
+
+                  <div className="w-36 flex-shrink-0">
+                    <span className="text-white font-medium font-mono text-sm">{event.model}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-zinc-300">{event.fromProvider}</span>
+                    {/* Decorative arrow — adjacent text conveys the direction */}
+                    <ArrowRight aria-hidden="true" className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <span className="text-violet-400 font-medium">{event.toProvider}</span>
+                  </div>
+
+                  <div className="w-40 flex-shrink-0 text-right">
+                    <span className="text-zinc-500 text-sm">{event.reason}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-800/20">
+              <p className="text-zinc-500 text-sm text-center">
+                Showing {mockFailoverEvents.length} most recent failover events
+              </p>
+            </div>
+          </section>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between text-zinc-500 text-sm border-t border-zinc-800 pt-4">
+            <div className="flex items-center gap-4">
+              <span>Last updated: {new Date().toLocaleTimeString()}</span>
+              <span>•</span>
+              <span>Auto-refresh: 30s</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Decorative status dot — adjacent text "System healthy" carries the meaning */}
+              <div aria-hidden="true" className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span>System healthy</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
   )
 }

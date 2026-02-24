@@ -201,19 +201,33 @@ function getBroadcastStatusColor(status: BroadcastStatus): string {
   }
 }
 
+/** Returns a proper capitalised visible label for channel status. */
+function getStatusLabel(status: ChannelStatus): string {
+  switch (status) {
+    case 'connected': return 'Connected';
+    case 'degraded': return 'Degraded';
+    case 'disconnected': return 'Disconnected';
+  }
+}
+
 // ============================================================================
 // Sub-components
 // ============================================================================
 
 function StatusBadge({ status, className }: { status: ChannelStatus; className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium capitalize', className,
-      status === 'connected' && 'bg-green-500/10 text-green-400',
-      status === 'degraded' && 'bg-amber-500/10 text-amber-400',
-      status === 'disconnected' && 'bg-red-500/10 text-red-400'
-    )}>
-      <span className={cn('w-1.5 h-1.5 rounded-full', getStatusColor(status))} />
-      {status}
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium',
+        className,
+        status === 'connected' && 'bg-green-500/10 text-green-400',
+        status === 'degraded' && 'bg-amber-500/10 text-amber-400',
+        status === 'disconnected' && 'bg-red-500/10 text-red-400',
+      )}
+    >
+      {/* Decorative colour dot — meaning conveyed by the text label */}
+      <span aria-hidden="true" className={cn('w-1.5 h-1.5 rounded-full', getStatusColor(status))} />
+      {getStatusLabel(status)}
     </span>
   );
 }
@@ -222,7 +236,7 @@ function LatencyBadge({ ms }: { ms: number }) {
   const color = ms < 200 ? 'bg-green-500/10 text-green-400' : ms < 500 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400';
   return (
     <span className={cn('inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium', color)}>
-      <Zap className="w-3 h-3" />
+      <Zap aria-hidden="true" className="w-3 h-3" />
       {formatLatency(ms)}
     </span>
   );
@@ -234,7 +248,8 @@ function ChannelCard({ channel }: { channel: Channel }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-zinc-400" />
+          {/* Icon is decorative: channel name provides the label */}
+          <Icon aria-hidden="true" className="w-5 h-5 text-zinc-400" />
           <span className="font-medium text-white">{channel.name}</span>
         </div>
         <StatusBadge status={channel.status} />
@@ -290,66 +305,84 @@ function BroadcastComposer({
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-white">New Broadcast</h3>
-        <button onClick={() => setShowPreview(!showPreview)} className="text-zinc-400 hover:text-white">
-          <Eye className="w-5 h-5" />
+        {/* Eye: icon-only button — must have accessible label and pressed state */}
+        <button
+          onClick={() => setShowPreview(!showPreview)}
+          aria-label={showPreview ? 'Hide message preview' : 'Show message preview'}
+          aria-pressed={showPreview}
+          className="text-zinc-400 hover:text-white rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+        >
+          <Eye aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Target Selector */}
-      <div className="space-y-2">
-        <label className="text-sm text-zinc-400">Target Channels</label>
+      {/* Target Channels — fieldset/legend for checkbox group */}
+      <fieldset className="space-y-2">
+        <legend className="text-sm text-zinc-400">Target Channels</legend>
         <div className="grid grid-cols-3 gap-2">
           {channels.map((ch) => (
-            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300">
+            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={selectedChannels.includes(ch.id)}
                 onChange={() => toggleChannel(ch.id)}
-                className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500"
+                className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               />
               {ch.name}
             </label>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {/* Message */}
       <div className="space-y-2">
-        <label className="text-sm text-zinc-400">Message</label>
+        {/* htmlFor links label to textarea */}
+        <label htmlFor="broadcast-message" className="text-sm text-zinc-400">
+          Message
+        </label>
         <textarea
+          id="broadcast-message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-violet-500"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           placeholder="Type your broadcast message..."
         />
         <div className="text-xs text-zinc-500 text-right">{message.length} characters</div>
       </div>
 
-      {/* Schedule */}
-      <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
+      {/* Schedule — fieldset/legend for the schedule option group */}
+      <fieldset className="space-y-2">
+        <legend className="sr-only">Scheduling options</legend>
+        <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
           <input
             type="checkbox"
             checked={scheduleMode}
             onChange={(e) => setScheduleMode(e.target.checked)}
-            className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500"
+            className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           />
           Schedule for later
         </label>
         {scheduleMode && (
-          <input
-            type="datetime-local"
-            onChange={(e) => setScheduleTime(e.target.value ? new Date(e.target.value) : null)}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-violet-500"
-          />
+          <>
+            {/* htmlFor links label to datetime input */}
+            <label htmlFor="broadcast-schedule-time" className="sr-only">
+              Schedule date and time
+            </label>
+            <input
+              id="broadcast-schedule-time"
+              type="datetime-local"
+              onChange={(e) => setScheduleTime(e.target.value ? new Date(e.target.value) : null)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            />
+          </>
         )}
-      </div>
+      </fieldset>
 
       {/* Preview */}
       {showPreview && (
         <div className="space-y-2">
-          <label className="text-sm text-zinc-400">Preview</label>
+          <p className="text-sm text-zinc-400">Preview</p>
           <div className="grid grid-cols-2 gap-2">
             {selectedChannels.map((id) => {
               const ch = channels.find((c) => c.id === id);
@@ -369,7 +402,7 @@ function BroadcastComposer({
         <button
           onClick={handleSubmit}
           disabled={!message || selectedChannels.length === 0}
-          className="flex-1 bg-violet-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 bg-violet-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           {scheduleMode ? 'Schedule' : 'Send Now'}
         </button>
@@ -382,17 +415,19 @@ function HistoryTable({ history }: { history: Broadcast[] }) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-        <BarChart className="w-4 h-4 text-violet-400" />
+        {/* Decorative icon — heading text provides the label */}
+        <BarChart aria-hidden="true" className="w-4 h-4 text-violet-400" />
         <span className="text-sm font-semibold text-white">Broadcast History</span>
       </div>
       <div className="overflow-auto max-h-64">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" aria-label="Broadcast history">
           <thead className="sticky top-0 bg-zinc-900">
             <tr className="text-left text-zinc-400">
-              <th className="p-3">Time</th>
-              <th className="p-3">Message</th>
-              <th className="p-3">Channels</th>
-              <th className="p-3">Status</th>
+              {/* scope="col" on every column header */}
+              <th scope="col" className="p-3">Time</th>
+              <th scope="col" className="p-3">Message</th>
+              <th scope="col" className="p-3">Channels</th>
+              <th scope="col" className="p-3">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
@@ -404,8 +439,13 @@ function HistoryTable({ history }: { history: Broadcast[] }) {
                 <td className="p-3">
                   <div className="flex gap-1">
                     {bc.channels.map((ch) => (
-                      <span key={ch} className={cn('text-xs', getBroadcastStatusColor(bc.status[ch]))}>
-                        {ch[0].toUpperCase()}
+                      /* aria-label carries full meaning; visual letter is aria-hidden */
+                      <span
+                        key={ch}
+                        aria-label={`${ch}: ${bc.status[ch] ?? 'unknown'}`}
+                        className={cn('text-xs', getBroadcastStatusColor(bc.status[ch]))}
+                      >
+                        <span aria-hidden="true">{ch[0].toUpperCase()}</span>
                       </span>
                     ))}
                   </div>
@@ -419,7 +459,15 @@ function HistoryTable({ history }: { history: Broadcast[] }) {
   );
 }
 
-function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: ScheduledBroadcast[]; onCancel: (id: string) => void; onEdit: (id: string) => void }) {
+function PendingBroadcasts({
+  scheduled,
+  onCancel,
+  onEdit,
+}: {
+  scheduled: ScheduledBroadcast[];
+  onCancel: (id: string) => void;
+  onEdit: (id: string) => void;
+}) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -428,24 +476,39 @@ function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: Schedul
   }, []);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
+    <section aria-label="Pending scheduled broadcasts" className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-        <Clock className="w-4 h-4 text-amber-400" />
+        {/* Decorative icon */}
+        <Clock aria-hidden="true" className="w-4 h-4 text-amber-400" />
         <span className="text-sm font-semibold text-white">Pending Scheduled</span>
       </div>
       <div className="divide-y divide-zinc-800">
         {scheduled.map((sc) => {
           const remaining = sc.scheduledTime.getTime() - now;
+          const shortMsg = sc.message.length > 40 ? sc.message.slice(0, 40) + '\u2026' : sc.message;
           return (
             <div key={sc.id} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">Send in {formatDuration(remaining)}</span>
+                {/* aria-live="polite" on the countdown so updates are announced */}
+                <span aria-live="polite" aria-atomic="true" className="text-sm font-medium text-white">
+                  Send in {formatDuration(remaining)}
+                </span>
                 <div className="flex gap-2">
-                  <button onClick={() => onEdit(sc.id)} className="text-zinc-400 hover:text-white">
-                    <Edit className="w-4 h-4" />
+                  {/* Edit: context-rich aria-label */}
+                  <button
+                    onClick={() => onEdit(sc.id)}
+                    aria-label={`Edit scheduled broadcast: ${shortMsg}`}
+                    className="text-zinc-400 hover:text-white rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                  >
+                    <Edit aria-hidden="true" className="w-4 h-4" />
                   </button>
-                  <button onClick={() => onCancel(sc.id)} className="text-zinc-400 hover:text-red-400">
-                    <Trash className="w-4 h-4" />
+                  {/* Trash: context-rich aria-label */}
+                  <button
+                    onClick={() => onCancel(sc.id)}
+                    aria-label={`Cancel scheduled broadcast: ${shortMsg}`}
+                    className="text-zinc-400 hover:text-red-400 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                  >
+                    <Trash aria-hidden="true" className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -457,15 +520,21 @@ function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: Schedul
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
 function FailedLog({ failed, onRetry }: { failed: FailedDelivery[]; onRetry: (id: string) => void }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
+    /* aria-live="polite" so newly retried / removed items are announced */
+    <section
+      aria-label="Failed deliveries"
+      aria-live="polite"
+      className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col"
+    >
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-        <AlertTriangle className="w-4 h-4 text-red-400" />
+        {/* Decorative icon */}
+        <AlertTriangle aria-hidden="true" className="w-4 h-4 text-red-400" />
         <span className="text-sm font-semibold text-white">Failed Deliveries</span>
       </div>
       <div className="divide-y divide-zinc-800">
@@ -473,8 +542,13 @@ function FailedLog({ failed, onRetry }: { failed: FailedDelivery[]; onRetry: (id
           <div key={fd.id} className="p-4 space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-sm text-white">{fd.channelId} (Broadcast {fd.broadcastId})</span>
-              <button onClick={() => onRetry(fd.id)} className="text-zinc-400 hover:text-green-400">
-                <RefreshCcw className="w-4 h-4" />
+              {/* RefreshCcw: context-rich aria-label */}
+              <button
+                onClick={() => onRetry(fd.id)}
+                aria-label={`Retry failed delivery to ${fd.channelId}`}
+                className="text-zinc-400 hover:text-green-400 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              >
+                <RefreshCcw aria-hidden="true" className="w-4 h-4" />
               </button>
             </div>
             <p className="text-xs text-red-400">{fd.error}</p>
@@ -482,7 +556,7 @@ function FailedLog({ failed, onRetry }: { failed: FailedDelivery[]; onRetry: (id
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -541,7 +615,17 @@ export default function ChannelBroadcastCenter() {
 
   const handleSchedule = (data: { message: string; channels: string[]; schedule: Date }) => {
     console.log('Scheduling broadcast:', data);
-    setScheduled((prev) => [...prev, { ...data, id: `sc${prev.length + 1}`, timestamp: new Date(), status: {} }]);
+    setScheduled((prev) => [
+      ...prev,
+      {
+        id: `sc${prev.length + 1}`,
+        timestamp: new Date(),
+        message: data.message,
+        channels: data.channels,
+        scheduledTime: data.schedule,
+        status: {},
+      },
+    ]);
   };
 
   const handleCancel = (id: string) => {
@@ -559,53 +643,70 @@ export default function ChannelBroadcastCenter() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-violet-400" />
-            Broadcast Center
-          </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Unified channel management & messaging</p>
-        </div>
-        <button className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-500">
-          <Plus className="w-4 h-4" />
-          New Broadcast
-        </button>
-      </div>
+    <>
+      {/* Skip navigation link — visually hidden until focused */}
+      <a
+        href="#broadcast-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:ring-2 focus:ring-violet-500 focus:outline-none"
+      >
+        Skip to main content
+      </a>
 
-      {/* Stats Row */}
-      <StatsRow
-        messagesToday={messagesToday}
-        activeChannels={activeChannels}
-        scheduled={scheduledCount}
-        deliveryRate={deliveryRate}
-      />
+      {/* Polite live region for general status announcements */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
 
-      {/* Channel Grid */}
-      <div className="grid grid-cols-3 gap-4">
-        {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Composer */}
-        <div className="col-span-1">
-          <BroadcastComposer channels={channels} onSend={handleSend} onSchedule={handleSchedule} />
+      <main id="broadcast-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              {/* Decorative icon — h1 text labels it */}
+              <MessageSquare aria-hidden="true" className="w-6 h-6 text-violet-400" />
+              Broadcast Center
+            </h1>
+            <p className="text-sm text-zinc-400 mt-0.5">Unified channel management & messaging</p>
+          </div>
+          <button className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+            {/* Decorative icon — button text "New Broadcast" labels the action */}
+            <Plus aria-hidden="true" className="w-4 h-4" />
+            New Broadcast
+          </button>
         </div>
 
-        {/* History */}
-        <div className="col-span-2">
-          <HistoryTable history={history} />
-        </div>
-      </div>
+        {/* Stats Row */}
+        <StatsRow
+          messagesToday={messagesToday}
+          activeChannels={activeChannels}
+          scheduled={scheduledCount}
+          deliveryRate={deliveryRate}
+        />
 
-      {/* Pending & Failed */}
-      <div className="grid grid-cols-2 gap-4">
-        <PendingBroadcasts scheduled={scheduled} onCancel={handleCancel} onEdit={handleEdit} />
-        <FailedLog failed={failed} onRetry={handleRetry} />
-      </div>
-    </div>
+        {/* Channel Grid */}
+        <section aria-label="Channel status overview">
+          <div className="grid grid-cols-3 gap-4">
+            {channels.map((ch) => <ChannelCard key={ch.id} channel={ch} />)}
+          </div>
+        </section>
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-3 gap-4">
+          {/* Composer */}
+          <section aria-label="Broadcast composer" className="col-span-1">
+            <BroadcastComposer channels={channels} onSend={handleSend} onSchedule={handleSchedule} />
+          </section>
+
+          {/* History */}
+          <section aria-label="Broadcast history" className="col-span-2">
+            <HistoryTable history={history} />
+          </section>
+        </div>
+
+        {/* Pending & Failed */}
+        <div className="grid grid-cols-2 gap-4">
+          <PendingBroadcasts scheduled={scheduled} onCancel={handleCancel} onEdit={handleEdit} />
+          <FailedLog failed={failed} onRetry={handleRetry} />
+        </div>
+      </main>
+    </>
   );
 }
