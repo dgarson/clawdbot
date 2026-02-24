@@ -186,7 +186,107 @@ function computeStats(releases: Release[]): { total: number; breaking: number; f
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function ChangelogViewer() {
+import { Skeleton } from '../components/Skeleton';
+
+function ChangelogViewerSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Header */}
+      <div className="border-b border-zinc-800 px-6 py-5">
+        <div className="mx-auto max-w-7xl space-y-1.5">
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <Skeleton className="h-4 w-6" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Search + filter bar */}
+      <div className="border-b border-zinc-800 px-6 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
+          <Skeleton className="flex-1 min-w-[200px] h-9 rounded-lg" />
+          <div className="flex flex-wrap gap-1.5">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-7 w-20 rounded-full" />)}
+          </div>
+        </div>
+      </div>
+
+      {/* Main layout */}
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* Sidebar */}
+          <aside className="w-full shrink-0 lg:w-72">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-2 space-y-1">
+              <Skeleton className="h-3 w-28 px-3 py-2" />
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2.5">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-14" />
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <Skeleton className="h-5 w-6 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          {/* Main release detail */}
+          <main className="min-w-0 flex-1">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-6">
+              {/* Release header */}
+              <div className="border-b border-zinc-800 pb-5 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+              </div>
+
+              {/* Change items */}
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-4">
+                    <div className="flex items-start gap-2">
+                      <Skeleton className="w-6 h-6 rounded shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Skeleton className="h-4 w-52" />
+                          <Skeleton className="h-5 w-24 rounded-full" />
+                          <Skeleton className="h-5 w-16 rounded" />
+                        </div>
+                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-3 w-4/5" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ChangelogViewer({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <ChangelogViewerSkeleton />;
+
   const [selectedVersion, setSelectedVersion] = useState<string>(RELEASES[0].version);
   const [filter, setFilter] = useState<ChangeType | "all">("all");
   const [search, setSearch] = useState("");

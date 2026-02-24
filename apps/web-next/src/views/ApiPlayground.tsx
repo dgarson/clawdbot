@@ -185,7 +185,78 @@ function simulateNetworkDelay(): Promise<number> {
 // Main Component
 // ============================================================================
 
-export function ApiPlayground() {
+import { Skeleton } from '../components/Skeleton';
+
+function ApiPlaygroundSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 space-y-1.5">
+          <Skeleton className="h-7 w-44" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Request builder skeleton */}
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 space-y-5">
+            {/* Endpoint selector */}
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-9 w-full rounded-md" />
+            </div>
+            {/* Method + URL */}
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-16" />
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-52 rounded-md" />
+              </div>
+              <Skeleton className="h-9 w-full rounded-md" />
+            </div>
+            {/* Headers */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-10" />
+              </div>
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="flex gap-2">
+                  <Skeleton className="flex-1 h-8 rounded" />
+                  <Skeleton className="flex-1 h-8 rounded" />
+                  <Skeleton className="w-8 h-8 rounded" />
+                </div>
+              ))}
+            </div>
+            {/* Body */}
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-40 w-full rounded-md" />
+            </div>
+            {/* Send button */}
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+
+          {/* Response panel skeleton */}
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-20" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-14 rounded" />
+                <Skeleton className="h-5 w-14 rounded" />
+              </div>
+            </div>
+            <Skeleton className="h-72 w-full rounded-md" />
+            <Skeleton className="h-9 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <ApiPlaygroundSkeleton />;
+
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [path, setPath] = useState('/sessions');
   const [headers, setHeaders] = useState<Header[]>([

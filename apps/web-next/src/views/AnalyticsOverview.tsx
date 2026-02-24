@@ -454,7 +454,117 @@ function RecentSessionsTable({ sessions }: { sessions: RecentSession[] }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function AnalyticsOverview() {
+import { Skeleton } from '../components/Skeleton';
+
+function AnalyticsOverviewSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8 space-y-1.5">
+          <Skeleton className="h-7 w-52" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+
+        {/* KPI row */}
+        <section className="mb-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Session volume chart */}
+        <section className="mb-6">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-52" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            {/* Chart area */}
+            <div className="flex items-end gap-1 h-44 w-full">
+              {[60,45,75,90,70,55,85,95,65,80,75,88,72,60].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+                  <div
+                    className="w-full bg-secondary/70 rounded-t animate-pulse-soft"
+                    aria-hidden="true"
+                    style={{ height: `${h}%` }}
+                  />
+                  <Skeleton className="h-2 w-3" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Two-column: Top agents + Funnel */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 mb-6">
+          <div className="lg:col-span-3">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+              <Skeleton className="h-4 w-32" />
+              {/* Table header */}
+              <div className="flex gap-4 pb-2 border-b border-zinc-800">
+                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
+              </div>
+              {/* Table rows */}
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-1">
+                  {[...Array(6)].map((_, j) => <Skeleton key={j} className="h-3 flex-1" />)}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="lg:col-span-2">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+              <Skeleton className="h-4 w-36" />
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-6 w-full rounded" />
+                </div>
+              ))}
+              <div className="pt-3 border-t border-zinc-800 flex justify-between">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-3 w-10" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Recent sessions table */}
+        <section>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+            <Skeleton className="h-4 w-36" />
+            <div className="flex gap-4 pb-2 border-b border-zinc-800">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-3 flex-1" />)}
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4 items-center py-1">
+                {[...Array(5)].map((_, j) => <Skeleton key={j} className="h-3 flex-1" />)}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export default function AnalyticsOverview({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <AnalyticsOverviewSkeleton />;
+
   // Derived KPIs from seed data
   const weekSessions = useMemo(
     () => DAILY_SESSIONS.slice(-7).reduce((sum, d) => sum + d.ai + d.human, 0),
