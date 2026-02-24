@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import type { ExecApprovalRecord } from "./exec-approval-manager.js";
+import type { ExecApprovalManager, ExecApprovalRecord } from "./exec-approval-manager.js";
+import type { GatewayClient } from "./server-methods/types.js";
 import { sanitizeSystemRunParamsForForwarding } from "./node-invoke-system-run-approval.js";
 
 describe("sanitizeSystemRunParamsForForwarding", () => {
@@ -11,7 +12,7 @@ describe("sanitizeSystemRunParamsForForwarding", () => {
       device: { id: "dev-1" },
       client: { id: "cli-1" },
     },
-  };
+  } as unknown as GatewayClient;
 
   function makeRecord(command: string): ExecApprovalRecord {
     return {
@@ -34,10 +35,10 @@ describe("sanitizeSystemRunParamsForForwarding", () => {
     };
   }
 
-  function manager(record: ReturnType<typeof makeRecord>) {
+  function manager(record: ReturnType<typeof makeRecord>): ExecApprovalManager {
     return {
       getSnapshot: () => record,
-    };
+    } as unknown as ExecApprovalManager;
   }
 
   test("rejects cmd.exe /c trailing-arg mismatch against rawCommand", () => {

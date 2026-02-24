@@ -34,3 +34,44 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
+
+/* Tour highlight effect */
+.tour-highlight {
+  position: relative;
+  z-index: 9999;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 20px rgba(251, 191, 36, 0.3);
+  border-radius: 4px;
+  transition: box-shadow 0.3s ease;
+}
+
+.tour-highlight.tour-highlight-pulse {
+  animation: tour-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tour-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 20px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(251, 191, 36, 0.3), 0 0 30px rgba(251, 191, 36, 0.5);
+  }
+}
+
+/* Tour backdrop animation */
+.tour-backdrop-enter {
+  opacity: 0;
+}
+
+.tour-backdrop-enter-active {
+  opacity: 1;
+  transition: opacity 300ms ease-out;
+}
+
+.tour-backdrop-exit {
+  opacity: 1;
+}
+
+.tour-backdrop-exit-active {
+  opacity: 0;
+  transition: opacity 300ms ease-in;
+}

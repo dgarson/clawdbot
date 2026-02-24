@@ -1,4 +1,5 @@
-import type { ExecApprovalRecord } from "./exec-approval-manager.js";
+import type { ExecApprovalManager, ExecApprovalRecord } from "./exec-approval-manager.js";
+import type { GatewayClient } from "./server-methods/types.js";
 import { resolveSystemRunCommand } from "../infra/system-run-command.js";
 
 type SystemRunParamsLike = {
@@ -13,18 +14,6 @@ type SystemRunParamsLike = {
   approved?: unknown;
   approvalDecision?: unknown;
   runId?: unknown;
-};
-
-type ApprovalLookup = {
-  getSnapshot: (recordId: string) => ExecApprovalRecord | null;
-};
-
-type ApprovalClient = {
-  connId?: string | null;
-  connect?: {
-    scopes?: unknown;
-    device?: { id?: string | null } | null;
-  } | null;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -47,7 +36,7 @@ function normalizeApprovalDecision(value: unknown): "allow-once" | "allow-always
   return s === "allow-once" || s === "allow-always" ? s : null;
 }
 
-function clientHasApprovals(client: ApprovalClient | null): boolean {
+function clientHasApprovals(client: GatewayClient | null): boolean {
   const scopes = Array.isArray(client?.connect?.scopes) ? client?.connect?.scopes : [];
   return scopes.includes("operator.admin") || scopes.includes("operator.approvals");
 }
@@ -115,8 +104,8 @@ function pickSystemRunParams(raw: Record<string, unknown>): Record<string, unkno
  */
 export function sanitizeSystemRunParamsForForwarding(opts: {
   rawParams: unknown;
-  client: ApprovalClient | null;
-  execApprovalManager?: ApprovalLookup;
+  client: GatewayClient | null;
+  execApprovalManager?: ExecApprovalManager;
   nowMs?: number;
 }):
   | { ok: true; params: unknown }
