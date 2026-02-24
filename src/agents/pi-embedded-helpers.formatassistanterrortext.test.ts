@@ -137,4 +137,23 @@ describe("formatRawAssistantErrorForUi", () => {
       "The AI service is temporarily unavailable (HTTP 521). Please try again in a moment.",
     );
   });
+
+  it("redacts common PII from parsed API error messages", () => {
+    const text = formatRawAssistantErrorForUi(
+      '400 {"type":"error","error":{"type":"invalid_request_error","message":"Invalid payload for jane.doe@example.com, call +1 (415) 555-2671."}}',
+    );
+
+    expect(text).toContain("[redacted-email]");
+    expect(text).toContain("[redacted-phone]");
+    expect(text).not.toContain("jane.doe@example.com");
+    expect(text).not.toContain("555-2671");
+  });
+
+  it("suppresses long prompt echo details in upstream errors", () => {
+    const repeated = "sensitive token ".repeat(40);
+    const text = formatRawAssistantErrorForUi(`400 prompt: ${repeated}`);
+    expect(text).toBe(
+      "HTTP 400: Upstream API rejected the request (details redacted for privacy).",
+    );
+  });
 });
