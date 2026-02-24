@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { cn } from '../lib/utils';
-import { Skeleton } from '../components/ui/Skeleton';
 import { RotateCcw, Wifi, WifiOff, Users, X, MessageSquare } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -195,8 +194,9 @@ interface LegendItemProps {
 function LegendItem({ color, label, shape = 'circle' }: LegendItemProps) {
   return (
     <div className="flex items-center gap-1.5">
+      {/* WCAG fix: legend swatches are decorative — label text follows */}
       {shape === 'diamond' ? (
-        <svg width="12" height="12" viewBox="-7 -7 14 14" style={{ flexShrink: 0 }}>
+        <svg aria-hidden="true" width="12" height="12" viewBox="-7 -7 14 14" style={{ flexShrink: 0 }}>
           <rect
             x="-4.5" y="-4.5" width="9" height="9"
             transform="rotate(45)"
@@ -206,6 +206,7 @@ function LegendItem({ color, label, shape = 'circle' }: LegendItemProps) {
         </svg>
       ) : (
         <div
+          aria-hidden="true"
           className="rounded-full flex-shrink-0"
           style={{ width: 10, height: 10, background: color, opacity: 0.85 }}
         />
@@ -222,19 +223,23 @@ interface NodeShapeProps {
   pos: Pos;
   selected: boolean;
   hovered: boolean;
+  focused: boolean;
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onFocus: () => void;
+  onBlur: () => void;
 }
 
 function NodeShape({
-  node, pos, selected, hovered, onClick, onMouseEnter, onMouseLeave,
+  node, pos, selected, hovered, focused, onClick, onMouseEnter, onMouseLeave, onFocus, onBlur,
 }: NodeShapeProps) {
   const stroke = NODE_STROKE[node.type];
   const fill = hexToRgba(stroke, NODE_FILL_ALPHA);
   const r = NODE_RADIUS[node.type];
   const active = node.status === 'active';
-  const scale = hovered || selected ? 1.18 : 1;
+  // WCAG fix: focused state triggers the same scale as hovered, giving a visible focus indicator
+  const scale = hovered || selected || focused ? 1.18 : 1;
 
   // Truncate long labels for small nodes
   const labelText = node.name.length > 14 ? node.name.slice(0, 13) + '…' : node.name;
@@ -245,16 +250,34 @@ function NodeShape({
   // Label position below shape
   const labelY = node.type === 'cron' ? 22 : r + 13;
 
+  // WCAG fix: keyboard activation — Enter or Space selects the node
+  const handleKeyDown = (e: React.KeyboardEvent<SVGGElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
+  // WCAG fix: accessible label describing type, status, and selection state
+  const ariaLabel = `${node.name}, ${node.type}, ${active ? 'active' : 'idle'}${selected ? ', selected' : ''}`;
+
   return (
-    // Outer group: positioned at node coordinates via SVG transform
+    // WCAG fix: tabIndex=0 + role="button" + aria-label + aria-pressed makes SVG nodes fully keyboard-accessible
     <g
       transform={`translate(${pos.x},${pos.y})`}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: 'pointer', outline: 'none' }}
+      tabIndex={0}
+      role="button"
+      aria-label={ariaLabel}
+      aria-pressed={selected}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onFocus={onFocus}
+      onBlur={onBlur}
     >
-      {/* Inner group: handles hover scale from node center (0,0) */}
+      {/* Inner group: handles hover/focus scale from node center (0,0) */}
       <g
         style={{
           transform: `scale(${scale})`,
@@ -262,25 +285,25 @@ function NodeShape({
           transition: 'transform 0.15s ease',
         }}
       >
-        {/* Selected glow ring */}
-        {selected && node.type !== 'cron' && (
+        {/* Selected/focused glow ring */}
+        {(selected || focused) && node.type !== 'cron' && (
           <circle
             r={r + 11}
             fill="none"
-            stroke={stroke}
-            strokeWidth={3}
-            opacity={0.55}
+            stroke={focused && !selected ? '#a78bfa' : stroke}
+            strokeWidth={focused && !selected ? 2 : 3}
+            opacity={focused && !selected ? 0.8 : 0.55}
             filter="url(#atm-node-glow)"
           />
         )}
-        {selected && node.type === 'cron' && (
+        {(selected || focused) && node.type === 'cron' && (
           <rect
             x={-17} y={-17} width={34} height={34}
             transform="rotate(45)"
             fill="none"
-            stroke={stroke}
-            strokeWidth={3}
-            opacity={0.55}
+            stroke={focused && !selected ? '#a78bfa' : stroke}
+            strokeWidth={focused && !selected ? 2 : 3}
+            opacity={focused && !selected ? 0.8 : 0.55}
             filter="url(#atm-node-glow)"
           />
         )}
@@ -308,7 +331,7 @@ function NodeShape({
           />
         )}
 
-        {/* Status indicator dot (top-right of circle nodes) */}
+        {/* Status indicator dot (top-right of circle nodes) — color + position (decorative in SVG context) */}
         {node.type !== 'cron' && (
           <circle
             cx={r - 4}
@@ -317,6 +340,7 @@ function NodeShape({
             fill={active ? '#10b981' : '#52525b'}
             stroke="#09090b"
             strokeWidth={1}
+            aria-hidden="true"
           />
         )}
 
@@ -329,6 +353,7 @@ function NodeShape({
           fontWeight={fontWeight}
           fill={labelColor}
           style={{ userSelect: 'none', pointerEvents: 'none' }}
+          aria-hidden="true"
         >
           {labelText}
         </text>
@@ -356,7 +381,12 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
   ];
 
   return (
-    <div className="w-[280px] flex-shrink-0 bg-zinc-900 border-l border-zinc-800 flex flex-col overflow-hidden">
+    // WCAG fix: role="complementary" + aria-label identifies this as a supplementary info region
+    <aside
+      role="complementary"
+      aria-label={`Details for ${node.name}`}
+      className="w-[280px] flex-shrink-0 bg-zinc-900 border-l border-zinc-800 flex flex-col overflow-hidden"
+    >
       {/* Header */}
       <div
         className="flex items-center justify-between p-4 border-b border-zinc-800"
@@ -370,6 +400,7 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
               border: `2px solid ${stroke}`,
               color: stroke,
             }}
+            aria-hidden="true"
           >
             {node.name[0].toUpperCase()}
           </div>
@@ -380,17 +411,21 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
             </div>
           </div>
         </div>
+        {/* WCAG fix: icon-only button needs aria-label; X icon is decorative */}
         <button
           onClick={onClose}
-          className="ml-2 flex-shrink-0 text-zinc-500 hover:text-zinc-200 transition-colors duration-150 p-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          aria-label="Close details panel"
+          className="ml-2 flex-shrink-0 text-zinc-500 hover:text-zinc-200 transition-colors p-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <X size={14} />
+          <X aria-hidden="true" size={14} />
         </button>
       </div>
 
       {/* Status badge */}
       <div className="px-4 py-2 border-b border-zinc-800/60 flex items-center gap-2">
+        {/* WCAG fix: status dot is decorative — status text label carries the meaning */}
         <div
+          aria-hidden="true"
           className={cn('w-2 h-2 rounded-full', active ? 'animate-pulse' : '')}
           style={{ background: active ? '#10b981' : '#52525b' }}
         />
@@ -417,7 +452,7 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
       {/* Token load bar */}
       <div className="px-4 pb-3">
         <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1.5">Token Load</div>
-        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={node.tokenCount} aria-valuemin={0} aria-valuemax={130000} aria-label={`Token load: ${node.tokenCount.toLocaleString()} of 130,000`}>
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
@@ -435,72 +470,24 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
       {/* Last message */}
       <div className="px-4 pb-4 flex-1">
         <div className="flex items-center gap-1.5 mb-2">
-          <MessageSquare size={10} className="text-zinc-500" />
+          {/* WCAG fix: decorative icon */}
+          <MessageSquare aria-hidden="true" size={10} className="text-zinc-500" />
           <span className="text-[10px] uppercase font-bold text-zinc-500">Last Message</span>
         </div>
         <p className="text-xs text-zinc-400 leading-relaxed border-l-2 border-zinc-700 pl-2.5 italic">
           "{node.lastMessage}"
         </p>
       </div>
-    </div>
-  );
-}
-
-// ─── Skeleton Loading State ────────────────────────────────────────────────────
-
-function TopologySkeleton() {
-  return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Toolbar skeleton */}
-      <div className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 bg-zinc-900/60">
-        <Skeleton variant="rect" className="h-5 w-36" />
-        <div className="w-px h-4 bg-zinc-700" />
-        <div className="flex items-center gap-4">
-          <Skeleton variant="rect" className="h-3 w-16 rounded" />
-          <Skeleton variant="rect" className="h-3 w-14 rounded" />
-          <Skeleton variant="rect" className="h-3 w-10 rounded" />
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Skeleton variant="rect" className="h-7 w-24 rounded-full" />
-          <Skeleton variant="rect" className="h-7 w-16 rounded-full" />
-          <Skeleton variant="rect" className="h-7 w-24 rounded-lg" />
-        </div>
-      </div>
-      {/* SVG canvas placeholder */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="relative w-full max-w-lg aspect-square">
-          {/* Simulated ring of skeleton nodes */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const angle = (i / 6) * 2 * Math.PI;
-            const r = 42;
-            const left = `${50 + r * Math.cos(angle)}%`;
-            const top = `${50 + r * Math.sin(angle)}%`;
-            return (
-              <div
-                key={i}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={{ left, top }}
-              >
-                <Skeleton variant="circle" className="w-14 h-14" />
-                <Skeleton variant="text" className="h-2 w-12 mt-2 mx-auto" />
-              </div>
-            );
-          })}
-          {/* Center skeleton */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <Skeleton variant="circle" className="w-8 h-8" />
-          </div>
-        </div>
-      </div>
-    </div>
+    </aside>
   );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function AgentTopologyMap({ isLoading = false }: { isLoading?: boolean }) {
+export default function AgentTopologyMap() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(true);
 
   const selectedNode = useMemo(
@@ -520,174 +507,216 @@ export default function AgentTopologyMap({ isLoading = false }: { isLoading?: bo
   const handleReset = useCallback(() => {
     setSelectedId(null);
     setHoveredId(null);
+    setFocusedId(null);
   }, []);
 
-  if (isLoading) return <TopologySkeleton />;
+  // WCAG fix: Escape key closes the detail panel — prevents keyboard trap
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedNode) {
+        setSelectedId(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNode]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <>
+      {/* WCAG fix: skip link — keyboard users can bypass toolbar */}
+      <a
+        href="#atm-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-700 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
 
-      {/* ── Toolbar ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-wrap shrink-0">
-        {/* Title */}
-        <h1 className="text-base font-bold tracking-tight whitespace-nowrap">
-          Agent <span className="text-violet-400">Topology</span>
-        </h1>
+      {/* WCAG fix: <main> landmark identifies the primary content region */}
+      <main id="atm-main" className="min-h-screen bg-zinc-950 text-white flex flex-col">
 
-        <div className="w-px h-4 bg-zinc-700 hidden sm:block" />
+        {/* ── Toolbar ──────────────────────────────────────────────────────── */}
+        <nav aria-label="Topology toolbar" className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-wrap shrink-0">
+          {/* Title */}
+          <h1 className="text-base font-bold tracking-tight whitespace-nowrap">
+            Agent <span className="text-violet-400">Topology</span>
+          </h1>
 
-        {/* Legend */}
-        <div className="flex items-center gap-4 flex-wrap">
-          <LegendItem color="#8b5cf6" label="Principal" />
-          <LegendItem color="#3b82f6" label="Worker" />
-          <LegendItem color="#f59e0b" label="Cron" shape="diamond" />
-          <LegendItem color="#6b7280" label="System" />
-        </div>
+          <div aria-hidden="true" className="w-px h-4 bg-zinc-700 hidden sm:block" />
 
-        {/* Right actions */}
-        <div className="ml-auto flex items-center gap-2 flex-wrap">
-          {/* Session count badge */}
-          <div className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700 px-2.5 py-1 rounded-full">
-            <Users size={11} className="text-zinc-400" />
-            <span className="text-xs font-bold text-white">{activeSessions}</span>
-            <span className="text-[10px] text-zinc-500">/ {MOCK_NODES.length} active</span>
+          {/* Legend */}
+          <div role="list" aria-label="Node type legend" className="flex items-center gap-4 flex-wrap">
+            <div role="listitem"><LegendItem color="#8b5cf6" label="Principal" /></div>
+            <div role="listitem"><LegendItem color="#3b82f6" label="Worker" /></div>
+            <div role="listitem"><LegendItem color="#f59e0b" label="Cron" shape="diamond" /></div>
+            <div role="listitem"><LegendItem color="#6b7280" label="System" /></div>
           </div>
 
-          {/* Live / Paused toggle */}
-          <button
-            onClick={() => setIsLive((p) => !p)}
-            className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-              isLive
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20'
-                : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700',
-            )}
-          >
-            {isLive
-              ? <><Wifi size={11} /> Live</>
-              : <><WifiOff size={11} /> Paused</>
-            }
-          </button>
-
-          {/* Reset view */}
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
-          >
-            <RotateCcw size={11} />
-            Reset View
-          </button>
-        </div>
-      </div>
-
-      {/* ── Main content ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
-
-        {/* SVG canvas */}
-        <div className="flex-1 relative overflow-hidden">
-          <svg
-            viewBox={`0 0 ${VB_W} ${VB_H}`}
-            width="100%"
-            height="100%"
-            preserveAspectRatio="xMidYMid meet"
-            style={{ display: 'block' }}
-          >
-            <defs>
-              {/* Dot grid background */}
-              <pattern id="atm-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#27272a" strokeWidth="0.5" />
-              </pattern>
-
-              {/* Glow filter for selected nodes */}
-              <filter id="atm-node-glow" x="-60%" y="-60%" width="220%" height="220%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur" />
-                <feFlood floodColor="#8b5cf6" floodOpacity="0.85" result="color" />
-                <feComposite in="color" in2="blur" operator="in" result="shadow" />
-                <feMerge>
-                  <feMergeNode in="shadow" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* Grid fill */}
-            <rect width={VB_W} height={VB_H} fill="url(#atm-grid)" />
-
-            {/* ── Edges (rendered below nodes) ─────────────────────────── */}
-            <g>
-              {MOCK_EDGES.map((edge, i) => {
-                const src = NODE_POS[edge.source];
-                const tgt = NODE_POS[edge.target];
-                if (!src || !tgt) {return null;}
-                return (
-                  <line
-                    key={i}
-                    x1={src.x}
-                    y1={src.y}
-                    x2={tgt.x}
-                    y2={tgt.y}
-                    stroke={edge.dashed ? '#f59e0b' : '#6366f1'}
-                    strokeWidth={1.5}
-                    strokeOpacity={0.38}
-                    strokeDasharray={edge.dashed ? '5 4' : undefined}
-                  />
-                );
-              })}
-            </g>
-
-            {/* ── Nodes ────────────────────────────────────────────────── */}
-            <g>
-              {MOCK_NODES.map((node) => {
-                const pos = NODE_POS[node.id];
-                if (!pos) {return null;}
-                return (
-                  <NodeShape
-                    key={node.id}
-                    node={node}
-                    pos={pos}
-                    selected={selectedId === node.id}
-                    hovered={hoveredId === node.id}
-                    onClick={() => handleNodeClick(node.id)}
-                    onMouseEnter={() => setHoveredId(node.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                  />
-                );
-              })}
-            </g>
-          </svg>
-
-          {/* Node type count overlay (bottom-left) */}
-          <div className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl px-3 py-2.5 flex flex-col gap-1.5">
-            <span className="text-[9px] uppercase font-bold text-zinc-500 mb-0.5">Node Types</span>
-            {([
-              { type: 'principal' as NodeType, label: 'Principals', color: '#8b5cf6' },
-              { type: 'worker' as NodeType, label: 'Workers', color: '#3b82f6' },
-              { type: 'cron' as NodeType, label: 'Crons', color: '#f59e0b' },
-            ] as const).map(({ type, label, color }) => {
-              const count = MOCK_NODES.filter((n) => n.type === type).length;
-              return (
-                <div key={type} className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
-                  <span className="text-[10px] text-zinc-400">{label}</span>
-                  <span className="text-[10px] font-bold text-zinc-300 ml-auto pl-3">{count}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Hint when nothing selected */}
-          {!selectedId && (
-            <div className="absolute bottom-4 right-4 text-[10px] text-zinc-600 bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-2.5 py-1.5">
-              Click a node to inspect
+          {/* Right actions */}
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            {/* Session count badge */}
+            <div
+              role="status"
+              aria-label={`${activeSessions} of ${MOCK_NODES.length} sessions active`}
+              className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700 px-2.5 py-1 rounded-full"
+            >
+              {/* WCAG fix: decorative icon — label on parent div */}
+              <Users aria-hidden="true" size={11} className="text-zinc-400" />
+              <span className="text-xs font-bold text-white">{activeSessions}</span>
+              <span className="text-[10px] text-zinc-500">/ {MOCK_NODES.length} active</span>
             </div>
+
+            {/* WCAG fix: Live / Paused toggle — aria-pressed conveys state; aria-label describes action */}
+            <button
+              onClick={() => setIsLive((p) => !p)}
+              aria-pressed={isLive}
+              aria-label={isLive ? 'Pause live updates' : 'Resume live updates'}
+              className={cn(
+                'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                isLive
+                  ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20'
+                  : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700',
+              )}
+            >
+              {/* WCAG fix: toggle icons are decorative — label text ("Live"/"Paused") carries the meaning */}
+              {isLive
+                ? <><Wifi aria-hidden="true" size={11} /> Live</>
+                : <><WifiOff aria-hidden="true" size={11} /> Paused</>
+              }
+            </button>
+
+            {/* WCAG fix: focus-visible ring on Reset View button; RotateCcw icon is decorative */}
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            >
+              <RotateCcw aria-hidden="true" size={11} />
+              Reset View
+            </button>
+          </div>
+        </nav>
+
+        {/* ── Main content ─────────────────────────────────────────────────── */}
+        <div className="flex-1 flex overflow-hidden min-h-0">
+
+          {/* SVG canvas */}
+          <div className="flex-1 relative overflow-hidden">
+            {/*
+              WCAG fix: role="application" on the SVG tells AT this is an interactive widget.
+              aria-label describes the widget. Tab-focusable nodes (below) provide the actual
+              keyboard interface. Users can Tab through nodes, press Enter/Space to select.
+            */}
+            <svg
+              viewBox={`0 0 ${VB_W} ${VB_H}`}
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid meet"
+              style={{ display: 'block' }}
+              role="application"
+              aria-label="Agent Topology Map — Tab to navigate nodes, Enter or Space to inspect"
+            >
+              <defs>
+                {/* Dot grid background */}
+                <pattern id="atm-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#27272a" strokeWidth="0.5" />
+                </pattern>
+
+                {/* Glow filter for selected/focused nodes */}
+                <filter id="atm-node-glow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur" />
+                  <feFlood floodColor="#8b5cf6" floodOpacity="0.85" result="color" />
+                  <feComposite in="color" in2="blur" operator="in" result="shadow" />
+                  <feMerge>
+                    <feMergeNode in="shadow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Grid fill — decorative background */}
+              <rect aria-hidden="true" width={VB_W} height={VB_H} fill="url(#atm-grid)" />
+
+              {/* ── Edges (rendered below nodes) — decorative, no interaction ── */}
+              <g aria-hidden="true">
+                {MOCK_EDGES.map((edge, i) => {
+                  const src = NODE_POS[edge.source];
+                  const tgt = NODE_POS[edge.target];
+                  if (!src || !tgt) return null;
+                  return (
+                    <line
+                      key={i}
+                      x1={src.x}
+                      y1={src.y}
+                      x2={tgt.x}
+                      y2={tgt.y}
+                      stroke={edge.dashed ? '#f59e0b' : '#6366f1'}
+                      strokeWidth={1.5}
+                      strokeOpacity={0.38}
+                      strokeDasharray={edge.dashed ? '5 4' : undefined}
+                    />
+                  );
+                })}
+              </g>
+
+              {/* ── Nodes — each is keyboard-focusable and activatable ──────── */}
+              <g>
+                {MOCK_NODES.map((node) => {
+                  const pos = NODE_POS[node.id];
+                  if (!pos) return null;
+                  return (
+                    <NodeShape
+                      key={node.id}
+                      node={node}
+                      pos={pos}
+                      selected={selectedId === node.id}
+                      hovered={hoveredId === node.id}
+                      focused={focusedId === node.id}
+                      onClick={() => handleNodeClick(node.id)}
+                      onMouseEnter={() => setHoveredId(node.id)}
+                      onMouseLeave={() => setHoveredId(null)}
+                      onFocus={() => setFocusedId(node.id)}
+                      onBlur={() => setFocusedId(null)}
+                    />
+                  );
+                })}
+              </g>
+            </svg>
+
+            {/* Node type count overlay (bottom-left) — decorative summary, aria-hidden; data conveyed in legend */}
+            <div
+              aria-hidden="true"
+              className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl px-3 py-2.5 flex flex-col gap-1.5"
+            >
+              <span className="text-[9px] uppercase font-bold text-zinc-500 mb-0.5">Node Types</span>
+              {([
+                { type: 'principal' as NodeType, label: 'Principals', color: '#8b5cf6' },
+                { type: 'worker' as NodeType, label: 'Workers', color: '#3b82f6' },
+                { type: 'cron' as NodeType, label: 'Crons', color: '#f59e0b' },
+              ] as const).map(({ type, label, color }) => {
+                const count = MOCK_NODES.filter((n) => n.type === type).length;
+                return (
+                  <div key={type} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                    <span className="text-[10px] text-zinc-400">{label}</span>
+                    <span className="text-[10px] font-bold text-zinc-300 ml-auto pl-3">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Hint when nothing selected */}
+            {!selectedId && (
+              <div className="absolute bottom-4 right-4 text-[10px] text-zinc-600 bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-2.5 py-1.5">
+                Click a node to inspect
+              </div>
+            )}
+          </div>
+
+          {/* ── Detail panel (conditionally rendered) ───────────────────── */}
+          {selectedNode && (
+            <DetailPanel node={selectedNode} onClose={() => setSelectedId(null)} />
           )}
         </div>
-
-        {/* ── Detail panel (conditionally rendered) ───────────────────── */}
-        {selectedNode && (
-          <DetailPanel node={selectedNode} onClose={() => setSelectedId(null)} />
-        )}
-      </div>
-    </div>
+      </main>
+    </>
   );
 }
