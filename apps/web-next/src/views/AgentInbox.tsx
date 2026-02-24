@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Inbox } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type InboxItemKind = 'task' | 'mention' | 'alert' | 'review-request' | 'system' | 'approval';
 type InboxPriority = 'urgent' | 'high' | 'normal' | 'low';
@@ -259,7 +261,7 @@ const AgentInbox: React.FC = () => {
       case 'urgent': return 'bg-rose-400';
       case 'high': return 'bg-rose-400/60';
       case 'normal': return 'bg-indigo-500';
-      case 'low': return 'bg-zinc-500';
+      case 'low': return 'bg-surface-3';
     }
   };
 
@@ -270,7 +272,7 @@ const AgentInbox: React.FC = () => {
       case 'alert': return 'bg-rose-400/10 text-rose-400 border-rose-400/20';
       case 'review-request': return 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20';
       case 'approval': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-      case 'system': return 'bg-zinc-800 text-zinc-400 border-zinc-700';
+      case 'system': return 'bg-surface-2 text-fg-secondary border-tok-border';
     }
   };
 
@@ -284,17 +286,17 @@ const AgentInbox: React.FC = () => {
       'bg-indigo-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500', 
       'bg-purple-500', 'bg-cyan-500', 'bg-pink-500'
     ];
-    if (name === 'system') {return 'bg-zinc-700';}
+    if (name === 'system') {return 'bg-surface-3';}
     const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[charCodeSum % colors.length];
   };
 
   return (
-    <div className="flex h-screen w-full bg-zinc-950 text-white font-sans overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-surface-0 text-fg-primary font-sans overflow-hidden">
       {/* Left: Sidebar */}
-      <aside className="w-64 border-r border-zinc-800 flex flex-col p-4 space-y-8 shrink-0">
+      <aside className="md:w-64 border-b md:border-b-0 md:border-r border-tok-border flex flex-col p-4 space-y-8 shrink-0">
         <div>
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4 px-2">Inbox</h2>
+          <h2 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-4 px-2">Inbox</h2>
           <nav className="space-y-1">
             {[
               { id: 'all', label: 'All Items', count: items.filter(i => i.status !== 'archived').length },
@@ -310,14 +312,14 @@ const AgentInbox: React.FC = () => {
                 }}
                 className={cn(
                   "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-colors",
-                  currentFolder === folder.id ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                  currentFolder === folder.id ? "bg-surface-1 text-fg-primary" : "text-fg-secondary hover:text-fg-primary hover:bg-surface-1/50"
                 )}
               >
                 <span>{folder.label}</span>
                 {folder.count > 0 && (
                   <span className={cn(
                     "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                    folder.id === 'unread' || folder.id === 'action-required' ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-500"
+                    folder.id === 'unread' || folder.id === 'action-required' ? "bg-indigo-500 text-fg-primary" : "bg-surface-2 text-fg-muted"
                   )}>
                     {folder.count}
                   </span>
@@ -328,13 +330,13 @@ const AgentInbox: React.FC = () => {
         </div>
 
         <div>
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4 px-2">From Agent</h2>
+          <h2 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-4 px-2">From Agent</h2>
           <div className="flex flex-wrap gap-2 px-2">
             <button
               onClick={() => setFromFilter(null)}
               className={cn(
                 "text-[11px] px-2 py-1 rounded-full border transition-colors",
-                fromFilter === null ? "bg-zinc-800 border-zinc-700 text-white" : "border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                fromFilter === null ? "bg-surface-2 border-tok-border text-fg-primary" : "border-tok-border text-fg-muted hover:border-tok-border"
               )}
             >
               Everyone
@@ -345,7 +347,7 @@ const AgentInbox: React.FC = () => {
                 onClick={() => setFromFilter(sender)}
                 className={cn(
                   "text-[11px] px-2 py-1 rounded-full border transition-colors",
-                  fromFilter === sender ? "bg-zinc-800 border-zinc-700 text-white" : "border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                  fromFilter === sender ? "bg-surface-2 border-tok-border text-fg-primary" : "border-tok-border text-fg-muted hover:border-tok-border"
                 )}
               >
                 {sender}
@@ -356,15 +358,20 @@ const AgentInbox: React.FC = () => {
       </aside>
 
       {/* Middle: Item List */}
-      <main className="w-[450px] border-r border-zinc-800 flex flex-col shrink-0">
-        <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/50 backdrop-blur-sm sticky top-0 z-10">
+      <main className="md:w-[450px] border-b md:border-b-0 md:border-r border-tok-border flex flex-col shrink-0">
+        <div className="p-4 border-b border-tok-border flex justify-between items-center bg-surface-0/50 backdrop-blur-sm sticky top-0 z-10">
           <h1 className="text-lg font-bold capitalize">{currentFolder.replace('-', ' ')}</h1>
-          <div className="text-xs text-zinc-500">{finalItems.length} items</div>
+          <div className="text-xs text-fg-muted">{finalItems.length} items</div>
         </div>
         
-        <div className="flex-1 overflow-y-auto divide-y divide-zinc-900">
+        <div className="flex-1 overflow-y-auto divide-y divide-tok-border">
           {finalItems.length === 0 ? (
-            <div className="p-8 text-center text-zinc-600 text-sm">No items found in this view.</div>
+            <ContextualEmptyState
+              icon={Inbox}
+              title="Inbox zero!"
+              description="No messages match your current filters. Try adjusting your filter criteria."
+              size="sm"
+            />
           ) : (
             finalItems.map(item => (
               <button
@@ -374,27 +381,27 @@ const AgentInbox: React.FC = () => {
                   if (item.status === 'unread') {updateItemStatus(item.id, 'read');}
                 }}
                 className={cn(
-                  "w-full text-left p-4 flex gap-3 transition-colors hover:bg-zinc-900/40",
-                  selectedId === item.id ? "bg-zinc-900" : "bg-transparent"
+                  "w-full text-left p-4 flex gap-3 transition-colors hover:bg-surface-1/40",
+                  selectedId === item.id ? "bg-surface-1" : "bg-transparent"
                 )}
               >
-                <div className={cn("w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white shadow-sm", getAvatarColor(item.from))}>
+                <div className={cn("w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-fg-primary shadow-sm", getAvatarColor(item.from))}>
                   {getInitials(item.from)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-0.5">
-                    <span className="text-xs text-zinc-400 font-medium truncate">{item.from}</span>
-                    <span className="text-[10px] text-zinc-500 whitespace-nowrap ml-2">
+                    <span className="text-xs text-fg-secondary font-medium truncate">{item.from}</span>
+                    <span className="text-[10px] text-fg-muted whitespace-nowrap ml-2">
                       {new Date(item.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   <h3 className={cn(
                     "text-sm truncate mb-0.5",
-                    item.status === 'unread' ? "font-bold text-white" : "font-normal text-zinc-300"
+                    item.status === 'unread' ? "font-bold text-fg-primary" : "font-normal text-fg-secondary"
                   )}>
                     {item.subject}
                   </h3>
-                  <p className="text-xs text-zinc-500 line-clamp-1 mb-2">{item.body}</p>
+                  <p className="text-xs text-fg-muted line-clamp-1 mb-2">{item.body}</p>
                   <div className="flex items-center gap-2">
                     <div className={cn("w-2 h-2 rounded-full", getPriorityColor(item.priority))} title={`Priority: ${item.priority}`} />
                     <span className={cn(
@@ -415,24 +422,24 @@ const AgentInbox: React.FC = () => {
       </main>
 
       {/* Right: Detail Panel */}
-      <section className="flex-1 flex flex-col bg-zinc-900/20">
+      <section className="flex-1 flex flex-col bg-surface-1/20">
         {selectedItem ? (
           <>
             {/* Detail Header */}
-            <div className="p-6 border-b border-zinc-800 bg-zinc-900/40">
+            <div className="p-3 sm:p-4 md:p-6 border-b border-tok-border bg-surface-1/40">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-4 items-center">
                   <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-lg", getAvatarColor(selectedItem.from))}>
                     {getInitials(selectedItem.from)}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white leading-tight">{selectedItem.subject}</h2>
+                    <h2 className="text-xl font-bold text-fg-primary leading-tight">{selectedItem.subject}</h2>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-zinc-400">From <span className="text-zinc-200">{selectedItem.from}</span></span>
-                      <span className="text-zinc-700 text-xs">•</span>
-                      <span className="text-xs text-zinc-400">To <span className="text-zinc-200">Luis</span></span>
-                      <span className="text-zinc-700 text-xs">•</span>
-                      <span className="text-xs text-zinc-400">{new Date(selectedItem.receivedAt).toLocaleString()}</span>
+                      <span className="text-xs text-fg-secondary">From <span className="text-fg-primary">{selectedItem.from}</span></span>
+                      <span className="text-fg-muted text-xs">•</span>
+                      <span className="text-xs text-fg-secondary">To <span className="text-fg-primary">Luis</span></span>
+                      <span className="text-fg-muted text-xs">•</span>
+                      <span className="text-xs text-fg-secondary">{new Date(selectedItem.receivedAt).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -440,21 +447,21 @@ const AgentInbox: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => updateItemStatus(selectedItem.id, selectedItem.status === 'unread' ? 'read' : 'unread')}
-                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-all border border-transparent hover:border-zinc-700"
+                    className="p-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border"
                     title={selectedItem.status === 'unread' ? "Mark as read" : "Mark as unread"}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   </button>
                   <button 
                     onClick={() => updateItemStatus(selectedItem.id, 'snoozed')}
-                    className="p-2 text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 rounded-md transition-all border border-transparent hover:border-zinc-700"
+                    className="p-2 text-fg-secondary hover:text-amber-400 hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border"
                     title="Snooze"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </button>
                   <button 
                     onClick={() => updateItemStatus(selectedItem.id, 'archived')}
-                    className="p-2 text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800 rounded-md transition-all border border-transparent hover:border-zinc-700"
+                    className="p-2 text-fg-secondary hover:text-emerald-400 hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border"
                     title="Archive"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
@@ -464,21 +471,21 @@ const AgentInbox: React.FC = () => {
 
               <div className="flex gap-4">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-zinc-500 uppercase font-semibold">Priority</span>
-                  <div className="flex items-center gap-2 px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs">
+                  <span className="text-[10px] text-fg-muted uppercase font-semibold">Priority</span>
+                  <div className="flex items-center gap-2 px-2 py-1 bg-surface-1 border border-tok-border rounded text-xs">
                     <div className={cn("w-2 h-2 rounded-full", getPriorityColor(selectedItem.priority))} />
                     <span className="capitalize">{selectedItem.priority}</span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-zinc-500 uppercase font-semibold">Kind</span>
+                  <span className="text-[10px] text-fg-muted uppercase font-semibold">Kind</span>
                   <div className={cn("px-2 py-1 border rounded text-xs font-medium uppercase", getKindBadgeStyles(selectedItem.kind))}>
                     {selectedItem.kind.replace('-', ' ')}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-zinc-500 uppercase font-semibold">Status</span>
-                  <div className="px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-300 capitalize">
+                  <span className="text-[10px] text-fg-muted uppercase font-semibold">Status</span>
+                  <div className="px-2 py-1 bg-surface-1 border border-tok-border rounded text-xs text-fg-secondary capitalize">
                     {selectedItem.status}
                   </div>
                 </div>
@@ -486,7 +493,7 @@ const AgentInbox: React.FC = () => {
             </div>
 
             {/* Detail Body */}
-            <div className="flex-1 p-8 overflow-y-auto">
+            <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
               {selectedItem.status === 'snoozed' && (
                 <div className="mb-6 p-3 bg-amber-400/10 border border-amber-400/20 rounded-lg text-amber-400 text-xs flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -495,21 +502,21 @@ const AgentInbox: React.FC = () => {
               )}
               
               <div className="prose prose-invert max-w-none">
-                <p className="text-zinc-300 leading-relaxed whitespace-pre-wrap text-base">
+                <p className="text-fg-secondary leading-relaxed whitespace-pre-wrap text-base">
                   {selectedItem.body}
                 </p>
               </div>
 
               {selectedItem.actionRequired && selectedItem.actions && selectedItem.actions.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-zinc-800 flex gap-3">
+                <div className="mt-12 pt-8 border-t border-tok-border flex gap-3">
                   {selectedItem.actions.map((action, idx) => (
                     <button
                       key={idx}
                       className={cn(
                         "px-6 py-2 rounded-md text-sm font-semibold transition-all shadow-sm active:scale-95",
-                        action.variant === 'primary' && "bg-indigo-500 hover:bg-indigo-600 text-white",
-                        action.variant === 'danger' && "bg-rose-500 hover:bg-rose-600 text-white",
-                        action.variant === 'secondary' && "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700"
+                        action.variant === 'primary' && "bg-indigo-500 hover:bg-indigo-600 text-fg-primary",
+                        action.variant === 'danger' && "bg-rose-500 hover:bg-rose-600 text-fg-primary",
+                        action.variant === 'secondary' && "bg-surface-2 hover:bg-surface-3 text-fg-primary border border-tok-border"
                       )}
                     >
                       {action.label}
@@ -520,7 +527,7 @@ const AgentInbox: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 space-y-4">
+          <div className="flex-1 flex flex-col items-center justify-center text-fg-muted space-y-4">
             <svg className="w-16 h-16 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>

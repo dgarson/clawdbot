@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Bot } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { formatRelativeTime } from '../mock-data';
 import { useGateway } from '../hooks/useGateway';
 import { MOCK_AGENTS, MOCK_SESSIONS } from '../mock-data';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 import type { AgentStatus, AgentHealth } from '../types';
 
 // ============================================================================
@@ -29,7 +31,7 @@ function StatusBadge({ variant, pulse }: { variant: StatusBadgeVariant; pulse?: 
   const colors: Record<StatusBadgeVariant, string> = {
     active: 'bg-green-500',
     idle: 'bg-amber-500',
-    offline: 'bg-gray-500',
+    offline: 'bg-surface-3',
     error: 'bg-red-500',
     healthy: 'bg-green-500',
     degraded: 'bg-amber-500',
@@ -49,7 +51,7 @@ function StatusBadge({ variant, pulse }: { variant: StatusBadgeVariant; pulse?: 
   return (
     <span className="flex items-center gap-1.5 text-xs">
       <span className={cn('w-2 h-2 rounded-full', colors[variant], pulse && 'animate-pulse')} />
-      <span className="text-gray-400">{labels[variant]}</span>
+      <span className="text-fg-secondary">{labels[variant]}</span>
     </span>
   );
 }
@@ -71,13 +73,13 @@ function ActivityItemComponent({ item }: { item: ActivityItem }) {
     <div className="flex gap-3 py-3">
       <span className="text-lg">{icons[item.type]}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-white truncate">
+        <p className="text-sm text-fg-primary truncate">
           {item.agentEmoji && <span className="mr-1">{item.agentEmoji}</span>}
           {item.title}
         </p>
-        <p className="text-xs text-gray-500 truncate">{item.description}</p>
+        <p className="text-xs text-fg-muted truncate">{item.description}</p>
       </div>
-      <span className="text-xs text-gray-500 whitespace-nowrap">
+      <span className="text-xs text-fg-muted whitespace-nowrap">
         {formatRelativeTime(item.timestamp)}
       </span>
     </div>
@@ -171,11 +173,11 @@ export default function AgentDashboard() {
       case 'idle':
         return 'text-amber-500';
       case 'offline':
-        return 'text-gray-500';
+        return 'text-fg-muted';
       case 'error':
         return 'text-red-500';
       default:
-        return 'text-gray-500';
+        return 'text-fg-muted';
     }
   };
 
@@ -189,39 +191,39 @@ export default function AgentDashboard() {
       case 'unhealthy':
         return 'text-red-500';
       default:
-        return 'text-gray-500';
+        return 'text-fg-muted';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className="border-b border-tok-border bg-surface-1/50 px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h1 className="text-2xl font-semibold">
               {greeting} 👋
             </h1>
-            <p className="text-sm text-gray-400 mt-1">{dateStr}</p>
+            <p className="text-sm text-fg-secondary mt-1">{dateStr}</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Gateway:</span>
+            <span className="text-sm text-fg-secondary">Gateway:</span>
             <StatusBadge variant={isConnected ? 'connected' : 'offline'} pulse={!isConnected} />
           </div>
         </div>
       </header>
 
-      <main className="p-6 space-y-6">
+      <main className="p-3 sm:p-4 md:p-6 space-y-6">
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Active Agents */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Active Agents</p>
+                <p className="text-sm text-fg-secondary">Active Agents</p>
                 <p className="text-3xl font-bold mt-1">
                   {activeAgents}
-                  <span className="text-lg text-gray-500 font-normal">/{totalAgents}</span>
+                  <span className="text-lg text-fg-muted font-normal">/{totalAgents}</span>
                 </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/20 flex items-center justify-center text-2xl">
@@ -231,10 +233,10 @@ export default function AgentDashboard() {
           </div>
 
           {/* System Health */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">System Health</p>
+                <p className="text-sm text-fg-secondary">System Health</p>
                 <p className="text-3xl font-bold mt-1 flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
                   Online
@@ -247,10 +249,10 @@ export default function AgentDashboard() {
           </div>
 
           {/* Chat Sessions Today */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Chat Sessions Today</p>
+                <p className="text-sm text-fg-secondary">Chat Sessions Today</p>
                 <p className="text-3xl font-bold mt-1">{sessionsToday}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl">
@@ -260,10 +262,10 @@ export default function AgentDashboard() {
           </div>
 
           {/* Daily Cost */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Daily Cost</p>
+                <p className="text-sm text-fg-secondary">Daily Cost</p>
                 <p className="text-3xl font-bold mt-1">
                   ${dailyCost.toFixed(2)}
                 </p>
@@ -277,15 +279,15 @@ export default function AgentDashboard() {
 
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-fg-primary rounded-xl transition-colors">
             <span>🤖</span>
             <span className="font-medium">New Agent</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-fg-primary rounded-xl transition-colors">
             <span>💬</span>
             <span className="font-medium">New Chat</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 rounded-xl transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-surface-2 hover:bg-surface-3 text-fg-primary border border-tok-border rounded-xl transition-colors">
             <span>⏰</span>
             <span className="font-medium">New Schedule</span>
           </button>
@@ -296,48 +298,57 @@ export default function AgentDashboard() {
           {/* Agent Grid */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-lg font-semibold">Agents</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {MOCK_AGENTS.map((agent) => (
-                <div
-                  key={agent.id}
-                  className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-3xl">{agent.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold truncate">{agent.name}</h3>
-                        <span className={cn('w-2 h-2 rounded-full', getStatusColor(agent.status))} />
+            {MOCK_AGENTS.length === 0 ? (
+              <ContextualEmptyState
+                icon={Bot}
+                title="No agents configured"
+                description="Create your first agent to start automating tasks."
+                primaryAction={{ label: 'Create Agent', onClick: () => {} }}
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {MOCK_AGENTS.map((agent) => (
+                  <div
+                    key={agent.id}
+                    className="bg-surface-1 border border-tok-border rounded-xl p-4 hover:border-tok-border transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-3xl">{agent.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold truncate">{agent.name}</h3>
+                          <span className={cn('w-2 h-2 rounded-full', getStatusColor(agent.status))} />
+                        </div>
+                        <p className="text-sm text-fg-secondary truncate">{agent.role}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={cn('text-xs', getStatusColor(agent.status))}>
+                            ● {agent.status}
+                          </span>
+                          <span className="text-xs text-fg-muted">•</span>
+                          <span className="text-xs text-fg-muted">{agent.model}</span>
+                        </div>
+                        <p className="text-xs text-fg-muted mt-1">
+                          Last active {formatRelativeTime(agent.lastActive)}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-400 truncate">{agent.role}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className={cn('text-xs', getStatusColor(agent.status))}>
-                          ● {agent.status}
-                        </span>
-                        <span className="text-xs text-gray-500">•</span>
-                        <span className="text-xs text-gray-500">{agent.model}</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Last active {formatRelativeTime(agent.lastActive)}
-                      </p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* New Agent Card */}
-              <div className="bg-gray-900/50 border border-gray-800 border-dashed rounded-xl p-4 hover:border-violet-600 hover:bg-gray-900 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[120px]">
-                <span className="text-3xl mb-2">+</span>
-                <p className="text-sm text-gray-400">New Agent</p>
+                {/* New Agent Card */}
+                <div className="bg-surface-1/50 border border-tok-border border-dashed rounded-xl p-4 hover:border-violet-600 hover:bg-surface-1 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[120px]">
+                  <span className="text-3xl mb-2">+</span>
+                  <p className="text-sm text-fg-secondary">New Agent</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Activity Feed */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Recent Activity</h2>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 max-h-[400px] overflow-y-auto">
-              <div className="divide-y divide-gray-800">
+            <div className="bg-surface-1 border border-tok-border rounded-xl p-4 max-h-[400px] overflow-y-auto">
+              <div className="divide-y divide-tok-border">
                 {recentActivity.map((item) => (
                   <ActivityItemComponent key={item.id} item={item} />
                 ))}
@@ -347,27 +358,27 @@ export default function AgentDashboard() {
         </div>
 
         {/* System Health Bar */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={cn('w-3 h-3 rounded-full', isConnected ? 'bg-green-500' : 'bg-red-500')} />
               <span className="text-sm font-medium">Gateway Connection</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-fg-muted">
                 {isConnected ? 'Connected to ws://localhost:18789' : 'Disconnected'}
               </span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-fg-muted">
               <span>
-                <span className="text-gray-400">Status:</span>{' '}
+                <span className="text-fg-secondary">Status:</span>{' '}
                 <span className={isConnected ? 'text-green-500' : 'text-red-500'}>
                   {connectionState}
                 </span>
               </span>
               <span>
-                <span className="text-gray-400">Latency:</span> 12ms
+                <span className="text-fg-secondary">Latency:</span> 12ms
               </span>
               <span>
-                <span className="text-gray-400">Uptime:</span> 99.9%
+                <span className="text-fg-secondary">Uptime:</span> 99.9%
               </span>
             </div>
           </div>
