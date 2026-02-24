@@ -1,3 +1,4 @@
+// M9: responsive pass
 import { useState, useEffect, useCallback } from 'react';
 import {
   Activity,
@@ -463,7 +464,7 @@ function LiveStatusBar({
 }) {
   return (
     // WCAG fix: aria-live="polite" so screen readers hear updates every 3s without interruption
-    <div aria-live="polite" aria-label="Live system status" className="grid grid-cols-4 gap-4">
+    <div aria-live="polite" aria-label="Live system status" className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       <StatCard
         label="Gateway"
         value={gatewayOnline ? 'ONLINE' : 'OFFLINE'}
@@ -747,15 +748,16 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
 
   return (
     <section aria-label="System Event Feed" className="bg-zinc-900 border border-zinc-800 rounded-xl">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+      {/* M9: responsive pass — flex-wrap header on small screens */}
+      <div className="px-3 sm:px-4 py-3 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {/* WCAG fix: decorative header icon */}
           <AlertTriangle aria-hidden="true" className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-semibold text-white">System Event Feed</span>
-          <span className="text-xs text-zinc-500">last {Math.min(alerts.length, 20)} events</span>
+          <span className="text-xs text-zinc-500 hidden sm:inline">last {Math.min(alerts.length, 20)} events</span>
         </div>
         {/* WCAG fix: filter buttons have aria-pressed to convey selected state to AT */}
-        <div role="group" aria-label="Filter events" className="flex items-center gap-1 bg-zinc-800 rounded-lg p-0.5">
+        <div role="group" aria-label="Filter events" className="flex items-center gap-1 bg-zinc-800 rounded-lg p-0.5 overflow-x-auto">
           {filters.map((f) => (
             <button
               key={f.key}
@@ -869,9 +871,9 @@ export default function MissionControlDashboard() {
       </a>
 
       {/* WCAG fix: <main> landmark identifies the primary content region */}
-      <main id="mcd-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <main id="mcd-main" className="min-h-screen bg-zinc-950 text-white p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               {/* WCAG fix: decorative icon — heading text carries the label */}
@@ -898,18 +900,19 @@ export default function MissionControlDashboard() {
         />
 
         {/* Sections 2-4: Three-panel layout */}
-        <div className="grid grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
-          {/* Active Sessions — 2/4 width */}
-          <div className="col-span-2">
+        {/* M9: responsive pass — stack on mobile, 2-col on md, full 4-col on lg */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" style={{ minHeight: '420px' }}>
+          {/* Active Sessions — 2/4 width on desktop */}
+          <div className="col-span-1 md:col-span-2">
             <ActiveSessionsPanel sessions={sessions} />
           </div>
 
-          {/* Tool Calls In-Flight — 1/4 width */}
+          {/* Tool Calls In-Flight — 1/4 width on desktop */}
           <div className="col-span-1">
             <ToolCallsPanel toolCalls={INITIAL_TOOL_CALLS} />
           </div>
 
-          {/* Pending Approvals — 1/4 width */}
+          {/* Pending Approvals — 1/4 width on desktop */}
           <div className="col-span-1">
             <PendingApprovalsPanel
               approvals={approvals}

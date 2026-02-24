@@ -1,3 +1,4 @@
+// M9: responsive pass
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Check,
@@ -117,8 +118,9 @@ interface StepperProps {
 }
 
 function Stepper({ current, completed, onNavigate }: StepperProps) {
+  // M9: responsive pass — stepper wraps label visibility on mobile
   return (
-    <div className="flex items-center gap-0 w-full mb-8">
+    <div className="flex items-center gap-0 w-full mb-6 sm:mb-8">
       {STEP_LABELS.map((label, idx) => {
         const step = (idx + 1) as StepId;
         const isDone = completed.has(step);
@@ -170,7 +172,7 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
               </div>
               <span
                 className={cn(
-                  'text-xs font-medium whitespace-nowrap',
+                  'text-[10px] sm:text-xs font-medium whitespace-nowrap hidden sm:block',
                   isDone
                     ? 'text-violet-400'
                     : isCurrent
@@ -295,7 +297,8 @@ function Step2Channel({ onSuccess }: Step2Props) {
       </div>
 
       {/* Channel picker */}
-      <div className="grid grid-cols-5 gap-3">
+      {/* M9: responsive pass — stack on very small screens */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
         {CHANNEL_OPTIONS.map((ch) => (
           <button
             key={ch.id}
@@ -403,7 +406,8 @@ function Step3Agent({ onSuccess }: Step3Props) {
       {/* Emoji picker */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-zinc-300">Pick an Avatar</label>
-        <div className="grid grid-cols-6 gap-2">
+        {/* M9: responsive pass */}
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
           {AGENT_EMOJIS.map((e) => (
             <button
               key={e}
@@ -722,8 +726,9 @@ export default function GuidedOnboardingTour() {
     if (currentStep > 1) setCurrentStep((s) => (s - 1) as StepId);
   }
 
+  // M9: responsive pass — full-width with padding on mobile
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -737,7 +742,7 @@ export default function GuidedOnboardingTour() {
         </div>
 
         {/* Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
           {/* Stepper */}
           <Stepper
             current={currentStep}
