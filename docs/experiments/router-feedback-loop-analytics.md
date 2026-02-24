@@ -148,3 +148,19 @@ Dashboard rendering is intentionally excluded from this delivery, but this docum
 - JSONL files are intentionally append-only to keep ingestion/simple shipping straightforward.
 - The storage layer can be migrated to SQLite later without changing external record shapes.
 - Feedback without a linked decision is retained and reviewable to avoid silent data loss.
+
+## Integrated surfaces shipped now
+
+This is integrated into the active runtime (not only as a detached utility):
+
+- **Gateway RPC methods**
+  - `router.feedback.log_decision`
+  - `router.feedback.capture`
+  - `router.feedback.summary`
+  - `router.feedback.review_queue`
+- **Inbound message pipeline**
+  - Slack inbound messages are scanned for implicit correction text and captured as `source=implicit` feedback when phrases indicate expected tier/action.
+- **Slack reactions**
+  - Reaction-added events map selected emojis into structured feedback (`source=reaction`) and are linked to latest thread decisions.
+
+This provides end-to-end collection and review queueing now, while dashboard rendering remains a follow-up UI concern.
