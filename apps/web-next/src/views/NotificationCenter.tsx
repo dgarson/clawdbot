@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { cn } from "../lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type NotifSeverity = "critical" | "warning" | "info" | "success";
 type NotifCategory = "agent" | "system" | "cron" | "model" | "session" | "file";
+type ConnectionStatus = "live" | "reconnecting" | "offline";
 
 interface Notification {
   id: string;
@@ -19,6 +20,130 @@ interface Notification {
   action?: { label: string; kind: "retry" | "view" | "dismiss" | "open" };
   meta?: string;
   pinned?: boolean;
+}
+
+interface NotificationSettings {
+  categories: Record<NotifCategory, boolean>;
+  severities: {
+    warning: boolean;
+    info: boolean;
+    success: boolean;
+    // critical always on
+  };
+  markAllReadOnOpen: boolean;
+}
+
+interface GroupedNotification {
+  isGroup: true;
+  agentName: string;
+  agentEmoji?: string;
+  count: number;
+  notifications: Notification[];
+  latestTimestamp: Date;
+}
+
+type ListableNotification = Notification | GroupedNotification;
+
+// ─── Settings Helpers ─────────────────────────────────────────────────────────
+
+const DEFAULT_SETTINGS: NotificationSettings = {
+  categories: {
+    agent: true,
+    system: true,
+    cron: true,
+    model: true,
+    session: true,
+    file: true,
+  },
+  severities: {
+    warning: true,
+    info: true,
+    success: true,
+  },
+  markAllReadOnOpen: false,
+};
+
+function loadSettings(): NotificationSettings {
+  try {
+    const stored = localStorage.getItem("notif-settings");
+    if (stored) {
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_SETTINGS;
+}
+
+function saveSettings(settings: NotificationSettings): void {
+  try {
+    localStorage.setItem("notif-settings", JSON.stringify(settings));
+  } catch {
+    // ignore
+  }
+}
+
+// ─── useNotificationStream Hook ──────────────────────────────────────────────
+
+function useNotificationStream(
+  onNewNotification: (n: Omit<Notification, "id" | "timestamp" | "read">) => void
+): ConnectionStatus {
+  const [status, setStatus] = useState<ConnectionStatus>("live");
+
+  useEffect(() => {
+    // Simulate connection status cycling
+    const statusInterval = setInterval(() => {
+      setStatus((prev) => {
+        const rand = Math.random();
+        if (prev === "live") {
+          // 5% chance to go reconnecting
+          return rand < 0.05 ? "reconnecting" : "live";
+        } else if (prev === "reconnecting") {
+          // 80% chance to reconnect, 20% stay reconnecting
+          return rand < 0.8 ? "live" : "reconnecting";
+        }
+        return prev;
+      });
+    }, 5000);
+
+    // Simulate new notifications every 30s
+    const notifInterval = setInterval(() => {
+      const LIVE_EVENTS: Omit<Notification, "id" | "timestamp" | "read">[] = [
+        {
+          severity: "info",
+          category: "session",
+          title: "Session heartbeat — Tim",
+          body: "Tim's architecture review session is still active (112 minutes).",
+          agentName: "Tim",
+          agentEmoji: "🏛️",
+        },
+        {
+          severity: "success",
+          category: "cron",
+          title: "Cron completed — Agent mail drain",
+          body: "agent-mail.sh drain: 0 new messages in inbox.",
+          meta: "cron:agent-mail",
+        },
+        {
+          severity: "info",
+          category: "agent",
+          title: "Agent idle — Luis",
+          body: "Luis has been idle for 12 minutes.",
+          agentName: "Luis",
+          agentEmoji: "🎨",
+        },
+      ];
+      const idx = Math.floor(Math.random() * LIVE_EVENTS.length);
+      onNewNotification(LIVE_EVENTS[idx]);
+    }, 30000);
+
+    return () => {
+      clearInterval(statusInterval);
+      clearInterval(notifInterval);
+    };
+  }, [onNewNotification]);
+
+  return status;
 }
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
@@ -123,6 +248,30 @@ const SEED: Omit<Notification, "id" | "timestamp" | "read">[] = [
     body: "claude-haiku-4-5 is now available in your account. 35% faster than 4.0 at same price.",
     action: { label: "Try Model", kind: "open" },
   },
+  {
+    severity: "info",
+    category: "agent",
+    title: "Task assigned — Luis",
+    body: "Luis was assigned a new task: UI review for M8.",
+    agentName: "Luis",
+    agentEmoji: "🎨",
+  },
+  {
+    severity: "info",
+    category: "agent",
+    title: "Task completed — Luis",
+    body: "Luis completed the assigned task.",
+    agentName: "Luis",
+    agentEmoji: "🎨",
+  },
+  {
+    severity: "warning",
+    category: "agent",
+    title: "High latency — Luis",
+    body: "Luis is experiencing high response latency.",
+    agentName: "Luis",
+    agentEmoji: "🎨",
+  },
 ];
 
 function makeNotifs(): Notification[] {
@@ -180,38 +329,281 @@ const CATEGORY_CONFIG: Record<NotifCategory, { label: string; icon: string }> = 
   file:    { label: "File",    icon: "📁" },
 };
 
+const CONNECTION_CONFIG: Record<ConnectionStatus, { dot: string; label: string }> = {
+  live:         { dot: "bg-emerald-500", label: "Live updates active" },
+  reconnecting: { dot: "bg-amber-400",   label: "Reconnecting..." },
+  offline:      { dot: "bg-zinc-500",    label: "Offline" },
+};
+
 function relativeTime(date: Date): string {
   const diffMs = Date.now() - date.getTime();
   const diffMin = Math.floor(diffMs / 60_000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 1) {return "just now";}
+  if (diffMin < 60) {return `${diffMin}m ago`;}
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `${diffH}h ago`;
+  if (diffH < 24) {return `${diffH}h ago`;}
   return `${Math.floor(diffH / 24)}d ago`;
+}
+
+function isGrouped(n: ListableNotification): n is GroupedNotification {
+  return  (n as GroupedNotification).isGroup;
+}
+
+// ─── Settings Drawer ─────────────────────────────────────────────────────────
+
+interface SettingsDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  settings: NotificationSettings;
+  onUpdate: (s: NotificationSettings) => void;
+}
+
+function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerProps) {
+  if (!open) {return null;}
+
+  const toggleCategory = (cat: NotifCategory) => {
+    onUpdate({
+      ...settings,
+      categories: { ...settings.categories, [cat]: !settings.categories[cat] },
+    });
+  };
+
+  const toggleSeverity = (sev: "warning" | "info" | "success") => {
+    onUpdate({
+      ...settings,
+      severities: { ...settings.severities, [sev]: !settings.severities[sev] },
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-end">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden />
+      <div
+        role="dialog"
+        aria-label="Notification settings"
+        className="relative w-80 bg-zinc-900 border-l border-zinc-800 h-full overflow-y-auto shadow-2xl animate-slide-in"
+      >
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+          <h2 className="text-lg font-bold text-white">Notification Settings</h2>
+          <button
+            onClick={onClose}
+            className="text-zinc-400 hover:text-white transition-colors"
+            aria-label="Close settings"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-4 space-y-6">
+          {/* Categories */}
+          <div>
+            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-3">
+              Categories
+            </h3>
+            <div className="space-y-2">
+              {(Object.keys(CATEGORY_CONFIG) as NotifCategory[]).map((cat) => {
+                const cfg = CATEGORY_CONFIG[cat];
+                const enabled = settings.categories[cat];
+                return (
+                  <label
+                    key={cat}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={enabled}
+                      onChange={() => toggleCategory(cat)}
+                      className="w-4 h-4 rounded border-zinc-600 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                    />
+                    <span className="text-sm">{cfg.icon}</span>
+                    <span className={cn("text-sm", enabled ? "text-zinc-200" : "text-zinc-500")}>
+                      {cfg.label}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Severities */}
+          <div>
+            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-3">
+              Severity Levels
+            </h3>
+            <div className="space-y-2">
+              <label className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-not-allowed opacity-50">
+                <input
+                  type="checkbox"
+                  checked={true}
+                  disabled
+                  className="w-4 h-4 rounded border-zinc-600 text-red-500"
+                />
+                <span className="text-sm">🚨</span>
+                <span className="text-sm text-zinc-400">Critical (always on)</span>
+              </label>
+              {(["warning", "info", "success"] as const).map((sev) => {
+                const cfg = SEVERITY_CONFIG[sev];
+                const enabled = settings.severities[sev];
+                return (
+                  <label
+                    key={sev}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={enabled}
+                      onChange={() => toggleSeverity(sev)}
+                      className="w-4 h-4 rounded border-zinc-600 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                    />
+                    <span className="text-sm">{cfg.icon}</span>
+                    <span className={cn("text-sm", enabled ? "text-zinc-200" : "text-zinc-500")}>
+                      {cfg.label}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Behavior */}
+          <div>
+            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-3">
+              Behavior
+            </h3>
+            <label className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={settings.markAllReadOnOpen}
+                onChange={() =>
+                  onUpdate({
+                    ...settings,
+                    markAllReadOnOpen: !settings.markAllReadOnOpen,
+                  })
+                }
+                className="w-4 h-4 rounded border-zinc-600 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+              />
+              <span className="text-sm text-zinc-200">Mark all read on open</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-zinc-800">
+          <button
+            onClick={onClose}
+            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Notification Card ────────────────────────────────────────────────────────
 
 interface NotifCardProps {
-  notif: Notification;
+  notif: ListableNotification;
   selected: boolean;
+  focused: boolean;
   onSelect: () => void;
   onRead: (id: string) => void;
   onDismiss: (id: string) => void;
   onPin: (id: string) => void;
+  onExpandGroup?: (agentName: string) => void;
+  expandedGroups: Set<string>;
+  // These are used in recursive calls for grouped notifications
+  _recursiveDismiss?: (id: string) => void;
+  _recursivePin?: (id: string) => void;
 }
 
-function NotifCard({ notif, selected, onSelect, onRead, onDismiss, onPin }: NotifCardProps) {
+function NotifCard({
+  notif,
+  selected,
+  focused,
+  onSelect,
+  onRead,
+  onDismiss,
+  onPin,
+  onExpandGroup,
+  expandedGroups,
+  _recursiveDismiss,
+  _recursivePin,
+}: NotifCardProps) {
+  // Use recursive callbacks for nested items, direct callbacks for top-level
+  const dismissCallback = _recursiveDismiss ?? onDismiss;
+  const pinCallback = _recursivePin ?? onPin;
+  if (isGrouped(notif)) {
+    const isExpanded = expandedGroups.has(notif.agentName);
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => onExpandGroup?.(notif.agentName)}
+          className={cn(
+            "w-full text-left px-4 py-3 border-b border-zinc-800/60 transition-colors",
+            "hover:bg-zinc-800/40 focus-visible:outline-none focus-visible:bg-zinc-800/60",
+            focused && "ring-2 ring-inset ring-violet-500",
+            selected && "bg-zinc-800/60"
+          )}
+          aria-expanded={isExpanded}
+          aria-label={`${notif.agentName}: ${notif.count} notifications`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 mt-1.5">
+              <span className="block w-2 h-2 rounded-full bg-blue-400" aria-hidden />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-xs text-zinc-400">{notif.agentEmoji} {notif.agentName}</span>
+                <span className="text-xs bg-blue-500/20 text-blue-400 rounded-full px-2 py-0.5 font-medium">
+                  {notif.count} notifications
+                </span>
+                <span className="ml-auto text-xs text-zinc-500 flex-shrink-0">
+                  {relativeTime(notif.latestTimestamp)}
+                </span>
+              </div>
+              <p className="text-sm text-zinc-300">
+                {isExpanded ? "Hide" : "Show"} {notif.count} notifications from {notif.agentName}
+                <span className="text-zinc-500 ml-1">[{isExpanded ? "−" : "+"}{notif.count - 1} more]</span>
+              </p>
+            </div>
+          </div>
+        </button>
+        {isExpanded &&
+          notif.notifications.map((n) => (
+            <NotifCard
+              key={n.id}
+              notif={n}
+              selected={false}
+              focused={false}
+              onSelect={() => {}}
+              onRead={onRead}
+              onDismiss={dismissCallback}
+              onPin={pinCallback}
+              expandedGroups={expandedGroups}
+              _recursiveDismiss={dismissCallback}
+              _recursivePin={pinCallback}
+            />
+          ))}
+      </div>
+    );
+  }
+
   const sc = SEVERITY_CONFIG[notif.severity];
   const cc = CATEGORY_CONFIG[notif.category];
 
   return (
     <button
       type="button"
-      onClick={() => { onSelect(); if (!notif.read) onRead(notif.id); }}
+      onClick={() => {
+        onSelect();
+        if (!notif.read) {onRead(notif.id);}
+      }}
       className={cn(
         "w-full text-left px-4 py-3 border-b border-zinc-800/60 transition-colors",
         "hover:bg-zinc-800/40 focus-visible:outline-none focus-visible:bg-zinc-800/60",
+        focused && "ring-2 ring-inset ring-violet-500",
         selected && "bg-zinc-800/60",
         !notif.read && "bg-zinc-900",
         sc.ring
@@ -403,6 +795,16 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
 type FilterSeverity = NotifSeverity | "all";
 type FilterRead = "all" | "unread" | "read";
 
+// Export unread count for App.tsx
+export function useNotificationUnreadCount(): number {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    // Initial count from seed
+    setCount(makeNotifs().filter((n) => !n.read).length);
+  }, []);
+  return count;
+}
+
 export default function NotificationCenter() {
   const [notifs, setNotifs] = useState<Notification[]>(makeNotifs);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -410,31 +812,16 @@ export default function NotificationCenter() {
   const [filterRead, setFilterRead] = useState<FilterRead>("all");
   const [filterCategory, setFilterCategory] = useState<NotifCategory | "all">("all");
   const [search, setSearch] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState<NotificationSettings>(loadSettings);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Live simulation: inject a new info notif every ~45s
-  useEffect(() => {
-    const LIVE_EVENTS: Omit<Notification, "id" | "timestamp" | "read">[] = [
-      {
-        severity: "info",
-        category: "session",
-        title: "Session heartbeat — Tim",
-        body: "Tim's architecture review session is still active (112 minutes).",
-        agentName: "Tim",
-        agentEmoji: "🏛️",
-      },
-      {
-        severity: "success",
-        category: "cron",
-        title: "Cron completed — Agent mail drain",
-        body: "agent-mail.sh drain: 0 new messages in inbox.",
-        meta: "cron:agent-mail",
-      },
-    ];
-    let idx = 0;
-    const t = setInterval(() => {
-      const ev = LIVE_EVENTS[idx % LIVE_EVENTS.length];
-      idx++;
+  // Real-time connection status
+  const handleNewNotif = useCallback(
+    (ev: Omit<Notification, "id" | "timestamp" | "read">) => {
       setNotifs((prev) => [
         {
           ...ev,
@@ -444,9 +831,24 @@ export default function NotificationCenter() {
         },
         ...prev,
       ]);
-    }, 45_000);
-    return () => clearInterval(t);
-  }, []);
+    },
+    []
+  );
+  const connectionStatus = useNotificationStream(handleNewNotif);
+
+  // Save settings when changed
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
+
+  // Mark all read on first open
+  const hasOpenedRef = useRef(false);
+  useEffect(() => {
+    if (!hasOpenedRef.current && settings.markAllReadOnOpen) {
+      hasOpenedRef.current = true;
+      setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+    }
+  }, [settings.markAllReadOnOpen]);
 
   // Keyboard: Cmd+K → focus search; Escape → clear search; ?-key handled by App
   useEffect(() => {
@@ -481,32 +883,150 @@ export default function NotificationCenter() {
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, pinned: !n.pinned } : n)));
   }, []);
 
-  // Filter + sort (pinned first, then by timestamp desc)
-  const filtered = notifs
-    .filter((n) => {
-      if (filterSeverity !== "all" && n.severity !== filterSeverity) return false;
-      if (filterRead === "unread" && n.read) return false;
-      if (filterRead === "read" && !n.read) return false;
-      if (filterCategory !== "all" && n.category !== filterCategory) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (
-          !n.title.toLowerCase().includes(q) &&
-          !n.body.toLowerCase().includes(q) &&
-          !(n.agentName?.toLowerCase().includes(q))
-        )
-          return false;
+  const expandGroup = useCallback((agentName: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(agentName)) {
+        next.delete(agentName);
+      } else {
+        next.add(agentName);
       }
-      return true;
-    })
-    .sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return b.timestamp.getTime() - a.timestamp.getTime();
+      return next;
     });
+  }, []);
+
+  // Filter + sort (pinned first, then by timestamp desc) + apply settings
+  const filtered = useMemo(() => {
+    return notifs
+      .filter((n) => {
+        // Settings-based filtering
+        if (!settings.categories[n.category]) {return false;}
+        if (n.severity !== "critical" && !settings.severities[n.severity]) {return false;}
+
+        // UI filters
+        if (filterSeverity !== "all" && n.severity !== filterSeverity) {return false;}
+        if (filterRead === "unread" && n.read) {return false;}
+        if (filterRead === "read" && !n.read) {return false;}
+        if (filterCategory !== "all" && n.category !== filterCategory) {return false;}
+        if (search) {
+          const q = search.toLowerCase();
+          if (
+            !n.title.toLowerCase().includes(q) &&
+            !n.body.toLowerCase().includes(q) &&
+            !(n.agentName?.toLowerCase().includes(q))
+          )
+            {return false;}
+        }
+        return true;
+      })
+      .toSorted((a, b) => {
+        if (a.pinned && !b.pinned) {return -1;}
+        if (!a.pinned && b.pinned) {return 1;}
+        return b.timestamp.getTime() - a.timestamp.getTime();
+      });
+  }, [notifs, settings, filterSeverity, filterRead, filterCategory, search]);
+
+  // Group notifications (3+ from same agent within 5 minutes)
+  const listable = useMemo((): ListableNotification[] => {
+    const FIVE_MINUTES = 5 * 60 * 1000;
+    const groups: Map<string, Notification[]> = new Map();
+    const result: ListableNotification[] = [];
+    const used = new Set<string>();
+
+    // Group by agentName within 5 minutes
+    filtered.forEach((n) => {
+      if (!n.agentName) {return;}
+      const group = groups.get(n.agentName) || [];
+      // Check if within 5 minutes of first item in group
+      if (group.length === 0 || Math.abs(n.timestamp.getTime() - group[0].timestamp.getTime()) <= FIVE_MINUTES) {
+        group.push(n);
+        groups.set(n.agentName, group);
+      }
+    });
+
+    // Build list with groups
+    filtered.forEach((n) => {
+      if (used.has(n.id)) {return;}
+
+      if (n.agentName) {
+        const group = groups.get(n.agentName);
+        if (group && group.length >= 3 && group.includes(n)) {
+          // Add as group
+          result.push({
+            isGroup: true,
+            agentName: n.agentName,
+            agentEmoji: n.agentEmoji,
+            count: group.length,
+            notifications: group.toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
+            latestTimestamp: group[0].timestamp,
+          });
+          group.forEach((g) => used.add(g.id));
+          return;
+        }
+      }
+
+      result.push(n);
+      used.add(n.id);
+    });
+
+    return result;
+  }, [filtered, expandedGroups]);
 
   const unreadCount = notifs.filter((n) => !n.read).length;
   const selected = notifs.find((n) => n.id === selectedId) ?? null;
+  const connConfig = CONNECTION_CONFIG[connectionStatus];
+
+  // Keyboard navigation for notification list
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      const isInput = tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable;
+      if (isInput || settingsOpen) {return;}
+
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        setFocusedIndex((i) => Math.min(i + 1, listable.length - 1));
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        setFocusedIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const item = listable[focusedIndex];
+        if (item && !isGrouped(item)) {
+          setSelectedId(item.id);
+          if (!item.read) {markRead(item.id);}
+        }
+      } else if (e.key === "m") {
+        e.preventDefault();
+        const item = listable[focusedIndex];
+        if (item && !isGrouped(item)) {
+          markRead(item.id);
+        }
+      } else if (e.key === "d") {
+        e.preventDefault();
+        const item = listable[focusedIndex];
+        if (item && !isGrouped(item)) {
+          dismiss(item.id);
+          // Adjust focus
+          setFocusedIndex((i) => Math.min(i, listable.length - 2));
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [listable, focusedIndex, settingsOpen, markRead, dismiss]);
+
+  // Scroll focused item into view
+  useEffect(() => {
+    if (listRef.current) {
+      const items = listRef.current.querySelectorAll('[role="option"]');
+      const item = items[focusedIndex] as HTMLElement;
+      if (item) {
+        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [focusedIndex]);
 
   const SEVERITY_FILTERS: { value: FilterSeverity; label: string; color: string }[] = [
     { value: "all",      label: "All",      color: "text-zinc-400" },
@@ -527,6 +1047,15 @@ export default function NotificationCenter() {
               {unreadCount}
             </span>
           )}
+          {/* Connection status indicator */}
+          <div
+            className="flex items-center gap-1.5 cursor-help"
+            title={connConfig.label}
+            aria-label={connConfig.label}
+          >
+            <span className={cn("w-2 h-2 rounded-full", connConfig.dot)} aria-hidden />
+            <span className="text-xs text-zinc-500">{connConfig.label}</span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
@@ -540,10 +1069,20 @@ export default function NotificationCenter() {
           )}
           <button
             type="button"
-            onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned || !n.read ? true : false))}
+            onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned || !n.read))}
             className="text-xs text-zinc-400 hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
           >
             Clear read
+          </button>
+          {/* Settings button */}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            aria-label="Open notification settings"
+            title="Notification settings"
+          >
+            ⚙️
           </button>
         </div>
       </header>
@@ -640,26 +1179,48 @@ export default function NotificationCenter() {
           </div>
 
           {/* Notification list */}
-          <div className="flex-1 overflow-y-auto" role="listbox" aria-label="Notifications">
-            {filtered.length === 0 ? (
+          <div
+            ref={listRef}
+            className="flex-1 overflow-y-auto"
+            role="listbox"
+            aria-label="Notifications"
+            tabIndex={-1}
+          >
+            {listable.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                 <div className="text-4xl mb-3">🎉</div>
                 <p className="text-zinc-400 text-sm font-medium">All clear</p>
                 <p className="text-zinc-600 text-xs mt-1">No notifications match your filters</p>
               </div>
             ) : (
-              filtered.map((n) => (
+              listable.map((n, idx) => (
                 <NotifCard
-                  key={n.id}
+                  key={isGrouped(n) ? `group-${n.agentName}` : n.id}
                   notif={n}
-                  selected={n.id === selectedId}
-                  onSelect={() => setSelectedId(n.id)}
+                  selected={!isGrouped(n) && n.id === selectedId}
+                  focused={idx === focusedIndex}
+                  onSelect={() => {
+                    if (!isGrouped(n)) {
+                      setSelectedId(n.id);
+                      setFocusedIndex(idx);
+                    }
+                  }}
                   onRead={markRead}
                   onDismiss={dismiss}
                   onPin={pin}
+                  onExpandGroup={expandGroup}
+                  expandedGroups={expandedGroups}
                 />
               ))
             )}
+          </div>
+
+          {/* Keyboard nav hint */}
+          <div className="px-3 py-2 border-t border-zinc-800/60 text-[10px] text-zinc-600 flex gap-3 flex-shrink-0">
+            <span>↑↓ navigate</span>
+            <span>m mark read</span>
+            <span>d dismiss</span>
+            <span>↵ open</span>
           </div>
         </div>
 
@@ -668,6 +1229,14 @@ export default function NotificationCenter() {
           <DetailPanel notif={selected} onRead={markRead} onDismiss={dismiss} onPin={pin} />
         </div>
       </div>
+
+      {/* Settings Drawer */}
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onUpdate={setSettings}
+      />
     </div>
   );
 }
