@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "./lib/utils";
-import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
 import {
   DashboardSkeleton,
   TableSkeleton,
@@ -8,9 +7,13 @@ import {
   ChatSkeleton,
   ContentSkeleton,
 } from "./components/Skeleton";
+import { PageSkeleton } from "./components/ui/PageSkeleton";
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
+
+// Demand-only components — lazy loaded to keep main bundle lean
+const KeyboardShortcutsModal = React.lazy(() => import("./components/KeyboardShortcutsModal"));
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -43,6 +46,7 @@ const ModelSelector = React.lazy(() => import("./views/ModelSelector"));
 const ChatInterface = React.lazy<React.ComponentType<ChatInterfaceProps>>(() => import("./views/ChatInterface"));
 const CronScheduleBuilder = React.lazy(() => import("./views/CronScheduleBuilder"));
 const SkillsMarketplace = React.lazy(() => import("./views/SkillsMarketplace"));
+const SkillBuilderEditor = React.lazy(() => import("./views/SkillBuilderEditor"));
 const SessionExplorer = React.lazy(() => import("./views/SessionExplorer"));
 const OnboardingFlow = React.lazy(() => import("./views/OnboardingFlow"));
 const AgentConfigReview = React.lazy(() => import("./views/AgentConfigReview"));
@@ -301,6 +305,10 @@ const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeAp
 const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
 const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
+// ── Horizon M1-M10 + new views (previously missing) ─────────────────────────
+const AgentTopologyView              = React.lazy(() => import("./views/AgentTopologyView"));
+const ChannelBroadcastCenter         = React.lazy(() => import("./views/ChannelBroadcastCenter"));
+const ProviderRoutingPanel           = React.lazy(() => import("./views/ProviderRoutingPanel"));
 
 export const navItems = [
   { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
@@ -318,6 +326,7 @@ export const navItems = [
   { id: "providers",     label: "Providers",      emoji: "🔐", shortcut: "7" },
   { id: "cron",          label: "Schedules",      emoji: "⏰", shortcut: "8" },
   { id: "skills",        label: "Skills",         emoji: "🧩", shortcut: "9" },
+  { id: "skill-builder", label: "Skill Builder",  emoji: "🔨", shortcut: null },
   { id: "sessions",      label: "Sessions",       emoji: "🌳", shortcut: null },
   { id: "config-review", label: "Config Review",  emoji: "🔍", shortcut: null },
   { id: "settings",      label: "Settings",       emoji: "⚙️", shortcut: null },
@@ -574,6 +583,10 @@ export const navItems = [
   { id: "multi-region-failover",    label: "Multi-Region Failover",  emoji: "🔄", shortcut: null },
   { id: "cost-allocation",          label: "Cost Allocation",         emoji: "💰", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
+  // Horizon new views
+  { id: "agent-topology",           label: "Agent Topology",          emoji: "🕸️", shortcut: null },
+  { id: "channel-broadcast",        label: "Broadcast Center",        emoji: "📡", shortcut: null },
+  { id: "provider-routing",         label: "Provider Routing",        emoji: "🔀", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -842,6 +855,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "multi-region-failover":     <ContentSkeleton />,
   "cost-allocation":           <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
+  // Horizon new views
+  "agent-topology":            <ContentSkeleton />,
+  "channel-broadcast":         <TableSkeleton rows={6} />,
+  "provider-routing":          <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
@@ -849,11 +866,8 @@ function LoadingFallback({ viewId }: { viewId: string }) {
   if (skeleton) {
     return <div className="p-6 max-w-7xl mx-auto">{skeleton}</div>;
   }
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-pulse-soft text-muted-foreground text-sm">Loading...</div>
-    </div>
-  );
+  // Fallback to full-page skeleton for any view not in the map
+  return <PageSkeleton />;
 }
 
 // Error boundary for views
@@ -1085,6 +1099,7 @@ function AppContent() {
       case "providers":     return <ProviderAuthManager />;
       case "cron":          return <CronScheduleBuilder />;
       case "skills":        return <SkillsMarketplace />;
+      case "skill-builder": return <SkillBuilderEditor />;
       case "sessions":      return <SessionExplorer />;
       case "config-review": return <AgentConfigReview />;
       case "settings":      return <SettingsDashboard />;
@@ -1343,6 +1358,10 @@ function AppContent() {
       case "db-query-analyzer":       return <DatabaseQueryAnalyzer />;
       case "feature-flag-manager":    return <FeatureFlagManager />;
       case "token-usage":             return <TokenUsageOptimizer />;
+      // Horizon new views
+      case "agent-topology":          return <AgentTopologyView />;
+      case "channel-broadcast":       return <ChannelBroadcastCenter />;
+      case "provider-routing":        return <ProviderRoutingPanel />;
       default:              return <AgentDashboard />;
     }
   };
@@ -1613,8 +1632,12 @@ function AppContent() {
         </main>
       </div>
 
-      {/* Keyboard Shortcuts Modal */}
-      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      {/* Keyboard Shortcuts Modal — lazy, only loaded on first ? keypress */}
+      {shortcutsOpen && (
+        <React.Suspense fallback={null}>
+          <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+        </React.Suspense>
+      )}
 
       {/* Command Palette */}
       {cmdPaletteOpen && (

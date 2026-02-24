@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { Siren } from "lucide-react";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type IncidentSeverity = "sev1" | "sev2" | "sev3" | "sev4";
 type IncidentStatus = "triggered" | "acknowledged" | "investigating" | "mitigated" | "resolved";
@@ -218,12 +220,12 @@ export default function IncidentCommandCenter() {
     : null;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-surface-0 text-fg-primary">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
         <div>
           <h1 className="text-xl font-semibold">Incident Command Center</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Response · Runbooks · Postmortems</p>
+          <p className="text-sm text-fg-secondary mt-0.5">Response · Runbooks · Postmortems</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="flex items-center gap-1.5">
@@ -241,14 +243,14 @@ export default function IncidentCommandCenter() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-tok-border px-3 sm:px-4 md:px-6">
         {(["active", "runbook", "timeline", "postmortem"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+              tab === t ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
             )}
           >
             {t === "postmortem" ? "Postmortem" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -258,16 +260,25 @@ export default function IncidentCommandCenter() {
 
       {/* Active Incidents Tab */}
       {tab === "active" && (
+        activeIncidents.length === 0 ? (
+          <ContextualEmptyState
+            icon={Siren}
+            title="All clear"
+            description="No active incidents right now. Declare one when something needs response."
+            size="md"
+            className="flex-1"
+          />
+        ) : (
         <div className="flex flex-1 overflow-hidden">
           {/* Incident List */}
-          <div className="w-80 border-r border-zinc-800 overflow-y-auto">
+          <div className="w-80 border-r border-tok-border overflow-y-auto">
             {INCIDENTS.map(inc => (
               <button
                 key={inc.id}
                 onClick={() => setSelectedIncident(inc)}
                 className={cn(
-                  "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                  selectedIncident.id === inc.id && "bg-zinc-800/60"
+                  "w-full text-left px-4 py-3 border-b border-tok-border/60 hover:bg-surface-2/40 transition-colors",
+                  selectedIncident.id === inc.id && "bg-surface-2/60"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -276,17 +287,17 @@ export default function IncidentCommandCenter() {
                     {inc.severity.toUpperCase()}
                   </span>
                 </div>
-                <div className="text-xs font-medium text-white mb-1 leading-snug">{inc.title}</div>
+                <div className="text-xs font-medium text-fg-primary mb-1 leading-snug">{inc.title}</div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-1.5 py-0.5 rounded-full", statusBadge[inc.status])}>{inc.status}</span>
-                  <span className="text-xs text-zinc-500">{inc.service}</span>
+                  <span className="text-xs text-fg-muted">{inc.service}</span>
                 </div>
               </button>
             ))}
           </div>
 
           {/* Incident Detail */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -309,43 +320,43 @@ export default function IncidentCommandCenter() {
             </div>
 
             {/* Impact summary */}
-            <div className="bg-zinc-900 rounded-lg p-4 mb-4 border-l-2 border-rose-500">
-              <div className="text-xs font-medium text-zinc-400 mb-1.5">Impact</div>
-              <p className="text-sm text-zinc-300">{selectedIncident.impactDescription}</p>
+            <div className="bg-surface-1 rounded-lg p-4 mb-4 border-l-2 border-rose-500">
+              <div className="text-xs font-medium text-fg-secondary mb-1.5">Impact</div>
+              <p className="text-sm text-fg-primary">{selectedIncident.impactDescription}</p>
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-4 gap-3 mb-4">
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
                 <div className="text-xl font-bold font-mono text-rose-400">{selectedIncident.affectedUsers.toLocaleString()}</div>
-                <div className="text-xs text-zinc-500">affected users</div>
+                <div className="text-xs text-fg-muted">affected users</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold font-mono text-white">
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold font-mono text-fg-primary">
                   {selectedIncident.durationMin !== null ? `${selectedIncident.durationMin}m` : openDuration !== null ? `${openDuration}m` : "—"}
                 </div>
-                <div className="text-xs text-zinc-500">{selectedIncident.resolvedAt ? "duration" : "open for"}</div>
+                <div className="text-xs text-fg-muted">{selectedIncident.resolvedAt ? "duration" : "open for"}</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold font-mono text-white">{selectedIncident.responders.length}</div>
-                <div className="text-xs text-zinc-500">responders</div>
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold font-mono text-fg-primary">{selectedIncident.responders.length}</div>
+                <div className="text-xs text-fg-muted">responders</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold font-mono text-white">{selectedIncident.timeline.length}</div>
-                <div className="text-xs text-zinc-500">timeline events</div>
+              <div className="bg-surface-1 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold font-mono text-fg-primary">{selectedIncident.timeline.length}</div>
+                <div className="text-xs text-fg-muted">timeline events</div>
               </div>
             </div>
 
             {/* Responders */}
-            <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-              <div className="text-sm font-medium text-zinc-300 mb-3">Responders</div>
+            <div className="bg-surface-1 rounded-lg p-4 mb-4">
+              <div className="text-sm font-medium text-fg-primary mb-3">Responders</div>
               <div className="flex flex-wrap gap-2">
                 {selectedIncident.responders.map(r => (
-                  <div key={r.id} className="flex items-center gap-2 bg-zinc-800 rounded-full px-3 py-1.5">
-                    <span className={cn("w-2 h-2 rounded-full", r.active ? "bg-emerald-400" : "bg-zinc-600")} />
-                    <span className="text-xs font-medium text-white">{r.name}</span>
-                    <span className="text-xs text-zinc-500">{r.role}</span>
-                    <span className="text-xs text-zinc-600">since {r.joinedAt}</span>
+                  <div key={r.id} className="flex items-center gap-2 bg-surface-2 rounded-full px-3 py-1.5">
+                    <span className={cn("w-2 h-2 rounded-full", r.active ? "bg-emerald-400" : "bg-surface-3")} />
+                    <span className="text-xs font-medium text-fg-primary">{r.name}</span>
+                    <span className="text-xs text-fg-muted">{r.role}</span>
+                    <span className="text-xs text-fg-muted">since {r.joinedAt}</span>
                   </div>
                 ))}
               </div>
@@ -353,18 +364,18 @@ export default function IncidentCommandCenter() {
 
             {/* Recent timeline events */}
             <div>
-              <div className="text-sm font-medium text-zinc-300 mb-3">Recent Activity</div>
+              <div className="text-sm font-medium text-fg-primary mb-3">Recent Activity</div>
               <div className="space-y-2">
                 {selectedIncident.timeline.slice(-4).toReversed().map(evt => (
-                  <div key={evt.id} className="flex items-start gap-3 py-2 border-b border-zinc-800/40 last:border-0">
+                  <div key={evt.id} className="flex items-start gap-3 py-2 border-b border-tok-border/40 last:border-0">
                     <span className="text-base mt-0.5">{actionIcon[evt.type]}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-medium text-white">{evt.author}</span>
-                        <span className="text-xs text-zinc-500">{evt.timestamp}</span>
+                        <span className="text-xs font-medium text-fg-primary">{evt.author}</span>
+                        <span className="text-xs text-fg-muted">{evt.timestamp}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-snug">{evt.content}</p>
-                      {evt.metadata && <div className="text-xs font-mono text-zinc-600 mt-0.5">{evt.metadata}</div>}
+                      <p className="text-xs text-fg-secondary leading-snug">{evt.content}</p>
+                      {evt.metadata && <div className="text-xs font-mono text-fg-muted mt-0.5">{evt.metadata}</div>}
                     </div>
                   </div>
                 ))}
@@ -372,17 +383,18 @@ export default function IncidentCommandCenter() {
             </div>
           </div>
         </div>
+        )
       )}
 
       {/* Runbook Tab */}
       {tab === "runbook" && (
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-semibold">Auth Service Degraded — Runbook</h2>
-              <p className="text-sm text-zinc-400 mt-0.5">{steps.filter(s => s.completed).length} of {steps.length} steps complete</p>
+              <p className="text-sm text-fg-secondary mt-0.5">{steps.filter(s => s.completed).length} of {steps.length} steps complete</p>
             </div>
-            <div className="w-48 bg-zinc-800 rounded-full h-2">
+            <div className="w-48 bg-surface-2 rounded-full h-2">
               <div
                 className="bg-indigo-500 h-2 rounded-full transition-all"
                 style={{ width: `${(steps.filter(s => s.completed).length / steps.length) * 100}%` }}
@@ -394,8 +406,8 @@ export default function IncidentCommandCenter() {
               <div
                 key={step.id}
                 className={cn(
-                  "bg-zinc-900 rounded-lg p-4 border-l-2 transition-all",
-                  step.completed ? "border-emerald-500 opacity-70" : step.critical ? "border-rose-500" : "border-zinc-700"
+                  "bg-surface-1 rounded-lg p-4 border-l-2 transition-all",
+                  step.completed ? "border-emerald-500 opacity-70" : step.critical ? "border-rose-500" : "border-tok-border"
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -403,20 +415,20 @@ export default function IncidentCommandCenter() {
                     onClick={() => setSteps(steps.map(s => s.id === step.id ? { ...s, completed: !s.completed } : s))}
                     className={cn(
                       "w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors",
-                      step.completed ? "bg-emerald-500 border-emerald-500" : "border-zinc-600 hover:border-zinc-400"
+                      step.completed ? "bg-emerald-500 border-emerald-500" : "border-tok-border hover:border-tok-border"
                     )}
                   >
-                    {step.completed && <span className="text-white text-xs font-bold">✓</span>}
+                    {step.completed && <span className="text-fg-primary text-xs font-bold">✓</span>}
                   </button>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-zinc-500 font-mono">Step {step.order}</span>
-                      <span className="text-sm font-medium text-white">{step.title}</span>
+                      <span className="text-xs text-fg-muted font-mono">Step {step.order}</span>
+                      <span className="text-sm font-medium text-fg-primary">{step.title}</span>
                       {step.critical && <span className="text-xs text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">critical</span>}
                     </div>
-                    <p className="text-xs text-zinc-400 mb-2">{step.description}</p>
+                    <p className="text-xs text-fg-secondary mb-2">{step.description}</p>
                     {step.command && (
-                      <pre className="bg-zinc-800 rounded p-2 text-xs font-mono text-zinc-300 overflow-x-auto">
+                      <pre className="bg-surface-2 rounded p-2 text-xs font-mono text-fg-primary overflow-x-auto">
                         {step.command}
                       </pre>
                     )}
@@ -430,24 +442,24 @@ export default function IncidentCommandCenter() {
 
       {/* Timeline Tab */}
       {tab === "timeline" && (
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           <h2 className="text-base font-semibold mb-4">Full Timeline — {selectedIncident.id}</h2>
           <div className="relative">
-            <div className="absolute left-5 top-0 bottom-0 w-px bg-zinc-800" />
+            <div className="absolute left-5 top-0 bottom-0 w-px bg-surface-2" />
             <div className="space-y-4">
               {selectedIncident.timeline.map(evt => (
                 <div key={evt.id} className="relative flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center flex-shrink-0 z-10 text-base">
+                  <div className="w-10 h-10 rounded-full bg-surface-1 border border-tok-border flex items-center justify-center flex-shrink-0 z-10 text-base">
                     {actionIcon[evt.type]}
                   </div>
-                  <div className="flex-1 bg-zinc-900 rounded-lg p-3">
+                  <div className="flex-1 bg-surface-1 rounded-lg p-3">
                     <div className="flex items-center gap-3 mb-1">
-                      <span className="text-xs font-medium text-white">{evt.author}</span>
-                      <span className="text-xs font-mono text-zinc-500">{evt.timestamp}</span>
-                      <span className="text-xs text-zinc-600 capitalize">{evt.type.replace("_", " ")}</span>
+                      <span className="text-xs font-medium text-fg-primary">{evt.author}</span>
+                      <span className="text-xs font-mono text-fg-muted">{evt.timestamp}</span>
+                      <span className="text-xs text-fg-muted capitalize">{evt.type.replace("_", " ")}</span>
                     </div>
-                    <p className="text-sm text-zinc-300">{evt.content}</p>
-                    {evt.metadata && <div className="text-xs font-mono text-zinc-600 mt-1">{evt.metadata}</div>}
+                    <p className="text-sm text-fg-primary">{evt.content}</p>
+                    {evt.metadata && <div className="text-xs font-mono text-fg-muted mt-1">{evt.metadata}</div>}
                   </div>
                 </div>
               ))}
@@ -458,11 +470,11 @@ export default function IncidentCommandCenter() {
 
       {/* Postmortem Tab */}
       {tab === "postmortem" && (
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-semibold">Postmortem Draft — {selectedIncident.id}</h2>
-              <p className="text-sm text-zinc-400 mt-0.5">Blameless postmortem in progress</p>
+              <p className="text-sm text-fg-secondary mt-0.5">Blameless postmortem in progress</p>
             </div>
             <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
               Publish
@@ -470,9 +482,9 @@ export default function IncidentCommandCenter() {
           </div>
           <div className="space-y-4">
             {POSTMORTEM.map(field => (
-              <div key={field.label} className="bg-zinc-900 rounded-lg p-4">
-                <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-2">{field.label}</div>
-                <p className="text-sm text-zinc-300 leading-relaxed">{field.content}</p>
+              <div key={field.label} className="bg-surface-1 rounded-lg p-4">
+                <div className="text-xs font-semibold text-fg-secondary uppercase tracking-wide mb-2">{field.label}</div>
+                <p className="text-sm text-fg-primary leading-relaxed">{field.content}</p>
               </div>
             ))}
           </div>
