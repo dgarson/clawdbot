@@ -33,6 +33,7 @@ import type {
   ExecToolDefaults,
   ExecToolDetails,
 } from "./bash-tools.exec-types.js";
+import { validateGhCommandGuard } from "./bash-tools.gh-guard.js";
 import {
   buildSandboxEnv,
   clampWithDefault,
@@ -354,6 +355,12 @@ export function createExecTool(
       } else {
         workdir = resolveWorkdir(rawWorkdir, warnings);
       }
+
+      await validateGhCommandGuard({
+        command: params.command,
+        workdir,
+        config: defaults?.ghGuard,
+      });
 
       const baseEnv = coerceEnv(process.env);
 

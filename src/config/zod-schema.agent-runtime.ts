@@ -389,6 +389,16 @@ const ToolExecSafeBinProfileSchema = z
   })
   .strict();
 
+const ToolExecGhGuardSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    protectedBranches: z.array(z.string()).optional(),
+    allowedPrRepos: z.array(z.string()).optional(),
+    requireExplicitPrRepo: z.boolean().optional(),
+  })
+  .strict()
+  .optional();
+
 const ToolExecBaseShape = {
   host: z.enum(["sandbox", "gateway", "node"]).optional(),
   security: z.enum(["deny", "allowlist", "full"]).optional(),
@@ -397,6 +407,7 @@ const ToolExecBaseShape = {
   pathPrepend: z.array(z.string()).optional(),
   safeBins: z.array(z.string()).optional(),
   safeBinProfiles: z.record(z.string(), ToolExecSafeBinProfileSchema).optional(),
+  ghGuard: ToolExecGhGuardSchema,
   backgroundMs: z.number().int().positive().optional(),
   timeoutSec: z.number().int().positive().optional(),
   cleanupMs: z.number().int().positive().optional(),

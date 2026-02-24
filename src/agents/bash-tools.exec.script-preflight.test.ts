@@ -99,4 +99,27 @@ describeNonWin("exec script preflight", () => {
       expect(text).not.toMatch(/exec preflight:/);
     });
   });
+  it("blocks guarded gh pr create via exec tool", async () => {
+    if (isWin) {
+      return;
+    }
+
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-exec-preflight-"));
+    await fs.mkdir(path.join(tmp, ".git"), { recursive: true });
+    await fs.writeFile(path.join(tmp, ".git", "HEAD"), "ref: refs/heads/feature/test\n", "utf-8");
+
+    const tool = createExecTool({
+      host: "gateway",
+      security: "full",
+      ask: "off",
+      ghGuard: { enabled: true, allowedPrRepos: ["myfork/openclaw"] },
+    });
+
+    await expect(
+      tool.execute("call-gh", {
+        command: "gh pr create --repo openclaw/openclaw --title test --body test",
+        workdir: tmp,
+      }),
+    ).rejects.toThrow(/ghGuard: gh pr create repo must be one of/i);
+  });
 });

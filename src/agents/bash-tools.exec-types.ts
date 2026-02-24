@@ -1,5 +1,6 @@
 import type { ExecAsk, ExecHost, ExecSecurity } from "../infra/exec-approvals.js";
 import type { SafeBinProfileFixture } from "../infra/exec-safe-bin-policy.js";
+import type { ExecGhGuardConfig } from "./bash-tools.gh-guard.js";
 import type { BashSandboxConfig } from "./bash-tools.shared.js";
 
 export type ExecToolDefaults = {
@@ -10,6 +11,7 @@ export type ExecToolDefaults = {
   pathPrepend?: string[];
   safeBins?: string[];
   safeBinProfiles?: Record<string, SafeBinProfileFixture>;
+  ghGuard?: ExecGhGuardConfig;
   agentId?: string;
   backgroundMs?: number;
   timeoutSec?: number;

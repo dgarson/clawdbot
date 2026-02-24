@@ -193,6 +193,17 @@ export type ExecToolConfig = {
   safeBins?: string[];
   /** Optional custom safe-bin profiles for entries in tools.exec.safeBins. */
   safeBinProfiles?: Record<string, SafeBinProfileFixture>;
+  /** Deterministic GitHub CLI guardrails for git/gh commands. */
+  ghGuard?: {
+    /** Enable deterministic guardrails for git/gh commands (default: false). */
+    enabled?: boolean;
+    /** Branch names that git push must never target (default: ["main"]). */
+    protectedBranches?: string[];
+    /** Allowed owner/repo targets for gh pr create --repo/-R. */
+    allowedPrRepos?: string[];
+    /** Require gh pr create to include explicit --repo/-R (default: true). */
+    requireExplicitPrRepo?: boolean;
+  };
   /** Default time (ms) before an exec command auto-backgrounds. */
   backgroundMs?: number;
   /** Default timeout (seconds) before auto-killing exec commands. */
