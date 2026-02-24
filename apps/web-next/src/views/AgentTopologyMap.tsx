@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { cn } from '../lib/utils';
+import { Skeleton } from '../components/ui/Skeleton';
 import { RotateCcw, Wifi, WifiOff, Users, X, MessageSquare } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -381,7 +382,7 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="ml-2 flex-shrink-0 text-zinc-500 hover:text-zinc-200 transition-colors p-1 rounded"
+          className="ml-2 flex-shrink-0 text-zinc-500 hover:text-zinc-200 transition-colors duration-150 p-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <X size={14} />
         </button>
@@ -445,9 +446,59 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
   );
 }
 
+// ─── Skeleton Loading State ────────────────────────────────────────────────────
+
+function TopologySkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+      {/* Toolbar skeleton */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 bg-zinc-900/60">
+        <Skeleton variant="rect" className="h-5 w-36" />
+        <div className="w-px h-4 bg-zinc-700" />
+        <div className="flex items-center gap-4">
+          <Skeleton variant="rect" className="h-3 w-16 rounded" />
+          <Skeleton variant="rect" className="h-3 w-14 rounded" />
+          <Skeleton variant="rect" className="h-3 w-10 rounded" />
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Skeleton variant="rect" className="h-7 w-24 rounded-full" />
+          <Skeleton variant="rect" className="h-7 w-16 rounded-full" />
+          <Skeleton variant="rect" className="h-7 w-24 rounded-lg" />
+        </div>
+      </div>
+      {/* SVG canvas placeholder */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="relative w-full max-w-lg aspect-square">
+          {/* Simulated ring of skeleton nodes */}
+          {Array.from({ length: 6 }).map((_, i) => {
+            const angle = (i / 6) * 2 * Math.PI;
+            const r = 42;
+            const left = `${50 + r * Math.cos(angle)}%`;
+            const top = `${50 + r * Math.sin(angle)}%`;
+            return (
+              <div
+                key={i}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left, top }}
+              >
+                <Skeleton variant="circle" className="w-14 h-14" />
+                <Skeleton variant="text" className="h-2 w-12 mt-2 mx-auto" />
+              </div>
+            );
+          })}
+          {/* Center skeleton */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <Skeleton variant="circle" className="w-8 h-8" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function AgentTopologyMap() {
+export default function AgentTopologyMap({ isLoading = false }: { isLoading?: boolean }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(true);
@@ -470,6 +521,8 @@ export default function AgentTopologyMap() {
     setSelectedId(null);
     setHoveredId(null);
   }, []);
+
+  if (isLoading) return <TopologySkeleton />;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
@@ -504,7 +557,7 @@ export default function AgentTopologyMap() {
           <button
             onClick={() => setIsLive((p) => !p)}
             className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all',
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
               isLive
                 ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20'
                 : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700',
@@ -519,7 +572,7 @@ export default function AgentTopologyMap() {
           {/* Reset view */}
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <RotateCcw size={11} />
             Reset View
