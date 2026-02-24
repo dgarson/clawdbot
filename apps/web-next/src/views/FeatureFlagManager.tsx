@@ -673,8 +673,8 @@ function FlagsTab() {
           {filteredFlags.length === 0 ? (
             <ContextualEmptyState
               icon={Flag}
-              title="No feature flags found"
-              description="No flags match your criteria. Create a new flag to get started."
+              title="No flags match that"
+              description="Nothing matches your criteria. Try a different filter — or create a new flag to get started."
               size="sm"
             />
           ) : (
@@ -941,8 +941,8 @@ function AuditTab() {
         {filteredEntries.length === 0 ? (
           <ContextualEmptyState
             icon={History}
-            title="No audit entries yet"
-            description="Flag changes will appear here once modifications are made."
+            title="Clean slate"
+            description="Every flag change will appear here. Make a modification and this log comes to life."
             size="sm"
           />
         ) : (

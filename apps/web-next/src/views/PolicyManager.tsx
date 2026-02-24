@@ -269,8 +269,8 @@ export default function PolicyManager() {
           {filtered.length === 0 && (
             <ContextualEmptyState
               icon={ScrollText}
-              title="No policies in this category"
-              description="Create a policy to define governance rules for your organization."
+              title="No policies here yet"
+              description="Add your first policy to define governance rules for your team."
               size="sm"
             />
           )}

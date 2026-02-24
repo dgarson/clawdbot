@@ -517,8 +517,8 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
         {sessions.length === 0 ? (
           <ContextualEmptyState
             icon={Layers}
-            title="No active sessions"
-            description="All agents are currently idle. Sessions will appear here when agents start working."
+            title="Quiet on the floor"
+            description="All agents are currently idle. Sessions will show up here when things kick off."
             size="sm"
           />
         ) : (
@@ -753,8 +753,8 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
         {filtered.length === 0 ? (
           <ContextualEmptyState
             icon={FilterX}
-            title="No matching events"
-            description="No entries match the current filter. Try adjusting your selection."
+            title="Nothing matches that filter"
+            description="Try adjusting your selection — there may be more events outside this view."
             size="sm"
           />
         ) : (

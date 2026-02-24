@@ -350,8 +350,8 @@ function ControlsTab() {
         {filtered.length === 0 && (
           <ContextualEmptyState
             icon={ClipboardCheck}
-            title="No compliance controls found"
-            description="No controls match the selected filters. Adjust your criteria."
+            title="No controls match that filter"
+            description="Adjust your criteria to surface controls — or add a new one to expand coverage."
             size="sm"
           />
         )}
@@ -481,8 +481,8 @@ function EvidenceTab() {
         {filtered.length === 0 && (
           <ContextualEmptyState
             icon={FileCheck}
-            title="No evidence items found"
-            description="No evidence artifacts match the selected filter."
+            title="No evidence on file"
+            description="Upload artifacts or attach evidence to controls to start tracking compliance."
             size="sm"
           />
         )}

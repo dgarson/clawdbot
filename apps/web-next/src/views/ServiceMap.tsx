@@ -715,8 +715,8 @@ export default function ServiceMap() {
           {filtered.length === 0 ? (
             <ContextualEmptyState
               icon={Network}
-              title="No services found"
-              description="No services match the current filters. Adjust your criteria to explore the map."
+              title="No services in view"
+              description="Adjust your filters to explore the map — your services are out there."
               size="sm"
             />
           ) : (

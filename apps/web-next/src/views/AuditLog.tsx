@@ -641,8 +641,8 @@ export default function AuditLog() {
           {filtered.length === 0 && (
             <ContextualEmptyState
               icon={FileSearch}
-              title="No audit events found"
-              description="Try adjusting your search or clearing filters to see activity."
+              title="Nothing in the log yet"
+              description="Audit events appear as agents act. Try adjusting your search or clearing filters."
             />
           )}
 
