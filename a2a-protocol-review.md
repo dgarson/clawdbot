@@ -1,227 +1,217 @@
-# A2A Protocol PR — Critical Review
+# A2A Protocol Review — Architecture Disposition & Execution Plan
 
-## Summary
+## Scope
 
-The A2A protocol adds a structured agent-to-agent messaging layer across 5 workstreams: schema/types/validator, message router, SDK, audit logging, and integration tests — plus an ACP handoff skill. The architecture is well-separated, thoroughly tested, and the existing `a2a-review.md` already identifies several real gaps. This review builds on that foundation with specific, actionable findings.
+Reviewed on branch `a2a-protocol` after syncing latest from `origin/a2a-protocol`.
 
-## Overall Assessment
+Primary goals of this pass:
 
-**Strengths**: Clean module boundaries, good test coverage, solid separation of concerns, type-safe discriminated union for messages. The protocol is thoughtfully designed for the task/review lifecycle.
-
-**Primary risk**: Several enforceability gaps where the protocol _appears_ to guarantee things it doesn't actually enforce at runtime.
-
----
-
-## Critical Issues
-
-### 1. Envelope validation does not reject unknown top-level fields
-
-**File**: `src/gateway/a2a/validator.ts:93-222`
-
-The `validateEnvelope` function manually checks each known field but has **no guard against extra top-level keys**. A message with `{ ...validFields, _secret: "payload" }` passes validation silently. This undermines the `additionalProperties: false` discipline applied to all payload schemas.
-
-**Fix**: Either use AJV for the full envelope (like payloads), or add an explicit allowlist check:
-
-```ts
-const KNOWN_ENVELOPE_KEYS = new Set([
-  "protocol", "messageId", "timestamp", "from", "to",
-  "type", "priority", "correlationId", "payload",
-]);
-const unknownKeys = Object.keys(obj).filter(k => !KNOWN_ENVELOPE_KEYS.has(k));
-if (unknownKeys.length > 0) {
-  errors.push({
-    path: "/",
-    message: `Unknown top-level field(s): ${unknownKeys.join(", ")}`,
-    rule: "additionalProperties",
-  });
-}
-```
-
-### 2. `timestamp` accepts any non-empty string
-
-**File**: `src/gateway/a2a/validator.ts:127-139`
-
-The validator only checks that `timestamp` is a non-empty string. `"not-a-date"` passes validation. This corrupts audit log ordering, query filtering (the `since`/`until` filters in `audit-query.ts:75-81` do string comparison), and forensic integrity.
-
-**Fix**: Add ISO 8601 format validation. At minimum:
-```ts
-if (isNaN(Date.parse(input.timestamp))) {
-  errors.push({ path: "/timestamp", message: "timestamp must be a valid ISO 8601 datetime", rule: "format" });
-}
-```
-
-Also consider validating `deadline`, `estimatedCompletion`, and other date-like optional fields in payloads.
-
-### 3. SDK sends messages without validation
-
-**File**: `src/gateway/a2a/sdk.ts:88-93`
-
-The `send()` function dispatches directly to `sendFn` without running the validator. The SDK constructs messages from typed TypeScript, so structural issues are unlikely — but semantic rules (e.g., `task_response` with `action: "declined"` requires `reason`) are **not enforced at construction time**. An agent building:
-
-```ts
-await sendTaskResponse({
-  to: bobRef,
-  payload: { taskId: "t1", action: "declined" },  // missing reason
-});
-```
-
-...will emit an invalid message. The router _may_ catch this if `validate` is configured, but that's optional.
-
-**Fix**: Validate before send, or at minimum add semantic checks in each builder function. The simplest path: import `validateA2AMessage` and call it in `send()`, throwing on invalid.
-
-### 4. Router validation is optional — fails open
-
-**File**: `src/gateway/a2a/router.ts:135-138`
-
-When no `validate` function is provided, the router casts unknown input to `A2AMessage` with a comment acknowledging this is "dangerous". In production, this should fail closed.
-
-```ts
-// No validator — trust the input (dangerous, but allows incremental integration)
-message = input as A2AMessage;
-```
-
-**Fix**: Make `validate` required, or default to `validateA2AMessage` from the validator module. If you truly need a bypass for testing, use an explicit `{ unsafeSkipValidation: true }` flag.
-
-### 5. `A2AMessageLike` in audit duplicates `A2AMessage` — will drift
-
-**File**: `src/gateway/a2a/audit-types.ts:14-24`
-
-The audit system defines its own `A2AMessageLike` interface rather than importing `A2AMessage` from `types.ts`. The comment says "when Workstream A types are integrated, this can be replaced" — but this PR merges all workstreams together. The two interfaces can now drift silently.
-
-**Fix**: Import and use `A2AMessage` from `./types.js` directly. If the audit module needs to accept slightly looser input, use `Pick<A2AMessage, ...>` or a mapped type that stays tethered to the source of truth.
+- Verify technical accuracy of prior review points against code
+- Tighten architectural recommendations for enforceability and production safety
+- Convert findings into concrete, owner-assigned next steps
 
 ---
 
-## Moderate Issues
+## Executive Assessment
 
-### 6. Module-scoped mutable singletons in SDK
+The A2A protocol foundation is strong (message taxonomy, type boundaries, test scaffolding, router pipeline), but there are still **runtime enforceability gaps** that keep it below production-ready for multi-agent environments.
 
-**File**: `src/gateway/a2a/sdk.ts:44,79`
-
-`currentContext` and `sendFn` are module-level mutable singletons. In a multi-agent gateway process (or test parallelism), one agent's `initA2ASDK` call overwrites another's context. The integration tests already work around this via `impersonate()` that resets/re-inits between steps — but this pattern is fragile in production.
-
-**Fix**: Return an SDK _instance_ from a factory function rather than using global state:
-```ts
-function createA2ASDK(context: AgentContext, sendFn: SendFn) {
-  return { sendTaskRequest(...), sendTaskResponse(...), ... };
-}
-```
-
-### 7. No `half-open` state in circuit breaker
-
-**File**: `src/gateway/a2a/circuit-breaker.ts:78-89`
-
-The circuit breaker transitions from `open` directly to `closed` when the cooldown expires. Standard circuit breaker patterns include a `half-open` state that allows a probe message through before fully closing. Without this, a transient storm that tripped the breaker will resume at full throughput the instant the cooldown expires, potentially retripping immediately.
-
-### 8. Correlation tracker memory is unbounded between prunes
-
-**File**: `src/gateway/a2a/circuit-breaker.ts:53,92-104`
-
-The `correlations` map grows with every unique correlationId. Pruning uses `windowMs * 10` as a heuristic (line 168), which is 10 minutes by default. In a high-traffic gateway, this map could grow significantly. There's no `maxSize` cap, and `prune()` is never called automatically — it requires external scheduling.
-
-**Fix**: Either add a size cap with LRU eviction, or auto-prune in `check()` when the map exceeds a threshold (e.g., every 1000 entries, prune expired).
-
-### 9. Rate limiter window model is approximate
-
-**File**: `src/gateway/a2a/rate-limiter.ts:48-55`
-
-The rate limiter uses fixed windows (resets completely when the window expires). An agent can send `maxPerWindow` messages at the end of one window and `maxPerWindow` more at the start of the next, effectively doubling the rate over a short period. A sliding window or token bucket would be more accurate.
-
-Not necessarily a bug — fixed windows are common — but worth documenting as a known limitation.
-
-### 10. `resolveLogFile` has an unbounded loop
-
-**File**: `src/gateway/a2a/audit.ts:68-82`
-
-The `while (true)` loop in `resolveLogFile` increments the file index forever until it finds a file under the size limit. If the filesystem is corrupted or something keeps creating oversized files, this loops indefinitely. Add a max iteration guard (e.g., 1000 rotations per day should be more than enough).
-
-### 11. Audit query loads all matching entries into memory
-
-**File**: `src/gateway/a2a/audit-query.ts:127-136`
-
-`queryA2ALog` reads all entries from all relevant log files into `allMatching[]` before applying `limit`/`offset`. With 50MB log files, this could load hundreds of thousands of entries. The pagination gives the _appearance_ of efficiency without the reality.
-
-**Fix**: Stream/scan entries and stop after reaching `offset + limit` matches, discarding entries beyond the page. For `totalCount`, you'd need a separate scan or accept an approximate count.
+**Current maturity:** solid beta foundation
+**Blocking risks before production:** validation fail-open behavior, incomplete envelope contract, weak timestamp guarantees, SDK global state/validation gaps
 
 ---
 
-## Minor / Style Issues
+## Verified Findings (Code-Checked)
 
-### 12. Spec path references a local machine path
+### P0 — Must fix before production rollout
 
-**Files**: All `src/gateway/a2a/*.ts` and `test/a2a/*.ts`
+1. **Envelope contract is open (unknown top-level keys allowed)**
+   - File: `src/gateway/a2a/validator.ts`
+   - `validateEnvelope()` checks known fields but does not reject extras.
+   - Impact: protocol drift, hidden data fields, weaker audit trust model.
 
-Every file header references:
-```
-Spec: /Users/openclaw/.openclaw/workspace/_shared/specs/a2a-communication-protocol.md
-```
+2. **`timestamp` is not format-validated**
+   - File: `src/gateway/a2a/validator.ts`
+   - Only non-empty string is enforced; malformed datetime strings pass.
+   - Impact: ordering/filter ambiguity in `audit-query` and forensic quality loss.
 
-This is a local machine path that doesn't exist for other contributors. Either include the spec in the repo, or reference it by a portable path/URL.
+3. **Router validation remains optional (fail-open path)**
+   - File: `src/gateway/a2a/router.ts`
+   - If no validator is provided, input is cast to `A2AMessage` and routed.
+   - Impact: bypasses schema + semantic validation guarantees.
 
-### 13. Duplicate test: "accepts null correlationId" appears twice
+4. **SDK send path does not runtime-validate before dispatch**
+   - File: `src/gateway/a2a/sdk.ts`
+   - `send()` forwards directly to `sendFn`; no call to validator.
+   - Impact: semantically invalid messages can be emitted if router validation is absent/misconfigured.
 
-**File**: `test/a2a/validator.test.ts:323-327` and `test/a2a/validator.test.ts:335-339`
+5. **Audit types duplicate canonical message type**
+   - File: `src/gateway/a2a/audit-types.ts`
+   - `A2AMessageLike` mirrors envelope shape instead of importing `A2AMessage`.
+   - Impact: guaranteed type drift risk over time.
 
-The test "accepts null correlationId" is defined twice (lines 323 and 335). The second occurrence should be removed.
+### P1 — High priority hardening
 
-### 14. `parseA2AMessage` is too lenient
+6. **SDK uses module-global mutable context and send function**
+   - File: `src/gateway/a2a/sdk.ts`
+   - `currentContext` and `sendFn` are shared mutable singletons.
+   - Impact: unsafe in concurrent/multi-agent runtime, brittle tests, implicit cross-talk risk.
 
-**File**: `src/gateway/a2a/sdk.ts:231-246`
+7. **Circuit breaker has no half-open state**
+   - File: `src/gateway/a2a/circuit-breaker.ts`
+   - Cooldown expiry goes open -> closed directly.
+   - Impact: abrupt full-traffic resume can retrip instantly.
 
-`parseA2AMessage` checks `protocol`, `type`, and `payload` but doesn't check `from`, `to`, `messageId`, `timestamp`, or `priority`. It then casts to `A2AMessage`, giving callers a false sense of type safety. The doc says "lightweight check" but callers may assume more.
+8. **Correlation tracker growth is bounded only by manual prune cadence**
+   - File: `src/gateway/a2a/circuit-breaker.ts`
+   - `correlations` map grows until `prune()` is called externally.
+   - Impact: memory growth risk in long-running high-throughput gateways.
 
-### 15. `agentRefSchema` allows `additionalProperties` by omission
+9. **Audit file rotation resolver has unbounded loop**
+   - File: `src/gateway/a2a/audit.ts`
+   - `resolveLogFile()` uses `while (true)` with no iteration cap.
+   - Impact: potential pathological hangs under abnormal FS states.
 
-**File**: `src/gateway/a2a/schema.ts:24-33`
+10. **Audit query performs full materialization before pagination**
+    - File: `src/gateway/a2a/audit-query.ts`
+    - Collects all matching entries into memory before `offset/limit` slice.
+    - Impact: poor scaling for large log volumes.
 
-`agentRefSchema` has `additionalProperties: false`, which is good — but only when used as a standalone schema. When spread into the envelope's manual validation (validator.ts), the AJV validation of `from`/`to` enforces this, but nothing prevents extra fields on the envelope object _around_ `from`/`to`. This ties back to issue #1.
+### P2 — Correctness hygiene / maintainability
 
-### 16. Type assertion in `deriveCorrelationId`
+11. **Local machine absolute spec paths in headers**
+    - Files: `src/gateway/a2a/*.ts`, `test/a2a/*.ts`
+    - Uses `/Users/openclaw/...` absolute path.
+    - Impact: non-portable references for contributors/CI environments.
 
-**File**: `src/gateway/a2a/sdk.ts:267`
+12. **Duplicate validator test case**
+    - File: `test/a2a/validator.test.ts`
+    - `"accepts null correlationId"` appears twice.
 
-```ts
-return (originalMessage.correlationId as string) ?? originalMessage.messageId;
-```
+13. **`parseA2AMessage` is intentionally lightweight but easy to over-trust**
+    - File: `src/gateway/a2a/sdk.ts`
+    - Checks only protocol/type/payload then casts.
+    - Impact: potential misuse as “validated parse” by future callers.
 
-`correlationId` is typed as `string | null | undefined`. The `as string` cast suppresses the `null` case — but `??` already handles `null`. The cast is unnecessary and slightly misleading. Just:
-```ts
-return originalMessage.correlationId ?? originalMessage.messageId;
-```
-
-### 17. `sendBroadcast` hardcodes wildcard `to` but broadcast schema doesn't validate the recipient
-
-Broadcasts use `{ agentId: "*", role: "*" }` as the `to` field, but nothing in the validator or schema requires this for `broadcast` messages. An agent could construct a broadcast with a specific `to` target and it would pass validation. If wildcarding is a protocol requirement for broadcasts, enforce it in semantic validation.
+14. **Minor type-cast cleanup**
+    - File: `src/gateway/a2a/sdk.ts`
+    - `deriveCorrelationId` unnecessary cast can be removed.
 
 ---
 
-## Test Coverage Notes
+## Architecture Alignment Notes
 
-- **Good**: All 7 message types have positive and negative validation tests. Router pipeline (validate → self-send → rate-limit → circuit-breaker → deliver → audit) is well-tested. E2E tests cover realistic multi-agent flows.
-- **Missing**: No tests for unknown envelope fields passing through (ties to issue #1). No tests for malformed timestamps. No test for SDK sending semantically invalid messages (ties to issue #3). No concurrent test for the SDK singleton issue (#6).
-- The `a2a-review.md` file at root (from PR #119) is a good self-assessment but is a review document, not code or docs — consider whether it belongs in the repo long-term or should be a PR comment/issue.
+This workstream should align to existing OpenClaw architecture patterns:
 
----
+- **Fail-closed by default** for security/safety boundaries
+- **Single source of truth types** (no shadow interfaces)
+- **Deterministic enforcement in code**, not doc/prompt convention
+- **Stateless or instance-scoped SDKs** in concurrent runtime paths
+- **Streaming/bounded resource usage** for audit and observability subsystems
 
-## ACP Handoff Skill
-
-The ACP handoff skill (`skills/acp-handoff/SKILL.md`) is well-documented with clear usage, shell scripts, tier config, and SQLite schema. A few notes:
-
-- **No A2A integration**: The handoff skill uses `sessions_send` directly rather than A2A protocol messages. If A2A is the intended inter-agent protocol, the handoff workflow should emit `review_request`/`review_response` A2A messages rather than bypassing the protocol.
-- The `docs.acp.md` at root describes the ACP _bridge_ (IDE-to-Gateway), which is separate from A2A. These should not be conflated — the naming overlap between "ACP" (Agent Client Protocol for IDEs) and A2A (agent-to-agent protocol) could confuse contributors.
+Current A2A implementation is close, but P0 items materially violate fail-closed + enforceability expectations.
 
 ---
 
-## Recommendations (Priority Order)
+## Required Design Edits (Decision Record)
 
-1. **Close the envelope contract** — reject unknown top-level fields (#1)
-2. **Validate timestamps as ISO 8601** (#2)
-3. **Make router validation required** or default to the validator (#4)
-4. **Add pre-send validation to the SDK** (#3)
-5. **Replace `A2AMessageLike` with actual `A2AMessage` import** (#5)
-6. **Add prune scheduling or size caps** for circuit breaker/rate limiter state (#8)
-7. **Add `resolveLogFile` loop guard** (#10)
-8. **Consider streaming for audit queries** as log volumes grow (#11)
-9. **Refactor SDK away from module singletons** before multi-agent use (#6)
+1. **Adopt strict envelope schema validation via AJV**
+   - Replace/manual envelope checks with schema-driven validation that enforces `additionalProperties: false`.
+   - Add explicit format rule for `timestamp` (RFC3339/ISO8601).
 
-The foundation is strong. The biggest delta to "production-ready" is closing the gaps where the protocol _claims_ to enforce things but doesn't at runtime.
+2. **Make router validation mandatory in production path**
+   - Router should always validate unless explicitly constructed in a test-only unsafe mode.
+
+3. **Validate in SDK send path (defense in depth)**
+   - SDK validates before dispatch and throws structured validation errors.
+
+4. **Unify audit message typing with canonical `A2AMessage`**
+   - Remove `A2AMessageLike` drift risk.
+
+5. **Refactor SDK to instance factory form**
+   - `createA2ASDK(context, sendFn)`; no module-scoped mutable singleton state.
+
+---
+
+## Workstream Plan (Concrete Next Steps)
+
+### Phase 1 — Protocol enforcement closure (P0)
+
+1. **Strict envelope schema + timestamp format enforcement**
+   - Owner: **Claire**
+   - Support: Tim
+   - Deliverables:
+     - Envelope schema in `schema.ts`
+     - Validator wired to full schema enforcement
+     - Tests for unknown top-level fields and invalid timestamp rejection
+
+2. **Router fail-closed validation default**
+   - Owner: **Claire**
+   - Deliverables:
+     - `validate` required in router config OR default to `validateA2AMessage`
+     - explicit test-only bypass flag (named unsafe)
+     - regression tests proving invalid messages cannot route by default
+
+3. **SDK pre-send validation**
+   - Owner: **Roman**
+   - Support: Claire
+   - Deliverables:
+     - `send()` calls validator before `sendFn`
+     - error surfacing contract documented
+     - tests for semantic invalid payload rejection (e.g., declined without reason)
+
+4. **Audit type unification**
+   - Owner: **Roman**
+   - Deliverables:
+     - Replace `A2AMessageLike` with imported canonical type
+     - compile/test proof of no drift interfaces
+
+### Phase 2 — Runtime hardening (P1)
+
+5. **SDK instance model refactor**
+   - Owner: **Roman**
+   - Support: Tim
+   - Deliverables:
+     - `createA2ASDK()` API
+     - migration shim for existing call sites
+     - concurrency tests for isolated contexts
+
+6. **Circuit breaker lifecycle hardening**
+   - Owner: **Claire**
+   - Deliverables:
+     - add half-open probe state
+     - bounded/automatic pruning strategy (threshold or timer-driven)
+     - docs for operational tuning
+
+7. **Audit resilience and scalability upgrades**
+   - Owner: **Xavier**
+   - Support: Claire
+   - Deliverables:
+     - `resolveLogFile` loop guard
+     - query path that avoids full in-memory materialization for paged reads
+
+### Phase 3 — Hygiene and docs (P2)
+
+8. **Portable spec references + test cleanup**
+   - Owner: **Roman**
+   - Deliverables:
+     - replace absolute spec paths with repo-relative reference
+     - remove duplicated correlationId test
+     - clarify `parseA2AMessage` docstring as non-validating parser
+
+---
+
+## Acceptance Gates
+
+A2A moves from beta -> production candidate only when:
+
+- P0 items complete and merged
+- new negative tests exist for all previously fail-open paths
+- router + SDK both enforce validation deterministically
+- audit typing and scalability improvements are merged or explicitly deferred with owner + date
+
+---
+
+## Final Position
+
+This is a good architecture direction and a strong implementation start. The remaining work is not redesign; it is **enforcement closure and runtime hardening**. Once P0/P1 items land, A2A will match OpenClaw’s expected architectural bar for deterministic, auditable inter-agent communication.
