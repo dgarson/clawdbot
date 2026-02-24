@@ -191,10 +191,10 @@ function RoleBadge({ role }: RoleBadgeProps) {
         getRoleBadgeStyles(role)
       )}
     >
-      {role === 'owner' && <Crown className="w-3 h-3 mr-1" />}
-      {role === 'admin' && <ShieldCheck className="w-3 h-3 mr-1" />}
-      {role === 'member' && <User className="w-3 h-3 mr-1" />}
-      {role === 'viewer' && <Eye className="w-3 h-3 mr-1" />}
+      {role === 'owner' && <Crown className="w-3 h-3 mr-1" aria-hidden="true" />}
+      {role === 'admin' && <ShieldCheck className="w-3 h-3 mr-1" aria-hidden="true" />}
+      {role === 'member' && <User className="w-3 h-3 mr-1" aria-hidden="true" />}
+      {role === 'viewer' && <Eye className="w-3 h-3 mr-1" aria-hidden="true" />}
       {role.charAt(0).toUpperCase() + role.slice(1)}
     </span>
   );
@@ -233,6 +233,30 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<MemberRole>('member');
   const [error, setError] = useState('');
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+
+  // Escape key to close + focus trap
+  React.useEffect(() => {
+    if (!isOpen) {return;}
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+        else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    // Focus first focusable element
+    const timer = setTimeout(() => {
+      dialogRef.current?.querySelector<HTMLElement>('input, button, select')?.focus();
+    }, 10);
+    return () => { document.removeEventListener('keydown', handleKeyDown); clearTimeout(timer); };
+  }, [isOpen, onClose]);
 
   if (!isOpen) {return null;}
 
@@ -261,6 +285,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="invite-modal-title"
+        ref={dialogRef}
       >
         <div className="flex items-center justify-between mb-6">
           <h2 id="invite-modal-title" className="text-lg font-semibold text-fg-primary">
@@ -269,10 +294,10 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-fg-secondary hover:text-fg-primary transition-colors rounded-lg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="p-1 text-fg-secondary hover:text-fg-primary transition-colors rounded-lg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-violet-500"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -282,7 +307,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" aria-hidden="true" />
               <input
                 id="invite-email"
                 type="email"
@@ -308,7 +333,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
               Role
             </label>
             <div className="relative">
-              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" />
+              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" aria-hidden="true" />
               <select
                 id="invite-role"
                 value={role}
@@ -325,7 +350,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted pointer-events-none" aria-hidden="true" />
             </div>
           </div>
 
@@ -333,13 +358,13 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-secondary bg-surface-2 rounded-lg hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-secondary bg-surface-2 rounded-lg hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
             >
               Send Invite
             </button>
@@ -373,6 +398,29 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isOpen) {return;}
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onCancel(); return; }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+        else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    const timer = setTimeout(() => {
+      dialogRef.current?.querySelector<HTMLElement>('button')?.focus();
+    }, 10);
+    return () => { document.removeEventListener('keydown', handleKeyDown); clearTimeout(timer); };
+  }, [isOpen, onCancel]);
+
   if (!isOpen) {return null;}
 
   return (
@@ -388,10 +436,11 @@ function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-description"
+        ref={dialogRef}
       >
         <div className="flex items-start gap-4 mb-4">
           <div className={cn('p-2 rounded-full', confirmVariant === 'danger' ? 'bg-rose-500/20' : 'bg-amber-500/20')}>
-            <AlertTriangle className={cn('w-5 h-5', confirmVariant === 'danger' ? 'text-rose-400' : 'text-amber-400')} />
+            <AlertTriangle className={cn('w-5 h-5', confirmVariant === 'danger' ? 'text-rose-400' : 'text-amber-400')} aria-hidden="true" />
           </div>
           <div className="flex-1">
             <h3 id="confirm-dialog-title" className="text-base font-semibold text-fg-primary">
@@ -407,7 +456,7 @@ function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-secondary bg-surface-2 rounded-lg hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-secondary bg-surface-2 rounded-lg hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors"
           >
             Cancel
           </button>
@@ -415,7 +464,7 @@ function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             className={cn(
-              'flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary rounded-lg focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors',
+              'flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary rounded-lg focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors',
               confirmVariant === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'
             )}
           >
@@ -453,15 +502,15 @@ function RoleDropdown({ currentRole, onChange, disabled = false }: RoleDropdownP
           'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-colors',
           disabled
             ? 'bg-surface-2/50 border-tok-border text-fg-muted cursor-not-allowed'
-            : 'bg-surface-2 border-tok-border text-fg-secondary hover:border-tok-border cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500'
+            : 'bg-surface-2 border-tok-border text-fg-secondary hover:border-tok-border cursor-pointer focus-visible:ring-2 focus-visible:ring-violet-500'
         )}
         aria-label={`Change role, currently ${currentRoleInfo?.name}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <Shield className="w-3 h-3" />
+        <Shield className="w-3 h-3" aria-hidden="true" />
         {currentRoleInfo?.name}
-        {!disabled && <ChevronDown className="w-3 h-3" />}
+        {!disabled && <ChevronDown className="w-3 h-3" aria-hidden="true" />}
       </button>
 
       {isOpen && !disabled && (
@@ -493,9 +542,9 @@ function RoleDropdown({ currentRole, onChange, disabled = false }: RoleDropdownP
                   role="option"
                   aria-selected={currentRole === role.id}
                 >
-                  <Shield className="w-3 h-3" />
+                  <Shield className="w-3 h-3" aria-hidden="true" />
                   {role.name}
-                  {currentRole === role.id && <Check className="w-3 h-3 ml-auto" />}
+                  {currentRole === role.id && <Check className="w-3 h-3 ml-auto" aria-hidden="true" />}
                 </button>
               </li>
             ))}
@@ -564,16 +613,16 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
         <button
           type="button"
           onClick={() => setIsInviteModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           Invite Member
         </button>
       </div>
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-muted" aria-hidden="true" />
         <input
           type="text"
           value={searchQuery}
@@ -634,12 +683,12 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                 <button
                   type="button"
                   onClick={() => setOpenMenuId(openMenuId === member.id ? null : member.id)}
-                  className="p-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2 rounded-lg focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                  className="p-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2 rounded-lg focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors"
                   aria-label={`Actions for ${member.name}`}
                   aria-haspopup="menu"
                   aria-expanded={openMenuId === member.id}
                 >
-                  <MoreHorizontal className="w-4 h-4" />
+                  <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
                 </button>
 
                 {openMenuId === member.id && (
@@ -665,7 +714,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                               }}
                               className="w-full px-3 py-2 text-xs text-left text-amber-400 hover:bg-surface-3 transition-colors flex items-center gap-2"
                             >
-                              <Clock className="w-3 h-3" />
+                              <Clock className="w-3 h-3" aria-hidden="true" />
                               Suspend
                             </button>
                           ) : (
@@ -677,7 +726,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                               }}
                               className="w-full px-3 py-2 text-xs text-left text-emerald-400 hover:bg-surface-3 transition-colors flex items-center gap-2"
                             >
-                              <Check className="w-3 h-3" />
+                              <Check className="w-3 h-3" aria-hidden="true" />
                               Reactivate
                             </button>
                           )}
@@ -689,7 +738,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
                             }}
                             className="w-full px-3 py-2 text-xs text-left text-rose-400 hover:bg-surface-3 transition-colors flex items-center gap-2"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-3 h-3" aria-hidden="true" />
                             Remove
                           </button>
                         </>
@@ -756,13 +805,13 @@ function RolesTab() {
             <div className="flex items-start gap-3 mb-4">
               <div className={cn('p-2 rounded-lg', role.badgeColor.split(' ')[0])}>
                 {role.id === 'owner' ? (
-                  <Crown className="w-5 h-5 text-amber-400" />
+                  <Crown className="w-5 h-5 text-amber-400" aria-hidden="true" />
                 ) : role.id === 'admin' ? (
-                  <ShieldCheck className="w-5 h-5 text-violet-400" />
+                  <ShieldCheck className="w-5 h-5 text-violet-400" aria-hidden="true" />
                 ) : role.id === 'member' ? (
-                  <User className="w-5 h-5 text-blue-400" />
+                  <User className="w-5 h-5 text-blue-400" aria-hidden="true" />
                 ) : (
-                  <Eye className="w-5 h-5 text-fg-secondary" />
+                  <Eye className="w-5 h-5 text-fg-secondary" aria-hidden="true" />
                 )}
               </div>
               <div className="flex-1">
@@ -788,7 +837,7 @@ function RolesTab() {
               <ul className="space-y-2">
                 {role.permissions.map((permission) => (
                   <li key={permission} className="flex items-center gap-2 text-sm text-fg-secondary">
-                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" aria-hidden="true" />
                     {permission}
                   </li>
                 ))}
@@ -802,14 +851,14 @@ function RolesTab() {
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-violet-600/5" />
           <div className="relative flex flex-col items-center justify-center py-6 text-center">
             <div className="p-3 rounded-full bg-surface-2 mb-4">
-              <Lock className="w-6 h-6 text-fg-muted" />
+              <Lock className="w-6 h-6 text-fg-muted" aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-fg-primary mb-2">Custom Roles</h3>
             <p className="text-xs text-fg-muted mb-4 max-w-[200px]">
               Create custom roles with specific permissions for your team
             </p>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-300 bg-indigo-500/20 rounded-full">
-              <Crown className="w-3 h-3" />
+              <Crown className="w-3 h-3" aria-hidden="true" />
               Pro Feature
             </span>
           </div>
@@ -841,7 +890,7 @@ function InvitesTab({ invites, onCancel, onResend }: InvitesTabProps) {
 
       {invites.length === 0 ? (
         <div className="py-16 text-center bg-surface-1/30 border border-tok-border rounded-xl">
-          <Mail className="w-12 h-12 mx-auto mb-4 text-fg-muted" />
+          <Mail className="w-12 h-12 mx-auto mb-4 text-fg-muted" aria-hidden="true" />
           <p className="text-fg-secondary mb-2">No pending invitations</p>
           <p className="text-xs text-fg-muted">
             Invite team members from the Members tab
@@ -856,7 +905,7 @@ function InvitesTab({ invites, onCancel, onResend }: InvitesTabProps) {
             >
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-amber-500/10">
-                  <Mail className="w-5 h-5 text-amber-400" />
+                  <Mail className="w-5 h-5 text-amber-400" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-fg-primary">{invite.email}</p>
@@ -877,19 +926,19 @@ function InvitesTab({ invites, onCancel, onResend }: InvitesTabProps) {
                   <button
                     type="button"
                     onClick={() => onResend(invite.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg-secondary bg-surface-2 rounded-md hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg-secondary bg-surface-2 rounded-md hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors"
                     aria-label={`Resend invitation to ${invite.email}`}
                   >
-                    <RefreshCw className="w-3 h-3" />
+                    <RefreshCw className="w-3 h-3" aria-hidden="true" />
                     Resend
                   </button>
                   <button
                     type="button"
                     onClick={() => onCancel(invite.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-500/10 rounded-md hover:bg-rose-500/20 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-500/10 rounded-md hover:bg-rose-500/20 focus-visible:ring-2 focus-visible:ring-violet-500 transition-colors"
                     aria-label={`Cancel invitation to ${invite.email}`}
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3 h-3" aria-hidden="true" />
                     Cancel
                   </button>
                 </div>
@@ -1039,7 +1088,15 @@ export default function TeamManagement({ isLoading = false }: { isLoading?: bool
   if (isLoading) return <TeamManagementSkeleton />;
 
   return (
-    <div className="min-h-screen bg-surface-0 p-4 sm:p-6 lg:p-8">
+    <>
+      {/* Skip link */}
+      <a
+        href="#team-management-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+    <main id="team-management-main" className="min-h-screen bg-surface-0 p-4 sm:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -1071,13 +1128,13 @@ export default function TeamManagement({ isLoading = false }: { isLoading?: bool
                   aria-controls={`panel-${tab.id}`}
                   id={`tab-${tab.id}`}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
+                    'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                     isActive
-                      ? 'border-indigo-500 text-indigo-400'
+                      ? 'border-violet-500 text-violet-400'
                       : 'border-transparent text-fg-secondary hover:text-fg-primary hover:border-tok-border'
                   )}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4" aria-hidden="true" />
                   {tab.label}
                   {count !== undefined && count > 0 && (
                     <span className="px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded-full">
@@ -1133,6 +1190,7 @@ export default function TeamManagement({ isLoading = false }: { isLoading?: bool
           )}
         </div>
       </div>
-    </div>
+    </main>
+    </>
   );
 }

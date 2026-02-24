@@ -277,7 +277,7 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
         <div className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm",
           event.actor.kind === "system" ? "bg-surface-2" : "bg-indigo-950"
-        )}>
+        )} aria-hidden="true">
           {event.actor.emoji}
         </div>
 
@@ -435,7 +435,15 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
   if (isLoading) return <ActivityFeedSkeleton />;
 
   return (
-    <main className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Activity Feed">
+    <>
+      {/* Skip link */}
+      <a
+        href="#activity-feed-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      <main id="activity-feed-main" className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden" aria-label="Activity Feed">
       {/* Left: Feed */}
       <div className="md:w-96 shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-tok-border overflow-hidden">
         {/* Header */}
@@ -535,7 +543,7 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
       </div>
 
       {/* Right: Detail */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+      <section aria-label="Event detail" className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {selected ? (
           <div className="max-w-xl space-y-5">
             {/* Header */}
@@ -543,7 +551,7 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
               <div className={cn(
                 "w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0",
                 selected.actor.kind === "system" ? "bg-surface-2" : "bg-indigo-950"
-              )}>
+              )} aria-hidden="true">
                 {selected.actor.emoji}
               </div>
               <div>
@@ -617,12 +625,13 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-5xl mb-4">📋</p>
+            <p className="text-5xl mb-4" aria-hidden="true">📋</p>
             <p className="text-lg font-semibold text-fg-primary">Select an event</p>
             <p className="text-sm text-fg-muted mt-1">Choose an activity from the feed to view details</p>
           </div>
         )}
-      </div>
+      </section>
     </main>
+    </>
   );
 }

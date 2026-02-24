@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Inbox } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
@@ -347,6 +347,15 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
     }
   };
 
+  const getPriorityLabel = (p: InboxPriority) => {
+    switch (p) {
+      case 'urgent': return 'Urgent priority';
+      case 'high': return 'High priority';
+      case 'normal': return 'Normal priority';
+      case 'low': return 'Low priority';
+    }
+  };
+
   const getKindBadgeStyles = (k: InboxItemKind) => {
     switch (k) {
       case 'task': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
@@ -376,250 +385,274 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
   if (isLoading) return <AgentInboxSkeleton />;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full bg-surface-0 text-fg-primary font-sans overflow-hidden">
-      {/* Left: Sidebar */}
-      <aside className="md:w-64 border-b md:border-b-0 md:border-r border-tok-border flex flex-col p-4 space-y-8 shrink-0">
-        <div>
-          <h2 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-4 px-2">Inbox</h2>
-          <nav className="space-y-1">
-            {[
-              { id: 'all', label: 'All Items', count: items.filter(i => i.status !== 'archived').length },
-              { id: 'unread', label: 'Unread', count: getUnreadCount(items) },
-              { id: 'action-required', label: 'Action Required', count: getActionRequiredCount(items) },
-              { id: 'archived', label: 'Archived', count: items.filter(i => i.status === 'archived').length },
-            ].map((folder) => (
-              <button
-                key={folder.id}
-                onClick={() => {
-                  setCurrentFolder(folder.id as Folder);
-                  setFromFilter(null);
-                }}
-                className={cn(
-                  "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-colors",
-                  currentFolder === folder.id ? "bg-surface-1 text-fg-primary" : "text-fg-secondary hover:text-fg-primary hover:bg-surface-1/50"
-                )}
-              >
-                <span>{folder.label}</span>
-                {folder.count > 0 && (
-                  <span className={cn(
-                    "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                    folder.id === 'unread' || folder.id === 'action-required' ? "bg-indigo-500 text-fg-primary" : "bg-surface-2 text-fg-muted"
-                  )}>
-                    {folder.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
+    <>
+      {/* Skip link */}
+      <a
+        href="#inbox-list"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to inbox
+      </a>
 
-        <div>
-          <h2 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-4 px-2">From Agent</h2>
-          <div className="flex flex-wrap gap-2 px-2">
-            <button
-              onClick={() => setFromFilter(null)}
-              className={cn(
-                "text-[11px] px-2 py-1 rounded-full border transition-colors",
-                fromFilter === null ? "bg-surface-2 border-tok-border text-fg-primary" : "border-tok-border text-fg-muted hover:border-tok-border"
-              )}
-            >
-              Everyone
-            </button>
-            {uniqueSenders.map(sender => (
-              <button
-                key={sender}
-                onClick={() => setFromFilter(sender)}
-                className={cn(
-                  "text-[11px] px-2 py-1 rounded-full border transition-colors",
-                  fromFilter === sender ? "bg-surface-2 border-tok-border text-fg-primary" : "border-tok-border text-fg-muted hover:border-tok-border"
-                )}
-              >
-                {sender}
-              </button>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* Middle: Item List */}
-      <main className="md:w-[450px] border-b md:border-b-0 md:border-r border-tok-border flex flex-col shrink-0">
-        <div className="p-4 border-b border-tok-border flex justify-between items-center bg-surface-0/50 backdrop-blur-sm sticky top-0 z-10">
-          <h1 className="text-lg font-bold capitalize">{currentFolder.replace('-', ' ')}</h1>
-          <div className="text-xs text-fg-muted">{finalItems.length} items</div>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto divide-y divide-tok-border">
-          {finalItems.length === 0 ? (
-            <ContextualEmptyState
-              icon={Inbox}
-              title="Inbox zero!"
-              description="No messages match your current filters. Try adjusting your filter criteria."
-              size="sm"
-            />
-          ) : (
-            finalItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setSelectedId(item.id);
-                  if (item.status === 'unread') {updateItemStatus(item.id, 'read');}
-                }}
-                className={cn(
-                  "w-full text-left p-4 flex gap-3 transition-colors hover:bg-surface-1/40",
-                  selectedId === item.id ? "bg-surface-1" : "bg-transparent"
-                )}
-              >
-                <div className={cn("w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-fg-primary shadow-sm", getAvatarColor(item.from))}>
-                  {getInitials(item.from)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-0.5">
-                    <span className="text-xs text-fg-secondary font-medium truncate">{item.from}</span>
-                    <span className="text-[10px] text-fg-muted whitespace-nowrap ml-2">
-                      {new Date(item.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <h3 className={cn(
-                    "text-sm truncate mb-0.5",
-                    item.status === 'unread' ? "font-bold text-fg-primary" : "font-normal text-fg-secondary"
-                  )}>
-                    {item.subject}
-                  </h3>
-                  <p className="text-xs text-fg-muted line-clamp-1 mb-2">{item.body}</p>
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", getPriorityColor(item.priority))} title={`Priority: ${item.priority}`} />
+      <div className="flex flex-col md:flex-row h-screen w-full bg-surface-0 text-fg-primary font-sans overflow-hidden">
+        {/* Left: Sidebar */}
+        <aside aria-label="Inbox navigation" className="md:w-64 border-b md:border-b-0 md:border-r border-tok-border flex flex-col p-4 space-y-8 shrink-0">
+          <div>
+            <h2 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-4 px-2">Inbox</h2>
+            <nav className="space-y-1" aria-label="Folders">
+              {[
+                { id: 'all', label: 'All Items', count: items.filter(i => i.status !== 'archived').length },
+                { id: 'unread', label: 'Unread', count: getUnreadCount(items) },
+                { id: 'action-required', label: 'Action Required', count: getActionRequiredCount(items) },
+                { id: 'archived', label: 'Archived', count: items.filter(i => i.status === 'archived').length },
+              ].map((folder) => (
+                <button
+                  key={folder.id}
+                  onClick={() => {
+                    setCurrentFolder(folder.id as Folder);
+                    setFromFilter(null);
+                  }}
+                  aria-pressed={currentFolder === folder.id}
+                  className={cn(
+                    "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                    currentFolder === folder.id ? "bg-surface-1 text-fg-primary" : "text-fg-secondary hover:text-fg-primary hover:bg-surface-1/50"
+                  )}
+                >
+                  <span>{folder.label}</span>
+                  {folder.count > 0 && (
                     <span className={cn(
-                      "text-[10px] px-1.5 py-0.5 rounded border font-medium uppercase",
-                      getKindBadgeStyles(item.kind)
+                      "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+                      folder.id === 'unread' || folder.id === 'action-required' ? "bg-indigo-500 text-fg-primary" : "bg-surface-2 text-fg-muted"
                     )}>
-                      {item.kind.replace('-', ' ')}
+                      {folder.count}
                     </span>
-                    {item.actionRequired && item.status !== 'archived' && (
-                      <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-tight">Action Req.</span>
-                    )}
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div>
+            <h2 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-4 px-2">From Agent</h2>
+            <div className="flex flex-wrap gap-2 px-2" role="group" aria-label="Filter by sender">
+              <button
+                onClick={() => setFromFilter(null)}
+                aria-pressed={fromFilter === null}
+                className={cn(
+                  "text-[11px] px-2 py-1 rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                  fromFilter === null ? "bg-surface-2 border-tok-border text-fg-primary" : "border-tok-border text-fg-muted hover:border-tok-border"
+                )}
+              >
+                Everyone
+              </button>
+              {uniqueSenders.map(sender => (
+                <button
+                  key={sender}
+                  onClick={() => setFromFilter(sender)}
+                  aria-pressed={fromFilter === sender}
+                  className={cn(
+                    "text-[11px] px-2 py-1 rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                    fromFilter === sender ? "bg-surface-2 border-tok-border text-fg-primary" : "border-tok-border text-fg-muted hover:border-tok-border"
+                  )}
+                >
+                  {sender}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* Middle: Item List */}
+        <section id="inbox-list" aria-label="Message list" className="md:w-[450px] border-b md:border-b-0 md:border-r border-tok-border flex flex-col shrink-0">
+          <div className="p-4 border-b border-tok-border flex justify-between items-center bg-surface-0/50 backdrop-blur-sm sticky top-0 z-10">
+            <h1 className="text-lg font-bold capitalize">{currentFolder.replace('-', ' ')}</h1>
+            <div className="text-xs text-fg-muted">{finalItems.length} items</div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto divide-y divide-tok-border" role="list" aria-label="Inbox messages">
+            {finalItems.length === 0 ? (
+              <ContextualEmptyState
+                icon={Inbox}
+                title="Inbox zero!"
+                description="No messages match your current filters. Try adjusting your filter criteria."
+                size="sm"
+              />
+            ) : (
+              finalItems.map(item => (
+                <button
+                  key={item.id}
+                  role="listitem"
+                  onClick={() => {
+                    setSelectedId(item.id);
+                    if (item.status === 'unread') {updateItemStatus(item.id, 'read');}
+                  }}
+                  aria-current={selectedId === item.id ? 'true' : undefined}
+                  className={cn(
+                    "w-full text-left p-4 flex gap-3 transition-colors hover:bg-surface-1/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500 focus-visible:outline-none",
+                    selectedId === item.id ? "bg-surface-1" : "bg-transparent"
+                  )}
+                >
+                  <div className={cn("w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-fg-primary shadow-sm", getAvatarColor(item.from))} aria-hidden="true">
+                    {getInitials(item.from)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-0.5">
+                      <span className="text-xs text-fg-secondary font-medium truncate">{item.from}</span>
+                      <span className="text-[10px] text-fg-muted whitespace-nowrap ml-2">
+                        {new Date(item.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <h3 className={cn(
+                      "text-sm truncate mb-0.5",
+                      item.status === 'unread' ? "font-bold text-fg-primary" : "font-normal text-fg-secondary"
+                    )}>
+                      {item.subject}
+                    </h3>
+                    <p className="text-xs text-fg-muted line-clamp-1 mb-2">{item.body}</p>
+                    <div className="flex items-center gap-2">
+                      {/* Priority dot with aria-label */}
+                      <div
+                        className={cn("w-2 h-2 rounded-full", getPriorityColor(item.priority))}
+                        aria-label={getPriorityLabel(item.priority)}
+                        role="img"
+                      />
+                      <span className={cn(
+                        "text-[10px] px-1.5 py-0.5 rounded border font-medium uppercase",
+                        getKindBadgeStyles(item.kind)
+                      )}>
+                        {item.kind.replace('-', ' ')}
+                      </span>
+                      {item.actionRequired && item.status !== 'archived' && (
+                        <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-tight">Action Req.</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Right: Detail Panel */}
+        <section
+          aria-label="Message detail"
+          aria-live="polite"
+          className="flex-1 flex flex-col bg-surface-1/20"
+        >
+          {selectedItem ? (
+            <>
+              {/* Detail Header */}
+              <div className="p-3 sm:p-4 md:p-6 border-b border-tok-border bg-surface-1/40">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex gap-4 items-center">
+                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-lg", getAvatarColor(selectedItem.from))} aria-hidden="true">
+                      {getInitials(selectedItem.from)}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-fg-primary leading-tight">{selectedItem.subject}</h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-fg-secondary">From <span className="text-fg-primary">{selectedItem.from}</span></span>
+                        <span className="text-fg-muted text-xs" aria-hidden="true">•</span>
+                        <span className="text-xs text-fg-secondary">To <span className="text-fg-primary">Luis</span></span>
+                        <span className="text-fg-muted text-xs" aria-hidden="true">•</span>
+                        <span className="text-xs text-fg-secondary">{new Date(selectedItem.receivedAt).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => updateItemStatus(selectedItem.id, selectedItem.status === 'unread' ? 'read' : 'unread')}
+                      className="p-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      aria-label={selectedItem.status === 'unread' ? "Mark as read" : "Mark as unread"}
+                    >
+                      <svg className="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    </button>
+                    <button 
+                      onClick={() => updateItemStatus(selectedItem.id, 'snoozed')}
+                      className="p-2 text-fg-secondary hover:text-amber-400 hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      aria-label="Snooze message"
+                    >
+                      <svg className="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+                    <button 
+                      onClick={() => updateItemStatus(selectedItem.id, 'archived')}
+                      className="p-2 text-fg-secondary hover:text-emerald-400 hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                      aria-label="Archive message"
+                    >
+                      <svg className="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                    </button>
                   </div>
                 </div>
-              </button>
-            ))
-          )}
-        </div>
-      </main>
 
-      {/* Right: Detail Panel */}
-      <section className="flex-1 flex flex-col bg-surface-1/20">
-        {selectedItem ? (
-          <>
-            {/* Detail Header */}
-            <div className="p-3 sm:p-4 md:p-6 border-b border-tok-border bg-surface-1/40">
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex gap-4 items-center">
-                  <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-lg", getAvatarColor(selectedItem.from))}>
-                    {getInitials(selectedItem.from)}
+                <div className="flex gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-fg-muted uppercase font-semibold">Priority</span>
+                    <div className="flex items-center gap-2 px-2 py-1 bg-surface-1 border border-tok-border rounded text-xs">
+                      <div className={cn("w-2 h-2 rounded-full", getPriorityColor(selectedItem.priority))} aria-hidden="true" />
+                      <span className="capitalize">{selectedItem.priority}</span>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-fg-primary leading-tight">{selectedItem.subject}</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-fg-secondary">From <span className="text-fg-primary">{selectedItem.from}</span></span>
-                      <span className="text-fg-muted text-xs">•</span>
-                      <span className="text-xs text-fg-secondary">To <span className="text-fg-primary">Luis</span></span>
-                      <span className="text-fg-muted text-xs">•</span>
-                      <span className="text-xs text-fg-secondary">{new Date(selectedItem.receivedAt).toLocaleString()}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-fg-muted uppercase font-semibold">Kind</span>
+                    <div className={cn("px-2 py-1 border rounded text-xs font-medium uppercase", getKindBadgeStyles(selectedItem.kind))}>
+                      {selectedItem.kind.replace('-', ' ')}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-fg-muted uppercase font-semibold">Status</span>
+                    <div className="px-2 py-1 bg-surface-1 border border-tok-border rounded text-xs text-fg-secondary capitalize">
+                      {selectedItem.status}
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Detail Body */}
+              <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
+                {selectedItem.status === 'snoozed' && (
+                  <div role="status" className="mb-6 p-3 bg-amber-400/10 border border-amber-400/20 rounded-lg text-amber-400 text-xs flex items-center gap-2">
+                    <svg className="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    This item is currently snoozed and will reappear in your inbox later.
+                  </div>
+                )}
                 
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => updateItemStatus(selectedItem.id, selectedItem.status === 'unread' ? 'read' : 'unread')}
-                    className="p-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border"
-                    title={selectedItem.status === 'unread' ? "Mark as read" : "Mark as unread"}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                  </button>
-                  <button 
-                    onClick={() => updateItemStatus(selectedItem.id, 'snoozed')}
-                    className="p-2 text-fg-secondary hover:text-amber-400 hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border"
-                    title="Snooze"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  </button>
-                  <button 
-                    onClick={() => updateItemStatus(selectedItem.id, 'archived')}
-                    className="p-2 text-fg-secondary hover:text-emerald-400 hover:bg-surface-2 rounded-md transition-all border border-transparent hover:border-tok-border"
-                    title="Archive"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                  </button>
+                <div className="prose prose-invert max-w-none">
+                  <p className="text-fg-secondary leading-relaxed whitespace-pre-wrap text-base">
+                    {selectedItem.body}
+                  </p>
                 </div>
-              </div>
 
-              <div className="flex gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-fg-muted uppercase font-semibold">Priority</span>
-                  <div className="flex items-center gap-2 px-2 py-1 bg-surface-1 border border-tok-border rounded text-xs">
-                    <div className={cn("w-2 h-2 rounded-full", getPriorityColor(selectedItem.priority))} />
-                    <span className="capitalize">{selectedItem.priority}</span>
+                {selectedItem.actionRequired && selectedItem.actions && selectedItem.actions.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-tok-border flex gap-3">
+                    {selectedItem.actions.map((action, idx) => (
+                      <button
+                        key={idx}
+                        className={cn(
+                          "px-6 py-2 rounded-md text-sm font-semibold transition-all shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                          action.variant === 'primary' && "bg-indigo-500 hover:bg-indigo-600 text-fg-primary",
+                          action.variant === 'danger' && "bg-rose-500 hover:bg-rose-600 text-fg-primary",
+                          action.variant === 'secondary' && "bg-surface-2 hover:bg-surface-3 text-fg-primary border border-tok-border"
+                        )}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
                   </div>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-fg-muted uppercase font-semibold">Kind</span>
-                  <div className={cn("px-2 py-1 border rounded text-xs font-medium uppercase", getKindBadgeStyles(selectedItem.kind))}>
-                    {selectedItem.kind.replace('-', ' ')}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-fg-muted uppercase font-semibold">Status</span>
-                  <div className="px-2 py-1 bg-surface-1 border border-tok-border rounded text-xs text-fg-secondary capitalize">
-                    {selectedItem.status}
-                  </div>
-                </div>
+                )}
               </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-fg-muted space-y-4">
+              <svg className="w-16 h-16 opacity-20" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-sm">Select an item to view details</p>
             </div>
-
-            {/* Detail Body */}
-            <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-              {selectedItem.status === 'snoozed' && (
-                <div className="mb-6 p-3 bg-amber-400/10 border border-amber-400/20 rounded-lg text-amber-400 text-xs flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  This item is currently snoozed and will reappear in your inbox later.
-                </div>
-              )}
-              
-              <div className="prose prose-invert max-w-none">
-                <p className="text-fg-secondary leading-relaxed whitespace-pre-wrap text-base">
-                  {selectedItem.body}
-                </p>
-              </div>
-
-              {selectedItem.actionRequired && selectedItem.actions && selectedItem.actions.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-tok-border flex gap-3">
-                  {selectedItem.actions.map((action, idx) => (
-                    <button
-                      key={idx}
-                      className={cn(
-                        "px-6 py-2 rounded-md text-sm font-semibold transition-all shadow-sm active:scale-95",
-                        action.variant === 'primary' && "bg-indigo-500 hover:bg-indigo-600 text-fg-primary",
-                        action.variant === 'danger' && "bg-rose-500 hover:bg-rose-600 text-fg-primary",
-                        action.variant === 'secondary' && "bg-surface-2 hover:bg-surface-3 text-fg-primary border border-tok-border"
-                      )}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-fg-muted space-y-4">
-            <svg className="w-16 h-16 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
-            <p className="text-sm">Select an item to view details</p>
-          </div>
-        )}
-      </section>
-    </div>
+          )}
+        </section>
+      </div>
+    </>
   );
 };
 

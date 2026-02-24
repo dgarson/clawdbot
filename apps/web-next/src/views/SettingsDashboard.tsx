@@ -23,7 +23,7 @@ type SettingsSection =
 interface SettingsSectionDef {
   id: SettingsSection;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
   description: string;
 }
 
@@ -38,13 +38,17 @@ const SECTIONS: SettingsSectionDef[] = [
   { id: 'advanced', label: 'Advanced', icon: Monitor, description: 'Debug, logs, and dev tools' },
 ];
 
-function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ value, onChange, id, label }: { value: boolean; onChange: (v: boolean) => void; id?: string; label?: string }) {
   return (
     <button
       type="button"
+      id={id}
+      role="switch"
+      aria-checked={value}
+      aria-label={label}
       onClick={() => onChange(!value)}
       className={cn(
-        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none',
+        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
         value ? 'bg-violet-600' : 'bg-surface-3'
       )}
     >
@@ -81,16 +85,18 @@ function SettingRow({
   );
 }
 
-function SelectInput({ options, value, onChange }: {
+function SelectInput({ options, value, onChange, 'aria-label': ariaLabel }: {
   options: { value: string; label: string }[];
   value: string;
   onChange: (v: string) => void;
+  'aria-label'?: string;
 }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-violet-500 min-w-32"
+      aria-label={ariaLabel}
+      className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none min-w-32"
     >
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -123,16 +129,17 @@ function GeneralSettings() {
           aria-label="Gateway URL"
           value={gatewayUrl}
           onChange={(e) => setGatewayUrl(e.target.value)}
-          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-violet-500 w-64 font-mono"
+          className="bg-surface-2 border border-tok-border text-fg-primary text-sm rounded-lg px-3 py-1.5 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none w-64 font-mono"
         />
       </SettingRow>
       <SettingRow label="Auto-connect" description="Automatically connect to Gateway on startup">
-        <Toggle value={autoConnect} onChange={setAutoConnect} />
+        <Toggle value={autoConnect} onChange={setAutoConnect} label="Auto-connect to Gateway on startup" />
       </SettingRow>
       <SettingRow label="Timezone" description="Used for displaying dates and scheduling">
         <SelectInput
           value={timezone}
           onChange={setTimezone}
+          aria-label="Timezone"
           options={[
             { value: 'America/Denver', label: 'Mountain Time' },
             { value: 'America/New_York', label: 'Eastern Time' },
@@ -146,6 +153,7 @@ function GeneralSettings() {
         <SelectInput
           value={language}
           onChange={setLanguage}
+          aria-label="Language"
           options={[
             { value: 'en', label: 'English' },
             { value: 'es', label: 'Spanish' },
@@ -160,14 +168,18 @@ function GeneralSettings() {
           type="button"
           onClick={handleSave}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
             saved
               ? 'bg-green-600/20 text-green-400 border border-green-600/30'
               : 'bg-violet-600 hover:bg-violet-500 text-fg-primary'
           )}
         >
-          {saved ? <><Check className="w-4 h-4" /> Saved</> : 'Save Changes'}
+          {saved ? <><Check className="w-4 h-4" aria-hidden="true" /> Saved</> : 'Save Changes'}
         </button>
+        {/* Live status region */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {saved ? 'Settings saved successfully.' : ''}
+        </div>
       </div>
     </div>
   );
@@ -188,44 +200,47 @@ function AppearanceSettings() {
   ] as const;
 
   const ACCENTS = [
-    { id: 'violet', color: 'bg-violet-500' },
-    { id: 'blue', color: 'bg-blue-500' },
-    { id: 'green', color: 'bg-green-500' },
-    { id: 'orange', color: 'bg-orange-500' },
-    { id: 'pink', color: 'bg-pink-500' },
+    { id: 'violet', color: 'bg-violet-500', label: 'Violet' },
+    { id: 'blue', color: 'bg-blue-500', label: 'Blue' },
+    { id: 'green', color: 'bg-green-500', label: 'Green' },
+    { id: 'orange', color: 'bg-orange-500', label: 'Orange' },
+    { id: 'pink', color: 'bg-pink-500', label: 'Pink' },
   ];
 
   return (
     <div>
       <SettingRow label="Theme" description="Choose your color scheme">
-        <div className="flex gap-2">
+        <div className="flex gap-2" role="group" aria-label="Theme options">
           {THEMES.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setTheme(id)}
+              aria-pressed={theme === id}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 theme === id
                   ? 'bg-violet-600/20 text-violet-400 border border-violet-500/50'
                   : 'bg-surface-2 text-fg-secondary border border-tok-border hover:border-tok-border'
               )}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3.5 h-3.5" aria-hidden="true" />
               {label}
             </button>
           ))}
         </div>
       </SettingRow>
       <SettingRow label="Accent Color" description="Primary action and highlight color">
-        <div className="flex gap-2">
+        <div className="flex gap-2" role="group" aria-label="Accent color options">
           {ACCENTS.map((a) => (
             <button
               key={a.id}
               type="button"
               onClick={() => setAccentColor(a.id)}
+              aria-label={`${a.label}${accentColor === a.id ? ' (selected)' : ''}`}
+              aria-pressed={accentColor === a.id}
               className={cn(
-                'w-7 h-7 rounded-full transition-all',
+                'w-7 h-7 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 focus-visible:outline-none',
                 a.color,
                 accentColor === a.id ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-950 scale-110' : 'hover:scale-105'
               )}
@@ -237,6 +252,7 @@ function AppearanceSettings() {
         <SelectInput
           value={fontSize}
           onChange={setFontSize}
+          aria-label="Font size"
           options={[
             { value: 'small', label: 'Small' },
             { value: 'medium', label: 'Medium' },
@@ -245,13 +261,13 @@ function AppearanceSettings() {
         />
       </SettingRow>
       <SettingRow label="Compact Mode" description="Reduce padding for higher information density">
-        <Toggle value={compactMode} onChange={setCompactMode} />
+        <Toggle value={compactMode} onChange={setCompactMode} label="Enable compact mode" />
       </SettingRow>
       <SettingRow label="Sidebar collapsed by default">
-        <Toggle value={sidebarCollapsed} onChange={setSidebarCollapsed} />
+        <Toggle value={sidebarCollapsed} onChange={setSidebarCollapsed} label="Collapse sidebar by default" />
       </SettingRow>
       <SettingRow label="Animations" description="Enable motion effects and transitions">
-        <Toggle value={animations} onChange={setAnimations} />
+        <Toggle value={animations} onChange={setAnimations} label="Enable animations" />
       </SettingRow>
     </div>
   );
@@ -268,22 +284,22 @@ function NotificationSettings() {
   return (
     <div>
       <SettingRow label="Desktop Notifications" description="Show system notifications for important events">
-        <Toggle value={desktopNotif} onChange={setDesktopNotif} />
+        <Toggle value={desktopNotif} onChange={setDesktopNotif} label="Enable desktop notifications" />
       </SettingRow>
       <SettingRow label="Agent task complete" description="Notify when a long-running agent task finishes">
-        <Toggle value={agentComplete} onChange={setAgentComplete} />
+        <Toggle value={agentComplete} onChange={setAgentComplete} label="Notify on agent task complete" />
       </SettingRow>
       <SettingRow label="Cron job failures" description="Alert when an automation fails">
-        <Toggle value={cronFailure} onChange={setCronFailure} />
+        <Toggle value={cronFailure} onChange={setCronFailure} label="Alert on cron job failures" />
       </SettingRow>
       <SettingRow label="Daily digest" description="Morning summary of activity">
-        <Toggle value={dailyDigest} onChange={setDailyDigest} />
+        <Toggle value={dailyDigest} onChange={setDailyDigest} label="Receive daily digest" />
       </SettingRow>
       <SettingRow label="Sound effects">
-        <Toggle value={soundEnabled} onChange={setSoundEnabled} />
+        <Toggle value={soundEnabled} onChange={setSoundEnabled} label="Enable sound effects" />
       </SettingRow>
       <SettingRow label="Quiet hours (10 PM – 8 AM)" description="Suppress non-urgent notifications">
-        <Toggle value={quietHours} onChange={setQuietHours} />
+        <Toggle value={quietHours} onChange={setQuietHours} label="Enable quiet hours (10 PM to 8 AM)" />
       </SettingRow>
     </div>
   );
@@ -296,8 +312,8 @@ function SecuritySettings() {
 
   return (
     <div>
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-start gap-3" role="note">
+        <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
         <p className="text-sm text-amber-400">
           Device tokens are stored in IndexedDB and never sent to third parties. Rotate tokens periodically for best security.
         </p>
@@ -306,6 +322,7 @@ function SecuritySettings() {
         <SelectInput
           value={sessionTimeout}
           onChange={setSessionTimeout}
+          aria-label="Session timeout duration"
           options={[
             { value: 'never', label: 'Never' },
             { value: '1h', label: '1 hour' },
@@ -315,26 +332,26 @@ function SecuritySettings() {
         />
       </SettingRow>
       <SettingRow label="Confirm destructive actions" description="Require confirmation before delete/reset">
-        <Toggle value={requireConfirm} onChange={setRequireConfirm} />
+        <Toggle value={requireConfirm} onChange={setRequireConfirm} label="Require confirmation for destructive actions" />
       </SettingRow>
       <SettingRow label="Log access events" description="Record reads/writes to audit log">
-        <Toggle value={logAccess} onChange={setLogAccess} />
+        <Toggle value={logAccess} onChange={setLogAccess} label="Log access events to audit log" />
       </SettingRow>
       <SettingRow label="Device Token" description="Your current authentication token">
         <button
           type="button"
-          className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm rounded-lg transition-colors border border-tok-border"
+          className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm rounded-lg transition-colors border border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
           Rotate Token
         </button>
       </SettingRow>
       <SettingRow label="API Keys" description="Manage API keys for programmatic access">
         <button
           type="button"
-          className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm rounded-lg transition-colors border border-tok-border"
+          className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm rounded-lg transition-colors border border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <Key className="w-3.5 h-3.5" />
+          <Key className="w-3.5 h-3.5" aria-hidden="true" />
           Manage Keys
         </button>
       </SettingRow>
@@ -348,9 +365,9 @@ function DataSettings() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <button
           type="button"
-          className="flex items-center gap-3 p-4 bg-surface-2 hover:bg-surface-3 rounded-xl border border-tok-border transition-all"
+          className="flex items-center gap-3 p-4 bg-surface-2 hover:bg-surface-3 rounded-xl border border-tok-border transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <Download className="w-5 h-5 text-violet-400" />
+          <Download className="w-5 h-5 text-violet-400" aria-hidden="true" />
           <div className="text-left">
             <p className="text-sm font-medium text-fg-primary">Export All Data</p>
             <p className="text-xs text-fg-muted">JSON backup of all agents, sessions, config</p>
@@ -358,9 +375,9 @@ function DataSettings() {
         </button>
         <button
           type="button"
-          className="flex items-center gap-3 p-4 bg-surface-2 hover:bg-surface-3 rounded-xl border border-tok-border transition-all"
+          className="flex items-center gap-3 p-4 bg-surface-2 hover:bg-surface-3 rounded-xl border border-tok-border transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <Upload className="w-5 h-5 text-green-400" />
+          <Upload className="w-5 h-5 text-green-400" aria-hidden="true" />
           <div className="text-left">
             <p className="text-sm font-medium text-fg-primary">Import Backup</p>
             <p className="text-xs text-fg-muted">Restore from a previous export</p>
@@ -372,18 +389,18 @@ function DataSettings() {
         <h4 className="text-sm font-semibold text-fg-secondary mb-4">Danger Zone</h4>
         <div className="space-y-3">
           <SettingRow label="Clear session history" description="Delete all conversation history" danger>
-            <button type="button" className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-sm rounded-lg border border-red-600/30 transition-colors">
+            <button type="button" className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-sm rounded-lg border border-red-600/30 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
               Clear
             </button>
           </SettingRow>
           <SettingRow label="Clear analytics data" description="Reset all usage and cost data" danger>
-            <button type="button" className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-sm rounded-lg border border-red-600/30 transition-colors">
+            <button type="button" className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-sm rounded-lg border border-red-600/30 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
               Clear
             </button>
           </SettingRow>
           <SettingRow label="Factory reset" description="Delete all data and return to setup" danger>
-            <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-sm rounded-lg border border-red-600/30 transition-colors">
-              <Trash2 className="w-3.5 h-3.5" />
+            <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-sm rounded-lg border border-red-600/30 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
               Reset
             </button>
           </SettingRow>
@@ -401,21 +418,22 @@ function AdvancedSettings() {
 
   return (
     <div>
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+      <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6" role="note">
         <p className="text-sm text-blue-400">
           ⚙️ Advanced settings are for power users. Incorrect configuration may affect stability.
         </p>
       </div>
       <SettingRow label="Developer Mode" description="Enable additional debug UI elements">
-        <Toggle value={devMode} onChange={setDevMode} />
+        <Toggle value={devMode} onChange={setDevMode} label="Enable developer mode" />
       </SettingRow>
       <SettingRow label="Verbose logging" description="Log all WebSocket messages to console">
-        <Toggle value={verbose} onChange={setVerbose} />
+        <Toggle value={verbose} onChange={setVerbose} label="Enable verbose logging" />
       </SettingRow>
       <SettingRow label="Log Level">
         <SelectInput
           value={logLevel}
           onChange={setLogLevel}
+          aria-label="Log level"
           options={[
             { value: 'error', label: 'Error' },
             { value: 'warn', label: 'Warning' },
@@ -425,7 +443,7 @@ function AdvancedSettings() {
         />
       </SettingRow>
       <SettingRow label="Stream debug overlay" description="Show streaming event overlay in chat">
-        <Toggle value={streamDebug} onChange={setStreamDebug} />
+        <Toggle value={streamDebug} onChange={setStreamDebug} label="Enable stream debug overlay" />
       </SettingRow>
       <SettingRow label="Gateway version" description="Currently connected">
         <span className="text-sm font-mono text-fg-secondary bg-surface-2 px-2 py-1 rounded">v1.2.0</span>
@@ -488,17 +506,17 @@ function ProvidersSettings() {
         </p>
         <a
           href="#"
-          onClick={(e) => { e.preventDefault(); /* navigate handled at App level via URL or hash */ }}
-          className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          onClick={(e) => { e.preventDefault(); }}
+          className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded"
         >
           Open Provider Manager
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
         </a>
       </div>
 
       {!gateway.isConnected && (
-        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-4 flex items-center gap-3">
-          <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-4 flex items-center gap-3" role="alert">
+          <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" aria-hidden="true" />
           <div className="flex-1">
             <p className="text-sm text-yellow-400">Gateway not connected</p>
             <p className="text-xs text-yellow-500/70">Start Gateway to manage providers</p>
@@ -506,7 +524,7 @@ function ProvidersSettings() {
           <button
             type="button"
             onClick={gateway.reconnect}
-            className="px-3 py-1.5 bg-yellow-600/20 text-yellow-400 rounded-lg text-xs hover:bg-yellow-600/30 transition-colors"
+            className="px-3 py-1.5 bg-yellow-600/20 text-yellow-400 rounded-lg text-xs hover:bg-yellow-600/30 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             Reconnect
           </button>
@@ -514,10 +532,10 @@ function ProvidersSettings() {
       )}
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4 flex items-center gap-3">
-          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4 flex items-center gap-3" role="alert">
+          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" aria-hidden="true" />
           <p className="text-sm text-red-400 flex-1">{error}</p>
-          <button type="button" onClick={loadProfiles} className="text-xs text-red-400 hover:text-red-300">
+          <button type="button" onClick={loadProfiles} className="text-xs text-red-400 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded">
             Retry
           </button>
         </div>
@@ -525,11 +543,12 @@ function ProvidersSettings() {
 
       {loading ? (
         <div className="flex items-center justify-center h-24">
-          <RefreshCw className="w-5 h-5 text-violet-500 animate-spin" />
+          <RefreshCw className="w-5 h-5 text-violet-500 animate-spin" aria-hidden="true" />
+          <span className="sr-only">Loading provider profiles…</span>
         </div>
       ) : profileKeys.length === 0 ? (
         <div className="bg-surface-1 rounded-xl border border-tok-border p-6 text-center">
-          <Plug className="w-8 h-8 text-fg-muted mx-auto mb-3" />
+          <Plug className="w-8 h-8 text-fg-muted mx-auto mb-3" aria-hidden="true" />
           <p className="text-sm text-fg-secondary">No providers connected</p>
           <p className="text-xs text-fg-muted mt-1">
             Use the Provider Manager to connect AI model providers
@@ -546,7 +565,7 @@ function ProvidersSettings() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-green-400" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-fg-primary">{profile.provider}</p>
@@ -652,57 +671,68 @@ export default function SettingsDashboard({ isLoading = false }: { isLoading?: b
   if (isLoading) return <SettingsDashboardSkeleton />;
 
   return (
-    <div className="min-h-screen bg-surface-0 p-3 sm:p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-3">
-            <Settings className="w-6 h-6 text-violet-400" />
-            Settings
-          </h1>
-          <p className="text-sm text-fg-secondary mt-1">Manage your OpenClaw preferences and configuration</p>
-        </div>
+    <>
+      {/* Skip link */}
+      <a
+        href="#settings-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
 
-        <div className="flex flex-col sm:flex-row gap-6">
-          {/* Sidebar nav */}
-          <div className="sm:w-56 flex-shrink-0">
-            <nav className="space-y-1">
-              {SECTIONS.map((section) => {
-                const Icon = section.icon;
-                const isActive = activeSection === section.id;
-                return (
-                  <button
-                    key={section.id}
-                    type="button"
-                    onClick={() => setActiveSection(section.id)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 text-left',
-                      isActive
-                        ? 'bg-violet-600/15 text-violet-300 border border-violet-500/30'
-                        : 'text-fg-secondary hover:text-fg-primary hover:bg-surface-2/50'
-                    )}
-                  >
-                    <Icon className={cn('w-4 h-4', isActive ? 'text-violet-400' : 'text-fg-muted')} />
-                    <span>{section.label}</span>
-                    {isActive && <ChevronRight className="w-3 h-3 ml-auto text-violet-500" />}
-                  </button>
-                );
-              })}
-            </nav>
+      <main id="settings-main" className="min-h-screen bg-surface-0 p-3 sm:p-6 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-3">
+              <Settings className="w-6 h-6 text-violet-400" aria-hidden="true" />
+              Settings
+            </h1>
+            <p className="text-sm text-fg-secondary mt-1">Manage your OpenClaw preferences and configuration</p>
           </div>
 
-          {/* Content area */}
-          <div className="flex-1">
-            <div className="bg-surface-1 rounded-2xl border border-tok-border p-3 sm:p-4 md:p-6">
-              <div className="mb-5 pb-4 border-b border-tok-border">
-                <h2 className="text-lg font-semibold text-fg-primary">{active?.label}</h2>
-                <p className="text-sm text-fg-muted">{active?.description}</p>
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* Sidebar nav */}
+            <nav aria-label="Settings sections" className="sm:w-56 flex-shrink-0">
+              <div className="space-y-1">
+                {SECTIONS.map((section) => {
+                  const Icon = section.icon;
+                  const isActive = activeSection === section.id;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      onClick={() => setActiveSection(section.id)}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 text-left focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                        isActive
+                          ? 'bg-violet-600/15 text-violet-300 border border-violet-500/30'
+                          : 'text-fg-secondary hover:text-fg-primary hover:bg-surface-2/50'
+                      )}
+                    >
+                      <Icon className={cn('w-4 h-4', isActive ? 'text-violet-400' : 'text-fg-muted')} aria-hidden="true" />
+                      <span>{section.label}</span>
+                      {isActive && <ChevronRight className="w-3 h-3 ml-auto text-violet-500" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
               </div>
-              {renderSection()}
+            </nav>
+
+            {/* Content area */}
+            <div className="flex-1">
+              <section aria-label={`${active?.label} settings`} className="bg-surface-1 rounded-2xl border border-tok-border p-3 sm:p-4 md:p-6">
+                <div className="mb-5 pb-4 border-b border-tok-border">
+                  <h2 className="text-lg font-semibold text-fg-primary">{active?.label}</h2>
+                  <p className="text-sm text-fg-muted">{active?.description}</p>
+                </div>
+                {renderSection()}
+              </section>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

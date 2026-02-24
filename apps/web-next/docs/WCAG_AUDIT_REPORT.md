@@ -508,3 +508,342 @@ className="... focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:
   </thead>
 </table>
 ```
+
+---
+
+## Batch 1 Audit — Wes Horizon Views (Token Migration + Responsive + Empty States)
+
+**Branch:** `reed/batch1-wcag`  
+**Base branch:** `feat/horizon-ui-complete`  
+**Audit date:** 2026-02-24  
+**Auditor:** Reed (AI accessibility specialist)  
+**Standard:** WCAG 2.1 Level AA  
+
+### Scope
+
+These 8 views were expanded by Wes with token migration, responsive layouts, and empty states. This audit applies the full 10-item WCAG 2.1 AA checklist to all of them. AuditLog (covered in M7) and NotificationCenter (covered in M8) are excluded.
+
+| View | File |
+|------|------|
+| Agent Dashboard | `AgentDashboard.tsx` |
+| Agent Inbox | `AgentInbox.tsx` |
+| Activity Feed | `ActivityFeed.tsx` |
+| Settings Dashboard | `SettingsDashboard.tsx` |
+| System Health | `SystemHealth.tsx` |
+| Chat Interface | `ChatInterface.tsx` |
+| Usage Dashboard | `UsageDashboard.tsx` |
+| Team Management | `TeamManagement.tsx` |
+
+---
+
+### Checklist Applied (All Views)
+
+| # | Criterion | WCAG SC |
+|---|-----------|---------|
+| 1 | Skip link + `<main id="...">` landmark | 2.4.1, 1.3.1 |
+| 2 | Decorative Lucide icons: `aria-hidden="true"` | 1.1.1 |
+| 3 | Icon-only buttons: meaningful `aria-label` | 1.1.1, 4.1.2 |
+| 4 | Color-only status indicators: companion text or `aria-label` | 1.4.1 |
+| 5 | Live/updating regions: `aria-live="polite"` or `role="status"` | 4.1.3 |
+| 6 | `<section>` panels: `aria-label` | 1.3.1 |
+| 7 | All interactive elements: `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none` | 2.4.7 |
+| 8 | Tables: `<th scope="col">` headers | 1.3.1 |
+| 9 | Form inputs: `htmlFor` / `aria-label` | 1.3.1, 4.1.2 |
+| 10 | Dialogs: `role="dialog"`, `aria-labelledby`, Escape key, focus trap | 4.1.2 |
+
+---
+
+### View 1: `AgentDashboard.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| All Lucide icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Emoji spans in stat cards exposed to AT | 1.1.1 | Moderate |
+| "New Agent" dashed card was a `<div>` with `onClick` — keyboard inaccessible | 2.1.1 | Critical |
+| Quick action buttons lacked `focus-visible` rings | 2.4.7 | Serious |
+| Activity feed had no `aria-live` region — live updates not announced | 4.1.3 | Moderate |
+| Status dot in agent cards conveyed status by color only | 1.4.1 | Serious |
+| Sections had no `aria-label` | 1.3.1 | Moderate |
+
+#### Fixes applied
+
+1. **Skip link** → `<a href="#agent-dashboard-main" className="sr-only focus:not-sr-only ...">Skip to main content</a>`
+2. Root `<div>` → `<main id="agent-dashboard-main">` with `<>...</>` fragment wrapper
+3. All emoji spans (stat card decorators): `aria-hidden="true"`
+4. "New Agent" dashed card converted from `<div onClick>` to `<button aria-label="Create new agent">` with full keyboard support + `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`
+5. Quick action buttons: `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`
+6. Activity feed container: `aria-live="polite"` + `aria-label="Live activity feed"`
+7. Status dot in agent cards: `aria-hidden="true"` (adjacent text "● {agent.status}" carries meaning; dot becomes decorative)
+8. System health colored dots: `aria-hidden="true"` (adjacent text label present)
+9. All panels wrapped in `<section aria-label="...">`: Stats, Quick Actions, Agents, Activity Feed
+
+---
+
+### View 2: `AgentInbox.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| All Lucide icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Mark-read, snooze, archive buttons were icon-only with no `aria-label` | 4.1.2 | Critical |
+| Priority dots conveyed urgency by color only | 1.4.1 | Serious |
+| Detail panel not in a live region — selection changes not announced | 4.1.3 | Moderate |
+| Folder/sender filter buttons had no `aria-pressed` | 4.1.2 | Moderate |
+| Inbox item list had no list role | 1.3.1 | Moderate |
+| No `focus-visible` rings on action buttons | 2.4.7 | Serious |
+
+#### Fixes applied
+
+1. **Skip link** → `<a href="#inbox-list" ...>Skip to main content</a>`
+2. Sidebar: `<aside aria-label="Inbox navigation">`; Message list: `<section id="inbox-list" aria-label="Message list">`
+3. Detail panel: `<section aria-label="Message detail" aria-live="polite">`
+4. Folder nav buttons: `aria-pressed={currentFolder === folder.id}` + `focus-visible:ring-violet-500`
+5. Sender filter buttons: wrapped in `role="group" aria-label="Filter by sender"`, each `aria-pressed`
+6. Priority dots: `role="img"` + `aria-label={getPriorityLabel(item.priority)}` (e.g., "High priority")
+7. Action buttons — mark read: `aria-label="Mark as read"`, snooze: `aria-label="Snooze for 1 hour"`, archive: `aria-label="Archive message"` — all icons `aria-hidden="true"`
+8. Inbox item buttons: `aria-current` when selected + `focus-visible:ring-inset focus-visible:ring-violet-500`
+9. Snoozed alert banner: `role="status"`
+10. All action buttons: `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`
+11. Inbox list: `role="list" aria-label="Messages"`; decorative inline SVGs: `aria-hidden="true"`
+
+---
+
+### View 3: `ActivityFeed.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| Actor emoji avatar divs exposed to AT | 1.1.1 | Moderate |
+| Detail panel was a plain `<div>` with no landmark | 1.3.1 | Moderate |
+| Empty state emoji exposed to AT | 1.1.1 | Minor |
+
+#### Fixes applied
+
+1. **Skip link** + `<>...</>` fragment wrapper; root div → `<main id="activity-feed-main">`
+2. Actor emoji avatar divs in `ActivityItem` and detail panel: `aria-hidden="true"`
+3. Right detail panel: `<div>` → `<section aria-label="Event detail">`
+4. Empty state emoji span: `aria-hidden="true"` + `role="feed"` on the activity list container
+
+---
+
+### View 4: `SettingsDashboard.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| `Toggle` component lacked `role="switch"`, `aria-checked`, `aria-label` | 4.1.2 | Critical |
+| `SelectInput` lacked `aria-label` prop | 4.1.2 | Serious |
+| All Lucide icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Accent color swatch buttons had no `aria-label` or `aria-pressed` | 4.1.2 | Critical |
+| Theme toggle buttons had no `aria-pressed` | 4.1.2 | Moderate |
+| No live region for save/feedback state | 4.1.3 | Moderate |
+| Nav buttons lacked `aria-current="page"` | 1.3.1 | Moderate |
+| No `focus-visible` rings on most interactive elements | 2.4.7 | Serious |
+| Sections had no `aria-label` | 1.3.1 | Moderate |
+
+#### Fixes applied
+
+1. **Skip link** + `<main id="settings-main">` + `<>...</>` fragment
+2. `Toggle` component refactored: `role="switch"`, `aria-checked={enabled}`, `aria-label` prop added + `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`
+3. `SelectInput` refactored: `'aria-label'?: string` prop added and applied to `<select>` + `focus-visible:ring-violet-500`
+4. All Lucide icons annotated: `aria-hidden="true"` (Settings, Check, RefreshCw, Key, AlertTriangle, Download, Upload, Trash2, Plug, ExternalLink, ChevronRight, Moon, Sun, Monitor, and theme icons)
+5. Accent color swatches: `aria-label={`${a.label}${accentColor === a.id ? ' (selected)' : ''}`}` + `aria-pressed={accentColor === a.id}`
+6. Theme toggle buttons: `aria-pressed` + `focus-visible:ring-violet-500`
+7. Save feedback: `<div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{savedMessage}</div>` global live region
+8. Nav buttons: `aria-current="page"` when active + `focus-visible:ring-violet-500`
+9. Content area: `<section aria-label="${active?.label} settings">`
+10. Security warning: `role="note"`, advanced info: `role="note"`, provider error: `role="alert"`
+11. Loading spinner: `<span className="sr-only">Loading provider profiles…</span>` added
+12. All data action buttons: `focus-visible:ring-violet-500`
+
+---
+
+### View 5: `SystemHealth.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| Refresh action produced no live announcement | 4.1.3 | Moderate |
+| Services list had no `aria-live` — status changes silent to AT | 4.1.3 | Moderate |
+| Focus ring color `indigo-500` inconsistent with project standard `violet-500` | 2.4.7 | Minor |
+| Category tab active color used `bg-indigo-600` instead of `bg-violet-600` | — | Minor |
+
+#### Fixes applied
+
+1. **Skip link** + `<>...</>` fragment; root div → `<main id="system-health-main">`
+2. `statusMessage` state added; `handleRefresh` sets `"Refreshing service status…"` then `"Service status updated."` on completion
+3. `<div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{statusMessage}</div>` added as live announcement region
+4. Services list container: `aria-live="polite" aria-label="Service status list"`
+5. All `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500` (project standard)
+6. Category tab active background: `bg-indigo-600` → `bg-violet-600`
+
+---
+
+### View 6: `ChatInterface.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| All Lucide icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Send button was icon-only with no `aria-label` | 4.1.2 | Critical |
+| MoreHorizontal button had no `aria-label` | 4.1.2 | Serious |
+| ToolCallCard expand button had no `aria-expanded` or descriptive `aria-label` | 4.1.2 | Serious |
+| Status dots in session list and header conveyed status by color only | 1.4.1 | Serious |
+| Message area had no `aria-live` — new messages not announced | 4.1.3 | Serious |
+| Streaming dots ("typing") had no accessible label | 1.1.1 | Moderate |
+| Textarea had no associated `<label>` | 1.3.1 | Serious |
+| Character count had no live region | 4.1.3 | Minor |
+| Agent emoji in header exposed to AT | 1.1.1 | Minor |
+| Session list had no list role | 1.3.1 | Moderate |
+
+#### Fixes applied
+
+1. **Skip link** targeting `#chat-main` + `<>...</>` fragment
+2. Left pane: `<aside aria-label="Chat sessions">`; session list: `role="list" aria-label="Available sessions"`; right pane: `<main id="chat-main">`
+3. `SessionItem` status dot: `aria-hidden="true"` + `<span className="sr-only">{statusLabel}</span>`; `aria-current` replaces visual-only selection; `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`
+4. Header status dot: `aria-hidden="true"` + `<span className="sr-only">Online</span>`
+5. MoreHorizontal button: `aria-label="More options"`, icon `aria-hidden="true"`, `focus-visible` ring
+6. All status icons in `ToolCallCard`: `aria-hidden="true"`
+7. ToolCallCard expand button: `aria-expanded={expanded}`, `aria-label={expanded ? 'Collapse tool call' : 'Expand tool call'}`, `focus-visible` ring; ChevronDown/Right/Terminal icons `aria-hidden="true"`
+8. Messages area: `role="log" aria-live="polite" aria-label="Chat messages"`
+9. Streaming dots: outer span `aria-label="Typing…"`; individual dot spans `aria-hidden="true"`
+10. Textarea: `<label htmlFor="chat-input" className="sr-only">Message</label>` + `id="chat-input"`
+11. Send button: `aria-label="Send message"`, Send icon `aria-hidden="true"`, `focus-visible` ring, disabled while streaming
+12. Character count: `aria-live="polite" aria-atomic="true"`
+13. Composer area: `<section aria-label="Message composer">`
+14. Agent emoji in header: `aria-hidden="true"`
+
+---
+
+### View 7: `UsageDashboard.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| All Lucide icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Date range buttons had no `aria-pressed` | 4.1.2 | Moderate |
+| Chart bars conveyed data visually only — no accessible alternative | 1.1.1 | Serious |
+| Y-axis and X-axis tick labels exposed to AT as redundant | 1.1.1 | Minor |
+| Progress bars (by model, by agent) were color-only | 1.1.1 | Serious |
+| Table missing `scope="col"` and `<caption>` | 1.3.1 | Moderate |
+| Agent emoji in table cells exposed to AT | 1.1.1 | Minor |
+| Clock icon in table exposed to AT | 1.1.1 | Minor |
+| Sections had no `aria-label` | 1.3.1 | Moderate |
+
+#### Fixes applied
+
+1. **Skip link** + `<main id="usage-dashboard-main">` + `<>...</>` fragment
+2. All Lucide icons in `SummaryCard` and throughout: `aria-hidden="true"` (Calendar, Activity, DollarSign, BarChart3, TrendingUp, Clock)
+3. Date range buttons: `aria-pressed={dateRange === r.id}` + `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none`; wrapper: `role="group" aria-label="Date range"`
+4. Summary section: `<section aria-label="Usage summary">`
+5. Chart section: `<section aria-label="Daily usage chart">`; chart area `role="img"` with descriptive `aria-label` listing range and data; Y-axis, X-axis: `aria-hidden="true"`; each bar div: `aria-label` with date, tokens, and cost
+6. Tooltip: `role="tooltip"`
+7. By Model section: `<section aria-label="Usage by model">`; progress bars: `role="img"` + `aria-label="{model}: {tokens} tokens, {pct}% of total"`
+8. By Agent section: `<section aria-label="Usage by agent">`; agent emoji: `aria-hidden="true"`; progress bars: `role="img"` + `aria-label`
+9. Sessions table: `<section aria-label="Top sessions by cost">`; `<caption className="sr-only">Top sessions by token cost</caption>`; all `<th>` elements: `scope="col"`; Clock icon: `aria-hidden="true"`; session emoji: `aria-hidden="true"`
+
+---
+
+### View 8: `TeamManagement.tsx`
+
+**Status: REMEDIATED ✅**
+
+#### Pre-remediation issues found
+
+| Issue | WCAG SC | Severity |
+|-------|---------|----------|
+| No skip link or `<main>` landmark | 2.4.1 | Serious |
+| `InviteModal` had no Escape key handler or focus trap | 2.1.2 | Critical |
+| `ConfirmDialog` had no Escape key handler or focus trap | 2.1.2 | Critical |
+| `RoleBadge` icons (Crown, ShieldCheck, User, Eye) missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Tab bar icons missing `aria-hidden="true"` | 1.1.1 | Minor |
+| RoleDropdown icons (Shield, ChevronDown, Check) missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Search, Plus, MoreHorizontal icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Member action menu icons (Clock, Check, X) missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Roles/Invites tab icons missing `aria-hidden="true"` | 1.1.1 | Moderate |
+| Focus ring color `indigo-500` inconsistent with project standard `violet-500` | 2.4.7 | Minor |
+| Tab active border/text used `indigo-500/indigo-400` instead of `violet` | — | Minor |
+
+#### Fixes applied
+
+1. **Skip link** + `<main id="team-management-main">` + `<>...</>` fragment
+2. All `focus-visible:ring-indigo-500` → `focus-visible:ring-violet-500` (10 occurrences via bulk replace)
+3. Tab active color: `border-indigo-500 text-indigo-400` → `border-violet-500 text-violet-400`
+4. Tab bar icons: `aria-hidden="true"` added; `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none` added to tab buttons
+5. `RoleBadge` icons (Crown, ShieldCheck, User, Eye): `aria-hidden="true"`
+6. **`InviteModal`**: Added `React.useRef<HTMLDivElement>`, `useEffect` implementing:
+   - Escape key closes modal
+   - Focus trap (queries all focusable elements, traps Tab/Shift+Tab within dialog)
+   - Auto-focuses first input on open
+   - `ref={dialogRef}` on dialog div
+   - Modal X close button icon: `aria-hidden="true"`
+   - Mail icon: `aria-hidden="true"`
+   - Shield + ChevronDown in role selector: `aria-hidden="true"`
+7. **`ConfirmDialog`**: Same focus trap + Escape pattern; auto-focuses primary confirm button; AlertTriangle icon: `aria-hidden="true"`
+8. `RoleDropdown`: Shield, ChevronDown, Check icons: `aria-hidden="true"`
+9. Member list: Search, Plus, MoreHorizontal icons: `aria-hidden="true"`
+10. Member action menu: Clock, Check, X icons: `aria-hidden="true"`
+11. RolesTab: Crown, ShieldCheck, User, Eye, Lock, Crown (pro badge) icons: `aria-hidden="true"`
+12. InvitesTab: Mail ×2, RefreshCw icons: `aria-hidden="true"`
+
+---
+
+### Batch 1 — WCAG 2.1 AA Coverage Matrix
+
+| View | 1.1.1 Images | 1.3.1 Structure | 1.4.1 Color | 2.1.1 Keyboard | 2.1.2 No Trap | 2.4.1 Bypass | 2.4.7 Focus | 4.1.2 Name/Role | 4.1.3 Status |
+|------|-------------|----------------|-------------|---------------|--------------|-------------|------------|----------------|-------------|
+| AgentDashboard | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ |
+| AgentInbox | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ |
+| ActivityFeed | ✅ | ✅ | N/A | ✅ | N/A | ✅ | ✅ | ✅ | ✅ |
+| SettingsDashboard | ✅ | ✅ | N/A | ✅ | N/A | ✅ | ✅ | ✅ | ✅ |
+| SystemHealth | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ |
+| ChatInterface | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ |
+| UsageDashboard | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | N/A |
+| TeamManagement | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ | ✅ | N/A |
+
+### Batch 1 Summary
+
+| View | Issues Found | Issues Fixed | WCAG AA Status |
+|------|-------------|-------------|----------------|
+| AgentDashboard | 8 | 8 | ✅ PASS |
+| AgentInbox | 8 | 8 | ✅ PASS |
+| ActivityFeed | 4 | 4 | ✅ PASS |
+| SettingsDashboard | 10 | 10 | ✅ PASS |
+| SystemHealth | 5 | 5 | ✅ PASS |
+| ChatInterface | 12 | 12 | ✅ PASS |
+| UsageDashboard | 10 | 10 | ✅ PASS |
+| TeamManagement | 11 | 11 | ✅ PASS |
+
+**Total issues remediated: 68**  
+**New TypeScript errors introduced: 0**  
+**Build status:** ✅ Passing (tsc + vite build, 1871 modules, 4.55s)
+

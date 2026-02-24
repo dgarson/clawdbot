@@ -37,10 +37,10 @@ function ToolCallCard({ toolCall }: { toolCall: ToolCall }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const statusIcons = {
-    pending: <Circle className="w-4 h-4 text-fg-muted" />,
-    running: <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />,
-    done: <CheckCircle2 className="w-4 h-4 text-green-500" />,
-    error: <AlertCircle className="w-4 h-4 text-red-500" />,
+    pending: <Circle className="w-4 h-4 text-fg-muted" aria-hidden="true" />,
+    running: <Loader2 className="w-4 h-4 text-blue-500 animate-spin" aria-hidden="true" />,
+    done: <CheckCircle2 className="w-4 h-4 text-green-500" aria-hidden="true" />,
+    error: <AlertCircle className="w-4 h-4 text-red-500" aria-hidden="true" />,
   };
 
   const statusLabels = {
@@ -54,14 +54,16 @@ function ToolCallCard({ toolCall }: { toolCall: ToolCall }) {
     <div className="bg-surface-2/50 border border-tok-border rounded-lg overflow-hidden my-2">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface-2 transition-colors"
+        aria-expanded={isExpanded}
+        aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${toolCall.name} tool call — ${statusLabels[toolCall.status]}`}
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface-2 transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500 focus-visible:outline-none"
       >
         {isExpanded ? (
-          <ChevronDown className="w-4 h-4 text-fg-secondary" />
+          <ChevronDown className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-fg-secondary" />
+          <ChevronRight className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
         )}
-        <Terminal className="w-4 h-4 text-fg-secondary" />
+        <Terminal className="w-4 h-4 text-fg-secondary" aria-hidden="true" />
         <span className="font-medium text-fg-primary">{toolCall.name}</span>
         <span className="ml-auto flex items-center gap-2">
           {statusIcons[toolCall.status]}
@@ -122,10 +124,10 @@ function ChatMessageComponent({ message }: { message: ChatMessageType }) {
         <div className="whitespace-pre-wrap break-words">
           {message.content}
           {isStreaming && (
-            <span className="inline-flex ml-1">
-              <span className="w-1.5 h-1.5 bg-fg-secondary rounded-full animate-bounce [animation-delay:-0.3s]" />
-              <span className="w-1.5 h-1.5 bg-fg-secondary rounded-full animate-bounce [animation-delay:-0.15s] ml-0.5" />
-              <span className="w-1.5 h-1.5 bg-fg-secondary rounded-full animate-bounce ml-0.5" />
+            <span className="inline-flex ml-1" aria-label="Typing…">
+              <span className="w-1.5 h-1.5 bg-fg-secondary rounded-full animate-bounce [animation-delay:-0.3s]" aria-hidden="true" />
+              <span className="w-1.5 h-1.5 bg-fg-secondary rounded-full animate-bounce [animation-delay:-0.15s] ml-0.5" aria-hidden="true" />
+              <span className="w-1.5 h-1.5 bg-fg-secondary rounded-full animate-bounce ml-0.5" aria-hidden="true" />
             </span>
           )}
         </div>
@@ -164,24 +166,34 @@ function SessionItem({
     error: 'bg-red-500',
   };
 
+  const statusLabels: Record<SessionStatus, string> = {
+    active: 'Active',
+    idle: 'Idle',
+    completed: 'Completed',
+    error: 'Error',
+  };
+
   return (
     <button
       onClick={onClick}
+      aria-current={isActive ? 'true' : undefined}
       className={cn(
-        'w-full text-left p-3 rounded-xl transition-all',
+        'w-full text-left p-3 rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
         isActive
           ? 'bg-surface-2 border border-violet-600'
           : 'hover:bg-surface-2/50 border border-transparent'
       )}
     >
       <div className="flex items-start gap-2">
-        <span className="text-xl">{session.agentEmoji || '🤖'}</span>
+        <span className="text-xl" aria-hidden="true">{session.agentEmoji || '🤖'}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <p className={cn('font-medium truncate', isActive ? 'text-fg-primary' : 'text-fg-secondary')}>
               {session.agentName || 'Agent'}
             </p>
-            <span className={cn('w-2 h-2 rounded-full', statusColors[session.status])} />
+            {/* Status dot with companion sr-only text */}
+            <span className={cn('w-2 h-2 rounded-full', statusColors[session.status])} aria-hidden="true" />
+            <span className="sr-only">{statusLabels[session.status]}</span>
           </div>
           <p className="text-xs text-fg-muted truncate mt-0.5">
             {session.messageCount} messages
@@ -353,105 +365,130 @@ export default function ChatInterface({
   if (isLoading) return <ChatInterfaceSkeleton />;
 
   return (
-    <div className="flex h-screen bg-surface-0">
-      {/* Left Pane - Session List */}
-      <aside className="w-64 bg-surface-1 border-r border-tok-border flex-col hidden md:flex">
-        {/* Sessions Header */}
-        <div className="p-4 border-b border-tok-border">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-fg-primary">Sessions</h2>
-            <span className="text-xs text-fg-muted bg-surface-2 px-2 py-1 rounded">
-              {displayedSessions.length}
-            </span>
-          </div>
-        </div>
+    <>
+      {/* Skip link */}
+      <a
+        href="#chat-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+      >
+        Skip to chat
+      </a>
 
-        {/* Session List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {displayedSessions.length > 0 ? (
-            displayedSessions.map((session) => (
-              <SessionItem
-                key={session.key}
-                session={session}
-                isActive={session.key === activeSessionKey}
-                onClick={() => setActiveSessionKey(session.key)}
-              />
-            ))
-          ) : (
-            <div className="p-4 text-center text-fg-muted text-sm">
-              No sessions yet
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Right Pane - Chat */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Topbar */}
-        <header className="h-14 bg-surface-1/80 border-b border-tok-border flex items-center justify-between px-4 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{displayAgentEmoji}</span>
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-fg-primary">{displayAgentName}</span>
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+      <div className="flex h-screen bg-surface-0">
+        {/* Left Pane - Session List */}
+        <aside aria-label="Chat sessions" className="w-64 bg-surface-1 border-r border-tok-border flex-col hidden md:flex">
+          {/* Sessions Header */}
+          <div className="p-4 border-b border-tok-border">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-fg-primary">Sessions</h2>
+              <span className="text-xs text-fg-muted bg-surface-2 px-2 py-1 rounded">
+                {displayedSessions.length}
+              </span>
             </div>
           </div>
-          <button className="p-2 hover:bg-surface-2 rounded-lg transition-colors">
-            <MoreHorizontal className="w-5 h-5 text-fg-secondary" />
-          </button>
-        </header>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length > 0 ? (
-            messages.map((message) => (
-              <ChatMessageComponent key={message.id} message={message} />
-            ))
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <ContextualEmptyState
-                icon={MessageSquare}
-                title="Start a conversation"
-                description="Send a message to begin chatting with this agent."
-              />
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Composer */}
-        <div className="p-4 bg-surface-1/50 border-t border-tok-border">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <textarea
-                ref={textareaRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Message..."
-                rows={1}
-                className="w-full bg-surface-2 border border-tok-border rounded-xl px-4 py-3 pr-12 text-fg-primary placeholder:text-fg-muted resize-none focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600"
-              />
-              <button
-                onClick={handleSend}
-                disabled={!inputValue.trim()}
-                className={cn(
-                  'absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors',
-                  inputValue.trim()
-                    ? 'bg-violet-600 hover:bg-violet-500 text-fg-primary'
-                    : 'bg-surface-3 text-fg-muted cursor-not-allowed'
-                )}
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex items-center justify-between mt-2 text-xs text-fg-muted">
-              <span>Press Enter to send, Shift+Enter for new line</span>
-              <span>{inputValue.length} characters</span>
-            </div>
+          {/* Session List */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-1" role="list" aria-label="Available sessions">
+            {displayedSessions.length > 0 ? (
+              displayedSessions.map((session) => (
+                <SessionItem
+                  key={session.key}
+                  session={session}
+                  isActive={session.key === activeSessionKey}
+                  onClick={() => setActiveSessionKey(session.key)}
+                />
+              ))
+            ) : (
+              <div className="p-4 text-center text-fg-muted text-sm">
+                No sessions yet
+              </div>
+            )}
           </div>
-        </div>
-      </main>
-    </div>
+        </aside>
+
+        {/* Right Pane - Chat */}
+        <main id="chat-main" className="flex-1 flex flex-col min-w-0">
+          {/* Topbar */}
+          <header className="h-14 bg-surface-1/80 border-b border-tok-border flex items-center justify-between px-4 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl" aria-hidden="true">{displayAgentEmoji}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-fg-primary">{displayAgentName}</span>
+                {/* Status indicator */}
+                <span className="w-2 h-2 rounded-full bg-green-500" aria-hidden="true" />
+                <span className="sr-only">Online</span>
+              </div>
+            </div>
+            <button
+              className="p-2 hover:bg-surface-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              aria-label="More options"
+            >
+              <MoreHorizontal className="w-5 h-5 text-fg-secondary" aria-hidden="true" />
+            </button>
+          </header>
+
+          {/* Messages Area */}
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            aria-live="polite"
+            aria-label="Chat messages"
+            role="log"
+          >
+            {messages.length > 0 ? (
+              messages.map((message) => (
+                <ChatMessageComponent key={message.id} message={message} />
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <ContextualEmptyState
+                  icon={MessageSquare}
+                  title="Start a conversation"
+                  description="Send a message to begin chatting with this agent."
+                />
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Composer */}
+          <section aria-label="Message composer" className="p-4 bg-surface-1/50 border-t border-tok-border">
+            <div className="max-w-3xl mx-auto">
+              <div className="relative">
+                <label htmlFor="chat-input" className="sr-only">
+                  Message {displayAgentName}
+                </label>
+                <textarea
+                  id="chat-input"
+                  ref={textareaRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Message..."
+                  rows={1}
+                  className="w-full bg-surface-2 border border-tok-border rounded-xl px-4 py-3 pr-12 text-fg-primary placeholder:text-fg-muted resize-none focus-visible:outline-none focus-visible:border-violet-600 focus-visible:ring-1 focus-visible:ring-violet-600"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!inputValue.trim() || isStreaming}
+                  aria-label="Send message"
+                  className={cn(
+                    'absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                    inputValue.trim() && !isStreaming
+                      ? 'bg-violet-600 hover:bg-violet-500 text-fg-primary'
+                      : 'bg-surface-3 text-fg-muted cursor-not-allowed'
+                  )}
+                >
+                  <Send className="w-5 h-5" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="flex items-center justify-between mt-2 text-xs text-fg-muted">
+                <span>Press Enter to send, Shift+Enter for new line</span>
+                <span aria-live="polite" aria-atomic="true">{inputValue.length} characters</span>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </>
   );
 }
