@@ -243,7 +243,7 @@ const SEVERITY_COLORS: Record<AlertSeverity, string> = {
   high:     "text-orange-400 bg-orange-400/10 border-orange-400/20",
   medium:   "text-amber-400 bg-amber-400/10 border-amber-400/20",
   low:      "text-blue-400 bg-blue-400/10 border-blue-400/20",
-  info:     "text-zinc-400 bg-zinc-400/10 border-zinc-400/20",
+  info:     "text-fg-secondary bg-zinc-400/10 border-zinc-400/20",
 };
 
 const SEVERITY_LABELS: Record<AlertSeverity, string> = {
@@ -258,7 +258,7 @@ const STATUS_COLORS: Record<AlertStatus, string> = {
   firing:       "text-rose-400 bg-rose-400/10 border-rose-400/20",
   acknowledged: "text-amber-400 bg-amber-400/10 border-amber-400/20",
   resolved:     "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-  suppressed:   "text-zinc-500 bg-zinc-500/10 border-zinc-500/20",
+  suppressed:   "text-fg-muted bg-zinc-500/10 border-zinc-500/20",
 };
 
 const CATEGORY_EMOJIS: Record<AlertCategory, string> = {
@@ -303,8 +303,8 @@ function AlertCard({ alert, selected, onSelect }: AlertCardProps) {
         selected
           ? "border-indigo-500 bg-indigo-950/30"
           : isFiring
-          ? "border-rose-500/30 bg-zinc-900 hover:border-rose-500/50"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+          ? "border-rose-500/30 bg-surface-1 hover:border-rose-500/50"
+          : "border-tok-border bg-surface-1 hover:border-tok-border"
       )}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -319,15 +319,15 @@ function AlertCard({ alert, selected, onSelect }: AlertCardProps) {
             {alert.status}
           </span>
         </div>
-        <span className="text-xs text-zinc-500 shrink-0">{relTime(alert.firedAt)}</span>
+        <span className="text-xs text-fg-muted shrink-0">{relTime(alert.firedAt)}</span>
       </div>
 
-      <p className="text-sm font-semibold text-white mb-1">{alert.title}</p>
-      <p className="text-xs text-zinc-500 line-clamp-2">{alert.description}</p>
+      <p className="text-sm font-semibold text-fg-primary mb-1">{alert.title}</p>
+      <p className="text-xs text-fg-muted line-clamp-2">{alert.description}</p>
 
       <div className="mt-2 flex items-center gap-2">
         <span className="text-sm">{CATEGORY_EMOJIS[alert.category]}</span>
-        <span className="text-xs text-zinc-600">{alert.affectedResource}</span>
+        <span className="text-xs text-fg-muted">{alert.affectedResource}</span>
       </div>
     </button>
   );
@@ -394,13 +394,13 @@ export default function AlertCenter() {
   ];
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Alert Center">
+    <main className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Alert Center">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
-        <div className="flex items-center justify-between mb-3">
+      <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-tok-border shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
           <div>
-            <h1 className="text-lg font-bold text-white">Alert Center</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Operational alerts, incidents, and notification rules</p>
+            <h1 className="text-lg font-bold text-fg-primary">Alert Center</h1>
+            <p className="text-xs text-fg-muted mt-0.5">Operational alerts, incidents, and notification rules</p>
           </div>
           <div className="flex items-center gap-5 text-xs">
             {[
@@ -410,7 +410,7 @@ export default function AlertCenter() {
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className={cn("text-xl font-bold font-mono", s.color)}>{s.count}</p>
-                <p className="text-zinc-500">{s.label}</p>
+                <p className="text-fg-muted">{s.label}</p>
               </div>
             ))}
           </div>
@@ -427,7 +427,7 @@ export default function AlertCenter() {
               className={cn(
                 "px-4 py-1.5 rounded-lg text-sm transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                tab === t.id ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"
+                tab === t.id ? "bg-surface-2 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
               )}
             >
               {t.label}
@@ -440,9 +440,9 @@ export default function AlertCenter() {
       {tab === "alerts" ? (
         <div className="flex flex-1 overflow-hidden">
           {/* Alert list */}
-          <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+          <div className="w-64 sm:w-72 md:w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
             {/* Filters */}
-            <div className="p-3 border-b border-zinc-800 space-y-2">
+            <div className="p-3 border-b border-tok-border space-y-2">
               <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by status">
                 {statuses.map(s => (
                   <button
@@ -454,7 +454,7 @@ export default function AlertCenter() {
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       statusFilter === s.value
                         ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                        : "border-zinc-700 text-zinc-400 hover:text-white"
+                        : "border-tok-border text-fg-secondary hover:text-fg-primary"
                     )}
                   >
                     {s.label}
@@ -472,7 +472,7 @@ export default function AlertCenter() {
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       severityFilter === s.value
                         ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                        : "border-zinc-700 text-zinc-400 hover:text-white"
+                        : "border-tok-border text-fg-secondary hover:text-fg-primary"
                     )}
                   >
                     {s.label}
@@ -504,7 +504,7 @@ export default function AlertCenter() {
           </div>
 
           {/* Alert detail */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
             {selectedAlert ? (
               <div className="space-y-5 max-w-2xl">
                 {/* Title + badges */}
@@ -516,17 +516,17 @@ export default function AlertCenter() {
                     <span className={cn("text-sm px-2.5 py-1 rounded-full border", STATUS_COLORS[selectedAlert.status])}>
                       {selectedAlert.status}
                     </span>
-                    <span className="text-sm px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400">
+                    <span className="text-sm px-2.5 py-1 rounded-full bg-surface-2 text-fg-secondary">
                       {CATEGORY_EMOJIS[selectedAlert.category]} {selectedAlert.category}
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-white">{selectedAlert.title}</h2>
-                  <p className="text-sm text-zinc-400 mt-2 leading-relaxed">{selectedAlert.description}</p>
+                  <h2 className="text-xl font-bold text-fg-primary">{selectedAlert.title}</h2>
+                  <p className="text-sm text-fg-secondary mt-2 leading-relaxed">{selectedAlert.description}</p>
                 </div>
 
                 {/* Timeline */}
-                <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                  <h3 className="text-sm font-semibold text-white mb-3">Timeline</h3>
+                <div className="rounded-xl bg-surface-1 border border-tok-border p-4">
+                  <h3 className="text-sm font-semibold text-fg-primary mb-3">Timeline</h3>
                   <div className="space-y-2">
                     {[
                       { label: "Fired",        time: selectedAlert.firedAt,          icon: "🔔" },
@@ -535,11 +535,11 @@ export default function AlertCenter() {
                     ].map(ev => ev.time && (
                       <div key={ev.label} className="flex items-center gap-3 text-sm">
                         <span>{ev.icon}</span>
-                        <span className="text-zinc-400 w-24">{ev.label}</span>
-                        <span className="text-white font-mono text-xs">
+                        <span className="text-fg-secondary w-24">{ev.label}</span>
+                        <span className="text-fg-primary font-mono text-xs">
                           {new Date(ev.time).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </span>
-                        {ev.by && <span className="text-zinc-500 text-xs">by {ev.by}</span>}
+                        {ev.by && <span className="text-fg-muted text-xs">by {ev.by}</span>}
                       </div>
                     ))}
                   </div>
@@ -548,14 +548,14 @@ export default function AlertCenter() {
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-4">
                   {selectedAlert.value && (
-                    <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                      <p className="text-xs text-zinc-500 mb-1">Triggered Value</p>
+                    <div className="rounded-xl bg-surface-1 border border-tok-border p-4">
+                      <p className="text-xs text-fg-muted mb-1">Triggered Value</p>
                       <p className="text-base font-mono font-bold text-rose-400">{selectedAlert.value}</p>
                     </div>
                   )}
                   {selectedAlert.threshold && (
-                    <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                      <p className="text-xs text-zinc-500 mb-1">Threshold</p>
+                    <div className="rounded-xl bg-surface-1 border border-tok-border p-4">
+                      <p className="text-xs text-fg-muted mb-1">Threshold</p>
                       <p className="text-base font-mono font-bold text-amber-400">{selectedAlert.threshold}</p>
                     </div>
                   )}
@@ -563,12 +563,12 @@ export default function AlertCenter() {
 
                 {/* Labels */}
                 {Object.keys(selectedAlert.labels).length > 0 && (
-                  <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                    <h3 className="text-sm font-semibold text-white mb-3">Labels</h3>
+                  <div className="rounded-xl bg-surface-1 border border-tok-border p-4">
+                    <h3 className="text-sm font-semibold text-fg-primary mb-3">Labels</h3>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(selectedAlert.labels).map(([k, v]) => (
-                        <span key={k} className="text-xs font-mono px-2 py-1 rounded bg-zinc-800 text-zinc-300">
-                          <span className="text-zinc-500">{k}=</span>{v}
+                        <span key={k} className="text-xs font-mono px-2 py-1 rounded bg-surface-2 text-fg-primary">
+                          <span className="text-fg-muted">{k}=</span>{v}
                         </span>
                       ))}
                     </div>
@@ -581,7 +581,7 @@ export default function AlertCenter() {
                     <button
                       onClick={() => handleAcknowledge(selectedAlert.id)}
                       className={cn(
-                        "flex-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors",
+                        "flex-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-fg-primary text-sm font-medium transition-colors",
                         "focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
                       )}
                     >
@@ -590,7 +590,7 @@ export default function AlertCenter() {
                     <button
                       onClick={() => handleResolve(selectedAlert.id)}
                       className={cn(
-                        "flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium transition-colors",
+                        "flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-fg-primary text-sm font-medium transition-colors",
                         "focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                       )}
                     >
@@ -602,7 +602,7 @@ export default function AlertCenter() {
                   <button
                     onClick={() => handleResolve(selectedAlert.id)}
                     className={cn(
-                      "w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium transition-colors",
+                      "w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-fg-primary text-sm font-medium transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                     )}
                   >
@@ -613,33 +613,33 @@ export default function AlertCenter() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <p className="text-5xl mb-4">🔔</p>
-                <p className="text-lg font-semibold text-white">Select an alert</p>
-                <p className="text-sm text-zinc-500 mt-1">Choose an alert from the list to view details</p>
+                <p className="text-lg font-semibold text-fg-primary">Select an alert</p>
+                <p className="text-sm text-fg-muted mt-1">Choose an alert from the list to view details</p>
               </div>
             )}
           </div>
         </div>
       ) : (
         /* Rules tab */
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+          <div className="rounded-xl bg-surface-1 border border-tok-border overflow-hidden">
+            <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-white">Alert Rules</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">{RULES.filter(r => r.enabled).length} active · {RULES.filter(r => !r.enabled).length} disabled</p>
+                <h2 className="text-sm font-semibold text-fg-primary">Alert Rules</h2>
+                <p className="text-xs text-fg-muted mt-0.5">{RULES.filter(r => r.enabled).length} active · {RULES.filter(r => !r.enabled).length} disabled</p>
               </div>
               <button
                 className={cn(
-                  "text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors",
+                  "text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-fg-primary transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                 )}
               >
                 + New Rule
               </button>
             </div>
-            <div className="divide-y divide-zinc-800">
+            <div className="divide-y divide-tok-border">
               {RULES.map(rule => (
-                <div key={rule.id} className="px-4 py-4 flex items-start gap-4 hover:bg-zinc-800/30 transition-colors">
+                <div key={rule.id} className="px-4 py-4 flex items-start gap-4 hover:bg-surface-2/30 transition-colors">
                   {/* Toggle */}
                   <button
                     role="switch"
@@ -648,7 +648,7 @@ export default function AlertCenter() {
                     className={cn(
                       "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors mt-0.5",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                      rule.enabled ? "bg-indigo-600" : "bg-zinc-700"
+                      rule.enabled ? "bg-indigo-600" : "bg-surface-3"
                     )}
                   >
                     <span
@@ -661,13 +661,13 @@ export default function AlertCenter() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-semibold text-white">{rule.name}</p>
+                      <p className="text-sm font-semibold text-fg-primary">{rule.name}</p>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded border", SEVERITY_COLORS[rule.severity])}>
                         {rule.severity}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-500 mb-2">{rule.condition}</p>
-                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-zinc-600">
+                    <p className="text-xs text-fg-muted mb-2">{rule.condition}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-fg-muted">
                       <span>Window: {rule.window}</span>
                       <span>Threshold: {rule.threshold}</span>
                       <span>Fired: {rule.firedCount}×</span>
@@ -675,7 +675,7 @@ export default function AlertCenter() {
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {rule.notifyChannels.map(ch => (
-                        <span key={ch} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">
+                        <span key={ch} className="text-[10px] px-1.5 py-0.5 rounded bg-surface-2 text-fg-secondary font-mono">
                           {ch}
                         </span>
                       ))}
