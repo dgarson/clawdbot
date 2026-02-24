@@ -1,5 +1,6 @@
 // M9: responsive pass
 import React, { useState, useRef, useEffect } from 'react';
+import { Skeleton } from '../components/ui/Skeleton';
 import {
   Check,
   Loader2,
@@ -234,7 +235,7 @@ function Step1Gateway({ onSuccess }: Step1Props) {
         onClick={testConnection}
         disabled={status === 'loading' || status === 'success'}
         className={cn(
-          'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200',
+          'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
           status === 'success'
             ? 'bg-emerald-600 text-white cursor-default'
             : 'bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-60 disabled:cursor-not-allowed'
@@ -478,7 +479,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
         onClick={create}
         disabled={!name.trim() || status === 'loading' || status === 'success'}
         className={cn(
-          'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200',
+          'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
           status === 'success'
             ? 'bg-emerald-600 text-white cursor-default'
             : 'bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed'
@@ -673,7 +674,7 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
       <div className="flex gap-3">
         <a
           href="/dashboard"
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-semibold transition-all duration-150"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-500 active:scale-95 text-white rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <LayoutDashboard size={16} />
           Open Dashboard
@@ -682,7 +683,7 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
           href="https://docs.openclaw.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm font-semibold transition-all duration-150"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <BookOpen size={16} />
           Explore Docs
@@ -693,9 +694,59 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
   );
 }
 
+// ─── Skeleton Loading State ────────────────────────────────────────────────────
+
+function OnboardingSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-3 sm:p-4 md:p-6">
+      <div className="w-full max-w-2xl">
+        {/* Header skeleton */}
+        <div className="text-center mb-8">
+          <Skeleton variant="rect" className="w-12 h-12 rounded-xl mx-auto mb-4" />
+          <Skeleton variant="rect" className="h-7 w-56 mx-auto" />
+          <Skeleton variant="text" className="h-3 w-44 mx-auto mt-2" />
+        </div>
+        {/* Card skeleton */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+          {/* Stepper skeleton */}
+          <div className="flex items-center gap-0 w-full mb-6 sm:mb-8">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <div className="flex-1 h-0.5 mx-1 bg-zinc-700" />}
+                <div className="flex flex-col items-center gap-1.5">
+                  <Skeleton variant="circle" className="w-8 h-8" />
+                  <Skeleton variant="text" className="h-2.5 w-12 hidden sm:block" />
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+          {/* Step content skeleton */}
+          <div className="min-h-[340px] space-y-6">
+            <div className="space-y-2">
+              <Skeleton variant="rect" className="h-6 w-64" />
+              <Skeleton variant="text" className="h-3 w-full max-w-md" />
+            </div>
+            <div className="space-y-3">
+              <Skeleton variant="text" className="h-3 w-24" />
+              <Skeleton variant="rect" className="h-10 w-full rounded-lg" />
+            </div>
+            <Skeleton variant="rect" className="h-10 w-36 rounded-lg" />
+          </div>
+          {/* Nav skeleton */}
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-800">
+            <Skeleton variant="rect" className="h-8 w-16 rounded-lg" />
+            <Skeleton variant="text" className="h-3 w-16" />
+            <Skeleton variant="rect" className="h-8 w-16 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function GuidedOnboardingTour() {
+export default function GuidedOnboardingTour({ isLoading = false }: { isLoading?: boolean }) {
   const [currentStep, setCurrentStep] = useState<StepId>(1);
   const [completed, setCompleted] = useState<Set<StepId>>(new Set());
 
@@ -725,6 +776,8 @@ export default function GuidedOnboardingTour() {
   function goBack() {
     if (currentStep > 1) setCurrentStep((s) => (s - 1) as StepId);
   }
+
+  if (isLoading) return <OnboardingSkeleton />;
 
   // M9: responsive pass — full-width with padding on mobile
   return (

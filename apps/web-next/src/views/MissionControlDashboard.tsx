@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Skeleton } from '../components/ui/Skeleton';
 import {
   Activity,
   AlertTriangle,
@@ -522,7 +523,7 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
           />
         ) : (
           sessions.map((session) => (
-            <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/50 transition-colors">
+            <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/50 transition-colors duration-150">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-lg leading-none">{session.agentEmoji}</span>
@@ -671,14 +672,14 @@ function PendingApprovalsPanel({
                 <div className="flex gap-2">
                   <button
                     onClick={() => onApprove(ap.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-xs font-medium transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                   >
                     <Check className="w-3.5 h-3.5" />
                     Approve
                   </button>
                   <button
                     onClick={() => onDeny(ap.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors border border-zinc-700"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-300 text-xs font-medium transition-all duration-150 border border-zinc-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                   >
                     <X className="w-3.5 h-3.5" />
                     Deny
@@ -736,7 +737,7 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(
-                'px-3 py-1 rounded-md text-xs font-medium transition-colors',
+                'px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 filter === f.key
                   ? 'bg-zinc-700 text-white'
                   : 'text-zinc-400 hover:text-zinc-300',
@@ -777,10 +778,77 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
 }
 
 // ============================================================================
+// Skeleton Loading States
+// ============================================================================
+
+function StatusBarSkeleton() {
+  return (
+    <div className="grid grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
+          <Skeleton variant="rect" className="w-8 h-8 rounded-lg" />
+          <div className="flex-1 space-y-2">
+            <Skeleton variant="text" className="h-2.5 w-20" />
+            <Skeleton variant="rect" className="h-6 w-14" />
+            <Skeleton variant="text" className="h-2 w-24" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SessionListSkeleton() {
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
+      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+        <Skeleton variant="rect" className="w-4 h-4 rounded" />
+        <Skeleton variant="text" className="h-3.5 w-28" />
+      </div>
+      <div className="divide-y divide-zinc-800/60">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="px-4 py-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circle" className="w-7 h-7" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton variant="text" className="h-3 w-24" />
+                <Skeleton variant="text" className="h-2 w-36" />
+              </div>
+              <Skeleton variant="rect" className="h-5 w-16 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MissionControlSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <Skeleton variant="rect" className="h-7 w-48" />
+          <Skeleton variant="text" className="h-3 w-64" />
+        </div>
+        <Skeleton variant="rect" className="h-5 w-24 rounded-full" />
+      </div>
+      <StatusBarSkeleton />
+      <div className="grid grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
+        <div className="col-span-2"><SessionListSkeleton /></div>
+        <div className="col-span-1"><SessionListSkeleton /></div>
+        <div className="col-span-1"><SessionListSkeleton /></div>
+      </div>
+      <SessionListSkeleton />
+    </div>
+  );
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
-export default function MissionControlDashboard() {
+export default function MissionControlDashboard({ isLoading = false }: { isLoading?: boolean }) {
   const [sessions, setSessions] = useState<ActiveSession[]>(INITIAL_SESSIONS);
   const [approvals, setApprovals] = useState<PendingApproval[]>(INITIAL_APPROVALS);
   const [tick, setTick] = useState(0);
@@ -828,6 +896,8 @@ export default function MissionControlDashboard() {
   const sessionCount = sessions.length;
   const agentCount = sessions.filter((s) => s.status === 'RUNNING').length;
   const tokensPerMin = 4280;
+
+  if (isLoading) return <MissionControlSkeleton />;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
