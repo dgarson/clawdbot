@@ -222,7 +222,7 @@ function repeatLabel(s: ScheduledTask): string {
 
 function CalendarStrip({ schedules }: { schedules: ScheduledTask[] }) {
   const days = useMemo(() => {
-    const result = [];
+    const result: { date: Date; dateStr: string; tasks: ScheduledTask[] }[] = [];
     const now = new Date();
     for (let i = 0; i < 7; i++) {
       const d = new Date(now);

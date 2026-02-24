@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "./lib/utils";
-import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
-import { TourOverlay, useTour, DEFAULT_DASHBOARD_TOUR_STEPS } from "./components/Tour";
 import {
   DashboardSkeleton,
   TableSkeleton,
@@ -9,10 +7,13 @@ import {
   ChatSkeleton,
   ContentSkeleton,
 } from "./components/Skeleton";
+import { PageSkeleton } from "./components/ui/PageSkeleton";
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
-import ThemeToggle from "./components/ui/ThemeToggle";
+
+// Demand-only components — lazy loaded to keep main bundle lean
+const KeyboardShortcutsModal = React.lazy(() => import("./components/KeyboardShortcutsModal"));
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -37,10 +38,6 @@ const ModelComparisonMatrix        = React.lazy(() => import("./views/ModelCompa
 const AgentWaveScheduler           = React.lazy(() => import("./views/AgentWaveScheduler"));
 const DiscoveryPreflightChecklist  = React.lazy(() => import("./views/DiscoveryPreflightChecklist"));
 const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryFindingsSearch"));
-const DiscoveryRunTimeline       = React.lazy(() => import("./views/DiscoveryRunTimeline"));
-const DiscoveryRunSummaryReport  = React.lazy(() => import("./views/DiscoveryRunSummaryReport"));
-const AgentHealthGrid            = React.lazy(() => import("./views/AgentHealthGrid"));
-const WaveTransitionView         = React.lazy(() => import("./views/WaveTransitionView"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -59,7 +56,6 @@ const WorkspaceFileBrowser = React.lazy(() => import("./views/WorkspaceFileBrows
 const ProviderAuthManager = React.lazy(() => import("./views/ProviderAuthManager"));
 const AgentPulseMonitor = React.lazy(() => import("./views/AgentPulseMonitor"));
 const NotificationCenter = React.lazy(() => import("./views/NotificationCenter"));
-import { useNotificationUnreadCount } from "./views/NotificationCenter";
 const ApiKeysManager = React.lazy(() => import("./views/ApiKeysManager"));
 const AuditLog = React.lazy(() => import("./views/AuditLog"));
 const BillingSubscription = React.lazy(() => import("./views/BillingSubscription"));
@@ -92,7 +88,6 @@ const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
 const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
-const CommandPaletteV2     = React.lazy(() => import("./views/CommandPaletteV2"));
 const SupportCenter        = React.lazy(() => import("./views/SupportCenter"));
 const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"));
 const AgentMemoryViewer    = React.lazy(() => import("./views/AgentMemoryViewer"));
@@ -309,6 +304,10 @@ const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeAp
 const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
 const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
+// ── Horizon M1-M10 + new views (previously missing) ─────────────────────────
+const AgentTopologyView              = React.lazy(() => import("./views/AgentTopologyView"));
+const ChannelBroadcastCenter         = React.lazy(() => import("./views/ChannelBroadcastCenter"));
+const ProviderRoutingPanel           = React.lazy(() => import("./views/ProviderRoutingPanel"));
 
 export const navItems = [
   { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
@@ -317,10 +316,6 @@ export const navItems = [
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
   { id: "agent-cost-tracker",      label: "Agent Cost Tracker",   emoji: "💰", shortcut: null },
   { id: "tool-reliability",        label: "Tool Reliability",     emoji: "🛡️", shortcut: null },
-  { id: "run-timeline",          label: "Run Timeline",         emoji: "📊", shortcut: null },
-  { id: "run-summary",           label: "Run Summary",          emoji: "📋", shortcut: null },
-  { id: "agent-health-grid",     label: "Agent Health Grid",    emoji: "❤️", shortcut: null },
-  { id: "wave-transition",       label: "Wave Transition",      emoji: "🌊", shortcut: null },
   { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
@@ -371,7 +366,6 @@ export const navItems = [
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
   { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
   { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
-  { id: "commands-v2",     label: "Commands V2",    emoji: "🔮", shortcut: null },
   { id: "support",         label: "Support",        emoji: "🎫", shortcut: null },
   { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
   { id: "memory",          label: "Agent Memory",   emoji: "🧠", shortcut: null },
@@ -587,6 +581,10 @@ export const navItems = [
   { id: "multi-region-failover",    label: "Multi-Region Failover",  emoji: "🔄", shortcut: null },
   { id: "cost-allocation",          label: "Cost Allocation",         emoji: "💰", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
+  // Horizon new views
+  { id: "agent-topology",           label: "Agent Topology",          emoji: "🕸️", shortcut: null },
+  { id: "channel-broadcast",        label: "Broadcast Center",        emoji: "📡", shortcut: null },
+  { id: "provider-routing",         label: "Provider Routing",        emoji: "🔀", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
@@ -640,7 +638,6 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "permissions":    <TableSkeleton rows={8} />,
   "activity":       <ContentSkeleton />,
   "commands":       <ContentSkeleton />,
-  "commands-v2":    <ContentSkeleton />,
   "support":        <ContentSkeleton />,
   "releases":       <DashboardSkeleton />,
   "memory":         <ContentSkeleton />,
@@ -856,18 +853,19 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "multi-region-failover":     <ContentSkeleton />,
   "cost-allocation":           <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
+  // Horizon new views
+  "agent-topology":            <ContentSkeleton />,
+  "channel-broadcast":         <TableSkeleton rows={6} />,
+  "provider-routing":          <ContentSkeleton />,
 };
 
 function LoadingFallback({ viewId }: { viewId: string }) {
   const skeleton = SKELETON_MAP[viewId];
   if (skeleton) {
-    return <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">{skeleton}</div>; {/* M9: responsive pass */}
+    return <div className="p-6 max-w-7xl mx-auto">{skeleton}</div>;
   }
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-pulse-soft text-muted-foreground text-sm">Loading...</div>
-    </div>
-  );
+  // Fallback to full-page skeleton for any view not in the map
+  return <PageSkeleton />;
 }
 
 // Error boundary for views
@@ -923,22 +921,9 @@ function AppContent() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  
-  // Tour state
-  const [tourOpen, setTourOpen] = useState(false);
-  
-  // Initialize tour with default steps
-  const tour = useTour({
-    tourId: 'dashboard-onboarding',
-    steps: DEFAULT_DASHBOARD_TOUR_STEPS,
-    onComplete: () => setTourOpen(false),
-    onSkip: () => setTourOpen(false),
-  });
-  
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { visitView, recordInteraction } = useProficiency();
-  const notificationUnreadCount = useNotificationUnreadCount();
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
   const canGoBack = historyIndex > 0;
@@ -1103,10 +1088,6 @@ function AppContent() {
       case "wave-scheduler":          return <AgentWaveScheduler />;
       case "preflight-checklist":     return <DiscoveryPreflightChecklist />;
       case "findings-search":         return <DiscoveryFindingsSearch />;
-      case "run-timeline":        return <DiscoveryRunTimeline />;
-      case "run-summary":         return <DiscoveryRunSummaryReport />;
-      case "agent-health-grid":   return <AgentHealthGrid />;
-      case "wave-transition":     return <WaveTransitionView />;
       case "dashboard":     return <AgentDashboard />;
       case "chat":          return <ChatInterface agentName="Luis" agentEmoji="🎨" />;
       case "builder":       return <AgentBuilderWizard />;
@@ -1157,7 +1138,6 @@ function AppContent() {
       case "permissions":     return <PermissionsManager />;
       case "activity":        return <ActivityFeed />;
       case "commands":        return <CommandPalette />;
-      case "commands-v2":     return <CommandPaletteV2 />;
       case "support":         return <SupportCenter />;
       case "releases":        return <ReleasePipeline />;
       case "memory":          return <AgentMemoryViewer />;
@@ -1375,6 +1355,10 @@ function AppContent() {
       case "db-query-analyzer":       return <DatabaseQueryAnalyzer />;
       case "feature-flag-manager":    return <FeatureFlagManager />;
       case "token-usage":             return <TokenUsageOptimizer />;
+      // Horizon new views
+      case "agent-topology":          return <AgentTopologyView />;
+      case "channel-broadcast":       return <ChannelBroadcastCenter />;
+      case "provider-routing":        return <ProviderRoutingPanel />;
       default:              return <AgentDashboard />;
     }
   };
@@ -1414,16 +1398,15 @@ function AppContent() {
             🐾
           </button>
           {!sidebarCollapsed && (
-            <span className="font-bold text-lg text-foreground" data-tour="brand">OpenClaw</span>
+            <span className="font-bold text-lg text-foreground">OpenClaw</span>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2" data-tour="sidebar">
+        <nav className="flex-1 overflow-y-auto py-2">
           {navItems.map((item) => (
             <button
               key={item.id}
-              data-tour={`nav-${item.id}`}
               onClick={() => navigate(item.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
@@ -1438,21 +1421,9 @@ function AppContent() {
                   : item.label
               }
             >
-              <span className="text-base relative" aria-hidden="true">
-                {item.emoji}
-                {item.id === "notifications" && notificationUnreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
-                  </span>
-                )}
-              </span>
+              <span className="text-base" aria-hidden="true">{item.emoji}</span>
               {!sidebarCollapsed && <span>{item.label}</span>}
-              {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
-                <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
-                  {notificationUnreadCount}
-                </span>
-              )}
-              {!sidebarCollapsed && item.shortcut && item.id !== "notifications" && (
+              {!sidebarCollapsed && item.shortcut && (
                 <span className="ml-auto text-xs text-muted-foreground/50 font-mono">
                   ⌥{item.shortcut}
                 </span>
@@ -1465,17 +1436,6 @@ function AppContent() {
         <div className="p-4 border-t border-border flex flex-col gap-2">
           {/* Proficiency Level Badge */}
           {!sidebarCollapsed && <ProficiencyBadge />}
-          {/* Start Tour Button */}
-          {!sidebarCollapsed && !tour.hasCompleted && (
-            <button
-              onClick={() => tour.startTour()}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 transition-colors"
-              aria-label="Start guided tour"
-            >
-              <span>🎯</span>
-              <span>Start Tour</span>
-            </button>
-          )}
           {!sidebarCollapsed ? (
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">v0.1.0</span>
@@ -1530,7 +1490,6 @@ function AppContent() {
       </aside>
 
       {/* Mobile sidebar (separate element for overlay) */}
-      {/* M9: responsive pass — mobile drawer with ≥44px touch targets */}
       {mobileSidebarOpen && (
         <aside
           role="navigation"
@@ -1542,7 +1501,7 @@ function AppContent() {
             <span className="font-bold text-lg text-foreground">OpenClaw</span>
             <button
               onClick={() => setMobileSidebarOpen(false)}
-              className="ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
+              className="ml-auto text-muted-foreground hover:text-foreground"
               aria-label="Close menu"
             >
               ✕
@@ -1554,27 +1513,15 @@ function AppContent() {
                 key={item.id}
                 onClick={() => navigate(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
+                  "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                   activeView === item.id
                     ? "bg-primary/10 text-primary border-r-2 border-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
                 aria-current={activeView === item.id ? "page" : undefined}
               >
-                <span className="text-base relative" aria-hidden="true">
-                  {item.emoji}
-                  {item.id === "notifications" && notificationUnreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                      {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
-                    </span>
-                  )}
-                </span>
+                <span className="text-base" aria-hidden="true">{item.emoji}</span>
                 <span>{item.label}</span>
-                {item.id === "notifications" && notificationUnreadCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
-                    {notificationUnreadCount}
-                  </span>
-                )}
               </button>
             ))}
           </nav>
@@ -1588,7 +1535,7 @@ function AppContent() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-1"
             aria-label="Open menu"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
@@ -1647,9 +1594,6 @@ function AppContent() {
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Theme toggle */}
-          <ThemeToggle />
-
           {/* Search trigger */}
           <button
             onClick={() => setCmdPaletteOpen(true)}
@@ -1674,11 +1618,10 @@ function AppContent() {
         </a>
 
         {/* View content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" role="main" data-tour="main-content">
+        <main id="main-content" className="flex-1 overflow-y-auto" role="main">
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
-              {/* M9: responsive pass — reduce padding on mobile */}
-              <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
+              <div key={activeView} className="p-6 max-w-7xl mx-auto animate-slide-in">
                 {renderView()}
               </div>
             </React.Suspense>
@@ -1686,20 +1629,12 @@ function AppContent() {
         </main>
       </div>
 
-      {/* Keyboard Shortcuts Modal */}
-      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
-
-      {/* Guided Tour Overlay */}
-      <TourOverlay
-        isActive={tour.isActive}
-        steps={DEFAULT_DASHBOARD_TOUR_STEPS}
-        tourId="dashboard-onboarding"
-        onComplete={tour.stopTour}
-        onSkip={tour.skipTour}
-        onStepChange={tour.nextStep}
-        showProgress={true}
-        allowSkip={true}
-      />
+      {/* Keyboard Shortcuts Modal — lazy, only loaded on first ? keypress */}
+      {shortcutsOpen && (
+        <React.Suspense fallback={null}>
+          <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+        </React.Suspense>
+      )}
 
       {/* Command Palette */}
       {cmdPaletteOpen && (
@@ -1711,15 +1646,14 @@ function AppContent() {
             aria-hidden="true"
           />
 
-          {/* Palette modal — M9: responsive pass — full-screen on mobile, centered modal on desktop */}
+          {/* Palette modal */}
           <div
             role="dialog"
             aria-label="Command palette"
             aria-modal="true"
-            className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:inset-auto sm:top-[20%] sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-lg animate-slide-in"
+            className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg animate-slide-in"
           >
-            {/* M9: responsive pass — full-height on mobile */}
-            <div className="bg-card border border-border rounded-none sm:rounded-xl shadow-2xl overflow-hidden h-full sm:h-auto w-full sm:w-auto">
+            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <svg
