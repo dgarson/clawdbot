@@ -53,6 +53,7 @@ const WorkspaceFileBrowser = React.lazy(() => import("./views/WorkspaceFileBrows
 const ProviderAuthManager = React.lazy(() => import("./views/ProviderAuthManager"));
 const AgentPulseMonitor = React.lazy(() => import("./views/AgentPulseMonitor"));
 const NotificationCenter = React.lazy(() => import("./views/NotificationCenter"));
+import { useNotificationUnreadCount } from "./views/NotificationCenter";
 const ApiKeysManager = React.lazy(() => import("./views/ApiKeysManager"));
 const AuditLog = React.lazy(() => import("./views/AuditLog"));
 const BillingSubscription = React.lazy(() => import("./views/BillingSubscription"));
@@ -915,6 +916,7 @@ function AppContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { visitView, recordInteraction } = useProficiency();
+  const notificationUnreadCount = useNotificationUnreadCount();
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
   const canGoBack = historyIndex > 0;
@@ -1409,9 +1411,21 @@ function AppContent() {
                   : item.label
               }
             >
-              <span className="text-base" aria-hidden="true">{item.emoji}</span>
+              <span className="text-base relative" aria-hidden="true">
+                {item.emoji}
+                {item.id === "notifications" && notificationUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                  </span>
+                )}
+              </span>
               {!sidebarCollapsed && <span>{item.label}</span>}
-              {!sidebarCollapsed && item.shortcut && (
+              {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
+                <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                  {notificationUnreadCount}
+                </span>
+              )}
+              {!sidebarCollapsed && item.shortcut && item.id !== "notifications" && (
                 <span className="ml-auto text-xs text-muted-foreground/50 font-mono">
                   ⌥{item.shortcut}
                 </span>
@@ -1508,8 +1522,20 @@ function AppContent() {
                 )}
                 aria-current={activeView === item.id ? "page" : undefined}
               >
-                <span className="text-base" aria-hidden="true">{item.emoji}</span>
+                <span className="text-base relative" aria-hidden="true">
+                  {item.emoji}
+                  {item.id === "notifications" && notificationUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                    </span>
+                  )}
+                </span>
                 <span>{item.label}</span>
+                {item.id === "notifications" && notificationUnreadCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                    {notificationUnreadCount}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
