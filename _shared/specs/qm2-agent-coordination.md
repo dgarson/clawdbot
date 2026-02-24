@@ -218,6 +218,87 @@ Minimum event types for Phase 1:
 3. **Conflict policy default:**
    - Should global default be `owner_wins` or `manual_review` for high-risk operations?
 
+---
+
+## 7) Minimally Invasive Implementation Plan (Reuse-First)
+
+This section maps QM2 to existing OpenClaw primitives so Phase 1 can land with low churn and minimal new runtime surface area.
+
+### 7.1 Existing primitives we should extend first
+
+1. **Agent event stream (already run-scoped + ordered)**
+   - `src/infra/agent-events.ts` already gives per-run ordering via `(runId, seq)` and includes optional `sessionKey` context.
+   - Reuse this as the first sink for `coordination.*` lifecycle emissions before introducing any new transport.
+
+2. **Subagent lifecycle hooks and events (already modeled)**
+   - Subagent lifecycle concepts exist (`src/agents/subagent-lifecycle-events.ts`) and plugin hooks already expose subagent spawning/spawned/ended interception points.
+   - Represent each subagent hop as a `CoordinationStep` wrapper around existing spawn + completion semantics, rather than replacing subagent internals.
+
+3. **Plugin hook framework (existing policy extension point)**
+   - `src/plugins/hooks.ts` already supports ordered (priority-aware) hook execution and merge semantics for modifying hooks.
+   - Add coordination-specific hook events (for arbitration + escalation decisions) instead of introducing a separate policy engine in Phase 1.
+
+4. **Existing durable queue path for at-least-once behavior**
+   - `src/infra/outbound/delivery-queue.ts` already provides a persisted queue, retries, backoff, and recovery.
+   - Reuse its persistence/retry pattern for coordination dispatch retry semantics (`deliveryMode=at_least_once`) in the MVP.
+
+5. **Lane-based command serialization primitive**
+   - `src/process/command-queue.ts` already gives lane-based bounded concurrency.
+   - Use lanes to implement logical control/data routing lanes without requiring an immediate new message bus.
+
+### 7.2 Recommended Phase 1 integration shape
+
+1. **Contracts package (types + validation only, no new runtime yet)**
+   - Add `CoordinationEnvelope`, `CoordinationPlan`, `CoordinationStep`, `ArbiterPolicy` types in a small, isolated module (for example `src/agents/coordination/contracts.ts`).
+   - Keep validation lightweight and runtime-safe (fast structural checks + useful errors).
+
+2. **Envelope pass-through in existing call paths**
+   - Thread an optional `coordination` field through existing subagent dispatch and relevant hook contexts.
+   - If absent, execution behaves exactly as today (strict backward compatibility).
+
+3. **Logical lanes over existing queue primitive**
+   - Map:
+     - control lane → high-priority command lane
+     - data lane → normal command lane
+     - escalation lane → dedicated lane with low concurrency (or serial)
+   - Keep this as a naming/policy layer over `enqueueCommandInLane` to avoid infrastructure churn.
+
+4. **Ledger as event projection first**
+   - Start with append-only coordination event projection by emitting to agent events + a small durable log writer.
+   - Avoid introducing a new storage backend in Phase 1; write events in a recoverable format keyed by `coordinationId`.
+
+5. **Arbitration in deterministic policy module**
+   - Implement rule-based arbitration as a pure function (`owner_wins`, `priority_wins`, `merge_if_safe`, `manual_review`).
+   - Invoke it at contested write boundaries (session/file/queue side effects), and always emit a ledger decision event.
+
+6. **Escalation via existing HITL hooks**
+   - Route `manual_review` and policy-triggered escalation through existing hook/plugin integration points first.
+   - Keep HITL transport abstraction pluggable so ACP-backed or provider-specific escalations can reuse the same coordination contract.
+
+### 7.3 Compatibility and risk controls
+
+- **Default-off flag:** ship behind `coordination.phase1.enabled` config gate.
+- **No behavior break:** if no envelope is present, current subagent and hook flows must remain unchanged.
+- **Deterministic replay:** enforce `idempotencyKey=coordinationId:stepId:attempt` at dispatch boundary; duplicates become no-ops.
+- **Observability first:** require every state transition to emit a `coordination.*` event before enabling broader rollout.
+
+### 7.4 Suggested concrete sequencing (small PR slices)
+
+1. Add contracts + validation + tests.
+2. Add event emission helpers (`coordination.created`, `step.dispatched`, etc.) backed by current event infrastructure.
+3. Add lane adapter + dispatch wrapper using existing queue semantics.
+4. Add arbitration module + deterministic tests.
+5. Add escalation hook bridge.
+6. Enable for one controlled flow (subagent spawn path), then expand.
+
+### 7.5 Non-goals for Phase 1 (to keep scope disciplined)
+
+- No brand-new transport protocol.
+- No exactly-once guarantees across all operations.
+- No LLM-driven conflict decisions.
+- No full policy DSL.
+- No UI dashboard dependency for rollout.
+
 4. **Escalation policy ownership:**
    - Who owns default escalation mappings (Architecture vs Security/Ops)?
 
