@@ -1,4 +1,3 @@
-// M9: responsive pass
 import { useState, useEffect, useCallback } from 'react';
 import {
   Activity,
@@ -311,10 +310,9 @@ function formatTokens(n: number): string {
 // Sub-components
 // ============================================================================
 
-// WCAG fix: aria-hidden — decorative pulse animation, never read by AT
 function PulseDot({ color = 'bg-green-500' }: { color?: string }) {
   return (
-    <span aria-hidden="true" className="relative flex h-2.5 w-2.5">
+    <span className="relative flex h-2.5 w-2.5">
       <span className={cn('animate-ping absolute inline-flex h-full w-full rounded-full opacity-60', color)} />
       <span className={cn('relative inline-flex rounded-full h-2.5 w-2.5', color)} />
     </span>
@@ -337,24 +335,22 @@ function StatCard({
   pulseColor?: string;
 }) {
   return (
-    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-surface-2 rounded-lg">
-        {/* WCAG fix: decorative icon — label text below provides the meaning */}
-        <Icon aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
+        <Icon className="w-4 h-4 text-zinc-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-fg-secondary font-medium uppercase tracking-wide mb-1">{label}</p>
+        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
         <div className="flex items-center gap-2">
           {pulse && <PulseDot color={pulseColor} />}
-          <span className="text-xl font-bold text-fg-primary">{value}</span>
+          <span className="text-xl font-bold text-white">{value}</span>
         </div>
-        {sub && <div className="text-xs text-fg-muted mt-0.5">{sub}</div>}
+        {sub && <div className="text-xs text-zinc-500 mt-0.5">{sub}</div>}
       </div>
     </div>
   );
 }
 
-// WCAG fix: role="status" so AT announces the badge value; dot is aria-hidden since text carries the status
 function SessionStatusBadge({ status }: { status: SessionStatus }) {
   const styles: Record<SessionStatus, string> = {
     RUNNING: 'bg-green-500/15 text-green-400 border-green-500/30',
@@ -367,12 +363,8 @@ function SessionStatusBadge({ status }: { status: SessionStatus }) {
     ERROR: 'bg-red-500',
   };
   return (
-    <span
-      role="status"
-      className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border', styles[status])}
-    >
-      {/* WCAG fix: color dot is decorative — status text carries the meaning */}
-      <span aria-hidden="true" className={cn('w-1.5 h-1.5 rounded-full', status === 'RUNNING' && 'animate-pulse', dots[status])} />
+    <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border', styles[status])}>
+      <span className={cn('w-1.5 h-1.5 rounded-full', status === 'RUNNING' && 'animate-pulse', dots[status])} />
       {status}
     </span>
   );
@@ -399,7 +391,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
     sessions_spawn: 'bg-violet-500/15 text-violet-400 border-violet-500/25',
     message: 'bg-green-500/15 text-green-400 border-green-500/25',
     browser: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
-    other: 'bg-surface-3/50 text-fg-secondary border-tok-border/30',
+    other: 'bg-zinc-700/50 text-zinc-400 border-zinc-600/25',
   };
   const icons: Record<ToolType, React.ElementType> = {
     exec: Terminal,
@@ -413,8 +405,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
   const Icon = icons[toolType];
   return (
     <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono border', styles[toolType])}>
-      {/* WCAG fix: decorative icon — tool name text carries the meaning */}
-      <Icon aria-hidden="true" className="w-3 h-3" />
+      <Icon className="w-3 h-3" />
       {toolName}
     </span>
   );
@@ -433,17 +424,16 @@ function RiskBadge({ level }: { level: RiskLevel }) {
   );
 }
 
-// WCAG fix: severity icons are informative — each carries an aria-label and role="img"
 function SeverityIcon({ severity }: { severity: AlertSeverity }) {
   switch (severity) {
     case 'critical':
-      return <XCircle role="img" aria-label="Critical" className="w-4 h-4 text-red-500 shrink-0" />;
+      return <XCircle className="w-4 h-4 text-red-500 shrink-0" />;
     case 'error':
-      return <AlertCircle role="img" aria-label="Error" className="w-4 h-4 text-orange-400 shrink-0" />;
+      return <AlertCircle className="w-4 h-4 text-orange-400 shrink-0" />;
     case 'warning':
-      return <AlertTriangle role="img" aria-label="Warning" className="w-4 h-4 text-amber-400 shrink-0" />;
+      return <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />;
     case 'info':
-      return <Info role="img" aria-label="Info" className="w-4 h-4 text-sky-400 shrink-0" />;
+      return <Info className="w-4 h-4 text-sky-400 shrink-0" />;
   }
 }
 
@@ -463,8 +453,7 @@ function LiveStatusBar({
   gatewayOnline: boolean;
 }) {
   return (
-    // WCAG fix: aria-live="polite" so screen readers hear updates every 3s without interruption
-    <div aria-live="polite" aria-label="Live system status" className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-4 gap-4">
       <StatCard
         label="Gateway"
         value={gatewayOnline ? 'ONLINE' : 'OFFLINE'}
@@ -478,8 +467,7 @@ function LiveStatusBar({
         value={sessionCount}
         sub={
           <span className="flex items-center gap-1 text-green-400">
-            {/* WCAG fix: decorative trend arrow, sr-only equivalent conveyed by surrounding text */}
-            <ChevronUp aria-hidden="true" className="w-3 h-3" />
+            <ChevronUp className="w-3 h-3" />
             3 in last 5min
           </span>
         }
@@ -513,40 +501,36 @@ function LiveStatusBar({
 
 function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
   return (
-    <section aria-label="Active Sessions" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* WCAG fix: decorative header icon */}
-          <Activity aria-hidden="true" className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-fg-primary">Active Sessions</span>
+          <Activity className="w-4 h-4 text-violet-400" />
+          <span className="text-sm font-semibold text-white">Active Sessions</span>
         </div>
-        <span className="text-xs text-fg-muted">{sessions.length} / 10</span>
+        <span className="text-xs text-zinc-500">{sessions.length} / 10</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
-            {/* WCAG fix: decorative empty-state icon */}
-            <Layers aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
+          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
+            <Layers className="w-8 h-8 mb-2 opacity-40" />
             <p className="text-sm">No active sessions. Agents are idle.</p>
           </div>
         ) : (
           sessions.map((session) => (
-            <div key={session.id} className="px-4 py-3 hover:bg-surface-2/40 transition-colors">
+            <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/40 transition-colors">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  {/* WCAG fix: emoji is decorative — name follows */}
-                  <span aria-hidden="true" className="text-lg leading-none">{session.agentEmoji}</span>
+                  <span className="text-lg leading-none">{session.agentEmoji}</span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-medium text-fg-primary">{session.agentName}</span>
+                      <span className="text-sm font-medium text-white">{session.agentName}</span>
                       <SessionTypeBadge type={session.sessionType} />
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-fg-muted">
-                      {/* WCAG fix: decorative clock icon */}
-                      <Clock aria-hidden="true" className="w-3 h-3" />
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-500">
+                      <Clock className="w-3 h-3" />
                       running {formatDuration(session.durationSeconds)}
-                      <span aria-hidden="true" className="text-tok-border">·</span>
+                      <span className="text-zinc-700">·</span>
                       <span>{formatTokens(session.tokenInput)}↑ {formatTokens(session.tokenOutput)}↓</span>
                     </div>
                   </div>
@@ -555,7 +539,7 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
               </div>
               {session.currentTool && (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-xs text-fg-muted">calling</span>
+                  <span className="text-xs text-zinc-500">calling</span>
                   <ToolBadge
                     toolName={session.currentTool}
                     toolType={
@@ -570,7 +554,7 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
           ))
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -582,17 +566,16 @@ function ToolCallsPanel({ toolCalls }: { toolCalls: ToolCall[] }) {
   const now = Date.now();
 
   return (
-    <section aria-label="Tool Calls In-Flight" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
-        {/* WCAG fix: decorative header icon */}
-        <Terminal aria-hidden="true" className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-fg-primary">Tool Calls</span>
-        <span className="ml-auto text-xs text-fg-muted">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+        <Terminal className="w-4 h-4 text-amber-400" />
+        <span className="text-sm font-semibold text-white">Tool Calls</span>
+        <span className="ml-auto text-xs text-zinc-500">
           {toolCalls.filter((t) => t.status === 'running').length} running
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-tok-border/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
         {toolCalls.map((tc) => {
           const age = tc.completedAt ? now - tc.completedAt : 0;
           const fadingOut = tc.status !== 'running' && age > 3000;
@@ -609,31 +592,28 @@ function ToolCallsPanel({ toolCalls }: { toolCalls: ToolCall[] }) {
                 <ToolBadge toolType={tc.toolType} toolName={tc.toolName} />
                 {tc.status === 'running' && (
                   <span className="flex items-center gap-1 text-xs text-green-400">
-                    {/* WCAG fix: decorative pulse dot — "live" text carries the meaning */}
-                    <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                     live
                   </span>
                 )}
-                {/* WCAG fix: status icons carry informative role + label */}
                 {tc.status === 'complete' && (
-                  <CheckCircle role="img" aria-label="Complete" className="w-3.5 h-3.5 text-green-500 opacity-60" />
+                  <CheckCircle className="w-3.5 h-3.5 text-green-500 opacity-60" />
                 )}
                 {tc.status === 'error' && (
-                  <XCircle role="img" aria-label="Error" className="w-3.5 h-3.5 text-red-500" />
+                  <XCircle className="w-3.5 h-3.5 text-red-500" />
                 )}
               </div>
-              <div className="text-xs text-fg-muted flex items-center gap-1.5">
-                <span className="text-fg-secondary">{tc.agentName}</span>
-                <span aria-hidden="true" className="text-tok-border">·</span>
-                {/* WCAG fix: decorative clock icon */}
-                <Clock aria-hidden="true" className="w-3 h-3" />
+              <div className="text-xs text-zinc-500 flex items-center gap-1.5">
+                <span className="text-zinc-400">{tc.agentName}</span>
+                <span className="text-zinc-700">·</span>
+                <Clock className="w-3 h-3" />
                 {formatElapsed(tc.elapsedMs)}
               </div>
             </div>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -651,16 +631,12 @@ function PendingApprovalsPanel({
   onDeny: (id: string) => void;
 }) {
   return (
-    <section aria-label="Pending Approvals" className="bg-surface-1 border border-tok-border rounded-xl flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-tok-border flex items-center gap-2">
-        {/* WCAG fix: decorative header icon */}
-        <CheckCircle aria-hidden="true" className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-fg-primary">Pending Approvals</span>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+        <CheckCircle className="w-4 h-4 text-violet-400" />
+        <span className="text-sm font-semibold text-white">Pending Approvals</span>
         {approvals.length > 0 && (
-          <span
-            aria-label={`${approvals.length} pending`}
-            className="ml-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-white text-xs font-bold leading-none"
-          >
+          <span className="ml-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-white text-xs font-bold leading-none">
             {approvals.length}
           </span>
         )}
@@ -668,43 +644,37 @@ function PendingApprovalsPanel({
 
       <div className="flex-1 overflow-y-auto">
         {approvals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
-            {/* WCAG fix: decorative empty-state icon */}
-            <CheckCircle aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
+          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
+            <CheckCircle className="w-8 h-8 mb-2 opacity-40" />
             <p className="text-sm">No pending approvals</p>
           </div>
         ) : (
-          <div className="divide-y divide-tok-border/60">
+          <div className="divide-y divide-zinc-800/60">
             {approvals.map((ap) => (
               <div key={ap.id} className="px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
-                  {/* WCAG fix: decorative emoji */}
-                  <span aria-hidden="true" className="text-base">{ap.agentEmoji}</span>
-                  <span className="text-sm font-medium text-fg-primary">{ap.agentName}</span>
+                  <span className="text-base">{ap.agentEmoji}</span>
+                  <span className="text-sm font-medium text-white">{ap.agentName}</span>
                   <RiskBadge level={ap.riskLevel} />
-                  <span className="ml-auto text-xs text-fg-muted flex items-center gap-1">
-                    {/* WCAG fix: decorative clock icon */}
-                    <Clock aria-hidden="true" className="w-3 h-3" />
+                  <span className="ml-auto text-xs text-zinc-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
                     {formatWaiting(ap.waitingSeconds)}
                   </span>
                 </div>
-                <p className="text-xs text-fg-secondary mb-3 leading-relaxed">{ap.actionDescription}</p>
+                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">{ap.actionDescription}</p>
                 <div className="flex gap-2">
-                  {/* WCAG fix: focus-visible ring on interactive buttons; icons are decorative */}
                   <button
                     onClick={() => onApprove(ap.id)}
-                    aria-label={`Approve: ${ap.actionDescription}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:outline-none"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors"
                   >
-                    <Check aria-hidden="true" className="w-3.5 h-3.5" />
+                    <Check className="w-3.5 h-3.5" />
                     Approve
                   </button>
                   <button
                     onClick={() => onDeny(ap.id)}
-                    aria-label={`Deny: ${ap.actionDescription}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-primary text-xs font-medium transition-colors border border-tok-border focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors border border-zinc-700"
                   >
-                    <X aria-hidden="true" className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5" />
                     Deny
                   </button>
                 </div>
@@ -713,7 +683,7 @@ function PendingApprovalsPanel({
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -747,27 +717,23 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
   };
 
   return (
-    <section aria-label="System Event Feed" className="bg-surface-1 border border-tok-border rounded-xl">
-      {/* M9: responsive pass — flex-wrap header on small screens */}
-      <div className="px-3 sm:px-4 py-3 border-b border-tok-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
+      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* WCAG fix: decorative header icon */}
-          <AlertTriangle aria-hidden="true" className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-fg-primary">System Event Feed</span>
-          <span className="text-xs text-fg-muted hidden sm:inline">last {Math.min(alerts.length, 20)} events</span>
+          <AlertTriangle className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-semibold text-white">System Event Feed</span>
+          <span className="text-xs text-zinc-500">last {Math.min(alerts.length, 20)} events</span>
         </div>
-        {/* WCAG fix: filter buttons have aria-pressed to convey selected state to AT */}
-        <div role="group" aria-label="Filter events" className="flex items-center gap-1 bg-surface-2 rounded-lg p-0.5 overflow-x-auto">
+        <div className="flex items-center gap-1 bg-zinc-800 rounded-lg p-0.5">
           {filters.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              aria-pressed={filter === f.key}
               className={cn(
-                'px-3 py-1 rounded-md text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
+                'px-3 py-1 rounded-md text-xs font-medium transition-colors',
                 filter === f.key
-                  ? 'bg-surface-3 text-fg-primary'
-                  : 'text-fg-secondary hover:text-fg-primary',
+                  ? 'bg-zinc-700 text-white'
+                  : 'text-zinc-400 hover:text-zinc-300',
               )}
             >
               {f.label}
@@ -776,15 +742,9 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
         </div>
       </div>
 
-      {/* WCAG fix: role="log" + aria-live so new entries are announced politely by AT */}
-      <div
-        role="log"
-        aria-live="polite"
-        aria-label="System events"
-        className="divide-y divide-tok-border/40 max-h-64 overflow-y-auto"
-      >
+      <div className="divide-y divide-zinc-800/40 max-h-64 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-20 text-fg-muted text-sm">
+          <div className="flex items-center justify-center h-20 text-zinc-500 text-sm">
             No entries for this filter.
           </div>
         ) : (
@@ -793,17 +753,17 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
               key={alert.id}
               className={cn('flex items-start gap-3 px-4 py-2.5 text-xs', severityRowStyle[alert.severity])}
             >
-              <span className="text-fg-muted font-mono whitespace-nowrap mt-0.5 text-[11px]">
+              <span className="text-zinc-500 font-mono whitespace-nowrap mt-0.5 text-[11px]">
                 {formatTimestamp(alert.timestamp)}
               </span>
               <SeverityIcon severity={alert.severity} />
-              <span className="font-medium text-fg-primary shrink-0">{alert.agentName}</span>
-              <span className="text-fg-secondary leading-relaxed">{alert.message}</span>
+              <span className="font-medium text-zinc-300 shrink-0">{alert.agentName}</span>
+              <span className="text-zinc-400 leading-relaxed">{alert.message}</span>
             </div>
           ))
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -861,70 +821,56 @@ export default function MissionControlDashboard() {
   const tokensPerMin = 4280;
 
   return (
-    <>
-      {/* WCAG fix: skip link — allows keyboard users to bypass repetitive header/nav content */}
-      <a
-        href="#mcd-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-700 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg"
-      >
-        Skip to main content
-      </a>
+    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Radio className="w-6 h-6 text-violet-400" />
+            Mission Control
+          </h1>
+          <p className="text-sm text-zinc-400 mt-0.5">Real-time operator hub — live system state</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <PulseDot color="bg-green-500" />
+          <span>Live</span>
+          <span className="text-zinc-700">·</span>
+          <span>Updated every 3s</span>
+        </div>
+      </div>
 
-      {/* WCAG fix: <main> landmark identifies the primary content region */}
-      <main id="mcd-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
-              {/* WCAG fix: decorative icon — heading text carries the label */}
-              <Radio aria-hidden="true" className="w-6 h-6 text-violet-400" />
-              Mission Control
-            </h1>
-            <p className="text-sm text-fg-secondary mt-0.5">Real-time operator hub — live system state</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-fg-secondary">
-            {/* PulseDot is already aria-hidden="true" internally */}
-            <PulseDot color="bg-green-500" />
-            <span>Live</span>
-            <span aria-hidden="true" className="text-tok-border">·</span>
-            <span>Updated every 3s</span>
-          </div>
+      {/* Section 1: Live Status Bar */}
+      <LiveStatusBar
+        sessionCount={sessionCount}
+        agentCount={agentCount}
+        tokensPerMin={tokensPerMin}
+        gatewayOnline={gatewayOnline}
+      />
+
+      {/* Sections 2-4: Three-panel layout */}
+      <div className="grid grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
+        {/* Active Sessions — 2/4 width */}
+        <div className="col-span-2">
+          <ActiveSessionsPanel sessions={sessions} />
         </div>
 
-        {/* Section 1: Live Status Bar */}
-        <LiveStatusBar
-          sessionCount={sessionCount}
-          agentCount={agentCount}
-          tokensPerMin={tokensPerMin}
-          gatewayOnline={gatewayOnline}
-        />
-
-        {/* Sections 2-4: Three-panel layout */}
-        {/* M9: responsive pass — stack on mobile, 2-col on md, full 4-col on lg */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" style={{ minHeight: '420px' }}>
-          {/* Active Sessions — 2/4 width on desktop */}
-          <div className="col-span-1 md:col-span-2">
-            <ActiveSessionsPanel sessions={sessions} />
-          </div>
-
-          {/* Tool Calls In-Flight — 1/4 width on desktop */}
-          <div className="col-span-1">
-            <ToolCallsPanel toolCalls={INITIAL_TOOL_CALLS} />
-          </div>
-
-          {/* Pending Approvals — 1/4 width on desktop */}
-          <div className="col-span-1">
-            <PendingApprovalsPanel
-              approvals={approvals}
-              onApprove={handleApprove}
-              onDeny={handleDeny}
-            />
-          </div>
+        {/* Tool Calls In-Flight — 1/4 width */}
+        <div className="col-span-1">
+          <ToolCallsPanel toolCalls={INITIAL_TOOL_CALLS} />
         </div>
 
-        {/* Section 5: Alert Feed */}
-        <AlertFeed alerts={INITIAL_ALERTS} />
-      </main>
-    </>
+        {/* Pending Approvals — 1/4 width */}
+        <div className="col-span-1">
+          <PendingApprovalsPanel
+            approvals={approvals}
+            onApprove={handleApprove}
+            onDeny={handleDeny}
+          />
+        </div>
+      </div>
+
+      {/* Section 5: Alert Feed */}
+      <AlertFeed alerts={INITIAL_ALERTS} />
+    </div>
   );
 }
