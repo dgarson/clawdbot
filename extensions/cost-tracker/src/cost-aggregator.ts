@@ -4,6 +4,7 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { getModelPricing, calculateTokenCost } from "./pricing.js";
 import type {
   TelemetryEntry,
   DailyCostSummary,
@@ -13,7 +14,6 @@ import type {
   BudgetAlert,
   CostTrackerConfig,
 } from "./types.js";
-import { getModelPricing, calculateTokenCost } from "./pricing.js";
 
 /**
  * Parse a single line from telemetry JSONL.

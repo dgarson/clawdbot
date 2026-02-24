@@ -50,6 +50,7 @@ function DialogContent({
   children,
   showCloseButton = true,
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
@@ -94,6 +95,7 @@ function DialogFooter({
   showCloseButton = false,
   children,
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean
 }) {

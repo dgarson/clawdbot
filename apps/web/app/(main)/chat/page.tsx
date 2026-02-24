@@ -1,29 +1,21 @@
 "use client";
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
-import type { AgentsListResult, AgentIdentityResult, SessionEntry, ChatMessage } from "@/lib/gateway/types";
+import type { AgentIdentityResult, SessionEntry, ChatMessage } from "@/lib/gateway/types";
 import {
   Send,
   Square,
-  Bot,
   User,
   Loader2,
   Plus,
   MessageSquare,
-  RotateCcw,
   Copy,
   Check,
-  Paperclip,
-  ChevronLeft,
   Settings2,
 } from "lucide-react";
 
@@ -174,9 +166,9 @@ export default function ChatPage() {
   const [currentRunId, setCurrentRunId] = React.useState<string | null>(null);
   const [sessions, setSessions] = React.useState<SessionEntry[]>([]);
   const [activeSessionKey, setActiveSessionKey] = React.useState<string | null>(null);
-  const [identities, setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
-  const [agentName, setAgentName] = React.useState("Assistant");
-  const [agentEmoji, setAgentEmoji] = React.useState("🤖");
+  const [identities, _setIdentities] = React.useState<Record<string, AgentIdentityResult>>({});
+  const [agentName, _setAgentName] = React.useState("Assistant");
+  const [agentEmoji, _setAgentEmoji] = React.useState("🤖");
   const [showSidebar, setShowSidebar] = React.useState(true);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);

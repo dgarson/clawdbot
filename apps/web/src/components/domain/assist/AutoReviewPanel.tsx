@@ -395,7 +395,7 @@ export function AutoReviewPanel({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleApplyFix(item.fix!)}
+                          onClick={() => handleApplyFix(item.fix)}
                           disabled={appliedFixes.has(item.fix.id)}
                           className="mt-2 h-7 text-xs gap-1"
                         >
