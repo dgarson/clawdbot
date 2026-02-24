@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { Gauge } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -423,11 +425,11 @@ export default function RateLimitDashboard() {
 
             {/* Grid */}
             {filteredLimits.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <p className="text-3xl mb-3">✅</p>
-                <p className="text-white font-semibold">No limits match filters</p>
-                <p className="text-sm text-zinc-500 mt-1">Try a different scope or status filter</p>
-              </div>
+              <ContextualEmptyState
+                icon={Gauge}
+                title="No rate limits match filters"
+                description="Try a different scope or status filter to see limits."
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredLimits.map(limit => (

@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { ListTodo } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -531,11 +533,11 @@ export default function TaskQueue() {
       {/* Task list */}
       <div className="flex-1 overflow-y-auto" role="list" aria-label="Task list">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <p className="text-4xl mb-3">📭</p>
-            <p className="text-white font-semibold">No tasks match your filters</p>
-            <p className="text-sm text-zinc-500 mt-1">Try clearing filters or check back later</p>
-          </div>
+          <ContextualEmptyState
+            icon={ListTodo}
+            title="Idle — waiting for work"
+            description="No tasks match your filters. Try clearing filters or check back later."
+          />
         ) : (
           <div className="rounded-none bg-zinc-900 border-zinc-800">
             {filtered.map(task => (
