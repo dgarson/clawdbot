@@ -851,7 +851,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
 function LoadingFallback({ viewId }: { viewId: string }) {
   const skeleton = SKELETON_MAP[viewId];
   if (skeleton) {
-    return <div className="p-6 max-w-7xl mx-auto">{skeleton}</div>;
+    return <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">{skeleton}</div>; {/* M9: responsive pass */}
   }
   return (
     <div className="flex items-center justify-center h-64">
@@ -1492,6 +1492,7 @@ function AppContent() {
       </aside>
 
       {/* Mobile sidebar (separate element for overlay) */}
+      {/* M9: responsive pass — mobile drawer with ≥44px touch targets */}
       {mobileSidebarOpen && (
         <aside
           role="navigation"
@@ -1503,7 +1504,7 @@ function AppContent() {
             <span className="font-bold text-lg text-foreground">OpenClaw</span>
             <button
               onClick={() => setMobileSidebarOpen(false)}
-              className="ml-auto text-muted-foreground hover:text-foreground"
+              className="ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label="Close menu"
             >
               ✕
@@ -1515,7 +1516,7 @@ function AppContent() {
                 key={item.id}
                 onClick={() => navigate(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                  "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
                   activeView === item.id
                     ? "bg-primary/10 text-primary border-r-2 border-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
@@ -1549,7 +1550,7 @@ function AppContent() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-1"
+            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Open menu"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
@@ -1635,7 +1636,8 @@ function AppContent() {
         <main id="main-content" className="flex-1 overflow-y-auto" role="main">
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
-              <div key={activeView} className="p-6 max-w-7xl mx-auto animate-slide-in">
+              {/* M9: responsive pass — reduce padding on mobile */}
+              <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
                 {renderView()}
               </div>
             </React.Suspense>
@@ -1656,14 +1658,15 @@ function AppContent() {
             aria-hidden="true"
           />
 
-          {/* Palette modal */}
+          {/* Palette modal — M9: responsive pass — full-screen on mobile, centered modal on desktop */}
           <div
             role="dialog"
             aria-label="Command palette"
             aria-modal="true"
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg animate-slide-in"
+            className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:inset-auto sm:top-[20%] sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-lg animate-slide-in"
           >
-            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+            {/* M9: responsive pass — full-height on mobile */}
+            <div className="bg-card border border-border rounded-none sm:rounded-xl shadow-2xl overflow-hidden h-full sm:h-auto w-full sm:w-auto">
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <svg
