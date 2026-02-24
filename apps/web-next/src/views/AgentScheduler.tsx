@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { Calendar } from 'lucide-react';
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -176,7 +178,7 @@ const SCHEDULES: ScheduledTask[] = [
 const STATUS_COLORS: Record<ScheduleStatus, string> = {
   active:    "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
   paused:    "text-amber-400 bg-amber-400/10 border-amber-400/20",
-  completed: "text-zinc-400 bg-zinc-400/10 border-zinc-400/20",
+  completed: "text-fg-secondary bg-zinc-400/10 border-zinc-400/20",
   error:     "text-rose-400 bg-rose-400/10 border-rose-400/20",
 };
 
@@ -222,7 +224,7 @@ function repeatLabel(s: ScheduledTask): string {
 
 function CalendarStrip({ schedules }: { schedules: ScheduledTask[] }) {
   const days = useMemo(() => {
-    const result = [];
+    const result: { date: Date; dateStr: string; tasks: ScheduledTask[] }[] = [];
     const now = new Date();
     for (let i = 0; i < 7; i++) {
       const d = new Date(now);
@@ -235,15 +237,15 @@ function CalendarStrip({ schedules }: { schedules: ScheduledTask[] }) {
   }, [schedules]);
 
   return (
-    <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800">
-        <h3 className="text-sm font-semibold text-white">Upcoming Schedule — Next 7 Days</h3>
+    <div className="rounded-xl bg-surface-1 border border-tok-border overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border">
+        <h3 className="text-sm font-semibold text-fg-primary">Upcoming Schedule — Next 7 Days</h3>
       </div>
-      <div className="grid grid-cols-7 divide-x divide-zinc-800">
+      <div className="grid grid-cols-4 sm:grid-cols-7 divide-x divide-tok-border">
         {days.map(({ date, tasks }) => (
           <div key={date.toISOString()} className="p-2 min-h-[80px]">
-            <p className="text-xs text-zinc-500 mb-1">{DAY_NAMES[date.getDay()]}</p>
-            <p className="text-sm font-bold text-white mb-2">{date.getDate()}</p>
+            <p className="text-xs text-fg-muted mb-1">{DAY_NAMES[date.getDay()]}</p>
+            <p className="text-sm font-bold text-fg-primary mb-2">{date.getDate()}</p>
             <div className="space-y-1">
               {tasks.slice(0, 3).map(t => (
                 <div
@@ -255,10 +257,10 @@ function CalendarStrip({ schedules }: { schedules: ScheduledTask[] }) {
                 </div>
               ))}
               {tasks.length > 3 && (
-                <div className="text-[9px] text-zinc-500">+{tasks.length - 3} more</div>
+                <div className="text-[9px] text-fg-muted">+{tasks.length - 3} more</div>
               )}
               {tasks.length === 0 && (
-                <div className="text-[9px] text-zinc-700">—</div>
+                <div className="text-[9px] text-fg-muted">—</div>
               )}
             </div>
           </div>
@@ -313,20 +315,24 @@ export default function AgentScheduler() {
   ];
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Agent Scheduler">
+    <>
+    <a href="#agent-scheduler-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+      Skip to main content
+    </a>
+    <main id="agent-scheduler-main" className="flex flex-col h-full bg-surface-0 text-fg-primary overflow-hidden" role="main" aria-label="Agent Scheduler">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-3 py-3 sm:px-4 md:px-6 md:py-4 border-b border-tok-border shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-lg font-bold text-white">Agent Scheduler</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <h1 className="text-lg font-bold text-fg-primary">Agent Scheduler</h1>
+            <p className="text-xs text-fg-muted mt-0.5">
               {SCHEDULES.filter(s => s.status === "active").length} active schedules across{" "}
               {new Set(SCHEDULES.map(s => s.agentId)).size} agents
             </p>
           </div>
           <div className="flex items-center gap-2">
             {/* View toggle */}
-            <div className="flex rounded-lg bg-zinc-800 p-0.5" role="group" aria-label="View mode">
+            <div className="flex rounded-lg bg-surface-2 p-0.5" role="group" aria-label="View mode">
               {(["list", "calendar"] as ViewMode[]).map(mode => (
                 <button
                   key={mode}
@@ -334,8 +340,8 @@ export default function AgentScheduler() {
                   aria-pressed={viewMode === mode}
                   className={cn(
                     "px-3 py-1 rounded text-xs capitalize transition-colors",
-                    "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                    viewMode === mode ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"
+                    "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                    viewMode === mode ? "bg-surface-3 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
                   )}
                 >
                   {mode === "list" ? "📋" : "📅"} {mode}
@@ -344,8 +350,8 @@ export default function AgentScheduler() {
             </div>
             <button
               className={cn(
-                "px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors",
-                "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+                "px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-medium transition-colors",
+                "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               )}
             >
               + New Schedule
@@ -364,10 +370,10 @@ export default function AgentScheduler() {
                 aria-pressed={statusFilter === s.value}
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
-                  "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
                   statusFilter === s.value
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-white"
+                    : "border-tok-border text-fg-secondary hover:text-fg-primary"
                 )}
               >
                 {s.label}
@@ -381,8 +387,8 @@ export default function AgentScheduler() {
             onChange={e => setAgentFilter(e.target.value)}
             aria-label="Filter by agent"
             className={cn(
-              "bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1 text-xs text-white",
-              "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+              "bg-surface-2 border border-tok-border rounded-lg px-3 py-1 text-xs text-fg-primary",
+              "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             )}
           >
             <option value="all">All agents</option>
@@ -391,7 +397,7 @@ export default function AgentScheduler() {
             ))}
           </select>
 
-          <span className="text-xs text-zinc-600 ml-auto">{filtered.length} schedules</span>
+          <span className="text-xs text-fg-muted ml-auto">{filtered.length} schedules</span>
         </div>
       </div>
 
@@ -399,37 +405,46 @@ export default function AgentScheduler() {
       {viewMode === "calendar" ? (
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <CalendarStrip schedules={SCHEDULES} />
-          <div className="text-center text-sm text-zinc-500">Full calendar view shows next 7 days</div>
+          <div className="text-center text-sm text-fg-muted">Full calendar view shows next 7 days</div>
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden">
-          {/* Schedule list */}
-          <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-y-auto">
+          {/* Schedule list — full width on mobile, fixed w-80 on md+; hidden on mobile when detail is open */}
+          <div className={cn(
+            "w-full md:w-80 shrink-0 flex-col border-r border-tok-border overflow-y-auto",
+            selectedId ? "hidden md:flex" : "flex"
+          )}>
             <div className="p-3 space-y-2" role="list" aria-label="Schedules">
-              {filtered.map(sched => (
+              {filtered.length === 0 ? (
+                <ContextualEmptyState
+                  icon={Calendar}
+                  title="No schedules found"
+                  description="Try adjusting your filters or create a new schedule."
+                />
+              ) : filtered.map(sched => (
                 <div key={sched.id} role="listitem">
                   <button
                     onClick={() => setSelectedId(sched.id)}
                     aria-pressed={selectedId === sched.id}
                     className={cn(
                       "w-full text-left rounded-xl border p-3 transition-all",
-                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
                       selectedId === sched.id
                         ? "border-indigo-500 bg-indigo-950/30"
-                        : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+                        : "border-tok-border bg-surface-1 hover:border-tok-border"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div className="flex items-center gap-1.5">
                         <span>{sched.agentEmoji}</span>
-                        <span className="text-sm font-medium text-white truncate">{sched.name}</span>
+                        <span className="text-sm font-medium text-fg-primary truncate">{sched.name}</span>
                       </div>
                       <span className={cn("text-[10px] px-1.5 py-0.5 rounded border shrink-0", STATUS_COLORS[sched.status])}>
                         {sched.status}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-500 mb-2 line-clamp-1">{sched.description}</p>
-                    <div className="flex items-center justify-between text-[10px] text-zinc-600">
+                    <p className="text-xs text-fg-muted mb-2 line-clamp-1">{sched.description}</p>
+                    <div className="flex items-center justify-between text-[10px] text-fg-muted">
                       <span>{REPEAT_LABELS[sched.repeatMode]}</span>
                       <span className="text-indigo-400">{futureTime(sched.nextRunAt)}</span>
                     </div>
@@ -439,18 +454,25 @@ export default function AgentScheduler() {
             </div>
           </div>
 
-          {/* Schedule detail */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Schedule detail — hidden on mobile unless something is selected */}
+          <div className={cn("flex-1 overflow-y-auto p-6", !selectedId && "hidden md:block")}>
             {selected ? (
               <div className="space-y-5 max-w-xl">
+                {/* Mobile back button */}
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="md:hidden flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 mb-2"
+                >
+                  ← Back to schedules
+                </button>
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-2xl">{selected.agentEmoji}</span>
-                      <h2 className="text-xl font-bold text-white">{selected.name}</h2>
+                      <h2 className="text-xl font-bold text-fg-primary">{selected.name}</h2>
                     </div>
-                    <p className="text-sm text-zinc-400">{selected.description}</p>
+                    <p className="text-sm text-fg-secondary">{selected.description}</p>
                   </div>
                   {/* Toggle */}
                   <button
@@ -460,8 +482,8 @@ export default function AgentScheduler() {
                     onClick={() => handleToggle(selected.id)}
                     className={cn(
                       "relative inline-flex h-6 w-11 rounded-full transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                      selected.status === "active" ? "bg-indigo-600" : "bg-zinc-700"
+                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
+                      selected.status === "active" ? "bg-indigo-600" : "bg-surface-3"
                     )}
                   >
                     <span
@@ -483,24 +505,24 @@ export default function AgentScheduler() {
                     { label: "Run Count",  value: String(selected.runCount) },
                     { label: "Last Result", value: selected.lastResult ?? "—" },
                   ].map(m => (
-                    <div key={m.label} className="rounded-xl bg-zinc-900 border border-zinc-800 p-3">
-                      <p className="text-xs text-zinc-500 mb-1">{m.label}</p>
-                      {m.extra ?? <p className="text-sm text-white">{m.value}</p>}
+                    <div key={m.label} className="rounded-xl bg-surface-1 border border-tok-border p-3">
+                      <p className="text-xs text-fg-muted mb-1">{m.label}</p>
+                      {m.extra ?? <p className="text-sm text-fg-primary">{m.value}</p>}
                     </div>
                   ))}
                 </div>
 
                 {/* Prompt */}
-                <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                  <h3 className="text-sm font-semibold text-white mb-2">Agent Prompt</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">{selected.prompt}</p>
+                <div className="rounded-xl bg-surface-1 border border-tok-border p-4">
+                  <h3 className="text-sm font-semibold text-fg-primary mb-2">Agent Prompt</h3>
+                  <p className="text-sm text-fg-secondary leading-relaxed">{selected.prompt}</p>
                 </div>
 
                 {/* Tags */}
                 {selected.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {selected.tags.map(tag => (
-                      <span key={tag} className="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-400">
+                      <span key={tag} className="text-xs px-2 py-1 rounded bg-surface-2 text-fg-secondary">
                         #{tag}
                       </span>
                     ))}
@@ -511,23 +533,23 @@ export default function AgentScheduler() {
                 <div className="flex gap-2">
                   <button
                     className={cn(
-                      "px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+                      "px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm font-medium transition-colors",
+                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                     )}
                   >
                     Run Now
                   </button>
                   <button
                     className={cn(
-                      "px-4 py-2 rounded-xl border border-zinc-700 text-zinc-300 hover:text-white text-sm transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                      "px-4 py-2 rounded-xl border border-tok-border text-fg-primary hover:text-fg-primary text-sm transition-colors",
+                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                     )}
                   >
                     Edit
                   </button>
                   <button
                     className={cn(
-                      "px-4 py-2 rounded-xl border border-zinc-700 text-rose-400 hover:text-rose-300 text-sm transition-colors ml-auto",
+                      "px-4 py-2 rounded-xl border border-tok-border text-rose-400 hover:text-rose-300 text-sm transition-colors ml-auto",
                       "focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:outline-none"
                     )}
                   >
@@ -538,13 +560,14 @@ export default function AgentScheduler() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <p className="text-5xl mb-4">⏰</p>
-                <p className="text-lg font-semibold text-white">Select a schedule</p>
-                <p className="text-sm text-zinc-500 mt-1">Choose a scheduled task to view details</p>
+                <p className="text-lg font-semibold text-fg-primary">Select a schedule</p>
+                <p className="text-sm text-fg-muted mt-1">Choose a scheduled task to view details</p>
               </div>
             )}
           </div>
         </div>
       )}
     </main>
+    </>
   );
 }

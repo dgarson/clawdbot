@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { FileText } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -29,13 +31,13 @@ const CHANGE_META: Record<ChangeType, { label: string; emoji: string; pillBg: st
   feature:     { label: "New Feature",     emoji: "✨", pillBg: "bg-emerald-500/20", pillText: "text-emerald-400" },
   improvement: { label: "Improvement",     emoji: "💎", pillBg: "bg-indigo-500/20",  pillText: "text-indigo-400" },
   bugfix:      { label: "Bug Fix",         emoji: "🐛", pillBg: "bg-amber-500/20",   pillText: "text-amber-400" },
-  deprecation: { label: "Deprecation",     emoji: "📦", pillBg: "bg-zinc-500/20",    pillText: "text-zinc-400" },
+  deprecation: { label: "Deprecation",     emoji: "📦", pillBg: "bg-zinc-500/20",    pillText: "text-fg-secondary" },
 };
 
 const RELEASE_TYPE_STYLES: Record<ReleaseType, { bg: string; text: string }> = {
   major: { bg: "bg-rose-500/20",    text: "text-rose-400" },
   minor: { bg: "bg-indigo-500/20",  text: "text-indigo-400" },
-  patch: { bg: "bg-zinc-500/20",    text: "text-zinc-300" },
+  patch: { bg: "bg-zinc-500/20",    text: "text-fg-primary" },
 };
 
 const FILTER_OPTIONS: { value: ChangeType | "all"; label: string }[] = [
@@ -221,57 +223,63 @@ export default function ChangelogViewer() {
   const stats = computeStats(RELEASES);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <>
+    <a href="#changelog-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+      Skip to main content
+    </a>
+    <div className="min-h-screen bg-surface-0 text-fg-primary">
       {/* Header */}
-      <div className="border-b border-zinc-800 px-6 py-5">
+      <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-4 md:py-5">
         <div className="mx-auto max-w-7xl">
           <h1 className="text-2xl font-bold tracking-tight">📋 Changelog</h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-fg-secondary">
             Release notes and version history for the Horizon Developer Platform
           </p>
         </div>
       </div>
 
       {/* Stats Bar */}
-      <div className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-3">
+      <div className="border-b border-tok-border bg-surface-1/50 px-3 sm:px-4 md:px-6 py-3">
         <div className="mx-auto flex max-w-7xl flex-wrap gap-6 text-sm">
-          <span className="flex items-center gap-1.5 text-zinc-300">
-            <span className="font-semibold text-white">{stats.total}</span> Releases
+          <span className="flex items-center gap-1.5 text-fg-primary">
+            <span className="font-semibold text-fg-primary">{stats.total}</span> Releases
           </span>
-          <span className="flex items-center gap-1.5 text-zinc-300">
+          <span className="flex items-center gap-1.5 text-fg-primary">
             <span className="font-semibold text-rose-400">{stats.breaking}</span> Breaking Changes
           </span>
-          <span className="flex items-center gap-1.5 text-zinc-300">
+          <span className="flex items-center gap-1.5 text-fg-primary">
             <span className="font-semibold text-emerald-400">{stats.features}</span> Features Added
           </span>
-          <span className="flex items-center gap-1.5 text-zinc-300">
+          <span className="flex items-center gap-1.5 text-fg-primary">
             <span className="font-semibold text-amber-400">{stats.bugfixes}</span> Bugs Fixed
           </span>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="border-b border-zinc-800 px-6 py-3">
+      <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-3">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <input
               type="text"
               placeholder="Search releases..."
+              aria-label="Search releases"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-zinc-500 outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             />
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by change type">
             {FILTER_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setFilter(opt.value)}
+                aria-pressed={filter === opt.value}
                 className={cn(
-                  "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                  "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
                   filter === opt.value
-                    ? "bg-indigo-500 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                    ? "bg-indigo-500 text-fg-primary"
+                    : "bg-surface-2 text-fg-secondary hover:bg-surface-3 hover:text-fg-primary"
                 )}
               >
                 {opt.label}
@@ -282,12 +290,12 @@ export default function ChangelogViewer() {
       </div>
 
       {/* Main Layout */}
-      <div className="mx-auto max-w-7xl px-6 py-6">
+      <div id="changelog-main" className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
         <div className="flex flex-col gap-6 lg:flex-row">
           {/* Sidebar — Releases List */}
           <aside className="w-full shrink-0 lg:w-72">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-2">
-              <h2 className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            <div className="rounded-xl border border-tok-border bg-surface-1 p-2">
+              <h2 className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-fg-muted">
                 Releases ({filteredReleases.length})
               </h2>
               <nav className="flex flex-col gap-0.5">
@@ -298,11 +306,13 @@ export default function ChangelogViewer() {
                     <button
                       key={r.version}
                       onClick={() => setSelectedVersion(r.version)}
+                      aria-pressed={isSelected}
+                      aria-label={`Version ${r.version} — ${r.releaseType} release, ${r.date}`}
                       className={cn(
-                        "flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors",
+                        "flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
                         isSelected
-                          ? "bg-indigo-500/10 text-white"
-                          : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                          ? "bg-indigo-500/10 text-fg-primary"
+                          : "text-fg-secondary hover:bg-surface-2 hover:text-fg-primary"
                       )}
                     >
                       <div className="min-w-0">
@@ -318,16 +328,16 @@ export default function ChangelogViewer() {
                             {r.releaseType}
                           </span>
                         </div>
-                        <span className="mt-0.5 block text-xs text-zinc-500">{r.date}</span>
+                        <span className="mt-0.5 block text-xs text-fg-muted">{r.date}</span>
                       </div>
-                      <span className="ml-2 shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                      <span className="ml-2 shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-fg-secondary">
                         {r.changes.length}
                       </span>
                     </button>
                   );
                 })}
                 {filteredReleases.length === 0 && (
-                  <p className="px-3 py-4 text-center text-sm text-zinc-500">No releases match your search.</p>
+                  <p className="px-3 py-4 text-center text-sm text-fg-muted">No releases match your search.</p>
                 )}
               </nav>
             </div>
@@ -336,9 +346,9 @@ export default function ChangelogViewer() {
           {/* Main Content — Release Detail */}
           <main className="min-w-0 flex-1">
             {selectedRelease ? (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+              <div className="rounded-xl border border-tok-border bg-surface-1 p-3 sm:p-4 md:p-6">
                 {/* Release Header */}
-                <div className="mb-6 border-b border-zinc-800 pb-5">
+                <div className="mb-6 border-b border-tok-border pb-5">
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="text-2xl font-bold tracking-tight">v{selectedRelease.version}</h2>
                     <span
@@ -351,8 +361,8 @@ export default function ChangelogViewer() {
                       {selectedRelease.releaseType} release
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-zinc-500">{selectedRelease.date}</p>
-                  <p className="mt-3 text-sm leading-relaxed text-zinc-300">{selectedRelease.summary}</p>
+                  <p className="mt-1 text-sm text-fg-muted">{selectedRelease.date}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-fg-primary">{selectedRelease.summary}</p>
                 </div>
 
                 {/* Changes List */}
@@ -363,13 +373,13 @@ export default function ChangelogViewer() {
                       return (
                         <div
                           key={idx}
-                          className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-4 transition-colors hover:border-zinc-700"
+                          className="rounded-lg border border-tok-border bg-surface-0/50 p-4 transition-colors hover:border-tok-border"
                         >
                           <div className="flex flex-wrap items-start gap-2">
-                            <span className="mt-0.5 text-lg leading-none">{meta.emoji}</span>
+                            <span className="mt-0.5 text-lg leading-none" aria-hidden="true">{meta.emoji}</span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-sm font-semibold text-white">{change.title}</h3>
+                                <h3 className="text-sm font-semibold text-fg-primary">{change.title}</h3>
                                 <span
                                   className={cn(
                                     "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase",
@@ -380,17 +390,17 @@ export default function ChangelogViewer() {
                                   {meta.label}
                                 </span>
                                 {change.pr != null && (
-                                  <span className="rounded-md bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
+                                  <span className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-secondary">
                                     PR #{change.pr}
                                   </span>
                                 )}
                                 {change.issue != null && (
-                                  <span className="rounded-md bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
+                                  <span className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-secondary">
                                     Issue #{change.issue}
                                   </span>
                                 )}
                               </div>
-                              <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">
+                              <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary">
                                 {change.description}
                               </p>
                             </div>
@@ -400,19 +410,28 @@ export default function ChangelogViewer() {
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 px-6 py-10 text-center">
-                    <p className="text-sm text-zinc-500">No changes match the current filter.</p>
+                  <div className="rounded-lg border border-tok-border bg-surface-0/50 px-6 py-10 text-center">
+                    <p className="text-sm text-fg-muted">No changes match the current filter.</p>
                   </div>
                 )}
               </div>
+            ) : filteredReleases.length === 0 ? (
+              <div className="rounded-xl border border-tok-border bg-surface-1 p-6">
+                <ContextualEmptyState
+                  icon={FileText}
+                  title="No changelog entries"
+                  description="Release notes and changes will appear here as new versions are deployed."
+                />
+              </div>
             ) : (
-              <div className="flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-20">
-                <p className="text-sm text-zinc-500">Select a release to view details.</p>
+              <div className="flex items-center justify-center rounded-xl border border-tok-border bg-surface-1 px-6 py-20">
+                <p className="text-sm text-fg-muted">Select a release to view details.</p>
               </div>
             )}
           </main>
         </div>
       </div>
     </div>
+    </>
   );
 }

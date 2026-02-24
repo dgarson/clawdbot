@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Wallet } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -217,38 +219,43 @@ export default function BudgetTracker() {
   const maxTrend = Math.max(...MONTHLY_DATA.map((m) => Math.max(m.budget, m.actual)));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
-      <div className="flex gap-6">
+    <>
+    <a href="#budget-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+      Skip to main content
+    </a>
+    <main id="budget-main" className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col md:flex-row gap-6">
         {/* ── Main Content ─────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h1 className="text-2xl font-bold tracking-tight">Budget Tracker</h1>
             <div className="flex items-center gap-3">
-              <div className="flex bg-zinc-800 rounded overflow-hidden border border-zinc-700">
+              <div className="flex bg-surface-2 rounded overflow-hidden border border-tok-border" role="group" aria-label="Time period">
                 {(["MTD", "QTD", "YTD"] as Period[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
+                    aria-pressed={period === p}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium transition-colors",
+                      "px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
                       period === p
-                        ? "bg-indigo-600 text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-indigo-600 text-fg-primary"
+                        : "text-fg-secondary hover:text-fg-primary"
                     )}
                   >
                     {p}
                   </button>
                 ))}
               </div>
-              <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm">
+              <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-3 py-1.5 rounded text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
                 Export
               </button>
             </div>
           </div>
 
           {/* Summary Bar */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: "Total Budget", value: fmt(totalBudget), sub: "Annual" },
               { label: "Total Spent", value: fmt(totalSpent), sub: "YTD" },
@@ -261,20 +268,20 @@ export default function BudgetTracker() {
             ].map((s) => (
               <div
                 key={s.label}
-                className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+                className="bg-surface-1 border border-tok-border rounded-lg p-4"
               >
-                <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">
+                <p className="text-fg-muted text-xs uppercase tracking-wider mb-1">
                   {s.label}
                 </p>
                 <p className="text-xl font-semibold">{s.value}</p>
-                <p className="text-zinc-500 text-xs mt-1">{s.sub}</p>
+                <p className="text-fg-muted text-xs mt-1">{s.sub}</p>
               </div>
             ))}
           </div>
 
           {/* Stacked Spend Bar */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-sm text-zinc-400 mb-3">Spend by Category (YTD)</p>
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4">
+            <p className="text-sm text-fg-secondary mb-3">Spend by Category (YTD)</p>
             <div className="flex h-6 rounded overflow-hidden">
               {CATEGORIES.map((c, i) => {
                 const w = totalSpent === 0 ? 0 : (c.ytdSpent / totalSpent) * 100;
@@ -290,7 +297,7 @@ export default function BudgetTracker() {
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
               {CATEGORIES.map((c, i) => (
-                <div key={c.id} className="flex items-center gap-1.5 text-xs text-zinc-400">
+                <div key={c.id} className="flex items-center gap-1.5 text-xs text-fg-secondary">
                   <div className={cn("w-2.5 h-2.5 rounded-sm", SEGMENT_COLORS[i])} />
                   <span>{c.emoji} {c.name}</span>
                 </div>
@@ -299,8 +306,17 @@ export default function BudgetTracker() {
           </div>
 
           {/* Budget Table */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-            <div className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] gap-2 px-4 py-2.5 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">
+          {CATEGORIES.length === 0 ? (
+            <ContextualEmptyState
+              icon={Wallet}
+              title="No budgets configured"
+              description="Set up budget limits to track and control your AI spending across agents and models."
+            />
+          ) : (
+          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+            <div className="min-w-[700px]">
+            <div className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] gap-2 px-4 py-2.5 border-b border-tok-border text-xs text-fg-muted uppercase tracking-wider">
               <span>Category</span>
               <span>Monthly Budget</span>
               <span>Current Month</span>
@@ -317,19 +333,24 @@ export default function BudgetTracker() {
               const varianceNeg = c.variance > 0;
 
               return (
-                <div key={c.id} className="border-b border-zinc-800 last:border-b-0">
+                <div key={c.id} className="border-b border-tok-border last:border-b-0">
                   <div
-                    className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] gap-2 px-4 py-3 items-center text-sm hover:bg-zinc-800/40 transition-colors cursor-pointer"
+                    className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] gap-2 px-4 py-3 items-center text-sm hover:bg-surface-2/40 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none focus-visible:ring-inset"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    aria-label={`${c.name} — ${ratio}% of monthly budget. Press to ${isExpanded ? 'collapse' : 'expand'} transactions`}
                     onClick={() => setExpandedId(isExpanded ? null : c.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(isExpanded ? null : c.id); } }}
                   >
                     <span className="flex items-center gap-2 font-medium">
                       <span>{c.emoji}</span>
                       <span>{c.name}</span>
                     </span>
-                    <span className="text-zinc-400">{fmt(c.monthlyBudget)}</span>
+                    <span className="text-fg-secondary">{fmt(c.monthlyBudget)}</span>
                     <span className={statusColor(ratio)}>{fmt(c.currentMonth)}</span>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-surface-2 rounded-full overflow-hidden">
                         <div
                           className={cn("h-full rounded-full transition-all", barColor(ratio))}
                           style={{ width: `${Math.min(ratio, 100)}%` }}
@@ -339,21 +360,21 @@ export default function BudgetTracker() {
                         {ratio}%
                       </span>
                     </div>
-                    <span className="text-zinc-400">{fmt(c.ytdSpent)}</span>
-                    <span className="text-zinc-400">{fmt(c.forecast)}</span>
+                    <span className="text-fg-secondary">{fmt(c.ytdSpent)}</span>
+                    <span className="text-fg-secondary">{fmt(c.forecast)}</span>
                     <span className={varianceNeg ? "text-rose-400" : "text-emerald-400"}>
                       {varianceNeg ? "+" : ""}
                       {fmt(Math.abs(c.variance))}
                     </span>
-                    <span className="w-8 text-center text-zinc-500 text-xs select-none">
+                    <span className="w-8 text-center text-fg-muted text-xs select-none">
                       {isExpanded ? "▲" : "▼"}
                     </span>
                   </div>
 
                   {isExpanded && (
                     <div className="px-4 pb-3">
-                      <div className="bg-zinc-800/60 rounded-lg overflow-hidden">
-                        <div className="grid grid-cols-[1fr_2fr_1fr_1fr] gap-2 px-3 py-2 text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-700">
+                      <div className="bg-surface-2/60 rounded-lg overflow-hidden">
+                        <div className="grid grid-cols-[1fr_2fr_1fr_1fr] gap-2 px-3 py-2 text-xs text-fg-muted uppercase tracking-wider border-b border-tok-border">
                           <span>Date</span>
                           <span>Description</span>
                           <span>Amount</span>
@@ -362,12 +383,12 @@ export default function BudgetTracker() {
                         {c.transactions.map((t, i) => (
                           <div
                             key={i}
-                            className="grid grid-cols-[1fr_2fr_1fr_1fr] gap-2 px-3 py-2 text-sm border-b border-zinc-700/50 last:border-b-0"
+                            className="grid grid-cols-[1fr_2fr_1fr_1fr] gap-2 px-3 py-2 text-sm border-b border-tok-border/50 last:border-b-0"
                           >
-                            <span className="text-zinc-500">{t.date}</span>
-                            <span className="text-zinc-300">{t.description}</span>
-                            <span className="text-white">{fmt(t.amount)}</span>
-                            <span className="text-zinc-400">{t.vendor}</span>
+                            <span className="text-fg-muted">{t.date}</span>
+                            <span className="text-fg-primary">{t.description}</span>
+                            <span className="text-fg-primary">{fmt(t.amount)}</span>
+                            <span className="text-fg-secondary">{t.vendor}</span>
                           </div>
                         ))}
                       </div>
@@ -376,11 +397,14 @@ export default function BudgetTracker() {
                 </div>
               );
             })}
+            </div>
+            </div>
           </div>
+          )}
 
           {/* Monthly Trend */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-sm text-zinc-400 mb-4">Monthly Trend — Budget vs Actual</p>
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4">
+            <p className="text-sm text-fg-secondary mb-4">Monthly Trend — Budget vs Actual</p>
             <div className="flex items-end gap-3 h-40">
               {MONTHLY_DATA.map((m) => {
                 const bH = maxTrend === 0 ? 0 : (m.budget / maxTrend) * 100;
@@ -402,21 +426,21 @@ export default function BudgetTracker() {
                         title={`Actual: ${fmt(m.actual)}`}
                       />
                     </div>
-                    <span className="text-xs text-zinc-500">{m.month}</span>
+                    <span className="text-xs text-fg-muted">{m.month}</span>
                   </div>
                 );
               })}
             </div>
             <div className="flex items-center gap-5 mt-3">
-              <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+              <div className="flex items-center gap-1.5 text-xs text-fg-secondary">
                 <div className="w-2.5 h-2.5 rounded-sm bg-indigo-500/40" />
                 <span>Budget</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+              <div className="flex items-center gap-1.5 text-xs text-fg-secondary">
                 <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
                 <span>Actual (under)</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+              <div className="flex items-center gap-1.5 text-xs text-fg-secondary">
                 <div className="w-2.5 h-2.5 rounded-sm bg-rose-500" />
                 <span>Actual (over)</span>
               </div>
@@ -425,11 +449,11 @@ export default function BudgetTracker() {
         </div>
 
         {/* ── Alerts Sidebar ──────────────────────────── */}
-        <div className="w-[200px] flex-shrink-0">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 sticky top-6">
-            <p className="text-sm font-semibold text-zinc-300 mb-3">⚠️ Budget Alerts</p>
+        <div className="w-full md:w-[200px] md:flex-shrink-0">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 sticky top-6">
+            <p className="text-sm font-semibold text-fg-primary mb-3">⚠️ Budget Alerts</p>
             {alerts.length === 0 ? (
-              <p className="text-xs text-zinc-500">All categories within budget.</p>
+              <p className="text-xs text-fg-muted">All categories within budget.</p>
             ) : (
               <div className="space-y-3">
                 {alerts.map((c) => {
@@ -451,7 +475,7 @@ export default function BudgetTracker() {
                           {c.name}
                         </span>
                       </p>
-                      <p className="text-xs text-zinc-400 mt-1">
+                      <p className="text-xs text-fg-secondary mt-1">
                         {ratio}% of monthly budget
                       </p>
                       <p className={cn("text-xs mt-0.5", isOver ? "text-rose-400" : "text-amber-400")}>
@@ -465,9 +489,9 @@ export default function BudgetTracker() {
               </div>
             )}
 
-            <div className="mt-4 pt-3 border-t border-zinc-800">
-              <p className="text-xs text-zinc-500 mb-2">Overall Health</p>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="mt-4 pt-3 border-t border-tok-border">
+              <p className="text-xs text-fg-muted mb-2">Overall Health</p>
+              <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full", barColor(burnRate))}
                   style={{ width: `${Math.min(burnRate, 100)}%` }}
@@ -480,6 +504,7 @@ export default function BudgetTracker() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
+    </>
   );
 }

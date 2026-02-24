@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from "react";
+import { BarChart3 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
 
@@ -81,16 +83,16 @@ type SortDir = "asc" | "desc";
 function KpiCard({ emoji, label, value, sub }: { emoji: string; label: string; value: string; sub?: string }) {
   return (
     <div
-      className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 flex flex-col gap-1"
+      className="rounded-xl border border-tok-border bg-surface-1 p-5 flex flex-col gap-1"
       role="group"
       aria-label={label}
     >
-      <span className="text-sm text-zinc-400 flex items-center gap-1.5">
+      <span className="text-sm text-fg-secondary flex items-center gap-1.5">
         <span aria-hidden="true">{emoji}</span>
         {label}
       </span>
-      <span className="text-2xl font-semibold text-white tracking-tight">{value}</span>
-      {sub && <span className="text-xs text-zinc-500">{sub}</span>}
+      <span className="text-2xl font-semibold text-fg-primary tracking-tight">{value}</span>
+      {sub && <span className="text-xs text-fg-muted">{sub}</span>}
     </div>
   );
 }
@@ -107,9 +109,9 @@ function SessionVolumeChart({ data }: { data: typeof DAILY_SESSIONS }) {
   const trendPct = ((week2Avg - week1Avg) / week1Avg) * 100;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+    <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-white">📊 Session Volume (14 days)</h3>
+        <h3 className="text-sm font-medium text-fg-primary">📊 Session Volume (14 days)</h3>
         <span
           className={cn(
             "text-xs font-medium px-2 py-0.5 rounded-full",
@@ -123,7 +125,7 @@ function SessionVolumeChart({ data }: { data: typeof DAILY_SESSIONS }) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 mb-3 text-xs text-zinc-400">
+      <div className="flex items-center gap-4 mb-3 text-xs text-fg-secondary">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 rounded-sm bg-indigo-500" aria-hidden="true" />
           AI Sessions
@@ -235,12 +237,12 @@ function SortableHeader({
 }) {
   const active = currentKey === sortKey;
   return (
-    <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400 whitespace-nowrap">
+    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary whitespace-nowrap">
       <button
         type="button"
         className={cn(
-          "inline-flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded px-1 -mx-1",
-          active && "text-white"
+          "inline-flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded px-1 -mx-1",
+          active && "text-fg-primary"
         )}
         onClick={() => onSort(sortKey)}
         aria-sort={active ? (currentDir === "asc" ? "ascending" : "descending") : "none"}
@@ -287,16 +289,16 @@ function TopAgentsTable({ agents }: { agents: AgentRow[] }) {
   const headerProps = { currentKey: sortKey, currentDir: sortDir, onSort: handleSort };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <h3 className="text-sm font-medium text-white mb-4">🏆 Top Agents</h3>
+    <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+      <h3 className="text-sm font-medium text-fg-primary mb-4">🏆 Top Agents</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="grid" aria-label="Top agents ranked by activity">
           <thead>
-            <tr className="border-b border-zinc-800">
+            <tr className="border-b border-tok-border">
               <SortableHeader label="Agent" sortKey="agent" {...headerProps} />
               <SortableHeader label="Sessions" sortKey="sessions" {...headerProps} />
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Tokens</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Avg Duration</th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Tokens</th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Avg Duration</th>
               <SortableHeader label="Cost" sortKey="cost" {...headerProps} />
               <SortableHeader label="Success" sortKey="successRate" {...headerProps} />
             </tr>
@@ -306,17 +308,17 @@ function TopAgentsTable({ agents }: { agents: AgentRow[] }) {
               <tr
                 key={row.agent}
                 className={cn(
-                  "border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/40",
+                  "border-b border-tok-border/50 transition-colors hover:bg-surface-2/40",
                   idx === sorted.length - 1 && "border-b-0"
                 )}
               >
-                <td className="px-3 py-2.5 text-white font-medium whitespace-nowrap">
+                <td className="px-3 py-2.5 text-fg-primary font-medium whitespace-nowrap">
                   <span aria-hidden="true">{row.emoji}</span> {row.agent}
                 </td>
-                <td className="px-3 py-2.5 text-zinc-400 tabular-nums">{row.sessions.toLocaleString()}</td>
-                <td className="px-3 py-2.5 text-zinc-400 tabular-nums">{formatNumber(row.tokens)}</td>
-                <td className="px-3 py-2.5 text-zinc-400 tabular-nums">{row.avgDuration}</td>
-                <td className="px-3 py-2.5 text-zinc-400 tabular-nums">${row.cost.toFixed(2)}</td>
+                <td className="px-3 py-2.5 text-fg-secondary tabular-nums">{row.sessions.toLocaleString()}</td>
+                <td className="px-3 py-2.5 text-fg-secondary tabular-nums">{formatNumber(row.tokens)}</td>
+                <td className="px-3 py-2.5 text-fg-secondary tabular-nums">{row.avgDuration}</td>
+                <td className="px-3 py-2.5 text-fg-secondary tabular-nums">${row.cost.toFixed(2)}</td>
                 <td className="px-3 py-2.5 tabular-nums">
                   <span
                     className={cn(
@@ -339,8 +341,8 @@ function FunnelViz({ steps }: { steps: typeof FUNNEL_STEPS }) {
   const maxCount = steps[0].count;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <h3 className="text-sm font-medium text-white mb-4">🔻 Session Funnel</h3>
+    <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+      <h3 className="text-sm font-medium text-fg-primary mb-4">🔻 Session Funnel</h3>
       <div className="space-y-3" role="list" aria-label="Session funnel showing drop-off at each stage">
         {steps.map((step, i) => {
           const widthPct = maxCount > 0 ? (step.count / maxCount) * 100 : 0;
@@ -349,9 +351,9 @@ function FunnelViz({ steps }: { steps: typeof FUNNEL_STEPS }) {
           return (
             <div key={step.label} role="listitem" aria-label={`${step.label}: ${step.count.toLocaleString()} sessions${i > 0 ? `, ${dropOff.toFixed(1)}% drop-off` : ""}`}>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-zinc-400">{step.label}</span>
+                <span className="text-fg-secondary">{step.label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-white font-medium tabular-nums">
+                  <span className="text-fg-primary font-medium tabular-nums">
                     {step.count.toLocaleString()}
                   </span>
                   {i > 0 && (
@@ -361,7 +363,7 @@ function FunnelViz({ steps }: { steps: typeof FUNNEL_STEPS }) {
                   )}
                 </div>
               </div>
-              <div className="h-6 w-full rounded bg-zinc-800 overflow-hidden">
+              <div className="h-6 w-full rounded bg-surface-2 overflow-hidden">
                 <div
                   className={cn(
                     "h-full rounded transition-all",
@@ -382,8 +384,8 @@ function FunnelViz({ steps }: { steps: typeof FUNNEL_STEPS }) {
         })}
       </div>
       {/* Overall conversion */}
-      <div className="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between text-xs">
-        <span className="text-zinc-500">Overall conversion</span>
+      <div className="mt-4 pt-3 border-t border-tok-border flex items-center justify-between text-xs">
+        <span className="text-fg-muted">Overall conversion</span>
         <span className="text-emerald-400 font-medium tabular-nums">
           {maxCount > 0 ? ((steps[steps.length - 1].count / maxCount) * 100).toFixed(1) : 0}%
         </span>
@@ -412,17 +414,17 @@ function StatusBadge({ status }: { status: RecentSession["status"] }) {
 
 function RecentSessionsTable({ sessions }: { sessions: RecentSession[] }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <h3 className="text-sm font-medium text-white mb-4">🕐 Recent Sessions</h3>
+    <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
+      <h3 className="text-sm font-medium text-fg-primary mb-4">🕐 Recent Sessions</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm" aria-label="Recent sessions">
           <thead>
-            <tr className="border-b border-zinc-800">
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Agent</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Status</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Tokens</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Duration</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-zinc-400">Time</th>
+            <tr className="border-b border-tok-border">
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Agent</th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Status</th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Tokens</th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Duration</th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-fg-secondary">Time</th>
             </tr>
           </thead>
           <tbody>
@@ -430,19 +432,19 @@ function RecentSessionsTable({ sessions }: { sessions: RecentSession[] }) {
               <tr
                 key={`${s.agent}-${idx}`}
                 className={cn(
-                  "border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/40",
+                  "border-b border-tok-border/50 transition-colors hover:bg-surface-2/40",
                   idx === sessions.length - 1 && "border-b-0"
                 )}
               >
-                <td className="px-3 py-2.5 text-white font-medium whitespace-nowrap">
+                <td className="px-3 py-2.5 text-fg-primary font-medium whitespace-nowrap">
                   <span aria-hidden="true">{s.emoji}</span> {s.agent}
                 </td>
                 <td className="px-3 py-2.5">
                   <StatusBadge status={s.status} />
                 </td>
-                <td className="px-3 py-2.5 text-zinc-400 tabular-nums">{formatNumber(s.tokens)}</td>
-                <td className="px-3 py-2.5 text-zinc-400 tabular-nums">{s.duration}</td>
-                <td className="px-3 py-2.5 text-zinc-500 text-xs whitespace-nowrap">{s.timestamp}</td>
+                <td className="px-3 py-2.5 text-fg-secondary tabular-nums">{formatNumber(s.tokens)}</td>
+                <td className="px-3 py-2.5 text-fg-secondary tabular-nums">{s.duration}</td>
+                <td className="px-3 py-2.5 text-fg-muted text-xs whitespace-nowrap">{s.timestamp}</td>
               </tr>
             ))}
           </tbody>
@@ -465,69 +467,86 @@ export default function AnalyticsOverview() {
     []
   );
 
+  const hasData = DAILY_SESSIONS.length > 0 && AGENTS_DATA.length > 0;
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <>
+    <a href="#analytics-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+      Skip to main content
+    </a>
+    <main id="analytics-main" className="min-h-screen bg-surface-0 text-fg-primary">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 md:py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-white tracking-tight">
+          <h1 className="text-xl font-semibold text-fg-primary tracking-tight">
             📈 Analytics Overview
           </h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-fg-secondary">
             Workspace performance at a glance — week of Feb 15–21, 2026
           </p>
         </div>
 
-        {/* KPI Row */}
-        <section aria-label="Key performance indicators" className="mb-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard
-              emoji="📋"
-              label="Sessions this week"
-              value={weekSessions.toLocaleString()}
-              sub="+12.4% vs last week"
-            />
-            <KpiCard
-              emoji="🪙"
-              label="Total tokens consumed"
-              value={formatNumber(totalTokens)}
-              sub="Across all agents"
-            />
-            <KpiCard
-              emoji="🤖"
-              label="Active agents"
-              value={String(AGENTS_DATA.length)}
-              sub="6 AI · 2 supervisory"
-            />
-            <KpiCard
-              emoji="⏱️"
-              label="Avg session duration"
-              value="3m 28s"
-              sub="↓ 8s from last week"
-            />
-          </div>
-        </section>
+        {!hasData ? (
+          <ContextualEmptyState
+            icon={BarChart3}
+            title="No analytics data yet"
+            description="Analytics will appear once your agents start processing requests."
+          />
+        ) : (
+          <>
+            {/* KPI Row */}
+            <section aria-label="Key performance indicators" className="mb-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <KpiCard
+                  emoji="📋"
+                  label="Sessions this week"
+                  value={weekSessions.toLocaleString()}
+                  sub="+12.4% vs last week"
+                />
+                <KpiCard
+                  emoji="🪙"
+                  label="Total tokens consumed"
+                  value={formatNumber(totalTokens)}
+                  sub="Across all agents"
+                />
+                <KpiCard
+                  emoji="🤖"
+                  label="Active agents"
+                  value={String(AGENTS_DATA.length)}
+                  sub="6 AI · 2 supervisory"
+                />
+                <KpiCard
+                  emoji="⏱️"
+                  label="Avg session duration"
+                  value="3m 28s"
+                  sub="↓ 8s from last week"
+                />
+              </div>
+            </section>
 
-        {/* Session Volume Chart */}
-        <section aria-label="Session volume over time" className="mb-6">
-          <SessionVolumeChart data={DAILY_SESSIONS} />
-        </section>
+            {/* Session Volume Chart */}
+            <section aria-label="Session volume over time" className="mb-6">
+              <SessionVolumeChart data={DAILY_SESSIONS} />
+            </section>
 
-        {/* Two-column: Top Agents + Funnel */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 mb-6">
-          <div className="lg:col-span-3">
-            <TopAgentsTable agents={AGENTS_DATA} />
-          </div>
-          <div className="lg:col-span-2">
-            <FunnelViz steps={FUNNEL_STEPS} />
-          </div>
-        </section>
+            {/* Two-column: Top Agents + Funnel */}
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 mb-6">
+              <div className="lg:col-span-3">
+                <TopAgentsTable agents={AGENTS_DATA} />
+              </div>
+              <div className="lg:col-span-2">
+                <FunnelViz steps={FUNNEL_STEPS} />
+              </div>
+            </section>
 
-        {/* Recent Sessions */}
-        <section aria-label="Recent sessions">
-          <RecentSessionsTable sessions={RECENT_SESSIONS} />
-        </section>
+            {/* Recent Sessions */}
+            <section aria-label="Recent sessions">
+              <RecentSessionsTable sessions={RECENT_SESSIONS} />
+            </section>
+          </>
+        )}
       </div>
-    </div>
+    </main>
+    </>
   );
 }

@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
+import { Play } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ============================================================================
 // Types
@@ -256,12 +258,16 @@ export function ApiPlayground() {
   const isBodyVisible = method === 'POST' || method === 'PUT' || method === 'PATCH';
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <>
+    <a href="#api-playground-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-surface-0 focus:text-fg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+      Skip to main content
+    </a>
+    <main id="api-playground-main" className="min-h-screen bg-surface-0 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-white">API Playground</h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl font-semibold text-fg-primary">API Playground</h1>
+          <p className="text-sm text-fg-secondary mt-1">
             Test OpenClaw API endpoints interactively
           </p>
         </div>
@@ -269,18 +275,18 @@ export function ApiPlayground() {
         {/* Main Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Panel - Request Builder */}
-          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 space-y-4">
+          <div className="bg-surface-1 rounded-lg border border-tok-border p-4 space-y-4">
             {/* Endpoint Selector */}
             <div>
-              <label htmlFor="endpoint-select" className="block text-xs font-medium text-zinc-400 mb-2">
+              <label htmlFor="endpoint-select" className="block text-xs font-medium text-fg-secondary mb-2">
                 Quick Select
               </label>
               <select
                 id="endpoint-select"
                 value={selectedEndpoint}
                 onChange={(e) => handleEndpointChange(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white
-                  focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                className="w-full bg-surface-2 border border-tok-border rounded-md px-3 py-2 text-sm text-fg-primary
+                  focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 {ENDPOINTS.map((endpoint) => (
                   <option key={endpoint.id} value={endpoint.id}>
@@ -292,10 +298,10 @@ export function ApiPlayground() {
 
             {/* Method & URL */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-2">Request</label>
+              <label className="block text-xs font-medium text-fg-secondary mb-2">Request</label>
               <div className="flex gap-2">
                 {/* Method Buttons */}
-                <div className="flex rounded-md bg-zinc-800 p-1" role="radiogroup" aria-label="HTTP Method">
+                <div className="flex rounded-md bg-surface-2 p-1" role="radiogroup" aria-label="HTTP Method">
                   {(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as HttpMethod[]).map((m) => (
                     <button
                       key={m}
@@ -305,9 +311,9 @@ export function ApiPlayground() {
                       className={cn(
                         'px-3 py-1.5 text-xs font-medium rounded transition-colors',
                         method === m
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-zinc-400 hover:text-white hover:bg-zinc-700',
-                        'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none'
+                          ? 'bg-indigo-600 text-fg-primary'
+                          : 'text-fg-secondary hover:text-fg-primary hover:bg-surface-3',
+                        'focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none'
                       )}
                     >
                       {m}
@@ -317,8 +323,8 @@ export function ApiPlayground() {
               </div>
 
               {/* URL Input */}
-              <div className="mt-2 flex items-center bg-zinc-800 border border-zinc-700 rounded-md overflow-hidden">
-                <span className="px-3 py-2 text-sm text-zinc-500 bg-zinc-800 border-r border-zinc-700 select-none">
+              <div className="mt-2 flex items-center bg-surface-2 border border-tok-border rounded-md overflow-hidden">
+                <span className="px-3 py-2 text-sm text-fg-muted bg-surface-2 border-r border-tok-border select-none">
                   https://api.clawdbot.io/v1
                 </span>
                 <input
@@ -326,7 +332,7 @@ export function ApiPlayground() {
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
                   aria-label="API path"
-                  className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-zinc-500
+                  className="flex-1 bg-transparent px-3 py-2 text-sm text-fg-primary placeholder-zinc-500
                     focus-visible:outline-none"
                   placeholder="/endpoint"
                 />
@@ -336,11 +342,11 @@ export function ApiPlayground() {
             {/* Headers */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-zinc-400">Headers</label>
+                <label className="text-xs font-medium text-fg-secondary">Headers</label>
                 <button
                   onClick={addHeader}
                   className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors
-                    focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded px-1"
+                    focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded px-1"
                   aria-label="Add header"
                 >
                   + Add
@@ -355,8 +361,8 @@ export function ApiPlayground() {
                       onChange={(e) => updateHeader(header.id, 'key', e.target.value)}
                       placeholder="Key"
                       aria-label={`Header key ${header.id}`}
-                      className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-sm text-white placeholder-zinc-500
-                        focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                      className="flex-1 bg-surface-2 border border-tok-border rounded px-2 py-1.5 text-sm text-fg-primary placeholder-zinc-500
+                        focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                     />
                     <input
                       type="text"
@@ -364,13 +370,13 @@ export function ApiPlayground() {
                       onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
                       placeholder="Value"
                       aria-label={`Header value ${header.id}`}
-                      className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-sm text-white placeholder-zinc-500
-                        focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                      className="flex-1 bg-surface-2 border border-tok-border rounded px-2 py-1.5 text-sm text-fg-primary placeholder-zinc-500
+                        focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                     />
                     <button
                       onClick={() => removeHeader(header.id)}
-                      className="px-2 text-zinc-500 hover:text-red-400 transition-colors
-                        focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
+                      className="px-2 text-fg-muted hover:text-red-400 transition-colors
+                        focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded"
                       aria-label={`Remove header ${header.key}`}
                     >
                       ×
@@ -383,7 +389,7 @@ export function ApiPlayground() {
             {/* Body */}
             {isBodyVisible && (
               <div>
-                <label htmlFor="request-body" className="block text-xs font-medium text-zinc-400 mb-2">
+                <label htmlFor="request-body" className="block text-xs font-medium text-fg-secondary mb-2">
                   Request Body
                 </label>
                 <textarea
@@ -392,9 +398,9 @@ export function ApiPlayground() {
                   onChange={(e) => setBody(e.target.value)}
                   rows={8}
                   aria-label="Request body JSON"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white font-mono
+                  className="w-full bg-surface-2 border border-tok-border rounded-md px-3 py-2 text-sm text-fg-primary font-mono
                     placeholder-zinc-500 resize-none
-                    focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                    focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                   placeholder='{"key": "value"}'
                 />
               </div>
@@ -408,9 +414,9 @@ export function ApiPlayground() {
               className={cn(
                 'w-full py-2.5 rounded-md font-medium text-sm transition-all',
                 loading
-                  ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700',
-                'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none'
+                  ? 'bg-surface-3 text-fg-muted cursor-not-allowed'
+                  : 'bg-indigo-600 text-fg-primary hover:bg-indigo-500 active:bg-indigo-700',
+                'focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none'
               )}
             >
               {loading ? 'Sending...' : 'Send Request'}
@@ -418,9 +424,9 @@ export function ApiPlayground() {
           </div>
 
           {/* Right Panel - Response */}
-          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 space-y-4">
+          <div className="bg-surface-1 rounded-lg border border-tok-border p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium text-white">Response</h2>
+              <h2 className="text-sm font-medium text-fg-primary">Response</h2>
               {response && (
                 <div className="flex items-center gap-2">
                   <span
@@ -433,7 +439,7 @@ export function ApiPlayground() {
                   >
                     {response.status} {response.statusText}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-zinc-800 text-xs text-zinc-400">
+                  <span className="px-2 py-0.5 rounded bg-surface-2 text-xs text-fg-secondary">
                     {response.time}ms
                   </span>
                 </div>
@@ -443,12 +449,17 @@ export function ApiPlayground() {
             {/* Response Body */}
             <div className="flex-1 min-h-[300px]">
               {response ? (
-                <pre className="bg-zinc-800 rounded-md p-3 text-xs font-mono text-green-400 overflow-auto h-full max-h-[400px]">
+                <pre className="bg-surface-2 rounded-md p-3 text-xs font-mono text-green-400 overflow-auto h-full max-h-[400px]">
                   {JSON.stringify(response.body, null, 2)}
                 </pre>
               ) : (
-                <div className="bg-zinc-800 rounded-md p-3 text-xs text-zinc-500 h-full min-h-[300px] flex items-center justify-center">
-                  <span>Send a request to see the response</span>
+                <div className="bg-surface-2 rounded-md h-full min-h-[300px] flex items-center justify-center">
+                  <ContextualEmptyState
+                    icon={Play}
+                    title="Ready to explore"
+                    description="Select an endpoint and send a request to see the response here."
+                    size="sm"
+                  />
                 </div>
               )}
             </div>
@@ -458,20 +469,20 @@ export function ApiPlayground() {
               <div>
                 <button
                   onClick={() => setShowHeaders(!showHeaders)}
-                  className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors
-                    focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
+                  className="flex items-center gap-1 text-xs text-fg-secondary hover:text-fg-primary transition-colors
+                    focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded"
                   aria-expanded={showHeaders}
                   aria-controls="response-headers"
                 >
-                  <span className={cn('transition-transform', showHeaders && 'rotate-90')}>▶</span>
+                  <span className={cn('transition-transform', showHeaders && 'rotate-90')} aria-hidden="true">▶</span>
                   Response Headers
                 </button>
                 {showHeaders && (
-                  <div id="response-headers" className="mt-2 bg-zinc-800 rounded-md p-3 space-y-1">
+                  <div id="response-headers" className="mt-2 bg-surface-2 rounded-md p-3 space-y-1">
                     {Object.entries(response.headers).map(([key, value]) => (
                       <div key={key} className="flex text-xs">
-                        <span className="text-zinc-500 w-32 shrink-0">{key}:</span>
-                        <span className="text-zinc-300 font-mono truncate">{value}</span>
+                        <span className="text-fg-muted w-32 shrink-0">{key}:</span>
+                        <span className="text-fg-primary font-mono truncate">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -483,9 +494,9 @@ export function ApiPlayground() {
             {response && (
               <button
                 onClick={copyResponse}
-                className="w-full py-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-zinc-300
-                  hover:bg-zinc-700 hover:text-white transition-colors
-                  focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                className="w-full py-2 bg-surface-2 border border-tok-border rounded-md text-sm text-fg-primary
+                  hover:bg-surface-3 hover:text-fg-primary transition-colors
+                  focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 📋 Copy Response
               </button>
@@ -493,7 +504,8 @@ export function ApiPlayground() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
+    </>
   );
 }
 
