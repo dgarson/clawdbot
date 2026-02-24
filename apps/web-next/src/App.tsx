@@ -11,6 +11,7 @@ import {
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
+import ThemeToggle from "./components/ui/ThemeToggle";
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -35,6 +36,10 @@ const ModelComparisonMatrix        = React.lazy(() => import("./views/ModelCompa
 const AgentWaveScheduler           = React.lazy(() => import("./views/AgentWaveScheduler"));
 const DiscoveryPreflightChecklist  = React.lazy(() => import("./views/DiscoveryPreflightChecklist"));
 const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryFindingsSearch"));
+const DiscoveryRunTimeline       = React.lazy(() => import("./views/DiscoveryRunTimeline"));
+const DiscoveryRunSummaryReport  = React.lazy(() => import("./views/DiscoveryRunSummaryReport"));
+const AgentHealthGrid            = React.lazy(() => import("./views/AgentHealthGrid"));
+const WaveTransitionView         = React.lazy(() => import("./views/WaveTransitionView"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -53,6 +58,7 @@ const WorkspaceFileBrowser = React.lazy(() => import("./views/WorkspaceFileBrows
 const ProviderAuthManager = React.lazy(() => import("./views/ProviderAuthManager"));
 const AgentPulseMonitor = React.lazy(() => import("./views/AgentPulseMonitor"));
 const NotificationCenter = React.lazy(() => import("./views/NotificationCenter"));
+import { useNotificationUnreadCount } from "./views/NotificationCenter";
 const ApiKeysManager = React.lazy(() => import("./views/ApiKeysManager"));
 const AuditLog = React.lazy(() => import("./views/AuditLog"));
 const BillingSubscription = React.lazy(() => import("./views/BillingSubscription"));
@@ -85,6 +91,7 @@ const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
 const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
+const CommandPaletteV2     = React.lazy(() => import("./views/CommandPaletteV2"));
 const SupportCenter        = React.lazy(() => import("./views/SupportCenter"));
 const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"));
 const AgentMemoryViewer    = React.lazy(() => import("./views/AgentMemoryViewer"));
@@ -309,6 +316,10 @@ export const navItems = [
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
   { id: "agent-cost-tracker",      label: "Agent Cost Tracker",   emoji: "💰", shortcut: null },
   { id: "tool-reliability",        label: "Tool Reliability",     emoji: "🛡️", shortcut: null },
+  { id: "run-timeline",          label: "Run Timeline",         emoji: "📊", shortcut: null },
+  { id: "run-summary",           label: "Run Summary",          emoji: "📋", shortcut: null },
+  { id: "agent-health-grid",     label: "Agent Health Grid",    emoji: "❤️", shortcut: null },
+  { id: "wave-transition",       label: "Wave Transition",      emoji: "🌊", shortcut: null },
   { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
@@ -359,6 +370,7 @@ export const navItems = [
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
   { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
   { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
+  { id: "commands-v2",     label: "Commands V2",    emoji: "🔮", shortcut: null },
   { id: "support",         label: "Support",        emoji: "🎫", shortcut: null },
   { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
   { id: "memory",          label: "Agent Memory",   emoji: "🧠", shortcut: null },
@@ -627,6 +639,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "permissions":    <TableSkeleton rows={8} />,
   "activity":       <ContentSkeleton />,
   "commands":       <ContentSkeleton />,
+  "commands-v2":    <ContentSkeleton />,
   "support":        <ContentSkeleton />,
   "releases":       <DashboardSkeleton />,
   "memory":         <ContentSkeleton />,
@@ -847,7 +860,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
 function LoadingFallback({ viewId }: { viewId: string }) {
   const skeleton = SKELETON_MAP[viewId];
   if (skeleton) {
-    return <div className="p-6 max-w-7xl mx-auto">{skeleton}</div>;
+    return <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">{skeleton}</div>; {/* M9: responsive pass */}
   }
   return (
     <div className="flex items-center justify-center h-64">
@@ -912,6 +925,7 @@ function AppContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { visitView, recordInteraction } = useProficiency();
+  const notificationUnreadCount = useNotificationUnreadCount();
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
   const canGoBack = historyIndex > 0;
@@ -1076,6 +1090,10 @@ function AppContent() {
       case "wave-scheduler":          return <AgentWaveScheduler />;
       case "preflight-checklist":     return <DiscoveryPreflightChecklist />;
       case "findings-search":         return <DiscoveryFindingsSearch />;
+      case "run-timeline":        return <DiscoveryRunTimeline />;
+      case "run-summary":         return <DiscoveryRunSummaryReport />;
+      case "agent-health-grid":   return <AgentHealthGrid />;
+      case "wave-transition":     return <WaveTransitionView />;
       case "dashboard":     return <AgentDashboard />;
       case "chat":          return <ChatInterface agentName="Luis" agentEmoji="🎨" />;
       case "builder":       return <AgentBuilderWizard />;
@@ -1126,6 +1144,7 @@ function AppContent() {
       case "permissions":     return <PermissionsManager />;
       case "activity":        return <ActivityFeed />;
       case "commands":        return <CommandPalette />;
+      case "commands-v2":     return <CommandPaletteV2 />;
       case "support":         return <SupportCenter />;
       case "releases":        return <ReleasePipeline />;
       case "memory":          return <AgentMemoryViewer />;
@@ -1405,9 +1424,21 @@ function AppContent() {
                   : item.label
               }
             >
-              <span className="text-base" aria-hidden="true">{item.emoji}</span>
+              <span className="text-base relative" aria-hidden="true">
+                {item.emoji}
+                {item.id === "notifications" && notificationUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                  </span>
+                )}
+              </span>
               {!sidebarCollapsed && <span>{item.label}</span>}
-              {!sidebarCollapsed && item.shortcut && (
+              {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
+                <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                  {notificationUnreadCount}
+                </span>
+              )}
+              {!sidebarCollapsed && item.shortcut && item.id !== "notifications" && (
                 <span className="ml-auto text-xs text-muted-foreground/50 font-mono">
                   ⌥{item.shortcut}
                 </span>
@@ -1474,6 +1505,7 @@ function AppContent() {
       </aside>
 
       {/* Mobile sidebar (separate element for overlay) */}
+      {/* M9: responsive pass — mobile drawer with ≥44px touch targets */}
       {mobileSidebarOpen && (
         <aside
           role="navigation"
@@ -1485,7 +1517,7 @@ function AppContent() {
             <span className="font-bold text-lg text-foreground">OpenClaw</span>
             <button
               onClick={() => setMobileSidebarOpen(false)}
-              className="ml-auto text-muted-foreground hover:text-foreground"
+              className="ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label="Close menu"
             >
               ✕
@@ -1497,15 +1529,27 @@ function AppContent() {
                 key={item.id}
                 onClick={() => navigate(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                  "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
                   activeView === item.id
                     ? "bg-primary/10 text-primary border-r-2 border-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
                 aria-current={activeView === item.id ? "page" : undefined}
               >
-                <span className="text-base" aria-hidden="true">{item.emoji}</span>
+                <span className="text-base relative" aria-hidden="true">
+                  {item.emoji}
+                  {item.id === "notifications" && notificationUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                    </span>
+                  )}
+                </span>
                 <span>{item.label}</span>
+                {item.id === "notifications" && notificationUnreadCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                    {notificationUnreadCount}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -1519,7 +1563,7 @@ function AppContent() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-1"
+            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Open menu"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
@@ -1578,6 +1622,9 @@ function AppContent() {
           {/* Spacer */}
           <div className="flex-1" />
 
+          {/* Theme toggle */}
+          <ThemeToggle />
+
           {/* Search trigger */}
           <button
             onClick={() => setCmdPaletteOpen(true)}
@@ -1605,7 +1652,8 @@ function AppContent() {
         <main id="main-content" className="flex-1 overflow-y-auto" role="main">
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
-              <div key={activeView} className="p-6 max-w-7xl mx-auto animate-slide-in">
+              {/* M9: responsive pass — reduce padding on mobile */}
+              <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
                 {renderView()}
               </div>
             </React.Suspense>
@@ -1626,14 +1674,15 @@ function AppContent() {
             aria-hidden="true"
           />
 
-          {/* Palette modal */}
+          {/* Palette modal — M9: responsive pass — full-screen on mobile, centered modal on desktop */}
           <div
             role="dialog"
             aria-label="Command palette"
             aria-modal="true"
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg animate-slide-in"
+            className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:inset-auto sm:top-[20%] sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-lg animate-slide-in"
           >
-            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+            {/* M9: responsive pass — full-height on mobile */}
+            <div className="bg-card border border-border rounded-none sm:rounded-xl shadow-2xl overflow-hidden h-full sm:h-auto w-full sm:w-auto">
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <svg

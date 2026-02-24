@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { ClipboardCheck, FileCheck } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -346,7 +348,12 @@ function ControlsTab() {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <div className="px-4 py-8 text-center text-zinc-500 text-sm">No controls match the selected filters.</div>
+          <ContextualEmptyState
+            icon={ClipboardCheck}
+            title="No compliance controls found"
+            description="No controls match the selected filters. Adjust your criteria."
+            size="sm"
+          />
         )}
       </div>
       <p className="text-xs text-zinc-600">Showing {filtered.length} of {CONTROLS_DATA.length} controls</p>
@@ -472,7 +479,12 @@ function EvidenceTab() {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <div className="px-4 py-8 text-center text-zinc-500 text-sm">No evidence items match the selected filter.</div>
+          <ContextualEmptyState
+            icon={FileCheck}
+            title="No evidence items found"
+            description="No evidence artifacts match the selected filter."
+            size="sm"
+          />
         )}
       </div>
       <p className="text-xs text-zinc-600">Showing {filtered.length} of {EVIDENCE_DATA.length} artifacts</p>

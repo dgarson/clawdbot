@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { ShieldCheck } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -491,10 +493,12 @@ export default function AlertCenter() {
                 </div>
               ))}
               {filteredAlerts.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-3xl mb-2">✅</p>
-                  <p className="text-sm text-zinc-400">No alerts match filters</p>
-                </div>
+                <ContextualEmptyState
+                  icon={ShieldCheck}
+                  title="All clear — no active alerts"
+                  description="No alerts match your current filters. Adjust filters or check back later."
+                  size="sm"
+                />
               )}
             </div>
           </div>

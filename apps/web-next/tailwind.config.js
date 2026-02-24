@@ -5,34 +5,59 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "hsl(240 3.7% 15.9%)",
-        input: "hsl(240 3.7% 15.9%)",
-        ring: "hsl(240 4.9% 83.9%)",
-        background: "hsl(240 10% 3.9%)",
-        foreground: "hsl(0 0% 98%)",
+        // ---- Backward-compat shadcn-style (now CSS-var backed for theming) ----
+        border:     "var(--color-border-ui)",
+        input:      "var(--color-input-ui)",
+        ring:       "hsl(240 4.9% 83.9%)",
+        background: "var(--color-background)",
+        foreground: "var(--color-foreground)",
         primary: {
-          DEFAULT: "hsl(263 70% 50%)",
+          DEFAULT:    "hsl(263 70% 50%)",
           foreground: "hsl(0 0% 98%)",
         },
         secondary: {
-          DEFAULT: "hsl(240 3.7% 15.9%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT:    "var(--color-secondary)",
+          foreground: "var(--color-secondary-fg)",
         },
         muted: {
-          DEFAULT: "hsl(240 3.7% 15.9%)",
-          foreground: "hsl(240 5% 64.9%)",
+          DEFAULT:    "var(--color-muted)",
+          foreground: "var(--color-muted-fg)",
         },
         accent: {
-          DEFAULT: "hsl(240 3.7% 15.9%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT:    "var(--color-accent-ui)",
+          foreground: "var(--color-accent-ui-fg)",
         },
         card: {
-          DEFAULT: "hsl(240 10% 5.9%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT:    "var(--color-card)",
+          foreground: "var(--color-card-fg)",
         },
         destructive: {
-          DEFAULT: "hsl(0 62.8% 30.6%)",
+          DEFAULT:    "hsl(0 62.8% 30.6%)",
           foreground: "hsl(0 0% 98%)",
+        },
+
+        // ---- New Horizon token utilities ----
+        // Usage: bg-surface-0, bg-surface-1, bg-surface-2, bg-surface-3
+        "surface-0": "var(--color-surface-0)",
+        "surface-1": "var(--color-surface-1)",
+        "surface-2": "var(--color-surface-2)",
+        "surface-3": "var(--color-surface-3)",
+
+        // Usage: text-fg-primary, text-fg-secondary, text-fg-muted
+        fg: {
+          primary:   "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          muted:     "var(--color-text-muted)",
+        },
+
+        // Usage: border-tok-border, bg-tok-accent, text-tok-success, etc.
+        tok: {
+          border:  "var(--color-border)",
+          accent:  "var(--color-accent)",
+          success: "var(--color-success)",
+          warning: "var(--color-warning)",
+          error:   "var(--color-error)",
+          info:    "var(--color-info)",
         },
       },
       borderRadius: {
@@ -43,16 +68,16 @@ export default {
       keyframes: {
         "pulse-soft": {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.7" },
+          "50%":       { opacity: "0.7" },
         },
         "slide-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "0%":   { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       animation: {
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
-        "slide-in": "slide-in 0.3s ease-out",
+        "slide-in":   "slide-in 0.3s ease-out",
       },
     },
   },
