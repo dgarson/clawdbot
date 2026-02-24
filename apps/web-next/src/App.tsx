@@ -312,7 +312,7 @@ const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/Database
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
 
 export const navItems = [
-  { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
+  { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: null },
   { id: "today-command",         label: "Today Command Center", emoji: "🧭", shortcut: null },
   { id: "action-inbox",          label: "Action Inbox",         emoji: "📥", shortcut: null },
   { id: "capacity-planner",      label: "Capacity Planner",     emoji: "📐", shortcut: null },
@@ -321,7 +321,11 @@ export const navItems = [
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
   { id: "agent-cost-tracker",      label: "Agent Cost Tracker",   emoji: "💰", shortcut: null },
   { id: "tool-reliability",        label: "Tool Reliability",     emoji: "🛡️", shortcut: null },
-  { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
+  { id: "model-comparison",       label: "Model Comparison",      emoji: "⚖️", shortcut: null },
+  { id: "wave-scheduler",         label: "Wave Scheduler",        emoji: "🗓️", shortcut: null },
+  { id: "preflight-checklist",    label: "Preflight Checklist",   emoji: "✅", shortcut: null },
+  { id: "findings-search",        label: "Findings Search",       emoji: "🔎", shortcut: null },
+  { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "1" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
   { id: "soul-editor",   label: "Soul Editor",    emoji: "✨", shortcut: "4" },
@@ -556,6 +560,7 @@ export const navItems = [
   { id: "data-retention",       label: "Data Retention",        emoji: "🗑️", shortcut: null },
   { id: "code-review",          label: "Code Review",           emoji: "🔍", shortcut: null },
   { id: "endpoint-monitor",     label: "Endpoint Monitor",      emoji: "📡", shortcut: null },
+  { id: "integration-tests",    label: "Integration Tests",     emoji: "🧪", shortcut: null },
   { id: "session-replay-viewer", label: "Session Replay Viewer", emoji: "🎬", shortcut: null },
   { id: "chaos-engineering",    label: "Chaos Engineering",     emoji: "💥", shortcut: null },
   { id: "dependency-audit",     label: "Dependency Audit",      emoji: "🔐", shortcut: null },
@@ -596,6 +601,10 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "today-command": <DashboardSkeleton />,
   "action-inbox": <TableSkeleton rows={8} />,
   "capacity-planner": <DashboardSkeleton />,
+  "model-comparison": <ContentSkeleton />,
+  "wave-scheduler": <ContentSkeleton />,
+  "preflight-checklist": <ContentSkeleton />,
+  "findings-search": <ContentSkeleton />,
   chat:          <ChatSkeleton />,
   sessions:      <TableSkeleton rows={8} />,
   nodes:         <TableSkeleton rows={6} />,
@@ -829,6 +838,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-retention":         <ContentSkeleton />,
   "code-review":            <ContentSkeleton />,
   "endpoint-monitor":       <ContentSkeleton />,
+  "integration-tests":      <ContentSkeleton />,
   "session-replay-viewer":  <ContentSkeleton />,
   "chaos-engineering":      <ContentSkeleton />,
   "dependency-audit":       <ContentSkeleton />,
@@ -873,6 +883,20 @@ type NavPreset = {
   navFilter: NavFilter;
   navQuery: string;
 };
+
+const NAV_FILTER_OPTIONS: Array<{ value: NavFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "core", label: "Core" },
+  { value: "builders", label: "Build" },
+  { value: "operations", label: "Ops" },
+  { value: "analytics", label: "Insights" },
+];
+
+const NAV_SHORTCUT_MAP = new Map(
+  navItems
+    .filter((item): item is typeof item & { shortcut: string } => item.shortcut !== null)
+    .map((item) => [item.shortcut, item.id] as const)
+);
 
 const CORE_VIEW_IDS = new Set([
   "dashboard",
@@ -978,19 +1002,16 @@ function AppContent() {
     }
   });
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  
-  // Tour state
-  const [tourOpen, setTourOpen] = useState(false);
-  
+
   // Initialize tour with default steps
   const tour = useTour({
     tourId: 'dashboard-onboarding',
     steps: DEFAULT_DASHBOARD_TOUR_STEPS,
-    onComplete: () => setTourOpen(false),
-    onSkip: () => setTourOpen(false),
   });
-  
+
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const navHistoryRef = useRef(navHistory);
+  const historyIndexRef = useRef(historyIndex);
   const { toast } = useToast();
   const { visitView, recordInteraction } = useProficiency();
   const notificationUnreadCount = useNotificationUnreadCount();
@@ -999,6 +1020,20 @@ function AppContent() {
   const currentCategory = getNavCategory(currentNav);
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < navHistory.length - 1;
+
+  useEffect(() => {
+    navHistoryRef.current = navHistory;
+  }, [navHistory]);
+
+  useEffect(() => {
+    historyIndexRef.current = historyIndex;
+  }, [historyIndex]);
+
+  const openCommandPalette = useCallback(() => {
+    setCmdPaletteOpen(true);
+    setSearchQuery("");
+    setHighlightedIndex(0);
+  }, []);
 
   // Navigate and update history + recents
   const navigate = useCallback((viewId: string, pushHistory = true) => {
@@ -1010,17 +1045,13 @@ function AppContent() {
     recordInteraction();
 
     if (pushHistory) {
-      setNavHistory((prev) => {
-        const trimmed = prev.slice(0, historyIndex + 1);
-        // Don't push if same as current
-        if (trimmed[trimmed.length - 1] === viewId) {return prev;}
-        return [...trimmed, viewId];
-      });
-      setHistoryIndex((i) => {
-        const trimmed = navHistory.slice(0, i + 1);
-        if (trimmed[trimmed.length - 1] === viewId) {return i;}
-        return i + 1;
-      });
+      const trimmed = navHistoryRef.current.slice(0, historyIndexRef.current + 1);
+      // Don't push if same as current
+      if (trimmed[trimmed.length - 1] !== viewId) {
+        const nextHistory = [...trimmed, viewId];
+        setNavHistory(nextHistory);
+        setHistoryIndex(nextHistory.length - 1);
+      }
     }
 
     // Track recents
@@ -1031,7 +1062,7 @@ function AppContent() {
     } catch {
       // ignore
     }
-  }, [historyIndex, navHistory, visitView, recordInteraction]);
+  }, [visitView, recordInteraction]);
 
   const saveCurrentPreset = () => {
     const name = window.prompt("Preset name", currentNav.label);
@@ -1057,17 +1088,21 @@ function AppContent() {
 
   const goBack = useCallback(() => {
     if (!canGoBack) {return;}
-    const newIndex = historyIndex - 1;
+    const newIndex = historyIndexRef.current - 1;
+    const targetView = navHistoryRef.current[newIndex];
+    if (!targetView) {return;}
     setHistoryIndex(newIndex);
-    setActiveView(navHistory[newIndex]);
-  }, [canGoBack, historyIndex, navHistory]);
+    navigate(targetView, false);
+  }, [canGoBack, navigate]);
 
   const goForward = useCallback(() => {
     if (!canGoForward) {return;}
-    const newIndex = historyIndex + 1;
+    const newIndex = historyIndexRef.current + 1;
+    const targetView = navHistoryRef.current[newIndex];
+    if (!targetView) {return;}
     setHistoryIndex(newIndex);
-    setActiveView(navHistory[newIndex]);
-  }, [canGoForward, historyIndex, navHistory]);
+    navigate(targetView, false);
+  }, [canGoForward, navigate]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1079,9 +1114,11 @@ function AppContent() {
       // Cmd+K / Ctrl+K — command palette
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setCmdPaletteOpen((prev) => !prev);
-        setSearchQuery("");
-        setHighlightedIndex(0);
+        if (cmdPaletteOpen) {
+          setCmdPaletteOpen(false);
+        } else {
+          openCommandPalette();
+        }
         return;
       }
 
@@ -1109,20 +1146,25 @@ function AppContent() {
         // Alt+1–9 for quick nav
         const num = parseInt(e.key);
         if (num >= 1 && num <= 9) {
-          const item = navItems.find((n) => n.shortcut === String(num));
-          if (item) { e.preventDefault(); navigate(item.id); }
+          const shortcutView = NAV_SHORTCUT_MAP.get(String(num));
+          if (shortcutView) { e.preventDefault(); navigate(shortcutView); }
         }
       }
 
-      // [ / ] — collapse/expand sidebar
-      if (e.key === "[" || e.key === "]") {
-        setSidebarCollapsed((prev) => !prev);
+      // [ / ] — collapse or expand sidebar
+      if (e.key === "[") {
+        e.preventDefault();
+        setSidebarCollapsed(true);
+      }
+      if (e.key === "]") {
+        e.preventDefault();
+        setSidebarCollapsed(false);
       }
     };
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, navigate, goBack, goForward]);
+  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, navigate, goBack, goForward, openCommandPalette]);
 
   // Focus search when palette opens
   useEffect(() => {
@@ -1170,6 +1212,13 @@ function AppContent() {
   const allPaletteItems = searchQuery
     ? filteredNav
     : [...(recentItems.length ? recentItems : []), ...navItems.filter((n) => !recentIds.includes(n.id))];
+
+  useEffect(() => {
+    setHighlightedIndex((prev) => {
+      if (allPaletteItems.length === 0) {return 0;}
+      return Math.min(prev, allPaletteItems.length - 1);
+    });
+  }, [allPaletteItems.length]);
 
   // Palette keyboard nav
   const handlePaletteKey = (e: React.KeyboardEvent) => {
@@ -1436,7 +1485,6 @@ function AppContent() {
       case "code-review":          return <CodeReviewDashboard />;
       case "endpoint-monitor":     return <EndpointMonitor />;
       case "session-replay-viewer": return <SessionReplayViewer />;
-      case "token-usage-opt":      return <TokenUsageOptimizer />;
       case "streaming-debugger":   return <StreamingDebugger />;
       case "agent-collab-graph":   return <AgentCollaborationGraph />;
       case "integration-tests":    return <IntegrationTestRunner />;
@@ -1524,13 +1572,8 @@ function AppContent() {
               className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
               aria-label="Filter navigation views"
             />
-            <div className="grid grid-cols-2 gap-1" role="tablist" aria-label="Audience filter">
-              {([
-                ["core", "Core"],
-                ["builders", "Build"],
-                ["operations", "Ops"],
-                ["analytics", "Insights"],
-              ] as const).map(([value, label]) => (
+            <div className="flex flex-wrap gap-1" role="tablist" aria-label="Audience filter">
+              {NAV_FILTER_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   role="tab"
@@ -1622,7 +1665,7 @@ function AppContent() {
                   ?
                 </button>
                 <button
-                  onClick={() => setCmdPaletteOpen(true)}
+                  onClick={openCommandPalette}
                   className="text-xs text-muted-foreground/50 font-mono bg-secondary/50 px-1.5 py-0.5 rounded border border-border hover:text-muted-foreground hover:bg-secondary transition-colors"
                   aria-label="Open command palette"
                   title="Open command palette (⌘K)"
@@ -1642,7 +1685,7 @@ function AppContent() {
           ) : (
             <div className="flex flex-col items-center gap-2">
               <button
-                onClick={() => setCmdPaletteOpen(true)}
+                onClick={openCommandPalette}
                 className="text-xs text-muted-foreground/50 font-mono"
                 aria-label="Open command palette"
                 title="Open command palette (⌘K)"
@@ -1695,6 +1738,24 @@ function AppContent() {
               className="w-full bg-secondary/40 border border-border rounded-md px-2 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
               aria-label="Filter navigation views"
             />
+            <div className="mt-2 flex flex-wrap gap-1" role="tablist" aria-label="Audience filter">
+              {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  role="tab"
+                  aria-selected={navFilter === value}
+                  onClick={() => setNavFilter(value)}
+                  className={cn(
+                    "px-2 py-1 text-[10px] rounded border transition-colors",
+                    navFilter === value
+                      ? "bg-primary/15 border-primary/40 text-primary"
+                      : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
           <nav className="flex-1 overflow-y-auto py-2">
             {visibleNavItems.map((item) => (
@@ -1746,6 +1807,17 @@ function AppContent() {
               <rect y="2" width="18" height="2" rx="1" />
               <rect y="8" width="18" height="2" rx="1" />
               <rect y="14" width="18" height="2" rx="1" />
+            </svg>
+          </button>
+          <button
+            onClick={openCommandPalette}
+            className="sm:hidden text-muted-foreground hover:text-foreground transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Open command palette"
+            title="Open command palette (Ctrl/Cmd+K)"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.75">
+              <circle cx="8" cy="8" r="5" />
+              <path d="m12 12 4 4" strokeLinecap="round" />
             </svg>
           </button>
 
@@ -1806,7 +1878,10 @@ function AppContent() {
               className="bg-secondary/30 border border-border rounded-md px-2 py-1 text-xs text-foreground"
               defaultValue=""
               onChange={(e) => {
-                if (e.target.value) {applyPreset(e.target.value);}
+                if (e.target.value) {
+                  applyPreset(e.target.value);
+                  e.target.value = "";
+                }
               }}
               aria-label="Apply saved preset"
             >
@@ -1828,16 +1903,17 @@ function AppContent() {
 
           {/* Search trigger */}
           <button
-            onClick={() => setCmdPaletteOpen(true)}
+            onClick={openCommandPalette}
             className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-secondary/50 border border-border rounded-lg hover:bg-secondary hover:text-foreground transition-colors"
             aria-label="Open command palette"
+            title="Open command palette (Ctrl/Cmd+K)"
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="5.5" cy="5.5" r="4" />
               <path d="m9 9 2.5 2.5" strokeLinecap="round" />
             </svg>
             <span>Search...</span>
-            <span className="font-mono bg-background/60 px-1 py-0.5 rounded text-[10px]">⌘K</span>
+            <span className="font-mono bg-background/60 px-1 py-0.5 rounded text-[10px]">⌘/Ctrl K</span>
           </button>
         </header>
 

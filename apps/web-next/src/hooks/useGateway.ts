@@ -7,10 +7,34 @@ import type {
   GatewayHello,
 } from '../types';
 
-const GATEWAY_URL = 'ws://localhost:18789';
+const LOCAL_GATEWAY_PORT = '18789';
+const GATEWAY_URL_OVERRIDE_KEY = 'openclaw.gateway.wsUrl';
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
 const RECONNECT_DELAY_BASE = 1000;
 const RECONNECT_DELAY_MAX = 30000;
 const HELLO_TIMEOUT = 5000;
+
+function resolveGatewayUrl(): string {
+  if (typeof window === 'undefined') {
+    return `ws://localhost:${LOCAL_GATEWAY_PORT}`;
+  }
+
+  try {
+    const override = window.localStorage.getItem(GATEWAY_URL_OVERRIDE_KEY)?.trim();
+    if (override) {
+      return override;
+    }
+  } catch {
+    // Ignore localStorage access failures and fall back to derived URL.
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const host = window.location.hostname;
+  if (LOCAL_HOSTS.has(host)) {
+    return `${protocol}://${host}:${LOCAL_GATEWAY_PORT}`;
+  }
+  return `${protocol}://${window.location.host}`;
+}
 
 interface PendingCall {
   resolve: (value: unknown) => void;
@@ -20,34 +44,45 @@ interface PendingCall {
 
 /**
  * React hook for Gateway WebSocket RPC communication.
- * 
+ *
  * Handles connection lifecycle, hello handshake, reconnection with exponential backoff,
  * and pending call tracking for request/response correlation.
- * 
+ *
  * @example
  * ```tsx
  * const { call, isConnected, connectionState } = useGateway();
- * 
+ *
  * const result = await call('config.get', { path: 'auth.profiles' });
  * ```
  */
 export function useGateway(): UseGatewayReturn {
   const [connectionState, setConnectionState] = useState<GatewayConnectionState>('disconnected');
   const [lastError, setLastError] = useState<string | null>(null);
-  
+
+  const gatewayUrlRef = useRef(resolveGatewayUrl());
   const wsRef = useRef<WebSocket | null>(null);
   const pendingCallsRef = useRef<Map<number, PendingCall>>(new Map());
   const nextIdRef = useRef(1);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reconnectAttemptsRef = useRef(0);
+  const hasEverConnectedRef = useRef(false);
   const helloReceivedRef = useRef(false);
+  const helloTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const manualCloseRef = useRef(false);
+  const hasLoggedUnavailableRef = useRef(false);
 
   /**
    * Generate next request ID
    */
   const getNextId = useCallback(() => {
     return nextIdRef.current++;
+  }, []);
+
+  const clearHelloTimeout = useCallback(() => {
+    if (helloTimeoutRef.current) {
+      clearTimeout(helloTimeoutRef.current);
+      helloTimeoutRef.current = undefined;
+    }
   }, []);
 
   /**
@@ -73,6 +108,9 @@ export function useGateway(): UseGatewayReturn {
         const hello = data as GatewayHello;
         console.log('[Gateway] Received hello:', hello);
         helloReceivedRef.current = true;
+        hasEverConnectedRef.current = true;
+        hasLoggedUnavailableRef.current = false;
+        clearHelloTimeout();
         setConnectionState('connected');
         setLastError(null);
         reconnectAttemptsRef.current = 0;
@@ -97,14 +135,19 @@ export function useGateway(): UseGatewayReturn {
     } catch (err) {
       console.error('[Gateway] Failed to parse message:', err);
     }
-  }, [clearPendingCall]);
+  }, [clearPendingCall, clearHelloTimeout]);
 
   /**
    * Connect to Gateway WebSocket
    */
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING) {
       return;
+    }
+
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = undefined;
     }
 
     manualCloseRef.current = false;
@@ -112,13 +155,13 @@ export function useGateway(): UseGatewayReturn {
     helloReceivedRef.current = false;
 
     try {
-      const ws = new WebSocket(GATEWAY_URL);
+      const ws = new WebSocket(gatewayUrlRef.current);
       wsRef.current = ws;
 
       ws.addEventListener('open', () => {
-        console.log('[Gateway] WebSocket connected, waiting for hello...');
-        // Wait for hello handshake
-        setTimeout(() => {
+        setLastError(null);
+        clearHelloTimeout();
+        helloTimeoutRef.current = setTimeout(() => {
           if (!helloReceivedRef.current) {
             console.warn('[Gateway] Hello timeout, proceeding anyway');
             setConnectionState('connected');
@@ -129,35 +172,47 @@ export function useGateway(): UseGatewayReturn {
       ws.addEventListener('message', handleMessage);
 
       ws.addEventListener('error', () => {
-        console.error('[Gateway] WebSocket error');
-        setLastError('Connection error');
-        setConnectionState('error');
+        if (manualCloseRef.current) {
+          return;
+        }
+        const message = `Unable to connect to Gateway at ${gatewayUrlRef.current}`;
+        setLastError(message);
+        if (!hasLoggedUnavailableRef.current) {
+          console.warn(`[Gateway] ${message}`);
+          hasLoggedUnavailableRef.current = true;
+        }
       });
 
       ws.addEventListener('close', () => {
-        console.log('[Gateway] WebSocket closed');
+        clearHelloTimeout();
         wsRef.current = null;
 
-        if (!manualCloseRef.current) {
-          setConnectionState('disconnected');
-          
-          // Schedule reconnect with exponential backoff
-          const delay = Math.min(
-            RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttemptsRef.current),
-            RECONNECT_DELAY_MAX
-          );
-          reconnectAttemptsRef.current++;
-          
-          console.log(`[Gateway] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
-          reconnectTimeoutRef.current = setTimeout(connect, delay);
+        if (manualCloseRef.current) {
+          return;
         }
+
+        setConnectionState('disconnected');
+
+        // If the gateway has never connected, avoid endless retry loops and let user retry explicitly.
+        if (!hasEverConnectedRef.current && reconnectAttemptsRef.current >= 1) {
+          return;
+        }
+
+        // Schedule reconnect with exponential backoff
+        const delay = Math.min(
+          RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttemptsRef.current),
+          RECONNECT_DELAY_MAX
+        );
+        reconnectAttemptsRef.current++;
+
+        reconnectTimeoutRef.current = setTimeout(connect, delay);
       });
     } catch (err) {
-      console.error('[Gateway] Failed to create WebSocket:', err);
-      setLastError(err instanceof Error ? err.message : 'Connection failed');
+      const message = err instanceof Error ? err.message : 'Connection failed';
+      setLastError(message);
       setConnectionState('error');
     }
-  }, [handleMessage]);
+  }, [handleMessage, clearHelloTimeout]);
 
   /**
    * Manual reconnect
@@ -166,18 +221,22 @@ export function useGateway(): UseGatewayReturn {
     // Clear any pending reconnect
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = undefined;
     }
-    
+
     // Close existing connection
     if (wsRef.current) {
       manualCloseRef.current = true;
       wsRef.current.close();
       wsRef.current = null;
     }
-    
+
+    clearHelloTimeout();
+    setLastError(null);
     reconnectAttemptsRef.current = 0;
+    hasLoggedUnavailableRef.current = false;
     connect();
-  }, [connect]);
+  }, [connect, clearHelloTimeout]);
 
   /**
    * Make an RPC call
@@ -192,7 +251,7 @@ export function useGateway(): UseGatewayReturn {
         if (connectionState !== 'connecting') {
           connect();
         }
-        reject(new Error('Not connected to Gateway'));
+        reject(new Error(`Not connected to Gateway (${connectionState})`));
         return;
       }
 
@@ -217,7 +276,7 @@ export function useGateway(): UseGatewayReturn {
         wsRef.current.send(JSON.stringify(request));
       } catch (err) {
         clearPendingCall(id);
-        reject(err);
+        reject(err instanceof Error ? err : new Error('Failed to send request'));
       }
     });
   }, [connectionState, connect, getNextId, clearPendingCall]);
@@ -230,6 +289,7 @@ export function useGateway(): UseGatewayReturn {
 
     return () => {
       manualCloseRef.current = true;
+      clearHelloTimeout();
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
@@ -243,7 +303,7 @@ export function useGateway(): UseGatewayReturn {
       });
       pendingCallsRef.current.clear();
     };
-  }, [connect]);
+  }, [connect, clearHelloTimeout]);
 
   return {
     connectionState,
