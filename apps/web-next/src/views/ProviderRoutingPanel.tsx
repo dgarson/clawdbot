@@ -309,14 +309,14 @@ const StatCard = ({
   trend?: { value: number; up: boolean }
   accent?: boolean
 }) => (
-  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+  <div className="bg-surface-1 border border-tok-border rounded-xl p-5">
     <div className="flex items-start justify-between">
       <div>
-        <p className="text-zinc-500 text-sm font-medium">{title}</p>
-        <p className={cn('text-2xl font-bold mt-1', accent ? 'text-violet-400' : 'text-white')}>
+        <p className="text-fg-muted text-sm font-medium">{title}</p>
+        <p className={cn('text-2xl font-bold mt-1', accent ? 'text-violet-400' : 'text-fg-primary')}>
           {value}
         </p>
-        {subtitle && <p className="text-zinc-500 text-xs mt-1">{subtitle}</p>}
+        {subtitle && <p className="text-fg-muted text-xs mt-1">{subtitle}</p>}
         {trend && (
           <p className={cn('text-xs mt-2 flex items-center gap-1', trend.up ? 'text-green-400' : 'text-red-400')}>
             <TrendingUp className={cn('w-3 h-3', !trend.up && 'rotate-180')} aria-hidden="true" />
@@ -324,8 +324,8 @@ const StatCard = ({
           </p>
         )}
       </div>
-      <div className={cn('p-2.5 rounded-lg', accent ? 'bg-violet-500/20' : 'bg-zinc-800')}>
-        <Icon className={cn('w-5 h-5', accent ? 'text-violet-400' : 'text-zinc-400')} aria-hidden="true" />
+      <div className={cn('p-2.5 rounded-lg', accent ? 'bg-violet-500/20' : 'bg-surface-2')}>
+        <Icon className={cn('w-5 h-5', accent ? 'text-violet-400' : 'text-fg-secondary')} aria-hidden="true" />
       </div>
     </div>
   </div>
@@ -333,14 +333,14 @@ const StatCard = ({
 
 // Provider Card Component
 const ProviderCard = ({ provider }: { provider: Provider }) => (
-  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+  <div className="bg-surface-1 border border-tok-border rounded-xl p-5 hover:border-tok-border transition-colors">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', provider.color)}>
-          <Server className="w-5 h-5 text-white" aria-hidden="true" />
+          <Server className="w-5 h-5 text-fg-primary" aria-hidden="true" />
         </div>
         <div>
-          <h3 className="text-white font-semibold">{provider.name}</h3>
+          <h3 className="text-fg-primary font-semibold">{provider.name}</h3>
           <StatusBadge status={provider.status} />
         </div>
       </div>
@@ -348,7 +348,7 @@ const ProviderCard = ({ provider }: { provider: Provider }) => (
 
     <div className="grid grid-cols-2 gap-4">
       <div>
-        <p className="text-zinc-500 text-xs mb-1">Latency</p>
+        <p className="text-fg-muted text-xs mb-1">Latency</p>
         <p className={cn(
           'text-lg font-semibold',
           provider.latency < 200 ? 'text-green-400' : provider.latency < 300 ? 'text-amber-400' : 'text-red-400'
@@ -357,13 +357,13 @@ const ProviderCard = ({ provider }: { provider: Provider }) => (
         </p>
       </div>
       <div>
-        <p className="text-zinc-500 text-xs mb-1">Req/min</p>
-        <p className="text-lg font-semibold text-white">
+        <p className="text-fg-muted text-xs mb-1">Req/min</p>
+        <p className="text-lg font-semibold text-fg-primary">
           {provider.requestsPerMinute.toLocaleString()}
         </p>
       </div>
       <div>
-        <p className="text-zinc-500 text-xs mb-1">Success Rate</p>
+        <p className="text-fg-muted text-xs mb-1">Success Rate</p>
         <p className={cn(
           'text-lg font-semibold',
           provider.successRate >= 99 ? 'text-green-400' : provider.successRate >= 95 ? 'text-amber-400' : 'text-red-400'
@@ -372,17 +372,17 @@ const ProviderCard = ({ provider }: { provider: Provider }) => (
         </p>
       </div>
       <div>
-        <p className="text-zinc-500 text-xs mb-1">Models</p>
-        <p className="text-lg font-semibold text-white">{provider.modelCount}</p>
+        <p className="text-fg-muted text-xs mb-1">Models</p>
+        <p className="text-lg font-semibold text-fg-primary">{provider.modelCount}</p>
       </div>
     </div>
 
-    <div className="mt-4 pt-4 border-t border-zinc-800">
+    <div className="mt-4 pt-4 border-t border-tok-border">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-zinc-500">Traffic Share</span>
-        <span className="text-zinc-400 font-medium">{provider.trafficShare}%</span>
+        <span className="text-fg-muted">Traffic Share</span>
+        <span className="text-fg-secondary font-medium">{provider.trafficShare}%</span>
       </div>
-      <div className="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="mt-2 h-1.5 bg-surface-2 rounded-full overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all', provider.color)}
           style={{ width: `${provider.trafficShare}%` }}
@@ -397,13 +397,13 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
   const totalShare = providers.reduce((sum, p) => sum + p.trafficShare, 0)
   
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-semibold flex items-center gap-2">
+        <h3 className="text-fg-primary font-semibold flex items-center gap-2">
           <Network className="w-5 h-5 text-violet-400" aria-hidden="true" />
           Traffic Distribution
         </h3>
-        <span className="text-zinc-500 text-sm">Last 24 hours</span>
+        <span className="text-fg-muted text-sm">Last 24 hours</span>
       </div>
 
       <div className="h-8 rounded-lg overflow-hidden flex">
@@ -415,7 +415,7 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
             aria-label={`${provider.name}: ${provider.trafficShare}%`}
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-fg-primary text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                 {provider.trafficShare}%
               </span>
             </div>
@@ -427,8 +427,8 @@ const TrafficDistributionBar = ({ providers }: { providers: Provider[] }) => {
         {providers.map((provider) => (
           <div key={provider.id} className="flex items-center gap-2">
             <div className={cn('w-3 h-3 rounded', provider.color)} aria-hidden="true" />
-            <span className="text-zinc-400 text-sm">{provider.name}</span>
-            <span className="text-zinc-500 text-xs">({provider.trafficShare}%)</span>
+            <span className="text-fg-secondary text-sm">{provider.name}</span>
+            <span className="text-fg-muted text-xs">({provider.trafficShare}%)</span>
           </div>
         ))}
       </div>
@@ -493,23 +493,23 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
 
   return (
     <>
-      <a href="#prp-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
-      <main id="prp-main" className="bg-zinc-950 min-h-screen p-6 space-y-6">
+      <a href="#prp-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
+      <main id="prp-main" className="bg-surface-0 min-h-screen p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-3">
             <GitBranch className="w-7 h-7 text-violet-400" aria-hidden="true" />
             Provider Routing
           </h1>
-          <p className="text-zinc-500 mt-1">Manage AI model routing and failover configuration</p>
+          <p className="text-fg-muted mt-1">Manage AI model routing and failover configuration</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="bg-surface-2 hover:bg-surface-3 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <Shield className="w-4 h-4" aria-hidden="true" />
             Health Check
           </button>
-          <button className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="bg-violet-600 hover:bg-violet-500 text-fg-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <Zap className="w-4 h-4" aria-hidden="true" />
             Configure Routes
           </button>
@@ -549,7 +549,7 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
 
       {/* Provider Cards Grid */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-fg-primary mb-4 flex items-center gap-2">
           <Cpu className="w-5 h-5 text-violet-400" aria-hidden="true" />
           Provider Status
         </h2>
@@ -564,13 +564,13 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
       <TrafficDistributionBar providers={providers} />
 
       {/* Routing Rules Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-          <h3 className="text-white font-semibold flex items-center gap-2">
+      <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-tok-border flex items-center justify-between">
+          <h3 className="text-fg-primary font-semibold flex items-center gap-2">
             <GitBranch className="w-5 h-5 text-violet-400" aria-hidden="true" />
             Routing Rules
           </h3>
-          <span className="text-zinc-500 text-sm" role="status">
+          <span className="text-fg-muted text-sm" role="status">
             {routingRules.filter(r => r.isActive).length} of {routingRules.length} active
           </span>
         </div>
@@ -578,16 +578,16 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
         {isLoading ? (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-zinc-800/50">
+              <thead className="bg-surface-2/50">
                 <tr>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Model</th>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Primary Provider</th>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Fallback Provider</th>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Priority</th>
-                  <th className="text-center text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">Active</th>
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Model</th>
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Primary Provider</th>
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Fallback Provider</th>
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Priority</th>
+                  <th className="text-center text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">Active</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-tok-border">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     <td className="px-4 py-3 space-y-1">
@@ -615,32 +615,32 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-zinc-800/50">
+              <thead className="bg-surface-2/50">
                 <tr>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
                     Model
                   </th>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
                     Primary Provider
                   </th>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
                     Fallback Provider
                   </th>
-                  <th className="text-left text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                  <th className="text-left text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
                     Priority
                   </th>
-                  <th className="text-center text-zinc-400 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                  <th className="text-center text-fg-secondary text-xs font-medium uppercase tracking-wider px-4 py-3">
                     Active
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-tok-border">
                 {routingRules.map((rule) => (
-                  <tr key={rule.id} className="hover:bg-zinc-800/30 transition-colors">
+                  <tr key={rule.id} className="hover:bg-surface-2/30 transition-colors">
                     <td className="px-4 py-3">
                       <div>
-                        <p className="text-white font-medium">{rule.modelName}</p>
-                        <p className="text-zinc-500 text-xs font-mono">{rule.modelId}</p>
+                        <p className="text-fg-primary font-medium">{rule.modelName}</p>
+                        <p className="text-fg-muted text-xs font-mono">{rule.modelId}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -649,7 +649,7 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <ArrowRight className="w-3 h-3 text-zinc-600" aria-hidden="true" />
-                        <span className="text-zinc-400">{rule.fallbackProvider}</span>
+                        <span className="text-fg-secondary">{rule.fallbackProvider}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -669,7 +669,7 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
                         aria-pressed={rule.isActive}
                         className={cn(
                           'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-                          rule.isActive ? 'bg-violet-600' : 'bg-zinc-700'
+                          rule.isActive ? 'bg-violet-600' : 'bg-surface-3'
                         )}
                       >
                         <span
@@ -689,35 +689,35 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
       </div>
 
       {/* Failover Log */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-          <h3 className="text-white font-semibold flex items-center gap-2">
+      <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-tok-border flex items-center justify-between">
+          <h3 className="text-fg-primary font-semibold flex items-center gap-2">
             <Activity className="w-5 h-5 text-violet-400" aria-hidden="true" />
             Failover Log
           </h3>
           <button
             onClick={refreshFailoverLog}
             disabled={isRefreshing}
-            className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="text-fg-secondary hover:text-zinc-300 text-sm flex items-center gap-1.5 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} aria-hidden="true" />
             Refresh
           </button>
         </div>
 
-        <div className="divide-y divide-zinc-800" aria-live="polite" aria-atomic="false">
+        <div className="divide-y divide-tok-border" aria-live="polite" aria-atomic="false">
           {failoverEvents.map((event) => (
-            <div key={event.id} className="px-4 py-3 hover:bg-zinc-800/30 transition-colors">
+            <div key={event.id} className="px-4 py-3 hover:bg-surface-2/30 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="text-zinc-500 text-sm w-24">
+                  <div className="text-fg-muted text-sm w-24">
                     {formatTimestamp(event.timestamp)}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-white font-medium">{event.model}</span>
+                    <span className="text-fg-primary font-medium">{event.model}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-zinc-400">{event.fromProvider}</span>
+                    <span className="text-fg-secondary">{event.fromProvider}</span>
                     <ArrowRight className="w-3 h-3 text-violet-400" aria-hidden="true" />
                     <span className="text-violet-400">{event.toProvider}</span>
                   </div>
@@ -731,23 +731,23 @@ export default function ProviderRoutingPanel({ isLoading = false }: { isLoading?
         {failoverEvents.length === 0 && (
           <div className="p-8 text-center">
             <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-zinc-400">No failover events recorded</p>
-            <p className="text-zinc-500 text-sm mt-1">All providers operating normally</p>
+            <p className="text-fg-secondary">No failover events recorded</p>
+            <p className="text-fg-muted text-sm mt-1">All providers operating normally</p>
           </div>
         )}
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-        <p className="text-zinc-500 text-sm">
+      <div className="flex items-center justify-between pt-4 border-t border-tok-border">
+        <p className="text-fg-muted text-sm">
           Last updated: {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </p>
         <div className="flex items-center gap-3">
-          <button className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="text-fg-secondary hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <Activity className="w-4 h-4" aria-hidden="true" />
             View Metrics
           </button>
-          <button className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="text-fg-secondary hover:text-zinc-300 text-sm flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             Export Logs
           </button>
         </div>

@@ -342,7 +342,7 @@ function getErrorTypeColor(type: ErrorLogEntry['type']): string {
     case 'TIMEOUT': return 'text-amber-400 bg-amber-500/15';
     case 'RATE_LIMIT': return 'text-violet-400 bg-violet-500/15';
     case 'AUTH': return 'text-rose-400 bg-rose-500/15';
-    case 'INTERNAL': return 'text-zinc-400 bg-zinc-500/15';
+    case 'INTERNAL': return 'text-fg-secondary bg-zinc-500/15';
   }
 }
 
@@ -396,19 +396,19 @@ function StatCard({
   const trendColors = {
     up: 'text-emerald-400',
     down: 'text-red-400',
-    neutral: 'text-zinc-400',
+    neutral: 'text-fg-secondary',
   };
 
   const TrendIcon = trend === 'up' ? ArrowUp : trend === 'down' ? ArrowDown : Minus;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-zinc-800 rounded-lg">
+          <div className="p-2 bg-surface-2 rounded-lg">
             <Icon aria-hidden="true" className={cn('w-4 h-4', colorMap[accentColor])} />
           </div>
-          <span className="text-xs text-zinc-400 font-medium uppercase tracking-wide">{label}</span>
+          <span className="text-xs text-fg-secondary font-medium uppercase tracking-wide">{label}</span>
         </div>
         {trend && (
           <div className={cn('flex items-center gap-1 text-xs', trendColors[trend])}>
@@ -418,8 +418,8 @@ function StatCard({
         )}
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold text-white">{value}</span>
-        {unit && <span className="text-sm text-zinc-500">{unit}</span>}
+        <span className="text-2xl font-bold text-fg-primary">{value}</span>
+        {unit && <span className="text-sm text-fg-muted">{unit}</span>}
       </div>
     </div>
   );
@@ -447,26 +447,26 @@ function RequestRateSparkline({ data }: { data: number[] }) {
   const _gap = (width / data.length) * 0.3;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4" aria-live="polite">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4" aria-live="polite">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Activity aria-hidden="true" className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-white">Request Rate</span>
+          <span className="text-sm font-semibold text-fg-primary">Request Rate</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <span className="text-zinc-400">Current:</span>
-            <span className="text-white font-medium">{data[data.length - 1]?.toFixed(1)}</span>
-            <span className="text-zinc-500">req/s</span>
+            <span className="text-fg-secondary">Current:</span>
+            <span className="text-fg-primary font-medium">{data[data.length - 1]?.toFixed(1)}</span>
+            <span className="text-fg-muted">req/s</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-zinc-400">Avg:</span>
-            <span className="text-white font-medium">
+            <span className="text-fg-secondary">Avg:</span>
+            <span className="text-fg-primary font-medium">
               {(data.reduce((a, b) => a + b, 0) / data.length).toFixed(1)}
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-zinc-400">Peak:</span>
+            <span className="text-fg-secondary">Peak:</span>
             <span className="text-emerald-400 font-medium">{max.toFixed(1)}</span>
           </div>
         </div>
@@ -488,7 +488,7 @@ function RequestRateSparkline({ data }: { data: number[] }) {
           );
         })}
       </div>
-      <div className="mt-2 flex justify-between text-xs text-zinc-500">
+      <div className="mt-2 flex justify-between text-xs text-fg-muted">
         <span>60s ago</span>
         <span>Now</span>
       </div>
@@ -498,20 +498,20 @@ function RequestRateSparkline({ data }: { data: number[] }) {
 
 function PluginHealthTable({ plugins }: { plugins: PluginHealth[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Plug aria-hidden="true" className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-white">Plugin Health</span>
+          <span className="text-sm font-semibold text-fg-primary">Plugin Health</span>
         </div>
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-fg-muted">
           {plugins.filter(p => p.status === 'HEALTHY').length}/{plugins.length} healthy
         </span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="text-left text-xs text-zinc-500 uppercase tracking-wide border-b border-zinc-800">
+            <tr className="text-left text-xs text-fg-muted uppercase tracking-wide border-b border-tok-border">
               <th className="py-2 px-4">Plugin</th>
               <th className="py-2 px-4">Status</th>
               <th className="py-2 px-4">Heartbeat</th>
@@ -524,10 +524,10 @@ function PluginHealthTable({ plugins }: { plugins: PluginHealth[] }) {
             {plugins.map((plugin) => (
               <tr
                 key={plugin.name}
-                className="border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/30 transition-colors"
+                className="border-b border-tok-border/50 last:border-0 hover:bg-surface-2/30 transition-colors"
               >
                 <td className="py-3 px-4">
-                  <span className="text-sm font-medium text-white">{plugin.name}</span>
+                  <span className="text-sm font-medium text-fg-primary">{plugin.name}</span>
                 </td>
                 <td className="py-3 px-4">
                   <StatusBadge status={plugin.status} />
@@ -554,13 +554,13 @@ function PluginHealthTable({ plugins }: { plugins: PluginHealth[] }) {
                     'text-sm font-medium',
                     plugin.errorCount > 10 ? 'text-red-400' :
                     plugin.errorCount > 5 ? 'text-amber-400' :
-                    plugin.errorCount > 0 ? 'text-yellow-400' : 'text-zinc-500'
+                    plugin.errorCount > 0 ? 'text-yellow-400' : 'text-fg-muted'
                   )}>
                     {plugin.errorCount}
                   </span>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="text-xs text-zinc-500 font-mono">{plugin.version}</span>
+                  <span className="text-xs text-fg-muted font-mono">{plugin.version}</span>
                 </td>
               </tr>
             ))}
@@ -577,27 +577,27 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
   const totalQueued = sessions.reduce((sum, s) => sum + s.queued, 0);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Layers aria-hidden="true" className="w-4 h-4 text-sky-400" />
-          <span className="text-sm font-semibold text-white">Session Load by Agent</span>
+          <span className="text-sm font-semibold text-fg-primary">Session Load by Agent</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
             <span aria-hidden="true" className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-zinc-400">Active:</span>
-            <span className="text-white font-medium">{totalActive}</span>
+            <span className="text-fg-secondary">Active:</span>
+            <span className="text-fg-primary font-medium">{totalActive}</span>
           </div>
           <div className="flex items-center gap-1">
             <span aria-hidden="true" className="w-2 h-2 rounded-full bg-zinc-500" />
-            <span className="text-zinc-400">Idle:</span>
-            <span className="text-white font-medium">{totalIdle}</span>
+            <span className="text-fg-secondary">Idle:</span>
+            <span className="text-fg-primary font-medium">{totalIdle}</span>
           </div>
           <div className="flex items-center gap-1">
             <span aria-hidden="true" className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="text-zinc-400">Queued:</span>
-            <span className="text-white font-medium">{totalQueued}</span>
+            <span className="text-fg-secondary">Queued:</span>
+            <span className="text-fg-primary font-medium">{totalQueued}</span>
           </div>
         </div>
       </div>
@@ -609,18 +609,18 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
           const queuedPct = (session.queued / total) * 100;
 
           return (
-            <div key={session.agent} className="bg-zinc-800/50 rounded-lg p-3 space-y-2">
+            <div key={session.agent} className="bg-surface-2/50 rounded-lg p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <div className={cn(
-                  'w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-xs font-bold text-white',
+                  'w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-xs font-bold text-fg-primary',
                   getAgentColor(session.agent)
                 )}>
                   {session.agentName[0]}
                 </div>
-                <span className="text-sm font-medium text-white">{session.agentName}</span>
+                <span className="text-sm font-medium text-fg-primary">{session.agentName}</span>
               </div>
               
-              <div className="h-2 rounded-full bg-zinc-700 overflow-hidden flex">
+              <div className="h-2 rounded-full bg-surface-3 overflow-hidden flex">
                 <div 
                   className="bg-emerald-500 transition-all" 
                   style={{ width: `${activePct}%` }}
@@ -638,15 +638,15 @@ function SessionLoadPanel({ sessions }: { sessions: SessionLoad[] }) {
               <div className="grid grid-cols-3 gap-1 text-center text-xs">
                 <div>
                   <div className="text-emerald-400 font-medium">{session.active}</div>
-                  <div className="text-zinc-500">active</div>
+                  <div className="text-fg-muted">active</div>
                 </div>
                 <div>
-                  <div className="text-zinc-400 font-medium">{session.idle}</div>
-                  <div className="text-zinc-500">idle</div>
+                  <div className="text-fg-secondary font-medium">{session.idle}</div>
+                  <div className="text-fg-muted">idle</div>
                 </div>
                 <div>
                   <div className="text-amber-400 font-medium">{session.queued}</div>
-                  <div className="text-zinc-500">queued</div>
+                  <div className="text-fg-muted">queued</div>
                 </div>
               </div>
             </div>
@@ -664,12 +664,12 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
   const _isCritical = budget.budgetRemaining <= 20;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <ShieldAlert aria-hidden="true" className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-white">Error Budget</span>
-          <span className="text-xs text-zinc-500">SLO: {budget.sloTarget}%</span>
+          <span className="text-sm font-semibold text-fg-primary">Error Budget</span>
+          <span className="text-xs text-fg-muted">SLO: {budget.sloTarget}%</span>
         </div>
         <span className={cn(
           'text-xs px-2 py-0.5 rounded-full',
@@ -685,7 +685,7 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
         {/* Budget remaining bar */}
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-zinc-400">Budget Remaining</span>
+            <span className="text-fg-secondary">Budget Remaining</span>
             <span className={cn(
               'font-medium',
               isHealthy ? 'text-emerald-400' :
@@ -695,7 +695,7 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
               {budget.budgetRemaining.toFixed(1)}%
             </span>
           </div>
-          <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
+          <div className="h-3 rounded-full bg-surface-2 overflow-hidden">
             <div 
               className={cn(
                 'h-full rounded-full transition-all',
@@ -710,37 +710,37 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">
+          <div className="bg-surface-2/50 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-fg-primary">
               {budget.currentBurnRate.toFixed(2)}
             </div>
-            <div className="text-xs text-zinc-400">Burn Rate</div>
-            <div className="text-xs text-zinc-500">per hour</div>
+            <div className="text-xs text-fg-secondary">Burn Rate</div>
+            <div className="text-xs text-fg-muted">per hour</div>
           </div>
-          <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">
+          <div className="bg-surface-2/50 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-fg-primary">
               {budget.requestsTotal.toLocaleString()}
             </div>
-            <div className="text-xs text-zinc-400">Total Requests</div>
+            <div className="text-xs text-fg-secondary">Total Requests</div>
           </div>
-          <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
+          <div className="bg-surface-2/50 rounded-lg p-3 text-center">
             <div className={cn(
               'text-lg font-bold',
-              budget.requestsFailed > 1000 ? 'text-amber-400' : 'text-white'
+              budget.requestsFailed > 1000 ? 'text-amber-400' : 'text-fg-primary'
             )}>
               {budget.requestsFailed.toLocaleString()}
             </div>
-            <div className="text-xs text-zinc-400">Failed</div>
-            <div className="text-xs text-zinc-500">
+            <div className="text-xs text-fg-secondary">Failed</div>
+            <div className="text-xs text-fg-muted">
               {((budget.requestsFailed / budget.requestsTotal) * 100).toFixed(3)}%
             </div>
           </div>
         </div>
 
         {/* Budget burn visualization */}
-        <div className="pt-2 border-t border-zinc-800">
+        <div className="pt-2 border-t border-tok-border">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Budget Status</span>
+            <span className="text-fg-secondary">Budget Status</span>
             <span className={cn(
               'flex items-center gap-1 font-medium',
               isHealthy ? 'text-emerald-400' :
@@ -773,19 +773,19 @@ function ErrorBudgetTracker({ budget }: { budget: ErrorBudget }) {
 
 function ErrorLogPanel({ errors }: { errors: ErrorLogEntry[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+    <div className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-tok-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AlertCircle aria-hidden="true" className="w-4 h-4 text-red-400" />
-          <span className="text-sm font-semibold text-white">Recent Errors</span>
+          <span className="text-sm font-semibold text-fg-primary">Recent Errors</span>
         </div>
-        <span className="text-xs text-zinc-500">Last 10 entries</span>
+        <span className="text-xs text-fg-muted">Last 10 entries</span>
       </div>
-      <div className="divide-y divide-zinc-800/50">
+      <div className="divide-y divide-tok-border/50">
         {errors.map((error) => (
           <div 
             key={error.id} 
-            className="px-4 py-3 hover:bg-zinc-800/30 transition-colors"
+            className="px-4 py-3 hover:bg-surface-2/30 transition-colors"
           >
             <div className="flex items-start gap-3">
               {getSeverityIcon(error.severity)}
@@ -798,12 +798,12 @@ function ErrorLogPanel({ errors }: { errors: ErrorLogEntry[] }) {
                     {error.type}
                   </span>
                   {error.plugin && (
-                    <span className="text-xs text-zinc-500">via {error.plugin}</span>
+                    <span className="text-xs text-fg-muted">via {error.plugin}</span>
                   )}
                 </div>
                 <p className="text-sm text-zinc-300 truncate">{error.message}</p>
               </div>
-              <span className="text-xs text-zinc-500 whitespace-nowrap">
+              <span className="text-xs text-fg-muted whitespace-nowrap">
                 {formatTimestamp(error.timestamp)}
               </span>
             </div>
@@ -816,28 +816,28 @@ function ErrorLogPanel({ errors }: { errors: ErrorLogEntry[] }) {
 
 function GatewayInfoPanel({ stats }: { stats: GatewayStats }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4" aria-live="polite">
+    <div className="bg-surface-1 border border-tok-border rounded-xl p-4" aria-live="polite">
       <div className="flex items-center gap-2 mb-4">
-        <Server aria-hidden="true" className="w-4 h-4 text-zinc-400" />
-        <span className="text-sm font-semibold text-white">Gateway Info</span>
+        <Server aria-hidden="true" className="w-4 h-4 text-fg-secondary" />
+        <span className="text-sm font-semibold text-fg-primary">Gateway Info</span>
       </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-400">Uptime</span>
-          <span className="text-sm text-white font-medium">{stats.uptime}</span>
+          <span className="text-xs text-fg-secondary">Uptime</span>
+          <span className="text-sm text-fg-primary font-medium">{stats.uptime}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-400">Total Requests</span>
-          <span className="text-sm text-white font-medium">{stats.totalRequests.toLocaleString()}</span>
+          <span className="text-xs text-fg-secondary">Total Requests</span>
+          <span className="text-sm text-fg-primary font-medium">{stats.totalRequests.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-400">Memory</span>
-          <span className="text-sm text-white font-medium">{stats.memoryMB} MB</span>
+          <span className="text-xs text-fg-secondary">Memory</span>
+          <span className="text-sm text-fg-primary font-medium">{stats.memoryMB} MB</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-400">CPU</span>
+          <span className="text-xs text-fg-secondary">CPU</span>
           <div className="flex items-center gap-2">
-            <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="w-16 h-1.5 bg-surface-2 rounded-full overflow-hidden">
               <div 
                 className={cn(
                   'h-full rounded-full',
@@ -848,7 +848,7 @@ function GatewayInfoPanel({ stats }: { stats: GatewayStats }) {
                 style={{ width: `${stats.cpuPercent}%` }}
               />
             </div>
-            <span className="text-sm text-white font-medium">{stats.cpuPercent}%</span>
+            <span className="text-sm text-fg-primary font-medium">{stats.cpuPercent}%</span>
           </div>
         </div>
       </div>
@@ -903,8 +903,8 @@ export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = f
 
   return (
     <>
-      <a href="#gmd-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md">Skip to main content</a>
-      <main id="gmd-main" className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+      <a href="#gmd-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-md">Skip to main content</a>
+      <main id="gmd-main" className="min-h-screen bg-surface-0 text-fg-primary p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -912,16 +912,16 @@ export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = f
             <Gauge aria-hidden="true" className="w-5 h-5 text-violet-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Mission Control</h1>
-            <p className="text-sm text-zinc-400">Gateway health and throughput monitoring</p>
+            <h1 className="text-2xl font-bold text-fg-primary">Mission Control</h1>
+            <p className="text-sm text-fg-secondary">Gateway health and throughput monitoring</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-zinc-400" aria-live="polite">
+          <div className="flex items-center gap-2 text-sm text-fg-secondary" aria-live="polite">
             <Clock aria-hidden="true" className="w-4 h-4" />
             <span>Last updated: {formatLastUpdated(lastUpdated)}</span>
           </div>
-          <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
+          <button className="px-4 py-2 bg-surface-2 hover:bg-surface-3 border border-tok-border rounded-lg text-sm font-medium text-fg-primary transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none">
             <RefreshCcw aria-hidden="true" className="w-4 h-4" />
             Refresh
           </button>
@@ -941,7 +941,7 @@ export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = f
           {/* Skeleton: 4 stat cards */}
           <div className="grid grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-8 w-8" />
@@ -953,7 +953,7 @@ export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = f
             ))}
           </div>
           {/* Skeleton: chart */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Skeleton className="h-4 w-4" />
@@ -1038,7 +1038,7 @@ export default function GatewayMetricsDashboard({ isLoading = false, isEmpty = f
       <ErrorLogPanel errors={MOCK_ERROR_LOG} />
 
       {/* Footer */}
-      <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 pt-4 border-t border-zinc-800/50">
+      <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 pt-4 border-t border-tok-border/50">
         <Activity aria-hidden="true" className="w-3 h-3" />
         <span>Gateway Metrics Dashboard</span>
         <span>•</span>
