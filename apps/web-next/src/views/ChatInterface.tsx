@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import { formatRelativeTime, MOCK_SESSIONS, MOCK_CHAT_MESSAGES } from '../mock-data';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { ChatMessage as ChatMessageType, ToolCall, Session } from '../types';
 import {
   Send,
@@ -198,11 +199,79 @@ function SessionItem({
 // Main Chat Interface Component
 // ============================================================================
 
+function ChatInterfaceSkeleton() {
+  // Alternating left/right bubble pattern
+  const bubbles: Array<{ side: 'left' | 'right'; width: string }> = [
+    { side: 'left', width: 'w-56' },
+    { side: 'right', width: 'w-48' },
+    { side: 'left', width: 'w-72' },
+    { side: 'right', width: 'w-40' },
+    { side: 'left', width: 'w-64' },
+    { side: 'right', width: 'w-52' },
+    { side: 'left', width: 'w-48' },
+    { side: 'right', width: 'w-60' },
+  ];
+  return (
+    <div className="flex h-full bg-surface-0 text-fg-primary">
+      {/* Sessions sidebar skeleton */}
+      <div className="w-64 border-r border-tok-border flex flex-col flex-shrink-0">
+        <div className="p-4 border-b border-tok-border">
+          <Skeleton variant="text" className="h-5 w-24 mb-3" />
+          <Skeleton variant="rect" className="h-8 w-full rounded-lg" />
+        </div>
+        <div className="flex-1 divide-y divide-tok-border overflow-hidden">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="p-3 flex gap-3">
+              <Skeleton variant="circle" className="w-8 h-8 shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton variant="text" className="h-3.5 w-3/4" />
+                <Skeleton variant="text" className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Chat area skeleton */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-tok-border flex items-center gap-3">
+          <Skeleton variant="circle" className="w-8 h-8" />
+          <div className="space-y-1">
+            <Skeleton variant="text" className="h-4 w-28" />
+            <Skeleton variant="text" className="h-3 w-20" />
+          </div>
+        </div>
+        {/* Messages */}
+        <div className="flex-1 p-4 space-y-4 overflow-hidden">
+          {bubbles.map(({ side, width }, i) => (
+            <div key={i} className={cn('flex', side === 'right' ? 'justify-end' : 'justify-start')}>
+              {side === 'left' && <Skeleton variant="circle" className="w-8 h-8 mr-2 shrink-0" />}
+              <div className={cn('space-y-1', width)}>
+                <Skeleton variant="rect" className="h-10 w-full rounded-xl" />
+                <Skeleton variant="text" className="h-2.5 w-16" />
+              </div>
+              {side === 'right' && <Skeleton variant="circle" className="w-8 h-8 ml-2 shrink-0" />}
+            </div>
+          ))}
+        </div>
+        {/* Input area */}
+        <div className="p-4 border-t border-tok-border">
+          <div className="flex gap-2">
+            <Skeleton variant="rect" className="h-11 flex-1 rounded-xl" />
+            <Skeleton variant="rect" className="h-11 w-11 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatInterface({
   agentName: initialAgentName,
   agentEmoji: initialAgentEmoji,
   agentId: initialAgentId,
-}: ChatInterfaceProps) {
+  isLoading = false,
+}: ChatInterfaceProps & { isLoading?: boolean }) {
   const [messages, setMessages] = useState<ChatMessageType[]>(MOCK_CHAT_MESSAGES);
   const [inputValue, setInputValue] = useState('');
   const [activeSessionKey, setActiveSessionKey] = useState<string>(
@@ -280,6 +349,8 @@ export default function ChatInterface({
   // Determine display agent info (from props or active session)
   const displayAgentEmoji = initialAgentEmoji || activeSession?.agentEmoji || '🎨';
   const displayAgentName = initialAgentName || activeSession?.agentName || 'Agent';
+
+  if (isLoading) return <ChatInterfaceSkeleton />;
 
   return (
     <div className="flex h-screen bg-surface-0">

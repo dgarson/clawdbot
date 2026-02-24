@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Inbox } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 type InboxItemKind = 'task' | 'mention' | 'alert' | 'review-request' | 'system' | 'approval';
 type InboxPriority = 'urgent' | 'high' | 'normal' | 'low';
@@ -225,7 +226,88 @@ const INITIAL_ITEMS: InboxItem[] = [
 
 type Folder = 'all' | 'unread' | 'action-required' | 'archived';
 
-const AgentInbox: React.FC = () => {
+function AgentInboxSkeleton() {
+  return (
+    <div className="flex flex-col md:flex-row h-screen w-full bg-surface-0 text-fg-primary font-sans overflow-hidden">
+      {/* Sidebar skeleton */}
+      <aside className="md:w-64 border-b md:border-b-0 md:border-r border-tok-border flex flex-col p-4 space-y-8 shrink-0">
+        <div>
+          <Skeleton variant="text" className="h-3 w-16 mb-4" />
+          <div className="space-y-1">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-2 py-1.5">
+                <Skeleton variant="text" className="h-4 w-28" />
+                <Skeleton variant="rect" className="h-4 w-6 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Skeleton variant="text" className="h-3 w-24 mb-4" />
+          <div className="flex flex-wrap gap-2 px-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} variant="rect" className="h-6 w-14 rounded-full" />
+            ))}
+          </div>
+        </div>
+      </aside>
+      {/* Item list skeleton */}
+      <main className="md:w-[450px] border-b md:border-b-0 md:border-r border-tok-border flex flex-col shrink-0">
+        <div className="p-4 border-b border-tok-border flex justify-between items-center">
+          <Skeleton variant="text" className="h-5 w-24" />
+          <Skeleton variant="text" className="h-3 w-12" />
+        </div>
+        <div className="flex-1 divide-y divide-tok-border">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="p-4 flex gap-3">
+              <Skeleton variant="circle" className="w-10 h-10 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="flex justify-between">
+                  <Skeleton variant="text" className="h-3 w-20" />
+                  <Skeleton variant="text" className="h-3 w-10" />
+                </div>
+                <Skeleton variant="text" className="h-4 w-3/4" />
+                <Skeleton variant="text" className="h-3 w-full" />
+                <div className="flex gap-2">
+                  <Skeleton variant="circle" className="w-2 h-2" />
+                  <Skeleton variant="rect" className="h-4 w-16 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+      {/* Detail panel skeleton */}
+      <section className="flex-1 flex flex-col bg-surface-1/20">
+        <div className="p-6 border-b border-tok-border space-y-4">
+          <div className="flex gap-4 items-center">
+            <Skeleton variant="circle" className="w-12 h-12" />
+            <div className="space-y-2">
+              <Skeleton variant="text" className="h-5 w-64" />
+              <Skeleton variant="text" className="h-3 w-48" />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton variant="text" className="h-2.5 w-12" />
+                <Skeleton variant="rect" className="h-7 w-20 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 p-8 space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} variant="text" className="h-4 w-full" />
+          ))}
+          <Skeleton variant="text" className="h-4 w-2/3" />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) => {
   const [items, setItems] = useState<InboxItem[]>(INITIAL_ITEMS);
   const [selectedId, setSelectedId] = useState<string | null>(INITIAL_ITEMS[0].id);
   const [currentFolder, setCurrentFolder] = useState<Folder>('all');
@@ -290,6 +372,8 @@ const AgentInbox: React.FC = () => {
     const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[charCodeSum % colors.length];
   };
+
+  if (isLoading) return <AgentInboxSkeleton />;
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-full bg-surface-0 text-fg-primary font-sans overflow-hidden">

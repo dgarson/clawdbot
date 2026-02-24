@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { HeartPulse } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -491,7 +492,74 @@ function IncidentCard({ incident }: { incident: Incident }) {
 
 type CategoryFilter = ServiceCheck["category"] | "all";
 
-export default function SystemHealth() {
+function SystemHealthSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-surface-0 overflow-y-auto">
+      {/* Header */}
+      <div className="flex-none px-6 py-4 border-b border-tok-border">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton variant="text" className="h-5 w-32" />
+            <Skeleton variant="text" className="h-3.5 w-72" />
+          </div>
+          <Skeleton variant="rect" className="h-9 w-24 rounded-lg" />
+        </div>
+        {/* Status counts */}
+        <div className="flex items-center gap-5 mt-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <Skeleton variant="text" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-3 w-14" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 px-6 py-5 space-y-8">
+        {/* Overall banner */}
+        <Skeleton variant="rect" className="h-14 w-full rounded-xl" />
+        {/* Service stat cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-4 w-24" />
+                <Skeleton variant="circle" className="w-2 h-2" />
+              </div>
+              <Skeleton variant="text" className="h-7 w-16" />
+              <Skeleton variant="text" className="h-3 w-20" />
+            </div>
+          ))}
+        </div>
+        {/* Service list */}
+        <div>
+          <Skeleton variant="text" className="h-4 w-24 mb-3" />
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton variant="circle" className="w-2.5 h-2.5" />
+                    <div className="space-y-1">
+                      <Skeleton variant="text" className="h-4 w-32" />
+                      <Skeleton variant="text" className="h-3 w-48" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Skeleton variant="text" className="h-3 w-16" />
+                    <Skeleton variant="text" className="h-3 w-12" />
+                    <Skeleton variant="rect" className="h-6 w-16 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SystemHealth({ isLoading = false }: { isLoading?: boolean }) {
   const [services, setServices] = useState<ServiceCheck[]>(SERVICES);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
@@ -543,6 +611,8 @@ export default function SystemHealth() {
 
   const activeIncidents = INCIDENTS.filter((i) => !i.resolvedAt);
   const resolvedIncidents = INCIDENTS.filter((i) => !!i.resolvedAt);
+
+  if (isLoading) return <SystemHealthSkeleton />;
 
   return (
     <div className="flex flex-col h-full bg-surface-0 overflow-y-auto">

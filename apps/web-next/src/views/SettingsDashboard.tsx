@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '../lib/utils';
+import { Skeleton } from '../components/ui/Skeleton';
 import {
   Settings, User, Palette, Bell, Shield, Zap, Database,
   ChevronRight, Check, AlertTriangle, RefreshCw, Monitor,
@@ -577,7 +578,56 @@ function ProvidersSettings() {
 // Main Component
 // ============================================================================
 
-export default function SettingsDashboard() {
+function SettingsDashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 p-3 sm:p-6 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 space-y-2">
+          <Skeleton variant="text" className="h-7 w-32" />
+          <Skeleton variant="text" className="h-4 w-64" />
+        </div>
+        <div className="flex flex-col sm:flex-row gap-6">
+          {/* Sidebar nav skeleton */}
+          <div className="sm:w-56 flex-shrink-0">
+            <nav className="space-y-1">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                  <Skeleton variant="circle" className="w-4 h-4" />
+                  <Skeleton variant="text" className="h-4 w-24" />
+                </div>
+              ))}
+            </nav>
+          </div>
+          {/* Content area skeleton */}
+          <div className="flex-1">
+            <div className="bg-surface-1 rounded-2xl border border-tok-border p-6">
+              <div className="mb-5 pb-4 border-b border-tok-border space-y-2">
+                <Skeleton variant="text" className="h-5 w-24" />
+                <Skeleton variant="text" className="h-3.5 w-48" />
+              </div>
+              {/* Form field skeletons */}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between py-4 border-b border-tok-border last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton variant="text" className="h-4 w-36" />
+                    <Skeleton variant="text" className="h-3 w-52" />
+                  </div>
+                  <Skeleton variant="rect" className="h-8 w-28 rounded-lg" />
+                </div>
+              ))}
+              <div className="pt-4">
+                <Skeleton variant="rect" className="h-9 w-28 rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SettingsDashboard({ isLoading = false }: { isLoading?: boolean }) {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
 
   function renderSection() {
@@ -598,6 +648,8 @@ export default function SettingsDashboard() {
   }
 
   const active = SECTIONS.find(s => s.id === activeSection);
+
+  if (isLoading) return <SettingsDashboardSkeleton />;
 
   return (
     <div className="min-h-screen bg-surface-0 p-3 sm:p-6 md:p-8">
