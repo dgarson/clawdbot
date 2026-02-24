@@ -18,29 +18,29 @@ interface SetupStep {
 const QUIZ_QUESTIONS = [
   {
     id: 0,
-    question: 'Have you used AI assistants before?',
+    question: 'What\'s your experience with AI assistants?',
     options: [
-      { label: 'Not really', value: 0, emoji: '👋' },
-      { label: "Yes, I've used ChatGPT or similar", value: 2, emoji: '🤖' },
-      { label: "I've built or configured AI tools", value: 3, emoji: '⚙️' },
+      { label: 'New to all this', value: 0, emoji: '👋' },
+      { label: "I've used ChatGPT or Claude", value: 2, emoji: '🤖' },
+      { label: "I've built or configured AI agents before", value: 3, emoji: '⚙️' },
     ],
   },
   {
     id: 1,
-    question: 'How comfortable are you with configuration files?',
+    question: 'How comfortable are you with config files?',
     options: [
-      { label: "What's a config file?", value: 0, emoji: '😅' },
-      { label: "I can edit them if I need to", value: 2, emoji: '📝' },
-      { label: 'I write YAML and JSON daily', value: 3, emoji: '💻' },
+      { label: "Never touched one", value: 0, emoji: '😅' },
+      { label: "I'll edit them when I have to", value: 2, emoji: '📝' },
+      { label: 'YAML and JSON are my friends', value: 3, emoji: '💻' },
     ],
   },
   {
     id: 2,
-    question: "What's your main goal with OpenClaw?",
+    question: "What do you want OpenClaw to do for you?",
     options: [
-      { label: 'Personal assistant for everyday tasks', value: 0, emoji: '🧑‍💼' },
-      { label: 'Automate workflows and processes', value: 2, emoji: '⚡' },
-      { label: 'Build and manage a fleet of agents', value: 3, emoji: '🚀' },
+      { label: 'Be my personal AI assistant', value: 0, emoji: '🧑‍💼' },
+      { label: 'Automate stuff so I don\'t have to', value: 2, emoji: '⚡' },
+      { label: 'Run an entire fleet of agents', value: 3, emoji: '🚀' },
     ],
   },
 ];
@@ -54,56 +54,56 @@ const LEVEL_DESCRIPTIONS: Record<ProficiencyLevel, {
 }> = {
   beginner: {
     title: 'Guided Mode',
-    subtitle: "We'll walk you through everything step by step",
+    subtitle: 'Perfect for getting started without the overwhelm',
     emoji: '🌱',
     color: 'text-green-400',
     features: [
-      'Simple, friendly interface',
-      'Step-by-step agent creation',
-      'Helpful tooltips everywhere',
-      'Pre-configured templates',
+      'Friendly interface that explains things clearly',
+      'Step-by-step agent creation wizard',
+      'Helpful hints and tooltips throughout',
+      'Pre-configured templates that just work',
     ],
   },
   standard: {
     title: 'Standard Mode',
-    subtitle: 'Balanced power and simplicity',
+    subtitle: 'The sweet spot—power without the complexity',
     emoji: '⚡',
     color: 'text-violet-400',
     features: [
       'Visual form-based agent builder',
-      'Schedule automations easily',
-      'Connect channels and skills',
-      'Usage analytics dashboard',
+      'Schedule automations with a few clicks',
+      'One-click skills and channel integration',
+      'Usage analytics that actually make sense',
     ],
   },
   expert: {
     title: 'Expert Mode',
-    subtitle: 'Full control over everything',
+    subtitle: 'Full control for when you know what you\'re doing',
     emoji: '🔬',
     color: 'text-blue-400',
     features: [
-      'Direct file editing (SOUL.md, etc.)',
-      'Raw cron expressions',
-      'Config editor with JSON/YAML',
-      'Debug views and logs',
+      'Direct file editing (SOUL.md, AGENTS.md)',
+      'Raw cron expressions—write your own schedules',
+      'JSON/YAML config editor with validation',
+      'Debug views, logs, and full observability',
     ],
   },
 };
 
 const TEMPLATE_OPTIONS = [
-  { id: 'assistant', emoji: '🧑‍💼', name: 'Personal Assistant', description: 'Schedule, tasks, reminders' },
-  { id: 'coder', emoji: '💻', name: 'Code Reviewer', description: 'PR reviews, code analysis' },
-  { id: 'writer', emoji: '🎨', name: 'Creative Writer', description: 'Content creation, brainstorming' },
-  { id: 'analyst', emoji: '📊', name: 'Data Analyst', description: 'Data queries, reports' },
-  { id: 'email', emoji: '📧', name: 'Email Manager', description: 'Inbox triage, drafting' },
-  { id: 'blank', emoji: '⬜', name: 'Blank Agent', description: 'Start from scratch' },
+  { id: 'assistant', emoji: '🧑‍💼', name: 'Personal Assistant', description: 'Your digital sidekick for schedules, tasks, and reminders' },
+  { id: 'coder', emoji: '💻', name: 'Code Reviewer', description: 'Automated PR reviews, bug detection, and code quality checks' },
+  { id: 'writer', emoji: '🎨', name: 'Creative Writer', description: 'Drafts, brainstorming, and content that doesn\'t sound like AI wrote it' },
+  { id: 'analyst', emoji: '📊', name: 'Data Analyst', description: 'Queries, reports, and insights from your data—without the SQL struggle' },
+  { id: 'email', emoji: '📧', name: 'Email Manager', description: 'Inbox triage, follow-up reminders, and draft responses' },
+  { id: 'blank', emoji: '⬜', name: 'Blank Agent', description: 'Full control from scratch—build exactly what you need' },
 ];
 
 const SETUP_STEPS: SetupStep[] = [
-  { id: 1, title: 'Welcome', description: 'Quick setup quiz' },
-  { id: 2, title: 'Your Level', description: 'Interface mode' },
-  { id: 3, title: 'First Agent', description: 'Create your agent' },
-  { id: 4, title: "You're Ready!", description: 'Start exploring' },
+  { id: 1, title: 'Welcome', description: 'Tell us about yourself' },
+  { id: 2, title: 'Your Level', description: 'Pick your interface' },
+  { id: 3, title: 'First Agent', description: 'Build your first agent' },
+  { id: 4, title: "You're Ready!", description: 'Let\'s go' },
 ];
 
 export default function OnboardingFlow() {
