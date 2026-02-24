@@ -20,6 +20,7 @@ import {
   Check,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { EmptyState } from '../components/ui/empty-state';
 
 // ============================================================================
 // Types
@@ -524,11 +525,12 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
 
       <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
-            {/* WCAG fix: decorative empty-state icon */}
-            <Layers aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">No active sessions. Agents are idle.</p>
-          </div>
+          <EmptyState
+            variant="no-sessions"
+            title="No active sessions"
+            description="Agents are idle right now. Start a new run or open an existing session to populate this panel."
+            className="h-40 py-4 px-4"
+          />
         ) : (
           sessions.map((session) => (
             <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/40 transition-colors">
@@ -592,45 +594,54 @@ function ToolCallsPanel({ toolCalls }: { toolCalls: ToolCall[] }) {
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
-        {toolCalls.map((tc) => {
-          const age = tc.completedAt ? now - tc.completedAt : 0;
-          const fadingOut = tc.status !== 'running' && age > 3000;
-          return (
-            <div
-              key={tc.id}
-              className={cn(
-                'px-4 py-3 transition-opacity duration-[2000ms]',
-                fadingOut ? 'opacity-30' : 'opacity-100',
-                tc.status === 'error' && 'bg-red-950/20',
-              )}
-            >
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <ToolBadge toolType={tc.toolType} toolName={tc.toolName} />
-                {tc.status === 'running' && (
-                  <span className="flex items-center gap-1 text-xs text-green-400">
-                    {/* WCAG fix: decorative pulse dot — "live" text carries the meaning */}
-                    <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    live
-                  </span>
+        {toolCalls.length === 0 ? (
+          <EmptyState
+            variant="no-results"
+            title="No recent tool calls"
+            description="Tool executions will appear here when agents start running commands."
+            className="h-40 py-4 px-4"
+          />
+        ) : (
+          toolCalls.map((tc) => {
+            const age = tc.completedAt ? now - tc.completedAt : 0;
+            const fadingOut = tc.status !== 'running' && age > 3000;
+            return (
+              <div
+                key={tc.id}
+                className={cn(
+                  'px-4 py-3 transition-opacity duration-[2000ms]',
+                  fadingOut ? 'opacity-30' : 'opacity-100',
+                  tc.status === 'error' && 'bg-red-950/20',
                 )}
-                {/* WCAG fix: status icons carry informative role + label */}
-                {tc.status === 'complete' && (
-                  <CheckCircle role="img" aria-label="Complete" className="w-3.5 h-3.5 text-green-500 opacity-60" />
-                )}
-                {tc.status === 'error' && (
-                  <XCircle role="img" aria-label="Error" className="w-3.5 h-3.5 text-red-500" />
-                )}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <ToolBadge toolType={tc.toolType} toolName={tc.toolName} />
+                  {tc.status === 'running' && (
+                    <span className="flex items-center gap-1 text-xs text-green-400">
+                      {/* WCAG fix: decorative pulse dot — "live" text carries the meaning */}
+                      <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      live
+                    </span>
+                  )}
+                  {/* WCAG fix: status icons carry informative role + label */}
+                  {tc.status === 'complete' && (
+                    <CheckCircle role="img" aria-label="Complete" className="w-3.5 h-3.5 text-green-500 opacity-60" />
+                  )}
+                  {tc.status === 'error' && (
+                    <XCircle role="img" aria-label="Error" className="w-3.5 h-3.5 text-red-500" />
+                  )}
+                </div>
+                <div className="text-xs text-zinc-500 flex items-center gap-1.5">
+                  <span className="text-zinc-400">{tc.agentName}</span>
+                  <span aria-hidden="true" className="text-zinc-700">·</span>
+                  {/* WCAG fix: decorative clock icon */}
+                  <Clock aria-hidden="true" className="w-3 h-3" />
+                  {formatElapsed(tc.elapsedMs)}
+                </div>
               </div>
-              <div className="text-xs text-zinc-500 flex items-center gap-1.5">
-                <span className="text-zinc-400">{tc.agentName}</span>
-                <span aria-hidden="true" className="text-zinc-700">·</span>
-                {/* WCAG fix: decorative clock icon */}
-                <Clock aria-hidden="true" className="w-3 h-3" />
-                {formatElapsed(tc.elapsedMs)}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </section>
   );
@@ -667,11 +678,12 @@ function PendingApprovalsPanel({
 
       <div className="flex-1 overflow-y-auto">
         {approvals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
-            {/* WCAG fix: decorative empty-state icon */}
-            <CheckCircle aria-hidden="true" className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">No pending approvals</p>
-          </div>
+          <EmptyState
+            variant="generic"
+            title="No pending approvals"
+            description="No approval actions are waiting for review. High-risk operations will show up here."
+            className="h-40 py-4 px-4"
+          />
         ) : (
           <div className="divide-y divide-zinc-800/60">
             {approvals.map((ap) => (
@@ -782,9 +794,12 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
         className="divide-y divide-zinc-800/40 max-h-64 overflow-y-auto"
       >
         {filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-20 text-zinc-500 text-sm">
-            No entries for this filter.
-          </div>
+          <EmptyState
+            variant="no-results"
+            title="No alerts for this filter"
+            description="Try switching severity filters or wait for new system events."
+            className="h-28 py-3 px-4"
+          />
         ) : (
           filtered.map((alert) => (
             <div
