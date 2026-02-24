@@ -1,5 +1,6 @@
 import type { SlackEventMiddlewareArgs } from "@slack/bolt";
 import { danger } from "../../../globals.js";
+import { emitDiagnosticEvent } from "../../../infra/diagnostic-events.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { getRouterFeedbackLoopStore } from "../../../routing/feedback-loop-store.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
@@ -67,7 +68,7 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
       const mapped = mapReactionFeedback(event.reaction);
       if (action === "added" && mapped) {
         const store = getRouterFeedbackLoopStore();
-        store.captureFeedback({
+        const feedback = store.captureFeedback({
           source: "reaction",
           actorId: event.user,
           channelId: "slack",
@@ -76,6 +77,15 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
           feedbackMessageId: item.ts,
           expectedAction: mapped.expectedAction,
           expectedTier: mapped.expectedTier,
+          reaction: event.reaction,
+        });
+        emitDiagnosticEvent({
+          type: "router.feedback.feedback_captured",
+          source: "reaction",
+          channelId: "slack",
+          feedbackId: feedback.feedbackId,
+          linkedDecisionId: feedback.linkedDecisionId,
+          needsReview: feedback.needsReview,
           reaction: event.reaction,
         });
       }

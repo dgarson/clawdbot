@@ -158,9 +158,20 @@ This is integrated into the active runtime (not only as a detached utility):
   - `router.feedback.capture`
   - `router.feedback.summary`
   - `router.feedback.review_queue`
+  - `router.feedback.review_update`
+  - `router.feedback.decisions`
+  - `router.feedback.events`
 - **Inbound message pipeline**
   - Slack inbound messages are scanned for implicit correction text and captured as `source=implicit` feedback when phrases indicate expected tier/action.
 - **Slack reactions**
   - Reaction-added events map selected emojis into structured feedback (`source=reaction`) and are linked to latest thread decisions.
+
+- **Hook and diagnostic events**
+  - Gateway emits internal hooks for decision logging, feedback capture, and review status updates (`gateway:router_feedback_*`).
+  - Diagnostic stream emits structured telemetry events (`router.feedback.decision_logged`, `router.feedback.feedback_captured`, `router.feedback.review_updated`) for observability pipelines.
+- **Quality controls**
+  - Feedback dedupe fingerprints reduce spam/duplicate correction noise in short windows.
+  - Review queue supports append-only status updates (`open`, `resolved`, `dismissed`) for auditability.
+  - Decision linking now tries explicit id, message-id matching, then thread proximity fallback.
 
 This provides end-to-end collection and review queueing now, while dashboard rendering remains a follow-up UI concern.

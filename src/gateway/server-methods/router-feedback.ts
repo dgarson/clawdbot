@@ -1,8 +1,12 @@
+import { resolveMainSessionKeyFromConfig } from "../../config/sessions.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
+import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { getRouterFeedbackLoopStore } from "../../routing/feedback-loop-store.js";
 import {
   parseImplicitFeedback,
   type FeedbackSource,
   type RouterAction,
+  type RouterReviewStatus,
   type RouterTier,
 } from "../../routing/feedback-loop.js";
 import { ErrorCodes, errorShape } from "../protocol/index.js";
@@ -39,11 +43,23 @@ function asAction(value: unknown): RouterAction | undefined {
   return undefined;
 }
 
+function asReviewStatus(value: unknown): RouterReviewStatus | undefined {
+  if (value === "open" || value === "resolved" || value === "dismissed") {
+    return value;
+  }
+  return undefined;
+}
+
 function asFeedbackSource(value: unknown): FeedbackSource | undefined {
   if (value === "explicit" || value === "reaction" || value === "implicit") {
     return value;
   }
   return undefined;
+}
+
+function emitRouterFeedbackGatewayEvent(action: string, context: Record<string, unknown>): void {
+  const sessionKey = resolveMainSessionKeyFromConfig();
+  void triggerInternalHook(createInternalHookEvent("gateway", action, sessionKey, context));
 }
 
 export const routerFeedbackHandlers: GatewayRequestHandlers = {
@@ -79,6 +95,14 @@ export const routerFeedbackHandlers: GatewayRequestHandlers = {
       reasonTags: asStringArray(params.reasonTags),
       outcomeMessageId: asString(params.outcomeMessageId),
     });
+    emitDiagnosticEvent({
+      type: "router.feedback.decision_logged",
+      channelId,
+      predictedTier,
+      predictedAction,
+      decisionId: decision.decisionId,
+    });
+    emitRouterFeedbackGatewayEvent("router_feedback_decision_logged", { decision });
     respond(true, { decision }, undefined);
   },
 
@@ -117,6 +141,15 @@ export const routerFeedbackHandlers: GatewayRequestHandlers = {
       freeText,
     });
 
+    emitDiagnosticEvent({
+      type: "router.feedback.feedback_captured",
+      channelId,
+      source,
+      feedbackId: feedback.feedbackId,
+      linkedDecisionId: feedback.linkedDecisionId,
+      needsReview: feedback.needsReview,
+    });
+    emitRouterFeedbackGatewayEvent("router_feedback_captured", { feedback });
     respond(true, { feedback }, undefined);
   },
 
@@ -131,14 +164,84 @@ export const routerFeedbackHandlers: GatewayRequestHandlers = {
       typeof params.limit === "number" && Number.isFinite(params.limit)
         ? Math.max(1, Math.trunc(params.limit))
         : 100;
-    const status = asString(params.status);
-
-    const queue = store
-      .listReviewQueue()
-      .filter((item) => (status ? item.status === status : true))
-      .slice(-limit)
-      .toReversed();
-
+    const status = asReviewStatus(params.status);
+    const queue = store.listReviewQueue({ status, limit }).toReversed();
     respond(true, { queue }, undefined);
+  },
+
+  "router.feedback.review_update": ({ params, respond }) => {
+    const reviewId = asString(params.reviewId);
+    const status = asReviewStatus(params.status);
+    if (!reviewId || !status) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          "router.feedback.review_update requires reviewId and status",
+        ),
+      );
+      return;
+    }
+    const store = getRouterFeedbackLoopStore();
+    const review = store.updateReviewStatus({
+      reviewId,
+      status,
+      actorId: asString(params.actorId),
+      note: asString(params.note),
+    });
+    if (!review) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `review not found: ${reviewId}`),
+      );
+      return;
+    }
+    emitDiagnosticEvent({
+      type: "router.feedback.review_updated",
+      reviewId,
+      status,
+      actorId: asString(params.actorId),
+    });
+    emitRouterFeedbackGatewayEvent("router_feedback_review_updated", { review });
+    respond(true, { review }, undefined);
+  },
+
+  "router.feedback.decisions": ({ params, respond }) => {
+    const store = getRouterFeedbackLoopStore();
+    const limit =
+      typeof params.limit === "number" && Number.isFinite(params.limit)
+        ? Math.max(1, Math.trunc(params.limit))
+        : 100;
+    const decisions = store
+      .listDecisions({
+        channelId: asString(params.channelId),
+        conversationId: asString(params.conversationId),
+        threadId: asString(params.threadId),
+        messageId: asString(params.messageId),
+        limit,
+      })
+      .toReversed();
+    respond(true, { decisions }, undefined);
+  },
+
+  "router.feedback.events": ({ params, respond }) => {
+    const store = getRouterFeedbackLoopStore();
+    const limit =
+      typeof params.limit === "number" && Number.isFinite(params.limit)
+        ? Math.max(1, Math.trunc(params.limit))
+        : 100;
+    const source = asFeedbackSource(params.source);
+    const feedback = store
+      .listFeedback({
+        source,
+        channelId: asString(params.channelId),
+        needsReview: typeof params.needsReview === "boolean" ? params.needsReview : undefined,
+        linkedOnly: params.linkedOnly === true,
+        limit,
+      })
+      .toReversed();
+    respond(true, { feedback }, undefined);
   },
 };

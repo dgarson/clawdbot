@@ -42,7 +42,7 @@ describe("RouterFeedbackLoopStore", () => {
     expect(review[0]?.severity).toBe("high");
   });
 
-  it("tracks calibration metrics including false escalation count", () => {
+  it("tracks summary metrics and review status updates", () => {
     const store = createStore();
     store.logDecision({
       channelId: "slack",
@@ -50,6 +50,7 @@ describe("RouterFeedbackLoopStore", () => {
       predictedTier: "T2",
       predictedAction: "escalate",
       reasonTags: ["incident_signal"],
+      outcomeMessageId: "o-11",
     });
 
     store.captureFeedback({
@@ -58,13 +59,34 @@ describe("RouterFeedbackLoopStore", () => {
       conversationId: "C1",
       expectedAction: "handle",
       expectedTier: "T1",
+      feedbackMessageId: "o-11",
     });
+
+    store.captureFeedback({
+      source: "explicit",
+      channelId: "slack",
+      conversationId: "C1",
+      expectedAction: "handle",
+      expectedTier: "T1",
+      feedbackMessageId: "o-11",
+    });
+
+    const queue = store.listReviewQueue();
+    expect(queue.length).toBe(2);
+    const updated = store.updateReviewStatus({
+      reviewId: queue[0]?.reviewId ?? "",
+      status: "resolved",
+      actorId: "reviewer",
+    });
+    expect(updated?.status).toBe("resolved");
 
     const summary = store.summarizeCalibrationWindow();
     expect(summary.totalDecisions).toBe(1);
-    expect(summary.totalFeedback).toBe(1);
-    expect(summary.mismatchCount).toBe(1);
-    expect(summary.falseEscalationCount).toBe(1);
+    expect(summary.totalFeedback).toBe(2);
+    expect(summary.mismatchCount).toBe(2);
+    expect(summary.falseEscalationCount).toBe(2);
+    expect(summary.duplicateFeedbackCount).toBe(1);
+    expect(summary.openReviewCount).toBe(1);
   });
 });
 
@@ -73,5 +95,11 @@ describe("parseImplicitFeedback", () => {
     const parsed = parseImplicitFeedback("I expected T4 and this should escalate.");
     expect(parsed.expectedTier).toBe("T4");
     expect(parsed.expectedAction).toBe("escalate");
+  });
+
+  it("parses handling corrections", () => {
+    const parsed = parseImplicitFeedback("Do not escalate this, should handle as T1.");
+    expect(parsed.expectedTier).toBe("T1");
+    expect(parsed.expectedAction).toBe("handle");
   });
 });

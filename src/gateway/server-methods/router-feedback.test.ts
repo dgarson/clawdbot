@@ -43,7 +43,7 @@ describe("routerFeedbackHandlers", () => {
     resetRouterFeedbackLoopStoreForTest();
   });
 
-  it("logs decision, captures feedback, and returns summary", async () => {
+  it("logs decisions, captures feedback, and exposes query methods", async () => {
     const tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "router-feedback-gateway-"));
     process.env.OPENCLAW_STATE_DIR = tempStateDir;
 
@@ -51,9 +51,11 @@ describe("routerFeedbackHandlers", () => {
       channelId: "slack",
       conversationId: "C123",
       threadId: "17000001.001",
+      inputMessageId: "m-1",
       predictedTier: "T1",
       predictedAction: "handle",
       reasonTags: ["status_update"],
+      outcomeMessageId: "m-2",
     });
     expect(logged.ok).toBe(true);
 
@@ -63,12 +65,30 @@ describe("routerFeedbackHandlers", () => {
       conversationId: "C123",
       threadId: "17000001.001",
       freeText: "I expected T3 and this should escalate",
+      feedbackMessageId: "m-2",
     });
     expect(captured.ok).toBe(true);
 
-    const queue = await invoke("router.feedback.review_queue", { limit: 10 });
+    const decisions = await invoke("router.feedback.decisions", { channelId: "slack" });
+    expect(decisions.ok).toBe(true);
+    expect((decisions.payload as { decisions: unknown[] }).decisions.length).toBe(1);
+
+    const events = await invoke("router.feedback.events", { source: "implicit" });
+    expect(events.ok).toBe(true);
+    expect((events.payload as { feedback: unknown[] }).feedback.length).toBe(1);
+
+    const queue = await invoke("router.feedback.review_queue", { status: "open", limit: 10 });
     expect(queue.ok).toBe(true);
-    expect((queue.payload as { queue: unknown[] }).queue.length).toBe(1);
+    const queueItems = (queue.payload as { queue: Array<{ reviewId: string }> }).queue;
+    expect(queueItems.length).toBe(1);
+
+    const updated = await invoke("router.feedback.review_update", {
+      reviewId: queueItems[0]?.reviewId,
+      status: "resolved",
+      actorId: "ops-user",
+      note: "validated and corrected",
+    });
+    expect(updated.ok).toBe(true);
 
     const summary = await invoke("router.feedback.summary", {});
     expect(summary.ok).toBe(true);
@@ -77,12 +97,18 @@ describe("routerFeedbackHandlers", () => {
     ).toBe(1);
   });
 
-  it("rejects invalid log_decision payloads", async () => {
-    const response = await invoke("router.feedback.log_decision", {
+  it("rejects invalid payloads", async () => {
+    const invalidLog = await invoke("router.feedback.log_decision", {
       channelId: "slack",
       predictedTier: "T9",
       predictedAction: "handle",
     });
-    expect(response.ok).toBe(false);
+    expect(invalidLog.ok).toBe(false);
+
+    const invalidReviewUpdate = await invoke("router.feedback.review_update", {
+      reviewId: "missing",
+      status: "done",
+    });
+    expect(invalidReviewUpdate.ok).toBe(false);
   });
 });

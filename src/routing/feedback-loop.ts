@@ -5,6 +5,7 @@ import path from "node:path";
 export type RouterTier = "T1" | "T2" | "T3" | "T4";
 export type RouterAction = "handle" | "escalate" | "defer" | "ignore";
 export type FeedbackSource = "explicit" | "reaction" | "implicit";
+export type RouterReviewStatus = "open" | "resolved" | "dismissed";
 
 export type RouterDecisionRecord = {
   decisionId: string;
@@ -37,6 +38,8 @@ export type RouterFeedbackRecord = {
   freeText?: string;
   latencyFromDecisionSec?: number;
   needsReview: boolean;
+  fingerprint: string;
+  duplicateOfFeedbackId?: string;
 };
 
 export type RouterReviewItem = {
@@ -46,7 +49,19 @@ export type RouterReviewItem = {
   feedbackId: string;
   severity: "low" | "medium" | "high";
   reason: string;
-  status: "open" | "resolved";
+  status: RouterReviewStatus;
+  updatedAt?: string;
+  resolvedBy?: string;
+  resolutionNote?: string;
+};
+
+export type RouterReviewUpdate = {
+  updateId: string;
+  reviewId: string;
+  status: RouterReviewStatus;
+  actorId?: string;
+  note?: string;
+  createdAt: string;
 };
 
 export type FeedbackInput = {
@@ -65,14 +80,21 @@ export type FeedbackInput = {
 
 export function parseImplicitFeedback(text: string): Partial<FeedbackInput> {
   const normalized = text.toLowerCase();
-  const expectedAction =
-    normalized.includes("should escalate") || normalized.includes("need escalation")
-      ? "escalate"
-      : normalized.includes("should handle") || normalized.includes("don't escalate")
-        ? "handle"
-        : undefined;
-  const expectedTierMatch = normalized.match(/\bt([1-4])\b/);
-  const expectedTier = expectedTierMatch ? (`T${expectedTierMatch[1]}` as RouterTier) : undefined;
+  const escalationCue =
+    normalized.includes("should escalate") ||
+    normalized.includes("needs escalation") ||
+    normalized.includes("need escalation") ||
+    normalized.includes("please escalate");
+  const handlingCue =
+    normalized.includes("should handle") ||
+    normalized.includes("do not escalate") ||
+    normalized.includes("don't escalate") ||
+    normalized.includes("no escalation");
+  const expectedAction = escalationCue ? "escalate" : handlingCue ? "handle" : undefined;
+
+  const expectedTierMatch = normalized.match(/(?:expected|be|is|not)\s*t([1-4])\b|\bt([1-4])\b/);
+  const tierNumber = expectedTierMatch?.[1] ?? expectedTierMatch?.[2];
+  const expectedTier = tierNumber ? (`T${tierNumber}` as RouterTier) : undefined;
   return { expectedAction, expectedTier };
 }
 
@@ -121,15 +143,36 @@ function toSeverity(params: {
   return "low";
 }
 
+function fingerprintFeedback(input: FeedbackInput): string {
+  return crypto
+    .createHash("sha256")
+    .update(
+      JSON.stringify({
+        source: input.source,
+        channelId: input.channelId,
+        conversationId: input.conversationId ?? null,
+        threadId: input.threadId ?? null,
+        feedbackMessageId: input.feedbackMessageId ?? null,
+        expectedTier: input.expectedTier ?? null,
+        expectedAction: input.expectedAction ?? null,
+        reaction: input.reaction?.toLowerCase().trim() ?? null,
+        freeText: input.freeText?.trim().toLowerCase() ?? null,
+      }),
+    )
+    .digest("hex");
+}
+
 export class RouterFeedbackLoopStore {
   private readonly decisionsPath: string;
   private readonly feedbackPath: string;
   private readonly reviewQueuePath: string;
+  private readonly reviewUpdatesPath: string;
 
   constructor(baseDir: string) {
     this.decisionsPath = path.join(baseDir, "router-decisions.jsonl");
     this.feedbackPath = path.join(baseDir, "router-feedback.jsonl");
     this.reviewQueuePath = path.join(baseDir, "router-review-queue.jsonl");
+    this.reviewUpdatesPath = path.join(baseDir, "router-review-updates.jsonl");
   }
 
   logDecision(input: Omit<RouterDecisionRecord, "decisionId" | "createdAt">): RouterDecisionRecord {
@@ -143,17 +186,24 @@ export class RouterFeedbackLoopStore {
   }
 
   captureFeedback(input: FeedbackInput): RouterFeedbackRecord {
+    const allFeedback = this.listFeedback();
+    const fingerprint = fingerprintFeedback(input);
+    const duplicate = this.findRecentDuplicateFeedback({ allFeedback, fingerprint });
+
     const decisions = this.listDecisions();
-    const linked = input.decisionId
-      ? decisions.find((record) => record.decisionId === input.decisionId)
-      : this.findLatestDecisionByThread(
-          {
-            channelId: input.channelId,
-            conversationId: input.conversationId,
-            threadId: input.threadId,
-          },
-          decisions,
-        );
+    const linked =
+      (input.decisionId
+        ? decisions.find((record) => record.decisionId === input.decisionId)
+        : undefined) ??
+      this.findDecisionByMessage(input, decisions) ??
+      this.findLatestDecisionByThread(
+        {
+          channelId: input.channelId,
+          conversationId: input.conversationId,
+          threadId: input.threadId,
+        },
+        decisions,
+      );
 
     const feedback: RouterFeedbackRecord = {
       feedbackId: `rf_${crypto.randomUUID()}`,
@@ -174,6 +224,8 @@ export class RouterFeedbackLoopStore {
         ? Math.max(0, Math.round((Date.now() - new Date(linked.createdAt).getTime()) / 1000))
         : undefined,
       needsReview: this.shouldReview(input, linked),
+      fingerprint,
+      duplicateOfFeedbackId: duplicate?.feedbackId,
     };
 
     appendJsonl(this.feedbackPath, feedback);
@@ -198,16 +250,118 @@ export class RouterFeedbackLoopStore {
     return feedback;
   }
 
-  listDecisions(): RouterDecisionRecord[] {
-    return readJsonl<RouterDecisionRecord>(this.decisionsPath);
+  updateReviewStatus(input: {
+    reviewId: string;
+    status: RouterReviewStatus;
+    actorId?: string;
+    note?: string;
+  }): RouterReviewItem | undefined {
+    const current = this.listReviewQueue().find((item) => item.reviewId === input.reviewId);
+    if (!current) {
+      return undefined;
+    }
+    const update: RouterReviewUpdate = {
+      updateId: `rvu_${crypto.randomUUID()}`,
+      reviewId: input.reviewId,
+      status: input.status,
+      actorId: input.actorId,
+      note: input.note,
+      createdAt: new Date().toISOString(),
+    };
+    appendJsonl(this.reviewUpdatesPath, update);
+    return this.listReviewQueue().find((item) => item.reviewId === input.reviewId);
   }
 
-  listFeedback(): RouterFeedbackRecord[] {
-    return readJsonl<RouterFeedbackRecord>(this.feedbackPath);
+  listDecisions(filters?: {
+    channelId?: string;
+    conversationId?: string;
+    threadId?: string;
+    messageId?: string;
+    limit?: number;
+  }): RouterDecisionRecord[] {
+    let records = readJsonl<RouterDecisionRecord>(this.decisionsPath);
+    if (!filters) {
+      return records;
+    }
+    if (filters.channelId) {
+      records = records.filter((item) => item.channelId === filters.channelId);
+    }
+    if (filters.conversationId) {
+      records = records.filter((item) => item.conversationId === filters.conversationId);
+    }
+    if (filters.threadId) {
+      records = records.filter((item) => item.threadId === filters.threadId);
+    }
+    if (filters.messageId) {
+      records = records.filter(
+        (item) =>
+          item.inputMessageId === filters.messageId || item.outcomeMessageId === filters.messageId,
+      );
+    }
+    if (typeof filters.limit === "number") {
+      records = records.slice(-Math.max(1, Math.trunc(filters.limit)));
+    }
+    return records;
   }
 
-  listReviewQueue(): RouterReviewItem[] {
-    return readJsonl<RouterReviewItem>(this.reviewQueuePath);
+  listFeedback(filters?: {
+    source?: FeedbackSource;
+    channelId?: string;
+    needsReview?: boolean;
+    linkedOnly?: boolean;
+    limit?: number;
+  }): RouterFeedbackRecord[] {
+    let records = readJsonl<RouterFeedbackRecord>(this.feedbackPath);
+    if (!filters) {
+      return records;
+    }
+    if (filters.source) {
+      records = records.filter((item) => item.source === filters.source);
+    }
+    if (filters.channelId) {
+      records = records.filter((item) => item.channelId === filters.channelId);
+    }
+    if (typeof filters.needsReview === "boolean") {
+      records = records.filter((item) => item.needsReview === filters.needsReview);
+    }
+    if (filters.linkedOnly) {
+      records = records.filter((item) => Boolean(item.linkedDecisionId));
+    }
+    if (typeof filters.limit === "number") {
+      records = records.slice(-Math.max(1, Math.trunc(filters.limit)));
+    }
+    return records;
+  }
+
+  listReviewQueue(filters?: { status?: RouterReviewStatus; limit?: number }): RouterReviewItem[] {
+    const items = readJsonl<RouterReviewItem>(this.reviewQueuePath);
+    const updates = readJsonl<RouterReviewUpdate>(this.reviewUpdatesPath);
+    const updatesByReviewId = new Map<string, RouterReviewUpdate>();
+    for (const update of updates) {
+      updatesByReviewId.set(update.reviewId, update);
+    }
+
+    let hydrated = items.map((item) => {
+      const update = updatesByReviewId.get(item.reviewId);
+      if (!update) {
+        return item;
+      }
+      return {
+        ...item,
+        status: update.status,
+        updatedAt: update.createdAt,
+        resolvedBy: update.actorId,
+        resolutionNote: update.note,
+      } satisfies RouterReviewItem;
+    });
+
+    if (filters?.status) {
+      hydrated = hydrated.filter((item) => item.status === filters.status);
+    }
+    if (typeof filters?.limit === "number") {
+      hydrated = hydrated.slice(-Math.max(1, Math.trunc(filters.limit)));
+    }
+    return hydrated;
   }
 
   summarizeCalibrationWindow(): {
@@ -216,17 +370,31 @@ export class RouterFeedbackLoopStore {
     mismatchCount: number;
     falseEscalationCount: number;
     avgFeedbackLatencySec: number;
+    duplicateFeedbackCount: number;
+    openReviewCount: number;
+    highSeverityOpenReviewCount: number;
+    feedbackBySource: Record<FeedbackSource, number>;
   } {
     const decisions = this.listDecisions();
-    const feedback = this.listFeedback().filter((item) => item.linkedDecisionId);
+    const feedback = this.listFeedback({ linkedOnly: true });
     const decisionById = new Map(decisions.map((item) => [item.decisionId, item]));
+    const feedbackBySource: Record<FeedbackSource, number> = {
+      explicit: 0,
+      reaction: 0,
+      implicit: 0,
+    };
 
     let mismatchCount = 0;
     let falseEscalationCount = 0;
     let latencyTotal = 0;
     let latencyCount = 0;
+    let duplicateFeedbackCount = 0;
 
     for (const item of feedback) {
+      feedbackBySource[item.source] += 1;
+      if (item.duplicateOfFeedbackId) {
+        duplicateFeedbackCount += 1;
+      }
       const linkedDecision = decisionById.get(item.linkedDecisionId ?? "");
       if (!linkedDecision) {
         continue;
@@ -250,12 +418,19 @@ export class RouterFeedbackLoopStore {
       }
     }
 
+    const reviewQueue = this.listReviewQueue();
+    const openReviews = reviewQueue.filter((item) => item.status === "open");
+
     return {
       totalDecisions: decisions.length,
       totalFeedback: feedback.length,
       mismatchCount,
       falseEscalationCount,
       avgFeedbackLatencySec: latencyCount === 0 ? 0 : Math.round(latencyTotal / latencyCount),
+      duplicateFeedbackCount,
+      openReviewCount: openReviews.length,
+      highSeverityOpenReviewCount: openReviews.filter((item) => item.severity === "high").length,
+      feedbackBySource,
     };
   }
 
@@ -278,6 +453,38 @@ export class RouterFeedbackLoopStore {
       }
     }
     return undefined;
+  }
+
+  private findDecisionByMessage(
+    input: FeedbackInput,
+    decisions: RouterDecisionRecord[],
+  ): RouterDecisionRecord | undefined {
+    if (!input.feedbackMessageId) {
+      return undefined;
+    }
+    return decisions
+      .slice()
+      .toReversed()
+      .find(
+        (item) =>
+          item.channelId === input.channelId &&
+          (item.inputMessageId === input.feedbackMessageId ||
+            item.outcomeMessageId === input.feedbackMessageId),
+      );
+  }
+
+  private findRecentDuplicateFeedback(params: {
+    allFeedback: RouterFeedbackRecord[];
+    fingerprint: string;
+  }): RouterFeedbackRecord | undefined {
+    const cutoffMs = Date.now() - 10 * 60_000;
+    return params.allFeedback
+      .slice()
+      .toReversed()
+      .find(
+        (item) =>
+          item.fingerprint === params.fingerprint && new Date(item.createdAt).getTime() >= cutoffMs,
+      );
   }
 
   private shouldReview(input: FeedbackInput, decision?: RouterDecisionRecord): boolean {

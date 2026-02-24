@@ -3,7 +3,7 @@ import type { OpenClawConfig } from "../../config/config.js";
 import { loadSessionStore, resolveStorePath } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
-import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import {
   logMessageProcessed,
   logMessageQueued,
@@ -174,7 +174,7 @@ export async function dispatchReplyFromConfig(params: {
     const implicit = parseImplicitFeedback(content);
     if (implicit.expectedAction || implicit.expectedTier) {
       const store = getRouterFeedbackLoopStore();
-      store.captureFeedback({
+      const feedback = store.captureFeedback({
         source: "implicit",
         actorId: ctx.SenderId,
         channelId,
@@ -184,6 +184,14 @@ export async function dispatchReplyFromConfig(params: {
         expectedTier: implicit.expectedTier,
         expectedAction: implicit.expectedAction,
         freeText: content,
+      });
+      emitDiagnosticEvent({
+        type: "router.feedback.feedback_captured",
+        source: "implicit",
+        channelId,
+        feedbackId: feedback.feedbackId,
+        linkedDecisionId: feedback.linkedDecisionId,
+        needsReview: feedback.needsReview,
       });
     }
   }
