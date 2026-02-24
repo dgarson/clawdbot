@@ -6,6 +6,7 @@ export type AlertCenterQueryState = {
   alertId?: string;
   ruleId?: string;
   fromAlertId?: string;
+  rgPreset?: string;
 };
 
 const QUERY_KEY_MAP = {
@@ -16,6 +17,7 @@ const QUERY_KEY_MAP = {
   alertId: "alert",
   ruleId: "rule",
   fromAlertId: "fromAlert",
+  rgPreset: "rgPreset",
 } as const;
 
 export const ALERT_STATUS_LABELS = {

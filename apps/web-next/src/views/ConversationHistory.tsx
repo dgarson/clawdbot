@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { cn } from "../lib/utils";
+import { useToast } from "../components/Toast";
 
 type MessageRole = "user" | "assistant" | "system" | "tool";
 type SessionStatus = "active" | "completed" | "error" | "timeout";
@@ -192,6 +193,7 @@ const SEED_SESSIONS: HistorySession[] = [
 ];
 
 export default function ConversationHistory() {
+  const { toast } = useToast();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<SessionStatus | "all">("all");
@@ -219,9 +221,12 @@ export default function ConversationHistory() {
   const handleExport = useCallback(() => {
     if (!selectedSession) {return;}
     const json = JSON.stringify(selectedSession, null, 2);
-    void navigator.clipboard.writeText(json);
-    alert("Session data copied to clipboard!");
-  }, [selectedSession]);
+    void navigator.clipboard.writeText(json).then(() => {
+      toast({ message: "Session data copied to clipboard.", type: "success" });
+    }).catch(() => {
+      toast({ message: "Unable to access clipboard.", type: "error" });
+    });
+  }, [selectedSession, toast]);
 
   return (
     <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30 overflow-hidden">

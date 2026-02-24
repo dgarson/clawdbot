@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { SkillBuilder, type SkillMetadata, type SkillDefinition, type TestResult } from '../components/ui/skill-builder';
+import { useToast } from '../components/Toast';
 
 /**
  * Skill Builder Editor View
@@ -8,6 +9,7 @@ import { SkillBuilder, type SkillMetadata, type SkillDefinition, type TestResult
  * Provides metadata editing, YAML editing, and testing capabilities.
  */
 export default function SkillBuilderEditor() {
+  const { toast } = useToast();
   const [metadata, setMetadata] = useState<SkillMetadata>({
     name: '',
     description: '',
@@ -31,8 +33,8 @@ actions:
   const handleSave = useCallback((m: SkillMetadata, d: SkillDefinition) => {
     // In production, this would save to the backend
     console.log('Saving skill:', { metadata: m, definition: d });
-    alert(`Skill "${m.name}" saved! (Check console for data)`);
-  }, []);
+    toast({ message: `Skill "${m.name}" saved.`, type: 'success' });
+  }, [toast]);
 
   const handleTest = useCallback(async (d: SkillDefinition): Promise<TestResult> => {
     // Simulate testing - in production this would call an API

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { useToast } from "../components/Toast";
 
 // Types
 interface Geofence {
@@ -531,6 +532,7 @@ interface GeofencesTabProps {
 }
 
 const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
+  const { toast } = useToast();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newGeofence, setNewGeofence] = useState<Partial<Geofence>>({
@@ -545,7 +547,7 @@ const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
 
   const handleCreate = () => {
     if (newGeofence.name) {
-      alert(`Created geofence: ${newGeofence.name}`);
+      toast({ message: `Created geofence: ${newGeofence.name}`, type: "success" });
       setShowCreateForm(false);
       setNewGeofence({
         name: "",
@@ -718,6 +720,7 @@ interface RulesTabProps {
 }
 
 const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
+  const { toast } = useToast();
   const [showBuilder, setShowBuilder] = useState(false);
   const [newRule, setNewRule] = useState<Partial<GeofenceRule>>({
     name: "",
@@ -757,7 +760,7 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
 
   const handleCreate = () => {
     if (newRule.name && newRule.geofenceId) {
-      alert(`Created rule: ${newRule.name}`);
+      toast({ message: `Created rule: ${newRule.name}`, type: "success" });
       setShowBuilder(false);
       setNewRule({
         name: "",
@@ -772,7 +775,7 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
   };
 
   const toggleRule = (ruleId: string) => {
-    alert(`Toggled rule: ${ruleId}`);
+    toast({ message: `Toggled rule: ${ruleId}`, type: "info" });
   };
 
   const getTriggerColor = (trigger: string): string => {
@@ -1090,11 +1093,12 @@ interface SettingsTabProps {
 }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate }) => {
+  const { toast } = useToast();
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
 
   const handleSave = () => {
     onUpdate(localSettings);
-    alert("Settings saved successfully");
+    toast({ message: "Settings saved successfully.", type: "success" });
   };
 
   return (

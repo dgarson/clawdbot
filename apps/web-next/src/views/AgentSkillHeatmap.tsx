@@ -17,6 +17,7 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 // ============================================================================
 // Types
@@ -430,6 +431,7 @@ function TopPerformerCard({ category, agentName, successRate, model }: TopPerfor
 // ============================================================================
 
 export default function AgentSkillHeatmap() {
+  const { toast } = useToast();
   const [rowSortMode, setRowSortMode] = useState<RowSortMode>("average");
   const [columnSortMode, setColumnSortMode] = useState<ColumnSortMode>("findings");
   const [filterThreshold, setFilterThreshold] = useState(50);
@@ -536,8 +538,8 @@ export default function AgentSkillHeatmap() {
 
   const handleExportCSV = useCallback(() => {
     // Placeholder: would generate CSV in production
-    alert("CSV export coming soon! This will download a heatmap data export.");
-  }, []);
+    toast({ message: "CSV export is coming soon.", type: "info" });
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-1)] p-6">

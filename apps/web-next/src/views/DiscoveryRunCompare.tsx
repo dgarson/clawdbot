@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { GitCompare, Download, ChevronDown, TrendingUp, TrendingDown, Minus, Search, Zap, Users } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useToast } from '../components/Toast';
 
 // ============================================================================
 // Types
@@ -263,6 +264,7 @@ function WaveBarChart({ runA, runB }: WaveChartProps) {
 // ============================================================================
 
 export default function DiscoveryRunCompare() {
+  const { toast } = useToast();
   const [runAId, setRunAId] = useState(ALL_RUNS[0].id);
   const [runBId, setRunBId] = useState(ALL_RUNS[1].id);
 
@@ -300,7 +302,7 @@ export default function DiscoveryRunCompare() {
           </div>
         </div>
         <button
-          onClick={() => alert('Export Diff (mock)')}
+          onClick={() => toast({ message: "Diff export is coming soon.", type: "info" })}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium transition-colors"
         >
           <Download className="w-4 h-4" />

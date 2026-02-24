@@ -1,11 +1,37 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "../lib/utils";
+import {
+  AlertGroupPresetButtons,
+  AlertSeveritySummaryPill,
+} from "../components/alerts/AlertRuleCardPrimitives";
+import { AlertSelectFilterBar } from "../components/alerts/AlertFilters";
+import { AlertRuleCard } from "../components/alerts/AlertRuleCard";
+import { AlertRuleGroupSection } from "../components/alerts/AlertRuleGroupSection";
+import { AlertSlideoutPanel } from "../components/alerts/AlertSlideoutPanel";
+import {
+  AlertRuleConfigDialog,
+  type AlertRuleCategory,
+  type AlertRuleConfig,
+  type AlertDiagnosticsView,
+} from "../components/alerts/AlertRuleConfigDialog";
+import {
+  ALERT_SEVERITY_BADGE_CLASS,
+  ALERT_SEVERITY_GROUP_STYLES,
+  ALERT_SEVERITY_LABELS,
+  ALERT_SEVERITY_ORDER,
+} from "../components/alerts/alertSeverityTheme";
+import { toTitleLabel } from "../components/alerts/alertLabeling";
+import { AlertActionIcon } from "../components/alerts/alertActionIcons";
+import { normalizeDeliveryTargets } from "../components/alerts/alertDeliveryTargets";
+import { resolveAlertWorkspaceRoute } from "../components/alerts/alertRoutes";
+import { warnOnSeverityContrastIssues } from "../components/alerts/alertVisualA11y";
+import { getRuleStateBadgeClass } from "../components/alerts/alertStatusTheme";
+import { getRovingTargetIndex } from "./alert-center-utils";
 
 type RuleType = "threshold" | "anomaly" | "trend" | "composite" | "absence";
 type RuleSeverity = "critical" | "high" | "medium" | "low" | "info";
 type RuleState = "firing" | "ok" | "pending" | "disabled" | "error";
 type ActionType = "alert" | "pagerduty" | "slack" | "webhook" | "auto-scale" | "runbook";
-type MetricType = "gauge" | "counter" | "histogram" | "summary";
 
 interface RuleCondition {
   metric: string;
@@ -171,20 +197,6 @@ const EVAL_HISTORY: EvalPoint[] = [
   { time: "15:10", value: 7.4, threshold: 5, state: "firing" },
 ];
 
-function stateColor(s: RuleState) {
-  if (s === "firing") {return "text-rose-400";}
-  if (s === "ok") {return "text-emerald-400";}
-  if (s === "pending") {return "text-amber-400";}
-  if (s === "error") {return "text-rose-400";}
-  return "text-[var(--color-text-secondary)]";
-}
-function stateBg(s: RuleState) {
-  if (s === "firing") {return "bg-rose-400/10 text-rose-400";}
-  if (s === "ok") {return "bg-emerald-400/10 text-emerald-400";}
-  if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
-  if (s === "error") {return "bg-rose-400/10 text-rose-400";}
-  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
-}
 function severityColor(s: RuleSeverity) {
   if (s === "critical") {return "bg-rose-500/10 text-rose-400";}
   if (s === "high") {return "bg-orange-500/10 text-orange-400";}
@@ -202,363 +214,391 @@ function typeBadge(t: RuleType) {
   };
   return colors[t];
 }
-function actionTypeEmoji(t: ActionType) {
-  const map: Record<ActionType, string> = { alert: "🔔", pagerduty: "📟", slack: "💬", webhook: "🪝", "auto-scale": "⚖️", runbook: "📖" };
-  return map[t];
-}
 function opLabel(op: RuleCondition["operator"]) {
   const map: Record<RuleCondition["operator"], string> = { gt: ">", lt: "<", gte: "≥", lte: "≤", eq: "=", ne: "≠" };
   return map[op];
 }
 
 export default function ObservabilityRulesEngine() {
+  const OBS_RULES_UI_KEY = "oc_obs_rules_ui";
+  const [rules, setRules] = useState<ObsRule[]>(RULES);
   const [tab, setTab] = useState<"rules" | "alerts" | "history" | "stats">("rules");
   const [selectedRule, setSelectedRule] = useState<ObsRule | null>(null);
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [showSlideout, setShowSlideout] = useState(false);
+  const [rulePreset, setRulePreset] = useState<"p1Only" | "all" | "none" | "custom">("p1Only");
   const [filterState, setFilterState] = useState<RuleState | "all">("all");
   const [filterSeverity, setFilterSeverity] = useState<RuleSeverity | "all">("all");
   const [filterType, setFilterType] = useState<RuleType | "all">("all");
+  const [expandedSeverityGroups, setExpandedSeverityGroups] = useState<Record<RuleSeverity, boolean>>({
+    critical: true,
+    high: true,
+    medium: false,
+    low: false,
+    info: false,
+  });
 
-  const filteredRules = RULES.filter(r => {
-    if (filterState !== "all" && r.state !== filterState) {return false;}
-    if (filterSeverity !== "all" && r.severity !== filterSeverity) {return false;}
-    if (filterType !== "all" && r.type !== filterType) {return false;}
+  const applyRulePreset = useCallback((preset: "p1Only" | "all" | "none") => {
+    setRulePreset(preset);
+    if (preset === "p1Only") {
+      setExpandedSeverityGroups({ critical: true, high: true, medium: false, low: false, info: false });
+      return;
+    }
+    if (preset === "all") {
+      setExpandedSeverityGroups({ critical: true, high: true, medium: true, low: true, info: true });
+      return;
+    }
+    setExpandedSeverityGroups({ critical: false, high: false, medium: false, low: false, info: false });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {return;}
+    warnOnSeverityContrastIssues();
+    const query = new URLSearchParams(window.location.search.startsWith("?") ? window.location.search.slice(1) : window.location.search);
+    const presetFromQuery = query.get("rgPreset");
+    if (presetFromQuery === "p1Only" || presetFromQuery === "all" || presetFromQuery === "none") {
+      applyRulePreset(presetFromQuery);
+    }
+    try {
+      const raw = window.localStorage.getItem(OBS_RULES_UI_KEY);
+      if (!raw) {return;}
+      const parsed = JSON.parse(raw) as { preset?: "p1Only" | "all" | "none"; expanded?: Partial<Record<RuleSeverity, boolean>> };
+      if (parsed.preset) {applyRulePreset(parsed.preset);}
+      if (parsed.expanded) {
+        setExpandedSeverityGroups((prev) => ({
+          ...prev,
+          critical: parsed.expanded?.critical ?? prev.critical,
+          high: parsed.expanded?.high ?? prev.high,
+          medium: parsed.expanded?.medium ?? prev.medium,
+          low: parsed.expanded?.low ?? prev.low,
+          info: parsed.expanded?.info ?? prev.info,
+        }));
+      }
+    } catch {}
+  }, [applyRulePreset]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {return;}
+    try {
+      window.localStorage.setItem(OBS_RULES_UI_KEY, JSON.stringify({ preset: rulePreset, expanded: expandedSeverityGroups }));
+      const params = new URLSearchParams(window.location.search.startsWith("?") ? window.location.search.slice(1) : window.location.search);
+      params.set("obsTab", tab);
+      if (rulePreset !== "custom") {
+        params.set("rgPreset", rulePreset);
+      } else {
+        params.delete("rgPreset");
+      }
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}?${params.toString()}${window.location.hash}`);
+    } catch {}
+  }, [expandedSeverityGroups, rulePreset, tab]);
+
+  const filteredRules = rules.filter((rule) => {
+    if (filterState !== "all" && rule.state !== filterState) {return false;}
+    if (filterSeverity !== "all" && rule.severity !== filterSeverity) {return false;}
+    if (filterType !== "all" && rule.type !== filterType) {return false;}
     return true;
   });
 
-  const firingCount = RULES.filter(r => r.state === "firing").length;
-  const pendingCount = RULES.filter(r => r.state === "pending").length;
-  const okCount = RULES.filter(r => r.state === "ok").length;
-  const activeAlerts = FIRING_ALERTS.filter(a => a.status === "firing").length;
+  const groupedRules = useMemo(
+    () =>
+      ALERT_SEVERITY_ORDER.map((severity) => ({
+        severity,
+        rules: filteredRules.filter((rule) => rule.severity === severity),
+      })),
+    [filteredRules]
+  );
 
-  const maxValue = Math.max(...EVAL_HISTORY.map(p => p.value));
+  const editingRule = useMemo(
+    () => rules.find((rule) => rule.id === editingRuleId) ?? null,
+    [editingRuleId, rules]
+  );
 
-  const tabs: { id: typeof tab; label: string }[] = [
-    { id: "rules", label: `Rules (${RULES.length})` },
-    { id: "alerts", label: `Alerts (${activeAlerts} firing)` },
-    { id: "history", label: "Eval History" },
-    { id: "stats", label: "Statistics" },
-  ];
+  const toConfig = (rule: ObsRule): AlertRuleConfig => {
+    const first = rule.conditions[0];
+    const targets = normalizeDeliveryTargets(rule.actions.map((action) => action.target));
+    return {
+      id: rule.id,
+      name: rule.name,
+      enabled: rule.enabled,
+      severity: rule.severity,
+      category: (rule.labels.team === "security" ? "security" : "system") as AlertRuleCategory,
+      condition: first ? `${first.aggregation}(${first.metric}) ${opLabel(first.operator)} ${first.threshold}` : rule.description,
+      threshold: String(first?.threshold ?? "0"),
+      window: first?.window ?? "5m",
+      notifyChannels: targets.length ? targets : ["#cb-alerts"],
+      firedCount: rule.firingCount,
+      lastFired: rule.lastFired ?? undefined,
+      diagnosticsView: "metrics",
+      notes: rule.description,
+    };
+  };
+
+  const handleRuleSave = (next: AlertRuleConfig) => {
+    setRules((previous) =>
+      previous.map((rule) =>
+        rule.id === next.id
+          ? {
+              ...rule,
+              name: next.name,
+              enabled: next.enabled,
+              severity: next.severity,
+              firingCount: next.firedCount,
+              lastFired: next.lastFired ?? null,
+              pendingDuration: next.window,
+              actions: normalizeDeliveryTargets(next.notifyChannels).map((target) => ({
+                type: target.includes("pagerduty") ? "pagerduty" : "slack",
+                target,
+                message: `${next.name} triggered`,
+                cooldown: "5m",
+              })),
+              description: next.notes?.trim() || rule.description,
+            }
+          : rule
+      )
+    );
+    setEditingRuleId(null);
+  };
+
+  const firingCount = rules.filter((rule) => rule.state === "firing").length;
+  const pendingCount = rules.filter((rule) => rule.state === "pending").length;
+  const okCount = rules.filter((rule) => rule.state === "ok").length;
+  const activeAlerts = FIRING_ALERTS.filter((alert) => alert.status === "firing").length;
+  const maxValue = Math.max(...EVAL_HISTORY.map((point) => point.value), 1);
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Observability Rules Engine</h1>
-          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Define, manage, and monitor alerting rules across your infrastructure</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Import Rules</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Rule</button>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-rose-500/30">
-          <div className="text-xs text-[var(--color-text-muted)] mb-1">Firing</div>
-          <div className="text-2xl font-bold text-rose-400">{firingCount}</div>
-        </div>
-        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-amber-500/20">
-          <div className="text-xs text-[var(--color-text-muted)] mb-1">Pending</div>
-          <div className="text-2xl font-bold text-amber-400">{pendingCount}</div>
-        </div>
-        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
-          <div className="text-xs text-[var(--color-text-muted)] mb-1">OK</div>
-          <div className="text-2xl font-bold text-emerald-400">{okCount}</div>
-        </div>
-        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
-          <div className="text-xs text-[var(--color-text-muted)] mb-1">Active Alerts</div>
-          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{activeAlerts}</div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => { setTab(t.id); setSelectedRule(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Rules list */}
-      {tab === "rules" && !selectedRule && (
-        <div>
-          <div className="flex flex-wrap gap-3 mb-4">
-            <select value={filterState} onChange={e => setFilterState(e.target.value as RuleState | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
-              <option value="all">All States</option>
-              <option value="firing">Firing</option>
-              <option value="pending">Pending</option>
-              <option value="ok">OK</option>
-              <option value="disabled">Disabled</option>
-            </select>
-            <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value as RuleSeverity | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
-              <option value="all">All Severity</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <select value={filterType} onChange={e => setFilterType(e.target.value as RuleType | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
-              <option value="all">All Types</option>
-              <option value="threshold">Threshold</option>
-              <option value="anomaly">Anomaly</option>
-              <option value="trend">Trend</option>
-              <option value="absence">Absence</option>
-              <option value="composite">Composite</option>
-            </select>
+    <>
+      <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Observability Rules Engine</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Define, manage, and monitor alerting rules across your infrastructure</p>
           </div>
-
-          <div className="space-y-2">
-            {filteredRules.map(rule => (
-              <div
-                key={rule.id}
-                onClick={() => setSelectedRule(rule)}
-                className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border hover:border-[var(--color-surface-3)] cursor-pointer transition-colors", rule.state === "firing" ? "border-rose-500/30" : rule.state === "pending" ? "border-amber-500/20" : "border-[var(--color-border)]")}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <div className={cn("w-2 h-2 rounded-full", rule.state === "firing" ? "bg-rose-400 animate-pulse" : rule.state === "pending" ? "bg-amber-400" : rule.state === "ok" ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
-                      <span className="font-medium text-[var(--color-text-primary)]">{rule.name}</span>
-                      <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", stateBg(rule.state))}>{rule.state}</span>
-                      <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", severityColor(rule.severity))}>{rule.severity}</span>
-                      <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", typeBadge(rule.type))}>{rule.type}</span>
-                    </div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">{rule.description}</div>
-                    <div className="flex gap-3 mt-2 text-xs text-[var(--color-text-muted)]">
-                      <span>Every {rule.evaluationInterval}</span>
-                      <span>Pending: {rule.pendingDuration}</span>
-                      <span>Fired: {rule.firingCount}x</span>
-                      {rule.lastFired && <span>Last: {rule.lastFired}</span>}
-                    </div>
-                  </div>
-                  <div className="flex gap-1 ml-3">
-                    {rule.actions.map((a, i) => (
-                      <span key={i} title={a.type} className="text-base">{actionTypeEmoji(a.type)}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex gap-2">
+            <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors">Import Rules</button>
+            <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors">+ New Rule</button>
           </div>
         </div>
-      )}
 
-      {/* Rule Detail */}
-      {tab === "rules" && selectedRule && (
-        <div>
-          <button onClick={() => setSelectedRule(null)} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors">← Back</button>
-          <div className="grid md:grid-cols-2 gap-5 mb-5">
-            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedRule.name}</h2>
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full", stateBg(selectedRule.state))}>{selectedRule.state}</span>
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", severityColor(selectedRule.severity))}>{selectedRule.severity}</span>
-                  </div>
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", typeBadge(selectedRule.type))}>{selectedRule.type}</span>
-                </div>
-                <button className={cn("px-3 py-1.5 text-xs rounded-lg transition-colors", selectedRule.enabled ? "bg-rose-600 hover:bg-rose-500 text-[var(--color-text-primary)]" : "bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)]")}>
-                  {selectedRule.enabled ? "Disable" : "Enable"}
-                </button>
-              </div>
-              <p className="text-sm text-[var(--color-text-primary)] mb-4">{selectedRule.description}</p>
-              <div className="space-y-2 text-xs">
-                {[
-                  { label: "Interval", value: selectedRule.evaluationInterval },
-                  { label: "Pending for", value: selectedRule.pendingDuration },
-                  { label: "Fired count", value: selectedRule.firingCount.toString() },
-                  { label: "Last fired", value: selectedRule.lastFired ?? "Never" },
-                  { label: "Last evaluated", value: selectedRule.lastEvaluated },
-                  { label: "Created by", value: selectedRule.createdBy },
-                ].map(row => (
-                  <div key={row.label} className="flex justify-between">
-                    <span className="text-[var(--color-text-muted)]">{row.label}</span>
-                    <span className="text-[var(--color-text-primary)]">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                <div className="text-xs text-[var(--color-text-muted)] mb-2">Labels</div>
-                <div className="flex flex-wrap gap-1">
-                  {Object.entries(selectedRule.labels).map(([k, v]) => (
-                    <span key={k} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-3)] text-[var(--color-text-primary)]">{k}={v}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
-                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Conditions</h3>
-                {selectedRule.conditions.map((cond, i) => (
-                  <div key={i} className="p-3 bg-[var(--color-surface-2)] rounded-lg font-mono text-sm">
-                    <span className="text-indigo-400">{cond.aggregation}</span>
-                    <span className="text-[var(--color-text-primary)]">({cond.metric})</span>
-                    <span className="text-[var(--color-text-primary)]">[{cond.window}] </span>
-                    <span className="text-amber-400">{opLabel(cond.operator)} </span>
-                    <span className="text-emerald-400">{cond.threshold}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
-                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Actions</h3>
-                <div className="space-y-2">
-                  {selectedRule.actions.map((action, i) => (
-                    <div key={i} className="flex items-start gap-2 p-3 bg-[var(--color-surface-2)] rounded-lg">
-                      <span className="text-base">{actionTypeEmoji(action.type)}</span>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-[var(--color-text-primary)] capitalize">{action.type}</span>
-                          <span className="text-xs text-[var(--color-text-muted)]">→ {action.target}</span>
-                          {action.cooldown !== "0" && <span className="text-xs text-[var(--color-text-muted)]">cooldown: {action.cooldown}</span>}
-                        </div>
-                        <div className="text-xs text-[var(--color-text-secondary)] mt-1 font-mono">{action.message}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Alerts */}
-      {tab === "alerts" && (
-        <div className="space-y-3">
-          {FIRING_ALERTS.map(alert => (
-            <div key={alert.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", alert.status === "firing" ? "border-rose-500/30" : "border-[var(--color-border)]")}>
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-[var(--color-text-primary)]">{alert.ruleName}</span>
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", severityColor(alert.severity))}>{alert.severity}</span>
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", alert.status === "firing" ? "bg-rose-400/10 text-rose-400" : "bg-emerald-400/10 text-emerald-400")}>{alert.status}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {Object.entries(alert.labels).map(([k, v]) => (
-                      <span key={k} className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]">{k}={v}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right text-xs text-[var(--color-text-muted)]">
-                  <div>Started: {alert.startedAt}</div>
-                  <div>Duration: {alert.duration}</div>
-                  {alert.resolvedAt && <div className="text-emerald-400">Resolved: {alert.resolvedAt}</div>}
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex gap-6 text-xs">
-                <div><span className="text-[var(--color-text-muted)]">Value: </span><span className={cn("font-bold", alert.status === "firing" ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{alert.value}</span></div>
-                <div><span className="text-[var(--color-text-muted)]">Threshold: </span><span className="text-[var(--color-text-secondary)]">{alert.threshold}</span></div>
-                <div><span className="text-[var(--color-text-muted)]">Excess: </span><span className="text-rose-400">+{(alert.value - alert.threshold).toFixed(1)}</span></div>
-              </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {[{ label: "Firing", value: firingCount, tone: "text-rose-400 border-rose-500/30" }, { label: "Pending", value: pendingCount, tone: "text-amber-400 border-amber-500/20" }, { label: "OK", value: okCount, tone: "text-emerald-400 border-[var(--color-border)]" }, { label: "Active Alerts", value: activeAlerts, tone: "text-[var(--color-text-primary)] border-[var(--color-border)]" }].map((stat) => (
+            <div key={stat.label} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", stat.tone)}>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">{stat.label}</div>
+              <div className={cn("text-2xl font-bold", stat.tone.split(" ")[0])}>{stat.value}</div>
             </div>
           ))}
         </div>
-      )}
 
-      {/* Eval History chart */}
-      {tab === "history" && (
-        <div className="space-y-5">
-          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
-            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Rule: "High API Error Rate" — Recent Evaluations</h3>
-            <p className="text-xs text-[var(--color-text-muted)] mb-4">HTTP error rate (%) vs 5% threshold</p>
-            <div className="flex items-end gap-2" style={{ height: 100 }}>
-              {EVAL_HISTORY.map(pt => {
-                const heightPct = (pt.value / (maxValue * 1.1)) * 100;
+        <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
+          {[
+            { id: "rules", label: `Rules (${rules.length})` },
+            { id: "alerts", label: `Alerts (${activeAlerts} firing)` },
+            { id: "history", label: "Eval History" },
+            { id: "stats", label: "Statistics" },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setTab(item.id as typeof tab); setSelectedRule(null); }}
+              className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === item.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "rules" && !selectedRule ? (
+          <div>
+            <AlertSelectFilterBar
+              filters={[
+                { value: filterState, onChange: (next) => setFilterState(next as RuleState | "all"), ariaLabel: "Filter by state", options: [{ value: "all", label: "All States" }, { value: "firing", label: "Firing" }, { value: "pending", label: "Pending" }, { value: "ok", label: "OK" }, { value: "disabled", label: "Disabled" }] },
+                { value: filterSeverity, onChange: (next) => setFilterSeverity(next as RuleSeverity | "all"), ariaLabel: "Filter by severity", options: [{ value: "all", label: "All Severity" }, ...ALERT_SEVERITY_ORDER.map((severity) => ({ value: severity, label: toTitleLabel(severity) }))] },
+                { value: filterType, onChange: (next) => setFilterType(next as RuleType | "all"), ariaLabel: "Filter by type", options: [{ value: "all", label: "All Types" }, { value: "threshold", label: "Threshold" }, { value: "anomaly", label: "Anomaly" }, { value: "trend", label: "Trend" }, { value: "absence", label: "Absence" }, { value: "composite", label: "Composite" }] },
+              ]}
+            />
+
+            <div
+              className="mb-3 flex flex-wrap gap-2"
+              onKeyDown={(event) => {
+                const pills = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button[data-severity-pill='true']"));
+                if (pills.length === 0) {return;}
+                const activeIndex = pills.findIndex((pill) => pill === document.activeElement);
+                const index = getRovingTargetIndex(activeIndex >= 0 ? activeIndex : 0, event.key, pills.length);
+                if (index === null) {return;}
+                event.preventDefault();
+                pills[index]?.focus();
+              }}
+            >
+              {groupedRules.map((group) => {
+                const style = ALERT_SEVERITY_GROUP_STYLES[group.severity];
                 return (
-                  <div key={pt.time} className="flex flex-col items-center gap-1 flex-1">
-                    <div className="w-full flex items-end" style={{ height: 80 }}>
-                      <div
-                        className={cn("w-full rounded-t", pt.state === "firing" ? "bg-rose-500" : "bg-emerald-500")}
-                        style={{ height: `${heightPct}%`, minHeight: 4 }}
-                        title={`${pt.value}% at ${pt.time}`}
-                      />
-                    </div>
-                    <span className="text-[10px] text-[var(--color-text-muted)]">{pt.time}</span>
-                  </div>
+                  <AlertSeveritySummaryPill
+                    key={group.severity}
+                    label={ALERT_SEVERITY_LABELS[group.severity]}
+                    total={group.rules.length}
+                    activeCount={group.rules.filter((rule) => rule.state !== "disabled").length}
+                    expanded={expandedSeverityGroups[group.severity]}
+                    onToggle={() => {
+                      setRulePreset("custom");
+                      setExpandedSeverityGroups((prev) => ({ ...prev, [group.severity]: !prev[group.severity] }));
+                    }}
+                    className={style.summaryPill}
+                    countClassName={style.count}
+                    countSurfaceClassName={style.badgeSurface}
+                  />
                 );
               })}
             </div>
-            <div className="flex gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-500 inline-block" />Firing</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" />OK</span>
-              <span className="ml-auto">Threshold: 5%</span>
+
+            <AlertGroupPresetButtons
+              onP1Only={() => applyRulePreset("p1Only")}
+              onExpandAll={() => applyRulePreset("all")}
+              onCollapseAll={() => applyRulePreset("none")}
+            />
+
+            <div className="space-y-3 mt-2">
+              {groupedRules.filter((group) => group.rules.length > 0).map((group) => {
+                const style = ALERT_SEVERITY_GROUP_STYLES[group.severity];
+                const expanded = expandedSeverityGroups[group.severity];
+                return (
+                  <AlertRuleGroupSection
+                    key={group.severity}
+                    title={ALERT_SEVERITY_LABELS[group.severity]}
+                    count={group.rules.length}
+                    activeCount={group.rules.filter((rule) => rule.state !== "disabled").length}
+                    expanded={expanded}
+                    onToggle={() => {
+                      setRulePreset("custom");
+                      setExpandedSeverityGroups((prev) => ({ ...prev, [group.severity]: !prev[group.severity] }));
+                    }}
+                    className={cn(style.groupBorder, style.groupSurface)}
+                  >
+                    {group.rules.map((rule) => {
+                      const actionTargets = normalizeDeliveryTargets(rule.actions.map((action) => action.target));
+                      return (
+                        <AlertRuleCard
+                          key={rule.id}
+                          onClick={() => { setSelectedRule(rule); setShowSlideout(true); }}
+                          title={rule.name}
+                          titleBadges={(
+                            <>
+                              <span className={cn("text-xs px-2 py-0.5 rounded-full border", getRuleStateBadgeClass(rule.state))}>{toTitleLabel(rule.state)}</span>
+                              <span className={cn("text-xs px-2 py-0.5 rounded-full border", ALERT_SEVERITY_BADGE_CLASS[rule.severity])}>{ALERT_SEVERITY_LABELS[rule.severity]}</span>
+                              <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", typeBadge(rule.type))}>{toTitleLabel(rule.type)}</span>
+                            </>
+                          )}
+                          targets={actionTargets}
+                          description={rule.description}
+                          headerActions={(
+                            <button
+                              type="button"
+                              onClick={(event) => { event.stopPropagation(); setEditingRuleId(rule.id); }}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-tok-border bg-surface-2 px-2.5 py-1 text-xs text-fg-secondary hover:text-fg-primary transition-colors"
+                            >
+                              Edit
+                            </button>
+                          )}
+                          footerActions={(
+                            <div className="flex items-center gap-1">
+                              {rule.actions.map((action, index) => (
+                                <span key={`${rule.id}-${index}`} className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-1" title={toTitleLabel(action.type)}>
+                                  <AlertActionIcon type={action.type} className="size-3.5 text-[var(--color-text-secondary)]" />
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          stats={[
+                            { label: "Interval", value: rule.evaluationInterval },
+                            { label: "Pending", value: rule.pendingDuration },
+                            { label: "Fired", value: `${rule.firingCount}x` },
+                            { label: "Last", value: rule.lastFired ?? "Never" },
+                          ]}
+                        />
+                      );
+                    })}
+                  </AlertRuleGroupSection>
+                );
+              })}
             </div>
           </div>
-        </div>
-      )}
+        ) : null}
 
-      {/* Stats */}
-      {tab === "stats" && (
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { label: "Total Rules", value: RULES.length, color: "text-[var(--color-text-primary)]" },
-              { label: "Enabled Rules", value: RULES.filter(r => r.enabled).length, color: "text-emerald-400" },
-              { label: "Total Fire Events", value: RULES.reduce((s, r) => s + r.firingCount, 0), color: "text-rose-400" },
-            ].map(stat => (
-              <div key={stat.label} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] text-center">
-                <div className={cn("text-3xl font-bold mb-1", stat.color)}>{stat.value}</div>
-                <div className="text-xs text-[var(--color-text-muted)]">{stat.label}</div>
+        {tab === "rules" && selectedRule ? (
+          <div>
+            <button onClick={() => setSelectedRule(null)} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors">← Back</button>
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedRule.name}</h2>
+                <button onClick={() => setEditingRuleId(selectedRule.id)} className="rounded-md border border-tok-border bg-surface-2 px-2.5 py-1 text-xs">Edit</button>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-2">{selectedRule.description}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {tab === "alerts" ? (
+          <div className="space-y-3">
+            {FIRING_ALERTS.map((alert) => (
+              <div key={alert.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", alert.status === "firing" ? "border-rose-500/30" : "border-[var(--color-border)]")}>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{alert.ruleName}</span>
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full border", ALERT_SEVERITY_BADGE_CLASS[alert.severity])}>{ALERT_SEVERITY_LABELS[alert.severity]}</span>
+                </div>
               </div>
             ))}
           </div>
+        ) : null}
 
+        {tab === "history" ? (
           <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
-            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Rules by Severity</h3>
-            <div className="space-y-3">
-              {(["critical", "high", "medium", "low", "info"] as RuleSeverity[]).map(sev => {
-                const count = RULES.filter(r => r.severity === sev).length;
-                const pct = (count / RULES.length) * 100;
-                return (
-                  <div key={sev}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="capitalize text-[var(--color-text-secondary)]">{sev}</span>
-                      <span className={severityColor(sev).split(" ")[1]}>{count} rules</span>
-                    </div>
-                    <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
-                      <div
-                        className={cn("h-full rounded-full", sev === "critical" ? "bg-rose-500" : sev === "high" ? "bg-orange-500" : sev === "medium" ? "bg-amber-500" : sev === "low" ? "bg-blue-500" : "bg-[var(--color-surface-3)]")}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            <h3 className="text-sm font-medium mb-3">Evaluation History</h3>
+            <div className="flex items-end gap-2" style={{ height: 100 }}>
+              {EVAL_HISTORY.map((point) => (
+                <div key={point.time} className="flex-1">
+                  <div className={cn("rounded-t", point.state === "firing" ? "bg-rose-500" : "bg-emerald-500")} style={{ height: `${(point.value / (maxValue * 1.1)) * 90}px`, minHeight: 4 }} />
+                </div>
+              ))}
             </div>
           </div>
+        ) : null}
 
+        {tab === "stats" ? (
           <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
-            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Most Active Rules</h3>
-            <div className="space-y-3">
-              {[...RULES].toSorted((a, b) => b.firingCount - a.firingCount).slice(0, 5).map(rule => {
-                const maxFire = Math.max(...RULES.map(r => r.firingCount), 1);
-                const pct = (rule.firingCount / maxFire) * 100;
-                return (
-                  <div key={rule.id}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[var(--color-text-primary)]">{rule.name}</span>
-                      <span className={stateColor(rule.state)}>{rule.firingCount} fires</span>
-                    </div>
-                    <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", rule.state === "firing" ? "bg-rose-500" : "bg-indigo-500")} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <h3 className="text-sm font-medium mb-3">Rules by Severity</h3>
+            {ALERT_SEVERITY_ORDER.map((severity) => {
+              const count = rules.filter((rule) => rule.severity === severity).length;
+              return (
+                <div key={severity} className="flex items-center justify-between text-xs py-1">
+                  <span>{ALERT_SEVERITY_LABELS[severity]}</span>
+                  <span>{count}</span>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      )}
-    </div>
+        ) : null}
+      </div>
+
+      <AlertSlideoutPanel
+        open={showSlideout && Boolean(selectedRule)}
+        title="Alert-Specific Workspace"
+        subtitle="Focused diagnostics for this rule"
+        onClose={() => setShowSlideout(false)}
+      >
+        {selectedRule ? (
+          <button
+            type="button"
+            onClick={() => { window.location.hash = `#${resolveAlertWorkspaceRoute({ ruleId: selectedRule.id })}`; }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+          >
+            Open Alert Workspace
+          </button>
+        ) : null}
+      </AlertSlideoutPanel>
+
+      <AlertRuleConfigDialog
+        open={editingRule !== null}
+        rule={editingRule ? toConfig(editingRule) : null}
+        onClose={() => setEditingRuleId(null)}
+        onSave={handleRuleSave}
+      />
+    </>
   );
 }

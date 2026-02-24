@@ -12,6 +12,8 @@ import {
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
+import AppBreadcrumbs, { type BreadcrumbItem } from "./components/AppBreadcrumbs";
+import { PromptDialog } from "./components/ui/ActionDialogs";
 import ThemeToggle from "./components/ui/ThemeToggle";
 import { useGateway, GatewayProvider } from "./hooks/useGateway";
 import { GatewayAuthModal } from "./components/GatewayAuthModal";
@@ -1086,12 +1088,12 @@ type NavPreset = {
   navQuery: string;
 };
 
-const NAV_FILTER_OPTIONS: Array<{ value: NavFilter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "core", label: "Core" },
-  { value: "builders", label: "Build" },
-  { value: "operations", label: "Operator" },
-  { value: "analytics", label: "Insight" },
+const NAV_FILTER_OPTIONS: Array<{ value: NavFilter; label: string; icon: string; hint: string }> = [
+  { value: "all", label: "All", icon: "◎", hint: "Everything" },
+  { value: "core", label: "Core", icon: "⬢", hint: "Daily essentials" },
+  { value: "builders", label: "Build", icon: "🛠️", hint: "Build and configure" },
+  { value: "operations", label: "Ops", icon: "🛰️", hint: "Run and monitor" },
+  { value: "analytics", label: "Insights", icon: "📊", hint: "Trends and outcomes" },
 ];
 
 const NAV_SHORTCUT_MAP = new Map(
@@ -1200,6 +1202,8 @@ function AppContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [navQuery, setNavQuery] = useState("");
   const [navFilter, setNavFilter] = useState<NavFilter>("all");
+  const [desktopViewModeOpen, setDesktopViewModeOpen] = useState(false);
+  const [mobileViewModeOpen, setMobileViewModeOpen] = useState(false);
   const [savedPresets, setSavedPresets] = useState<NavPreset[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("oc_nav_presets") ?? "[]");
@@ -1237,6 +1241,8 @@ function AppContent() {
   });
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [presetsOpen, setPresetsOpen] = useState(false);
+  const [savePresetDialogOpen, setSavePresetDialogOpen] = useState(false);
+  const [presetDraftName, setPresetDraftName] = useState("");
   const [operatorHubLastView, setOperatorHubLastView] = useState<Record<OperatorHubId, string>>(() => {
     try {
       const parsed = JSON.parse(localStorage.getItem("oc_operator_hub_last_view") ?? "{}") as Partial<Record<OperatorHubId, string>>;
@@ -1278,6 +1284,8 @@ function AppContent() {
   const [dragOverPosition, setDragOverPosition] = useState<HubDropPosition>("after");
 
   const toggleOperatorMode = useCallback(() => {
+    setDesktopViewModeOpen(false);
+    setMobileViewModeOpen(false);
     setOperatorMode(prev => {
       const next = !prev;
       try { localStorage.setItem("oc_operator_mode", String(next)); } catch {}
@@ -1310,6 +1318,8 @@ function AppContent() {
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
   const currentCategory = getNavCategory(currentNav);
+  const currentCategoryLabel = currentCategory[0].toUpperCase() + currentCategory.slice(1);
+  const currentNavFilterOption = NAV_FILTER_OPTIONS.find((option) => option.value === navFilter) ?? NAV_FILTER_OPTIONS[0];
   const activeOperatorHubId = OPERATOR_VIEW_TO_HUB.get(activeView) ?? "dashboard";
   const activeOperatorHub = operatorHubs.find((hub) => hub.id === activeOperatorHubId) ?? operatorHubs[0];
   const canGoBack = historyIndex > 0;
@@ -1334,6 +1344,9 @@ function AppContent() {
     setActiveView(viewId);
     setMobileSidebarOpen(false);
     setCmdPaletteOpen(false);
+    setDesktopViewModeOpen(false);
+    setMobileViewModeOpen(false);
+    setSavePresetDialogOpen(false);
     setSearchQuery("");
     visitView(viewId);
     recordInteraction();
@@ -1364,7 +1377,12 @@ function AppContent() {
   }, [visitView, recordInteraction]);
 
   const saveCurrentPreset = () => {
-    const name = window.prompt("Preset name", currentNav.label);
+    setPresetDraftName(currentNav.label);
+    setSavePresetDialogOpen(true);
+  };
+
+  const confirmSavePreset = () => {
+    const name = presetDraftName.trim();
     if (!name) {return;}
     const preset: NavPreset = {
       id: `preset-${Date.now()}`,
@@ -1374,6 +1392,8 @@ function AppContent() {
       navQuery,
     };
     setSavedPresets((prev) => [preset, ...prev].slice(0, 8));
+    setSavePresetDialogOpen(false);
+    setPresetDraftName("");
     toast({ message: `Saved preset: ${name}`, type: 'success' });
   };
 
@@ -1402,6 +1422,18 @@ function AppContent() {
     setHistoryIndex(newIndex);
     navigate(targetView, false);
   }, [canGoForward, navigate]);
+
+  const breadcrumbs: BreadcrumbItem[] = operatorMode
+    ? [
+      { id: "home", label: "Home", onSelect: () => navigate("dashboard") },
+      { id: `hub-${activeOperatorHub.id}`, label: activeOperatorHub.label, icon: activeOperatorHub.emoji, onSelect: () => navigate(operatorHubLastView[activeOperatorHub.id] ?? activeOperatorHub.defaultViewId) },
+      { id: `view-${currentNav.id}`, label: currentNav.label, icon: currentNav.emoji, isCurrent: true },
+    ]
+    : [
+      { id: "home", label: "Home", onSelect: () => navigate("dashboard") },
+      { id: `category-${currentCategory}`, label: currentCategoryLabel },
+      { id: `view-${currentNav.id}`, label: currentNav.label, icon: currentNav.emoji, isCurrent: true },
+    ];
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1437,6 +1469,9 @@ function AppContent() {
 
       // Escape — close in priority order
       if (e.key === "Escape") {
+        if (savePresetDialogOpen) { setSavePresetDialogOpen(false); return; }
+        if (desktopViewModeOpen) { setDesktopViewModeOpen(false); return; }
+        if (mobileViewModeOpen) { setMobileViewModeOpen(false); return; }
         if (cmdPaletteOpen) { setCmdPaletteOpen(false); return; }
         if (presetsOpen) { setPresetsOpen(false); return; }
         if (copilotOpen) { setCopilotOpen(false); return; }
@@ -1479,7 +1514,7 @@ function AppContent() {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, copilotOpen, operatorMode, navigate, goBack, goForward, openCommandPalette, toggleOperatorMode]);
+  }, [cmdPaletteOpen, savePresetDialogOpen, desktopViewModeOpen, mobileViewModeOpen, shortcutsOpen, mobileSidebarOpen, copilotOpen, operatorMode, navigate, goBack, goForward, openCommandPalette, toggleOperatorMode]);
 
   // Focus search when palette opens
   useEffect(() => {
@@ -1962,6 +1997,113 @@ function AppContent() {
     resetHubDragState();
   }, [manualHubOrdering, draggedHubId, pinnedOperatorHubs, dragOverPosition, resetHubDragState]);
 
+  const renderManualHubOrderToggle = (size: "desktop" | "mobile" = "desktop") => (
+    <button
+      onClick={() => setManualHubOrdering((prev) => !prev)}
+      className={cn(
+        "shrink-0 rounded-md border transition-colors",
+        size === "desktop" ? "p-1.5" : "p-2",
+        manualHubOrdering
+          ? "border-violet-500/35 bg-violet-600/10 text-violet-300"
+          : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+      )}
+      aria-pressed={manualHubOrdering}
+      aria-label={manualHubOrdering ? "Disable hub reorder" : "Enable hub reorder"}
+      title={manualHubOrdering ? "Disable hub reorder" : "Enable hub reorder"}
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
+        <path d="M3 4.2h8M3 7h8M3 9.8h8" strokeLinecap="round" />
+        <circle cx="4.5" cy="4.2" r="0.9" fill="currentColor" stroke="none" />
+        <circle cx="9.5" cy="7" r="0.9" fill="currentColor" stroke="none" />
+        <circle cx="6" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
+      </svg>
+    </button>
+  );
+
+  const renderViewModePicker = (variant: "desktop" | "mobile") => {
+    const menuOpen = variant === "desktop" ? desktopViewModeOpen : mobileViewModeOpen;
+    const setMenuOpen = variant === "desktop" ? setDesktopViewModeOpen : setMobileViewModeOpen;
+    const buttonSizing = variant === "desktop" ? "h-10 px-2.5" : "h-11 px-3";
+    return (
+      <div className="relative min-w-0 flex-1">
+        <button
+          onClick={() => setMenuOpen((prev) => !prev)}
+          className={cn(
+            "w-full min-w-0 rounded-xl border border-violet-500/25 bg-gradient-to-b from-secondary/70 to-secondary/25 text-left transition-colors hover:border-violet-500/40 hover:from-secondary/90 hover:to-secondary/40",
+            buttonSizing
+          )}
+          aria-expanded={menuOpen}
+          aria-haspopup="listbox"
+          aria-label="Select view mode"
+          title="View mode"
+        >
+          <span className="flex items-center gap-2.5">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-violet-500/12 text-sm text-violet-300" aria-hidden="true">
+              {currentNavFilterOption.icon}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate whitespace-nowrap text-sm font-semibold text-foreground">{currentNavFilterOption.label}</span>
+              <span className="block truncate whitespace-nowrap text-[10px] text-muted-foreground/75">{currentNavFilterOption.hint}</span>
+            </span>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className={cn("text-muted-foreground transition-transform", menuOpen && "rotate-180")}
+              aria-hidden="true"
+            >
+              <path d="M3 4.5L6 7.5L9 4.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </button>
+        {menuOpen && (
+          <>
+            <button
+              className="fixed inset-0 z-40 cursor-default"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close view mode options"
+            />
+            <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-violet-500/30 bg-[var(--color-surface-1)]/95 p-1.5 shadow-2xl backdrop-blur">
+              <div role="listbox" aria-label="View modes" className="space-y-1">
+                {NAV_FILTER_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setNavFilter(option.value);
+                      setMenuOpen(false);
+                    }}
+                    className={cn(
+                      "w-full min-w-0 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                      navFilter === option.value
+                        ? "border-violet-500/40 bg-violet-600/12 text-violet-200"
+                        : "border-transparent bg-secondary/30 text-muted-foreground hover:border-border hover:bg-secondary/55 hover:text-foreground"
+                    )}
+                    role="option"
+                    aria-selected={navFilter === option.value}
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary/70 text-sm" aria-hidden="true">{option.icon}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate whitespace-nowrap text-sm font-medium">{option.label}</span>
+                        <span className="block truncate whitespace-nowrap text-[10px] text-muted-foreground/75">{option.hint}</span>
+                      </span>
+                      {navFilter === option.value && (
+                        <span className="text-xs font-semibold text-violet-300" aria-hidden="true">✓</span>
+                      )}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   const renderDesktopOperatorHubRow = (hub: OperatorHub) => {
     const isPinned = pinnedOperatorHubs.includes(hub.id);
     const isDropTarget = manualHubOrdering && draggedHubId !== null && draggedHubId !== hub.id && dragOverHubId === hub.id;
@@ -2041,6 +2183,24 @@ function AppContent() {
     </button>
   );
 
+  const renderDesktopOperatorSubnavItem = (item: NavItem) => (
+    <button
+      key={`subnav-${item.id}`}
+      onClick={() => navigate(item.id)}
+      className={cn(
+        "w-full flex items-center gap-2 rounded-md border px-3 py-2 text-sm text-left transition-colors",
+        activeView === item.id
+          ? "bg-violet-600/15 text-violet-200 border-violet-500/35"
+          : "bg-[var(--color-surface-2)]/25 text-muted-foreground border-border/70 hover:text-foreground hover:bg-[var(--color-surface-2)]/45"
+      )}
+      aria-current={activeView === item.id ? "page" : undefined}
+      title={item.label}
+    >
+      <span aria-hidden="true">{item.emoji}</span>
+      <span className="truncate whitespace-nowrap">{item.label}</span>
+    </button>
+  );
+
   return (
     <div className="flex h-screen bg-background">
       {/* Mobile overlay backdrop */}
@@ -2067,14 +2227,7 @@ function AppContent() {
       >
         {/* Logo + Operator Mode Toggle */}
         <div className="flex items-center gap-3 p-4 border-b border-border">
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="text-xl hover:opacity-80 transition-opacity"
-            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={sidebarCollapsed ? "Expand sidebar (])" : "Collapse sidebar ([)"}
-          >
-            🐾
-          </button>
+          <span className="text-xl" aria-hidden="true">🐾</span>
           {!sidebarCollapsed && (
             <span className="font-bold text-lg text-foreground" data-tour="brand">OpenClaw</span>
           )}
@@ -2092,53 +2245,35 @@ function AppContent() {
               {operatorMode ? "OPS" : "STD"}
             </button>
           )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className={cn(
+              "ml-auto shrink-0 rounded-md border border-border bg-secondary/40 p-1.5 text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary/60",
+              sidebarCollapsed && "mx-auto"
+            )}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={sidebarCollapsed ? "Expand sidebar (])" : "Collapse sidebar ([)"}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+              {sidebarCollapsed ? <path d="M5 2l4 5-4 5" strokeLinecap="round" strokeLinejoin="round" /> : <path d="M9 2L5 7l4 5" strokeLinecap="round" strokeLinejoin="round" />}
+            </svg>
+          </button>
         </div>
 
         {!sidebarCollapsed && (
           <div className="p-2 border-b border-border">
-            <div className="flex items-center gap-2">
-              <label htmlFor="desktop-view-mode" className="sr-only">View mode</label>
-              <select
-                id="desktop-view-mode"
-                value={navFilter}
-                onChange={(event) => setNavFilter(event.target.value as NavFilter)}
-                className="min-w-0 flex-1 whitespace-nowrap rounded-md border border-border bg-secondary/30 px-2 py-1.5 text-xs text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
-                aria-label="View mode"
-              >
-                {NAV_FILTER_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-              {operatorMode && (
-                <button
-                  onClick={() => setManualHubOrdering((prev) => !prev)}
-                  className={cn(
-                    "shrink-0 rounded-md border p-1.5 transition-colors",
-                    manualHubOrdering
-                      ? "border-violet-500/35 bg-violet-600/10 text-violet-300"
-                      : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                  )}
-                  aria-pressed={manualHubOrdering}
-                  aria-label={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
-                  title={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
-                    <path d="M3 4.2h8M3 7h8M3 9.8h8" strokeLinecap="round" />
-                    <circle cx="4.5" cy="4.2" r="0.9" fill="currentColor" stroke="none" />
-                    <circle cx="9.5" cy="7" r="0.9" fill="currentColor" stroke="none" />
-                    <circle cx="6" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
-                  </svg>
-                </button>
-              )}
-            </div>
+            {renderViewModePicker("desktop")}
           </div>
         )}
         {/* Nav — Operator Mode: Grouped | Standard Mode: Flat */}
         <nav className="flex-1 overflow-y-auto py-2" data-tour="sidebar">
           {operatorMode ? (
             <>
-              {!sidebarCollapsed && visiblePinnedOperatorHubs.length > 0 && (
-                <p className="px-3 pb-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Pinned</p>
+              {!sidebarCollapsed && (
+                <div className="px-3 pb-2 flex items-center justify-between gap-2">
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Pinned</p>
+                  {renderManualHubOrderToggle("desktop")}
+                </div>
               )}
               <div className="space-y-1 px-2">
                 {visiblePinnedOperatorHubs.map((hub) => renderDesktopOperatorHubRow(hub))}
@@ -2291,6 +2426,26 @@ function AppContent() {
         </div>
       </aside>
 
+      {/* Desktop nested sub-navigation */}
+      {operatorMode && (
+        <aside
+          role="navigation"
+          aria-label={`${activeOperatorHub.label} navigation`}
+          className="hidden md:flex w-60 flex-col border-r border-border/80 bg-[var(--color-surface-1)]/90"
+        >
+          <div
+            className={cn(
+              "shrink-0 border-b border-border/70",
+              sidebarCollapsed ? "h-[78px]" : "h-[138px]"
+            )}
+            aria-hidden="true"
+          />
+          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+            {activeOperatorHub.items.map((item) => renderDesktopOperatorSubnavItem(item))}
+          </div>
+        </aside>
+      )}
+
       {/* Mobile sidebar (separate element for overlay) */}
       {/* M9: responsive pass — mobile drawer with ≥44px touch targets */}
       {mobileSidebarOpen && (
@@ -2322,50 +2477,17 @@ function AppContent() {
             </button>
           </div>
           <div className="p-2 border-b border-border">
-            <div className="flex items-center gap-2">
-              <label htmlFor="mobile-view-mode" className="sr-only">View mode</label>
-              <select
-                id="mobile-view-mode"
-                value={navFilter}
-                onChange={(event) => setNavFilter(event.target.value as NavFilter)}
-                className="min-w-0 flex-1 whitespace-nowrap rounded-md border border-border bg-secondary/30 px-2 py-2 text-xs text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
-                aria-label="View mode"
-              >
-                {NAV_FILTER_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-              {operatorMode && (
-                <button
-                  onClick={() => setManualHubOrdering((prev) => !prev)}
-                  className={cn(
-                    "shrink-0 rounded-md border p-2 transition-colors",
-                    manualHubOrdering
-                      ? "border-violet-500/35 bg-violet-600/10 text-violet-300"
-                      : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                  )}
-                  aria-pressed={manualHubOrdering}
-                  aria-label={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
-                  title={manualHubOrdering ? "Disable manual reorder" : "Enable manual reorder"}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
-                    <path d="M3 4.2h8M3 7h8M3 9.8h8" strokeLinecap="round" />
-                    <circle cx="4.5" cy="4.2" r="0.9" fill="currentColor" stroke="none" />
-                    <circle cx="9.5" cy="7" r="0.9" fill="currentColor" stroke="none" />
-                    <circle cx="6" cy="9.8" r="0.9" fill="currentColor" stroke="none" />
-                  </svg>
-                </button>
-              )}
-            </div>
+            {renderViewModePicker("mobile")}
           </div>
           <nav className="flex-1 overflow-y-auto py-2">
             {operatorMode ? (
               <>
-                {visiblePinnedOperatorHubs.length > 0 && (
-                  <div className="px-3 pb-2">
-                    <p className="px-1 pb-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Pinned</p>
+                <div className="px-3 pb-2 flex items-center justify-between gap-2">
+                  <p className="px-1 pb-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">Pinned</p>
+                  <div className="pb-1">
+                    {renderManualHubOrderToggle("mobile")}
                   </div>
-                )}
+                </div>
                 <div className="space-y-1 px-2">
                   {visiblePinnedOperatorHubs.map((hub) => renderMobileOperatorHubRow(hub))}
                   {visiblePinnedOperatorHubs.length > 0 && visibleUnpinnedOperatorHubs.length > 0 && (
@@ -2496,16 +2618,7 @@ function AppContent() {
           </div>
 
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground/50">OpenClaw</span>
-            <span className="text-muted-foreground/30">/</span>
-            <span className="hidden md:inline text-muted-foreground/50 capitalize">{currentCategory}</span>
-            <span className="hidden md:inline text-muted-foreground/30">/</span>
-            <span className="text-foreground font-medium flex items-center gap-1.5">
-              <span aria-hidden="true">{currentNav.emoji}</span>
-              {currentNav.label}
-            </span>
-          </nav>
+          <AppBreadcrumbs items={breadcrumbs} className="min-w-0 max-w-[48vw]" />
 
           {/* Spacer */}
           <div className="flex-1" />
@@ -2621,7 +2734,7 @@ function AppContent() {
               {/* M9: responsive pass — reduce padding on mobile */}
               <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
                 {operatorMode && (
-                  <section className="mb-3 rounded-xl border border-border bg-card/40 p-2.5" aria-label={`${activeOperatorHub.label} views`}>
+                  <section className="mb-3 rounded-xl border border-border bg-card/40 p-2.5 md:hidden" aria-label={`${activeOperatorHub.label} views`}>
                     <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2">
                       <div className="text-sm font-semibold text-foreground">{activeOperatorHub.label}</div>
                       <div className="text-[11px] text-muted-foreground">Use tabs to switch views</div>
@@ -2680,6 +2793,21 @@ function AppContent() {
         allowSkip={true}
       />
 
+      <PromptDialog
+        open={savePresetDialogOpen}
+        title="Save Preset"
+        description="Name this navigation preset so you can return to it quickly."
+        value={presetDraftName}
+        onChange={setPresetDraftName}
+        placeholder="Preset name"
+        confirmLabel="Save preset"
+        onConfirm={confirmSavePreset}
+        onCancel={() => {
+          setSavePresetDialogOpen(false);
+          setPresetDraftName("");
+        }}
+      />
+
       {/* Command Palette */}
       {cmdPaletteOpen && (
         <>
@@ -2695,10 +2823,10 @@ function AppContent() {
             role="dialog"
             aria-label="Command palette"
             aria-modal="true"
-            className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:inset-auto sm:top-[20%] sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-lg animate-slide-in"
+            className="fixed inset-0 z-50 flex items-start justify-center p-3 pt-4 sm:p-4 sm:pt-[12vh] animate-slide-in"
           >
             {/* M9: responsive pass — full-height on mobile */}
-            <div className="bg-card border border-border rounded-none sm:rounded-xl shadow-2xl overflow-hidden h-full sm:h-auto w-full sm:w-auto">
+            <div className="bg-card border border-border rounded-none sm:rounded-xl shadow-2xl overflow-hidden h-full sm:h-auto w-full max-w-lg">
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <svg

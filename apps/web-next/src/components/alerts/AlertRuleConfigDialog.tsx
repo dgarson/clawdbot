@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, ExternalLink, X } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { normalizeDeliveryTargets } from "./alertDeliveryTargets";
 
 export type AlertRuleSeverity = "critical" | "high" | "medium" | "low" | "info";
 export type AlertRuleCategory =
@@ -197,10 +198,11 @@ export function AlertRuleConfigDialog({
       if (!prev) {
         return prev;
       }
-      if (prev.notifyChannels.includes(normalized)) {
+      const next = normalizeDeliveryTargets([...prev.notifyChannels, normalized]);
+      if (next.length === prev.notifyChannels.length) {
         return prev;
       }
-      return { ...prev, notifyChannels: [...prev.notifyChannels, normalized] };
+      return { ...prev, notifyChannels: next };
     });
 
     setChannelInput("");
@@ -231,7 +233,7 @@ export function AlertRuleConfigDialog({
       condition: draft.condition.trim() || "Condition pending",
       threshold: draft.threshold.trim() || "N/A",
       window: draft.window.trim() || "5m",
-      notifyChannels: draft.notifyChannels.length ? draft.notifyChannels : ["#cb-alerts"],
+      notifyChannels: normalizeDeliveryTargets(draft.notifyChannels.length ? draft.notifyChannels : ["#cb-alerts"]),
     };
 
     onSave(normalized);

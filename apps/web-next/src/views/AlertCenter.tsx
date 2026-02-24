@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Bot,
-  ChevronDown,
-  ChevronRight,
   Coins,
   Database,
   ExternalLink,
@@ -25,9 +23,25 @@ import {
   type AlertDiagnosticsView,
 } from "../components/alerts/AlertRuleConfigDialog";
 import {
+  AlertGroupPresetButtons,
+  AlertSeveritySummaryPill,
+} from "../components/alerts/AlertRuleCardPrimitives";
+import { AlertFilterPillGroup } from "../components/alerts/AlertFilters";
+import { AlertRuleCard } from "../components/alerts/AlertRuleCard";
+import { AlertRuleGroupSection } from "../components/alerts/AlertRuleGroupSection";
+import { AlertSlideoutPanel } from "../components/alerts/AlertSlideoutPanel";
+import {
+  ALERT_SEVERITY_BADGE_CLASS,
+  ALERT_SEVERITY_GROUP_STYLES,
+  ALERT_SEVERITY_LABELS,
+  ALERT_SEVERITY_ORDER,
+} from "../components/alerts/alertSeverityTheme";
+import { toTitleLabel } from "../components/alerts/alertLabeling";
+import { resolveAlertDiagnosticsRoute, resolveAlertWorkspaceRoute } from "../components/alerts/alertRoutes";
+import { warnOnSeverityContrastIssues } from "../components/alerts/alertVisualA11y";
+import {
   buildAlertCenterQuery,
   getAlertStatusLabel,
-  getRovingTargetIndex,
   parseAlertCenterQuery,
   resolveBackToAlert,
   resolveRuleJump,
@@ -264,65 +278,6 @@ const RULES: AlertRule[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const SEVERITY_COLORS: Record<AlertSeverity, string> = {
-  critical: "text-red-400 bg-red-400/10 border-red-400/20",
-  high:     "text-orange-400 bg-orange-400/10 border-orange-400/20",
-  medium:   "text-amber-400 bg-amber-400/10 border-amber-400/20",
-  low:      "text-blue-400 bg-blue-400/10 border-blue-400/20",
-  info:     "text-fg-secondary bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
-};
-
-const SEVERITY_LABELS: Record<AlertSeverity, string> = {
-  critical: "Critical",
-  high:     "High",
-  medium:   "Medium",
-  low:      "Low",
-  info:     "Info",
-};
-
-const SEVERITY_ORDER: AlertSeverity[] = ["critical", "high", "medium", "low", "info"];
-
-const SEVERITY_GROUP_STYLES: Record<
-  AlertSeverity,
-  { summaryPill: string; count: string; groupBorder: string; groupSurface: string; dot: string }
-> = {
-  critical: {
-    summaryPill: "border-rose-500/40 bg-rose-500/10 text-rose-300",
-    count: "text-rose-300",
-    groupBorder: "border-rose-500/30",
-    groupSurface: "bg-rose-500/5",
-    dot: "bg-rose-400",
-  },
-  high: {
-    summaryPill: "border-orange-500/40 bg-orange-500/10 text-orange-300",
-    count: "text-orange-300",
-    groupBorder: "border-orange-500/30",
-    groupSurface: "bg-orange-500/5",
-    dot: "bg-orange-400",
-  },
-  medium: {
-    summaryPill: "border-amber-500/40 bg-amber-500/10 text-amber-300",
-    count: "text-amber-300",
-    groupBorder: "border-amber-500/30",
-    groupSurface: "bg-amber-500/5",
-    dot: "bg-amber-400",
-  },
-  low: {
-    summaryPill: "border-sky-500/40 bg-sky-500/10 text-sky-300",
-    count: "text-sky-300",
-    groupBorder: "border-sky-500/30",
-    groupSurface: "bg-sky-500/5",
-    dot: "bg-sky-400",
-  },
-  info: {
-    summaryPill: "border-tok-border bg-surface-2 text-fg-secondary",
-    count: "text-fg-secondary",
-    groupBorder: "border-tok-border",
-    groupSurface: "bg-surface-1",
-    dot: "bg-fg-muted",
-  },
-};
-
 const STATUS_META: Record<
   AlertStatus,
   { label: string; pillClass: string; metricColor: string; metricSurface: string }
@@ -362,11 +317,7 @@ const STATUS_FILTER_OPTIONS: Array<{ value: StatusFilter; label: string }> = [
 
 const SEVERITY_FILTER_OPTIONS: Array<{ value: SeverityFilter; label: string }> = [
   { value: "all", label: "All" },
-  { value: "critical", label: "Critical" },
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
-  { value: "info", label: "Info" },
+  ...ALERT_SEVERITY_ORDER.map((severity) => ({ value: severity, label: toTitleLabel(severity) })),
 ];
 
 const CATEGORY_META: Record<AlertCategory, { label: string; emoji: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -386,11 +337,7 @@ const DIAGNOSTICS_LABELS: Record<AlertDiagnosticsView, string> = {
   metrics: "Metrics Explorer",
 };
 
-const DIAGNOSTICS_NAV: Record<AlertDiagnosticsView, string> = {
-  tracer: "tracer",
-  analytics: "agent-insights",
-  metrics: "usage",
-};
+const ALERT_UI_STATE_KEY = "oc_alert_center_rule_ui";
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -433,8 +380,8 @@ function AlertCard({ alert, selected, onSelect }: AlertCardProps) {
           {isFiring && (
             <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse shrink-0" aria-label="Firing" />
           )}
-          <span className={cn("text-xs px-2 py-0.5 rounded-full border", SEVERITY_COLORS[alert.severity])}>
-            {SEVERITY_LABELS[alert.severity]}
+          <span className={cn("text-xs px-2 py-0.5 rounded-full border", ALERT_SEVERITY_BADGE_CLASS[alert.severity])}>
+            {ALERT_SEVERITY_LABELS[alert.severity]}
           </span>
           <span className={cn("text-xs px-2 py-0.5 rounded-full border", STATUS_META[alert.status].pillClass)}>
             {STATUS_META[alert.status].label}
@@ -603,6 +550,12 @@ export default function AlertCenter({
   const [editingRuleId, setEditingRuleId] = useState<string | null>(initialQuery.ruleId ?? null);
   const [focusedRuleId, setFocusedRuleId] = useState<string | null>(initialQuery.ruleId ?? null);
   const [originAlertId, setOriginAlertId] = useState<string | null>(initialQuery.fromAlertId ?? null);
+  const [showRuleSlideout, setShowRuleSlideout] = useState(false);
+  const [rulePreset, setRulePreset] = useState<"p1Only" | "all" | "none" | "custom">(
+    initialQuery.rgPreset === "all" || initialQuery.rgPreset === "none" || initialQuery.rgPreset === "p1Only"
+      ? initialQuery.rgPreset
+      : "p1Only"
+  );
   const [expandedSeverityGroups, setExpandedSeverityGroups] = useState<Record<AlertSeverity, boolean>>({
     critical: true,
     high: true,
@@ -659,7 +612,7 @@ export default function AlertCenter({
 
   const groupedRules = useMemo(
     () =>
-      SEVERITY_ORDER.map((severity) => ({
+      ALERT_SEVERITY_ORDER.map((severity) => ({
         severity,
         rules: rules
           .filter((rule) => rule.severity === severity)
@@ -710,7 +663,7 @@ export default function AlertCenter({
 
   const openDiagnosticsView = useCallback(
     (diagnosticsView: AlertDiagnosticsView) => {
-      onNavigate?.(DIAGNOSTICS_NAV[diagnosticsView]);
+      onNavigate?.(resolveAlertDiagnosticsRoute(diagnosticsView));
     },
     [onNavigate]
   );
@@ -724,6 +677,37 @@ export default function AlertCenter({
   const handleRuleSave = useCallback((nextRule: AlertRule) => {
     setRules((previous) => previous.map((rule) => (rule.id === nextRule.id ? nextRule : rule)));
     setEditingRuleId(null);
+  }, []);
+
+  const setRuleGroupPreset = useCallback((preset: "p1Only" | "all" | "none") => {
+    setRulePreset(preset);
+    if (preset === "p1Only") {
+      setExpandedSeverityGroups({
+        critical: true,
+        high: true,
+        medium: false,
+        low: false,
+        info: false,
+      });
+      return;
+    }
+    if (preset === "all") {
+      setExpandedSeverityGroups({
+        critical: true,
+        high: true,
+        medium: true,
+        low: true,
+        info: true,
+      });
+      return;
+    }
+    setExpandedSeverityGroups({
+      critical: false,
+      high: false,
+      medium: false,
+      low: false,
+      info: false,
+    });
   }, []);
 
   const handleNewRule = useCallback(() => {
@@ -747,18 +731,6 @@ export default function AlertCenter({
     setEditingRuleId(id);
   }, []);
 
-  const handleFilterGroupKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-    const pills = Array.from(
-      event.currentTarget.querySelectorAll<HTMLButtonElement>("button[data-filter-pill='true']")
-    );
-    if (pills.length === 0) {return;}
-    const activeIndex = pills.findIndex((pill) => pill === document.activeElement);
-    const index = getRovingTargetIndex(activeIndex >= 0 ? activeIndex : 0, event.key, pills.length);
-    if (index === null) {return;}
-    event.preventDefault();
-    pills[index]?.focus();
-  }, []);
-
   const tabs: Array<{ id: TabId; label: string }> = [
     { id: "alerts", label: `Alerts (${ALERTS.length})` },
     { id: "rules", label: `Rules (${rules.length})` },
@@ -769,6 +741,33 @@ export default function AlertCenter({
     { value: "acknowledged", label: STATUS_META.acknowledged.label, count: counts.acknowledged, color: STATUS_META.acknowledged.metricColor, surface: STATUS_META.acknowledged.metricSurface },
     { value: "resolved", label: STATUS_META.resolved.label, count: counts.resolved, color: STATUS_META.resolved.metricColor, surface: STATUS_META.resolved.metricSurface },
   ];
+
+  useEffect(() => {
+    if (typeof window === "undefined") {return;}
+    warnOnSeverityContrastIssues();
+    try {
+      const raw = window.localStorage.getItem(ALERT_UI_STATE_KEY);
+      if (!raw) {return;}
+      const parsed = JSON.parse(raw) as { preset?: "p1Only" | "all" | "none"; expanded?: Partial<Record<AlertSeverity, boolean>> };
+      if (!parsed || typeof parsed !== "object") {return;}
+      if (parsed.preset) {setRulePreset(parsed.preset);}
+      setExpandedSeverityGroups((previous) => ({
+        ...previous,
+        critical: parsed.expanded?.critical ?? previous.critical,
+        high: parsed.expanded?.high ?? previous.high,
+        medium: parsed.expanded?.medium ?? previous.medium,
+        low: parsed.expanded?.low ?? previous.low,
+        info: parsed.expanded?.info ?? previous.info,
+      }));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {return;}
+    try {
+      window.localStorage.setItem(ALERT_UI_STATE_KEY, JSON.stringify({ preset: rulePreset, expanded: expandedSeverityGroups }));
+    } catch {}
+  }, [expandedSeverityGroups, rulePreset]);
 
   useEffect(() => {
     if (filteredAlerts.length === 0) {
@@ -796,6 +795,7 @@ export default function AlertCenter({
       alertId: selectedAlert?.id,
       ruleId: focusedRuleId ?? undefined,
       fromAlertId: originAlertId ?? undefined,
+      rgPreset: rulePreset === "custom" ? undefined : rulePreset,
     });
     if (window.location.search !== nextQuery) {
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${nextQuery}${window.location.hash}`);
@@ -816,6 +816,10 @@ export default function AlertCenter({
       setCategoryFilter(query.category && query.category in CATEGORY_META ? (query.category as CategoryFilter) : "all");
       setFocusedRuleId(query.ruleId ?? null);
       setOriginAlertId(query.fromAlertId ?? null);
+      if (query.rgPreset === "all" || query.rgPreset === "none" || query.rgPreset === "p1Only") {
+        setRulePreset(query.rgPreset);
+        setRuleGroupPreset(query.rgPreset);
+      }
       setSelectedAlert(ALERTS.find((alert) => alert.id === query.alertId) ?? ALERTS[0]);
     };
     window.addEventListener("popstate", onPopState);
@@ -881,106 +885,34 @@ export default function AlertCenter({
           <div className="flex flex-1 overflow-hidden">
             <div className="w-64 sm:w-72 md:w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
               <div className="p-3 border-b border-tok-border space-y-2">
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wide text-fg-muted">State</p>
-                  <div
-                    className="flex flex-wrap gap-1"
-                    role="group"
-                    aria-label="Filter by alert state"
-                    onKeyDown={handleFilterGroupKeyDown}
-                  >
-                    {STATUS_FILTER_OPTIONS.map((statusOption) => (
-                      <button
-                        key={statusOption.value}
-                        data-filter-pill="true"
-                        onClick={() => setStatusFilter(statusOption.value)}
-                        aria-pressed={statusFilter === statusOption.value}
-                        className={cn(
-                          "text-xs px-2 py-1 rounded border transition-colors",
-                          "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                          statusFilter === statusOption.value
-                            ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                            : "border-tok-border text-fg-secondary hover:text-fg-primary"
-                        )}
-                      >
-                        {statusOption.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wide text-fg-muted">Criticality</p>
-                  <div
-                    className="flex flex-wrap gap-1"
-                    role="group"
-                    aria-label="Filter by criticality"
-                    onKeyDown={handleFilterGroupKeyDown}
-                  >
-                    {SEVERITY_FILTER_OPTIONS.map((severityOption) => (
-                      <button
-                        key={severityOption.value}
-                        data-filter-pill="true"
-                        onClick={() => setSeverityFilter(severityOption.value)}
-                        aria-pressed={severityFilter === severityOption.value}
-                        className={cn(
-                          "text-xs px-2 py-1 rounded border transition-colors",
-                          "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                          severityFilter === severityOption.value
-                            ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                            : "border-tok-border text-fg-secondary hover:text-fg-primary"
-                        )}
-                      >
-                        {severityOption.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-wide text-fg-muted">Category</p>
-                  <div
-                    className="flex flex-wrap gap-1"
-                    role="group"
-                    aria-label="Filter by category"
-                    onKeyDown={handleFilterGroupKeyDown}
-                  >
-                    <button
-                      key="all"
-                      data-filter-pill="true"
-                      onClick={() => setCategoryFilter("all")}
-                      aria-pressed={categoryFilter === "all"}
-                      className={cn(
-                        "text-xs px-2 py-1 rounded border transition-colors",
-                        "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                        categoryFilter === "all"
-                          ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                          : "border-tok-border text-fg-secondary hover:text-fg-primary"
-                      )}
-                    >
-                      All
-                    </button>
-                    {categoryFilters.map((category) => {
+                <AlertFilterPillGroup
+                  label="State"
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={STATUS_FILTER_OPTIONS}
+                />
+                <AlertFilterPillGroup
+                  label="Criticality"
+                  value={severityFilter}
+                  onChange={setSeverityFilter}
+                  options={SEVERITY_FILTER_OPTIONS}
+                />
+                <AlertFilterPillGroup
+                  label="Category"
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  options={[
+                    { value: "all", label: "All" },
+                    ...categoryFilters.map((category) => {
                       const CategoryIcon = CATEGORY_META[category].icon;
-                      return (
-                        <button
-                          key={category}
-                          data-filter-pill="true"
-                          onClick={() => setCategoryFilter(category)}
-                          aria-pressed={categoryFilter === category}
-                          className={cn(
-                            "text-xs px-2 py-1 rounded border transition-colors inline-flex items-center gap-1",
-                            "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                            categoryFilter === category
-                              ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                              : "border-tok-border text-fg-secondary hover:text-fg-primary"
-                          )}
-                        >
-                          <CategoryIcon className="h-3.5 w-3.5 opacity-70" />
-                          <span>{CATEGORY_META[category].label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                      return {
+                        value: category,
+                        label: CATEGORY_META[category].label,
+                        icon: <CategoryIcon className="h-3.5 w-3.5 opacity-70" />,
+                      };
+                    }),
+                  ]}
+                />
               </div>
 
               <div className="flex-1 overflow-y-auto p-3 space-y-2" role="list" aria-label="Alert list">
@@ -1009,8 +941,8 @@ export default function AlertCenter({
                 <div className="space-y-5 max-w-2xl">
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <span className={cn("text-sm px-2.5 py-1 rounded-full border font-medium", SEVERITY_COLORS[selectedAlert.severity])}>
-                        {SEVERITY_LABELS[selectedAlert.severity]}
+                      <span className={cn("text-sm px-2.5 py-1 rounded-full border font-medium", ALERT_SEVERITY_BADGE_CLASS[selectedAlert.severity])}>
+                        {ALERT_SEVERITY_LABELS[selectedAlert.severity]}
                       </span>
                       <span className={cn("text-sm px-2.5 py-1 rounded-full border", STATUS_META[selectedAlert.status].pillClass)}>
                         {STATUS_META[selectedAlert.status].label}
@@ -1177,184 +1109,191 @@ export default function AlertCenter({
 
                 <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Severity buckets">
                   {groupedRules.map((group) => {
-                    const groupStyle = SEVERITY_GROUP_STYLES[group.severity];
+                    const groupStyle = ALERT_SEVERITY_GROUP_STYLES[group.severity];
                     const expanded = expandedSeverityGroups[group.severity];
+                    const enabledCount = group.rules.filter((rule) => rule.enabled).length;
                     return (
-                      <button
+                      <AlertSeveritySummaryPill
                         key={group.severity}
-                        type="button"
-                        onClick={() =>
-                          setExpandedSeverityGroups((previous) => ({
-                            ...previous,
-                            [group.severity]: !previous[group.severity],
-                          }))
+                        label={ALERT_SEVERITY_LABELS[group.severity]}
+                        total={group.rules.length}
+                        activeCount={enabledCount}
+                        expanded={expanded}
+                        onToggle={() =>
+                          {
+                            setRulePreset("custom");
+                            setExpandedSeverityGroups((previous) => ({
+                              ...previous,
+                              [group.severity]: !previous[group.severity],
+                            }));
+                          }
                         }
-                        className={cn(
-                          "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs transition-colors",
-                          "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none",
-                          groupStyle.summaryPill
-                        )}
-                      >
-                        <span className="font-semibold">{SEVERITY_LABELS[group.severity]}</span>
-                        <span className={cn("rounded-full bg-surface-0/70 px-1.5 py-0.5 font-mono text-[11px]", groupStyle.count)}>
-                          {group.rules.length}
-                        </span>
-                        {expanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-                      </button>
+                        className={groupStyle.summaryPill}
+                        countClassName={groupStyle.count}
+                        countSurfaceClassName={groupStyle.badgeSurface}
+                      />
                     );
                   })}
                 </div>
+                <AlertGroupPresetButtons
+                  onP1Only={() => setRuleGroupPreset("p1Only")}
+                  onExpandAll={() => setRuleGroupPreset("all")}
+                  onCollapseAll={() => setRuleGroupPreset("none")}
+                />
               </section>
 
               {groupedRules
                 .filter((group) => group.rules.length > 0)
                 .map((group) => {
-                  const groupStyle = SEVERITY_GROUP_STYLES[group.severity];
+                  const groupStyle = ALERT_SEVERITY_GROUP_STYLES[group.severity];
                   const expanded = expandedSeverityGroups[group.severity];
                   return (
-                    <section
+                    <AlertRuleGroupSection
                       key={group.severity}
-                      className={cn("rounded-xl border bg-surface-1 overflow-hidden", groupStyle.groupBorder, groupStyle.groupSurface)}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
+                      title={ALERT_SEVERITY_LABELS[group.severity]}
+                      count={group.rules.length}
+                      activeCount={group.rules.filter((rule) => rule.enabled).length}
+                      expanded={expanded}
+                      onToggle={() =>
+                        {
+                          setRulePreset("custom");
                           setExpandedSeverityGroups((previous) => ({
                             ...previous,
                             [group.severity]: !previous[group.severity],
-                          }))
+                          }));
                         }
-                        className={cn(
-                          "w-full flex items-center justify-between px-4 py-3 text-left",
-                          "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
-                        )}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className={cn("h-2.5 w-2.5 rounded-full", groupStyle.dot)} />
-                          <p className="text-sm font-semibold text-fg-primary">
-                            {SEVERITY_LABELS[group.severity]} ({group.rules.length})
-                          </p>
-                          <span className="text-xs text-fg-muted">
-                            {group.rules.filter((rule) => rule.enabled).length} active
-                          </span>
-                        </div>
-                        {expanded ? <ChevronDown className="size-4 text-fg-muted" /> : <ChevronRight className="size-4 text-fg-muted" />}
-                      </button>
-
-                      {expanded && (
-                        <div className="p-3 sm:p-4 space-y-3">
-                          {group.rules.map((rule) => {
-                            const RuleCategoryIcon = CATEGORY_META[rule.category].icon;
-                            return (
-                            <article
-                              id={`rule-${rule.id}`}
-                              key={rule.id}
-                              className={cn(
-                                "rounded-xl border border-tok-border bg-surface-0/60 p-4",
-                                focusedRuleId === rule.id && "ring-1 ring-indigo-500/60 bg-indigo-500/10"
-                              )}
-                            >
-                              <div className="flex items-start gap-4">
+                      }
+                      className={cn(groupStyle.groupBorder, groupStyle.groupSurface)}
+                      dotClassName={groupStyle.dot}
+                    >
+                      {group.rules.map((rule) => {
+                        const RuleCategoryIcon = CATEGORY_META[rule.category].icon;
+                        return (
+                          <AlertRuleCard
+                            id={`rule-${rule.id}`}
+                            key={rule.id}
+                            className={cn(focusedRuleId === rule.id && "ring-1 ring-indigo-500/60 bg-indigo-500/10")}
+                            onClick={() => {
+                              setShowRuleSlideout(true);
+                              setFocusedRuleId(rule.id);
+                            }}
+                            title={rule.name}
+                            titleBadges={(
+                              <>
+                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border", ALERT_SEVERITY_BADGE_CLASS[rule.severity])}>
+                                  {ALERT_SEVERITY_LABELS[rule.severity]}
+                                </span>
+                                <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-2 text-fg-secondary inline-flex items-center gap-1">
+                                  <RuleCategoryIcon className="size-3 opacity-70" />
+                                  <span>{CATEGORY_META[rule.category].label}</span>
+                                </span>
+                              </>
+                            )}
+                            targets={rule.notifyChannels}
+                            description={rule.condition}
+                            leadingControl={(
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={rule.enabled}
+                                aria-label={`${rule.name} ${rule.enabled ? "enabled" : "disabled"}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  toggleRuleEnabled(rule.id);
+                                }}
+                                className={cn(
+                                  "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors mt-0.5",
+                                  "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
+                                  rule.enabled ? "bg-indigo-600" : "bg-surface-3"
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transition-transform m-0.5",
+                                    rule.enabled ? "translate-x-4" : "translate-x-0"
+                                  )}
+                                />
+                              </button>
+                            )}
+                            headerActions={(
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setEditingRuleId(rule.id);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-md border border-tok-border bg-surface-2 px-2.5 py-1 text-xs text-fg-secondary hover:text-fg-primary transition-colors"
+                              >
+                                <Pencil className="size-3.5" />
+                                Edit
+                              </button>
+                            )}
+                            footerActions={(
+                              <>
+                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border", ALERT_SEVERITY_BADGE_CLASS[rule.severity])}>
+                                  Delivery Targets: {rule.notifyChannels.length}
+                                </span>
                                 <button
                                   type="button"
-                                  role="switch"
-                                  aria-checked={rule.enabled}
-                                  aria-label={`${rule.name} ${rule.enabled ? "enabled" : "disabled"}`}
-                                  onClick={() => toggleRuleEnabled(rule.id)}
-                                  className={cn(
-                                    "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors mt-0.5",
-                                    "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                                    rule.enabled ? "bg-indigo-600" : "bg-surface-3"
-                                  )}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openDiagnosticsView(rule.diagnosticsView);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-300 hover:bg-indigo-500/20 transition-colors"
                                 >
-                                  <span
-                                    className={cn(
-                                      "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transition-transform m-0.5",
-                                      rule.enabled ? "translate-x-4" : "translate-x-0"
-                                    )}
-                                  />
+                                  <ExternalLink className="size-3.5" />
+                                  {DIAGNOSTICS_LABELS[rule.diagnosticsView]}
                                 </button>
-
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="text-sm font-semibold text-fg-primary">{rule.name}</h3>
-                                    <span className={cn("text-[11px] px-2 py-0.5 rounded-full border", SEVERITY_COLORS[rule.severity])}>
-                                      {SEVERITY_LABELS[rule.severity]}
-                                    </span>
-                                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-2 text-fg-secondary inline-flex items-center gap-1">
-                                      <RuleCategoryIcon className="size-3 opacity-70" />
-                                      <span>{CATEGORY_META[rule.category].label}</span>
-                                    </span>
-                                  </div>
-
-                                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                    {rule.notifyChannels.map((channel) => (
-                                      <span
-                                        key={channel}
-                                        className="text-[10px] px-2 py-0.5 rounded-full border border-tok-border bg-surface-2 text-fg-secondary font-mono"
-                                      >
-                                        {channel}
-                                      </span>
-                                    ))}
-                                  </div>
-
-                                  <p className="text-xs text-fg-muted mt-2">{rule.condition}</p>
-
-                                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditingRuleId(rule.id)}
-                                      className="inline-flex items-center gap-1.5 rounded-md border border-tok-border bg-surface-2 px-2.5 py-1 text-xs text-fg-secondary hover:text-fg-primary transition-colors"
-                                    >
-                                      <Pencil className="size-3.5" />
-                                      Edit
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => openDiagnosticsView(rule.diagnosticsView)}
-                                      className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-300 hover:bg-indigo-500/20 transition-colors"
-                                    >
-                                      <ExternalLink className="size-3.5" />
-                                      {DIAGNOSTICS_LABELS[rule.diagnosticsView]}
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <div className="w-40 shrink-0 self-center rounded-lg border border-tok-border bg-surface-2/60 px-3 py-2">
-                                  <div className="space-y-1.5">
-                                    <div className="flex items-center justify-between gap-2 text-[11px]">
-                                      <span className="text-fg-muted">Window</span>
-                                      <span className="text-fg-primary font-mono">{rule.window}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2 text-[11px]">
-                                      <span className="text-fg-muted">Threshold</span>
-                                      <span className="text-fg-primary font-mono">{rule.threshold}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2 text-[11px]">
-                                      <span className="text-fg-muted">Fired</span>
-                                      <span className="text-fg-primary font-mono">{rule.firedCount}×</span>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2 text-[11px]">
-                                      <span className="text-fg-muted">Last</span>
-                                      <span className="text-fg-primary font-mono">
-                                        {rule.lastFired ? relTime(rule.lastFired) : "never"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </article>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </section>
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    onNavigate?.(resolveAlertWorkspaceRoute({ ruleId: rule.id }));
+                                  }}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                                >
+                                  <ExternalLink className="size-3.5" />
+                                  Alert Workspace
+                                </button>
+                              </>
+                            )}
+                            stats={[
+                              { label: "Window", value: rule.window },
+                              { label: "Threshold", value: rule.threshold },
+                              { label: "Fired", value: `${rule.firedCount}×` },
+                              { label: "Last", value: rule.lastFired ? relTime(rule.lastFired) : "never" },
+                            ]}
+                          />
+                        );
+                      })}
+                    </AlertRuleGroupSection>
                   );
                 })}
             </div>
           </div>
         )}
       </main>
+
+      <AlertSlideoutPanel
+        open={showRuleSlideout && Boolean(focusedRuleId)}
+        title="Alert Rule Context"
+        subtitle="Quick alert-specific analytics and routing context"
+        onClose={() => setShowRuleSlideout(false)}
+      >
+        {focusedRuleId ? (
+          <div className="space-y-3">
+            <p className="text-xs text-fg-muted">Focused rule: <span className="text-fg-primary font-mono">{focusedRuleId}</span></p>
+            <button
+              type="button"
+              onClick={() => onNavigate?.(resolveAlertWorkspaceRoute({ ruleId: focusedRuleId, alertId: selectedAlert?.id }))}
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+            >
+              <ExternalLink className="size-3.5" />
+              Open Alert Workspace
+            </button>
+          </div>
+        ) : null}
+      </AlertSlideoutPanel>
 
       <AlertRuleConfigDialog
         open={editingRule !== null}

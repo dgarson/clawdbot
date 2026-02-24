@@ -18,6 +18,7 @@ import {
   Filter
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ConfirmDialog } from '../components/ui/ActionDialogs';
 import { useGateway } from '../hooks/useGateway';
 import { MOCK_CRON_JOBS, MOCK_AGENTS, formatCronSchedule, formatRelativeTime, formatDuration } from '../mock-data';
 import type { CronJob, Agent } from '../types';
@@ -29,6 +30,7 @@ export default function CronScheduleBuilder() {
   const [jobs, setJobs] = useState<CronJob[]>(MOCK_CRON_JOBS);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [pendingDeleteJobId, setPendingDeleteJobId] = useState<string | null>(null);
 
   // New Job State
   const [newJob, setNewJob] = useState({
@@ -56,9 +58,13 @@ export default function CronScheduleBuilder() {
   };
 
   const deleteJob = (id: string) => {
-    if (confirm('Are you sure you want to delete this automation?')) {
-      setJobs(jobs.filter(j => j.id !== id));
-    }
+    setPendingDeleteJobId(id);
+  };
+
+  const confirmDeleteJob = () => {
+    if (!pendingDeleteJobId) {return;}
+    setJobs((prev) => prev.filter((job) => job.id !== pendingDeleteJobId));
+    setPendingDeleteJobId(null);
   };
 
   return (
@@ -410,6 +416,16 @@ export default function CronScheduleBuilder() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingDeleteJobId !== null}
+        title="Delete Automation"
+        description="This automation will be removed from your schedule."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={confirmDeleteJob}
+        onCancel={() => setPendingDeleteJobId(null)}
+      />
     </div>
   );
 }

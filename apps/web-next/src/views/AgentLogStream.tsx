@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "../lib/utils";
+import { useToast } from "../components/Toast";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -136,9 +137,10 @@ function LiveDot({ active }: { active: boolean }) {
 interface SidePanelProps {
   line: LogLine;
   onClose: () => void;
+  onOpenInInspector: (line: LogLine) => void;
 }
 
-function SidePanel({ line, onClose }: SidePanelProps) {
+function SidePanel({ line, onClose, onOpenInInspector }: SidePanelProps) {
   return (
     <div className="w-80 shrink-0 border-l border-[var(--color-border)] bg-[var(--color-surface-1)] flex flex-col overflow-hidden">
       {/* Panel header */}
@@ -185,7 +187,7 @@ function SidePanel({ line, onClose }: SidePanelProps) {
       {/* Panel footer */}
       <div className="px-4 py-3 border-t border-[var(--color-border)]">
         <button
-          onClick={() => alert(`[mock] Opening line #${line.id} in Inspector…`)}
+          onClick={() => onOpenInInspector(line)}
           className="w-full rounded bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-medium py-2 transition-colors"
         >
           Open in Inspector
@@ -198,6 +200,7 @@ function SidePanel({ line, onClose }: SidePanelProps) {
 // ─── Main view ─────────────────────────────────────────────────────────────────
 
 export default function AgentLogStream() {
+  const { toast } = useToast();
   const [selectedAgent, setSelectedAgent] = useState<string>(AGENTS[0].id);
   const [isLive, setIsLive] = useState(true);
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("ALL");
@@ -476,7 +479,13 @@ export default function AgentLogStream() {
 
         {/* Side panel */}
         {selectedLine && (
-          <SidePanel line={selectedLine} onClose={() => setSelectedLine(null)} />
+          <SidePanel
+            line={selectedLine}
+            onClose={() => setSelectedLine(null)}
+            onOpenInInspector={(line) => {
+              toast({ message: `[mock] Opening line #${line.id} in Inspector.`, type: "info" });
+            }}
+          />
         )}
       </div>
     </div>

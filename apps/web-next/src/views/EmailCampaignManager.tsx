@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ConfirmDialog } from "../components/ui/ActionDialogs";
 
 /**
  * EMAIL CAMPAIGN MANAGER
@@ -181,6 +182,7 @@ export default function EmailCampaignManager() {
   const [activeTab, setActiveTab] = useState<TabType>("campaigns");
   const [expandedCampaignId, setExpandedCampaignId] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>(INITIAL_CAMPAIGNS);
+  const [pendingDeleteCampaignId, setPendingDeleteCampaignId] = useState<string | null>(null);
 
   // Compose State
   const [composeTo, setComposeTo] = useState(AUDIENCE_LISTS[0].id);
@@ -196,9 +198,13 @@ export default function EmailCampaignManager() {
 
   const deleteCampaign = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this campaign?")) {
-      setCampaigns(campaigns.filter(c => c.id !== id));
-    }
+    setPendingDeleteCampaignId(id);
+  };
+
+  const confirmDeleteCampaign = () => {
+    if (!pendingDeleteCampaignId) {return;}
+    setCampaigns((prev) => prev.filter((campaign) => campaign.id !== pendingDeleteCampaignId));
+    setPendingDeleteCampaignId(null);
   };
 
   const duplicateCampaign = (id: string, e: React.MouseEvent) => {
@@ -693,6 +699,16 @@ export default function EmailCampaignManager() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDeleteCampaignId !== null}
+        title="Delete Campaign"
+        description="This campaign will be removed from the list."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={confirmDeleteCampaign}
+        onCancel={() => setPendingDeleteCampaignId(null)}
+      />
 
       {/* Footer Branding */}
       <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-[var(--color-border)] flex justify-between items-center text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-[0.2em]">
