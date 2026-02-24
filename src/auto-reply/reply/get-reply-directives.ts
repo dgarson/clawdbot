@@ -345,9 +345,12 @@ export async function resolveReplyDirectives(params: {
     directives.verboseLevel ??
     (sessionEntry?.verboseLevel as VerboseLevel | undefined) ??
     (agentCfg?.verboseDefault as VerboseLevel | undefined);
+  const configuredReasoningDefault =
+    (agentCfg?.reasoningDefault as ReasoningLevel | undefined) ?? undefined;
   let resolvedReasoningLevel: ReasoningLevel =
     directives.reasoningLevel ??
     (sessionEntry?.reasoningLevel as ReasoningLevel | undefined) ??
+    configuredReasoningDefault ??
     "off";
   const resolvedElevatedLevel = elevatedAllowed
     ? (directives.elevatedLevel ??
@@ -389,11 +392,17 @@ export async function resolveReplyDirectives(params: {
   provider = modelState.provider;
   model = modelState.model;
 
-  // When neither directive nor session set reasoning, default to model capability (e.g. OpenRouter with reasoning: true).
+  // When directives/session/config do not set reasoning, fall back to model capability
+  // (e.g. OpenRouter with reasoning: true).
   const reasoningExplicitlySet =
     directives.reasoningLevel !== undefined ||
     (sessionEntry?.reasoningLevel !== undefined && sessionEntry?.reasoningLevel !== null);
-  if (!reasoningExplicitlySet && resolvedReasoningLevel === "off") {
+  const hasConfiguredReasoningDefault = Object.hasOwn(agentCfg ?? {}, "reasoningDefault");
+  if (
+    !reasoningExplicitlySet &&
+    !hasConfiguredReasoningDefault &&
+    resolvedReasoningLevel === "off"
+  ) {
     resolvedReasoningLevel = await modelState.resolveDefaultReasoningLevel();
   }
 
